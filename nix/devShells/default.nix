@@ -6,10 +6,11 @@
       inherit (sdk-rustLib.rustTools) rust;
     in
     {
-      devShells.default = pkgs.mkShell {
+      devshells.default = {
+        name = "sdk-rust";
+
         packages = with pkgs; [
           # base
-          git
           just
           nix
           nixfmt
@@ -23,19 +24,22 @@
           cargo-edit
           cargo-llvm-cov
           cargo-udeps
+          clang
           rust
           # fmt
           taplo
         ];
 
-        shellHook = ''
-          export ROOT_DIR=$(${pkgs.git}/bin/git rev-parse --show-toplevel)
-          echo "Working on project root directory: $ROOT_DIR"
-          cd "$ROOT_DIR"
-        '';
-
-        # envs
-        LANG = "C.utf8";
+        env = [
+          {
+            name = "LANG";
+            value = "C.utf8";
+          }
+          {
+            name = "CC_wasm32_unknown_unknown";
+            value = "${pkgs.clang.cc}/bin/clang";
+          }
+        ];
       };
     };
 }

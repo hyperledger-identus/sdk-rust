@@ -5,6 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
     flake-parts.url = "github:hercules-ci/flake-parts";
+    devshell.url = "github:numtide/devshell";
   };
 
   outputs =
@@ -21,6 +22,7 @@
       ];
 
       imports = [
+        inputs.devshell.flakeModule
         ./nix/devShells
         ./nix/sdk-rustLib.nix
       ];

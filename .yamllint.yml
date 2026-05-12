@@ -1,0 +1,42 @@
+---
+extends: default
+
+rules:
+  # Allow long lines (common in CI workflows)
+  line-length: disable
+
+  # Allow truthy values like 'on' (used in GitHub Actions triggers)
+  truthy:
+    allowed-values: ["true", "false", "yes", "no", "on"]
+
+  # Relaxed comment indentation
+  comments-indentation: disable
+
+  # Allow YAML files without document start marker (---)
+  document-start: disable
+
+  # Allow spaces inside brackets
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+  # Relax comment spacing (allow 1 space before inline comments)
+  comments:
+    min-spaces-from-content: 1
+
+  # Allow extra spaces after colon
+  colons:
+    max-spaces-after: 2
+
+  # Relax indentation to allow 2-space variants
+  indentation:
+    spaces: consistent
+    indent-sequences: whatever
+
+  # Allow blank lines at end of file
+  empty-lines:
+    max-end: 1
+
+ignore: |
+  target/
+  .claude/

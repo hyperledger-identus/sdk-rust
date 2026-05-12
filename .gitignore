@@ -1,0 +1,17 @@
+target/
+.envrc
+.env
+*.swp
+*.rs.bk
+*.db
+*.dump
+data/
+result
+__pycache__
+lcov.info
+
+# IDE / Editor
+.vscode/
+.idea/
+*.iml
+*.sublime-*

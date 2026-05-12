@@ -1,0 +1,27 @@
+[workspace]
+resolver = "3"
+members = ["lib/identus-core"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[workspace.dependencies]
+# general
+anyhow = { version = "1" }
+async-trait = { version = "0.1" }
+chrono = { version = "0.4" }
+clap = { version = "4" }
+futures = { version = "0.3" }
+regex = { version = "1" }
+serde = { version = "1" }
+serde_json = { version = "1" }
+strum = { version = "0.27" }
+thiserror = { version = "2" }
+tokio = { version = "1" }
+tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3" }
+uuid = { version = "1" }
+# testing
+tempfile = { version = "3" }

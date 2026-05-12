@@ -7,7 +7,7 @@ let
       "rust-src"
       "rust-analyzer"
     ];
-    targets = [ "wasm32-unknown-unknown" ];
+    targets = [ ];
   };
 in
 rec {

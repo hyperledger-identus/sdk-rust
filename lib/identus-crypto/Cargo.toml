@@ -6,6 +6,7 @@ license.workspace = true
 description = "JubJub embedded curve and Schnorr signature types for the Identus SDK"
 
 [dependencies]
+getrandom = { workspace = true }
 midnight-transient-crypto = { workspace = true }
 # Re-export rand so callers of sign() can satisfy the CryptoRng bound
 rand = { workspace = true }

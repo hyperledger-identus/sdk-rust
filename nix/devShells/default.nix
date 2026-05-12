@@ -23,6 +23,7 @@
           cargo-edit
           cargo-llvm-cov
           cargo-udeps
+          clang
           rust
           # fmt
           taplo
@@ -36,6 +37,7 @@
 
         # envs
         LANG = "C.utf8";
+        CC_wasm32_unknown_unknown = "${pkgs.clang.cc}/bin/clang";
       };
     };
 }

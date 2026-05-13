@@ -25,6 +25,7 @@
         inputs.devshell.flakeModule
         ./nix/devShells
         ./nix/sdk-rustLib.nix
+        ./nix/apps
       ];
 
       perSystem =

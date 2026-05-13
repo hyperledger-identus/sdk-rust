@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Identus Crypto — WASM Demo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔐 Identus Crypto</h1>
+      <p class="subtitle">Schnorr signatures over Jubjub — running in your browser via WASM</p>
+    </header>
+
+    <section class="card message-section">
+      <h2>Message</h2>
+      <textarea id="message" rows="3" placeholder="Type a message to sign…">Hello, Identus WASM!</textarea>
+    </section>
+
+    <section class="card actions">
+      <button id="btn-generate" class="btn primary">Generate Key</button>
+      <button id="btn-sign" class="btn" disabled>Sign</button>
+      <button id="btn-verify" class="btn" disabled>Verify</button>
+      <button id="btn-verify-wrong" class="btn secondary" disabled>Verify (wrong key)</button>
+    </section>
+
+    <section class="card result-section">
+      <h2>Keys</h2>
+      <div class="field">
+        <label>Secret Key (hex)</label>
+        <code id="secret-key" class="mono">—</code>
+      </div>
+      <div class="field">
+        <label>Public Key (hex)</label>
+        <code id="public-key" class="mono">—</code>
+      </div>
+    </section>
+
+    <section class="card result-section">
+      <h2>Signature</h2>
+      <div class="field">
+        <code id="signature" class="mono">—</code>
+      </div>
+    </section>
+
+    <section class="card result-section">
+      <h2>Verification</h2>
+      <div class="field">
+        <span id="verify-result" class="verify-badge">—</span>
+      </div>
+    </section>
+
+    <footer>
+      <p class="footnote">
+        Built with <a href="https://github.com/hyperledger-identus">Identus</a> ·
+        <a href="https://rustwasm.github.io/wasm-bindgen/">wasm-bindgen</a>
+      </p>
+    </footer>
+  </div>
+
+  <script type="module" src="index.js"></script>
+</body>
+</html>

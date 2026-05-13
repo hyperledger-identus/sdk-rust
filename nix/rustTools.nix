@@ -45,6 +45,8 @@ rec {
 
   cargoLock = {
     lockFile = ../Cargo.lock;
-    outputHashes = { };
+    outputHashes = {
+      "midnight-base-crypto-1.0.0" = "sha256-D3Np8WB8mr6gdHW8SA9EcpO8NflKUTj5qXY6ssO62N8=";
+    };
   };
 }

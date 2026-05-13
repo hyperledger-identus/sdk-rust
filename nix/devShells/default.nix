@@ -62,6 +62,8 @@
           clang
           rust
           # fmt
+          ktlint
+          swift-format
           taplo
           # wasm
           wasm-pack

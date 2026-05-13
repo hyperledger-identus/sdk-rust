@@ -37,8 +37,8 @@ build-uniffi:
     set -euo pipefail
     cargo build -p identus-crypto-uniffi
     mkdir -p lib/identus-crypto-uniffi/bindings/kotlin
-    # Locate the built library (platform-agnostic: .so on Linux, .dylib on macOS)
-    LIB_FILE=$(find target/debug -maxdepth 1 -name "libidentus_crypto_uniffi.*" ! -name "*.rlib" ! -name "*.d" 2>/dev/null | head -1)
+    # Locate the built library (.so on Linux, .dylib on macOS, .dll on Windows)
+    LIB_FILE=$(ls target/debug/libidentus_crypto_uniffi.{so,dylib,dll} 2>/dev/null | head -1) || true
     if [ -z "$LIB_FILE" ]; then
         echo "Error: libidentus_crypto_uniffi library not found in target/debug/"
         exit 1
@@ -54,7 +54,7 @@ generate-kotlin-bindings:
     #!/usr/bin/env bash
     set -euo pipefail
     mkdir -p lib/identus-crypto-uniffi/bindings/kotlin
-    LIB_FILE=$(find target/debug -maxdepth 1 -name "libidentus_crypto_uniffi.*" ! -name "*.rlib" ! -name "*.d" 2>/dev/null | head -1)
+    LIB_FILE=$(ls target/debug/libidentus_crypto_uniffi.{so,dylib,dll} 2>/dev/null | head -1) || true
     if [ -z "$LIB_FILE" ]; then
         echo "Error: libidentus_crypto_uniffi library not found in target/debug/"
         echo "Run 'cargo build -p identus-crypto-uniffi' first"
@@ -71,7 +71,7 @@ generate-swift-bindings:
     #!/usr/bin/env bash
     set -euo pipefail
     mkdir -p lib/identus-crypto-uniffi/bindings/swift
-    LIB_FILE=$(find target/debug -maxdepth 1 -name "libidentus_crypto_uniffi.*" ! -name "*.rlib" ! -name "*.d" 2>/dev/null | head -1)
+    LIB_FILE=$(ls target/debug/libidentus_crypto_uniffi.{so,dylib,dll} 2>/dev/null | head -1) || true
     if [ -z "$LIB_FILE" ]; then
         echo "Error: libidentus_crypto_uniffi library not found in target/debug/"
         echo "Run 'cargo build -p identus-crypto-uniffi' first"

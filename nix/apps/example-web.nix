@@ -1,7 +1,7 @@
 { pkgs, sdk-rustLib }:
 
 let
-  demoDir = pkgs.callPackage ./demo-dir.nix { inherit sdk-rustLib; };
+  demoDir = pkgs.callPackage ../packages/demo-dir.nix { inherit sdk-rustLib; };
 in
 
 pkgs.writeShellScriptBin "example-web" ''

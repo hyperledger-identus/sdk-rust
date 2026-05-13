@@ -14,9 +14,13 @@ examples/wasm-app/            ← Static web frontend (NOT a Rust crate)
   ├── index.js                ←   ES module that imports the WASM glue
   ├── style.css               ←   Dark-theme styling
   └── README.md               ←   This file
+nix/packages/
+  ├── default.nix             ← Flake-parts module wiring the packages
+  ├── demo-dir.nix            ← Nix derivation: builds WASM + stages web files
+  ├── wasm-bindgen-cli.nix    ← wasm-bindgen CLI built from source
+  └── uniffi-bindgen.nix      ← UniFFI bindgen for foreign-language bindings
 nix/apps/
   ├── default.nix             ← Flake-parts module wiring the example-web app
-  ├── demo-dir.nix            ← Nix derivation: builds WASM + stages web files
   └── example-web.nix         ← Serve script (python3 http.server)
 ```
 

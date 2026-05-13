@@ -1,0 +1,18 @@
+[package]
+name              = "identus-crypto-wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description       = "WASM bindings for Identus crypto (key generation, Schnorr signing, signature verification)"
+
+[lib]
+crate-type = [ "cdylib" ]
+
+[dependencies]
+identus-crypto            = { path = "../identus-crypto" }
+midnight-transient-crypto = { workspace = true }
+wasm-bindgen              = { workspace = true }
+rand                      = { workspace = true }
+const-hex                 = { workspace = true }
+blake2b_simd              = "1.0.3"
+group                     = { version = "0.13" }

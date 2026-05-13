@@ -25,6 +25,11 @@ coverage-html: coverage
     cargo llvm-cov report --html
     echo "HTML report saved to target/llvm-cov/html/index.html"
 
+# Build WASM module with wasm-pack (target: web)
+[group('sdk-rust')]
+build-wasm:
+    cd lib/identus-crypto-wasm && wasm-pack build --target web
+
 # Clean all build artifacts
 [group('sdk-rust')]
 clean:

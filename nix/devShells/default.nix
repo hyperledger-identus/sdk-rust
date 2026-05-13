@@ -63,6 +63,8 @@
           rust
           # fmt
           taplo
+          # wasm
+          wasm-pack
           # android cross-compilation
           android-ndk
         ];

@@ -25,7 +25,7 @@ cargo test
 
 The SDK supports cross-compilation to `wasm32-unknown-unknown` for Web/browser targets.
 
-### Prerequisites
+### WASM Prerequisites
 
 - A C compiler (`clang`) is required at build time — the dependency graph includes
   crates with C/Rust FFI (elliptic curve operations via `blst`).

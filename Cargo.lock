@@ -1106,6 +1106,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-crypto-wasm"
+version = "0.1.0"
+dependencies = [
+ "blake2b_simd",
+ "const-hex",
+ "group",
+ "identus-crypto",
+ "midnight-transient-crypto",
+ "rand 0.8.6",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "idna"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

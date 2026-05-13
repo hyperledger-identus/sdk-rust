@@ -30,6 +30,58 @@ coverage-html: coverage
 build-wasm:
     cd lib/identus-crypto-wasm && wasm-pack build --target web
 
+# Build the UniFFI shared library and generate Kotlin bindings
+[group('sdk-rust')]
+build-uniffi:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cargo build -p identus-crypto-uniffi
+    mkdir -p lib/identus-crypto-uniffi/bindings/kotlin
+    # Locate the built library (platform-agnostic: .so on Linux, .dylib on macOS)
+    LIB_FILE=$(find target/debug -maxdepth 1 -name "libidentus_crypto_uniffi.*" ! -name "*.rlib" ! -name "*.d" 2>/dev/null | head -1)
+    if [ -z "$LIB_FILE" ]; then
+        echo "Error: libidentus_crypto_uniffi library not found in target/debug/"
+        exit 1
+    fi
+    uniffi-bindgen generate --library "$LIB_FILE" \
+      --language kotlin \
+      --out-dir lib/identus-crypto-uniffi/bindings/kotlin/
+    echo "✓ UniFFI library built and Kotlin bindings generated"
+
+# Generate Kotlin UniFFI bindings from the existing build artifact
+[group('sdk-rust')]
+generate-kotlin-bindings:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p lib/identus-crypto-uniffi/bindings/kotlin
+    LIB_FILE=$(find target/debug -maxdepth 1 -name "libidentus_crypto_uniffi.*" ! -name "*.rlib" ! -name "*.d" 2>/dev/null | head -1)
+    if [ -z "$LIB_FILE" ]; then
+        echo "Error: libidentus_crypto_uniffi library not found in target/debug/"
+        echo "Run 'cargo build -p identus-crypto-uniffi' first"
+        exit 1
+    fi
+    uniffi-bindgen generate --library "$LIB_FILE" \
+      --language kotlin \
+      --out-dir lib/identus-crypto-uniffi/bindings/kotlin/
+    echo "✓ Kotlin bindings generated"
+
+# Generate Swift UniFFI bindings from the existing build artifact
+[group('sdk-rust')]
+generate-swift-bindings:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p lib/identus-crypto-uniffi/bindings/swift
+    LIB_FILE=$(find target/debug -maxdepth 1 -name "libidentus_crypto_uniffi.*" ! -name "*.rlib" ! -name "*.d" 2>/dev/null | head -1)
+    if [ -z "$LIB_FILE" ]; then
+        echo "Error: libidentus_crypto_uniffi library not found in target/debug/"
+        echo "Run 'cargo build -p identus-crypto-uniffi' first"
+        exit 1
+    fi
+    uniffi-bindgen generate --library "$LIB_FILE" \
+      --language swift \
+      --out-dir lib/identus-crypto-uniffi/bindings/swift/
+    echo "✓ Swift bindings generated"
+
 # Clean all build artifacts
 [group('sdk-rust')]
 clean:

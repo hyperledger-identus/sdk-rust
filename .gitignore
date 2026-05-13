@@ -1,5 +1,8 @@
 target/
 .envrc
+
+# Generated UniFFI bindings (regenerated at build time)
+lib/identus-crypto-uniffi/bindings/
 .env
 *.swp
 *.rs.bk

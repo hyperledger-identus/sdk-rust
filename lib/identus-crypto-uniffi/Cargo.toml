@@ -1,18 +1,23 @@
 [package]
-name              = "identus-crypto-wasm"
+name              = "identus-crypto-uniffi"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description       = "WASM bindings for Identus crypto (key generation, Schnorr signing, signature verification)"
+description       = "UniFFI bindings for Identus crypto (key generation, Schnorr signing, signature verification)"
 
 [lib]
-crate-type = [ "cdylib" ]
+crate-type = [ "cdylib", "lib" ]
+name       = "identus_crypto_uniffi"
 
 [dependencies]
 identus-crypto            = { path = "../identus-crypto" }
 midnight-transient-crypto = { workspace = true }
-wasm-bindgen              = { workspace = true }
+uniffi                    = { workspace = true }
 rand                      = { workspace = true }
 const-hex                 = { workspace = true }
 blake2b_simd              = { workspace = true }
 group                     = { workspace = true }
+thiserror                 = { workspace = true }
+
+[dev-dependencies]
+rand_chacha = { workspace = true }

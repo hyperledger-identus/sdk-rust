@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members  = [ "lib/identus-core", "lib/identus-crypto", "lib/identus-crypto-wasm" ]
+members  = [ "lib/identus-core", "lib/identus-crypto", "lib/identus-crypto-wasm", "lib/identus-crypto-uniffi" ]
 
 [workspace.package]
 version = "0.1.0"
@@ -27,9 +27,13 @@ uuid               = { version = "1" }
 midnight-transient-crypto = { git = "https://github.com/midnightntwrk/midnight-ledger.git", rev = "7da71c9d4e7eb39be8424d0b47ba9bab6615004b" }
 getrandom                 = { version = "0.3", features = [ "wasm_js" ] }
 rand                      = { version = "0.8", features = [ "getrandom" ] }
+# uniffi
+uniffi = { version = "0.31.1" }
 # wasm
 wasm-bindgen = { version = "0.2" }
 const-hex    = { version = "1" }
+blake2b_simd = { version = "1.0.3" }
+group        = { version = "0.13" }
 # testing
 tempfile    = { version = "3" }
 rand_chacha = { version = "0.3" }

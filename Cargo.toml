@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["lib/identus-core", "lib/identus-crypto"]
+members  = [ "lib/identus-core", "lib/identus-crypto" ]
 
 [workspace.package]
 version = "0.1.0"
@@ -9,24 +9,24 @@ license = "Apache-2.0"
 
 [workspace.dependencies]
 # general
-anyhow = { version = "1" }
-async-trait = { version = "0.1" }
-chrono = { version = "0.4" }
-clap = { version = "4" }
-futures = { version = "0.3" }
-regex = { version = "1" }
-serde = { version = "1" }
-serde_json = { version = "1" }
-strum = { version = "0.27" }
-thiserror = { version = "2" }
-tokio = { version = "1" }
-tracing = { version = "0.1" }
+anyhow             = { version = "1" }
+async-trait        = { version = "0.1" }
+chrono             = { version = "0.4" }
+clap               = { version = "4" }
+futures            = { version = "0.3" }
+regex              = { version = "1" }
+serde              = { version = "1" }
+serde_json         = { version = "1" }
+strum              = { version = "0.27" }
+thiserror          = { version = "2" }
+tokio              = { version = "1" }
+tracing            = { version = "0.1" }
 tracing-subscriber = { version = "0.3" }
-uuid = { version = "1" }
+uuid               = { version = "1" }
 # crypto (identus-crypto)
 midnight-transient-crypto = { git = "https://github.com/midnightntwrk/midnight-ledger.git", rev = "7da71c9d4e7eb39be8424d0b47ba9bab6615004b" }
-getrandom = { version = "0.3", features = ["wasm_js"] }
-rand = { version = "0.8", features = ["getrandom"] }
+getrandom                 = { version = "0.3", features = [ "wasm_js" ] }
+rand                      = { version = "0.8", features = [ "getrandom" ] }
 # testing
-tempfile = { version = "3" }
+tempfile    = { version = "3" }
 rand_chacha = { version = "0.3" }

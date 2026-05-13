@@ -1,5 +1,5 @@
 [package]
-name = "identus-core"
+name              = "identus-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

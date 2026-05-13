@@ -6,7 +6,7 @@ signatures — all running client-side in your browser.
 
 ## Architecture
 
-```
+```text
 lib/identus-crypto-wasm/     ← Rust crate exposing JS bindings via wasm-bindgen
   └── src/lib.rs              ←   generate_key(), sign(), verify()
 examples/wasm-app/            ← Static web frontend (NOT a Rust crate)
@@ -55,9 +55,9 @@ nix run .#example-web
 ```
 
 This builds the WASM module (first run may take a while to fetch dependencies)
-and starts a local HTTP server at **http://localhost:8080**.
+and starts a local HTTP server at **<http://localhost:8080>**.
 
-Open http://localhost:8080 in a browser to use the demo.
+Open <http://localhost:8080> in a browser to use the demo.
 
 **Note:** The Nix derivation pre-fetches all Cargo dependencies at evaluation
 time via `cargoLock.lockFile`, so no network access is needed during the build.
@@ -78,7 +78,7 @@ cp lib/identus-crypto-wasm/pkg/* examples/wasm-app/
 python3 -m http.server 8080 --directory examples/wasm-app/
 ```
 
-Open http://localhost:8080 in a browser.
+Open <http://localhost:8080> in a browser.
 
 ## Usage
 
@@ -98,12 +98,10 @@ noting for production use.
 
 ## File Overview
 
-| File | Purpose |
-|------|---------|
-| `index.html` | Demo page with message input, buttons, and result displays |
-| `index.js` | ES module that imports WASM glue and wires up UI interactions |
-| `style.css` | Dark-theme styling (GitHub-inspired) |
-| `README.md` | This documentation |
+- `index.html` — Demo page with message input, buttons, and result displays
+- `index.js` — ES module that imports WASM glue and wires up UI interactions
+- `style.css` — Dark-theme styling (GitHub-inspired)
+- `README.md` — This documentation
 
 ## Related Tasks
 

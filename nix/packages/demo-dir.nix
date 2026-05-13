@@ -19,13 +19,14 @@ let
   src = builtins.path {
     path = ./../..;
     name = "identus-crypto-wasm-demo-src";
-    filter = path: type:
+    filter =
+      path: type:
       let
-        root      = toString ./../..;
-        rel       = builtins.substring (builtins.stringLength root) (-1) (toString path);
-        isDir     = type == "directory";
-        isFile    = type == "regular";
-        keepRoot  = isDir && rel == "";
+        root = toString ./../..;
+        rel = builtins.substring (builtins.stringLength root) (-1) (toString path);
+        isDir = type == "directory";
+        isFile = type == "regular";
+        keepRoot = isDir && rel == "";
 
         # Directories / files whose contents we need (relative to root).
         neededPrefixes = [
@@ -41,20 +42,18 @@ let
         # This ensures `builtins.path` descends into both ancestor
         # directories AND subdirectories of needed subtrees (e.g.
         # `src/` inside `lib/identus-core/`).
-        isNeededDir = isDir && (
-          lib.any (prefix: lib.hasPrefix rel prefix) neededPrefixes
-          || lib.any (prefix: lib.hasPrefix prefix rel) neededPrefixes
-        );
+        isNeededDir =
+          isDir
+          && (
+            lib.any (prefix: lib.hasPrefix rel prefix) neededPrefixes
+            || lib.any (prefix: lib.hasPrefix prefix rel) neededPrefixes
+          );
 
         # A root-level file that is part of the workspace definition.
-        isRootFile = isFile && (
-          rel == "/Cargo.toml" || rel == "/Cargo.lock"
-        );
+        isRootFile = isFile && (rel == "/Cargo.toml" || rel == "/Cargo.lock");
 
         # A regular file inside one of the needed subtrees.
-        isInsideNeeded = isFile && lib.any
-          (prefix: lib.hasPrefix prefix rel)
-          neededPrefixes;
+        isInsideNeeded = isFile && lib.any (prefix: lib.hasPrefix prefix rel) neededPrefixes;
       in
       keepRoot || isNeededDir || isRootFile || isInsideNeeded;
   };
@@ -69,7 +68,7 @@ let
 in
 
 rustPlatform.buildRustPackage {
-  pname   = "identus-crypto-wasm-demo";
+  pname = "identus-crypto-wasm-demo";
   version = "0.1.0";
 
   inherit src;
@@ -86,7 +85,7 @@ rustPlatform.buildRustPackage {
     pkgs.llvmPackages.llvm
   ];
 
-  doCheck = false;   # WASM binaries cannot execute natively
+  doCheck = false; # WASM binaries cannot execute natively
 
   # Environment variables for WASM cross-compilation with C dependencies.
   # We use the *unwrapped* clang binary (clang.cc) to avoid nixpkgs wrapper

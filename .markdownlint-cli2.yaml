@@ -2,6 +2,7 @@ ignores:
   - ".claude/**"
   - "target/**"
   - "**/target/**"
+  - "result/**"
 
 config:
   MD013: false  # line-length — allow long lines (URLs, tables)

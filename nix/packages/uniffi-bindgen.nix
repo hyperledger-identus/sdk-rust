@@ -32,8 +32,11 @@ rustPlatform.buildRustPackage rec {
 
   nativeBuildInputs = [ pkgs.pkg-config ];
 
-  buildInputs = [ pkgs.openssl pkgs.zlib ]
-    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libiconv ];
+  buildInputs = [
+    pkgs.openssl
+    pkgs.zlib
+  ]
+  ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libiconv ];
 
   doCheck = false;
 

@@ -25,7 +25,10 @@ rustPlatform.buildRustPackage rec {
 
   nativeBuildInputs = [ pkgs.pkg-config ];
 
-  buildInputs = [ pkgs.openssl pkgs.zlib ];
+  buildInputs = [
+    pkgs.openssl
+    pkgs.zlib
+  ];
 
   doCheck = false;
 

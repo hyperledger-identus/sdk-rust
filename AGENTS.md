@@ -203,9 +203,11 @@ Control verbosity with `RUST_LOG=debug` environment variable.
   - `fix did resolution for revoked keys`
   - `update cargo dependencies`
 
-### Pre-Commit Checklist
+### Quality Gates (Agent & Pre-Commit Checklist)
 
-Before submitting a PR:
+**Agent instruction:** After making any bug fix or code change, the agent MUST run these quality gates to verify correctness before considering the task complete.
+
+**Human contributors:** Run these before submitting a PR.
 
 1. `just format` — format all sources
 2. `just lint-text` — lint markdown, YAML, editorconfig, shell scripts

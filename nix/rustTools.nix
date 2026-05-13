@@ -7,7 +7,13 @@ let
       "rust-src"
       "rust-analyzer"
     ];
-    targets = [ "wasm32-unknown-unknown" ];
+    targets = [
+      "wasm32-unknown-unknown"
+      "aarch64-linux-android"
+      "armv7-linux-androideabi"
+      "x86_64-linux-android"
+      "i686-linux-android"
+    ];
   };
 in
 rec {

@@ -25,6 +25,7 @@ tracing-subscriber = { version = "0.3" }
 uuid = { version = "1" }
 # crypto (identus-crypto)
 midnight-transient-crypto = { git = "https://github.com/midnightntwrk/midnight-ledger.git", rev = "7da71c9d4e7eb39be8424d0b47ba9bab6615004b" }
+getrandom = { version = "0.3", features = ["wasm_js"] }
 rand = { version = "0.8", features = ["getrandom"] }
 # testing
 tempfile = { version = "3" }

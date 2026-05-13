@@ -34,6 +34,7 @@
             inherit rust-overlay;
             pkgs = import nixpkgs {
               inherit system;
+              config.allowUnfree = true;
               overlays = [ (import rust-overlay) ];
             };
           };

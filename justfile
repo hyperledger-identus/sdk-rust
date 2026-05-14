@@ -82,6 +82,50 @@ generate-swift-bindings:
       --out-dir lib/identus-crypto-uniffi/bindings/swift/
     echo "✓ Swift bindings generated"
 
+# Build the identus-crypto-uniffi .so for all 4 Android ABIs and copy Kotlin
+# bindings into the Android example project.
+# Depends on build-uniffi to generate Kotlin bindings first.
+[group('sdk-rust')]
+build-android-example: build-uniffi
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    ANDROID_JNI="examples/android-app/app/src/main/jniLibs"
+    BINDINGS_SRC="lib/identus-crypto-uniffi/bindings/kotlin/uniffi/identus_crypto_uniffi/identus_crypto_uniffi.kt"
+    BINDINGS_DST="examples/android-app/app/src/main/java/uniffi/identus_crypto_uniffi/"
+
+    echo "=== Building identus-crypto-uniffi for all 4 Android ABIs ==="
+
+    cargo ndk \
+      -t aarch64-linux-android \
+      -t armv7-linux-androideabi \
+      -t x86_64-linux-android \
+      -t i686-linux-android \
+      -o "$ANDROID_JNI" \
+      build --release -p identus-crypto-uniffi
+
+    echo ""
+    echo "=== Verifying .so files ==="
+    for abi in arm64-v8a armeabi-v7a x86_64 x86; do
+      SO_FILE="$ANDROID_JNI/$abi/libidentus_crypto_uniffi.so"
+      if [ -f "$SO_FILE" ]; then
+        echo "  ✅ $SO_FILE ($(du -h "$SO_FILE" | cut -f1))"
+      else
+        echo "  ❌ MISSING: $SO_FILE"
+        exit 1
+      fi
+    done
+
+    echo ""
+    echo "=== Copying Kotlin bindings ==="
+    mkdir -p "$BINDINGS_DST"
+    cp "$BINDINGS_SRC" "$BINDINGS_DST/"
+    echo "  ✅ Copied $(basename "$BINDINGS_SRC") -> $BINDINGS_DST"
+
+    echo ""
+    echo "✓ Android example build complete."
+    echo "  Next: cd examples/android-app && gradle assembleDebug"
+
 # Clean all build artifacts
 [group('sdk-rust')]
 clean:

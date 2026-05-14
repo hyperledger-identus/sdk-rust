@@ -69,6 +69,7 @@
           wasm-pack
           # android cross-compilation
           android-ndk
+          cargo-ndk
           # uniffi-bindgen for foreign-language bindings (TASK-9)
           (pkgs.callPackage ../packages/uniffi-bindgen.nix { inherit sdk-rustLib; })
         ];

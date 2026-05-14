@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- ═══════════════════════════════════════════════
+             Generate Key Section
+             ═══════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Generate Key"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/btnGenerateKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Generate" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Secret Key:"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvSecretKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:drawable/editbox_background"
+            android:padding="8dp"
+            android:textIsSelectable="true"
+            android:text="—" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Public Key:"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvPublicKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:drawable/editbox_background"
+            android:padding="8dp"
+            android:textIsSelectable="true"
+            android:text="—" />
+
+        <!-- ═══════════════════════════════════════════════
+             Sign Section
+             ═══════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign Message"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp" />
+
+        <EditText
+            android:id="@+id/etSignSecretKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Secret Key (hex)"
+            android:inputType="text"
+            android:singleLine="true" />
+
+        <EditText
+            android:id="@+id/etSignMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Message to sign"
+            android:inputType="text" />
+
+        <Button
+            android:id="@+id/btnSign"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Signature:"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvSignature"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:drawable/editbox_background"
+            android:padding="8dp"
+            android:textIsSelectable="true"
+            android:text="—" />
+
+        <!-- ═══════════════════════════════════════════════
+             Verify Section
+             ═══════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Verify Signature"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp" />
+
+        <EditText
+            android:id="@+id/etVerifyPublicKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Public Key (hex)"
+            android:inputType="text"
+            android:singleLine="true" />
+
+        <EditText
+            android:id="@+id/etVerifyMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Original message"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/etVerifySignature"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Signature (hex)"
+            android:inputType="text"
+            android:singleLine="true" />
+
+        <Button
+            android:id="@+id/btnVerify"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Verify" />
+
+        <TextView
+            android:id="@+id/tvVerifyResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:padding="8dp"
+            android:text="—"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</ScrollView>

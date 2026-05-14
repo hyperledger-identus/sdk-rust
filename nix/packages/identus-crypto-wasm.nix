@@ -8,17 +8,16 @@ let
   # the wasm-bindgen crate dependency in identus-crypto-wasm.
   wasmBindgenCli = pkgs.callPackage ./wasm-bindgen-cli.nix { inherit sdk-rustLib; };
 
-  # Minimal source tree: only the paths needed to build the WASM crate and
-  # stage the static web demo.  Filtering avoids pulling in unrelated files
-  # (nix/, .git/, target/, justfile, etc.) that would cause unnecessary
-  # rebuilds.
+  # Minimal source tree: only the paths needed to build the WASM crate.
+  # Filtering avoids pulling in unrelated files (nix/, .git/, target/,
+  # justfile, examples/, etc.) that would cause unnecessary rebuilds.
   #
   # IMPORTANT: for directories, we must return `true` for any directory that
   # is an ancestor of (or equals) a needed path, otherwise `builtins.path`
   # will skip the entire subtree.
   src = builtins.path {
     path = ./../..;
-    name = "identus-crypto-wasm-demo-src";
+    name = "identus-crypto-wasm-src";
     filter =
       path: type:
       let
@@ -33,15 +32,10 @@ let
           "/lib/identus-crypto-wasm"
           "/lib/identus-crypto"
           "/lib/identus-core"
-          "/examples/wasm-app"
         ];
 
-        # A directory is needed if:
-        #   - it is an ancestor of (or equals) a needed prefix, OR
-        #   - it is a descendant of a needed prefix.
-        # This ensures `builtins.path` descends into both ancestor
-        # directories AND subdirectories of needed subtrees (e.g.
-        # `src/` inside `lib/identus-core/`).
+        # A directory is needed if it is an ancestor of (or equals) a
+        # needed prefix, OR it is a descendant of a needed prefix.
         isNeededDir =
           isDir
           && (
@@ -49,7 +43,7 @@ let
             || lib.any (prefix: lib.hasPrefix prefix rel) neededPrefixes
           );
 
-        # A root-level file that is part of the workspace definition.
+        # Root-level workspace definition files.
         isRootFile = isFile && (rel == "/Cargo.toml" || rel == "/Cargo.lock");
 
         # A regular file inside one of the needed subtrees.
@@ -57,6 +51,26 @@ let
       in
       keepRoot || isNeededDir || isRootFile || isInsideNeeded;
   };
+
+  # Generate package.json so that the WASM output is an npm-ready package.
+  # wasm-bindgen --target web does not produce one, so we write it manually.
+  packageJson = pkgs.writeText "package.json" (
+    builtins.toJSON {
+      name = "identus-crypto-wasm";
+      type = "module";
+      description = "WASM bindings for Identus crypto (key generation, Schnorr signing, signature verification)";
+      version = "0.1.0";
+      license = "Apache-2.0";
+      files = [
+        "identus_crypto_wasm_bg.wasm"
+        "identus_crypto_wasm.js"
+        "identus_crypto_wasm.d.ts"
+      ];
+      main = "identus_crypto_wasm.js";
+      types = "identus_crypto_wasm.d.ts";
+      sideEffects = [ "./snippets/*" ];
+    }
+  );
 
   # rustPlatform from the project's nightly toolchain — we only use it for
   # the cargo setup hooks (vendor dir), not for the build hook itself (which
@@ -68,7 +82,7 @@ let
 in
 
 rustPlatform.buildRustPackage {
-  pname = "identus-crypto-wasm-demo";
+  pname = "identus-crypto-wasm";
   version = "0.1.0";
 
   inherit src;
@@ -118,6 +132,6 @@ rustPlatform.buildRustPackage {
       target/wasm32-unknown-unknown/release/identus_crypto_wasm.wasm \
       --target web \
       --out-dir "$out"
-    cp -r examples/wasm-app/* "$out/"
+    cp ${packageJson} "$out/package.json"
   '';
 }

@@ -143,7 +143,7 @@ format:
     echo "Formatting Rust files..."
     cargo fmt
 
-# Lint text files (markdown, YAML, editorconfig, shell scripts)
+# Lint text files (markdown, YAML, Nix, editorconfig, shell scripts)
 [group('checks')]
 lint-text:
     #!/usr/bin/env bash
@@ -160,6 +160,14 @@ lint-text:
     echo ""
     echo "=== EditorConfig Check ==="
     editorconfig-checker || EXIT_CODE=$?
+
+    echo ""
+    echo "=== DeadNix (lint .nix files) ==="
+    deadnix . || EXIT_CODE=$?
+
+    echo ""
+    echo "=== Statix (check .nix files) ==="
+    statix check . || EXIT_CODE=$?
 
     echo ""
     echo "=== ShellCheck ==="

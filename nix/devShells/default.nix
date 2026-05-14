@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   perSystem =
     { pkgs, sdk-rustLib, ... }:
     let
@@ -51,9 +50,11 @@
           nixfmt
           which
           # text linters
+          deadnix
           editorconfig-checker
           markdownlint-cli2
           shellcheck
+          statix
           yamllint
           # rust
           cargo-edit

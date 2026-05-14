@@ -57,10 +57,12 @@ without requiring Node.js, Python, or Homebrew for linting.
 
 | Tool | Config | Purpose |
 | --- | --- | --- |
+| deadnix | — | Dead code detection for Nix files |
 | markdownlint-cli2 | `.markdownlint-cli2.yaml` | Markdown formatting |
+| shellcheck | — | Shell script analysis |
+| statix | — | Nix file linting and anti-pattern detection |
 | yamllint | `.yamllint.yml` | YAML validation |
 | editorconfig-checker | — *(no project config yet)* | Charset (UTF-8 no BOM), line endings (LF), indent |
-| shellcheck | — | Shell script analysis |
 
 **Managing linter dependencies:**
 
@@ -71,7 +73,7 @@ in `flake.lock`.
 To check current nix versions:
 
 ```bash
-nix develop --command bash -c "markdownlint-cli2 --help | head -1; yamllint --version; editorconfig-checker --version; shellcheck --version | head -2"
+nix develop --command bash -c "deadnix --help | head -1; markdownlint-cli2 --help | head -1; statix --help | head -1; yamllint --version; editorconfig-checker --version; shellcheck --version | head -2"
 ```
 
 ### Code Style
@@ -210,7 +212,7 @@ Control verbosity with `RUST_LOG=debug` environment variable.
 **Human contributors:** Run these before submitting a PR.
 
 1. `just format` — format all sources
-2. `just lint-text` — lint markdown, YAML, editorconfig, shell scripts
+2. `just lint-text` — lint markdown, YAML, Nix, editorconfig, shell scripts
 3. `just test` — run all tests
 4. `cargo clippy --all-targets -- -D warnings` — lint Rust
 5. `just check` — full validation (optional but recommended)

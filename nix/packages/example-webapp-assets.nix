@@ -1,9 +1,5 @@
 { pkgs, identus-crypto-wasm }:
 
-let
-  inherit (pkgs) lib;
-in
-
 pkgs.stdenv.mkDerivation {
   pname = "identus-crypto-wasm-demo-assets";
   version = "0.1.0";

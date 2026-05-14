@@ -87,7 +87,7 @@ rustPlatform.buildRustPackage {
 
   inherit src;
 
-  cargoLock = rustTools.cargoLock;
+  inherit (rustTools) cargoLock;
 
   # Disable the default cargoBuildHook so we can write our own buildPhase
   # that targets wasm32-unknown-unknown.

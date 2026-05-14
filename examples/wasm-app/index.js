@@ -18,89 +18,108 @@ try {
     </div>`;
 }
 
-// ---- DOM refs -----------------------------------------------------------
+// ---- Tab switching ------------------------------------------------------
 
-const messageEl     = document.getElementById('message');
-const btnGenerate   = document.getElementById('btn-generate');
-const btnSign       = document.getElementById('btn-sign');
-const btnVerify     = document.getElementById('btn-verify');
-const btnVerifyWrg  = document.getElementById('btn-verify-wrong');
-const secretKeyEl   = document.getElementById('secret-key');
-const publicKeyEl   = document.getElementById('public-key');
-const signatureEl   = document.getElementById('signature');
-const verifyResult  = document.getElementById('verify-result');
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
 
-// ---- State --------------------------------------------------------------
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.dataset.tab;
 
-let currentKeypair = null;   // { secret_key_hex, public_key_hex }
-let currentSignature = null; // hex string
-let wrongKeypair = null;     // for "verify with wrong key"
+    // Deactivate all tabs
+    tabButtons.forEach(b => b.classList.remove('active'));
+    tabContents.forEach(c => c.classList.remove('active'));
+
+    // Activate the selected tab
+    btn.classList.add('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
+  });
+});
+
+// ---- DOM refs - Generate Key tab ----------------------------------------
+
+const btnGenerate  = document.getElementById('btn-generate');
+const secretKeyEl  = document.getElementById('secret-key');
+const publicKeyEl  = document.getElementById('public-key');
+
+// ---- DOM refs - Sign tab ------------------------------------------------
+
+const signMessage    = document.getElementById('sign-message');
+const signSecretKey  = document.getElementById('sign-secret-key');
+const btnSign        = document.getElementById('btn-sign');
+const signatureEl    = document.getElementById('signature');
+const signError      = document.getElementById('sign-error');
+
+// ---- DOM refs - Verify tab ----------------------------------------------
+
+const verifyMessage    = document.getElementById('verify-message');
+const verifySignature  = document.getElementById('verify-signature');
+const verifyPublicKey  = document.getElementById('verify-public-key');
+const btnVerify        = document.getElementById('btn-verify');
+const verifyResult     = document.getElementById('verify-result');
 
 // ---- Helpers ------------------------------------------------------------
 
-function msgBytes() {
-  return new TextEncoder().encode(messageEl.value || '');
-}
-
-function updateKeyDisplay(kp) {
-  secretKeyEl.textContent  = kp.secret_key_hex;
-  publicKeyEl.textContent  = kp.public_key_hex;
-}
-
-function enableSignVerify(enabled) {
-  btnSign.disabled    = !enabled;
-  btnVerify.disabled  = !enabled;
-  btnVerifyWrg.disabled = !enabled;
-}
-
-function setVerifyBadge(valid) {
-  verifyResult.textContent = valid ? '✅ Valid signature' : '❌ Invalid signature';
+function setVerifyBadge(valid, message) {
+  if (message) {
+    verifyResult.textContent = message;
+  } else {
+    verifyResult.textContent = valid ? '✅ Valid signature' : '❌ Invalid signature';
+  }
   verifyResult.className = 'verify-badge ' + (valid ? 'valid' : 'invalid');
 }
 
-// ---- Generate Key -------------------------------------------------------
+// ---- Generate Key handler -----------------------------------------------
 
 btnGenerate.addEventListener('click', () => {
   if (!wasm) return;
 
-  currentKeypair = wasm.generate_key();
-  // Also generate a second keypair to use as the "wrong key" for verification
-  wrongKeypair = wasm.generate_key();
-  currentSignature = null;
-
-  updateKeyDisplay(currentKeypair);
-  signatureEl.textContent  = '—';
-  verifyResult.textContent = '—';
-  verifyResult.className   = 'verify-badge';
-
-  enableSignVerify(true);
+  const kp = wasm.generate_key();
+  secretKeyEl.value  = kp.secret_key_hex;
+  publicKeyEl.value  = kp.public_key_hex;
 });
 
-// ---- Sign ---------------------------------------------------------------
+// ---- Sign handler -------------------------------------------------------
 
 btnSign.addEventListener('click', () => {
-  if (!wasm || !currentKeypair) return;
+  if (!wasm) return;
 
-  currentSignature = wasm.sign(msgBytes(), currentKeypair.secret_key_hex);
-  signatureEl.textContent = currentSignature;
-  verifyResult.textContent = '—';
-  verifyResult.className   = 'verify-badge';
+  const msgBytes = new TextEncoder().encode(signMessage.value || '');
+  const sk = signSecretKey.value.trim();
+  signError.textContent = '';
+
+  if (!sk) {
+    signError.textContent = 'Please enter a secret key.';
+    return;
+  }
+
+  try {
+    const sig = wasm.sign(msgBytes, sk);
+    signatureEl.value = sig;
+  } catch (err) {
+    signError.textContent = err.message || err;
+  }
 });
 
-// ---- Verify (correct key) -----------------------------------------------
+// ---- Verify handler -----------------------------------------------------
 
 btnVerify.addEventListener('click', () => {
-  if (!wasm || !currentKeypair || !currentSignature) return;
+  if (!wasm) return;
 
-  const valid = wasm.verify(msgBytes(), currentSignature, currentKeypair.public_key_hex);
-  setVerifyBadge(valid);
-});
+  const msgBytes = new TextEncoder().encode(verifyMessage.value || '');
+  const sig = verifySignature.value.trim();
+  const pk = verifyPublicKey.value.trim();
 
-// ---- Verify (wrong key) -------------------------------------------------
+  if (!sig || !pk) {
+    setVerifyBadge(false, 'Please fill in all fields.');
+    return;
+  }
 
-btnVerifyWrg.addEventListener('click', () => {
-  if (!wasm || !wrongKeypair || !currentSignature) return;
-
-  const valid = wasm.verify(msgBytes(), currentSignature, wrongKeypair.public_key_hex);
-  setVerifyBadge(valid);
+  try {
+    const valid = wasm.verify(msgBytes, sig, pk);
+    setVerifyBadge(valid);
+  } catch (err) {
+    setVerifyBadge(false, 'Error: ' + (err.message || err));
+  }
 });

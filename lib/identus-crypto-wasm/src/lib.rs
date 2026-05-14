@@ -68,15 +68,20 @@ pub fn generate_key() -> GeneratedKey {
 ///
 /// Returns a hex-encoded 64-byte Schnorr signature
 /// (32-byte compressed announcement ∥ 32-byte LE response).
+///
+/// # Errors
+/// Returns a `JsValue` error string if `secret_key_hex` is not valid hex or
+/// does not represent a valid 32-byte LE scalar on the Jubjub curve.
 #[wasm_bindgen(js_name = sign)]
-pub fn schnorr_sign(message: &[u8], secret_key_hex: &str) -> String {
+pub fn schnorr_sign(message: &[u8], secret_key_hex: &str) -> Result<String, JsValue> {
     use identus_crypto::schnorr::sign as schnorr_sign_inner;
 
     let mut rng = OsRng;
 
     // --- Parse secret key --------------------------------------------------
-    let sk_bytes = const_hex::decode(secret_key_hex).expect("sign: invalid hex in secret_key_hex");
-    let sk = EmbeddedFr::from_le_bytes(&sk_bytes).expect("sign: invalid secret key bytes");
+    let sk_bytes = const_hex::decode(secret_key_hex)
+        .map_err(|e| JsValue::from_str(&format!("sign: invalid hex in secret_key_hex: {}", e)))?;
+    let sk = EmbeddedFr::from_le_bytes(&sk_bytes).ok_or_else(|| JsValue::from_str("sign: invalid secret key bytes"))?;
 
     // --- Hash message to a scalar ------------------------------------------
     let msg_fr = hash_message_to_fr(message);
@@ -85,7 +90,7 @@ pub fn schnorr_sign(message: &[u8], secret_key_hex: &str) -> String {
     let sig = schnorr_sign_inner(&mut rng, sk, &[msg_fr]);
 
     // --- Encode signature as hex -------------------------------------------
-    encode_signature(&sig)
+    Ok(encode_signature(&sig))
 }
 
 /// Verify a Schnorr signature.
@@ -94,28 +99,26 @@ pub fn schnorr_sign(message: &[u8], secret_key_hex: &str) -> String {
 /// * `signature_hex` – hex-encoded 64-byte Schnorr signature.
 /// * `public_key_hex` – hex-encoded 32-byte compressed public key.
 ///
-/// Returns `true` if the signature is valid, `false` otherwise.
+/// Returns `Ok(true)` if the signature is valid, `Ok(false)` otherwise.
+///
+/// # Errors
+/// Returns a `JsValue` error string if `signature_hex` or `public_key_hex`
+/// contain invalid hex or do not represent valid curve points/scalars.
 #[wasm_bindgen(js_name = verify)]
-pub fn schnorr_verify(message: &[u8], signature_hex: &str, public_key_hex: &str) -> bool {
+pub fn schnorr_verify(message: &[u8], signature_hex: &str, public_key_hex: &str) -> Result<bool, JsValue> {
     use identus_crypto::schnorr::verify as schnorr_verify_inner;
 
     // --- Parse public key --------------------------------------------------
-    let pk = match decode_public_key(public_key_hex) {
-        Ok(pk) => pk,
-        Err(_) => return false,
-    };
+    let pk = decode_public_key(public_key_hex).map_err(|e| JsValue::from_str(&format!("verify: {}", e)))?;
 
     // --- Parse signature ---------------------------------------------------
-    let sig = match decode_signature(signature_hex) {
-        Ok(s) => s,
-        Err(_) => return false,
-    };
+    let sig = decode_signature(signature_hex).map_err(|e| JsValue::from_str(&format!("verify: {}", e)))?;
 
     // --- Hash message to a scalar ------------------------------------------
     let msg_fr = hash_message_to_fr(message);
 
     // --- Verify ------------------------------------------------------------
-    schnorr_verify_inner(pk, &[msg_fr], &sig)
+    Ok(schnorr_verify_inner(pk, &[msg_fr], &sig))
 }
 
 // ---------------------------------------------------------------------------

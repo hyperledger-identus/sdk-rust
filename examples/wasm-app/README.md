@@ -10,7 +10,7 @@ signatures — all running client-side in your browser.
 lib/identus-crypto-wasm/     ← Rust crate exposing JS bindings via wasm-bindgen
   └── src/lib.rs              ←   generate_key(), sign(), verify()
 examples/wasm-app/            ← Static web frontend (NOT a Rust crate)
-  ├── index.html              ←   Demo UI
+  ├── index.html              ←   Tab-based demo UI (3 tabs)
   ├── index.js                ←   ES module that imports the WASM glue
   ├── style.css               ←   Dark-theme styling
   └── README.md               ←   This file
@@ -34,7 +34,11 @@ nix/apps/
    - `verify(message, signature_hex, public_key_hex)` → boolean
 
 2. The **static HTML/JS/CSS** in `examples/wasm-app/` is a plain ES module page
-   that dynamically imports the WASM glue code and calls the functions above.
+   with a 3-tab interface. Each tab corresponds to one WASM function:
+   - **Generate Key** tab calls `wasm.generate_key()` and displays the key material.
+   - **Sign** tab reads a message and secret key, calls `wasm.sign()`, and shows the signature.
+   - **Verify** tab reads a message, signature, and public key, calls `wasm.verify()`, and shows ✅/❌.
+   Tabs are independent — users copy values between them manually, mirroring real API usage.
 
 3. The **Nix app** (`nix run .#example-web`) wraps everything: it builds the
    WASM crate with hermetic dependencies (no network at build time), runs
@@ -82,12 +86,26 @@ Open <http://localhost:8080> in a browser.
 
 ## Usage
 
-1. Click **Generate Key** to create a new random Schnorr key pair.
-2. Type or edit a message in the text area.
-3. Click **Sign** to produce a signature for the message with the generated key.
-4. Click **Verify** to check the signature against the original public key.
-5. Click **Verify (wrong key)** to confirm that a different public key correctly
-   rejects the signature.
+The demo is organized into three independent tabs:
+
+### 1. Generate Key
+
+Click the **Generate Key** tab and press **Generate** to create a new random
+Schnorr key pair. The secret key and public key are displayed in read-only
+text fields — select and copy the values you need.
+
+### 2. Sign
+
+Switch to the **Sign** tab. Paste the secret key (from Generate Key) into the
+"Secret Key (hex)" field and type a message. Click **Sign** to produce a
+signature. The signature hex is displayed in a read-only text field — copy it
+for verification.
+
+### 3. Verify
+
+Switch to the **Verify** tab. Paste the original message, the signature hex,
+and the public key hex into the three input fields. Click **Verify** to check
+the signature. A ✅ Valid or ❌ Invalid badge is shown.
 
 ## WASM Binary Size
 
@@ -98,8 +116,8 @@ noting for production use.
 
 ## File Overview
 
-- `index.html` — Demo page with message input, buttons, and result displays
-- `index.js` — ES module that imports WASM glue and wires up UI interactions
+- `index.html` — Tab-based demo page with Generate Key, Sign, and Verify tabs
+- `index.js` — ES module that imports WASM glue and wires up tab interactions
 - `style.css` — Dark-theme styling (GitHub-inspired)
 - `README.md` — This documentation
 
@@ -107,3 +125,4 @@ noting for production use.
 
 - **TASK-7** — WASM binding crate (`lib/identus-crypto-wasm/`)
 - **TASK-3** — WASM cross-compilation target (`wasm32-unknown-unknown`)
+- **TASK-12** — Tab-based UI refactor

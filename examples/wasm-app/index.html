@@ -13,40 +13,67 @@
       <p class="subtitle">Schnorr signatures over Jubjub — running in your browser via WASM</p>
     </header>
 
-    <section class="card message-section">
-      <h2>Message</h2>
-      <textarea id="message" rows="3" placeholder="Type a message to sign…">Hello, Identus WASM!</textarea>
-    </section>
+    <!-- Tab Bar -->
+    <nav class="tab-bar">
+      <button class="tab-btn active" data-tab="generate">Generate Key</button>
+      <button class="tab-btn" data-tab="sign">Sign</button>
+      <button class="tab-btn" data-tab="verify">Verify</button>
+    </nav>
 
-    <section class="card actions">
-      <button id="btn-generate" class="btn primary">Generate Key</button>
-      <button id="btn-sign" class="btn" disabled>Sign</button>
-      <button id="btn-verify" class="btn" disabled>Verify</button>
-      <button id="btn-verify-wrong" class="btn secondary" disabled>Verify (wrong key)</button>
-    </section>
-
-    <section class="card result-section">
-      <h2>Keys</h2>
+    <!-- Generate Key Tab -->
+    <section class="card tab-content active" id="tab-generate">
+      <h2>Generate Key</h2>
+      <p class="tab-description">Create a new random Schnorr key pair over the Jubjub curve.</p>
+      <button id="btn-generate" class="btn primary">Generate</button>
       <div class="field">
         <label>Secret Key (hex)</label>
-        <code id="secret-key" class="mono">—</code>
+        <input id="secret-key" class="mono-input" readonly placeholder="Click Generate…" />
       </div>
       <div class="field">
         <label>Public Key (hex)</label>
-        <code id="public-key" class="mono">—</code>
+        <input id="public-key" class="mono-input" readonly placeholder="Click Generate…" />
       </div>
     </section>
 
-    <section class="card result-section">
-      <h2>Signature</h2>
+    <!-- Sign Tab -->
+    <section class="card tab-content" id="tab-sign">
+      <h2>Sign</h2>
+      <p class="tab-description">Sign a message using a secret key (paste from Generate Key tab).</p>
       <div class="field">
-        <code id="signature" class="mono">—</code>
+        <label for="sign-message">Message</label>
+        <textarea id="sign-message" rows="3" placeholder="Type a message to sign…">Hello, Identus WASM!</textarea>
       </div>
+      <div class="field">
+        <label for="sign-secret-key">Secret Key (hex)</label>
+        <input id="sign-secret-key" class="mono-input" placeholder="Paste secret key hex…" />
+      </div>
+      <button id="btn-sign" class="btn primary">Sign</button>
+      <div class="field">
+        <label>Signature (hex)</label>
+        <input id="signature" class="mono-input" readonly placeholder="Click Sign…" />
+      </div>
+      <div id="sign-error" class="error-msg" aria-live="polite"></div>
     </section>
 
-    <section class="card result-section">
-      <h2>Verification</h2>
+    <!-- Verify Tab -->
+    <section class="card tab-content" id="tab-verify">
+      <h2>Verify</h2>
+      <p class="tab-description">Verify a signature against a message and public key.</p>
       <div class="field">
+        <label for="verify-message">Message</label>
+        <textarea id="verify-message" rows="3" placeholder="Paste the original message…"></textarea>
+      </div>
+      <div class="field">
+        <label for="verify-signature">Signature (hex)</label>
+        <input id="verify-signature" class="mono-input" placeholder="Paste signature hex…" />
+      </div>
+      <div class="field">
+        <label for="verify-public-key">Public Key (hex)</label>
+        <input id="verify-public-key" class="mono-input" placeholder="Paste public key hex…" />
+      </div>
+      <button id="btn-verify" class="btn primary">Verify</button>
+      <div class="field">
+        <label>Result</label>
         <span id="verify-result" class="verify-badge">—</span>
       </div>
     </section>

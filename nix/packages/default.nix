@@ -8,6 +8,10 @@ _: {
         inherit identus-crypto-wasm;
       };
       uniffi-bindgen = pkgs.callPackage ./uniffi-bindgen.nix { inherit sdk-rustLib; };
+      identus-crypto-uniffi-kotlin = pkgs.callPackage ./identus-crypto-uniffi-kotlin.nix {
+        inherit sdk-rustLib;
+        inherit uniffi-bindgen;
+      };
     in
     {
       packages = {
@@ -16,6 +20,7 @@ _: {
           identus-crypto-wasm
           example-webapp-assets
           uniffi-bindgen
+          identus-crypto-uniffi-kotlin
           ;
       };
     };

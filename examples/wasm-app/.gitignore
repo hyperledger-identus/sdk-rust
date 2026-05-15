@@ -1,7 +1,2 @@
-# Generated WASM bindings (produced by wasm-bindgen / wasm-pack)
-# See: lib/identus-crypto-wasm/pkg/ for the source .gitignore
-identus_crypto_wasm.d.ts
-identus_crypto_wasm.js
-identus_crypto_wasm_bg.wasm
-identus_crypto_wasm_bg.wasm.d.ts
-package.json
+# WASM bindings are staged into target/web-demo/ by `just build-web-example`,
+# no longer copied into this directory. See justfile for details.

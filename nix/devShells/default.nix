@@ -5,6 +5,19 @@ _: {
       inherit (sdk-rustLib.rustTools) rust;
 
       android-ndk = pkgs.androidenv.androidPkgs.ndk-bundle;
+
+      # Composed Android SDK (platform-tools, emulator, system images for APK build + run)
+      androidSdk = pkgs.androidenv.composeAndroidPackages {
+        platformVersions = [
+          "24"
+          "34"
+        ];
+        buildToolsVersions = [ "34.0.0" ];
+        includeEmulator = true;
+        includeSystemImages = true;
+        systemImageTypes = [ "default" ];
+        abiVersions = [ "x86_64" ];
+      };
       # NDK prebuilt toolchain directory tag: <os>-<arch> (e.g. "linux-x86_64", "darwin-arm64")
       # Note: NDK uses "arm64" for macOS ARM (not "aarch64")
       ndkHostTriple =
@@ -71,6 +84,12 @@ _: {
           # android cross-compilation
           android-ndk
           cargo-ndk
+          # android SDK (platform-tools, emulator, system images)
+          androidSdk.androidsdk
+          # JDK 17 for Gradle
+          jdk17
+          # Gradle build tool
+          gradle
           # uniffi-bindgen for foreign-language bindings (TASK-9)
           (pkgs.callPackage ../packages/uniffi-bindgen.nix { inherit sdk-rustLib; })
         ];
@@ -83,6 +102,10 @@ _: {
           {
             name = "CC_wasm32_unknown_unknown";
             value = "${pkgs.clang.cc}/bin/clang";
+          }
+          {
+            name = "ANDROID_HOME";
+            value = "${androidSdk.androidsdk}/libexec/android-sdk";
           }
           {
             name = "ANDROID_NDK_HOME";

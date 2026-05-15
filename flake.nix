@@ -26,7 +26,6 @@
         ./nix/devShells
         ./nix/sdk-rustLib.nix
         ./nix/packages
-        ./nix/apps
       ];
 
       perSystem =
@@ -36,7 +35,10 @@
             inherit rust-overlay;
             pkgs = import nixpkgs {
               inherit system;
-              config.allowUnfree = true;
+              config = {
+                allowUnfree = true;
+                android_sdk.accept_license = true;
+              };
               overlays = [ (import rust-overlay) ];
             };
           };

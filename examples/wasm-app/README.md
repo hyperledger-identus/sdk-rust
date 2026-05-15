@@ -14,14 +14,6 @@ examples/wasm-app/            ← Static web frontend (NOT a Rust crate)
   ├── index.js                ←   ES module that imports the WASM glue
   ├── style.css               ←   Dark-theme styling
   └── README.md               ←   This file
-nix/packages/
-  ├── default.nix             ← Flake-parts module wiring the packages
-  ├── demo-dir.nix            ← Nix derivation: builds WASM + stages web files
-  ├── wasm-bindgen-cli.nix    ← wasm-bindgen CLI built from source
-  └── uniffi-bindgen.nix      ← UniFFI bindgen for foreign-language bindings
-nix/apps/
-  ├── default.nix             ← Flake-parts module wiring the example-web app
-  └── example-web.nix         ← Serve script (python3 http.server)
 ```
 
 ### How it works
@@ -40,49 +32,63 @@ nix/apps/
    - **Verify** tab reads a message, signature, and public key, calls `wasm.verify()`, and shows ✅/❌.
    Tabs are independent — users copy values between them manually, mirroring real API usage.
 
-3. The **Nix app** (`nix run .#example-web`) wraps everything: it builds the
-   WASM crate with hermetic dependencies (no network at build time), runs
-   `wasm-bindgen --target web` to produce JavaScript bindings, co-locates the
-   static web files, and serves the result via Python's HTTP server.
+3. The **justfile workflow** (`just build-wasm` → `just build-web-example` → `just run-web-example`)
+   compiles the WASM crate with `wasm-pack`, stages the WASM bindings alongside the static web
+   files into `target/web-demo/`, and serves them via Python's built-in HTTP server.
 
 ## Prerequisites
 
 - [Nix](https://nixos.org/download.html) with flakes enabled
+  (`nix develop -c ...` provides `wasm-pack`, `python3`, and all toolchain dependencies)
 - A modern browser that supports ES modules and WebAssembly
 
-## Quick Start (Nix)
+## Quick Start
 
-Run the demo from the `sdk-rust/` directory:
+Run the demo from the `sdk-rust/` directory inside the Nix devshell:
 
 ```bash
-nix run .#example-web
+# Enter the devshell
+nix develop -c $SHELL
+
+# Build and run the WASM web demo
+just run-web-example
 ```
 
-This builds the WASM module (first run may take a while to fetch dependencies)
-and starts a local HTTP server at **<http://localhost:8080>**.
+This will:
 
-Open <http://localhost:8080> in a browser to use the demo.
+1. Build the WASM module via `wasm-pack` (`build-wasm`)
+2. Stage all files into `target/web-demo/` (`build-web-example`)
+3. Start a local HTTP server at **`http://localhost:8080`**
 
-**Note:** The Nix derivation pre-fetches all Cargo dependencies at evaluation
-time via `cargoLock.lockFile`, so no network access is needed during the build.
-This works in any Nix sandbox without `__noChroot`.
+Open `http://localhost:8080` in a browser to use the demo.
+
+To build without serving:
+
+```bash
+just build-web-example
+```
+
+The staged output will be in `target/web-demo/`.
 
 ## Manual Build (without Nix)
 
-If you prefer to build manually with `wasm-pack`:
+If you have `wasm-pack` and `python3` installed locally:
 
 ```bash
 # Build the WASM module (from sdk-rust/)
 just build-wasm
 
-# Copy the generated files alongside the demo HTML
-cp lib/identus-crypto-wasm/pkg/* examples/wasm-app/
+# Stage the files manually
+mkdir -p target/web-demo
+cp lib/identus-crypto-wasm/pkg/*.wasm target/web-demo/
+cp lib/identus-crypto-wasm/pkg/*.js target/web-demo/
+cp examples/wasm-app/index.html target/web-demo/
+cp examples/wasm-app/index.js target/web-demo/
+cp examples/wasm-app/style.css target/web-demo/
 
-# Serve from the examples directory
-python3 -m http.server 8080 --directory examples/wasm-app/
+# Serve from the staged directory
+python3 -m http.server 8080 --directory target/web-demo/
 ```
-
-Open <http://localhost:8080> in a browser.
 
 ## Usage
 
@@ -121,8 +127,17 @@ noting for production use.
 - `style.css` — Dark-theme styling (GitHub-inspired)
 - `README.md` — This documentation
 
+## Justfile Recipes
+
+| Recipe | Description |
+| ------ | ----------- |
+| `just build-wasm` | Compile the WASM binding crate (`lib/identus-crypto-wasm/`) |
+| `just build-web-example` | Build WASM + stage all files into `target/web-demo/` |
+| `just run-web-example` | Build + stage + serve at `http://localhost:8080` |
+
 ## Related Tasks
 
 - **TASK-7** — WASM binding crate (`lib/identus-crypto-wasm/`)
 - **TASK-3** — WASM cross-compilation target (`wasm32-unknown-unknown`)
 - **TASK-12** — Tab-based UI refactor
+- **TASK-17** — Justfile dev workflow for WASM web demo

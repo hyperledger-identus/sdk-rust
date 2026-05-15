@@ -11,7 +11,7 @@ Kotlin bindings.
 lib/identus-crypto-uniffi/         ← Rust crate exposing crypto via UniFFI
   └── src/lib.rs                    ←   generate_key(), sign(), verify()
   └── bindings/kotlin/              ←   Pre-generated Kotlin bindings (TASK-9)
-nix/devShells/default.nix           ← Devshell with cargo-ndk, NDK toolchain
+nix/devShells/default.nix           ← Devshell with cargo-ndk, NDK toolchain, Android SDK, JDK 17, Gradle
 examples/android-app/               ← Android Gradle project (THIS DIR)
   ├── settings.gradle.kts           ←   Root settings
   ├── build.gradle.kts              ←   Root build config
@@ -62,84 +62,94 @@ examples/android-app/               ← Android Gradle project (THIS DIR)
 ## Prerequisites
 
 - [Nix](https://nixos.org/download.html) with flakes enabled
-- Android NDK (provided by the sdk-rust devshell, configured in TASK-4)
-- **Android SDK (required for building the APK):** Install via
-  [Android Studio](https://developer.android.com/studio) or `sdkmanager`:
+- **All other dependencies are provided by the sdk-rust devshell:**
+  Android NDK, Android SDK (platform-tools, emulator, system images),
+  JDK 17, Gradle, `ANDROID_HOME`, and `ANDROID_NDK_HOME`.
+
+  Enter the devshell:
 
   ```bash
-  sdkmanager "platforms;android-24" "build-tools;34.0.0"
+  cd sdk-rust
+  nix develop
   ```
 
-  Set `ANDROID_HOME` or `ANDROID_SDK_ROOT` to point to the SDK installation.
-
-- **Gradle** (for building the APK; available via nixpkgs or system install):
+  Or run individual commands without entering the shell:
 
   ```bash
-  nix shell nixpkgs#gradle -c gradle --version
+  cd sdk-rust
+  nix develop -c just build-android-apk
+  nix develop -c just run-android-example
   ```
 
 ## Quick Start
 
-All commands should be run from the `sdk-rust/` directory inside `nix develop`.
+All commands should be run from the `sdk-rust/` directory inside the devshell.
 
-### 1. Build native libraries and prepare the Android project
+### One-command APK build
+
+Build native `.so` files and the debug APK in one step:
+
+```bash
+nix develop -c just build-android-apk
+```
+
+This runs `build-android-example` (cross-compile `.so` files, copy Kotlin
+bindings) then `gradle assembleDebug` to produce the debug APK.
+
+On success, the APK is at:
+
+```text
+examples/android-app/app/build/outputs/apk/debug/app-debug.apk
+```
+
+If you only need the native `.so` files (without the APK), use:
 
 ```bash
 nix develop -c just build-android-example
 ```
 
-This will:
+### Build + run on emulator
 
-- Cross-compile `identus-crypto-uniffi` for all 4 Android ABIs
-- Place `.so` files in `examples/android-app/app/src/main/jniLibs/<abi>/`
-- Copy the generated Kotlin bindings into the Android source tree
-
-Expected output:
-
-```text
-=== Building identus-crypto-uniffi for all 4 Android ABIs ===
-   Compiling identus-crypto-uniffi ...
-   ...
-
-=== Verifying .so files ===
-  ✅ app/src/main/jniLibs/arm64-v8a/libidentus_crypto_uniffi.so (X.XM)
-  ✅ app/src/main/jniLibs/armeabi-v7a/libidentus_crypto_uniffi.so (X.XM)
-  ✅ app/src/main/jniLibs/x86_64/libidentus_crypto_uniffi.so (X.XM)
-  ✅ app/src/main/jniLibs/x86/libidentus_crypto_uniffi.so (X.XM)
-
-=== Copying Kotlin bindings ===
-  ✅ Copied identus_crypto_uniffi.kt -> examples/android-app/app/src/main/java/uniffi/identus_crypto_uniffi/
-
-✓ Android example build complete.
-  Next: cd examples/android-app && gradle assembleDebug
-```
-
-### 2. Build the debug APK
+Build the APK, launch the Android emulator (headed mode with visible window),
+install the APK, and start the demo activity:
 
 ```bash
-cd examples/android-app
-gradle assembleDebug
+nix develop -c just run-android-example
 ```
 
-On success, the APK is at:
+This depends on `build-android-apk`, so the APK is always up to date.
 
-```text
-app/build/outputs/apk/debug/app-debug.apk
-```
+**Note:** `run-android-example` is only supported on **Linux** and **x86_64 macOS**.
+On Apple Silicon (aarch64-darwin), the emulator is not available — use
+`just build-android-apk` to produce the APK, then open it in Android Studio
+(which includes its own emulator via Rosetta 2).
 
-### 3. Install and run
+### Manual steps (alternative)
 
-Install on a connected device or emulator:
+If you prefer to run steps individually:
 
-```bash
-adb install app/build/outputs/apk/debug/app-debug.apk
-```
+1. Build native libraries:
 
-Or open in Android Studio for easier debugging:
+   ```bash
+   nix develop -c just build-android-example
+   ```
 
-1. Open `sdk-rust/examples/android-app/` as a project
-2. Set up a device/emulator
-3. Run the app
+2. Build the APK:
+
+   ```bash
+   cd examples/android-app
+   gradle assembleDebug
+   ```
+
+3. Install and run (on a connected device or running emulator):
+
+   ```bash
+   adb install examples/android-app/app/build/outputs/apk/debug/app-debug.apk
+   adb shell am start io.identus.example/.MainActivity
+   ```
+
+Or open `sdk-rust/examples/android-app/` in Android Studio for easier
+debugging.
 
 ## Usage
 
@@ -204,19 +214,51 @@ examples/android-app/app/src/main/java/uniffi/identus_crypto_uniffi/identus_cryp
 ### Gradle version compatibility
 
 This project requires a Gradle version compatible with Android Gradle Plugin
-(AGP) 8.x. If using a system-installed Gradle, verify compatibility:
+(AGP) 8.x. The sdk-rust devshell provides a compatible `gradle`.
+
+If running outside the devshell (`nix develop`), ensure your Gradle version
+is compatible. The project does **not** include a Gradle wrapper.
+
+### Running outside the devshell
+
+`just build-android-apk` and `just run-android-example` check for `ANDROID_HOME`,
+`gradle`, and other required tools. If any are missing, they print a helpful
+error message suggesting you run inside the devshell:
 
 ```bash
-gradle --version
+nix develop -c just build-android-apk
 ```
 
-The project does **not** include a Gradle wrapper — use `gradle` from
-your system or nixpkgs (`nix shell nixpkgs#gradle`).
+### KVM not available (Linux)
+
+On Linux, `just run-android-example` checks for `/dev/kvm`. If KVM is not
+available, it prints a warning about degraded performance but continues.
+Install KVM for better emulator performance:
+
+```bash
+sudo apt install qemu-kvm
+sudo adduser $USER kvm
+# log out and back in, or reboot
+```
+
+### Emulator boot timeout
+
+The emulator boot timeout is 120 seconds. If your machine is slow or the
+system image needs to be downloaded, the first boot may take longer.
+On subsequent runs, the AVD is cached and boot is faster.
+
+### Apple Silicon (aarch64-darwin)
+
+`just build-android-apk` works on Darwin (both x86_64 and ARM).
+`just run-android-example` prints an error on Apple Silicon because the
+Android emulator does not run natively on ARM macOS.
 
 ## Related Tasks
 
 - **TASK-4** — Android cross-compilation targets (`aarch64-linux-android`,
   `armv7-linux-androideabi`, `x86_64-linux-android`, `i686-linux-android`)
+- **TASK-8** — Android example app project (this directory)
 - **TASK-9** — UniFFI binding crate (`lib/identus-crypto-uniffi/`); generates
   the Kotlin bindings consumed by this app
-- **TASK-7** — WASM binding crate (analogous for web target)
+- **TASK-13** — Dev workflow (`just build-android-apk`, `just run-android-example`,
+  devshell tooling)

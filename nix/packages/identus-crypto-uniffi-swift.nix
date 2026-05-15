@@ -23,7 +23,7 @@ let
   # will skip the entire subtree.
   src = builtins.path {
     path = ./../..;
-    name = "identus-crypto-uniffi-kotlin-src";
+    name = "identus-crypto-uniffi-swift-src";
     filter =
       path: type:
       let
@@ -60,7 +60,7 @@ let
 in
 
 rustPlatform.buildRustPackage {
-  pname = "identus-crypto-uniffi-kotlin";
+  pname = "identus-crypto-uniffi-swift";
   version = "0.1.0";
 
   inherit src;
@@ -79,7 +79,7 @@ rustPlatform.buildRustPackage {
 
   installPhase = ''
     runHook preInstall
-    mkdir -p "$out/bindings/kotlin"
+    mkdir -p "$out/bindings/swift"
     # Find the built shared library (.so on Linux, .dylib on macOS)
     # buildRustPackage may set a custom target directory, so we search
     # broadly rather than assuming target/release/.
@@ -94,15 +94,15 @@ rustPlatform.buildRustPackage {
     cp "$LIB" "$out/"
     uniffi-bindgen generate \
       --library "$out/$(basename "$LIB")" \
-      --language kotlin \
-      --out-dir "$out/bindings/kotlin/"
+      --language swift \
+      --out-dir "$out/bindings/swift/"
     runHook postInstall
   '';
 
   doCheck = false;
 
   meta = {
-    description = "Kotlin bindings for Identus crypto (UniFFI) — shared library + generated .kt file";
+    description = "Swift bindings for Identus crypto (UniFFI) — shared library + generated .swift file";
     homepage = "https://github.com/hyperledger-identus";
     license = lib.licenses.asl20;
   };

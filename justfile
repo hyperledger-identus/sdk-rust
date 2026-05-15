@@ -206,7 +206,8 @@ build-android-apk: build-android-example
 
     echo "=== Building debug APK ==="
     cd examples/android-app
-    gradle assembleDebug
+    AAPT2="$ANDROID_HOME/build-tools/34.0.0/aapt2"
+    gradle -Pandroid.aapt2FromMavenOverride="$AAPT2" assembleDebug
 
     APK="app/build/outputs/apk/debug/app-debug.apk"
     if [ -f "$APK" ]; then

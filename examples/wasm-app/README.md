@@ -32,9 +32,9 @@ examples/wasm-app/            ← Static web frontend (NOT a Rust crate)
    - **Verify** tab reads a message, signature, and public key, calls `wasm.verify()`, and shows ✅/❌.
    Tabs are independent — users copy values between them manually, mirroring real API usage.
 
-3. The **justfile workflow** (`just build-wasm` → `just build-web-example` → `just run-web-example`)
+3. The **justfile workflow** (`just build-wasm` → `just build-demo-web` → `just run-demo-web`)
    compiles the WASM crate with `wasm-pack`, stages the WASM bindings alongside the static web
-   files into `target/web-demo/`, and serves them via Python's built-in HTTP server.
+   files into `target/demo-web/`, and serves them via Python's built-in HTTP server.
 
 ## Prerequisites
 
@@ -51,13 +51,13 @@ Run the demo from the `sdk-rust/` directory inside the Nix devshell:
 nix develop -c $SHELL
 
 # Build and run the WASM web demo
-just run-web-example
+just run-demo-web
 ```
 
 This will:
 
 1. Build the WASM module via `wasm-pack` (`build-wasm`)
-2. Stage all files into `target/web-demo/` (`build-web-example`)
+2. Stage all files into `target/demo-web/` (`build-demo-web`)
 3. Start a local HTTP server at **`http://localhost:8080`**
 
 Open `http://localhost:8080` in a browser to use the demo.
@@ -65,10 +65,10 @@ Open `http://localhost:8080` in a browser to use the demo.
 To build without serving:
 
 ```bash
-just build-web-example
+just build-demo-web
 ```
 
-The staged output will be in `target/web-demo/`.
+The staged output will be in `target/demo-web/`.
 
 ## Manual Build (without Nix)
 
@@ -79,15 +79,15 @@ If you have `wasm-pack` and `python3` installed locally:
 just build-wasm
 
 # Stage the files manually
-mkdir -p target/web-demo
-cp lib/identus-crypto-wasm/pkg/*.wasm target/web-demo/
-cp lib/identus-crypto-wasm/pkg/*.js target/web-demo/
-cp examples/wasm-app/index.html target/web-demo/
-cp examples/wasm-app/index.js target/web-demo/
-cp examples/wasm-app/style.css target/web-demo/
+mkdir -p target/demo-web
+cp lib/identus-crypto-wasm/pkg/*.wasm target/demo-web/
+cp lib/identus-crypto-wasm/pkg/*.js target/demo-web/
+cp examples/wasm-app/index.html target/demo-web/
+cp examples/wasm-app/index.js target/demo-web/
+cp examples/wasm-app/style.css target/demo-web/
 
 # Serve from the staged directory
-python3 -m http.server 8080 --directory target/web-demo/
+python3 -m http.server 8080 --directory target/demo-web/
 ```
 
 ## Usage
@@ -132,8 +132,8 @@ noting for production use.
 | Recipe | Description |
 | ------ | ----------- |
 | `just build-wasm` | Compile the WASM binding crate (`lib/identus-crypto-wasm/`) |
-| `just build-web-example` | Build WASM + stage all files into `target/web-demo/` |
-| `just run-web-example` | Build + stage + serve at `http://localhost:8080` |
+| `just build-demo-web` | Build WASM + stage all files into `target/demo-web/` |
+| `just run-demo-web` | Build + stage + serve at `http://localhost:8080` |
 
 ## Related Tasks
 

@@ -74,13 +74,13 @@ cargo test -p identus-crypto-uniffi
 Use the provided `just` commands:
 
 ```bash
-# Build + generate all bindings
+# Build the UniFFI shared library
 just build-uniffi
 
-# Generate Kotlin bindings only (from existing build)
+# Build + generate Kotlin bindings
 just generate-kotlin-bindings
 
-# Generate Swift bindings only (from existing build)
+# Build + generate Swift bindings
 just generate-swift-bindings
 ```
 

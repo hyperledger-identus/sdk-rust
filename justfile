@@ -31,16 +31,16 @@ build-wasm:
     cd lib/identus-crypto-wasm && wasm-pack build --target web
 
 # Build the WASM web demo: compile the WASM crate and stage all static files
-# into target/web-demo/ for serving.
+# into target/demo-web/ for serving.
 # Depends on build-wasm (WASM bindings in lib/identus-crypto-wasm/pkg/).
-[group('sdk-rust')]
-build-web-example: build-wasm
+[group('demo-web')]
+build-demo-web: build-wasm
     #!/usr/bin/env bash
     set -euo pipefail
 
     WASM_PKG="lib/identus-crypto-wasm/pkg"
     WEB_DEMO="examples/wasm-app"
-    OUT_DIR="target/web-demo"
+    OUT_DIR="target/demo-web"
 
     echo "=== Staging WASM web demo into $OUT_DIR ==="
 
@@ -63,17 +63,17 @@ build-web-example: build-wasm
     echo ""
     echo "✓ WASM web demo staged to $OUT_DIR"
     echo "  $(du -sh "$OUT_DIR" | cut -f1) total"
-    echo "  Next: just run-web-example"
+    echo "  Next: just run-demo-web"
 
 # Serve the WASM web demo locally via Python's HTTP server.
-# Depends on build-web-example (staged output in target/web-demo/).
-[group('sdk-rust')]
-run-web-example: build-web-example
+# Depends on build-demo-web (staged output in target/demo-web/).
+[group('demo-web')]
+run-demo-web: build-demo-web
     #!/usr/bin/env bash
     set -euo pipefail
 
     PORT="${PORT:-8080}"
-    DIR="target/web-demo"
+    DIR="target/demo-web"
 
     echo "=== Starting HTTP server ==="
     echo "Serving $DIR/ at http://localhost:$PORT"
@@ -85,34 +85,20 @@ run-web-example: build-web-example
 
     exec python3 -m http.server "$PORT" --directory "$DIR"
 
-# Build the UniFFI shared library and generate Kotlin bindings
+# Build the UniFFI shared library
 [group('sdk-rust')]
 build-uniffi:
-    #!/usr/bin/env bash
-    set -euo pipefail
     cargo build -p identus-crypto-uniffi
-    mkdir -p lib/identus-crypto-uniffi/bindings/kotlin
-    # Locate the built library (.so on Linux, .dylib on macOS, .dll on Windows)
-    LIB_FILE=$(ls target/debug/libidentus_crypto_uniffi.{so,dylib,dll} 2>/dev/null | head -1) || true
-    if [ -z "$LIB_FILE" ]; then
-        echo "Error: libidentus_crypto_uniffi library not found in target/debug/"
-        exit 1
-    fi
-    uniffi-bindgen generate --library "$LIB_FILE" \
-      --language kotlin \
-      --out-dir lib/identus-crypto-uniffi/bindings/kotlin/
-    echo "✓ UniFFI library built and Kotlin bindings generated"
 
-# Generate Kotlin UniFFI bindings from the existing build artifact
+# Generate Kotlin UniFFI bindings
 [group('sdk-rust')]
-generate-kotlin-bindings:
+generate-kotlin-bindings: build-uniffi
     #!/usr/bin/env bash
     set -euo pipefail
     mkdir -p lib/identus-crypto-uniffi/bindings/kotlin
     LIB_FILE=$(ls target/debug/libidentus_crypto_uniffi.{so,dylib,dll} 2>/dev/null | head -1) || true
     if [ -z "$LIB_FILE" ]; then
         echo "Error: libidentus_crypto_uniffi library not found in target/debug/"
-        echo "Run 'cargo build -p identus-crypto-uniffi' first"
         exit 1
     fi
     uniffi-bindgen generate --library "$LIB_FILE" \
@@ -120,16 +106,15 @@ generate-kotlin-bindings:
       --out-dir lib/identus-crypto-uniffi/bindings/kotlin/
     echo "✓ Kotlin bindings generated"
 
-# Generate Swift UniFFI bindings from the existing build artifact
+# Generate Swift UniFFI bindings
 [group('sdk-rust')]
-generate-swift-bindings:
+generate-swift-bindings: build-uniffi
     #!/usr/bin/env bash
     set -euo pipefail
     mkdir -p lib/identus-crypto-uniffi/bindings/swift
     LIB_FILE=$(ls target/debug/libidentus_crypto_uniffi.{so,dylib,dll} 2>/dev/null | head -1) || true
     if [ -z "$LIB_FILE" ]; then
         echo "Error: libidentus_crypto_uniffi library not found in target/debug/"
-        echo "Run 'cargo build -p identus-crypto-uniffi' first"
         exit 1
     fi
     uniffi-bindgen generate --library "$LIB_FILE" \
@@ -138,10 +123,10 @@ generate-swift-bindings:
     echo "✓ Swift bindings generated"
 
 # Build the identus-crypto-uniffi .so for all 4 Android ABIs and copy Kotlin
-# bindings into the Android example project.
-# Depends on build-uniffi to generate Kotlin bindings first.
-[group('sdk-rust')]
-build-android-example: build-uniffi
+# bindings into the Android demo project.
+# Depends on generate-kotlin-bindings to generate Kotlin bindings first.
+[group('demo-android')]
+build-demo-android: generate-kotlin-bindings
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -178,13 +163,13 @@ build-android-example: build-uniffi
     echo "  ✅ Copied $(basename "$BINDINGS_SRC") -> $BINDINGS_DST"
 
     echo ""
-    echo "✓ Android example build complete."
-    echo "  Next: cd examples/android-app && gradle assembleDebug"
+    echo "✓ Android demo build complete."
+    echo "  Next: just package-demo-android"
 
-# Build the debug APK for the Android example app.
-# Depends on build-android-example (native .so + Kotlin bindings).
-[group('sdk-rust')]
-build-android-apk: build-android-example
+# Build the debug APK for the Android demo app.
+# Depends on build-demo-android (native .so + Kotlin bindings).
+[group('demo-android')]
+package-demo-android: build-demo-android
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -193,14 +178,14 @@ build-android-apk: build-android-example
     if [ -z "${ANDROID_HOME:-}" ]; then
         echo "Error: ANDROID_HOME is not set."
         echo "This command must be run inside the nix devshell."
-        echo "  nix develop -c just build-android-apk"
+        echo "  nix develop -c just package-demo-android"
         exit 1
     fi
 
     if ! command -v gradle &>/dev/null; then
         echo "Error: gradle not found on PATH."
         echo "This command must be run inside the nix devshell."
-        echo "  nix develop -c just build-android-apk"
+        echo "  nix develop -c just package-demo-android"
         exit 1
     fi
 
@@ -220,9 +205,9 @@ build-android-apk: build-android-example
         exit 1
     fi
 
-# Launch the Android emulator (headed mode), install the APK, and start the demo activity.
-[group('sdk-rust')]
-run-android-example: build-android-apk
+# Launch Android emulator, install APK, and start the demo activity.
+[group('demo-android')]
+run-demo-android: package-demo-android
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -237,8 +222,8 @@ run-android-example: build-android-apk
         Darwin)
             if [ "$(uname -m)" = "arm64" ]; then
                 echo "Error: Android emulator is not available on Apple Silicon (aarch64-darwin)."
-                echo "The 'just run-android-example' command requires x86_64 Linux or x86_64 macOS."
-                echo "'just build-android-apk' works on Darwin (only the emulator step is blocked)."
+                echo "The 'just run-demo-android' command requires x86_64 Linux or x86_64 macOS."
+                echo "'just package-demo-android' works on Darwin (only the emulator step is blocked)."
                 exit 1
             fi
             ;;
@@ -261,7 +246,7 @@ run-android-example: build-android-apk
         if ! command -v "$tool" &>/dev/null; then
             echo "Error: '$tool' not found on PATH."
             echo "This command must be run inside the nix devshell."
-            echo "  nix develop -c just run-android-example"
+            echo "  nix develop -c just run-demo-android"
             exit 1
         fi
     done

@@ -47,7 +47,7 @@ examples/android-app/               ← Android Gradle project (THIS DIR)
    - `sign(secretKey: String, message: ByteArray)` → `String` (signature hex)
    - `verify(publicKey: String, message: ByteArray, signature: String)` → `Boolean`
 
-2. `just build-android-example` cross-compiles the Rust crate for all 4 Android
+2. `just build-demo-android` cross-compiles the Rust crate for all 4 Android
    ABIs using `cargo ndk`, placing the `.so` files directly into the Android
    project's `jniLibs/` directory. It also copies the pre-generated Kotlin
    bindings from TASK-9's output into the project source tree.
@@ -77,8 +77,8 @@ examples/android-app/               ← Android Gradle project (THIS DIR)
 
   ```bash
   cd sdk-rust
-  nix develop -c just build-android-apk
-  nix develop -c just run-android-example
+  nix develop -c just package-demo-android
+  nix develop -c just run-demo-android
   ```
 
 ## Quick Start
@@ -90,10 +90,10 @@ All commands should be run from the `sdk-rust/` directory inside the devshell.
 Build native `.so` files and the debug APK in one step:
 
 ```bash
-nix develop -c just build-android-apk
+nix develop -c just package-demo-android
 ```
 
-This runs `build-android-example` (cross-compile `.so` files, copy Kotlin
+This runs `build-demo-android` (cross-compile `.so` files, copy Kotlin
 bindings) then `gradle assembleDebug` to produce the debug APK.
 
 On success, the APK is at:
@@ -105,7 +105,7 @@ examples/android-app/app/build/outputs/apk/debug/app-debug.apk
 If you only need the native `.so` files (without the APK), use:
 
 ```bash
-nix develop -c just build-android-example
+nix develop -c just build-demo-android
 ```
 
 ### Build + run on emulator
@@ -114,14 +114,14 @@ Build the APK, launch the Android emulator (headed mode with visible window),
 install the APK, and start the demo activity:
 
 ```bash
-nix develop -c just run-android-example
+nix develop -c just run-demo-android
 ```
 
-This depends on `build-android-apk`, so the APK is always up to date.
+This depends on `package-demo-android`, so the APK is always up to date.
 
-**Note:** `run-android-example` is only supported on **Linux** and **x86_64 macOS**.
+**Note:** `run-demo-android` is only supported on **Linux** and **x86_64 macOS**.
 On Apple Silicon (aarch64-darwin), the emulator is not available — use
-`just build-android-apk` to produce the APK, then open it in Android Studio
+`just package-demo-android` to produce the APK, then open it in Android Studio
 (which includes its own emulator via Rosetta 2).
 
 ### Manual steps (alternative)
@@ -131,7 +131,7 @@ If you prefer to run steps individually:
 1. Build native libraries:
 
    ```bash
-   nix develop -c just build-android-example
+   nix develop -c just build-demo-android
    ```
 
 2. Build the APK:
@@ -204,7 +204,7 @@ echo $ANDROID_NDK_HOME
 ### Kotlin bindings not found
 
 If the Android build fails with missing `uniffi.identus_crypto_uniffi.*`
-imports, run `just build-android-example` to copy the generated bindings
+imports, run `just build-demo-android` to copy the generated bindings
 into the project:
 
 ```text
@@ -221,17 +221,17 @@ is compatible. The project does **not** include a Gradle wrapper.
 
 ### Running outside the devshell
 
-`just build-android-apk` and `just run-android-example` check for `ANDROID_HOME`,
+`just package-demo-android` and `just run-demo-android` check for `ANDROID_HOME`,
 `gradle`, and other required tools. If any are missing, they print a helpful
 error message suggesting you run inside the devshell:
 
 ```bash
-nix develop -c just build-android-apk
+nix develop -c just package-demo-android
 ```
 
 ### KVM not available (Linux)
 
-On Linux, `just run-android-example` checks for `/dev/kvm`. If KVM is not
+On Linux, `just run-demo-android` checks for `/dev/kvm`. If KVM is not
 available, it prints a warning about degraded performance but continues.
 Install KVM for better emulator performance:
 
@@ -249,8 +249,8 @@ On subsequent runs, the AVD is cached and boot is faster.
 
 ### Apple Silicon (aarch64-darwin)
 
-`just build-android-apk` works on Darwin (both x86_64 and ARM).
-`just run-android-example` prints an error on Apple Silicon because the
+`just package-demo-android` works on Darwin (both x86_64 and ARM).
+`just run-demo-android` prints an error on Apple Silicon because the
 Android emulator does not run natively on ARM macOS.
 
 ## Related Tasks
@@ -260,5 +260,5 @@ Android emulator does not run natively on ARM macOS.
 - **TASK-8** — Android example app project (this directory)
 - **TASK-9** — UniFFI binding crate (`lib/identus-crypto-uniffi/`); generates
   the Kotlin bindings consumed by this app
-- **TASK-13** — Dev workflow (`just build-android-apk`, `just run-android-example`,
+- **TASK-13** — Dev workflow (`just package-demo-android`, `just run-demo-android`,
   devshell tooling)

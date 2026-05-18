@@ -31,7 +31,7 @@ android {
     }
 
     // Point jniLibs to the directory where `cargo ndk` places .so files.
-    // Each ABI directory under jniLibs/ is populated by `just build-android-example`.
+    // Each ABI directory under jniLibs/ is populated by `just build-demo-android`.
     sourceSets {
         getByName("main") {
             jniLibs.srcDirs("src/main/jniLibs")

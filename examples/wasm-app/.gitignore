@@ -1,2 +1,2 @@
-# WASM bindings are staged into target/web-demo/ by `just build-web-example`,
+# WASM bindings are staged into target/demo-web/ by `just build-demo-web`,
 # no longer copied into this directory. See justfile for details.

@@ -14,7 +14,7 @@ try {
       <h1>❌ WASM Load Error</h1>
       <p>Could not load <code>identus_crypto_wasm.js</code>.</p>
       <p>Error: ${err.message}</p>
-      <p>Make sure the demo is served from the correct directory (e.g. via <code>nix run .#example-web</code>).</p>
+      <p>Make sure the demo is served from the correct directory (e.g. via <code>nix develop -c just run-demo-web</code>).</p>
     </div>`;
 }
 

@@ -58,6 +58,8 @@ _: {
 
         packages = with pkgs; [
           # base
+          coreutils
+          findutils
           just
           nix
           nixfmt

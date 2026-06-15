@@ -1,0 +1,19 @@
+[package]
+name = "identus-messaging"
+description = "DIDComm, mediator, and protocol-state boundaries."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+identus-core.workspace = true
+identus-crypto.workspace = true
+identus-did.workspace = true
+
+[lints]
+workspace = true

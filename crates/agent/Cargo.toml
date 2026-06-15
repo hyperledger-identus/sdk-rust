@@ -1,0 +1,15 @@
+[package]
+name = "identus-agent"
+description = "Lightweight agent and embedded mediator acceptance-test boundaries."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+
+[dependencies]
+identus-core.workspace = true
+
+[lints]
+workspace = true

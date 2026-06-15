@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hyperledger-identus/sdk-rust/fixtures/schema/infrastructure-fixture.schema.json",
+  "title": "Identus infrastructure conformance fixture",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "specification_ids",
+    "source",
+    "owner_crate",
+    "required_services",
+    "docker_free_alternative",
+    "expected",
+    "redaction_policy"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^infrastructure-.+" },
+    "specification_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "source": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      ]
+    },
+    "owner_crate": { "type": "string", "pattern": "^identus-.+" },
+    "required_services": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "docker_free_alternative": { "type": "string" },
+    "expected": { "type": "object" },
+    "redaction_policy": { "type": "string" }
+  }
+}

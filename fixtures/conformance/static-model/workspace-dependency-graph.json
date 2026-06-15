@@ -1,0 +1,319 @@
+{
+  "schema_version": "2026-06-15.workspace-dependency-graph.v1",
+  "generated_by": "tools/generate-workspace-dependency-graph.mjs",
+  "source_command": "cargo metadata --format-version 1 --no-deps",
+  "architecture_style": "hexagonal",
+  "arrow_semantics": "depends_on",
+  "layer_rules": [
+    {
+      "layer": "foundation",
+      "crates": [
+        "identus-core"
+      ],
+      "rule": "No workspace dependencies and no dependency on product, protocol, adapter, binding, or conformance crates."
+    },
+    {
+      "layer": "domain-primitives",
+      "crates": [
+        "identus-crypto",
+        "identus-did",
+        "identus-trust"
+      ],
+      "rule": "Own type-safe SSI primitives and depend only inward on foundation or other domain primitive crates."
+    },
+    {
+      "layer": "credential-semantics",
+      "crates": [
+        "identus-credentials",
+        "identus-presentations"
+      ],
+      "rule": "Own credential and presentation semantics over identity, crypto, and trust primitives."
+    },
+    {
+      "layer": "protocol-semantics",
+      "crates": [
+        "identus-messaging",
+        "identus-openid4vc"
+      ],
+      "rule": "Own DIDComm and OpenID4VC state boundaries without infrastructure dependencies."
+    },
+    {
+      "layer": "orchestration",
+      "crates": [
+        "identus-wallet",
+        "identus-agent"
+      ],
+      "rule": "Compose domain and protocol capabilities without becoming an infrastructure adapter."
+    },
+    {
+      "layer": "outer-boundary",
+      "crates": [
+        "identus-adapters",
+        "identus-bindings"
+      ],
+      "rule": "Expose infrastructure and language boundaries over stable core semantics."
+    },
+    {
+      "layer": "verification",
+      "crates": [
+        "identus-conformance"
+      ],
+      "rule": "Validate specifications, fixtures, docs, and public contract drift; production crates must not depend on it."
+    }
+  ],
+  "production_dependency_policy": {
+    "direction": "outer crates may depend inward; domain and protocol crates must not depend outward",
+    "allowed_target_layers_by_source_layer": {
+      "foundation": [],
+      "domain-primitives": [
+        "foundation",
+        "domain-primitives"
+      ],
+      "credential-semantics": [
+        "foundation",
+        "domain-primitives",
+        "credential-semantics"
+      ],
+      "protocol-semantics": [
+        "foundation",
+        "domain-primitives",
+        "credential-semantics",
+        "protocol-semantics"
+      ],
+      "orchestration": [
+        "foundation",
+        "domain-primitives",
+        "credential-semantics",
+        "protocol-semantics",
+        "orchestration"
+      ],
+      "outer-boundary": [
+        "foundation",
+        "domain-primitives",
+        "credential-semantics",
+        "protocol-semantics",
+        "orchestration"
+      ],
+      "verification": [
+        "foundation"
+      ]
+    },
+    "expected_policy_violations": 0,
+    "expected_cycle_violations": 0
+  },
+  "constraints": {
+    "core_crate": "identus-core",
+    "core_has_no_workspace_dependencies": true,
+    "domain_and_protocol_crates_do_not_depend_on": [
+      "identus-adapters",
+      "identus-bindings",
+      "identus-conformance"
+    ],
+    "outer_boundary_crates": [
+      "identus-adapters",
+      "identus-bindings"
+    ],
+    "verification_crate": "identus-conformance",
+    "production_crates_must_not_depend_on_verification": true
+  },
+  "crates": [
+    {
+      "crate": "identus-adapters",
+      "layer": "outer-boundary",
+      "manifest_path": "crates/adapters/Cargo.toml",
+      "production_dependencies": [
+        "identus-core",
+        "identus-did",
+        "identus-messaging",
+        "identus-openid4vc",
+        "identus-trust",
+        "identus-wallet"
+      ],
+      "dev_dependencies": []
+    },
+    {
+      "crate": "identus-agent",
+      "layer": "orchestration",
+      "manifest_path": "crates/agent/Cargo.toml",
+      "production_dependencies": [
+        "identus-core"
+      ],
+      "dev_dependencies": []
+    },
+    {
+      "crate": "identus-bindings",
+      "layer": "outer-boundary",
+      "manifest_path": "crates/bindings/Cargo.toml",
+      "production_dependencies": [
+        "identus-core",
+        "identus-wallet"
+      ],
+      "dev_dependencies": []
+    },
+    {
+      "crate": "identus-conformance",
+      "layer": "verification",
+      "manifest_path": "crates/conformance/Cargo.toml",
+      "production_dependencies": [
+        "identus-core"
+      ],
+      "dev_dependencies": [
+        "identus-bindings",
+        "identus-credentials",
+        "identus-messaging",
+        "identus-openid4vc",
+        "identus-presentations",
+        "identus-trust"
+      ]
+    },
+    {
+      "crate": "identus-core",
+      "layer": "foundation",
+      "manifest_path": "crates/core/Cargo.toml",
+      "production_dependencies": [],
+      "dev_dependencies": []
+    },
+    {
+      "crate": "identus-credentials",
+      "layer": "credential-semantics",
+      "manifest_path": "crates/credentials/Cargo.toml",
+      "production_dependencies": [
+        "identus-core",
+        "identus-crypto",
+        "identus-did",
+        "identus-trust"
+      ],
+      "dev_dependencies": []
+    },
+    {
+      "crate": "identus-crypto",
+      "layer": "domain-primitives",
+      "manifest_path": "crates/crypto/Cargo.toml",
+      "production_dependencies": [
+        "identus-core"
+      ],
+      "dev_dependencies": []
+    },
+    {
+      "crate": "identus-did",
+      "layer": "domain-primitives",
+      "manifest_path": "crates/did/Cargo.toml",
+      "production_dependencies": [
+        "identus-core",
+        "identus-crypto"
+      ],
+      "dev_dependencies": []
+    },
+    {
+      "crate": "identus-messaging",
+      "layer": "protocol-semantics",
+      "manifest_path": "crates/messaging/Cargo.toml",
+      "production_dependencies": [
+        "identus-core",
+        "identus-crypto",
+        "identus-did"
+      ],
+      "dev_dependencies": []
+    },
+    {
+      "crate": "identus-openid4vc",
+      "layer": "protocol-semantics",
+      "manifest_path": "crates/openid4vc/Cargo.toml",
+      "production_dependencies": [
+        "identus-core",
+        "identus-credentials",
+        "identus-presentations",
+        "identus-trust"
+      ],
+      "dev_dependencies": []
+    },
+    {
+      "crate": "identus-presentations",
+      "layer": "credential-semantics",
+      "manifest_path": "crates/presentations/Cargo.toml",
+      "production_dependencies": [
+        "identus-core",
+        "identus-credentials",
+        "identus-trust"
+      ],
+      "dev_dependencies": []
+    },
+    {
+      "crate": "identus-trust",
+      "layer": "domain-primitives",
+      "manifest_path": "crates/trust/Cargo.toml",
+      "production_dependencies": [
+        "identus-core",
+        "identus-crypto",
+        "identus-did"
+      ],
+      "dev_dependencies": []
+    },
+    {
+      "crate": "identus-wallet",
+      "layer": "orchestration",
+      "manifest_path": "crates/wallet/Cargo.toml",
+      "production_dependencies": [
+        "identus-core",
+        "identus-credentials",
+        "identus-crypto",
+        "identus-did",
+        "identus-messaging",
+        "identus-openid4vc",
+        "identus-presentations",
+        "identus-trust"
+      ],
+      "dev_dependencies": []
+    }
+  ],
+  "production_edges": [
+    "identus-adapters->identus-core",
+    "identus-adapters->identus-did",
+    "identus-adapters->identus-messaging",
+    "identus-adapters->identus-openid4vc",
+    "identus-adapters->identus-trust",
+    "identus-adapters->identus-wallet",
+    "identus-agent->identus-core",
+    "identus-bindings->identus-core",
+    "identus-bindings->identus-wallet",
+    "identus-conformance->identus-core",
+    "identus-credentials->identus-core",
+    "identus-credentials->identus-crypto",
+    "identus-credentials->identus-did",
+    "identus-credentials->identus-trust",
+    "identus-crypto->identus-core",
+    "identus-did->identus-core",
+    "identus-did->identus-crypto",
+    "identus-messaging->identus-core",
+    "identus-messaging->identus-crypto",
+    "identus-messaging->identus-did",
+    "identus-openid4vc->identus-core",
+    "identus-openid4vc->identus-credentials",
+    "identus-openid4vc->identus-presentations",
+    "identus-openid4vc->identus-trust",
+    "identus-presentations->identus-core",
+    "identus-presentations->identus-credentials",
+    "identus-presentations->identus-trust",
+    "identus-trust->identus-core",
+    "identus-trust->identus-crypto",
+    "identus-trust->identus-did",
+    "identus-wallet->identus-core",
+    "identus-wallet->identus-credentials",
+    "identus-wallet->identus-crypto",
+    "identus-wallet->identus-did",
+    "identus-wallet->identus-messaging",
+    "identus-wallet->identus-openid4vc",
+    "identus-wallet->identus-presentations",
+    "identus-wallet->identus-trust"
+  ],
+  "dev_edges": [
+    "identus-conformance->identus-bindings",
+    "identus-conformance->identus-credentials",
+    "identus-conformance->identus-messaging",
+    "identus-conformance->identus-openid4vc",
+    "identus-conformance->identus-presentations",
+    "identus-conformance->identus-trust"
+  ],
+  "production_policy_violations": [],
+  "production_cycle_violations": []
+}

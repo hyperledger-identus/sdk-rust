@@ -1,0 +1,170 @@
+{
+  "schema_version": "didcomm-transcript-0.1",
+  "specification_ids": [
+    "didcomm-oob-2",
+    "trust-ping-2",
+    "routing-2",
+    "coordinate-mediation-2",
+    "message-pickup-3",
+    "didcomm-discover-features-2",
+    "didcomm-basicmessage-2"
+  ],
+  "source": [
+    "repos/cloud-agent/mercury/protocol-invitation",
+    "repos/cloud-agent/mercury/protocol-coordinate-mediation",
+    "repos/cloud-agent/mercury/protocol-routing",
+    "repos/cloud-agent/mercury/protocol-trust-ping",
+    "repos/mediator/mediator/src/test/scala/org/hyperledger/identus/protocols/MessageSetup.scala",
+    "repos/mediator/mediator/src/test/scala/org/hyperledger/identus/mediator/prism/MediatorPrismE2ESpec.scala"
+  ],
+  "owner_crate": "identus-messaging",
+  "participants": {
+    "holder": "did:peer:2.Ez6LSholder",
+    "mediator": "did:peer:2.Ez6LSmediator",
+    "issuer": "did:peer:2.Ez6LSissuer"
+  },
+  "messages": [
+    {
+      "id": "oob-1",
+      "type": "https://didcomm.org/out-of-band/2.0/invitation",
+      "from": "did:peer:2.Ez6LSmediator",
+      "to": ["did:peer:2.Ez6LSholder"],
+      "body": {
+        "goal_code": "request-mediate"
+      }
+    },
+    {
+      "id": "features-1",
+      "type": "https://didcomm.org/discover-features/2.0/queries",
+      "from": "did:peer:2.Ez6LSholder",
+      "to": ["did:peer:2.Ez6LSmediator"],
+      "thid": "features-1",
+      "body": {
+        "queries": ["https://didcomm.org/*"]
+      }
+    },
+    {
+      "id": "ping-1",
+      "type": "https://didcomm.org/trust-ping/2.0/ping",
+      "from": "did:peer:2.Ez6LSholder",
+      "to": ["did:peer:2.Ez6LSmediator"],
+      "thid": "ping-1",
+      "body": {
+        "response_requested": true
+      }
+    },
+    {
+      "id": "ping-2",
+      "type": "https://didcomm.org/trust-ping/2.0/ping-response",
+      "from": "did:peer:2.Ez6LSmediator",
+      "to": ["did:peer:2.Ez6LSholder"],
+      "thid": "ping-1",
+      "body": {}
+    },
+    {
+      "id": "mediate-1",
+      "type": "https://didcomm.org/coordinate-mediation/2.0/mediate-request",
+      "from": "did:peer:2.Ez6LSholder",
+      "to": ["did:peer:2.Ez6LSmediator"],
+      "thid": "mediate-1",
+      "body": {}
+    },
+    {
+      "id": "mediate-2",
+      "type": "https://didcomm.org/coordinate-mediation/2.0/mediate-grant",
+      "from": "did:peer:2.Ez6LSmediator",
+      "to": ["did:peer:2.Ez6LSholder"],
+      "thid": "mediate-1",
+      "body": {
+        "routing_did": "did:peer:2.Ez6LSmediator"
+      }
+    },
+    {
+      "id": "keylist-1",
+      "type": "https://didcomm.org/coordinate-mediation/2.0/keylist-update",
+      "from": "did:peer:2.Ez6LSholder",
+      "to": ["did:peer:2.Ez6LSmediator"],
+      "thid": "mediate-1",
+      "body": {
+        "updates": ["add did:peer:2.Ez6LSholder"]
+      }
+    },
+    {
+      "id": "keylist-2",
+      "type": "https://didcomm.org/coordinate-mediation/2.0/keylist-update-response",
+      "from": "did:peer:2.Ez6LSmediator",
+      "to": ["did:peer:2.Ez6LSholder"],
+      "thid": "mediate-1",
+      "body": {
+        "updated": ["did:peer:2.Ez6LSholder"]
+      }
+    },
+    {
+      "id": "basic-1",
+      "type": "https://didcomm.org/basicmessage/2.0/message",
+      "from": "did:peer:2.Ez6LSissuer",
+      "to": ["did:peer:2.Ez6LSholder"],
+      "body": {
+        "content": "fixture-safe message"
+      }
+    },
+    {
+      "id": "forward-1",
+      "type": "https://didcomm.org/routing/2.0/forward",
+      "from": "did:peer:2.Ez6LSissuer",
+      "to": ["did:peer:2.Ez6LSmediator"],
+      "body": {
+        "next": "did:peer:2.Ez6LSholder",
+        "attachments": ["basic-1"]
+      }
+    },
+    {
+      "id": "pickup-1",
+      "type": "https://didcomm.org/messagepickup/3.0/status-request",
+      "from": "did:peer:2.Ez6LSholder",
+      "to": ["did:peer:2.Ez6LSmediator"],
+      "thid": "pickup-1",
+      "body": {}
+    },
+    {
+      "id": "pickup-2",
+      "type": "https://didcomm.org/messagepickup/3.0/status",
+      "from": "did:peer:2.Ez6LSmediator",
+      "to": ["did:peer:2.Ez6LSholder"],
+      "thid": "pickup-1",
+      "body": {
+        "message_count": 1
+      }
+    },
+    {
+      "id": "pickup-3",
+      "type": "https://didcomm.org/messagepickup/3.0/delivery-request",
+      "from": "did:peer:2.Ez6LSholder",
+      "to": ["did:peer:2.Ez6LSmediator"],
+      "thid": "pickup-1",
+      "body": {
+        "limit": 1
+      }
+    },
+    {
+      "id": "pickup-4",
+      "type": "https://didcomm.org/messagepickup/3.0/messages-received",
+      "from": "did:peer:2.Ez6LSholder",
+      "to": ["did:peer:2.Ez6LSmediator"],
+      "thid": "pickup-1",
+      "body": {
+        "message_id_list": ["basic-1"]
+      }
+    }
+  ],
+  "expected_states": [
+    "invitation_received",
+    "features_discovered",
+    "trust_ping_acknowledged",
+    "mediation_granted",
+    "recipient_key_registered",
+    "message_forwarded",
+    "pickup_completed"
+  ],
+  "redaction_policy": "Fixture-only DIDs and non-secret bodies; no claims, keys, tokens, or production identifiers."
+}

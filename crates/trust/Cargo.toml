@@ -1,0 +1,19 @@
+[package]
+name = "identus-trust"
+description = "Trust framework, status, policy, attestation, and federation boundaries."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+identus-core.workspace = true
+identus-crypto.workspace = true
+identus-did.workspace = true
+
+[lints]
+workspace = true

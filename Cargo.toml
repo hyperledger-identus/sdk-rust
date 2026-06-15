@@ -1,0 +1,48 @@
+[workspace]
+resolver = "3"
+members = [
+  "crates/agent",
+  "crates/adapters",
+  "crates/bindings",
+  "crates/conformance",
+  "crates/core",
+  "crates/credentials",
+  "crates/crypto",
+  "crates/did",
+  "crates/messaging",
+  "crates/openid4vc",
+  "crates/presentations",
+  "crates/trust",
+  "crates/wallet",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+repository = "https://github.com/hyperledger-identus/sdk-rust"
+homepage = "https://github.com/hyperledger-identus/sdk-rust"
+readme = "README.md"
+
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"
+
+[workspace.dependencies]
+identus-agent = { path = "crates/agent" }
+identus-adapters = { path = "crates/adapters" }
+identus-bindings = { path = "crates/bindings" }
+identus-conformance = { path = "crates/conformance" }
+identus-core = { path = "crates/core" }
+identus-credentials = { path = "crates/credentials" }
+identus-crypto = { path = "crates/crypto" }
+identus-did = { path = "crates/did" }
+identus-messaging = { path = "crates/messaging" }
+identus-openid4vc = { path = "crates/openid4vc" }
+identus-presentations = { path = "crates/presentations" }
+identus-trust = { path = "crates/trust" }
+identus-wallet = { path = "crates/wallet" }

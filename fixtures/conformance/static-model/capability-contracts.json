@@ -1,0 +1,202 @@
+{
+  "id": "capability-contracts",
+  "case_id": "capability-contracts",
+  "schema_version": "static-model-0.1",
+  "specification_ids": [
+    "did-core",
+    "did-prism",
+    "did-peer-1",
+    "vc-data-model",
+    "jwt-vc",
+    "sd-jwt-vc",
+    "anoncreds-v1",
+    "presentation-exchange",
+    "dcql",
+    "didcomm-v2",
+    "didcomm-oob-2",
+    "didcomm-issue-credential-3",
+    "didcomm-present-proof-3",
+    "coordinate-mediation-2",
+    "message-pickup-3",
+    "oid4vci-1",
+    "oid4vp-1",
+    "bitstring-status-list",
+    "ietf-token-status-list",
+    "digital-credentials-api"
+  ],
+  "source": [
+    "docs/architecture/adr-capability-driven-api.md",
+    "docs/architecture/adr-bindings-core-boundary.md",
+    "docs/architecture/adr-plugin-extension-compatibility.md",
+    "docs/migration/legacy-sdk-map.md",
+    "fixtures/conformance/interop/wrapper-api-parity.json"
+  ],
+  "owner_crate": "identus-bindings",
+  "description": "Capability-first public API contract seed for sdk-rust. Existing SDK APIs are source evidence and wrapper compatibility targets; Rust API design is governed by roles, state machines, ports, typed errors, fixtures, and binding parity expectations.",
+  "expected": {
+    "api_design_source": "capability_contracts",
+    "wrapper_api_inventories_role": "compatibility_gate",
+    "must_not_derive_rust_api_from": [
+      "legacy_sdk_union",
+      "legacy_sdk_intersection",
+      "legacy_sdk_codename_modules"
+    ],
+    "contracts": [
+      {
+        "contract_id": "issuer",
+        "owner_crate": "identus-agent",
+        "required_ports": ["SignerPort", "DidResolverPort", "CredentialFormatRegistry", "TransportPort", "StoragePort"],
+        "role_inputs": ["issuer_did", "subject_did", "credential_claims", "credential_format", "issuance_policy"],
+        "outputs": ["credential_offer", "issued_credential", "issuance_event"],
+        "typed_errors": ["unsupported_credential_format", "issuer_key_unavailable", "schema_validation_failed", "transport_failed"],
+        "fixture_families": ["vector", "transcript", "interop"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "react-native", "node-napi", "wasm"],
+        "acceptance_tests": ["connectionless_credential_offer", "didcomm_issue_credential", "oid4vci_issuance"]
+      },
+      {
+        "contract_id": "holder",
+        "owner_crate": "identus-agent",
+        "required_ports": ["WalletStore", "SecretResolverPort", "DidResolverPort", "TransportPort"],
+        "role_inputs": ["credential_offer", "presentation_request", "holder_policy"],
+        "outputs": ["stored_credential", "credential_request", "proof_presentation", "holder_event"],
+        "typed_errors": ["credential_rejected", "holder_binding_missing", "required_disclosure_missing", "wallet_locked"],
+        "fixture_families": ["vector", "transcript", "interop"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "react", "react-native", "wasm"],
+        "acceptance_tests": ["receive_credentials_for_portable_formats", "connectionless_proof_request", "backup_restore"]
+      },
+      {
+        "contract_id": "verifier",
+        "owner_crate": "identus-agent",
+        "required_ports": ["DidResolverPort", "CredentialVerifier", "PresentationVerifier", "TrustPolicyResolver"],
+        "role_inputs": ["presentation_request", "proof_presentation", "verification_policy"],
+        "outputs": ["verification_decision", "verification_event"],
+        "typed_errors": ["audience_mismatch", "challenge_mismatch", "domain_mismatch", "credential_revoked"],
+        "fixture_families": ["vector", "transcript", "interop"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "node-napi", "wasm"],
+        "acceptance_tests": ["holder_presents_proof_to_verifier", "wrong_claim_request_is_rejected"]
+      },
+      {
+        "contract_id": "peer",
+        "owner_crate": "identus-agent",
+        "required_ports": ["DidResolverPort", "TransportPort", "MessageStore", "ClockPort"],
+        "role_inputs": ["peer_did", "message", "routing_policy"],
+        "outputs": ["sent_message", "received_message", "peer_event"],
+        "typed_errors": ["unknown_did_method", "recipient_unreachable", "message_parse_failed", "routing_failed"],
+        "fixture_families": ["transcript", "interop"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "react-native", "node-napi"],
+        "acceptance_tests": ["basic_message", "trust_ping", "mediated_delivery"]
+      },
+      {
+        "contract_id": "wallet",
+        "owner_crate": "identus-wallet",
+        "required_ports": ["SecureStore", "KeyStore", "BackupStore", "EntropySource"],
+        "role_inputs": ["wallet_profile", "record_query", "backup_request", "restore_request"],
+        "outputs": ["wallet_record", "backup_snapshot", "restore_report"],
+        "typed_errors": ["wallet_locked", "record_not_found", "backup_invalid", "secret_unavailable"],
+        "fixture_families": ["static-model", "vector"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "react-native", "node-napi", "wasm"],
+        "acceptance_tests": ["backup_restore", "secure_storage_no_secret_leak"]
+      },
+      {
+        "contract_id": "mediator",
+        "owner_crate": "identus-messaging",
+        "required_ports": ["MessageQueuePort", "DidResolverPort", "ClockPort", "TransportPort"],
+        "role_inputs": ["mediate_request", "pickup_request", "routing_message"],
+        "outputs": ["mediate_grant", "pickup_delivery", "queued_message"],
+        "typed_errors": ["mediation_denied", "pickup_batch_empty", "recipient_unknown", "queue_unavailable"],
+        "fixture_families": ["transcript", "infrastructure"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "node-napi"],
+        "acceptance_tests": ["embedded_mediator_pickup", "coordinate_mediation", "message_pickup"]
+      },
+      {
+        "contract_id": "did",
+        "owner_crate": "identus-did",
+        "required_ports": ["DidResolverPort", "DidDereferencerPort", "VdrPort"],
+        "role_inputs": ["did", "did_url", "method_operation"],
+        "outputs": ["did_document", "dereferenced_resource", "method_operation_result"],
+        "typed_errors": ["invalid_did", "invalid_did_url", "unknown_did_method", "resolution_failed"],
+        "fixture_families": ["static-model", "vector", "infrastructure"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "node-napi", "wasm"],
+        "acceptance_tests": ["did_parse", "did_url_parse", "prism_operation_lifecycle"]
+      },
+      {
+        "contract_id": "credential",
+        "owner_crate": "identus-credentials",
+        "required_ports": ["CredentialFormatRegistry", "SignerPort", "DidResolverPort", "StatusVerifier"],
+        "role_inputs": ["credential", "credential_claims", "credential_policy"],
+        "outputs": ["credential_model", "credential_verification_decision", "issued_credential"],
+        "typed_errors": ["credential_expired", "signature_verification_failed", "unsupported_credential_format", "schema_validation_failed"],
+        "fixture_families": ["vector", "interop"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "node-napi", "wasm"],
+        "acceptance_tests": ["credential_negative_cases", "jwt_vc", "sd_jwt_vc", "anoncreds"]
+      },
+      {
+        "contract_id": "presentation",
+        "owner_crate": "identus-presentations",
+        "required_ports": ["CredentialStore", "CredentialVerifier", "TrustPolicyResolver"],
+        "role_inputs": ["presentation_request", "available_credentials", "disclosure_policy"],
+        "outputs": ["presentation_submission", "presentation_verification_decision"],
+        "typed_errors": ["required_disclosure_missing", "presentation_definition_invalid", "holder_binding_missing", "unsupported_presentation_format"],
+        "fixture_families": ["vector", "transcript", "interop"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "react", "react-native", "wasm"],
+        "acceptance_tests": ["presentation_exchange", "dcql", "connectionless_proof"]
+      },
+      {
+        "contract_id": "didcomm",
+        "owner_crate": "identus-messaging",
+        "required_ports": ["DidResolverPort", "SecretResolverPort", "TransportPort", "MessageStore"],
+        "role_inputs": ["plaintext_message", "packed_message", "protocol_state"],
+        "outputs": ["parsed_message", "packed_envelope", "protocol_event"],
+        "typed_errors": ["message_parse_failed", "unsupported_algorithm", "wrong_recipient", "missing_secret"],
+        "fixture_families": ["transcript", "interop"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "node-napi", "wasm"],
+        "acceptance_tests": ["oob", "basic_message", "issue_credential", "present_proof", "report_problem"]
+      },
+      {
+        "contract_id": "openid4vc",
+        "owner_crate": "identus-openid4vc",
+        "required_ports": ["HttpClientPort", "WalletStore", "CredentialVerifier", "PresentationVerifier", "TrustPolicyResolver"],
+        "role_inputs": ["credential_offer", "authorization_request", "presentation_request", "client_metadata"],
+        "outputs": ["credential_request", "credential_response", "presentation_response", "openid4vc_event"],
+        "typed_errors": ["invalid_nonce", "invalid_state", "issuer_metadata_invalid", "trust_chain_rejected"],
+        "fixture_families": ["transcript", "interop"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"],
+        "acceptance_tests": ["oid4vci_authorization_code", "oid4vci_pre_authorized", "oid4vp_direct_post", "siopv2", "haip"]
+      },
+      {
+        "contract_id": "trust-status",
+        "owner_crate": "identus-trust",
+        "required_ports": ["StatusResolver", "TrustAnchorResolver", "TrustEvidenceStore", "ClockPort"],
+        "role_inputs": ["status_reference", "trust_chain", "trust_policy"],
+        "outputs": ["status_decision", "trust_decision", "evidence_record"],
+        "typed_errors": ["status_unavailable", "credential_revoked", "untrusted_anchor", "trust_chain_rejected"],
+        "fixture_families": ["static-model", "vector", "transcript", "infrastructure"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "node-napi", "wasm"],
+        "acceptance_tests": ["bitstring_status_list", "token_status_list", "openid_federation_trust", "x509_iaca"]
+      },
+      {
+        "contract_id": "storage",
+        "owner_crate": "identus-adapters",
+        "required_ports": ["SecureStore", "KeyStore", "SecretResolver", "BackupStore", "EntropySource"],
+        "role_inputs": ["storage_record", "secret_handle", "backup_request", "restore_request"],
+        "outputs": ["stored_record", "secret_handle", "backup_snapshot", "restore_report"],
+        "typed_errors": ["secret_unavailable", "storage_unavailable", "record_not_found", "backup_invalid"],
+        "fixture_families": ["static-model", "vector", "infrastructure"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "react-native", "node-napi", "wasm"],
+        "acceptance_tests": ["secure_storage_no_secret_leak", "backup_restore", "in_memory_adapter"]
+      },
+      {
+        "contract_id": "binding-facade",
+        "owner_crate": "identus-bindings",
+        "required_ports": ["DtoCodec", "OpaqueHandleStore", "EventSink", "ErrorMapper"],
+        "role_inputs": ["json_dto", "opaque_handle", "target_event", "binding_options"],
+        "outputs": ["json_result", "typed_error", "binding_event", "target_manifest"],
+        "typed_errors": ["dto_decode_failed", "handle_not_found", "target_unsupported", "secret_leak_blocked"],
+        "fixture_families": ["static-model", "interop"],
+        "wrapper_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"],
+        "acceptance_tests": ["dto_round_trip", "wrapper_error_parity", "no_secret_leak", "target_build"]
+      }
+    ]
+  },
+  "redaction_policy": "Capability contracts contain no secrets. Examples and future fixtures must use redacted credential claims, opaque secret handles, stable typed error codes, and public source references only."
+}

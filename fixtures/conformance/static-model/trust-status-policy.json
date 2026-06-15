@@ -1,0 +1,114 @@
+{
+  "id": "trust-status-policy",
+  "case_id": "trust-status-policy",
+  "schema_version": "static-model-0.1",
+  "specification_ids": [
+    "vc-data-model",
+    "bitstring-status-list",
+    "ietf-token-status-list",
+    "anoncreds-v1",
+    "anoncreds-did-prism",
+    "anoncreds-http",
+    "openid-federation-1",
+    "x509-iaca",
+    "iso-mdoc"
+  ],
+  "source": [
+    "docs/architecture/adr-trust-status-policy.md",
+    "crates/trust/src/lib.rs",
+    "crates/credentials/src/lib.rs",
+    "crates/presentations/src/lib.rs",
+    "crates/openid4vc/src/lib.rs"
+  ],
+  "owner_crate": "identus-trust",
+  "description": "Docker-free static trust/status policy fixture covering the first typed trust ports, status mechanisms, status states, trust anchors, trust chains, and policy engine consumers.",
+  "expected": {
+    "ports": [
+      "StatusResolver",
+      "StatusVerifier",
+      "TrustAnchorResolver",
+      "TrustChainVerifier",
+      "TrustPolicyEngine",
+      "TrustEvidenceStore"
+    ],
+    "status_states": [
+      "Active",
+      "Suspended",
+      "Revoked",
+      "Unknown",
+      "Unavailable",
+      "Unsupported"
+    ],
+    "mechanisms": [
+      {
+        "id": "bitstring-status-list",
+        "rust_variant": "BitstringStatusList",
+        "fixture_reference": "fixture-BitstringStatusList",
+        "anchor_reference": "fixture-anchor-BitstringStatusList",
+        "docker_required": false
+      },
+      {
+        "id": "ietf-token-status-list",
+        "rust_variant": "TokenStatusList",
+        "fixture_reference": "fixture-TokenStatusList",
+        "anchor_reference": "fixture-anchor-TokenStatusList",
+        "docker_required": false,
+        "draft_gated": true
+      },
+      {
+        "id": "anoncreds-revocation",
+        "rust_variant": "AnonCredsRevocation",
+        "fixture_reference": "fixture-AnonCredsRevocation",
+        "anchor_reference": "fixture-anchor-AnonCredsRevocation",
+        "docker_required": false
+      },
+      {
+        "id": "openid-federation",
+        "rust_variant": "OpenIdFederation",
+        "fixture_reference": "fixture-OpenIdFederation",
+        "anchor_reference": "fixture-anchor-OpenIdFederation",
+        "docker_required": false
+      },
+      {
+        "id": "x509",
+        "rust_variant": "X509",
+        "fixture_reference": "fixture-X509",
+        "anchor_reference": "fixture-anchor-X509",
+        "docker_required": false
+      },
+      {
+        "id": "iaca",
+        "rust_variant": "Iaca",
+        "fixture_reference": "fixture-Iaca",
+        "anchor_reference": "fixture-anchor-Iaca",
+        "docker_required": false
+      }
+    ],
+    "typed_errors": [
+      "status_unavailable",
+      "credential_revoked",
+      "credential_suspended",
+      "unsupported_status_mechanism",
+      "untrusted_anchor",
+      "trust_chain_rejected",
+      "invalid_trust_input"
+    ],
+    "consumers": [
+      {
+        "crate": "identus-credentials",
+        "function": "evaluate_credential_trust"
+      },
+      {
+        "crate": "identus-presentations",
+        "function": "evaluate_presentation_trust"
+      },
+      {
+        "crate": "identus-openid4vc",
+        "function": "evaluate_openid4vc_trust"
+      }
+    ],
+    "default_test_mode": "docker_free",
+    "minimum_mechanism_count": 6
+  },
+  "redaction_policy": "The fixture contains synthetic status references, synthetic trust anchors, public Rust variant names, and public typed error codes only. It must not include production credentials, claims, bearer tokens, private keys, raw status list payloads, holder identifiers, or trust-chain secrets."
+}

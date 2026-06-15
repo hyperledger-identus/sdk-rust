@@ -1,0 +1,380 @@
+{
+  "id": "wrapper-api-parity-inventory",
+  "case_id": "wrapper-api-parity-inventory",
+  "schema_version": "interop-0.1",
+  "specification_ids": [
+    "digital-credentials-api",
+    "did-prism",
+    "did-peer-1",
+    "didcomm-v2",
+    "didcomm-oob-2",
+    "didcomm-issue-credential-3",
+    "didcomm-present-proof-3",
+    "oid4vci-1",
+    "oid4vp-1",
+    "vc-data-model",
+    "jwt-vc",
+    "sd-jwt-vc",
+    "anoncreds-v1",
+    "presentation-exchange",
+    "bitstring-status-list"
+  ],
+  "source": [
+    "repos/sdk-ts/packages/lib/sdk/src/index.ts",
+    "repos/sdk-ts/packages/shared/domain/src/index.ts",
+    "repos/sdk-ts/packages/shared/domain/src/models/index.ts",
+    "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/BBs/*.swift",
+    "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/Models/Credentials/*.swift",
+    "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/buildingblocks/*.kt",
+    "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/edgeagent/EdgeAgent.kt",
+    "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/models/*.kt"
+  ],
+  "owner_crate": "identus-bindings",
+  "reference_implementation": "sdk-ts, sdk-swift, sdk-kmp public exports",
+  "description": "Machine-readable wrapper API parity inventory generated from local SDK public export sources.",
+  "generation": {
+    "date": "2026-06-13",
+    "method": "repeatable local source export scan",
+    "commands": [
+      "node tools/generate-wrapper-api-parity.mjs --check",
+      "node tools/generate-wrapper-api-parity.mjs --write"
+    ]
+  },
+  "languages": [
+    {
+      "language": "typescript",
+      "package": "@hyperledger/identus-sdk",
+      "source_files": [
+        "repos/sdk-ts/packages/lib/sdk/src/index.ts",
+        "repos/sdk-ts/packages/shared/domain/src/index.ts",
+        "repos/sdk-ts/packages/shared/domain/src/models/index.ts"
+      ],
+      "exports": [
+        {
+          "source_name": "Apollo",
+          "source_kind": "module_export",
+          "source_path": "repos/sdk-ts/packages/lib/sdk/src/index.ts",
+          "owner_crate": "identus-crypto",
+          "binding_surface": "cryptography",
+          "migration_disposition": "replace_with_rust_core_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/did-prism/deterministic-master-key.json"
+          ]
+        },
+        {
+          "source_name": "Castor",
+          "source_kind": "module_export",
+          "source_path": "repos/sdk-ts/packages/lib/sdk/src/index.ts",
+          "owner_crate": "identus-did",
+          "binding_surface": "did",
+          "migration_disposition": "replace_with_rust_core_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/did-prism/deterministic-master-key.json",
+            "fixtures/conformance/vector/did-prism/prism-operation-vdr-lifecycle.json"
+          ]
+        },
+        {
+          "source_name": "Mercury",
+          "source_kind": "module_export",
+          "source_path": "repos/sdk-ts/packages/lib/sdk/src/index.ts",
+          "owner_crate": "identus-messaging",
+          "binding_surface": "messaging",
+          "migration_disposition": "replace_with_rust_core_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/transcript/didcomm/edge-mediation-and-pickup.json",
+            "fixtures/conformance/transcript/didcomm/credential-presentation-revocation.json"
+          ]
+        },
+        {
+          "source_name": "Pluto",
+          "source_kind": "module_export",
+          "source_path": "repos/sdk-ts/packages/lib/sdk/src/index.ts",
+          "owner_crate": "identus-wallet",
+          "binding_surface": "wallet",
+          "migration_disposition": "replace_with_rust_core_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/transcript/didcomm/edge-mediation-and-pickup.json"
+          ]
+        },
+        {
+          "source_name": "edge-agent",
+          "source_kind": "module_export",
+          "source_path": "repos/sdk-ts/packages/lib/sdk/src/index.ts",
+          "owner_crate": "identus-agent",
+          "binding_surface": "agent",
+          "migration_disposition": "replace_with_rust_core_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/transcript/didcomm/connectionless-oob-credential-proof.json",
+            "fixtures/conformance/transcript/openid4vc/core-flows.json"
+          ]
+        },
+        {
+          "source_name": "PluginManager",
+          "source_kind": "named_export",
+          "source_path": "repos/sdk-ts/packages/lib/sdk/src/index.ts",
+          "owner_crate": "identus-bindings",
+          "binding_surface": "extension",
+          "migration_disposition": "requires_plugin_compatibility_adr",
+          "fixture_coverage": [
+            "T057"
+          ]
+        },
+        {
+          "source_name": "Domain",
+          "source_kind": "namespace_export",
+          "source_path": "repos/sdk-ts/packages/lib/sdk/src/index.ts",
+          "owner_crate": "identus-bindings",
+          "binding_surface": "domain_dto",
+          "migration_disposition": "replace_with_generated_dto_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/credential-verification/negative-cases.json"
+          ]
+        },
+        {
+          "source_name": "JWTCredential",
+          "source_kind": "named_export",
+          "source_path": "repos/sdk-ts/packages/lib/sdk/src/index.ts",
+          "owner_crate": "identus-credentials",
+          "binding_surface": "credential",
+          "migration_disposition": "replace_with_rust_core_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/credential-verification/negative-cases.json"
+          ]
+        },
+        {
+          "source_name": "SDJWTCredential",
+          "source_kind": "named_export",
+          "source_path": "repos/sdk-ts/packages/lib/sdk/src/index.ts",
+          "owner_crate": "identus-credentials",
+          "binding_surface": "credential",
+          "migration_disposition": "replace_with_rust_core_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/credential-verification/negative-cases.json"
+          ]
+        }
+      ]
+    },
+    {
+      "language": "swift",
+      "package": "EdgeAgentSDK",
+      "source_files": [
+        "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/BBs/Apollo.swift",
+        "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/BBs/Castor.swift",
+        "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/BBs/Mercury.swift",
+        "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/BBs/Pollux.swift",
+        "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/BBs/Pluto.swift",
+        "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/Models/Credentials/Credential.swift"
+      ],
+      "exports": [
+        {
+          "source_name": "Apollo",
+          "source_kind": "public_protocol",
+          "source_path": "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/BBs/Apollo.swift",
+          "owner_crate": "identus-crypto",
+          "binding_surface": "cryptography",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/did-prism/deterministic-master-key.json"
+          ]
+        },
+        {
+          "source_name": "Castor",
+          "source_kind": "public_protocol",
+          "source_path": "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/BBs/Castor.swift",
+          "owner_crate": "identus-did",
+          "binding_surface": "did",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/did-prism/deterministic-master-key.json",
+            "fixtures/conformance/vector/did-prism/prism-operation-vdr-lifecycle.json"
+          ]
+        },
+        {
+          "source_name": "Mercury",
+          "source_kind": "public_protocol",
+          "source_path": "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/BBs/Mercury.swift",
+          "owner_crate": "identus-messaging",
+          "binding_surface": "messaging",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/transcript/didcomm/edge-mediation-and-pickup.json"
+          ]
+        },
+        {
+          "source_name": "Pollux",
+          "source_kind": "public_protocol",
+          "source_path": "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/BBs/Pollux.swift",
+          "owner_crate": "identus-credentials",
+          "binding_surface": "credential",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/credential-verification/negative-cases.json"
+          ]
+        },
+        {
+          "source_name": "Pluto",
+          "source_kind": "public_protocol",
+          "source_path": "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/BBs/Pluto.swift",
+          "owner_crate": "identus-wallet",
+          "binding_surface": "wallet",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/transcript/didcomm/edge-mediation-and-pickup.json"
+          ]
+        },
+        {
+          "source_name": "Credential",
+          "source_kind": "public_protocol",
+          "source_path": "repos/sdk-swift/EdgeAgentSDK/Domain/Sources/Models/Credentials/Credential.swift",
+          "owner_crate": "identus-credentials",
+          "binding_surface": "credential",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/credential-verification/negative-cases.json"
+          ]
+        }
+      ]
+    },
+    {
+      "language": "kotlin",
+      "package": "org.hyperledger.identus.walletsdk",
+      "source_files": [
+        "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/buildingblocks/Apollo.kt",
+        "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/buildingblocks/Castor.kt",
+        "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/buildingblocks/Mercury.kt",
+        "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/buildingblocks/Pollux.kt",
+        "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/buildingblocks/Pluto.kt",
+        "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/edgeagent/EdgeAgent.kt",
+        "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/models/DID.kt",
+        "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/models/Credential.kt",
+        "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/models/Message.kt"
+      ],
+      "exports": [
+        {
+          "source_name": "Apollo",
+          "source_kind": "interface",
+          "source_path": "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/buildingblocks/Apollo.kt",
+          "owner_crate": "identus-crypto",
+          "binding_surface": "cryptography",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/did-prism/deterministic-master-key.json"
+          ]
+        },
+        {
+          "source_name": "Castor",
+          "source_kind": "interface",
+          "source_path": "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/buildingblocks/Castor.kt",
+          "owner_crate": "identus-did",
+          "binding_surface": "did",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/did-prism/deterministic-master-key.json",
+            "fixtures/conformance/vector/did-prism/prism-operation-vdr-lifecycle.json"
+          ]
+        },
+        {
+          "source_name": "Mercury",
+          "source_kind": "interface",
+          "source_path": "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/buildingblocks/Mercury.kt",
+          "owner_crate": "identus-messaging",
+          "binding_surface": "messaging",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/transcript/didcomm/edge-mediation-and-pickup.json"
+          ]
+        },
+        {
+          "source_name": "Pollux",
+          "source_kind": "interface",
+          "source_path": "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/buildingblocks/Pollux.kt",
+          "owner_crate": "identus-credentials",
+          "binding_surface": "credential",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/credential-verification/negative-cases.json"
+          ]
+        },
+        {
+          "source_name": "Pluto",
+          "source_kind": "interface",
+          "source_path": "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/buildingblocks/Pluto.kt",
+          "owner_crate": "identus-wallet",
+          "binding_surface": "wallet",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/transcript/didcomm/edge-mediation-and-pickup.json"
+          ]
+        },
+        {
+          "source_name": "EdgeAgent",
+          "source_kind": "class",
+          "source_path": "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/edgeagent/EdgeAgent.kt",
+          "owner_crate": "identus-agent",
+          "binding_surface": "agent",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/transcript/didcomm/connectionless-oob-credential-proof.json",
+            "fixtures/conformance/transcript/openid4vc/core-flows.json"
+          ]
+        },
+        {
+          "source_name": "DID",
+          "source_kind": "data_class",
+          "source_path": "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/models/DID.kt",
+          "owner_crate": "identus-did",
+          "binding_surface": "did",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/did-prism/deterministic-master-key.json"
+          ]
+        },
+        {
+          "source_name": "Credential",
+          "source_kind": "interface",
+          "source_path": "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/models/Credential.kt",
+          "owner_crate": "identus-credentials",
+          "binding_surface": "credential",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/vector/credential-verification/negative-cases.json"
+          ]
+        },
+        {
+          "source_name": "Message",
+          "source_kind": "data_class",
+          "source_path": "repos/sdk-kmp/sdk/src/commonMain/kotlin/org/hyperledger/identus/walletsdk/domain/models/Message.kt",
+          "owner_crate": "identus-messaging",
+          "binding_surface": "messaging",
+          "migration_disposition": "replace_with_uniffi_binding",
+          "fixture_coverage": [
+            "fixtures/conformance/transcript/didcomm/edge-mediation-and-pickup.json",
+            "fixtures/conformance/transcript/didcomm/credential-presentation-revocation.json"
+          ]
+        }
+      ]
+    }
+  ],
+  "expected": {
+    "languages": [
+      "typescript",
+      "swift",
+      "kotlin"
+    ],
+    "required_fields_per_entry": [
+      "source_name",
+      "source_kind",
+      "source_path",
+      "owner_crate",
+      "binding_surface",
+      "migration_disposition",
+      "fixture_coverage"
+    ],
+    "minimum_entries": 20,
+    "next_backlog": [
+      "T057",
+      "T083"
+    ]
+  },
+  "redaction_policy": "Inventory contains public source paths and export names only. It must not contain secrets, test credentials, wallet seeds, access tokens, or private keys."
+}

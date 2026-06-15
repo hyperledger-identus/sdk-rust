@@ -1,0 +1,89 @@
+{
+  "schema_version": "didcomm-transcript-0.1",
+  "specification_ids": [
+    "didcomm-oob-2",
+    "coordinate-mediation-2",
+    "message-pickup-3"
+  ],
+  "source": [
+    "repos/cloud-agent/mercury/protocol-did-exchange/DidExchange-Protocol.md",
+    "repos/cloud-agent/mercury/protocol-invitation",
+    "repos/docs/documentation/learn/advanced-explainers/cloud-agent/README.md",
+    "repos/docs/documentation/learn/advanced-explainers/mediator.md",
+    "repos/docs/documentation/adrs/decisions/2023-05-15-mediator-message-storage.md"
+  ],
+  "owner_crate": "identus-messaging",
+  "participants": {
+    "holder": "did:peer:2.Ez6LSholder",
+    "mediator": "did:peer:2.Ez6LSmediator"
+  },
+  "messages": [
+    {
+      "id": "legacy-oob-1",
+      "type": "https://didcomm.org/out-of-band/2.0/invitation",
+      "from": "did:peer:2.Ez6LSmediator",
+      "to": ["did:peer:2.Ez6LSholder"],
+      "body": {
+        "accept": ["didcomm/v2"]
+      }
+    },
+    {
+      "id": "legacy-didexchange-1",
+      "type": "https://didcomm.org/didexchange/1.0/request",
+      "from": "did:peer:2.Ez6LSholder",
+      "to": ["did:peer:2.Ez6LSmediator"],
+      "thid": "legacy-didexchange-1",
+      "body": {
+        "migration_note": "legacy Cloud Agent compatibility"
+      }
+    },
+    {
+      "id": "legacy-didexchange-2",
+      "type": "https://didcomm.org/didexchange/1.0/response",
+      "from": "did:peer:2.Ez6LSmediator",
+      "to": ["did:peer:2.Ez6LSholder"],
+      "thid": "legacy-didexchange-1",
+      "body": {
+        "migration_note": "legacy Cloud Agent compatibility"
+      }
+    },
+    {
+      "id": "legacy-connections-1",
+      "type": "https://didcomm.org/connections/1.0/invitation",
+      "from": "did:peer:2.Ez6LSmediator",
+      "to": ["did:peer:2.Ez6LSholder"],
+      "body": {
+        "migration_note": "legacy connection invitation compatibility"
+      }
+    },
+    {
+      "id": "alias-mediation-1",
+      "type": "https://didcomm.org/mediator-coordination/2.0/mediate-request",
+      "from": "did:peer:2.Ez6LSholder",
+      "to": ["did:peer:2.Ez6LSmediator"],
+      "thid": "alias-mediation-1",
+      "body": {
+        "migration_note": "docs alias for coordinate mediation"
+      }
+    },
+    {
+      "id": "alias-pickup-1",
+      "type": "https://didcomm.org/pickup/3.0/status-request",
+      "from": "did:peer:2.Ez6LSholder",
+      "to": ["did:peer:2.Ez6LSmediator"],
+      "thid": "alias-pickup-1",
+      "body": {
+        "migration_note": "docs alias for message pickup"
+      }
+    }
+  ],
+  "expected_states": [
+    "legacy_oob_accepted",
+    "legacy_connection_request_parsed",
+    "legacy_connection_response_parsed",
+    "legacy_connection_invitation_parsed",
+    "mediation_alias_classified",
+    "pickup_alias_classified"
+  ],
+  "redaction_policy": "Compatibility-only transcript with fixture DIDs and no secrets."
+}

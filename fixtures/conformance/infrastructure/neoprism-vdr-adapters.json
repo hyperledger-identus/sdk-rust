@@ -1,0 +1,113 @@
+{
+  "id": "neoprism-vdr-adapters",
+  "case_id": "neoprism-vdr-adapters",
+  "schema_version": "infrastructure-0.1",
+  "specification_ids": [
+    "did-prism"
+  ],
+  "source": [
+    "repos/neoprism/lib/did-prism-indexer",
+    "repos/neoprism/lib/did-prism-ledger",
+    "repos/neoprism/lib/did-prism-submitter",
+    "repos/neoprism/lib/did-resolver-http",
+    "repos/neoprism/lib/node-storage",
+    "repos/neoprism/bin/neoprism-node",
+    "repos/neoprism/README.md"
+  ],
+  "owner_crate": "identus-adapters",
+  "description": "Opt-in infrastructure fixture for NeoPRISM-backed PRISM VDR adapter conformance.",
+  "required_services": [
+    "Cardano data source",
+    "Oura",
+    "DBSync",
+    "Blockfrost",
+    "PostgreSQL",
+    "SQLite",
+    "cardano-wallet",
+    "embedded-wallet",
+    "NeoPRISM HTTP resolver"
+  ],
+  "docker_free_alternative": "fixtures/conformance/vector/did-prism/prism-operation-vdr-lifecycle.json",
+  "adapter_gates": [
+    {
+      "adapter": "oura",
+      "crate_owner": "identus-adapters",
+      "required_services": [
+        "Cardano data source",
+        "Oura"
+      ],
+      "expected_state": "indexed_operations_replayed"
+    },
+    {
+      "adapter": "dbsync",
+      "crate_owner": "identus-adapters",
+      "required_services": [
+        "Cardano data source",
+        "DBSync",
+        "PostgreSQL"
+      ],
+      "expected_state": "indexed_operations_replayed"
+    },
+    {
+      "adapter": "blockfrost",
+      "crate_owner": "identus-adapters",
+      "required_services": [
+        "Blockfrost"
+      ],
+      "expected_state": "indexed_operations_replayed"
+    },
+    {
+      "adapter": "cardano-wallet-submitter",
+      "crate_owner": "identus-adapters",
+      "required_services": [
+        "cardano-wallet"
+      ],
+      "expected_state": "operation_submitted"
+    },
+    {
+      "adapter": "embedded-wallet-submitter",
+      "crate_owner": "identus-adapters",
+      "required_services": [
+        "embedded-wallet"
+      ],
+      "expected_state": "operation_submitted"
+    },
+    {
+      "adapter": "resolver-http",
+      "crate_owner": "identus-adapters",
+      "required_services": [
+        "NeoPRISM HTTP resolver"
+      ],
+      "expected_state": "did_document_resolved"
+    },
+    {
+      "adapter": "node-storage",
+      "crate_owner": "identus-wallet",
+      "required_services": [
+        "PostgreSQL",
+        "SQLite"
+      ],
+      "expected_state": "operation_state_persisted"
+    }
+  ],
+  "expected": {
+    "default_test_path": "docker_free",
+    "infrastructure_test_path": "opt_in",
+    "environment_gate": "SDK_RUST_NEOPRISM_INFRASTRUCTURE=1",
+    "minimum_embedded_mode": "in_memory_prism_operation_store",
+    "required_adapter_states": [
+      "indexed_operations_replayed",
+      "operation_submitted",
+      "did_document_resolved",
+      "operation_state_persisted"
+    ],
+    "forbidden_default_services": [
+      "Oura",
+      "DBSync",
+      "Blockfrost",
+      "PostgreSQL",
+      "cardano-wallet"
+    ]
+  },
+  "redaction_policy": "Infrastructure fixture is declarative only. It must not contain Cardano wallet mnemonics, API keys, access tokens, database URLs, node addresses, or production DID material."
+}

@@ -1,0 +1,199 @@
+{
+  "id": "credential-verification-negative-cases",
+  "schema_version": "credential-vector-0.1",
+  "specification_ids": [
+    "vc-json-schema",
+    "jwt-vc",
+    "sd-jwt",
+    "sd-jwt-vc",
+    "presentation-exchange",
+    "dcql",
+    "bitstring-status-list",
+    "ietf-token-status-list"
+  ],
+  "source": [
+    "repos/cloud-agent/tests/integration-tests/src/test/resources/features/credential/jwt/issuance.feature",
+    "repos/cloud-agent/tests/integration-tests/src/test/resources/features/credential/jwt/present_proof.feature",
+    "repos/sdk-ts/integration-tests/e2e-tests/features/connectionless_proof_jwt.feature",
+    "repos/docs/documentation/develop/cloud-agent/json-ld-jwt.md",
+    "docs/architecture/adr-fixture-schema-policy.md"
+  ],
+  "owner_crate": "identus-credentials",
+  "description": "Redacted negative-case matrix for credential and presentation verification policy.",
+  "verification_context": {
+    "verification_time": "2026-06-13T00:00:00Z",
+    "clock_skew_seconds": 60,
+    "issuer": "did:prism:issuer",
+    "holder": "did:peer:2.Ez6LSholder",
+    "verifier": "did:peer:2.Ez6LSverifier",
+    "audience": "did:peer:2.Ez6LSverifier",
+    "domain": "identus.test",
+    "challenge": "fixture-challenge",
+    "status_purpose": "revocation",
+    "credential_formats": [
+      "jwt_vc_json",
+      "sd_jwt_vc",
+      "w3c_vc_json",
+      "anoncreds",
+      "openbadges_3",
+      "iso_mdoc"
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "credential-expired",
+      "capability": "credential_temporal_validity",
+      "input_ref": "redacted-expired-jwt-vc",
+      "format": "jwt_vc_json",
+      "expected_error": "credential_expired",
+      "policy": {
+        "valid_until": "2026-06-12T23:59:00Z",
+        "verification_time": "2026-06-13T00:00:00Z"
+      }
+    },
+    {
+      "case_id": "credential-not-before",
+      "capability": "credential_temporal_validity",
+      "input_ref": "redacted-not-before-sd-jwt-vc",
+      "format": "sd_jwt_vc",
+      "expected_error": "credential_not_yet_valid",
+      "policy": {
+        "valid_from": "2026-06-13T00:02:00Z",
+        "clock_skew_seconds": 60
+      }
+    },
+    {
+      "case_id": "presentation-wrong-audience",
+      "capability": "presentation_audience_binding",
+      "input_ref": "redacted-wrong-audience-vp",
+      "format": "jwt_vp_json",
+      "expected_error": "audience_mismatch",
+      "policy": {
+        "expected_audience": "did:peer:2.Ez6LSverifier",
+        "actual_audience": "did:peer:2.Ez6LSother"
+      }
+    },
+    {
+      "case_id": "presentation-wrong-domain",
+      "capability": "presentation_domain_binding",
+      "input_ref": "redacted-wrong-domain-vp",
+      "format": "jwt_vp_json",
+      "expected_error": "domain_mismatch",
+      "policy": {
+        "expected_domain": "identus.test",
+        "actual_domain": "other.example"
+      }
+    },
+    {
+      "case_id": "presentation-wrong-challenge",
+      "capability": "presentation_challenge_binding",
+      "input_ref": "redacted-wrong-challenge-vp",
+      "format": "sd_jwt_vc",
+      "expected_error": "challenge_mismatch",
+      "policy": {
+        "expected_challenge": "fixture-challenge",
+        "actual_challenge": "other-challenge"
+      }
+    },
+    {
+      "case_id": "unsupported-key-purpose",
+      "capability": "issuer_key_purpose",
+      "input_ref": "redacted-authentication-key-credential",
+      "format": "jwt_vc_json",
+      "expected_error": "unsupported_key_purpose",
+      "policy": {
+        "expected_key_purpose": "assertionMethod",
+        "actual_key_purpose": "authentication"
+      }
+    },
+    {
+      "case_id": "status-revoked",
+      "capability": "credential_status",
+      "input_ref": "redacted-revoked-status-credential",
+      "format": "w3c_vc_json",
+      "expected_error": "credential_revoked",
+      "policy": {
+        "status_purpose": "revocation",
+        "status_value": "revoked"
+      }
+    },
+    {
+      "case_id": "tampered-signature",
+      "capability": "cryptographic_integrity",
+      "input_ref": "redacted-tampered-signature-credential",
+      "format": "jwt_vc_json",
+      "expected_error": "signature_verification_failed",
+      "policy": {
+        "tamper_location": "credentialSubject.degree"
+      }
+    },
+    {
+      "case_id": "malformed-schema",
+      "capability": "credential_schema",
+      "input_ref": "redacted-malformed-schema-credential",
+      "format": "w3c_vc_json",
+      "expected_error": "schema_validation_failed",
+      "policy": {
+        "schema_ref": "fixture-schema",
+        "violation": "required_property_missing"
+      }
+    },
+    {
+      "case_id": "missing-holder-binding",
+      "capability": "holder_binding",
+      "input_ref": "redacted-missing-holder-binding-presentation",
+      "format": "sd_jwt_vc",
+      "expected_error": "holder_binding_missing",
+      "policy": {
+        "expected_holder": "did:peer:2.Ez6LSholder"
+      }
+    },
+    {
+      "case_id": "unsupported-format",
+      "capability": "format_registry",
+      "input_ref": "redacted-unsupported-format-credential",
+      "format": "unknown_vc_format",
+      "expected_error": "unsupported_credential_format",
+      "policy": {
+        "supported_formats": [
+          "jwt_vc_json",
+          "sd_jwt_vc",
+          "w3c_vc_json",
+          "anoncreds",
+          "openbadges_3",
+          "iso_mdoc"
+        ]
+      }
+    },
+    {
+      "case_id": "selective-disclosure-claim-missing",
+      "capability": "selective_disclosure",
+      "input_ref": "redacted-sd-jwt-vc-missing-disclosure",
+      "format": "sd_jwt_vc",
+      "expected_error": "required_disclosure_missing",
+      "policy": {
+        "required_claim": "credentialSubject.familyName"
+      }
+    }
+  ],
+  "expected": {
+    "result": "rejected",
+    "typed_error_field": "expected_error",
+    "minimum_case_count": 12,
+    "required_case_ids": [
+      "credential-expired",
+      "credential-not-before",
+      "presentation-wrong-audience",
+      "presentation-wrong-domain",
+      "presentation-wrong-challenge",
+      "unsupported-key-purpose",
+      "status-revoked",
+      "tampered-signature",
+      "malformed-schema",
+      "missing-holder-binding",
+      "unsupported-format",
+      "selective-disclosure-claim-missing"
+    ]
+  },
+  "redaction_policy": "All inputs are redacted fixture references. No real claims, credentials, signatures, keys, tokens, or production identifiers are present."
+}

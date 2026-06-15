@@ -1,0 +1,332 @@
+{
+  "schema_version": "openid4vc-transcript-0.1",
+  "specification_ids": [
+    "oid4vci-1",
+    "oid4vp-1",
+    "siopv2",
+    "openid4vc-haip",
+    "openid-federation-1"
+  ],
+  "source": [
+    "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html",
+    "https://openid.net/specs/openid-4-verifiable-presentations-1_0-final.html",
+    "https://openid.net/specs/openid-connect-self-issued-v2-1_0.html",
+    "https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html",
+    "https://openid.net/specs/openid-federation-1_0.html",
+    "docs/architecture/adr-openid4vc-conformance.md"
+  ],
+  "owner_crate": "identus-openid4vc",
+  "participants": {
+    "credential_issuer": "https://issuer.example.test",
+    "wallet": "did:peer:2.Ez6LSwallet",
+    "holder": "did:peer:2.Ez6LSholder",
+    "verifier": "https://verifier.example.test",
+    "authorization_server": "https://as.example.test",
+    "trust_anchor": "https://trust-anchor.example.test",
+    "federation_entity": "https://federation.example.test"
+  },
+  "messages": [
+    {
+      "id": "oid4vci-auth-code-1",
+      "flow": "oid4vci_authorization_code",
+      "type": "credential_issuer_metadata",
+      "from": "credential_issuer",
+      "to": ["wallet"],
+      "body": {
+        "credential_configurations_supported": ["jwt_vc_json", "sd_jwt_vc"],
+        "authorization_servers": ["authorization_server"],
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vci-auth-code-2",
+      "flow": "oid4vci_authorization_code",
+      "type": "credential_offer_by_value",
+      "from": "credential_issuer",
+      "to": ["wallet"],
+      "body": {
+        "credential_configuration_ids": ["identity_credential"],
+        "grants": ["authorization_code"],
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vci-auth-code-3",
+      "flow": "oid4vci_authorization_code",
+      "type": "authorization_request",
+      "from": "wallet",
+      "to": ["authorization_server"],
+      "body": {
+        "request_uri_mode": "by_value",
+        "state": "redacted-state",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vci-auth-code-4",
+      "flow": "oid4vci_authorization_code",
+      "type": "token_response",
+      "from": "authorization_server",
+      "to": ["wallet"],
+      "body": {
+        "access_token_ref": "redacted-token",
+        "c_nonce": "redacted-nonce",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vci-auth-code-5",
+      "flow": "oid4vci_authorization_code",
+      "type": "credential_request",
+      "from": "wallet",
+      "to": ["credential_issuer"],
+      "body": {
+        "format": "jwt_vc_json",
+        "proof_ref": "redacted-holder-binding-proof",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vci-auth-code-6",
+      "flow": "oid4vci_authorization_code",
+      "type": "credential_response",
+      "from": "credential_issuer",
+      "to": ["wallet"],
+      "body": {
+        "credential_ref": "redacted-jwt-vc",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vci-preauth-1",
+      "flow": "oid4vci_pre_authorized_code",
+      "type": "credential_offer_by_reference",
+      "from": "credential_issuer",
+      "to": ["wallet"],
+      "body": {
+        "credential_offer_uri_ref": "redacted-offer-uri",
+        "grants": ["pre-authorized_code"],
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vci-preauth-2",
+      "flow": "oid4vci_pre_authorized_code",
+      "type": "token_request",
+      "from": "wallet",
+      "to": ["authorization_server"],
+      "body": {
+        "pre_authorized_code_ref": "redacted-preauth-code",
+        "tx_code": "redacted",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vci-preauth-3",
+      "flow": "oid4vci_pre_authorized_code",
+      "type": "credential_response",
+      "from": "credential_issuer",
+      "to": ["wallet"],
+      "body": {
+        "credential_ref": "redacted-sd-jwt-vc",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vci-deferred-1",
+      "flow": "oid4vci_deferred_credential",
+      "type": "deferred_credential_response_pending",
+      "from": "credential_issuer",
+      "to": ["wallet"],
+      "body": {
+        "transaction_id_ref": "redacted-transaction-id",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vci-deferred-2",
+      "flow": "oid4vci_deferred_credential",
+      "type": "deferred_credential_request",
+      "from": "wallet",
+      "to": ["credential_issuer"],
+      "body": {
+        "transaction_id_ref": "redacted-transaction-id",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vci-deferred-3",
+      "flow": "oid4vci_deferred_credential",
+      "type": "deferred_credential_response_ready",
+      "from": "credential_issuer",
+      "to": ["wallet"],
+      "body": {
+        "credential_ref": "redacted-deferred-credential",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vp-same-device-1",
+      "flow": "oid4vp_same_device_direct_post",
+      "type": "authorization_request_object",
+      "from": "verifier",
+      "to": ["wallet"],
+      "body": {
+        "response_mode": "direct_post",
+        "query_language": "dcql",
+        "nonce": "redacted-nonce",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vp-same-device-2",
+      "flow": "oid4vp_same_device_direct_post",
+      "type": "authorization_response",
+      "from": "wallet",
+      "to": ["verifier"],
+      "body": {
+        "vp_token_ref": "redacted-vp-token",
+        "presentation_submission_ref": "redacted-presentation-submission",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vp-cross-device-1",
+      "flow": "oid4vp_cross_device_direct_post",
+      "type": "request_uri_resolution",
+      "from": "wallet",
+      "to": ["verifier"],
+      "body": {
+        "request_uri_ref": "redacted-request-uri",
+        "response_mode": "direct_post.jwt",
+        "redacted": true
+      }
+    },
+    {
+      "id": "oid4vp-cross-device-2",
+      "flow": "oid4vp_cross_device_direct_post",
+      "type": "encrypted_authorization_response",
+      "from": "wallet",
+      "to": ["verifier"],
+      "body": {
+        "encrypted_response_ref": "redacted-jarm-response",
+        "redacted": true
+      }
+    },
+    {
+      "id": "siopv2-1",
+      "flow": "siopv2_self_issued",
+      "type": "self_issued_id_token_request",
+      "from": "verifier",
+      "to": ["wallet"],
+      "body": {
+        "subject_syntax_types_supported": ["did"],
+        "client_id_scheme": "redirect_uri",
+        "redacted": true
+      }
+    },
+    {
+      "id": "siopv2-2",
+      "flow": "siopv2_self_issued",
+      "type": "self_issued_id_token_response",
+      "from": "wallet",
+      "to": ["verifier"],
+      "body": {
+        "id_token_ref": "redacted-self-issued-id-token",
+        "sub": "did:peer:2.Ez6LSwallet",
+        "redacted": true
+      }
+    },
+    {
+      "id": "haip-1",
+      "flow": "haip_wallet_attestation",
+      "type": "wallet_attestation_validation",
+      "from": "wallet",
+      "to": ["verifier"],
+      "body": {
+        "wallet_attestation_ref": "redacted-wallet-attestation",
+        "key_attestation_ref": "redacted-key-attestation",
+        "profile": "haip",
+        "redacted": true
+      }
+    },
+    {
+      "id": "haip-2",
+      "flow": "haip_digital_credentials_api",
+      "type": "digital_credentials_api_request",
+      "from": "verifier",
+      "to": ["wallet"],
+      "body": {
+        "credential_format": "sd_jwt_vc",
+        "platform_adapter": "browser",
+        "redacted": true
+      }
+    },
+    {
+      "id": "federation-1",
+      "flow": "federation_backed_trust",
+      "type": "entity_statement_resolution",
+      "from": "wallet",
+      "to": ["federation_entity"],
+      "body": {
+        "entity_statement_ref": "redacted-entity-statement",
+        "redacted": true
+      }
+    },
+    {
+      "id": "federation-2",
+      "flow": "federation_backed_trust",
+      "type": "trust_chain_validation",
+      "from": "wallet",
+      "to": ["trust_anchor"],
+      "body": {
+        "trust_chain_ref": "redacted-trust-chain",
+        "metadata_policy_ref": "redacted-metadata-policy",
+        "redacted": true
+      }
+    },
+    {
+      "id": "negative-1",
+      "flow": "negative_wrong_nonce",
+      "type": "authorization_response_rejected",
+      "from": "verifier",
+      "to": ["wallet"],
+      "body": {
+        "expected_error": "nonce_mismatch",
+        "redacted": true
+      }
+    },
+    {
+      "id": "negative-2",
+      "flow": "negative_trust_chain_rejection",
+      "type": "trust_chain_rejected",
+      "from": "trust_anchor",
+      "to": ["wallet"],
+      "body": {
+        "expected_error": "trust_chain_rejected",
+        "redacted": true
+      }
+    }
+  ],
+  "expected_states": [
+    "oid4vci_authorization_code_metadata_resolved",
+    "oid4vci_authorization_code_token_issued",
+    "oid4vci_authorization_code_credential_issued",
+    "oid4vci_pre_authorized_code_offer_resolved",
+    "oid4vci_pre_authorized_code_credential_issued",
+    "oid4vci_deferred_credential_pending",
+    "oid4vci_deferred_credential_ready",
+    "oid4vp_same_device_direct_post_request_validated",
+    "oid4vp_same_device_direct_post_response_submitted",
+    "oid4vp_cross_device_direct_post_request_uri_resolved",
+    "oid4vp_cross_device_direct_post_encrypted_response_submitted",
+    "siopv2_self_issued_id_token_validated",
+    "haip_wallet_attestation_validated",
+    "haip_digital_credentials_api_request_classified",
+    "federation_entity_statement_resolved",
+    "federation_trust_chain_validated",
+    "negative_wrong_nonce_rejected",
+    "negative_trust_chain_rejected"
+  ],
+  "redaction_policy": "All message bodies contain fixture references only. No credentials, claims, signatures, private keys, bearer tokens, authorization codes, request objects, entity statements, trust chains, device identifiers, or production URLs are embedded."
+}

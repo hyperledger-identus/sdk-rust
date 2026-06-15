@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hyperledger-identus/sdk-rust/fixtures/schema/transcript-fixture.schema.json",
+  "title": "Identus transcript conformance fixture",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "specification_ids",
+    "source",
+    "owner_crate",
+    "participants",
+    "messages",
+    "expected_states",
+    "redaction_policy"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^.+-transcript-.+" },
+    "specification_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "source": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      ]
+    },
+    "owner_crate": { "type": "string", "pattern": "^identus-.+" },
+    "participants": { "type": "object" },
+    "messages": {
+      "type": "array",
+      "items": { "type": "object" },
+      "minItems": 1
+    },
+    "expected_states": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "redaction_policy": { "type": "string" }
+  }
+}

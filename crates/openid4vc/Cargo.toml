@@ -1,0 +1,20 @@
+[package]
+name = "identus-openid4vc"
+description = "OpenID4VCI, OID4VP, SIOPv2, HAIP, and federation boundaries."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+identus-core.workspace = true
+identus-credentials.workspace = true
+identus-presentations.workspace = true
+identus-trust.workspace = true
+
+[lints]
+workspace = true

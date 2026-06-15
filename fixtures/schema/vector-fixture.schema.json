@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hyperledger-identus/sdk-rust/fixtures/schema/vector-fixture.schema.json",
+  "title": "Identus vector conformance fixture",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "source",
+    "owner_crate",
+    "description",
+    "expected",
+    "redaction_policy"
+  ],
+  "anyOf": [
+    { "required": ["specification_id"] },
+    { "required": ["specification_ids"] }
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^.+-vector-.+" },
+    "specification_id": { "type": "string" },
+    "specification_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "source": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      ]
+    },
+    "owner_crate": { "type": "string", "pattern": "^identus-.+" },
+    "description": { "type": "string" },
+    "expected": { "type": "object" },
+    "redaction_policy": { "type": "string" }
+  }
+}

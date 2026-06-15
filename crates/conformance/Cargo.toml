@@ -1,0 +1,24 @@
+[package]
+name = "identus-conformance"
+description = "Specification conformance catalog and test boundaries."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+
+[dependencies]
+identus-core.workspace = true
+
+[dev-dependencies]
+identus-bindings.workspace = true
+identus-credentials.workspace = true
+identus-messaging.workspace = true
+identus-openid4vc.workspace = true
+identus-presentations.workspace = true
+identus-trust.workspace = true
+serde_json = "1"
+
+[lints]
+workspace = true

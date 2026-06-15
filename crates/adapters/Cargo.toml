@@ -1,0 +1,22 @@
+[package]
+name = "identus-adapters"
+description = "Infrastructure adapters for storage, HTTP, VDR, signer, and transport ports."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+identus-core.workspace = true
+identus-did.workspace = true
+identus-messaging.workspace = true
+identus-openid4vc.workspace = true
+identus-trust.workspace = true
+identus-wallet.workspace = true
+
+[lints]
+workspace = true

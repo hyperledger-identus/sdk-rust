@@ -1,0 +1,148 @@
+{
+  "id": "did-prism-operation-vdr-lifecycle",
+  "case_id": "prism-operation-vdr-lifecycle",
+  "schema_version": "did-vector-0.1",
+  "specification_ids": [
+    "did-prism"
+  ],
+  "source": [
+    "repos/neoprism/lib/did-prism",
+    "repos/neoprism/lib/did-prism-ledger",
+    "repos/neoprism/lib/did-prism-indexer",
+    "repos/neoprism/lib/did-prism-submitter",
+    "repos/neoprism/README.md",
+    "https://github.com/hyperledger-identus/prism-did-method-spec"
+  ],
+  "owner_crate": "identus-did",
+  "description": "Docker-free PRISM DID operation and VDR lifecycle fixture aligned with NeoPRISM crate responsibilities.",
+  "fixture_mode": "docker_free_vector",
+  "did_method": "did:prism",
+  "actors": [
+    {
+      "id": "issuer",
+      "role": "did_controller"
+    },
+    {
+      "id": "resolver",
+      "role": "vdr_reader"
+    }
+  ],
+  "key_material": {
+    "fixture_ref": "fixtures/conformance/vector/did-prism/deterministic-master-key.json",
+    "public_key_id": "master",
+    "curve": "secp256k1",
+    "compressed_public_key_hex": "023f7c75c9e5fba08fea1640d6faa3f8dc0151261d2b56026d46ddcbe1fc5a5bbb",
+    "protobuf_key_encoding": "CompressedECKeyData"
+  },
+  "operations": [
+    {
+      "case_id": "prism-create-operation",
+      "operation": "create",
+      "encoded_type": "AtalaOperation",
+      "mutation": "CreateDIDOperation",
+      "expected_state": "unpublished_long_form_created",
+      "expected": {
+        "long_form_did_required": true,
+        "published": false,
+        "method_specific_id_source": "sha256(serialized AtalaOperation)",
+        "verification_methods": [
+          "master"
+        ],
+        "services": [
+          {
+            "id": "didcomm",
+            "type": "DIDCommMessaging"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "prism-update-operation",
+      "operation": "update",
+      "encoded_type": "AtalaOperation",
+      "mutation": "UpdateDIDOperation",
+      "expected_state": "published_document_updated",
+      "expected": {
+        "previous_operation_required": true,
+        "patches": [
+          "add_service",
+          "add_verification_method",
+          "revoke_verification_method"
+        ],
+        "controller_authorization": "master_key_signature_required"
+      }
+    },
+    {
+      "case_id": "prism-deactivate-operation",
+      "operation": "deactivate",
+      "encoded_type": "AtalaOperation",
+      "mutation": "DeactivateDIDOperation",
+      "expected_state": "published_document_deactivated",
+      "expected": {
+        "resolution_metadata_deactivated": true,
+        "further_updates_rejected": true,
+        "controller_authorization": "master_key_signature_required"
+      }
+    },
+    {
+      "case_id": "prism-resolve-operation",
+      "operation": "resolve",
+      "encoded_type": "DidResolutionRequest",
+      "mutation": "ReadOnlyResolution",
+      "expected_state": "document_or_deactivated_metadata_returned",
+      "expected": {
+        "published_resolution": true,
+        "long_form_resolution": true,
+        "secure_depth": 112,
+        "metadata_fields": [
+          "versionId",
+          "created",
+          "updated",
+          "deactivated"
+        ]
+      }
+    }
+  ],
+  "vdr_expectations": {
+    "owner_crates": [
+      "identus-did",
+      "identus-adapters",
+      "identus-trust"
+    ],
+    "ports": [
+      "PrismOperationStore",
+      "PrismLedgerReader",
+      "PrismLedgerSubmitter",
+      "DidResolverPort",
+      "TrustPolicyPort"
+    ],
+    "states": [
+      "created",
+      "published",
+      "updated",
+      "deactivated",
+      "not_found",
+      "conflict"
+    ],
+    "metadata": [
+      "operation_hash",
+      "transaction_id",
+      "block_height",
+      "secure_depth",
+      "source_adapter"
+    ]
+  },
+  "expected": {
+    "expected_states": [
+      "unpublished_long_form_created",
+      "published_document_updated",
+      "published_document_deactivated",
+      "document_or_deactivated_metadata_returned"
+    ],
+    "operation_count": 4,
+    "docker_required": false,
+    "infrastructure_fixture": "fixtures/conformance/infrastructure/neoprism-vdr-adapters.json",
+    "redaction": "No private keys, wallet mnemonics, access tokens, Cardano addresses, database URLs, or production DIDs."
+  },
+  "redaction_policy": "Fixture contains only deterministic public test vectors and symbolic adapter metadata. Private keys, wallet seeds, access tokens, database URLs, and production identifiers are forbidden."
+}

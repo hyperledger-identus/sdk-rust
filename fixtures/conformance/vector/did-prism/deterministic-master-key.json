@@ -1,0 +1,33 @@
+{
+  "id": "did-prism-deterministic-master-key",
+  "schema_version": "did-vector-0.1",
+  "specification_id": "did-prism",
+  "source": "repos/docs/documentation/develop/cloud-agent/deterministic-did-creation.md",
+  "owner_crate": "identus-did",
+  "description": "Deterministic PRISM DID master-key derivation vector from the Identus docs repository.",
+  "mnemonic": "vacuum only object oxygen sell engine firm fiscal shiver finish village clock limit unable reject lawn hard adapt plunge between lawsuit stuff educate knock",
+  "passphrase": "",
+  "seed_hex": "3b32a5049f2b4e3af31ec5c1ae75fada1ad2eb8be5accf56ada343ad89eeb083208e538b3b97836e3bd7048c131421bf5bea9e3a1d25812a2d831e2bab89e058",
+  "derivation_path": "m/29'/29'/0'/1'/0'",
+  "private_key_hex": "158bf13202ccafe551b5b4e60ed516efe0fe190e5c1421c3387f0f9fef2a6111",
+  "compressed_public_key_hex": "023f7c75c9e5fba08fea1640d6faa3f8dc0151261d2b56026d46ddcbe1fc5a5bbb",
+  "public_key_id": "master",
+  "curve": "secp256k1",
+  "protobuf_key_encoding": "CompressedECKeyData",
+  "did_method_specific_id_hex": null,
+  "long_form_did": null,
+  "expected": {
+    "derivation_path": "m/29'/29'/0'/1'/0'",
+    "public_key_id": "master",
+    "curve": "secp256k1",
+    "protobuf_key_encoding": "CompressedECKeyData",
+    "did_method_specific_id_hex": null,
+    "long_form_did": null
+  },
+  "redaction_policy": "Fixture-only deterministic public documentation vector; private key material is published test material and must never be used against production systems.",
+  "notes": [
+    "All derivation path components are hardened.",
+    "Key usage 1 maps to MASTER.",
+    "Final DID hash is SHA-256(serialized AtalaOperation) and must be pinned after the Rust protobuf serializer lands."
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "id": "typed-error-catalog",
+  "case_id": "typed-error-catalog",
+  "schema_version": "static-model-0.1",
+  "specification_ids": [
+    "did-core",
+    "did-url",
+    "didcomm-v2",
+    "didcomm-oob-2",
+    "didcomm-basicmessage-2",
+    "digital-credentials-api"
+  ],
+  "source": [
+    "crates/core/src/lib.rs",
+    "crates/did/src/lib.rs",
+    "crates/messaging/src/lib.rs",
+    "docs/architecture/core-error-conventions.md"
+  ],
+  "owner_crate": "identus-core",
+  "description": "Machine-readable typed error catalog for the first core error adopters. The catalog pins stable parser and addressing error codes for binding and conformance consumers.",
+  "expected": {
+    "catalog_owner": "identus-core",
+    "redaction": "public_message_only",
+    "binding_dto": "ErrorEnvelope",
+    "capabilities": [
+      {
+        "capability": "did",
+        "owner_crate": "identus-did",
+        "local_error": "DidParseError",
+        "core_error": "IdentusError",
+        "binding_envelope": "ErrorEnvelope",
+        "error_kind": "InvalidInput",
+        "codes": [
+          {
+            "code": "missing_did_scheme",
+            "message": "DID must start with 'did:'",
+            "source_variant": "MissingDidScheme",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          },
+          {
+            "code": "invalid_did_method",
+            "message": "DID method is invalid",
+            "source_variant": "InvalidMethod",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          },
+          {
+            "code": "invalid_did_method_specific_id",
+            "message": "DID method-specific identifier is invalid",
+            "source_variant": "InvalidMethodSpecificId",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          },
+          {
+            "code": "did_url_components_not_allowed",
+            "message": "DID URL components are not allowed in a DID",
+            "source_variant": "DidUrlComponentsNotAllowed",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          },
+          {
+            "code": "invalid_did_url_component",
+            "message": "DID URL component is invalid",
+            "source_variant": "InvalidDidUrlComponent",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          }
+        ]
+      },
+      {
+        "capability": "didcomm",
+        "owner_crate": "identus-messaging",
+        "local_error": "DidCommParseError",
+        "core_error": "IdentusError",
+        "binding_envelope": "ErrorEnvelope",
+        "error_kind": "InvalidInput",
+        "codes": [
+          {
+            "code": "missing_didcomm_prefix",
+            "message": "DIDComm message type must start with https://didcomm.org/",
+            "source_variant": "MissingDidCommPrefix",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          },
+          {
+            "code": "missing_didcomm_path_segment",
+            "message": "DIDComm message type is missing a path segment",
+            "source_variant": "MissingPathSegment",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          },
+          {
+            "code": "invalid_didcomm_path_segment",
+            "message": "DIDComm message type has an invalid path segment",
+            "source_variant": "InvalidPathSegment",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          },
+          {
+            "code": "invalid_didcomm_version",
+            "message": "DIDComm message type has invalid version",
+            "source_variant": "InvalidVersionSegment",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          },
+          {
+            "code": "unexpected_didcomm_path_segment",
+            "message": "DIDComm message type has unexpected path segment",
+            "source_variant": "UnexpectedPathSegment",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          },
+          {
+            "code": "invalid_didcomm_identifier",
+            "message": "DIDComm identifier is invalid",
+            "source_variant": "InvalidIdentifier",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          },
+          {
+            "code": "missing_didcomm_recipient",
+            "message": "DIDComm addressed message requires at least one recipient",
+            "source_variant": "MissingRecipient",
+            "binding_targets": ["typescript", "swift", "kotlin", "react", "react-native", "node-napi", "wasm"]
+          }
+        ]
+      }
+    ],
+    "required_fields_per_code": ["code", "message", "source_variant", "binding_targets"],
+    "minimum_codes": 12
+  },
+  "redaction_policy": "The catalog contains public error codes, public messages, source variant names, and binding target names only. It must not contain user input, DIDs from production, protocol payloads, keys, tokens, credentials, or private diagnostics."
+}

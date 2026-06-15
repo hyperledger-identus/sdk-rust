@@ -1,0 +1,67 @@
+name: Conformance
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - agent/**
+      - codex/**
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sdk-rust
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: repos/sdk-rust
+
+      - name: Checkout sdk-ts
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: hyperledger-identus/sdk-ts
+          path: repos/sdk-ts
+
+      - name: Checkout sdk-swift
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: hyperledger-identus/sdk-swift
+          path: repos/sdk-swift
+
+      - name: Checkout sdk-kmp
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: hyperledger-identus/sdk-kmp
+          path: repos/sdk-kmp
+
+      - name: Install Rust stable
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Check Spec Kit prerequisites
+        working-directory: repos/sdk-rust
+        run: .specify/scripts/bash/check-prerequisites.sh --json --include-tasks
+
+      - name: Check agentic SDLC harness
+        working-directory: repos/sdk-rust
+        run: node tools/check-agent-sdlc.mjs --check
+
+      - name: Check wrapper API parity inventory drift
+        working-directory: repos/sdk-rust
+        run: node tools/generate-wrapper-api-parity.mjs --check
+
+      - name: Check workspace dependency graph drift
+        working-directory: repos/sdk-rust
+        run: node tools/generate-workspace-dependency-graph.mjs --check
+
+      - name: Check formatting
+        working-directory: repos/sdk-rust
+        run: cargo fmt --all -- --check
+
+      - name: Check lints
+        working-directory: repos/sdk-rust
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Run tests
+        working-directory: repos/sdk-rust
+        run: cargo test --workspace

@@ -1,0 +1,126 @@
+- name: status:triage
+  color: "ededed"
+  description: New work that needs classification and ownership.
+- name: status:needs-spec
+  color: "d4c5f9"
+  description: Work needs specification, acceptance criteria, or design evidence.
+- name: status:ready
+  color: "c2e0c6"
+  description: Work is ready for an agent to implement.
+- name: status:in-progress
+  color: "bfdadc"
+  description: An agent is actively working on this item.
+- name: status:blocked
+  color: "e11d21"
+  description: Progress is blocked by a decision, dependency, or external state.
+- name: status:review
+  color: "fbca04"
+  description: Pull request is ready for code review.
+- name: status:security-review
+  color: "b60205"
+  description: Security-sensitive change requires security review.
+- name: status:docs-review
+  color: "1d76db"
+  description: Documentation review is required.
+- name: status:conformance
+  color: "5319e7"
+  description: Conformance fixtures, parity, or protocol gates must pass.
+- name: status:ready-to-merge
+  color: "0e8a16"
+  description: Required reviews and gates are complete.
+- name: status:released
+  color: "0052cc"
+  description: Change has shipped in release notes and tags.
+- name: type:capability
+  color: "0e8a16"
+  description: User-facing SSI capability or protocol behavior.
+- name: type:defect
+  color: "d73a4a"
+  description: Bug, regression, or incorrect behavior.
+- name: type:conformance
+  color: "5319e7"
+  description: Specification, fixture, transcript, or parity coverage.
+- name: type:architecture
+  color: "1d76db"
+  description: Crate boundary, API, or design decision.
+- name: type:docs
+  color: "0075ca"
+  description: Documentation-only or documentation-heavy work.
+- name: type:maintenance
+  color: "fbca04"
+  description: CI, harness, labels, release, cleanup, or repository hygiene.
+- name: type:security
+  color: "b60205"
+  description: Crypto, storage, privacy, dependency, or redaction-sensitive work.
+- name: agent:manager
+  color: "ededed"
+  description: Manager agent owns triage and coordination.
+- name: agent:planner
+  color: "ededed"
+  description: Planner agent owns Spec Kit planning and acceptance criteria.
+- name: agent:engineer
+  color: "ededed"
+  description: Engineer agent owns implementation.
+- name: agent:conformance
+  color: "ededed"
+  description: Conformance agent owns fixtures and executable contracts.
+- name: agent:reviewer
+  color: "ededed"
+  description: Reviewer agent owns code and architecture review.
+- name: agent:security
+  color: "ededed"
+  description: Security agent owns risk review.
+- name: agent:docs
+  color: "ededed"
+  description: Documentation agent owns docs synchronization.
+- name: agent:release
+  color: "ededed"
+  description: Release agent owns release readiness.
+- name: agent:maintenance
+  color: "ededed"
+  description: Maintenance agent owns repository hygiene and automation drift.
+- name: area:did
+  color: "c5def5"
+  description: DID parsing, resolution, methods, and VDR behavior.
+- name: area:credential
+  color: "c5def5"
+  description: Credential models, formats, schemas, issuance, and verification.
+- name: area:presentation
+  color: "c5def5"
+  description: Presentation request, selection, disclosure, and verification.
+- name: area:didcomm
+  color: "c5def5"
+  description: DIDComm messages, protocols, mediation, pickup, and routing.
+- name: area:openid4vc
+  color: "c5def5"
+  description: OID4VCI, OID4VP, SIOPv2, HAIP, and related flows.
+- name: area:wallet
+  color: "c5def5"
+  description: Wallet state, storage ports, backup, restore, and key handling.
+- name: area:agent
+  color: "c5def5"
+  description: Issuer, holder, verifier, peer, and embedded agent behavior.
+- name: area:trust
+  color: "c5def5"
+  description: Trust anchors, status, revocation, and policy behavior.
+- name: area:bindings
+  color: "c5def5"
+  description: WASM, Node, UniFFI, Swift, Kotlin, TypeScript, React, and React Native facades.
+- name: area:adapters
+  color: "c5def5"
+  description: Infrastructure, platform, storage, transport, and service adapters.
+- name: area:conformance
+  color: "c5def5"
+  description: Fixtures, schemas, transcripts, parity, and runner contracts.
+- name: risk:low
+  color: "c2e0c6"
+  description: Low-risk local change.
+- name: risk:medium
+  color: "fbca04"
+  description: Moderate behavior, API, or workflow risk.
+- name: risk:high
+  color: "d93f0b"
+  description: High behavior, compatibility, or release risk.
+- name: risk:security-sensitive
+  color: "b60205"
+  description: Security, privacy, secret, cryptography, storage, or dependency risk.

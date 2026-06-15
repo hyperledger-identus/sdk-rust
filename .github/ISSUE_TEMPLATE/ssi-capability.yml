@@ -1,0 +1,87 @@
+name: SSI capability
+description: Plan or implement an SSI capability, protocol, crate, fixture, or binding surface.
+title: "[Capability]: "
+labels:
+  - status:triage
+  - type:capability
+body:
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      description: Agent expected to own the next step.
+      options:
+        - planner
+        - engineer
+        - conformance
+        - reviewer
+        - security
+        - docs
+        - release
+        - maintenance
+    validations:
+      required: true
+  - type: dropdown
+    id: capability
+    attributes:
+      label: Capability
+      options:
+        - did
+        - credential
+        - presentation
+        - didcomm
+        - openid4vc
+        - wallet
+        - agent
+        - trust
+        - bindings
+        - adapters
+        - conformance
+        - maintenance
+    validations:
+      required: true
+  - type: input
+    id: owner_crate
+    attributes:
+      label: Owner crate
+      description: Rust crate expected to own the semantics.
+      placeholder: identus-credentials
+    validations:
+      required: true
+  - type: textarea
+    id: source_evidence
+    attributes:
+      label: Source evidence
+      description: Link specifications, legacy SDK evidence, docs, BDD scenarios, or integration coverage.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Concrete behavior, docs, fixtures, and validation commands required before merge.
+      placeholder: "- [ ] Spec Kit task includes acceptance criteria\n- [ ] cargo test --workspace passes"
+    validations:
+      required: true
+  - type: textarea
+    id: conformance
+    attributes:
+      label: Conformance Impact
+      description: Fixture family, transcript, static-model, interop, infrastructure, or none.
+    validations:
+      required: true
+  - type: textarea
+    id: docs
+    attributes:
+      label: Docs Impact
+      description: Architecture, testing, migration, release, or none.
+    validations:
+      required: true
+  - type: input
+    id: discussion
+    attributes:
+      label: Discussion Link
+      description: Link the GitHub Discussion if design debate is required, otherwise write N/A.
+      placeholder: https://github.com/hyperledger-identus/sdk-rust/discussions/123
+    validations:
+      required: true

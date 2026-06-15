@@ -1,0 +1,81 @@
+name: Defect
+description: Report an sdk-rust bug, regression, conformance failure, or behavior mismatch.
+title: "[Defect]: "
+labels:
+  - status:triage
+  - type:defect
+body:
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      options:
+        - engineer
+        - conformance
+        - security
+        - docs
+        - maintenance
+    validations:
+      required: true
+  - type: dropdown
+    id: capability
+    attributes:
+      label: Capability
+      options:
+        - did
+        - credential
+        - presentation
+        - didcomm
+        - openid4vc
+        - wallet
+        - agent
+        - trust
+        - bindings
+        - adapters
+        - conformance
+        - maintenance
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Minimal command, fixture, transcript, or scenario that shows the defect.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: Include typed error code or expected result when possible.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Regression test, fixture update, docs update, and validation commands.
+    validations:
+      required: true
+  - type: textarea
+    id: conformance
+    attributes:
+      label: Conformance Impact
+      description: Fixture family, transcript, static-model, interop, infrastructure, or none.
+    validations:
+      required: true
+  - type: textarea
+    id: docs
+    attributes:
+      label: Docs Impact
+      description: Architecture, testing, migration, release, or none.
+    validations:
+      required: true
+  - type: input
+    id: discussion
+    attributes:
+      label: Discussion Link
+      description: Link the GitHub Discussion if design debate is required, otherwise write N/A.
+      placeholder: N/A
+    validations:
+      required: true

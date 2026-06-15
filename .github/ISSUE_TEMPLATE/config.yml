@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Architecture discussion
+    url: https://github.com/hyperledger-identus/sdk-rust/discussions
+    about: Use a GitHub Discussion before opening implementation work for API, protocol, or crate-boundary decisions.

@@ -194,20 +194,6 @@ scannable and diffs coherent — adding a package lands it in the right group. *
 env attr-list?** It's devshell's native form and keeps each env var explicit and
 overridable.
 
-### Single-project form
-
-This repo is a **single-project** flake: `nix/devshells/default.nix` defines
-`devshells.default` directly as above.
-
-Two patterns are **not** appropriate for a single-project repo and should not be adopted
-here:
-- `base.nix` as a **function** returning a devshell attrset, shared between `default`
-  and other shells — only useful when multiple shells share a common base.
-- `devshells/users/<name>/default.nix` **personal shells** — only useful when one flake
-  serves multiple humans.
-
-They add indirection with no payoff in a single-project repo; don't reintroduce them.
-
 ## Rust: toolchain, checks, and packaging
 
 This repo uses Rust. The Rust-specific layer — rust-overlay toolchain

@@ -1,6 +1,6 @@
 ---
 name: nix-architecture
-description: The standard Nix architecture and conventions — how the flake, devshells, checks, apps, and toolchain/checks/packaging are structured under nix/. Use whenever working with Nix files in this repo (reading, writing, editing, adding, or reviewing flake.nix or anything under nix/**/*.nix) so the agent follows the established conventions instead of improvising. Also use when setting up the devshell, adding a flake check or app, packaging a Rust crate, running nix flake check or nix develop, or otherwise touching a repo's Nix setup. Trigger on any nix-related task, even when the user doesn't explicitly name the skill.
+description: The standard Nix architecture and conventions — how the flake, devshells, checks, apps, and toolchain/packaging are structured under nix/. Use whenever touching Nix files in this repo (flake.nix or anything under nix/**/*.nix), setting up the devshell, adding a flake check or app, packaging a Rust crate, running nix flake check or nix develop, or otherwise touching the repo's Nix setup. Trigger on any nix-related task, even when the user doesn't explicitly name the skill.
 ---
 
 # Nix Architecture — Identus Standard Conventions
@@ -265,7 +265,8 @@ on the exact same file set, so the gate and the fixer agree. Don't skip them.
   keeps nix formatted and dead-binding-free; skipping them means drift goes unnoticed until
   someone else's `nix flake check` fails.
 - For Rust-specific anti-patterns (crane vs `buildRustPackage`/`naersk`, hardcoding
-  `rustc`/`cargo` versions), see [`references/rust.md`](references/rust.md).
+  `rustc`/`cargo` versions), read [`references/rust.md`](references/rust.md) (the same
+  file referenced above for Rust checks and packaging).
 
 ## Formatting & style
 

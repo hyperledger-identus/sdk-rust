@@ -1,6 +1,6 @@
 ---
 name: nix-architecture
-description: The standard Nix architecture and conventions for this repo — how the flake, devshells, checks, apps, and Rust toolchain/packaging are structured under nix/. Use whenever working with Nix files in this repo (reading, writing, editing, adding, or reviewing flake.nix or anything under nix/**/*.nix) so the agent follows the established conventions instead of improvising. Also use when setting up the devshell, adding a flake check or app, packaging a Rust crate, running nix flake check or nix develop, or otherwise touching the repo's Nix setup. Trigger on any nix-related task in this repo, even when the user doesn't explicitly name the skill.
+description: The standard Nix architecture and conventions — how the flake, devshells, checks, apps, and toolchain/checks/packaging are structured under nix/. Use whenever working with Nix files in this repo (reading, writing, editing, adding, or reviewing flake.nix or anything under nix/**/*.nix) so the agent follows the established conventions instead of improvising. Also use when setting up the devshell, adding a flake check or app, packaging a Rust crate, running nix flake check or nix develop, or otherwise touching a repo's Nix setup. Trigger on any nix-related task, even when the user doesn't explicitly name the skill.
 ---
 
 # Nix Architecture — Identus Standard Conventions
@@ -8,10 +8,10 @@ description: The standard Nix architecture and conventions for this repo — how
 ## What this skill is
 
 These are the standard Nix architecture and conventions for this repo: how the flake,
-devshells, checks, apps, and Rust toolchain/packaging are structured. The canonical
-reference implementation of these conventions is the workspace repo's `nix/` directory.
-Consistency across Identus repos is the whole point — follow these rather than
-improvising.
+devshells, checks, apps, and Rust toolchain/packaging are structured under a **shared
+module structure** — perSystem aggregators, callPackage-able files, the devshell shape,
+and the lint-nix/format-nix pair. These conventions keep the repo's Nix setup predictable
+and idiomatic — follow them rather than improvising.
 
 These are **conventions, not templates to copy verbatim**. Understand the *why* behind
 each pattern so you apply it correctly even when a situation doesn't match a canned
@@ -42,9 +42,13 @@ single import point the root flake pulls in.
 
 ## flake.nix structure
 
-`flake.nix` always follows this structure: flake-parts `mkFlake`, importing
-`devshell.flakeModule` plus the three module dirs; one system; `pkgs` injected once via
-`perSystem._module.args.pkgs` with `allowUnfree` and the overlays this repo needs.
+Keep the top-level `flake.nix` **minimal on purpose**: it declares `inputs`, wires
+`flake-parts` `mkFlake`, imports the `devshell.flakeModule` plus the `nix/` module
+dirs, sets `systems`, and injects `pkgs` once via `perSystem._module.args.pkgs`. **All
+other flake definitions and outputs live as flake-parts modules under `nix/`** — the
+root flake never defines `apps.*`, `checks.*`, `devshells.*`, or `packages.*` directly.
+This keeps `flake.nix` stable and diff-free as concerns are added; new output is one new
+file under `nix/` + one line in the relevant aggregator, never an edit to `flake.nix`.
 
 ```nix
 {
@@ -65,7 +69,7 @@ single import point the root flake pulls in.
         ./nix/devshells
         ./nix/checks
       ];
-      systems = [ "x86_64-linux" ];
+      systems = [ "x86_64-linux" "aarch64-darwin" ];
 
       perSystem = { system, ... }: {
         _module.args.pkgs = import nixpkgs {
@@ -78,21 +82,25 @@ single import point the root flake pulls in.
 }
 ```
 
-### Conventions that always hold
+### Conventions that hold for the flake
 
-- **Single system.** `systems = [ "x86_64-linux" ]` unless a repo genuinely needs more.
-  Adding a system is a deliberate decision (it doubles CI surface); don't do it
-  speculatively.
+- **Minimal top-level flake.** `flake.nix` only sets inputs, the module imports,
+  `systems`, and the single `pkgs` injection — no outputs are defined there (see the
+  lead paragraph above).
+- **Linux + macOS systems.** `systems = [ "x86_64-linux" "aarch64-darwin" ]` is the
+  standard pair: Linux for CI/servers and Apple Silicon macOS for local dev. Add
+  `"x86_64-darwin"` too only if Intel Macs must be supported. Adding any further system
+  is a deliberate decision (it multiplies CI surface); don't do it speculatively.
 - **One `pkgs` injection point.** `perSystem._module.args.pkgs` is the only place
   `nixpkgs` is imported. Every module reads `pkgs` from `perSystem`'s argument
   (`{ pkgs, ... }:`), never re-imports `nixpkgs`. This keeps overlays (rust-overlay)
   applied consistently everywhere.
-- **`allowUnfree = true`** at the import, because JDKs (temurin) and some toolchains are
-  unfree and Identus repos use them.
+- **`allowUnfree = true`** at the import, because some toolchains (e.g. JDKs/temurin)
+  are unfree and may be needed.
 - **Overlays applied at the top.** Add a new overlay here (e.g. rust-overlay) and it's
   available to every module automatically.
 - **No `nixConfig`.** Binary-cache `nixConfig.extra-substituters` /
-  `extra-trusted-public-keys` is a *personal* convenience for the workspace owner's
+  `extra-trusted-public-keys` is a *personal* convenience for an individual's
   machine, not a shared standard — it imposes a trust decision on every contributor's
   Nix client. Omit it from repo flakes unless the repo publishes its own cache.
 
@@ -149,7 +157,7 @@ stdenv.mkDerivation {
 
 ## The devshell shape
 
-Devshells use **numtide `devshell`**. Each devshell is a flake-parts module setting
+Build devshells with **numtide `devshell`**. Each devshell is a flake-parts module setting
 `devshells.<name>` with `devshell.name`, a `packages` list grouped by **comment-delimited
 sections**, and an `env` list of `{ name; value; }` attrs.
 
@@ -186,42 +194,32 @@ scannable and diffs coherent — adding a package lands it in the right group. *
 env attr-list?** It's devshell's native form and keeps each env var explicit and
 overridable.
 
-### Single-project vs workspace form
+### Single-project form
 
 This repo is a **single-project** flake: `nix/devshells/default.nix` defines
 `devshells.default` directly as above.
 
-The *workspace* repo additionally uses two patterns that single-project repos should
-**not** adopt:
+Two patterns are **not** appropriate for a single-project repo and should not be adopted
+here:
 - `base.nix` as a **function** returning a devshell attrset, shared between `default`
-  and user shells — only useful when multiple shells share a common base.
+  and other shells — only useful when multiple shells share a common base.
 - `devshells/users/<name>/default.nix` **personal shells** — only useful when one flake
   serves multiple humans.
 
-Don't reintroduce these in a single-project repo; they add indirection with no payoff.
+They add indirection with no payoff in a single-project repo; don't reintroduce them.
 
-## Rust devshells
+## Rust: toolchain, checks, and packaging
 
-Conventions for a Rust devshell (the example above illustrates them):
+This repo uses Rust. The Rust-specific layer — rust-overlay toolchain
+conventions for devshells (extensions, targets, env baseline, section ordering),
+crane-based `cargo-fmt` / `cargo-clippy` / `cargo-test` checks, and `craneLib.buildPackage`
+packaging — lives in [`references/rust.md`](references/rust.md). Read it when adding Rust
+checks or a `packages.*` artifact. The devshell example above already shows the toolchain
+shape; `rust.md` adds the conventions around it.
 
-- **Toolchain via rust-overlay**, `rust-bin.stable.latest.default` by default. Switch to
-  nightly or add targets (e.g. `wasm32-unknown-unknown`) via
-  `.override { extensions = [...]; targets = [...]; }` only when a repo actually needs
-  them — match the conservative default, record the override pattern.
-- **Include `rust-src` and `rust-analyzer`** as toolchain extensions, for zero-config
-  editor setup.
-- **`stdenv.cc` and `pkg-config`** belong in a `# C toolchain (build-script deps)`
-  section — cargo build scripts of transitive deps need a C toolchain.
-- **Env baseline:** `SSL_CERT_FILE` (`${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt`) and
-  `LANG = "C.utf8"` are the universal env baseline; add repo-specific env (`JAVA_HOME`,
-  etc.) only when needed.
-- **Section ordering:** `# rust toolchain`, `# C toolchain (build-script deps)`,
-  `# dev tools`, `# nix`. Adapt the package list per repo; the *sections and order* are
-  the convention.
+## The lint-nix check and format-nix app
 
-## The lint-nix check and format-nix app (standard for every flake repo)
-
-Every repo adopting this standard carries **both**:
+Carry **both** in this repo:
 
 1. **`nix/checks/lint-nix.nix`** — a `cleanSourceWith`-filtered `mkDerivation` running
    `deadnix -f` (unused bindings), `statix check .` (anti-patterns), and
@@ -230,8 +228,8 @@ Every repo adopting this standard carries **both**:
 
    The `cleanSourceWith` filter scopes the source to **only nix files** (the repo root's
    `flake.nix` plus `nix/`), so the check is fast and only lints what we standardize on.
-   The filter is relative-path based (`lib.removePrefix (toString ./../..)`) so it ports
-   cleanly between repos without editing:
+   The filter is relative-path based (`lib.removePrefix (toString ./../..)`) so it needs
+   no hardcoded paths:
 
    ```nix
    src = lib.cleanSourceWith {
@@ -259,71 +257,29 @@ Every repo adopting this standard carries **both**:
 
 **Why pair them?** The check *gates* (`nix flake check` fails if nix is unformatted or has
 dead bindings); the app *fixes* (`nix run .#format-nix` formats in place). Both operate
-on the exact same file set, so the gate and the fixer agree. These are the standard for
-every flake repo here — don't skip them.
-
-## Rust checks via crane + rust-overlay
-
-When a repo defines Rust checks or packaging, use **crane** (add it as a flake input).
-Crane is the build/check *driver*; rust-overlay (oxalica) supplies the *toolchain*. They
-are complementary — crane does not provide a toolchain.
-
-```nix
-perSystem = { pkgs, ... }: let
-  craneLib = crane.mkLib pkgs;
-  rustToolchain = pkgs.rust-bin.stable.latest.default;
-  commonArgs = {
-    src = craneLib.cleanCargoSource ./.;
-    nativeBuildInputs = [ rustToolchain pkg-config ];
-  };
-  cargoArtifacts = craneLib.buildDepsOnly (commonArgs // { doCheck = false; });
-in {
-  checks.cargo-fmt    = craneLib.cargoFmt     (commonArgs // { inherit rustToolchain; });
-  checks.cargo-clippy = craneLib.cargoClippy  (commonArgs // { inherit cargoArtifacts; });
-  checks.cargo-test    = craneLib.cargoNextest (commonArgs // { inherit cargoArtifacts; });
-};
-```
-
-**Why crane over alternatives:**
-- **vs `buildRustPackage`** (nixpkgs): crane handles cargo-registry vendoring and deps
-  caching correctly; `buildRustPackage` requires you to manually hash the cargo lock and
-  doesn't share deps across checks.
-- **vs `naersk`**: naersk is older and less actively maintained; crane is the current
-  community default.
-- **The shared `cargoArtifacts` (`buildDepsOnly`) FOD is the real win** — deps build *once*
-  and are reused by both clippy and test checks, instead of rebuilding per check.
-
-**Toolchain:** rust-overlay's `rust-bin.stable.latest.default` (the same `pkgs` that
-already has the rust-overlay overlay applied — see "One `pkgs` injection point"). Override
-with nightly/extensions/targets via `.override { ... }` only when a repo needs them.
-
-**Add the `crane` input only when a repo actually defines Rust checks or packaging.** A
-pure-devshell repo keeps the minimal inputs (flake-parts, nixpkgs, devshell, rust-overlay)
-and adds no crane machinery.
-
-## Packaging (Rust)
-
-Packaging is **not** part of the default standard — add `packages.*` only when there is
-a real shippable artifact (a binary, a wasm lib, a staticlib). When you do, **use crane**
-(`craneLib.buildPackage`) under `nix/pkgs/` (or similar) following the same
-perSystem-aggregator + callPackage-able-file pattern as `nix/checks/`. Don't reach for
-`buildRustPackage` or naersk.
+on the exact same file set, so the gate and the fixer agree. Don't skip them.
 
 ## Anti-patterns (do not do these)
 
 - **Don't** reintroduce `base.nix`-as-function or `devshells/users/<name>/` in a
-  single-project repo — they exist only for multi-user/multi-shell workspace flakes.
-- **Don't** reach for `buildRustPackage` or `naersk` for Rust checks/packaging — use crane.
-- **Don't** define `packages.*` speculatively — wait for a real artifact.
-- **Don't** hardcode a `rustc`/`cargo` version — always go through rust-overlay's
-  `rust-bin.*` so the toolchain is reproducible and overridable.
+  single-project repo — they exist only for multi-user/multi-shell flakes, so in a
+  single-project repo they add indirection with no payoff.
+- **Don't** define `packages.*` speculatively — wait for a real shippable artifact. A
+  `packages.*` entry adds a nix derivation and CI surface; defining one with nothing to ship
+  costs build time for no deliverable. (For Rust specifically, see
+  [`references/rust.md`](references/rust.md) on when packaging is warranted.)
 - **Don't** re-import `nixpkgs` inside a module — read `pkgs` from `perSystem`'s argument
-  so overlays apply consistently.
-- **Don't** add a second `system` speculatively — it doubles CI surface; do it deliberately.
+  so overlays (rust-overlay) apply consistently everywhere.
+- **Don't** add a further `system` speculatively beyond the Linux + macOS pair —
+  it multiplies CI surface; do it deliberately.
 - **Don't** add `nixConfig` binary-cache/trust settings to a repo flake — that's personal
-  config, not a shared standard.
-- **Don't** skip the lint-nix check / format-nix app — they're the standard for every
-  flake repo here.
+  config, not a shared standard, and it imposes a trust decision on every contributor's
+  Nix client.
+- **Don't** skip the lint-nix check / format-nix app — they're the gate+fixer pair that
+  keeps nix formatted and dead-binding-free; skipping them means drift goes unnoticed until
+  someone else's `nix flake check` fails.
+- For Rust-specific anti-patterns (crane vs `buildRustPackage`/`naersk`, hardcoding
+  `rustc`/`cargo` versions), see [`references/rust.md`](references/rust.md).
 
 ## Formatting & style
 

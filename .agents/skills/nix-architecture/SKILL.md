@@ -167,17 +167,13 @@ sections**, and an `env` list of `{ name; value; }` attrs.
     devshells.default = {
       devshell.name = "my-repo";
       packages = with pkgs; [
-        # rust toolchain
-        (rust-bin.stable.latest.default.override {
-          extensions = [ "rust-src" "rust-analyzer" ];
-        })
-        # C toolchain (build-script deps)
-        stdenv.cc
-        pkg-config
-        # dev tools
-        git just jq curl which
-        # nix
-        nix nixfmt
+        # <group 1>
+        package1
+        package2
+        # <group 2>
+        package3
+        package4
+        ...
       ];
       env = [
         { name = "SSL_CERT_FILE"; value = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"; }

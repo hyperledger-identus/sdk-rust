@@ -17,15 +17,13 @@
 ## 3. Rust toolchain module
 
 - [ ] 3.1 Create `nix/rust-toolchain.nix` exporting a `perSystem` module (or `_module.args`) that defines `toolchain.stable` = `rust-bin.stable.latest.default` with extensions `[rust-src rust-analyzer]` and targets `[wasm32-unknown-unknown]`
-- [ ] 3.2 Define `toolchain.nightly` = `rust-bin.nightly.latest.default` with the same extensions/targets
-- [ ] 3.3 Expose a `craneLib` = `crane.mkLib pkgs` (using the stable toolchain) as a `_module.args` or per-system attr so checks and a future `buildPackage` share it
+- [ ] 3.2 Expose a `craneLib` = `crane.mkLib pkgs` (using the stable toolchain) as a `_module.args` or per-system attr so checks and a future `buildPackage` share it
 
 ## 4. Devshells
 
 - [ ] 4.1 Create `nix/devshells/default.nix` defining `devshells.default` (name `sdk-rust`) with: stable rust toolchain, `stdenv.cc`, `pkg-config`, `openssl`, `cargo-nextest`, `cargo-deny`, `cargo-audit`, `protobuf`, `just`, `git`, `jq`, `curl`, `which`, `gh`, `cacert`, `nix`, `nixfmt`, `deadnix`, `statix`
 - [ ] 4.2 Set env in the default devshell: `SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"`, `LANG = "C.utf8"`
-- [ ] 4.3 Create `nix/devshells/nightly.nix` defining `devshells.nightly` identical to default but swapping the toolchain for `toolchain.nightly`
-- [ ] 4.4 Verify `nix develop -c cargo --version` and `nix develop .#nightly -c cargo --version` both work
+- [ ] 4.3 Verify `nix develop -c cargo --version` works
 
 ## 5. Checks — Nix hygiene
 
@@ -67,4 +65,4 @@
 - [ ] 10.2 Run `nix flake check` locally and confirm green (at minimum on linux; darwin if a mac host is available)
 - [ ] 10.3 Confirm `nix develop -c cargo build` and `nix develop -c cargo test` succeed
 - [ ] 10.4 Push the branch and confirm the `nix-checks` CI workflow runs green on both matrix legs
-- [ ] 10.5 Update `README.md` development section to reflect the `nix develop` workflow (replace the bare `cargo build`/`cargo test` instructions) and note the `.#nightly` opt-in
+- [ ] 10.5 Update `README.md` development section to reflect the `nix develop` workflow (replace the bare `cargo build`/`cargo test` instructions)

@@ -9,11 +9,6 @@ The submodule SHALL provide a Nix flake at the repo root that yields a reproduci
 - **WHEN** a contributor runs `nix develop` (or `nix develop .#default`) from the submodule root
 - **THEN** the shell SHALL provide `cargo`, `rustc`, `rustfmt`, `rust-analyzer`, and `clippy` from the stable Rust toolchain, plus the `wasm32-unknown-unknown` rustc target
 
-#### Scenario: Nightly devshell is available as an opt-in
-
-- **WHEN** a contributor runs `nix develop .#nightly` from the submodule root
-- **THEN** the shell SHALL provide a nightly Rust toolchain with the same extensions and targets as the default devshell
-
 #### Scenario: Devshell includes C toolchain and crypto build prerequisites
 
 - **WHEN** the default devshell is active
@@ -186,12 +181,12 @@ The submodule SHALL include a `.github/workflows/nix-checks.yml` workflow that i
 
 ### Requirement: Checks use the stable toolchain
 
-All crane-based Rust checks (`rust-fmt`, `rust-clippy`, `rust-test`, `rust-deny`, `rust-audit`) SHALL build with the stable Rust toolchain. The nightly toolchain SHALL NOT be referenced by any check.
+All crane-based Rust checks (`rust-fmt`, `rust-clippy`, `rust-test`, `rust-deny`, `rust-audit`) SHALL build with the stable Rust toolchain.
 
 #### Scenario: Checks build on stable
 
 - **WHEN** `nix flake check` is run
-- **THEN** every crane-based Rust check SHALL compile against the stable Rust toolchain, independent of the `.#nightly` devshell attribute
+- **THEN** every crane-based Rust check SHALL compile against the stable Rust toolchain
 
 ### Requirement: Crane dependency caching
 

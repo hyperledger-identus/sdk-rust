@@ -21,7 +21,7 @@ The SDK's purpose is to implement the Identus SSI capability in Rust (DID core, 
 
 - Implementing any Identus SSI functionality (DID, crypto, credentials, DIDComm). The stub crate is an empty placeholder.
 - WASM artifact production tooling (`wasm-pack`, `wasm-bindgen-cli`). The `wasm32-unknown-unknown` target is included in the toolchain, but the packaging tooling is deferred to the proposal that first needs browser interop.
-- Wiring the nightly toolchain into checks. The `.#nightly` devshell attribute exists for experimentation only; checks run on stable.
+- Providing a nightly Rust toolchain. The default (and only) devshell and all checks run on stable; nightly is deferred to the proposal that first proves a nightly need.
 - Modifying the workspace root flake or any other submodule.
 - Mobile/FFI cross-compilation targets (aarch64-linux/darwin as *build targets* for sdk-kmp/sdk-swift interop). Darwin is supported only as a *dev/CI system*, not as a cross-compile target.
 
@@ -47,15 +47,15 @@ Rust checks are built with [crane](https://github.com/ipetkov/crane) via `craneL
 - *Hand-rolled derivation checks* (match workspace `lint-nix.nix` idiom): rejected for Rust checks specifically because of the per-check recompilation cost. The hand-rolled idiom remains correct for the Nix-hygiene check, which is what the workspace uses it for.
 - *naersk*: rejected; crane is more actively maintained and has a richer check-helper API.
 
-### Decision 3: Stable toolchain default, nightly opt-in
+### Decision 3: Stable toolchain only
 
-The default devshell and all checks use `rust-bin.stable.latest.default` (with `rust-src`, `rust-analyzer` extensions and the `wasm32-unknown-unknown` target). A separate `.#nightly` devshell attribute uses `rust-bin.nightly.latest.default` with the same extensions/targets but is **not** referenced by any check.
+The default devshell and all checks use `rust-bin.stable.latest.default` (with `rust-src`, `rust-analyzer` extensions and the `wasm32-unknown-unknown` target). No nightly toolchain is defined.
 
-**Rationale**: A fresh library has no demonstrated nightly requirement. Stable is the right baseline for a consumable library (matches `rustup default` for the broadest audience, matches what consumer CI uses). The nightly attribute is nearly free and reserved for the first proposal that proves a nightly need (likely WASM/browser interop), at which point the default can be flipped with evidence. Including the `wasm32-unknown-unknown` target in both toolchains signals intent toward browser interop without committing to nightly.
+**Rationale**: A fresh library has no demonstrated nightly requirement. Stable is the right baseline for a consumable library (matches `rustup default` for the broadest audience, matches what consumer CI uses). Defining a nightly toolchain now would be speculative: adding `rust-bin.nightly.latest.default` back to `nix/rust-toolchain.nix` is a 2-line change bundled with the proposal that first proves a nightly need (likely WASM/browser interop), at which point the decision is evidence-based. Including the `wasm32-unknown-unknown` target in the stable toolchain signals intent toward browser interop without committing to nightly.
 
 **Alternatives considered**:
-- *Nightly everywhere* (match `sdk-ts` devshell): rejected as cargo-culting sdk-ts's documented nightly constraint, which sdk-rust has not yet earned.
-- *Stable only, no nightly attr*: rejected; the opt-in attr is cheap and avoids a later flake-input reshuffle when nightly is needed.
+- *Nightly everywhere*: rejected; this library has no demonstrated nightly requirement, and a consumable library should match what consumer CI uses.
+- *Stable default plus an opt-in nightly devshell*: rejected; an unused nightly attribute is dead code that preserves the "we might need nightly later" intention in the code while removing the only thing that would exercise it. Better to add nightly machinery at the moment of need, as a deliberate, evidence-based choice.
 
 ### Decision 4: Defer wasm packaging tooling
 
@@ -91,8 +91,8 @@ A `.github/workflows/nix-checks.yml` workflow ships in this change, installing N
 
 ```
 nix/
-├── rust-toolchain.nix      ← rust-overlay → toolchain attrset (stable + nightly)
-├── devshells/{default,nightly}.nix
+├── rust-toolchain.nix      ← rust-overlay → stable toolchain attrset
+├── devshells/default.nix
 ├── checks/{default,lint-nix,rust-fmt,rust-clippy,rust-test,rust-deny,rust-audit}.nix
 └── apps/{default,format,format-nix}.nix
 ```
@@ -108,7 +108,6 @@ nix/
 - **[Risk] darwin CI flakiness / `macos-latest` runner scarcity** → Mitigation: the stub crate has no platform-sensitive deps, so the darwin leg is trivially green now. As deps are added, watch for darwin-specific openssl/pkg-config failures and address them in the proposal that introduces the offending dep. If darwin CI becomes a persistent burden, a follow-up change can gate darwin behind `if system == "x86_64-linux"` without removing the devshell support.
 - **[Risk] crane is a new input pattern in the workspace** → Mitigation: sdk-rust is an independent repo with its own flake; crane does not leak into the workspace root's closure or style. The workspace root's hand-rolled `lint-nix` idiom is preserved for Nix-hygiene checks (which is what it's good at).
 - **[Risk] `cargo-audit` / `cargo-deny` fetch advisory DBs in the Nix sandbox** → Mitigation: crane's `cargoAudit` and `cargoDeny` helpers handle DB fetching sanely. Pin `advisory-db` via crane's `input` mechanism so the check is reproducible and not impure.
-- **[Risk] nightly toolchain drift** → Mitigation: nightly is an opt-in devshell only, never referenced by checks. If `rust-bin.nightly.latest.default` is broken on a given day, only contributors who opt into `.#nightly` are affected; CI and `nix flake check` are stable-pinned and unaffected.
 - **[Risk] crate name `identus-ssi` is locked in early** → Mitigation: it's a placeholder name aligned with the "SSI capability" framing; renaming a workspace member later is mechanical (`cargo` handles it). The cost of deciding now is lower than the cost of bikeshedding across proposals.
 - **[Trade-off] `flake.lock` is larger** (darwin paths) and CI is slower (two runners) than the linux-only alternative. Accepted per Decision 6.
 

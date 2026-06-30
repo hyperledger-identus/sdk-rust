@@ -4,6 +4,12 @@ This is a **Rust SDK** for the [Identus](https://github.com/hyperledger-identus)
 
 ## Development
 
+A Nix flake devshell is available for setting up the development environment (requires Nix). Run:
+
+```bash
+nix develop -c <command>
+```
+
 ```bash
 # Build
 cargo build
@@ -27,14 +33,6 @@ cargo clippy
 - **Don't touch unrelated comments** that are separate from the code you are modifying.
 - **Shell snippets:** `#` comments are fine when needed to make copyable commands clear, one command per line.
 
-## Nix
-
-A Nix flake may be available for development. To use it:
-
-```bash
-nix develop -c <command>
-```
-
 <!-- BACKLOG.MD GUIDELINES START -->
 <CRITICAL_INSTRUCTION>
 
@@ -47,6 +45,7 @@ This project uses Backlog.md for task and project management.
 Use the overview to decide whether to search, read, create, or update Backlog tasks.
 
 Use the detailed guides when needed:
+
 - `backlog instructions task-creation` for creating or splitting tasks
 - `backlog instructions task-execution` for planning and implementation workflow
 - `backlog instructions task-finalization` for completion and handoff

@@ -6,7 +6,7 @@
 
 - Add a `flake.nix` at the submodule root, built with `flake-parts` and mirroring the workspace root flake's input set (`nixpkgs` unstable, `flake-parts`, `devshell`, `rust-overlay`) plus a new `crane` input.
 - Add a modular `nix/` directory: `nix/rust-toolchain.nix`, `nix/devshells/default.nix`, `nix/checks/{default,lint-nix,rust-fmt,rust-clippy,rust-test,rust-deny,rust-audit}.nix`, `nix/apps/{default,format,format-nix}.nix`.
-- Add a stub Cargo workspace: root `Cargo.toml` (`[workspace]` with no package of its own) and one member crate `crates/identus-ssi/` (`Cargo.toml` + placeholder `src/lib.rs`) so the crane-based checks have a real cargo project to exercise and so future proposals have a landing zone.
+- Add a stub Cargo workspace: root `Cargo.toml` (`[workspace]` with no package of its own, `resolver = "2"`) and one member crate `crates/identus-ssi/` (`Cargo.toml` + placeholder `src/lib.rs`, `edition = "2024"`, `rust-version = "1.85.0"`) so the crane-based checks have a real cargo project to exercise and so future proposals have a landing zone.
 - Add `deny.toml` for `cargo-deny` policy (advisories, licenses, bans).
 - Add a CI workflow `.github/workflows/nix-checks.yml` that installs Nix and runs `nix flake check` on a matrix of `ubuntu-latest` and `macos-latest`.
 - Systems supported: `x86_64-linux` and `aarch64-darwin`.

@@ -103,6 +103,20 @@ nix/
 - *Single `nix/modules.nix`*: rejected; loses the per-check isolation the workspace idiom provides.
 - *Co-locate toolchain in each devshell*: rejected; duplicates the rust-overlay invocation and drifts.
 
+### Decision 8: Edition 2024 with MSRV pinned to the edition floor
+
+The stub crate and root workspace use `edition = "2024"` with `rust-version = "1.85.0"` (the edition 2024 floor). `resolver = "2"` is kept explicitly at the workspace level even though edition 2024 implies it, for clarity and for readers who scan the manifest without inferring from edition.
+
+**Rationale**: Edition 2024 has been stable since Rust 1.85 (Feb 2025), roughly 16 months before this change. For a greenfield SDK bootstrapped in mid-2026, starting on edition 2024 avoids a forced edition-bump PR later — edition migrations are mechanical but disruptive once real code exists, and this SDK will eventually hold crypto and FFI code where the edition's stricter `unsafe` rules and RPIT lifetime-capture semantics matter. Encoding those semantics from day one means reviewers never relax into 2021-era patterns that must be relearned.
+
+Note on the resolver half of the original question: the `[workspace] resolver` field only accepts `"1"` or `"2"`; there is no `resolver = "3"`. The plan was already at the ceiling (`"2"`), so "newer resolver" was a non-option. Edition 2024 auto-selects resolver 2, so the explicit `resolver = "2"` is redundant-but-harmless; kept for explicitness.
+
+MSRV is pinned to the edition floor (`1.85.0`) rather than a more recent stable-N to maximize compatibility. The direct Rust-artifact consumers are the workspace itself: the FFI consumers (`sdk-kmp`, `sdk-swift`) use Kotlin/Swift toolchains, not Rust, and `sdk-ts` already uses a nightly Rust toolchain. The audience is unambiguously on modern Rust, so `1.85.0` (the lowest value edition 2024 permits) gives the broadest reach compatible with the chosen edition.
+
+**Alternatives considered**:
+- *Edition 2021 (status quo)*: maximizes MSRV reach (floor ~1.56) but buys nothing in this workspace's context — no consumer is on a Rust old enough to need it, and modern crypto crates drop old MSRVs fast. Defers a mechanical-but-annoying migration to the first feature proposal that wants 2024 ergonomics.
+- *Edition 2024 with a higher MSRV (stable-N, e.g. 1.88.0)*: marginally tighter toolchain guarantees but reduces reach without a concrete need. Rejected; the edition floor is the right MSRV until a dependency or feature forces a bump, at which point it becomes an evidence-based change.
+
 ## Risks / Trade-offs
 
 - **[Risk] darwin CI flakiness / `macos-latest` runner scarcity** → Mitigation: the stub crate has no platform-sensitive deps, so the darwin leg is trivially green now. As deps are added, watch for darwin-specific openssl/pkg-config failures and address them in the proposal that introduces the offending dep. If darwin CI becomes a persistent burden, a follow-up change can gate darwin behind `if system == "x86_64-linux"` without removing the devshell support.

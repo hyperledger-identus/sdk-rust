@@ -1,6 +1,6 @@
 ## 1. Stub Cargo workspace
 
-- [ ] 1.1 Create root `Cargo.toml` with `[workspace]` (no package), `members = ["crates/*"]`, `resolver = "2"`, and a `[workspace.package]` block (edition 2021, rust-version stable) for shared metadata
+- [ ] 1.1 Create root `Cargo.toml` with `[workspace]` (no package), `members = ["crates/*"]`, `resolver = "2"` (kept explicit; edition 2024 implies it but explicitness aids readers), and a `[workspace.package]` block (`edition = "2024"`, `rust-version = "1.85.0"` — the edition 2024 floor) for shared metadata
 - [ ] 1.2 Create `crates/identus-ssi/Cargo.toml` (lib crate, name `identus-ssi`, version `0.0.0`, inherits from `workspace.package`)
 - [ ] 1.3 Create `crates/identus-ssi/src/lib.rs` as an empty placeholder (no items, or a single doc-comment line)
 - [ ] 1.4 Add a workspace-level `[workspace.lints.rust]` and `[workspace.lints.clippy]` block (e.g. `warnings = "deny"`) and have the member crate inherit via `lints.workspace = true`, so clippy `-D warnings` is enforced at the cargo level too

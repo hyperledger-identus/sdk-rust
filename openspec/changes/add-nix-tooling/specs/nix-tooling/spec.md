@@ -62,6 +62,11 @@ The submodule SHALL contain a Cargo workspace rooted at `Cargo.toml` (with `[wor
 - **WHEN** `cargo test` is run in the submodule root
 - **THEN** the test suite SHALL pass (the placeholder crate MAY have no tests)
 
+#### Scenario: Workspace targets edition 2024 with a pinned MSRV
+
+- **WHEN** the root `Cargo.toml` and member crate manifest are inspected
+- **THEN** the workspace SHALL declare `edition = "2024"` and `rust-version = "1.85.0"` (the edition 2024 floor), and `resolver = "2"` SHALL be set explicitly at the workspace level
+
 ### Requirement: Nix hygiene check
 
 The checks module SHALL include a `lint-nix` check that runs `deadnix -f`, `statix check .`, and `nixfmt --check` against `flake.nix` and `nix/**/*.nix`, mirroring the workspace root's `nix/checks/lint-nix.nix` idiom.

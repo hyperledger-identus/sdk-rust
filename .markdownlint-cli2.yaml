@@ -6,3 +6,8 @@ ignores:
   - "**/target/**"
   - "**/node_modules/**"
   - ".claude/**"
+  # Agent tooling scaffolding (pi skills/prompts) — not repo documentation
+  - ".pi/**"
+  # OpenSpec-managed change artifacts use OpenSpec's own format (e.g. files
+  # begin with `## Why` / `## Context`), which conflicts with MD041.
+  - "openspec/**"

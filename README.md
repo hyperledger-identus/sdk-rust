@@ -39,7 +39,7 @@ The flake supports `x86_64-linux` and `aarch64-darwin`. CI runs `nix flake check
 
 We use [OpenSpec](https://github.com/Fission-AI/OpenSpec) to align on what to build *before* writing code. Each change lives in its own folder under `openspec/changes/` with a proposal, specs, design, and task list.
 
-```
+```text
    /opsx:explore          think it through
         │
         ▼

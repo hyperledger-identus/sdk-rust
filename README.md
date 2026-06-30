@@ -8,18 +8,32 @@ Rust SDK for building decentralized identity solutions with the [Identus](https:
 
 ### Prerequisites
 
-- Rust (latest stable)
-- `cargo`
+- [Nix](https://nixos.org/) (with flakes enabled)
+
+All other tooling (Rust toolchain, C toolchain, cargo dev tools, Nix hygiene tools) is provided by the project's Nix flake.
 
 ### Development
 
+Enter the reproducible development shell, then run the usual cargo commands:
+
 ```bash
+# Enter the devshell
+nix develop
+
 # Build
-cargo build
+nix develop -c cargo build
 
 # Test
-cargo test
+nix develop -c cargo test
+
+# Format (Rust + Nix)
+nix run .#format
+
+# Run all flake checks (fmt, clippy, test, deny, audit, nix hygiene)
+nix flake check
 ```
+
+The flake supports `x86_64-linux` and `aarch64-darwin`. CI runs `nix flake check` on both via the `nix-checks` workflow.
 
 ## Development Workflow
 

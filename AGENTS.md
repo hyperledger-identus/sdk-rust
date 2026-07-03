@@ -24,9 +24,16 @@ cargo fmt
 cargo clippy
 ```
 
-## Nix Flake Checks
+## Verification gate
 
-`nix flake check` validates the entire project in one command. It runs all linting (Nix, TOML, text), Rust formatting, clippy, nextest, `cargo deny`, and security audits via `crane` + `advisory-db`. All checks must pass before merging.
+**You MUST run `nix flake check` after making any code changes** — edits, new files, refactors, all of it. This is a hard gate, not optional.
+It runs all linting (Nix, TOML, text), Rust formatting, clippy, nextest, `cargo deny`, and security audits via `crane` + `advisory-db`.
+
+Run it from the project root:
+
+```bash
+nix flake check
+```
 
 ## Code Comments
 

@@ -1,0 +1,7 @@
+error: `validate_err = <type>` requires a companion `validate_fn = <fn>`
+ --> tests/ui/fail_validate_err_without_fn.rs:3:10
+  |
+3 | #[derive(Newtype)]
+  |          ^^^^^^^
+  |
+  = note: this error originates in the derive macro `Newtype` (in Nightly builds, run with -Z macro-backtrace for more info)

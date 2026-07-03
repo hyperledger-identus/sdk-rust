@@ -13,9 +13,6 @@ pub(crate) fn expand(ctx: &Ctx) -> TokenStream2 {
     let mut ts = quote! {
         #[automatically_derived]
         impl #name {
-            pub fn new(inner: ::std::vec::Vec<u8>) -> Self {
-                Self(inner)
-            }
             pub fn as_bytes(&self) -> &[u8] {
                 &self.0
             }
@@ -29,40 +26,77 @@ pub(crate) fn expand(ctx: &Ctx) -> TokenStream2 {
                 &self.0
             }
         }
-        #[automatically_derived]
-        impl ::core::convert::From<::std::vec::Vec<u8>> for #name {
-            fn from(inner: ::std::vec::Vec<u8>) -> Self {
-                Self(inner)
-            }
-        }
-        #[automatically_derived]
-        impl ::core::convert::From<&[u8]> for #name {
-            fn from(inner: &[u8]) -> Self {
-                Self(inner.to_vec())
-            }
-        }
     };
 
+    if let (Some(validate_fn), Some(validate_err)) = (&attrs.validate_fn, &attrs.validate_err) {
+        // validate_fn-configured: replace the infallible `new`/`From` bypasses
+        // with a validating `TryFrom<Vec<u8>>`, a uniform `try_new`, and a
+        // `pub(crate)` `new_unchecked` hatch. No `parse`/`FromStr` for bytes.
+        ts.extend(quote! {
+            #[automatically_derived]
+            impl #name {
+                pub fn try_new(inner: ::std::vec::Vec<u8>) -> ::core::result::Result<Self, #validate_err> {
+                    <Self as ::core::convert::TryFrom<::std::vec::Vec<u8>>>::try_from(inner)
+                }
+                pub(crate) fn new_unchecked(inner: ::std::vec::Vec<u8>) -> Self {
+                    Self(inner)
+                }
+            }
+            #[automatically_derived]
+            impl ::core::convert::TryFrom<::std::vec::Vec<u8>> for #name {
+                type Error = #validate_err;
+                fn try_from(inner: ::std::vec::Vec<u8>) -> ::core::result::Result<Self, #validate_err> {
+                    #validate_fn(&inner)?;
+                    ::core::result::Result::Ok(Self(inner))
+                }
+            }
+        });
+    } else {
+        // No validator: infallible construction stays (forbidding it would make
+        // the type unconstructable).
+        ts.extend(quote! {
+            #[automatically_derived]
+            impl #name {
+                pub fn new(inner: ::std::vec::Vec<u8>) -> Self {
+                    Self(inner)
+                }
+            }
+            #[automatically_derived]
+            impl ::core::convert::From<::std::vec::Vec<u8>> for #name {
+                fn from(inner: ::std::vec::Vec<u8>) -> Self {
+                    Self(inner)
+                }
+            }
+            #[automatically_derived]
+            impl ::core::convert::From<&[u8]> for #name {
+                fn from(inner: &[u8]) -> Self {
+                    Self(inner.to_vec())
+                }
+            }
+        });
+    }
+
     let need_encode = attrs.display.is_some() || attrs.serde;
-    let need_decode = attrs.serde || attrs.parse.is_some();
+    let need_decode = attrs.serde;
     ts.extend(helpers(name, enc, need_encode, need_decode));
 
     if attrs.display.is_some() {
         ts.extend(display_impl(name));
     }
     if attrs.serde {
-        ts.extend(serde_impl(name));
-    }
-    if let (Some(parse_fn), Some(err)) = (&attrs.parse, &attrs.err) {
-        ts.extend(parse_impl(name, parse_fn, err));
+        if let (Some(validate_fn), Some(validate_err)) = (&attrs.validate_fn, &attrs.validate_err) {
+            ts.extend(serde_impl_validating(name, validate_fn, validate_err));
+        } else {
+            ts.extend(serde_impl(name));
+        }
     }
 
     ts
 }
 
 /// The private associated encode/decode helpers, emitted once per type so the
-/// `Display`, serde, and `parse` impls can share them without colliding with
-/// another derived bytes newtype in the same crate.
+/// `Display` and serde impls can share them without colliding with another
+/// derived bytes newtype in the same crate.
 fn helpers(name: &syn::Ident, enc: Encoding, need_encode: bool, need_decode: bool) -> TokenStream2 {
     let encode = need_encode.then(|| encode_fn(enc));
     let decode = need_decode.then(|| decode_fn(enc));
@@ -115,27 +149,32 @@ fn serde_impl(name: &syn::Ident) -> TokenStream2 {
     }
 }
 
-fn parse_impl(name: &syn::Ident, parse_fn: &syn::Path, err: &syn::Path) -> TokenStream2 {
+fn serde_impl_validating(
+    name: &syn::Ident,
+    validate_fn: &syn::Path,
+    _validate_err: &syn::Path,
+) -> TokenStream2 {
     quote! {
         #[automatically_derived]
-        impl #name {
-            pub fn parse(s: &str) -> ::core::result::Result<Self, #err> {
-                #parse_fn(s)?;
-                let inner = Self::nt_decode_(s).expect(
-                    "validation function must guarantee the string decodes in the display encoding"
-                );
-                ::core::result::Result::Ok(Self(inner))
+        impl ::serde::Serialize for #name {
+            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
+            where
+                S: ::serde::Serializer,
+            {
+                serializer.serialize_str(&Self::nt_encode_(&self.0))
             }
         }
         #[automatically_derived]
-        impl ::core::str::FromStr for #name {
-            type Err = #err;
-            fn from_str(s: &str) -> ::core::result::Result<Self, #err> {
-                #parse_fn(s)?;
-                let inner = Self::nt_decode_(s).expect(
-                    "validation function must guarantee the string decodes in the display encoding"
-                );
-                ::core::result::Result::Ok(Self(inner))
+        impl<'de> ::serde::Deserialize<'de> for #name {
+            fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+            where
+                D: ::serde::Deserializer<'de>,
+            {
+                let s = <::std::string::String as ::serde::Deserialize<'de>>::deserialize(deserializer)?;
+                let bytes = Self::nt_decode_(&s)
+                    .map_err(|e| <D::Error as ::serde::de::Error>::custom(e))?;
+                #validate_fn(&bytes).map_err(|e| <D::Error as ::serde::de::Error>::custom(e))?;
+                ::core::result::Result::Ok(Self(bytes))
             }
         }
     }

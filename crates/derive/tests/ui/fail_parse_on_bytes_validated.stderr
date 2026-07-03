@@ -1,0 +1,17 @@
+error[E0599]: no associated function or constant named `parse` found for struct `NonEmpty` in the current scope
+  --> tests/ui/fail_parse_on_bytes_validated.rs:17:23
+   |
+ 5 | pub struct NonEmpty(Vec<u8>);
+   | ------------------- associated function or constant `parse` not found for this struct
+...
+17 |     let _ = NonEmpty::parse("deadbeef");
+   |                       ^^^^^ associated function or constant not found in `NonEmpty`
+   |
+note: if you're trying to build a new `NonEmpty` consider using one of the following associated functions:
+      NonEmpty::try_new
+      NonEmpty::new_unchecked
+  --> tests/ui/fail_parse_on_bytes_validated.rs:3:10
+   |
+ 3 | #[derive(Newtype)]
+   |          ^^^^^^^
+   = note: this error originates in the derive macro `Newtype` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -1,10 +1,11 @@
 //! `Url` — a validated URL domain primitive built with `#[derive(Newtype)]`.
 //!
 //! Dogfoods the string category of the derive: `Url(String)` gets `as_str`,
-//! `AsRef<str>`, `From<String>`/`From<&str>`, `Display`, transparent serde,
-//! and a fallible `parse`/`FromStr` backed by a hand-rolled validator (no
-//! external `url`/`uriparse` dependency — foundation stays external-dep-free
-//! beyond `serde`, which the derive's serde impls require).
+//! `AsRef<str>`, `Display`, serde (validating on `Deserialize`), and
+//! `TryFrom<String>`/`try_new`/`parse`/`FromStr` (validated construction) backed
+//! by a hand-rolled validator (no external `url`/`uriparse` dependency —
+//! foundation stays external-dep-free beyond `serde`, which the derive's serde
+//! impls require). A `pub(crate)` `new_unchecked` hatch bypasses validation.
 //!
 //! The rich local error `UrlError` carries the structured validation outcome;
 //! its hand-written `to_identus_error()` bridges to the redaction-safe
@@ -21,12 +22,13 @@ const URL_ERROR_CODE: ErrorCode = ErrorCode::new("core.invalid_url");
 
 /// A validated URL.
 ///
-/// Construct infallibly with [`Url::new`] (no validation) or fallibly with
-/// [`Url::parse`] / `FromStr`, which run `validate_url` (scheme + `://` +
-/// non-empty authority/path structure).
+/// Construct fallibly with [`Url::try_new`] / [`Url::parse`] /
+/// [`Url::try_from`] / `FromStr` — all run `validate_url` (scheme + `://` +
+/// non-empty authority/path structure). `Url::new_unchecked` is a
+/// `pub(crate)` trusted hatch that bypasses validation (no `pub` widening);
+/// use it only when the caller has already proved the value is well-formed.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Newtype)]
-#[newtype(display, serde)]
-#[newtype(parse = validate_url, err = UrlError)]
+#[newtype(display, serde, validate_fn = validate_url, validate_err = UrlError)]
 pub struct Url(String);
 
 /// Structured validation outcome for [`Url`].
@@ -83,6 +85,8 @@ impl std::error::Error for UrlError {}
 /// Accepts inputs of the form `scheme://authority[/path][?query][#fragment]`
 /// where `scheme` matches the RFC 3986 scheme grammar
 /// (`ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )`) and `authority` is non-empty.
+/// Invoked by the derive as `validate_url(&inner)` where `inner: String`;
+/// `&String` deref-coerces to `&str`.
 fn validate_url(s: &str) -> Result<(), UrlError> {
     let Some((scheme, rest)) = s.split_once("://") else {
         return Err(UrlError::MissingScheme);
@@ -110,9 +114,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn url_infallible_new_does_not_validate() {
-        let u = Url::new("not a url at all".to_owned());
+    fn url_new_unchecked_bypasses_validation() {
+        // `pub(crate)` hatch: the infallible `new` is gone for `validate_fn`
+        // types; `new_unchecked` lets the defining crate construct an invalid
+        // value, owning the proof obligation.
+        let u = Url::new_unchecked("not a url at all".to_owned());
         assert_eq!(u.as_str(), "not a url at all");
+    }
+
+    #[test]
+    fn url_try_new_validates() {
+        assert!(Url::try_new("https://example.com".to_owned()).is_ok());
+        assert!(Url::try_new("not a url".to_owned()).is_err());
+        assert!(Url::try_from("not a url".to_owned()).is_err());
     }
 
     #[test]
@@ -154,16 +168,18 @@ mod tests {
 
     #[test]
     fn url_serde_roundtrips_as_plain_string() {
-        let u = Url::new("https://example.com".to_owned());
+        let u = Url::try_new("https://example.com".to_owned()).unwrap();
         let json = serde_json::to_string(&u).unwrap();
         assert_eq!(json, "\"https://example.com\"");
         let back: Url = serde_json::from_str("\"https://example.com\"").unwrap();
         assert_eq!(back, u);
+        // Validating `Deserialize`: an invalid URL is rejected.
+        assert!(serde_json::from_str::<Url>("\"not a url\"").is_err());
     }
 
     #[test]
     fn url_display_passes_through() {
-        let u = Url::new("https://example.com".to_owned());
+        let u = Url::try_new("https://example.com".to_owned()).unwrap();
         assert_eq!(u.to_string(), "https://example.com");
     }
 

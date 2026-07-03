@@ -1,19 +1,48 @@
 //! Per-category runtime expansion checks for `#[derive(Newtype)]`.
 //!
 //! Exercises the generated constructors, accessors, conversions, `Display`,
-//! serde, and fallible `parse` for the string, bytes, and numeric categories.
+//! serde, and fallible `parse` for the string category, plus the accessors,
+//! conversions, `Display`, and serde for the bytes and numeric categories.
+//! `parse`/`FromStr` is string-only; numeric and bytes drop the string-shaped
+//! entry under `validate_fn`.
 
 use identus_derive::Newtype;
 use std::str::FromStr;
 
-// --- string category -------------------------------------------------------
+// --- string category (no validate_fn: infallible construction) -----------
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Newtype)]
-#[newtype(display, serde, parse = validate_nonempty, err = EmptyError)]
+#[newtype(display, serde)]
+struct Plain(String);
+
+#[test]
+fn str_newtype_infallible_when_unvalidated() {
+    let t = Plain::new("hello".to_owned());
+    assert_eq!(t.as_str(), "hello");
+    assert_eq!(<Plain as AsRef<str>>::as_ref(&t), "hello");
+    assert_eq!(Plain::from("world".to_owned()).as_str(), "world");
+    assert_eq!(Plain::from("bye").as_str(), "bye");
+    assert_eq!(t.to_string(), "hello");
+    let json = serde_json::to_string(&t).unwrap();
+    assert_eq!(json, "\"hello\"");
+    let back: Plain = serde_json::from_str("\"hello\"").unwrap();
+    assert_eq!(back, t);
+}
+
+// --- string category (validate_fn: validating construction) --------------
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Newtype)]
+#[newtype(display, serde, validate_fn = validate_nonempty, validate_err = EmptyError)]
 struct Tag(String);
 
 #[derive(Debug)]
 struct EmptyError;
+
+impl std::fmt::Display for EmptyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("empty string")
+    }
+}
 
 fn validate_nonempty(s: &str) -> Result<(), EmptyError> {
     if s.is_empty() {
@@ -25,11 +54,11 @@ fn validate_nonempty(s: &str) -> Result<(), EmptyError> {
 
 #[test]
 fn str_newtype_accessors_and_conversions() {
-    let t = Tag::new("hello".to_owned());
+    let t = Tag::try_new("hello".to_owned()).unwrap();
     assert_eq!(t.as_str(), "hello");
     assert_eq!(<Tag as AsRef<str>>::as_ref(&t), "hello");
-    assert_eq!(Tag::from("world".to_owned()).as_str(), "world");
-    assert_eq!(Tag::from("bye").as_str(), "bye");
+    assert_eq!(Tag::try_from("world".to_owned()).unwrap().as_str(), "world");
+    assert_eq!(Tag::parse("bye").unwrap().as_str(), "bye");
     assert_eq!(t.to_string(), "hello");
 }
 
@@ -44,11 +73,13 @@ fn str_newtype_parse_and_fromstr() {
 
 #[test]
 fn str_newtype_serde_roundtrip() {
-    let t = Tag::new("hello".to_owned());
+    let t = Tag::try_new("hello".to_owned()).unwrap();
     let json = serde_json::to_string(&t).unwrap();
     assert_eq!(json, "\"hello\"");
     let back: Tag = serde_json::from_str("\"hello\"").unwrap();
     assert_eq!(back, t);
+    // Empty string fails `validate_nonempty`; validating `Deserialize` rejects.
+    assert!(serde_json::from_str::<Tag>("\"\"").is_err());
 }
 
 // --- bytes category (hex) ---------------------------------------------------
@@ -109,7 +140,62 @@ fn bytes_base64url_display_and_serde() {
     assert_eq!(three.to_string(), "AAAA");
 }
 
-// --- numeric category ------------------------------------------------------
+// --- bytes category (validate_fn: validating construction) ---------------
+
+#[derive(Clone, Debug, PartialEq, Eq, Newtype)]
+#[newtype(display, serde, validate_fn = validate_nonempty_bytes, validate_err = EmptyBytesError)]
+struct NonEmpty(Vec<u8>);
+
+#[derive(Debug)]
+struct EmptyBytesError;
+
+impl std::fmt::Display for EmptyBytesError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("empty bytes")
+    }
+}
+
+fn validate_nonempty_bytes(v: &[u8]) -> Result<(), EmptyBytesError> {
+    if v.is_empty() {
+        Err(EmptyBytesError)
+    } else {
+        Ok(())
+    }
+}
+
+#[test]
+fn bytes_newtype_try_new_validates() {
+    assert_eq!(
+        NonEmpty::try_new(vec![0xde, 0xad]).unwrap().as_bytes(),
+        &[0xde, 0xad]
+    );
+    assert_eq!(NonEmpty::try_from(vec![0x01]).unwrap().as_bytes(), &[0x01]);
+    // Validation failure does not construct the value.
+    assert!(NonEmpty::try_new(vec![]).is_err());
+    assert!(NonEmpty::try_from(vec![]).is_err());
+    // `pub(crate)` hatch: callable from the defining crate, skips validation.
+    assert_eq!(NonEmpty::new_unchecked(vec![]).as_bytes(), &[] as &[u8]);
+}
+
+#[test]
+fn bytes_newtype_serde_decodes_then_validates() {
+    // Valid hex decoding to non-empty bytes: round-trips.
+    let n = NonEmpty::try_new(vec![0x01, 0x02]).unwrap();
+    let json = serde_json::to_string(&n).unwrap();
+    assert_eq!(json, "\"0102\"");
+    let back: NonEmpty = serde_json::from_str("\"0102\"").unwrap();
+    assert_eq!(back, n);
+
+    // Malformed hex: decode failure is a first-class `Err`, no panic, and the
+    // validator is never reached.
+    assert!(serde_json::from_str::<NonEmpty>("\"zz\"").is_err());
+    assert!(serde_json::from_str::<NonEmpty>("\"abc\"").is_err()); // odd length
+
+    // Valid hex decoding to empty bytes: decode succeeds but validation fails.
+    assert!(serde_json::from_str::<NonEmpty>("\"\"").is_err());
+}
+
+// --- numeric category (no validate_fn: infallible construction) -----------
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Newtype)]
 #[newtype(display, serde)]
@@ -132,23 +218,41 @@ fn num_newtype_serde_roundtrip() {
     assert_eq!(back, p);
 }
 
+// --- numeric category (validate_fn: validating construction) --------------
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Newtype)]
-#[newtype(display, serde, parse = validate_bounded_port, err = PortError)]
+#[newtype(display, serde, validate_fn = validate_bounded_port, validate_err = PortError)]
 struct BoundedPort(u16);
 
 #[derive(Debug)]
 struct PortError;
 
-fn validate_bounded_port(s: &str) -> Result<(), PortError> {
-    let n: u16 = s.parse().map_err(|_| PortError)?;
-    if n > 0 { Ok(()) } else { Err(PortError) }
+impl std::fmt::Display for PortError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("invalid port")
+    }
+}
+
+fn validate_bounded_port(n: &u16) -> Result<(), PortError> {
+    if *n > 0 { Ok(()) } else { Err(PortError) }
 }
 
 #[test]
-fn num_newtype_parse_validates() {
-    assert_eq!(BoundedPort::parse("8080").unwrap().get(), 8080);
-    let from_str: Result<BoundedPort, _> = "443".parse();
-    assert_eq!(from_str.unwrap().get(), 443);
-    assert!(BoundedPort::from_str("0").is_err());
-    assert!(BoundedPort::from_str("notanumber").is_err());
+fn num_newtype_try_new_validates() {
+    assert_eq!(BoundedPort::try_new(8080).unwrap().get(), 8080);
+    assert_eq!(BoundedPort::try_from(443).unwrap().get(), 443);
+    assert!(BoundedPort::try_new(0).is_err());
+    assert!(BoundedPort::try_from(0).is_err());
+    // `pub(crate)` hatch: callable from the defining crate, skips validation.
+    assert_eq!(BoundedPort::new_unchecked(0).get(), 0);
+}
+
+#[test]
+fn num_newtype_serde_validates() {
+    assert_eq!(
+        serde_json::from_str::<BoundedPort>("8080").unwrap().get(),
+        8080
+    );
+    // numeric `Deserialize` now validates; zero fails the validator.
+    assert!(serde_json::from_str::<BoundedPort>("0").is_err());
 }

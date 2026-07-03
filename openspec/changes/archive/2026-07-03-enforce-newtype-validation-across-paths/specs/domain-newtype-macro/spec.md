@@ -1,27 +1,9 @@
-## Purpose
+## RENAMED Requirements
 
-The `identus-derive` crate (a foundation-layer `proc-macro = true` build-time crate) provides a single `#[derive(Newtype)]` proc-macro that packages the boilerplate for domain newtypes — the `DidMethod`, `DidSuffix`, and similar wrapper types used across the Identus Rust SDK. A domain newtype is a tuple struct with exactly one unnamed field; the derive inspects the inner field's type and generates category-appropriate constructors, accessors, conversions, and `Display`, with optional `serde` transparency and fallible `parse` wired to a caller-supplied validation function.
+- FROM: `### Requirement: Fallible `parse` via caller-supplied validation function and error type`
+- TO: `### Requirement: Fallible `parse` via caller-supplied validation function and error type (string category only)`
 
-## Requirements
-
-### Requirement: Single `#[derive(Newtype)]` packages the newtype boilerplate
-
-The `identus-derive` crate (a foundation-layer `proc-macro = true` crate) SHALL expose a single `#[derive(Newtype)]` proc-macro derive applicable to a tuple struct with exactly one unnamed field. The derive SHALL inspect the field's type and dispatch to one of three categories — string, bytes, numeric — generating the category-appropriate constructors, accessors, conversions, and `Display`. The derive SHALL compose with standard `#[derive(...)]` (e.g. `Debug`, `Clone`, `PartialEq`, `Eq`, `Hash`, `Copy`) on the same struct and SHALL NOT itself emit those derives.
-
-#### Scenario: Derive applies to a one-field tuple struct
-
-- **WHEN** `#[derive(Newtype)]` is applied to `pub struct DidMethod(String)`
-- **THEN** the derive SHALL compile and generate category-appropriate inherent methods and trait impls for `DidMethod`
-
-#### Scenario: Derive rejects a struct with no fields or more than one field
-
-- **WHEN** `#[derive(Newtype)]` is applied to a struct with zero fields or with two or more fields
-- **THEN** the derive SHALL emit a compile error identifying the offending struct
-
-#### Scenario: Derive rejects a named-field struct
-
-- **WHEN** `#[derive(Newtype)]` is applied to a struct with a named field (e.g. `pub struct Foo { inner: String }`)
-- **THEN** the derive SHALL emit a compile error stating that only a single unnamed field is supported
+## MODIFIED Requirements
 
 ### Requirement: Three inner categories with category-appropriate trait impls
 

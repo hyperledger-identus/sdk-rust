@@ -12,20 +12,53 @@ pub(crate) fn expand(ctx: &Ctx) -> TokenStream2 {
     let mut ts = quote! {
         #[automatically_derived]
         impl #name {
-            pub fn new(inner: #inner) -> Self {
-                Self(inner)
-            }
             pub fn get(&self) -> #inner {
                 self.0
             }
         }
-        #[automatically_derived]
-        impl ::core::convert::From<#inner> for #name {
-            fn from(inner: #inner) -> Self {
-                Self(inner)
-            }
-        }
     };
+
+    if let (Some(validate_fn), Some(validate_err)) = (&attrs.validate_fn, &attrs.validate_err) {
+        // validate_fn-configured: replace the infallible `new`/`From` bypasses
+        // with a validating `TryFrom<Inner>`, a uniform `try_new`, and a
+        // `pub(crate)` `new_unchecked` hatch. No `parse`/`FromStr` for numeric.
+        ts.extend(quote! {
+            #[automatically_derived]
+            impl #name {
+                pub fn try_new(inner: #inner) -> ::core::result::Result<Self, #validate_err> {
+                    <Self as ::core::convert::TryFrom<#inner>>::try_from(inner)
+                }
+                pub(crate) fn new_unchecked(inner: #inner) -> Self {
+                    Self(inner)
+                }
+            }
+            #[automatically_derived]
+            impl ::core::convert::TryFrom<#inner> for #name {
+                type Error = #validate_err;
+                fn try_from(inner: #inner) -> ::core::result::Result<Self, #validate_err> {
+                    #validate_fn(&inner)?;
+                    ::core::result::Result::Ok(Self(inner))
+                }
+            }
+        });
+    } else {
+        // No validator: infallible construction stays (forbidding it would make
+        // the type unconstructable).
+        ts.extend(quote! {
+            #[automatically_derived]
+            impl #name {
+                pub fn new(inner: #inner) -> Self {
+                    Self(inner)
+                }
+            }
+            #[automatically_derived]
+            impl ::core::convert::From<#inner> for #name {
+                fn from(inner: #inner) -> Self {
+                    Self(inner)
+                }
+            }
+        });
+    }
 
     if attrs.display.is_some() {
         ts.extend(quote! {
@@ -39,53 +72,53 @@ pub(crate) fn expand(ctx: &Ctx) -> TokenStream2 {
     }
 
     if attrs.serde {
-        ts.extend(quote! {
-            #[automatically_derived]
-            impl ::serde::Serialize for #name {
-                fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
-                where
-                    S: ::serde::Serializer,
-                {
-                    ::serde::Serialize::serialize(&self.0, serializer)
+        if let (Some(validate_fn), Some(_validate_err)) = (&attrs.validate_fn, &attrs.validate_err)
+        {
+            ts.extend(quote! {
+                #[automatically_derived]
+                impl ::serde::Serialize for #name {
+                    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
+                    where
+                        S: ::serde::Serializer,
+                    {
+                        ::serde::Serialize::serialize(&self.0, serializer)
+                    }
                 }
-            }
-            #[automatically_derived]
-            impl<'de> ::serde::Deserialize<'de> for #name {
-                fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
-                where
-                    D: ::serde::Deserializer<'de>,
-                {
-                    let inner = <#inner as ::serde::Deserialize<'de>>::deserialize(deserializer)?;
-                    ::core::result::Result::Ok(Self(inner))
+                #[automatically_derived]
+                impl<'de> ::serde::Deserialize<'de> for #name {
+                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+                    where
+                        D: ::serde::Deserializer<'de>,
+                    {
+                        let inner = <#inner as ::serde::Deserialize<'de>>::deserialize(deserializer)?;
+                        #validate_fn(&inner).map_err(|e| <D::Error as ::serde::de::Error>::custom(e))?;
+                        ::core::result::Result::Ok(Self(inner))
+                    }
                 }
-            }
-        });
-    }
-
-    if let (Some(parse_fn), Some(err)) = (&attrs.parse, &attrs.err) {
-        ts.extend(quote! {
-            #[automatically_derived]
-            impl #name {
-                pub fn parse(s: &str) -> ::core::result::Result<Self, #err> {
-                    #parse_fn(s)?;
-                    let inner: #inner = s.parse().expect(
-                        "validation function must guarantee the string parses to the inner numeric type"
-                    );
-                    ::core::result::Result::Ok(Self(inner))
+            });
+        } else {
+            ts.extend(quote! {
+                #[automatically_derived]
+                impl ::serde::Serialize for #name {
+                    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
+                    where
+                        S: ::serde::Serializer,
+                    {
+                        ::serde::Serialize::serialize(&self.0, serializer)
+                    }
                 }
-            }
-            #[automatically_derived]
-            impl ::core::str::FromStr for #name {
-                type Err = #err;
-                fn from_str(s: &str) -> ::core::result::Result<Self, #err> {
-                    #parse_fn(s)?;
-                    let inner: #inner = s.parse().expect(
-                        "validation function must guarantee the string parses to the inner numeric type"
-                    );
-                    ::core::result::Result::Ok(Self(inner))
+                #[automatically_derived]
+                impl<'de> ::serde::Deserialize<'de> for #name {
+                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+                    where
+                        D: ::serde::Deserializer<'de>,
+                    {
+                        let inner = <#inner as ::serde::Deserialize<'de>>::deserialize(deserializer)?;
+                        ::core::result::Result::Ok(Self(inner))
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     ts

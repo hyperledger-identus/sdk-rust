@@ -26,3 +26,23 @@ rules:
   # Allow 1 space before comment
   comments:
     min-spaces-from-content: 1
+
+  # Allow extra spaces after colon (common in aligned config)
+  colons:
+    max-spaces-after: 2
+
+  # Relax indentation to allow 2-space variants
+  indentation:
+    spaces: consistent
+    indent-sequences: whatever
+
+  # Allow blank lines at end of file
+  empty-lines:
+    max-end: 1
+
+ignore: |
+  target/
+  node_modules/
+  .claude/
+  .pi/
+  openspec/

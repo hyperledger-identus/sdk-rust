@@ -1,0 +1,5 @@
+error: port traits are bare capability nouns; a `Port` suffix is forbidden
+ --> tests/ui/fail_port_suffix.rs:4:11
+  |
+4 | pub trait SecureRandomPort {
+  |           ^^^^^^^^^^^^^^^^

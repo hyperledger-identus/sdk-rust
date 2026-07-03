@@ -1,10 +1,15 @@
 {
   perSystem =
-    { craneLib, cargoArtifacts, ... }:
+    {
+      craneLib,
+      cargoArtifacts,
+      rustSrc,
+      ...
+    }:
     {
       checks.rust-clippy = craneLib.cargoClippy {
         inherit cargoArtifacts;
-        src = craneLib.cleanCargoSource ./../..;
+        src = rustSrc;
         cargoClippyExtraArgs = "-- -D warnings";
       };
     };

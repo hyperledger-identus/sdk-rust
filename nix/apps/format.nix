@@ -1,6 +1,7 @@
 {
   cargo,
   nixfmt,
+  taplo,
   findutils,
   writeShellApplication,
 }:
@@ -10,6 +11,7 @@ writeShellApplication {
   runtimeInputs = [
     cargo
     nixfmt
+    taplo
     findutils
   ];
   text = ''
@@ -20,6 +22,12 @@ writeShellApplication {
     fi
     echo "Running cargo fmt..."
     cargo fmt
+    echo "Formatting *.toml files..."
+    find . -name '*.toml' -type f \
+      -not -path './target/*' \
+      -not -path './node_modules/*' \
+      -not -path './.git/*' \
+      -print0 | xargs -0 -r taplo format
     echo "Formatting flake.nix..."
     nixfmt flake.nix
     echo "Formatting nix/**/*.nix files..."

@@ -1,6 +1,6 @@
 ## Context
 
-`sdk-rust` is a greenfield git submodule within the `identus-workspace`. It currently contains only documentation scaffolding (README, AGENTS.md, `.github/workflows` for DCO/CodeQL/file-hygiene, backlog config, openspec skills). There is no `flake.nix` and no `Cargo.toml`.
+`sdk-rust` is a greenfield git submodule within the `identus-workspace`. It currently contains only documentation scaffolding (README, AGENTS.md, `.github/workflows` for DCO/CodeQL/file-hygiene, openspec skills). There is no `flake.nix` and no `Cargo.toml`.
 
 The workspace root flake (`identus-workspace/flake.nix`) is the established style reference: `flake-parts` + `devshell` (numtide) + `rust-overlay` (oxalica) + `nixpkgs` unstable, with a modular `nix/{apps,devshells,checks}` layout imported into `mkFlake`. The workspace `AGENTS.md` already declares `sdk-rust` as a submodule that owns its own flake (`cd sdk-rust && nix develop -c <command>`), but that flake has not yet been created.
 

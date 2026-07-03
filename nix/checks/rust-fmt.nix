@@ -1,9 +1,9 @@
 {
   perSystem =
-    { craneLib, ... }:
+    { craneLib, rustSrc, ... }:
     {
       checks.rust-fmt = craneLib.cargoFmt {
-        src = craneLib.cleanCargoSource ./../..;
+        src = rustSrc;
       };
     };
 }

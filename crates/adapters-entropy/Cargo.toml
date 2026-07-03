@@ -1,0 +1,23 @@
+[package]
+name                   = "identus-adapters-entropy"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+
+[dependencies]
+identus-core.workspace   = true
+identus-crypto.workspace = true
+getrandom                = { workspace = true, optional = true, features = [ "js" ] }
+
+[features]
+# A `getrandom`-backed `SecureRandom` adapter (the cross-platform backend:
+# native + browser WASM via the `js` feature). Off by default.
+getrandom = [ "dep:getrandom" ]
+# A deterministic `SecureRandom` adapter for cross-crate test consumers
+# (NOT for production entropy). Off by default.
+deterministic = [  ]
+default       = [  ]
+
+[lints]
+workspace = true

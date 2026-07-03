@@ -1,0 +1,13 @@
+[package]
+name                   = "identus-bindings"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+
+[dependencies]
+identus-core.workspace   = true
+identus-wallet.workspace = true
+
+[lints]
+workspace = true

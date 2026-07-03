@@ -1,0 +1,14 @@
+[package]
+name                   = "identus-presentations"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+
+[dependencies]
+identus-core.workspace        = true
+identus-credentials.workspace = true
+identus-trust.workspace       = true
+
+[lints]
+workspace = true

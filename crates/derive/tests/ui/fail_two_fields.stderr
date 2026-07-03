@@ -1,0 +1,5 @@
+error: Newtype requires a tuple struct with exactly one unnamed field
+ --> tests/ui/fail_two_fields.rs:4:16
+  |
+4 | pub struct Pair(String, u16);
+  |                ^^^^^^^^^^^^^

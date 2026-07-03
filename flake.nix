@@ -11,6 +11,7 @@
       url = "github:rustsec/advisory-db";
       flake = false;
     };
+    openspec.url = "github:Fission-AI/OpenSpec";
   };
 
   outputs =

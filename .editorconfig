@@ -18,5 +18,8 @@ indent_size = 4
 trim_trailing_whitespace = false
 indent_size = unset
 
+[*.stderr]
+indent_size = unset
+
 [Makefile]
 indent_style = tab

@@ -1,0 +1,22 @@
+[package]
+name                   = "identus-derive"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2.workspace = true
+quote.workspace       = true
+syn.workspace         = true
+
+[dev-dependencies]
+serde.workspace      = true
+serde_json.workspace = true
+trybuild.workspace   = true
+
+[lints]
+workspace = true

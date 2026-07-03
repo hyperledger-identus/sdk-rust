@@ -1,0 +1,16 @@
+steps:
+  - type: callChain
+    name: apply-change
+    argument: add-newtype-macro change phase 1
+  - type: callChain
+    name: apply-change
+    argument: add-newtype-macro change phase 2
+  - type: callChain
+    name: apply-change
+    argument: add-newtype-macro change phase 3
+  - type: callChain
+    name: apply-change
+    argument: add-newtype-macro change phase 4
+  - type: callChain
+    name: apply-change
+    argument: add-newtype-macro change phase 5

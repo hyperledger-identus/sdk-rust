@@ -1,0 +1,60 @@
+[package]
+name                   = "identus-crypto"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+
+[dependencies]
+identus-core.workspace   = true
+identus-derive.workspace = true
+
+# Feature-gated external crypto primitives (declared at workspace level per
+# `workspace-dependency-conventions`). `ring` is intentionally absent —
+# entropy adapters live in `identus-adapters-entropy` (now `getrandom`-backed).
+ed25519-dalek = { workspace = true, optional = true }
+k256          = { workspace = true, optional = true }
+p256          = { workspace = true, optional = true }
+x25519-dalek  = { workspace = true, optional = true }
+sha2          = { workspace = true, optional = true }
+hmac          = { workspace = true, optional = true }
+pbkdf2        = { workspace = true, optional = true }
+base64        = { workspace = true, optional = true }
+hex           = { workspace = true, optional = true }
+
+[features]
+default = [
+  "ed25519",
+  "x25519",
+  "secp256k1",
+  "secp256r1",
+  "hash",
+  "hex",
+  "base64",
+  "jwk",
+  "derivation",
+]
+
+# Opt-in KMP (`apollo`) interop escape hatch for legacy PRISM wallet import.
+# Empty gate for now; a future ed25519-bip32 interop change will add `dep:ed25519-bip32`.
+kmp-compat = [  ]
+
+# `SecureRandom` is the only infrastructure port and is zero-dependency, so it
+# is always available (no `securerandom` feature).
+ed25519    = [ "jwk", "dep:ed25519-dalek" ]
+x25519     = [ "jwk", "dep:x25519-dalek" ]
+secp256k1  = [ "jwk", "dep:k256" ]
+secp256r1  = [ "jwk", "dep:p256" ]
+hash       = [ "dep:sha2" ]
+hex        = [ "dep:hex" ]
+base64     = [ "dep:base64" ]
+jwk        = [ "base64" ]
+derivation = [ "hash", "dep:hmac", "dep:pbkdf2", "secp256k1", "ed25519" ]
+
+[dev-dependencies]
+hex      = { workspace = true }
+k256     = { workspace = true }
+trybuild = { workspace = true }
+
+[lints]
+workspace = true

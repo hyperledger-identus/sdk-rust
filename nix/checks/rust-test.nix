@@ -1,10 +1,15 @@
 {
   perSystem =
-    { craneLib, cargoArtifacts, ... }:
+    {
+      craneLib,
+      cargoArtifacts,
+      rustSrc,
+      ...
+    }:
     {
       checks.rust-test = craneLib.cargoNextest {
         inherit cargoArtifacts;
-        src = craneLib.cleanCargoSource ./../..;
+        src = rustSrc;
         cargoNextestExtraArgs = "--no-fail-fast --no-tests=pass";
       };
     };

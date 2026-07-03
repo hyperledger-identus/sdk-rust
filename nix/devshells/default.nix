@@ -1,6 +1,11 @@
 {
   perSystem =
-    { pkgs, toolchain, ... }:
+    {
+      pkgs,
+      toolchain,
+      inputs',
+      ...
+    }:
     {
       devshells.default = {
         devshell.name = "sdk-rust";
@@ -36,6 +41,16 @@
           nixfmt
           deadnix
           statix
+
+          # toml and file-hygiene tooling
+          taplo
+          markdownlint-cli2
+          yamllint
+          editorconfig-checker
+          shellcheck
+
+          # spec-driven development tooling
+          inputs'.openspec.packages.default
         ];
 
         env = [

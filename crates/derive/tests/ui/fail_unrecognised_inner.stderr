@@ -1,0 +1,5 @@
+error: Newtype inner type is not supported; expected `String`, `Vec<u8>`, or a numeric primitive (`u8`..`u128`, `i8`..`i128`, `usize`, `isize`, `f32`, `f64`)
+ --> tests/ui/fail_unrecognised_inner.rs:4:18
+  |
+4 | pub struct Weird(bool);
+  |                  ^^^^

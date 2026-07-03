@@ -1,0 +1,3 @@
+steps:
+  - prompt: Use `openspec-apply-change` skill to implement $ARGUMENTS
+  - prompt: Ensure the completed work done is checked in the `tasks.md` of the openspec change

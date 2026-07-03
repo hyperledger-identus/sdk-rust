@@ -1,0 +1,8 @@
+error: Newtype requires a tuple struct with exactly one unnamed field; named fields are not supported
+ --> tests/ui/fail_named_field.rs:4:18
+  |
+4 |   pub struct Named {
+  |  __________________^
+5 | |     inner: String,
+6 | | }
+  | |_^

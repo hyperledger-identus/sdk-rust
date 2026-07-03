@@ -1,0 +1,19 @@
+[package]
+name                   = "identus-wallet"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+
+[dependencies]
+identus-core.workspace          = true
+identus-credentials.workspace   = true
+identus-crypto.workspace        = true
+identus-did.workspace           = true
+identus-messaging.workspace     = true
+identus-openid4vc.workspace     = true
+identus-presentations.workspace = true
+identus-trust.workspace         = true
+
+[lints]
+workspace = true

@@ -1,0 +1,12 @@
+{
+  "Exclude": [
+    "\\.git",
+    "target",
+    "node_modules",
+    "openspec",
+    "\\.pi",
+    "\\.claude",
+    "Cargo\\.lock",
+    "flake\\.lock"
+  ]
+}

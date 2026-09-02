@@ -32,7 +32,9 @@ and SHALL NOT make a stronger claim than the machine contract.
 The SDK SHALL compile every machine-declared default, minimal and opt-in
 feature surface using Rust `1.85.0`. It SHALL separately run the pinned
 NeoPRISM-etalon nightly `2026-03-18` checks. Passing a feature surface on the
-newer toolchain SHALL NOT substitute for the corresponding MSRV gate.
+newer toolchain SHALL NOT substitute for the corresponding MSRV gate. The MSRV
+Crane builder SHALL be wired to the machine-declared stable toolchain rather
+than trusted by variable name.
 
 #### Scenario: Nightly-only language use enters the SDK
 
@@ -50,6 +52,13 @@ newer toolchain SHALL NOT substitute for the corresponding MSRV gate.
 
 - **WHEN** Nix selects a nightly other than the machine-declared etalon
 - **THEN** policy validation fails even if compilation succeeds
+
+#### Scenario: MSRV builder is rewired to nightly
+
+- **WHEN** the MSRV-named Crane library wraps the etalon toolchain instead of
+  the declared stable toolchain
+- **THEN** structural validation fails before nightly results can be accepted
+  as MSRV evidence
 
 ### Requirement: Evidence tiers do not overstate support
 
@@ -110,6 +119,7 @@ including workspace exclusions, default feature mode and activated feature set
 to the machine contract. Workspace-wide surfaces SHALL explicitly select the
 workspace. The validator SHALL accept required gates only when their defining
 Nix modules are reachable from the check-module import rooted in `flake.nix`.
+Commented imports and gate definitions SHALL NOT count as reachable evidence.
 Host systems, target triples and feature-surface names SHALL be unique within
 the machine policy. The validator SHALL run in the structural factory path.
 
@@ -129,6 +139,11 @@ the machine policy. The validator SHALL run in the structural factory path.
 - **WHEN** a required gate remains in an orphaned Nix file but its module is no
   longer imported by the check graph
 - **THEN** structural validation treats the gate as undefined
+
+#### Scenario: Module import is commented out
+
+- **WHEN** a required module path remains as a Nix comment in an import block
+- **THEN** structural validation treats its gates as unreachable
 
 #### Scenario: Check graph is detached from the flake
 

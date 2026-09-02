@@ -88,7 +88,9 @@ primary CI toolchain. A second minimal Rust `1.85.0` Crane instance compiles
 every machine-declared default, minimal and opt-in feature surface. These gates
 cannot be replaced by a version comparison or by the nightly builds because
 only compilation of each selection on the declared floor detects accidental
-language/library or feature-specific drift.
+language/library or feature-specific drift. Structural validation proves that
+`msrvCraneLib` wraps the pinned stable toolchain, so a trustworthy variable
+name cannot conceal nightly execution.
 
 ### 5. Compile only implemented portable crates on cross targets
 
@@ -110,6 +112,7 @@ machine contract. Compile-checked targets declare their package-qualified
 backend features using the same selection contract. Gate discovery follows the
 literal import graph from `flake.nix` through `nix/checks/default.nix`, so a
 detached check tree or orphaned module cannot satisfy a required check.
+Nix line and block comments are removed before graph and gate discovery.
 Workspace-wide gates explicitly select and resolve to the complete workspace
 package set and reject exclusions, so implicit defaults cannot conceal lost
 coverage.

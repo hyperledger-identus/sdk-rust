@@ -49,6 +49,16 @@ impl AsRef<str> for Base64UrlStrNoPad {
     }
 }
 
+#[cfg(feature = "jwk")]
+impl serde::Serialize for Base64UrlStrNoPad {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
 impl FromStr for Base64UrlStrNoPad {
     type Err = Error;
 

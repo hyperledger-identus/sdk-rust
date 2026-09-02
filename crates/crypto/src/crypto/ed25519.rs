@@ -3,10 +3,9 @@
 
 use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 
-use crate::base64::Base64UrlStrNoPad;
 use crate::enc::{EncodeArray, EncodeVec, Verifiable};
 use crate::error::Error;
-use crate::jwk::{EncodeJwk, Jwk};
+use crate::jwk::{EncodeJwk, JwkCurve, PublicKeyJwk};
 use crate::securerandom::SecureRandom;
 
 const KEY_SIZE: usize = 32;
@@ -129,13 +128,8 @@ impl Verifiable for Ed25519PublicKey {
 }
 
 impl EncodeJwk for Ed25519PublicKey {
-    fn encode_jwk(&self) -> Jwk {
-        let x = self.encode_array();
-        Jwk {
-            kty: "OKP".to_string(),
-            crv: "Ed25519".to_string(),
-            x: Some(Base64UrlStrNoPad::from(x)),
-            y: None,
-        }
+    fn encode_jwk(&self) -> PublicKeyJwk {
+        PublicKeyJwk::new_okp(JwkCurve::Ed25519, self.encode_array())
+            .expect("Ed25519 is a supported OKP JWK profile")
     }
 }

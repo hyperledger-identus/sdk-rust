@@ -20,6 +20,7 @@ pub mod error_code {
     use identus_core::ErrorCode;
 
     pub const INVALID_KEY_SIZE: ErrorCode = ErrorCode::new("crypto.invalid_key_size");
+    pub const INVALID_JWK: ErrorCode = ErrorCode::new("crypto.invalid_jwk");
     pub const KEY_PARSING: ErrorCode = ErrorCode::new("crypto.key_parsing");
     pub const SIGNATURE_INVALID: ErrorCode = ErrorCode::new("crypto.signature_invalid");
     pub const UNSUPPORTED_CURVE: ErrorCode = ErrorCode::new("crypto.unsupported_curve");

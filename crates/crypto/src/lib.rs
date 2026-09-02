@@ -56,7 +56,7 @@ pub use hash::{Sha256Digest, Sha512Digest, sha256, sha512};
 #[cfg(feature = "hex")]
 pub use hex::HexStr;
 #[cfg(feature = "jwk")]
-pub use jwk::{EncodeJwk, Jwk};
+pub use jwk::{EncodeJwk, JwkCoordinate, JwkCurve, JwkError, JwkKeyType, PublicKeyJwk};
 
 #[cfg(all(feature = "x25519", feature = "hash"))]
 pub use convert::ConvertEd25519;

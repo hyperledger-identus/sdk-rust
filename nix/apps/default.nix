@@ -3,6 +3,7 @@
     {
       pkgs,
       toolchain,
+      inputs',
       ...
     }:
     {
@@ -23,6 +24,14 @@
           type = "app";
           program = "${pkgs.lib.getExe (pkgs.callPackage ./format-toml.nix { })}";
           meta.description = "Format TOML files using taplo";
+        };
+
+        factory = {
+          type = "app";
+          program = "${pkgs.lib.getExe (
+            pkgs.callPackage ./factory.nix { openspec = inputs'.openspec.packages.default; }
+          )}";
+          meta.description = "Run the repository AI Software Factory";
         };
       };
     };

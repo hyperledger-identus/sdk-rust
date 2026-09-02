@@ -1,16 +1,6 @@
 steps:
   - type: callChain
     name: apply-change
-    argument: add-newtype-macro change phase 1
-  - type: callChain
-    name: apply-change
-    argument: add-newtype-macro change phase 2
-  - type: callChain
-    name: apply-change
-    argument: add-newtype-macro change phase 3
-  - type: callChain
-    name: apply-change
-    argument: add-newtype-macro change phase 4
-  - type: callChain
-    name: apply-change
-    argument: add-newtype-macro change phase 5
+    argument: $ARGUMENTS
+  - prompt: Use the `openspec-verify-change` skill to verify $ARGUMENTS
+  - prompt: Run `scripts/factory ready $ARGUMENTS` and report the exact result

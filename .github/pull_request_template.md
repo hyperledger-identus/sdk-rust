@@ -10,6 +10,16 @@
 - Discussion/ADR:
 - Owner crate:
 
+## Factory contract
+
+- OpenSpec change/archive:
+- OpenSpec required: yes/no
+- If no, exemption:
+- Human scope owner:
+- Agent roles used:
+- `scripts/factory ready <change>`: passed/not applicable
+- Factory receipt attached: yes/no/not applicable
+
 ## Scope and non-scope
 
 - In scope:
@@ -41,6 +51,7 @@
 commands passed:
 commands not run and why:
 coverage/conformance evidence:
+factory receipt:
 ```
 
 ## Repository isolation
@@ -54,6 +65,8 @@ coverage/conformance evidence:
 ## Checklist
 
 - [ ] focused and independently reversible
+- [ ] OpenSpec contract complete or exemption recorded
+- [ ] factory readiness and receipt recorded when applicable
 - [ ] DCO and verified signatures
 - [ ] tests, negative cases and docs updated
 - [ ] provenance/license recorded

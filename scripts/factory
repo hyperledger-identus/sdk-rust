@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+export OPENSPEC_TELEMETRY=${OPENSPEC_TELEMETRY:-0}
+
+factory_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+
+fail() {
+  printf 'factory: %s\n' "$1" >&2
+  exit 1
+}
+
+nix_binary() {
+  if command -v nix >/dev/null 2>&1; then
+    command -v nix
+  elif [[ -x /nix/var/nix/profiles/default/bin/nix ]]; then
+    printf '%s\n' /nix/var/nix/profiles/default/bin/nix
+  else
+    return 1
+  fi
+}
+
+run_openspec() {
+  if command -v openspec >/dev/null 2>&1; then
+    openspec "$@"
+    return
+  fi
+
+  local nix_cmd
+  nix_cmd=$(nix_binary) || fail "OpenSpec is unavailable; install Nix or enter the devshell"
+  "$nix_cmd" develop "$factory_root" --command openspec "$@"
+}
+
+validate_all() {
+  run_openspec validate --all --strict --no-interactive
+}
+
+check_factory() {
+  "$factory_root/scripts/check-factory.sh" "$factory_root"
+  run_openspec doctor
+  validate_all
+}
+
+ready_change() {
+  local change_name=${1:-}
+  [[ -n "$change_name" ]] || fail "ready requires an active OpenSpec change name"
+
+  local change_root="$factory_root/openspec/changes/$change_name"
+  [[ -d "$change_root" ]] || fail "active change not found: $change_name"
+
+  check_factory
+  run_openspec status --change "$change_name"
+  run_openspec validate "$change_name" --type change --strict --no-interactive
+
+  if grep -n '^- \[ \]' "$change_root/tasks.md"; then
+    fail "change has incomplete tasks: $change_name"
+  fi
+
+  printf 'factory: change is ready: %s\n' "$change_name"
+}
+
+print_receipt() {
+  local change_name=${1:-}
+  [[ -n "$change_name" ]] || fail "receipt requires an active OpenSpec change name"
+  ready_change "$change_name" >/dev/null
+
+  local branch head base_ref base_sha
+  branch=$(git -C "$factory_root" symbolic-ref --quiet --short HEAD || printf 'detached')
+  head=$(git -C "$factory_root" rev-parse HEAD)
+
+  if git -C "$factory_root" show-ref --verify --quiet refs/remotes/origin/develop; then
+    base_ref=origin/develop
+  elif git -C "$factory_root" show-ref --verify --quiet refs/heads/develop; then
+    base_ref=develop
+  else
+    fail "cannot resolve develop for the evidence receipt"
+  fi
+  base_sha=$(git -C "$factory_root" merge-base "$base_ref" HEAD)
+
+  printf 'Change: %s\n' "$change_name"
+  printf 'Branch: %s\n' "$branch"
+  printf 'Head SHA: %s\n' "$head"
+  printf 'Develop merge base: %s\n' "$base_sha"
+  printf 'Factory contract: passed\n'
+  printf 'Product-specific gates: not asserted; attach their outputs separately\n'
+}
+
+doctor() {
+  check_factory
+
+  local branch
+  branch=$(git -C "$factory_root" symbolic-ref --quiet --short HEAD || printf 'detached')
+  case "$branch" in
+    main)
+      fail "main is reserved; create a focused branch and worktree from develop"
+      ;;
+    develop)
+      printf 'factory: warning: develop is the integration branch; implementation belongs on a focused branch\n' >&2
+      ;;
+    detached)
+      printf 'factory: warning: detached HEAD cannot prove a feature-branch workflow\n' >&2
+      ;;
+    *)
+      if git -C "$factory_root" show-ref --verify --quiet refs/remotes/origin/develop; then
+        git -C "$factory_root" merge-base --is-ancestor origin/develop HEAD \
+          || fail "current branch does not descend from origin/develop"
+      fi
+      ;;
+  esac
+
+  printf 'factory: doctor passed on %s\n' "$branch"
+}
+
+status() {
+  printf 'Branch: '
+  git -C "$factory_root" symbolic-ref --quiet --short HEAD || printf 'detached\n'
+  printf 'Head: '
+  git -C "$factory_root" rev-parse HEAD
+  git -C "$factory_root" status --short --branch
+  run_openspec list
+}
+
+usage() {
+  cat <<'USAGE'
+Usage: scripts/factory <command> [change]
+
+Commands:
+  doctor              Validate tools, contracts and the local branch/worktree
+  status              Show Git and active OpenSpec state
+  validate [change]   Strictly validate one change or every change and spec
+  check               Run the CI-safe factory and OpenSpec structural gates
+  ready <change>      Require valid artifacts and every task to be complete
+  receipt <change>    Run readiness and print immutable handoff identifiers
+  help                Show this help
+USAGE
+}
+
+command_name=${1:-help}
+shift || true
+
+case "$command_name" in
+  doctor)
+    doctor
+    ;;
+  status)
+    status
+    ;;
+  validate)
+    if (($# > 0)); then
+      run_openspec validate "$1" --type change --strict --no-interactive
+    else
+      validate_all
+    fi
+    ;;
+  check)
+    check_factory
+    ;;
+  ready)
+    ready_change "${1:-}"
+    ;;
+  receipt)
+    print_receipt "${1:-}"
+    ;;
+  help | --help | -h)
+    usage
+    ;;
+  *)
+    usage >&2
+    fail "unknown command: $command_name"
+    ;;
+esac

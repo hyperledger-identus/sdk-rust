@@ -15,6 +15,7 @@
     {
       pkgs,
       craneLib,
+      inputs',
       ...
     }:
     let
@@ -38,6 +39,9 @@
       _module.args.rustSrc = cleanedSrc;
 
       checks = {
+        factory-contract = pkgs.callPackage ./factory-contract.nix {
+          openspec = inputs'.openspec.packages.default;
+        };
         lint-nix = pkgs.callPackage ./lint-nix.nix { };
         lint-toml = pkgs.callPackage ./lint-toml.nix { };
         lint-text = pkgs.callPackage ./lint-text.nix { };

@@ -11,9 +11,11 @@ and the repository-specific rules below.
    `AGENTS.md` instructions.
 2. Search existing issues, Discussions, ADRs and pull requests.
 3. Select the corresponding repository issue or create one. Every pull request
-   requires an issue. For behavior, public API, new crate, standard/profile,
-   crypto, FFI, architecture or governance work, obtain accepted scope before
-   implementation.
+   requires an issue. Agents may originate and refine routine scope within the
+   product mandate. For behavior, public API, new crate, standard/profile,
+   crypto, FFI, architecture or multi-step work, complete and review the
+   OpenSpec contract before implementation; separate human acceptance is not a
+   precondition.
 4. Use a dedicated worktree and a focused branch from current `develop`.
 5. Record source revisions and licenses before porting code or fixtures.
 6. Run `scripts/factory doctor` and create or select the OpenSpec change for
@@ -38,9 +40,9 @@ openspec validate <change> --strict --no-interactive
 ./scripts/factory receipt <change>
 ```
 
-Use the issue or Discussion for early collaboration. Check tasks only after
+Use the issue or Discussion for durable collaboration. Check tasks only after
 their implementation and focused evidence pass. Before opening a ready pull
-request, complete a distinct local review pass, sync accepted delta specs and
+request, complete a distinct local review pass, sync reviewed delta specs and
 archive the completed change.
 
 ## Component issue contract
@@ -150,10 +152,12 @@ required checks prohibit merge. Never bypass branch protection.
 
 ## AI-assisted contributions
 
-AI assistance is welcome and expected. The human submitter remains accountable
-for provenance, correctness, license compliance, private-data handling and the
-truthfulness of validation claims. Agents must follow
-[agentic-sdlc.md](docs/governance/agentic-sdlc.md). Agents may publish focused
-branches and integrate eligible pull requests into `develop` under the policy
-above. Product scope, repository administration, security disclosure,
-publication, releases and promotion to `main` retain human maintainer authority.
+AI assistance is welcome and expected. Agents are accountable for truthful
+provenance, validation and review evidence. The project sponsor and human
+maintainers remain accountable for the protected decisions defined in
+[agentic-sdlc.md](docs/governance/agentic-sdlc.md). Within the standing product
+mandate, agents may select and specify routine work, publish focused branches,
+triage CI and integrate eligible pull requests into `develop` without formal or
+format approval. Product strategy, repository administration, security
+disclosure, publication, releases and promotion to `main` retain human
+maintainer authority.

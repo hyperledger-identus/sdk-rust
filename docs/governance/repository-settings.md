@@ -22,10 +22,10 @@ Do not attach checks that cannot run on its intentionally minimal tree.
 - require verified commit signatures and DCO;
 - require pull requests and prohibit direct pushes after bootstrap creation;
 - require the stable PR-policy and applicable implementation checks to pass;
-- set no blanket human-approval minimum for `develop`; issue-approved scope,
+- set no blanket human-approval minimum for `develop`; an issue-backed contract,
   recorded local review and green required CI delegate merge authority to
   humans and agents;
-- keep CODEOWNERS and specialist reviews advisory unless an accepted issue or
+- keep CODEOWNERS and specialist reviews advisory unless an issue contract or
   risk-specific ruleset makes one blocking;
 - require all review threads resolved;
 - require branches current with `develop` or use a merge queue;

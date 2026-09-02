@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        This intake defines human intent. Qualifying work receives an OpenSpec change before implementation.
+        This intake records durable intent. Humans or agents may create it. Qualifying work receives an OpenSpec change before implementation.
 
   - type: textarea
     id: outcome

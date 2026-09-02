@@ -10,7 +10,7 @@ OpenSpec change/archive:
 Branch:
 Head SHA:
 Develop merge base:
-Human scope owner:
+Mandate/roadmap source:
 Agent roles used:
 Source SHAs/paths/licenses:
 Normative standards/profiles:

@@ -1,16 +1,19 @@
 # SDK Rust — agent instructions
 
 This repository is the chain-agnostic Rust SDK for the
-[Identus](https://github.com/hyperledger-identus) ecosystem. Humans retain
-product intent, scope, repository administration, security-disclosure, `main`
-promotion and release authority. Agents may implement, review and integrate
-bounded, issue-linked component slices into `develop` under the CI-gated policy.
+[Identus](https://github.com/hyperledger-identus) ecosystem. The project sponsor
+sets product objectives and protected boundaries. Within that mandate, agents
+have standing authority to select, specify, implement, review and integrate
+bounded, issue-linked work into `develop` under the evidence- and CI-gated
+policy. They do not need per-task, format, push or merge approval.
 
 Before changing files, read:
 
 - `GOVERNANCE.md` and `CONTRIBUTING.md`;
 - `docs/architecture/sdk-rust-blueprint.md`;
 - `docs/adr/0001-bootstrap-branch-selection.md`;
+- `docs/adr/0003-delegate-develop-integration.md`;
+- `docs/adr/0004-establish-standing-agent-authority.md`;
 - `docs/governance/agentic-sdlc.md`;
 - `docs/factory/README.md`;
 - the issue or OpenSpec change and any crate-local `AGENTS.md` in scope.
@@ -28,8 +31,8 @@ Before changing files, read:
   read-only unless a separate adoption issue explicitly authorizes changes.
 - Do not add `midnight-*`, `compact-runtime`, chain clients or product
   repositories to a generic SDK crate.
-- Port later donor components one accepted slice at a time and record source
-  SHA, path, license, transformation and conformance evidence.
+- Port later donor components one bounded, contracted slice at a time and
+  record source SHA, path, license, transformation and conformance evidence.
 - Do not expose raw secret bytes through errors, debug, serialization or FFI.
 - Every pull request must have a corresponding repository issue. Create the
   issue before the pull request when no suitable issue exists.
@@ -41,6 +44,26 @@ Before changing files, read:
 - Do not push directly to `develop` or `main`. Do not publish, release, promote
   to `main`, disclose a vulnerability or change repository settings without
   explicit human maintainer authority.
+
+## Standing autonomy mandate
+
+- Agents may choose and prioritize routine backlog work, create the required
+  issue and OpenSpec contract, and make reversible product and technical
+  decisions within the recorded roadmap and architecture boundaries.
+- Issues, OpenSpec changes, ADRs, receipts and pull-request templates are
+  coordination records and quality gates, not human approval queues.
+- Do not pause to ask for approval of naming, formatting, task decomposition,
+  routine implementation details, tests, documentation, refactoring, CI fixes
+  or reversible tooling and dependency maintenance.
+- Escalate only for a material product ambiguity not resolved by the roadmap;
+  a change to strategy, governance, licensing or public commitments; secret or
+  credential use; private vulnerability handling; an irreversible external
+  action; release, publication, `main` promotion or repository administration;
+  or unresolved security, privacy, cryptographic, compatibility or data-loss
+  risk.
+- A distinct local or specialist review remains evidence. An agent may obtain
+  it from a fresh agent context; no human approval is implied unless the work
+  crosses a protected boundary above.
 
 ## Factory workflow
 

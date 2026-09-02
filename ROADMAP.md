@@ -14,9 +14,11 @@ The active order is:
 
 1. establish `develop` from the selected `yet-another-seed@662f8d7` baseline
    and merge the governance packet while leaving `main` unchanged;
-2. close the remaining `IDR-001` governance/API inventory and placeholder
-   classification work; the chain-neutral architecture and target policy for
-   `IDR-002`/`IDR-003` are enforced by issue #22;
+2. merge the repository-local `IDR-001` governance/API inventory, publication
+   denial and placeholder quarantine from issue #25, then complete the
+   protected public-repository/settings activation in issue #26; the
+   chain-neutral architecture and target policy for `IDR-002`/`IDR-003` are
+   enforced by issue #22;
 3. establish organization-controlled crates.io ownership and namespace policy
    (issue #3);
 4. harden the existing ports/conformance, validated-newtype and cryptographic

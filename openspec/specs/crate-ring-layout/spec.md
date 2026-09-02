@@ -1,6 +1,14 @@
 ## Purpose
 
-The `sdk-rust` workspace is a hexagonal ring of 13 runtime crates — domain and protocol crates define primitives and ports; adapter-family crates and the composition root sit outside those semantics; conformance validates them and is never depended on by production — plus `identus-derive`, a build-time `proc-macro = true` crate admitted to the foundation layer (see "In-source layer rulebook") and excluded from the runtime ring. Dependency direction is inward and is enforced from the moment any real code lands. This capability's enduring rules are:
+The `sdk-rust` workspace is a hexagonal ring of implemented experimental
+foundations and quarantined seed placeholders. Domain and protocol crates
+define primitives and ports only after focused component contracts;
+adapter-family crates and composition roots sit outside those semantics;
+conformance validates them and is never depended on by production.
+`identus-derive` is a build-time `proc-macro = true` crate admitted to the
+foundation layer and excluded from the runtime ring. Dependency direction is
+inward and is enforced from the moment real code lands. This capability's
+enduring rules are:
 
 - **Foundation is dependency-free.** `identus-core` has no `identus-*` workspace dependencies and no dependency on product, protocol, adapter, binding, or conformance crates.
 - **Dependency direction is inward.** Domain crates depend only on foundation and other domain-primitive crates. Credential/protocol/orchestration crates depend on their inner rings. Adapters and bindings may depend on stable domain/protocol/wallet crates, but domain crates must not depend back on adapters, bindings, or services.
@@ -22,35 +30,42 @@ The `sdk-rust` workspace is a hexagonal ring of 13 runtime crates — domain and
 
 ### Requirement: Crate stubs at minimal code depth
 
-The workspace SHALL contain the following runtime crate stubs, each a placeholder at minimal code depth: the founding runtime stubs — `identus-crypto`, `identus-did`, `identus-trust`, `identus-credentials`, `identus-presentations`, `identus-messaging`, `identus-openid4vc`, `identus-wallet`, `identus-agent`, `identus-bindings`, `identus-conformance` — plus the adapter-family stub `identus-adapters-entropy` (the first of the `identus-adapters-<family>` crates; see "Adapter-family crates in the outer-boundary layer"). Additional `identus-adapters-<family>` stubs created under that convention are members of this stub set without further edit to this requirement. `identus-core` is the foundation (it owns the `Component` type and the redaction-safe error contract) and is not counted among the stubs. `identus-derive` is a `proc-macro = true` build-time crate (see "In-source layer rulebook") and is NOT counted among the runtime stubs. No fixed total stub count is normative; the stub population is the founding runtime stubs above plus each `identus-adapters-<family>` stub admitted by the adapter-family convention. Each runtime stub's `src/lib.rs` SHALL contain only a module doc-comment and a `pub const COMPONENT: identus_core::Component` with a stable `name` and `summary`.
+The workspace SHALL classify `identus-agent`, `identus-bindings`,
+`identus-credentials`, `identus-messaging`, `identus-openid4vc`,
+`identus-presentations`, `identus-trust` and `identus-wallet` as quarantined
+runtime placeholders at minimal code depth. Each placeholder's `src/lib.rs`
+SHALL contain only a module doc-comment, an
+`identus_core::Component` import and a public `COMPONENT` constant with stable
+current `name` and `summary` metadata. The name and layer membership preserve
+seed evidence only; neither is a release, namespace or future capability
+commitment.
 
-#### Scenario: Each stub self-describes via COMPONENT
+`identus-core`, `identus-derive`, `identus-crypto`, `identus-did` and
+`identus-adapters-entropy` contain implemented experimental foundations and
+SHALL NOT be described as stubs. `identus-conformance` contains
+verification-only guards and SHALL NOT be described as a runtime stub.
 
-- **WHEN** `<crate>::COMPONENT.name` is inspected for each stub in the set (the founding runtime stubs plus each `identus-adapters-<family>` stub admitted by the adapter-family convention)
-- **THEN** it SHALL equal the crate's `identus-<name>` package name
+#### Scenario: Each placeholder self-describes via COMPONENT
 
-#### Scenario: Stubs compile with only COMPONENT
+- **WHEN** `COMPONENT.name` is inspected for each quarantined placeholder
+- **THEN** it equals the package name recorded in the bootstrap inventory
 
-- **WHEN** `cargo build --workspace` is run
-- **THEN** every stub SHALL compile with its `lib.rs` containing only a doc-comment and the `COMPONENT` const
+#### Scenario: Placeholder source stays at marker depth
 
-### Requirement: Full intended inward dependency edges
-
-Each stub's `Cargo.toml` SHALL declare its full intended inward dependency edges (matching the layer rules), even though the minimal `lib.rs` only uses `identus-core`. Unused crate dependencies SHALL remain silent under the workspace's `warnings = "deny"` policy.
-
-#### Scenario: identus-trust declares its inward edges
-
-- **WHEN** `crates/trust/Cargo.toml` is inspected
-- **THEN** its `[dependencies]` SHALL include `identus-core`, `identus-crypto`, and `identus-did` (and no outward crates)
-
-#### Scenario: Unused inward deps do not fail the build
-
-- **WHEN** `cargo build --workspace` and `cargo clippy -- -D warnings` are run
-- **THEN** the stubs SHALL pass despite declaring deps their minimal `lib.rs` does not yet call
+- **WHEN** `cargo build --workspace` and inventory validation run
+- **THEN** every placeholder compiles with only its documentation, import and
+  `COMPONENT` marker while implemented and verification crates retain their
+  real code
 
 ### Requirement: Workspace dependency map
 
-The root `Cargo.toml` SHALL include a `[workspace.dependencies]` block mapping every workspace crate — every member of `LAYER_RULES` — to its `path = "crates/<name>"`, so every crate can express `identus-X.workspace = true`. The set of mapped crates SHALL be exactly the `LAYER_RULES` membership (which includes `identus-core`, the runtime stubs, the adapter-family stubs, `identus-derive`, and `identus-conformance`); no fixed literal crate count is normative, and the count of mapped `identus-*` crates SHALL equal the `LAYER_RULES` member count.
+The root `Cargo.toml` SHALL include a `[workspace.dependencies]` block mapping
+every workspace crate—every member of `LAYER_RULES`—to its
+`path = "crates/<name>"`, so crates can express `identus-X.workspace = true`
+when an accepted dependency is needed. The set of mapped crates SHALL be
+exactly the `LAYER_RULES` membership across implemented, verification and
+placeholder classes; the map does not require every package to consume every
+allowed inward edge.
 
 #### Scenario: All LAYER_RULES crates are workspace dependencies
 
@@ -121,21 +136,18 @@ The root `Cargo.toml` SHALL include a `[workspace.dependencies]` block mapping e
 
 ### Requirement: No cross-crate dev-dependencies in the conformance crate yet
 
-`identus-conformance` SHALL depend on `identus-core` (production, for `COMPONENT`) and on `toml` (dev, for the guard's manifest parsing). It SHALL NOT declare `serde_json` or any `identus-*` domain crate as a dev-dependency, since the rulebook is an in-source `const` (no JSON parsing) and the domain crates are stubs with no public contracts to drift against.
+`identus-conformance` SHALL depend on `identus-core` in production for its
+`COMPONENT` marker and on `syn` plus `toml` as development-only source and
+manifest parsing tools. It SHALL NOT declare `serde_json` or an `identus-*`
+domain crate as a development dependency. The current architecture guards
+inspect source and manifests without compiling consumer crates into the
+conformance package.
 
 #### Scenario: Conformance dev-deps are tooling only
 
 - **WHEN** `crates/conformance/Cargo.toml` is inspected
-- **THEN** its `[dev-dependencies]` SHALL include `toml` only and SHALL NOT include `serde_json` or any `identus-*` domain crate
-
-### Requirement: No docs/architecture files introduced
-
-This change SHALL NOT create any `docs/architecture/` files. The ring rules live in this spec's `## Purpose` and requirements; per-change decisions in `design.md`.
-
-#### Scenario: No docs/architecture directory is created
-
-- **WHEN** the change's file additions are inspected
-- **THEN** no path under `docs/architecture/` SHALL be present
+- **THEN** its development dependencies are exactly `syn` and `toml`, with no
+  domain crate or JSON fixture parser
 
 ### Requirement: Dep-graph guard rejects inline external dependency versions
 
@@ -212,22 +224,26 @@ The `outer-boundary` layer SHALL consist of the `identus-adapters-<family>` leaf
 
 ### Requirement: identus-adapters-entropy crate
 
-The workspace SHALL contain an `identus-adapters-entropy` crate as the first adapter-family crate, a member of the `outer-boundary` layer. It SHALL be registered in root `[workspace.dependencies]` (with `path = "crates/adapters-entropy"`) and in `LAYER_RULES` `outer-boundary` membership. Its `src/lib.rs` SHALL contain only a module doc-comment and a `pub const COMPONENT: identus_core::Component` (with `name = "identus-adapters-entropy"`) at the same minimal code depth as the baseline stubs. Its `Cargo.toml` SHALL depend on `identus-crypto` (inward, to implement `identus_crypto::SecureRandom`) and `identus-core`, declare `ring` as an optional external dependency behind a `ring` cargo feature, and set `default = []`. The `ring`-backed `SecureRandom` adapter *content* is filled by `add-crypto-capability` (the consumer); this change creates the crate skeleton only.
+The workspace SHALL contain the implemented experimental
+`identus-adapters-entropy` package in the `outer-boundary` layer and root
+workspace dependency map. It SHALL depend inward on `identus-core` and
+`identus-crypto`, expose no concrete adapter by default, and provide the
+independent opt-in `getrandom` and `deterministic` feature surfaces. The system
+adapter SHALL use optional `getrandom`; deterministic entropy SHALL remain a
+test/conformance aid and SHALL NOT be represented as production randomness.
 
-#### Scenario: identus-adapters-entropy is a workspace and layer member
+#### Scenario: Entropy adapter is a workspace and layer member
 
-- **WHEN** root `Cargo.toml` `[workspace.dependencies]` and `LAYER_RULES` are inspected
-- **THEN** `identus-adapters-entropy` SHALL appear in both, in the `outer-boundary` layer
+- **WHEN** the workspace map and `LAYER_RULES` are inspected
+- **THEN** `identus-adapters-entropy` appears in both and is classified as an
+  implemented experimental outer-boundary package
 
-#### Scenario: identus-adapters-entropy declares ring optional behind a feature
+#### Scenario: Entropy features remain isolated
 
-- **WHEN** `crates/adapters-entropy/Cargo.toml` is inspected
-- **THEN** `ring` SHALL be `{ workspace = true, optional = true }`, gated by a `ring` feature, with `default = []`
-
-#### Scenario: identus-adapters-entropy depends only inward
-
-- **WHEN** `crates/adapters-entropy/Cargo.toml` workspace-internal `[dependencies]` is inspected
-- **THEN** it SHALL contain only `identus-crypto` and `identus-core` (plus the optional external `ring`)
+- **WHEN** the package is built with no defaults, `getrandom`,
+  `deterministic`, or all features
+- **THEN** each declared surface is exercised by its support-policy gate and
+  only `getrandom` activates an external entropy backend
 
 ### Requirement: Adapter-family crates are composition-root-only dependencies
 

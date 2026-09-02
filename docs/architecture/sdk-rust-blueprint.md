@@ -19,7 +19,10 @@ with immutable donor classifications in the
 [source matrix](ssi-upstream-source-matrix.md) and coordination in
 [issue #20](https://github.com/hyperledger-identus/sdk-rust/issues/20). The
 machine-readable [support policy](sdk-support-policy.toml) and its
-[compatibility explanation](sdk-support-policy.md) govern target claims.
+[compatibility explanation](sdk-support-policy.md) govern target claims. The
+[bootstrap inventory](sdk-bootstrap-inventory.md) distinguishes implemented,
+verification-only and quarantined-placeholder packages and records the
+repository-local `IDR-001` evidence.
 
 ## 1. Mission
 
@@ -204,9 +207,12 @@ dependency is present; every workspace member is implemented or explicitly
 quarantined; baseline limitations are documented.
 
 `IDR-002` and `IDR-003` are delivered by issue #22: the chain-neutral boundary
-and compatibility matrix are machine-enforced. Governance/API inventory and
-placeholder classification remain under `IDR-001`/#4 before B01 is fully
-closed.
+and compatibility matrix are machine-enforced. Issue #25 delivers the
+repository-local governance/API inventory, publication denial and placeholder
+quarantine for `IDR-001`. The row remains in progress until accountable
+maintainers complete the public repository and protected-control activation in
+issue #26; namespace and trusted-publishing ownership remain separate under
+issue #3.
 
 ### B02 — namespace and release ownership (`#3`)
 

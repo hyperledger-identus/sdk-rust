@@ -309,7 +309,6 @@ name = "identus-bindings"
 version = "0.0.0"
 dependencies = [
  "identus-core",
- "identus-wallet",
 ]
 
 [[package]]
@@ -335,9 +334,6 @@ name = "identus-credentials"
 version = "0.0.0"
 dependencies = [
  "identus-core",
- "identus-crypto",
- "identus-did",
- "identus-trust",
 ]
 
 [[package]]
@@ -386,8 +382,6 @@ name = "identus-messaging"
 version = "0.0.0"
 dependencies = [
  "identus-core",
- "identus-crypto",
- "identus-did",
 ]
 
 [[package]]
@@ -395,9 +389,6 @@ name = "identus-openid4vc"
 version = "0.0.0"
 dependencies = [
  "identus-core",
- "identus-credentials",
- "identus-presentations",
- "identus-trust",
 ]
 
 [[package]]
@@ -405,8 +396,6 @@ name = "identus-presentations"
 version = "0.0.0"
 dependencies = [
  "identus-core",
- "identus-credentials",
- "identus-trust",
 ]
 
 [[package]]
@@ -414,8 +403,6 @@ name = "identus-trust"
 version = "0.0.0"
 dependencies = [
  "identus-core",
- "identus-crypto",
- "identus-did",
 ]
 
 [[package]]
@@ -423,13 +410,6 @@ name = "identus-wallet"
 version = "0.0.0"
 dependencies = [
  "identus-core",
- "identus-credentials",
- "identus-crypto",
- "identus-did",
- "identus-messaging",
- "identus-openid4vc",
- "identus-presentations",
- "identus-trust",
 ]
 
 [[package]]

@@ -1,15 +1,12 @@
-//! OpenID for Verifiable Credentials (OpenID4VC) protocol semantics for the
-//! Identus Rust SDK.
+//! Quarantined OpenID4VC placeholder for the Identus Rust SDK.
 //!
-//! Owns the OpenID4VCI issuance, OpenID4VP presentation, and SIOPv2
-//! self-issued identity protocol semantics. Sits in the `protocol-semantics`
-//! layer and depends on foundation, credential semantics, presentation
-//! semantics, and trust primitives.
+//! No umbrella OpenID protocol API or crate namespace is accepted by this
+//! marker.
 
 use identus_core::Component;
 
 /// Metadata for the `identus-openid4vc` crate.
 pub const COMPONENT: Component = Component {
     name: "identus-openid4vc",
-    summary: "OpenID for Verifiable Credentials protocol semantics for the Identus Rust SDK.",
+    summary: "Quarantined OpenID4VC placeholder; no accepted protocol API.",
 };

@@ -12,8 +12,17 @@ report_failure() {
 
 required_files=(
   AGENTS.md
+  CODE_OF_CONDUCT.md
   CONTRIBUTING.md
+  DCO.md
+  GOVERNANCE.md
+  LICENSE
+  MAINTAINERS.md
+  RELEASING.md
+  SECURITY.md
   docs/factory/README.md
+  docs/architecture/sdk-bootstrap-inventory.md
+  docs/architecture/sdk-bootstrap-inventory.toml
   docs/architecture/sdk-support-policy.md
   docs/architecture/sdk-support-policy.toml
   docs/architecture/ssi-upstream-source-matrix.md
@@ -24,12 +33,15 @@ required_files=(
   openspec/config.yaml
   scripts/factory
   scripts/check-factory.sh
+  scripts/check-bootstrap-inventory.py
   scripts/check-support-policy.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-pr-policy.sh
   scripts/tests/factory-contract.sh
+  scripts/tests/bootstrap-inventory.py
   scripts/tests/pr-policy.sh
   scripts/tests/support-policy.py
+  .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
   .github/ISSUE_TEMPLATE/delivery-task.yml
   .github/pull_request_template.md
@@ -43,11 +55,17 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in scripts/factory scripts/check-factory.sh scripts/check-pr-policy.sh scripts/check-support-policy.py scripts/check-ssi-upstream-backlog.py scripts/tests/factory-contract.sh scripts/tests/pr-policy.sh scripts/tests/support-policy.py; do
+for executable_path in scripts/factory scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-pr-policy.sh scripts/check-support-policy.py scripts/check-ssi-upstream-backlog.py scripts/tests/bootstrap-inventory.py scripts/tests/factory-contract.sh scripts/tests/pr-policy.sh scripts/tests/support-policy.py; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi
 done
+
+if [[ -x "$factory_root/scripts/check-bootstrap-inventory.py" && -f "$factory_root/docs/architecture/sdk-bootstrap-inventory.toml" ]]; then
+  if ! "$factory_root/scripts/check-bootstrap-inventory.py" "$factory_root"; then
+    report_failure "SDK bootstrap-inventory validation failed"
+  fi
+fi
 
 if [[ -x "$factory_root/scripts/check-ssi-upstream-backlog.py" && -f "$factory_root/docs/roadmap/ssi-upstream-dependency-backlog.csv" ]]; then
   if ! "$factory_root/scripts/check-ssi-upstream-backlog.py" "$factory_root/docs/roadmap/ssi-upstream-dependency-backlog.csv"; then

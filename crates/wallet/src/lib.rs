@@ -1,14 +1,12 @@
-//! Wallet orchestration for the Identus Rust SDK.
+//! Quarantined wallet placeholder for the Identus Rust SDK.
 //!
-//! Owns the wallet abstraction that coordinates DID management, credential
-//! storage, presentation exchange, and messaging flows. Sits in the
-//! `orchestration` layer and depends on foundation, all domain primitives,
-//! credential semantics, and protocol semantics.
+//! No wallet product, custody, storage, consent or orchestration API is
+//! accepted by this marker.
 
 use identus_core::Component;
 
 /// Metadata for the `identus-wallet` crate.
 pub const COMPONENT: Component = Component {
     name: "identus-wallet",
-    summary: "Wallet orchestration for the Identus Rust SDK.",
+    summary: "Quarantined wallet placeholder; product policy stays downstream.",
 };

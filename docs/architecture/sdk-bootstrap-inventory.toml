@@ -1,0 +1,187 @@
+schema_version = 1
+public_api_inventory = "docs/architecture/sdk-bootstrap-inventory.md"
+governance_documents = [
+  ".github/CODEOWNERS",
+  ".github/ISSUE_TEMPLATE/component-change.yml",
+  ".github/ISSUE_TEMPLATE/delivery-task.yml",
+  ".github/pull_request_template.md",
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.md",
+  "DCO.md",
+  "GOVERNANCE.md",
+  "LICENSE",
+  "MAINTAINERS.md",
+  "RELEASING.md",
+  "SECURITY.md",
+  "docs/governance/repository-settings.md",
+]
+
+[repository]
+name                = "hyperledger-identus/sdk-rust"
+active_branch       = "develop"
+reserved_branch     = "main"
+baseline_revision   = "662f8d7d2b9b9a151365c6bb889cd614bca625f7"
+release_state       = "unreleased"
+publication_state   = "disabled"
+parent_issue        = "#4"
+delivery_issue      = "#25"
+namespace_issue     = "#3"
+live_controls_state = "external-action-required"
+live_controls_issue = "#26"
+
+[authority]
+maintainers       = "canonical-identus-policy"
+routine_delivery  = "issue-linked-reviewed-green-ci-develop"
+release           = "assigned-human-release-manager-with-second-maintainer"
+repository_admin  = "human-maintainers"
+security_response = "identus-security-response-team"
+
+[[canonical_policies]]
+repository = "hyperledger-identus/.github"
+revision   = "main"
+path       = "MAINTAINERS.md"
+blob_sha   = "b1b727ccc42f13a2d54bccd176dc5763bb5aada1"
+
+[[canonical_policies]]
+repository = "hyperledger-identus/.github"
+revision   = "main"
+path       = "CONTRIBUTING.md"
+blob_sha   = "6716a78c39bcb767d3d2cf8598f8179a5e99e1d7"
+
+[[canonical_policies]]
+repository = "hyperledger-identus/.github"
+revision   = "main"
+path       = "SECURITY.md"
+blob_sha   = "d283acee5aa9bf4e4d0052199ab109a8e7b2e9ba"
+
+[[canonical_policies]]
+repository = "hyperledger-identus/.github"
+revision   = "main"
+path       = "DCO.md"
+blob_sha   = "0e65ddedde9abbcdf90256fe57c917d67d66cb92"
+
+[[packages]]
+name           = "identus-core"
+path           = "crates/core"
+layer          = "foundation"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#25"
+summary        = "Validated core values, URLs, capability identifiers and redaction-safe errors."
+
+[[packages]]
+name           = "identus-derive"
+path           = "crates/derive"
+layer          = "foundation"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#25"
+summary        = "Validated-newtype derives and the inert port declaration macro."
+
+[[packages]]
+name           = "identus-crypto"
+path           = "crates/crypto"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#9"
+summary        = "Chain-neutral encodings, keys, hashes, derivation and compatibility vectors."
+
+[[packages]]
+name           = "identus-did"
+path           = "crates/did"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#5"
+summary        = "Initial generic DID method, version and multihash value foundations."
+
+[[packages]]
+name           = "identus-trust"
+path           = "crates/trust"
+layer          = "domain-primitives"
+classification = "placeholder"
+public_api     = "none"
+owner_issue    = "#6"
+summary        = "Quarantined seed marker; no accepted trust API or namespace."
+
+[[packages]]
+name           = "identus-credentials"
+path           = "crates/credentials"
+layer          = "credential-semantics"
+classification = "placeholder"
+public_api     = "none"
+owner_issue    = "#6"
+summary        = "Quarantined seed marker; no accepted credential API or namespace."
+
+[[packages]]
+name           = "identus-presentations"
+path           = "crates/presentations"
+layer          = "credential-semantics"
+classification = "placeholder"
+public_api     = "none"
+owner_issue    = "#6"
+summary        = "Quarantined seed marker; no accepted presentation API or namespace."
+
+[[packages]]
+name           = "identus-messaging"
+path           = "crates/messaging"
+layer          = "protocol-semantics"
+classification = "placeholder"
+public_api     = "none"
+owner_issue    = "#20"
+summary        = "Quarantined seed marker; DIDComm remains a conditional component decision."
+
+[[packages]]
+name           = "identus-openid4vc"
+path           = "crates/openid4vc"
+layer          = "protocol-semantics"
+classification = "placeholder"
+public_api     = "none"
+owner_issue    = "#7"
+summary        = "Quarantined seed marker; accepted OpenID protocols will use focused crates."
+
+[[packages]]
+name           = "identus-wallet"
+path           = "crates/wallet"
+layer          = "orchestration"
+classification = "placeholder"
+public_api     = "none"
+owner_issue    = "#20"
+summary        = "Quarantined seed marker; product wallet orchestration remains downstream."
+
+[[packages]]
+name           = "identus-agent"
+path           = "crates/agent"
+layer          = "orchestration"
+classification = "placeholder"
+public_api     = "none"
+owner_issue    = "#20"
+summary        = "Quarantined seed marker; no accepted agent API or namespace."
+
+[[packages]]
+name           = "identus-adapters-entropy"
+path           = "crates/adapters-entropy"
+layer          = "outer-boundary"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#25"
+summary        = "System and deterministic adapters for the SecureRandom port."
+
+[[packages]]
+name           = "identus-bindings"
+path           = "crates/bindings"
+layer          = "outer-boundary"
+classification = "placeholder"
+public_api     = "none"
+owner_issue    = "#20"
+summary        = "Quarantined seed marker; FFI is explicitly unsupported."
+
+[[packages]]
+name           = "identus-conformance"
+path           = "crates/conformance"
+layer          = "verification"
+classification = "verification"
+public_api     = "internal"
+owner_issue    = "#25"
+summary        = "Repository-only architecture, source and conformance guards."

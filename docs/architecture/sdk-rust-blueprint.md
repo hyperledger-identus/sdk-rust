@@ -17,7 +17,9 @@ and the Identus SDK family; adoption remains downstream-owned
 [SDK SSI upstream dependency backlog](../roadmap/ssi-upstream-dependency-backlog.csv),
 with immutable donor classifications in the
 [source matrix](ssi-upstream-source-matrix.md) and coordination in
-[issue #20](https://github.com/hyperledger-identus/sdk-rust/issues/20)
+[issue #20](https://github.com/hyperledger-identus/sdk-rust/issues/20). The
+machine-readable [support policy](sdk-support-policy.toml) and its
+[compatibility explanation](sdk-support-policy.md) govern target claims.
 
 ## 1. Mission
 
@@ -55,6 +57,11 @@ Dependencies point downward only. Therefore SDK crates must not depend on:
 
 Chain- and product-specific behavior enters through typed ports or adapter
 crates outside this repository.
+
+The `identus-conformance` suite enforces this boundary across direct normal,
+development, build and target-scoped Cargo declarations, renamed packages,
+donor sources, local paths and the resolved lockfile closure. The guard is
+offline and does not build a donor or consumer repository.
 
 ## 3. Bootstrap principles
 
@@ -154,6 +161,13 @@ identus-conformance       -> dev/test edges only
 The exact graph can become narrower. A new upward or sideways dependency needs
 an ADR and dependency-cone evidence.
 
+The support matrix deliberately separates host-tested Rust behavior from
+compile-only browser/mobile evidence and from planned targets. Rust `1.85.0`
+is tested as the stable consumer floor independently of the pinned
+NeoPRISM-etalon nightly. There is no supported FFI during bootstrap, and
+binary size/build time remain measurement-only until a candidate release
+defines reproducible artifacts and budgets.
+
 ## 6. Delivery program
 
 The `B00`–`B12` sequence below explains program intent. The canonical CSV is
@@ -173,7 +187,7 @@ known debt in ADR 0001 while leaving `main` unchanged.
 **Exit:** the signed/DCO governance commit is on `develop`; maintainers approve
 the boundary, transition rules and repository controls.
 
-### B01 — selected-baseline stabilization (`#4`)
+### B01 — selected-baseline stabilization (`#4`, `#22`)
 
 Align the declared MSRV with the NeoPRISM-etalon pinned Rust toolchain and Nix
 inputs; fix deterministic host and Nix gates; inventory public APIs; classify
@@ -188,6 +202,11 @@ policy, architecture checks and generated/fixture drift.
 **Exit:** fresh-clone plain-Cargo and Nix instructions pass; no chain/product
 dependency is present; every workspace member is implemented or explicitly
 quarantined; baseline limitations are documented.
+
+`IDR-002` and `IDR-003` are delivered by issue #22: the chain-neutral boundary
+and compatibility matrix are machine-enforced. Governance/API inventory and
+placeholder classification remain under `IDR-001`/#4 before B01 is fully
+closed.
 
 ### B02 — namespace and release ownership (`#3`)
 

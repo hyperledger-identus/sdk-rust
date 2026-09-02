@@ -14,6 +14,8 @@ required_files=(
   AGENTS.md
   CONTRIBUTING.md
   docs/factory/README.md
+  docs/architecture/sdk-support-policy.md
+  docs/architecture/sdk-support-policy.toml
   docs/architecture/ssi-upstream-source-matrix.md
   docs/roadmap/ssi-upstream-dependency-backlog.csv
   docs/governance/agentic-sdlc.md
@@ -22,10 +24,12 @@ required_files=(
   openspec/config.yaml
   scripts/factory
   scripts/check-factory.sh
+  scripts/check-support-policy.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-pr-policy.sh
   scripts/tests/factory-contract.sh
   scripts/tests/pr-policy.sh
+  scripts/tests/support-policy.py
   .github/ISSUE_TEMPLATE/component-change.yml
   .github/ISSUE_TEMPLATE/delivery-task.yml
   .github/pull_request_template.md
@@ -39,7 +43,7 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in scripts/factory scripts/check-factory.sh scripts/check-pr-policy.sh scripts/check-ssi-upstream-backlog.py scripts/tests/factory-contract.sh scripts/tests/pr-policy.sh; do
+for executable_path in scripts/factory scripts/check-factory.sh scripts/check-pr-policy.sh scripts/check-support-policy.py scripts/check-ssi-upstream-backlog.py scripts/tests/factory-contract.sh scripts/tests/pr-policy.sh scripts/tests/support-policy.py; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi
@@ -48,6 +52,12 @@ done
 if [[ -x "$factory_root/scripts/check-ssi-upstream-backlog.py" && -f "$factory_root/docs/roadmap/ssi-upstream-dependency-backlog.csv" ]]; then
   if ! "$factory_root/scripts/check-ssi-upstream-backlog.py" "$factory_root/docs/roadmap/ssi-upstream-dependency-backlog.csv"; then
     report_failure "SSI upstream backlog validation failed"
+  fi
+fi
+
+if [[ -x "$factory_root/scripts/check-support-policy.py" && -f "$factory_root/docs/architecture/sdk-support-policy.toml" ]]; then
+  if ! "$factory_root/scripts/check-support-policy.py" "$factory_root"; then
+    report_failure "SDK support-policy validation failed"
   fi
 fi
 

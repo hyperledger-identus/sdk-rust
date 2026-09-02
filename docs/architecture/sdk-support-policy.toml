@@ -51,6 +51,8 @@ packages = [
   "identus-did",
   "identus-adapters-entropy",
 ]
+no_default_features = false
+features = [ "identus-adapters-entropy/getrandom" ]
 limitation = "Compile-only with the getrandom browser backend; no browser runtime, bundler, CSP, storage, FFI, performance, or certification claim."
 
 [[targets]]
@@ -65,6 +67,8 @@ packages = [
   "identus-did",
   "identus-adapters-entropy",
 ]
+no_default_features = false
+features = [ "identus-adapters-entropy/getrandom" ]
 limitation = "Compile-only; no NDK linking, emulator/device runtime, JNI/UniFFI, keystore, packaging, or certification claim."
 
 [[targets]]
@@ -79,6 +83,8 @@ packages = [
   "identus-did",
   "identus-adapters-entropy",
 ]
+no_default_features = false
+features = [ "identus-adapters-entropy/getrandom" ]
 limitation = "Compile-only; no linking, simulator/device runtime, Swift/UniFFI, keychain, packaging, App Store, or certification claim."
 
 [[targets]]

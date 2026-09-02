@@ -79,6 +79,19 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("undefined Nix gate rust-build-wasm32", result.stderr)
 
+    def test_unimported_gate_module_is_not_discovered(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "    ./rust-build-mobile.nix\n",
+            "",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "target aarch64-linux-android references undefined Nix gate",
+            result.stderr,
+        )
+
     def test_gate_without_target_evidence_fails(self) -> None:
         self.replace(
             "nix/checks/rust-build-wasm32.nix",
@@ -116,6 +129,19 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn(
             "target wasm32-unknown-unknown gate rust-build-wasm32 selects packages",
+            result.stderr,
+        )
+
+    def test_target_gate_must_activate_declared_features(self) -> None:
+        self.replace(
+            "nix/checks/rust-build-wasm32.nix",
+            " --features identus-adapters-entropy/getrandom",
+            "",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "target wasm32-unknown-unknown gate rust-build-wasm32 selects",
             result.stderr,
         )
 

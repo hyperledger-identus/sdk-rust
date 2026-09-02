@@ -42,9 +42,10 @@ NeoPRISM is evidence, never a build or source dependency.
 ### 1. Enforce identity, location and resolved closure
 
 The conformance guard examines dependency aliases and explicit Cargo
-`package` identities in normal, development, build and target-scoped tables.
-Names are lower-cased and underscores normalize to hyphens before matching
-explicit chain/product families. It also examines Git URLs and local paths.
+`package` identities in normal, development, build and target-scoped tables,
+plus root `[patch]` and `[replace]` source overrides. Names are lower-cased and
+underscores normalize to hyphens before matching explicit chain/product
+families. It also examines Git URLs, override source selectors and local paths.
 Local paths must canonicalize inside the repository, and workspace dependency
 paths must resolve beneath `crates/`.
 
@@ -103,7 +104,10 @@ deterministic and system-random feature surfaces. Mutually compatible feature
 combinations are checked explicitly instead of relying on Cargo unification
 from `--all-features` alone. Structural validation compares each gate's exact
 package selection, default-feature mode and activated feature set with the
-machine contract.
+machine contract. Compile-checked targets declare their package-qualified
+backend features using the same selection contract. Gate discovery follows the
+literal import graph rooted at `nix/checks/default.nix`, so an orphaned module
+cannot satisfy a required check.
 
 ### 7. Defer budgets truthfully
 

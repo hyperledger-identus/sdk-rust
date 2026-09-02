@@ -100,14 +100,41 @@ def workspace_packages(
     return packages, manifests
 
 
-def gate_sources(root: Path) -> dict[str, list[tuple[Path, str]]]:
+def imported_check_modules(root: Path, failures: list[str]) -> list[Path]:
+    checks_root = (root / "nix/checks").resolve()
+    pending = [checks_root / "default.nix"]
+    visited: set[Path] = set()
+    while pending:
+        path = pending.pop()
+        if path in visited:
+            continue
+        if not path.is_file():
+            failures.append(f"imported Nix check module does not exist: {path}")
+            continue
+        visited.add(path)
+        text = path.read_text(encoding="utf-8")
+        for imports in re.finditer(r"imports\s*=\s*\[(.*?)\];", text, re.DOTALL):
+            for relative in re.findall(r"\./([A-Za-z0-9_./-]+\.nix)", imports.group(1)):
+                imported = (path.parent / relative).resolve()
+                if not imported.is_relative_to(checks_root):
+                    failures.append(
+                        f"Nix check module {path} imports outside nix/checks: {relative}"
+                    )
+                    continue
+                pending.append(imported)
+    return sorted(visited)
+
+
+def gate_sources(
+    root: Path, failures: list[str]
+) -> dict[str, list[tuple[Path, str]]]:
     sources: dict[str, list[tuple[Path, str]]] = {}
     gate_pattern = re.compile(
         r"^\s*(?:checks\.)?(rust-[A-Za-z0-9_-]+)\s*=\s*"
         r"(?:craneLib|msrvCraneLib)\.[A-Za-z0-9_-]+\s*\{.*?^\s*\};",
         re.MULTILINE | re.DOTALL,
     )
-    for path in sorted((root / "nix/checks").glob("*.nix")):
+    for path in imported_check_modules(root, failures):
         text = path.read_text(encoding="utf-8")
         for match in gate_pattern.finditer(text):
             sources.setdefault(match.group(1), []).append((path, match.group(0)))
@@ -161,9 +188,12 @@ def cargo_package_selection(definition: str) -> set[str]:
     )
 
 
-def validate_gate_packages(
+def validate_gate_cargo_selection(
     gate: Any,
     declared_packages: set[str],
+    no_default_features: bool,
+    declared_features: set[str],
+    available_features: set[str] | None,
     sources: dict[str, list[tuple[Path, str]]],
     context: str,
     failures: list[str],
@@ -172,37 +202,39 @@ def validate_gate_packages(
         return
     path, definition = sources[gate][0]
     selected_packages = cargo_package_selection(definition)
-    if selected_packages != declared_packages:
-        failures.append(
-            f"{context} gate {gate} selects packages {sorted(selected_packages)}, expected {sorted(declared_packages)} in {path}"
-        )
-
-
-def cargo_feature_selection(
-    definition: str, available_features: set[str] | None
-) -> tuple[set[str], bool, set[str]]:
-    packages = cargo_package_selection(definition)
-    no_default_features = bool(
+    actual_no_default = bool(
         re.search(r'(?:^|[\s"])--no-default-features(?:\s|"|$)', definition)
     )
-    features: set[str] = set()
+    selected_features: set[str] = set()
     for match in re.finditer(
         r'(?:^|[\s"])--features(?:=|\s+)([A-Za-z0-9_+./,-]+)', definition
     ):
-        features.update(
+        selected_features.update(
             value for value in match.group(1).split(",") if value
         )
     for match in re.finditer(
         r"cargoBuildFeatures\s*=\s*\[(.*?)\];", definition, re.DOTALL
     ):
-        features.update(re.findall(r'"([A-Za-z0-9_+./-]+)"', match.group(1)))
+        selected_features.update(
+            re.findall(r'"([A-Za-z0-9_+./-]+)"', match.group(1))
+        )
     if re.search(r'(?:^|[\s"])--all-features(?:\s|"|$)', definition):
-        features = (
+        selected_features = (
             set(available_features)
             if available_features is not None
             else {"<all-features>"}
         )
-    return packages, no_default_features, features
+    if (
+        selected_packages != declared_packages
+        or actual_no_default != no_default_features
+        or selected_features != declared_features
+    ):
+        failures.append(
+            f"{context} gate {gate} selects packages {sorted(selected_packages)}, "
+            f"no_default_features={actual_no_default}, features={sorted(selected_features)}; "
+            f"expected packages {sorted(declared_packages)}, "
+            f"no_default_features={no_default_features}, features={sorted(declared_features)} in {path}"
+        )
 
 
 def validate_msrv_builder(
@@ -217,36 +249,6 @@ def validate_msrv_builder(
     if not re.search(r"=\s*msrvCraneLib\.[A-Za-z0-9_-]+\s*\{", definition):
         failures.append(
             f"{context} gate {gate} is not built with msrvCraneLib in {path}"
-        )
-
-
-def validate_feature_gate_selection(
-    gate: Any,
-    package: str,
-    no_default_features: bool,
-    declared_features: set[str],
-    available_features: set[str] | None,
-    sources: dict[str, list[tuple[Path, str]]],
-    context: str,
-    failures: list[str],
-) -> None:
-    if not isinstance(gate, str) or len(sources.get(gate, [])) != 1:
-        return
-    path, definition = sources[gate][0]
-    packages, actual_no_default, actual_features = cargo_feature_selection(
-        definition, available_features
-    )
-    expected_packages = set() if package == "*" else {package}
-    if (
-        packages != expected_packages
-        or actual_no_default != no_default_features
-        or actual_features != declared_features
-    ):
-        failures.append(
-            f"{context} gate {gate} selects packages {sorted(packages)}, "
-            f"no_default_features={actual_no_default}, features={sorted(actual_features)}; "
-            f"expected packages {sorted(expected_packages)}, "
-            f"no_default_features={no_default_features}, features={sorted(declared_features)} in {path}"
         )
 
 
@@ -356,6 +358,7 @@ def validate_hosts(
 def validate_targets(
     policy: dict[str, Any],
     packages: set[str],
+    manifests: dict[str, Path],
     sources: dict[str, list[tuple[Path, str]]],
     failures: list[str],
 ) -> None:
@@ -389,15 +392,51 @@ def validate_targets(
                 failures.append(
                     f"target {triple} compile package set does not match {sorted(REQUIRED_COMPILE_PACKAGES)}"
                 )
+            declared_features = target.get("features")
+            if not isinstance(declared_features, list) or not all(
+                isinstance(item, str) for item in declared_features
+            ):
+                failures.append(f"target {triple} has an invalid features list")
+                declared_features = []
+            for qualified_feature in declared_features:
+                package_name, separator, feature_name = qualified_feature.partition("/")
+                if not separator or not package_name or not feature_name:
+                    failures.append(
+                        f"target {triple} feature {qualified_feature!r} must use package/feature syntax"
+                    )
+                    continue
+                if package_name not in declared_packages:
+                    failures.append(
+                        f"target {triple} feature {qualified_feature!r} names an unselected package"
+                    )
+                    continue
+                manifest_path = manifests.get(package_name)
+                if manifest_path is None:
+                    continue
+                manifest = load_toml(manifest_path, failures)
+                available = manifest.get("features", {})
+                if not isinstance(available, dict) or feature_name not in available:
+                    failures.append(
+                        f"target {triple} references missing feature {qualified_feature}"
+                    )
+            no_default_features = target.get("no_default_features")
+            if not isinstance(no_default_features, bool):
+                failures.append(
+                    f"target {triple} must declare no_default_features"
+                )
+                no_default_features = False
             evidence_token = require_nonempty_string(
                 target, "evidence_token", f"target {triple}", failures
             )
             validate_gate(
                 target.get("gate"), evidence_token, sources, f"target {triple}", failures
             )
-            validate_gate_packages(
+            validate_gate_cargo_selection(
                 target.get("gate"),
                 set(declared_packages),
+                no_default_features,
+                set(declared_features),
+                None,
                 sources,
                 f"target {triple}",
                 failures,
@@ -456,9 +495,9 @@ def validate_features(
             continue
         for gate in gates:
             validate_gate(gate, token, sources, f"feature {name}", failures)
-            validate_feature_gate_selection(
+            validate_gate_cargo_selection(
                 gate,
-                package,
+                set() if package == "*" else {package},
                 surface.get("no_default_features"),
                 set(declared),
                 available_features,
@@ -474,9 +513,9 @@ def validate_features(
         validate_msrv_builder(
             msrv_gate, sources, f"feature {name} MSRV", failures
         )
-        validate_feature_gate_selection(
+        validate_gate_cargo_selection(
             msrv_gate,
-            package,
+            set() if package == "*" else {package},
             surface.get("no_default_features"),
             set(declared),
             available_features,
@@ -513,11 +552,11 @@ def validate(root: Path) -> list[str]:
     require_nonempty_string(policy, "policy_revision", "policy", failures)
 
     packages, manifests = workspace_packages(root, cargo, failures)
-    sources = gate_sources(root)
+    sources = gate_sources(root, failures)
     validate_crane_command_attributes(root, failures)
     validate_toolchains(root, policy, cargo, sources, failures)
     validate_hosts(policy, sources, failures)
-    validate_targets(policy, packages, sources, failures)
+    validate_targets(policy, packages, manifests, sources, failures)
     validate_features(policy, manifests, sources, failures)
     validate_deferred_dimensions(policy, packages, failures)
     return sorted(set(failures))

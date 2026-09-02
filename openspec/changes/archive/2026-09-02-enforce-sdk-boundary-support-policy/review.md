@@ -67,12 +67,22 @@ acceptance evidence.
   validator now compares the complete Cargo selection for every nightly and
   MSRV feature gate and proves each MSRV gate uses the stable Crane instance,
   with regressions for each drift class and toolchain substitution.
+- Exact-head hosted review found that an orphaned Nix module could still satisfy
+  textual gate discovery. Required gates are now discovered only through the
+  imported check-module graph, with an import-removal regression.
+- Exact-head hosted review found that target gates did not machine-declare the
+  entropy backend they claimed to compile. Compile-checked targets now declare
+  and validate exact package-qualified feature selections.
+- Exact-head hosted review found that Cargo patch and replacement tables could
+  redirect neutral package names outside the repository without a lockfile
+  source. The boundary guard now applies identity, Git/source and canonical-path
+  checks to both override forms.
 
 ## Final result
 
 | Dimension | Result |
 | --- | --- |
-| Boundary coverage | Direct aliases/packages, every dependency-table kind, donor Git/path locations and lockfile closure are enforced |
+| Boundary coverage | Direct aliases/packages, every dependency-table and override kind, donor Git/path locations and lockfile closure are enforced |
 | Compatibility truth | Host-tested, compile-only, planned and unsupported states are separate and machine-validated |
 | Actual target evidence | Rust 1.85, browser WASM, Android ARM64 and iOS ARM64 commands were observed in successful Nix build logs |
 | Feature isolation | Crypto minimal/KMP and entropy minimal/deterministic/getrandom/all surfaces have exact nightly and MSRV gates |

@@ -101,8 +101,19 @@ fn collect_dependency_table(
     };
 
     for (alias, declaration) in table {
+        let alias = if section == "replace" {
+            alias
+                .rsplit('#')
+                .next()
+                .unwrap_or(alias)
+                .split(':')
+                .next()
+                .unwrap_or(alias)
+        } else {
+            alias
+        };
         let (package, git, path) = match declaration {
-            toml::Value::String(_) => (alias.clone(), None, None),
+            toml::Value::String(_) => (alias.to_owned(), None, None),
             toml::Value::Table(fields) => (
                 fields
                     .get("package")
@@ -123,7 +134,7 @@ fn collect_dependency_table(
 
         declarations.push(DependencyDeclaration {
             section: section.to_owned(),
-            alias: alias.clone(),
+            alias: alias.to_owned(),
             package,
             git,
             path,
@@ -165,6 +176,18 @@ fn dependency_declarations(manifest: &toml::Value) -> Vec<DependencyDeclaration>
         &mut declarations,
     );
 
+    if let Some(patches) = manifest.get("patch").and_then(toml::Value::as_table) {
+        for (source, replacements) in patches {
+            collect_dependency_table(
+                &format!("patch.{source:?}"),
+                Some(replacements),
+                &mut declarations,
+            );
+        }
+    }
+
+    collect_dependency_table("replace", manifest.get("replace"), &mut declarations);
+
     declarations.sort_by(|left, right| {
         (&left.section, &left.alias, &left.package).cmp(&(
             &right.section,
@@ -175,12 +198,35 @@ fn dependency_declarations(manifest: &toml::Value) -> Vec<DependencyDeclaration>
     declarations
 }
 
+fn cargo_override_source_violations(manifest: &toml::Value) -> Vec<String> {
+    let mut violations = Vec::new();
+    if let Some(patches) = manifest.get("patch").and_then(toml::Value::as_table) {
+        for source in patches.keys() {
+            if let Some(denied) = denied_source(source) {
+                violations.push(format!(
+                    "Cargo patch source `{source}` references prohibited {denied}"
+                ));
+            }
+        }
+    }
+    if let Some(replacements) = manifest.get("replace").and_then(toml::Value::as_table) {
+        for package_id in replacements.keys() {
+            if let Some(denied) = denied_source(package_id) {
+                violations.push(format!(
+                    "Cargo replacement `{package_id}` references prohibited {denied}"
+                ));
+            }
+        }
+    }
+    violations
+}
+
 fn direct_dependency_violations(
     manifest: &toml::Value,
     manifest_dir: &Path,
     repository_root: &Path,
 ) -> Vec<String> {
-    let mut violations = Vec::new();
+    let mut violations = cargo_override_source_violations(manifest);
     let canonical_root = repository_root.canonicalize().unwrap_or_else(|error| {
         panic!(
             "failed to canonicalize repository root {}: {error}",
@@ -439,6 +485,66 @@ fn dependency_paths_cannot_escape_or_leave_workspace_crates() {
     )
     .expect("valid synthetic manifest");
     assert!(direct_dependency_violations(&valid_internal, &root, &root).is_empty());
+}
+
+#[test]
+fn cargo_patch_and_replace_overrides_are_enforced() {
+    let root = workspace_root();
+
+    let escaping_patch: toml::Value = toml::from_str(
+        r#"
+            [patch."https://example.test/neutral"]
+            neutral = { path = ".." }
+        "#,
+    )
+    .expect("valid synthetic patch manifest");
+    let patch_violations = direct_dependency_violations(&escaping_patch, &root, &root);
+    assert_eq!(patch_violations.len(), 1);
+    assert!(patch_violations[0].contains("patch."));
+    assert!(patch_violations[0].contains("escapes repository root"));
+
+    let prohibited_patch_source: toml::Value = toml::from_str(
+        r#"
+            [patch."https://github.com/example/cardano-client"]
+            neutral = { version = "1" }
+        "#,
+    )
+    .expect("valid synthetic patch-source manifest");
+    let source_violations = direct_dependency_violations(&prohibited_patch_source, &root, &root);
+    assert_eq!(source_violations.len(), 1);
+    assert!(source_violations[0].contains("Cargo patch source"));
+
+    let prohibited_patch_entry: toml::Value = toml::from_str(
+        r#"
+            [patch.crates-io]
+            neutral = { git = "https://github.com/hyperledger-identus/neoprism.git" }
+        "#,
+    )
+    .expect("valid synthetic patch-entry manifest");
+    let entry_violations = direct_dependency_violations(&prohibited_patch_entry, &root, &root);
+    assert_eq!(entry_violations.len(), 1);
+    assert!(entry_violations[0].contains("NeoPRISM repository"));
+
+    let escaping_replace: toml::Value = toml::from_str(
+        r#"
+            [replace]
+            "neutral:1.0.0" = { path = ".." }
+        "#,
+    )
+    .expect("valid synthetic replacement manifest");
+    let replacement_violations = direct_dependency_violations(&escaping_replace, &root, &root);
+    assert_eq!(replacement_violations.len(), 1);
+    assert!(replacement_violations[0].contains("replace"));
+    assert!(replacement_violations[0].contains("escapes repository root"));
+
+    let valid_internal_patch: toml::Value = toml::from_str(
+        r#"
+            [patch.crates-io]
+            neutral = { path = "crates/core" }
+        "#,
+    )
+    .expect("valid internal patch manifest");
+    assert!(direct_dependency_violations(&valid_internal_patch, &root, &root).is_empty());
 }
 
 #[test]

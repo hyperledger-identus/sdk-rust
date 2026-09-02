@@ -3,8 +3,9 @@
 The SDK blueprint states that generic crates cannot depend on Midnight,
 Compact, PRISM/Cardano, NeoPRISM, Lace ID Portal, Oxid or product runtime
 policy, but the current conformance guard only checks dependency direction
-between workspace crates. A Cargo alias, target-specific dependency, donor Git
-URL or escaping local path can therefore violate `IDR-002` without failing CI.
+between workspace crates. A Cargo alias, target-specific dependency,
+patch/replacement override, donor Git URL or escaping local path can therefore
+violate `IDR-002` without failing CI.
 
 The repository also distinguishes its Rust `1.85.0` MSRV from the pinned
 NeoPRISM-etalon nightly, but it has no complete compatibility contract for
@@ -15,8 +16,8 @@ before implementation.
 
 ## What Changes
 
-- Enforce the chain-neutral boundary across every direct Cargo dependency
-  section, renamed package, resolved package and dependency source.
+- Enforce the chain-neutral boundary across every direct Cargo dependency and
+  override section, renamed package, resolved package and dependency source.
 - Reject path dependencies that escape the repository and donor Git/path
   references even when their Cargo alias appears neutral.
 - Publish a machine-readable support policy and a human-readable compatibility

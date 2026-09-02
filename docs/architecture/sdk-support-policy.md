@@ -16,8 +16,9 @@ validator fails; neither source may silently make a stronger claim.
 
 The host-tested systems are `x86_64-linux` and `aarch64-darwin`. Browser WASM,
 Android ARM64 and iOS ARM64 are compile-checked for `identus-core`,
-`identus-crypto`, `identus-did` and `identus-adapters-entropy`. Windows and WASI
-are planned without a compatibility promise.
+`identus-crypto`, `identus-did` and `identus-adapters-entropy`, with the entropy
+adapter's `getrandom` backend explicitly selected. Windows and WASI are planned
+without a compatibility promise.
 
 ## Rust versions
 
@@ -40,6 +41,10 @@ build or test surfaces on both the MSRV and etalon toolchains. The structural
 validator compares each gate's exact package, default-feature mode and feature
 set with the machine policy. `--all-features` supplements these checks; it
 cannot replace them because Cargo feature unification can hide incorrect gates.
+
+Only gates reachable from `nix/checks/default.nix` through literal module
+imports count as evidence. A derivation left behind in an orphaned Nix file is
+not a compatibility gate.
 
 ## FFI and platform runtime
 

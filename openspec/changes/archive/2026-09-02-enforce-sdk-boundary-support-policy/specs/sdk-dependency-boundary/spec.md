@@ -22,7 +22,8 @@ without requiring network or donor access.
 ### Requirement: Every Cargo dependency surface is inspected
 
 The guard SHALL inspect normal, development and build dependencies at both the
-top level and under every target-specific Cargo table. It SHALL evaluate the
+top level and under every target-specific Cargo table. It SHALL also inspect
+root Cargo `[patch]` and `[replace]` source overrides. It SHALL evaluate the
 dependency alias and an explicit `package` identity after normalizing ASCII
 case and underscore/hyphen spelling.
 
@@ -37,6 +38,12 @@ case and underscore/hyphen spelling.
 - **WHEN** a prohibited dependency is declared only for one target in a
   development or build dependency table
 - **THEN** validation fails with the manifest section and dependency identity
+
+#### Scenario: Patch redirects a neutral package outside the SDK
+
+- **WHEN** a Cargo patch or replacement redirects a neutral package to a path
+  outside the repository or to a prohibited Git source
+- **THEN** validation fails even when the resolved lockfile has no source field
 
 ### Requirement: Dependency locations cannot couple donor repositories
 

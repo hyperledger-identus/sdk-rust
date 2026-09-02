@@ -47,10 +47,10 @@ newer toolchain SHALL NOT substitute for the corresponding MSRV gate.
 ### Requirement: Evidence tiers do not overstate support
 
 Host-tested systems SHALL run the repository quality gates. Compile-checked
-targets SHALL compile only their declared eligible packages and SHALL NOT be
-described as runtime-tested, certified or production-supported. Planned
-targets SHALL have no compatibility promise. A not-supported surface SHALL not
-be inferred from a placeholder package.
+targets SHALL compile only their declared eligible packages with their declared
+feature selection and SHALL NOT be described as runtime-tested, certified or
+production-supported. Planned targets SHALL have no compatibility promise. A
+not-supported surface SHALL not be inferred from a placeholder package.
 
 #### Scenario: Browser or mobile compile check passes
 
@@ -100,7 +100,9 @@ toolchain pins, flake host systems, declared target components, eligible
 packages, feature sets and required check definitions. For every feature gate,
 the validator SHALL compare the complete Cargo package selection, default
 feature mode and activated feature set to the machine contract. The validator
-SHALL run in the structural factory path.
+SHALL accept required gates only when their defining Nix modules are reachable
+from the imported check-module graph. The validator SHALL run in the structural
+factory path.
 
 #### Scenario: Cargo MSRV changes alone
 
@@ -112,6 +114,19 @@ SHALL run in the structural factory path.
 
 - **WHEN** a gate named by the machine policy is removed or renamed
 - **THEN** structural validation fails before the compatibility claim can merge
+
+#### Scenario: Gate definition becomes unreachable
+
+- **WHEN** a required gate remains in an orphaned Nix file but its module is no
+  longer imported by the check graph
+- **THEN** structural validation treats the gate as undefined
+
+#### Scenario: Target backend feature disappears
+
+- **WHEN** a compile-checked target gate stops activating a feature required by
+  its machine-declared target surface
+- **THEN** structural validation fails even when target and package selections
+  are unchanged
 
 #### Scenario: Feature gate silently broadens
 

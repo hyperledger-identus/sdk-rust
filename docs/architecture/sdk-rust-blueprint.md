@@ -162,10 +162,11 @@ the boundary, transition rules and repository controls.
 
 ### B01 — selected-baseline stabilization (`#4`)
 
-Align declared MSRV, pinned stable Rust and Nix inputs; fix deterministic host
-and Nix gates; inventory public APIs; classify all placeholder crates; verify
-license/provenance; and make CI run on `develop`. Preserve working seed code and
-published vectors while removing accidental roadmap commitments.
+Align the declared MSRV with the NeoPRISM-etalon pinned Rust toolchain and Nix
+inputs; fix deterministic host and Nix gates; inventory public APIs; classify
+all placeholder crates; verify license/provenance; and make CI run on
+`develop`. Preserve working seed code and published vectors while removing
+accidental roadmap commitments.
 
 Required gates: fmt, clippy with warnings denied, test/doctest, MSRV, stable,
 Linux/macOS, eligible WASM, `cargo deny`, advisory scan, docs, license/source
@@ -284,7 +285,7 @@ Every implementation issue and PR records:
 ### Candidate lane
 
 - full workspace and target matrix;
-- MSRV plus pinned stable;
+- MSRV plus the pinned NeoPRISM-etalon toolchain;
 - WASM/mobile compile for eligible crates;
 - fuzz/property/negative tests for parsers and crypto boundaries;
 - cross-implementation conformance;

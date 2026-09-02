@@ -8,22 +8,36 @@ Defines the Nix flake, Cargo workspace stub, checks, formatting apps, and CI wor
 
 ### Requirement: Reproducible development environment
 
-The submodule SHALL provide a Nix flake at the repo root that yields a reproducible development shell containing a Rust toolchain, C toolchain, cargo dev tooling, Nix hygiene tooling, and file-hygiene/TOML tooling. The flake SHALL be self-contained (not requiring the workspace root flake at runtime).
+The repository SHALL provide a self-contained Nix flake whose default devshell
+uses the immutable NeoPRISM-etalon baseline: Rust nightly `2026-03-18`,
+rust-overlay `f17186f52e82ec5cf40920b58eac63b78692ac7c` and nixpkgs
+`c27cdad491a991b11ed731760aa2ef8db0cb0410`. The referenced nixpkgs SHALL
+supply Nix package version `2.34.8`. The shell SHALL retain the SDK's C, Cargo,
+Nix hygiene and file-hygiene tooling.
 
-#### Scenario: Default devshell provides a stable Rust toolchain
+#### Scenario: Default devshell provides the pinned Rust toolchain
 
-- **WHEN** a contributor runs `nix develop` (or `nix develop .#default`) from the submodule root
-- **THEN** the shell SHALL provide `cargo`, `rustc`, `rustfmt`, `rust-analyzer`, and `clippy` from the stable Rust toolchain, plus the `wasm32-unknown-unknown` rustc target
+- **WHEN** a contributor runs `nix develop` from the repository root
+- **THEN** the shell SHALL provide `cargo`, `rustc`, `rustfmt`,
+  `rust-analyzer`, and `clippy` from Rust nightly `2026-03-18`
+- **AND** the toolchain SHALL include the `wasm32-unknown-unknown` target
+
+#### Scenario: Default devshell provides the pinned Nix package
+
+- **WHEN** a contributor runs `nix develop --command nix --version`
+- **THEN** the reported Nix version SHALL be `2.34.8`
 
 #### Scenario: Devshell includes C toolchain and crypto build prerequisites
 
 - **WHEN** the default devshell is active
-- **THEN** the shell SHALL provide a C compiler (`stdenv.cc`), `pkg-config`, and `openssl`, so that build scripts of transitive crypto dependencies can compile
+- **THEN** the shell SHALL provide a C compiler (`stdenv.cc`), `pkg-config`, and
+  `openssl`, so build scripts of transitive crypto dependencies can compile
 
 #### Scenario: Devshell includes cargo quality tooling
 
 - **WHEN** the default devshell is active
-- **THEN** the shell SHALL provide `cargo-nextest`, `cargo-deny`, and `cargo-audit`
+- **THEN** the shell SHALL provide `cargo-nextest`, `cargo-deny`, and
+  `cargo-audit`
 
 #### Scenario: Devshell includes Nix hygiene tooling
 
@@ -33,12 +47,15 @@ The submodule SHALL provide a Nix flake at the repo root that yields a reproduci
 #### Scenario: Devshell includes workspace-consistency tooling
 
 - **WHEN** the default devshell is active
-- **THEN** the shell SHALL provide `just`, `git`, `jq`, `curl`, `which`, `gh`, and `cacert`
+- **THEN** the shell SHALL provide `just`, `git`, `jq`, `curl`, `which`, `gh`,
+  and `cacert`
 
 #### Scenario: Devshell includes TOML and file-hygiene tooling
 
 - **WHEN** the default devshell is active
-- **THEN** the shell SHALL provide `taplo` (TOML formatter/linter), `markdownlint-cli2`, `yamllint`, `editorconfig-checker`, and `shellcheck`, so contributors can run and auto-fix the file-hygiene checks locally
+- **THEN** the shell SHALL provide `taplo`, `markdownlint-cli2`, `yamllint`,
+  `editorconfig-checker`, and `shellcheck`, so contributors can run and fix the
+  file-hygiene checks locally
 
 ### Requirement: Multi-system support
 
@@ -224,15 +241,6 @@ The repository SHALL include a `.github/workflows/nix-checks.yml` workflow that 
 - **WHEN** any check in `nix flake check` fails on either matrix leg
 - **THEN** the `nix-checks` workflow SHALL report a failing status for that leg
 
-### Requirement: Checks use the stable toolchain
-
-All crane-based Rust checks (`rust-fmt`, `rust-clippy`, `rust-test`, `rust-deny`, `rust-audit`, `rust-doc`) SHALL build with the stable Rust toolchain.
-
-#### Scenario: Checks build on stable
-
-- **WHEN** `nix flake check` is run
-- **THEN** every crane-based Rust check SHALL compile against the stable Rust toolchain
-
 ### Requirement: Crane dependency caching
 
 The crane-based checks SHALL share a single dependency derivation so that dependencies are compiled once and reused across `rust-clippy`, `rust-test`, and any future `cargoDoc`/`buildPackage` consumers, rather than recompiling per check.
@@ -312,3 +320,22 @@ The repository SHALL include a root `.editorconfig-checker.json` that excludes `
 
 - **WHEN** `editorconfig-checker` is run during the `lint-text` check
 - **THEN** paths matching the `Exclude` list in `.editorconfig-checker.json` SHALL NOT be evaluated
+
+### Requirement: Checks use the pinned NeoPRISM-aligned toolchain
+
+All crane-based Rust checks SHALL use Rust nightly `2026-03-18` from the locked
+rust-overlay revision. This includes `rust-fmt`, `rust-clippy`, `rust-test`,
+`rust-deny`, `rust-audit`, and `rust-doc`. The pin SHALL NOT authorize
+nightly-only Rust features or change the workspace's declared MSRV.
+
+#### Scenario: Checks build with the immutable Rust pin
+
+- **WHEN** `nix flake check` is run
+- **THEN** every crane-based Rust check SHALL compile with Rust nightly
+  `2026-03-18`
+
+#### Scenario: Toolchain updates are explicit
+
+- **WHEN** NeoPRISM advances its Rust or Nix baseline
+- **THEN** the SDK SHALL retain its recorded pins until a reviewed dependency
+  update records both the old and new immutable NeoPRISM revisions

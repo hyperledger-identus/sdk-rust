@@ -85,9 +85,9 @@ Before the baseline can produce a crate release candidate:
 
 - decide the approved crate namespace and ownership under issue #3;
 - classify and remove or explicitly accept every placeholder crate;
-- align pinned stable Rust, declared MSRV and Nix inputs;
-- replace or pin compiler-sensitive UI diagnostics so MSRV and stable gates are
-  deterministic;
+- align the pinned NeoPRISM-etalon Rust toolchain, declared MSRV and Nix inputs;
+- replace or pin compiler-sensitive UI diagnostics so MSRV and the etalon
+  toolchain gates are deterministic;
 - make `nix flake check` reproducible on Linux and macOS;
 - pass plain-Cargo build, test, fmt, clippy and docs gates;
 - keep architecture guards rejecting chain/product dependencies;

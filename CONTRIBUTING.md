@@ -57,7 +57,8 @@ Implementation issues must state:
 
 ## Development rules
 
-- Use stable Rust and the declared MSRV. Do not introduce nightly features.
+- Use the repository's Nix-pinned, NeoPRISM-aligned Rust toolchain for the full
+  gate. Preserve the declared MSRV and do not introduce nightly-only features.
 - Keep default features minimal and list every meaningful feature combination.
 - Put dependency versions in the workspace manifest and keep member manifests
   on workspace dependencies.

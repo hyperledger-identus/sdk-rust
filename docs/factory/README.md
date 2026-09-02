@@ -73,6 +73,7 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/factory check
 ./scripts/factory ready <change>
 ./scripts/factory receipt <change>
+./scripts/check-ssi-upstream-backlog.py
 
 just factory-check
 nix run .#factory -- check
@@ -89,6 +90,11 @@ nix run .#factory -- check
 
 The receipt proves only the factory contract. Rust, target, conformance,
 security and release gates must be attached separately and truthfully.
+
+The SSI backlog checker validates the canonical SDK component ledger offline.
+It rejects missing or duplicate rows, schema and enum drift, non-SDK ownership,
+invalid issue/predecessor links and unknown source repositories. The factory
+structural check runs it automatically.
 
 ## Authority gates
 

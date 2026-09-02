@@ -14,12 +14,15 @@ required_files=(
   AGENTS.md
   CONTRIBUTING.md
   docs/factory/README.md
+  docs/architecture/ssi-upstream-source-matrix.md
+  docs/roadmap/ssi-upstream-dependency-backlog.csv
   docs/governance/agentic-sdlc.md
   docs/governance/repository-settings.md
   docs/adr/0003-delegate-develop-integration.md
   openspec/config.yaml
   scripts/factory
   scripts/check-factory.sh
+  scripts/check-ssi-upstream-backlog.py
   scripts/check-pr-policy.sh
   scripts/tests/factory-contract.sh
   scripts/tests/pr-policy.sh
@@ -36,11 +39,17 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in scripts/factory scripts/check-factory.sh scripts/check-pr-policy.sh scripts/tests/factory-contract.sh scripts/tests/pr-policy.sh; do
+for executable_path in scripts/factory scripts/check-factory.sh scripts/check-pr-policy.sh scripts/check-ssi-upstream-backlog.py scripts/tests/factory-contract.sh scripts/tests/pr-policy.sh; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi
 done
+
+if [[ -x "$factory_root/scripts/check-ssi-upstream-backlog.py" && -f "$factory_root/docs/roadmap/ssi-upstream-dependency-backlog.csv" ]]; then
+  if ! "$factory_root/scripts/check-ssi-upstream-backlog.py" "$factory_root/docs/roadmap/ssi-upstream-dependency-backlog.csv"; then
+    report_failure "SSI upstream backlog validation failed"
+  fi
+fi
 
 changes_root="$factory_root/openspec/changes"
 if [[ ! -d "$changes_root" ]]; then

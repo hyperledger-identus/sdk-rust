@@ -66,8 +66,9 @@ reviewed source change.
 `docs/architecture/sdk-support-policy.toml` is the machine-readable source of
 truth. A deterministic repository command validates its schema and compares
 the declared MSRV, etalon toolchain, Nix host systems, eligible packages,
-feature sets and gate names to repository configuration. The adjacent
-Markdown policy explains what each evidence tier does and does not promise.
+feature sets, Cargo targets and gate names/Crane operations to repository
+configuration. The adjacent Markdown policy explains what each evidence tier
+does and does not promise.
 Repeated host, target or feature identities are invalid rather than
 last-entry-wins policy data.
 
@@ -107,11 +108,12 @@ features and KMP compatibility, and the entropy adapter with its empty,
 deterministic and system-random feature surfaces. Mutually compatible feature
 combinations are checked explicitly instead of relying on Cargo unification
 from `--all-features` alone. Structural validation compares each gate's exact
-package selection, default-feature mode and activated feature set with the
-machine contract. Compile-checked targets declare their package-qualified
-backend features using the same selection contract. Gate discovery follows the
-literal import graph from `flake.nix` through `nix/checks/default.nix`, so a
-detached check tree or orphaned module cannot satisfy a required check.
+operation, package selection, Cargo target, default-feature mode and complete
+comma- or space-separated feature set with the machine contract.
+Compile-checked targets declare their package-qualified backend features using
+the same selection contract. Gate discovery follows the literal import graph
+from `flake.nix` through `nix/checks/default.nix`, so a detached check tree or
+orphaned module cannot satisfy a required check.
 Nix line and block comments are removed before graph and gate discovery.
 Workspace-wide gates explicitly select and resolve to the complete workspace
 package set and reject exclusions, so implicit defaults cannot conceal lost

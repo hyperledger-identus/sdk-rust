@@ -12,7 +12,8 @@ compile-only or bootstrap evidence.
 The repository SHALL contain one normative machine-readable support policy for
 the declared MSRV, pinned development toolchain, host systems, compile-only
 targets, eligible packages, feature surfaces, FFI status, binary-size status
-and build-time status. A human-readable policy SHALL explain the evidence tiers
+and build-time status, including the expected Crane operation for every named
+compatibility gate. A human-readable policy SHALL explain the evidence tiers
 and SHALL NOT make a stronger claim than the machine contract.
 
 #### Scenario: Contributor evaluates a target claim
@@ -120,6 +121,9 @@ to the machine contract. Workspace-wide surfaces SHALL explicitly select the
 workspace. The validator SHALL accept required gates only when their defining
 Nix modules are reachable from the check-module import rooted in `flake.nix`.
 Commented imports and gate definitions SHALL NOT count as reachable evidence.
+The validator SHALL bind each gate to its machine-declared Crane operation,
+each compile-checked target to the value of Cargo's `--target` option, and each
+feature surface to the complete comma- or space-separated feature option.
 Host systems, target triples and feature-surface names SHALL be unique within
 the machine policy. The validator SHALL run in the structural factory path.
 
@@ -175,6 +179,25 @@ the machine policy. The validator SHALL run in the structural factory path.
   its machine-declared target surface
 - **THEN** structural validation fails even when target and package selections
   are unchanged
+
+#### Scenario: Test gate becomes build-only
+
+- **WHEN** a test gate changes from the declared test operation to a build
+  operation while retaining its name and Cargo arguments
+- **THEN** structural validation rejects the semantic operation drift
+
+#### Scenario: Target token moves outside Cargo arguments
+
+- **WHEN** a target gate compiles another triple but retains the declared
+  triple in unrelated Nix metadata
+- **THEN** structural validation rejects the actual Cargo target selection
+
+#### Scenario: Isolated feature adds a space-separated feature
+
+- **WHEN** a gate appends another feature using Cargo's space-separated feature
+  syntax
+- **THEN** structural validation observes the complete feature list and rejects
+  the broadened surface
 
 #### Scenario: Feature gate silently broadens
 

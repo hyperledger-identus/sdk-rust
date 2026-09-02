@@ -26,6 +26,8 @@ before implementation.
   gates for the surfaces that the repository actually implements.
 - Make policy validation reject duplicate identities, detached Nix check trees
   and workspace gates whose effective package selection omits a member.
+- Bind every policy gate to its Crane operation and parse actual Cargo target
+  and complete feature-option semantics instead of relying on substrings.
 - State explicitly that the placeholder bindings crate is not a supported FFI
   and that size/build-time observations are not compatibility budgets yet.
 - Repoint `IDR-002` and `IDR-003` to issue #22 and update their status only

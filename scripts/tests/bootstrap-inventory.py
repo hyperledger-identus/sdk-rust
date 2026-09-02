@@ -195,6 +195,23 @@ class BootstrapInventoryTests(unittest.TestCase):
             result.stderr,
         )
 
+    def test_placeholder_custom_library_target_fails(self) -> None:
+        manifest = self.root / "crates/agent/Cargo.toml"
+        manifest.write_text(
+            manifest.read_text(encoding="utf-8")
+            + '\n[lib]\npath = "payload"\n',
+            encoding="utf-8",
+        )
+        (self.root / "crates/agent/payload").write_text(
+            "pub struct Agent;\n", encoding="utf-8"
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "identus-agent: placeholder must not declare lib",
+            result.stderr,
+        )
+
     def test_placeholder_source_drift_fails(self) -> None:
         source = self.root / "crates/agent/src/lib.rs"
         source.write_text(source.read_text(encoding="utf-8") + "\npub struct Agent;\n", encoding="utf-8")

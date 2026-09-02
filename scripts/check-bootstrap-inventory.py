@@ -387,7 +387,15 @@ def validate_packages(
                 failures.append(
                     f"{name}: identus-core must inherit the workspace dependency"
                 )
-            for section in ("dev-dependencies", "build-dependencies", "features", "target", "bin", "example"):
+            for section in (
+                "dev-dependencies",
+                "build-dependencies",
+                "features",
+                "target",
+                "lib",
+                "bin",
+                "example",
+            ):
                 if section in manifest:
                     failures.append(f"{name}: placeholder must not declare {section}")
             placeholder_source_is_minimal(root, name, workspace_path, failures)

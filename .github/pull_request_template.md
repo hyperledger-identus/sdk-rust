@@ -6,7 +6,7 @@
 
 ## Issue and decision record
 
-- Issue:
+- Issue: <!-- Required: #123 -->
 - Discussion/ADR:
 - Owner crate:
 
@@ -19,6 +19,12 @@
 - Agent roles used:
 - `scripts/factory ready <change>`: passed/not applicable
 - Factory receipt attached: yes/no/not applicable
+
+## Local review
+
+- Local review: <!-- Required: passed/completed, reviewer or review context -->
+- Findings resolved:
+- Specialist review required/completed:
 
 ## Scope and non-scope
 
@@ -65,6 +71,8 @@ factory receipt:
 ## Checklist
 
 - [ ] focused and independently reversible
+- [ ] corresponding issue exists and is linked above
+- [ ] distinct local review completed with no unresolved blocker
 - [ ] OpenSpec contract complete or exemption recorded
 - [ ] factory readiness and receipt recorded when applicable
 - [ ] DCO and verified signatures

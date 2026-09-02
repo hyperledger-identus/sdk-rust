@@ -16,20 +16,31 @@ required_files=(
   CONTRIBUTING.md
   docs/factory/README.md
   docs/governance/agentic-sdlc.md
+  docs/governance/repository-settings.md
+  docs/adr/0003-delegate-develop-integration.md
   openspec/config.yaml
   scripts/factory
   scripts/check-factory.sh
+  scripts/check-pr-policy.sh
   scripts/tests/factory-contract.sh
+  scripts/tests/pr-policy.sh
   .github/ISSUE_TEMPLATE/component-change.yml
+  .github/ISSUE_TEMPLATE/delivery-task.yml
   .github/pull_request_template.md
   .github/workflows/factory-contract.yml
+  .github/workflows/pull-request-policy.yml
 )
 
 for relative_path in "${required_files[@]}"; do
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
   : >"$fixture_root/$relative_path"
 done
-chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" "$fixture_root/scripts/tests/factory-contract.sh"
+chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" \
+  "$fixture_root/scripts/check-pr-policy.sh" \
+  "$fixture_root/scripts/tests/factory-contract.sh" \
+  "$fixture_root/scripts/tests/pr-policy.sh"
+
+"$repository_root/scripts/tests/pr-policy.sh"
 
 change_root="$fixture_root/openspec/changes/example-change"
 mkdir -p "$change_root/specs/example-capability" "$fixture_root/.pi/chains"

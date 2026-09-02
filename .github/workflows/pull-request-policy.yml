@@ -1,0 +1,53 @@
+name: Pull Request Policy
+
+on:
+  pull_request:
+    branches:
+      - develop
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - ready_for_review
+      - converted_to_draft
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: pull-request-policy-${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  policy:
+    name: pull-request-policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Validate pull request delivery policy
+        id: policy
+        env:
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+        run: scripts/check-pr-policy.sh
+
+      - name: Verify corresponding issue exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ steps.policy.outputs.issue-number }}
+        run: |
+          issue_url=$(gh issue view "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --json url --jq .url)
+          expected_url="https://github.com/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER"
+          if [[ "$issue_url" != "$expected_url" ]]; then
+            printf 'pull-request-policy: #%s is not a repository issue\n' "$ISSUE_NUMBER" >&2
+            exit 1
+          fi

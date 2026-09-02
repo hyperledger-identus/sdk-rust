@@ -54,8 +54,8 @@ crates outside this repository.
 
 1. **Contract before port.** Every component issue defines its standards,
    owner crate, public contract, non-goals and evidence before code moves.
-2. **One component at a time.** One issue, one worktree, one focused draft PR
-   and one independently testable result.
+2. **One component at a time.** One issue, one worktree, one focused ready PR
+   after local review, and one independently testable result.
 3. **No roadmap stubs.** Do not create empty crates merely to reserve the
    future workspace layout. Namespace placeholders are a release-governance
    operation under issue #3, not API commitments.

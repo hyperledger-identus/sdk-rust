@@ -10,15 +10,18 @@ and the repository-specific rules below.
    [SDK blueprint](docs/architecture/sdk-rust-blueprint.md), and the closest
    `AGENTS.md` instructions.
 2. Search existing issues, Discussions, ADRs and pull requests.
-3. For behavior, public API, new crate, standard/profile, crypto, FFI or
-   architecture work, obtain an accepted issue before implementation.
+3. Select the corresponding repository issue or create one. Every pull request
+   requires an issue. For behavior, public API, new crate, standard/profile,
+   crypto, FFI, architecture or governance work, obtain accepted scope before
+   implementation.
 4. Use a dedicated worktree and a focused branch from current `develop`.
 5. Record source revisions and licenses before porting code or fixtures.
 6. Run `scripts/factory doctor` and create or select the OpenSpec change for
    qualifying work before editing implementation files.
 
-Small typo or administrative fixes may proceed directly to a PR. Security
-reports must use [SECURITY.md](SECURITY.md), never a public issue.
+Small typo or administrative fixes may use a lightweight delivery issue and an
+OpenSpec exemption. Security reports must use [SECURITY.md](SECURITY.md), never
+a public issue.
 
 ## Specification-driven lifecycle
 
@@ -35,9 +38,10 @@ openspec validate <change> --strict --no-interactive
 ./scripts/factory receipt <change>
 ```
 
-Open a draft PR once the contract is structurally valid and has no semantic
-blocker. Check tasks only after their implementation and focused evidence pass.
-Before final review, sync accepted delta specs and archive the completed change.
+Use the issue or Discussion for early collaboration. Check tasks only after
+their implementation and focused evidence pass. Before opening a ready pull
+request, complete a distinct local review pass, sync accepted delta specs and
+archive the completed change.
 
 ## Component issue contract
 
@@ -128,18 +132,28 @@ See [DCO.md](DCO.md) for the controlling policy and setup guidance.
 
 ## Pull requests
 
-Open a draft PR targeting `develop` early. Complete the repository template
-with source revisions, compatibility, security, documentation and validation
-evidence. A PR cannot be its own independent review, even when separate agents
-authored and reviewed parts of it under one human account.
+Open a ready pull request targeting `develop` after implementation and a
+distinct local review pass are complete. Reference the corresponding issue and
+complete the repository template with source revisions, compatibility,
+security, documentation, review and validation evidence. The local review may
+be performed by a human or by an agent in a fresh review context; it cannot
+waive a security, compatibility, provenance or conformance finding.
 
 Keep each PR independently reversible. Do not combine upstream implementation
 with downstream Oxid, Midnight, neoprism or other consumer adoption.
+
+Direct pushes to `develop` are prohibited. A human or agent may merge a
+non-draft, mergeable pull request into `develop` without a separate per-merge
+authorization only when every required CI gate is successful and no blocking
+review or unresolved thread remains. Missing, pending, cancelled or failing
+required checks prohibit merge. Never bypass branch protection.
 
 ## AI-assisted contributions
 
 AI assistance is welcome and expected. The human submitter remains accountable
 for provenance, correctness, license compliance, private-data handling and the
 truthfulness of validation claims. Agents must follow
-[agentic-sdlc.md](docs/governance/agentic-sdlc.md) and cannot publish, merge or
-change governance without human maintainer authority.
+[agentic-sdlc.md](docs/governance/agentic-sdlc.md). Agents may publish focused
+branches and integrate eligible pull requests into `develop` under the policy
+above. Product scope, repository administration, security disclosure,
+publication, releases and promotion to `main` retain human maintainer authority.

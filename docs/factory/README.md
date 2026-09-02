@@ -73,6 +73,7 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/factory check
 ./scripts/factory ready <change>
 ./scripts/factory receipt <change>
+./scripts/check-bootstrap-inventory.py
 ./scripts/check-ssi-upstream-backlog.py
 ./scripts/check-support-policy.py
 
@@ -96,6 +97,11 @@ The SSI backlog checker validates the canonical SDK component ledger offline.
 It rejects missing or duplicate rows, schema and enum drift, non-SDK ownership,
 invalid issue/predecessor links and unknown source repositories. The factory
 structural check runs it automatically.
+
+The bootstrap-inventory checker validates repository-local governance
+evidence, Cargo publication denial, complete package/path/layer classification
+and quarantined-placeholder shape. It is offline and does not claim that
+protected GitHub settings or publishing authority are active.
 
 The support-policy checker validates the machine-readable Rust, Nix, host,
 target, feature, FFI and budget contract against Cargo and Nix configuration.

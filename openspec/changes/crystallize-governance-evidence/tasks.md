@@ -8,21 +8,21 @@
 
 ## 2. Truthful Bootstrap Inventory
 
-- [ ] 2.1 Add machine-readable governance/package inventory and a concise
+- [x] 2.1 Add machine-readable governance/package inventory and a concise
   human API/status explanation covering every workspace package exactly once.
-- [ ] 2.2 Deny publication for every bootstrap package and minimize all eight
+- [x] 2.2 Deny publication for every bootstrap package and minimize all eight
   metadata-only placeholder dependency cones.
 
 ## 3. Executable Evidence
 
-- [ ] 3.1 Add the offline inventory checker for schema, governance paths,
+- [x] 3.1 Add the offline inventory checker for schema, governance paths,
   package/path/layer coverage, maturity, publication and placeholder shape.
-- [ ] 3.2 Add positive and adversarial tests and integrate the checker into the
+- [x] 3.2 Add positive and adversarial tests and integrate the checker into the
   factory structural contract.
 
 ## 4. Program State and Verification
 
-- [ ] 4.1 Reconcile the current crate-ring spec, blueprint, roadmap and IDR-001
+- [x] 4.1 Reconcile the current crate-ring spec, blueprint, roadmap and IDR-001
   evidence while keeping the row `in_progress` pending #26.
 - [ ] 4.2 Pass focused tests, Cargo metadata/build/test, strict OpenSpec/factory
   checks and the full local Nix flake gate; record elapsed time and effort.

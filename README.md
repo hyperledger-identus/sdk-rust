@@ -15,6 +15,7 @@ chain families consume the SDK and keep ledger-specific behavior outside it.
 Wallet products keep custody, storage, consent, trust and UI policy.
 
 - [Technical blueprint and component sequence](docs/architecture/sdk-rust-blueprint.md)
+- [Bootstrap governance and crate inventory](docs/architecture/sdk-bootstrap-inventory.md)
 - [Bootstrap branch decision](docs/adr/0001-bootstrap-branch-selection.md)
 - [NeoPRISM toolchain alignment](docs/adr/0002-neoprism-toolchain-alignment.md)
 - [Roadmap](ROADMAP.md)
@@ -29,9 +30,10 @@ Wallet products keep custody, storage, consent, trust and UI policy.
 `develop` starts from `yet-another-seed` revision `662f8d7` and is the active
 integration branch. It contains working validated-newtype, derivation,
 cryptography, DID, entropy-adapter and conformance foundations. The baseline
-also contains known bootstrap debt: placeholder crates, version `0.0.0`, an
-unverified MSRV lane and incomplete release governance. These are stabilization
-items, not evidence of a production release.
+also contains known bootstrap debt: quarantined placeholder names, version
+`0.0.0`, unactivated live repository controls and no approved publishing
+ownership. Every package is `publish = false`. The MSRV and target lanes are
+executable; the remaining items are not evidence of a production release.
 
 `main` remains intentionally minimal and is not an integration or release
 target until maintainers explicitly activate it through a later decision.

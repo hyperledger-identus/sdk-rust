@@ -13,11 +13,21 @@ trap 'rm -rf "$fixture_root"' EXIT
 
 "$repository_root/scripts/tests/ssi-upstream-backlog.py"
 "$repository_root/scripts/tests/support-policy.py"
+"$repository_root/scripts/tests/bootstrap-inventory.py"
 
 required_files=(
   AGENTS.md
+  CODE_OF_CONDUCT.md
   CONTRIBUTING.md
+  DCO.md
+  GOVERNANCE.md
+  LICENSE
+  MAINTAINERS.md
+  RELEASING.md
+  SECURITY.md
   docs/factory/README.md
+  docs/architecture/sdk-bootstrap-inventory.md
+  docs/architecture/sdk-bootstrap-inventory.toml
   docs/architecture/sdk-support-policy.md
   docs/architecture/sdk-support-policy.toml
   docs/architecture/ssi-upstream-source-matrix.md
@@ -28,12 +38,15 @@ required_files=(
   openspec/config.yaml
   scripts/factory
   scripts/check-factory.sh
+  scripts/check-bootstrap-inventory.py
   scripts/check-support-policy.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-pr-policy.sh
   scripts/tests/factory-contract.sh
+  scripts/tests/bootstrap-inventory.py
   scripts/tests/pr-policy.sh
   scripts/tests/support-policy.py
+  .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
   .github/ISSUE_TEMPLATE/delivery-task.yml
   .github/pull_request_template.md
@@ -44,7 +57,7 @@ required_files=(
 for relative_path in "${required_files[@]}"; do
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
   case "$relative_path" in
-    docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | scripts/check-support-policy.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/support-policy.py)
+    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/governance/repository-settings.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | scripts/check-bootstrap-inventory.py | scripts/check-support-policy.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/support-policy.py)
       cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
       ;;
     *)
@@ -53,9 +66,11 @@ for relative_path in "${required_files[@]}"; do
   esac
 done
 chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" \
+  "$fixture_root/scripts/check-bootstrap-inventory.py" \
   "$fixture_root/scripts/check-pr-policy.sh" \
   "$fixture_root/scripts/check-support-policy.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
+  "$fixture_root/scripts/tests/bootstrap-inventory.py" \
   "$fixture_root/scripts/tests/factory-contract.sh" \
   "$fixture_root/scripts/tests/pr-policy.sh" \
   "$fixture_root/scripts/tests/support-policy.py"
@@ -72,6 +87,11 @@ while IFS= read -r manifest; do
   mkdir -p "$fixture_root/$(dirname "$relative_manifest")"
   cp "$manifest" "$fixture_root/$relative_manifest"
 done < <(find "$repository_root/crates" -mindepth 2 -maxdepth 2 -name Cargo.toml -type f | sort)
+while IFS= read -r source_file; do
+  relative_source=${source_file#"$repository_root/"}
+  mkdir -p "$fixture_root/$(dirname "$relative_source")"
+  cp "$source_file" "$fixture_root/$relative_source"
+done < <(find "$repository_root/crates" -type f -name '*.rs' | sort)
 
 "$repository_root/scripts/tests/pr-policy.sh"
 

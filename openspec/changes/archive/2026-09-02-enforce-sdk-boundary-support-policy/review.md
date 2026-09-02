@@ -89,6 +89,14 @@ acceptance evidence.
 - Exact-head hosted review found that duplicate host, target or feature keys
   were silently resolved using one entry. Policy indexing now rejects every
   duplicate normative identity, with a regression for each entry type.
+- Exact-head hosted review found that a child module path retained as a Nix
+  comment still counted as imported. Nix line and block comments are now
+  removed before import and gate discovery; the import regression preserves
+  the path only as a comment.
+- Exact-head hosted review found that MSRV gates could use a correctly named
+  Crane library rewired to the nightly toolchain. Structural validation now
+  proves both the stable `msrvToolchain` binding and the `msrvCraneLib` override
+  edge, with an exact nightly-substitution regression.
 
 ## Final result
 

@@ -100,11 +100,16 @@ def workspace_packages(
     return packages, manifests
 
 
+def nix_without_comments(text: str) -> str:
+    without_blocks = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
+    return re.sub(r"#.*$", "", without_blocks, flags=re.MULTILINE)
+
+
 def imported_check_modules(root: Path, failures: list[str]) -> list[Path]:
     checks_root = (root / "nix/checks").resolve()
     checks_entry = checks_root / "default.nix"
     flake_path = root / "flake.nix"
-    flake = flake_path.read_text(encoding="utf-8")
+    flake = nix_without_comments(flake_path.read_text(encoding="utf-8"))
     root_imports = re.search(
         r"flake-parts\.lib\.mkFlake\s+\{[^{}]*\}\s+\{\s*"
         r"imports\s*=\s*\[(.*?)\];",
@@ -113,8 +118,7 @@ def imported_check_modules(root: Path, failures: list[str]) -> list[Path]:
     )
     flake_imports: set[Path] = set()
     if root_imports is not None:
-        import_block = re.sub(r"#.*$", "", root_imports.group(1), flags=re.MULTILINE)
-        for relative in re.findall(r"\./([A-Za-z0-9_./-]+)", import_block):
+        for relative in re.findall(r"\./([A-Za-z0-9_./-]+)", root_imports.group(1)):
             imported = (flake_path.parent / relative).resolve()
             if imported.is_dir():
                 imported = imported / "default.nix"
@@ -133,7 +137,7 @@ def imported_check_modules(root: Path, failures: list[str]) -> list[Path]:
             failures.append(f"imported Nix check module does not exist: {path}")
             continue
         visited.add(path)
-        text = path.read_text(encoding="utf-8")
+        text = nix_without_comments(path.read_text(encoding="utf-8"))
         for imports in re.finditer(r"imports\s*=\s*\[(.*?)\];", text, re.DOTALL):
             for relative in re.findall(r"\./([A-Za-z0-9_./-]+\.nix)", imports.group(1)):
                 imported = (path.parent / relative).resolve()
@@ -156,7 +160,7 @@ def gate_sources(
         re.MULTILINE | re.DOTALL,
     )
     for path in imported_check_modules(root, failures):
-        text = path.read_text(encoding="utf-8")
+        text = nix_without_comments(path.read_text(encoding="utf-8"))
         for match in gate_pattern.finditer(text):
             sources.setdefault(match.group(1), []).append((path, match.group(0)))
     return sources
@@ -164,7 +168,7 @@ def gate_sources(
 
 def validate_crane_command_attributes(root: Path, failures: list[str]) -> None:
     for path in sorted((root / "nix/checks").glob("*.nix")):
-        text = path.read_text(encoding="utf-8")
+        text = nix_without_comments(path.read_text(encoding="utf-8"))
         if "craneLib.cargoBuild" in text and (
             "cargoBuildCommand" in text or "buildPhaseCargoCommand" in text
         ):
@@ -345,7 +349,9 @@ def validate_toolchains(
             f"Cargo workspace rust-version {cargo_msrv!r} does not match policy MSRV {toolchains.get('msrv')!r}"
         )
 
-    rust_nix = (root / "nix/rust-toolchain.nix").read_text(encoding="utf-8")
+    rust_nix = nix_without_comments(
+        (root / "nix/rust-toolchain.nix").read_text(encoding="utf-8")
+    )
     for token in [
         f'nightly."{str(toolchains.get("etalon", "")).removeprefix("nightly-")}"',
         f'stable."{toolchains.get("msrv", "")}"',
@@ -353,11 +359,28 @@ def validate_toolchains(
         if token not in rust_nix:
             failures.append(f"nix/rust-toolchain.nix does not select {token}")
 
+    msrv = re.escape(str(toolchains.get("msrv", "")))
+    if not re.search(
+        rf'msrvToolchain\s*=\s*pkgs\.rust-bin\.stable\."{msrv}"\.minimal\s*;',
+        rust_nix,
+    ):
+        failures.append(
+            "nix/rust-toolchain.nix does not bind msrvToolchain to the policy stable toolchain"
+        )
+    if not re.search(
+        r"msrvCraneLib\s*=\s*\(inputs\.crane\.mkLib\s+pkgs\)"
+        r"\.overrideToolchain\s+msrvToolchain\s*;",
+        rust_nix,
+    ):
+        failures.append(
+            "nix/rust-toolchain.nix does not wire msrvCraneLib to msrvToolchain"
+        )
+
     for target, tier in REQUIRED_TARGETS.items():
         if tier == "compile-checked" and f'"{target}"' not in rust_nix:
             failures.append(f"Nix Rust toolchain is missing target component {target}")
 
-    flake = (root / "flake.nix").read_text(encoding="utf-8")
+    flake = nix_without_comments((root / "flake.nix").read_text(encoding="utf-8"))
     systems_match = re.search(r"systems\s*=\s*\[(.*?)\];", flake, re.DOTALL)
     systems = set(re.findall(r'"([^"]+)"', systems_match.group(1))) if systems_match else set()
     if systems != set(REQUIRED_HOSTS):

@@ -25,7 +25,8 @@ without a compatibility promise.
 The consumer floor and maintainer ceiling are deliberately separate:
 
 - Rust `1.85.0` is the MSRV; every declared feature surface is compiled by an
-  independent stable-toolchain gate.
+  independent stable-toolchain gate, and structural validation proves the MSRV
+  Crane library wraps that stable toolchain.
 - Nightly `2026-03-18` is the reproducible development and primary CI
   toolchain inherited from the immutable NeoPRISM etalon revision recorded in
   ADR 0002.
@@ -46,7 +47,8 @@ target or feature keys are rejected as ambiguous policy.
 
 Only gates reachable from `flake.nix` through `nix/checks/default.nix` and its
 literal module imports count as evidence. A detached check tree or a derivation
-left behind in an orphaned Nix file is not a compatibility gate.
+left behind in an orphaned Nix file is not a compatibility gate. Commented Nix
+imports and definitions do not count as executable evidence.
 
 ## FFI and platform runtime
 

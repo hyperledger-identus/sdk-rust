@@ -83,7 +83,7 @@ class SupportPolicyTests(unittest.TestCase):
         self.replace(
             "nix/checks/default.nix",
             "    ./rust-build-mobile.nix\n",
-            "",
+            "    # ./rust-build-mobile.nix\n",
         )
         result = self.run_checker()
         self.assertNotEqual(result.returncode, 0)
@@ -257,6 +257,18 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertIn(
             "feature crypto-kmp-compat MSRV gate rust-test-kmp-compat is not built with msrvCraneLib",
             result.stderr,
+        )
+
+    def test_msrv_crane_library_must_wrap_stable_toolchain(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "overrideToolchain msrvToolchain",
+            "overrideToolchain toolchain",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "does not wire msrvCraneLib to msrvToolchain", result.stderr
         )
 
     def test_ignored_crane_build_attribute_fails(self) -> None:

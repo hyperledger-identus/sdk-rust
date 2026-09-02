@@ -165,6 +165,26 @@ class BootstrapInventoryTests(unittest.TestCase):
             result.stderr,
         )
 
+    def test_root_package_is_an_explicit_member(self) -> None:
+        manifest = self.root / "Cargo.toml"
+        manifest.write_text(
+            manifest.read_text(encoding="utf-8")
+            + '\n[package]\nname = "root-package"\nversion = "0.0.0"\nedition = "2024"\npublish = true\n',
+            encoding="utf-8",
+        )
+        (self.root / "src").mkdir()
+        (self.root / "src/lib.rs").write_text(
+            "pub struct RootPackage;\n", encoding="utf-8"
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "root-package: package.publish.workspace must be true", result.stderr
+        )
+        self.assertIn(
+            "inventory missing workspace packages: root-package", result.stderr
+        )
+
     def test_placeholder_dependency_drift_fails(self) -> None:
         manifest = self.root / "crates/agent/Cargo.toml"
         manifest.write_text(
@@ -262,6 +282,23 @@ class BootstrapInventoryTests(unittest.TestCase):
         ):
             with self.subTest(documentation=documentation):
                 source.write_text(documentation + original, encoding="utf-8")
+                result = self.run_checker()
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(
+                    "identus-agent: placeholder documentation must not contain executable code blocks",
+                    result.stderr,
+                )
+
+    def test_placeholder_nested_doctest_fences_fail(self) -> None:
+        source = self.root / "crates/agent/src/lib.rs"
+        original = source.read_text(encoding="utf-8")
+        for container in ("> ", "- "):
+            with self.subTest(container=container):
+                source.write_text(
+                    f"//! {container}```rust\n//! panic!(\"executed\");\n//! {container}```\n"
+                    + original,
+                    encoding="utf-8",
+                )
                 result = self.run_checker()
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn(

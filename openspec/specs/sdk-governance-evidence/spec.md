@@ -14,9 +14,10 @@ The repository SHALL contain one normative machine-readable inventory that
 identifies the repository, active and reserved branch roles, unreleased and
 non-publishable bootstrap state, required local governance records, immutable
 canonical-policy references, protected follow-up issues and every explicit
-Cargo workspace package exactly once. An in-tree path dependency SHALL be an
-explicit member so Cargo cannot silently auto-enrol an uninventoried package. A
-human-readable inventory SHALL explain the
+Cargo workspace package exactly once. A workspace-root package and every
+in-tree path dependency SHALL be explicit members so Cargo cannot silently
+auto-enrol an uninventoried package. A human-readable inventory SHALL explain
+the
 implemented API families and SHALL NOT claim greater maturity than the machine
 data.
 
@@ -38,6 +39,12 @@ data.
   workspace member set
 - **THEN** offline structural validation fails before the package can bypass
   inventory and publication-denial checks
+
+#### Scenario: Workspace manifest declares a root package
+
+- **WHEN** the root manifest adds `[package]` beside `[workspace]`
+- **THEN** that automatic Cargo member requires inventory coverage and explicit
+  inheritance of publication denial
 
 ### Requirement: Bootstrap publication fails closed
 
@@ -100,7 +107,7 @@ surface. Its public API status SHALL be `none`.
 #### Scenario: Placeholder documentation contains a doctest
 
 - **WHEN** crate or item documentation contains a fenced or indented executable
-  code block
+  code block, directly or nested in another Markdown container
 - **THEN** structural validation fails before Cargo can compile or execute it
 
 #### Scenario: Placeholder gains an apparent API

@@ -144,6 +144,11 @@ def manifest_path_dependencies(
             if isinstance(target, dict):
                 for section in DEPENDENCY_SECTIONS:
                     collect(target.get(section))
+    patches = manifest.get("patch")
+    if isinstance(patches, dict):
+        for registry in patches.values():
+            collect(registry)
+    collect(manifest.get("replace"))
     return dependencies
 
 
@@ -176,6 +181,8 @@ def workspace_packages(root: Path, failures: list[str]) -> dict[str, Path]:
     for pattern in exclusions:
         for candidate in root.glob(pattern):
             member_dirs.discard(candidate.resolve())
+    if isinstance(root_manifest.get("package"), dict):
+        member_dirs.add(root.resolve())
 
     dependency_sources: list[tuple[str, dict[str, Any], Path]] = [
         (
@@ -325,9 +332,9 @@ def placeholder_source_is_minimal(
         return
     if not re.search(r"(?m)^\s*//!", source):
         failures.append(f"{package_name}: placeholder must have crate documentation")
-    executable_docs = re.search(
-        r"(?m)^\s*//[!/]\s*(?:`{3,}|~{3,})", source
-    ) or re.search(r"(?m)^\s*//[!/](?: {4,}|\t)\S", source)
+    executable_docs = re.search(r"`{3,}|~{3,}", source) or re.search(
+        r"(?m)^\s*//[!/].*(?: {4,}|\t)\S", source
+    )
     if executable_docs:
         failures.append(
             f"{package_name}: placeholder documentation must not contain executable code blocks"

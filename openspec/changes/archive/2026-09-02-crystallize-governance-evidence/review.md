@@ -73,6 +73,10 @@ authority, factory integration and claims about live GitHub state.
   in-tree path dependencies and executable doctests hidden in placeholder
   documentation. The checker now requires every such dependency to resolve to
   an explicit member and rejects both fenced and indented doctest forms.
+- Follow-up review covered the remaining forms: a workspace-root `[package]`
+  and doctest fences nested in Markdown containers. Root packages now enter the
+  same inventory/publication checks, while placeholder docs use a strict
+  prose-only rule that rejects fences regardless of container nesting.
 - A hosted signing finding named commit `188b12a6`, which is not in the PR's
   four-commit set or local branch history. GitHub's authoritative commit API
   reports all four PR commits verified with reason `valid`; every commit has a

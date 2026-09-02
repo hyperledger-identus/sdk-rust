@@ -11,13 +11,13 @@ Verified on 2026-09-03 from `codex/idr-001-governance-evidence`, based on
 | Workspace coverage | 14 packages: five implemented, one verification-only and eight quarantined placeholders |
 | Publication | Every member resolves to Cargo `publish = false`; `identus-core` dry-run publication is rejected |
 | Dependency reduction | 20 unused speculative internal edges removed from seven placeholder manifests |
-| Local drift suite | 18 positive/adversarial inventory tests plus the hermetic factory contract |
+| Local drift suite | 20 positive/adversarial inventory tests plus the hermetic factory contract |
 | Program status | `IDR-001` remains `in_progress` pending #26; namespace ownership remains #3 |
 
 ## Passing gates
 
 - `./scripts/check-bootstrap-inventory.py` — 14 packages passed.
-- `./scripts/tests/bootstrap-inventory.py` — 18/18 tests passed.
+- `./scripts/tests/bootstrap-inventory.py` — 20/20 tests passed.
 - `scripts/tests/factory-contract.sh` — backlog, support, inventory, PR and
   factory fixtures passed.
 - `./scripts/factory check` — all 16 current specs and the active change

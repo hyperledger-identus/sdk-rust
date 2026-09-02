@@ -3,7 +3,7 @@
 - **Date:** 2026-09-03
 - **Issue:** #30 (child of #9 / `IDR-004`)
 - **Develop base:** `82819ac622cf601cc1f5c9cb40a71754c53992c0`
-- **Reviewed implementation head:** `d0618cba919710526277d2ba86a5421fdbce9dac`
+- **Reviewed implementation head:** `aba9b1e491054e940c1cc9631826d59673787c90`
 - **Result:** no unresolved blocker; suitable for exact-head hosted review
 
 ## Pre-implementation findings
@@ -26,8 +26,8 @@
 
 ## Post-implementation misuse review
 
-The complete `develop...d0618cb` diff was reviewed afresh after implementation
-and before evidence-only changes.
+The complete `develop...aba9b1e` diff was reviewed afresh after implementation
+and after resolving the first hosted review finding.
 
 1. **Construction bypass:** all wire and structural fields are private. Fixed
    array constructors and `from_cbor` converge on `from_wire`, which enforces
@@ -66,6 +66,10 @@ and before evidence-only changes.
   `kty`/`crv` fields; common policy metadata is retained but not interpreted.
 - Expanded every `MODIFIED` OpenSpec requirement to preserve all prior error,
   feature and dependency scenarios during archive synchronization.
+- Resolved hosted review finding P2 by retaining the normalized source CBOR map
+  as the round-trip value. Explicitly present empty RFC-valid `kid` and Base IV
+  byte strings now survive encoding; `coset::CoseKey` is only a temporary
+  typed interpretation. A dedicated fixture covers this boundary.
 
 Residual risks are explicit: consumers still validate curve points and
 operation-specific algorithm/key-use policy, and enclosing protocols may set

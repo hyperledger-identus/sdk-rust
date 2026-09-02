@@ -2,7 +2,7 @@
 
 - **Issue:** #30 (child of #9 / `IDR-004`)
 - **Develop base:** `82819ac622cf601cc1f5c9cb40a71754c53992c0`
-- **Reviewed implementation head:** `d0618cba919710526277d2ba86a5421fdbce9dac`
+- **Reviewed implementation head:** `aba9b1e491054e940c1cc9631826d59673787c90`
 - **Local platform:** `aarch64-darwin`
 - **Result:** every applicable local gate passed
 
@@ -11,7 +11,7 @@
 | Command | Result |
 | --- | --- |
 | `cargo test -p identus-crypto --all-features` | passed; 80 tests, one manual performance test ignored |
-| `cargo test -p identus-crypto --test cose --all-features` | passed; 18 contract/security tests, one manual test ignored |
+| `cargo test -p identus-crypto --test cose --all-features` | passed; 19 contract/security tests, one manual test ignored |
 | `cargo build -p identus-crypto --no-default-features --features cose` | passed |
 | `cargo build -p identus-crypto --no-default-features --features ed25519,cose` | passed |
 | `cargo build -p identus-crypto --target wasm32-unknown-unknown` | passed |
@@ -40,7 +40,8 @@ is an observation, not a portable timing threshold.
 - Assigned and registered-text OKP/EC2 fixtures cover Ed25519, X25519, P-256
   and secp256k1, including full and compressed EC2 `y` forms.
 - Deterministic encoding proves RFC 8949 length-first top-level and nested map
-  order, repeatability, and retained public extension equivalence.
+  order, repeatability, retained public extension equivalence, and preservation
+  of explicitly present empty `kid` and Base IV byte strings.
 - Negative fixtures cover private label `-4`, incompatible/missing shapes,
   coordinate types and widths, duplicate maps, tags, trailing data, input
   size, nesting, parameter count, floats and compressed-to-JWK conversion.

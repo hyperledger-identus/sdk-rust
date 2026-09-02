@@ -123,6 +123,29 @@ fn deterministic_encoding_sorts_and_retains_public_extensions() {
 }
 
 #[test]
+fn explicitly_empty_common_parameters_survive_round_trip() {
+    let mut input = Vec::new();
+    push_map_len(&mut input, 5);
+    input.extend([0x05, 0x40, 0x21]);
+    push_bytes(&mut input, &X);
+    input.extend([0x02, 0x40, 0x20, 0x06, 0x01, 0x01]);
+
+    let parsed = PublicKeyCose::from_cbor(&input).expect("empty common parameters are valid");
+    let encoded = parsed.to_cbor().expect("deterministic encoding");
+
+    let mut expected = vec![0xa5, 0x01, 0x01, 0x02, 0x40, 0x05, 0x40, 0x20, 0x06, 0x21];
+    push_bytes(&mut expected, &X);
+    assert_eq!(encoded, expected);
+    assert_eq!(
+        PublicKeyCose::from_cbor(&encoded)
+            .expect("reparse")
+            .to_cbor()
+            .expect("repeat encoding"),
+        expected
+    );
+}
+
+#[test]
 fn private_material_is_rejected_and_redacted() {
     let mut encoded = okp_fixture(6, &X);
     encoded[0] = 0xa4;

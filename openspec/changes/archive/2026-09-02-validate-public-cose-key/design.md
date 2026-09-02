@@ -47,11 +47,14 @@ is copied.
 
 ### Decision 1: an SDK-owned validated wrapper over `coset`
 
-`PublicKeyCose` stores typed key material plus a private `coset::CoseKey` wire
-value. The public API exposes constructors, typed accessors, bounded
-`from_cbor` and deterministic `to_cbor`; it does not expose `coset` or
-`ciborium` types. This keeps the SDK contract stable if the codec changes and
-prevents callers from bypassing validation by mutating public wire fields.
+`PublicKeyCose` stores typed key material plus a private normalized CBOR value.
+`coset::CoseKey` is a temporary interpretation used during validation, not the
+round-trip source of truth, because its default-valued fields cannot represent
+the presence of every valid common parameter. The public API exposes
+constructors, typed accessors, bounded `from_cbor` and deterministic `to_cbor`;
+it does not expose `coset` or `ciborium` types. This keeps the SDK contract
+stable if the codec changes and prevents callers from bypassing validation by
+mutating public wire fields.
 
 `coset` is used rather than implementing a CBOR/COSE parser. It already models
 RFC 9052, rejects duplicate top-level labels and trailing data, supports
@@ -83,8 +86,9 @@ This validates representation, not curve membership or usage policy.
 Label `-4` is rejected before the value can enter `PublicKeyCose`. Known
 structural labels are validated once, and up to 32 additional top-level
 parameters are retained in the private wire representation. Common `kid`,
-`alg`, `key_ops` and Base IV members are also retained but not interpreted as
-trust, capability or authorization.
+`alg`, `key_ops` and Base IV members are also retained, including explicitly
+present empty byte strings where the RFC permits them, but are not interpreted
+as trust, capability or authorization.
 
 The debug and error surfaces report only typed profile information, input
 lengths and invariant names; they never render raw CBOR or extension values.

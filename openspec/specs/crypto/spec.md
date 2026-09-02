@@ -426,8 +426,9 @@ bytewise lexical order for keys of equal length.
 
 #### Scenario: public extensions round trip deterministically
 
-- **WHEN** a valid key contains bounded common or unknown public parameters
-  without floating-point values
+- **WHEN** a valid key contains bounded common or unknown public parameters,
+  including explicitly present empty common byte strings, without
+  floating-point values
 - **THEN** repeated `to_cbor` calls SHALL return identical bytes with RFC 8949
   length-first map ordering and parsing those bytes SHALL retain equivalent
   parameters

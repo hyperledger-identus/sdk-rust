@@ -14,6 +14,8 @@ use identus_core::{ErrorKind, IdentusError};
 use crate::error::{CAPABILITY, error_code};
 
 const COORDINATE_SIZE: usize = 32;
+const KID_LABEL: i64 = 2;
+const BASE_IV_LABEL: i64 = 5;
 const CURVE_LABEL: i64 = -1;
 const X_LABEL: i64 = -2;
 const Y_LABEL: i64 = -3;
@@ -278,7 +280,7 @@ pub struct PublicKeyCose {
     x: [u8; COORDINATE_SIZE],
     y: Option<CoseEcY>,
     additional_parameters: usize,
-    wire: CoseKey,
+    wire: Value,
 }
 
 impl fmt::Debug for PublicKeyCose {
@@ -311,7 +313,7 @@ impl PublicKeyCose {
             ],
             ..CoseKey::default()
         };
-        Self::from_wire(wire)
+        Self::from_cose_key(wire)
     }
 
     /// Construct an EC2 public key with full affine coordinates.
@@ -350,7 +352,7 @@ impl PublicKeyCose {
             ],
             ..CoseKey::default()
         };
-        Self::from_wire(wire)
+        Self::from_cose_key(wire)
     }
 
     /// Parse one bounded, untagged public COSE Key.
@@ -363,7 +365,7 @@ impl PublicKeyCose {
         }
 
         let mut input = encoded;
-        let mut value =
+        let value =
             coset::cbor::de::from_reader_with_recursion_limit(&mut input, MAX_COSE_NESTING_DEPTH)
                 .map_err(|_| CoseKeyError::InvalidCbor)?;
         if !input.is_empty() {
@@ -373,18 +375,12 @@ impl PublicKeyCose {
             return Err(CoseKeyError::ExpectedMap);
         }
 
-        normalize_value(&mut value)?;
-        let wire = CoseKey::from_cbor_value(value).map_err(|_| CoseKeyError::InvalidCbor)?;
-        Self::from_wire(wire)
+        Self::from_value(value)
     }
 
     /// Emit deterministic, untagged CBOR for this public key.
     pub fn to_cbor(&self) -> Result<Vec<u8>, CoseKeyError> {
-        let mut value = self
-            .wire
-            .clone()
-            .to_cbor_value()
-            .map_err(|_| CoseKeyError::EncodingFailed)?;
+        let mut value = self.wire.clone();
         normalize_value(&mut value)?;
         encode_value(&value)
     }
@@ -419,7 +415,19 @@ impl PublicKeyCose {
         self.additional_parameters
     }
 
-    fn from_wire(mut wire: CoseKey) -> Result<Self, CoseKeyError> {
+    fn from_cose_key(wire: CoseKey) -> Result<Self, CoseKeyError> {
+        let value = wire
+            .to_cbor_value()
+            .map_err(|_| CoseKeyError::EncodingFailed)?;
+        Self::from_value(value)
+    }
+
+    fn from_value(mut value: Value) -> Result<Self, CoseKeyError> {
+        normalize_value(&mut value)?;
+        let interpretation = cose_interpretation_value(&value);
+        let wire =
+            CoseKey::from_cbor_value(interpretation).map_err(|_| CoseKeyError::InvalidCbor)?;
+
         // Reject private material before profile dispatch so `-4` cannot be
         // hidden behind an unsupported or deliberately confusing `kty`.
         if wire
@@ -431,21 +439,16 @@ impl PublicKeyCose {
         }
 
         let key_type = parse_key_type(&wire.kty)?;
-        wire.kty = KeyType::Assigned(match key_type {
-            CoseKeyType::Okp => iana::KeyType::OKP,
-            CoseKeyType::Ec2 => iana::KeyType::EC2,
-        });
 
         let mut curve = None;
         let mut x = None;
         let mut y = None;
         let mut additional_parameters = 0usize;
 
-        for (label, value) in &mut wire.params {
+        for (label, value) in &wire.params {
             match label {
                 Label::Int(CURVE_LABEL) => {
                     let parsed = parse_curve(value)?;
-                    *value = Value::from(parsed.assigned());
                     curve = Some(parsed);
                 }
                 Label::Int(X_LABEL) => {
@@ -476,15 +479,58 @@ impl PublicKeyCose {
             _ => {}
         }
 
+        normalize_structural_identifiers(&mut value, key_type, curve)?;
+
         Ok(Self {
             key_type,
             curve,
             x,
             y,
             additional_parameters,
-            wire,
+            wire: value,
         })
     }
+}
+
+fn cose_interpretation_value(value: &Value) -> Value {
+    let mut interpretation = value.clone();
+    let Value::Map(entries) = &mut interpretation else {
+        return interpretation;
+    };
+    // RFC 9052 permits empty byte strings for `kid` and Base IV, while coset
+    // intentionally treats empty named fields as absent and rejects them.
+    // Omit them only from the temporary typed view; the normalized source map
+    // remains the round-trip source of truth.
+    entries.retain(|(label, value)| {
+        !matches!(integer_value(label), Some(KID_LABEL | BASE_IV_LABEL))
+            || !matches!(value, Value::Bytes(bytes) if bytes.is_empty())
+    });
+    interpretation
+}
+
+fn normalize_structural_identifiers(
+    value: &mut Value,
+    key_type: CoseKeyType,
+    curve: CoseCurve,
+) -> Result<(), CoseKeyError> {
+    let Value::Map(entries) = value else {
+        return Err(CoseKeyError::ExpectedMap);
+    };
+    for (label, value) in entries {
+        match integer_value(label) {
+            Some(1) => *value = Value::from(key_type.assigned()),
+            Some(CURVE_LABEL) => *value = Value::from(curve.assigned()),
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+fn integer_value(value: &Value) -> Option<i64> {
+    let Value::Integer(value) = value else {
+        return None;
+    };
+    i64::try_from(*value).ok()
 }
 
 fn parse_key_type(key_type: &KeyType) -> Result<CoseKeyType, CoseKeyError> {

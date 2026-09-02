@@ -47,8 +47,8 @@ Every package classified `placeholder` SHALL contain only crate documentation,
 an `identus_core::Component` import and its public `COMPONENT` constant. Its
 normal workspace dependency set SHALL be exactly
 `identus-core.workspace = true`, with no package-level custom build script,
-development, build, target, library, feature, binary or example surface. Its
-public API status SHALL be `none`.
+development, build, target, library, feature, binary, example, test or benchmark
+surface. Its public API status SHALL be `none`.
 
 #### Scenario: Placeholder gains speculative coupling
 
@@ -73,6 +73,12 @@ public API status SHALL be `none`.
 - **WHEN** a placeholder sets `[lib]` metadata, including an extensionless
   source path omitted by the `.rs` file scan
 - **THEN** structural validation fails before Cargo can expose that API
+
+#### Scenario: Placeholder declares custom test or benchmark targets
+
+- **WHEN** a placeholder sets `[[test]]` or `[[bench]]` metadata, including an
+  extensionless source path omitted by the `.rs` file scan
+- **THEN** structural validation fails before Cargo can compile or execute it
 
 #### Scenario: Placeholder gains an apparent API
 

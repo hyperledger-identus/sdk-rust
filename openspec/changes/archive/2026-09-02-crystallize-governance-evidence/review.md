@@ -66,6 +66,9 @@ authority, factory integration and claims about live GitHub state.
 - The follow-up exact-head review demonstrated that `[lib].path` could likewise
   point to an extensionless source omitted by that scan. Placeholder manifests
   now reject custom library targets, with an extensionless-source regression.
+- The next exact-head review identified the same bypass through extensionless
+  `[[test]]` and `[[bench]]` targets. Both target classes are now rejected and
+  exercised by the adversarial suite, completing the Cargo target quarantine.
 - A hosted signing finding named commit `188b12a6`, which is not in the PR's
   four-commit set or local branch history. GitHub's authoritative commit API
   reports all four PR commits verified with reason `valid`; every commit has a

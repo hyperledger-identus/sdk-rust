@@ -395,6 +395,8 @@ def validate_packages(
                 "lib",
                 "bin",
                 "example",
+                "test",
+                "bench",
             ):
                 if section in manifest:
                     failures.append(f"{name}: placeholder must not declare {section}")

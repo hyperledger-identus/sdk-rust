@@ -212,6 +212,25 @@ class BootstrapInventoryTests(unittest.TestCase):
             result.stderr,
         )
 
+    def test_placeholder_custom_test_and_bench_targets_fail(self) -> None:
+        manifest = self.root / "crates/agent/Cargo.toml"
+        original = manifest.read_text(encoding="utf-8")
+        for target in ("test", "bench"):
+            with self.subTest(target=target):
+                manifest.write_text(
+                    original + f'\n[[{target}]]\nname = "payload"\npath = "payload"\n',
+                    encoding="utf-8",
+                )
+                (self.root / "crates/agent/payload").write_text(
+                    "fn main() {}\n", encoding="utf-8"
+                )
+                result = self.run_checker()
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(
+                    f"identus-agent: placeholder must not declare {target}",
+                    result.stderr,
+                )
+
     def test_placeholder_source_drift_fails(self) -> None:
         source = self.root / "crates/agent/src/lib.rs"
         source.write_text(source.read_text(encoding="utf-8") + "\npub struct Agent;\n", encoding="utf-8")

@@ -59,6 +59,14 @@ acceptance evidence.
 - Hosted review found that a target gate could retain its triple while dropping
   a claimed package. The policy validator now compares every gate's exact
   `-p` package set to the machine contract, with a package-loss regression.
+- Exact-head hosted review found that the single MSRV build covered only
+  default features. Every declared feature surface now has an independent Rust
+  `1.85.0` gate, including crypto minimal/KMP and all entropy combinations.
+- Exact-head hosted review found that retaining a feature evidence token could
+  conceal a changed package, default-feature mode or additional feature. The
+  validator now compares the complete Cargo selection for every nightly and
+  MSRV feature gate and proves each MSRV gate uses the stable Crane instance,
+  with regressions for each drift class and toolchain substitution.
 
 ## Final result
 
@@ -67,7 +75,7 @@ acceptance evidence.
 | Boundary coverage | Direct aliases/packages, every dependency-table kind, donor Git/path locations and lockfile closure are enforced |
 | Compatibility truth | Host-tested, compile-only, planned and unsupported states are separate and machine-validated |
 | Actual target evidence | Rust 1.85, browser WASM, Android ARM64 and iOS ARM64 commands were observed in successful Nix build logs |
-| Feature isolation | Crypto minimal/KMP and entropy minimal/deterministic/getrandom/all surfaces have independent gates |
+| Feature isolation | Crypto minimal/KMP and entropy minimal/deterministic/getrandom/all surfaces have exact nightly and MSRV gates |
 | Public/runtime impact | No runtime API, FFI, release, downstream migration or certification promise is introduced |
 | Repository boundary | Apollo, NeoPRISM, midnight-identity, Lace ID Portal and Oxid were not edited or built |
 | Blocking findings | 0 |

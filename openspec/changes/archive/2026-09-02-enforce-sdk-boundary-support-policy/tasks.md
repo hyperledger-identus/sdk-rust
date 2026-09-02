@@ -18,8 +18,8 @@
   policy for MSRV, etalon, hosts, targets, features, FFI and deferred budgets.
 - [x] 3.2 Add drift validation against Cargo, Nix systems/toolchains/checks and
   integrate it into the structural factory gate.
-- [x] 3.3 Add separate MSRV, implemented feature, browser-WASM, Android ARM64
-  and iOS ARM64 checks through the reproducible Nix path.
+- [x] 3.3 Add separate MSRV gates for every implemented feature surface plus
+  browser-WASM, Android ARM64 and iOS ARM64 checks through reproducible Nix.
 
 ## 4. Program State and Verification
 

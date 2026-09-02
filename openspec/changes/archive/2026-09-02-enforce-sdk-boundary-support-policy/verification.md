@@ -20,20 +20,20 @@ Verified on 2026-09-03 from `codex/r0-boundary-support-policy`, based on
 | Gate | Result |
 | --- | --- |
 | `scripts/check-support-policy.py` | Passed the canonical Cargo/Nix/policy contract |
-| `scripts/tests/support-policy.py` | Passed 9 positive and adversarial drift tests |
+| `scripts/tests/support-policy.py` | Passed 15 positive and adversarial drift tests |
 | `scripts/tests/ssi-upstream-backlog.py` | Passed 6 canonical backlog tests |
 | `cargo test -p identus-conformance` | Passed all 19 conformance tests |
 | `scripts/tests/factory-contract.sh` | Passed support, backlog, PR and factory contract suites |
 | `scripts/factory validate enforce-sdk-boundary-support-policy` | Strict validation passed |
 | `scripts/factory check` | Passed current specs and the complete active change |
 | `git diff --check` | Passed |
-| `nix flake check --print-build-logs` | Passed all 21 compatible `aarch64-darwin` checks |
+| `nix flake check --print-build-logs` | Passed all 27 compatible `aarch64-darwin` checks |
 
 The full Nix gate includes formatting; Nix/TOML/text hygiene; factory/OpenSpec;
-Rust `1.85.0`; nightly clippy, docs and dependency policy; default and
-KMP-compatible 112-test runs; isolated feature surfaces; and real release
-build commands for `wasm32-unknown-unknown`, `aarch64-linux-android` and
-`aarch64-apple-ios`.
+Rust `1.85.0` across all seven declared feature surfaces; nightly clippy, docs
+and dependency policy; the 112-test default run and 49-test KMP crypto run;
+isolated feature surfaces; and real release build commands for
+`wasm32-unknown-unknown`, `aarch64-linux-android` and `aarch64-apple-ios`.
 
 ## Environment diagnostics
 

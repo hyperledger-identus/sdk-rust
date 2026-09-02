@@ -152,6 +152,15 @@ def validate_gate(
         )
 
 
+def cargo_package_selection(definition: str) -> set[str]:
+    return set(
+        re.findall(
+            r'(?:^|[\s"])(?:-p|--package)(?:=|\s+)([A-Za-z0-9_-]+)',
+            definition,
+        )
+    )
+
+
 def validate_gate_packages(
     gate: Any,
     declared_packages: set[str],
@@ -162,15 +171,82 @@ def validate_gate_packages(
     if not isinstance(gate, str) or len(sources.get(gate, [])) != 1:
         return
     path, definition = sources[gate][0]
-    selected_packages = set(
-        re.findall(
-            r"(?:^|\s)(?:-p|--package)(?:=|\s+)([A-Za-z0-9_-]+)",
-            definition,
-        )
-    )
+    selected_packages = cargo_package_selection(definition)
     if selected_packages != declared_packages:
         failures.append(
             f"{context} gate {gate} selects packages {sorted(selected_packages)}, expected {sorted(declared_packages)} in {path}"
+        )
+
+
+def cargo_feature_selection(
+    definition: str, available_features: set[str] | None
+) -> tuple[set[str], bool, set[str]]:
+    packages = cargo_package_selection(definition)
+    no_default_features = bool(
+        re.search(r'(?:^|[\s"])--no-default-features(?:\s|"|$)', definition)
+    )
+    features: set[str] = set()
+    for match in re.finditer(
+        r'(?:^|[\s"])--features(?:=|\s+)([A-Za-z0-9_+./,-]+)', definition
+    ):
+        features.update(
+            value for value in match.group(1).split(",") if value
+        )
+    for match in re.finditer(
+        r"cargoBuildFeatures\s*=\s*\[(.*?)\];", definition, re.DOTALL
+    ):
+        features.update(re.findall(r'"([A-Za-z0-9_+./-]+)"', match.group(1)))
+    if re.search(r'(?:^|[\s"])--all-features(?:\s|"|$)', definition):
+        features = (
+            set(available_features)
+            if available_features is not None
+            else {"<all-features>"}
+        )
+    return packages, no_default_features, features
+
+
+def validate_msrv_builder(
+    gate: Any,
+    sources: dict[str, list[tuple[Path, str]]],
+    context: str,
+    failures: list[str],
+) -> None:
+    if not isinstance(gate, str) or len(sources.get(gate, [])) != 1:
+        return
+    path, definition = sources[gate][0]
+    if not re.search(r"=\s*msrvCraneLib\.[A-Za-z0-9_-]+\s*\{", definition):
+        failures.append(
+            f"{context} gate {gate} is not built with msrvCraneLib in {path}"
+        )
+
+
+def validate_feature_gate_selection(
+    gate: Any,
+    package: str,
+    no_default_features: bool,
+    declared_features: set[str],
+    available_features: set[str] | None,
+    sources: dict[str, list[tuple[Path, str]]],
+    context: str,
+    failures: list[str],
+) -> None:
+    if not isinstance(gate, str) or len(sources.get(gate, [])) != 1:
+        return
+    path, definition = sources[gate][0]
+    packages, actual_no_default, actual_features = cargo_feature_selection(
+        definition, available_features
+    )
+    expected_packages = set() if package == "*" else {package}
+    if (
+        packages != expected_packages
+        or actual_no_default != no_default_features
+        or actual_features != declared_features
+    ):
+        failures.append(
+            f"{context} gate {gate} selects packages {sorted(packages)}, "
+            f"no_default_features={actual_no_default}, features={sorted(actual_features)}; "
+            f"expected packages {sorted(expected_packages)}, "
+            f"no_default_features={no_default_features}, features={sorted(declared_features)} in {path}"
         )
 
 
@@ -360,9 +436,14 @@ def validate_features(
             continue
         if not isinstance(surface.get("no_default_features"), bool):
             failures.append(f"feature surface {name} must declare no_default_features")
+        available_features: set[str] | None = None
         if package != "*":
             manifest = load_toml(manifests[package], failures)
             available = manifest.get("features", {})
+            if not isinstance(available, dict):
+                failures.append(f"package {package} has an invalid features table")
+                available = {}
+            available_features = set(available) - {"default"}
             for feature in declared:
                 if feature not in available:
                     failures.append(
@@ -375,6 +456,34 @@ def validate_features(
             continue
         for gate in gates:
             validate_gate(gate, token, sources, f"feature {name}", failures)
+            validate_feature_gate_selection(
+                gate,
+                package,
+                surface.get("no_default_features"),
+                set(declared),
+                available_features,
+                sources,
+                f"feature {name}",
+                failures,
+            )
+
+        msrv_gate = require_nonempty_string(
+            surface, "msrv_gate", f"feature {name}", failures
+        )
+        validate_gate(msrv_gate, "", sources, f"feature {name} MSRV", failures)
+        validate_msrv_builder(
+            msrv_gate, sources, f"feature {name} MSRV", failures
+        )
+        validate_feature_gate_selection(
+            msrv_gate,
+            package,
+            surface.get("no_default_features"),
+            set(declared),
+            available_features,
+            sources,
+            f"feature {name} MSRV",
+            failures,
+        )
 
 
 def validate_deferred_dimensions(

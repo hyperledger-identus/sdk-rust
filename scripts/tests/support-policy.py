@@ -119,6 +119,84 @@ class SupportPolicyTests(unittest.TestCase):
             result.stderr,
         )
 
+    def test_feature_gate_must_preserve_default_feature_mode(self) -> None:
+        self.replace(
+            "nix/checks/rust-feature-matrix.nix",
+            "--no-default-features --features deterministic",
+            "--features deterministic",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "feature entropy-deterministic gate rust-test-entropy-deterministic selects",
+            result.stderr,
+        )
+
+    def test_feature_gate_must_select_declared_package(self) -> None:
+        self.replace(
+            "nix/checks/rust-test-kmp-compat.nix",
+            "-p identus-crypto --features kmp-compat",
+            "-p identus-core --features kmp-compat",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "feature crypto-kmp-compat gate rust-test-kmp-compat selects",
+            result.stderr,
+        )
+
+    def test_feature_gate_must_select_complete_feature_set(self) -> None:
+        self.replace(
+            "nix/checks/rust-feature-matrix.nix",
+            "--features deterministic --no-fail-fast",
+            "--features deterministic,getrandom --no-fail-fast",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "feature entropy-deterministic gate rust-test-entropy-deterministic selects",
+            result.stderr,
+        )
+
+    def test_every_feature_surface_requires_an_msrv_gate(self) -> None:
+        self.replace(
+            "nix/checks/rust-msrv.nix",
+            "rust-msrv-crypto-kmp-compat",
+            "removed-rust-msrv-crypto-kmp-compat",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "feature crypto-kmp-compat MSRV references undefined Nix gate",
+            result.stderr,
+        )
+
+    def test_msrv_gate_must_preserve_feature_selection(self) -> None:
+        self.replace(
+            "nix/checks/rust-msrv.nix",
+            "--no-default-features --features deterministic",
+            "--features deterministic",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "feature entropy-deterministic MSRV gate rust-msrv-entropy-deterministic selects",
+            result.stderr,
+        )
+
+    def test_msrv_gate_must_use_stable_toolchain_builder(self) -> None:
+        self.replace(
+            "docs/architecture/sdk-support-policy.toml",
+            'msrv_gate           = "rust-msrv-crypto-kmp-compat"',
+            'msrv_gate           = "rust-test-kmp-compat"',
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "feature crypto-kmp-compat MSRV gate rust-test-kmp-compat is not built with msrvCraneLib",
+            result.stderr,
+        )
+
     def test_ignored_crane_build_attribute_fails(self) -> None:
         self.replace(
             "nix/checks/rust-build-wasm32.nix",

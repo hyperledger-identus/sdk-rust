@@ -39,6 +39,7 @@
       };
       msrvCargoArtifacts = msrvCraneLib.buildDepsOnly {
         src = cleanedSrc;
+        cargoExtraArgs = "--locked --workspace --all-features";
       };
     in
     {

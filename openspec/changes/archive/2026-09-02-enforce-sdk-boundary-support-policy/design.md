@@ -81,10 +81,11 @@ The policy tiers are:
 ### 4. Separate the stable floor from the etalon ceiling
 
 The existing nightly `2026-03-18` remains the reproducible development and
-primary CI toolchain. A second minimal Rust `1.85.0` Crane instance performs
-the MSRV build/check. It cannot be replaced by a version comparison or by the
-nightly build because only compilation on the declared floor detects accidental
-language/library drift.
+primary CI toolchain. A second minimal Rust `1.85.0` Crane instance compiles
+every machine-declared default, minimal and opt-in feature surface. These gates
+cannot be replaced by a version comparison or by the nightly builds because
+only compilation of each selection on the declared floor detects accidental
+language/library or feature-specific drift.
 
 ### 5. Compile only implemented portable crates on cross targets
 
@@ -100,7 +101,9 @@ The matrix covers workspace defaults, `identus-crypto` with no default
 features and KMP compatibility, and the entropy adapter with its empty,
 deterministic and system-random feature surfaces. Mutually compatible feature
 combinations are checked explicitly instead of relying on Cargo unification
-from `--all-features` alone.
+from `--all-features` alone. Structural validation compares each gate's exact
+package selection, default-feature mode and activated feature set with the
+machine contract.
 
 ### 7. Defer budgets truthfully
 

@@ -23,7 +23,8 @@ are planned without a compatibility promise.
 
 The consumer floor and maintainer ceiling are deliberately separate:
 
-- Rust `1.85.0` is the MSRV and is compiled by its own gate.
+- Rust `1.85.0` is the MSRV; every declared feature surface is compiled by an
+  independent stable-toolchain gate.
 - Nightly `2026-03-18` is the reproducible development and primary CI
   toolchain inherited from the immutable NeoPRISM etalon revision recorded in
   ADR 0002.
@@ -35,8 +36,10 @@ requires a reviewed policy change and matching Cargo/Nix evidence.
 
 Workspace defaults, crypto without default features, KMP compatibility and the
 entropy adapter empty/deterministic/system-random combinations are isolated
-build or test surfaces. `--all-features` supplements these checks; it cannot
-replace them because Cargo feature unification can hide incorrect gates.
+build or test surfaces on both the MSRV and etalon toolchains. The structural
+validator compares each gate's exact package, default-feature mode and feature
+set with the machine policy. `--all-features` supplements these checks; it
+cannot replace them because Cargo feature unification can hide incorrect gates.
 
 ## FFI and platform runtime
 

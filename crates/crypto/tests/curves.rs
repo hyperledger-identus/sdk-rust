@@ -8,7 +8,9 @@ use identus_crypto::ed25519::{Ed25519KeyPair, Ed25519PrivateKey, Ed25519PublicKe
 use identus_crypto::secp256k1::{Secp256k1KeyPair, Secp256k1PrivateKey, Secp256k1PublicKey};
 use identus_crypto::secp256r1::{P256KeyPair, P256PrivateKey};
 use identus_crypto::x25519::{X25519KeyPair, X25519PublicKey};
-use identus_crypto::{EncodeArray, EncodeJwk, EncodeVec, Jwk, Verifiable};
+use identus_crypto::{
+    EncodeArray, EncodeJwk, EncodeVec, JwkCurve, JwkKeyType, PublicKeyJwk, Verifiable,
+};
 
 use common::DetRandom;
 
@@ -64,10 +66,10 @@ fn ed25519_jwk() {
     let mut rng = DetRandom::new();
     let kp = Ed25519KeyPair::generate(&mut rng);
     let jwk = kp.public().encode_jwk();
-    assert_eq!(jwk.kty, "OKP");
-    assert_eq!(jwk.crv, "Ed25519");
-    assert!(jwk.x.is_some());
-    assert!(jwk.y.is_none());
+    assert_eq!(jwk.kty(), JwkKeyType::Okp);
+    assert_eq!(jwk.crv(), JwkCurve::Ed25519);
+    assert_eq!(jwk.x().to_bytes(), kp.public().encode_array());
+    assert!(jwk.y().is_none());
 }
 
 // ---------------------------------------------------------------------------
@@ -98,10 +100,10 @@ fn x25519_jwk() {
     let mut rng = DetRandom::new();
     let kp = X25519KeyPair::generate(&mut rng);
     let jwk = kp.public().encode_jwk();
-    assert_eq!(jwk.kty, "OKP");
-    assert_eq!(jwk.crv, "X25519");
-    assert!(jwk.x.is_some());
-    assert!(jwk.y.is_none());
+    assert_eq!(jwk.kty(), JwkKeyType::Okp);
+    assert_eq!(jwk.crv(), JwkCurve::X25519);
+    assert_eq!(jwk.x().to_bytes(), kp.public().encode_array());
+    assert!(jwk.y().is_none());
 }
 
 #[test]
@@ -144,10 +146,11 @@ fn secp256k1_compressed_uncompressed_roundtrip() {
 fn secp256k1_jwk() {
     let sk = Secp256k1PrivateKey::from_slice(&SAMPLE_32).unwrap();
     let jwk = sk.to_public_key().encode_jwk();
-    assert_eq!(jwk.kty, "EC");
-    assert_eq!(jwk.crv, "secp256k1");
-    assert!(jwk.x.is_some());
-    assert!(jwk.y.is_some());
+    assert_eq!(jwk.kty(), JwkKeyType::Ec);
+    assert_eq!(jwk.crv(), JwkCurve::Secp256k1);
+    let point = sk.to_public_key().curve_point();
+    assert_eq!(jwk.x().to_bytes(), point.x);
+    assert_eq!(jwk.y().expect("EC y").to_bytes(), point.y);
 }
 
 // ---------------------------------------------------------------------------
@@ -169,10 +172,11 @@ fn p256_generate_sign_verify_roundtrip() {
 fn p256_jwk() {
     let sk = P256PrivateKey::from_slice(&SAMPLE_32).unwrap();
     let jwk = sk.to_public_key().encode_jwk();
-    assert_eq!(jwk.kty, "EC");
-    assert_eq!(jwk.crv, "P-256");
-    assert!(jwk.x.is_some());
-    assert!(jwk.y.is_some());
+    assert_eq!(jwk.kty(), JwkKeyType::Ec);
+    assert_eq!(jwk.crv(), JwkCurve::P256);
+    let (x, y) = sk.to_public_key().curve_point();
+    assert_eq!(jwk.x().to_bytes(), x);
+    assert_eq!(jwk.y().expect("EC y").to_bytes(), y);
 }
 
 // ---------------------------------------------------------------------------
@@ -183,6 +187,6 @@ fn p256_jwk() {
 fn jwk_is_cloneable_and_eq() {
     let mut rng = DetRandom::new();
     let jwk1 = Ed25519KeyPair::generate(&mut rng).public().encode_jwk();
-    let jwk2: Jwk = jwk1.clone();
+    let jwk2: PublicKeyJwk = jwk1.clone();
     assert_eq!(jwk1, jwk2);
 }

@@ -10,10 +10,9 @@ use k256::{
     ecdsa::{Signature, SigningKey},
 };
 
-use crate::base64::Base64UrlStrNoPad;
 use crate::enc::{EncodeArray, EncodeVec, Verifiable};
 use crate::error::Error;
-use crate::jwk::{EncodeJwk, Jwk};
+use crate::jwk::{EncodeJwk, JwkCurve, PublicKeyJwk};
 use crate::securerandom::SecureRandom;
 
 const PRIV_SIZE: usize = 32;
@@ -214,13 +213,9 @@ fn transcode_scalars_to_bitcoin(r: &[u8], s: &[u8]) -> ([u8; 32], [u8; 32]) {
 }
 
 impl EncodeJwk for Secp256k1PublicKey {
-    fn encode_jwk(&self) -> Jwk {
+    fn encode_jwk(&self) -> PublicKeyJwk {
         let point = self.curve_point();
-        Jwk {
-            kty: "EC".to_string(),
-            crv: "secp256k1".to_string(),
-            x: Some(Base64UrlStrNoPad::from(point.x)),
-            y: Some(Base64UrlStrNoPad::from(point.y)),
-        }
+        PublicKeyJwk::new_ec(JwkCurve::Secp256k1, point.x, point.y)
+            .expect("secp256k1 is a supported EC JWK profile")
     }
 }

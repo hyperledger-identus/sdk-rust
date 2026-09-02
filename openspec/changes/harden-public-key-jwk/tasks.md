@@ -7,17 +7,17 @@
 
 ## 2. Validated public-key JWK
 
-- [ ] 2.1 Implement typed key/curve profiles, public-only private fields,
+- [x] 2.1 Implement typed key/curve profiles, public-only private fields,
       constructors, accessors, extensions and `JwkError`
-- [ ] 2.2 Implement validating serde and canonical 32-byte coordinate gates
-- [ ] 2.3 Migrate all curve `EncodeJwk` implementations and crate exports
-- [ ] 2.4 Add feature/dependency wiring without breaking wasm or minimal builds
+- [x] 2.2 Implement validating serde and canonical 32-byte coordinate gates
+- [x] 2.3 Migrate all curve `EncodeJwk` implementations and crate exports
+- [x] 2.4 Add feature/dependency wiring without breaking wasm or minimal builds
 
 ## 3. Conformance and misuse resistance
 
-- [ ] 3.1 Add RFC 8037, encoder parity, round-trip and extension-preservation tests
-- [ ] 3.2 Add constructor and serde rejection tests for every recorded threat
-- [ ] 3.3 Verify JWK and serde errors do not expose caller-supplied values
+- [x] 3.1 Add RFC 8037, encoder parity, round-trip and extension-preservation tests
+- [x] 3.2 Add constructor and serde rejection tests for every recorded threat
+- [x] 3.3 Verify JWK and serde errors do not expose caller-supplied values
 - [ ] 3.4 Run focused, workspace, minimal-feature, wasm, conformance, lint,
       formatting, docs, OpenSpec and factory gates
 

@@ -349,6 +349,8 @@ dependencies = [
  "k256",
  "p256",
  "pbkdf2",
+ "serde",
+ "serde_json",
  "sha2",
  "trybuild",
  "x25519-dalek",

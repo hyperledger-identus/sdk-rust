@@ -10,10 +10,9 @@ use p256::{
     ecdsa::{Signature, SigningKey},
 };
 
-use crate::base64::Base64UrlStrNoPad;
 use crate::enc::{EncodeArray, EncodeVec, Verifiable};
 use crate::error::Error;
-use crate::jwk::{EncodeJwk, Jwk};
+use crate::jwk::{EncodeJwk, JwkCurve, PublicKeyJwk};
 use crate::securerandom::SecureRandom;
 
 const PRIV_SIZE: usize = 32;
@@ -166,13 +165,8 @@ impl Verifiable for P256PublicKey {
 }
 
 impl EncodeJwk for P256PublicKey {
-    fn encode_jwk(&self) -> Jwk {
+    fn encode_jwk(&self) -> PublicKeyJwk {
         let (x, y) = self.curve_point();
-        Jwk {
-            kty: "EC".to_string(),
-            crv: "P-256".to_string(),
-            x: Some(Base64UrlStrNoPad::from(x)),
-            y: Some(Base64UrlStrNoPad::from(y)),
-        }
+        PublicKeyJwk::new_ec(JwkCurve::P256, x, y).expect("P-256 is a supported EC JWK profile")
     }
 }

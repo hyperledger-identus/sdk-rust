@@ -4,10 +4,9 @@
 
 use x25519_dalek::{PublicKey, StaticSecret};
 
-use crate::base64::Base64UrlStrNoPad;
 use crate::enc::{EncodeArray, EncodeVec};
 use crate::error::Error;
-use crate::jwk::{EncodeJwk, Jwk};
+use crate::jwk::{EncodeJwk, JwkCurve, PublicKeyJwk};
 use crate::securerandom::SecureRandom;
 
 const KEY_SIZE: usize = 32;
@@ -114,13 +113,8 @@ impl EncodeArray<32> for X25519PublicKey {
 }
 
 impl EncodeJwk for X25519PublicKey {
-    fn encode_jwk(&self) -> Jwk {
-        let x = self.encode_array();
-        Jwk {
-            kty: "OKP".to_string(),
-            crv: "X25519".to_string(),
-            x: Some(Base64UrlStrNoPad::from(x)),
-            y: None,
-        }
+    fn encode_jwk(&self) -> PublicKeyJwk {
+        PublicKeyJwk::new_okp(JwkCurve::X25519, self.encode_array())
+            .expect("X25519 is a supported OKP JWK profile")
     }
 }

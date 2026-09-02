@@ -10,12 +10,10 @@
 - **Audited supply chain.** External crates are chosen for audit posture (RustCrypto / dalek) and declared at workspace level per `workspace-dependency-conventions`; `cargo-deny` (per `nix-tooling`) audits the dependency graph and `rust-audit` (crane `cargoAudit`) checks for known advisories. The `ring` entropy adapter's supply chain is audited in its own crate (`identus-adapters-entropy`), not here.
 - **Primitive operations, not key management.** The crate owns primitive crypto operations on key *material* (bytes-in, bytes-out), neoprism-`apollo`-style. The only infrastructure port is `SecureRandom` (entropy) — **defined here**; its concrete adapters live in the outer-boundary `identus-adapters-entropy` crate, injected into `generate`/`create_random_mnemonics`. It does **not** define `KeyHandle`, `KeyStore`, `SecretResolver`, non-exportable signing, or hardware/`KMS`-bound signers — those are an `identus-wallet` concern per the secure-storage boundary.
 - **Concrete where backends don't vary.** Curve operations, hashing, derivation, and conversion are concrete (no `Signer`/`Digest` ports): `ed25519-dalek`/`k256`/`p256`/`x25519-dalek`/`sha2` build on every target including `wasm32`, so a single-adapter port would document nothing. Hashing uses pure `sha2` (no `ring`), staying wasm-safe. The crate has **no `ring` dependency** (the `ring` entropy adapter is in `identus-adapters-entropy`), so it builds on `wasm32` with default features.
-
 ## Requirements
-
 ### Requirement: Two-surface error bridging
 
-The crate SHALL provide an idiomatic `crypto::Error` enum carrying runtime detail (e.g. `InvalidKeySize { expected: usize, actual: usize, key_type: &'static str }`, `KeyParsing { source }`) and a `to_identus_error()` mapping to `identus_core::IdentusError` with a stable `ErrorCode` and `CapabilityId("crypto")`. The stable `ErrorCode` catalogue SHALL include at least `crypto.invalid_key_size`, `crypto.key_parsing`, `crypto.signature_invalid`, `crypto.unsupported_curve`, `crypto.derivation_failed`, `crypto.mnemonic_invalid`, `crypto.secure_random_failure`. `IdentusError::Display` SHALL render only `"{code}: {public_message}"` and SHALL NOT include runtime detail.
+The crate SHALL provide an idiomatic `crypto::Error` enum carrying runtime detail for primitive operations and a dedicated `JwkError` for the validated JWK boundary. Both SHALL map to redaction-safe `identus_core::IdentusError` values under `CapabilityId("crypto")`. The stable `ErrorCode` catalogue SHALL include `crypto.invalid_key_size`, `crypto.key_parsing`, `crypto.signature_invalid`, `crypto.unsupported_curve`, `crypto.derivation_failed`, `crypto.mnemonic_invalid`, `crypto.secure_random_failure`, and `crypto.invalid_jwk`. `IdentusError::Display` SHALL render only `"{code}: {public_message}"` and SHALL NOT include runtime detail. JWK errors and their serde rendering SHALL identify only the failed invariant and SHALL NOT contain coordinate or extension values.
 
 #### Scenario: InvalidKeySize maps to a stable code with no runtime detail
 
@@ -26,6 +24,13 @@ The crate SHALL provide an idiomatic `crypto::Error` enum carrying runtime detai
 
 - **WHEN** a signature-verification failure is mapped via `to_identus_error()`
 - **THEN** the `ErrorKind` SHALL be `VerificationFailed` and the `ErrorCode` SHALL be `crypto.signature_invalid`
+
+#### Scenario: invalid JWK maps to a stable redacted code
+
+- **WHEN** a `JwkError` is mapped through `to_identus_error()`
+- **THEN** the code SHALL be `crypto.invalid_jwk`, the kind SHALL be
+  `InvalidInput`, the capability SHALL be `crypto`, and the rendered value
+  SHALL NOT contain caller-supplied coordinate or extension values
 
 ### Requirement: Encoding traits
 
@@ -38,17 +43,44 @@ The crate SHALL provide `EncodeVec` (`encode_vec() -> Vec<u8>`), `EncodeArray<co
 
 ### Requirement: JWK
 
-The crate SHALL provide a `Jwk` struct (`kty`, `crv`, `x`, `y`) and an `EncodeJwk` trait (`encode_jwk() -> Jwk`) implemented for every public key type.
+The crate SHALL provide a public-only `PublicKeyJwk` with private fields, typed `JwkKeyType` and `JwkCurve`, fallible constructors, read-only accessors, validating JSON serialization/deserialization, and an `EncodeJwk` trait (`encode_jwk() -> PublicKeyJwk`) implemented for every supported public key type. The supported profiles SHALL be `OKP/Ed25519`, `OKP/X25519`, `EC/P-256`, and `EC/secp256k1`. Every coordinate SHALL be canonical unpadded base64url and decode to exactly 32 bytes. OKP profiles SHALL contain `x` and SHALL NOT contain `y`; EC profiles SHALL contain both `x` and `y`. Native construction and deserialization SHALL enforce the same invariants. The public type SHALL reject the private `d` member. Additional public members SHALL round-trip without being interpreted and SHALL NOT shadow `kty`, `crv`, `x`, or `y`.
 
-#### Scenario: Ed25519 public key encodes to JWK
+#### Scenario: RFC 8037 Ed25519 public key is accepted exactly
 
-- **WHEN** an Ed25519 public key calls `encode_jwk()`
-- **THEN** the `Jwk` SHALL have `kty = "OKP"`, `crv = "Ed25519"`, `x` set, `y = None`
+- **WHEN** the RFC 8037 Appendix A.2 public JWK is deserialized
+- **THEN** it SHALL produce `OKP/Ed25519`, preserve the exact `x`, omit `y`,
+  and serialize to an equivalent public JWK without `d`
 
-#### Scenario: secp256k1 public key encodes to JWK
+#### Scenario: curve encoders preserve their public coordinates
 
-- **WHEN** a secp256k1 public key calls `encode_jwk()`
-- **THEN** the `Jwk` SHALL have `kty = "EC"`, `crv = "secp256k1"`, `x` and `y` set to the curve-point coordinates
+- **WHEN** Ed25519, X25519, P-256 or secp256k1 public keys call `encode_jwk()`
+- **THEN** the result SHALL use the correct typed profile and SHALL contain
+  the same canonical coordinate bytes as the public key encoding
+
+#### Scenario: EC and OKP shapes are enforced
+
+- **WHEN** an EC JWK omits `y`, an OKP JWK contains `y`, or `kty` and `crv`
+  are incompatible
+- **THEN** native construction and deserialization SHALL reject the value
+
+#### Scenario: coordinates are canonical and full width
+
+- **WHEN** a coordinate has padding, an invalid alphabet, non-zero trailing
+  bits, or decodes to any length other than 32 bytes
+- **THEN** native construction and deserialization SHALL reject the value
+
+#### Scenario: private material is rejected
+
+- **WHEN** a public JWK contains a `d` member
+- **THEN** deserialization and extension-aware construction SHALL reject it
+  without including the private value in an error
+
+#### Scenario: unknown public extensions survive a round trip
+
+- **WHEN** a valid public JWK contains additional public members such as
+  `kid` or a collision-resistant extension name
+- **THEN** deserialize/serialize SHALL preserve their JSON values while the
+  crypto crate SHALL NOT interpret their policy
 
 ### Requirement: Base64URL-no-pad, Hex, and SHA-2 primitives
 
@@ -187,22 +219,30 @@ The crate SHALL provide `ConvertEd25519` converting an Ed25519 private key to an
 
 ### Requirement: Feature-gated with all-on default
 
-The crate SHALL expose cargo features `ed25519`, `x25519`, `secp256k1`, `secp256r1`, `hash`, `hex`, `base64`, `jwk`, `derivation`, and `kmp-compat`, with `default` enabling all of them **except** `kmp-compat` (no `securerandom` feature — the `SecureRandom` port trait is zero-dependency and always available; no `wasm` feature — that is an `identus-adapters-entropy` feature, not a crypto one). `kmp-compat` SHALL be opt-in (off by default) and SHALL gate the KMP-interop surface (`create_seed_kmp`); it is introduced as an empty gate (no new dependency) and is shared with the future ed25519-bip32 interop change, which will later extend it with `dep:ed25519-bip32`. Feature-to-dependency edges SHALL mirror neoprism's gating (e.g. `ed25519 = ["jwk","dep:ed25519-dalek"]`). A `wasm` feature (gating the `getrandom`-backed `SecureRandom` adapter) is **not** introduced in this change; it is deferred to the future TS/wasm binding change and lives in `identus-adapters-entropy`.
+The crate SHALL expose cargo features `ed25519`, `x25519`, `secp256k1`, `secp256r1`, `hash`, `hex`, `base64`, `jwk`, `derivation`, and `kmp-compat`, with `default` enabling all of them except `kmp-compat`. The `jwk` feature SHALL enable `base64`, `serde`, and `serde_json`; curve features SHALL continue to imply `jwk`. There SHALL be no `securerandom` feature because the zero-dependency `SecureRandom` port is always available, and no `wasm` feature because concrete entropy adapters belong to `identus-adapters-entropy`. `kmp-compat` SHALL remain opt-in, gate the KMP interop surface, and introduce no dependency outside the default dependency set. The full default and supported minimal feature combinations SHALL remain wasm-safe.
 
 #### Scenario: Default features compile the full surface
 
 - **WHEN** `cargo build -p identus-crypto` is run with default features
-- **THEN** all curve, hashing, derivation, and `SecureRandom`-port modules SHALL compile and be available, and the KMP-interop surface (`create_seed_kmp`) SHALL NOT be present
+- **THEN** all curve, hashing, derivation, JWK, and `SecureRandom`-port modules SHALL compile and be available, and the KMP-interop surface SHALL NOT be present
 
 #### Scenario: Default features compile on wasm32
 
 - **WHEN** `cargo build -p identus-crypto --target wasm32-unknown-unknown` is run with default features
-- **THEN** the build SHALL succeed (crypto has no `ring` dependency; the wasm limitation is confined to `identus-adapters-entropy`)
+- **THEN** the build SHALL succeed
 
-#### Scenario: A minimal feature subset compiles
+#### Scenario: minimal JWK feature compiles
 
-- **WHEN** `cargo build -p identus-crypto --no-default-features --features ed25519` is run
-- **THEN** the build SHALL succeed with only the ed25519 (+jwk) surface
+- **WHEN** `cargo build -p identus-crypto --no-default-features --features jwk`
+  is run
+- **THEN** the validated JWK and JSON wire surface SHALL compile without a
+  curve backend
+
+#### Scenario: a minimal curve feature compiles
+
+- **WHEN** `cargo build -p identus-crypto --no-default-features --features ed25519`
+  is run
+- **THEN** Ed25519 and its validated JWK wire surface SHALL compile
 
 #### Scenario: The kmp-compat feature is opt-in
 
@@ -211,8 +251,8 @@ The crate SHALL expose cargo features `ed25519`, `x25519`, `secp256k1`, `secp256
 
 #### Scenario: kmp-compat introduces no new external dependency
 
-- **WHEN** the `kmp-compat` feature is enabled alone (`--no-default-features --features kmp-compat` plus any required base)
-- **THEN** the build SHALL succeed without pulling any crate not already required by the default feature set (the feature is an empty gate reusing existing `pbkdf2`/`hmac`/`sha2`)
+- **WHEN** the `kmp-compat` feature is enabled with its required base features
+- **THEN** the build SHALL succeed without pulling a crate not already required by the default feature set
 
 ### Requirement: Layer conformance — depends only on identus-core and the proc-macro attribute provider
 
@@ -235,12 +275,14 @@ The crate SHALL declare `identus-core` as its only runtime workspace-internal de
 
 ### Requirement: Workspace-level external dependency declaration
 
-The crate's external dependencies (`ed25519-dalek`, `k256`, `p256`, `x25519-dalek`, `sha2`, `hmac`, `pbkdf2`, `base64`, `hex`) SHALL be declared in root `[workspace.dependencies]` and referenced via `<dep>.workspace = true` (per `workspace-dependency-conventions`); no inline external version pin SHALL appear in `crates/crypto/Cargo.toml`. The list SHALL NOT include `ring` — `ring` is declared by `identus-adapters-entropy` (the entropy adapter crate), not by `identus-crypto`.
+The crate's external dependencies (`ed25519-dalek`, `k256`, `p256`, `x25519-dalek`, `sha2`, `hmac`, `pbkdf2`, `base64`, `hex`, `serde`, and `serde_json`) SHALL be declared in root `[workspace.dependencies]` and referenced via `<dep>.workspace = true` per `workspace-dependency-conventions`; no inline external version pin SHALL appear in `crates/crypto/Cargo.toml`. The list SHALL NOT include `ring`, whose concrete entropy concern belongs to `identus-adapters-entropy`.
 
 #### Scenario: crypto external deps use the workspace form
 
 - **WHEN** `crates/crypto/Cargo.toml` is inspected
-- **THEN** every external dependency entry SHALL use `.workspace = true` and resolve to a root `[workspace.dependencies]` entry, and `ring` SHALL NOT be present
+- **THEN** every external dependency entry SHALL use `.workspace = true`,
+  `serde` and `serde_json` SHALL be optional edges of `jwk`, and `ring` SHALL
+  NOT be present
 
 ### Requirement: Wasm-clean by default
 

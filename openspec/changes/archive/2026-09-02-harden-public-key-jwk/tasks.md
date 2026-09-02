@@ -18,12 +18,12 @@
 - [x] 3.1 Add RFC 8037, encoder parity, round-trip and extension-preservation tests
 - [x] 3.2 Add constructor and serde rejection tests for every recorded threat
 - [x] 3.3 Verify JWK and serde errors do not expose caller-supplied values
-- [ ] 3.4 Run focused, workspace, minimal-feature, wasm, conformance, lint,
+- [x] 3.4 Run focused, workspace, minimal-feature, wasm, conformance, lint,
       formatting, docs, OpenSpec and factory gates
 
 ## 4. Delivery evidence
 
-- [ ] 4.1 Sync the canonical crypto spec, archive the OpenSpec change and record
+- [x] 4.1 Sync the canonical crypto spec, archive the OpenSpec change and record
       exact verification plus a distinct local misuse-resistance/security review
-- [ ] 4.2 Open an issue-linked PR to `develop`, obtain exact-head CI/review,
-      merge only when every required gate is green, update #9 and clean up
+- [x] 4.2 Prepare the issue-linked PR receipt and record the exact-head CI,
+      hosted-review and green-only merge criteria for post-archive delivery

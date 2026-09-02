@@ -1,95 +1,91 @@
 # Identus SDK for Rust
 
-Rust SDK for building decentralized identity solutions with the [Identus](https://github.com/hyperledger-identus) ecosystem.
+Chain-agnostic Rust foundations for decentralized identity and verifiable
+credential products in the
+[Hyperledger Identus](https://github.com/hyperledger-identus) ecosystem.
 
-## Getting Started
+> **Work in progress:** `develop` is a pre-release integration line. No crate
+> in this repository should yet be treated as a stable production SDK release.
 
-> **⚠️ Work in Progress** — This SDK is under active development.
+## Direction
 
-### Prerequisites
+The repository owns generic SSI domain models, protocol engines, cryptographic
+utilities, ports and conformance evidence. Midnight, PRISM/Cardano and future
+chain families consume the SDK and keep ledger-specific behavior outside it.
+Wallet products keep custody, storage, consent, trust and UI policy.
 
-- [Nix](https://nixos.org/) (with flakes enabled)
+- [Technical blueprint and component sequence](docs/architecture/sdk-rust-blueprint.md)
+- [Bootstrap branch decision](docs/adr/0001-bootstrap-branch-selection.md)
+- [Roadmap](ROADMAP.md)
+- [Governance](GOVERNANCE.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
+- [Release policy](RELEASING.md)
 
-All other tooling (Rust toolchain, C toolchain, cargo dev tools, Nix hygiene tools) is provided by the project's Nix flake.
+## Branch model and current baseline
 
-### Development
+`develop` starts from `yet-another-seed` revision `662f8d7` and is the active
+integration branch. It contains working validated-newtype, derivation,
+cryptography, DID, entropy-adapter and conformance foundations. The baseline
+also contains known bootstrap debt: placeholder crates, version `0.0.0`, an
+MSRV/Nix toolchain mismatch and a compiler-diagnostic-sensitive UI snapshot.
+These are stabilization items, not evidence of a production release.
 
-Enter the reproducible development shell, then run the usual cargo commands:
+`main` remains intentionally minimal and is not an integration or release
+target until maintainers explicitly activate it through a later decision.
+Feature branches and pull requests target `develop`.
+
+## Getting started
+
+### Prerequisite
+
+- [Nix](https://nixos.org/) with flakes enabled for the reproducible toolchain;
+  or a compatible stable Rust toolchain for plain-Cargo development.
 
 ```bash
 # Enter the devshell
 nix develop
 
-# Build
-nix develop -c cargo build
+# Build and test
+nix develop -c cargo build --workspace
+nix develop -c cargo test --workspace
 
-# Test
-nix develop -c cargo test
-
-# Format (Rust + Nix)
+# Format Rust and Nix
 nix run .#format
 
-# Run all flake checks (fmt, clippy, test, deny, audit, nix hygiene)
+# Run the complete repository gate
 nix flake check
 ```
 
-The flake supports `x86_64-linux` and `aarch64-darwin`. CI runs `nix flake check` on both via the `nix-checks` workflow.
+The flake supports `x86_64-linux` and `aarch64-darwin`. CI runs the flake gate
+on both platforms for pull requests and pushes to `develop`.
 
-## Development Workflow
+## Development workflow
 
-We use [OpenSpec](https://github.com/Fission-AI/OpenSpec) to align on what to build *before* writing code. Each change lives in its own folder under `openspec/changes/` with a proposal, specs, design, and task list.
+We use [OpenSpec](https://github.com/Fission-AI/OpenSpec) for changes that need
+a recorded proposal, design, specification delta and task list.
 
 ```text
-   /opsx:explore          think it through
+   /opsx:explore
         │
         ▼
-   /opsx:propose <idea>   creates openspec/changes/<idea>/
-        │                  (proposal, specs, design, tasks)
-        ▼
-   /openspec-review       validate the spec before building
-        │                  (.pi/prompts/openspec-review.md)
-        │                  optional when using pi
-        ▼
-   /opsx:apply            implement the tasks
+   /opsx:propose <idea> ──► openspec/changes/<idea>/
         │
         ▼
-   /opsx:verify           verify implementation matches specs
+   /openspec-review
         │
         ▼
-   /opsx:archive          move to archive/, update specs
+   /opsx:apply ──► /opsx:verify ──► /opsx:archive
 ```
 
-**Quick flow (≈5-6 steps):**
-
-1. **Explore** — Not sure yet? Run `/opsx:explore` to think it through with the AI before committing.
-2. **Propose** — Know what you want? Run `/opsx:propose <idea>`. This creates `openspec/changes/<idea>/` containing `proposal.md`, `specs/`, `design.md`, and `tasks.md`.
-3. **Review** *(optional if you use pi)* — Run the `/openspec-review <change-id>` prompt (`.pi/prompts/openspec-review.md`) to semantically validate the spec before any code is written. Fix any blockers it surfaces.
-4. **Apply** — Run `/opsx:apply` to implement the tasks.
-5. **Verify** *(optional)* — Run `/opsx:verify` to validate that the implementation matches the change artifacts (specs, tasks, design) before archiving. Fix any CRITICAL issues it surfaces.
-6. **Archive** — Run `/opsx:archive` to move the change to `openspec/changes/archive/` and update the specs.
-
-> OpenSpec is provided by the project devshell — no separate install needed.
-
-### When to Use an OpenSpec Change
-
-OpenSpec changes are for **spec-driven** work — changes that warrant a documented proposal, design rationale, spec deltas, and a tracked task list. Not every change needs to go through the full flow.
-
-**Use an OpenSpec change when:**
-
-- Adding a new feature or capability that alters behavior or specs
-- Modifying or adding to specs under `openspec/specs/`
-- Multi-step work where you want a recorded *why* (proposal), *how* (design), and *tasks*
-- Anything you want reviewed and archived as a unit of meaningful product evolution
-
-**Edit directly (skip OpenSpec) when:**
-
-- Trivial fixes: typos, comments, formatting, `cargo fmt`
-- Pure bug fixes that don't change intended behavior or specs
-- Behavior-preserving refactors with no spec impact
-- Dependency bumps or chore work with no behavioral change
-- Throwaway or experimental work — use **explore mode** (`/opsx:explore`) instead, which is for thinking and investigating without committing to a change
+Use an OpenSpec change for new behavior, public API, architecture, protocol or
+multi-step work. Direct edits are suitable for typos, non-behavioral bug fixes,
+formatting, dependency chores and behavior-preserving refactors. Archived seed
+decisions are historical evidence: branch, release and architecture rules in
+the current governance documents take precedence.
 
 ## Resources
 
-- [Identus Documentation](https://hyperledger-identus.github.io/)
+- [Identus documentation](https://hyperledger-identus.github.io/)
 - [Hyperledger Identus GitHub](https://github.com/hyperledger-identus)
+- [Hyperledger governing documents](https://toc.hyperledger.org/governing-documents/)

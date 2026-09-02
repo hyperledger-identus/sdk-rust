@@ -1,11 +1,11 @@
-error[E0599]: no associated function or constant named `new` found for struct `Tag` in the current scope
+error[E0599]: no function or associated item named `new` found for struct `Tag` in the current scope
   --> tests/ui/fail_new_on_validated.rs:17:18
    |
  5 | pub struct Tag(String);
-   | -------------- associated function or constant `new` not found for this struct
+   | -------------- function or associated item `new` not found for this struct
 ...
 17 |     let _ = Tag::new("hi".to_owned());
-   |                  ^^^ associated function or constant not found in `Tag`
+   |                  ^^^ function or associated item not found in `Tag`
    |
 note: if you're trying to build a new `Tag` consider using one of the following associated functions:
       Tag::try_new

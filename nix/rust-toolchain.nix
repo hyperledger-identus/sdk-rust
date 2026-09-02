@@ -6,7 +6,9 @@
       ...
     }:
     let
-      toolchain = pkgs.rust-bin.stable.latest.default.override {
+      # Match NeoPRISM's pinned Rust toolchain. Keep the exact date here rather
+      # than following `latest`, so local and CI diagnostics do not drift.
+      toolchain = pkgs.rust-bin.nightly."2026-03-18".default.override {
         extensions = [
           "rust-src"
           "rust-analyzer"

@@ -3,7 +3,10 @@
 
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Keep the Rust/Nix baseline aligned with NeoPRISM, the Identus Rust
+    # repository used as the toolchain etalon. Exact revisions live in
+    # flake.lock; see ADR 0002.
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     devshell.url = "github:numtide/devshell";
     rust-overlay.url = "github:oxalica/rust-overlay";
     crane.url = "github:ipetkov/crane";

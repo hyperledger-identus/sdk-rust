@@ -16,6 +16,7 @@ Wallet products keep custody, storage, consent, trust and UI policy.
 
 - [Technical blueprint and component sequence](docs/architecture/sdk-rust-blueprint.md)
 - [Bootstrap branch decision](docs/adr/0001-bootstrap-branch-selection.md)
+- [NeoPRISM toolchain alignment](docs/adr/0002-neoprism-toolchain-alignment.md)
 - [Roadmap](ROADMAP.md)
 - [Governance](GOVERNANCE.md)
 - [Contributing](CONTRIBUTING.md)
@@ -29,8 +30,8 @@ Wallet products keep custody, storage, consent, trust and UI policy.
 integration branch. It contains working validated-newtype, derivation,
 cryptography, DID, entropy-adapter and conformance foundations. The baseline
 also contains known bootstrap debt: placeholder crates, version `0.0.0`, an
-MSRV/Nix toolchain mismatch and a compiler-diagnostic-sensitive UI snapshot.
-These are stabilization items, not evidence of a production release.
+unverified MSRV lane and incomplete release governance. These are stabilization
+items, not evidence of a production release.
 
 `main` remains intentionally minimal and is not an integration or release
 target until maintainers explicitly activate it through a later decision.
@@ -41,7 +42,8 @@ Feature branches and pull requests target `develop`.
 ### Prerequisite
 
 - [Nix](https://nixos.org/) with flakes enabled for the reproducible toolchain;
-  or a compatible stable Rust toolchain for plain-Cargo development.
+  the flake pins the same Rust and Nix baseline as NeoPRISM. A toolchain that
+  satisfies the declared MSRV remains suitable for plain-Cargo development.
 
 ```bash
 # Enter the devshell

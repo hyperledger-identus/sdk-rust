@@ -68,6 +68,8 @@ truth. A deterministic repository command validates its schema and compares
 the declared MSRV, etalon toolchain, Nix host systems, eligible packages,
 feature sets and gate names to repository configuration. The adjacent
 Markdown policy explains what each evidence tier does and does not promise.
+Repeated host, target or feature identities are invalid rather than
+last-entry-wins policy data.
 
 The policy tiers are:
 
@@ -106,8 +108,11 @@ from `--all-features` alone. Structural validation compares each gate's exact
 package selection, default-feature mode and activated feature set with the
 machine contract. Compile-checked targets declare their package-qualified
 backend features using the same selection contract. Gate discovery follows the
-literal import graph rooted at `nix/checks/default.nix`, so an orphaned module
-cannot satisfy a required check.
+literal import graph from `flake.nix` through `nix/checks/default.nix`, so a
+detached check tree or orphaned module cannot satisfy a required check.
+Workspace-wide gates explicitly select and resolve to the complete workspace
+package set and reject exclusions, so implicit defaults cannot conceal lost
+coverage.
 
 ### 7. Defer budgets truthfully
 

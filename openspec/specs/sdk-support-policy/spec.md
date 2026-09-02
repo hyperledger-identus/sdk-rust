@@ -105,11 +105,13 @@ be measurement-only and SHALL NOT be represented as compatibility budgets.
 An offline repository validator SHALL compare the policy to Cargo MSRV, Nix
 toolchain pins, flake host systems, declared target components, eligible
 packages, feature sets and required check definitions. For every feature gate,
-the validator SHALL compare the complete Cargo package selection, default
-feature mode and activated feature set to the machine contract. The validator
-SHALL accept required gates only when their defining Nix modules are reachable
-from the imported check-module graph. The validator SHALL run in the structural
-factory path.
+the validator SHALL compare the complete effective Cargo package selection,
+including workspace exclusions, default feature mode and activated feature set
+to the machine contract. Workspace-wide surfaces SHALL explicitly select the
+workspace. The validator SHALL accept required gates only when their defining
+Nix modules are reachable from the check-module import rooted in `flake.nix`.
+Host systems, target triples and feature-surface names SHALL be unique within
+the machine policy. The validator SHALL run in the structural factory path.
 
 #### Scenario: Cargo MSRV changes alone
 
@@ -127,6 +129,30 @@ factory path.
 - **WHEN** a required gate remains in an orphaned Nix file but its module is no
   longer imported by the check graph
 - **THEN** structural validation treats the gate as undefined
+
+#### Scenario: Check graph is detached from the flake
+
+- **WHEN** `flake.nix` stops importing the root check module while the check
+  files remain present
+- **THEN** structural validation treats every policy gate as unreachable
+
+#### Scenario: Workspace gate excludes a package
+
+- **WHEN** a workspace-wide feature gate adds an exclusion that removes any
+  workspace package
+- **THEN** structural validation rejects the gate's incomplete effective
+  package selection
+
+#### Scenario: Workspace gate relies on implicit defaults
+
+- **WHEN** a workspace-wide feature gate drops its explicit workspace selector
+- **THEN** structural validation rejects the ambiguous package selection
+
+#### Scenario: Policy repeats an identity
+
+- **WHEN** two host, target or feature entries declare the same normative key
+- **THEN** structural validation rejects the ambiguous machine policy instead
+  of silently choosing one entry
 
 #### Scenario: Target backend feature disappears
 

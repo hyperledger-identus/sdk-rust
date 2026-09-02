@@ -10,6 +10,8 @@ use k256::{
     ecdsa::{Signature, SigningKey},
 };
 
+#[cfg(feature = "cose")]
+use crate::cose::{CoseCurve, EncodeCose, PublicKeyCose};
 use crate::enc::{EncodeArray, EncodeVec, Verifiable};
 use crate::error::Error;
 use crate::jwk::{EncodeJwk, JwkCurve, PublicKeyJwk};
@@ -217,5 +219,14 @@ impl EncodeJwk for Secp256k1PublicKey {
         let point = self.curve_point();
         PublicKeyJwk::new_ec(JwkCurve::Secp256k1, point.x, point.y)
             .expect("secp256k1 is a supported EC JWK profile")
+    }
+}
+
+#[cfg(feature = "cose")]
+impl EncodeCose for Secp256k1PublicKey {
+    fn encode_cose(&self) -> PublicKeyCose {
+        let point = self.curve_point();
+        PublicKeyCose::new_ec(CoseCurve::Secp256k1, point.x, point.y)
+            .expect("secp256k1 is a supported EC2 COSE profile")
     }
 }

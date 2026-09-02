@@ -4,7 +4,7 @@
 //! implementation that the TypeScript, Swift, and KMP bindings are ported
 //! *from*. It owns **primitive crypto operations on key material** (bytes-in,
 //! bytes-out): concrete curve key types (Ed25519, X25519, secp256k1, P-256)
-//! with full sign/verify/generate, encoding/JWK trait polymorphism, SHA-2
+//! with full sign/verify/generate, encoding/JWK/COSE trait polymorphism, SHA-2
 //! hashing, hierarchical derivation (BIP32/SLIP-0010/BIP39), and Ed25519→X25519
 //! conversion. Sits in the `domain-primitives` layer and depends only on
 //! `identus-core` (plus workspace-level external crates).
@@ -30,6 +30,8 @@ pub mod securerandom;
 
 #[cfg(feature = "base64")]
 pub mod base64;
+#[cfg(feature = "cose")]
+pub mod cose;
 #[cfg(feature = "hash")]
 pub mod hash;
 #[cfg(feature = "hex")]
@@ -51,6 +53,11 @@ pub use securerandom::SecureRandom;
 
 #[cfg(feature = "base64")]
 pub use base64::Base64UrlStrNoPad;
+#[cfg(feature = "cose")]
+pub use cose::{
+    CoseCoordinate, CoseCurve, CoseEcY, CoseKeyError, CoseKeyType, EncodeCose,
+    MAX_COSE_ADDITIONAL_PARAMETERS, MAX_COSE_KEY_BYTES, MAX_COSE_NESTING_DEPTH, PublicKeyCose,
+};
 #[cfg(feature = "hash")]
 pub use hash::{Sha256Digest, Sha512Digest, sha256, sha512};
 #[cfg(feature = "hex")]

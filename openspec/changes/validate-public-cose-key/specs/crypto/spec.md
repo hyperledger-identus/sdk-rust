@@ -18,8 +18,9 @@ labels and allow no more than 32 additional top-level parameters. Common and
 unknown public parameters SHALL survive parse/encode without being interpreted
 or exposed as third-party wire types. Floating-point extension values SHALL be
 rejected. The encoder SHALL normalize known registry names to integers and
-emit definite-length, shortest-form CBOR with recursively bytewise-
-lexicographically sorted map keys.
+emit definite-length, shortest-form CBOR with recursively length-first map-key
+ordering: shorter deterministic key encodings first, then bytewise lexical
+order for keys of equal length.
 
 #### Scenario: registered OKP and EC2 fixtures are accepted
 
@@ -70,7 +71,8 @@ lexicographically sorted map keys.
 - **WHEN** a valid key contains bounded common or unknown public parameters
   without floating-point values
 - **THEN** repeated `to_cbor` calls SHALL return identical bytes with RFC 8949
-  map ordering and parsing those bytes SHALL retain equivalent parameters
+  length-first map ordering and parsing those bytes SHALL retain equivalent
+  parameters
 
 #### Scenario: curve encoders preserve public key bytes
 

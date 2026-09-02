@@ -8,19 +8,19 @@
 
 ## 2. Validated public COSE Key
 
-- [ ] 2.1 Add optional workspace `coset`, the `cose` feature and SDK-owned
+- [x] 2.1 Add optional workspace `coset`, the `cose` feature and SDK-owned
       typed public-key representation plus redaction-safe errors
-- [ ] 2.2 Implement bounded exact-end parsing, structural/private validation,
+- [x] 2.2 Implement bounded exact-end parsing, structural/private validation,
       extension retention and deterministic recursive CBOR encoding
-- [ ] 2.3 Implement full-coordinate JWK conversions and compressed-point
+- [x] 2.3 Implement full-coordinate JWK conversions and compressed-point
       rejection without importing algorithm policy
-- [ ] 2.4 Implement `EncodeCose` for all four current curve public keys
+- [x] 2.4 Implement `EncodeCose` for all four current curve public keys
 
 ## 3. Conformance and misuse resistance
 
-- [ ] 3.1 Add assigned/text registry, OKP/EC2, compressed/full, deterministic
+- [x] 3.1 Add assigned/text registry, OKP/EC2, compressed/full, deterministic
       and extension round-trip fixtures
-- [ ] 3.2 Add negative tests for every recorded shape, private, duplicate,
+- [x] 3.2 Add negative tests for every recorded shape, private, duplicate,
       trailing, tag, resource and redaction threat
 - [ ] 3.3 Run focused, workspace, no-default, minimal-feature, wasm, MSRV,
       conformance, lint, formatting, docs, supply-chain, OpenSpec and Nix gates

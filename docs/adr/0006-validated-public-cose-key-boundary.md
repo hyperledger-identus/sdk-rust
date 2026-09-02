@@ -29,9 +29,10 @@ format into the generic SDK.
    profiles, malformed coordinates, more than 32 additional parameters and
    floating-point extension values.
 5. Known identifiers normalize to assigned integers. Encoding recursively
-   emits definite-length, preferred integer forms with RFC 8949 bytewise map
-   ordering. Unknown public/common parameters round trip but are not treated as
-   authorization or trust policy.
+   emits definite-length, preferred integer forms with RFC 8949 length-first
+   map ordering (encoded-key length, then bytewise lexical order). Unknown
+   public/common parameters round trip but are not treated as authorization or
+   trust policy.
 6. Full-coordinate COSE and JWK values convert without changing key material.
    Format-specific metadata is not translated, and compressed EC2-to-JWK
    conversion fails rather than introducing curve decompression.

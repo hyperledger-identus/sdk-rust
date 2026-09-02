@@ -102,10 +102,11 @@ selected codec does not emit half-precision floats and therefore cannot
 guarantee RFC 8949 preferred serialization for them.
 
 `to_cbor` recursively normalizes known identifiers, uses definite lengths and
-shortest integers, and sorts each map by the bytewise lexicographic order of
-the deterministic key encodings from RFC 8949 section 4.2.1. Duplicate nested
-map keys are rejected. The same byte sequence is produced for repeated
-serialization of the same value.
+shortest integers, and sorts each map using RFC 8949 section 4.2.1 length-first
+ordering: shorter deterministic key encodings precede longer ones, with
+bytewise lexical order as the tie-breaker. Duplicate nested map keys are
+rejected. The same byte sequence is produced for repeated serialization of
+the same value.
 
 The bounds are intentionally conservative for key objects and can be widened
 by a later evidence-backed issue. They are not a generic CBOR document limit.

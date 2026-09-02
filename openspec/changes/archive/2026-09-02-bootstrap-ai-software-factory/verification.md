@@ -50,3 +50,16 @@ One baseline toolchain-specific diagnostic remains: host Rust 1.95
 
 Independent maintainer review and repository-hosted CI remain required before
 merge.
+
+## Readiness receipt
+
+Generated after the signed implementation commit passed `factory ready`:
+
+```text
+Change: bootstrap-ai-software-factory
+Branch: codex/ai-software-factory
+Head SHA: 0e78abb9e5974f976427a37d6ab3a475abb164a1
+Develop merge base: 279aefa3bad42aacf79a022fc7d39fdc80f4ce7b
+Factory contract: passed
+Product-specific gates: not asserted; attach their outputs separately
+```

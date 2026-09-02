@@ -8,6 +8,7 @@
   gitMinimal,
   gnugrep,
   openspec,
+  python3,
 }:
 
 stdenvNoCC.mkDerivation {
@@ -22,6 +23,7 @@ stdenvNoCC.mkDerivation {
     gitMinimal
     gnugrep
     openspec
+    python3
   ];
 
   buildPhase = "true";

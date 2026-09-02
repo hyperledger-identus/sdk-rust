@@ -11,16 +11,21 @@ checker="$repository_root/scripts/check-factory.sh"
 fixture_root=$(mktemp -d)
 trap 'rm -rf "$fixture_root"' EXIT
 
+"$repository_root/scripts/tests/ssi-upstream-backlog.py"
+
 required_files=(
   AGENTS.md
   CONTRIBUTING.md
   docs/factory/README.md
+  docs/architecture/ssi-upstream-source-matrix.md
+  docs/roadmap/ssi-upstream-dependency-backlog.csv
   docs/governance/agentic-sdlc.md
   docs/governance/repository-settings.md
   docs/adr/0003-delegate-develop-integration.md
   openspec/config.yaml
   scripts/factory
   scripts/check-factory.sh
+  scripts/check-ssi-upstream-backlog.py
   scripts/check-pr-policy.sh
   scripts/tests/factory-contract.sh
   scripts/tests/pr-policy.sh
@@ -33,10 +38,18 @@ required_files=(
 
 for relative_path in "${required_files[@]}"; do
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
-  : >"$fixture_root/$relative_path"
+  case "$relative_path" in
+    docs/architecture/ssi-upstream-source-matrix.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | scripts/check-ssi-upstream-backlog.py)
+      cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
+      ;;
+    *)
+      : >"$fixture_root/$relative_path"
+      ;;
+  esac
 done
 chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" \
   "$fixture_root/scripts/check-pr-policy.sh" \
+  "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/tests/factory-contract.sh" \
   "$fixture_root/scripts/tests/pr-policy.sh"
 

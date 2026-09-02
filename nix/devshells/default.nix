@@ -28,6 +28,7 @@
 
             # protobuf (for codegen of identus protos)
             protobuf
+            python3
 
             # workspace-consistency tooling
             just

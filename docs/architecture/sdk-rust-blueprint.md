@@ -10,8 +10,14 @@ outside the current integration/release flow
 
 **Bootstrap decision:** [ADR 0001](../adr/0001-bootstrap-branch-selection.md)
 
-**Initial downstreams:** `midnight-identity`, neoprism, Oxid and the Identus
-SDK family; adoption remains downstream-owned
+**Initial downstreams:** `midnight-identity`, NeoPRISM, Lace ID Portal, Oxid
+and the Identus SDK family; adoption remains downstream-owned
+
+**Canonical component program:**
+[SDK SSI upstream dependency backlog](../roadmap/ssi-upstream-dependency-backlog.csv),
+with immutable donor classifications in the
+[source matrix](ssi-upstream-source-matrix.md) and coordination in
+[issue #20](https://github.com/hyperledger-identus/sdk-rust/issues/20)
 
 ## 1. Mission
 
@@ -150,6 +156,13 @@ an ADR and dependency-cone evidence.
 
 ## 6. Delivery program
 
+The `B00`–`B12` sequence below explains program intent. The canonical CSV is
+the machine-checkable delivery ledger for the thirty SDK-owned `IDR-*` rows.
+Its `commitment` records the portfolio decision, while `delivery_status`
+records actual progress; a `Foundation` or `Committed` row is not evidence that
+the component exists. Rows still linked to #20 are queued program work and
+receive a focused issue before implementation.
+
 ### B00 — `develop` selection and governance
 
 Create `develop` at the selected seed revision. Deliver this blueprint,
@@ -197,9 +210,11 @@ runtime coupling.
 ### B04 — Apollo convergence (`#9`)
 
 Harden the selected baseline's validated newtype, crypto and derivation work,
-then reconcile it with neoprism's `identus-apollo` and the existing KMP Apollo
-behavior. Preserve published vectors and the explicitly profiled PRISM legacy
-verification path.
+then reconcile it with NeoPRISM's Rust `lib/apollo` and the existing Kotlin
+Multiplatform Apollo behavior. Apollo supplies compatibility behavior and
+vectors; it is not a Rust source port. Preserve published vectors and the
+explicitly profiled PRISM legacy verification path without deciding the final
+crate brand or Apollo repository lifecycle in the component implementation.
 
 **Exit:** stable/wasm gates pass, sensitive material is zeroized/redacted, and
 neoprism plus KMP differential vectors pass. Midnight Jubjub remains outside.
@@ -270,6 +285,11 @@ Every implementation issue and PR records:
 - security, docs and conformance review requirements;
 - candidate version, rollback and downstream adoption issue;
 - confirmation that consumer repositories were read-only.
+
+The source matrix classification (`extract`, `adapt`, `conformance-only`, or
+`remain-downstream`) is recorded before a port. A downstream deletion or
+dependency repoint follows only after an immutable compatible SDK candidate;
+it is never part of the upstream implementation issue.
 
 ## 8. Assurance model
 

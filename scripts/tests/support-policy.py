@@ -92,6 +92,14 @@ class SupportPolicyTests(unittest.TestCase):
             result.stderr,
         )
 
+    def test_check_graph_must_be_imported_by_flake(self) -> None:
+        self.replace("flake.nix", "        ./nix/checks\n", "")
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "flake.nix does not import the nix/checks module", result.stderr
+        )
+
     def test_gate_without_target_evidence_fails(self) -> None:
         self.replace(
             "nix/checks/rust-build-wasm32.nix",
@@ -184,6 +192,34 @@ class SupportPolicyTests(unittest.TestCase):
             result.stderr,
         )
 
+    def test_workspace_feature_gate_cannot_exclude_a_package(self) -> None:
+        self.replace(
+            "nix/checks/rust-test.nix",
+            "--workspace --no-fail-fast --no-tests=pass",
+            "--workspace --exclude identus-crypto --no-fail-fast --no-tests=pass",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "feature workspace-default gate rust-test selects packages",
+            result.stderr,
+        )
+        self.assertIn("excludes=['identus-crypto']", result.stderr)
+
+    def test_workspace_feature_gate_must_select_workspace_explicitly(self) -> None:
+        self.replace(
+            "nix/checks/rust-test.nix",
+            "--workspace --no-fail-fast --no-tests=pass",
+            "--no-fail-fast --no-tests=pass",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "feature workspace-default gate rust-test selects packages",
+            result.stderr,
+        )
+        self.assertIn("workspace=False", result.stderr)
+
     def test_every_feature_surface_requires_an_msrv_gate(self) -> None:
         self.replace(
             "nix/checks/rust-msrv.nix",
@@ -242,6 +278,67 @@ class SupportPolicyTests(unittest.TestCase):
         result = self.run_checker()
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("names unknown packages", result.stderr)
+
+    def test_duplicate_host_system_fails(self) -> None:
+        self.replace(
+            "docs/architecture/sdk-support-policy.toml",
+            "[[hosts]]",
+            """[[hosts]]
+nix_system = "x86_64-linux"
+rust_target = "contradictory"
+tier = "planned"
+gates = []
+limitation = "Contradictory duplicate."
+
+[[hosts]]""",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "policy contains duplicate host system 'x86_64-linux'", result.stderr
+        )
+
+    def test_duplicate_target_triple_fails(self) -> None:
+        self.replace(
+            "docs/architecture/sdk-support-policy.toml",
+            "[[targets]]",
+            """[[targets]]
+triple = "wasm32-unknown-unknown"
+surface = "contradictory"
+tier = "planned"
+packages = []
+limitation = "Contradictory duplicate."
+
+[[targets]]""",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "policy contains duplicate target triple 'wasm32-unknown-unknown'",
+            result.stderr,
+        )
+
+    def test_duplicate_feature_surface_fails(self) -> None:
+        self.replace(
+            "docs/architecture/sdk-support-policy.toml",
+            "[[features]]",
+            """[[features]]
+name = "workspace-default"
+package = "identus-core"
+no_default_features = false
+features = []
+gates = [ "rust-test" ]
+msrv_gate = "rust-msrv"
+evidence_token = "contradictory"
+
+[[features]]""",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "policy contains duplicate feature surface 'workspace-default'",
+            result.stderr,
+        )
 
 
 if __name__ == "__main__":

@@ -102,7 +102,28 @@ def workspace_packages(
 
 def imported_check_modules(root: Path, failures: list[str]) -> list[Path]:
     checks_root = (root / "nix/checks").resolve()
-    pending = [checks_root / "default.nix"]
+    checks_entry = checks_root / "default.nix"
+    flake_path = root / "flake.nix"
+    flake = flake_path.read_text(encoding="utf-8")
+    root_imports = re.search(
+        r"flake-parts\.lib\.mkFlake\s+\{[^{}]*\}\s+\{\s*"
+        r"imports\s*=\s*\[(.*?)\];",
+        flake,
+        re.DOTALL,
+    )
+    flake_imports: set[Path] = set()
+    if root_imports is not None:
+        import_block = re.sub(r"#.*$", "", root_imports.group(1), flags=re.MULTILINE)
+        for relative in re.findall(r"\./([A-Za-z0-9_./-]+)", import_block):
+            imported = (flake_path.parent / relative).resolve()
+            if imported.is_dir():
+                imported = imported / "default.nix"
+            flake_imports.add(imported)
+    if checks_entry not in flake_imports:
+        failures.append("flake.nix does not import the nix/checks module")
+        return []
+
+    pending = [checks_entry]
     visited: set[Path] = set()
     while pending:
         path = pending.pop()
@@ -179,21 +200,35 @@ def validate_gate(
         )
 
 
-def cargo_package_selection(definition: str) -> set[str]:
-    return set(
+def cargo_package_selection(
+    definition: str, workspace_packages: set[str]
+) -> tuple[set[str], set[str], bool]:
+    explicitly_selected = set(
         re.findall(
             r'(?:^|[\s"])(?:-p|--package)(?:=|\s+)([A-Za-z0-9_-]+)',
             definition,
         )
     )
+    excluded = set(
+        re.findall(
+            r'(?:^|[\s"])--exclude(?:=|\s+)([A-Za-z0-9_-]+)', definition
+        )
+    )
+    selects_workspace = bool(
+        re.search(r'(?:^|[\s"])(?:--workspace|--all)(?:\s|"|$)', definition)
+    )
+    selected = set(workspace_packages) if selects_workspace else explicitly_selected
+    return selected - excluded, excluded, selects_workspace
 
 
 def validate_gate_cargo_selection(
     gate: Any,
     declared_packages: set[str],
+    expects_workspace: bool,
     no_default_features: bool,
     declared_features: set[str],
     available_features: set[str] | None,
+    workspace_packages: set[str],
     sources: dict[str, list[tuple[Path, str]]],
     context: str,
     failures: list[str],
@@ -201,7 +236,9 @@ def validate_gate_cargo_selection(
     if not isinstance(gate, str) or len(sources.get(gate, [])) != 1:
         return
     path, definition = sources[gate][0]
-    selected_packages = cargo_package_selection(definition)
+    selected_packages, excluded_packages, selects_workspace = (
+        cargo_package_selection(definition, workspace_packages)
+    )
     actual_no_default = bool(
         re.search(r'(?:^|[\s"])--no-default-features(?:\s|"|$)', definition)
     )
@@ -226,15 +263,42 @@ def validate_gate_cargo_selection(
         )
     if (
         selected_packages != declared_packages
+        or selects_workspace != expects_workspace
+        or bool(excluded_packages)
         or actual_no_default != no_default_features
         or selected_features != declared_features
     ):
         failures.append(
             f"{context} gate {gate} selects packages {sorted(selected_packages)}, "
-            f"no_default_features={actual_no_default}, features={sorted(selected_features)}; "
+            f"workspace={selects_workspace}, excludes={sorted(excluded_packages)}, "
+            f"no_default_features={actual_no_default}, "
+            f"features={sorted(selected_features)}; "
             f"expected packages {sorted(declared_packages)}, "
+            f"workspace={expects_workspace}, "
             f"no_default_features={no_default_features}, features={sorted(declared_features)} in {path}"
         )
+
+
+def index_unique_policy_entries(
+    entries: list[Any],
+    key: str,
+    identity_name: str,
+    failures: list[str],
+) -> dict[str, dict[str, Any]]:
+    indexed: dict[str, dict[str, Any]] = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        identity = entry.get(key)
+        if not isinstance(identity, str):
+            continue
+        if identity in indexed:
+            failures.append(
+                f"policy contains duplicate {identity_name} {identity!r}"
+            )
+            continue
+        indexed[identity] = entry
+    return indexed
 
 
 def validate_msrv_builder(
@@ -335,7 +399,9 @@ def validate_hosts(
     if not isinstance(hosts, list):
         failures.append("policy is missing [[hosts]] entries")
         return
-    by_system = {host.get("nix_system"): host for host in hosts if isinstance(host, dict)}
+    by_system = index_unique_policy_entries(
+        hosts, "nix_system", "host system", failures
+    )
     if set(by_system) != set(REQUIRED_HOSTS):
         failures.append(
             f"policy hosts {sorted(str(value) for value in by_system)} do not match required hosts {sorted(REQUIRED_HOSTS)}"
@@ -366,7 +432,9 @@ def validate_targets(
     if not isinstance(targets, list):
         failures.append("policy is missing [[targets]] entries")
         return
-    by_triple = {target.get("triple"): target for target in targets if isinstance(target, dict)}
+    by_triple = index_unique_policy_entries(
+        targets, "triple", "target triple", failures
+    )
     if set(by_triple) != set(REQUIRED_TARGETS):
         failures.append(
             f"policy targets {sorted(str(value) for value in by_triple)} do not match required targets {sorted(REQUIRED_TARGETS)}"
@@ -434,9 +502,11 @@ def validate_targets(
             validate_gate_cargo_selection(
                 target.get("gate"),
                 set(declared_packages),
+                False,
                 no_default_features,
                 set(declared_features),
                 None,
+                packages,
                 sources,
                 f"target {triple}",
                 failures,
@@ -457,7 +527,9 @@ def validate_features(
     if not isinstance(features, list):
         failures.append("policy is missing [[features]] entries")
         return
-    by_name = {surface.get("name"): surface for surface in features if isinstance(surface, dict)}
+    by_name = index_unique_policy_entries(
+        features, "name", "feature surface", failures
+    )
     if set(by_name) != REQUIRED_FEATURE_SURFACES:
         failures.append(
             f"policy feature surfaces {sorted(str(value) for value in by_name)} do not match required surfaces {sorted(REQUIRED_FEATURE_SURFACES)}"
@@ -497,10 +569,12 @@ def validate_features(
             validate_gate(gate, token, sources, f"feature {name}", failures)
             validate_gate_cargo_selection(
                 gate,
-                set() if package == "*" else {package},
+                set(manifests) if package == "*" else {package},
+                package == "*",
                 surface.get("no_default_features"),
                 set(declared),
                 available_features,
+                set(manifests),
                 sources,
                 f"feature {name}",
                 failures,
@@ -515,10 +589,12 @@ def validate_features(
         )
         validate_gate_cargo_selection(
             msrv_gate,
-            set() if package == "*" else {package},
+            set(manifests) if package == "*" else {package},
+            package == "*",
             surface.get("no_default_features"),
             set(declared),
             available_features,
+            set(manifests),
             sources,
             f"feature {name} MSRV",
             failures,

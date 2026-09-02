@@ -20,7 +20,7 @@ Verified on 2026-09-03 from `codex/r0-boundary-support-policy`, based on
 | Gate | Result |
 | --- | --- |
 | `scripts/check-support-policy.py` | Passed the canonical Cargo/Nix/policy contract |
-| `scripts/tests/support-policy.py` | Passed 17 positive and adversarial drift tests |
+| `scripts/tests/support-policy.py` | Passed 23 positive and adversarial drift tests |
 | `scripts/tests/ssi-upstream-backlog.py` | Passed 6 canonical backlog tests |
 | `cargo test -p identus-conformance` | Passed all 20 conformance tests |
 | `scripts/tests/factory-contract.sh` | Passed support, backlog, PR and factory contract suites |

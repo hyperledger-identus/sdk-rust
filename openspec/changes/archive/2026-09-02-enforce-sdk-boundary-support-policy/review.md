@@ -77,6 +77,18 @@ acceptance evidence.
   redirect neutral package names outside the repository without a lockfile
   source. The boundary guard now applies identity, Git/source and canonical-path
   checks to both override forms.
+- Exact-head hosted review found that seeding discovery directly at
+  `nix/checks/default.nix` could accept a check tree detached from `flake.nix`.
+  Discovery now proves the root flake import before traversing check modules,
+  with a flake-import removal regression.
+- Exact-head hosted review found that an empty explicit package selection could
+  treat `--workspace --exclude <package>` as complete workspace coverage. Gate
+  comparison now requires explicit workspace mode, resolves the effective
+  workspace package set and rejects every exclusion, with package-loss and
+  implicit-default regressions.
+- Exact-head hosted review found that duplicate host, target or feature keys
+  were silently resolved using one entry. Policy indexing now rejects every
+  duplicate normative identity, with a regression for each entry type.
 
 ## Final result
 
@@ -85,7 +97,7 @@ acceptance evidence.
 | Boundary coverage | Direct aliases/packages, every dependency-table and override kind, donor Git/path locations and lockfile closure are enforced |
 | Compatibility truth | Host-tested, compile-only, planned and unsupported states are separate and machine-validated |
 | Actual target evidence | Rust 1.85, browser WASM, Android ARM64 and iOS ARM64 commands were observed in successful Nix build logs |
-| Feature isolation | Crypto minimal/KMP and entropy minimal/deterministic/getrandom/all surfaces have exact nightly and MSRV gates |
+| Feature isolation | Workspace defaults plus crypto minimal/KMP and entropy minimal/deterministic/getrandom/all surfaces have exact nightly and MSRV package/feature gates without exclusions |
 | Public/runtime impact | No runtime API, FFI, release, downstream migration or certification promise is introduced |
 | Repository boundary | Apollo, NeoPRISM, midnight-identity, Lace ID Portal and Oxid were not edited or built |
 | Blocking findings | 0 |

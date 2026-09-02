@@ -38,13 +38,15 @@ requires a reviewed policy change and matching Cargo/Nix evidence.
 Workspace defaults, crypto without default features, KMP compatibility and the
 entropy adapter empty/deterministic/system-random combinations are isolated
 build or test surfaces on both the MSRV and etalon toolchains. The structural
-validator compares each gate's exact package, default-feature mode and feature
-set with the machine policy. `--all-features` supplements these checks; it
-cannot replace them because Cargo feature unification can hide incorrect gates.
+validator compares each gate's effective package set, explicit workspace mode,
+workspace exclusions, default-feature mode and feature set with the machine
+policy. `--all-features` supplements these checks; it cannot replace them
+because Cargo feature unification can hide incorrect gates. Duplicate host,
+target or feature keys are rejected as ambiguous policy.
 
-Only gates reachable from `nix/checks/default.nix` through literal module
-imports count as evidence. A derivation left behind in an orphaned Nix file is
-not a compatibility gate.
+Only gates reachable from `flake.nix` through `nix/checks/default.nix` and its
+literal module imports count as evidence. A detached check tree or a derivation
+left behind in an orphaned Nix file is not a compatibility gate.
 
 ## FFI and platform runtime
 

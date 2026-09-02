@@ -10,7 +10,7 @@
       checks.rust-test = craneLib.cargoNextest {
         inherit cargoArtifacts;
         src = rustSrc;
-        cargoNextestExtraArgs = "--no-fail-fast --no-tests=pass";
+        cargoNextestExtraArgs = "--workspace --no-fail-fast --no-tests=pass";
       };
     };
 }

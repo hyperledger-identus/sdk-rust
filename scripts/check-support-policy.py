@@ -139,10 +139,38 @@ def validate_gate(
     if not definitions:
         failures.append(f"{context} references undefined Nix gate {gate}")
         return
+    if len(definitions) != 1:
+        paths = ", ".join(str(path) for path, _ in definitions)
+        failures.append(
+            f"{context} gate {gate} must have exactly one definition, found {len(definitions)} in {paths}"
+        )
+        return
     if evidence_token and not any(evidence_token in text for _, text in definitions):
         paths = ", ".join(str(path) for path, _ in definitions)
         failures.append(
             f"{context} gate {gate} does not contain evidence token {evidence_token!r} in {paths}"
+        )
+
+
+def validate_gate_packages(
+    gate: Any,
+    declared_packages: set[str],
+    sources: dict[str, list[tuple[Path, str]]],
+    context: str,
+    failures: list[str],
+) -> None:
+    if not isinstance(gate, str) or len(sources.get(gate, [])) != 1:
+        return
+    path, definition = sources[gate][0]
+    selected_packages = set(
+        re.findall(
+            r"(?:^|\s)(?:-p|--package)(?:=|\s+)([A-Za-z0-9_-]+)",
+            definition,
+        )
+    )
+    if selected_packages != declared_packages:
+        failures.append(
+            f"{context} gate {gate} selects packages {sorted(selected_packages)}, expected {sorted(declared_packages)} in {path}"
         )
 
 
@@ -290,6 +318,13 @@ def validate_targets(
             )
             validate_gate(
                 target.get("gate"), evidence_token, sources, f"target {triple}", failures
+            )
+            validate_gate_packages(
+                target.get("gate"),
+                set(declared_packages),
+                sources,
+                f"target {triple}",
+                failures,
             )
         elif declared_packages:
             failures.append(f"planned target {triple} must not claim eligible packages")

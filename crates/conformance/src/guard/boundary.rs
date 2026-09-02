@@ -69,10 +69,26 @@ fn denied_identity(identity: &str) -> Option<&'static str> {
 
 fn denied_source(source: &str) -> Option<&'static str> {
     let normalized = source.to_ascii_lowercase();
-    DENIED_SOURCE_IDENTITIES
+    let exact_source = DENIED_SOURCE_IDENTITIES
         .iter()
         .find(|(_, needle)| normalized.contains(needle))
-        .map(|(label, _)| *label)
+        .map(|(label, _)| *label);
+    if exact_source.is_some() {
+        return exact_source;
+    }
+
+    let without_fragment = source.split('#').next().unwrap_or(source);
+    let without_query = without_fragment
+        .split('?')
+        .next()
+        .unwrap_or(without_fragment);
+    let repository = without_query
+        .trim_end_matches('/')
+        .trim_end_matches(".git")
+        .rsplit(|character| ['/', ':'].contains(&character))
+        .next()
+        .unwrap_or_default();
+    denied_identity(repository)
 }
 
 fn collect_dependency_table(
@@ -364,6 +380,29 @@ fn donor_git_sources_are_enforced_even_behind_neutral_aliases() {
         let violations = direct_dependency_violations(&manifest, &root, &root);
         assert_eq!(violations.len(), 1, "source {repository} was not enforced");
         assert!(violations[0].contains("dependency `neutral`"));
+    }
+}
+
+#[test]
+fn prohibited_repository_families_are_enforced_behind_neutral_git_packages() {
+    let root = workspace_root();
+    for repository in [
+        "example/compact-runtime",
+        "example/cardano-client",
+        "example/pallas-network",
+        "example/prism-ledger",
+    ] {
+        let manifest: toml::Value = toml::from_str(&format!(
+            "[dependencies]\nneutral = {{ package = \"neutral\", git = \"ssh://git@github.com/{repository}.git\" }}"
+        ))
+        .expect("valid synthetic manifest");
+        let violations = direct_dependency_violations(&manifest, &root, &root);
+        assert_eq!(
+            violations.len(),
+            1,
+            "source family {repository} was not enforced"
+        );
+        assert!(violations[0].contains("references prohibited"));
     }
 }
 

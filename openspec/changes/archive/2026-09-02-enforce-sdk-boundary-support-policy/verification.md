@@ -9,7 +9,7 @@ Verified on 2026-09-03 from `codex/r0-boundary-support-policy`, based on
 | --- | --- |
 | GitHub coordination | Focused issue #22 was created before implementation |
 | Program scope | `IDR-002` and `IDR-003` only; `IDR-001` and later component rows remain open |
-| Dependency boundary | Seven synthetic/real conformance tests cover aliases, package identity, all table kinds, sources, paths and closure |
+| Dependency boundary | Eight synthetic/real conformance tests cover aliases, package identity, all table kinds, sources, paths and closure |
 | Compatibility source | One TOML contract plus bounded human explanation |
 | Toolchains | Rust `1.85.0` is independent from NeoPRISM-etalon nightly `2026-03-18` |
 | Compile-only targets | Browser WASM, Android ARM64 and iOS ARM64 build the four implemented portable packages |
@@ -20,9 +20,9 @@ Verified on 2026-09-03 from `codex/r0-boundary-support-policy`, based on
 | Gate | Result |
 | --- | --- |
 | `scripts/check-support-policy.py` | Passed the canonical Cargo/Nix/policy contract |
-| `scripts/tests/support-policy.py` | Passed 8 positive and adversarial drift tests |
+| `scripts/tests/support-policy.py` | Passed 9 positive and adversarial drift tests |
 | `scripts/tests/ssi-upstream-backlog.py` | Passed 6 canonical backlog tests |
-| `cargo test -p identus-conformance` | Passed all 18 conformance tests |
+| `cargo test -p identus-conformance` | Passed all 19 conformance tests |
 | `scripts/tests/factory-contract.sh` | Passed support, backlog, PR and factory contract suites |
 | `scripts/factory validate enforce-sdk-boundary-support-policy` | Strict validation passed |
 | `scripts/factory check` | Passed current specs and the complete active change |
@@ -31,7 +31,7 @@ Verified on 2026-09-03 from `codex/r0-boundary-support-policy`, based on
 
 The full Nix gate includes formatting; Nix/TOML/text hygiene; factory/OpenSpec;
 Rust `1.85.0`; nightly clippy, docs and dependency policy; default and
-KMP-compatible 111-test runs; isolated feature surfaces; and real release
+KMP-compatible 112-test runs; isolated feature surfaces; and real release
 build commands for `wasm32-unknown-unknown`, `aarch64-linux-android` and
 `aarch64-apple-ios`.
 

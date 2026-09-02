@@ -106,6 +106,19 @@ class SupportPolicyTests(unittest.TestCase):
             result.stderr,
         )
 
+    def test_target_gate_must_build_every_declared_package(self) -> None:
+        self.replace(
+            "nix/checks/rust-build-wasm32.nix",
+            " -p identus-adapters-entropy --features",
+            " --features",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "target wasm32-unknown-unknown gate rust-build-wasm32 selects packages",
+            result.stderr,
+        )
+
     def test_ignored_crane_build_attribute_fails(self) -> None:
         self.replace(
             "nix/checks/rust-build-wasm32.nix",

@@ -52,6 +52,13 @@ acceptance evidence.
   token. Neighboring mobile gates could therefore mask a swapped command. It
   now scopes evidence to the exact Crane derivation block, with a regression
   that swaps the Android and iOS targets.
+- Hosted review found that exact donor URLs did not reject a neutral package
+  hosted in another prohibited-family repository. Source validation now also
+  checks the normalized repository basename, with Compact/Cardano/Pallas/PRISM
+  family regressions.
+- Hosted review found that a target gate could retain its triple while dropping
+  a claimed package. The policy validator now compares every gate's exact
+  `-p` package set to the machine contract, with a package-loss regression.
 
 ## Final result
 

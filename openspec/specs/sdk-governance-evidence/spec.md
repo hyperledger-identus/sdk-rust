@@ -53,7 +53,8 @@ establishes approved namespace and protected ownership.
 
 Every package classified `placeholder` SHALL contain only crate documentation,
 an `identus_core::Component` import and its public `COMPONENT` constant. Its
-normal workspace dependency set SHALL be exactly `identus-core`, with no
+normal workspace dependency set SHALL be exactly
+`identus-core.workspace = true`, with no package-level custom build script,
 development, build, target, feature, binary or example surface. Its public API
 status SHALL be `none`.
 
@@ -62,6 +63,18 @@ status SHALL be `none`.
 - **WHEN** a placeholder declares another dependency or feature before its
   component contract is accepted
 - **THEN** structural validation fails
+
+#### Scenario: Placeholder redirects its core dependency
+
+- **WHEN** a placeholder replaces workspace inheritance with a registry,
+  Git or alternate path declaration for `identus-core`
+- **THEN** structural validation fails before Cargo can resolve the substitute
+
+#### Scenario: Placeholder declares a custom build-script path
+
+- **WHEN** a placeholder sets package-level `build` metadata, including a
+  source path whose extension is not `.rs`
+- **THEN** structural validation fails before Cargo can execute build-time code
 
 #### Scenario: Placeholder gains an apparent API
 

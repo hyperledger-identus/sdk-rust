@@ -374,11 +374,18 @@ def validate_packages(
         manifest = load_toml(root / workspace_path / "Cargo.toml", failures, f"{name} manifest")
         classification = entry.get("classification")
         if classification == "placeholder":
+            package = manifest.get("package")
+            if isinstance(package, dict) and "build" in package:
+                failures.append(f"{name}: placeholder must not declare package.build")
             dependencies = manifest.get("dependencies")
             if not isinstance(dependencies, dict) or set(dependencies) != {"identus-core"}:
                 actual = sorted(dependencies) if isinstance(dependencies, dict) else []
                 failures.append(
                     f"{name}: placeholder dependencies must be exactly identus-core; received {','.join(actual)}"
+                )
+            elif dependencies.get("identus-core") != {"workspace": True}:
+                failures.append(
+                    f"{name}: identus-core must inherit the workspace dependency"
                 )
             for section in ("dev-dependencies", "build-dependencies", "features", "target", "bin", "example"):
                 if section in manifest:

@@ -55,6 +55,18 @@ authority, factory integration and claims about live GitHub state.
   though its contract derives exact package coverage from Cargo. The count is
   now read from the validated inventory so routine package changes cannot leave
   misleading success output.
+- Exact-head hosted review demonstrated that checking only the dependency key
+  allowed a placeholder to redirect `identus-core` to a registry or alternate
+  source. The validator now requires the exact workspace-inheritance value,
+  with an adversarial registry-substitution test.
+- Exact-head hosted review demonstrated that `package.build` could point to a
+  non-`.rs` source omitted by the placeholder file scan. Package-level custom
+  build scripts are now rejected explicitly, with an executable-source
+  regression.
+- A hosted signing finding named commit `188b12a6`, which is not in the PR's
+  four-commit set or local branch history. GitHub's authoritative commit API
+  reports all four PR commits verified with reason `valid`; every commit has a
+  DCO trailer and the DCO gate passes. No foreign commit was rewritten.
 
 ## Final result
 

@@ -160,6 +160,41 @@ class BootstrapInventoryTests(unittest.TestCase):
             result.stderr,
         )
 
+    def test_placeholder_core_dependency_must_inherit_workspace(self) -> None:
+        manifest = self.root / "crates/agent/Cargo.toml"
+        manifest.write_text(
+            manifest.read_text(encoding="utf-8").replace(
+                "identus-core.workspace = true", 'identus-core = "0.0.0"', 1
+            ),
+            encoding="utf-8",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "identus-agent: identus-core must inherit the workspace dependency",
+            result.stderr,
+        )
+
+    def test_placeholder_custom_build_script_fails(self) -> None:
+        manifest = self.root / "crates/agent/Cargo.toml"
+        manifest.write_text(
+            manifest.read_text(encoding="utf-8").replace(
+                '[package]\nname                   = "identus-agent"',
+                '[package]\nname                   = "identus-agent"\nbuild                  = "build-script"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        (self.root / "crates/agent/build-script").write_text(
+            "fn main() {}\n", encoding="utf-8"
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "identus-agent: placeholder must not declare package.build",
+            result.stderr,
+        )
+
     def test_placeholder_source_drift_fails(self) -> None:
         source = self.root / "crates/agent/src/lib.rs"
         source.write_text(source.read_text(encoding="utf-8") + "\npub struct Agent;\n", encoding="utf-8")

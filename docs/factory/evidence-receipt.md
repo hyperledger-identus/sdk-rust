@@ -5,6 +5,7 @@ mark an unrun or partially run gate as passed.
 
 ```text
 Change and issue:
+Pull-request issue reference:
 OpenSpec change/archive:
 Branch:
 Head SHA:
@@ -20,6 +21,8 @@ Focused commands passed:
 Repository commands passed:
 Commands not run and why:
 Coverage/conformance evidence:
+Local review context and result:
+Local review findings resolved:
 Semantic review:
 Security review:
 Consumer preflight HEAD/status:

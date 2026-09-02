@@ -21,12 +21,15 @@ Do not attach checks that cannot run on its intentionally minimal tree.
 - block deletion and non-fast-forward updates;
 - require verified commit signatures and DCO;
 - require pull requests and prohibit direct pushes after bootstrap creation;
-- require two approvals for code, public API, security, crypto, protocol,
-  governance and release changes; one for administrative-only changes;
-- dismiss stale approvals when code changes;
-- require CODEOWNERS review where ownership is configured;
+- require the stable PR-policy and applicable implementation checks to pass;
+- set no blanket human-approval minimum for `develop`; issue-approved scope,
+  recorded local review and green required CI delegate merge authority to
+  humans and agents;
+- keep CODEOWNERS and specialist reviews advisory unless an accepted issue or
+  risk-specific ruleset makes one blocking;
 - require all review threads resolved;
 - require branches current with `develop` or use a merge queue;
+- allow auto-merge so an eligible PR can enter the queue while checks run;
 - prohibit bypass except the documented Hyperledger emergency path.
 
 ## Required checks on `develop`
@@ -34,6 +37,7 @@ Do not attach checks that cannot run on its intentionally minimal tree.
 Checks should converge on stable names so rules survive workflow refactors:
 
 - `DCO`;
+- `pull-request-policy`;
 - `factory-contract`;
 - `file-hygiene`;
 - `rust-fmt`;
@@ -52,6 +56,10 @@ CodeQL must not be represented as Rust coverage unless GitHub supports Rust for
 this repository. A ruleset must never require an impossible or differently
 named check. During baseline stabilization, required checks are enabled only
 after the workflow exists and has succeeded on `develop`.
+
+The `pull-request-policy` check requires a ready PR targeting `develop`, a
+corresponding issue reference and completed local review evidence. Missing,
+pending, cancelled or failing required checks block both human and agent merges.
 
 ## Workflow security
 

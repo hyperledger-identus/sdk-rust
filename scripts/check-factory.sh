@@ -15,13 +15,19 @@ required_files=(
   CONTRIBUTING.md
   docs/factory/README.md
   docs/governance/agentic-sdlc.md
+  docs/governance/repository-settings.md
+  docs/adr/0003-delegate-develop-integration.md
   openspec/config.yaml
   scripts/factory
   scripts/check-factory.sh
+  scripts/check-pr-policy.sh
   scripts/tests/factory-contract.sh
+  scripts/tests/pr-policy.sh
   .github/ISSUE_TEMPLATE/component-change.yml
+  .github/ISSUE_TEMPLATE/delivery-task.yml
   .github/pull_request_template.md
   .github/workflows/factory-contract.yml
+  .github/workflows/pull-request-policy.yml
 )
 
 for relative_path in "${required_files[@]}"; do
@@ -30,7 +36,7 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in scripts/factory scripts/check-factory.sh scripts/tests/factory-contract.sh; do
+for executable_path in scripts/factory scripts/check-factory.sh scripts/check-pr-policy.sh scripts/tests/factory-contract.sh scripts/tests/pr-policy.sh; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi

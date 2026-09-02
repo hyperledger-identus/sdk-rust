@@ -1,24 +1,27 @@
 # Agentic SDLC
 
 The SDK is AI-first: agents may perform planning, implementation, testing,
-review and maintenance, while human maintainers retain product intent,
-governance, security disclosure, merge and release authority.
+review, maintenance and CI-gated integration into `develop`. Human maintainers
+retain product intent, scope acceptance, repository administration, security
+disclosure, publishing, promotion to `main` and release authority.
 
 ## Roles
 
 | Role | Output | Cannot authorize |
 | --- | --- | --- |
-| Product/manager agent | issue framing, sequencing, dependencies and status | scope expansion, release or governance change |
+| Product/manager agent | issue framing, sequencing, dependencies and status | scope expansion, release or initiating governance change |
 | Planner agent | standards inventory, contract, ADR and acceptance plan | treating a proposal as accepted |
-| Engineer agent | one component slice and its tests/docs | cross-repository adoption or merge |
+| Engineer agent | one component slice, tests/docs and a feature-branch PR | cross-repository adoption, release or `main` promotion |
 | Conformance agent | fixture provenance, differential results and drift checks | standards interpretation alone |
 | Review agent | independent findings with severity/evidence | self-approval or dismissal of security findings |
 | Security agent | threat analysis, negative tests and dependency review | embargo handling or public disclosure |
 | Release agent | reproducible receipt and artifact verification | publishing without protected human approval |
-| Maintainer agent | backlog hygiene and stale-evidence reports | human maintainer status |
+| Maintainer agent | backlog hygiene, CI triage and eligible `develop` merge | human maintainer status or branch-protection bypass |
 
-The same model may execute several roles, but independent review means a fresh
-review context and a human accountable for accepting the result.
+The same model may execute several roles, but a distinct local review means a
+fresh review pass or context with its findings recorded. Human approval of
+product scope remains the accountable source of intent; a new human approval is
+not required for an eligible `develop` merge.
 
 All roles use the executable lifecycle in the
 [AI Software Factory handbook](../factory/README.md). Client-specific prompts
@@ -36,11 +39,14 @@ source-audited ──► contract-approved ──► implementation
                                   verified candidate
                                             │
                                             ▼
-                                  reviewed + released
+                              local review + issue-linked PR
+                                            │
+                                            ▼
+                                  green CI + develop merge
                                             │
                          ┌──────────────────┴───────────────┐
                          ▼                                  ▼
-                downstream adoption                next component slice
+                protected release                  next component slice
 ```
 
 An agent cannot skip `contract-approved` for behavior, public API,
@@ -69,9 +75,14 @@ The agent then:
 6. runs proportional gates and reports unrun gates exactly;
 7. produces a standalone consumer-shaped proof when needed;
 8. verifies consumer HEAD/status did not change;
-9. opens a draft PR with the evidence receipt;
-10. stops before push, merge, release or consumer adoption unless explicitly
-   authorized by the responsible human.
+9. completes and records a distinct local review pass;
+10. pushes the focused branch and opens a ready, issue-linked pull request
+    targeting `develop`;
+11. monitors required CI and merges the eligible pull request into `develop`
+    when every gate is green and no blocking review remains;
+12. stops before release, publication, `main` promotion, repository
+    administration, security disclosure or consumer adoption unless explicitly
+    authorized by the responsible human.
 
 Before final review, the agent runs `scripts/factory ready <change>` and
 `scripts/factory receipt <change>`, syncs accepted delta specs and archives the
@@ -114,7 +125,7 @@ Threats and bounds:
 Commands passed:
 Commands not run and why:
 Coverage/conformance evidence:
-Security/docs review:
+Local/security/docs review:
 Consumer preflight HEAD/status:
 Consumer final HEAD/status:
 Consumer changed: no
@@ -122,4 +133,4 @@ Release/adoption follow-up:
 ```
 
 Generated prose is not evidence by itself. Test output, diffs, hashes,
-conformance reports and human review decisions are.
+conformance reports and recorded review findings are.

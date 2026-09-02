@@ -2,8 +2,9 @@
 
 This repository is the chain-agnostic Rust SDK for the
 [Identus](https://github.com/hyperledger-identus) ecosystem. Humans retain
-scope, governance, merge, security-disclosure and release authority; agents
-implement and verify bounded component slices.
+product intent, scope, repository administration, security-disclosure, `main`
+promotion and release authority. Agents may implement, review and integrate
+bounded, issue-linked component slices into `develop` under the CI-gated policy.
 
 Before changing files, read:
 
@@ -30,8 +31,16 @@ Before changing files, read:
 - Port later donor components one accepted slice at a time and record source
   SHA, path, license, transformation and conformance evidence.
 - Do not expose raw secret bytes through errors, debug, serialization or FFI.
-- Do not push, merge, publish or change repository settings without explicit
-  human maintainer authority.
+- Every pull request must have a corresponding repository issue. Create the
+  issue before the pull request when no suitable issue exists.
+- After implementation and a distinct local review pass, humans and agents may
+  push focused branches and open ready pull requests targeting `develop`.
+- Humans and agents may merge a non-draft, mergeable pull request into
+  `develop` after every required CI gate is green and no blocking review or
+  thread remains. Never bypass a required check or branch protection.
+- Do not push directly to `develop` or `main`. Do not publish, release, promote
+  to `main`, disclose a vulnerability or change repository settings without
+  explicit human maintainer authority.
 
 ## Factory workflow
 
@@ -42,7 +51,11 @@ Before changing files, read:
 - Run `scripts/factory check` throughout draft work.
 - Run `scripts/factory ready <change>` and `receipt <change>` before final
   review, then sync specs and archive the completed change.
-- Open a signed, DCO-bearing PR targeting `develop` with the evidence receipt.
+- Complete and record a distinct local review pass.
+- Open a signed, DCO-bearing PR targeting `develop` with the issue reference
+  and evidence receipt.
+- Monitor every required check. Merge into `develop` only when the pull request
+  satisfies the repository integration policy; otherwise diagnose or stop.
 
 Do not represent structural OpenSpec validation as semantic, security or
 conformance approval.

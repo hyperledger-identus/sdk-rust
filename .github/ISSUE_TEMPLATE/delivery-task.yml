@@ -1,0 +1,58 @@
+name: Delivery task
+description: Track a bounded maintenance, documentation or administrative change
+title: "[Delivery]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every pull request needs a corresponding issue. Use the component form instead when behavior, public API, architecture, protocol, crypto, security or governance scope needs acceptance.
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: Describe the observable repository or maintainer outcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and non-scope
+      description: State what changes and what remains untouched.
+      placeholder: |
+        In scope:
+        Out of scope:
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance evidence
+      description: List the local review and commands that will show completion.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: openspec
+    attributes:
+      label: OpenSpec requirement
+      description: Qualifying behavior and multi-step work requires an OpenSpec change.
+      options:
+        - Required
+        - Exempt — administrative, mechanical, formatting or typo-only
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Delivery boundaries
+      options:
+        - label: The pull request will target `develop` and link this issue.
+          required: true
+        - label: Direct pushes to `develop` and `main` are out of scope.
+          required: true
+        - label: No credentials, personal data or unpublished vulnerability details are included.
+          required: true

@@ -3,8 +3,9 @@
 The SDK-Rust factory turns human intent into bounded, reviewable changes that
 LLM agents can implement. OpenSpec is the planning source of truth, GitHub is
 the collaboration and approval surface, and Nix supplies reproducible tools and
-gates. Agents produce artifacts and evidence; accountable humans approve scope,
-security decisions, merges and releases.
+gates. Accountable humans approve scope and protected decisions; humans and
+agents may integrate issue-linked work into `develop` after local review and
+green required CI.
 
 ## Delivery flow
 
@@ -24,13 +25,13 @@ human intent / issue / Discussion
  focused branch/worktree from develop
                │
                ▼
- implementation ──► verification ──► readiness receipt
+ implementation ──► verification ──► local review
                                              │
                                              ▼
                                sync specs and archive change
                                              │
                                              ▼
-                             human-reviewed PR into develop
+                         issue-linked PR ──► green CI ──► develop
 ```
 
 `main` is not part of this flow. Downstream adoption is a separate change in
@@ -88,7 +89,7 @@ nix run .#factory -- check
 The receipt proves only the factory contract. Rust, target, conformance,
 security and release gates must be attached separately and truthfully.
 
-## Human gates
+## Authority gates
 
 An agent must stop for human direction before:
 
@@ -96,12 +97,16 @@ An agent must stop for human direction before:
 - choosing an unresolved standards/profile interpretation;
 - waiving a security, privacy, compatibility or provenance finding;
 - changing governance, protected settings or publishing ownership;
-- merging, publishing, disclosing a vulnerability or mutating a downstream;
+- publishing, promoting to `main`, disclosing a vulnerability or mutating a
+  downstream;
 - accessing a secret or identity not explicitly supplied for the task.
 
-Separate agent contexts can plan, implement, test or review, but they do not
-create independent human approval. The pull request records the accountable
-maintainer and required specialist reviews.
+For already approved scope, an agent may create a missing issue, push a locally
+reviewed feature branch, open the ready pull request and merge it into `develop`
+after every required CI gate succeeds. Pending or failing gates, a draft state,
+merge conflicts and unresolved blocking reviews stop integration. No agent may
+bypass branch protection. The pull request records the scope owner and local or
+specialist reviews.
 
 ## Definition of ready
 
@@ -114,7 +119,8 @@ A change is ready for final review when:
 5. provenance, threats, bounds and compatibility are addressed;
 6. consumer repositories remain unchanged unless separately authorized;
 7. current capability specs are synced and the completed change is archived;
-8. the signed, DCO-bearing PR targets `develop`.
+8. a distinct local review pass has no unresolved blocker;
+9. the signed, DCO-bearing PR targets `develop` and references its issue.
 
 ## Client adapters
 

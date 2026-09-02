@@ -9,8 +9,8 @@ If policies conflict, Hyperledger Foundation and project-level policy wins.
 ## Principles
 
 - Public, reviewable decisions and an open contribution process.
-- Maintainer authority remains human and accountable; agents produce evidence
-  and proposals but do not obtain governance authority.
+- Protected decision authority remains human and accountable; agents produce
+  evidence and proposals but do not obtain governance or release authority.
 - Standards and executable conformance evidence outrank implementation
   precedent.
 - Chain-neutral core remains independent from chain families and products.
@@ -26,13 +26,15 @@ If policies conflict, Hyperledger Foundation and project-level policy wins.
 Maintainers are the people listed by the canonical Identus maintainer policy
 referenced from [MAINTAINERS.md](MAINTAINERS.md). They triage work, approve
 architecture and releases, protect the repository boundary, appoint reviewers,
-and merge accepted changes.
+and own the protected decisions. Routine integration of accepted work into
+`develop` may be performed by a human or agent under ADR 0003.
 
 ### Component stewards
 
 A maintainer may record one or more component stewards in CODEOWNERS or an
 issue. A steward supplies domain review for a crate or standard but does not
-gain merge authority unless they are also a maintainer.
+gain protected decision or release authority. Eligible `develop` merges follow
+the same issue-linked, CI-gated policy for every contributor.
 
 ### Security response team
 
@@ -52,8 +54,11 @@ be its sole release approver.
 
 Contributors—including LLM agents—may propose, implement, test and review work.
 They must follow the same issue, provenance, DCO, signature and evidence rules.
-Agents cannot approve their own work, change repository policy, publish crates,
-manage secrets or merge without explicit human maintainer authority.
+Agents cannot approve their own product scope, initiate repository policy,
+publish crates, manage secrets, disclose vulnerabilities, promote to `main` or
+bypass protection. After accepted scope, implementation and a distinct local
+review pass, agents may publish focused branches and merge eligible pull
+requests into `develop` under ADR 0003.
 
 ## Sources of truth
 
@@ -71,15 +76,18 @@ When sources disagree, use this order:
 
 | Class | Examples | Minimum decision path |
 | --- | --- | --- |
-| Administrative | typo, documentation clarification, dependency patch with no behavior change | PR and one maintainer approval |
-| Component | additive implementation within an accepted contract | issue, tests/evidence, PR, component review and one maintainer approval |
-| Architecture or compatibility | new crate, public API family, dependency direction, wire format, MSRV, feature policy | public design discussion, ADR, two maintainer approvals |
-| Security/crypto/privacy | algorithm/profile, secret boundary, parser limits, FFI, vulnerability remediation | threat/evidence update, independent security reviewer and two maintainer approvals; private path when embargoed |
-| Governance/release authority | maintainer policy, publishing ownership, protected environments, 1.0/LTS | public proposal and absolute majority of active maintainers |
+| Administrative | typo, documentation clarification, dependency patch with no behavior change | issue, local review, PR and green required CI |
+| Component | additive implementation within an accepted contract | accepted issue, tests/evidence, component review, PR and green required CI |
+| Architecture or compatibility | new crate, public API family, dependency direction, wire format, MSRV, feature policy | accepted public design decision, ADR, local/specialist review, PR and green required CI |
+| Security/crypto/privacy | algorithm/profile, secret boundary, parser limits, FFI, vulnerability remediation | accepted threat decision, independent security review and green required CI; private path when embargoed |
+| Governance/release authority | maintainer policy, publishing ownership, protected environments, 1.0/LTS | public proposal and absolute majority of active maintainers before implementation; releases remain protected |
 
-Approvals must come from humans who did not author the whole change. Review
-requirements are minimums; maintainers may require additional standards,
-consumer or security review.
+Protected decision approvals come from accountable humans under the applicable
+project policy. They approve intent and risk acceptance, not the mechanical
+merge operation. Once those decisions are recorded, the implementation PR may
+be merged into `develop` by a human or agent after its required review and CI
+gates pass. Maintainers may require additional standards, consumer or security
+review in the accepted issue or a risk-specific ruleset.
 
 ## Design process
 

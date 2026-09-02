@@ -24,7 +24,7 @@
 
 - [x] 4.1 Reconcile the current crate-ring spec, blueprint, roadmap and IDR-001
   evidence while keeping the row `in_progress` pending #26.
-- [ ] 4.2 Pass focused tests, Cargo metadata/build/test, strict OpenSpec/factory
+- [x] 4.2 Pass focused tests, Cargo metadata/build/test, strict OpenSpec/factory
   checks and the full local Nix flake gate; record elapsed time and effort.
-- [ ] 4.3 Perform a distinct local review, resolve blocking findings, sync
+- [x] 4.3 Perform a distinct local review, resolve blocking findings, sync
   current specs, archive the change and produce the readiness receipt.

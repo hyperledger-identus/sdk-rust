@@ -36,3 +36,46 @@ It does not claim that repository-local evidence, live GitHub controls or
   snapshots and live settings polling are intentionally outside the 70–80%
   boundary.
 - Verdict: READY to implement issue #25 after strict structural validation.
+
+# Final local review
+
+A distinct post-implementation pass reviewed the complete branch delta against
+issue #25, the active OpenSpec change, the current capability specs and the
+machine-readable inventory. The pass inspected publication behavior,
+placeholder source and dependency shape, package/layer coverage, governance
+authority, factory integration and claims about live GitHub state.
+
+## Findings resolved
+
+- The first final Nix run found a blueprint sentence beginning with `#26`,
+  which Markdown interpreted as a malformed heading. The prose now uses
+  explicit `issue #26` and `issue #3` references; the complete Nix matrix
+  subsequently passed.
+- The validator's success message initially hard-coded `14 packages` even
+  though its contract derives exact package coverage from Cargo. The count is
+  now read from the validated inventory so routine package changes cannot leave
+  misleading success output.
+
+## Final result
+
+| Dimension | Result |
+| --- | --- |
+| Inventory coverage | All 14 Cargo packages occur exactly once with matching path and `LAYER_RULES` layer |
+| Publication safety | Workspace denial and explicit member inheritance are enforced; a dry run is rejected |
+| Placeholder cohesion | Eight placeholders contain only one marker and depend only on `identus-core` |
+| Existing APIs | Five implemented surfaces remain experimental; conformance remains verification-only |
+| Governance truth | Local records are required; public/protected GitHub activation remains external under #26 |
+| Repository boundary | No donor, consumer, `main`, live-setting or release mutation is present |
+| Blocking findings | 0 |
+
+Verdict: READY for receipt, archive, signed corrective commit, pull request and
+hosted Linux CI.
+
+## Deliberate quality boundary
+
+This slice stops at the requested 70–80% point. The cheap local contract is
+fail-closed for every demonstrated inventory, publication, layer and
+placeholder drift. Generated rustdoc/API-diff baselines, signed external policy
+snapshots and live settings polling would add a second source and slower lane;
+they remain deferred until a component or governance issue demonstrates the
+need. Issue #26 already owns the required live repository activation.

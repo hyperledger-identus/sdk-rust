@@ -211,7 +211,8 @@ and compatibility matrix are machine-enforced. Issue #25 delivers the
 repository-local governance/API inventory, publication denial and placeholder
 quarantine for `IDR-001`. The row remains in progress until accountable
 maintainers complete the public repository and protected-control activation in
-#26; namespace and trusted-publishing ownership remain separate under #3.
+issue #26; namespace and trusted-publishing ownership remain separate under
+issue #3.
 
 ### B02 — namespace and release ownership (`#3`)
 

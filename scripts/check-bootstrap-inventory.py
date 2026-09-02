@@ -440,7 +440,11 @@ def main() -> int:
         for failure in failures:
             print(f"sdk-bootstrap-inventory: {failure}", file=sys.stderr)
         return 1
-    print("sdk-bootstrap-inventory: contract passed (14 packages)")
+    inventory = load_toml(root / INVENTORY_PATH, [], "bootstrap inventory")
+    print(
+        "sdk-bootstrap-inventory: contract passed "
+        f"({len(inventory.get('packages', []))} packages)"
+    )
     return 0
 
 

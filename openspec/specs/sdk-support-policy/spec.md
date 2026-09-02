@@ -29,15 +29,22 @@ and SHALL NOT make a stronger claim than the machine contract.
 
 ### Requirement: MSRV and etalon toolchain are independent gates
 
-The SDK SHALL compile its declared stable Rust `1.85.0` surface using Rust
-`1.85.0`. It SHALL separately run the pinned NeoPRISM-etalon nightly
-`2026-03-18` checks. Passing the newer toolchain SHALL NOT substitute for the
-MSRV gate.
+The SDK SHALL compile every machine-declared default, minimal and opt-in
+feature surface using Rust `1.85.0`. It SHALL separately run the pinned
+NeoPRISM-etalon nightly `2026-03-18` checks. Passing a feature surface on the
+newer toolchain SHALL NOT substitute for the corresponding MSRV gate.
 
 #### Scenario: Nightly-only language use enters the SDK
 
 - **WHEN** source builds on the etalon nightly but not Rust `1.85.0`
 - **THEN** the independent MSRV gate fails
+
+#### Scenario: Opt-in feature raises its Rust floor
+
+- **WHEN** an isolated minimal or opt-in feature surface requires a Rust
+  version newer than `1.85.0`
+- **THEN** that surface's independent MSRV gate fails even when its nightly
+  gate passes
 
 #### Scenario: Etalon pin drifts from policy
 
@@ -97,8 +104,10 @@ be measurement-only and SHALL NOT be represented as compatibility budgets.
 
 An offline repository validator SHALL compare the policy to Cargo MSRV, Nix
 toolchain pins, flake host systems, declared target components, eligible
-packages, feature sets and required check definitions. The validator SHALL run
-in the structural factory path.
+packages, feature sets and required check definitions. For every feature gate,
+the validator SHALL compare the complete Cargo package selection, default
+feature mode and activated feature set to the machine contract. The validator
+SHALL run in the structural factory path.
 
 #### Scenario: Cargo MSRV changes alone
 
@@ -110,3 +119,10 @@ in the structural factory path.
 
 - **WHEN** a gate named by the machine policy is removed or renamed
 - **THEN** structural validation fails before the compatibility claim can merge
+
+#### Scenario: Feature gate silently broadens
+
+- **WHEN** a minimal or isolated gate drops `--no-default-features`, selects a
+  different package or activates a different feature set
+- **THEN** structural validation fails even if the gate retains its evidence
+  token

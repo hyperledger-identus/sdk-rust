@@ -28,7 +28,8 @@ format into the generic SDK.
    exact-end map, and reject duplicates, private label `-4`, incompatible
    profiles, malformed coordinates, more than 32 additional parameters and
    floating-point extension values.
-5. Known identifiers normalize to assigned integers. Encoding recursively
+5. Supported `kty` and `crv` identifiers normalize to assigned integers.
+   Encoding recursively
    emits definite-length, preferred integer forms with RFC 8949 length-first
    map ordering (encoded-key length, then bytewise lexical order). Unknown
    public/common parameters round trip but are not treated as authorization or

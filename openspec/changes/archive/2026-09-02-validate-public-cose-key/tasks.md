@@ -22,14 +22,14 @@
       and extension round-trip fixtures
 - [x] 3.2 Add negative tests for every recorded shape, private, duplicate,
       trailing, tag, resource and redaction threat
-- [ ] 3.3 Run focused, workspace, no-default, minimal-feature, wasm, MSRV,
+- [x] 3.3 Run focused, workspace, no-default, minimal-feature, wasm, MSRV,
       conformance, lint, formatting, docs, supply-chain, OpenSpec and Nix gates
-- [ ] 3.4 Record a release-mode encode/parse throughput observation without a
+- [x] 3.4 Record a release-mode encode/parse throughput observation without a
       timing assertion
 
 ## 4. Delivery evidence
 
-- [ ] 4.1 Sync the canonical crypto spec, archive the OpenSpec change and
+- [x] 4.1 Sync the canonical crypto spec, archive the OpenSpec change and
       record exact verification plus a distinct local misuse/security review
-- [ ] 4.2 Prepare the issue-linked PR receipt and record exact-head CI,
-      independent security review and green-only merge criteria
+- [x] 4.2 Prepare the issue-linked PR receipt and green-only exact-head CI and
+      independent security-review criteria; hosted outcomes remain on the PR

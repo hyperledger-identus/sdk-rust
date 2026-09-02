@@ -3,7 +3,7 @@ name: File Hygiene
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [develop]
 
 jobs:
   lint:

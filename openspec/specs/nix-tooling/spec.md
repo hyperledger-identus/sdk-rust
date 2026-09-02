@@ -207,16 +207,16 @@ The flake SHALL expose `nix run .#format` (runs `cargo fmt`, then `taplo format`
 
 ### Requirement: CI enforcement of flake checks
 
-The submodule SHALL include a `.github/workflows/nix-checks.yml` workflow that installs Nix and runs `nix flake check` on a matrix of `ubuntu-latest` and `macos-latest`, on pull requests and on pushes to `main`.
+The repository SHALL include a `.github/workflows/nix-checks.yml` workflow that installs Nix and runs `nix flake check` on a matrix of `ubuntu-latest` and `macos-latest`, on pull requests and on pushes to `develop`.
 
 #### Scenario: CI runs flake check on pull requests
 
 - **WHEN** a pull request is opened or updated
 - **THEN** the `nix-checks` workflow SHALL run `nix flake check` on both `ubuntu-latest` and `macos-latest`
 
-#### Scenario: CI runs flake check on push to main
+#### Scenario: CI runs flake check on push to develop
 
-- **WHEN** a commit is pushed to `main`
+- **WHEN** a commit is pushed to `develop`
 - **THEN** the `nix-checks` workflow SHALL run `nix flake check` on both matrix legs
 
 #### Scenario: CI blocks merge on a failing check
@@ -306,7 +306,7 @@ The submodule SHALL include a root `taplo.toml` that configures taplo formatting
 
 ### Requirement: Editorconfig-checker exclude configuration
 
-The submodule SHALL include a root `.editorconfig-checker.json` that excludes `.git`, `target`, and any generated/vendored paths from editorconfig-checker, so the `lint-text` check passes on the existing tree.
+The repository SHALL include a root `.editorconfig-checker.json` that excludes `.git`, `target`, generated/vendored paths, and the canonical Apache-2.0 `LICENSE` text from editorconfig-checker, so legal text remains byte-identical while the `lint-text` check passes.
 
 #### Scenario: editorconfig-checker skips excluded paths
 

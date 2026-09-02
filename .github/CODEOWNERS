@@ -1,0 +1,14 @@
+# Default ownership is the active Identus maintainer team.
+* @hyperledger-identus/identus-maintainers
+
+# Governance, security and release authority always require maintainer review.
+/.github/ @hyperledger-identus/identus-maintainers
+/CODE_OF_CONDUCT.md @hyperledger-identus/identus-maintainers
+/CONTRIBUTING.md @hyperledger-identus/identus-maintainers
+/DCO.md @hyperledger-identus/identus-maintainers
+/GOVERNANCE.md @hyperledger-identus/identus-maintainers
+/MAINTAINERS.md @hyperledger-identus/identus-maintainers
+/RELEASING.md @hyperledger-identus/identus-maintainers
+/SECURITY.md @hyperledger-identus/identus-maintainers
+/docs/adr/ @hyperledger-identus/identus-maintainers
+/docs/governance/ @hyperledger-identus/identus-maintainers

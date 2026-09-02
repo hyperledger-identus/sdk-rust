@@ -16,7 +16,8 @@ The active order is:
 5. converge DID Core (#5), then the DID HTTP binding (#10);
 6. converge VC Core (#6), bounded JOSE (#8) and OID4VCI (#7);
 7. crystallize OID4VP/SIOPv2, credential formats and FFI as separate component
-   decisions; do not treat inherited placeholder crates as accepted scope;
+   decisions; inherited placeholder crates do not enter the roadmap
+   automatically;
 8. stabilize toward 1.0 only after independent audit, reproducible protected
    releases and two independent consumers;
 9. decide if and how `develop` is promoted to `main` in a later release ADR.

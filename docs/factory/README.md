@@ -1,16 +1,17 @@
 # AI Software Factory
 
-The SDK-Rust factory turns human intent into bounded, reviewable changes that
-LLM agents can implement. OpenSpec is the planning source of truth, GitHub is
-the collaboration and approval surface, and Nix supplies reproducible tools and
-gates. Accountable humans approve scope and protected decisions; humans and
-agents may integrate issue-linked work into `develop` after local review and
-green required CI.
+The SDK-Rust factory turns the standing product mandate and backlog into
+bounded, reviewable changes that LLM agents can deliver continuously. OpenSpec
+is the planning source of truth, GitHub is the durable coordination surface,
+and Nix supplies reproducible tools and gates. Agents may originate routine
+scope and integrate issue-linked work into `develop` after local review and
+green required CI. Accountable humans retain only the protected decisions
+listed below.
 
 ## Delivery flow
 
 ```text
-human intent / issue / Discussion
+standing mandate / backlog / issue
                │
                ▼
       explore and source audit
@@ -91,22 +92,30 @@ security and release gates must be attached separately and truthfully.
 
 ## Authority gates
 
-An agent must stop for human direction before:
+The project sponsor grants standing authority for routine work within the
+recorded roadmap and architecture. An agent may select and prioritize a slice,
+create or refine its issue and OpenSpec contract, make reversible product and
+technical decisions, implement and review it, push the focused branch, open the
+ready pull request, repair branch-owned CI failures and merge it into `develop`
+after every required CI gate succeeds. These steps do not require formal,
+format, push or merge approval.
 
-- accepting or expanding product scope;
-- choosing an unresolved standards/profile interpretation;
-- waiving a security, privacy, compatibility or provenance finding;
-- changing governance, protected settings or publishing ownership;
+An agent stops for human direction only before:
+
+- choosing between materially different product outcomes that the roadmap and
+  evidence do not resolve;
+- changing product strategy, governance, licensing or public commitments;
+- accepting unresolved security, privacy, cryptographic, compatibility,
+  provenance, legal or data-loss risk;
+- changing protected settings or publishing ownership;
 - publishing, promoting to `main`, disclosing a vulnerability or mutating a
-  downstream;
+  downstream without a separate authorization; or
 - accessing a secret or identity not explicitly supplied for the task.
 
-For already approved scope, an agent may create a missing issue, push a locally
-reviewed feature branch, open the ready pull request and merge it into `develop`
-after every required CI gate succeeds. Pending or failing gates, a draft state,
-merge conflicts and unresolved blocking reviews stop integration. No agent may
-bypass branch protection. The pull request records the scope owner and local or
-specialist reviews.
+Pending or failing gates, a draft state, merge conflicts and unresolved
+blocking reviews stop integration until the agent resolves them; they do not
+automatically require a human. No agent may bypass branch protection. The pull
+request records the mandate or roadmap source and local or specialist reviews.
 
 ## Definition of ready
 

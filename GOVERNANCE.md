@@ -9,8 +9,10 @@ If policies conflict, Hyperledger Foundation and project-level policy wins.
 ## Principles
 
 - Public, reviewable decisions and an open contribution process.
-- Protected decision authority remains human and accountable; agents produce
-  evidence and proposals but do not obtain governance or release authority.
+- Product sponsors and maintainers define objectives and protected boundaries.
+  Agents have standing authority for reversible routine decisions inside those
+  boundaries, while governance and release authority remains human and
+  accountable.
 - Standards and executable conformance evidence outrank implementation
   precedent.
 - Chain-neutral core remains independent from chain families and products.
@@ -24,10 +26,11 @@ If policies conflict, Hyperledger Foundation and project-level policy wins.
 ### Maintainers
 
 Maintainers are the people listed by the canonical Identus maintainer policy
-referenced from [MAINTAINERS.md](MAINTAINERS.md). They triage work, approve
-architecture and releases, protect the repository boundary, appoint reviewers,
-and own the protected decisions. Routine integration of accepted work into
-`develop` may be performed by a human or agent under ADR 0003.
+referenced from [MAINTAINERS.md](MAINTAINERS.md). They set project boundaries,
+approve protected governance and release decisions, protect the repository
+boundary and appoint reviewers. Routine backlog selection, architecture within
+the recorded mandate and integration into `develop` may be performed by a human
+or agent under ADRs 0003 and 0004.
 
 ### Component stewards
 
@@ -52,13 +55,15 @@ be its sole release approver.
 
 ### Contributors and engineering agents
 
-Contributors—including LLM agents—may propose, implement, test and review work.
-They must follow the same issue, provenance, DCO, signature and evidence rules.
-Agents cannot approve their own product scope, initiate repository policy,
-publish crates, manage secrets, disclose vulnerabilities, promote to `main` or
-bypass protection. After accepted scope, implementation and a distinct local
-review pass, agents may publish focused branches and merge eligible pull
-requests into `develop` under ADR 0003.
+Contributors—including LLM agents—may select, propose, specify, implement, test
+and review routine work within the standing product mandate. They must follow
+the same issue, provenance, DCO, signature and evidence rules. Agents may make
+reversible component and architecture decisions, record them in OpenSpec or an
+ADR, publish focused branches and merge eligible pull requests into `develop`
+after a distinct local review pass. Agents cannot change project strategy or
+governance, publish crates, manage secrets, disclose vulnerabilities, promote
+to `main`, change protected repository settings or bypass protection without
+the applicable human authority.
 
 ## Sources of truth
 
@@ -76,26 +81,30 @@ When sources disagree, use this order:
 
 | Class | Examples | Minimum decision path |
 | --- | --- | --- |
-| Administrative | typo, documentation clarification, dependency patch with no behavior change | issue, local review, PR and green required CI |
-| Component | additive implementation within an accepted contract | accepted issue, tests/evidence, component review, PR and green required CI |
-| Architecture or compatibility | new crate, public API family, dependency direction, wire format, MSRV, feature policy | accepted public design decision, ADR, local/specialist review, PR and green required CI |
-| Security/crypto/privacy | algorithm/profile, secret boundary, parser limits, FFI, vulnerability remediation | accepted threat decision, independent security review and green required CI; private path when embargoed |
+| Administrative | typo, documentation clarification, dependency patch with no behavior change | agent- or human-created issue, local review, PR and green required CI |
+| Component | additive implementation within a bounded contract | issue, reviewed OpenSpec contract, tests/evidence, component review, PR and green required CI |
+| Architecture or compatibility | new crate, public API family, dependency direction, wire format, MSRV, feature policy | issue, ADR and contract, local/specialist review, PR and green required CI; escalate a material public commitment or unresolved product choice |
+| Security/crypto/privacy | algorithm/profile, secret boundary, parser limits, FFI, vulnerability remediation | threat contract, independent security review and green required CI; escalate unresolved risk and use the private path when embargoed |
 | Governance/release authority | maintainer policy, publishing ownership, protected environments, 1.0/LTS | public proposal and absolute majority of active maintainers before implementation; releases remain protected |
 
-Protected decision approvals come from accountable humans under the applicable
-project policy. They approve intent and risk acceptance, not the mechanical
-merge operation. Once those decisions are recorded, the implementation PR may
-be merged into `develop` by a human or agent after its required review and CI
-gates pass. Maintainers may require additional standards, consumer or security
-review in the accepted issue or a risk-specific ruleset.
+The first four decision paths are operational evidence gates, not human
+approval queues. Agents may create their issues and contracts and proceed when
+the decision is reversible, within the product mandate and free of unresolved
+blocking risk. Protected strategy, governance, legal-risk acceptance, release
+and externally binding decisions come from accountable humans under the
+applicable project policy. Once any required protected decision is recorded,
+the implementation PR may be merged into `develop` by a human or agent after
+its required review and CI gates pass. A contract or risk-specific ruleset may
+require additional standards, consumer or security review.
 
 ## Design process
 
 Use GitHub Discussions for standards interpretation, architecture alternatives
-and cross-repository coordination. A maintainer converts an accepted direction
-into an issue with the slice contract from the
-[SDK blueprint](docs/architecture/sdk-rust-blueprint.md). The implementation PR
-links that issue and any ADR.
+and cross-repository coordination when asynchronous input is useful. A human or
+agent converts the standing roadmap or a new direction into an issue with the
+slice contract from the [SDK blueprint](docs/architecture/sdk-rust-blueprint.md).
+The implementation PR links that issue and any ADR. A Discussion vote or human
+acceptance ceremony is not required for routine work inside the mandate.
 
 An ADR is required when a decision:
 
@@ -106,7 +115,7 @@ An ADR is required when a decision:
 - accepts a material security/privacy trade-off;
 - imports or rejects a substantial donor implementation.
 
-ADRs are immutable after acceptance. A later ADR may supersede one and must
+ADRs are immutable after integration. A later ADR may supersede one and must
 explain migration and compatibility impact.
 
 ## Consensus and deadlock
@@ -147,7 +156,11 @@ the normal release path.
 
 ## Changing this document
 
-A governance change needs a public proposal, at least seven calendar days for
-review unless it fixes an urgent policy conflict, and approval by an absolute
-majority of active maintainers. The PR records why the change is compatible
-with Hyperledger and Identus policy.
+A change to protected decision classes, maintainer authority or release policy
+needs a public proposal, at least seven calendar days for review unless it fixes
+an urgent policy conflict, and approval by an absolute majority of active
+maintainers. During the pre-release bootstrap, an explicit project-sponsor
+direction recorded in a public issue and ADR may establish or refine routine
+operational delegation without that waiting period when it does not override
+Hyperledger or Identus policy. Routine wording and workflow maintenance follows
+the ordinary issue-linked, reviewed and CI-gated `develop` path.

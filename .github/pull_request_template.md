@@ -15,7 +15,7 @@
 - OpenSpec change/archive:
 - OpenSpec required: yes/no
 - If no, exemption:
-- Human scope owner:
+- Mandate/roadmap source:
 - Agent roles used:
 - `scripts/factory ready <change>`: passed/not applicable
 - Factory receipt attached: yes/no/not applicable

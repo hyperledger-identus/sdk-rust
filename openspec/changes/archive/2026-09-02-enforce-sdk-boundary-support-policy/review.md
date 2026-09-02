@@ -97,6 +97,17 @@ acceptance evidence.
   Crane library rewired to the nightly toolchain. Structural validation now
   proves both the stable `msrvToolchain` binding and the `msrvCraneLib` override
   edge, with an exact nightly-substitution regression.
+- Exact-head hosted review found that a test gate could retain its name and
+  arguments while changing from `cargoNextest` to `cargoBuild`. The machine
+  policy now declares every referenced gate's Crane operation and validates it
+  against the reachable definition.
+- Exact-head hosted review found that a target triple in unrelated Nix metadata
+  could satisfy evidence while Cargo compiled another target. Target validation
+  now compares the parsed `--target` option exactly.
+- Exact-head hosted review found that Cargo's space-separated feature syntax
+  could add an unobserved feature. Static Cargo argument strings are now tokenized
+  and both comma- and space-separated feature values participate in exact-set
+  comparison.
 
 ## Final result
 
@@ -104,10 +115,18 @@ acceptance evidence.
 | --- | --- |
 | Boundary coverage | Direct aliases/packages, every dependency-table and override kind, donor Git/path locations and lockfile closure are enforced |
 | Compatibility truth | Host-tested, compile-only, planned and unsupported states are separate and machine-validated |
-| Actual target evidence | Rust 1.85, browser WASM, Android ARM64 and iOS ARM64 commands were observed in successful Nix build logs |
+| Actual target evidence | Rust 1.85, browser WASM, Android ARM64 and iOS ARM64 operations/options were machine-validated and observed in successful Nix build logs |
 | Feature isolation | Workspace defaults plus crypto minimal/KMP and entropy minimal/deterministic/getrandom/all surfaces have exact nightly and MSRV package/feature gates without exclusions |
 | Public/runtime impact | No runtime API, FFI, release, downstream migration or certification promise is introduced |
 | Repository boundary | Apollo, NeoPRISM, midnight-identity, Lace ID Portal and Oxid were not edited or built |
 | Blocking findings | 0 |
 
 Verdict: READY for archive, signed commit, pull request and hosted Linux CI.
+
+## Deliberate quality boundary
+
+This slice stops at the requested 70–80% quality point: the canonical static
+Nix shape is fail-closed for every demonstrated mutation, while replacing text
+inspection with shared declarative/evaluated gate metadata is deferred to
+follow-up issue #24. That hardening is not required to begin the next reusable
+SSI crate slice.

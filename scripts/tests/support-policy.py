@@ -79,6 +79,19 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("undefined Nix gate rust-build-wasm32", result.stderr)
 
+    def test_gate_must_use_declared_crane_operation(self) -> None:
+        self.replace(
+            "nix/checks/rust-test.nix",
+            "craneLib.cargoNextest",
+            "craneLib.cargoBuild",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "gate rust-test uses Crane operation cargoBuild, expected cargoNextest",
+            result.stderr,
+        )
+
     def test_unimported_gate_module_is_not_discovered(self) -> None:
         self.replace(
             "nix/checks/default.nix",
@@ -109,6 +122,26 @@ class SupportPolicyTests(unittest.TestCase):
         result = self.run_checker()
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("does not contain evidence token", result.stderr)
+
+    def test_target_gate_must_bind_triple_to_cargo_target_option(self) -> None:
+        self.replace(
+            "nix/checks/rust-build-wasm32.nix",
+            "      checks.rust-build-wasm32 = craneLib.cargoBuild {\n",
+            """      checks.rust-build-wasm32 = craneLib.cargoBuild {
+        pname = "wasm32-unknown-unknown";
+""",
+        )
+        self.replace(
+            "nix/checks/rust-build-wasm32.nix",
+            "--target wasm32-unknown-unknown",
+            "--target aarch64-linux-android",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "target wasm32-unknown-unknown gate rust-build-wasm32 uses Cargo targets ['aarch64-linux-android']",
+            result.stderr,
+        )
 
     def test_target_evidence_cannot_come_from_neighboring_gate(self) -> None:
         path = self.fixture / "nix/checks/rust-build-mobile.nix"
@@ -191,6 +224,20 @@ class SupportPolicyTests(unittest.TestCase):
             "feature entropy-deterministic gate rust-test-entropy-deterministic selects",
             result.stderr,
         )
+
+    def test_feature_gate_parses_space_separated_feature_values(self) -> None:
+        self.replace(
+            "nix/checks/rust-feature-matrix.nix",
+            "--features deterministic --no-fail-fast",
+            "--features deterministic getrandom --no-fail-fast",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "feature entropy-deterministic gate rust-test-entropy-deterministic selects",
+            result.stderr,
+        )
+        self.assertIn("'deterministic', 'getrandom'", result.stderr)
 
     def test_workspace_feature_gate_cannot_exclude_a_package(self) -> None:
         self.replace(

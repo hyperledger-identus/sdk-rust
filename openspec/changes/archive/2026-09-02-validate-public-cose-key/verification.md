@@ -22,7 +22,7 @@
 | `cargo test -p identus-conformance` | passed; 20/20 |
 | `cargo fmt --all -- --check` and `git diff --check` | passed |
 | `openspec validate validate-public-cose-key --strict` | passed |
-| `nix flake check --print-build-logs` | passed all 42 local Darwin checks |
+| `nix flake check --print-build-logs` | passed all 42 local Darwin checks after the hosted-review fix |
 
 The Nix matrix included Rust 1.85 MSRV, default and minimal builds, WASM,
 Android, iOS, nextest, clippy, rustdoc, formatting, text/TOML/Nix lint,
@@ -32,7 +32,8 @@ omitted system on the local Darwin run and is exercised independently by CI.
 ## Performance observation
 
 Release-mode `PublicKeyCose` encode plus parse completed 50,000 iterations in
-65.207917 ms, approximately 766,778 operations per second on this host. This
+67.523458 ms, approximately 740,483 operations per second on this host after
+the hosted-review fix. This
 is an observation, not a portable timing threshold.
 
 ## Conformance and threat evidence

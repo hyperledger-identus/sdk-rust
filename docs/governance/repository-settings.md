@@ -34,6 +34,7 @@ Do not attach checks that cannot run on its intentionally minimal tree.
 Checks should converge on stable names so rules survive workflow refactors:
 
 - `DCO`;
+- `factory-contract`;
 - `file-hygiene`;
 - `rust-fmt`;
 - `rust-clippy`;

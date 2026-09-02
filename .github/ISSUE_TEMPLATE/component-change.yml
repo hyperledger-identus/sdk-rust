@@ -1,0 +1,102 @@
+name: Component or specification change
+description: Propose bounded SDK behavior, protocol, architecture or security work
+title: "[Component]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This intake defines human intent. Qualifying work receives an OpenSpec change before implementation.
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Consumer outcome
+      description: Describe the observable outcome and who needs it.
+      placeholder: A DID-method adapter can consume the generic resolver contract without a chain dependency.
+    validations:
+      required: true
+
+  - type: input
+    id: owner
+    attributes:
+      label: Owner component
+      description: Name the existing or proposed crate/capability that owns the behavior.
+      placeholder: identus-did-core
+    validations:
+      required: true
+
+  - type: dropdown
+    id: decision_class
+    attributes:
+      label: Decision class
+      options:
+        - Component
+        - Architecture or compatibility
+        - Security, crypto or privacy
+        - Governance or release authority
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and non-scope
+      description: State both what is included and what must remain outside this change.
+      placeholder: |
+        In scope:
+        Out of scope:
+    validations:
+      required: true
+
+  - type: textarea
+    id: sources
+    attributes:
+      label: Normative sources and provenance
+      description: Pin standards, errata, source repositories, revisions, paths and licenses.
+    validations:
+      required: true
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Public, wire and downstream compatibility
+      description: Describe public API, serialized form, target, feature and migration impact.
+    validations:
+      required: true
+
+  - type: textarea
+    id: threats
+    attributes:
+      label: Threats, privacy and resource bounds
+      description: Identify misuse cases, secret/PII handling and input or runtime limits.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance evidence
+      description: List concrete commands, vectors, conformance suites and required reviewers.
+    validations:
+      required: true
+
+  - type: input
+    id: openspec
+    attributes:
+      label: Proposed OpenSpec change
+      description: Supply a kebab-case name or leave a clear proposal for the planner.
+      placeholder: add-did-core-resolution-contract
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Repository boundaries
+      options:
+        - label: This work targets a feature branch and PR into `develop`, not `main`.
+          required: true
+        - label: Downstream repositories remain read-only unless separately authorized.
+          required: true
+        - label: No real credentials, keys, personal data or unpublished vulnerability details are included.
+          required: true

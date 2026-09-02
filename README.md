@@ -21,6 +21,7 @@ Wallet products keep custody, storage, consent, trust and UI policy.
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)
 - [Release policy](RELEASING.md)
+- [AI Software Factory](docs/factory/README.md)
 
 ## Branch model and current baseline
 
@@ -62,8 +63,9 @@ on both platforms for pull requests and pushes to `develop`.
 
 ## Development workflow
 
-We use [OpenSpec](https://github.com/Fission-AI/OpenSpec) for changes that need
-a recorded proposal, design, specification delta and task list.
+The [AI Software Factory](docs/factory/README.md) uses pinned
+[OpenSpec](https://github.com/Fission-AI/OpenSpec) artifacts as the contract
+between human intent and agent implementation.
 
 ```text
    /opsx:explore
@@ -75,7 +77,7 @@ a recorded proposal, design, specification delta and task list.
    /openspec-review
         │
         ▼
-   /opsx:apply ──► /opsx:verify ──► /opsx:archive
+   /opsx:apply ──► /opsx:verify ──► factory ready ──► /opsx:archive
 ```
 
 Use an OpenSpec change for new behavior, public API, architecture, protocol or
@@ -83,6 +85,16 @@ multi-step work. Direct edits are suitable for typos, non-behavioral bug fixes,
 formatting, dependency chores and behavior-preserving refactors. Archived seed
 decisions are historical evidence: branch, release and architecture rules in
 the current governance documents take precedence.
+
+```bash
+./scripts/factory doctor
+./scripts/factory check
+./scripts/factory ready <change>
+./scripts/factory receipt <change>
+```
+
+Feature branches and dedicated worktrees start from `develop`; reviewed pull
+requests return to `develop`. The factory never targets `main` automatically.
 
 ## Resources
 

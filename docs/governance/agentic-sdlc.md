@@ -20,6 +20,10 @@ governance, security disclosure, merge and release authority.
 The same model may execute several roles, but independent review means a fresh
 review context and a human accountable for accepting the result.
 
+All roles use the executable lifecycle in the
+[AI Software Factory handbook](../factory/README.md). Client-specific prompts
+are adapters; OpenSpec artifacts and factory commands are the shared contract.
+
 ## State machine
 
 ```text
@@ -39,8 +43,10 @@ source-audited ──► contract-approved ──► implementation
                 downstream adoption                next component slice
 ```
 
-An agent cannot skip `contract-approved` for behavior or public API work.
-Downstream adoption is never part of the upstream implementation state.
+An agent cannot skip `contract-approved` for behavior, public API,
+architecture, protocol, security or multi-step work. `scripts/factory check`
+proves structural validity; it does not grant contract approval. Downstream
+adoption is never part of the upstream implementation state.
 
 ## One-slice operating contract
 
@@ -66,6 +72,10 @@ The agent then:
 9. opens a draft PR with the evidence receipt;
 10. stops before push, merge, release or consumer adoption unless explicitly
    authorized by the responsible human.
+
+Before final review, the agent runs `scripts/factory ready <change>` and
+`scripts/factory receipt <change>`, syncs accepted delta specs and archives the
+completed OpenSpec change. Product-specific gates remain separate evidence.
 
 ## Hard repository isolation
 

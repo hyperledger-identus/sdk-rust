@@ -11,6 +11,7 @@ Before changing files, read:
 - `docs/architecture/sdk-rust-blueprint.md`;
 - `docs/adr/0001-bootstrap-branch-selection.md`;
 - `docs/governance/agentic-sdlc.md`;
+- `docs/factory/README.md`;
 - the issue or OpenSpec change and any crate-local `AGENTS.md` in scope.
 
 ## Branch and repository boundaries
@@ -31,6 +32,20 @@ Before changing files, read:
 - Do not expose raw secret bytes through errors, debug, serialization or FFI.
 - Do not push, merge, publish or change repository settings without explicit
   human maintainer authority.
+
+## Factory workflow
+
+- Create or select an OpenSpec change before qualifying implementation work.
+- Run `scripts/factory doctor` before editing and record the exact base SHA.
+- Read proposal, specs, design and tasks; clear semantic blockers first.
+- Implement one task at a time and check it immediately after verification.
+- Run `scripts/factory check` throughout draft work.
+- Run `scripts/factory ready <change>` and `receipt <change>` before final
+  review, then sync specs and archive the completed change.
+- Open a signed, DCO-bearing PR targeting `develop` with the evidence receipt.
+
+Do not represent structural OpenSpec validation as semantic, security or
+conformance approval.
 
 ## Development gates
 

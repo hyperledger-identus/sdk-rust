@@ -14,9 +14,30 @@ and the repository-specific rules below.
    architecture work, obtain an accepted issue before implementation.
 4. Use a dedicated worktree and a focused branch from current `develop`.
 5. Record source revisions and licenses before porting code or fixtures.
+6. Run `scripts/factory doctor` and create or select the OpenSpec change for
+   qualifying work before editing implementation files.
 
 Small typo or administrative fixes may proceed directly to a PR. Security
 reports must use [SECURITY.md](SECURITY.md), never a public issue.
+
+## Specification-driven lifecycle
+
+Behavior, public API, architecture, protocol, security and multi-step changes
+require a repository-local OpenSpec proposal, capability specs, design and task
+list. Use the [factory handbook](docs/factory/README.md) and keep every scenario
+objectively testable.
+
+```bash
+openspec new change <change>
+openspec validate <change> --strict --no-interactive
+./scripts/factory check
+./scripts/factory ready <change>
+./scripts/factory receipt <change>
+```
+
+Open a draft PR once the contract is structurally valid and has no semantic
+blocker. Check tasks only after their implementation and focused evidence pass.
+Before final review, sync accepted delta specs and archive the completed change.
 
 ## Component issue contract
 

@@ -12,3 +12,8 @@
 /SECURITY.md @hyperledger-identus/identus-maintainers
 /docs/adr/ @hyperledger-identus/identus-maintainers
 /docs/governance/ @hyperledger-identus/identus-maintainers
+/docs/factory/ @hyperledger-identus/identus-maintainers
+/openspec/ @hyperledger-identus/identus-maintainers
+/scripts/factory @hyperledger-identus/identus-maintainers
+/scripts/check-factory.sh @hyperledger-identus/identus-maintainers
+/justfile @hyperledger-identus/identus-maintainers

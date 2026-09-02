@@ -1,11 +1,14 @@
 {
   imports = [
     ./rust-fmt.nix
+    ./rust-msrv.nix
     ./rust-clippy.nix
     ./rust-clippy-kmp-compat.nix
+    ./rust-feature-matrix.nix
     ./rust-test.nix
     ./rust-test-kmp-compat.nix
     ./rust-build-wasm32.nix
+    ./rust-build-mobile.nix
     ./rust-deny.nix
     ./rust-audit.nix
     ./rust-doc.nix
@@ -15,6 +18,7 @@
     {
       pkgs,
       craneLib,
+      msrvCraneLib,
       inputs',
       ...
     }:
@@ -33,10 +37,16 @@
       cargoArtifacts = craneLib.buildDepsOnly {
         src = cleanedSrc;
       };
+      msrvCargoArtifacts = msrvCraneLib.buildDepsOnly {
+        src = cleanedSrc;
+        cargoExtraArgs = "--locked --workspace --all-features";
+      };
     in
     {
-      _module.args.cargoArtifacts = cargoArtifacts;
-      _module.args.rustSrc = cleanedSrc;
+      _module.args = {
+        inherit cargoArtifacts msrvCargoArtifacts;
+        rustSrc = cleanedSrc;
+      };
 
       checks = {
         factory-contract = pkgs.callPackage ./factory-contract.nix {

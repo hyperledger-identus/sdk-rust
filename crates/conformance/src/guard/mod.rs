@@ -352,5 +352,6 @@ fn walk_dir_rs(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
+mod boundary;
 mod dep_graph;
 mod naming;

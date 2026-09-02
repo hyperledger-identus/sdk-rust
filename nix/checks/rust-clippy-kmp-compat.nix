@@ -14,8 +14,7 @@
       checks.rust-clippy-kmp-compat = craneLib.cargoClippy {
         inherit cargoArtifacts;
         src = rustSrc;
-        cargoBuildFeatures = [ "kmp-compat" ];
-        cargoClippyExtraArgs = "-- -D warnings";
+        cargoClippyExtraArgs = "-p identus-crypto --features kmp-compat -- -D warnings";
       };
     };
 }

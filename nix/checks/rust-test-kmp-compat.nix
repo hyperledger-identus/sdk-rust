@@ -14,8 +14,7 @@
       checks.rust-test-kmp-compat = craneLib.cargoNextest {
         inherit cargoArtifacts;
         src = rustSrc;
-        cargoBuildFeatures = [ "kmp-compat" ];
-        cargoNextestExtraArgs = "--no-fail-fast --no-tests=pass";
+        cargoNextestExtraArgs = "-p identus-crypto --features kmp-compat --no-fail-fast --no-tests=pass";
       };
     };
 }

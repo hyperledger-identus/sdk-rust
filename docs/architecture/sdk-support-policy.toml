@@ -1,0 +1,205 @@
+schema_version  = 1
+policy_revision = "2026-09-03"
+
+[toolchains]
+msrv                  = "1.85.0"
+etalon                = "nightly-2026-03-18"
+neoprism_revision     = "8becb225132efb1d9302b2c5f6ed4d87b84e8685"
+nixpkgs_revision      = "c27cdad491a991b11ed731760aa2ef8db0cb0410"
+rust_overlay_revision = "f17186f52e82ec5cf40920b58eac63b78692ac7c"
+nix_version           = "2.34.8"
+
+[gate_operations]
+rust-audit                      = "cargoAudit"
+rust-build-android-aarch64      = "cargoBuild"
+rust-build-ios-aarch64          = "cargoBuild"
+rust-build-wasm32               = "cargoBuild"
+rust-clippy                     = "cargoClippy"
+rust-clippy-crypto-minimal      = "cargoClippy"
+rust-clippy-entropy-minimal     = "cargoClippy"
+rust-clippy-kmp-compat          = "cargoClippy"
+rust-deny                       = "cargoDeny"
+rust-doc                        = "cargoDoc"
+rust-fmt                        = "cargoFmt"
+rust-msrv                       = "cargoBuild"
+rust-msrv-crypto-kmp-compat     = "cargoBuild"
+rust-msrv-crypto-minimal        = "cargoBuild"
+rust-msrv-entropy-all           = "cargoBuild"
+rust-msrv-entropy-deterministic = "cargoBuild"
+rust-msrv-entropy-getrandom     = "cargoBuild"
+rust-msrv-entropy-minimal       = "cargoBuild"
+rust-test                       = "cargoNextest"
+rust-test-entropy-all           = "cargoNextest"
+rust-test-entropy-deterministic = "cargoNextest"
+rust-test-entropy-getrandom     = "cargoNextest"
+rust-test-kmp-compat            = "cargoNextest"
+
+[[hosts]]
+nix_system = "x86_64-linux"
+rust_target = "x86_64-unknown-linux-gnu"
+tier = "host-tested"
+gates = [
+  "rust-fmt",
+  "rust-clippy",
+  "rust-test",
+  "rust-doc",
+  "rust-msrv",
+  "rust-deny",
+  "rust-audit",
+]
+limitation = "Hosted Linux evidence; deployment environment certification remains downstream."
+
+[[hosts]]
+nix_system = "aarch64-darwin"
+rust_target = "aarch64-apple-darwin"
+tier = "host-tested"
+gates = [
+  "rust-fmt",
+  "rust-clippy",
+  "rust-test",
+  "rust-doc",
+  "rust-msrv",
+  "rust-deny",
+  "rust-audit",
+]
+limitation = "Hosted and maintainer macOS evidence; notarization and application integration remain downstream."
+
+[[targets]]
+triple = "wasm32-unknown-unknown"
+surface = "browser-wasm"
+tier = "compile-checked"
+gate = "rust-build-wasm32"
+evidence_token = "wasm32-unknown-unknown"
+packages = [
+  "identus-core",
+  "identus-crypto",
+  "identus-did",
+  "identus-adapters-entropy",
+]
+no_default_features = false
+features = [ "identus-adapters-entropy/getrandom" ]
+limitation = "Compile-only with the getrandom browser backend; no browser runtime, bundler, CSP, storage, FFI, performance, or certification claim."
+
+[[targets]]
+triple = "aarch64-linux-android"
+surface = "android-arm64"
+tier = "compile-checked"
+gate = "rust-build-android-aarch64"
+evidence_token = "aarch64-linux-android"
+packages = [
+  "identus-core",
+  "identus-crypto",
+  "identus-did",
+  "identus-adapters-entropy",
+]
+no_default_features = false
+features = [ "identus-adapters-entropy/getrandom" ]
+limitation = "Compile-only; no NDK linking, emulator/device runtime, JNI/UniFFI, keystore, packaging, or certification claim."
+
+[[targets]]
+triple = "aarch64-apple-ios"
+surface = "ios-arm64"
+tier = "compile-checked"
+gate = "rust-build-ios-aarch64"
+evidence_token = "aarch64-apple-ios"
+packages = [
+  "identus-core",
+  "identus-crypto",
+  "identus-did",
+  "identus-adapters-entropy",
+]
+no_default_features = false
+features = [ "identus-adapters-entropy/getrandom" ]
+limitation = "Compile-only; no linking, simulator/device runtime, Swift/UniFFI, keychain, packaging, App Store, or certification claim."
+
+[[targets]]
+triple     = "x86_64-pc-windows-msvc"
+surface    = "windows-desktop-server"
+tier       = "planned"
+packages   = [  ]
+limitation = "No required gate or compatibility promise during bootstrap."
+
+[[targets]]
+triple     = "wasm32-wasip1"
+surface    = "wasi"
+tier       = "planned"
+packages   = [  ]
+limitation = "No required gate or compatibility promise; the current portable target is browser WASM only."
+
+[[features]]
+name                = "workspace-default"
+package             = "*"
+no_default_features = false
+features            = [  ]
+gates               = [ "rust-test" ]
+msrv_gate           = "rust-msrv"
+evidence_token      = "--no-fail-fast --no-tests=pass"
+
+[[features]]
+name                = "crypto-minimal"
+package             = "identus-crypto"
+no_default_features = true
+features            = [  ]
+gates               = [ "rust-clippy-crypto-minimal" ]
+msrv_gate           = "rust-msrv-crypto-minimal"
+evidence_token      = "--no-default-features"
+
+[[features]]
+name                = "crypto-kmp-compat"
+package             = "identus-crypto"
+no_default_features = false
+features            = [ "kmp-compat" ]
+gates               = [ "rust-clippy-kmp-compat", "rust-test-kmp-compat" ]
+msrv_gate           = "rust-msrv-crypto-kmp-compat"
+evidence_token      = "kmp-compat"
+
+[[features]]
+name                = "entropy-minimal"
+package             = "identus-adapters-entropy"
+no_default_features = true
+features            = [  ]
+gates               = [ "rust-clippy-entropy-minimal" ]
+msrv_gate           = "rust-msrv-entropy-minimal"
+evidence_token      = "--no-default-features"
+
+[[features]]
+name                = "entropy-deterministic"
+package             = "identus-adapters-entropy"
+no_default_features = true
+features            = [ "deterministic" ]
+gates               = [ "rust-test-entropy-deterministic" ]
+msrv_gate           = "rust-msrv-entropy-deterministic"
+evidence_token      = "deterministic"
+
+[[features]]
+name                = "entropy-system-random"
+package             = "identus-adapters-entropy"
+no_default_features = true
+features            = [ "getrandom" ]
+gates               = [ "rust-test-entropy-getrandom" ]
+msrv_gate           = "rust-msrv-entropy-getrandom"
+evidence_token      = "getrandom"
+
+[[features]]
+name                = "entropy-all"
+package             = "identus-adapters-entropy"
+no_default_features = false
+features            = [ "deterministic", "getrandom" ]
+gates               = [ "rust-test-entropy-all" ]
+msrv_gate           = "rust-msrv-entropy-all"
+evidence_token      = "--all-features"
+
+[ffi]
+status  = "not-supported"
+package = "identus-bindings"
+reason  = "The inherited package is a placeholder and has no accepted FFI value, handle, memory, concurrency, or compatibility contract."
+
+[binary_size]
+status            = "measurement-only"
+measurement_point = "Future candidate release artifacts after crate and FFI surfaces are accepted."
+reason            = "Bootstrap intermediates do not define a reproducible consumer artifact or stability budget."
+
+[build_time]
+status            = "measurement-only"
+measurement_point = "Cold and warm candidate builds on pinned host runners after publishable crate surfaces exist."
+reason            = "Current CI duration is diagnostic and is not a compatibility threshold."

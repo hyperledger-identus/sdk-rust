@@ -3,12 +3,14 @@
 //! First adapter-family crate in the `outer-boundary` layer: it owns the
 //! concrete adapters for the [`identus_crypto::SecureRandom`] entropy port.
 //! The cross-platform system-RNG adapter is `GetrandomSystemRandomAdapter`
-//! (behind the `getrandom` cargo feature, `default = []`): it builds on every
-//! uniffi target — Kotlin/JVM, Android, native, and browser WASM
-//! (`wasm32-unknown-unknown`, where the `getrandom` `js` feature resolves
-//! entropy to `crypto.getRandomValues()`). A deterministic test adapter is
-//! available behind the `deterministic` feature for cross-crate test consumers
-//! (never for production entropy).
+//! (behind the `getrandom` cargo feature, `default = []`). The implemented
+//! portable crate set is host-tested on Linux/macOS and compile-checked for
+//! Android ARM64, iOS ARM64 and browser WASM (`wasm32-unknown-unknown`, where
+//! the `getrandom` `js` feature resolves entropy to `crypto.getRandomValues()`).
+//! Cross-compilation is not a runtime or FFI support claim; see the repository
+//! support policy. A deterministic test adapter is available behind the
+//! `deterministic` feature for cross-crate test consumers (never for production
+//! entropy).
 //!
 //! WASI (`wasm32-wasi` / `wasip1`) is out of scope: the workspace target set
 //! is browser WASM only (`wasm32-unknown-unknown`), matching `sdk-ts`'s
@@ -37,10 +39,11 @@ pub const COMPONENT: Component = Component {
 
 /// `getrandom`-backed [`SecureRandom`] adapter using the platform system RNG.
 ///
-/// Works across all uniffi targets: Kotlin/JVM, Android, native, and browser
-/// WASM (`wasm32-unknown-unknown`). On browser WASM the `getrandom` `js`
-/// feature resolves entropy to `crypto.getRandomValues()`; on native targets it
-/// resolves to the host OS CSPRNG.
+/// Host-tested on Linux/macOS and compile-checked for Android ARM64, iOS ARM64
+/// and browser WASM (`wasm32-unknown-unknown`). On browser WASM the `getrandom`
+/// `js` feature resolves entropy to `crypto.getRandomValues()`; on native
+/// targets it resolves to the host OS CSPRNG. Linking, bindings and runtime
+/// integration remain downstream evidence.
 #[cfg(feature = "getrandom")]
 #[derive(Debug, Default, Clone, Copy)]
 pub struct GetrandomSystemRandomAdapter;
@@ -50,7 +53,7 @@ impl SecureRandom for GetrandomSystemRandomAdapter {
     fn generate_seed(&mut self, num_bytes: usize) -> Vec<u8> {
         let mut out = vec![0u8; num_bytes];
         getrandom::getrandom(&mut out)
-            .expect("getrandom::getrandom must not fail on supported targets");
+            .expect("getrandom::getrandom failed for the configured target/runtime");
         out
     }
 }

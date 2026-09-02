@@ -143,6 +143,28 @@ class BootstrapInventoryTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("identus-agent: package.publish.workspace must be true", result.stderr)
 
+    def test_in_tree_path_dependency_must_be_an_explicit_member(self) -> None:
+        payload = self.root / "payload"
+        (payload / "src").mkdir(parents=True)
+        (payload / "Cargo.toml").write_text(
+            '[package]\nname = "payload"\nversion = "0.0.0"\nedition = "2024"\npublish = true\n',
+            encoding="utf-8",
+        )
+        (payload / "src/lib.rs").write_text("pub struct Payload;\n", encoding="utf-8")
+        manifest = self.root / "crates/core/Cargo.toml"
+        manifest.write_text(
+            manifest.read_text(encoding="utf-8").replace(
+                "[dependencies]", '[dependencies]\npayload = { path = "../../payload" }', 1
+            ),
+            encoding="utf-8",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "crates/core: in-tree path dependency payload must be an explicit workspace member: payload",
+            result.stderr,
+        )
+
     def test_placeholder_dependency_drift_fails(self) -> None:
         manifest = self.root / "crates/agent/Cargo.toml"
         manifest.write_text(
@@ -228,6 +250,22 @@ class BootstrapInventoryTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn(
                     f"identus-agent: placeholder must not declare {target}",
+                    result.stderr,
+                )
+
+    def test_placeholder_executable_documentation_fails(self) -> None:
+        source = self.root / "crates/agent/src/lib.rs"
+        original = source.read_text(encoding="utf-8")
+        for documentation in (
+            "//! ```rust\n//! panic!(\"executed\");\n//! ```\n",
+            "//!\n//!     panic!(\"executed\");\n",
+        ):
+            with self.subTest(documentation=documentation):
+                source.write_text(documentation + original, encoding="utf-8")
+                result = self.run_checker()
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(
+                    "identus-agent: placeholder documentation must not contain executable code blocks",
                     result.stderr,
                 )
 

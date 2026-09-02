@@ -69,6 +69,10 @@ authority, factory integration and claims about live GitHub state.
 - The next exact-head review identified the same bypass through extensionless
   `[[test]]` and `[[bench]]` targets. Both target classes are now rejected and
   exercised by the adversarial suite, completing the Cargo target quarantine.
+- The next review found two model-level gaps: Cargo auto-members created by
+  in-tree path dependencies and executable doctests hidden in placeholder
+  documentation. The checker now requires every such dependency to resolve to
+  an explicit member and rejects both fenced and indented doctest forms.
 - A hosted signing finding named commit `188b12a6`, which is not in the PR's
   four-commit set or local branch history. GitHub's authoritative commit API
   reports all four PR commits verified with reason `valid`; every commit has a

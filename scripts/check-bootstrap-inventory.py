@@ -81,6 +81,7 @@ LAYER_NAMES = {
 }
 ISSUE_PATTERN = re.compile(r"#[1-9][0-9]*\Z")
 SHA_PATTERN = re.compile(r"[0-9a-f]{40}\Z")
+DEPENDENCY_SECTIONS = ("dependencies", "dev-dependencies", "build-dependencies")
 
 
 def load_toml(path: Path, failures: list[str], label: str) -> dict[str, Any]:
@@ -123,6 +124,29 @@ def safe_relative_path(value: object, label: str, failures: list[str]) -> Path |
     return path
 
 
+def manifest_path_dependencies(
+    manifest: dict[str, Any], manifest_dir: Path
+) -> list[tuple[str, Path]]:
+    dependencies: list[tuple[str, Path]] = []
+
+    def collect(table: object) -> None:
+        if not isinstance(table, dict):
+            return
+        for name, value in table.items():
+            if isinstance(value, dict) and isinstance(value.get("path"), str):
+                dependencies.append((name, (manifest_dir / value["path"]).resolve()))
+
+    for section in DEPENDENCY_SECTIONS:
+        collect(manifest.get(section))
+    targets = manifest.get("target")
+    if isinstance(targets, dict):
+        for target in targets.values():
+            if isinstance(target, dict):
+                for section in DEPENDENCY_SECTIONS:
+                    collect(target.get(section))
+    return dependencies
+
+
 def workspace_packages(root: Path, failures: list[str]) -> dict[str, Path]:
     root_manifest = load_toml(root / "Cargo.toml", failures, "workspace manifest")
     workspace = root_manifest.get("workspace")
@@ -152,6 +176,37 @@ def workspace_packages(root: Path, failures: list[str]) -> dict[str, Path]:
     for pattern in exclusions:
         for candidate in root.glob(pattern):
             member_dirs.discard(candidate.resolve())
+
+    dependency_sources: list[tuple[str, dict[str, Any], Path]] = [
+        (
+            "workspace",
+            {"dependencies": workspace.get("dependencies", {})},
+            root.resolve(),
+        )
+    ]
+    for member_dir in sorted(member_dirs):
+        dependency_sources.append(
+            (
+                member_dir.relative_to(root.resolve()).as_posix(),
+                load_toml(
+                    member_dir / "Cargo.toml", failures, "package manifest"
+                ),
+                member_dir,
+            )
+        )
+    for source, manifest, manifest_dir in dependency_sources:
+        for dependency, dependency_path in manifest_path_dependencies(
+            manifest, manifest_dir
+        ):
+            try:
+                dependency_path.relative_to(root.resolve())
+            except ValueError:
+                continue
+            if dependency_path not in member_dirs:
+                failures.append(
+                    f"{source}: in-tree path dependency {dependency} must be an explicit workspace member: "
+                    f"{dependency_path.relative_to(root.resolve()).as_posix()}"
+                )
 
     packages: dict[str, Path] = {}
     for member_dir in sorted(member_dirs):
@@ -270,6 +325,13 @@ def placeholder_source_is_minimal(
         return
     if not re.search(r"(?m)^\s*//!", source):
         failures.append(f"{package_name}: placeholder must have crate documentation")
+    executable_docs = re.search(
+        r"(?m)^\s*//[!/]\s*(?:`{3,}|~{3,})", source
+    ) or re.search(r"(?m)^\s*//[!/](?: {4,}|\t)\S", source)
+    if executable_docs:
+        failures.append(
+            f"{package_name}: placeholder documentation must not contain executable code blocks"
+        )
     stripped = re.sub(r"(?m)^\s*//[/!].*(?:\n|\Z)", "", source)
     shape = re.compile(
         r'\s*use\s+identus_core::Component;\s*'

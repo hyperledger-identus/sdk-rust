@@ -78,7 +78,9 @@ not dependencies of this inventory.
 ## Deliberate 70–80% boundary
 
 The fast contract validates local evidence, Cargo publication denial, exact
-workspace coverage, layer classification and placeholder shape. Generated
+explicit workspace coverage, in-tree path-dependency membership, layer
+classification and placeholder shape, including Cargo targets and executable
+documentation. Generated
 rustdoc item inventories, API-diff baselines, signed canonical-policy
 snapshots, remote GitHub polling and live control mutation are deferred. These
 would add cost without improving the next component's core architecture today.

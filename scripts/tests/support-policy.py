@@ -403,6 +403,35 @@ in
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_per_system_formal_cannot_shadow_global_builtins(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      pkgs,\n      craneLib,",
+            "      pkgs,\n      builtins,\n      craneLib,",
+        )
+        self.assert_fails("binds builtins in perSystem formals")
+
+    def test_path_and_uri_scope_keywords_preserve_valid_source(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pathData = ./let/in/file;
+      uriData = https://example.invalid/let/in;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_adjacent_apostrophes_inside_identifier_preserve_valid_source(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      unused''name = true;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_check_graph_must_be_imported_by_flake(self) -> None:
         self.replace("flake.nix", "        ./nix/checks\n", "")
         self.assert_fails("flake.nix does not import the nix/checks module")

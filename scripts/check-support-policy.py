@@ -82,6 +82,7 @@ REQUIRED_FEATURE_SURFACES = {
     "entropy-all",
 }
 ALLOWED_TIERS = {"host-tested", "compile-checked", "planned", "not-supported"}
+NIX_URI_PREFIX = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://")
 
 
 def load_toml(path: Path, failures: list[str]) -> dict[str, Any]:
@@ -161,10 +162,48 @@ def nix_block_comment_end(text: str, index: int) -> int:
     return index
 
 
+def nix_path_or_uri_end(text: str, index: int) -> int | None:
+    """Return the end of a path or URI token beginning at index."""
+    character = text[index]
+    uri_boundary = character.isalpha() and (
+        index == 0 or not (text[index - 1].isalnum() or text[index - 1] in "+.-")
+    )
+    if character not in "./~<" and not uri_boundary:
+        return None
+    relative_path = any(
+        text.startswith(prefix, index) for prefix in ("./", "../", "~/")
+    )
+    absolute_path = (
+        text.startswith("/", index)
+        and not text.startswith(("/*", "//"), index)
+        and index + 1 < len(text)
+        and not text[index + 1].isspace()
+        and (index == 0 or text[index - 1].isspace() or text[index - 1] in "=([{;,")
+    )
+    uri = uri_boundary and NIX_URI_PREFIX.match(text, index) is not None
+    if text.startswith("<", index):
+        end = text.find(">", index + 1)
+        if end != -1 and not any(character.isspace() for character in text[index:end]):
+            return end + 1
+    if not (relative_path or absolute_path or uri):
+        return None
+
+    cursor = index + 1
+    while cursor < len(text):
+        if text[cursor].isspace() or text[cursor] in ";,()[]{}":
+            break
+        cursor += 1
+    return cursor
+
+
 def nix_interpolation_end(text: str, index: int) -> int:
     """Return the exclusive end of a Nix interpolation after its opening `${`."""
     depth = 1
     while index < len(text) and depth:
+        path_end = nix_path_or_uri_end(text, index)
+        if path_end is not None:
+            index = path_end
+            continue
         string_end = nix_string_end(text, index)
         if string_end is not None:
             index = string_end
@@ -200,6 +239,8 @@ def nix_string_end(text: str, index: int) -> int | None:
             cursor += 1
         return len(text)
     if text.startswith("''", index):
+        if index and (text[index - 1].isalnum() or text[index - 1] in "_-'"):
+            return None
         cursor = index + 2
         while cursor < len(text):
             if text.startswith("''", cursor):
@@ -221,6 +262,10 @@ def nix_string_mask(text: str) -> str:
     masked = list(text)
     index = 0
     while index < len(text):
+        path_end = nix_path_or_uri_end(text, index)
+        if path_end is not None:
+            index = path_end
+            continue
         end = nix_string_end(text, index)
         if end is not None:
             masked[index:end] = " " * (end - index)
@@ -235,6 +280,10 @@ def nix_without_comments(text: str) -> str:
     without_comments = list(text)
     index = 0
     while index < len(text):
+        path_end = nix_path_or_uri_end(text, index)
+        if path_end is not None:
+            index = path_end
+            continue
         string_end = nix_string_end(text, index)
         if string_end is not None:
             index = string_end
@@ -269,12 +318,12 @@ def nix_statement_binds(statement: str, name: str) -> bool:
     )
 
 
-def outer_per_system_let(text: str) -> tuple[str, str] | None:
-    """Return the immediate perSystem let body and its outer result."""
+def outer_per_system_let(text: str) -> tuple[str, str, str] | None:
+    """Return perSystem's immediate let body, result, and function formals."""
     masked = nix_string_mask(text)
     header = re.match(
         r"\s*\{\s*inputs\s*,\s*\.\.\.\s*\}\s*:\s*\{\s*"
-        r"perSystem\s*=\s*\{[^{}]*\}\s*:\s*let\b",
+        r"perSystem\s*=\s*\{(?P<formals>[^{}]*)\}\s*:\s*let\b",
         masked,
         re.DOTALL,
     )
@@ -282,6 +331,7 @@ def outer_per_system_let(text: str) -> tuple[str, str] | None:
         return None
 
     body_start = header.end()
+    formals = text[header.start("formals") : header.end("formals")]
     delimiters: list[str] = []
     nested_lets = 0
     index = body_start
@@ -308,7 +358,7 @@ def outer_per_system_let(text: str) -> tuple[str, str] | None:
                 if nested_lets:
                     nested_lets -= 1
                 elif not delimiters:
-                    return text[body_start:index], text[end:]
+                    return text[body_start:index], text[end:], formals
             index = end
             continue
         index += 1
@@ -325,6 +375,10 @@ def top_level_nix_statements(text: str) -> list[str] | None:
     index = 0
     pairs = {")": "(", "]": "[", "}": "{"}
     while index < len(masked):
+        path_end = nix_path_or_uri_end(masked, index)
+        if path_end is not None:
+            index = path_end
+            continue
         character = masked[index]
         if character in "([{":
             delimiters.append(character)
@@ -403,6 +457,21 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         top_level_nix_statements(outer_scope[0]) if outer_scope is not None else None
     )
     statements = statements or []
+    formal_entries = (
+        [entry.strip() for entry in outer_scope[2].split(",") if entry.strip()]
+        if outer_scope is not None
+        else []
+    )
+    invalid_formals = [
+        entry
+        for entry in formal_entries
+        if entry != "..." and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_'-]*", entry) is None
+    ]
+    shadows_global_builtins = "builtins" in formal_entries
+    if shadows_global_builtins:
+        failures.append("rust-gates.nix binds builtins in perSystem formals")
+    if invalid_formals:
+        failures.append("rust-gates.nix uses non-canonical perSystem formals")
     shadowed_trusted_roots = sorted(
         root
         for root in ("builtins", "pkgs")
@@ -488,6 +557,8 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         )
         and not shadowed_trusted_roots
         and not ambiguous_binding_root
+        and not shadows_global_builtins
+        and not invalid_formals
     )
     if manifest_binding is None:
         failures.append("rust-gates.nix does not parse gates.toml as manifest")

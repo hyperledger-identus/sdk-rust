@@ -172,7 +172,23 @@ class SupportPolicyTests(unittest.TestCase):
             "        }) manifest.gates\n      );\n    in",
             "        }) manifest.gates\n      );\n      generatedChecks = { };\n    in",
         )
-        self.assert_fails("does not derive generatedChecks from manifest.gates")
+        self.assert_fails("does not map gate names and values from manifest entries")
+
+    def test_constant_mapped_name_cannot_collapse_gate_graph(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "          inherit (gate) name;",
+            '          name = "rust-gate";',
+        )
+        self.assert_fails("does not map gate names and values from manifest entries")
+
+    def test_mapped_value_must_use_current_gate(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "          value = makeGate gate;",
+            "          value = { };",
+        )
+        self.assert_fails("does not map gate names and values from manifest entries")
 
     def test_assertion_decoy_cannot_replace_returned_checks(self) -> None:
         self.replace(
@@ -190,6 +206,27 @@ class SupportPolicyTests(unittest.TestCase):
 }""",
         )
         self.assert_fails("does not return generatedChecks as top-level checks")
+
+    def test_shadowed_generated_checks_cannot_replace_mapped_result(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            """    in
+    {
+      checks = generatedChecks;
+    };
+}""",
+            """    in
+    let
+      generatedChecks = { };
+    in
+    {
+      checks = generatedChecks;
+    };
+}""",
+        )
+        self.assert_fails(
+            "does not directly return its manifest-mapped generatedChecks"
+        )
 
     def test_check_graph_must_be_imported_by_flake(self) -> None:
         self.replace("flake.nix", "        ./nix/checks\n", "")

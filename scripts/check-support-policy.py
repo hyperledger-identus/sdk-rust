@@ -191,25 +191,35 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         r"\(builtins\.readFile\s+\./gates\.toml\)\s*;",
         generator,
     )
-    generated_binding = re.search(
+    generated_pattern = (
         r"\bgeneratedChecks\s*=\s*listToAttrs\s*\(\s*map\s*\("
-        r".*?\)\s*manifest\.gates\s*\)\s*;",
+        r"\s*gate\s*:\s*\{\s*inherit\s*\(\s*gate\s*\)\s*name\s*;"
+        r"\s*value\s*=\s*makeGate\s+gate\s*;\s*\}\s*\)"
+        r"\s*manifest\.gates\s*\)\s*;"
+    )
+    published_pattern = (
+        r"\bin\s*\{\s*checks\s*=\s*generatedChecks\s*;\s*\}\s*;\s*\}\s*$"
+    )
+    generated_binding = re.search(generated_pattern, generator, re.DOTALL)
+    published_result = re.search(published_pattern, generator)
+    connected_result = re.search(
+        generated_pattern + r"\s*" + published_pattern,
         generator,
         re.DOTALL,
-    )
-    published_result = re.search(
-        r"\bin\s*\{\s*checks\s*=\s*generatedChecks\s*;\s*\}\s*;\s*\}\s*$",
-        generator,
     )
     if manifest_binding is None:
         failures.append("rust-gates.nix does not parse gates.toml as manifest")
     if generated_binding is None:
         failures.append(
-            "rust-gates.nix does not derive generatedChecks from manifest.gates"
+            "rust-gates.nix does not map gate names and values from manifest entries"
         )
     if published_result is None:
         failures.append(
             "rust-gates.nix does not return generatedChecks as top-level checks"
+        )
+    if connected_result is None:
+        failures.append(
+            "rust-gates.nix does not directly return its manifest-mapped generatedChecks"
         )
 
     duplicates = sorted(

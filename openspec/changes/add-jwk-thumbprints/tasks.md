@@ -7,15 +7,15 @@
 
 ## 2. RFC 7638 thumbprints
 
-- [ ] 2.1 Add the typed `JwkThumbprint` API and streaming SHA-256 computation
-- [ ] 2.2 Add digest-byte and canonical unpadded base64url accessors
-- [ ] 2.3 Add compositional `jwk-thumbprint` feature wiring and public exports
+- [x] 2.1 Add the typed `JwkThumbprint` API and streaming SHA-256 computation
+- [x] 2.2 Add digest-byte and canonical unpadded base64url accessors
+- [x] 2.3 Add compositional `jwk-thumbprint` feature wiring and public exports
 
 ## 3. Conformance and misuse resistance
 
-- [ ] 3.1 Add RFC 8037 Appendix A.3 and independent EC vectors
-- [ ] 3.2 Prove extensions are ignored and required key material is sensitive
-- [ ] 3.3 Prove canonical input order and zero canonicalization allocation
+- [x] 3.1 Add RFC 8037 Appendix A.3 and independent EC vectors
+- [x] 3.2 Prove extensions are ignored and required key material is sensitive
+- [x] 3.3 Prove canonical input order and zero canonicalization allocation
 - [ ] 3.4 Run focused, workspace, minimal-feature, wasm, conformance, lint,
       formatting, docs, OpenSpec and factory gates under Nix
 

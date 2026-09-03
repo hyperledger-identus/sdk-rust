@@ -9,15 +9,18 @@
 
 ## Contract and mutation evidence
 
-- `python3 scripts/tests/support-policy.py` passed 48/48 tests. Five focused
+- `python3 scripts/tests/support-policy.py` passed 49/49 tests. Six focused
   mutations cover constant-name gate collapse, a value detached from
   `makeGate gate`, a nested `generatedChecks` shadow between mapping and
-  returned publication, and local replacements for `map` and `listToAttrs`.
+  returned publication, local replacements for `map` and `listToAttrs`, and a
+  returned inner scope that shadows every mapping input behind valid outer
+  decoys.
 - `./scripts/check-support-policy.py` passed the canonical 23-gate manifest and
   generator.
 - Ruff lint and format checks passed for the validator and mutation suite.
-- `python3 scripts/benchmark-support-policy.py --samples 20` passed with warm
-  p50/p95 of 6.876/7.430 ms and process-cold p50/p95 of 44.150/46.093 ms.
+- `python3 scripts/benchmark-support-policy.py --samples 20` passed after the
+  final correction with warm p50/p95 of 7.832/8.352 ms and process-cold
+  p50/p95 of 47.852/48.469 ms.
 - `./scripts/factory check` passed all 18 active-change/canonical items.
 - `nix flake check --print-build-logs` passed every compatible
   aarch64-darwin check; x86_64-linux execution is intentionally supplied by
@@ -37,6 +40,13 @@ No unresolved blocker remains.
 Hosted review's mapping-helper finding is resolved by proving both identifiers
 come from the immediate `inherit (pkgs.lib)` binding. The exact local-`map`
 collapse and symmetric local-`listToAttrs` mutations fail closed.
+
+The second hosted-review finding is resolved at implementation head
+`98983bc9e96974db4e6e3800b665141e2a38f2b9`: helper inheritance, manifest
+parsing, generated mapping, and publication are now accepted only from the
+same immediate outer `perSystem` scope. The exact all-input inner-shadow
+mutation fails. Ruff, the 17-item factory contract, the performance guard, and
+the complete compatible aarch64-darwin Nix graph all pass after the correction.
 
 ## Compatibility and isolation
 

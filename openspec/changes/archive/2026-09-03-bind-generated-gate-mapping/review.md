@@ -75,3 +75,10 @@ body, accept helper inheritance, manifest parsing, and `generatedChecks` only
 as top-level statements in that body, and validate its matching `in` result.
 An exact nested-shadow mutation must fail. This is still a bounded source-shape
 contract, not a general Nix evaluator, and changes no generated derivation.
+
+The implementation at `98983bc9e96974db4e6e3800b665141e2a38f2b9`
+meets that contract. The scanner masks Nix strings, balances nested delimiters
+and `let`/`in` pairs, and splits only immediate-scope statements. The exact
+hosted-review mutation now fails, the canonical generator passes, and a local
+contradiction-focused review found no remaining cross-scope acceptance path or
+delivery blocker.

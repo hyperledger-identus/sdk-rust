@@ -5,15 +5,56 @@ from __future__ import annotations
 
 import json
 import re
-import shlex
 import sys
-import tomllib
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import tomllib
 
 POLICY_PATH = Path("docs/architecture/sdk-support-policy.toml")
+GATE_MANIFEST_PATH = Path("nix/checks/gates.toml")
+GATE_FIELDS = {
+    "name",
+    "operation",
+    "toolchain",
+    "source",
+    "artifacts",
+    "locked",
+    "workspace",
+    "packages",
+    "exclude_packages",
+    "lib",
+    "all_targets",
+    "no_default_features",
+    "all_features",
+    "features",
+    "target",
+    "extra_args",
+}
+ALLOWED_OPERATIONS = {
+    "cargoAudit",
+    "cargoBuild",
+    "cargoClippy",
+    "cargoDeny",
+    "cargoDoc",
+    "cargoFmt",
+    "cargoNextest",
+}
+OPERATIONS_WITH_CARGO_SELECTION = {
+    "cargoBuild",
+    "cargoClippy",
+    "cargoDoc",
+    "cargoNextest",
+}
+OPERATION_EXTRA_ARGS = {
+    "cargoAudit": [],
+    "cargoBuild": [],
+    "cargoClippy": ["--", "-D", "warnings"],
+    "cargoDeny": [],
+    "cargoDoc": ["--no-deps"],
+    "cargoFmt": [],
+    "cargoNextest": ["--no-fail-fast", "--no-tests=pass"],
+}
 REQUIRED_HOSTS = {
     "x86_64-linux": "x86_64-unknown-linux-gnu",
     "aarch64-darwin": "aarch64-apple-darwin",
@@ -43,13 +84,6 @@ REQUIRED_FEATURE_SURFACES = {
 ALLOWED_TIERS = {"host-tested", "compile-checked", "planned", "not-supported"}
 
 
-@dataclass(frozen=True)
-class GateDefinition:
-    path: Path
-    body: str
-    operation: str
-
-
 def load_toml(path: Path, failures: list[str]) -> dict[str, Any]:
     try:
         with path.open("rb") as source:
@@ -63,7 +97,9 @@ def load_toml(path: Path, failures: list[str]) -> dict[str, Any]:
     return value
 
 
-def require_table(data: dict[str, Any], name: str, failures: list[str]) -> dict[str, Any]:
+def require_table(
+    data: dict[str, Any], name: str, failures: list[str]
+) -> dict[str, Any]:
     value = data.get(name)
     if not isinstance(value, dict):
         failures.append(f"policy is missing [{name}]")
@@ -114,7 +150,7 @@ def nix_without_comments(text: str) -> str:
     return re.sub(r"#.*$", "", without_blocks, flags=re.MULTILINE)
 
 
-def imported_check_modules(root: Path, failures: list[str]) -> list[Path]:
+def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     checks_root = (root / "nix/checks").resolve()
     checks_entry = checks_root / "default.nix"
     flake_path = root / "flake.nix"
@@ -134,86 +170,305 @@ def imported_check_modules(root: Path, failures: list[str]) -> list[Path]:
             flake_imports.add(imported)
     if checks_entry not in flake_imports:
         failures.append("flake.nix does not import the nix/checks module")
-        return []
+        return
 
-    pending = [checks_entry]
-    visited: set[Path] = set()
-    while pending:
-        path = pending.pop()
-        if path in visited:
-            continue
-        if not path.is_file():
-            failures.append(f"imported Nix check module does not exist: {path}")
-            continue
-        visited.add(path)
-        text = nix_without_comments(path.read_text(encoding="utf-8"))
-        for imports in re.finditer(r"imports\s*=\s*\[(.*?)\];", text, re.DOTALL):
-            for relative in re.findall(r"\./([A-Za-z0-9_./-]+\.nix)", imports.group(1)):
-                imported = (path.parent / relative).resolve()
-                if not imported.is_relative_to(checks_root):
-                    failures.append(
-                        f"Nix check module {path} imports outside nix/checks: {relative}"
-                    )
-                    continue
-                pending.append(imported)
-    return sorted(visited)
+    default_nix = nix_without_comments(checks_entry.read_text(encoding="utf-8"))
+    imports_match = re.search(r"\bimports\s*=\s*\[(.*?)\];", default_nix, re.DOTALL)
+    check_imports: set[Path] = set()
+    if imports_match is not None:
+        for relative in re.findall(r"\./([A-Za-z0-9_./-]+)", imports_match.group(1)):
+            check_imports.add((checks_entry.parent / relative).resolve())
+    generator_path = checks_root / "rust-gates.nix"
+    if generator_path not in check_imports:
+        failures.append("nix/checks/default.nix does not import rust-gates.nix")
 
-
-def gate_sources(
-    root: Path, failures: list[str]
-) -> dict[str, list[GateDefinition]]:
-    sources: dict[str, list[GateDefinition]] = {}
-    gate_pattern = re.compile(
-        r"^\s*(?:checks\.)?(rust-[A-Za-z0-9_-]+)\s*=\s*"
-        r"(?:craneLib|msrvCraneLib)\.([A-Za-z0-9_-]+)\s*\{.*?^\s*\};",
-        re.MULTILINE | re.DOTALL,
+    if not generator_path.is_file():
+        failures.append("nix/checks/rust-gates.nix does not exist")
+        return
+    generator = nix_without_comments(generator_path.read_text(encoding="utf-8"))
+    manifest_binding = re.search(
+        r"\bmanifest\s*=\s*builtins\.fromTOML\s*"
+        r"\(builtins\.readFile\s+\./gates\.toml\)\s*;",
+        generator,
     )
-    for path in imported_check_modules(root, failures):
-        text = nix_without_comments(path.read_text(encoding="utf-8"))
-        for match in gate_pattern.finditer(text):
-            sources.setdefault(match.group(1), []).append(
-                GateDefinition(path, match.group(0), match.group(2))
+    generated_binding = re.search(
+        r"\bgeneratedChecks\s*=\s*listToAttrs\s*\(\s*map\s*\("
+        r".*?\)\s*manifest\.gates\s*\)\s*;",
+        generator,
+        re.DOTALL,
+    )
+    published_result = re.search(
+        r"\bin\s*\{\s*checks\s*=\s*generatedChecks\s*;\s*\}\s*;\s*\}\s*$",
+        generator,
+    )
+    if manifest_binding is None:
+        failures.append("rust-gates.nix does not parse gates.toml as manifest")
+    if generated_binding is None:
+        failures.append(
+            "rust-gates.nix does not derive generatedChecks from manifest.gates"
+        )
+    if published_result is None:
+        failures.append(
+            "rust-gates.nix does not return generatedChecks as top-level checks"
+        )
+
+    duplicates = sorted(
+        path.relative_to(root)
+        for path in checks_root.glob("rust-*.nix")
+        if path.name != "rust-gates.nix"
+    )
+    if duplicates:
+        failures.append(
+            f"hand-written Rust gate modules duplicate the manifest: {duplicates}"
+        )
+
+
+def string_list(value: Any, context: str, failures: list[str]) -> list[str]:
+    if not isinstance(value, list) or not all(
+        isinstance(item, str) and item for item in value
+    ):
+        failures.append(f"{context} must be a list of non-empty strings")
+        return []
+    if len(value) != len(set(value)):
+        failures.append(f"{context} must not contain duplicates")
+    return value
+
+
+def load_gate_manifest(
+    root: Path,
+    workspace: set[str],
+    manifests: dict[str, Path],
+    failures: list[str],
+) -> dict[str, dict[str, Any]]:
+    path = root / GATE_MANIFEST_PATH
+    manifest = load_toml(path, failures)
+    if manifest.get("schema_version") != 1:
+        failures.append("gate manifest schema_version must be 1")
+    if set(manifest) != {"schema_version", "gates"}:
+        failures.append(
+            f"gate manifest has unknown top-level fields {sorted(set(manifest) - {'schema_version', 'gates'})}"
+        )
+    raw_gates = manifest.get("gates")
+    if not isinstance(raw_gates, list) or not raw_gates:
+        failures.append("gate manifest is missing [[gates]] entries")
+        return {}
+
+    gates: dict[str, dict[str, Any]] = {}
+    for index, gate in enumerate(raw_gates):
+        context = f"gate manifest entry {index}"
+        if not isinstance(gate, dict):
+            failures.append(f"{context} must be a table")
+            continue
+        unknown = set(gate) - GATE_FIELDS
+        missing = GATE_FIELDS - set(gate)
+        if unknown or missing:
+            failures.append(
+                f"{context} fields do not match schema: missing={sorted(missing)}, unknown={sorted(unknown)}"
             )
-    return sources
+        name = gate.get("name")
+        if not isinstance(name, str) or re.fullmatch(r"rust-[a-z0-9-]+", name) is None:
+            failures.append(f"{context} has invalid name {name!r}")
+            continue
+        if name in gates:
+            failures.append(f"gate manifest contains duplicate gate {name!r}")
+            continue
+        gates[name] = {}
 
+        operation = gate.get("operation")
+        if not isinstance(operation, str) or operation not in ALLOWED_OPERATIONS:
+            failures.append(f"gate {name} has unsupported operation {operation!r}")
+            operation = ""
+        gate["operation"] = operation
+        toolchain = gate.get("toolchain")
+        if not isinstance(toolchain, str) or toolchain not in {"etalon", "msrv"}:
+            failures.append(f"gate {name} has invalid toolchain {toolchain!r}")
+            toolchain = ""
+        gate["toolchain"] = toolchain
+        source = gate.get("source")
+        if not isinstance(source, str) or source not in {"rust", "repository"}:
+            failures.append(f"gate {name} has invalid source {source!r}")
+            source = ""
+        gate["source"] = source
+        artifacts = gate.get("artifacts")
+        if not isinstance(artifacts, str) or artifacts not in {
+            "none",
+            "etalon",
+            "msrv",
+        }:
+            failures.append(f"gate {name} has invalid artifacts {artifacts!r}")
+            artifacts = ""
+        gate["artifacts"] = artifacts
 
-def validate_crane_command_attributes(root: Path, failures: list[str]) -> None:
-    for path in sorted((root / "nix/checks").glob("*.nix")):
-        text = nix_without_comments(path.read_text(encoding="utf-8"))
-        if "craneLib.cargoBuild" in text and (
-            "cargoBuildCommand" in text or "buildPhaseCargoCommand" in text
+        for field in (
+            "locked",
+            "workspace",
+            "lib",
+            "all_targets",
+            "no_default_features",
+            "all_features",
+        ):
+            value = gate.get(field)
+            if not isinstance(value, bool):
+                failures.append(f"gate {name}.{field} must be a boolean")
+                gate[field] = False
+        packages = string_list(gate.get("packages"), f"gate {name}.packages", failures)
+        excluded = string_list(
+            gate.get("exclude_packages"), f"gate {name}.exclude_packages", failures
+        )
+        features = string_list(gate.get("features"), f"gate {name}.features", failures)
+        extra_args = string_list(
+            gate.get("extra_args"), f"gate {name}.extra_args", failures
+        )
+        target = gate.get("target")
+        if not isinstance(target, str):
+            failures.append(f"gate {name}.target must be a string")
+            target = ""
+        gate["packages"] = packages
+        gate["exclude_packages"] = excluded
+        gate["features"] = features
+        gate["extra_args"] = extra_args
+        gate["target"] = target
+        gates[name] = gate
+
+        unknown_packages = (set(packages) | set(excluded)) - workspace
+        if unknown_packages:
+            failures.append(
+                f"gate {name} names unknown packages {sorted(unknown_packages)}"
+            )
+        if gate.get("workspace") and packages:
+            failures.append(
+                f"gate {name} cannot select workspace and explicit packages"
+            )
+        if (
+            operation in OPERATIONS_WITH_CARGO_SELECTION
+            and not gate.get("workspace")
+            and not packages
         ):
             failures.append(
-                f"{path.relative_to(root)} passes an ignored custom command to craneLib.cargoBuild; use cargoExtraArgs or mkCargoDerivation"
+                f"gate {name} operation {operation} requires explicit workspace or packages"
             )
+        if excluded and not gate.get("workspace"):
+            failures.append(f"gate {name} exclusions require workspace=true")
+        if gate.get("all_features") and features:
+            failures.append(
+                f"gate {name} cannot select all_features and named features"
+            )
+        if gate.get("lib") and gate.get("all_targets"):
+            failures.append(f"gate {name} cannot select lib and all_targets")
+        if gate.get("no_default_features") and gate.get("all_features"):
+            failures.append(
+                f"gate {name} cannot select no_default_features and all_features"
+            )
+        if target and operation != "cargoBuild":
+            failures.append(f"gate {name} target selection requires cargoBuild")
+
+        has_selection = bool(
+            gate.get("locked")
+            or gate.get("workspace")
+            or packages
+            or excluded
+            or gate.get("lib")
+            or gate.get("all_targets")
+            or gate.get("no_default_features")
+            or gate.get("all_features")
+            or features
+            or target
+            or gate.get("extra_args")
+        )
+        if operation not in OPERATIONS_WITH_CARGO_SELECTION and has_selection:
+            failures.append(
+                f"gate {name} operation {operation} cannot carry Cargo selection"
+            )
+        if (
+            operation in OPERATION_EXTRA_ARGS
+            and extra_args != OPERATION_EXTRA_ARGS[operation]
+        ):
+            failures.append(
+                f"gate {name} operation {operation} requires extra_args={OPERATION_EXTRA_ARGS[operation]!r}"
+            )
+        if (
+            operation in OPERATIONS_WITH_CARGO_SELECTION
+            and gate.get("source") != "rust"
+        ):
+            failures.append(f"gate {name} operation {operation} requires rust source")
+        if operation in OPERATIONS_WITH_CARGO_SELECTION and gate.get(
+            "artifacts"
+        ) != gate.get("toolchain"):
+            failures.append(
+                f"gate {name} operation {operation} artifacts must match its toolchain"
+            )
+        if operation in {"cargoAudit", "cargoDeny"} and (
+            gate.get("source") != "repository" or gate.get("artifacts") != "none"
+        ):
+            failures.append(
+                f"gate {name} operation {operation} requires repository source and no artifacts"
+            )
+        if operation == "cargoFmt" and (
+            gate.get("source") != "rust" or gate.get("artifacts") != "none"
+        ):
+            failures.append(
+                f"gate {name} cargoFmt requires rust source and no artifacts"
+            )
+        if gate.get("toolchain") == "msrv" and (
+            operation != "cargoBuild" or gate.get("artifacts") != "msrv"
+        ):
+            failures.append(
+                f"gate {name} MSRV toolchain requires cargoBuild and MSRV artifacts"
+            )
+        if gate.get("toolchain") == "etalon" and gate.get("artifacts") == "msrv":
+            failures.append(f"gate {name} etalon toolchain cannot use MSRV artifacts")
+        if gate.get("artifacts") == "etalon" and gate.get("toolchain") != "etalon":
+            failures.append(f"gate {name} etalon artifacts require etalon toolchain")
+
+        for feature in features:
+            package_name, separator, feature_name = feature.partition("/")
+            if separator:
+                candidate_package = package_name
+            elif len(packages) == 1:
+                candidate_package = packages[0]
+                feature_name = feature
+            else:
+                failures.append(
+                    f"gate {name} feature {feature!r} requires one package or package/feature syntax"
+                )
+                continue
+            manifest_path = manifests.get(candidate_package)
+            if manifest_path is None:
+                continue
+            package_manifest = load_toml(manifest_path, failures)
+            available = package_manifest.get("features", {})
+            if not isinstance(available, dict) or feature_name not in available:
+                failures.append(f"gate {name} references missing feature {feature!r}")
+    return gates
 
 
 def validate_gate(
     gate: Any,
     evidence_token: str,
-    sources: dict[str, list[GateDefinition]],
+    gates: dict[str, dict[str, Any]],
     context: str,
     failures: list[str],
 ) -> None:
     if not isinstance(gate, str) or not gate:
         failures.append(f"{context} has an invalid gate")
         return
-    definitions = sources.get(gate, [])
-    if not definitions:
+    definition = gates.get(gate)
+    if definition is None:
         failures.append(f"{context} references undefined Nix gate {gate}")
         return
-    if len(definitions) != 1:
-        paths = ", ".join(str(definition.path) for definition in definitions)
+    evidence = " ".join(
+        [
+            *definition.get("packages", []),
+            *definition.get("features", []),
+            str(definition.get("target", "")),
+            *definition.get("extra_args", []),
+            "--no-default-features" if definition.get("no_default_features") else "",
+            "--all-features" if definition.get("all_features") else "",
+        ]
+    )
+    if evidence_token and evidence_token not in evidence:
         failures.append(
-            f"{context} gate {gate} must have exactly one definition, found {len(definitions)} in {paths}"
-        )
-        return
-    if evidence_token and not any(
-        evidence_token in definition.body for definition in definitions
-    ):
-        paths = ", ".join(str(definition.path) for definition in definitions)
-        failures.append(
-            f"{context} gate {gate} does not contain evidence token {evidence_token!r} in {paths}"
+            f"{context} gate {gate} does not contain evidence token {evidence_token!r} in structured execution data"
         )
 
 
@@ -230,9 +485,7 @@ def referenced_policy_gates(policy: dict[str, Any]) -> set[str]:
     for surface in policy.get("features", []):
         if not isinstance(surface, dict):
             continue
-        gates.update(
-            gate for gate in surface.get("gates", []) if isinstance(gate, str)
-        )
+        gates.update(gate for gate in surface.get("gates", []) if isinstance(gate, str))
         if isinstance(surface.get("msrv_gate"), str):
             gates.add(surface["msrv_gate"])
     return gates
@@ -240,7 +493,7 @@ def referenced_policy_gates(policy: dict[str, Any]) -> set[str]:
 
 def validate_gate_operations(
     policy: dict[str, Any],
-    sources: dict[str, list[GateDefinition]],
+    gates: dict[str, dict[str, Any]],
     failures: list[str],
 ) -> None:
     raw_operations = require_table(policy, "gate_operations", failures)
@@ -258,96 +511,37 @@ def validate_gate_operations(
             f"missing={sorted(referenced - set(operations))}, "
             f"extra={sorted(set(operations) - referenced)}"
         )
-    for gate in sorted(referenced & set(operations)):
-        definitions = sources.get(gate, [])
-        if len(definitions) != 1:
-            continue
-        definition = definitions[0]
-        if definition.operation != operations[gate]:
-            failures.append(
-                f"gate {gate} uses Crane operation {definition.operation}, "
-                f"expected {operations[gate]} in {definition.path}"
-            )
-
-
-def cargo_argument_tokens(definition: str) -> list[str]:
-    values = re.findall(
-        r'\bcargo(?:[A-Z][A-Za-z0-9]*)?ExtraArgs\s*=\s*"([^"]*)"\s*;',
-        definition,
-    )
-    try:
-        return [token for value in values for token in shlex.split(value)]
-    except ValueError:
-        return []
-
-
-def cargo_option_values(tokens: list[str], *names: str) -> set[str]:
-    values: set[str] = set()
-    for index, token in enumerate(tokens):
-        if token in names and index + 1 < len(tokens):
-            values.add(tokens[index + 1])
-            continue
-        for name in names:
-            prefix = f"{name}="
-            if token.startswith(prefix) and token != prefix:
-                values.add(token.removeprefix(prefix))
-    return values
-
-
-def cargo_feature_selection(tokens: list[str]) -> set[str]:
-    features: set[str] = set()
-    index = 0
-    while index < len(tokens):
-        token = tokens[index]
-        inline = next(
-            (
-                token.removeprefix(prefix)
-                for prefix in ("--features=", "-F=")
-                if token.startswith(prefix)
-            ),
-            None,
+    if set(gates) != referenced:
+        failures.append(
+            "gate manifest names do not match policy gates: "
+            f"missing={sorted(referenced - set(gates))}, "
+            f"extra={sorted(set(gates) - referenced)}"
         )
-        if inline is not None:
-            features.update(value for value in inline.split(",") if value)
-            index += 1
+    for gate in sorted(referenced & set(operations)):
+        definition = gates.get(gate)
+        if definition is None:
             continue
-        if token not in {"--features", "-F"}:
-            index += 1
-            continue
-        index += 1
-        while index < len(tokens) and not tokens[index].startswith("-"):
-            features.update(value for value in tokens[index].split(",") if value)
-            index += 1
-    return features
-
-
-def cargo_package_selection(
-    tokens: list[str], workspace_packages: set[str]
-) -> tuple[set[str], set[str], bool]:
-    explicitly_selected = cargo_option_values(tokens, "-p", "--package")
-    excluded = cargo_option_values(tokens, "--exclude")
-    selects_workspace = "--workspace" in tokens or "--all" in tokens
-    selected = set(workspace_packages) if selects_workspace else explicitly_selected
-    return selected - excluded, excluded, selects_workspace
+        if definition.get("operation") != operations[gate]:
+            failures.append(
+                f"gate {gate} uses Crane operation {definition.get('operation')}, "
+                f"expected {operations[gate]} in {GATE_MANIFEST_PATH}"
+            )
 
 
 def validate_gate_target(
     gate: Any,
     expected_target: str,
-    sources: dict[str, list[GateDefinition]],
+    gates: dict[str, dict[str, Any]],
     context: str,
     failures: list[str],
 ) -> None:
-    if not isinstance(gate, str) or len(sources.get(gate, [])) != 1:
+    if not isinstance(gate, str) or gate not in gates:
         return
-    definition = sources[gate][0]
-    targets = cargo_option_values(
-        cargo_argument_tokens(definition.body), "--target"
-    )
-    if targets != {expected_target}:
+    target = gates[gate].get("target")
+    if target != expected_target:
         failures.append(
-            f"{context} gate {gate} uses Cargo targets {sorted(targets)}, "
-            f"expected {[expected_target]} in {definition.path}"
+            f"{context} gate {gate} uses Cargo target {target!r}, "
+            f"expected {expected_target!r} in {GATE_MANIFEST_PATH}"
         )
 
 
@@ -359,28 +553,23 @@ def validate_gate_cargo_selection(
     declared_features: set[str],
     available_features: set[str] | None,
     workspace_packages: set[str],
-    sources: dict[str, list[GateDefinition]],
+    gates: dict[str, dict[str, Any]],
     context: str,
     failures: list[str],
 ) -> None:
-    if not isinstance(gate, str) or len(sources.get(gate, [])) != 1:
+    if not isinstance(gate, str) or gate not in gates:
         return
-    gate_definition = sources[gate][0]
-    path = gate_definition.path
-    definition = gate_definition.body
-    tokens = cargo_argument_tokens(definition)
-    selected_packages, excluded_packages, selects_workspace = (
-        cargo_package_selection(tokens, workspace_packages)
-    )
-    actual_no_default = "--no-default-features" in tokens
-    selected_features = cargo_feature_selection(tokens)
-    for match in re.finditer(
-        r"cargoBuildFeatures\s*=\s*\[(.*?)\];", definition, re.DOTALL
-    ):
-        selected_features.update(
-            re.findall(r'"([A-Za-z0-9_+./-]+)"', match.group(1))
-        )
-    if "--all-features" in tokens:
+    definition = gates[gate]
+    selects_workspace = definition.get("workspace") is True
+    excluded_packages = set(definition.get("exclude_packages", []))
+    selected_packages = (
+        set(workspace_packages)
+        if selects_workspace
+        else set(definition.get("packages", []))
+    ) - excluded_packages
+    actual_no_default = definition.get("no_default_features") is True
+    selected_features = set(definition.get("features", []))
+    if definition.get("all_features") is True:
         selected_features = (
             set(available_features)
             if available_features is not None
@@ -400,7 +589,7 @@ def validate_gate_cargo_selection(
             f"features={sorted(selected_features)}; "
             f"expected packages {sorted(declared_packages)}, "
             f"workspace={expects_workspace}, "
-            f"no_default_features={no_default_features}, features={sorted(declared_features)} in {path}"
+            f"no_default_features={no_default_features}, features={sorted(declared_features)} in {GATE_MANIFEST_PATH}"
         )
 
 
@@ -418,9 +607,7 @@ def index_unique_policy_entries(
         if not isinstance(identity, str):
             continue
         if identity in indexed:
-            failures.append(
-                f"policy contains duplicate {identity_name} {identity!r}"
-            )
+            failures.append(f"policy contains duplicate {identity_name} {identity!r}")
             continue
         indexed[identity] = entry
     return indexed
@@ -428,18 +615,15 @@ def index_unique_policy_entries(
 
 def validate_msrv_builder(
     gate: Any,
-    sources: dict[str, list[GateDefinition]],
+    gates: dict[str, dict[str, Any]],
     context: str,
     failures: list[str],
 ) -> None:
-    if not isinstance(gate, str) or len(sources.get(gate, [])) != 1:
+    if not isinstance(gate, str) or gate not in gates:
         return
-    gate_definition = sources[gate][0]
-    path = gate_definition.path
-    definition = gate_definition.body
-    if not re.search(r"=\s*msrvCraneLib\.[A-Za-z0-9_-]+\s*\{", definition):
+    if gates[gate].get("toolchain") != "msrv":
         failures.append(
-            f"{context} gate {gate} is not built with msrvCraneLib in {path}"
+            f"{context} gate {gate} is not built with the MSRV toolchain in {GATE_MANIFEST_PATH}"
         )
 
 
@@ -447,7 +631,7 @@ def validate_toolchains(
     root: Path,
     policy: dict[str, Any],
     cargo: dict[str, Any],
-    gate_definitions: dict[str, list[GateDefinition]],
+    gates: dict[str, dict[str, Any]],
     failures: list[str],
 ) -> None:
     toolchains = require_table(policy, "toolchains", failures)
@@ -505,7 +689,11 @@ def validate_toolchains(
 
     flake = nix_without_comments((root / "flake.nix").read_text(encoding="utf-8"))
     systems_match = re.search(r"systems\s*=\s*\[(.*?)\];", flake, re.DOTALL)
-    systems = set(re.findall(r'"([^"]+)"', systems_match.group(1))) if systems_match else set()
+    systems = (
+        set(re.findall(r'"([^"]+)"', systems_match.group(1)))
+        if systems_match
+        else set()
+    )
     if systems != set(REQUIRED_HOSTS):
         failures.append(
             f"flake systems {sorted(systems)} do not match policy hosts {sorted(REQUIRED_HOSTS)}"
@@ -521,7 +709,9 @@ def validate_toolchains(
         if nixpkgs_rev != toolchains.get("nixpkgs_revision"):
             failures.append("root nixpkgs lock revision does not match support policy")
         if overlay_rev != toolchains.get("rust_overlay_revision"):
-            failures.append("root rust-overlay lock revision does not match support policy")
+            failures.append(
+                "root rust-overlay lock revision does not match support policy"
+            )
     except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
         failures.append(f"cannot validate flake.lock root inputs: {error}")
 
@@ -533,12 +723,12 @@ def validate_toolchains(
         if value and value not in adr:
             failures.append(f"ADR 0002 does not record policy {field} {value}")
 
-    validate_gate("rust-msrv", "", gate_definitions, "MSRV policy", failures)
+    validate_gate("rust-msrv", "", gates, "MSRV policy", failures)
 
 
 def validate_hosts(
     policy: dict[str, Any],
-    sources: dict[str, list[GateDefinition]],
+    gates: dict[str, dict[str, Any]],
     failures: list[str],
 ) -> None:
     hosts = policy.get("hosts")
@@ -559,19 +749,19 @@ def validate_hosts(
         if host.get("tier") != "host-tested":
             failures.append(f"host {system} must be host-tested")
         require_nonempty_string(host, "limitation", f"host {system}", failures)
-        gates = host.get("gates")
-        if not isinstance(gates, list) or not gates:
+        gate_names = host.get("gates")
+        if not isinstance(gate_names, list) or not gate_names:
             failures.append(f"host {system} must declare gates")
             continue
-        for gate in gates:
-            validate_gate(gate, "", sources, f"host {system}", failures)
+        for gate in gate_names:
+            validate_gate(gate, "", gates, f"host {system}", failures)
 
 
 def validate_targets(
     policy: dict[str, Any],
     packages: set[str],
     manifests: dict[str, Path],
-    sources: dict[str, list[GateDefinition]],
+    gates: dict[str, dict[str, Any]],
     failures: list[str],
 ) -> None:
     targets = policy.get("targets")
@@ -635,18 +825,16 @@ def validate_targets(
                     )
             no_default_features = target.get("no_default_features")
             if not isinstance(no_default_features, bool):
-                failures.append(
-                    f"target {triple} must declare no_default_features"
-                )
+                failures.append(f"target {triple} must declare no_default_features")
                 no_default_features = False
             evidence_token = require_nonempty_string(
                 target, "evidence_token", f"target {triple}", failures
             )
             validate_gate(
-                target.get("gate"), evidence_token, sources, f"target {triple}", failures
+                target.get("gate"), evidence_token, gates, f"target {triple}", failures
             )
             validate_gate_target(
-                target.get("gate"), triple, sources, f"target {triple}", failures
+                target.get("gate"), triple, gates, f"target {triple}", failures
             )
             validate_gate_cargo_selection(
                 target.get("gate"),
@@ -656,7 +844,7 @@ def validate_targets(
                 set(declared_features),
                 None,
                 packages,
-                sources,
+                gates,
                 f"target {triple}",
                 failures,
             )
@@ -669,16 +857,14 @@ def validate_targets(
 def validate_features(
     policy: dict[str, Any],
     manifests: dict[str, Path],
-    sources: dict[str, list[GateDefinition]],
+    gates: dict[str, dict[str, Any]],
     failures: list[str],
 ) -> None:
     features = policy.get("features")
     if not isinstance(features, list):
         failures.append("policy is missing [[features]] entries")
         return
-    by_name = index_unique_policy_entries(
-        features, "name", "feature surface", failures
-    )
+    by_name = index_unique_policy_entries(features, "name", "feature surface", failures)
     if set(by_name) != REQUIRED_FEATURE_SURFACES:
         failures.append(
             f"policy feature surfaces {sorted(str(value) for value in by_name)} do not match required surfaces {sorted(REQUIRED_FEATURE_SURFACES)}"
@@ -691,7 +877,9 @@ def validate_features(
             failures.append(f"feature surface {name} names unknown package {package!r}")
             continue
         declared = surface.get("features")
-        if not isinstance(declared, list) or not all(isinstance(item, str) for item in declared):
+        if not isinstance(declared, list) or not all(
+            isinstance(item, str) for item in declared
+        ):
             failures.append(f"feature surface {name} has an invalid features list")
             continue
         if not isinstance(surface.get("no_default_features"), bool):
@@ -709,13 +897,15 @@ def validate_features(
                     failures.append(
                         f"feature surface {name} references missing {package} feature {feature}"
                     )
-        gates = surface.get("gates")
-        token = require_nonempty_string(surface, "evidence_token", f"feature {name}", failures)
-        if not isinstance(gates, list) or not gates:
+        gate_names = surface.get("gates")
+        token = require_nonempty_string(
+            surface, "evidence_token", f"feature {name}", failures
+        )
+        if not isinstance(gate_names, list) or not gate_names:
             failures.append(f"feature surface {name} must declare gates")
             continue
-        for gate in gates:
-            validate_gate(gate, token, sources, f"feature {name}", failures)
+        for gate in gate_names:
+            validate_gate(gate, token, gates, f"feature {name}", failures)
             validate_gate_cargo_selection(
                 gate,
                 set(manifests) if package == "*" else {package},
@@ -724,7 +914,7 @@ def validate_features(
                 set(declared),
                 available_features,
                 set(manifests),
-                sources,
+                gates,
                 f"feature {name}",
                 failures,
             )
@@ -732,10 +922,8 @@ def validate_features(
         msrv_gate = require_nonempty_string(
             surface, "msrv_gate", f"feature {name}", failures
         )
-        validate_gate(msrv_gate, "", sources, f"feature {name} MSRV", failures)
-        validate_msrv_builder(
-            msrv_gate, sources, f"feature {name} MSRV", failures
-        )
+        validate_gate(msrv_gate, "", gates, f"feature {name} MSRV", failures)
+        validate_msrv_builder(msrv_gate, gates, f"feature {name} MSRV", failures)
         validate_gate_cargo_selection(
             msrv_gate,
             set(manifests) if package == "*" else {package},
@@ -744,7 +932,7 @@ def validate_features(
             set(declared),
             available_features,
             set(manifests),
-            sources,
+            gates,
             f"feature {name} MSRV",
             failures,
         )
@@ -777,13 +965,13 @@ def validate(root: Path) -> list[str]:
     require_nonempty_string(policy, "policy_revision", "policy", failures)
 
     packages, manifests = workspace_packages(root, cargo, failures)
-    sources = gate_sources(root, failures)
-    validate_crane_command_attributes(root, failures)
-    validate_gate_operations(policy, sources, failures)
-    validate_toolchains(root, policy, cargo, sources, failures)
-    validate_hosts(policy, sources, failures)
-    validate_targets(policy, packages, manifests, sources, failures)
-    validate_features(policy, manifests, sources, failures)
+    gates = load_gate_manifest(root, packages, manifests, failures)
+    validate_gate_wiring(root, failures)
+    validate_gate_operations(policy, gates, failures)
+    validate_toolchains(root, policy, cargo, gates, failures)
+    validate_hosts(policy, gates, failures)
+    validate_targets(policy, packages, manifests, gates, failures)
+    validate_features(policy, manifests, gates, failures)
     validate_deferred_dimensions(policy, packages, failures)
     return sorted(set(failures))
 
@@ -798,9 +986,7 @@ def main() -> int:
     if failures:
         for failure in failures:
             print(f"sdk-support-policy: {failure}", file=sys.stderr)
-        print(
-            f"sdk-support-policy: {len(failures)} failure(s)", file=sys.stderr
-        )
+        print(f"sdk-support-policy: {len(failures)} failure(s)", file=sys.stderr)
         return 1
     print("sdk-support-policy: contract passed")
     return 0

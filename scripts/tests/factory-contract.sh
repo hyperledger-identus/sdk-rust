@@ -35,7 +35,10 @@ required_files=(
   docs/governance/agentic-sdlc.md
   docs/governance/repository-settings.md
   docs/adr/0003-delegate-develop-integration.md
+  nix/checks/gates.toml
+  nix/checks/rust-gates.nix
   openspec/config.yaml
+  scripts/benchmark-support-policy.py
   scripts/factory
   scripts/check-factory.sh
   scripts/check-bootstrap-inventory.py
@@ -57,7 +60,7 @@ required_files=(
 for relative_path in "${required_files[@]}"; do
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
   case "$relative_path" in
-    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/governance/repository-settings.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | scripts/check-bootstrap-inventory.py | scripts/check-support-policy.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/support-policy.py)
+    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/governance/repository-settings.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | nix/checks/gates.toml | nix/checks/rust-gates.nix | scripts/benchmark-support-policy.py | scripts/check-bootstrap-inventory.py | scripts/check-support-policy.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/support-policy.py)
       cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
       ;;
     *)
@@ -66,6 +69,7 @@ for relative_path in "${required_files[@]}"; do
   esac
 done
 chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" \
+  "$fixture_root/scripts/benchmark-support-policy.py" \
   "$fixture_root/scripts/check-bootstrap-inventory.py" \
   "$fixture_root/scripts/check-pr-policy.sh" \
   "$fixture_root/scripts/check-support-policy.py" \
@@ -81,7 +85,7 @@ for relative_path in Cargo.toml flake.nix flake.lock \
   cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
 done
 mkdir -p "$fixture_root/nix"
-cp -R "$repository_root/nix/checks" "$fixture_root/nix/checks"
+cp -R "$repository_root/nix/checks/." "$fixture_root/nix/checks"
 while IFS= read -r manifest; do
   relative_manifest=${manifest#"$repository_root/"}
   mkdir -p "$fixture_root/$(dirname "$relative_manifest")"

@@ -27,6 +27,19 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Benchmark support-policy validator
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            baseline="$RUNNER_TEMP/sdk-rust-support-policy-baseline"
+            git worktree add --detach "$baseline" "${{ github.event.pull_request.base.sha }}"
+            ./scripts/benchmark-support-policy.py --samples 20 --baseline-root "$baseline"
+          else
+            ./scripts/benchmark-support-policy.py --samples 20
+          fi
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22

@@ -1,12 +1,5 @@
-# sdk-support-policy Specification
+## MODIFIED Requirements
 
-## Purpose
-
-Define and continuously verify the SDK's Rust floor, etalon toolchain, host,
-target, feature, FFI and performance-commitment states without overstating
-compile-only or bootstrap evidence.
-
-## Requirements
 ### Requirement: One machine-readable policy defines compatibility
 
 The repository SHALL contain one normative machine-readable support policy for
@@ -36,88 +29,6 @@ contracts.
 - **WHEN** a gate repeats a name, uses an unknown field or enum, or combines
   contradictory workspace, package, target or feature modes
 - **THEN** offline validation fails closed before Nix evidence is accepted
-
-### Requirement: MSRV and etalon toolchain are independent gates
-
-The SDK SHALL compile every machine-declared default, minimal and opt-in
-feature surface using Rust `1.85.0`. It SHALL separately run the pinned
-NeoPRISM-etalon nightly `2026-03-18` checks. Passing a feature surface on the
-newer toolchain SHALL NOT substitute for the corresponding MSRV gate. The MSRV
-Crane builder SHALL be wired to the machine-declared stable toolchain rather
-than trusted by variable name.
-
-#### Scenario: Nightly-only language use enters the SDK
-
-- **WHEN** source builds on the etalon nightly but not Rust `1.85.0`
-- **THEN** the independent MSRV gate fails
-
-#### Scenario: Opt-in feature raises its Rust floor
-
-- **WHEN** an isolated minimal or opt-in feature surface requires a Rust
-  version newer than `1.85.0`
-- **THEN** that surface's independent MSRV gate fails even when its nightly
-  gate passes
-
-#### Scenario: Etalon pin drifts from policy
-
-- **WHEN** Nix selects a nightly other than the machine-declared etalon
-- **THEN** policy validation fails even if compilation succeeds
-
-#### Scenario: MSRV builder is rewired to nightly
-
-- **WHEN** the MSRV-named Crane library wraps the etalon toolchain instead of
-  the declared stable toolchain
-- **THEN** structural validation fails before nightly results can be accepted
-  as MSRV evidence
-
-### Requirement: Evidence tiers do not overstate support
-
-Host-tested systems SHALL run the repository quality gates. Compile-checked
-targets SHALL compile only their declared eligible packages with their declared
-feature selection and SHALL NOT be described as runtime-tested, certified or
-production-supported. Planned targets SHALL have no compatibility promise. A
-not-supported surface SHALL not be inferred from a placeholder package.
-
-#### Scenario: Browser or mobile compile check passes
-
-- **WHEN** an eligible package compiles for browser WASM, Android ARM64 or iOS
-  ARM64
-- **THEN** the evidence proves target compilation only and records that runtime
-  integration remains downstream evidence
-
-#### Scenario: Placeholder bindings crate exists
-
-- **WHEN** the inherited bindings package still has no accepted FFI contract
-- **THEN** the support policy reports FFI as not supported
-
-### Requirement: Supported feature surfaces are isolated
-
-The target policy SHALL enumerate the default, minimal and opt-in feature
-surfaces that are required to compile or test. Checks SHALL exercise compatible
-surfaces independently rather than relying only on Cargo feature unification.
-
-#### Scenario: Minimal crypto surface regresses
-
-- **WHEN** `identus-crypto` no longer compiles without default features
-- **THEN** its isolated minimal-feature gate fails
-
-#### Scenario: Entropy feature surface regresses
-
-- **WHEN** the empty, deterministic or system-random entropy feature surface
-  fails independently
-- **THEN** the corresponding feature-matrix gate fails
-
-### Requirement: Size and build-time commitments are explicit
-
-Binary size and build time SHALL carry an explicit policy state. Until an
-immutable candidate defines reproducible artifacts and baselines, both SHALL
-be measurement-only and SHALL NOT be represented as compatibility budgets.
-
-#### Scenario: Bootstrap checks record duration or artifact size
-
-- **WHEN** CI or a developer observes a build duration or intermediate artifact
-  size
-- **THEN** the observation does not become a stable threshold or release claim
 
 ### Requirement: Configuration drift fails deterministically
 
@@ -174,8 +85,7 @@ SHALL run in the structural factory path.
 #### Scenario: Workspace gate excludes a package
 
 - **WHEN** a workspace-wide gate manifest entry excludes any workspace package
-- **THEN** structural validation rejects the gate's incomplete effective
-  package selection
+- **THEN** structural validation rejects the incomplete effective selection
 
 #### Scenario: Workspace gate relies on implicit defaults
 
@@ -192,13 +102,13 @@ SHALL run in the structural factory path.
 
 - **WHEN** a compile-checked target gate stops selecting a feature required by
   its machine-declared target surface
-- **THEN** structural validation fails even when target and package selections
-  are unchanged
+- **THEN** structural validation fails even when target and packages are
+  unchanged
 
 #### Scenario: Test gate becomes build-only
 
 - **WHEN** a test gate changes from the declared test operation to a build
-  operation while retaining its name and Cargo arguments
+  operation while retaining its name and selection
 - **THEN** structural validation rejects the semantic operation drift
 
 #### Scenario: Target token moves outside structured selection

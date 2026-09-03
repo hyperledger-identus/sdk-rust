@@ -1,0 +1,415 @@
+schema_version = 1
+
+[[gates]]
+name                = "rust-fmt"
+operation           = "cargoFmt"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "none"
+locked              = false
+workspace           = false
+packages            = [  ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-clippy"
+operation           = "cargoClippy"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = false
+workspace           = true
+packages            = [  ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [ "--", "-D", "warnings" ]
+
+[[gates]]
+name                = "rust-clippy-crypto-minimal"
+operation           = "cargoClippy"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = false
+workspace           = false
+packages            = [ "identus-crypto" ]
+exclude_packages    = [  ]
+lib                 = true
+all_targets         = false
+no_default_features = true
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [ "--", "-D", "warnings" ]
+
+[[gates]]
+name                = "rust-clippy-entropy-minimal"
+operation           = "cargoClippy"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = false
+workspace           = false
+packages            = [ "identus-adapters-entropy" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = true
+no_default_features = true
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [ "--", "-D", "warnings" ]
+
+[[gates]]
+name                = "rust-clippy-kmp-compat"
+operation           = "cargoClippy"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = false
+workspace           = false
+packages            = [ "identus-crypto" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = false
+features            = [ "kmp-compat" ]
+target              = ""
+extra_args          = [ "--", "-D", "warnings" ]
+
+[[gates]]
+name                = "rust-test"
+operation           = "cargoNextest"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = false
+workspace           = true
+packages            = [  ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
+
+[[gates]]
+name                = "rust-test-kmp-compat"
+operation           = "cargoNextest"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = false
+workspace           = false
+packages            = [ "identus-crypto" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = false
+features            = [ "kmp-compat" ]
+target              = ""
+extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
+
+[[gates]]
+name                = "rust-test-entropy-deterministic"
+operation           = "cargoNextest"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = false
+workspace           = false
+packages            = [ "identus-adapters-entropy" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = true
+all_features        = false
+features            = [ "deterministic" ]
+target              = ""
+extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
+
+[[gates]]
+name                = "rust-test-entropy-getrandom"
+operation           = "cargoNextest"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = false
+workspace           = false
+packages            = [ "identus-adapters-entropy" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = true
+all_features        = false
+features            = [ "getrandom" ]
+target              = ""
+extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
+
+[[gates]]
+name                = "rust-test-entropy-all"
+operation           = "cargoNextest"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = false
+workspace           = false
+packages            = [ "identus-adapters-entropy" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = true
+features            = [  ]
+target              = ""
+extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
+
+[[gates]]
+name                = "rust-msrv"
+operation           = "cargoBuild"
+toolchain           = "msrv"
+source              = "rust"
+artifacts           = "msrv"
+locked              = true
+workspace           = true
+packages            = [  ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = true
+no_default_features = false
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-msrv-crypto-minimal"
+operation           = "cargoBuild"
+toolchain           = "msrv"
+source              = "rust"
+artifacts           = "msrv"
+locked              = true
+workspace           = false
+packages            = [ "identus-crypto" ]
+exclude_packages    = [  ]
+lib                 = true
+all_targets         = false
+no_default_features = true
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-msrv-crypto-kmp-compat"
+operation           = "cargoBuild"
+toolchain           = "msrv"
+source              = "rust"
+artifacts           = "msrv"
+locked              = true
+workspace           = false
+packages            = [ "identus-crypto" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = true
+no_default_features = false
+all_features        = false
+features            = [ "kmp-compat" ]
+target              = ""
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-msrv-entropy-minimal"
+operation           = "cargoBuild"
+toolchain           = "msrv"
+source              = "rust"
+artifacts           = "msrv"
+locked              = true
+workspace           = false
+packages            = [ "identus-adapters-entropy" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = true
+no_default_features = true
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-msrv-entropy-deterministic"
+operation           = "cargoBuild"
+toolchain           = "msrv"
+source              = "rust"
+artifacts           = "msrv"
+locked              = true
+workspace           = false
+packages            = [ "identus-adapters-entropy" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = true
+no_default_features = true
+all_features        = false
+features            = [ "deterministic" ]
+target              = ""
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-msrv-entropy-getrandom"
+operation           = "cargoBuild"
+toolchain           = "msrv"
+source              = "rust"
+artifacts           = "msrv"
+locked              = true
+workspace           = false
+packages            = [ "identus-adapters-entropy" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = true
+no_default_features = true
+all_features        = false
+features            = [ "getrandom" ]
+target              = ""
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-msrv-entropy-all"
+operation           = "cargoBuild"
+toolchain           = "msrv"
+source              = "rust"
+artifacts           = "msrv"
+locked              = true
+workspace           = false
+packages            = [ "identus-adapters-entropy" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = true
+no_default_features = false
+all_features        = true
+features            = [  ]
+target              = ""
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-build-wasm32"
+operation           = "cargoBuild"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = true
+workspace           = false
+packages            = [ "identus-core", "identus-crypto", "identus-did", "identus-adapters-entropy" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = false
+features            = [ "identus-adapters-entropy/getrandom" ]
+target              = "wasm32-unknown-unknown"
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-build-android-aarch64"
+operation           = "cargoBuild"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = true
+workspace           = false
+packages            = [ "identus-core", "identus-crypto", "identus-did", "identus-adapters-entropy" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = false
+features            = [ "identus-adapters-entropy/getrandom" ]
+target              = "aarch64-linux-android"
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-build-ios-aarch64"
+operation           = "cargoBuild"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = true
+workspace           = false
+packages            = [ "identus-core", "identus-crypto", "identus-did", "identus-adapters-entropy" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = false
+features            = [ "identus-adapters-entropy/getrandom" ]
+target              = "aarch64-apple-ios"
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-doc"
+operation           = "cargoDoc"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = false
+workspace           = true
+packages            = [  ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [ "--no-deps" ]
+
+[[gates]]
+name                = "rust-deny"
+operation           = "cargoDeny"
+toolchain           = "etalon"
+source              = "repository"
+artifacts           = "none"
+locked              = false
+workspace           = false
+packages            = [  ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-audit"
+operation           = "cargoAudit"
+toolchain           = "etalon"
+source              = "repository"
+artifacts           = "none"
+locked              = false
+workspace           = false
+packages            = [  ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = false
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [  ]

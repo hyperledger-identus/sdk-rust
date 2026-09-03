@@ -1,17 +1,6 @@
 {
   imports = [
-    ./rust-fmt.nix
-    ./rust-msrv.nix
-    ./rust-clippy.nix
-    ./rust-clippy-kmp-compat.nix
-    ./rust-feature-matrix.nix
-    ./rust-test.nix
-    ./rust-test-kmp-compat.nix
-    ./rust-build-wasm32.nix
-    ./rust-build-mobile.nix
-    ./rust-deny.nix
-    ./rust-audit.nix
-    ./rust-doc.nix
+    ./rust-gates.nix
   ];
 
   perSystem =

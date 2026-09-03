@@ -76,6 +76,7 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/check-bootstrap-inventory.py
 ./scripts/check-ssi-upstream-backlog.py
 ./scripts/check-support-policy.py
+./scripts/benchmark-support-policy.py --samples 20
 
 just factory-check
 nix run .#factory -- check
@@ -104,9 +105,13 @@ and quarantined-placeholder shape. It is offline and does not claim that
 protected GitHub settings or publishing authority are active.
 
 The support-policy checker validates the machine-readable Rust, Nix, host,
-target, feature, FFI and budget contract against Cargo and Nix configuration.
-It fails structural CI when a compatibility claim loses its actual gate or a
-toolchain/target surface drifts independently.
+target, feature, FFI and budget contract against Cargo and the declarative Nix
+gate manifest. Nix generates its Crane checks from the same manifest. The
+checker fails structural CI when a compatibility claim loses its actual gate
+or a toolchain/target surface drifts independently, without interpreting Cargo
+semantics from Nix source text. The benchmark records 20-sample warm and
+fresh-process p50/p95 diagnostics and compares PR heads to their base without
+creating a compatibility budget.
 
 ## Authority gates
 

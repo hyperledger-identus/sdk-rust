@@ -10,6 +10,8 @@ use std::str::FromStr;
 use identus_core::{ErrorKind, IdentusError};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+#[cfg(feature = "jwk-thumbprint")]
+use sha2::{Digest, Sha256};
 
 use crate::base64::Base64UrlStrNoPad;
 use crate::error::{CAPABILITY, error_code};
@@ -193,6 +195,38 @@ impl fmt::Display for JwkError {
 
 impl std::error::Error for JwkError {}
 
+/// An RFC 7638 SHA-256 thumbprint of a public JSON Web Key.
+///
+/// A thumbprint identifies the required public key material only. It does not
+/// authorize the key or bind optional JWK members such as `alg`, `kid`, `use`,
+/// or `key_ops`.
+#[cfg(feature = "jwk-thumbprint")]
+#[must_use]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct JwkThumbprint([u8; 32]);
+
+#[cfg(feature = "jwk-thumbprint")]
+impl JwkThumbprint {
+    /// Borrow the 32-byte SHA-256 digest.
+    #[must_use]
+    pub const fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
+
+    /// Encode the thumbprint as canonical unpadded base64url.
+    #[must_use]
+    pub fn to_base64url(&self) -> Base64UrlStrNoPad {
+        Base64UrlStrNoPad::from(self.0)
+    }
+}
+
+#[cfg(feature = "jwk-thumbprint")]
+impl fmt::Display for JwkThumbprint {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.to_base64url().fmt(formatter)
+    }
+}
+
 /// A validated public-key JWK.
 ///
 /// The type cannot contain the private `d` member. Unknown public members are
@@ -322,6 +356,35 @@ impl PublicKeyJwk {
     pub const fn extensions(&self) -> &BTreeMap<String, Value> {
         &self.extensions
     }
+
+    /// Compute this public key's RFC 7638 SHA-256 JWK thumbprint.
+    ///
+    /// Only the required members participate. Optional and extension members
+    /// are intentionally ignored, so they cannot change the key identifier.
+    /// The canonical input is streamed into SHA-256 without JSON serialization
+    /// or a canonicalization allocation.
+    #[cfg(feature = "jwk-thumbprint")]
+    pub fn thumbprint_sha256(&self) -> JwkThumbprint {
+        let mut hasher = Sha256::new();
+        self.visit_thumbprint_input(|part| hasher.update(part));
+        JwkThumbprint(hasher.finalize().into())
+    }
+
+    #[cfg(feature = "jwk-thumbprint")]
+    fn visit_thumbprint_input(&self, mut visit: impl FnMut(&[u8])) {
+        visit(br#"{"crv":""#);
+        visit(self.crv.as_str().as_bytes());
+        match self.kty {
+            JwkKeyType::Okp => visit(br#"","kty":"OKP","x":""#),
+            JwkKeyType::Ec => visit(br#"","kty":"EC","x":""#),
+        }
+        visit(self.x.as_str().as_bytes());
+        if let Some(y) = &self.y {
+            visit(br#"","y":""#);
+            visit(y.as_str().as_bytes());
+        }
+        visit(br#""}"#);
+    }
 }
 
 fn parse_coordinate(value: &str, coordinate: JwkCoordinate) -> Result<Base64UrlStrNoPad, JwkError> {
@@ -370,4 +433,30 @@ impl<'de> Deserialize<'de> for PublicKeyJwk {
 pub trait EncodeJwk {
     /// Encode this public key as a validated [`PublicKeyJwk`].
     fn encode_jwk(&self) -> PublicKeyJwk;
+}
+
+#[cfg(all(test, feature = "jwk-thumbprint"))]
+mod tests {
+    use super::{JwkCurve, PublicKeyJwk};
+
+    #[test]
+    fn thumbprint_input_is_exact_for_each_supported_key_shape() {
+        let x = [0_u8; 32];
+        let y = [1_u8; 32];
+
+        for (jwk, expected) in [
+            (
+                PublicKeyJwk::new_okp(JwkCurve::Ed25519, x).expect("OKP JWK"),
+                r#"{"crv":"Ed25519","kty":"OKP","x":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}"#,
+            ),
+            (
+                PublicKeyJwk::new_ec(JwkCurve::P256, x, y).expect("EC JWK"),
+                r#"{"crv":"P-256","kty":"EC","x":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","y":"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE"}"#,
+            ),
+        ] {
+            let mut actual = Vec::new();
+            jwk.visit_thumbprint_input(|part| actual.extend_from_slice(part));
+            assert_eq!(actual, expected.as_bytes());
+        }
+    }
 }

@@ -11,6 +11,13 @@ fn zero_coordinate() -> String {
     "A".repeat(43)
 }
 
+fn coordinate(value: &str) -> [u8; 32] {
+    hex::decode(value)
+        .expect("hex coordinate")
+        .try_into()
+        .expect("32-byte coordinate")
+}
+
 #[test]
 fn rfc_8037_appendix_a2_public_key_is_exact() {
     let source = json!({
@@ -25,6 +32,93 @@ fn rfc_8037_appendix_a2_public_key_is_exact() {
     assert_eq!(jwk.x().as_str(), RFC_8037_ED25519_X);
     assert!(jwk.y().is_none());
     assert_eq!(serde_json::to_value(jwk).expect("serialize"), source);
+}
+
+#[test]
+fn rfc_8037_appendix_a3_thumbprint_is_exact() {
+    let jwk: PublicKeyJwk = serde_json::from_value(json!({
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "x": RFC_8037_ED25519_X,
+    }))
+    .expect("RFC JWK");
+
+    let thumbprint = jwk.thumbprint_sha256();
+    assert_eq!(
+        hex::encode(thumbprint.as_bytes()),
+        "90facafea9b1556698540f70c0117a22ea37bd5cf3ed3c47093c1707282b4b89"
+    );
+    assert_eq!(
+        thumbprint.to_base64url().as_str(),
+        "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+    );
+    assert_eq!(
+        thumbprint.to_string(),
+        "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+    );
+}
+
+#[test]
+fn ec_generator_thumbprints_match_independently_computed_vectors() {
+    let vectors = [
+        (
+            JwkCurve::P256,
+            "6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296",
+            "4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5",
+            "c71d01700fb0328870f1ab580c939eea9786328764946db04470655c732f9743",
+            "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M",
+        ),
+        (
+            JwkCurve::Secp256k1,
+            "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+            "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8",
+            "d8917cbe0f5eb49ce31706709a4be104b2d9d1b7cc55538f8af611e6516d71e7",
+            "2JF8vg9etJzjFwZwmkvhBLLZ0bfMVVOPivYR5lFtcec",
+        ),
+    ];
+
+    for (curve, x, y, expected_hex, expected_base64url) in vectors {
+        let jwk = PublicKeyJwk::new_ec(curve, coordinate(x), coordinate(y)).expect("EC JWK");
+        let thumbprint = jwk.thumbprint_sha256();
+        assert_eq!(hex::encode(thumbprint.as_bytes()), expected_hex);
+        assert_eq!(thumbprint.to_base64url().as_str(), expected_base64url);
+    }
+}
+
+#[test]
+fn thumbprint_ignores_extensions_but_changes_with_required_material() {
+    let mut first_extensions = BTreeMap::new();
+    first_extensions.insert("alg".to_owned(), json!("EdDSA"));
+    first_extensions.insert("kid".to_owned(), json!("did:example:123#first"));
+    let first = PublicKeyJwk::from_parts(
+        JwkKeyType::Okp,
+        JwkCurve::Ed25519,
+        &zero_coordinate(),
+        None,
+        first_extensions,
+    )
+    .expect("first JWK");
+
+    let mut second_extensions = BTreeMap::new();
+    second_extensions.insert("alg".to_owned(), json!("not-authorized-here"));
+    second_extensions.insert("kid".to_owned(), json!("did:example:456#second"));
+    second_extensions.insert("use".to_owned(), json!("enc"));
+    let second = PublicKeyJwk::from_parts(
+        JwkKeyType::Okp,
+        JwkCurve::Ed25519,
+        &zero_coordinate(),
+        None,
+        second_extensions,
+    )
+    .expect("second JWK");
+
+    assert_eq!(first.thumbprint_sha256(), second.thumbprint_sha256());
+
+    let changed = PublicKeyJwk::new_okp(JwkCurve::Ed25519, [1; 32]).expect("changed JWK");
+    assert_ne!(first.thumbprint_sha256(), changed.thumbprint_sha256());
+
+    let other_curve = PublicKeyJwk::new_okp(JwkCurve::X25519, [0; 32]).expect("X25519 JWK");
+    assert_ne!(first.thumbprint_sha256(), other_curve.thumbprint_sha256());
 }
 
 #[test]

@@ -78,3 +78,21 @@ The full pinned local Nix matrix passed before review with all 27 compatible
 checks. Repository-source and Cargo dependency boundaries are unchanged. Read-
 only consumer receipts preserve their pre-existing local state, and reserved
 `main` remains clean at `2c267d65af5c6b6dc9c8fd6826266c8ad0c3256a`.
+
+## Hosted timing correction review
+
+- **Reviewed correction head:**
+  `f05f618271a433d612753a490d9184d26c46e003`
+- **Trigger:** final-head hosted macOS warm p95 outlier
+- **Result:** correction is bounded, tested and has no unresolved blocker
+
+The failed rerun had a 7.259 ms warm p50 but a 22.977 ms p95, while the prior
+hosted run, local runs and process-cold measurement passed. With 20 samples,
+one delayed sample determines p95. Gating p95 therefore contradicted the stated
+diagnostic intent and produced a flaky merge gate.
+
+The correction continues to report ratios for all four measurements and
+applies the existing broad ceiling only to warm and process-cold p50. Two pure
+comparison tests prove that an isolated p95 outlier stays diagnostic and a
+sustained p50 pathology fails. Ruff, 38/38 Python tests, factory checks and the
+complete 26-check local Nix graph passed on the corrected code.

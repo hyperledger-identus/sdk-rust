@@ -4,6 +4,8 @@
 - **Develop base:** `a05cb05575c7d99fc025f5be450da32c7a11a5c1`
 - **Reviewed implementation head:**
   `996465abe6fa68bb7d04b218f9a0f07b5f954afe`
+- **Reviewed hosted-timing correction head:**
+  `f05f618271a433d612753a490d9184d26c46e003`
 - **Local platform:** macOS 26.2, aarch64-darwin, Python 3.14.3
 - **Result:** every applicable local gate passed; hosted Linux and macOS
   benchmark steps passed
@@ -16,6 +18,8 @@
   missing, duplicate and unknown data; operation, package, feature and target
   drift; dynamic/interpolated Nix and dead `_module.args` decoys; contradictory
   selections; and Cargo-selection smuggling through trailing arguments.
+- The same suite passed two additional timing-policy regressions, for 38/38
+  total tests.
 - `nix flake show --all-systems` emitted the same 23 named Rust gates for
   x86_64-linux and aarch64-darwin.
 - Representative old/new derivations preserved their Crane operations,

@@ -40,3 +40,42 @@
     implementations remain unchanged.
 12. **Provenance:** all donor repositories are immutable evidence. Apollo is
     legacy-only and no source or fixture is copied.
+
+# Post-implementation semantic, security and API review
+
+- **Reviewed head:** `f991be6a24d57b94517586ae4b3c6e2656280fcb`
+- **Review completed:** 2026-09-03T06:38:11Z
+- **Result:** passed with no unresolved finding
+
+The exact diff from `c002fc52d3ee1864c3499a3ca548232d774fbf9c`
+was re-read after focused tests, both workspace feature modes, strict Clippy,
+rustdoc, 94.31% line coverage of the new algorithm and all 26 compatible Nix
+checks. The public surface remains one additive opt-in adapter and one validated
+document projection helper. Existing resolver, dereferencer and registry
+implementations are unchanged.
+
+Parameter names and values are decoded once without plus substitution;
+duplicates, malformed/control-bearing values and option collisions fail before
+resolution. Every accepted DID parameter and dereferencing input reaches the
+single injected resolver through bounded `ResolutionOptions`. Custom path/query
+resources still resolve for method context but are never guessed by the generic
+algorithm.
+
+Exact absolute identifiers govern fragments, services and relationship
+membership. The relationship option cannot be applied to bare documents or
+service routing. CID error identities remain open URIs, endpoint maps are never
+treated as locations, multiple endpoint fragments fail closed, and document
+metadata survives both document and URI-list projections.
+
+The relative-reference code was checked independently against RFC 3986 merge
+cases and the stricter wallet scope. Review found and fixed the empty-path
+authority case (`https://host` plus `child`), then added a regression test.
+Direct, encoded, double-encoded and platform traversal, authority changes,
+unsafe base paths and route escape are rejected. Returned URIs are values only;
+there is no DNS, HTTP, redirect, filesystem, recursion, clock, cache or chain
+access.
+
+The 2026 W3C algorithm remains at risk, so method/extension strategies, remote
+retrieval/SSRF (#10), recursive cycles and arbitrary media fragments remain
+explicitly outside this independently removable adapter. No downstream tree
+was modified, switched, staged, copied from or built.

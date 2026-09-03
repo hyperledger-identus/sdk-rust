@@ -6,7 +6,8 @@ The DID capability SHALL parse query parameters without HTML form semantics,
 percent-decode names and values exactly once, preserve literal plus signs and
 reject empty names, malformed encoding, invalid text, bounds violations or
 duplicate decoded names. Resolution parameters SHALL be projected to bounded
-`ResolutionOptions`; resource selectors SHALL remain local to dereferencing.
+`ResolutionOptions`; resource selectors SHALL also be projected without
+authorizing resolver-side retrieval and SHALL be consumed only by dereferencing.
 
 #### Scenario: duplicate or aliased parameters fail closed
 

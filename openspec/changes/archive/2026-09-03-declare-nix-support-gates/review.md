@@ -70,8 +70,9 @@ generated derivation.
 The benchmark loads the selected root's validator for warm samples, launches a
 fresh Python process for process-cold samples, requires at least 20 successes,
 reports stable JSON and compares PR heads with the exact base using a deliberately
-broad `2x + 5 ms` pathology ceiling. This is tooling protection, not a product
-performance promise.
+broad `2x + 5 ms` pathology ceiling on p50. P95 remains reported without gating
+because a single scheduler outlier controls it at 20 samples. This is tooling
+protection, not a product performance promise.
 
 The full pinned local Nix matrix passed before review with all 27 compatible
 checks. Repository-source and Cargo dependency boundaries are unchanged. Read-

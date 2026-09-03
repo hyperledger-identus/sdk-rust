@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import re
 import shutil
 import subprocess
@@ -13,6 +14,45 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "scripts/check-support-policy.py"
+BENCHMARK = ROOT / "scripts/benchmark-support-policy.py"
+
+
+def load_benchmark():
+    spec = importlib.util.spec_from_file_location("support_policy_benchmark", BENCHMARK)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+BENCHMARK_MODULE = load_benchmark()
+
+
+class SupportPolicyBenchmarkTests(unittest.TestCase):
+    @staticmethod
+    def measurement(p50: float, p95: float) -> dict[str, float]:
+        return {
+            "warm_p50_ms": p50,
+            "warm_p95_ms": p95,
+            "process_cold_p50_ms": p50 * 10,
+            "process_cold_p95_ms": p95 * 10,
+        }
+
+    def test_isolated_p95_outlier_remains_diagnostic(self) -> None:
+        baseline = self.measurement(5.0, 6.0)
+        current = self.measurement(6.0, 30.0)
+        comparisons, regressions = BENCHMARK_MODULE.compare_measurements(
+            current, baseline
+        )
+        self.assertEqual(comparisons["warm_p95_ms_ratio"], 5.0)
+        self.assertEqual(regressions, [])
+
+    def test_sustained_p50_pathology_fails(self) -> None:
+        baseline = self.measurement(5.0, 6.0)
+        current = self.measurement(16.0, 30.0)
+        _, regressions = BENCHMARK_MODULE.compare_measurements(current, baseline)
+        self.assertIn("warm_p50_ms", regressions[0])
 
 
 class SupportPolicyTests(unittest.TestCase):

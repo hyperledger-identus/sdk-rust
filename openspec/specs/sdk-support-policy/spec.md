@@ -232,4 +232,5 @@ a compatibility or release budget during bootstrap.
 
 - **WHEN** normal hosted-runner variance changes a percentile
 - **THEN** the result remains diagnostic unless it breaches a broad documented
-  pathological-regression ceiling
+  pathological-regression ceiling applied to the robust p50 measurements;
+  isolated p95 outliers remain reported diagnostics

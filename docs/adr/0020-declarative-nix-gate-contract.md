@@ -31,7 +31,8 @@ agents with coordinating duplicate argument strings.
 6. The validator retains only narrow execution-wiring checks. A full Nix gate
    remains the proof that generated derivations evaluate and build.
 7. Twenty-sample warm and process-cold p50/p95 measurements run on Linux and
-   macOS as diagnostic evidence. They are not a support budget.
+   macOS as diagnostic evidence. Only p50 is eligible for the broad pathology
+   ceiling; p95 stays observational. Neither is a support budget.
 
 ## Consequences
 

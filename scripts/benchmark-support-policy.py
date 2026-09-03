@@ -18,6 +18,13 @@ from typing import Any
 MINIMUM_SAMPLES = 20
 MATERIAL_REGRESSION_FACTOR = 2.0
 MATERIAL_REGRESSION_ALLOWANCE_MS = 5.0
+REPORTED_METRICS = (
+    "warm_p50_ms",
+    "warm_p95_ms",
+    "process_cold_p50_ms",
+    "process_cold_p95_ms",
+)
+REGRESSION_METRICS = ("warm_p50_ms", "process_cold_p50_ms")
 
 
 def load_validator(root: Path) -> ModuleType:
@@ -90,6 +97,28 @@ def measure(root: Path, samples: int) -> dict[str, Any]:
     }
 
 
+def compare_measurements(
+    current: dict[str, Any], baseline: dict[str, Any]
+) -> tuple[dict[str, float], list[str]]:
+    comparisons = {
+        f"{metric}_ratio": round(float(current[metric]) / float(baseline[metric]), 3)
+        for metric in REPORTED_METRICS
+    }
+    regressions: list[str] = []
+    for metric in REGRESSION_METRICS:
+        current_value = float(current[metric])
+        baseline_value = float(baseline[metric])
+        ceiling = (
+            baseline_value * MATERIAL_REGRESSION_FACTOR
+            + MATERIAL_REGRESSION_ALLOWANCE_MS
+        )
+        if current_value > ceiling:
+            regressions.append(
+                f"{metric} {current_value:.3f} ms exceeds material-regression ceiling {ceiling:.3f} ms"
+            )
+    return comparisons, regressions
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -110,22 +139,10 @@ def main() -> int:
     }
     if args.baseline_root is not None:
         baseline = measure(args.baseline_root.resolve(), args.samples)
-        comparisons: dict[str, float] = {}
-        regressions: list[str] = []
-        for metric in ("warm_p95_ms", "process_cold_p95_ms"):
-            current_value = float(current[metric])
-            baseline_value = float(baseline[metric])
-            comparisons[f"{metric}_ratio"] = round(current_value / baseline_value, 3)
-            ceiling = (
-                baseline_value * MATERIAL_REGRESSION_FACTOR
-                + MATERIAL_REGRESSION_ALLOWANCE_MS
-            )
-            if current_value > ceiling:
-                regressions.append(
-                    f"{metric} {current_value:.3f} ms exceeds material-regression ceiling {ceiling:.3f} ms"
-                )
+        comparisons, regressions = compare_measurements(current, baseline)
         report["baseline"] = baseline
         report["comparison"] = comparisons
+        report["regression_metrics"] = list(REGRESSION_METRICS)
         report["material_regressions"] = regressions
         print(json.dumps(report, sort_keys=True))
         if regressions:

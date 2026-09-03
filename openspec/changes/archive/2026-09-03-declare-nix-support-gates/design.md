@@ -88,8 +88,9 @@ generated derivation evaluates and builds.
 two modes: in-process warm validation and process-cold checker invocation. It
 prints machine-readable JSON containing platform, revision, sample count,
 p50/p95 and the #23 comparison baseline when applicable. Hosted Linux/macOS CI
-runs the same command as diagnostic evidence; no timing alone fails a build
-unless a generous safety ceiling detects pathological regression.
+runs the same command as diagnostic evidence. A generous safety ceiling applies
+only to the robust p50 measurements to detect sustained pathological regression;
+p95 remains diagnostic because one scheduler outlier dominates a 20-sample p95.
 
 ## Risks / Trade-offs
 

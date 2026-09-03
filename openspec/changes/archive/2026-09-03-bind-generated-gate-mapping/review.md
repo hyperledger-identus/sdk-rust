@@ -97,3 +97,11 @@ It SHALL identify string spans before removing comments and remove only comment
 syntax outside those spans. Exact `builtins` and `pkgs` shadows must fail, while
 unrelated double-quoted and indented strings containing line/block comment
 markers must preserve canonical acceptance.
+
+The implementation at `795a5cb5557020adb9e25e302670941bca9d43bf`
+meets that contract. Immediate assignments, attribute-path bindings, and
+inherit statements are checked for trusted-root definitions. Comment scanning
+and string scanning now share the same lexical precedence: strings are skipped
+before comment recognition, and comment contents cannot open strings. A local
+contradiction-focused pass found no remaining trusted-root or comment-order
+bypass and no delivery blocker.

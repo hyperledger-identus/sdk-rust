@@ -56,3 +56,14 @@ the complete compatible aarch64-darwin Nix graph all pass after the correction.
 - No downstream repository was read or modified for this follow-up.
 - Reserved `main` remains untouched at
   `2c267d65af5c6b6dc9c8fd6826266c8ad0c3256a`.
+
+## Final trusted-root and lexical evidence
+
+The trusted-root and lexical-comment correction is implemented at
+`795a5cb5557020adb9e25e302670941bca9d43bf`. The mutation suite passes 53/53:
+exact `builtins` and `pkgs` shadows fail, comment delimiters in double-quoted
+and indented strings pass, and unmatched string delimiters inside line/block
+comments cannot mask live source. Ruff, canonical policy, the 17-item factory
+contract, and the complete compatible aarch64-darwin Nix graph pass. The final
+benchmark reports warm p50/p95 9.338/9.706 ms and process-cold p50/p95
+48.457/50.035 ms, within the diagnostic guard.

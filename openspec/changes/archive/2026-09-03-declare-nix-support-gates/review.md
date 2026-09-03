@@ -112,3 +112,10 @@ confirmed and fixed: reachability now resolves the actual `imports` attribute,
 and malformed list, boolean and target values are normalized to safe sentinels
 after recording their errors. Focused regressions prove the decoy is rejected
 and malformed lists fail without a traceback.
+
+A follow-up review identified that independent “manifest parsed” and “checks
+published” token checks still allowed the manifest mapping to become unused
+while an empty `generatedChecks` value was published. The validator now binds
+the complete chain structurally: `gates.toml` to `manifest`, `manifest.gates`
+through `listToAttrs` to `generatedChecks`, and `generatedChecks` to `checks`.
+An unused-mapping mutation proves the disconnected graph fails.

@@ -186,15 +186,26 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         failures.append("nix/checks/rust-gates.nix does not exist")
         return
     generator = nix_without_comments(generator_path.read_text(encoding="utf-8"))
-    required_tokens = [
-        "builtins.fromTOML (builtins.readFile ./gates.toml)",
-        "checks = generatedChecks",
-    ]
-    for token in required_tokens:
-        if token not in generator:
-            failures.append(
-                f"rust-gates.nix does not publish manifest data via {token!r}"
-            )
+    manifest_binding = re.search(
+        r"\bmanifest\s*=\s*builtins\.fromTOML\s*"
+        r"\(builtins\.readFile\s+\./gates\.toml\)\s*;",
+        generator,
+    )
+    generated_binding = re.search(
+        r"\bgeneratedChecks\s*=\s*listToAttrs\s*\(\s*map\s*\("
+        r".*?\)\s*manifest\.gates\s*\)\s*;",
+        generator,
+        re.DOTALL,
+    )
+    published_binding = re.search(r"\bchecks\s*=\s*generatedChecks\s*;", generator)
+    if manifest_binding is None:
+        failures.append("rust-gates.nix does not parse gates.toml as manifest")
+    if generated_binding is None:
+        failures.append(
+            "rust-gates.nix does not derive generatedChecks from manifest.gates"
+        )
+    if published_binding is None:
+        failures.append("rust-gates.nix does not publish generatedChecks as checks")
 
     duplicates = sorted(
         path.relative_to(root)

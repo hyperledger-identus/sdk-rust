@@ -161,6 +161,19 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("does not import rust-gates.nix")
 
+    def test_unused_manifest_mapping_cannot_replace_published_checks(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      generatedChecks = listToAttrs (",
+            "      unusedGeneratedChecks = listToAttrs (",
+        )
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "        }) manifest.gates\n      );\n    in",
+            "        }) manifest.gates\n      );\n      generatedChecks = { };\n    in",
+        )
+        self.assert_fails("does not derive generatedChecks from manifest.gates")
+
     def test_check_graph_must_be_imported_by_flake(self) -> None:
         self.replace("flake.nix", "        ./nix/checks\n", "")
         self.assert_fails("flake.nix does not import the nix/checks module")

@@ -42,8 +42,10 @@ claim: supported hosts, compile-only targets, feature surfaces and limitations.
 claim references a gate name; the validator proves the referenced manifest
 entry has the exact effective selection required by that claim.
 
-The policy no longer duplicates an operation map. Each gate entry declares its
-operation directly alongside the rest of its execution data.
+The policy retains its expected-operation map as an independent semantic claim;
+the execution operation moves from Nix syntax into the gate entry. This small
+cross-check preserves the #23 operation-drift regression without duplicating an
+executable Cargo command.
 
 ### 2. Represent Cargo meaning, not a shell-like argument string
 
@@ -61,11 +63,11 @@ depends on order.
 
 ### 3. Generate the full Rust check matrix in the reachable root module
 
-`nix/checks/default.nix` reads `gates.toml` with `builtins.fromTOML`, maps each
-entry to one Crane derivation and merges those results with the repository's
-non-Rust factory and text-hygiene checks. The former hand-written Rust gate
-modules are removed, eliminating a second execution representation and the
-orphan-module class of drift.
+The root module imports `rust-gates.nix`, which reads `gates.toml` with
+`builtins.fromTOML`, maps each entry to one Crane derivation and merges those
+results with the repository's non-Rust factory and text-hygiene checks. The
+former hand-written Rust gate modules are removed, eliminating a second
+execution representation and the orphan-module class of drift.
 
 Because actual check attribute names are generated from the manifest, a gate
 name left in a Nix comment, multiline string or dead `_module.args` value

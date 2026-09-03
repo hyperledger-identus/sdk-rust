@@ -19,7 +19,8 @@ agents with coordinating duplicate argument strings.
 
 1. `sdk-support-policy.toml` remains the machine-readable compatibility claim.
 2. `nix/checks/gates.toml` is the versioned execution contract for every named
-   Rust gate.
+   Rust gate. The support policy retains the independent expected-operation map
+   used to detect semantic operation drift.
 3. Each gate declares its Crane operation, etalon/MSRV toolchain, source and
    artifact class, and structured Cargo selection including workspace,
    packages, exclusions, feature mode and target.

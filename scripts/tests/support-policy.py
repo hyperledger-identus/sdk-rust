@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import shutil
+import re
 import subprocess
 import sys
 import tempfile
@@ -53,245 +54,154 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertIn(old, contents)
         path.write_text(contents.replace(old, new, 1), encoding="utf-8")
 
+    def replace_gate(self, name: str, old: str, new: str) -> None:
+        path = self.fixture / "nix/checks/gates.toml"
+        contents = path.read_text(encoding="utf-8")
+        marker = re.search(rf'^name\s*=\s*"{re.escape(name)}"$', contents, re.MULTILINE)
+        self.assertIsNotNone(marker)
+        assert marker is not None
+        marker_index = marker.start()
+        start = contents.rfind("[[gates]]", 0, marker_index)
+        end = contents.find("[[gates]]", marker.end())
+        if end == -1:
+            end = len(contents)
+        block = re.sub(r"\s*=\s*", " = ", contents[start:end])
+        block = block.replace("[  ]", "[]")
+        self.assertIn(old, block)
+        path.write_text(
+            contents[:start] + block.replace(old, new, 1) + contents[end:],
+            encoding="utf-8",
+        )
+
+    def assert_fails(self, expected: str) -> None:
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn(expected, result.stderr)
+
     def test_canonical_policy_passes(self) -> None:
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_cargo_msrv_drift_fails(self) -> None:
         self.replace("Cargo.toml", 'rust-version = "1.85.0"', 'rust-version = "1.86.0"')
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("does not match policy MSRV", result.stderr)
+        self.assert_fails("does not match policy MSRV")
 
     def test_missing_dimension_fails(self) -> None:
         self.replace("docs/architecture/sdk-support-policy.toml", "[ffi]", "[removed_ffi]")
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("policy is missing [ffi]", result.stderr)
+        self.assert_fails("policy is missing [ffi]")
 
     def test_removed_gate_fails(self) -> None:
-        self.replace(
-            "nix/checks/rust-build-wasm32.nix",
-            "checks.rust-build-wasm32",
-            "checks.removed-rust-build-wasm32",
-        )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("undefined Nix gate rust-build-wasm32", result.stderr)
+        self.replace_gate("rust-build-wasm32", "rust-build-wasm32", "removed-rust-build-wasm32")
+        self.assert_fails("undefined Nix gate rust-build-wasm32")
 
     def test_gate_must_use_declared_crane_operation(self) -> None:
-        self.replace(
-            "nix/checks/rust-test.nix",
-            "craneLib.cargoNextest",
-            "craneLib.cargoBuild",
-        )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "gate rust-test uses Crane operation cargoBuild, expected cargoNextest",
-            result.stderr,
-        )
+        self.replace_gate("rust-test", 'operation = "cargoNextest"', 'operation = "cargoBuild"')
+        self.assert_fails("gate rust-test uses Crane operation cargoBuild, expected cargoNextest")
 
-    def test_unimported_gate_module_is_not_discovered(self) -> None:
-        self.replace(
-            "nix/checks/default.nix",
-            "    ./rust-build-mobile.nix\n",
-            "    # ./rust-build-mobile.nix\n",
-        )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "target aarch64-linux-android references undefined Nix gate",
-            result.stderr,
-        )
+    def test_manifest_generator_must_be_imported(self) -> None:
+        self.replace("nix/checks/default.nix", "    ./rust-gates.nix\n", "    # ./rust-gates.nix\n")
+        self.assert_fails("does not import rust-gates.nix")
 
     def test_check_graph_must_be_imported_by_flake(self) -> None:
         self.replace("flake.nix", "        ./nix/checks\n", "")
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "flake.nix does not import the nix/checks module", result.stderr
-        )
+        self.assert_fails("flake.nix does not import the nix/checks module")
 
     def test_gate_without_target_evidence_fails(self) -> None:
-        self.replace(
-            "nix/checks/rust-build-wasm32.nix",
-            "wasm32-unknown-unknown",
-            "removed-wasm-target",
-        )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("does not contain evidence token", result.stderr)
+        self.replace_gate("rust-build-wasm32", 'target = "wasm32-unknown-unknown"', 'target = ""')
+        self.assert_fails("does not contain evidence token")
 
-    def test_target_gate_must_bind_triple_to_cargo_target_option(self) -> None:
-        self.replace(
-            "nix/checks/rust-build-wasm32.nix",
-            "      checks.rust-build-wasm32 = craneLib.cargoBuild {\n",
-            """      checks.rust-build-wasm32 = craneLib.cargoBuild {
-        pname = "wasm32-unknown-unknown";
-""",
+    def test_target_gate_must_bind_structured_target(self) -> None:
+        self.replace_gate(
+            "rust-build-wasm32",
+            'target = "wasm32-unknown-unknown"',
+            'target = "aarch64-linux-android"',
         )
-        self.replace(
-            "nix/checks/rust-build-wasm32.nix",
-            "--target wasm32-unknown-unknown",
-            "--target aarch64-linux-android",
-        )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "target wasm32-unknown-unknown gate rust-build-wasm32 uses Cargo targets ['aarch64-linux-android']",
-            result.stderr,
-        )
+        self.assert_fails("uses Cargo target 'aarch64-linux-android'")
 
     def test_target_evidence_cannot_come_from_neighboring_gate(self) -> None:
-        path = self.fixture / "nix/checks/rust-build-mobile.nix"
-        contents = path.read_text(encoding="utf-8")
-        contents = contents.replace("aarch64-linux-android", "swapped-target", 1)
-        contents = contents.replace(
-            "aarch64-apple-ios", "aarch64-linux-android", 1
+        self.replace_gate(
+            "rust-build-android-aarch64",
+            'target = "aarch64-linux-android"',
+            'target = "aarch64-apple-ios"',
         )
-        contents = contents.replace("swapped-target", "aarch64-apple-ios", 1)
-        path.write_text(contents, encoding="utf-8")
-
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "target aarch64-linux-android gate rust-build-android-aarch64 does not contain evidence token",
-            result.stderr,
+        self.replace_gate(
+            "rust-build-ios-aarch64",
+            'target = "aarch64-apple-ios"',
+            'target = "aarch64-linux-android"',
         )
+        self.assert_fails("rust-build-android-aarch64 does not contain evidence token")
 
     def test_target_gate_must_build_every_declared_package(self) -> None:
-        self.replace(
-            "nix/checks/rust-build-wasm32.nix",
-            " -p identus-adapters-entropy --features",
-            " --features",
+        self.replace_gate(
+            "rust-build-wasm32",
+            'packages = [ "identus-core", "identus-crypto", "identus-did", "identus-adapters-entropy" ]',
+            'packages = [ "identus-core", "identus-crypto", "identus-did" ]',
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "target wasm32-unknown-unknown gate rust-build-wasm32 selects packages",
-            result.stderr,
-        )
+        self.assert_fails("rust-build-wasm32 selects packages")
 
     def test_target_gate_must_activate_declared_features(self) -> None:
-        self.replace(
-            "nix/checks/rust-build-wasm32.nix",
-            " --features identus-adapters-entropy/getrandom",
-            "",
+        self.replace_gate(
+            "rust-build-wasm32",
+            'features = [ "identus-adapters-entropy/getrandom" ]',
+            "features = []",
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "target wasm32-unknown-unknown gate rust-build-wasm32 selects",
-            result.stderr,
-        )
+        self.assert_fails("rust-build-wasm32 selects packages")
 
     def test_feature_gate_must_preserve_default_feature_mode(self) -> None:
-        self.replace(
-            "nix/checks/rust-feature-matrix.nix",
-            "--no-default-features --features deterministic",
-            "--features deterministic",
+        self.replace_gate(
+            "rust-test-entropy-deterministic",
+            "no_default_features = true",
+            "no_default_features = false",
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "feature entropy-deterministic gate rust-test-entropy-deterministic selects",
-            result.stderr,
-        )
+        self.assert_fails("rust-test-entropy-deterministic selects packages")
 
     def test_feature_gate_must_select_declared_package(self) -> None:
-        self.replace(
-            "nix/checks/rust-test-kmp-compat.nix",
-            "-p identus-crypto --features kmp-compat",
-            "-p identus-core --features kmp-compat",
+        self.replace_gate(
+            "rust-test-kmp-compat",
+            'packages = [ "identus-crypto" ]',
+            'packages = [ "identus-core" ]',
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "feature crypto-kmp-compat gate rust-test-kmp-compat selects",
-            result.stderr,
-        )
+        self.assert_fails("rust-test-kmp-compat selects packages")
 
     def test_feature_gate_must_select_complete_feature_set(self) -> None:
-        self.replace(
-            "nix/checks/rust-feature-matrix.nix",
-            "--features deterministic --no-fail-fast",
-            "--features deterministic,getrandom --no-fail-fast",
+        self.replace_gate(
+            "rust-test-entropy-deterministic",
+            'features = [ "deterministic" ]',
+            'features = [ "deterministic", "getrandom" ]',
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "feature entropy-deterministic gate rust-test-entropy-deterministic selects",
-            result.stderr,
-        )
+        self.assert_fails("rust-test-entropy-deterministic selects packages")
 
-    def test_feature_gate_parses_space_separated_feature_values(self) -> None:
-        self.replace(
-            "nix/checks/rust-feature-matrix.nix",
-            "--features deterministic --no-fail-fast",
-            "--features deterministic getrandom --no-fail-fast",
+    def test_feature_gate_rejects_shell_encoded_feature_values(self) -> None:
+        self.replace_gate(
+            "rust-test-entropy-deterministic",
+            'features = [ "deterministic" ]',
+            'features = [ "deterministic getrandom" ]',
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "feature entropy-deterministic gate rust-test-entropy-deterministic selects",
-            result.stderr,
-        )
-        self.assertIn("'deterministic', 'getrandom'", result.stderr)
+        self.assert_fails("references missing feature 'deterministic getrandom'")
 
     def test_workspace_feature_gate_cannot_exclude_a_package(self) -> None:
-        self.replace(
-            "nix/checks/rust-test.nix",
-            "--workspace --no-fail-fast --no-tests=pass",
-            "--workspace --exclude identus-crypto --no-fail-fast --no-tests=pass",
-        )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "feature workspace-default gate rust-test selects packages",
-            result.stderr,
-        )
-        self.assertIn("excludes=['identus-crypto']", result.stderr)
+        self.replace_gate("rust-test", "exclude_packages = []", 'exclude_packages = [ "identus-crypto" ]')
+        self.assert_fails("excludes=['identus-crypto']")
 
     def test_workspace_feature_gate_must_select_workspace_explicitly(self) -> None:
-        self.replace(
-            "nix/checks/rust-test.nix",
-            "--workspace --no-fail-fast --no-tests=pass",
-            "--no-fail-fast --no-tests=pass",
-        )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "feature workspace-default gate rust-test selects packages",
-            result.stderr,
-        )
-        self.assertIn("workspace=False", result.stderr)
+        self.replace_gate("rust-test", "workspace = true", "workspace = false")
+        self.assert_fails("workspace=False")
 
     def test_every_feature_surface_requires_an_msrv_gate(self) -> None:
-        self.replace(
-            "nix/checks/rust-msrv.nix",
+        self.replace_gate(
+            "rust-msrv-crypto-kmp-compat",
             "rust-msrv-crypto-kmp-compat",
             "removed-rust-msrv-crypto-kmp-compat",
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "feature crypto-kmp-compat MSRV references undefined Nix gate",
-            result.stderr,
-        )
+        self.assert_fails("feature crypto-kmp-compat MSRV references undefined Nix gate")
 
     def test_msrv_gate_must_preserve_feature_selection(self) -> None:
-        self.replace(
-            "nix/checks/rust-msrv.nix",
-            "--no-default-features --features deterministic",
-            "--features deterministic",
+        self.replace_gate(
+            "rust-msrv-entropy-deterministic",
+            "no_default_features = true",
+            "no_default_features = false",
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "feature entropy-deterministic MSRV gate rust-msrv-entropy-deterministic selects",
-            result.stderr,
-        )
+        self.assert_fails("rust-msrv-entropy-deterministic selects packages")
 
     def test_msrv_gate_must_use_stable_toolchain_builder(self) -> None:
         self.replace(
@@ -299,44 +209,74 @@ class SupportPolicyTests(unittest.TestCase):
             'msrv_gate           = "rust-msrv-crypto-kmp-compat"',
             'msrv_gate           = "rust-test-kmp-compat"',
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "feature crypto-kmp-compat MSRV gate rust-test-kmp-compat is not built with msrvCraneLib",
-            result.stderr,
-        )
+        self.assert_fails("rust-test-kmp-compat is not built with the MSRV toolchain")
 
     def test_msrv_crane_library_must_wrap_stable_toolchain(self) -> None:
-        self.replace(
-            "nix/rust-toolchain.nix",
-            "overrideToolchain msrvToolchain",
-            "overrideToolchain toolchain",
-        )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "does not wire msrvCraneLib to msrvToolchain", result.stderr
-        )
+        self.replace("nix/rust-toolchain.nix", "overrideToolchain msrvToolchain", "overrideToolchain toolchain")
+        self.assert_fails("does not wire msrvCraneLib to msrvToolchain")
 
-    def test_ignored_crane_build_attribute_fails(self) -> None:
+    def test_unknown_gate_field_fails(self) -> None:
+        self.replace_gate(
+            "rust-build-wasm32",
+            "extra_args = []",
+            'extra_args = []\ncargoBuildCommand = "cargo build --wrong"',
+        )
+        self.assert_fails("unknown=['cargoBuildCommand']")
+
+    def test_extra_args_cannot_smuggle_selection(self) -> None:
+        self.replace_gate(
+            "rust-build-wasm32",
+            "extra_args = []",
+            'extra_args = [ "--features", "fake" ]',
+        )
+        self.assert_fails("cargoBuild requires extra_args=[]")
+
+    def test_duplicate_gate_name_fails(self) -> None:
+        path = self.fixture / "nix/checks/gates.toml"
+        contents = path.read_text(encoding="utf-8")
+        first = contents.index("[[gates]]")
+        second = contents.index("[[gates]]", first + 1)
+        path.write_text(contents + contents[first:second], encoding="utf-8")
+        self.assert_fails("duplicate gate 'rust-fmt'")
+
+    def test_dynamic_nix_and_quote_comment_decoys_are_ignored(self) -> None:
         self.replace(
-            "nix/checks/rust-build-wasm32.nix",
-            "cargoExtraArgs",
-            "cargoBuildCommand",
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      decoy = ''
+        # rust-build-wasm32 --target wrong-target
+        ${builtins.toString \"rust-test --features fake,quoted\"}
+      '';
+      manifest = builtins.fromTOML""",
         )
         result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("passes an ignored custom command", result.stderr)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_dead_module_args_cannot_replace_manifest_gate(self) -> None:
+        self.replace_gate("rust-build-wasm32", "rust-build-wasm32", "removed-rust-build-wasm32")
+        self.replace(
+            "nix/checks/default.nix",
+            "      _module.args = {",
+            """      _module.args.gateDecoy = ''rust-build-wasm32'';
+      _module.args = {""",
+        )
+        self.assert_fails("undefined Nix gate rust-build-wasm32")
+
+    def test_non_cargo_operation_rejects_selection(self) -> None:
+        self.replace_gate("rust-fmt", "workspace = false", "workspace = true")
+        self.assert_fails("cargoFmt cannot carry Cargo selection")
+
+    def test_contradictory_workspace_and_packages_fail(self) -> None:
+        self.replace_gate("rust-test", "packages = []", 'packages = [ "identus-core" ]')
+        self.assert_fails("cannot select workspace and explicit packages")
 
     def test_unknown_target_package_fails(self) -> None:
         self.replace(
             "docs/architecture/sdk-support-policy.toml",
-            '"identus-did",',
-            '"unknown-package",',
+            '  "identus-did",',
+            '  "unknown-package",',
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("names unknown packages", result.stderr)
+        self.assert_fails("names unknown packages")
 
     def test_duplicate_host_system_fails(self) -> None:
         self.replace(
@@ -351,11 +291,7 @@ limitation = "Contradictory duplicate."
 
 [[hosts]]""",
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "policy contains duplicate host system 'x86_64-linux'", result.stderr
-        )
+        self.assert_fails("duplicate host system 'x86_64-linux'")
 
     def test_duplicate_target_triple_fails(self) -> None:
         self.replace(
@@ -370,12 +306,7 @@ limitation = "Contradictory duplicate."
 
 [[targets]]""",
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "policy contains duplicate target triple 'wasm32-unknown-unknown'",
-            result.stderr,
-        )
+        self.assert_fails("duplicate target triple 'wasm32-unknown-unknown'")
 
     def test_duplicate_feature_surface_fails(self) -> None:
         self.replace(
@@ -392,12 +323,7 @@ evidence_token = "contradictory"
 
 [[features]]""",
         )
-        result = self.run_checker()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            "policy contains duplicate feature surface 'workspace-default'",
-            result.stderr,
-        )
+        self.assert_fails("duplicate feature surface 'workspace-default'")
 
 
 if __name__ == "__main__":

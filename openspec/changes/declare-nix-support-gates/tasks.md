@@ -7,16 +7,16 @@
 
 ## 2. Declarative execution contract
 
-- [ ] 2.1 Add the versioned fail-closed gate manifest with every current Rust
+- [x] 2.1 Add the versioned fail-closed gate manifest with every current Rust
       gate and structured operation, toolchain, package, feature and target data
-- [ ] 2.2 Generate reachable Crane checks from the manifest and remove the
+- [x] 2.2 Generate reachable Crane checks from the manifest and remove the
       duplicated hand-written Rust gate definitions
 
 ## 3. Validation and adversarial evidence
 
-- [ ] 3.1 Refactor the offline support-policy validator to consume the manifest
+- [x] 3.1 Refactor the offline support-policy validator to consume the manifest
       without parsing Nix Cargo-selection semantics
-- [ ] 3.2 Translate and extend #23 regressions for malformed/duplicate data,
+- [x] 3.2 Translate and extend #23 regressions for malformed/duplicate data,
       dynamic/interpolated Nix, quote/comment edges and dead-code decoys
 - [ ] 3.3 Add the 20-sample benchmark and record macOS/Linux cold/warm p50/p95
       comparison evidence without creating a compatibility promise

@@ -17,6 +17,7 @@ const INVALID_DID_CODE: ErrorCode = ErrorCode::new("did.invalid_did");
 const INVALID_DID_URL_CODE: ErrorCode = ErrorCode::new("did.invalid_did_url");
 const INVALID_URI_CODE: ErrorCode = ErrorCode::new("did.invalid_uri");
 const INVALID_DOCUMENT_CODE: ErrorCode = ErrorCode::new("did.invalid_document");
+const INVALID_RESOLUTION_CODE: ErrorCode = ErrorCode::new("did.invalid_resolution");
 
 /// A non-sensitive reason that a DID or DID URL failed lexical validation.
 ///
@@ -169,6 +170,56 @@ impl fmt::Display for DocumentError {
     }
 }
 
+/// A non-sensitive DID resolution result validation failure.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum ResolutionError {
+    /// Raw input exceeds the SDK result byte limit.
+    TooLarge,
+    /// Input is not a valid JSON result representation.
+    MalformedJson,
+    /// A required value is empty.
+    EmptyValue,
+    /// A resolution collection exceeds its item limit.
+    TooManyItems,
+    /// A bounded string violates its lexical or size policy.
+    InvalidString,
+    /// A media type is malformed.
+    InvalidMediaType,
+    /// A resolution datetime is malformed or outside calendar bounds.
+    InvalidDateTime,
+    /// A result combines incompatible success, failure or deactivation fields.
+    InvalidState,
+    /// A returned document does not match the requested DID.
+    DocumentIdMismatch,
+    /// Canonical or equivalent metadata uses another DID method.
+    DifferentDidMethod,
+    /// Equivalent DID metadata contains a duplicate.
+    DuplicateEquivalentId,
+    /// Dereferenced JSON content is null or cannot be projected as requested.
+    InvalidContent,
+}
+
+impl fmt::Display for ResolutionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let message = match self {
+            Self::TooLarge => "DID resolution result exceeds the SDK byte limit",
+            Self::MalformedJson => "DID resolution result JSON is malformed",
+            Self::EmptyValue => "a required DID resolution value is empty",
+            Self::TooManyItems => "a DID resolution collection exceeds its item limit",
+            Self::InvalidString => "a DID resolution string violates its resource policy",
+            Self::InvalidMediaType => "DID resolution media type is invalid",
+            Self::InvalidDateTime => "DID resolution datetime is invalid",
+            Self::InvalidState => "DID resolution result state is contradictory",
+            Self::DocumentIdMismatch => "resolved DID document id does not match the request",
+            Self::DifferentDidMethod => "DID metadata uses a different method",
+            Self::DuplicateEquivalentId => "DID metadata contains a duplicate equivalent id",
+            Self::InvalidContent => "dereferenced content has an invalid shape",
+        };
+        f.write_str(message)
+    }
+}
+
 /// A DID-domain validation failure.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -185,6 +236,8 @@ pub enum Error {
     InvalidUri(UriSyntaxError),
     /// A DID document failed structural or resource validation.
     InvalidDocument(DocumentError),
+    /// A DID resolution result failed structural or state validation.
+    InvalidResolution(ResolutionError),
 }
 
 impl Error {
@@ -232,6 +285,12 @@ impl Error {
                 CAPABILITY,
                 "invalid DID document",
             ),
+            Error::InvalidResolution(_) => IdentusError::public(
+                INVALID_RESOLUTION_CODE,
+                ErrorKind::InvalidInput,
+                CAPABILITY,
+                "invalid DID resolution result",
+            ),
         }
     }
 }
@@ -245,6 +304,9 @@ impl fmt::Display for Error {
             Error::InvalidDidUrl(reason) => write!(f, "invalid DID URL: {reason}"),
             Error::InvalidUri(reason) => write!(f, "invalid URI: {reason}"),
             Error::InvalidDocument(reason) => write!(f, "invalid DID document: {reason}"),
+            Error::InvalidResolution(reason) => {
+                write!(f, "invalid DID resolution result: {reason}")
+            }
         }
     }
 }

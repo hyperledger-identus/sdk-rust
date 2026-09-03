@@ -128,3 +128,19 @@ returns the direct attribute set containing `perSystem`; an enclosing `let`
 cannot satisfy it. Indented-string scanning skips dollar, quote, and backslash
 escape prefixes before recognizing a close. The exact review mutations pass a
 contradiction-focused local review with no remaining blocker.
+
+## Quoted-root and interpolation correction contract
+
+The automated review of `720064f` (reported against the no-content retry head
+`ebf0897`) found two additional reproducible edges. A static quoted immediate
+binding named `"builtins"` shadows the global root but bypasses the bare-name
+matcher. A nested quoted string inside `${...}` is mistaken for the outer
+closing quote, allowing a later `#` in the nested string to truncate valid
+source. The findings are P1 and P2 respectively and block merge.
+
+The validator SHALL reject quoted or dynamic first path components in the
+immediate accepted `let`, since the canonical source needs neither. String
+scanning SHALL balance interpolation braces and recursively consume nested Nix
+strings and comments before returning to the outer string. Exact quoted-root
+shadowing must fail; nested quoted and indented strings containing comment
+markers inside interpolation must preserve canonical acceptance.

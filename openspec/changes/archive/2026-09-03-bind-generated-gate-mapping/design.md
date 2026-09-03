@@ -35,6 +35,10 @@ redefine `map`, `listToAttrs`, or `manifest` and supply the accepted mapping.
 The same immediate scope must not bind `builtins` or `pkgs`, because Nix `let`
 bindings are recursive and could otherwise shadow the trusted roots used by
 the manifest and helper-origin checks.
+Static quoted names and dynamic first path components are also disallowed for
+immediate bindings. The canonical generator needs neither form, and rejecting
+them prevents normalization or interpolation from reconstructing a trusted
+root outside the bare-identifier check.
 The file prefix is constrained to the canonical module lambda and direct
 attribute-set result, with `perSystem` as that result's binding. This prevents
 an enclosing `let` or other lexical wrapper from rebinding roots before the
@@ -48,6 +52,9 @@ the parser input or becoming a structural decoy.
 Within an indented string, `''${`, `'''`, and `''\` are escape prefixes rather
 than closing delimiters and are skipped accordingly before searching for the
 true terminating `''`.
+Unescaped `${...}` enters an interpolation scanner that balances braces,
+skips comments, and recursively consumes nested quoted or indented strings.
+An inner string delimiter therefore cannot terminate its outer string.
 
 Two fixture mutations independently replace the mapped name with a constant
 and the mapped value with an empty attribute set. Both must return a stable

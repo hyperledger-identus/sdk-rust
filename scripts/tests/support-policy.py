@@ -371,6 +371,38 @@ in
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_quoted_trusted_root_binding_fails(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      "builtins" = {
+        readFile = _: "";
+        fromTOML = _: { gates = [ ]; };
+      };
+      manifest = builtins.fromTOML""",
+        )
+        self.assert_fails("shadows trusted root(s) in perSystem let: builtins")
+
+    def test_dynamic_binding_root_fails(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      ${"dynamicRoot"} = true;
+      manifest = builtins.fromTOML""",
+        )
+        self.assert_fails("uses a quoted or dynamic immediate let binding root")
+
+    def test_nested_strings_inside_interpolation_preserve_valid_source(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      nestedQuoted = "${builtins.toString "https://example.invalid/#fragment"}";
+      nestedIndented = ''outer ${builtins.toString ''literal /* string data */''} tail'';
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_check_graph_must_be_imported_by_flake(self) -> None:
         self.replace("flake.nix", "        ./nix/checks\n", "")
         self.assert_fails("flake.nix does not import the nix/checks module")

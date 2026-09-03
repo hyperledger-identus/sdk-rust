@@ -145,29 +145,73 @@ def workspace_packages(
     return packages, manifests
 
 
-def nix_string_end(text: str, index: int) -> int | None:
-    """Return the exclusive end of a Nix string beginning at index."""
-    if text[index] == '"':
-        index += 1
-        while index < len(text):
-            if text[index] == "\\":
-                index += 2
-                continue
+def nix_block_comment_end(text: str, index: int) -> int:
+    """Return the exclusive end of a possibly nested Nix block comment."""
+    depth = 1
+    index += 2
+    while index < len(text) and depth:
+        if text.startswith("/*", index):
+            depth += 1
+            index += 2
+        elif text.startswith("*/", index):
+            depth -= 1
+            index += 2
+        else:
             index += 1
-            if text[index - 1] == '"':
-                return index
+    return index
+
+
+def nix_interpolation_end(text: str, index: int) -> int:
+    """Return the exclusive end of a Nix interpolation after its opening `${`."""
+    depth = 1
+    while index < len(text) and depth:
+        string_end = nix_string_end(text, index)
+        if string_end is not None:
+            index = string_end
+            continue
+        if text[index] == "#":
+            newline = text.find("\n", index)
+            index = len(text) if newline == -1 else newline
+            continue
+        if text.startswith("/*", index):
+            index = nix_block_comment_end(text, index)
+            continue
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+        index += 1
+    return index
+
+
+def nix_string_end(text: str, index: int) -> int | None:
+    """Return a Nix string end, including nested interpolation expressions."""
+    if text[index] == '"':
+        cursor = index + 1
+        while cursor < len(text):
+            if text[cursor] == "\\":
+                cursor += 2
+                continue
+            if text.startswith("${", cursor):
+                cursor = nix_interpolation_end(text, cursor + 2)
+                continue
+            if text[cursor] == '"':
+                return cursor + 1
+            cursor += 1
         return len(text)
     if text.startswith("''", index):
         cursor = index + 2
         while cursor < len(text):
-            delimiter = text.find("''", cursor)
-            if delimiter == -1:
-                return len(text)
-            escaped = delimiter + 2 < len(text) and text[delimiter + 2] in "$'\\"
-            if escaped:
-                cursor = delimiter + 3
+            if text.startswith("''", cursor):
+                escaped = cursor + 2 < len(text) and text[cursor + 2] in "$'\\"
+                if escaped:
+                    cursor += 3
+                    continue
+                return cursor + 2
+            if text.startswith("${", cursor):
+                cursor = nix_interpolation_end(text, cursor + 2)
                 continue
-            return delimiter + 2
+            cursor += 1
         return len(text)
     return None
 
@@ -203,17 +247,7 @@ def nix_without_comments(text: str) -> str:
             continue
         if text.startswith("/*", index):
             start = index
-            index += 2
-            depth = 1
-            while index < len(text) and depth:
-                if text.startswith("/*", index):
-                    depth += 1
-                    index += 2
-                elif text.startswith("*/", index):
-                    depth -= 1
-                    index += 2
-                else:
-                    index += 1
+            index = nix_block_comment_end(text, index)
             for position in range(start, index):
                 if without_comments[position] != "\n":
                     without_comments[position] = " "
@@ -224,7 +258,8 @@ def nix_without_comments(text: str) -> str:
 
 def nix_statement_binds(statement: str, name: str) -> bool:
     """Return whether an immediate let statement binds the given identifier."""
-    if re.match(rf"\s*{re.escape(name)}\s*(?:=|\.)", statement):
+    binding_name = rf'(?:{re.escape(name)}|"{re.escape(name)}")'
+    if re.match(rf"\s*{binding_name}\s*(?:=|\.)", statement):
         return True
     inherited = re.fullmatch(
         r"\s*inherit(?:\s*\([^)]*\))?\s+(.*?)\s*;\s*", statement, re.DOTALL
@@ -378,6 +413,13 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             "rust-gates.nix shadows trusted root(s) in perSystem let: "
             + ", ".join(shadowed_trusted_roots)
         )
+    ambiguous_binding_root = any(
+        re.match(r'\s*(?:"|\$\{)', statement) is not None for statement in statements
+    )
+    if ambiguous_binding_root:
+        failures.append(
+            "rust-gates.nix uses a quoted or dynamic immediate let binding root"
+        )
     library_inherit = next(
         (
             match
@@ -445,6 +487,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             )
         )
         and not shadowed_trusted_roots
+        and not ambiguous_binding_root
     )
     if manifest_binding is None:
         failures.append("rust-gates.nix does not parse gates.toml as manifest")

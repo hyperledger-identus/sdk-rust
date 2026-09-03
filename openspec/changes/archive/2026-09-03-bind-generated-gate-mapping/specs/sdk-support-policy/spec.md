@@ -15,6 +15,9 @@ roots, and the canonical module result SHALL NOT be wrapped in an enclosing
 lexical scope that can shadow those roots. Lexical scanning SHALL distinguish
 comments from comment delimiters inside valid Nix strings and SHALL recognize
 escaped delimiters in indented strings.
+Quoted or dynamic immediate binding roots SHALL NOT bypass trusted-root
+validation. Interpolation scanning SHALL balance nested expressions and string
+forms before determining an outer string's terminator.
 
 #### Scenario: Constant mapped name collapses the gate graph
 
@@ -65,3 +68,16 @@ escaped delimiters in indented strings.
   indented-string escape before a comment marker
 - **THEN** lexical preprocessing finds the true closing delimiter and preserves
   canonical gate validation
+
+#### Scenario: Quoted binding normalizes to a trusted root
+
+- **WHEN** an immediate binding uses a quoted or dynamic first path component
+  that can resolve to `builtins` or `pkgs`
+- **THEN** structural validation rejects the ambiguous binding root
+
+#### Scenario: Interpolation contains a nested string
+
+- **WHEN** a quoted or indented string interpolation contains nested strings,
+  braces, comments, or comment-marker data
+- **THEN** lexical preprocessing returns to the outer string only after the
+  complete interpolation and preserves canonical gate validation

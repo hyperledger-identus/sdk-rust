@@ -22,7 +22,13 @@ pub const MAX_DID_RESOLUTION_OPTIONS_BYTES: usize = 64 * 1_024;
 /// Maximum byte length of a verification-relationship option value.
 pub const MAX_VERIFICATION_RELATIONSHIP_BYTES: usize = 256;
 
-const RESOLUTION_RESERVED: &[&str] = &["accept", "expandRelativeUrls", "versionId", "versionTime"];
+const RESOLUTION_RESERVED: &[&str] = &[
+    "accept",
+    "expandRelativeUrls",
+    "noCache",
+    "versionId",
+    "versionTime",
+];
 const DEREFERENCING_RESERVED: &[&str] = &["accept", "verificationRelationship"];
 
 /// A bounded open verification-relationship name used during dereferencing.
@@ -42,6 +48,8 @@ pub struct ResolutionOptions {
     accept: Option<MediaType>,
     #[serde(rename = "expandRelativeUrls", skip_serializing_if = "Option::is_none")]
     expand_relative_urls: Option<bool>,
+    #[serde(rename = "noCache", skip_serializing_if = "Option::is_none")]
+    no_cache: Option<bool>,
     #[serde(rename = "versionId", skip_serializing_if = "Option::is_none")]
     version_id: Option<VersionId>,
     #[serde(rename = "versionTime", skip_serializing_if = "Option::is_none")]
@@ -55,6 +63,7 @@ impl ResolutionOptions {
     pub fn new(
         accept: Option<MediaType>,
         expand_relative_urls: Option<bool>,
+        no_cache: Option<bool>,
         version_id: Option<VersionId>,
         version_time: Option<DidResolutionDateTime>,
         extensions: BTreeMap<String, Value>,
@@ -62,6 +71,7 @@ impl ResolutionOptions {
         let options = Self {
             accept,
             expand_relative_urls,
+            no_cache,
             version_id,
             version_time,
             extensions,
@@ -104,6 +114,12 @@ impl ResolutionOptions {
         self.expand_relative_urls
     }
 
+    /// Return the explicit W3C generic-cache bypass choice, when supplied.
+    #[must_use]
+    pub const fn no_cache(&self) -> Option<bool> {
+        self.no_cache
+    }
+
     /// Borrow the requested document version identifier.
     #[must_use]
     pub const fn version_id(&self) -> Option<&VersionId> {
@@ -137,6 +153,8 @@ impl<'de> Deserialize<'de> for ResolutionOptions {
             accept: Option<MediaType>,
             #[serde(rename = "expandRelativeUrls")]
             expand_relative_urls: Option<bool>,
+            #[serde(rename = "noCache")]
+            no_cache: Option<bool>,
             #[serde(rename = "versionId")]
             version_id: Option<VersionId>,
             #[serde(rename = "versionTime")]
@@ -149,6 +167,7 @@ impl<'de> Deserialize<'de> for ResolutionOptions {
         Self::new(
             wire.accept,
             wire.expand_relative_urls,
+            wire.no_cache,
             wire.version_id,
             wire.version_time,
             wire.extensions,
@@ -173,6 +192,13 @@ impl ResolutionOptionsBuilder {
     #[must_use]
     pub fn expand_relative_urls(mut self, value: bool) -> Self {
         self.0.expand_relative_urls = Some(value);
+        self
+    }
+
+    /// Request or explicitly permit use of a generic DID document cache.
+    #[must_use]
+    pub fn no_cache(mut self, value: bool) -> Self {
+        self.0.no_cache = Some(value);
         self
     }
 

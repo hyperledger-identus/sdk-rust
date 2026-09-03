@@ -61,6 +61,7 @@ fn resolution_options_roundtrip_common_and_extension_values() {
     let options = ResolutionOptions::builder()
         .accept(MediaType::parse("application/did;profile=\"https://example/profile\"").unwrap())
         .expand_relative_urls(false)
+        .no_cache(false)
         .version_id(VersionId::parse("ledger-42").unwrap())
         .version_time(identus_did::DidResolutionDateTime::parse("2026-09-03T03:45:00Z").unwrap())
         .extensions(BTreeMap::from([(
@@ -75,6 +76,8 @@ fn resolution_options_roundtrip_common_and_extension_values() {
         "application/did;profile=\"https://example/profile\""
     );
     assert_eq!(options.expand_relative_urls(), Some(false));
+    assert_eq!(options.no_cache(), Some(false));
+    assert_eq!(ResolutionOptions::empty().no_cache(), None);
     assert_eq!(options.version_id().unwrap().as_str(), "ledger-42");
     assert_eq!(
         options.version_time().unwrap().as_str(),
@@ -84,12 +87,17 @@ fn resolution_options_roundtrip_common_and_extension_values() {
 
     let wire = serde_json::to_value(&options).unwrap();
     assert_eq!(wire["expandRelativeUrls"], false);
+    assert_eq!(wire["noCache"], false);
     assert_eq!(wire["versionId"], "ledger-42");
     assert_eq!(wire["network"]["name"], "preview");
     assert_eq!(
         serde_json::from_value::<ResolutionOptions>(wire).unwrap(),
         options
     );
+
+    let bypass = ResolutionOptions::from_json_str(r#"{"noCache":true}"#).unwrap();
+    assert_eq!(bypass.no_cache(), Some(true));
+    assert_eq!(serde_json::to_value(&bypass).unwrap()["noCache"], true);
 
     assert_eq!(
         serde_json::to_value(ResolutionOptions::empty()).unwrap(),
@@ -144,6 +152,7 @@ fn option_scalars_reject_malformed_or_unsafe_values() {
         r#"{"versionId":""}"#,
         r#"{"versionTime":"2026-02-30T00:00:00Z"}"#,
         r#"{"expandRelativeUrls":"true"}"#,
+        r#"{"noCache":"true"}"#,
     ] {
         assert!(ResolutionOptions::from_json_str(wire).is_err(), "{wire}");
     }
@@ -168,6 +177,12 @@ fn option_extensions_reject_collisions_and_resource_exhaustion() {
         reserved,
         Error::InvalidResolution(ResolutionError::InvalidString)
     ));
+    assert!(
+        ResolutionOptions::builder()
+            .extensions(BTreeMap::from([("noCache".to_owned(), json!(true))]))
+            .build()
+            .is_err()
+    );
 
     let too_many = (0..65)
         .map(|index| (format!("option{index}"), Value::Null))
@@ -196,7 +211,7 @@ fn option_extensions_reject_collisions_and_resource_exhaustion() {
             )
         })
         .collect();
-    assert!(ResolutionOptions::new(None, None, None, None, wide).is_err());
+    assert!(ResolutionOptions::new(None, None, None, None, None, wide).is_err());
 
     let oversized = vec![b' '; MAX_DID_RESOLUTION_OPTIONS_BYTES + 1];
     assert!(matches!(

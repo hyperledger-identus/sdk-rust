@@ -19,6 +19,7 @@ const INVALID_URI_CODE: ErrorCode = ErrorCode::new("did.invalid_uri");
 const INVALID_DOCUMENT_CODE: ErrorCode = ErrorCode::new("did.invalid_document");
 const INVALID_RESOLUTION_CODE: ErrorCode = ErrorCode::new("did.invalid_resolution");
 const INVALID_METHOD_REGISTRY_CODE: ErrorCode = ErrorCode::new("did.invalid_method_registry");
+const INVALID_RESOLUTION_CACHE_CODE: ErrorCode = ErrorCode::new("did.invalid_resolution_cache");
 
 /// A non-sensitive reason that a DID or DID URL failed lexical validation.
 ///
@@ -241,6 +242,31 @@ impl fmt::Display for RegistryError {
     }
 }
 
+/// A non-sensitive DID resolution cache construction failure.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum CacheError {
+    /// A configured TTL is zero or exceeds its class ceiling.
+    InvalidTtl,
+    /// A cache backend declares no capacity or excessive capacity.
+    InvalidCapacity,
+    /// A normalized resolution request exceeds the cache-key byte ceiling.
+    KeyTooLarge,
+    /// An entry expiry is not strictly after its insertion tick.
+    InvalidEntryLifetime,
+}
+
+impl fmt::Display for CacheError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::InvalidTtl => "a DID resolution cache TTL is invalid",
+            Self::InvalidCapacity => "a DID resolution cache capacity is invalid",
+            Self::KeyTooLarge => "a DID resolution cache key exceeds its byte limit",
+            Self::InvalidEntryLifetime => "a DID resolution cache entry lifetime is invalid",
+        })
+    }
+}
+
 /// A DID-domain validation failure.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -261,6 +287,8 @@ pub enum Error {
     InvalidResolution(ResolutionError),
     /// A DID method registry failed bounded deterministic construction.
     InvalidRegistry(RegistryError),
+    /// A DID resolution cache value or configuration is invalid.
+    InvalidCache(CacheError),
 }
 
 impl Error {
@@ -323,6 +351,12 @@ impl Error {
                 CAPABILITY,
                 "invalid DID method registry",
             ),
+            Error::InvalidCache(_) => IdentusError::public(
+                INVALID_RESOLUTION_CACHE_CODE,
+                ErrorKind::InvalidInput,
+                CAPABILITY,
+                "invalid DID resolution cache configuration",
+            ),
         }
     }
 }
@@ -340,6 +374,7 @@ impl fmt::Display for Error {
                 write!(f, "invalid DID resolution result: {reason}")
             }
             Error::InvalidRegistry(reason) => write!(f, "invalid DID method registry: {reason}"),
+            Error::InvalidCache(reason) => write!(f, "invalid DID resolution cache: {reason}"),
         }
     }
 }

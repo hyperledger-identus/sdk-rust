@@ -39,7 +39,8 @@ release authority or downstream mutation.
 
 ## Implementation review
 
-- **Reviewed head:** `c03099b8b579264256adb8b95cef2867496820b5`
+- **Reviewed final implementation head:**
+  `996465abe6fa68bb7d04b218f9a0f07b5f954afe`
 - **Reviewer:** distinct local contradiction-focused pass after implementation
 - **Result:** one schema-hardening finding identified and resolved; no remaining
   architecture, security, compatibility, provenance or delivery blocker

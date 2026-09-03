@@ -18,14 +18,14 @@
       without parsing Nix Cargo-selection semantics
 - [x] 3.2 Translate and extend #23 regressions for malformed/duplicate data,
       dynamic/interpolated Nix, quote/comment edges and dead-code decoys
-- [ ] 3.3 Add the 20-sample benchmark and record macOS/Linux cold/warm p50/p95
+- [x] 3.3 Add the 20-sample benchmark and record macOS/Linux cold/warm p50/p95
       comparison evidence without creating a compatibility promise
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Run focused validator/tests, factory, formatting/linting and full Nix
+- [x] 4.1 Run focused validator/tests, factory, formatting/linting and full Nix
       gates; record every applicable and unrun command exactly
-- [ ] 4.2 Complete a distinct exact-head architecture/security review and prove
+- [x] 4.2 Complete a distinct exact-head architecture/security review and prove
       consumer repositories and reserved `main` remain unchanged
-- [ ] 4.3 Produce ready/receipt, synchronize canonical specs, archive the change
+- [x] 4.3 Produce ready/receipt, synchronize canonical specs, archive the change
       and deliver the signed issue-linked all-green PR to `develop`

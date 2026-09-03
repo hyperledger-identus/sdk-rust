@@ -1,6 +1,6 @@
 # ADR 0020: generate Rust gates from a declarative contract
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-04
 - **Related work:** sdk-rust issue #24 and OpenSpec change
   `declare-nix-support-gates`

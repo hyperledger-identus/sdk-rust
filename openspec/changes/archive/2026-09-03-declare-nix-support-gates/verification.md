@@ -8,6 +8,8 @@
   `f05f618271a433d612753a490d9184d26c46e003`
 - **Reviewed pull-request correction head:**
   `1173cca60687aed1e5bd8aa9b51f05d124103079`
+- **Reviewed returned-check correction head:**
+  `39178d946d52368c1fb968dab190f12e42f6b34c`
 - **Local platform:** macOS 26.2, aarch64-darwin, Python 3.14.3
 - **Result:** every applicable local gate passed; hosted Linux and macOS
   benchmark steps passed
@@ -20,9 +22,9 @@
   missing, duplicate and unknown data; operation, package, feature and target
   drift; dynamic/interpolated Nix and dead `_module.args` decoys; contradictory
   selections; and Cargo-selection smuggling through trailing arguments.
-- The same suite passed two timing-policy regressions plus generator-import
-  decoy, disconnected manifest mapping, malformed-list and compound-enum
-  regressions, for 42/42 total tests.
+- The same suite passed two timing-policy regressions plus generator-import,
+  disconnected manifest mapping, returned-check assertion decoy,
+  malformed-list and compound-enum regressions, for 43/43 total tests.
 - `nix flake show --all-systems` emitted the same 23 named Rust gates for
   x86_64-linux and aarch64-darwin.
 - Representative old/new derivations preserved their Crane operations,
@@ -120,3 +122,6 @@ independently detected. The validator now proves their complete binding chain,
 and an unused-mapping regression passes.
 Compound operation, toolchain, source and artifact values are also normalized
 before set membership; their combined regression fails without a traceback.
+The final publication check is anchored to the returned top-level module, so a
+live `checks = generatedChecks` assertion cannot conceal an empty returned
+check graph; the reviewer's exact mutation is rejected.

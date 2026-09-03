@@ -99,9 +99,10 @@ complete 26-check local Nix graph passed on the corrected code.
 
 ## Pull-request review corrections
 
-- **Reviewed correction head:**
-  `1173cca60687aed1e5bd8aa9b51f05d124103079`
-- **Result:** all four findings resolved with focused regressions and no remaining
+- **Reviewed correction heads:**
+  `1173cca60687aed1e5bd8aa9b51f05d124103079` and
+  `39178d946d52368c1fb968dab190f12e42f6b34c`
+- **Result:** all five findings resolved with focused regressions and no remaining
   blocker
 
 The hosted review identified two additional fail-closed edges. A live Nix
@@ -125,3 +126,10 @@ set membership and raise `TypeError`. Operation, toolchain, source and artifact
 values are now type-checked before membership and normalized after recording
 their errors. One mutation covers all four compound values and proves the
 validator returns deterministic diagnostics without a traceback.
+
+The merge-boundary review found that a live assertion containing
+`checks = generatedChecks` could satisfy the final publication regex even when
+the returned module replaced `checks` with an empty set. Publication validation
+is now anchored to the generator's returned top-level module value. The
+reviewer's exact assertion-decoy mutation is the forty-third regression and
+proves the unpublished gate graph fails closed.

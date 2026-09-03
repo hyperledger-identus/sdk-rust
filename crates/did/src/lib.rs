@@ -13,6 +13,7 @@ pub mod error;
 pub mod method;
 pub mod multihash;
 mod query;
+mod registry;
 mod resolution;
 mod uri;
 pub mod version;
@@ -23,7 +24,9 @@ pub use document::{
     MAX_EXTENSION_DEPTH, MAX_EXTENSION_NODES, OneOrMany, Service, ServiceEndpoint,
     ServiceEndpointValue, VerificationMethod, VerificationRelationship,
 };
-pub use error::{DidSyntaxError, DocumentError, Error, ResolutionError, UriSyntaxError};
+pub use error::{
+    DidSyntaxError, DocumentError, Error, RegistryError, ResolutionError, UriSyntaxError,
+};
 pub use method::DidMethod;
 pub use multihash::Multihash;
 pub use query::{
@@ -31,6 +34,9 @@ pub use query::{
     DidUrlDereferencer, DidUrlDereferencingFuture, MAX_DID_RESOLUTION_OPTIONS_BYTES,
     MAX_VERIFICATION_RELATIONSHIP_BYTES, ResolutionOptions, ResolutionOptionsBuilder,
     VerificationRelationshipName,
+};
+pub use registry::{
+    DidMethodBinding, DidMethodRegistry, DidMethodRegistryBuilder, MAX_DID_METHOD_REGISTRY_ENTRIES,
 };
 pub use resolution::{
     DereferencedContent, DidDocumentMetadata, DidDocumentMetadataBuilder, DidResolutionDateTime,

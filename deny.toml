@@ -31,6 +31,12 @@ confidence-threshold = 0.8
 [licenses.private]
 ignore = false
 
+[[licenses.exceptions]]
+# libFuzzer's runtime carries the OSI-approved NCSA license in addition to its
+# MIT/Apache wrapper. This exception is restricted to the fuzz-only binding.
+allow = [ "NCSA" ]
+crate = "libfuzzer-sys@0.4.13"
+
 [bans]
 # Start permissive: warn on duplicate versions, allow wildcards.
 multiple-versions          = "warn"

@@ -21,5 +21,10 @@ indent_size = unset
 [*.stderr]
 indent_size = unset
 
+[fuzz/corpus/**]
+insert_final_newline = false
+trim_trailing_whitespace = false
+indent_style = unset
+
 [Makefile]
 indent_style = tab

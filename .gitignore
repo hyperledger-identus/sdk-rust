@@ -1,5 +1,7 @@
 # Rust build artifacts
 /target
+/fuzz/artifacts
+/fuzz/target
 
 # Nix
 /result

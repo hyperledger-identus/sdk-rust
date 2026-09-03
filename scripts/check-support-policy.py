@@ -186,6 +186,21 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         failures.append("nix/checks/rust-gates.nix does not exist")
         return
     generator = nix_without_comments(generator_path.read_text(encoding="utf-8"))
+    library_inherit = re.search(
+        r"\bperSystem\s*=\s*\{[^{}]*\}\s*:\s*let\s+"
+        r"inherit\s*\(\s*pkgs\.lib\s*\)(.*?)\s*;",
+        generator,
+        re.DOTALL,
+    )
+    inherited_helpers = (
+        set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_']*\b", library_inherit.group(1)))
+        if library_inherit is not None
+        else set()
+    )
+    if not {"listToAttrs", "map"}.issubset(inherited_helpers):
+        failures.append(
+            "rust-gates.nix does not inherit map and listToAttrs from pkgs.lib"
+        )
     manifest_binding = re.search(
         r"\bmanifest\s*=\s*builtins\.fromTOML\s*"
         r"\(builtins\.readFile\s+\./gates\.toml\)\s*;",

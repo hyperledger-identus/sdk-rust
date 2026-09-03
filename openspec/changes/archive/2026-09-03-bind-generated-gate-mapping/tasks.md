@@ -10,6 +10,7 @@
 
 - [x] 2.1 Bind the accepted mapping shape to `gate.name` and `makeGate gate`.
 - [x] 2.2 Add constant-name and detached-value mutation regressions.
+- [x] 2.3 Require mapping helpers from `pkgs.lib` and cover local replacements.
 
 ## 3. Verification and integration
 

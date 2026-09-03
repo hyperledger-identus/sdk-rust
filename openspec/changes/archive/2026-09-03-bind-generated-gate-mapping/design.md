@@ -27,8 +27,11 @@ remaining structural gap.
 The narrow wiring validator will recognize the canonical mapping expression as
 one structural unit: `map (gate: { inherit (gate) name; value = makeGate gate;
 }) manifest.gates`, passed directly to `listToAttrs` and bound to
-`generatedChecks`. The existing returned-module check continues to require
-`checks = generatedChecks` at the generator return tail.
+`generatedChecks`. It will also resolve the outer `perSystem` let binding and
+require both mapping helpers in its immediate `inherit (pkgs.lib)` binding, so
+the canonical identifiers cannot refer to local replacements. The existing
+returned-module check continues to require `checks = generatedChecks` at the
+generator return tail.
 
 Two fixture mutations independently replace the mapped name with a constant
 and the mapped value with an empty attribute set. Both must return a stable

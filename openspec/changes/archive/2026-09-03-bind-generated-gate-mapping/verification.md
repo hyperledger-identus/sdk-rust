@@ -9,10 +9,10 @@
 
 ## Contract and mutation evidence
 
-- `python3 scripts/tests/support-policy.py` passed 46/46 tests. The three new
+- `python3 scripts/tests/support-policy.py` passed 48/48 tests. Five focused
   mutations cover constant-name gate collapse, a value detached from
-  `makeGate gate`, and a nested `generatedChecks` shadow between mapping and
-  returned publication.
+  `makeGate gate`, a nested `generatedChecks` shadow between mapping and
+  returned publication, and local replacements for `map` and `listToAttrs`.
 - `./scripts/check-support-policy.py` passed the canonical 23-gate manifest and
   generator.
 - Ruff lint and format checks passed for the validator and mutation suite.
@@ -33,6 +33,10 @@ adjacent lexical-shadow route found during the distinct local review. The
 accepted source shape is intentionally fail-closed and may reject a future
 semantically equivalent Nix refactor until its contract changes with review.
 No unresolved blocker remains.
+
+Hosted review's mapping-helper finding is resolved by proving both identifiers
+come from the immediate `inherit (pkgs.lib)` binding. The exact local-`map`
+collapse and symmetric local-`listToAttrs` mutations fail closed.
 
 ## Compatibility and isolation
 

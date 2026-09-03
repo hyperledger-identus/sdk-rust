@@ -246,8 +246,10 @@ a compatibility or release budget during bootstrap.
 The offline support-policy validator SHALL require the Nix gate generator to
 derive every mapped attribute name from the current manifest entry's `name`
 field and every mapped attribute value from `makeGate` applied to that same
-entry. The complete mapping SHALL remain connected from `manifest.gates`
-through `listToAttrs` to the returned top-level `checks` value.
+entry. The mapping and attribute-set conversion functions SHALL resolve to
+`map` and `listToAttrs` inherited from `pkgs.lib`, not local replacements. The
+complete mapping SHALL remain connected from `manifest.gates` through
+`listToAttrs` to the returned top-level `checks` value.
 
 #### Scenario: Constant mapped name collapses the gate graph
 
@@ -261,3 +263,9 @@ through `listToAttrs` to the returned top-level `checks` value.
 - **WHEN** the generator maps a manifest entry to a value not produced by
   `makeGate` for that same entry
 - **THEN** structural validation rejects the detached gate implementation
+
+#### Scenario: Mapping helper is locally replaced
+
+- **WHEN** `map` or `listToAttrs` is removed from the `pkgs.lib` inheritance
+  and replaced by a local function that collapses or discards manifest entries
+- **THEN** structural validation rejects the shadowed mapping helper

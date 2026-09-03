@@ -47,3 +47,16 @@ mutation proves the shadowed empty set cannot replace the mapped result.
 The change remains validation-only. The Nix generator, declarative manifest,
 derivations, support claims, Rust workspace, and consumers are byte-identical
 to the merged base.
+
+## Pull-request review correction
+
+The hosted review found that canonical `map` and `listToAttrs` call spellings
+could still resolve to local replacements after removing those names from the
+`pkgs.lib` inheritance. The finding was confirmed. The validator now resolves
+the immediate outer `perSystem` let inheritance and requires both helpers from
+`pkgs.lib` before accepting the mapping expression.
+
+Two focused mutations replace `map` with a constant single-entry function and
+replace `listToAttrs` with a discarding function. Both fail deterministically;
+the canonical generator continues to pass. The correction changes no Nix
+generator expression or derived check.

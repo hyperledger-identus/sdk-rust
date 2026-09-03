@@ -190,6 +190,38 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("does not map gate names and values from manifest entries")
 
+    def test_local_map_cannot_replace_pkgs_lib_map(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "        map\n        optionalAttrs",
+            "        optionalAttrs",
+        )
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "        optionals\n        ;\n      manifest",
+            """        optionals
+        ;
+      map = _: _: [ { name = "rust-gate"; value = { }; } ];
+      manifest""",
+        )
+        self.assert_fails("does not inherit map and listToAttrs from pkgs.lib")
+
+    def test_local_list_to_attrs_cannot_replace_pkgs_lib_helper(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "        listToAttrs\n        map",
+            "        map",
+        )
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "        optionals\n        ;\n      manifest",
+            """        optionals
+        ;
+      listToAttrs = _: { rust-gate = { }; };
+      manifest""",
+        )
+        self.assert_fails("does not inherit map and listToAttrs from pkgs.lib")
+
     def test_assertion_decoy_cannot_replace_returned_checks(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

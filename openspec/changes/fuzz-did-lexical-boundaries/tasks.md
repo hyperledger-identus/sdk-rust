@@ -24,9 +24,9 @@
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Run focused/workspace all/no-feature, strict Clippy/rustdoc/fmt,
+- [x] 4.1 Run focused/workspace all/no-feature, strict Clippy/rustdoc/fmt,
       factory, MSRV, WASM/mobile, architecture, supply-chain and full Nix gates
-- [ ] 4.2 Complete a distinct exact-head semantic/security/API review and prove
+- [x] 4.2 Complete a distinct exact-head semantic/security/API review and prove
       downstream HEAD/status receipts are unchanged
-- [ ] 4.3 Produce ready/receipt, synchronize the canonical DID Core spec,
+- [x] 4.3 Produce ready/receipt, synchronize the canonical DID Core spec,
       archive the change, and deliver the signed issue-linked all-green PR

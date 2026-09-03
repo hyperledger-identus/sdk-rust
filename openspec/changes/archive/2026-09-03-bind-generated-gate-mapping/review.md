@@ -168,3 +168,11 @@ tokens before scope-keyword recognition and SHALL open an indented string only
 at a valid token boundary. Exact injected-formal mutation must fail; unrelated
 path/URI values containing `let` or `in` and identifiers containing adjacent
 apostrophes must preserve canonical acceptance.
+
+The implementation at `4b64ee37c7f6b88ef4b01feef27c62bac43a89f0`
+meets that contract. The direct formal set is extracted from the same canonical
+header and rejects `builtins` or non-simple entries. A bounded path/URI scanner
+runs before string, comment, and scope recognition, while indented strings
+require a non-identifier boundary. The exact three review mutations pass, Nix
+itself parses all positive fixtures, and a final contradiction-focused local
+review found no remaining token-context bypass or delivery blocker.

@@ -89,3 +89,15 @@ lint and format checks, canonical policy validation, the 17-item factory
 contract, and the complete compatible aarch64-darwin Nix graph pass. The final
 isolated benchmark reports warm p50/p95 9.202/10.003 ms and process-cold
 p50/p95 48.118/51.430 ms, within the diagnostic guard.
+
+## Final formal-root and token-context evidence
+
+The formal-root and token-context correction is implemented at
+`4b64ee37c7f6b88ef4b01feef27c62bac43a89f0`. The mutation suite passes 61/61:
+an injected `builtins` formal fails closed, while path/URI values containing
+scope keywords and an identifier containing adjacent apostrophes remain valid.
+`nix-instantiate --parse` independently accepts all three positive token forms.
+Ruff lint and format checks, canonical policy validation, the 17-item factory
+contract, and the complete compatible aarch64-darwin Nix graph pass. The final
+isolated benchmark reports warm p50/p95 11.329/12.116 ms and process-cold
+p50/p95 51.667/53.976 ms, within the diagnostic guard.

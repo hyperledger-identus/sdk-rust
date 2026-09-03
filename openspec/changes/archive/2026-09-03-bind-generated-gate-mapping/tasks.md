@@ -24,8 +24,8 @@
 - [x] 2.9 Reject quoted and dynamic immediate binding roots.
 - [x] 2.10 Track interpolation nesting and nested strings in both Nix string
       forms.
-- [ ] 2.11 Reject `builtins` in immediate `perSystem` function formals.
-- [ ] 2.12 Skip path/URI tokens during scope scanning and require token context
+- [x] 2.11 Reject `builtins` in immediate `perSystem` function formals.
+- [x] 2.12 Skip path/URI tokens during scope scanning and require token context
       for indented-string openers.
 
 ## 3. Verification and integration
@@ -43,5 +43,5 @@
       indented-string corrections and prepare both threads for hosted clearance.
 - [x] 3.8 Rerun complete local evidence after quoted-root and interpolation
       corrections and prepare both review threads for hosted clearance.
-- [ ] 3.9 Rerun complete local evidence after formal-root and token-context
+- [x] 3.9 Rerun complete local evidence after formal-root and token-context
       corrections and prepare all three review threads for hosted clearance.

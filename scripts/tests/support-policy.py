@@ -3,14 +3,13 @@
 
 from __future__ import annotations
 
-import shutil
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "scripts/check-support-policy.py"
@@ -87,19 +86,31 @@ class SupportPolicyTests(unittest.TestCase):
         self.assert_fails("does not match policy MSRV")
 
     def test_missing_dimension_fails(self) -> None:
-        self.replace("docs/architecture/sdk-support-policy.toml", "[ffi]", "[removed_ffi]")
+        self.replace(
+            "docs/architecture/sdk-support-policy.toml", "[ffi]", "[removed_ffi]"
+        )
         self.assert_fails("policy is missing [ffi]")
 
     def test_removed_gate_fails(self) -> None:
-        self.replace_gate("rust-build-wasm32", "rust-build-wasm32", "removed-rust-build-wasm32")
+        self.replace_gate(
+            "rust-build-wasm32", "rust-build-wasm32", "removed-rust-build-wasm32"
+        )
         self.assert_fails("undefined Nix gate rust-build-wasm32")
 
     def test_gate_must_use_declared_crane_operation(self) -> None:
-        self.replace_gate("rust-test", 'operation = "cargoNextest"', 'operation = "cargoBuild"')
-        self.assert_fails("gate rust-test uses Crane operation cargoBuild, expected cargoNextest")
+        self.replace_gate(
+            "rust-test", 'operation = "cargoNextest"', 'operation = "cargoBuild"'
+        )
+        self.assert_fails(
+            "gate rust-test uses Crane operation cargoBuild, expected cargoNextest"
+        )
 
     def test_manifest_generator_must_be_imported(self) -> None:
-        self.replace("nix/checks/default.nix", "    ./rust-gates.nix\n", "    # ./rust-gates.nix\n")
+        self.replace(
+            "nix/checks/default.nix",
+            "    ./rust-gates.nix\n",
+            "    # ./rust-gates.nix\n",
+        )
         self.assert_fails("does not import rust-gates.nix")
 
     def test_check_graph_must_be_imported_by_flake(self) -> None:
@@ -107,7 +118,9 @@ class SupportPolicyTests(unittest.TestCase):
         self.assert_fails("flake.nix does not import the nix/checks module")
 
     def test_gate_without_target_evidence_fails(self) -> None:
-        self.replace_gate("rust-build-wasm32", 'target = "wasm32-unknown-unknown"', 'target = ""')
+        self.replace_gate(
+            "rust-build-wasm32", 'target = "wasm32-unknown-unknown"', 'target = ""'
+        )
         self.assert_fails("does not contain evidence token")
 
     def test_target_gate_must_bind_structured_target(self) -> None:
@@ -180,7 +193,11 @@ class SupportPolicyTests(unittest.TestCase):
         self.assert_fails("references missing feature 'deterministic getrandom'")
 
     def test_workspace_feature_gate_cannot_exclude_a_package(self) -> None:
-        self.replace_gate("rust-test", "exclude_packages = []", 'exclude_packages = [ "identus-crypto" ]')
+        self.replace_gate(
+            "rust-test",
+            "exclude_packages = []",
+            'exclude_packages = [ "identus-crypto" ]',
+        )
         self.assert_fails("excludes=['identus-crypto']")
 
     def test_workspace_feature_gate_must_select_workspace_explicitly(self) -> None:
@@ -193,7 +210,9 @@ class SupportPolicyTests(unittest.TestCase):
             "rust-msrv-crypto-kmp-compat",
             "removed-rust-msrv-crypto-kmp-compat",
         )
-        self.assert_fails("feature crypto-kmp-compat MSRV references undefined Nix gate")
+        self.assert_fails(
+            "feature crypto-kmp-compat MSRV references undefined Nix gate"
+        )
 
     def test_msrv_gate_must_preserve_feature_selection(self) -> None:
         self.replace_gate(
@@ -212,7 +231,11 @@ class SupportPolicyTests(unittest.TestCase):
         self.assert_fails("rust-test-kmp-compat is not built with the MSRV toolchain")
 
     def test_msrv_crane_library_must_wrap_stable_toolchain(self) -> None:
-        self.replace("nix/rust-toolchain.nix", "overrideToolchain msrvToolchain", "overrideToolchain toolchain")
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "overrideToolchain msrvToolchain",
+            "overrideToolchain toolchain",
+        )
         self.assert_fails("does not wire msrvCraneLib to msrvToolchain")
 
     def test_unknown_gate_field_fails(self) -> None:
@@ -253,7 +276,9 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_dead_module_args_cannot_replace_manifest_gate(self) -> None:
-        self.replace_gate("rust-build-wasm32", "rust-build-wasm32", "removed-rust-build-wasm32")
+        self.replace_gate(
+            "rust-build-wasm32", "rust-build-wasm32", "removed-rust-build-wasm32"
+        )
         self.replace(
             "nix/checks/default.nix",
             "      _module.args = {",

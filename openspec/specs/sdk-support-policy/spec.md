@@ -12,21 +12,30 @@ compile-only or bootstrap evidence.
 The repository SHALL contain one normative machine-readable support policy for
 the declared MSRV, pinned development toolchain, host systems, compile-only
 targets, eligible packages, feature surfaces, FFI status, binary-size status
-and build-time status, including the expected Crane operation for every named
-compatibility gate. A human-readable policy SHALL explain the evidence tiers
-and SHALL NOT make a stronger claim than the machine contract.
+and build-time status. It SHALL contain a separate versioned declarative gate
+manifest defining the expected Crane operation, toolchain class and structured
+Cargo selection for every named compatibility gate. Nix and the offline
+validator SHALL consume that same manifest. A human-readable policy SHALL
+explain the evidence tiers and SHALL NOT make a stronger claim than the machine
+contracts.
 
 #### Scenario: Contributor evaluates a target claim
 
-- **WHEN** a contributor reads the support policy
+- **WHEN** a contributor reads the support policy and referenced gate entry
 - **THEN** the target has an explicit evidence tier, required gate, eligible
-  package set and limitation
+  package set, structured execution selection and limitation
 
 #### Scenario: Policy omits a required dimension
 
 - **WHEN** MSRV, etalon, hosts, targets, features, FFI, size or build time is
   absent from the machine contract
 - **THEN** structural validation fails with the missing dimension
+
+#### Scenario: Gate manifest entry is malformed or ambiguous
+
+- **WHEN** a gate repeats a name, uses an unknown field or enum, or combines
+  contradictory workspace, package, target or feature modes
+- **THEN** offline validation fails closed before Nix evidence is accepted
 
 ### Requirement: MSRV and etalon toolchain are independent gates
 
@@ -114,18 +123,17 @@ be measurement-only and SHALL NOT be represented as compatibility budgets.
 
 An offline repository validator SHALL compare the policy to Cargo MSRV, Nix
 toolchain pins, flake host systems, declared target components, eligible
-packages, feature sets and required check definitions. For every feature gate,
-the validator SHALL compare the complete effective Cargo package selection,
-including workspace exclusions, default feature mode and activated feature set
-to the machine contract. Workspace-wide surfaces SHALL explicitly select the
-workspace. The validator SHALL accept required gates only when their defining
-Nix modules are reachable from the check-module import rooted in `flake.nix`.
-Commented imports and gate definitions SHALL NOT count as reachable evidence.
-The validator SHALL bind each gate to its machine-declared Crane operation,
-each compile-checked target to the value of Cargo's `--target` option, and each
-feature surface to the complete comma- or space-separated feature option.
-Host systems, target triples and feature-surface names SHALL be unique within
-the machine policy. The validator SHALL run in the structural factory path.
+packages, feature sets and the declarative gate manifest. For every feature
+gate, the validator SHALL compare the complete effective Cargo package
+selection, including workspace exclusions, default feature mode and activated
+feature set, without parsing Cargo semantics from Nix expression text.
+Workspace-wide surfaces SHALL explicitly select the workspace. Nix SHALL
+construct each named Crane check from the same manifest fields. The validator
+SHALL bind each gate to its manifest-declared Crane operation and toolchain,
+each compile-checked target to its structured Cargo target, and each feature
+surface to its complete structured feature selection. Host systems, target
+triples, feature-surface names and gate names SHALL be unique. The validator
+SHALL run in the structural factory path.
 
 #### Scenario: Cargo MSRV changes alone
 
@@ -135,30 +143,30 @@ the machine policy. The validator SHALL run in the structural factory path.
 
 #### Scenario: Required gate disappears
 
-- **WHEN** a gate named by the machine policy is removed or renamed
+- **WHEN** a gate named by the machine policy is removed or renamed in the
+  declarative manifest
 - **THEN** structural validation fails before the compatibility claim can merge
-
-#### Scenario: Gate definition becomes unreachable
-
-- **WHEN** a required gate remains in an orphaned Nix file but its module is no
-  longer imported by the check graph
-- **THEN** structural validation treats the gate as undefined
-
-#### Scenario: Module import is commented out
-
-- **WHEN** a required module path remains as a Nix comment in an import block
-- **THEN** structural validation treats its gates as unreachable
 
 #### Scenario: Check graph is detached from the flake
 
-- **WHEN** `flake.nix` stops importing the root check module while the check
-  files remain present
-- **THEN** structural validation treats every policy gate as unreachable
+- **WHEN** `flake.nix` stops importing the root check module
+- **THEN** structural validation rejects the detached execution contract
+
+#### Scenario: Manifest consumption is detached
+
+- **WHEN** the reachable root check module no longer consumes the manifest to
+  publish generated checks
+- **THEN** structural validation rejects the detached execution contract
+
+#### Scenario: Nix source contains a gate-name decoy
+
+- **WHEN** a removed manifest gate name remains only in a comment, multiline
+  string, interpolated expression or dead `_module.args` value
+- **THEN** the decoy cannot satisfy the missing structured gate
 
 #### Scenario: Workspace gate excludes a package
 
-- **WHEN** a workspace-wide feature gate adds an exclusion that removes any
-  workspace package
+- **WHEN** a workspace-wide gate manifest entry excludes any workspace package
 - **THEN** structural validation rejects the gate's incomplete effective
   package selection
 
@@ -175,7 +183,7 @@ the machine policy. The validator SHALL run in the structural factory path.
 
 #### Scenario: Target backend feature disappears
 
-- **WHEN** a compile-checked target gate stops activating a feature required by
+- **WHEN** a compile-checked target gate stops selecting a feature required by
   its machine-declared target surface
 - **THEN** structural validation fails even when target and package selections
   are unchanged
@@ -186,22 +194,42 @@ the machine policy. The validator SHALL run in the structural factory path.
   operation while retaining its name and Cargo arguments
 - **THEN** structural validation rejects the semantic operation drift
 
-#### Scenario: Target token moves outside Cargo arguments
+#### Scenario: Target token moves outside structured selection
 
-- **WHEN** a target gate compiles another triple but retains the declared
-  triple in unrelated Nix metadata
-- **THEN** structural validation rejects the actual Cargo target selection
+- **WHEN** a target gate selects another triple but retains the declared triple
+  only in unrelated Nix text or metadata
+- **THEN** structural validation rejects the effective target selection
 
-#### Scenario: Isolated feature adds a space-separated feature
+#### Scenario: Isolated feature silently broadens
 
-- **WHEN** a gate appends another feature using Cargo's space-separated feature
-  syntax
-- **THEN** structural validation observes the complete feature list and rejects
-  the broadened surface
+- **WHEN** a minimal or isolated gate drops `no_default_features`, selects a
+  different package or adds another feature
+- **THEN** structural validation rejects the broadened surface even if Nix text
+  retains the old evidence token
 
-#### Scenario: Feature gate silently broadens
+#### Scenario: Dynamic Nix syntax does not change manifest meaning
 
-- **WHEN** a minimal or isolated gate drops `--no-default-features`, selects a
-  different package or activates a different feature set
-- **THEN** structural validation fails even if the gate retains its evidence
-  token
+- **WHEN** Nix implementation details use interpolation, comments or quoting
+  unrelated to manifest-derived gate construction
+- **THEN** offline validation remains deterministic and does not interpret those
+  expressions as Cargo selection semantics
+
+### Requirement: Validator performance remains observable
+
+The repository SHALL provide a deterministic benchmark that runs at least 20
+successful process-cold and in-process-warm support-policy validations and
+reports sample count, platform, revision, p50 and p95. Linux and macOS CI SHALL
+run the benchmark as diagnostic evidence. These observations SHALL NOT become
+a compatibility or release budget during bootstrap.
+
+#### Scenario: Agent evaluates validator overhead
+
+- **WHEN** the benchmark runs on a supported host
+- **THEN** it reports at least 20 samples for both modes and compares the result
+  with the recorded #23 baseline where the same platform is available
+
+#### Scenario: Runner timing varies
+
+- **WHEN** normal hosted-runner variance changes a percentile
+- **THEN** the result remains diagnostic unless it breaches a broad documented
+  pathological-regression ceiling

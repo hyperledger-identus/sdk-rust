@@ -15,7 +15,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
-
 MINIMUM_SAMPLES = 20
 MATERIAL_REGRESSION_FACTOR = 2.0
 MATERIAL_REGRESSION_ALLOWANCE_MS = 5.0
@@ -76,7 +75,9 @@ def measure(root: Path, samples: int) -> dict[str, Any]:
         )
         process_cold.append((time.perf_counter() - start) * 1_000)
         if result.returncode != 0:
-            raise RuntimeError(f"process-cold validation failed for {root}: {result.stderr}")
+            raise RuntimeError(
+                f"process-cold validation failed for {root}: {result.stderr}"
+            )
 
     return {
         "root": str(root),
@@ -91,7 +92,9 @@ def measure(root: Path, samples: int) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument(
+        "--root", type=Path, default=Path(__file__).resolve().parents[1]
+    )
     parser.add_argument("--baseline-root", type=Path)
     parser.add_argument("--samples", type=int, default=MINIMUM_SAMPLES)
     args = parser.parse_args()
@@ -113,7 +116,10 @@ def main() -> int:
             current_value = float(current[metric])
             baseline_value = float(baseline[metric])
             comparisons[f"{metric}_ratio"] = round(current_value / baseline_value, 3)
-            ceiling = baseline_value * MATERIAL_REGRESSION_FACTOR + MATERIAL_REGRESSION_ALLOWANCE_MS
+            ceiling = (
+                baseline_value * MATERIAL_REGRESSION_FACTOR
+                + MATERIAL_REGRESSION_ALLOWANCE_MS
+            )
             if current_value > ceiling:
                 regressions.append(
                     f"{metric} {current_value:.3f} ms exceeds material-regression ceiling {ceiling:.3f} ms"

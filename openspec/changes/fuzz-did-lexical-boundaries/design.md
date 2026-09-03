@@ -58,6 +58,12 @@ The root `fuzz/` directory is a standalone Cargo workspace. It depends on
 support needed to exercise the existing public serde surface. No fuzz feature,
 runner, sanitizer, or dependency enters a published package.
 
+The runtime binding combines MIT/Apache-2.0 wrapper code with LLVM's OSI-
+approved NCSA-licensed runtime. The repository license policy therefore grants
+a version-exact `libfuzzer-sys@0.4.13` NCSA exception rather than widening the
+general allow-list. The focused workflow applies both cargo-deny and RustSec
+audit to the independent lock before executing either campaign.
+
 Two targets keep failures attributable: `did` exercises bare identifiers and
 `did_url` exercises URL components. Each receives arbitrary bytes. Non-UTF-8
 is returned immediately because the public boundary is `&str`; valid UTF-8,
@@ -87,10 +93,10 @@ second never become an acceptance threshold.
 ### Decision 4: commit curated grammar seeds, not generated campaign growth
 
 Small original corpora cover W3C example syntax, PRISM, Midnight, web and key
-shapes, URL delimiter combinations, percent escapes, Unicode rejection, empty
-or truncated structures, and exact/over-limit sizes. Dictionaries contain
-grammar tokens rather than method semantics. Campaign-created corpus growth is
-not committed automatically.
+shapes, URL delimiter combinations, percent escapes, Unicode rejection, and
+empty or truncated structures. Each target runs exact and one-byte-over parser-
+limit probes once at startup. Dictionaries contain grammar tokens rather than
+method semantics. Campaign-created corpus growth is not committed automatically.
 
 On a failure, automation uploads `fuzz/artifacts`. A maintainer or agent runs
 `cargo fuzz tmin`, promotes the minimized input into the committed corpus, and

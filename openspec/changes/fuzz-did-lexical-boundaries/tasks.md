@@ -8,18 +8,18 @@
 
 ## 2. Independent fuzz harness
 
-- [ ] 2.1 Add standalone pinned cargo-fuzz workspace and separate `Did` and
+- [x] 2.1 Add standalone pinned cargo-fuzz workspace and separate `Did` and
       `DidUrl` public-invariant targets
-- [ ] 2.2 Add original bounded corpora, grammar dictionaries, artifact ignores,
+- [x] 2.2 Add original bounded corpora, grammar dictionaries, artifact ignores,
       and crash/minimization guidance
 
 ## 3. Reproducible automation
 
-- [ ] 3.1 Add cargo-fuzz to the locked Nix shell and one validated wrapper for
+- [x] 3.1 Add cargo-fuzz to the locked Nix shell and one validated wrapper for
       replay, deterministic smoke, and bounded soak modes
-- [ ] 3.2 Add path-scoped Ubuntu PR/push smoke plus scheduled/manual soak and
+- [x] 3.2 Add path-scoped Ubuntu PR/push smoke plus scheduled/manual soak and
       failure-only artifact retention
-- [ ] 3.3 Run corpus replay/fixed smoke, record execution rate/wall time, and
+- [x] 3.3 Run corpus replay/fixed smoke, record execution rate/wall time, and
       triage every sanitizer or invariant finding
 
 ## 4. Verification and delivery

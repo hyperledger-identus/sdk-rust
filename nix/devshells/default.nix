@@ -25,6 +25,7 @@
             cargo-nextest
             cargo-deny
             cargo-audit
+            cargo-fuzz
 
             # protobuf (for codegen of identus protos)
             protobuf

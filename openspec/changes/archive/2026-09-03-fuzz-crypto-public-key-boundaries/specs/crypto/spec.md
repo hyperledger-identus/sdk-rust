@@ -95,6 +95,69 @@ thumbprint SHALL expose immutable 32-byte SHA-256 digest access and canonical
 unpadded base64url text. The serde, thumbprint, and structural JWK/COSE
 invariants SHALL remain under the bounded sanitizer campaign.
 
+#### Scenario: RFC 8037 Ed25519 public key is accepted exactly
+
+- **WHEN** the RFC 8037 Appendix A.2 public JWK is deserialized
+- **THEN** it SHALL produce `OKP/Ed25519`, preserve the exact `x`, omit `y`,
+  and serialize to an equivalent public JWK without `d`
+
+#### Scenario: curve encoders preserve their public coordinates
+
+- **WHEN** Ed25519, X25519, P-256 or secp256k1 public keys call `encode_jwk()`
+- **THEN** the result SHALL use the correct typed profile and SHALL contain
+  the same canonical coordinate bytes as the public key encoding
+
+#### Scenario: EC and OKP shapes are enforced
+
+- **WHEN** an EC JWK omits `y`, an OKP JWK contains `y`, or `kty` and `crv`
+  are incompatible
+- **THEN** native construction and deserialization SHALL reject the value
+
+#### Scenario: coordinates are canonical and full width
+
+- **WHEN** a coordinate has padding, an invalid alphabet, non-zero trailing
+  bits, or decodes to any length other than 32 bytes
+- **THEN** native construction and deserialization SHALL reject the value
+
+#### Scenario: private material is rejected
+
+- **WHEN** a public JWK contains a `d` member
+- **THEN** deserialization and extension-aware construction SHALL reject it
+  without including the private value in an error
+
+#### Scenario: unknown public extensions survive a round trip
+
+- **WHEN** a valid public JWK contains additional public members such as
+  `kid` or a collision-resistant extension name
+- **THEN** deserialize/serialize SHALL preserve their JSON values while the
+  crypto crate SHALL NOT interpret their policy
+
+#### Scenario: RFC 8037 Ed25519 thumbprint matches exactly
+
+- **WHEN** the RFC 8037 Appendix A.2 public JWK is thumbprinted
+- **THEN** its digest SHALL equal
+  `90facafea9b1556698540f70c0117a22ea37bd5cf3ed3c47093c1707282b4b89`
+  and its base64url value SHALL equal
+  `kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k`
+
+#### Scenario: optional metadata cannot change key identity
+
+- **WHEN** two JWKs have identical required key members but different `kid`,
+  `alg`, `use`, or other public extensions
+- **THEN** their SHA-256 JWK thumbprints SHALL be equal
+
+#### Scenario: required key material changes key identity
+
+- **WHEN** a required coordinate or supported curve differs
+- **THEN** the SHA-256 JWK thumbprint SHALL differ
+
+#### Scenario: canonicalization is fixed and bounded
+
+- **WHEN** an OKP or EC JWK is thumbprinted
+- **THEN** fixed JSON fragments and validated values SHALL stream directly
+  into SHA-256 without a generic JSON canonicalizer or canonicalization heap
+  allocation
+
 #### Scenario: accepted wire values remain coherent under mutation
 
 - **WHEN** sanitizer-guided mutation produces a JWK accepted by the public
@@ -127,6 +190,79 @@ shortest-form CBOR with recursively length-first map-key ordering: shorter
 deterministic key encodings first, then bytewise lexical order for keys of
 equal length. The resource, encoding, and structural conversion invariants
 SHALL remain under the bounded sanitizer campaign.
+
+#### Scenario: registered OKP and EC2 fixtures are accepted
+
+- **WHEN** valid assigned-integer COSE keys for Ed25519, X25519, P-256 and
+  secp256k1 are parsed
+- **THEN** they SHALL produce the matching typed profile and exact public
+  coordinate bytes
+
+#### Scenario: registered text names normalize to integer identifiers
+
+- **WHEN** a supported key uses the registered text spelling for `kty` or
+  `crv`
+- **THEN** parsing SHALL accept the profile and deterministic encoding SHALL
+  emit the assigned integer identifiers
+
+#### Scenario: EC2 supports full and compressed y forms
+
+- **WHEN** an EC2 public key contains a 32-byte `y` or a boolean sign value
+- **THEN** the typed value SHALL preserve the selected form and emit an
+  equivalent deterministic key
+
+#### Scenario: private and incompatible key shapes are rejected
+
+- **WHEN** label `-4` is present, OKP contains `y`, EC2 omits `y`, or `kty`
+  and `crv` are incompatible
+- **THEN** parsing SHALL fail without rendering caller-controlled bytes
+
+#### Scenario: coordinate types and widths are enforced
+
+- **WHEN** `x` is not a byte string, `y` has the wrong CBOR type, or a public
+  coordinate is not exactly 32 bytes
+- **THEN** parsing SHALL reject the key
+
+#### Scenario: parser resources and message boundaries are enforced
+
+- **WHEN** input exceeds 4096 bytes, nesting exceeds 16, a tag or trailing
+  item is present, or more than 32 common-plus-unknown parameters are supplied
+- **THEN** parsing SHALL reject the input before returning a key
+
+#### Scenario: duplicate labels cannot be smuggled
+
+- **WHEN** a top-level or retained nested map repeats a deterministically
+  equivalent key
+- **THEN** parsing or deterministic encoding SHALL reject it
+
+#### Scenario: public extensions round trip deterministically
+
+- **WHEN** a valid key contains bounded common or unknown public parameters,
+  including explicitly present empty common byte strings, without
+  floating-point values
+- **THEN** repeated `to_cbor` calls SHALL return identical bytes with RFC 8949
+  length-first map ordering and parsing those bytes SHALL retain equivalent
+  parameters
+
+#### Scenario: curve encoders preserve public key bytes
+
+- **WHEN** Ed25519, X25519, P-256 or secp256k1 public keys call
+  `encode_cose()`
+- **THEN** the result SHALL use the correct typed profile and exact public
+  coordinate bytes
+
+#### Scenario: full-coordinate JWK conversion is lossless for key material
+
+- **WHEN** a supported structural JWK converts to COSE and back, or a
+  full-coordinate COSE key converts to JWK and back
+- **THEN** key type, curve and public coordinate bytes SHALL be unchanged,
+  while format-specific metadata SHALL NOT be inferred
+
+#### Scenario: compressed EC2 does not masquerade as a JWK
+
+- **WHEN** conversion of a sign-bit EC2 key to `PublicKeyJwk` is requested
+- **THEN** conversion SHALL fail explicitly without performing curve
+  decompression
 
 #### Scenario: accepted binary values remain coherent under mutation
 

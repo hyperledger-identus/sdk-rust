@@ -8,25 +8,25 @@
 
 ## 2. Public-key fuzz harness
 
-- [ ] 2.1 Generalize the standalone fuzz package without changing the DID
+- [x] 2.1 Generalize the standalone fuzz package without changing the DID
       target contract; add separate JWK and COSE public-invariant targets
-- [ ] 2.2 Add original standards-shaped positive/negative corpora, binary seed
+- [x] 2.2 Add original standards-shaped positive/negative corpora, binary seed
       transport, dictionaries, and crypto-specific triage guidance
 
 ## 3. Reproducible automation
 
-- [ ] 3.1 Add one validated crypto wrapper for replay, fixed smoke, and bounded
+- [x] 3.1 Add one validated crypto wrapper for replay, fixed smoke, and bounded
       soak under the pinned runner and resource controls
-- [ ] 3.2 Add path-scoped Ubuntu PR/push smoke plus scheduled/manual soak,
+- [x] 3.2 Add path-scoped Ubuntu PR/push smoke plus scheduled/manual soak,
       supply-chain checks, and failure-only artifact retention
-- [ ] 3.3 Run DID/crypto corpus replay and fixed smoke; record performance and
+- [x] 3.3 Run DID/crypto corpus replay and fixed smoke; record performance and
       triage every sanitizer or invariant finding
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Run focused crypto feature/workspace, strict Clippy/rustdoc/fmt,
+- [x] 4.1 Run focused crypto feature/workspace, strict Clippy/rustdoc/fmt,
       factory, MSRV, WASM/mobile, architecture, supply-chain, and full Nix gates
-- [ ] 4.2 Complete a distinct exact-head semantic/security/API review and prove
+- [x] 4.2 Complete a distinct exact-head semantic/security/API review and prove
       all downstream HEAD/status receipts are unchanged
-- [ ] 4.3 Produce ready/receipt, synchronize the canonical crypto spec, archive
+- [x] 4.3 Produce ready/receipt, synchronize the canonical crypto spec, archive
       the change, and deliver the signed issue-linked all-green PR

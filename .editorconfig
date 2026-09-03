@@ -26,5 +26,11 @@ insert_final_newline = false
 trim_trailing_whitespace = false
 indent_style = unset
 
+[fuzz/corpus/public_jwk/**]
+insert_final_newline = true
+
+[fuzz/corpus/public_cose/**]
+insert_final_newline = true
+
 [Makefile]
 indent_style = tab

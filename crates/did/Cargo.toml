@@ -11,9 +11,7 @@ identus-core.workspace   = true
 identus-crypto.workspace = true
 identus-derive.workspace = true
 serde.workspace          = true
-
-[dev-dependencies]
-serde_json.workspace = true
+serde_json.workspace     = true
 
 [lints]
 workspace = true

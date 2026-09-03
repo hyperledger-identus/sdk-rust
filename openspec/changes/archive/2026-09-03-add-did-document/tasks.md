@@ -21,12 +21,12 @@
 - [x] 3.4 Run and record a release document parse diagnostic
 - [x] 3.5 Create bounded follow-up issues #38 and #39 for deliberately deferred
       maturity and the next functional increment
-- [ ] 3.6 Run focused, workspace, wasm/mobile, lint, formatting, docs,
+- [x] 3.6 Run focused, workspace, wasm/mobile, lint, formatting, docs,
       OpenSpec, supply-chain and Nix gates
 
 ## 4. Delivery evidence
 
-- [ ] 4.1 Sync the canonical did-core spec and record exact verification plus
+- [x] 4.1 Sync the canonical did-core spec and record exact verification plus
       distinct local semantic/security review
-- [ ] 4.2 Produce the ready/receipt, archive the OpenSpec change and prepare the
+- [x] 4.2 Produce the ready/receipt, archive the OpenSpec change and prepare the
       issue-linked PR; hosted CI and green-only merge remain PR evidence

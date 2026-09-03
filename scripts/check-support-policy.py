@@ -150,6 +150,117 @@ def nix_without_comments(text: str) -> str:
     return re.sub(r"#.*$", "", without_blocks, flags=re.MULTILINE)
 
 
+def nix_string_mask(text: str) -> str:
+    """Mask Nix strings while preserving offsets for bounded source scanning."""
+    masked = list(text)
+    index = 0
+    while index < len(text):
+        if text[index] == '"':
+            start = index
+            index += 1
+            while index < len(text):
+                if text[index] == "\\":
+                    index += 2
+                    continue
+                index += 1
+                if text[index - 1] == '"':
+                    break
+            masked[start:index] = " " * (index - start)
+            continue
+        if text.startswith("''", index):
+            start = index
+            end = text.find("''", index + 2)
+            index = len(text) if end == -1 else end + 2
+            masked[start:index] = " " * (index - start)
+            continue
+        index += 1
+    return "".join(masked)
+
+
+def outer_per_system_let(text: str) -> tuple[str, str] | None:
+    """Return the immediate perSystem let body and its outer result."""
+    masked = nix_string_mask(text)
+    header = re.search(r"\bperSystem\s*=\s*\{[^{}]*\}\s*:\s*let\b", masked, re.DOTALL)
+    if header is None:
+        return None
+
+    body_start = header.end()
+    delimiters: list[str] = []
+    nested_lets = 0
+    index = body_start
+    pairs = {")": "(", "]": "[", "}": "{"}
+    while index < len(masked):
+        character = masked[index]
+        if character in "([{":
+            delimiters.append(character)
+            index += 1
+            continue
+        if character in pairs:
+            if not delimiters or delimiters.pop() != pairs[character]:
+                return None
+            index += 1
+            continue
+        if character.isalpha() or character == "_":
+            end = index + 1
+            while end < len(masked) and (masked[end].isalnum() or masked[end] in "_-'"):
+                end += 1
+            token = masked[index:end]
+            if token == "let":
+                nested_lets += 1
+            elif token == "in":
+                if nested_lets:
+                    nested_lets -= 1
+                elif not delimiters:
+                    return text[body_start:index], text[end:]
+            index = end
+            continue
+        index += 1
+    return None
+
+
+def top_level_nix_statements(text: str) -> list[str] | None:
+    """Split a let body at semicolons belonging to its immediate scope."""
+    masked = nix_string_mask(text)
+    delimiters: list[str] = []
+    nested_lets = 0
+    statements: list[str] = []
+    start = 0
+    index = 0
+    pairs = {")": "(", "]": "[", "}": "{"}
+    while index < len(masked):
+        character = masked[index]
+        if character in "([{":
+            delimiters.append(character)
+            index += 1
+            continue
+        if character in pairs:
+            if not delimiters or delimiters.pop() != pairs[character]:
+                return None
+            index += 1
+            continue
+        if character.isalpha() or character == "_":
+            end = index + 1
+            while end < len(masked) and (masked[end].isalnum() or masked[end] in "_-'"):
+                end += 1
+            token = masked[index:end]
+            if token == "let":
+                nested_lets += 1
+            elif token == "in":
+                if not nested_lets:
+                    return None
+                nested_lets -= 1
+            index = end
+            continue
+        if character == ";" and not delimiters and not nested_lets:
+            statements.append(text[start : index + 1])
+            start = index + 1
+        index += 1
+
+    if delimiters or nested_lets or text[start:].strip():
+        return None
+    return statements
+
+
 def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     checks_root = (root / "nix/checks").resolve()
     checks_entry = checks_root / "default.nix"
@@ -186,11 +297,25 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         failures.append("nix/checks/rust-gates.nix does not exist")
         return
     generator = nix_without_comments(generator_path.read_text(encoding="utf-8"))
-    library_inherit = re.search(
-        r"\bperSystem\s*=\s*\{[^{}]*\}\s*:\s*let\s+"
-        r"inherit\s*\(\s*pkgs\.lib\s*\)(.*?)\s*;",
-        generator,
-        re.DOTALL,
+    outer_scope = outer_per_system_let(generator)
+    statements = (
+        top_level_nix_statements(outer_scope[0]) if outer_scope is not None else None
+    )
+    statements = statements or []
+    library_inherit = next(
+        (
+            match
+            for statement in statements
+            if (
+                match := re.fullmatch(
+                    r"\s*inherit\s*\(\s*pkgs\.lib\s*\)(.*?)\s*;\s*",
+                    statement,
+                    re.DOTALL,
+                )
+            )
+            is not None
+        ),
+        None,
     )
     inherited_helpers = (
         set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_']*\b", library_inherit.group(1)))
@@ -201,26 +326,46 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         failures.append(
             "rust-gates.nix does not inherit map and listToAttrs from pkgs.lib"
         )
-    manifest_binding = re.search(
-        r"\bmanifest\s*=\s*builtins\.fromTOML\s*"
-        r"\(builtins\.readFile\s+\./gates\.toml\)\s*;",
-        generator,
+    manifest_pattern = (
+        r"\s*manifest\s*=\s*builtins\.fromTOML\s*"
+        r"\(builtins\.readFile\s+\./gates\.toml\)\s*;\s*"
+    )
+    manifest_binding = next(
+        (
+            statement
+            for statement in statements
+            if re.fullmatch(manifest_pattern, statement, re.DOTALL)
+        ),
+        None,
     )
     generated_pattern = (
-        r"\bgeneratedChecks\s*=\s*listToAttrs\s*\(\s*map\s*\("
+        r"\s*generatedChecks\s*=\s*listToAttrs\s*\(\s*map\s*\("
         r"\s*gate\s*:\s*\{\s*inherit\s*\(\s*gate\s*\)\s*name\s*;"
         r"\s*value\s*=\s*makeGate\s+gate\s*;\s*\}\s*\)"
-        r"\s*manifest\.gates\s*\)\s*;"
+        r"\s*manifest\.gates\s*\)\s*;\s*"
     )
-    published_pattern = (
-        r"\bin\s*\{\s*checks\s*=\s*generatedChecks\s*;\s*\}\s*;\s*\}\s*$"
+    published_pattern = r"\s*\{\s*checks\s*=\s*generatedChecks\s*;\s*\}\s*;\s*\}\s*"
+    generated_binding = next(
+        (
+            statement
+            for statement in statements
+            if re.fullmatch(generated_pattern, statement, re.DOTALL)
+        ),
+        None,
     )
-    generated_binding = re.search(generated_pattern, generator, re.DOTALL)
-    published_result = re.search(published_pattern, generator)
-    connected_result = re.search(
-        generated_pattern + r"\s*" + published_pattern,
-        generator,
-        re.DOTALL,
+    published_result = (
+        re.fullmatch(published_pattern, outer_scope[1], re.DOTALL)
+        if outer_scope is not None
+        else None
+    )
+    connected_result = all(
+        value is not None
+        for value in (
+            library_inherit,
+            manifest_binding,
+            generated_binding,
+            published_result,
+        )
     )
     if manifest_binding is None:
         failures.append("rust-gates.nix does not parse gates.toml as manifest")
@@ -232,7 +377,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         failures.append(
             "rust-gates.nix does not return generatedChecks as top-level checks"
         )
-    if connected_result is None:
+    if not connected_result:
         failures.append(
             "rust-gates.nix does not directly return its manifest-mapped generatedChecks"
         )

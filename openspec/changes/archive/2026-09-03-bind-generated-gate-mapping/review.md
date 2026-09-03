@@ -60,3 +60,18 @@ Two focused mutations replace `map` with a constant single-entry function and
 replace `listToAttrs` with a discarding function. Both fail deterministically;
 the canonical generator continues to pass. The correction changes no Nix
 generator expression or derived check.
+
+## Final hosted-review correction contract
+
+A second hosted review on `fa9e6a5` found that the independent outer-scope
+searches and the concatenated mapping/publication regex can be satisfied by
+different lexical scopes. An outer canonical helper inheritance and manifest
+binding can therefore act as decoys while a returned inner `let` redefines all
+three mapping inputs and publishes a collapsed check graph. The finding is
+confirmed and remains a merge blocker.
+
+The correction SHALL derive the matching immediate outer `perSystem` `let`
+body, accept helper inheritance, manifest parsing, and `generatedChecks` only
+as top-level statements in that body, and validate its matching `in` result.
+An exact nested-shadow mutation must fail. This is still a bounded source-shape
+contract, not a general Nix evaluator, and changes no generated derivation.

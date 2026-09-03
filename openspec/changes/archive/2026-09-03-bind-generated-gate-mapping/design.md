@@ -24,14 +24,14 @@ remaining structural gap.
 
 ## Decision
 
-The narrow wiring validator will recognize the canonical mapping expression as
-one structural unit: `map (gate: { inherit (gate) name; value = makeGate gate;
-}) manifest.gates`, passed directly to `listToAttrs` and bound to
-`generatedChecks`. It will also resolve the outer `perSystem` let binding and
-require both mapping helpers in its immediate `inherit (pkgs.lib)` binding, so
-the canonical identifiers cannot refer to local replacements. The existing
-returned-module check continues to require `checks = generatedChecks` at the
-generator return tail.
+The narrow wiring validator will isolate the immediate outer `perSystem` `let`
+body, split only its top-level statements, and recognize the canonical mapping
+expression as one complete statement: `map (gate: { inherit (gate) name; value
+= makeGate gate; }) manifest.gates`, passed directly to `listToAttrs` and bound
+to `generatedChecks`. The manifest binding and `inherit (pkgs.lib)` statement
+must be top-level statements in that same scope, and the outer `in` expression
+must return `checks = generatedChecks`. Consequently an inner `let` cannot
+redefine `map`, `listToAttrs`, or `manifest` and supply the accepted mapping.
 
 Two fixture mutations independently replace the mapped name with a constant
 and the mapped value with an empty attribute set. Both must return a stable
@@ -55,9 +55,10 @@ semantic equivalence across arbitrary Nix expressions.
   is intentional fail-closed behavior; a reviewed validator/spec update can
   accompany a future generator refactor.
 - Regex matching can accept source decoys when not anchored to the complete
-  binding. The expression requires the mapped parameter, name, value,
-  `manifest.gates` input, `listToAttrs` output, and terminating binding in one
-  match, while publication remains anchored to the returned module tail.
+  binding. A bounded lexical scanner identifies the matching outer `in` and
+  top-level statement boundaries while ignoring strings and balanced nested
+  delimiters; canonical regexes then match complete statements instead of the
+  whole source.
 
 ## Verification
 

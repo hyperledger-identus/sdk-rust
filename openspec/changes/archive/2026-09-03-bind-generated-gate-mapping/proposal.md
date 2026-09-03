@@ -13,8 +13,10 @@ still reports success.
 - Require every generated attribute name to come from the current manifest
   gate's `name` field.
 - Require every generated attribute value to come from `makeGate gate`.
+- Require the manifest binding, mapping helpers, generated mapping, and
+  published result to belong to the same immediate `perSystem` `let` scope.
 - Add exact fail-closed regressions for constant-name collapse and detached
-  mapped values.
+  mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate
   manifest, toolchains, support claims, Rust APIs, or downstream repositories.
 

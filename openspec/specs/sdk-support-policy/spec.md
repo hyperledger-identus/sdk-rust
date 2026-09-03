@@ -248,8 +248,10 @@ derive every mapped attribute name from the current manifest entry's `name`
 field and every mapped attribute value from `makeGate` applied to that same
 entry. The mapping and attribute-set conversion functions SHALL resolve to
 `map` and `listToAttrs` inherited from `pkgs.lib`, not local replacements. The
-complete mapping SHALL remain connected from `manifest.gates` through
-`listToAttrs` to the returned top-level `checks` value.
+helper inheritance, manifest binding, and complete mapping SHALL be immediate
+bindings of the same outer `perSystem` `let` scope, connected from
+`manifest.gates` through `listToAttrs` to that scope's returned top-level
+`checks` value.
 
 #### Scenario: Constant mapped name collapses the gate graph
 
@@ -269,3 +271,9 @@ complete mapping SHALL remain connected from `manifest.gates` through
 - **WHEN** `map` or `listToAttrs` is removed from the `pkgs.lib` inheritance
   and replaced by a local function that collapses or discards manifest entries
 - **THEN** structural validation rejects the shadowed mapping helper
+
+#### Scenario: Mapping inputs are shadowed in a returned inner scope
+
+- **WHEN** an inner `let` redefines `map`, `listToAttrs`, or `manifest` and
+  contains a canonical-looking mapping while outer bindings remain as decoys
+- **THEN** structural validation rejects the cross-scope mapping contract

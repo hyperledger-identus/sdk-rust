@@ -260,6 +260,39 @@ class SupportPolicyTests(unittest.TestCase):
             "does not directly return its manifest-mapped generatedChecks"
         )
 
+    def test_nested_mapping_inputs_cannot_use_outer_bindings_as_decoys(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            """      generatedChecks = listToAttrs (
+        map (gate: {
+          inherit (gate) name;
+          value = makeGate gate;
+        }) manifest.gates
+      );
+    in
+    {
+      checks = generatedChecks;
+    };""",
+            """    in
+    let
+      map = _: _: [ { name = \"rust-gate\"; value = { }; } ];
+      listToAttrs = _: { rust-gate = { }; };
+      manifest = { gates = [ ]; };
+      generatedChecks = listToAttrs (
+        map (gate: {
+          inherit (gate) name;
+          value = makeGate gate;
+        }) manifest.gates
+      );
+    in
+    {
+      checks = generatedChecks;
+    };""",
+        )
+        self.assert_fails(
+            "does not directly return its manifest-mapped generatedChecks"
+        )
+
     def test_check_graph_must_be_imported_by_flake(self) -> None:
         self.replace("flake.nix", "        ./nix/checks\n", "")
         self.assert_fails("flake.nix does not import the nix/checks module")

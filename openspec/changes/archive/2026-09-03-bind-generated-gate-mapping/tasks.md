@@ -11,6 +11,8 @@
 - [x] 2.1 Bind the accepted mapping shape to `gate.name` and `makeGate gate`.
 - [x] 2.2 Add constant-name and detached-value mutation regressions.
 - [x] 2.3 Require mapping helpers from `pkgs.lib` and cover local replacements.
+- [ ] 2.4 Require all mapping inputs and output in the immediate outer
+      `perSystem` scope and cover nested shadowing.
 
 ## 3. Verification and integration
 
@@ -19,3 +21,5 @@
 - [x] 3.3 Sync the capability specification and archive the completed change.
 - [x] 3.4 Prepare the signed, issue-linked PR handoff and its green-CI/no-blocking-
       review integration conditions.
+- [ ] 3.5 Rerun complete local and hosted evidence after the nested-shadow
+      correction, then clear the final review thread.

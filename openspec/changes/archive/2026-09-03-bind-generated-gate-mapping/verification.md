@@ -78,3 +78,14 @@ Ruff, canonical policy, the 17-item factory contract, and the complete
 compatible aarch64-darwin Nix graph pass. The final benchmark reports warm
 p50/p95 9.577/10.952 ms and process-cold p50/p95 47.908/49.668 ms, within the
 diagnostic guard.
+
+## Final quoted-root and interpolation evidence
+
+The quoted-root and interpolation correction is implemented at
+`399a91f769bc2897611144c5497351afddd92b26`. The mutation suite passes 58/58:
+exact quoted and dynamic binding roots fail closed, while nested double-quoted
+and indented strings inside interpolation preserve comment-marker data. Ruff
+lint and format checks, canonical policy validation, the 17-item factory
+contract, and the complete compatible aarch64-darwin Nix graph pass. The final
+isolated benchmark reports warm p50/p95 9.202/10.003 ms and process-cold
+p50/p95 48.118/51.430 ms, within the diagnostic guard.

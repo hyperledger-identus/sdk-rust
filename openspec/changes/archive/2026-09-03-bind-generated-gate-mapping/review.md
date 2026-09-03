@@ -144,3 +144,11 @@ scanning SHALL balance interpolation braces and recursively consume nested Nix
 strings and comments before returning to the outer string. Exact quoted-root
 shadowing must fail; nested quoted and indented strings containing comment
 markers inside interpolation must preserve canonical acceptance.
+
+The implementation at `399a91f769bc2897611144c5497351afddd92b26`
+meets that contract. Immediate quoted trusted roots are normalized into the
+existing shadow check, every quoted or dynamic first binding component is
+rejected fail-closed, and interpolation scanning balances braces while
+recursively consuming nested strings and comments. Exact quoted-root and
+dynamic-root mutations fail, both nested-string forms pass, and a final local
+contradiction-focused review found no remaining bypass or delivery blocker.

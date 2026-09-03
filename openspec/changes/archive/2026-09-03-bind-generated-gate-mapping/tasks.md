@@ -21,8 +21,8 @@
       module result.
 - [x] 2.8 Recognize escaped delimiters in indented Nix strings with exact
       positive regressions.
-- [ ] 2.9 Reject quoted and dynamic immediate binding roots.
-- [ ] 2.10 Track interpolation nesting and nested strings in both Nix string
+- [x] 2.9 Reject quoted and dynamic immediate binding roots.
+- [x] 2.10 Track interpolation nesting and nested strings in both Nix string
       forms.
 
 ## 3. Verification and integration
@@ -38,5 +38,5 @@
       corrections and prepare both threads for hosted clearance.
 - [x] 3.7 Rerun complete local evidence after enclosing-scope and
       indented-string corrections and prepare both threads for hosted clearance.
-- [ ] 3.8 Rerun complete local and hosted evidence after quoted-root and
-      interpolation corrections, then clear both review threads.
+- [x] 3.8 Rerun complete local evidence after quoted-root and interpolation
+      corrections and prepare both review threads for hosted clearance.

@@ -69,8 +69,10 @@ pub use resolution::{
     DereferencedContent, DidDocumentMetadata, DidDocumentMetadataBuilder, DidResolutionDateTime,
     DidResolutionError, DidResolutionErrorKind, DidResolutionMetadata, DidResolutionResult,
     DidUrlContentMetadata, DidUrlDereferencingMetadata, DidUrlDereferencingResult,
-    MAX_DID_RESOLUTION_RESULT_BYTES, MAX_MEDIA_TYPE_BYTES, MAX_PROBLEM_DETAIL_BYTES,
-    MAX_VERSION_ID_BYTES, MediaType, VersionId,
+    MAX_DID_RESOLUTION_DATETIME_BYTES, MAX_DID_RESOLUTION_RESULT_BYTES,
+    MAX_DID_RESOLUTION_WIRE_DEPTH, MAX_DID_RESOLUTION_WIRE_LIVE_KEY_BYTES,
+    MAX_DID_RESOLUTION_WIRE_NODES, MAX_DID_RESOLUTION_WIRE_OBJECT_MEMBERS, MAX_MEDIA_TYPE_BYTES,
+    MAX_PROBLEM_DETAIL_BYTES, MAX_VERSION_ID_BYTES, MediaType, VersionId,
 };
 pub use uri::{MAX_URI_BYTES, Uri};
 pub use version::Version;

@@ -8,19 +8,19 @@
 
 ## 2. Raw result boundary
 
-- [ ] 2.1 Reuse the crate-private scanner in both raw result entry points with
+- [x] 2.1 Reuse the crate-private scanner in both raw result entry points with
       public depth, node, per-object member, and live decoded-name ceilings
-- [ ] 2.2 Add stable redaction-safe duplicate/resource resolution reasons and
+- [x] 2.2 Add stable redaction-safe duplicate/resource resolution reasons and
       prove every envelope, nested-object, escaped-name, malformed, and limit
       edge fails before typed construction
 
 ## 3. Standards and generated evidence
 
-- [ ] 3.1 Implement the bounded XML Schema 1.1 UTC whole-second datetime
+- [x] 3.1 Implement the bounded XML Schema 1.1 UTC whole-second datetime
       intersection with extended/negative/zero years and end-of-day handling
-- [ ] 3.2 Add deterministic property matrices for media types, datetimes,
+- [x] 3.2 Add deterministic property matrices for media types, datetimes,
       version ids, errors, result states, open JSON, and construction paths
-- [ ] 3.3 Map the pinned official suite's portable assertions, retain all nine
+- [x] 3.3 Map the pinned official suite's portable assertions, retain all nine
       W3C errors, and document legacy error plus native-byte binding migration
 - [ ] 3.4 Run and record fixed-work release diagnostics, normalized overhead,
       resource ceilings, and focused coverage without a timing threshold

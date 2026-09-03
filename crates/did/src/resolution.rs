@@ -2,6 +2,10 @@
 //!
 //! This module owns bounded result data only. Resolution algorithms, DID
 //! methods, network bindings, caching and trust policy belong in higher rings.
+//! Use the explicit `from_json_*` result entry points for untrusted bytes: they
+//! reject duplicate decoded names before typed deserialization. Direct serde is
+//! a semantic conversion for representations whose unique-name property has
+//! already been established.
 
 use std::{collections::BTreeMap, fmt, str::FromStr};
 
@@ -12,12 +16,23 @@ use crate::{
     Did, DidDocument, Error, Service, Uri, VerificationMethod,
     document::{JsonBudget, validate_json_map, validate_json_value},
     error::ResolutionError,
+    wire_json::{JsonWireError, JsonWireLimits, validate_unique_object_names},
 };
 
 /// Maximum raw JSON size accepted by resolution result entry points.
 pub const MAX_DID_RESOLUTION_RESULT_BYTES: usize = 512 * 1_024;
+/// Maximum containers nested in raw resolution result JSON during preflight.
+pub const MAX_DID_RESOLUTION_WIRE_DEPTH: usize = 64;
+/// Maximum JSON values visited during raw resolution result preflight.
+pub const MAX_DID_RESOLUTION_WIRE_NODES: usize = 16_384;
+/// Maximum members permitted in one raw resolution result JSON object.
+pub const MAX_DID_RESOLUTION_WIRE_OBJECT_MEMBERS: usize = 128;
+/// Maximum decoded object-name bytes retained simultaneously during preflight.
+pub const MAX_DID_RESOLUTION_WIRE_LIVE_KEY_BYTES: usize = 128 * 1_024;
 /// Maximum byte length of a media type.
 pub const MAX_MEDIA_TYPE_BYTES: usize = 1_024;
+/// Maximum byte length of a DID Resolution datetime.
+pub const MAX_DID_RESOLUTION_DATETIME_BYTES: usize = 128;
 /// Maximum byte length of a version identifier.
 pub const MAX_VERSION_ID_BYTES: usize = 1_024;
 /// Maximum byte length of a problem title or detail.
@@ -79,12 +94,12 @@ impl MediaType {
     }
 }
 
-/// A bounded whole-second UTC datetime used by DID Resolution.
+/// A bounded XML Schema 1.1 whole-second UTC datetime used by DID Resolution.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct DidResolutionDateTime(String);
 
 impl DidResolutionDateTime {
-    /// Parse the portable `YYYY-MM-DDTHH:MM:SSZ` profile.
+    /// Parse the XML Schema 1.1 profile adjusted to UTC whole seconds.
     pub fn parse(value: &str) -> Result<Self, Error> {
         validate_datetime(value)?;
         Ok(Self(value.to_owned()))
@@ -314,6 +329,9 @@ impl DidResolutionError {
     }
 
     /// Deliberately migrate a recognized legacy estate keyword.
+    ///
+    /// Strict result JSON never accepts these keywords directly. An adapter
+    /// calls this helper before constructing current URL-valued error metadata.
     pub fn from_legacy_keyword(value: &str) -> Result<Self, Error> {
         DidResolutionErrorKind::from_legacy(value)
             .map(Self::standard)
@@ -801,11 +819,12 @@ impl DidResolutionResult {
         Self::validated(metadata, None, document_metadata)
     }
 
-    /// Parse a bounded JSON result.
+    /// Parse bounded, duplicate-free JSON from an untrusted byte boundary.
     pub fn from_json_slice(input: &[u8]) -> Result<Self, Error> {
         if input.len() > MAX_DID_RESOLUTION_RESULT_BYTES {
             return Err(invalid(ResolutionError::TooLarge));
         }
+        validate_resolution_wire(input)?;
         serde_json::from_slice(input).map_err(|_| invalid(ResolutionError::MalformedJson))
     }
 
@@ -919,6 +938,9 @@ impl<'de> Deserialize<'de> for DidResolutionResult {
 }
 
 /// Bounded open JSON returned by serialized DID URL dereferencing.
+///
+/// Native non-JSON bytes remain binding-owned and must be paired with an exact
+/// media type. This type never guesses a text or base64 representation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(transparent)]
 pub struct DereferencedContent(Value);
@@ -1091,11 +1113,12 @@ impl DidUrlDereferencingResult {
         Self::validated(metadata, None, DidUrlContentMetadata::empty())
     }
 
-    /// Parse a bounded JSON dereferencing result.
+    /// Parse bounded, duplicate-free JSON from an untrusted byte boundary.
     pub fn from_json_slice(input: &[u8]) -> Result<Self, Error> {
         if input.len() > MAX_DID_RESOLUTION_RESULT_BYTES {
             return Err(invalid(ResolutionError::TooLarge));
         }
+        validate_resolution_wire(input)?;
         serde_json::from_slice(input).map_err(|_| invalid(ResolutionError::MalformedJson))
     }
 
@@ -1216,34 +1239,61 @@ fn validate_version_id(value: &str) -> Result<(), Error> {
 
 fn validate_datetime(value: &str) -> Result<(), Error> {
     let bytes = value.as_bytes();
-    if bytes.len() != 20
-        || bytes[4] != b'-'
-        || bytes[7] != b'-'
-        || bytes[10] != b'T'
-        || bytes[13] != b':'
-        || bytes[16] != b':'
-        || bytes[19] != b'Z'
-        || bytes
+    if bytes.len() < 20
+        || bytes.len() > MAX_DID_RESOLUTION_DATETIME_BYTES
+        || !bytes.is_ascii()
+        || bytes.last() != Some(&b'Z')
+    {
+        return Err(invalid(ResolutionError::InvalidDateTime));
+    }
+
+    let year_start = usize::from(bytes.first() == Some(&b'-'));
+    let Some(year_end) = bytes[year_start..]
+        .iter()
+        .position(|byte| *byte == b'-')
+        .map(|offset| year_start + offset)
+    else {
+        return Err(invalid(ResolutionError::InvalidDateTime));
+    };
+    let year = &bytes[year_start..year_end];
+    if year.len() < 4
+        || !year.iter().all(u8::is_ascii_digit)
+        || (year.len() > 4 && year.first() == Some(&b'0'))
+    {
+        return Err(invalid(ResolutionError::InvalidDateTime));
+    }
+
+    let date_time_tail = &bytes[year_end..];
+    if date_time_tail.len() != 16
+        || date_time_tail[0] != b'-'
+        || date_time_tail[3] != b'-'
+        || date_time_tail[6] != b'T'
+        || date_time_tail[9] != b':'
+        || date_time_tail[12] != b':'
+        || date_time_tail[15] != b'Z'
+        || date_time_tail
             .iter()
             .enumerate()
-            .filter(|(index, _)| ![4, 7, 10, 13, 16, 19].contains(index))
+            .filter(|(index, _)| ![0, 3, 6, 9, 12, 15].contains(index))
             .any(|(_, byte)| !byte.is_ascii_digit())
     {
         return Err(invalid(ResolutionError::InvalidDateTime));
     }
 
     let number = |start: usize, end: usize| -> u32 {
-        bytes[start..end]
+        date_time_tail[start..end]
             .iter()
             .fold(0, |value, byte| value * 10 + u32::from(byte - b'0'))
     };
-    let year = number(0, 4);
-    let month = number(5, 7);
-    let day = number(8, 10);
-    let hour = number(11, 13);
-    let minute = number(14, 16);
-    let second = number(17, 19);
-    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let month = number(1, 3);
+    let day = number(4, 6);
+    let hour = number(7, 9);
+    let minute = number(10, 12);
+    let second = number(13, 15);
+    let year_mod_400 = year.iter().fold(0_u16, |value, byte| {
+        (value * 10 + u16::from(byte - b'0')) % 400
+    });
+    let leap = year_mod_400 % 4 == 0 && (year_mod_400 % 100 != 0 || year_mod_400 == 0);
     let max_day = match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
         4 | 6 | 9 | 11 => 30,
@@ -1251,10 +1301,37 @@ fn validate_datetime(value: &str) -> Result<(), Error> {
         2 => 28,
         _ => 0,
     };
-    if year == 0 || day == 0 || day > max_day || hour > 23 || minute > 59 || second > 59 {
+    let valid_time =
+        hour <= 23 && minute <= 59 && second <= 59 || hour == 24 && minute == 0 && second == 0;
+    if day == 0 || day > max_day || !valid_time {
         return Err(invalid(ResolutionError::InvalidDateTime));
     }
     Ok(())
+}
+
+fn validate_resolution_wire(input: &[u8]) -> Result<(), Error> {
+    validate_unique_object_names(
+        input,
+        JsonWireLimits {
+            max_depth: MAX_DID_RESOLUTION_WIRE_DEPTH,
+            max_nodes: MAX_DID_RESOLUTION_WIRE_NODES,
+            max_object_members: MAX_DID_RESOLUTION_WIRE_OBJECT_MEMBERS,
+            max_live_key_bytes: MAX_DID_RESOLUTION_WIRE_LIVE_KEY_BYTES,
+        },
+    )
+    .map_err(|reason| invalid(map_wire_error(reason)))
+}
+
+const fn map_wire_error(reason: JsonWireError) -> ResolutionError {
+    match reason {
+        JsonWireError::DuplicateName => ResolutionError::DuplicateJsonProperty,
+        JsonWireError::TooDeep => ResolutionError::WireTooDeep,
+        JsonWireError::TooManyNodes | JsonWireError::TooManyLiveKeyBytes => {
+            ResolutionError::WireTooLarge
+        }
+        JsonWireError::TooManyMembers => ResolutionError::WireTooManyProperties,
+        JsonWireError::Malformed => ResolutionError::MalformedJson,
+    }
 }
 
 fn validate_media_type(value: &str) -> Result<(), Error> {

@@ -4,9 +4,11 @@ use identus_did::{
     DereferencedContent, Did, DidDocument, DidDocumentMetadata, DidResolutionDateTime,
     DidResolutionError, DidResolutionErrorKind, DidResolutionMetadata, DidResolutionResult,
     DidUrlContentMetadata, DidUrlDereferencingMetadata, DidUrlDereferencingResult, DocumentError,
-    Error, MAX_DID_RESOLUTION_RESULT_BYTES, MAX_EXTENSION_DEPTH, MAX_EXTENSION_NODES,
-    MAX_MEDIA_TYPE_BYTES, MAX_PROBLEM_DETAIL_BYTES, MAX_VERSION_ID_BYTES, MediaType,
-    ResolutionError, Service, Uri, VerificationMethod, VersionId,
+    Error, MAX_DID_RESOLUTION_DATETIME_BYTES, MAX_DID_RESOLUTION_RESULT_BYTES,
+    MAX_DID_RESOLUTION_WIRE_DEPTH, MAX_DID_RESOLUTION_WIRE_LIVE_KEY_BYTES,
+    MAX_DID_RESOLUTION_WIRE_NODES, MAX_DID_RESOLUTION_WIRE_OBJECT_MEMBERS, MAX_EXTENSION_DEPTH,
+    MAX_EXTENSION_NODES, MAX_MEDIA_TYPE_BYTES, MAX_PROBLEM_DETAIL_BYTES, MAX_VERSION_ID_BYTES,
+    MediaType, ResolutionError, Service, Uri, VerificationMethod, VersionId,
 };
 use serde_json::{Value, json};
 
@@ -42,6 +44,13 @@ const SUCCESS_RESULT: &str = r#"{
         "ledger": {"block": 42, "transaction": "0x123"}
     }
 }"#;
+
+const _: () = {
+    assert!(MAX_DID_RESOLUTION_WIRE_DEPTH > MAX_EXTENSION_DEPTH);
+    assert!(MAX_DID_RESOLUTION_WIRE_NODES > MAX_EXTENSION_NODES);
+    assert!(MAX_DID_RESOLUTION_WIRE_OBJECT_MEMBERS > 64);
+    assert!(MAX_DID_RESOLUTION_WIRE_LIVE_KEY_BYTES < MAX_DID_RESOLUTION_RESULT_BYTES);
+};
 
 fn did(value: &str) -> Did {
     Did::parse(value).unwrap()
@@ -206,6 +215,26 @@ fn all_standard_error_urls_and_legacy_helpers_are_explicit() {
             .unwrap(),
         extension
     );
+
+    for seed in 0..256 {
+        let error = DidResolutionError::new(
+            Uri::parse(&format!("https://resolver.example/problems/{seed}")).unwrap(),
+            Some(format!("Resolution problem {seed}")),
+            Some(format!("Portable public detail for generated case {seed}")),
+            Some(Uri::parse(&format!("urn:uuid:00000000-0000-0000-0000-{seed:012}")).unwrap()),
+            BTreeMap::from([(
+                format!("extension{seed}"),
+                json!({"retryable": seed % 2 == 0, "attempt": seed}),
+            )]),
+        )
+        .unwrap();
+        assert_eq!(error.kind(), None);
+        assert_eq!(
+            serde_json::from_value::<DidResolutionError>(serde_json::to_value(&error).unwrap())
+                .unwrap(),
+            error
+        );
+    }
 }
 
 #[test]
@@ -241,27 +270,57 @@ fn media_datetime_and_version_values_are_bounded_and_roundtrip() {
     assert!(MediaType::parse(&format!("text/{}", "x".repeat(MAX_MEDIA_TYPE_BYTES))).is_err());
 
     for value in [
+        "0000-02-29T00:00:00Z",
+        "-0004-02-29T24:00:00Z",
+        "-0001-12-31T23:59:59Z",
         "2024-02-29T23:59:59Z",
         "2026-09-03T00:00:00Z",
         "2000-02-29T12:34:56Z",
+        "12345-01-01T00:00:00Z",
     ] {
-        assert_eq!(DidResolutionDateTime::parse(value).unwrap().as_str(), value);
+        let parsed = DidResolutionDateTime::parse(value).unwrap();
+        assert_eq!(parsed.as_str(), value);
+        assert_eq!(
+            DidResolutionDateTime::try_new(value.to_owned()).unwrap(),
+            parsed
+        );
+        assert_eq!(value.parse::<DidResolutionDateTime>().unwrap(), parsed);
+        assert_eq!(
+            DidResolutionDateTime::try_from(value.to_owned()).unwrap(),
+            parsed
+        );
+        assert_eq!(
+            serde_json::from_str::<DidResolutionDateTime>(&serde_json::to_string(&parsed).unwrap())
+                .unwrap(),
+            parsed
+        );
     }
     for invalid in [
         "2023-02-29T00:00:00Z",
         "2026-13-01T00:00:00Z",
         "2026-01-00T00:00:00Z",
-        "2026-01-01T24:00:00Z",
         "2026-01-01T00:60:00Z",
         "2026-01-01T00:00:60Z",
+        "2026-01-01T24:00:01Z",
         "2026-01-01T00:00:00.1Z",
         "2026-01-01T00:00:00+00:00",
+        "2026-01-01T00:00:00",
+        "+2026-01-01T00:00:00Z",
+        "02026-01-01T00:00:00Z",
+        "-02026-01-01T00:00:00Z",
+        "999-01-01T00:00:00Z",
     ] {
         assert!(matches!(
             DidResolutionDateTime::parse(invalid),
             Err(Error::InvalidResolution(ResolutionError::InvalidDateTime))
         ));
     }
+
+    let largest_year = format!("{}-01-01T00:00:00Z", "1".repeat(112));
+    assert_eq!(largest_year.len(), MAX_DID_RESOLUTION_DATETIME_BYTES);
+    assert!(DidResolutionDateTime::parse(&largest_year).is_ok());
+    let excessive_year = format!("{}-01-01T00:00:00Z", "1".repeat(113));
+    assert!(DidResolutionDateTime::parse(&excessive_year).is_err());
 
     for value in ["1", "block-42:7", "opaque version"] {
         assert_eq!(VersionId::parse(value).unwrap().as_str(), value);
@@ -270,6 +329,273 @@ fn media_datetime_and_version_values_are_bounded_and_roundtrip() {
         assert!(VersionId::parse(invalid).is_err());
     }
     assert!(VersionId::parse(&"v".repeat(MAX_VERSION_ID_BYTES + 1)).is_err());
+}
+
+#[test]
+fn deterministic_scalar_property_matrices_preserve_constructor_and_serde_equivalence() {
+    for seed in 0..512 {
+        let media = if seed % 2 == 0 {
+            format!("application/vnd.identus-{seed}+json;v={}", seed % 17)
+        } else {
+            format!("x-{seed}/profile; note=\"seed {seed}\"")
+        };
+        let parsed = MediaType::parse(&media).unwrap();
+        assert_eq!(MediaType::try_new(media.clone()).unwrap(), parsed);
+        assert_eq!(media.parse::<MediaType>().unwrap(), parsed);
+        assert_eq!(MediaType::try_from(media).unwrap(), parsed);
+        assert_eq!(
+            serde_json::from_value::<MediaType>(serde_json::to_value(&parsed).unwrap()).unwrap(),
+            parsed
+        );
+
+        let year = seed % 400;
+        let month = seed % 12 + 1;
+        let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+        let max_day = match month {
+            1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+            4 | 6 | 9 | 11 => 30,
+            2 if leap => 29,
+            2 => 28,
+            _ => unreachable!(),
+        };
+        let day = seed % max_day + 1;
+        let hour = seed % 24;
+        let minute = seed % 60;
+        let second = seed * 7 % 60;
+        let datetime = format!("{year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}Z");
+        let parsed = DidResolutionDateTime::parse(&datetime).unwrap();
+        assert_eq!(
+            DidResolutionDateTime::try_new(datetime.clone()).unwrap(),
+            parsed
+        );
+        assert_eq!(datetime.parse::<DidResolutionDateTime>().unwrap(), parsed);
+        assert_eq!(DidResolutionDateTime::try_from(datetime).unwrap(), parsed);
+        assert_eq!(
+            serde_json::from_value::<DidResolutionDateTime>(serde_json::to_value(&parsed).unwrap())
+                .unwrap(),
+            parsed
+        );
+
+        let version = format!("block-{seed}:{} opaque", seed * 3);
+        let parsed = VersionId::parse(&version).unwrap();
+        assert_eq!(VersionId::try_new(version.clone()).unwrap(), parsed);
+        assert_eq!(version.parse::<VersionId>().unwrap(), parsed);
+        assert_eq!(VersionId::try_from(version).unwrap(), parsed);
+        assert_eq!(
+            serde_json::from_value::<VersionId>(serde_json::to_value(&parsed).unwrap()).unwrap(),
+            parsed
+        );
+    }
+
+    for year in ["0000", "-0004", "0400", "2000", "12345678901234568000"] {
+        assert!(DidResolutionDateTime::parse(&format!("{year}-02-29T24:00:00Z")).is_ok());
+    }
+    for year in ["-0001", "0100", "1900", "12345678901234567899"] {
+        assert!(DidResolutionDateTime::parse(&format!("{year}-02-29T00:00:00Z")).is_err());
+    }
+}
+
+fn assert_wire_reason(input: &str, reason: ResolutionError) {
+    assert_eq!(
+        DidResolutionResult::from_json_str(input),
+        Err(Error::InvalidResolution(reason))
+    );
+    assert_eq!(
+        DidUrlDereferencingResult::from_json_str(input),
+        Err(Error::InvalidResolution(reason))
+    );
+}
+
+#[test]
+fn raw_results_reject_duplicates_at_every_nested_object_boundary() {
+    for input in [
+        r#"{"didResolutionMetadata":{},"didResolutionMetadata":{},"didDocument":null,"didDocumentMetadata":{}}"#,
+        r#"{"didResolutionMetadata":{"source":1,"source":2},"didDocument":null,"didDocumentMetadata":{}}"#,
+        r#"{"didResolutionMetadata":{"error":{"type":"https://www.w3.org/ns/did#NOT_FOUND","title":"one","title":"two"}},"didDocument":null,"didDocumentMetadata":{}}"#,
+        r#"{"didResolutionMetadata":{},"didDocument":{"id":"did:example:one","id":"did:example:two"},"didDocumentMetadata":{}}"#,
+        r#"{"didResolutionMetadata":{},"didDocument":null,"didDocumentMetadata":{"ledger":{"height":1,"height":2}}}"#,
+        r#"{"didUrlDereferencingMetadata":{},"content":{"claim":1,"claim":2},"contentMetadata":{}}"#,
+        r#"{"didUrlDereferencingMetadata":{},"content":{"claim":1,"\u0063laim":2},"contentMetadata":{}}"#,
+        r#"{"didUrlDereferencingMetadata":{},"content":"value","contentMetadata":{"proof":{"type":1,"type":2}}}"#,
+    ] {
+        assert_wire_reason(input, ResolutionError::DuplicateJsonProperty);
+    }
+
+    let valid = r#"{
+        "didResolutionMetadata":{"left":{"name":1},"right":{"name":2}},
+        "didDocument":{"id":"did:example:one"},
+        "didDocumentMetadata":{}
+    }"#;
+    assert!(DidResolutionResult::from_json_str(valid).is_ok());
+}
+
+#[test]
+fn raw_result_scanner_limits_and_complete_input_fail_before_typed_construction() {
+    let mut too_deep = "0".to_owned();
+    for _ in 0..=MAX_DID_RESOLUTION_WIRE_DEPTH {
+        too_deep = format!("[{too_deep}]");
+    }
+    assert_wire_reason(&too_deep, ResolutionError::WireTooDeep);
+
+    let too_many_nodes = format!(
+        "[{}]",
+        std::iter::repeat_n("0", MAX_DID_RESOLUTION_WIRE_NODES)
+            .collect::<Vec<_>>()
+            .join(",")
+    );
+    assert!(too_many_nodes.len() < MAX_DID_RESOLUTION_RESULT_BYTES);
+    assert_wire_reason(&too_many_nodes, ResolutionError::WireTooLarge);
+
+    let too_many_members = format!(
+        "{{{}}}",
+        (0..=MAX_DID_RESOLUTION_WIRE_OBJECT_MEMBERS)
+            .map(|index| format!("\"p{index}\":null"))
+            .collect::<Vec<_>>()
+            .join(",")
+    );
+    assert_wire_reason(&too_many_members, ResolutionError::WireTooManyProperties);
+
+    let key_body = "k".repeat((MAX_DID_RESOLUTION_WIRE_LIVE_KEY_BYTES / 128) + 1);
+    let too_many_live_key_bytes = format!(
+        "{{{}}}",
+        (0..MAX_DID_RESOLUTION_WIRE_OBJECT_MEMBERS)
+            .map(|index| format!("\"{index:03}{key_body}\":null"))
+            .collect::<Vec<_>>()
+            .join(",")
+    );
+    assert!(too_many_live_key_bytes.len() < MAX_DID_RESOLUTION_RESULT_BYTES);
+    assert_wire_reason(&too_many_live_key_bytes, ResolutionError::WireTooLarge);
+
+    for malformed in [
+        r#"{"didResolutionMetadata":{}} trailing"#,
+        r#"{"didResolutionMetadata":"unterminated}"#,
+    ] {
+        assert_wire_reason(malformed, ResolutionError::MalformedJson);
+    }
+}
+
+#[test]
+fn duplicate_result_diagnostics_do_not_reflect_caller_data() {
+    let marker = "caller-secret-marker";
+    let input = format!(
+        r#"{{"didResolutionMetadata":{{"{marker}":1,"{marker}":2}},"didDocument":null,"didDocumentMetadata":{{}}}}"#
+    );
+    let error = DidResolutionResult::from_json_str(&input).unwrap_err();
+
+    for rendered in [
+        error.to_string(),
+        format!("{error:?}"),
+        error.to_identus_error().to_string(),
+    ] {
+        assert!(
+            !rendered.contains(marker),
+            "diagnostic leaked input: {rendered}"
+        );
+    }
+    assert_eq!(
+        error.to_identus_error().code().as_str(),
+        "did.invalid_resolution"
+    );
+}
+
+#[test]
+fn generated_resolution_and_dereferencing_state_matrices_match_all_construction_paths() {
+    for has_document in [false, true] {
+        for has_error in [false, true] {
+            for deactivated in [None, Some(false), Some(true)] {
+                let metadata = if has_error {
+                    json!({"error": {"type": DidResolutionErrorKind::NotFound.as_str()}})
+                } else {
+                    json!({})
+                };
+                let document = has_document.then(|| json!({"id": "did:example:state"}));
+                let document_metadata = deactivated
+                    .map(|value| json!({"deactivated": value}))
+                    .unwrap_or_else(|| json!({}));
+                let wire = json!({
+                    "didResolutionMetadata": metadata,
+                    "didDocument": document,
+                    "didDocumentMetadata": document_metadata,
+                });
+                let expected = has_document && !has_error && deactivated != Some(true)
+                    || !has_document && has_error && deactivated.is_none()
+                    || !has_document && !has_error && deactivated == Some(true);
+                let semantic = serde_json::from_value::<DidResolutionResult>(wire.clone());
+                let raw =
+                    DidResolutionResult::from_json_str(&serde_json::to_string(&wire).unwrap());
+                assert_eq!(semantic.is_ok(), expected, "{wire}");
+                assert_eq!(raw.is_ok(), expected, "{wire}");
+                if let (Ok(semantic), Ok(raw)) = (semantic, raw) {
+                    assert_eq!(semantic, raw);
+                }
+            }
+        }
+    }
+
+    for has_content in [false, true] {
+        for has_error in [false, true] {
+            for has_content_metadata in [false, true] {
+                let metadata = if has_error {
+                    json!({"error": {"type": DidResolutionErrorKind::NotFound.as_str()}})
+                } else {
+                    json!({})
+                };
+                let content = has_content.then(|| json!({"resource": true}));
+                let content_metadata = if has_content_metadata {
+                    json!({"versionId": "1"})
+                } else {
+                    json!({})
+                };
+                let wire = json!({
+                    "didUrlDereferencingMetadata": metadata,
+                    "content": content,
+                    "contentMetadata": content_metadata,
+                });
+                let expected =
+                    has_content && !has_error || !has_content && has_error && !has_content_metadata;
+                let semantic = serde_json::from_value::<DidUrlDereferencingResult>(wire.clone());
+                let raw = DidUrlDereferencingResult::from_json_str(
+                    &serde_json::to_string(&wire).unwrap(),
+                );
+                assert_eq!(semantic.is_ok(), expected, "{wire}");
+                assert_eq!(raw.is_ok(), expected, "{wire}");
+                if let (Ok(semantic), Ok(raw)) = (semantic, raw) {
+                    assert_eq!(semantic, raw);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn official_w3c_suite_portable_result_assertions_are_pinned() {
+    let requested = did("did:example:123");
+    let success = DidResolutionResult::from_json_str_for(
+        r#"{"didResolutionMetadata":{},"didDocument":{"id":"did:example:123"},"didDocumentMetadata":{}}"#,
+        &requested,
+    )
+    .unwrap();
+    assert_eq!(success.document().unwrap().id(), &requested);
+
+    for kind in [
+        DidResolutionErrorKind::InvalidDid,
+        DidResolutionErrorKind::MethodNotSupported,
+    ] {
+        let result = DidResolutionResult::from_json_str(&format!(
+            r#"{{"didResolutionMetadata":{{"error":{{"type":"{}"}}}},"didDocument":null,"didDocumentMetadata":{{}}}}"#,
+            kind.as_str()
+        ))
+        .unwrap();
+        assert_eq!(result.metadata().error().unwrap().kind(), Some(kind));
+        assert!(result.document().is_none());
+        assert!(result.document_metadata().is_empty());
+    }
+
+    let deactivated = DidResolutionResult::from_json_str(
+        r#"{"didResolutionMetadata":{},"didDocument":null,"didDocumentMetadata":{"deactivated":true}}"#,
+    )
+    .unwrap();
+    assert_eq!(deactivated.document_metadata().deactivated(), Some(true));
 }
 
 #[test]
@@ -586,13 +912,20 @@ fn resolution_validation_errors_are_stable_and_redacted() {
 #[ignore = "manual release-mode performance diagnostic"]
 fn resolution_parse_throughput_diagnostic() {
     const ITERATIONS: usize = 50_000;
-    let started = Instant::now();
+    let typed_started = Instant::now();
+    for _ in 0..ITERATIONS {
+        black_box(serde_json::from_str::<DidResolutionResult>(black_box(SUCCESS_RESULT)).unwrap());
+    }
+    let typed_elapsed = typed_started.elapsed();
+
+    let hardened_started = Instant::now();
     for _ in 0..ITERATIONS {
         black_box(DidResolutionResult::from_json_str(black_box(SUCCESS_RESULT)).unwrap());
     }
-    let elapsed = started.elapsed();
-    let per_second = ITERATIONS as f64 / elapsed.as_secs_f64();
+    let hardened_elapsed = hardened_started.elapsed();
+    let processed_bytes = ITERATIONS * SUCCESS_RESULT.len();
+    let overhead = hardened_elapsed.as_secs_f64() / typed_elapsed.as_secs_f64();
     eprintln!(
-        "parsed {ITERATIONS} representative DID resolution results in {elapsed:?} ({per_second:.0} results/s)"
+        "resolution parse diagnostic: {ITERATIONS} results / {processed_bytes} input bytes; typed {typed_elapsed:?}; hardened {hardened_elapsed:?}; normalized scanner ratio {overhead:.3}x"
     );
 }

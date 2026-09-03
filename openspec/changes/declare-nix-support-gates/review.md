@@ -36,3 +36,43 @@ No Rust public API, wire form, secret boundary, dependency cone, supported
 target or consumer changes. No donor code or fixture is copied. The work does
 not require crypto/security specialist approval, repository administration,
 release authority or downstream mutation.
+
+## Implementation review
+
+- **Reviewed head:** `c03099b8b579264256adb8b95cef2867496820b5`
+- **Reviewer:** distinct local contradiction-focused pass after implementation
+- **Result:** one schema-hardening finding identified and resolved; no remaining
+  architecture, security, compatibility, provenance or delivery blocker
+
+The manifest contains exactly the 23 policy-referenced Rust gates. Flake
+evaluation emits the same 23 check names on both supported Nix systems, and
+derivation inspection confirms equivalent Crane operations and effective Cargo
+commands. The only deliberate command normalization is explicit `--workspace`
+on the root Clippy and rustdoc gates plus long-form `--package`; both preserve
+the virtual-workspace behavior while making package selection unambiguous.
+
+The validator no longer extracts operations, packages, features, targets or
+toolchains from Nix expressions. It validates a closed TOML schema, exact
+policy references/operations, existing workspace packages/features, target and
+feature surfaces, operation-specific trailing arguments, toolchain/artifact
+coherence and the narrow flake/generator wiring. Thirty-three initial mutation
+tests proved comments, quoted/interpolated text and dead `_module.args` cannot
+stand in for a manifest gate.
+
+The review found that a future manifest edit could still combine `lib` with
+`all_targets`, combine `no_default_features` with `all_features`, or rely on an
+implicit root package for an operation that accepts Cargo selection. Those
+states are now rejected explicitly and covered by three additional mutations.
+No current gate used a contradictory state, so the correction changes no
+generated derivation.
+
+The benchmark loads the selected root's validator for warm samples, launches a
+fresh Python process for process-cold samples, requires at least 20 successes,
+reports stable JSON and compares PR heads with the exact base using a deliberately
+broad `2x + 5 ms` pathology ceiling. This is tooling protection, not a product
+performance promise.
+
+The full pinned local Nix matrix passed before review with all 27 compatible
+checks. Repository-source and Cargo dependency boundaries are unchanged. Read-
+only consumer receipts preserve their pre-existing local state, and reserved
+`main` remains clean at `2c267d65af5c6b6dc9c8fd6826266c8ad0c3256a`.

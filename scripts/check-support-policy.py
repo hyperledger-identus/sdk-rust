@@ -299,11 +299,25 @@ def load_gate_manifest(
             failures.append(
                 f"gate {name} cannot select workspace and explicit packages"
             )
+        if (
+            operation in OPERATIONS_WITH_CARGO_SELECTION
+            and not gate.get("workspace")
+            and not packages
+        ):
+            failures.append(
+                f"gate {name} operation {operation} requires explicit workspace or packages"
+            )
         if excluded and not gate.get("workspace"):
             failures.append(f"gate {name} exclusions require workspace=true")
         if gate.get("all_features") and features:
             failures.append(
                 f"gate {name} cannot select all_features and named features"
+            )
+        if gate.get("lib") and gate.get("all_targets"):
+            failures.append(f"gate {name} cannot select lib and all_targets")
+        if gate.get("no_default_features") and gate.get("all_features"):
+            failures.append(
+                f"gate {name} cannot select no_default_features and all_features"
             )
         if target and operation != "cargoBuild":
             failures.append(f"gate {name} target selection requires cargoBuild")

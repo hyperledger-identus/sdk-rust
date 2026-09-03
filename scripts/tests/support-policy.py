@@ -295,6 +295,24 @@ class SupportPolicyTests(unittest.TestCase):
         self.replace_gate("rust-test", "packages = []", 'packages = [ "identus-core" ]')
         self.assert_fails("cannot select workspace and explicit packages")
 
+    def test_cargo_gate_requires_explicit_package_mode(self) -> None:
+        self.replace_gate("rust-test", "workspace = true", "workspace = false")
+        self.assert_fails("requires explicit workspace or packages")
+
+    def test_lib_and_all_targets_are_contradictory(self) -> None:
+        self.replace_gate(
+            "rust-msrv-crypto-minimal", "all_targets = false", "all_targets = true"
+        )
+        self.assert_fails("cannot select lib and all_targets")
+
+    def test_no_default_and_all_features_are_contradictory(self) -> None:
+        self.replace_gate(
+            "rust-msrv-entropy-all",
+            "no_default_features = false",
+            "no_default_features = true",
+        )
+        self.assert_fails("cannot select no_default_features and all_features")
+
     def test_unknown_target_package_fails(self) -> None:
         self.replace(
             "docs/architecture/sdk-support-policy.toml",

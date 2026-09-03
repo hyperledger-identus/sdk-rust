@@ -17,9 +17,9 @@
       mutations.
 - [x] 2.6 Strip comments only outside Nix strings and cover line/block markers
       embedded in valid strings.
-- [ ] 2.7 Reject enclosing lexical wrappers around the canonical `perSystem`
+- [x] 2.7 Reject enclosing lexical wrappers around the canonical `perSystem`
       module result.
-- [ ] 2.8 Recognize escaped delimiters in indented Nix strings with exact
+- [x] 2.8 Recognize escaped delimiters in indented Nix strings with exact
       positive regressions.
 
 ## 3. Verification and integration
@@ -33,5 +33,5 @@
       prepare the final hosted review-thread clearance gate.
 - [x] 3.6 Rerun complete local evidence after trusted-root and lexical-comment
       corrections and prepare both threads for hosted clearance.
-- [ ] 3.7 Rerun complete local and hosted evidence after enclosing-scope and
-      indented-string corrections, then clear both final review threads.
+- [x] 3.7 Rerun complete local evidence after enclosing-scope and
+      indented-string corrections and prepare both threads for hosted clearance.

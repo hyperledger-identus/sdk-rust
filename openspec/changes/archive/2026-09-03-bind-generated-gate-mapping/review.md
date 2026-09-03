@@ -121,3 +121,10 @@ attribute set directly, without an enclosing lexical wrapper before
 `perSystem`. The indented-string scanner SHALL skip Nix escape prefixes before
 accepting a closing `''`. An exact enclosing `builtins` mutation must fail and
 valid escaped-delimiter strings containing comment markers must pass.
+
+The implementation at `769b3dfdd27995c7847d0ded98a335d38b3d4ab7`
+meets that contract. The accepted source prefix now proves the module lambda
+returns the direct attribute set containing `perSystem`; an enclosing `let`
+cannot satisfy it. Indented-string scanning skips dollar, quote, and backslash
+escape prefixes before recognizing a close. The exact review mutations pass a
+contradiction-focused local review with no remaining blocker.

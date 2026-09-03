@@ -67,3 +67,14 @@ comments cannot mask live source. Ruff, canonical policy, the 17-item factory
 contract, and the complete compatible aarch64-darwin Nix graph pass. The final
 benchmark reports warm p50/p95 9.338/9.706 ms and process-cold p50/p95
 48.457/50.035 ms, within the diagnostic guard.
+
+## Final enclosing-scope and indented-string evidence
+
+The enclosing-scope and indented-string correction is implemented at
+`769b3dfdd27995c7847d0ded98a335d38b3d4ab7`. The mutation suite passes 55/55:
+an enclosing `builtins` shadow fails, while `''${`, `'''`, and `''\` escape
+prefixes inside valid indented strings preserve later comment-marker data.
+Ruff, canonical policy, the 17-item factory contract, and the complete
+compatible aarch64-darwin Nix graph pass. The final benchmark reports warm
+p50/p95 9.577/10.952 ms and process-cold p50/p95 47.908/49.668 ms, within the
+diagnostic guard.

@@ -20,9 +20,9 @@ pub const MAX_EXTENSION_DEPTH: usize = 32;
 /// Maximum JSON nodes across arbitrary data in one DID document.
 pub const MAX_EXTENSION_NODES: usize = 4_096;
 
-const MAX_EXTENSION_PROPERTIES: usize = 64;
-const MAX_PROPERTY_NAME_BYTES: usize = 256;
-const MAX_EXTENSION_STRING_BYTES: usize = 64 * 1_024;
+pub(crate) const MAX_EXTENSION_PROPERTIES: usize = 64;
+pub(crate) const MAX_PROPERTY_NAME_BYTES: usize = 256;
+pub(crate) const MAX_EXTENSION_STRING_BYTES: usize = 64 * 1_024;
 const MAX_OPEN_TYPE_BYTES: usize = 256;
 const MAX_MULTIBASE_BYTES: usize = 16 * 1_024;
 
@@ -855,7 +855,7 @@ where
 }
 
 #[derive(Default)]
-struct JsonBudget {
+pub(crate) struct JsonBudget {
     nodes: usize,
 }
 
@@ -869,7 +869,7 @@ impl JsonBudget {
     }
 }
 
-fn validate_json_map(
+pub(crate) fn validate_json_map(
     map: &BTreeMap<String, Value>,
     reserved: &[&str],
     budget: &mut JsonBudget,
@@ -907,7 +907,11 @@ fn validate_json_object(
     Ok(())
 }
 
-fn validate_json_value(value: &Value, depth: usize, budget: &mut JsonBudget) -> Result<(), Error> {
+pub(crate) fn validate_json_value(
+    value: &Value,
+    depth: usize,
+    budget: &mut JsonBudget,
+) -> Result<(), Error> {
     if depth > MAX_EXTENSION_DEPTH {
         return Err(invalid(DocumentError::ExtensionTooDeep));
     }

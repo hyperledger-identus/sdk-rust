@@ -12,6 +12,7 @@ mod document;
 pub mod error;
 pub mod method;
 pub mod multihash;
+mod resolution;
 mod uri;
 pub mod version;
 
@@ -21,9 +22,16 @@ pub use document::{
     MAX_EXTENSION_DEPTH, MAX_EXTENSION_NODES, OneOrMany, Service, ServiceEndpoint,
     ServiceEndpointValue, VerificationMethod, VerificationRelationship,
 };
-pub use error::{DidSyntaxError, DocumentError, Error, UriSyntaxError};
+pub use error::{DidSyntaxError, DocumentError, Error, ResolutionError, UriSyntaxError};
 pub use method::DidMethod;
 pub use multihash::Multihash;
+pub use resolution::{
+    DereferencedContent, DidDocumentMetadata, DidDocumentMetadataBuilder, DidResolutionDateTime,
+    DidResolutionError, DidResolutionErrorKind, DidResolutionMetadata, DidResolutionResult,
+    DidUrlContentMetadata, DidUrlDereferencingMetadata, DidUrlDereferencingResult,
+    MAX_DID_RESOLUTION_RESULT_BYTES, MAX_MEDIA_TYPE_BYTES, MAX_PROBLEM_DETAIL_BYTES,
+    MAX_VERSION_ID_BYTES, MediaType, VersionId,
+};
 pub use uri::{MAX_URI_BYTES, Uri};
 pub use version::Version;
 

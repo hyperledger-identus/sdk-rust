@@ -7,6 +7,7 @@
 
 use identus_core::Component;
 
+mod cache;
 mod did;
 mod document;
 pub mod error;
@@ -18,6 +19,14 @@ mod resolution;
 mod uri;
 pub mod version;
 
+pub use cache::{
+    CacheFailureMode, CachedDidResolution, CachedDidResolutionFuture, CachingDidResolver,
+    DidResolutionCache, DidResolutionCacheEntry, DidResolutionCacheKey,
+    DidResolutionCacheLookupFuture, DidResolutionCachePolicy, DidResolutionCacheStatus,
+    DidResolutionCacheWriteFuture, MAX_DID_RESOLUTION_CACHE_ENTRIES,
+    MAX_DID_RESOLUTION_CACHE_KEY_BYTES, MAX_DID_RESOLUTION_NOT_FOUND_TTL_MILLIS,
+    MAX_DID_RESOLUTION_POSITIVE_TTL_MILLIS,
+};
 pub use did::{Did, DidUrl, MAX_DID_BYTES, MAX_DID_URL_BYTES};
 pub use document::{
     ContextEntry, DidDocument, DidDocumentBuilder, MAX_DID_DOCUMENT_BYTES, MAX_DOCUMENT_ITEMS,
@@ -25,7 +34,8 @@ pub use document::{
     ServiceEndpointValue, VerificationMethod, VerificationRelationship,
 };
 pub use error::{
-    DidSyntaxError, DocumentError, Error, RegistryError, ResolutionError, UriSyntaxError,
+    CacheError, DidSyntaxError, DocumentError, Error, RegistryError, ResolutionError,
+    UriSyntaxError,
 };
 pub use method::DidMethod;
 pub use multihash::Multihash;

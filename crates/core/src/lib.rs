@@ -5,8 +5,13 @@
 //! `&'static str` fields and its `Display` renders only a stable code and a
 //! public message, so secret or internal context never enters the value.
 
+pub mod time;
 pub mod url;
 
+pub use time::{
+    ClockError, DurationMillis, MonotonicClock, MonotonicTimestampMillis, UnixTimestampMillis,
+    WallClock,
+};
 pub use url::{Url, UrlError};
 
 use std::fmt;

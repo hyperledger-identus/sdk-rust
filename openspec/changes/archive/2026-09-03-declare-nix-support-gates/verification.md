@@ -18,8 +18,8 @@
   missing, duplicate and unknown data; operation, package, feature and target
   drift; dynamic/interpolated Nix and dead `_module.args` decoys; contradictory
   selections; and Cargo-selection smuggling through trailing arguments.
-- The same suite passed two additional timing-policy regressions, for 38/38
-  total tests.
+- The same suite passed two timing-policy regressions plus generator-import
+  decoy and malformed-list regressions, for 40/40 total tests.
 - `nix flake show --all-systems` emitted the same 23 named Rust gates for
   x86_64-linux and aarch64-darwin.
 - Representative old/new derivations preserved their Crane operations,
@@ -107,3 +107,8 @@ The distinct contradiction-focused exact-head review found three invalid
 selection combinations that the first implementation accepted. The validator
 now rejects them and their regressions pass. No unresolved architecture,
 security, compatibility, provenance or delivery blocker remains.
+
+The pull-request review then found two additional fail-closed edges: a live
+string could imitate the generator import, and a scalar list field could cause
+a traceback after recording its schema failure. Structural import resolution
+and normalized invalid values close both gaps; their focused regressions pass.

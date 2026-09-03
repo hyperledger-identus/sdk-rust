@@ -153,6 +153,14 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("does not import rust-gates.nix")
 
+    def test_live_string_decoy_cannot_replace_generator_import(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "  imports = [\n    ./rust-gates.nix\n  ];",
+            '  imports = [];\n  _module.args.gateDecoy = "./rust-gates.nix";',
+        )
+        self.assert_fails("does not import rust-gates.nix")
+
     def test_check_graph_must_be_imported_by_flake(self) -> None:
         self.replace("flake.nix", "        ./nix/checks\n", "")
         self.assert_fails("flake.nix does not import the nix/checks module")
@@ -285,6 +293,17 @@ class SupportPolicyTests(unittest.TestCase):
             'extra_args = []\ncargoBuildCommand = "cargo build --wrong"',
         )
         self.assert_fails("unknown=['cargoBuildCommand']")
+
+    def test_invalid_list_field_fails_without_traceback(self) -> None:
+        self.replace_gate(
+            "rust-build-wasm32",
+            'packages = [ "identus-core", "identus-crypto", "identus-did", "identus-adapters-entropy" ]',
+            "packages = 7",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("must be a list of non-empty strings", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
 
     def test_extra_args_cannot_smuggle_selection(self) -> None:
         self.replace_gate(

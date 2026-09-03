@@ -173,10 +173,15 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         return
 
     default_nix = nix_without_comments(checks_entry.read_text(encoding="utf-8"))
-    if "./rust-gates.nix" not in default_nix:
+    imports_match = re.search(r"\bimports\s*=\s*\[(.*?)\];", default_nix, re.DOTALL)
+    check_imports: set[Path] = set()
+    if imports_match is not None:
+        for relative in re.findall(r"\./([A-Za-z0-9_./-]+)", imports_match.group(1)):
+            check_imports.add((checks_entry.parent / relative).resolve())
+    generator_path = checks_root / "rust-gates.nix"
+    if generator_path not in check_imports:
         failures.append("nix/checks/default.nix does not import rust-gates.nix")
 
-    generator_path = checks_root / "rust-gates.nix"
     if not generator_path.is_file():
         failures.append("nix/checks/rust-gates.nix does not exist")
         return
@@ -251,7 +256,7 @@ def load_gate_manifest(
         if name in gates:
             failures.append(f"gate manifest contains duplicate gate {name!r}")
             continue
-        gates[name] = gate
+        gates[name] = {}
 
         operation = gate.get("operation")
         if operation not in ALLOWED_OPERATIONS:
@@ -275,8 +280,10 @@ def load_gate_manifest(
             "no_default_features",
             "all_features",
         ):
-            if not isinstance(gate.get(field), bool):
+            value = gate.get(field)
+            if not isinstance(value, bool):
                 failures.append(f"gate {name}.{field} must be a boolean")
+                gate[field] = False
         packages = string_list(gate.get("packages"), f"gate {name}.packages", failures)
         excluded = string_list(
             gate.get("exclude_packages"), f"gate {name}.exclude_packages", failures
@@ -289,6 +296,12 @@ def load_gate_manifest(
         if not isinstance(target, str):
             failures.append(f"gate {name}.target must be a string")
             target = ""
+        gate["packages"] = packages
+        gate["exclude_packages"] = excluded
+        gate["features"] = features
+        gate["extra_args"] = extra_args
+        gate["target"] = target
+        gates[name] = gate
 
         unknown_packages = (set(packages) | set(excluded)) - workspace
         if unknown_packages:

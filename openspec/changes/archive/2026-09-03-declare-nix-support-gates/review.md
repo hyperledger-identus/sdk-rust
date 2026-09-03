@@ -96,3 +96,14 @@ applies the existing broad ceiling only to warm and process-cold p50. Two pure
 comparison tests prove that an isolated p95 outlier stays diagnostic and a
 sustained p50 pathology fails. Ruff, 38/38 Python tests, factory checks and the
 complete 26-check local Nix graph passed on the corrected code.
+
+## Pull-request review corrections
+
+The hosted review identified two additional fail-closed edges. A live Nix
+string outside `imports` could satisfy the generator reachability substring,
+and a syntactically valid TOML scalar in a list field could survive schema
+diagnostics and raise `TypeError` during policy evidence expansion. Both were
+confirmed and fixed: reachability now resolves the actual `imports` attribute,
+and malformed list, boolean and target values are normalized to safe sentinels
+after recording their errors. Focused regressions prove the decoy is rejected
+and malformed lists fail without a traceback.

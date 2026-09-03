@@ -174,6 +174,23 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("does not derive generatedChecks from manifest.gates")
 
+    def test_assertion_decoy_cannot_replace_returned_checks(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            """    in
+    {
+      checks = generatedChecks;
+    };
+}""",
+            """    in
+    assert builtins.isAttrs { checks = generatedChecks; };
+    {
+      checks = { };
+    };
+}""",
+        )
+        self.assert_fails("does not return generatedChecks as top-level checks")
+
     def test_check_graph_must_be_imported_by_flake(self) -> None:
         self.replace("flake.nix", "        ./nix/checks\n", "")
         self.assert_fails("flake.nix does not import the nix/checks module")

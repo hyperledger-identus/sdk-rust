@@ -197,15 +197,20 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         generator,
         re.DOTALL,
     )
-    published_binding = re.search(r"\bchecks\s*=\s*generatedChecks\s*;", generator)
+    published_result = re.search(
+        r"\bin\s*\{\s*checks\s*=\s*generatedChecks\s*;\s*\}\s*;\s*\}\s*$",
+        generator,
+    )
     if manifest_binding is None:
         failures.append("rust-gates.nix does not parse gates.toml as manifest")
     if generated_binding is None:
         failures.append(
             "rust-gates.nix does not derive generatedChecks from manifest.gates"
         )
-    if published_binding is None:
-        failures.append("rust-gates.nix does not publish generatedChecks as checks")
+    if published_result is None:
+        failures.append(
+            "rust-gates.nix does not return generatedChecks as top-level checks"
+        )
 
     duplicates = sorted(
         path.relative_to(root)

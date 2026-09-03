@@ -69,6 +69,13 @@ SHALL run in the structural factory path.
   publish generated checks
 - **THEN** structural validation rejects the detached execution contract
 
+#### Scenario: Returned checks are replaced behind a live decoy
+
+- **WHEN** the generator still mentions `checks = generatedChecks` in an
+  assertion or another live expression but its returned top-level `checks`
+  value is replaced
+- **THEN** structural validation rejects the decoy and the unpublished gates
+
 #### Scenario: Nix source contains a gate-name decoy
 
 - **WHEN** a removed manifest gate name remains only in a comment, multiline

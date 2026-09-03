@@ -16,12 +16,12 @@
 - [x] 3.1 Add RFC 8037 Appendix A.3 and independent EC vectors
 - [x] 3.2 Prove extensions are ignored and required key material is sensitive
 - [x] 3.3 Prove canonical input order and zero canonicalization allocation
-- [ ] 3.4 Run focused, workspace, minimal-feature, wasm, conformance, lint,
+- [x] 3.4 Run focused, workspace, minimal-feature, wasm, conformance, lint,
       formatting, docs, OpenSpec and factory gates under Nix
 
 ## 4. Delivery evidence
 
-- [ ] 4.1 Sync the canonical crypto spec, archive the OpenSpec change and
+- [x] 4.1 Sync the canonical crypto spec, archive the OpenSpec change and
       record exact verification plus distinct local crypto/security review
-- [ ] 4.2 Prepare the issue-linked PR receipt and record exact-head CI, hosted
+- [x] 4.2 Prepare the issue-linked PR receipt and record exact-head CI, hosted
       review and green-only merge evidence

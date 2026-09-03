@@ -20,6 +20,7 @@ const INVALID_DOCUMENT_CODE: ErrorCode = ErrorCode::new("did.invalid_document");
 const INVALID_RESOLUTION_CODE: ErrorCode = ErrorCode::new("did.invalid_resolution");
 const INVALID_METHOD_REGISTRY_CODE: ErrorCode = ErrorCode::new("did.invalid_method_registry");
 const INVALID_RESOLUTION_CACHE_CODE: ErrorCode = ErrorCode::new("did.invalid_resolution_cache");
+const INVALID_REGISTRATION_CODE: ErrorCode = ErrorCode::new("did.invalid_registration");
 
 /// A non-sensitive reason that a DID or DID URL failed lexical validation.
 ///
@@ -267,6 +268,67 @@ impl fmt::Display for CacheError {
     }
 }
 
+/// A non-sensitive DID Registration construction or state failure.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum RegistrationError {
+    /// Raw public JSON exceeds its byte ceiling.
+    TooLarge,
+    /// Raw public JSON is malformed or is not an object.
+    MalformedJson,
+    /// A required collection or string is empty.
+    EmptyValue,
+    /// A registration collection exceeds its item limit.
+    TooManyItems,
+    /// A bounded string is invalid.
+    InvalidString,
+    /// A public-data object has too many properties.
+    TooManyProperties,
+    /// A public-data property name is invalid.
+    InvalidPropertyName,
+    /// A public-data property shadows a registration envelope member.
+    ReservedProperty,
+    /// A public-data tree exceeds its depth limit.
+    TooDeep,
+    /// A public-data tree exceeds its node limit.
+    TooManyNodes,
+    /// Public data contains a private-material-shaped member.
+    PrivateMaterial,
+    /// Internal generation would neither store material nor return a handle.
+    InvalidSecretPolicy,
+    /// A terminal or non-terminal state contradicts its job.
+    InvalidState,
+    /// A DID or method differs from its enclosing operation.
+    MethodOrDidMismatch,
+    /// An action response differs from the outstanding action.
+    ActionMismatch,
+    /// A returned job differs from the requested method-scoped job.
+    JobMismatch,
+}
+
+impl fmt::Display for RegistrationError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::TooLarge => "DID Registration public data exceeds its byte limit",
+            Self::MalformedJson => "DID Registration public data JSON is malformed",
+            Self::EmptyValue => "a required DID Registration value is empty",
+            Self::TooManyItems => "a DID Registration collection exceeds its item limit",
+            Self::InvalidString => "a DID Registration string violates its resource policy",
+            Self::TooManyProperties => "DID Registration public data has too many properties",
+            Self::InvalidPropertyName => "a DID Registration property name is invalid",
+            Self::ReservedProperty => "DID Registration public data shadows a reserved property",
+            Self::TooDeep => "DID Registration public data exceeds its depth limit",
+            Self::TooManyNodes => "DID Registration public data exceeds its node limit",
+            Self::PrivateMaterial => "DID Registration public data resembles private material",
+            Self::InvalidSecretPolicy => "DID Registration secret policy loses capability",
+            Self::InvalidState => "DID Registration state contradicts its job",
+            Self::MethodOrDidMismatch => "DID Registration method or DID does not match",
+            Self::ActionMismatch => "DID Registration action does not match",
+            Self::JobMismatch => "DID Registration job does not match",
+        })
+    }
+}
+
 /// A DID-domain validation failure.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -289,6 +351,8 @@ pub enum Error {
     InvalidRegistry(RegistryError),
     /// A DID resolution cache value or configuration is invalid.
     InvalidCache(CacheError),
+    /// A DID Registration value or state is invalid.
+    InvalidRegistration(RegistrationError),
 }
 
 impl Error {
@@ -357,6 +421,12 @@ impl Error {
                 CAPABILITY,
                 "invalid DID resolution cache configuration",
             ),
+            Error::InvalidRegistration(_) => IdentusError::public(
+                INVALID_REGISTRATION_CODE,
+                ErrorKind::InvalidInput,
+                CAPABILITY,
+                "invalid DID Registration value",
+            ),
         }
     }
 }
@@ -375,6 +445,9 @@ impl fmt::Display for Error {
             }
             Error::InvalidRegistry(reason) => write!(f, "invalid DID method registry: {reason}"),
             Error::InvalidCache(reason) => write!(f, "invalid DID resolution cache: {reason}"),
+            Error::InvalidRegistration(reason) => {
+                write!(f, "invalid DID Registration value: {reason}")
+            }
         }
     }
 }

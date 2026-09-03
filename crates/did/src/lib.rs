@@ -15,6 +15,7 @@ pub mod error;
 pub mod method;
 pub mod multihash;
 mod query;
+mod registration;
 mod registry;
 mod resolution;
 mod uri;
@@ -36,8 +37,8 @@ pub use document::{
     ServiceEndpointValue, VerificationMethod, VerificationRelationship,
 };
 pub use error::{
-    CacheError, DidSyntaxError, DocumentError, Error, RegistryError, ResolutionError,
-    UriSyntaxError,
+    CacheError, DidSyntaxError, DocumentError, Error, RegistrationError, RegistryError,
+    ResolutionError, UriSyntaxError,
 };
 pub use method::DidMethod;
 pub use multihash::Multihash;
@@ -46,6 +47,17 @@ pub use query::{
     DidUrlDereferencer, DidUrlDereferencingFuture, MAX_DID_RESOLUTION_OPTIONS_BYTES,
     MAX_VERIFICATION_RELATIONSHIP_BYTES, ResolutionOptions, ResolutionOptionsBuilder,
     VerificationRelationshipName,
+};
+pub use registration::{
+    CancelRegistrationRequest, ContinueRegistrationRequest, CreateRegistrationRequest,
+    DeactivateRegistrationRequest, DidDocumentOperation, DidRegistrar, DidRegistrationErrorKind,
+    DidRegistrationFuture, DidRegistrationResult, DidRegistrationState, InternalSecretPolicy,
+    MAX_DID_REGISTRATION_BYTES, MAX_REGISTRATION_ID_BYTES, MAX_REGISTRATION_ITEMS,
+    MAX_REGISTRATION_OPAQUE_ID_BYTES, MAX_REGISTRATION_WAIT_MILLIS, RegistrationAction,
+    RegistrationActionId, RegistrationActionResponse, RegistrationContinuation,
+    RegistrationFailureCode, RegistrationIdempotencyKey, RegistrationJob, RegistrationJobId,
+    RegistrationOperationName, RegistrationPublicData, RegistrationRequest,
+    RegistrationSecretHandle, RegistrationSecretMode, UpdateRegistrationRequest,
 };
 pub use registry::{
     DidMethodBinding, DidMethodRegistry, DidMethodRegistryBuilder, MAX_DID_METHOD_REGISTRY_ENTRIES,

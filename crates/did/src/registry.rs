@@ -7,10 +7,11 @@
 use std::{collections::BTreeMap, fmt, sync::Arc};
 
 use crate::{
-    DereferencingOptions, Did, DidMethod, DidResolutionError, DidResolutionErrorKind,
+    DereferencingOptions, Did, DidMethod, DidRegistrar, DidRegistrationErrorKind,
+    DidRegistrationFuture, DidRegistrationResult, DidResolutionError, DidResolutionErrorKind,
     DidResolutionFuture, DidResolutionMetadata, DidResolutionResult, DidResolver, DidUrl,
     DidUrlDereferencer, DidUrlDereferencingFuture, DidUrlDereferencingMetadata,
-    DidUrlDereferencingResult, Error, error::RegistryError,
+    DidUrlDereferencingResult, Error, RegistrationRequest, error::RegistryError,
 };
 
 /// Maximum number of method bindings in one immutable registry.
@@ -22,6 +23,7 @@ pub struct DidMethodBinding {
     method: DidMethod,
     resolver: Arc<dyn DidResolver>,
     dereferencer: Option<Arc<dyn DidUrlDereferencer>>,
+    registrar: Option<Arc<dyn DidRegistrar>>,
 }
 
 impl DidMethodBinding {
@@ -32,6 +34,7 @@ impl DidMethodBinding {
             method,
             resolver,
             dereferencer: None,
+            registrar: None,
         }
     }
 
@@ -39,6 +42,13 @@ impl DidMethodBinding {
     #[must_use]
     pub fn with_dereferencer(mut self, dereferencer: Arc<dyn DidUrlDereferencer>) -> Self {
         self.dereferencer = Some(dereferencer);
+        self
+    }
+
+    /// Add this method's independent DID Registration capability.
+    #[must_use]
+    pub fn with_registrar(mut self, registrar: Arc<dyn DidRegistrar>) -> Self {
+        self.registrar = Some(registrar);
         self
     }
 
@@ -53,6 +63,12 @@ impl DidMethodBinding {
     pub const fn supports_dereferencing(&self) -> bool {
         self.dereferencer.is_some()
     }
+
+    /// Whether this binding independently supports DID Registration.
+    #[must_use]
+    pub const fn supports_registration(&self) -> bool {
+        self.registrar.is_some()
+    }
 }
 
 impl fmt::Debug for DidMethodBinding {
@@ -60,6 +76,7 @@ impl fmt::Debug for DidMethodBinding {
         f.debug_struct("DidMethodBinding")
             .field("method", &self.method)
             .field("supports_dereferencing", &self.supports_dereferencing())
+            .field("supports_registration", &self.supports_registration())
             .finish_non_exhaustive()
     }
 }
@@ -146,6 +163,14 @@ impl DidMethodRegistry {
             .is_some_and(DidMethodBinding::supports_dereferencing)
     }
 
+    /// Whether the exact validated method has a registration capability.
+    #[must_use]
+    pub fn supports_registration(&self, method: &DidMethod) -> bool {
+        self.bindings
+            .get(method.as_str())
+            .is_some_and(DidMethodBinding::supports_registration)
+    }
+
     /// Iterate registered method names in deterministic lexical order.
     pub fn methods(&self) -> impl ExactSizeIterator<Item = &str> {
         self.bindings.keys().map(String::as_str)
@@ -194,6 +219,34 @@ impl DidUrlDereferencer for DidMethodRegistry {
             None => Box::pin(async {
                 dereferencing_failure(DidResolutionErrorKind::MethodNotSupported)
             }),
+        }
+    }
+}
+
+impl DidRegistrar for DidMethodRegistry {
+    fn execute<'a>(&'a self, request: &'a RegistrationRequest) -> DidRegistrationFuture<'a> {
+        match self.bindings.get(request.method().as_str()) {
+            Some(binding) => binding.registrar.as_ref().map_or_else(
+                || {
+                    let method = request.method().clone();
+                    Box::pin(async move {
+                        DidRegistrationResult::standard_failure(
+                            method,
+                            DidRegistrationErrorKind::FeatureNotSupported,
+                        )
+                    }) as DidRegistrationFuture<'a>
+                },
+                |registrar| registrar.execute(request),
+            ),
+            None => {
+                let method = request.method().clone();
+                Box::pin(async move {
+                    DidRegistrationResult::standard_failure(
+                        method,
+                        DidRegistrationErrorKind::MethodNotSupported,
+                    )
+                })
+            }
         }
     }
 }

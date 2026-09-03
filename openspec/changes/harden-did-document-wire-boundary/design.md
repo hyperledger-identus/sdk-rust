@@ -96,9 +96,11 @@ RFC 3986 component classes and deterministic generated cases.
 
 Profile differences are classified rather than silently adjusted: the SDK's
 4,096-byte availability cap is stricter than RFC 3986 and the oracle; the SDK
-does not normalize spelling; and only acceptance of the RFC 3986 `URI`
-production is compared. Method, IRI, scheme, dereferencing, and equivalence
-rules are not inferred from the oracle.
+accepts the RFC 3986 `IPvFuture` production that `uriparse` 0.6.4 rejects; the
+oracle panics on the minimized malformed `1bad:value` rather than returning a
+rejection; the SDK safely rejects it; the SDK does not normalize spelling; and
+only acceptance of the RFC 3986 `URI` production is compared. Method, IRI,
+scheme, dereferencing, and equivalence rules are not inferred from the oracle.
 
 ### Decision 5: make generative evidence deterministic in PR CI
 

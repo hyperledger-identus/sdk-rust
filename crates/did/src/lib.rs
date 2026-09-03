@@ -20,6 +20,7 @@ mod registry;
 mod resolution;
 mod uri;
 pub mod version;
+mod wire_json;
 
 pub use cache::{
     CacheFailureMode, CachedDidResolution, CachedDidResolutionFuture, CachingDidResolver,
@@ -32,9 +33,11 @@ pub use cache::{
 pub use dereference::GenericDidUrlDereferencer;
 pub use did::{Did, DidUrl, MAX_DID_BYTES, MAX_DID_URL_BYTES};
 pub use document::{
-    ContextEntry, DidDocument, DidDocumentBuilder, MAX_DID_DOCUMENT_BYTES, MAX_DOCUMENT_ITEMS,
-    MAX_EXTENSION_DEPTH, MAX_EXTENSION_NODES, OneOrMany, Service, ServiceEndpoint,
-    ServiceEndpointValue, VerificationMethod, VerificationRelationship,
+    ContextEntry, DidDocument, DidDocumentBuilder, MAX_DID_DOCUMENT_BYTES,
+    MAX_DID_DOCUMENT_WIRE_DEPTH, MAX_DID_DOCUMENT_WIRE_LIVE_KEY_BYTES, MAX_DID_DOCUMENT_WIRE_NODES,
+    MAX_DID_DOCUMENT_WIRE_OBJECT_MEMBERS, MAX_DOCUMENT_ITEMS, MAX_EXTENSION_DEPTH,
+    MAX_EXTENSION_NODES, OneOrMany, Service, ServiceEndpoint, ServiceEndpointValue,
+    VerificationMethod, VerificationRelationship,
 };
 pub use error::{
     CacheError, DidSyntaxError, DocumentError, Error, RegistrationError, RegistryError,

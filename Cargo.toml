@@ -26,6 +26,7 @@ coset                    = { version = "0.4", default-features = false }
 syn                      = { version = "2", features = [ "full" ] }
 toml                     = "0.8"
 trybuild                 = "1"
+uriparse                 = "=0.6.4"
 
 # identus-crypto external dependencies (declared at workspace level per
 # `workspace-dependency-conventions`). The `ring`-backed entropy adapter

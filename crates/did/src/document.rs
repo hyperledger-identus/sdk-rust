@@ -9,7 +9,11 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use serde_json::Value;
 
-use crate::{Did, Error, Uri, error::DocumentError};
+use crate::{
+    Did, Error, Uri,
+    error::DocumentError,
+    wire_json::{JsonWireError, JsonWireLimits, validate_unique_object_names},
+};
 
 /// Maximum raw JSON size accepted by [`DidDocument::from_json_slice`].
 pub const MAX_DID_DOCUMENT_BYTES: usize = 256 * 1_024;
@@ -19,6 +23,14 @@ pub const MAX_DOCUMENT_ITEMS: usize = 128;
 pub const MAX_EXTENSION_DEPTH: usize = 32;
 /// Maximum JSON nodes across arbitrary data in one DID document.
 pub const MAX_EXTENSION_NODES: usize = 4_096;
+/// Maximum containers nested in raw DID document JSON during preflight.
+pub const MAX_DID_DOCUMENT_WIRE_DEPTH: usize = 64;
+/// Maximum JSON values visited during raw DID document preflight.
+pub const MAX_DID_DOCUMENT_WIRE_NODES: usize = 16_384;
+/// Maximum members permitted in one raw DID document JSON object.
+pub const MAX_DID_DOCUMENT_WIRE_OBJECT_MEMBERS: usize = 128;
+/// Maximum decoded object-name bytes retained simultaneously during preflight.
+pub const MAX_DID_DOCUMENT_WIRE_LIVE_KEY_BYTES: usize = 128 * 1_024;
 
 pub(crate) const MAX_EXTENSION_PROPERTIES: usize = 64;
 pub(crate) const MAX_PROPERTY_NAME_BYTES: usize = 256;
@@ -425,6 +437,12 @@ impl<'de> Deserialize<'de> for Service {
 }
 
 /// An immutable, validated W3C DID document structural model.
+///
+/// Use [`Self::from_json_slice`] or [`Self::from_json_str`] for untrusted raw
+/// JSON. In addition to semantic validation, those entry points enforce the
+/// byte ceiling and reject duplicate object names before map materialization.
+/// Generic serde deserialization cannot recover duplicates already discarded
+/// by an upstream format or map representation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct DidDocument {
     #[serde(rename = "@context", skip_serializing_if = "Option::is_none")]
@@ -470,6 +488,16 @@ impl DidDocument {
         if input.len() > MAX_DID_DOCUMENT_BYTES {
             return Err(invalid(DocumentError::TooLarge));
         }
+        validate_unique_object_names(
+            input,
+            JsonWireLimits {
+                max_depth: MAX_DID_DOCUMENT_WIRE_DEPTH,
+                max_nodes: MAX_DID_DOCUMENT_WIRE_NODES,
+                max_object_members: MAX_DID_DOCUMENT_WIRE_OBJECT_MEMBERS,
+                max_live_key_bytes: MAX_DID_DOCUMENT_WIRE_LIVE_KEY_BYTES,
+            },
+        )
+        .map_err(|reason| invalid(map_wire_error(reason)))?;
         serde_json::from_slice(input).map_err(|_| invalid(DocumentError::MalformedJson))
     }
 
@@ -615,6 +643,18 @@ impl DidDocument {
             }
         }
         validate_json_map(&self.extensions, DOCUMENT_RESERVED, &mut budget)
+    }
+}
+
+const fn map_wire_error(reason: JsonWireError) -> DocumentError {
+    match reason {
+        JsonWireError::DuplicateName => DocumentError::DuplicateJsonProperty,
+        JsonWireError::TooDeep => DocumentError::ExtensionTooDeep,
+        JsonWireError::TooManyNodes | JsonWireError::TooManyLiveKeyBytes => {
+            DocumentError::ExtensionTooLarge
+        }
+        JsonWireError::TooManyMembers => DocumentError::TooManyProperties,
+        JsonWireError::Malformed => DocumentError::MalformedJson,
     }
 }
 

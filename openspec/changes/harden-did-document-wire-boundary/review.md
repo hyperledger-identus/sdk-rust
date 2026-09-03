@@ -44,9 +44,13 @@ issue #38 and the ADR.
 
 `uriparse` is acceptable only as a dev dependency pinned to NeoPRISM's exact
 0.6.4. The production parser remains small, offline, chain-neutral, and
-dependency-free. #35 retains sanitizer cargo-fuzz; #41 consumes the private
-scanner later. No consumer edit, release, publication, FFI, new unsafe code, or
-public generic JSON API is justified.
+dependency-free. Differential execution confirms that `uriparse` 0.6.4 rejects
+the RFC 3986 `IPvFuture` production; the SDK retains its standards-conforming
+acceptance. The oracle also panics for the minimized malformed `1bad:value`;
+the SDK rejects it without unwinding. Both behaviors are pinned alongside the
+SDK's stricter 4,096-byte limit. #35 retains sanitizer cargo-fuzz; #41 consumes
+the private scanner later. No consumer edit, release, publication, FFI, new
+unsafe code, or public generic JSON API is justified.
 
 # Post-implementation semantic, security, and API review
 

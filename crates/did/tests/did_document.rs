@@ -503,6 +503,6 @@ fn document_parse_throughput_diagnostic() {
     let elapsed = started.elapsed();
     let per_second = ITERATIONS as f64 / elapsed.as_secs_f64();
     eprintln!(
-        "parsed {ITERATIONS} representative DID documents in {elapsed:?} ({per_second:.0} documents/s)"
+        "scanned and parsed {ITERATIONS} representative DID documents in {elapsed:?} ({per_second:.0} documents/s)"
     );
 }

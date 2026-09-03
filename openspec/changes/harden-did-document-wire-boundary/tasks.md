@@ -7,18 +7,18 @@
 
 ## 2. Raw JSON and error boundary
 
-- [ ] 2.1 Add the reusable crate-private streaming duplicate-name scanner with
+- [x] 2.1 Add the reusable crate-private streaming duplicate-name scanner with
       depth, node, object-member, live-key, malformed, and trailing-data limits
-- [ ] 2.2 Apply it ahead of DID document deserialization and map duplicate and
+- [x] 2.2 Apply it ahead of DID document deserialization and map duplicate and
       resource failures to stable redaction-safe document errors
-- [ ] 2.3 Prove top-level and recursively nested duplicate rejection, escaped
+- [x] 2.3 Prove top-level and recursively nested duplicate rejection, escaped
       name equality, object-local scope, and every scanner edge
 
 ## 3. URI and generative conformance
 
-- [ ] 3.1 Pin NeoPRISM-aligned `uriparse` 0.6.4 as dev-only and add classified
+- [x] 3.1 Pin NeoPRISM-aligned `uriparse` 0.6.4 as dev-only and add classified
       RFC 3986 differential vectors without changing the runtime parser
-- [ ] 3.2 Add deterministic generated URI/document/extension/cardinality and
+- [x] 3.2 Add deterministic generated URI/document/extension/cardinality and
       native/unique-wire equivalence suites with minimized regressions
 - [ ] 3.3 Record release throughput and resource/allocation-shape evidence while
       keeping cargo-fuzz #35 and resolution-envelope #41 out of scope

@@ -1,0 +1,77 @@
+name: Crypto public-key fuzzing
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/crypto-fuzz.yml"
+      - "crates/crypto/**"
+      - deny.toml
+      - flake.lock
+      - "fuzz/**"
+      - nix/devshells/default.nix
+      - nix/rust-toolchain.nix
+      - "scripts/fuzz-crypto.sh"
+  push:
+    branches: [develop]
+    paths:
+      - ".github/workflows/crypto-fuzz.yml"
+      - "crates/crypto/**"
+      - deny.toml
+      - flake.lock
+      - "fuzz/**"
+      - nix/devshells/default.nix
+      - nix/rust-toolchain.nix
+      - "scripts/fuzz-crypto.sh"
+  schedule:
+    - cron: "41 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crypto-fuzz-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
+
+jobs:
+  fuzz:
+    name: sanitizer campaign (${{ github.event_name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
+
+      - name: Check fuzz dependency policy
+        run: |
+          nix develop --command cargo fmt --manifest-path fuzz/Cargo.toml -- --check
+          nix develop --command cargo clippy --manifest-path fuzz/Cargo.toml --bins -- -D warnings
+          nix develop --command cargo deny --manifest-path fuzz/Cargo.toml --locked check
+          nix develop --command cargo audit --file fuzz/Cargo.lock --deny warnings
+
+      - name: Run deterministic smoke
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: nix develop --command ./scripts/fuzz-crypto.sh smoke all
+
+      - name: Run bounded soak
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: nix develop --command ./scripts/fuzz-crypto.sh soak all
+
+      - name: Preserve failing inputs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: crypto-fuzz-artifacts-${{ github.sha }}
+          path: fuzz/artifacts
+          if-no-files-found: ignore
+          retention-days: 14

@@ -365,9 +365,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "identus-did-fuzz"
+name = "identus-sdk-fuzz"
 version = "0.0.0"
 dependencies = [
+ "hex",
+ "identus-crypto",
  "identus-did",
  "libfuzzer-sys",
  "serde",

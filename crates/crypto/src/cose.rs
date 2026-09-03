@@ -424,6 +424,7 @@ impl PublicKeyCose {
 
     fn from_value(mut value: Value) -> Result<Self, CoseKeyError> {
         normalize_value(&mut value)?;
+        let additional_parameters = count_additional_parameters(&value)?;
         let interpretation = cose_interpretation_value(&value);
         let wire =
             CoseKey::from_cbor_value(interpretation).map_err(|_| CoseKeyError::InvalidCbor)?;
@@ -443,7 +444,6 @@ impl PublicKeyCose {
         let mut curve = None;
         let mut x = None;
         let mut y = None;
-        let mut additional_parameters = 0usize;
 
         for (label, value) in &wire.params {
             match label {
@@ -457,7 +457,7 @@ impl PublicKeyCose {
                 Label::Int(Y_LABEL) => {
                     y = Some(parse_y(value)?);
                 }
-                _ => additional_parameters += 1,
+                _ => {}
             }
         }
 
@@ -490,6 +490,21 @@ impl PublicKeyCose {
             wire: value,
         })
     }
+}
+
+fn count_additional_parameters(value: &Value) -> Result<usize, CoseKeyError> {
+    let Value::Map(entries) = value else {
+        return Err(CoseKeyError::ExpectedMap);
+    };
+    Ok(entries
+        .iter()
+        .filter(|(label, _)| {
+            !matches!(
+                integer_value(label),
+                Some(1 | CURVE_LABEL | X_LABEL | Y_LABEL)
+            )
+        })
+        .count())
 }
 
 fn cose_interpretation_value(value: &Value) -> Value {

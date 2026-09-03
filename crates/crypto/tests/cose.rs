@@ -52,6 +52,24 @@ fn ec_fixture(curve: u8, x: &[u8], y: CoseEcY) -> Vec<u8> {
     encoded
 }
 
+fn okp_with_common_and_unknown(unknown_parameters: usize) -> Vec<u8> {
+    let mut encoded = Vec::new();
+    push_map_len(&mut encoded, 3 + 4 + unknown_parameters);
+    encoded.extend([0x01, 0x01, 0x20, 0x06, 0x21]);
+    push_bytes(&mut encoded, &X);
+    encoded.extend([
+        0x02, 0x40, // empty kid
+        0x03, 0x26, // ES256 algorithm identifier
+        0x04, 0x81, 0x01, // one key operation
+        0x05, 0x40, // empty Base IV
+    ]);
+    for label in 100..100 + unknown_parameters as u64 {
+        push_uint(&mut encoded, 0, label);
+        encoded.push(0xf6);
+    }
+    encoded
+}
+
 #[test]
 fn assigned_okp_and_ec2_profiles_match_registered_values() {
     for (curve, assigned) in [(CoseCurve::Ed25519, 6), (CoseCurve::X25519, 4)] {
@@ -107,7 +125,7 @@ fn deterministic_encoding_sorts_and_retains_public_extensions() {
     input.extend([0x20, 0x06, 0x02, 0x42, 0x01, 0x02, 0x01, 0x01]);
 
     let parsed = PublicKeyCose::from_cbor(&input).expect("key with extensions");
-    assert_eq!(parsed.additional_parameter_count(), 1);
+    assert_eq!(parsed.additional_parameter_count(), 2);
     let first = parsed.to_cbor().expect("deterministic encoding");
     assert_eq!(first, parsed.to_cbor().expect("repeat encoding"));
     assert_eq!(PublicKeyCose::from_cbor(&first).expect("reparse"), parsed);
@@ -287,6 +305,23 @@ fn parser_rejects_parameter_and_nesting_exhaustion() {
         Err(CoseKeyError::TooManyParameters {
             max: MAX_COSE_ADDITIONAL_PARAMETERS,
             actual: additional,
+        })
+    );
+
+    let at_limit = okp_with_common_and_unknown(MAX_COSE_ADDITIONAL_PARAMETERS - 4);
+    assert_eq!(
+        PublicKeyCose::from_cbor(&at_limit)
+            .expect("common and unknown parameters at the shared limit")
+            .additional_parameter_count(),
+        MAX_COSE_ADDITIONAL_PARAMETERS
+    );
+
+    let common_parameter_bypass = okp_with_common_and_unknown(MAX_COSE_ADDITIONAL_PARAMETERS);
+    assert_eq!(
+        PublicKeyCose::from_cbor(&common_parameter_bypass),
+        Err(CoseKeyError::TooManyParameters {
+            max: MAX_COSE_ADDITIONAL_PARAMETERS,
+            actual: MAX_COSE_ADDITIONAL_PARAMETERS + 4,
         })
     );
 

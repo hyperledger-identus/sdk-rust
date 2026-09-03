@@ -184,6 +184,14 @@ pub enum ResolutionError {
     TooLarge,
     /// Input is not a valid JSON result representation.
     MalformedJson,
+    /// Raw result JSON contains a duplicate decoded property name.
+    DuplicateJsonProperty,
+    /// Raw result JSON exceeds the preflight nesting limit.
+    WireTooDeep,
+    /// Raw result JSON exceeds the preflight node or live-name byte limit.
+    WireTooLarge,
+    /// One raw result object exceeds the preflight member limit.
+    WireTooManyProperties,
     /// A required value is empty.
     EmptyValue,
     /// A resolution collection exceeds its item limit.
@@ -211,6 +219,14 @@ impl fmt::Display for ResolutionError {
         let message = match self {
             Self::TooLarge => "DID resolution result exceeds the SDK byte limit",
             Self::MalformedJson => "DID resolution result JSON is malformed",
+            Self::DuplicateJsonProperty => {
+                "DID resolution result JSON contains a duplicate property"
+            }
+            Self::WireTooDeep => "DID resolution result JSON exceeds the nesting limit",
+            Self::WireTooLarge => "DID resolution result JSON exceeds the structural limit",
+            Self::WireTooManyProperties => {
+                "a DID resolution result JSON object has too many properties"
+            }
             Self::EmptyValue => "a required DID resolution value is empty",
             Self::TooManyItems => "a DID resolution collection exceeds its item limit",
             Self::InvalidString => "a DID resolution string violates its resource policy",

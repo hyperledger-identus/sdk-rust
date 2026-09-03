@@ -2,6 +2,8 @@
 
 - **Issue:** #61, follow-up to #24 / PR #60
 - **Develop base:** `69d38874e3d3f669d60e129ed6882e835aedafe6`
+- **Reviewed implementation head:**
+  `20f87a0223ce7cd2d439e1d8904bf1fc0b6204aa`
 - **Local platform:** macOS 26.2, aarch64-darwin, Python 3.14.3
 - **Result:** every applicable local gate passed
 
@@ -20,6 +22,9 @@
 - `nix flake check --print-build-logs` passed every compatible
   aarch64-darwin check; x86_64-linux execution is intentionally supplied by
   hosted CI.
+- `./scripts/factory receipt bind-generated-gate-mapping` passed on branch
+  `codex/issue-61-bind-gate-mapping`, reviewed head `20f87a0`, and exact
+  develop merge base `69d3887` before the capability was synced and archived.
 
 ## Review conclusion
 

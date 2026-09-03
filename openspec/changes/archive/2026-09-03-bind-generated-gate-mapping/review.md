@@ -26,6 +26,8 @@ only makes an already-accepted execution contract fail closed.
 
 ## Implementation review
 
+- **Reviewed implementation head:**
+  `20f87a0223ce7cd2d439e1d8904bf1fc0b6204aa`
 - **Reviewer:** distinct contradiction-focused local pass
 - **Result:** one adjacent lexical-shadow finding resolved; no remaining
   architecture, compatibility, security, provenance, or delivery blocker

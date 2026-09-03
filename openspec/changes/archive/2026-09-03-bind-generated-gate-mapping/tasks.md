@@ -15,6 +15,6 @@
 
 - [x] 3.1 Pass focused policy, Ruff, factory, benchmark, and full Nix gates.
 - [x] 3.2 Record a distinct local review and immutable evidence receipt.
-- [ ] 3.3 Sync the capability specification and archive the completed change.
-- [ ] 3.4 Prepare the signed, issue-linked PR handoff and its green-CI/no-blocking-
+- [x] 3.3 Sync the capability specification and archive the completed change.
+- [x] 3.4 Prepare the signed, issue-linked PR handoff and its green-CI/no-blocking-
       review integration conditions.

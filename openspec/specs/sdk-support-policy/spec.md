@@ -5,7 +5,6 @@
 Define and continuously verify the SDK's Rust floor, etalon toolchain, host,
 target, feature, FFI and performance-commitment states without overstating
 compile-only or bootstrap evidence.
-
 ## Requirements
 ### Requirement: One machine-readable policy defines compatibility
 
@@ -241,3 +240,24 @@ a compatibility or release budget during bootstrap.
 - **THEN** the result remains diagnostic unless it breaches a broad documented
   pathological-regression ceiling applied to the robust p50 measurements;
   isolated p95 outliers remain reported diagnostics
+
+### Requirement: Generated gate mappings preserve manifest identity
+
+The offline support-policy validator SHALL require the Nix gate generator to
+derive every mapped attribute name from the current manifest entry's `name`
+field and every mapped attribute value from `makeGate` applied to that same
+entry. The complete mapping SHALL remain connected from `manifest.gates`
+through `listToAttrs` to the returned top-level `checks` value.
+
+#### Scenario: Constant mapped name collapses the gate graph
+
+- **WHEN** the generator replaces the current entry's name with a constant
+  attribute name
+- **THEN** structural validation fails before multiple manifest gates can
+  collapse into one published Nix check
+
+#### Scenario: Mapped value bypasses gate construction
+
+- **WHEN** the generator maps a manifest entry to a value not produced by
+  `makeGate` for that same entry
+- **THEN** structural validation rejects the detached gate implementation

@@ -7,19 +7,20 @@
 
 ## 2. DID document model
 
-- [ ] 2.1 Add a bounded absolute RFC 3986 `Uri` value
-- [ ] 2.2 Add immutable document, verification method and relationship types
-- [ ] 2.3 Add extensible service types and endpoint variants
-- [ ] 2.4 Add unified native/serde validation, resource bounds and redacted
+- [x] 2.1 Add a bounded absolute RFC 3986 `Uri` value
+- [x] 2.2 Add immutable document, verification method and relationship types
+- [x] 2.3 Add extensible service types and endpoint variants
+- [x] 2.4 Add unified native/serde validation, resource bounds and redacted
       error mappings
 
 ## 3. Conformance and performance
 
-- [ ] 3.1 Add standards-derived and donor-shaped positive vectors
-- [ ] 3.2 Add collision, secret, identifier and resource-boundary negatives
-- [ ] 3.3 Prove semantic extension/cardinality round trips
-- [ ] 3.4 Run and record a release document parse diagnostic
-- [ ] 3.5 Create bounded follow-up issues for deliberately deferred maturity
+- [x] 3.1 Add standards-derived and donor-shaped positive vectors
+- [x] 3.2 Add collision, secret, identifier and resource-boundary negatives
+- [x] 3.3 Prove semantic extension/cardinality round trips
+- [x] 3.4 Run and record a release document parse diagnostic
+- [x] 3.5 Create bounded follow-up issues #38 and #39 for deliberately deferred
+      maturity and the next functional increment
 - [ ] 3.6 Run focused, workspace, wasm/mobile, lint, formatting, docs,
       OpenSpec, supply-chain and Nix gates
 

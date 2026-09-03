@@ -3,6 +3,8 @@
 
 use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 
+#[cfg(feature = "cose")]
+use crate::cose::{CoseCurve, EncodeCose, PublicKeyCose};
 use crate::enc::{EncodeArray, EncodeVec, Verifiable};
 use crate::error::Error;
 use crate::jwk::{EncodeJwk, JwkCurve, PublicKeyJwk};
@@ -131,5 +133,13 @@ impl EncodeJwk for Ed25519PublicKey {
     fn encode_jwk(&self) -> PublicKeyJwk {
         PublicKeyJwk::new_okp(JwkCurve::Ed25519, self.encode_array())
             .expect("Ed25519 is a supported OKP JWK profile")
+    }
+}
+
+#[cfg(feature = "cose")]
+impl EncodeCose for Ed25519PublicKey {
+    fn encode_cose(&self) -> PublicKeyCose {
+        PublicKeyCose::new_okp(CoseCurve::Ed25519, self.encode_array())
+            .expect("Ed25519 is a supported OKP COSE profile")
     }
 }

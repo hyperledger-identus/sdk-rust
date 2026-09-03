@@ -4,6 +4,8 @@
 
 use x25519_dalek::{PublicKey, StaticSecret};
 
+#[cfg(feature = "cose")]
+use crate::cose::{CoseCurve, EncodeCose, PublicKeyCose};
 use crate::enc::{EncodeArray, EncodeVec};
 use crate::error::Error;
 use crate::jwk::{EncodeJwk, JwkCurve, PublicKeyJwk};
@@ -116,5 +118,13 @@ impl EncodeJwk for X25519PublicKey {
     fn encode_jwk(&self) -> PublicKeyJwk {
         PublicKeyJwk::new_okp(JwkCurve::X25519, self.encode_array())
             .expect("X25519 is a supported OKP JWK profile")
+    }
+}
+
+#[cfg(feature = "cose")]
+impl EncodeCose for X25519PublicKey {
+    fn encode_cose(&self) -> PublicKeyCose {
+        PublicKeyCose::new_okp(CoseCurve::X25519, self.encode_array())
+            .expect("X25519 is a supported OKP COSE profile")
     }
 }

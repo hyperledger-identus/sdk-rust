@@ -100,8 +100,8 @@ complete 26-check local Nix graph passed on the corrected code.
 ## Pull-request review corrections
 
 - **Reviewed correction head:**
-  `c146f8310e9e076131b638b0c3438ab340f07e9d`
-- **Result:** all three findings resolved with focused regressions and no remaining
+  `1173cca60687aed1e5bd8aa9b51f05d124103079`
+- **Result:** all four findings resolved with focused regressions and no remaining
   blocker
 
 The hosted review identified two additional fail-closed edges. A live Nix

@@ -113,3 +113,27 @@ omitted their pre-existing scenarios, which would have replaced rather than
 extended the canonical requirements. The archived delta was completed with
 all prior scenarios before delivery, the canonical diff now preserves every
 existing JWK/COSE conformance scenario, and strict factory validation passes.
+
+## Hosted CI correction review
+
+- **Reviewed correction head:** `513f576`
+- **Trigger:** the organization workflow's pinned v2 EditorConfig setup action
+  could not find editorconfig-checker v4's renamed Linux asset
+- **Result:** no remaining workflow, provenance, or scope blocker found
+
+The failure occurred before repository files were checked and is independent
+of the crypto implementation. The repository-local workflow now reproduces
+the four jobs from the immutable organization workflow, preserving its exact
+checkout, ShellCheck, Markdownlint, and Yamllint action revisions. Only the
+EditorConfig setup changes: it pins the upstream verified merge commit that
+adds v4 asset-name support and requests exact checker release `v4.0.0`, then
+runs the checker explicitly. This avoids a moving `latest` tool and repairs the
+shared workflow's prior setup-only step.
+
+The new JSON and hex-text corpora intentionally carry normal final newlines;
+narrow EditorConfig overrides document that text property without changing the
+raw DID corpus contract. JWK serde accepts trailing JSON whitespace and the
+COSE harness strips transport-only surrounding whitespace before hex decoding.
+Local EditorConfig Checker, Yamllint, ShellCheck, factory validation, and diff
+hygiene pass after the correction. No production, dependency, public API,
+security policy, or repository setting changed.

@@ -42,6 +42,7 @@ The following passed at the reviewed implementation head:
 - fuzz and workspace strict Clippy;
 - workspace all-feature and no-default-feature tests;
 - shell syntax and `git diff --check`;
+- EditorConfig Checker, Yamllint, and ShellCheck after hosted-CI correction;
 - strict factory/OpenSpec validation (18 capability/change items);
 - independent-lock cargo-deny and RustSec audit; and
 - `nix flake check` with all 30 applicable `aarch64-darwin` checks.
@@ -58,6 +59,15 @@ executed the pinned Nix copy and passed. An initial minimal-feature command
 selected every integration test, including unrelated feature-dependent tests;
 the focused `--lib --test jwk --test cose` command is the applicable gate and
 passed. No required gate remains failing or unrun.
+
+The first hosted file-hygiene run failed before inspecting repository files
+because the organization workflow's old setup action searched for the removed
+`ec-linux-amd64` asset after upstream v4 became `latest`. Correction head
+`513f576` pins the upstream verified v4-aware action commit and exact checker
+`v4.0.0`, preserves the other immutable lint actions locally, and explicitly
+runs the checker. The initial PR-policy run also required the exact receipt
+line `Local review: passed`; the PR body now contains it. Both corrections are
+branch-owned delivery repairs and receive fresh hosted checks on push.
 
 ## Compatibility and downstream evidence
 

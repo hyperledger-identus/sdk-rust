@@ -29,8 +29,9 @@ dereferencing abstract functions and extensible input option maps.
 6. Raw options are limited to 64 KiB and reuse the existing map/name/string,
    depth and aggregate-node JSON policy. Reserved common keys cannot be
    supplied as extensions.
-7. HTTP, method dispatch, cache/clock policy, algorithms and DID Registration
-   state/secret semantics remain separately reviewed `IDR-006` work.
+7. HTTP (#10), method dispatch (#44), cache/clock policy (#45), dereferencing
+   algorithms (#46) and DID Registration state/secret semantics (#47) remain
+   separately reviewed `IDR-006` work.
 
 ## Consequences
 

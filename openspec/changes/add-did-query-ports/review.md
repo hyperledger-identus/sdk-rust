@@ -45,3 +45,29 @@
 
 These trees are read-only evidence and their existing status is not altered or
 cleaned by this change.
+
+# Post-implementation semantic and security review
+
+- **Reviewed head:** `cc6edc40a8da75b93e035948713c42f09db168be`
+- **Review completed:** 2026-09-03T04:02:00Z
+- **Result:** passed with no unresolved finding
+- **Effort:** approximately 16 minutes from issue creation to reviewed,
+  fully-gated implementation head
+
+The exact diff from the recorded `develop` base was re-read after the full
+workspace and Nix gates. Constructors, builders and serde converge on the same
+extension validator; raw entry points enforce the byte ceiling before parsing;
+reserved keys cannot be shadowed; errors do not reflect option contents; and
+resolution and dereferencing remain independently object-safe. Two unrelated
+method-shaped implementations compile and execute through `Arc<dyn
+DidResolver>`, while the dereferencing port is independently injectable.
+
+The review also reconfirmed that one boxed allocation per asynchronous call is
+an intentional object-safety cost, `Send` is the portable native/mobile/WASM
+contract tested by this repository, and W3C errors belong in the existing
+result envelope. There is no HTTP, cache, clock, dispatch, registration,
+storage, chain, wallet, trust or executor dependency in the diff.
+
+Residual work is isolated in #10 (HTTP), #44 (method registry/dispatch), #45
+(cache/clock), #46 (dereferencing algorithm), and #47 (DID Registration).
+Duplicate raw JSON member detection and deeper result hardening remain #41.

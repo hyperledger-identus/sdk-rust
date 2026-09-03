@@ -2,7 +2,7 @@
 
 - **Issue:** #30 (child of #9 / `IDR-004`)
 - **Develop base:** `82819ac622cf601cc1f5c9cb40a71754c53992c0`
-- **Reviewed implementation head:** `aba9b1e491054e940c1cc9631826d59673787c90`
+- **Reviewed implementation head:** `e166adfdc39afc48648663fcef27357781cc7cf1`
 - **Local platform:** `aarch64-darwin`
 - **Result:** every applicable local gate passed
 
@@ -10,7 +10,7 @@
 
 | Command | Result |
 | --- | --- |
-| `cargo test -p identus-crypto --all-features` | passed; 80 tests, one manual performance test ignored |
+| `cargo test -p identus-crypto --all-features` | passed; 81 tests, one manual performance test ignored |
 | `cargo test -p identus-crypto --test cose --all-features` | passed; 19 contract/security tests, one manual test ignored |
 | `cargo build -p identus-crypto --no-default-features --features cose` | passed |
 | `cargo build -p identus-crypto --no-default-features --features ed25519,cose` | passed |
@@ -21,8 +21,8 @@
 | `RUSTDOCFLAGS='-Dwarnings' cargo doc --workspace --no-deps` | passed |
 | `cargo test -p identus-conformance` | passed; 20/20 |
 | `cargo fmt --all -- --check` and `git diff --check` | passed |
-| `openspec validate validate-public-cose-key --strict` | passed |
-| `nix flake check --print-build-logs` | passed all 42 local Darwin checks after the hosted-review fix |
+| `./scripts/factory check` | passed; 15/15 strict OpenSpec capabilities and all governance contracts |
+| `nix flake check --print-build-logs` | passed every applicable local Darwin flake check after both hosted-review fixes |
 
 The Nix matrix included Rust 1.85 MSRV, default and minimal builds, WASM,
 Android, iOS, nextest, clippy, rustdoc, formatting, text/TOML/Nix lint,
@@ -32,9 +32,9 @@ omitted system on the local Darwin run and is exercised independently by CI.
 ## Performance observation
 
 Release-mode `PublicKeyCose` encode plus parse completed 50,000 iterations in
-67.523458 ms, approximately 740,483 operations per second on this host after
-the hosted-review fix. This
-is an observation, not a portable timing threshold.
+77.550709 ms, approximately 644,739 operations per second on this host after
+both hosted-review fixes. This is an observation, not a portable timing
+threshold.
 
 ## Conformance and threat evidence
 
@@ -45,7 +45,8 @@ is an observation, not a portable timing threshold.
   of explicitly present empty `kid` and Base IV byte strings.
 - Negative fixtures cover private label `-4`, incompatible/missing shapes,
   coordinate types and widths, duplicate maps, tags, trailing data, input
-  size, nesting, parameter count, floats and compressed-to-JWK conversion.
+  size, nesting, the shared common-plus-unknown parameter count, floats and
+  compressed-to-JWK conversion.
 - Stable `crypto.invalid_cose_key` bridging and debug/display assertions prove
   caller-controlled values do not enter rendered errors.
 - All four curve encoders and full-coordinate JWK conversions preserve exact

@@ -3,7 +3,7 @@
 - **Date:** 2026-09-03
 - **Issue:** #30 (child of #9 / `IDR-004`)
 - **Develop base:** `82819ac622cf601cc1f5c9cb40a71754c53992c0`
-- **Reviewed implementation head:** `aba9b1e491054e940c1cc9631826d59673787c90`
+- **Reviewed implementation head:** `e166adfdc39afc48648663fcef27357781cc7cf1`
 - **Result:** no unresolved blocker; suitable for exact-head hosted review
 
 ## Pre-implementation findings
@@ -26,11 +26,11 @@
 
 ## Post-implementation misuse review
 
-The complete `develop...aba9b1e` diff was reviewed afresh after implementation
-and after resolving the first hosted review finding.
+The complete `develop...e166adf` diff was reviewed afresh after implementation
+and after resolving both hosted review findings.
 
 1. **Construction bypass:** all wire and structural fields are private. Fixed
-   array constructors and `from_cbor` converge on `from_wire`, which enforces
+   array constructors and `from_cbor` converge on `from_value`, which enforces
    one supported key family, exact coordinate widths and EC2/OKP shape.
 2. **Private material:** label `-4` is scanned before key-type dispatch, so it
    is rejected even when an attacker supplies an unsupported `kty`. Error and
@@ -41,8 +41,9 @@ and after resolving the first hosted review finding.
    `coset` interpretation. Supported text `kty`/`crv` spellings normalize to
    assigned integers.
 4. **Resource behavior:** the byte cap is checked before decode; CBOR depth is
-   limited to 16; retained top-level extension parameters are capped at 32.
-   Recursive work is bounded by the 4096-byte input envelope.
+   limited to 16; common-plus-unknown top-level parameters are capped at 32 by
+   counting the normalized source map and excluding only `kty`, `crv`, `x`,
+   and `y`. Recursive work is bounded by the 4096-byte input envelope.
 5. **Determinism:** maps use RFC 8949 length-first ordering (encoded-key length,
    then bytewise lexical order); integers and collection lengths use preferred
    forms. Floating values are rejected because this codec cannot guarantee
@@ -70,6 +71,9 @@ and after resolving the first hosted review finding.
   as the round-trip value. Explicitly present empty RFC-valid `kid` and Base IV
   byte strings now survive encoding; `coset::CoseKey` is only a temporary
   typed interpretation. A dedicated fixture covers this boundary.
+- Resolved the second hosted P2 by deriving the parameter count from that
+  normalized source map. Common parameters can no longer bypass the shared
+  non-structural limit; exact-limit and over-limit fixtures cover the boundary.
 
 Residual risks are explicit: consumers still validate curve points and
 operation-specific algorithm/key-use policy, and enclosing protocols may set

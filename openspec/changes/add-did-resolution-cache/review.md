@@ -38,3 +38,36 @@
     `ResolutionOptions::new` constructor, which are updated in this workspace.
 11. **Provenance:** downstream repositories are immutable evidence only. No
     cache, clock implementation or fixture is copied.
+
+# Post-implementation semantic, security and API review
+
+- **Reviewed head:** `b4ef090a3ffdd2b0832bc788fe825cad5c16cf22`
+- **Review completed:** 2026-09-03T05:28:31Z
+- **Result:** passed with no unresolved finding
+- **Effort:** approximately 87 minutes from issue creation to reviewed,
+  fully-gated implementation head
+
+The exact diff from the recorded `develop` base was re-read after focused,
+workspace, feature and all 26 Nix gates. The decorator remains opt-in and
+preserves the existing resolver port. Disabled policy and `noCache: true`
+avoid all generic cache and clock work; other requests use an exact DID plus
+canonicalized result-affecting options, with `noCache` excluded from identity.
+
+Positive/deactivated and standard `notFound` results are the only cacheable
+classes. Extension, unsupported and internal errors remain uncached. Hits are
+checked against the requested DID, the current policy lifetime, exclusive
+expiry and non-regressed monotonic time before use. Invalid hits are
+invalidated; infrastructure failures follow the explicit bypass/fail-closed
+policy; no document or version metadata is treated as TTL.
+
+The public ports are object-safe and runtime-neutral. Entries cannot serialize
+across monotonic epochs; key, TTL and declared backend capacity are bounded;
+custom `Debug`, statuses and stable errors omit full DIDs, options, documents
+and adapter details. The positional options-constructor change is acceptable
+for the unpublished `0.0.0` crate and every workspace caller is updated.
+
+Duplicate-safe concurrent fills are intentional. Cancellation-aware
+single-flight remains outside this slice and is tracked by #50, gated on two
+independent consumers proving matching semantics. No downstream repository,
+concrete cache, system clock, transport, chain or async executor enters the
+diff.

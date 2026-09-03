@@ -54,4 +54,48 @@ unsafe code, or public generic JSON API is justified.
 
 # Post-implementation semantic, security, and API review
 
-Pending implementation and exact-head verification.
+- **Date:** 2026-09-03
+- **Reviewed implementation head:**
+  `41a85cbe8522a98d9e4cda632012e9a8e2b30567`
+- **Result:** no unresolved blocker; suitable for exact-head hosted review
+
+The complete develop-base-to-implementation diff was reviewed after the
+focused and full local gates completed.
+
+1. **Wire ordering:** `from_json_slice` applies the existing 256 KiB ceiling,
+   streams the complete JSON value through the duplicate/resource scanner,
+   and only then performs typed deserialization. No last-value-wins map can
+   precede duplicate detection on the documented raw entry points.
+2. **Duplicate semantics:** comparison uses decoded `String` names inside one
+   open object. Escaped-equivalent names collide, while reuse in sibling or
+   nested objects remains valid. Known DID fields and arbitrary extension,
+   context, verification, JWK, service and endpoint maps share this rule.
+3. **Resource behavior:** traversal stops beyond 64 open containers, 16,384
+   values, 128 members in one object, or 128 KiB of decoded names retained by
+   simultaneously open objects. The scanner holds one ordered name set per
+   open object and releases its accounted bytes when that object closes.
+4. **Error hygiene:** scanner failures carry only static categories. The new
+   local duplicate reason and every public rendering preserve
+   `did.invalid_document` and omit caller-controlled names, values, offsets and
+   document bytes; an explicit secret-marker regression proves the boundary.
+5. **URI conformance:** 1,000 deterministic RFC 3986 component combinations
+   agree with NeoPRISM's exact `uriparse` 0.6.4 oracle. The SDK's stricter byte
+   cap, standards-conforming IPvFuture acceptance and safe rejection of the
+   oracle's minimized panic input are explicit, pinned differences.
+6. **Compatibility and dependencies:** unique-name raw documents and native
+   construction retain their semantic behavior. The public change is additive
+   except for the intentional ambiguous-JSON rejection. `uriparse` is dev-only
+   and absent from the normal `identus-did` dependency cone.
+7. **Portability and ownership:** Rust 1.85, WASM, Android ARM64 and iOS ARM64
+   Nix lanes pass. No unsafe code, chain-specific policy, donor source, FFI,
+   publication or consumer edit entered the slice.
+
+## Corrections made during implementation and review
+
+- Minimized and classified an oracle panic for `1bad:value` instead of
+  treating the oracle as authoritative for malformed inputs.
+- Preserved RFC 3986 IPvFuture acceptance after confirming that the oracle
+  rejects the production.
+- Added an explicit caller-controlled duplicate-name redaction regression.
+- Kept the scanner crate-private so #41 can reuse it internally without
+  prematurely committing a generic public JSON API.

@@ -20,14 +20,14 @@
       RFC 3986 differential vectors without changing the runtime parser
 - [x] 3.2 Add deterministic generated URI/document/extension/cardinality and
       native/unique-wire equivalence suites with minimized regressions
-- [ ] 3.3 Record release throughput and resource/allocation-shape evidence while
+- [x] 3.3 Record release throughput and resource/allocation-shape evidence while
       keeping cargo-fuzz #35 and resolution-envelope #41 out of scope
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Run focused coverage plus workspace all/no-feature, strict Clippy,
+- [x] 4.1 Run focused coverage plus workspace all/no-feature, strict Clippy,
       rustdoc, format, factory, MSRV, WASM/mobile, supply-chain, and full Nix
-- [ ] 4.2 Complete a distinct exact-head semantic/security/API review and
+- [x] 4.2 Complete a distinct exact-head semantic/security/API review and
       confirm all downstream HEAD/status receipts remain unchanged
-- [ ] 4.3 Produce ready/receipt, synchronize the canonical DID Core spec,
+- [x] 4.3 Produce ready/receipt, synchronize the canonical DID Core spec,
       archive the change, and deliver the signed issue-linked all-green PR

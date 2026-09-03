@@ -6,6 +6,8 @@
   `996465abe6fa68bb7d04b218f9a0f07b5f954afe`
 - **Reviewed hosted-timing correction head:**
   `f05f618271a433d612753a490d9184d26c46e003`
+- **Reviewed pull-request correction head:**
+  `91ed0246e04914bbbb1eb4901a36ee8907564965`
 - **Local platform:** macOS 26.2, aarch64-darwin, Python 3.14.3
 - **Result:** every applicable local gate passed; hosted Linux and macOS
   benchmark steps passed

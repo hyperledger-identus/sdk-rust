@@ -99,6 +99,11 @@ complete 26-check local Nix graph passed on the corrected code.
 
 ## Pull-request review corrections
 
+- **Reviewed correction head:**
+  `91ed0246e04914bbbb1eb4901a36ee8907564965`
+- **Result:** both findings resolved with focused regressions and no remaining
+  blocker
+
 The hosted review identified two additional fail-closed edges. A live Nix
 string outside `imports` could satisfy the generator reachability substring,
 and a syntactically valid TOML scalar in a list field could survive schema

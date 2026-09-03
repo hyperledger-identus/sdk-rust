@@ -48,10 +48,10 @@ representation without decoding or normalization.
 - **THEN** the DID view SHALL be `did:example:123`, path SHALL be `/a/b`,
   query SHALL be `version=1`, and fragment SHALL be `key-1`
 
-#### Scenario: malformed RFC 3986 composition is rejected
+#### Scenario: malformed RFC 3986 components are rejected
 
-- **WHEN** a DID URL contains a non-slash-led path, invalid component byte,
-  incomplete percent escape, raw whitespace or a second fragment delimiter
+- **WHEN** a DID URL contains an invalid path/query/fragment byte, incomplete
+  percent escape, raw whitespace or a second fragment delimiter
 - **THEN** construction SHALL fail with a redacted error
 
 ### Requirement: Bounded single-pass parsing and component views

@@ -7,19 +7,19 @@
 
 ## 2. DID lexical boundary
 
-- [ ] 2.1 Add immutable `Did` and `DidUrl` types with cached component offsets
-- [ ] 2.2 Implement bounded single-pass DID Core and RFC 3986 validation
-- [ ] 2.3 Add zero-allocation component accessors and allocation-aware
+- [x] 2.1 Add immutable `Did` and `DidUrl` types with cached component offsets
+- [x] 2.2 Implement bounded single-pass DID Core and RFC 3986 validation
+- [x] 2.3 Add zero-allocation component accessors and allocation-aware
       conversions
-- [ ] 2.4 Add validating native/serde construction and stable redacted errors
+- [x] 2.4 Add validating native/serde construction and stable redacted errors
 
 ## 3. Conformance and performance
 
-- [ ] 3.1 Add standards-derived and donor-shaped positive vectors
-- [ ] 3.2 Add delimiter, encoding, bounds and adversarial negative vectors
-- [ ] 3.3 Prove native/serde equivalence, exact round trips and component views
-- [ ] 3.4 Run and record a release parser throughput diagnostic
-- [ ] 3.5 Create a bounded fuzzing follow-up linked to parent #5
+- [x] 3.1 Add standards-derived and donor-shaped positive vectors
+- [x] 3.2 Add delimiter, encoding, bounds and adversarial negative vectors
+- [x] 3.3 Prove native/serde equivalence, exact round trips and component views
+- [x] 3.4 Run and record a release parser throughput diagnostic
+- [x] 3.5 Create bounded fuzzing follow-up #35 linked to parent #5
 - [ ] 3.6 Run focused, workspace, wasm/mobile, lint, formatting, docs,
       OpenSpec, supply-chain and Nix gates
 

@@ -117,6 +117,8 @@ pub enum DocumentError {
     TooLarge,
     /// Input is not a valid DID document JSON representation.
     MalformedJson,
+    /// Raw JSON repeats a decoded object member name.
+    DuplicateJsonProperty,
     /// A present set or required string is empty.
     EmptyValue,
     /// A document collection exceeds its item limit.
@@ -152,6 +154,7 @@ impl fmt::Display for DocumentError {
         let message = match self {
             Self::TooLarge => "DID document exceeds the SDK byte limit",
             Self::MalformedJson => "DID document JSON is malformed",
+            Self::DuplicateJsonProperty => "DID document JSON contains a duplicate property",
             Self::EmptyValue => "a required DID document value is empty",
             Self::TooManyItems => "a DID document collection exceeds its item limit",
             Self::InvalidString => "a DID document string violates its resource policy",

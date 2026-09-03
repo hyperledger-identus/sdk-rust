@@ -544,6 +544,18 @@ impl DidDocument {
         self.service.as_deref()
     }
 
+    /// Clone this document while replacing its service selection.
+    ///
+    /// The replacement is validated through the same cross-document path as
+    /// native construction and deserialization. This is useful for algorithms
+    /// that project a subset of an already validated DID document.
+    pub fn with_services(&self, services: Option<Vec<Service>>) -> Result<Self, Error> {
+        let mut document = self.clone();
+        document.service = services;
+        document.validate()?;
+        Ok(document)
+    }
+
     /// Borrow document extension entries.
     #[must_use]
     pub const fn extensions(&self) -> &BTreeMap<String, Value> {

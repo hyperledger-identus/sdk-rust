@@ -28,3 +28,31 @@
    cloning and concurrent reads need no lock or async runtime.
 8. **Provenance:** all downstream sources remain read-only evidence; no donor
    has a generic registry worth copying, and no fixture/source will be copied.
+
+# Post-implementation semantic, security and API review
+
+- **Reviewed head:** `afd4695c0932cbea79d196a3b66e26c6a5076d48`
+- **Review completed:** 2026-09-03T04:36:19Z
+- **Result:** passed with no unresolved finding
+- **Effort:** approximately 35 minutes from issue creation to reviewed,
+  fully-gated implementation head
+
+The exact diff from the recorded `develop` base was re-read after the focused,
+workspace and full Nix gates. Registry construction is bounded, rejects exact
+duplicate ownership, and freezes a lexically ordered map behind `Arc`.
+Dispatch uses borrowed exact method lookup and forwards the original validated
+inputs and result envelopes. Clones require no mutation, lock or async runtime.
+
+Unknown resolution and dereferencing methods produce `methodNotSupported`;
+known resolver-only methods produce `featureNotSupported` for dereferencing.
+Setup failures bridge to one stable redaction-safe capability code with distinct
+conflict and invalid-input kinds. Public diagnostics expose method names and
+support flags intentionally, but never adapter objects or method names in error
+messages.
+
+The review reconfirmed that requiring a resolver while keeping dereferencing
+optional is the smallest portable seam for current PRISM and Midnight needs.
+The additive `Error` variant is acceptable for the unpublished `0.0.0` crate;
+the reason enum is non-exhaustive. No HTTP, transport, cache, clock, VDR,
+registration, persistence, wallet, chain or executor concern enters the diff.
+Adapter-produced result integrity remains explicitly isolated in #41.

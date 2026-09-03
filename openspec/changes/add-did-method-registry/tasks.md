@@ -9,22 +9,23 @@
 
 ## 2. Registry model
 
-- [ ] 2.1 Add bounded method bindings, builder and immutable registry
-- [ ] 2.2 Add duplicate/capacity errors and stable redaction-safe bridging
-- [ ] 2.3 Add deterministic narrow introspection without adapter exposure
+- [x] 2.1 Add bounded method bindings, builder and immutable registry
+- [x] 2.2 Add duplicate/capacity errors and stable redaction-safe bridging
+- [x] 2.3 Add deterministic narrow introspection without adapter exposure
 
 ## 3. Dispatch and conformance
 
-- [ ] 3.1 Implement exact method resolution through `DidResolver`
-- [ ] 3.2 Implement independent dereferencing through `DidUrlDereferencer`
-- [ ] 3.3 Cover PRISM/Midnight routing, unknown/unsupported standards failures,
+- [x] 3.1 Implement exact method resolution through `DidResolver`
+- [x] 3.2 Implement independent dereferencing through `DidUrlDereferencer`
+- [x] 3.3 Cover PRISM/Midnight routing, unknown/unsupported standards failures,
       duplicate/capacity limits, exact matching and concurrent clones
-- [ ] 3.4 Record release dispatch performance and run focused/workspace/Nix
+- [x] 3.4 Record release dispatch performance and run focused/workspace/Nix
       verification
 
 ## 4. Delivery evidence
 
-- [ ] 4.1 Sync canonical did-core specification and record exact evidence
-- [ ] 4.2 Complete a distinct local semantic/security/API review
-- [ ] 4.3 Produce ready/receipt, archive, open the issue-linked PR, and merge
-      only after all exact-head hosted CI gates are green
+- [x] 4.1 Sync canonical did-core specification and record exact evidence
+- [x] 4.2 Complete a distinct local semantic/security/API review
+- [x] 4.3 Produce ready/receipt, archive, and prepare the issue-linked PR under
+      the policy that permits merge only after all exact-head hosted CI gates
+      are green

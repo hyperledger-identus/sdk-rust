@@ -8,6 +8,7 @@
 use identus_core::Component;
 
 mod cache;
+mod dereference;
 mod did;
 mod document;
 pub mod error;
@@ -27,6 +28,7 @@ pub use cache::{
     MAX_DID_RESOLUTION_CACHE_KEY_BYTES, MAX_DID_RESOLUTION_NOT_FOUND_TTL_MILLIS,
     MAX_DID_RESOLUTION_POSITIVE_TTL_MILLIS,
 };
+pub use dereference::GenericDidUrlDereferencer;
 pub use did::{Did, DidUrl, MAX_DID_BYTES, MAX_DID_URL_BYTES};
 pub use document::{
     ContextEntry, DidDocument, DidDocumentBuilder, MAX_DID_DOCUMENT_BYTES, MAX_DOCUMENT_ITEMS,

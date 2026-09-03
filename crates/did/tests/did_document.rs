@@ -8,76 +8,76 @@ use identus_did::{
 use serde_json::{Value, json};
 
 const REPRESENTATIVE_DOCUMENT: &str = r#"{
-  "@context": [
-    "https://www.w3.org/ns/did/v1",
-    {"oxid": "https://oxid.example/ns#"}
-  ],
-  "id": "did:midnight:testnet:alice",
-  "controller": ["did:midnight:testnet:alice", "did:prism:delegate"],
-  "alsoKnownAs": ["https://alice.example/profile", "urn:uuid:1234"],
-  "verificationMethod": [
-    {
-      "id": "did:midnight:testnet:alice#auth-1",
-      "type": "JsonWebKey2020",
-      "controller": "did:midnight:testnet:alice",
-      "publicKeyJwk": {
-        "kty": "OKP",
-        "crv": "Ed25519",
-        "x": "11qYAYdk9JTuG6urO8YUNELcD9q4G2O_TW9LtUo9G2M"
-      },
-      "expires": "2030-01-01T00:00:00Z"
-    },
-    {
-      "id": "https://keys.example/alice/agreement-1",
-      "type": "X25519KeyAgreementKey2020",
-      "controller": "did:prism:delegate",
-      "publicKeyMultibase": "z6LSbysY2xFMR4tQ"
-    }
-  ],
-  "authentication": [
-    "did:midnight:testnet:alice#auth-1",
-    {
-      "id": "did:midnight:testnet:alice#auth-local",
-      "type": "Ed25519VerificationKey2020",
-      "controller": "did:midnight:testnet:alice",
-      "publicKeyMultibase": "z6MkiTBz1y"
-    }
-  ],
-  "assertionMethod": ["did:midnight:testnet:alice#auth-1"],
-  "keyAgreement": ["https://keys.example/alice/agreement-1"],
-  "capabilityInvocation": ["did:midnight:testnet:alice#auth-1"],
-  "capabilityDelegation": ["did:prism:delegate#capability-1"],
-  "service": [
-    {
-      "id": "did:midnight:testnet:alice#linked-domain",
-      "type": "LinkedDomains",
-      "serviceEndpoint": "https://alice.example"
-    },
-    {
-      "id": "did:midnight:testnet:alice#messages",
-      "type": ["DIDCommMessaging", "OxidInbox"],
-      "serviceEndpoint": [
-        "https://inbox.example/alice",
-        {"uri": "https://backup.example/alice", "accept": ["didcomm/v2"]}
-      ],
-      "routingKeys": ["did:example:mediator#key-1"]
-    },
-    {
-      "id": "urn:example:service:profile",
-      "type": "Profile",
-      "serviceEndpoint": {"origins": ["https://alice.example"]}
-    }
-  ],
-  "oxid:profile": {"locale": "uk-UA", "features": ["wallet", "identity"]}
+    "@context": [
+        "https://www.w3.org/ns/did/v1",
+        {"oxid": "https://oxid.example/ns#"}
+    ],
+    "id": "did:midnight:testnet:alice",
+    "controller": ["did:midnight:testnet:alice", "did:prism:delegate"],
+    "alsoKnownAs": ["https://alice.example/profile", "urn:uuid:1234"],
+    "verificationMethod": [
+        {
+            "id": "did:midnight:testnet:alice#auth-1",
+            "type": "JsonWebKey2020",
+            "controller": "did:midnight:testnet:alice",
+            "publicKeyJwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "11qYAYdk9JTuG6urO8YUNELcD9q4G2O_TW9LtUo9G2M"
+            },
+            "expires": "2030-01-01T00:00:00Z"
+        },
+        {
+            "id": "https://keys.example/alice/agreement-1",
+            "type": "X25519KeyAgreementKey2020",
+            "controller": "did:prism:delegate",
+            "publicKeyMultibase": "z6LSbysY2xFMR4tQ"
+        }
+    ],
+    "authentication": [
+        "did:midnight:testnet:alice#auth-1",
+        {
+            "id": "did:midnight:testnet:alice#auth-local",
+            "type": "Ed25519VerificationKey2020",
+            "controller": "did:midnight:testnet:alice",
+            "publicKeyMultibase": "z6MkiTBz1y"
+        }
+    ],
+    "assertionMethod": ["did:midnight:testnet:alice#auth-1"],
+    "keyAgreement": ["https://keys.example/alice/agreement-1"],
+    "capabilityInvocation": ["did:midnight:testnet:alice#auth-1"],
+    "capabilityDelegation": ["did:prism:delegate#capability-1"],
+    "service": [
+        {
+            "id": "did:midnight:testnet:alice#linked-domain",
+            "type": "LinkedDomains",
+            "serviceEndpoint": "https://alice.example"
+        },
+        {
+            "id": "did:midnight:testnet:alice#messages",
+            "type": ["DIDCommMessaging", "OxidInbox"],
+            "serviceEndpoint": [
+                "https://inbox.example/alice",
+                {"uri": "https://backup.example/alice", "accept": ["didcomm/v2"]}
+            ],
+            "routingKeys": ["did:example:mediator#key-1"]
+        },
+        {
+            "id": "urn:example:service:profile",
+            "type": "Profile",
+            "serviceEndpoint": {"origins": ["https://alice.example"]}
+        }
+    ],
+    "oxid:profile": {"locale": "uk-UA", "features": ["wallet", "identity"]}
 }"#;
 
 fn public_jwk() -> BTreeMap<String, Value> {
     BTreeMap::from([(
         "publicKeyJwk".to_owned(),
         json!({
-            "kty": "OKP",
-            "crv": "Ed25519",
-            "x": "11qYAYdk9JTuG6urO8YUNELcD9q4G2O_TW9LtUo9G2M"
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "11qYAYdk9JTuG6urO8YUNELcD9q4G2O_TW9LtUo9G2M"
         }),
     )])
 }
@@ -298,28 +298,28 @@ fn malformed_wire_cardinalities_and_service_shapes_are_rejected() {
         json!({"id": "did:example:123", "authentication": []}),
         json!({"id": "did:example:123", "service": []}),
         json!({
-            "id": "did:example:123",
-            "service": [{
-                "id": "did:example:123#service",
-                "type": [],
-                "serviceEndpoint": "https://example.com"
-            }]
+                "id": "did:example:123",
+                "service": [{
+                        "id": "did:example:123#service",
+                        "type": [],
+                        "serviceEndpoint": "https://example.com"
+                }]
         }),
         json!({
-            "id": "did:example:123",
-            "service": [{
-                "id": "did:example:123#service",
-                "type": "Example",
-                "serviceEndpoint": []
-            }]
+                "id": "did:example:123",
+                "service": [{
+                        "id": "did:example:123#service",
+                        "type": "Example",
+                        "serviceEndpoint": []
+                }]
         }),
         json!({
-            "id": "did:example:123",
-            "service": [{
-                "id": "did:example:123#service",
-                "type": "Example",
-                "serviceEndpoint": 42
-            }]
+                "id": "did:example:123",
+                "service": [{
+                        "id": "did:example:123#service",
+                        "type": "Example",
+                        "serviceEndpoint": 42
+                }]
         }),
     ] {
         let wire = document.to_string();

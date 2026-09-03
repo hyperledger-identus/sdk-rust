@@ -270,18 +270,29 @@ def load_gate_manifest(
         gates[name] = {}
 
         operation = gate.get("operation")
-        if operation not in ALLOWED_OPERATIONS:
+        if not isinstance(operation, str) or operation not in ALLOWED_OPERATIONS:
             failures.append(f"gate {name} has unsupported operation {operation!r}")
-        if gate.get("toolchain") not in {"etalon", "msrv"}:
-            failures.append(
-                f"gate {name} has invalid toolchain {gate.get('toolchain')!r}"
-            )
-        if gate.get("source") not in {"rust", "repository"}:
-            failures.append(f"gate {name} has invalid source {gate.get('source')!r}")
-        if gate.get("artifacts") not in {"none", "etalon", "msrv"}:
-            failures.append(
-                f"gate {name} has invalid artifacts {gate.get('artifacts')!r}"
-            )
+            operation = ""
+        gate["operation"] = operation
+        toolchain = gate.get("toolchain")
+        if not isinstance(toolchain, str) or toolchain not in {"etalon", "msrv"}:
+            failures.append(f"gate {name} has invalid toolchain {toolchain!r}")
+            toolchain = ""
+        gate["toolchain"] = toolchain
+        source = gate.get("source")
+        if not isinstance(source, str) or source not in {"rust", "repository"}:
+            failures.append(f"gate {name} has invalid source {source!r}")
+            source = ""
+        gate["source"] = source
+        artifacts = gate.get("artifacts")
+        if not isinstance(artifacts, str) or artifacts not in {
+            "none",
+            "etalon",
+            "msrv",
+        }:
+            failures.append(f"gate {name} has invalid artifacts {artifacts!r}")
+            artifacts = ""
+        gate["artifacts"] = artifacts
 
         for field in (
             "locked",

@@ -318,6 +318,29 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertIn("must be a list of non-empty strings", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
 
+    def test_compound_enum_fields_fail_without_traceback(self) -> None:
+        for field, value in (
+            ("operation", "cargoBuild"),
+            ("toolchain", "etalon"),
+            ("source", "rust"),
+            ("artifacts", "etalon"),
+        ):
+            self.replace_gate(
+                "rust-build-wasm32",
+                f'{field} = "{value}"',
+                f'{field} = [ "{value}" ]',
+            )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        for expected in (
+            "unsupported operation",
+            "invalid toolchain",
+            "invalid source",
+            "invalid artifacts",
+        ):
+            self.assertIn(expected, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
     def test_extra_args_cannot_smuggle_selection(self) -> None:
         self.replace_gate(
             "rust-build-wasm32",

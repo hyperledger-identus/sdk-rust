@@ -119,3 +119,9 @@ while an empty `generatedChecks` value was published. The validator now binds
 the complete chain structurally: `gates.toml` to `manifest`, `manifest.gates`
 through `listToAttrs` to `generatedChecks`, and `generatedChecks` to `checks`.
 An unused-mapping mutation proves the disconnected graph fails.
+
+A final review found compound TOML values in the four enum fields could reach
+set membership and raise `TypeError`. Operation, toolchain, source and artifact
+values are now type-checked before membership and normalized after recording
+their errors. One mutation covers all four compound values and proves the
+validator returns deterministic diagnostics without a traceback.

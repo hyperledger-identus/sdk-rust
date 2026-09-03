@@ -21,8 +21,8 @@
   drift; dynamic/interpolated Nix and dead `_module.args` decoys; contradictory
   selections; and Cargo-selection smuggling through trailing arguments.
 - The same suite passed two timing-policy regressions plus generator-import
-  decoy, disconnected manifest mapping and malformed-list regressions, for
-  41/41 total tests.
+  decoy, disconnected manifest mapping, malformed-list and compound-enum
+  regressions, for 42/42 total tests.
 - `nix flake show --all-systems` emitted the same 23 named Rust gates for
   x86_64-linux and aarch64-darwin.
 - Representative old/new derivations preserved their Crane operations,
@@ -118,3 +118,5 @@ and normalized invalid values close both gaps; their focused regressions pass.
 A follow-up review found the manifest mapper and published checks were only
 independently detected. The validator now proves their complete binding chain,
 and an unused-mapping regression passes.
+Compound operation, toolchain, source and artifact values are also normalized
+before set membership; their combined regression fails without a traceback.

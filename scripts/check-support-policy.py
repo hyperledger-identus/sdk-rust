@@ -158,8 +158,17 @@ def nix_string_end(text: str, index: int) -> int | None:
                 return index
         return len(text)
     if text.startswith("''", index):
-        end = text.find("''", index + 2)
-        return len(text) if end == -1 else end + 2
+        cursor = index + 2
+        while cursor < len(text):
+            delimiter = text.find("''", cursor)
+            if delimiter == -1:
+                return len(text)
+            escaped = delimiter + 2 < len(text) and text[delimiter + 2] in "$'\\"
+            if escaped:
+                cursor = delimiter + 3
+                continue
+            return delimiter + 2
+        return len(text)
     return None
 
 
@@ -228,7 +237,12 @@ def nix_statement_binds(statement: str, name: str) -> bool:
 def outer_per_system_let(text: str) -> tuple[str, str] | None:
     """Return the immediate perSystem let body and its outer result."""
     masked = nix_string_mask(text)
-    header = re.search(r"\bperSystem\s*=\s*\{[^{}]*\}\s*:\s*let\b", masked, re.DOTALL)
+    header = re.match(
+        r"\s*\{\s*inputs\s*,\s*\.\.\.\s*\}\s*:\s*\{\s*"
+        r"perSystem\s*=\s*\{[^{}]*\}\s*:\s*let\b",
+        masked,
+        re.DOTALL,
+    )
     if header is None:
         return None
 
@@ -346,6 +360,10 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         return
     generator = nix_without_comments(generator_path.read_text(encoding="utf-8"))
     outer_scope = outer_per_system_let(generator)
+    if outer_scope is None:
+        failures.append(
+            "rust-gates.nix does not expose perSystem as the direct canonical module result"
+        )
     statements = (
         top_level_nix_statements(outer_scope[0]) if outer_scope is not None else None
     )

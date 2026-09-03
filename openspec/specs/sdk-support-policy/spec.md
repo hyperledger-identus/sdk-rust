@@ -252,8 +252,10 @@ helper inheritance, manifest binding, and complete mapping SHALL be immediate
 bindings of the same outer `perSystem` `let` scope, connected from
 `manifest.gates` through `listToAttrs` to that scope's returned top-level
 `checks` value. That scope SHALL NOT shadow the trusted `builtins` or `pkgs`
-roots. Lexical scanning SHALL distinguish comments from comment delimiters
-inside valid Nix strings.
+roots, and the canonical module result SHALL NOT be wrapped in an enclosing
+lexical scope that can shadow those roots. Lexical scanning SHALL distinguish
+comments from comment delimiters inside valid Nix strings and SHALL recognize
+escaped delimiters in indented strings.
 
 #### Scenario: Constant mapped name collapses the gate graph
 
@@ -291,3 +293,16 @@ inside valid Nix strings.
 - **WHEN** an unrelated valid Nix string contains `#`, `/*`, or `*/`
 - **THEN** lexical preprocessing preserves the string and the canonical gate
   mapping remains accepted
+
+#### Scenario: Enclosing scope shadows a trusted root
+
+- **WHEN** a `let` around the returned module redefines `builtins` or another
+  trusted root before `perSystem`
+- **THEN** structural validation rejects the non-canonical module wrapper
+
+#### Scenario: Indented string contains an escaped delimiter
+
+- **WHEN** valid unrelated string data uses `''${`, `'''`, or another Nix
+  indented-string escape before a comment marker
+- **THEN** lexical preprocessing finds the true closing delimiter and preserves
+  canonical gate validation

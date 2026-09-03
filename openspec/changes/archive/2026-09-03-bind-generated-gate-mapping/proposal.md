@@ -17,8 +17,12 @@ still reports success.
   published result to belong to the same immediate `perSystem` `let` scope.
 - Reject immediate bindings that shadow the trusted `builtins` or `pkgs`
   roots used by that contract.
+- Require `perSystem` to be the direct canonical module result so an enclosing
+  lexical scope cannot shadow trusted roots.
 - Tokenize comments with string awareness so comment markers in unrelated
   valid Nix strings cannot corrupt structural validation.
+- Recognize Nix indented-string escape prefixes before treating `''` as the
+  closing delimiter.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

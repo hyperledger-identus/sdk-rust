@@ -339,6 +339,38 @@ class SupportPolicyTests(unittest.TestCase):
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_enclosing_let_cannot_shadow_trusted_root(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            """{ inputs, ... }:
+{
+  perSystem =""",
+            """{ inputs, ... }:
+let
+  builtins = {
+    readFile = _: "";
+    fromTOML = _: { gates = [ ]; };
+  };
+in
+{
+  perSystem =""",
+        )
+        self.assert_fails(
+            "does not expose perSystem as the direct canonical module result"
+        )
+
+    def test_indented_string_escapes_do_not_terminate_string(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      interpolationEscape = ''literal ''${notInterpolation} # string data'';
+      quoteEscape = ''literal ''' quote # string data'';
+      controlEscape = ''literal ''\\n # string data'';
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_check_graph_must_be_imported_by_flake(self) -> None:
         self.replace("flake.nix", "        ./nix/checks\n", "")
         self.assert_fails("flake.nix does not import the nix/checks module")

@@ -35,12 +35,19 @@ redefine `map`, `listToAttrs`, or `manifest` and supply the accepted mapping.
 The same immediate scope must not bind `builtins` or `pkgs`, because Nix `let`
 bindings are recursive and could otherwise shadow the trusted roots used by
 the manifest and helper-origin checks.
+The file prefix is constrained to the canonical module lambda and direct
+attribute-set result, with `perSystem` as that result's binding. This prevents
+an enclosing `let` or other lexical wrapper from rebinding roots before the
+validated scope.
 
 Source masking first identifies quoted and indented strings, then removes only
 line and block comments outside those strings while preserving offsets. Scope
 scanning masks the same strings. A URL fragment or comment delimiter in an
 unrelated string therefore remains valid source data rather than truncating
 the parser input or becoming a structural decoy.
+Within an indented string, `''${`, `'''`, and `''\` are escape prefixes rather
+than closing delimiters and are skipped accordingly before searching for the
+true terminating `''`.
 
 Two fixture mutations independently replace the mapped name with a constant
 and the mapped value with an empty attribute set. Both must return a stable

@@ -105,3 +105,19 @@ and string scanning now share the same lexical precedence: strings are skipped
 before comment recognition, and comment contents cannot open strings. A local
 contradiction-focused pass found no remaining trusted-root or comment-order
 bypass and no delivery blocker.
+
+## Enclosing-scope and indented-string correction contract
+
+The requested review on `0593cad` found two more reproducible boundaries. An
+enclosing `let` around the returned module can shadow `builtins` before the
+validated `perSystem` scope, collapsing the manifest to no gates. Separately,
+the indented-string scanner treats escape prefixes including `''${`, `'''`,
+and `''\` as closing delimiters, causing false rejection when later `#` data is
+misclassified as a comment. The first finding is P1 and the second P2; both
+block merge.
+
+The validator SHALL require the canonical module lambda to return the module
+attribute set directly, without an enclosing lexical wrapper before
+`perSystem`. The indented-string scanner SHALL skip Nix escape prefixes before
+accepting a closing `''`. An exact enclosing `builtins` mutation must fail and
+valid escaped-delimiter strings containing comment markers must pass.

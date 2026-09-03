@@ -9,26 +9,26 @@
 
 ## 2. Registration domain contract
 
-- [ ] 2.1 Add bounded redacted identifiers, public data, failure codes,
+- [x] 2.1 Add bounded redacted identifiers, public data, failure codes,
       secret modes, update operations, actions, jobs, requests, and results
-- [ ] 2.2 Enforce request/state/action/identity invariants and native/JSON
+- [x] 2.2 Enforce request/state/action/identity invariants and native/JSON
       resource and private-material boundaries
-- [ ] 2.3 Add the object-safe registrar port and exact optional registry dispatch
+- [x] 2.3 Add the object-safe registrar port and exact optional registry dispatch
 
 ## 3. Conformance and misuse resistance
 
-- [ ] 3.1 Add independent PRISM- and Midnight-shaped registrar mocks covering
+- [x] 3.1 Add independent PRISM- and Midnight-shaped registrar mocks covering
       immediate and multi-step create/update/deactivate flows
-- [ ] 3.2 Cover malformed states, method/job/identity mismatch, ordered updates,
+- [x] 3.2 Cover malformed states, method/job/identity mismatch, ordered updates,
       stale actions, idempotency conflicts, cancellation truth, and redaction
-- [ ] 3.3 Cover bounds, constructor/JSON equivalence, object-safe concurrency,
+- [x] 3.3 Cover bounds, constructor/JSON equivalence, object-safe concurrency,
       future-drop semantics, runtime isolation, and release performance
 
 ## 4. Delivery evidence
 
-- [ ] 4.1 Run focused coverage and conformance plus workspace, feature, lint,
+- [x] 4.1 Run focused coverage and conformance plus workspace, feature, lint,
       docs, target, MSRV, factory, and full Nix gates
-- [ ] 4.2 Complete a distinct semantic/security/API review and synchronize the
+- [x] 4.2 Complete a distinct semantic/security/API review and synchronize the
       canonical DID Core specification with exact verification evidence
-- [ ] 4.3 Produce the factory receipt, archive the change, and deliver the
+- [x] 4.3 Produce the factory receipt, archive the change, and deliver the
       signed issue-linked PR through the all-green `develop` merge policy

@@ -43,4 +43,40 @@
 
 # Post-implementation semantic, security and API review
 
-Pending implementation and exact-head verification.
+- **Reviewed head:** `5d178dba7047c145a4e0f0dda6bd1a86b5a40c31`
+- **Review completed:** 2026-09-03T07:36:05Z
+- **Result:** passed with no unresolved finding
+
+The exact diff from `558677ef0359f9af241232ed13422a005d5cc5b0`
+was re-read after focused conformance, both workspace feature modes, strict
+Clippy, rustdoc, exact-head coverage, release performance and all compatible
+Nix checks. The public surface is additive to the unpublished `identus-did`
+crate: closed requests, validated jobs/results, one object-safe registrar and
+one optional method-binding capability. Existing resolution, dereferencing and
+cache behavior is unchanged unless an application explicitly selects it.
+
+The review verified that create/update/deactivate identity is exact, updates
+retain order, continuations cannot inject a stale action, terminal jobs and
+jobless non-terminal states cannot be constructed, and wait hints stay within
+24 hours. Every mutation carries an idempotency key, but durable replay and
+conflict storage remain an explicit adapter obligation. Dropping a future only
+drops observation; cancellation remains a request and cannot claim rollback.
+
+Secret modes expose policy or opaque custody references, never key bytes.
+Registration maps, complete documents and document metadata are recursively
+checked for reserved/private-material-shaped fields. Their diagnostics reveal
+only variants, counts and presence. Raw JSON, strings, maps, arrays, depth,
+nodes, identifiers, handles and returned-handle sets are bounded before port
+dispatch. Requests/results deliberately have no DIF JSON representation.
+
+PRISM-shaped immediate and Midnight-shaped action/wait/finality mocks exercise
+the same `Arc<dyn DidRegistrar>` seam without method types entering core. Exact
+registry lookup has no fallback or prefix behavior; known missing and unknown
+methods return different valid terminal codes. There is no network,
+filesystem, clock, entropy, storage, signing, cache mutation, chain or runtime
+dependency in the generic implementation.
+
+The Nix MSRV gate found one new-syntax `if let` chain accepted by the local
+compiler but not Rust 1.85. It was replaced with equivalent nested conditions,
+re-reviewed and rerun through the complete matrix. No downstream repository was
+edited, switched, staged, copied from or built, and SDK `main` remains intact.

@@ -84,11 +84,12 @@ This validates representation, not curve membership or usage policy.
 ### Decision 3: public-only and extension-preserving
 
 Label `-4` is rejected before the value can enter `PublicKeyCose`. Known
-structural labels are validated once, and up to 32 additional top-level
-parameters are retained in the private wire representation. Common `kid`,
-`alg`, `key_ops` and Base IV members are also retained, including explicitly
-present empty byte strings where the RFC permits them, but are not interpreted
-as trust, capability or authorization.
+structural labels are validated once, and up to 32 non-structural top-level
+parameters are retained in the private wire representation. Only `kty`, `crv`,
+`x`, and `y` are excluded from that count. Common `kid`, `alg`, `key_ops` and
+Base IV members therefore share the bound with unknown members and are also
+retained, including explicitly present empty byte strings where the RFC permits
+them, but are not interpreted as trust, capability or authorization.
 
 The debug and error surfaces report only typed profile information, input
 lengths and invariant names; they never render raw CBOR or extension values.
@@ -100,9 +101,10 @@ requires it.
 
 `from_cbor` rejects inputs over 4096 bytes before allocation, parses with a
 depth limit of 16, requires exactly one untagged CBOR map and exact end of
-input, and rejects duplicate map keys. It limits additional top-level
-parameters to 32. Floating-point extension values are rejected because the
-selected codec does not emit half-precision floats and therefore cannot
+input, and rejects duplicate map keys. It limits common-plus-unknown top-level
+parameters to 32 by counting the normalized source map and excluding only
+`kty`, `crv`, `x`, and `y`. Floating-point extension values are rejected because
+the selected codec does not emit half-precision floats and therefore cannot
 guarantee RFC 8949 preferred serialization for them.
 
 `to_cbor` normalizes the supported `kty` and `crv` identifiers, uses definite

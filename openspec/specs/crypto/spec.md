@@ -372,13 +372,16 @@ private material SHALL always be rejected.
 
 The parser SHALL reject inputs over 4096 bytes before decoding, use a nesting
 limit of 16, require one untagged map with exact end of input, reject duplicate
-labels and allow no more than 32 additional top-level parameters. Common and
-unknown public parameters SHALL survive parse/encode without being interpreted
-or exposed as third-party wire types. Floating-point extension values SHALL be
-rejected. The encoder SHALL normalize supported `kty` and `crv` registry names
-to integers and emit definite-length, shortest-form CBOR with recursively
-length-first map-key ordering: shorter deterministic key encodings first, then
-bytewise lexical order for keys of equal length.
+labels and allow no more than 32 non-structural top-level parameters. Only
+`kty`, `crv`, `x`, and `y` are structural for this bound; common parameters such
+as `alg`, `key_ops`, `kid`, and Base IV count together with unknown public
+parameters. Common and unknown public parameters SHALL survive parse/encode
+without being interpreted or exposed as third-party wire types. Floating-point
+extension values SHALL be rejected. The encoder SHALL normalize supported
+`kty` and `crv` registry names to integers and emit definite-length,
+shortest-form CBOR with recursively length-first map-key ordering: shorter
+deterministic key encodings first, then bytewise lexical order for keys of equal
+length.
 
 #### Scenario: registered OKP and EC2 fixtures are accepted
 
@@ -415,7 +418,7 @@ bytewise lexical order for keys of equal length.
 #### Scenario: parser resources and message boundaries are enforced
 
 - **WHEN** input exceeds 4096 bytes, nesting exceeds 16, a tag or trailing
-  item is present, or more than 32 additional parameters are supplied
+  item is present, or more than 32 common-plus-unknown parameters are supplied
 - **THEN** parsing SHALL reject the input before returning a key
 
 #### Scenario: duplicate labels cannot be smuggled

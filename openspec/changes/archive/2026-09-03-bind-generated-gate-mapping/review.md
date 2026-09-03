@@ -152,3 +152,19 @@ rejected fail-closed, and interpolation scanning balances braces while
 recursively consuming nested strings and comments. Exact quoted-root and
 dynamic-root mutations fail, both nested-string forms pass, and a final local
 contradiction-focused review found no remaining bypass or delivery blocker.
+
+## Formal-root and token-context correction contract
+
+The exact-head review of `51f2106` found three reproducible lexical boundaries.
+An injected `builtins` argument in the `perSystem` formals shadows the global
+root before the validated `let`. A `let` or `in` path component is interpreted
+as a scope keyword. Adjacent apostrophes within a valid identifier are
+interpreted as an indented-string opener. The first finding is P1 and the other
+two are P2; all block merge.
+
+The validator SHALL reject `builtins` in the immediate `perSystem` formals and
+accept only the canonical simple-formal shape. It SHALL skip path and URI
+tokens before scope-keyword recognition and SHALL open an indented string only
+at a valid token boundary. Exact injected-formal mutation must fail; unrelated
+path/URI values containing `let` or `in` and identifiers containing adjacent
+apostrophes must preserve canonical acceptance.

@@ -55,6 +55,13 @@ true terminating `''`.
 Unescaped `${...}` enters an interpolation scanner that balances braces,
 skips comments, and recursively consumes nested quoted or indented strings.
 An inner string delimiter therefore cannot terminate its outer string.
+The accepted `perSystem` formal set is parsed as simple identifier arguments;
+`builtins` is rejected because the mapping contract requires the global root,
+while the canonical `pkgs` argument remains required for `pkgs.lib` helpers.
+Lexical scope scanning skips path and URI tokens before interpreting `let` or
+`in`, and recognizes an indented-string opener only at a token boundary. Valid
+path components and apostrophes within identifiers therefore cannot create
+phantom scopes or strings.
 
 Two fixture mutations independently replace the mapped name with a constant
 and the mapped value with an empty attribute set. Both must return a stable

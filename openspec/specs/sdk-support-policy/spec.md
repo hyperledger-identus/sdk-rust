@@ -322,3 +322,19 @@ forms before determining an outer string's terminator.
   braces, comments, or comment-marker data
 - **THEN** lexical preprocessing returns to the outer string only after the
   complete interpolation and preserves canonical gate validation
+
+#### Scenario: Per-system formal shadows the global builtins root
+
+- **WHEN** the immediate `perSystem` function formals bind `builtins`
+- **THEN** structural validation rejects the injected trusted root
+
+#### Scenario: Path tokens contain scope keywords
+
+- **WHEN** unrelated valid path or URI tokens contain `let` or `in` components
+- **THEN** lexical preprocessing does not open or close a lexical scope
+
+#### Scenario: Identifier contains adjacent apostrophes
+
+- **WHEN** an unrelated valid identifier contains adjacent apostrophes
+- **THEN** lexical preprocessing does not treat those apostrophes as an
+  indented-string opener

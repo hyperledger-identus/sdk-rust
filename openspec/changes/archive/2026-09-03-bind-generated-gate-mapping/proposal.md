@@ -27,6 +27,9 @@ still reports success.
   closing delimiter.
 - Track interpolation braces and nested strings before closing outer quoted or
   indented strings.
+- Reject a `builtins` binding in the immediate `perSystem` function formals.
+- Distinguish path/URI tokens and apostrophes inside identifiers from lexical
+  `let`/`in` keywords and indented-string delimiters.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

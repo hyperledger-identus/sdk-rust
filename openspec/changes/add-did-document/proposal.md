@@ -14,8 +14,8 @@ separate changes.
 
 - Add immutable validated DID document, verification method, relationship and
   service domain types to `identus-did`.
-- Add a small bounded absolute RFC 3986 `Uri` value for aliases, service ids and
-  string service endpoints.
+- Add a small bounded absolute RFC 3986 `Uri` value for aliases, verification
+  method ids/references, service ids and string service endpoints.
 - Preserve W3C scalar-or-array forms and unknown extension entries across
   semantic JSON round trips.
 - Validate public JWK/multibase structural boundaries without assigning curve,

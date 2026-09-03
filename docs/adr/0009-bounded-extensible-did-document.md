@@ -22,8 +22,10 @@ context. These are compatibility inputs rather than source foundations.
 
 1. `identus-did` owns private-field, validated DID document, verification
    method, relationship and service values derived from W3C DID Core 1.0.
-2. Existing `Did`/`DidUrl` values remain authoritative. A dependency-free
-   `Uri` adds bounded absolute RFC 3986 generic syntax for aliases and services.
+2. Existing `Did` remains authoritative for subjects/controllers. A
+   dependency-free `Uri` adds bounded absolute RFC 3986 generic syntax for
+   aliases, verification identifiers and services; method adapters can parse a
+   DID-shaped `Uri` as the stronger existing `DidUrl` type.
 3. Scalar-or-array forms and unknown properties are preserved semantically.
    Extension maps cannot shadow reserved members and are recursively bounded.
 4. Verification method type and suite properties remain open. The core

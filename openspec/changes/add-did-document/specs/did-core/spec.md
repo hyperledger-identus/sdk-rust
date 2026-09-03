@@ -47,14 +47,15 @@ round trips. Extensions SHALL NOT shadow reserved core properties.
 
 ### Requirement: Open public verification method boundary
 
-A `VerificationMethod` SHALL contain a typed `DidUrl` id, a bounded non-empty
-open type string, a typed controller `Did` and bounded suite-defined properties.
-The capability SHALL recognize and expose `publicKeyJwk` maps and
+A `VerificationMethod` SHALL contain a typed `Uri` id, a bounded non-empty open
+type string, a typed controller `Did` and bounded suite-defined properties.
+DID-shaped ids MAY be parsed separately as `DidUrl` by downstream method
+adapters. The capability SHALL recognize and expose `publicKeyJwk` maps and
 `publicKeyMultibase` strings while preserving other properties without
 cryptosuite interpretation. It SHALL reject simultaneous recognized material
 forms and all registered private JWK members. The five core relationship
 properties SHALL contain one or more embedded verification methods and/or typed
-`DidUrl` references.
+`Uri` references.
 
 #### Scenario: embedded and referenced relationships coexist
 

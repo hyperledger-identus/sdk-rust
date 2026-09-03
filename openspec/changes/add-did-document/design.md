@@ -47,9 +47,10 @@ unresolved. No donor source is copied.
 `DidDocument`, `VerificationMethod` and `Service` expose validating constructors
 and read-only accessors. Serde deserialization routes through the same
 validation path rather than deriving directly onto public fields. The existing
-`Did` and `DidUrl` types remain the identifier authority. A new `Uri` value
-implements only bounded absolute RFC 3986 generic syntax needed by aliases and
-services.
+`Did` remains the DID-subject/controller authority. A new `Uri` value implements
+bounded absolute RFC 3986 generic syntax for aliases, verification identifiers
+and services; callers can separately parse DID-shaped URIs as `DidUrl` when a
+method-specific layer requires that stronger profile.
 
 Collections are represented as absent-or-present non-empty vectors. A reusable
 one-or-many wire enum retains whether JSON supplied a scalar or array while
@@ -59,7 +60,7 @@ canonicalization.
 
 ### Decision 2: keep verification suite policy open
 
-A verification method requires a DID URL `id`, a DID `controller`, a bounded
+A verification method requires a URI `id`, a DID `controller`, a bounded
 non-empty open `type` string and an extension/property map. The generic layer
 recognizes `publicKeyJwk` and `publicKeyMultibase`: it validates their JSON
 shapes, rejects their simultaneous presence and refuses registered private JWK
@@ -68,7 +69,7 @@ Whether an unknown verification type has sufficient material is decided by its
 cryptosuite adapter, because DID Core cannot infer that from an open map.
 
 Embedded relationship values use the same verification method type; references
-use `DidUrl`. The five core relationships are represented explicitly. The core
+use `Uri`. The five core relationships are represented explicitly. The core
 does not require a reference to resolve inside the same document, because DID
 Core permits dereferencing another DID document.
 

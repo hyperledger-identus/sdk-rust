@@ -18,6 +18,7 @@ const INVALID_DID_URL_CODE: ErrorCode = ErrorCode::new("did.invalid_did_url");
 const INVALID_URI_CODE: ErrorCode = ErrorCode::new("did.invalid_uri");
 const INVALID_DOCUMENT_CODE: ErrorCode = ErrorCode::new("did.invalid_document");
 const INVALID_RESOLUTION_CODE: ErrorCode = ErrorCode::new("did.invalid_resolution");
+const INVALID_METHOD_REGISTRY_CODE: ErrorCode = ErrorCode::new("did.invalid_method_registry");
 
 /// A non-sensitive reason that a DID or DID URL failed lexical validation.
 ///
@@ -220,6 +221,26 @@ impl fmt::Display for ResolutionError {
     }
 }
 
+/// A non-sensitive DID method registry construction failure.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum RegistryError {
+    /// More than one binding claimed the same exact DID method.
+    DuplicateMethod,
+    /// The registry exceeded the SDK's method-entry limit.
+    TooManyMethods,
+}
+
+impl fmt::Display for RegistryError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let message = match self {
+            Self::DuplicateMethod => "a DID method already has a registered binding",
+            Self::TooManyMethods => "the DID method registry exceeds its entry limit",
+        };
+        f.write_str(message)
+    }
+}
+
 /// A DID-domain validation failure.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -238,6 +259,8 @@ pub enum Error {
     InvalidDocument(DocumentError),
     /// A DID resolution result failed structural or state validation.
     InvalidResolution(ResolutionError),
+    /// A DID method registry failed bounded deterministic construction.
+    InvalidRegistry(RegistryError),
 }
 
 impl Error {
@@ -291,6 +314,15 @@ impl Error {
                 CAPABILITY,
                 "invalid DID resolution result",
             ),
+            Error::InvalidRegistry(reason) => IdentusError::public(
+                INVALID_METHOD_REGISTRY_CODE,
+                match reason {
+                    RegistryError::DuplicateMethod => ErrorKind::Conflict,
+                    RegistryError::TooManyMethods => ErrorKind::InvalidInput,
+                },
+                CAPABILITY,
+                "invalid DID method registry",
+            ),
         }
     }
 }
@@ -307,6 +339,7 @@ impl fmt::Display for Error {
             Error::InvalidResolution(reason) => {
                 write!(f, "invalid DID resolution result: {reason}")
             }
+            Error::InvalidRegistry(reason) => write!(f, "invalid DID method registry: {reason}"),
         }
     }
 }

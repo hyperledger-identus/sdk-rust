@@ -12,6 +12,7 @@ mod document;
 pub mod error;
 pub mod method;
 pub mod multihash;
+mod query;
 mod resolution;
 mod uri;
 pub mod version;
@@ -25,6 +26,12 @@ pub use document::{
 pub use error::{DidSyntaxError, DocumentError, Error, ResolutionError, UriSyntaxError};
 pub use method::DidMethod;
 pub use multihash::Multihash;
+pub use query::{
+    DereferencingOptions, DereferencingOptionsBuilder, DidResolutionFuture, DidResolver,
+    DidUrlDereferencer, DidUrlDereferencingFuture, MAX_DID_RESOLUTION_OPTIONS_BYTES,
+    MAX_VERIFICATION_RELATIONSHIP_BYTES, ResolutionOptions, ResolutionOptionsBuilder,
+    VerificationRelationshipName,
+};
 pub use resolution::{
     DereferencedContent, DidDocumentMetadata, DidDocumentMetadataBuilder, DidResolutionDateTime,
     DidResolutionError, DidResolutionErrorKind, DidResolutionMetadata, DidResolutionResult,

@@ -251,7 +251,9 @@ entry. The mapping and attribute-set conversion functions SHALL resolve to
 helper inheritance, manifest binding, and complete mapping SHALL be immediate
 bindings of the same outer `perSystem` `let` scope, connected from
 `manifest.gates` through `listToAttrs` to that scope's returned top-level
-`checks` value.
+`checks` value. That scope SHALL NOT shadow the trusted `builtins` or `pkgs`
+roots. Lexical scanning SHALL distinguish comments from comment delimiters
+inside valid Nix strings.
 
 #### Scenario: Constant mapped name collapses the gate graph
 
@@ -277,3 +279,15 @@ bindings of the same outer `perSystem` `let` scope, connected from
 - **WHEN** an inner `let` redefines `map`, `listToAttrs`, or `manifest` and
   contains a canonical-looking mapping while outer bindings remain as decoys
 - **THEN** structural validation rejects the cross-scope mapping contract
+
+#### Scenario: Trusted root is shadowed in the accepted scope
+
+- **WHEN** an immediate `let` binding redefines `builtins` or `pkgs`
+- **THEN** structural validation rejects the untrusted root before accepting
+  manifest parsing or helper inheritance
+
+#### Scenario: Comment delimiter belongs to string data
+
+- **WHEN** an unrelated valid Nix string contains `#`, `/*`, or `*/`
+- **THEN** lexical preprocessing preserves the string and the canonical gate
+  mapping remains accepted

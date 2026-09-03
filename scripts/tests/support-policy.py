@@ -293,6 +293,52 @@ class SupportPolicyTests(unittest.TestCase):
             "does not directly return its manifest-mapped generatedChecks"
         )
 
+    def test_same_scope_builtins_cannot_replace_global_builtins(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      builtins = {
+        readFile = _: "";
+        fromTOML = _: { gates = [ ]; };
+      };
+      manifest = builtins.fromTOML""",
+        )
+        self.assert_fails("shadows trusted root(s) in perSystem let: builtins")
+
+    def test_same_scope_pkgs_cannot_replace_function_argument(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pkgs = { lib = {
+        map = _: _: [ ];
+        listToAttrs = _: { };
+      }; };
+      manifest = builtins.fromTOML""",
+        )
+        self.assert_fails("shadows trusted root(s) in perSystem let: pkgs")
+
+    def test_comment_markers_inside_strings_preserve_valid_source(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      urlData = "https://example.invalid/#fragment";
+      blockData = ''literal /* not a comment */ text'';
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_string_delimiters_inside_comments_do_not_mask_live_source(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      # An unmatched " inside a comment is not a string.
+      /* Neither is " an unmatched string inside a block comment. */
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_check_graph_must_be_imported_by_flake(self) -> None:
         self.replace("flake.nix", "        ./nix/checks\n", "")
         self.assert_fails("flake.nix does not import the nix/checks module")

@@ -15,6 +15,10 @@ still reports success.
 - Require every generated attribute value to come from `makeGate gate`.
 - Require the manifest binding, mapping helpers, generated mapping, and
   published result to belong to the same immediate `perSystem` `let` scope.
+- Reject immediate bindings that shadow the trusted `builtins` or `pkgs`
+  roots used by that contract.
+- Tokenize comments with string awareness so comment markers in unrelated
+  valid Nix strings cannot corrupt structural validation.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

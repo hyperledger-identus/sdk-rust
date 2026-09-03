@@ -32,6 +32,15 @@ to `generatedChecks`. The manifest binding and `inherit (pkgs.lib)` statement
 must be top-level statements in that same scope, and the outer `in` expression
 must return `checks = generatedChecks`. Consequently an inner `let` cannot
 redefine `map`, `listToAttrs`, or `manifest` and supply the accepted mapping.
+The same immediate scope must not bind `builtins` or `pkgs`, because Nix `let`
+bindings are recursive and could otherwise shadow the trusted roots used by
+the manifest and helper-origin checks.
+
+Source masking first identifies quoted and indented strings, then removes only
+line and block comments outside those strings while preserving offsets. Scope
+scanning masks the same strings. A URL fragment or comment delimiter in an
+unrelated string therefore remains valid source data rather than truncating
+the parser input or becoming a structural decoy.
 
 Two fixture mutations independently replace the mapped name with a constant
 and the mapped value with an empty attribute set. Both must return a stable
@@ -59,6 +68,10 @@ semantic equivalence across arbitrary Nix expressions.
   top-level statement boundaries while ignoring strings and balanced nested
   delimiters; canonical regexes then match complete statements instead of the
   whole source.
+- A future trusted root could become shadowable without being listed. The
+  accepted mapping contract currently relies only on `builtins` and `pkgs`;
+  changes that introduce another root must update this explicit fail-closed
+  set and its review evidence.
 
 ## Verification
 

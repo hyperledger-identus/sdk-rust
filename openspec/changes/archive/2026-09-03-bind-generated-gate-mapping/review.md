@@ -82,3 +82,18 @@ and `let`/`in` pairs, and splits only immediate-scope statements. The exact
 hosted-review mutation now fails, the canonical generator passes, and a local
 contradiction-focused review found no remaining cross-scope acceptance path or
 delivery blocker.
+
+## Trusted-root and lexical-comment correction contract
+
+The final hosted review on `09eb627` produced two reproducible findings. First,
+an immediate recursive binding can redefine `builtins` or `pkgs`, allowing the
+canonical manifest/helper expressions to resolve through attacker-controlled
+roots. Second, comment removal runs before string masking, so `#` and block
+comment delimiters inside valid strings can truncate otherwise valid source.
+The trusted-root finding is P1; the false rejection is P2. Both block merge.
+
+The validator SHALL reject immediate outer bindings named `builtins` or `pkgs`.
+It SHALL identify string spans before removing comments and remove only comment
+syntax outside those spans. Exact `builtins` and `pkgs` shadows must fail, while
+unrelated double-quoted and indented strings containing line/block comment
+markers must preserve canonical acceptance.

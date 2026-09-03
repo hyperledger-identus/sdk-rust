@@ -13,6 +13,10 @@
 - [x] 2.3 Require mapping helpers from `pkgs.lib` and cover local replacements.
 - [x] 2.4 Require all mapping inputs and output in the immediate outer
       `perSystem` scope and cover nested shadowing.
+- [ ] 2.5 Reject same-scope shadowing of `builtins` and `pkgs` with exact
+      mutations.
+- [ ] 2.6 Strip comments only outside Nix strings and cover line/block markers
+      embedded in valid strings.
 
 ## 3. Verification and integration
 
@@ -23,3 +27,5 @@
       review integration conditions.
 - [x] 3.5 Rerun complete local evidence after the nested-shadow correction and
       prepare the final hosted review-thread clearance gate.
+- [ ] 3.6 Rerun complete local and hosted evidence after trusted-root and
+      lexical-comment corrections, then clear both review threads.

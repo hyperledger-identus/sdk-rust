@@ -145,9 +145,22 @@ def workspace_packages(
     return packages, manifests
 
 
-def nix_without_comments(text: str) -> str:
-    without_blocks = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
-    return re.sub(r"#.*$", "", without_blocks, flags=re.MULTILINE)
+def nix_string_end(text: str, index: int) -> int | None:
+    """Return the exclusive end of a Nix string beginning at index."""
+    if text[index] == '"':
+        index += 1
+        while index < len(text):
+            if text[index] == "\\":
+                index += 2
+                continue
+            index += 1
+            if text[index - 1] == '"':
+                return index
+        return len(text)
+    if text.startswith("''", index):
+        end = text.find("''", index + 2)
+        return len(text) if end == -1 else end + 2
+    return None
 
 
 def nix_string_mask(text: str) -> str:
@@ -155,26 +168,61 @@ def nix_string_mask(text: str) -> str:
     masked = list(text)
     index = 0
     while index < len(text):
-        if text[index] == '"':
-            start = index
+        end = nix_string_end(text, index)
+        if end is not None:
+            masked[index:end] = " " * (end - index)
+            index = end
+        else:
             index += 1
-            while index < len(text):
-                if text[index] == "\\":
-                    index += 2
-                    continue
-                index += 1
-                if text[index - 1] == '"':
-                    break
-            masked[start:index] = " " * (index - start)
+    return "".join(masked)
+
+
+def nix_without_comments(text: str) -> str:
+    """Mask comments outside Nix strings while preserving source shape."""
+    without_comments = list(text)
+    index = 0
+    while index < len(text):
+        string_end = nix_string_end(text, index)
+        if string_end is not None:
+            index = string_end
             continue
-        if text.startswith("''", index):
+        if text[index] == "#":
+            end = text.find("\n", index)
+            end = len(text) if end == -1 else end
+            without_comments[index:end] = " " * (end - index)
+            index = end
+            continue
+        if text.startswith("/*", index):
             start = index
-            end = text.find("''", index + 2)
-            index = len(text) if end == -1 else end + 2
-            masked[start:index] = " " * (index - start)
+            index += 2
+            depth = 1
+            while index < len(text) and depth:
+                if text.startswith("/*", index):
+                    depth += 1
+                    index += 2
+                elif text.startswith("*/", index):
+                    depth -= 1
+                    index += 2
+                else:
+                    index += 1
+            for position in range(start, index):
+                if without_comments[position] != "\n":
+                    without_comments[position] = " "
             continue
         index += 1
-    return "".join(masked)
+    return "".join(without_comments)
+
+
+def nix_statement_binds(statement: str, name: str) -> bool:
+    """Return whether an immediate let statement binds the given identifier."""
+    if re.match(rf"\s*{re.escape(name)}\s*(?:=|\.)", statement):
+        return True
+    inherited = re.fullmatch(
+        r"\s*inherit(?:\s*\([^)]*\))?\s+(.*?)\s*;\s*", statement, re.DOTALL
+    )
+    return inherited is not None and name in re.findall(
+        r"\b[A-Za-z_][A-Za-z0-9_']*\b", inherited.group(1)
+    )
 
 
 def outer_per_system_let(text: str) -> tuple[str, str] | None:
@@ -302,6 +350,16 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         top_level_nix_statements(outer_scope[0]) if outer_scope is not None else None
     )
     statements = statements or []
+    shadowed_trusted_roots = sorted(
+        root
+        for root in ("builtins", "pkgs")
+        if any(nix_statement_binds(statement, root) for statement in statements)
+    )
+    if shadowed_trusted_roots:
+        failures.append(
+            "rust-gates.nix shadows trusted root(s) in perSystem let: "
+            + ", ".join(shadowed_trusted_roots)
+        )
     library_inherit = next(
         (
             match
@@ -358,14 +416,17 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         if outer_scope is not None
         else None
     )
-    connected_result = all(
-        value is not None
-        for value in (
-            library_inherit,
-            manifest_binding,
-            generated_binding,
-            published_result,
+    connected_result = (
+        all(
+            value is not None
+            for value in (
+                library_inherit,
+                manifest_binding,
+                generated_binding,
+                published_result,
+            )
         )
+        and not shadowed_trusted_roots
     )
     if manifest_binding is None:
         failures.append("rust-gates.nix does not parse gates.toml as manifest")

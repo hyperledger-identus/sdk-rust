@@ -20,12 +20,12 @@
 - [x] 3.3 Prove native/serde equivalence, exact round trips and component views
 - [x] 3.4 Run and record a release parser throughput diagnostic
 - [x] 3.5 Create bounded fuzzing follow-up #35 linked to parent #5
-- [ ] 3.6 Run focused, workspace, wasm/mobile, lint, formatting, docs,
+- [x] 3.6 Run focused, workspace, wasm/mobile, lint, formatting, docs,
       OpenSpec, supply-chain and Nix gates
 
 ## 4. Delivery evidence
 
-- [ ] 4.1 Sync the canonical did-core spec, archive the OpenSpec change and
+- [x] 4.1 Sync the canonical did-core spec, archive the OpenSpec change and
       record exact verification plus distinct local semantic/security review
-- [ ] 4.2 Prepare the issue-linked PR receipt and record exact-head CI, hosted
-      review and green-only merge evidence
+- [x] 4.2 Prepare the issue-linked PR receipt; reserve exact-head hosted CI,
+      review and green-only merge evidence for the pull request and issue

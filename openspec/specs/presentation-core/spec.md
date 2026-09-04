@@ -202,8 +202,10 @@ particular user interface or can produce a proof.
 
 A `PresentationDisclosurePlan` SHALL contain 1–64 credential selections and
 SHALL validate them against one `PresentationRequest` and one
-`PresentationCandidateSet`. Construction SHALL revalidate the candidate set
-against the supplied request, reject duplicate query-ID/handle pairs, require
+`PresentationCandidateSet`. A candidate set SHALL retain a private exact
+request snapshot, and plan construction SHALL reject a supplied request that
+differs in any field before revalidating the candidate set. Construction SHALL
+reject duplicate query-ID/handle pairs, require
 every selection to reference an available candidate, and require every
 selected path and intent to match a claim requested by that query and a path
 reported satisfiable by that candidate. Every required query claim SHALL be

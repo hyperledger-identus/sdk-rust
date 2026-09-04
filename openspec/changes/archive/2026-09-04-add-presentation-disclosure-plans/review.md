@@ -60,9 +60,10 @@ Verdict: READY to implement after strict structural validation.
 2. The public surface is limited to bounded selected claims, bounded
    credential selections and a request-validated disclosure plan. Existing
    request and candidate types remain source compatible.
-3. Validation reuses one private candidate/request consistency routine. A
-   candidate set created for another request cannot be smuggled into a plan,
-   and a selected query/handle pair must exist in the revalidated set.
+3. Validation binds each candidate set to a private clone of its exact request
+   and reuses one private candidate/request consistency routine. A candidate
+   set created for another request cannot be smuggled into a plan, and a
+   selected query/handle pair must exist in the revalidated set.
 4. Query coverage and multiplicity match the declared generic capability:
    every query is covered, single queries select exactly one credential, and
    multiple queries select one or more. The same opaque handle may satisfy
@@ -75,9 +76,10 @@ Verdict: READY to implement after strict structural validation.
    not format query IDs, credential handles or claim paths.
 7. Both collection bounds are enforced before nested scans. The maximum shape
    is approximately 1.3 million bounded equality comparisons, with no I/O or
-   cryptography. The release diagnostic measured 983,298 complete
-   request/candidate/plan validations per second locally; this is evidence,
-   not a portable threshold.
+   cryptography. Before request binding, the release diagnostic measured
+   983,298 complete request/candidate/plan validations per second locally;
+   after the hosted-review correction it measured 867,814 per second. These
+   are evidence, not a portable threshold.
 8. Positive tests cover DCQL-shaped, Midnight-shaped and unrelated format
    identifiers. Negative tests cover every new static error, both upper
    bounds, duplicates, cross-request use, unknown pairs, claim mismatches,
@@ -90,3 +92,14 @@ Verdict: READY to implement after strict structural validation.
     switched, staged, copied from or modified by this change.
 
 Verdict: READY for specification synchronization and pull-request review.
+
+## Hosted review correction
+
+Hosted review found that structural revalidation alone did not observe changed
+issuer, type or schema filters when another request reused query IDs, formats
+and claim paths. This was a blocking cross-request integrity gap. Candidate
+sets now retain a private exact request snapshot, plan construction rejects any
+field mismatch with a new static redacted error, and a regression test covers
+the formerly accepted restrictive-filter case. The reported signature/DCO
+finding was disproved by `%G? = G` for every branch commit and the green hosted
+DCO check.

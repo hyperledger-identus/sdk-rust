@@ -995,7 +995,35 @@ fn disclosure_plan_revalidates_candidates_against_the_exact_request() {
                 vec![selected_claim(&["second"], PresentationClaimIntent::Reveal,)],
             )],
         ),
-        Err(PresentationError::CandidateUnrequestedClaim)
+        Err(PresentationError::CandidateRequestMismatch)
+    );
+
+    let filtered_query = PresentationCredentialQuery::new(
+        query_id("query"),
+        format("example"),
+        false,
+        false,
+        PresentationCredentialFilters::new(
+            Some(vec![entity("did:example:restricted-issuer")]),
+            None,
+            None,
+        )
+        .unwrap(),
+        vec![claim(&["first"], PresentationClaimIntent::Reveal, true)],
+    )
+    .unwrap();
+    let filtered_request = request(vec![filtered_query]);
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &filtered_request,
+            &candidates,
+            vec![selection(
+                "query",
+                "credential",
+                vec![selected_claim(&["first"], PresentationClaimIntent::Reveal,)],
+            )],
+        ),
+        Err(PresentationError::CandidateRequestMismatch)
     );
 }
 
@@ -1174,6 +1202,10 @@ fn every_error_has_a_static_presentation_contract() {
         (
             PresentationError::CandidateMissingRequiredClaim,
             "presentation.candidate_missing_required_claim",
+        ),
+        (
+            PresentationError::CandidateRequestMismatch,
+            "presentation.candidate_request_mismatch",
         ),
         (
             PresentationError::InvalidSelectionClaims,

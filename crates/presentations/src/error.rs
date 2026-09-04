@@ -45,6 +45,8 @@ pub mod error_code {
         ErrorCode::new("presentation.candidate_unrequested_claim");
     pub const CANDIDATE_MISSING_REQUIRED_CLAIM: ErrorCode =
         ErrorCode::new("presentation.candidate_missing_required_claim");
+    pub const CANDIDATE_REQUEST_MISMATCH: ErrorCode =
+        ErrorCode::new("presentation.candidate_request_mismatch");
     pub const INVALID_SELECTION_CLAIMS: ErrorCode =
         ErrorCode::new("presentation.invalid_selection_claims");
     pub const DUPLICATE_SELECTION_CLAIM: ErrorCode =
@@ -117,6 +119,8 @@ pub enum PresentationError {
     CandidateUnrequestedClaim,
     /// A candidate omits a required query claim path.
     CandidateMissingRequiredClaim,
+    /// A candidate set was validated against a different request.
+    CandidateRequestMismatch,
     /// A credential selection carries too many selected claims.
     InvalidSelectionClaims,
     /// A credential selection repeats a complete selected claim path.
@@ -229,6 +233,10 @@ impl PresentationError {
             Self::CandidateMissingRequiredClaim => (
                 code::CANDIDATE_MISSING_REQUIRED_CLAIM,
                 "presentation candidate omits a required claim",
+            ),
+            Self::CandidateRequestMismatch => (
+                code::CANDIDATE_REQUEST_MISMATCH,
+                "presentation candidate set belongs to a different request",
             ),
             Self::InvalidSelectionClaims => (
                 code::INVALID_SELECTION_CLAIMS,

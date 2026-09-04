@@ -738,10 +738,13 @@ impl fmt::Debug for PresentationCredentialSelection {
     }
 }
 
-/// Bounded candidates proven structurally consistent with one request.
+/// Bounded candidates bound to the exact request they were validated against.
 #[must_use]
 #[derive(Clone, PartialEq, Eq)]
-pub struct PresentationCandidateSet(Vec<PresentationCredentialCandidate>);
+pub struct PresentationCandidateSet {
+    request: PresentationRequest,
+    candidates: Vec<PresentationCredentialCandidate>,
+}
 
 impl PresentationCandidateSet {
     /// Validate and retain a candidate vector against its presentation request.
@@ -750,11 +753,17 @@ impl PresentationCandidateSet {
         candidates: Vec<PresentationCredentialCandidate>,
     ) -> Result<Self, PresentationError> {
         Self::validate_candidates(request, &candidates)?;
-        Ok(Self(candidates))
+        Ok(Self {
+            request: request.clone(),
+            candidates,
+        })
     }
 
     fn validate_against(&self, request: &PresentationRequest) -> Result<(), PresentationError> {
-        Self::validate_candidates(request, &self.0)
+        if self.request != *request {
+            return Err(PresentationError::CandidateRequestMismatch);
+        }
+        Self::validate_candidates(request, &self.candidates)
     }
 
     fn validate_candidates(
@@ -806,19 +815,19 @@ impl PresentationCandidateSet {
         query_id: &PresentationQueryId,
         credential_handle: &PresentationCredentialHandle,
     ) -> Option<&PresentationCredentialCandidate> {
-        self.0.iter().find(|candidate| {
+        self.candidates.iter().find(|candidate| {
             candidate.query_id() == query_id && candidate.credential_handle() == credential_handle
         })
     }
 
     /// Borrow the ordered validated candidates.
     pub fn as_slice(&self) -> &[PresentationCredentialCandidate] {
-        &self.0
+        &self.candidates
     }
 
     /// Consume the set and return its candidate vector.
     pub fn into_vec(self) -> Vec<PresentationCredentialCandidate> {
-        self.0
+        self.candidates
     }
 }
 
@@ -826,7 +835,7 @@ impl fmt::Debug for PresentationCandidateSet {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("PresentationCandidateSet")
-            .field("candidate_count", &self.0.len())
+            .field("candidate_count", &self.candidates.len())
             .finish_non_exhaustive()
     }
 }

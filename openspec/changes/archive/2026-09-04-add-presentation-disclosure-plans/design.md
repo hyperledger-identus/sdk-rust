@@ -56,10 +56,12 @@ against that request, then enforces:
 - every request query has at least one selected credential; and
 - a query with `multiple == false` has exactly one selected credential.
 
-Revalidating the candidate set prevents a valid set constructed for one
-request from being paired with a different request that happens to reuse query
-IDs. The bounded repeated scan is preferable to storing a request identity or
-introducing a hidden fingerprint contract.
+The candidate set retains a private clone of the exact bounded request. Plan
+construction compares every request field before repeating candidate
+validation. This prevents a set constructed for a permissive issuer, type or
+schema filter from being paired with a restrictive request that reuses the
+same IDs, format and claim paths. Exact equality avoids a collision-prone
+hidden fingerprint contract.
 
 OID4VP credential and claim-set alternatives are intentionally absent. The
 current request model means every query is required. Alternative/optional
@@ -102,8 +104,8 @@ creating a host-specific performance promise.
 - Required claims are enforced per selected credential. This is conservative
   for multi-credential queries and prevents a proof adapter from receiving a
   partially satisfying selected credential.
-- Candidate-set revalidation repeats bounded work. It avoids a request token,
-  lifetime coupling or hash semantics while the API is experimental.
+- Candidate sets clone one bounded request to provide collision-free request
+  binding without lifetime coupling or hash semantics. Debug remains redacted.
 - The request model does not yet express alternative credential or claim sets.
   Adding them belongs to the OID4VP/DCQL component rather than approximating
   their semantics in the generic core.

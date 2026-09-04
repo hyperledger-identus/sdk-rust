@@ -46,8 +46,10 @@ offline yanked-index and macOS fixup-hook diagnostics did not fail a derivation.
 presentation_request_candidate_plan_throughput_diagnostic -- --ignored
 --nocapture` validated 250,000 request/candidate/plan triples in
 `254.246458ms`, approximately 983,298 triples/s, on Apple Silicon with
-`aarch64-apple-darwin` rustc 1.95.0 (`59807616e`). This is observational
-evidence, not a portable pass threshold.
+`aarch64-apple-darwin` rustc 1.95.0 (`59807616e`). After exact request binding
+was added, the same diagnostic completed in `288.080125ms`, approximately
+867,814 triples/s. These are observational results, not a portable pass
+threshold.
 
 ## Compatibility, provenance and boundary evidence
 
@@ -74,6 +76,12 @@ The exact-head Nix gate exposed one brittle backlog negative-test fixture after
 `IDR-008` moved from program issue #20 to delivery issue #81. The fixture now
 locates a program-owned row by value instead of fixed row position; all six
 backlog tests and the complete matrix passed after correction.
+
+Hosted review then exposed a cross-request filter-binding gap that structural
+candidate revalidation could not detect. The corrected candidate set owns a
+private exact request snapshot; a changed issuer/type/schema filter now fails
+with `presentation.candidate_request_mismatch`. Focused and full gates were
+rerun after the correction, with final hosted receipts recorded on PR #82.
 
 From issue creation at `2026-09-04T21:22:57Z` through complete local gates and
 post-implementation review at approximately `2026-09-04T21:38Z` was about 15

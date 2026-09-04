@@ -81,3 +81,11 @@ ADR and pre-implementation review preceded the implementation commit. Focused,
 workspace and full Nix gates plus the distinct post-implementation review
 completed within the same bounded iteration. Hosted CI, review, correction and
 merge timing remain pull-request evidence.
+
+The archive receipt recorded branch
+`codex/idr-008d-presentation-lifecycle`, reviewed head
+`29c55eede9d7b5afaff61460ed551c464a0604f8` and develop merge base
+`8fb533562d5b006151372e214a38ef8a7e3fa5bd`. Canonical presentation and
+governance specs were synchronized and the change was archived as
+`2026-09-04-add-presentation-protocol-lifecycle`. Local issue-to-archive
+elapsed time was approximately 15m45s; hosted PR timing remains separate.

@@ -24,7 +24,6 @@
   toolchain, host and result without a timing threshold.
 - [x] 3.3 Update human/machine inventories and backlog linkage; synchronize
   canonical governance evidence during archival.
-  governance evidence for the experimental lifecycle surface.
 - [x] 3.4 Verify donor and consumer final HEAD/branch/status receipts equal
   preflight.
 
@@ -36,7 +35,7 @@
   supply-chain and full Nix gates.
 - [x] 4.3 Complete a distinct post-implementation architecture/API/lifecycle/
   performance review and resolve every finding.
-- [ ] 4.4 Produce ready/receipt, synchronize canonical specs, archive the
+- [x] 4.4 Produce ready/receipt, synchronize canonical specs, archive the
   change, and prepare the signed/DCO issue-linked PR; hosted CI/review, merge,
   effort receipt, parent update, `develop` sync and cleanup remain GitHub
   evidence.

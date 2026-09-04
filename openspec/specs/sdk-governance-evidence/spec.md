@@ -127,11 +127,11 @@ and staged verification evidence while explicitly excluding claim values,
 trust, verifier/schema/status execution, holder bindings, status proof payloads,
 concrete formats, protocols, display/localization, wire codecs, and storage.
 The `identus-presentations` entry SHALL identify its bounded semantic request,
-candidate, disclosure-plan, generated-artifact and receipt-input contracts
-while explicitly excluding protocol wire/transport, candidate lookup/ranking,
-selection and consent policy, proof execution/verification, receipt
-outcome/persistence/policy, lifecycle, storage, FFI, chain and product
-behavior.
+candidate, disclosure-plan, generated-artifact, receipt-input and protocol
+lifecycle contracts while explicitly excluding protocol wire/transport,
+candidate lookup/ranking, selection/consent/authorization policy, proof
+execution/verification, verifier acceptance, receipt
+outcome/persistence/policy, storage, FFI, chain and product behavior.
 
 #### Scenario: Consumer inspects current foundations
 
@@ -155,10 +155,10 @@ behavior.
 #### Scenario: Consumer inspects current presentation foundations
 
 - **WHEN** a consumer considers integrating `identus-presentations`
-- **THEN** the inventory identifies #79, #81 and #83 as delivered experimental
-  slices without implying protocol wire/transport, selection or consent
-  policy, proof execution/verification, receipt service, lifecycle or storage
-  support
+- **THEN** the inventory identifies #79, #81, #83 and #85 as delivered
+  experimental slices without implying protocol wire/transport, selection,
+  consent or authorization policy, proof execution/verification, verifier
+  acceptance, receipt service or storage support
 
 ### Requirement: Governance evidence is local and release authority stays protected
 
@@ -249,9 +249,8 @@ The machine-readable and human-readable bootstrap inventories SHALL classify
 package and SHALL retain issue #79 as the request/query/candidate foundation.
 The current entry SHALL also identify later accepted presentation slices and
 SHALL continue to exclude protocol wire/transport, lookup and selection
-policy, consent, proof execution/verification, receipt
-outcome/persistence/policy, lifecycle state, storage, FFI, and product or chain
-behavior.
+policy, consent/authorization, proof execution/verification, receipt
+outcome/persistence/policy, storage, FFI, and product or chain behavior.
 
 #### Scenario: Consumer inspects presentation support
 
@@ -269,17 +268,17 @@ credential-semantics package. They SHALL identify the bounded
 request/query/candidate and validated disclosure-plan foundations delivered by
 issues #79 and #81 plus accepted later presentation slices, while explicitly
 excluding protocol wire/transport, candidate lookup or ranking, selection and
-consent policy, proof execution/verification, receipt
-outcome/persistence/policy, lifecycle state, storage, FFI, chain and product
-behavior.
+consent/authorization policy, proof execution/verification, receipt
+outcome/persistence/policy, storage, FFI, chain and product behavior.
 
 #### Scenario: Consumer inspects presentation disclosure-plan support
 
 - **WHEN** a consumer inspects `identus-presentations` in the bootstrap
   inventory
 - **THEN** the entry identifies the structural proof-generation input without
-  hiding accepted later result boundaries or implying that the SDK chooses
-  disclosures or implements a complete presentation protocol or wallet flow
+  hiding accepted later result/lifecycle boundaries or implying that the SDK
+  chooses disclosures or implements a complete presentation protocol or
+  wallet flow
 
 ### Requirement: Generated presentation support is inventoried
 
@@ -287,14 +286,34 @@ The human-readable and machine-readable bootstrap inventories SHALL continue
 to classify `identus-presentations` as an implemented experimental
 credential-semantics package. They SHALL identify bounded request, candidate,
 disclosure-plan, generated-artifact and receipt-input contracts delivered by
-issues #79, #81 and #83 while explicitly excluding proof execution, protocol
-wire/transport, receipt outcome/persistence/policy, lifecycle state, FFI,
-chain and product behavior.
+issues #79, #81 and #83 plus accepted later presentation slices while
+explicitly excluding proof execution, protocol wire/transport, receipt
+outcome/persistence/policy, FFI, chain and product behavior.
 
 #### Scenario: Consumer inspects generated presentation support
 
 - **WHEN** a consumer inspects `identus-presentations` in the bootstrap
   inventory
 - **THEN** the entry identifies the validated opaque artifact and value-free
-  receipt-input boundary without implying a complete presentation protocol,
-  proof implementation or wallet receipt service
+  receipt-input boundary alongside accepted later lifecycle support without
+  implying a complete presentation protocol, proof implementation or wallet
+  receipt service
+
+### Requirement: Presentation lifecycle support is inventoried
+
+The human-readable and machine-readable bootstrap inventories SHALL continue
+to classify `identus-presentations` as an implemented experimental
+credential-semantics package. They SHALL identify the bounded lifecycle phase,
+terminal-outcome and transition contract delivered by issue #85 alongside
+issues #79, #81 and #83, while explicitly excluding protocol wire/transport,
+candidate lookup/ranking, selection/consent/authorization policy, proof
+execution/verification, verifier acceptance, storage, FFI, chain and product
+behavior.
+
+#### Scenario: Consumer inspects presentation lifecycle support
+
+- **WHEN** a consumer inspects `identus-presentations` in the bootstrap
+  inventory
+- **THEN** the entry identifies the allocation-free state vocabulary and guard
+  without implying a complete protocol engine, durable session or success
+  receipt

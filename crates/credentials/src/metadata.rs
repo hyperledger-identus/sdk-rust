@@ -4,7 +4,7 @@ use identus_core::UnixTimestampMillis;
 
 use crate::{
     CredentialEntityId, CredentialError, CredentialSchemaDescriptor, CredentialType,
-    MAX_CREDENTIAL_TYPES, schema::contains_duplicates,
+    MAX_CREDENTIAL_TYPES, schema::has_duplicates,
 };
 
 /// Maximum number of identified subjects in normalized credential metadata.
@@ -44,10 +44,10 @@ impl CredentialMetadata {
         {
             return Err(CredentialError::InvalidDescriptorCollection);
         }
-        if contains_duplicates(&subjects) {
+        if has_duplicates(&subjects) {
             return Err(CredentialError::DuplicateCredentialSubject);
         }
-        if contains_duplicates(&credential_types) {
+        if has_duplicates(&credential_types) {
             return Err(CredentialError::DuplicateCredentialType);
         }
         if schemas.iter().enumerate().any(|(index, schema)| {
@@ -106,7 +106,6 @@ impl fmt::Debug for CredentialMetadata {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("CredentialMetadata")
-            .field("issuer_present", &true)
             .field("subject_count", &self.subjects.len())
             .field("credential_type_count", &self.credential_types.len())
             .field("schema_count", &self.schemas.len())

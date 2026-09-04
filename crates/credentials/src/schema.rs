@@ -12,7 +12,7 @@ pub const MAX_CREDENTIAL_SCHEMA_CLAIMS: usize = 64;
 /// Maximum number of credential types in metadata or one schema.
 pub const MAX_CREDENTIAL_TYPES: usize = 16;
 
-fn has_duplicates<T: PartialEq>(values: &[T]) -> bool {
+pub(crate) fn has_duplicates<T: PartialEq>(values: &[T]) -> bool {
     values
         .iter()
         .enumerate()
@@ -213,8 +213,4 @@ impl CredentialSchemaDescriptor {
     pub fn claims(&self) -> &[CredentialClaimDescriptor] {
         &self.claims
     }
-}
-
-pub(crate) fn contains_duplicates<T: PartialEq>(values: &[T]) -> bool {
-    has_duplicates(values)
 }

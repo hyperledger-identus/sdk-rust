@@ -205,7 +205,7 @@ def nix_path_or_uri_end(text: str, index: int) -> int | None:
         if text.startswith("${", cursor):
             cursor = nix_interpolation_end(text, cursor + 2)
             continue
-        if text[cursor].isspace() or text[cursor] in ";,()[]{}":
+        if text[cursor].isspace() or text[cursor] in "#;,()[]{}":
             break
         cursor += 1
     return cursor
@@ -436,6 +436,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     checks_entry = checks_root / "default.nix"
     flake_path = root / "flake.nix"
     flake = nix_without_comments(flake_path.read_text(encoding="utf-8"))
+    flake_masked = nix_string_mask(flake)
     root_imports = re.search(
         r"flake-parts\.lib\.mkFlake\s+\{[^{}]*\}\s+\{\s*"
         r"imports\s*=\s*\[(.*?)\];",
@@ -452,6 +453,18 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     if checks_entry not in flake_imports:
         failures.append("flake.nix does not import the nix/checks module")
         return
+
+    canonical_pkgs_provider = re.search(
+        r"\bperSystem\s*=\s*\{\s*system\s*,\s*\.\.\.\s*\}\s*:\s*\{\s*"
+        r"_module\.args\.pkgs\s*=\s*import\s+nixpkgs\s*\{\s*"
+        r"inherit\s+system\s*;\s*overlays\s*=\s*\[\s*"
+        r"\(\s*import\s+rust-overlay\s*\)\s*\]\s*;\s*\}\s*;\s*"
+        r"\}\s*;\s*\}\s*;\s*\}\s*$",
+        flake_masked,
+        re.DOTALL,
+    )
+    if canonical_pkgs_provider is None:
+        failures.append("flake.nix does not provide canonical pkgs to perSystem")
 
     default_nix = nix_without_comments(checks_entry.read_text(encoding="utf-8"))
     imports_match = re.search(r"\bimports\s*=\s*\[(.*?)\];", default_nix, re.DOTALL)

@@ -222,6 +222,28 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("does not inherit map and listToAttrs from pkgs.lib")
 
+    def test_wrapped_pkgs_provider_cannot_replace_library_helper(self) -> None:
+        self.replace(
+            "flake.nix",
+            """          _module.args.pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ (import rust-overlay) ];
+          };""",
+            """          _module.args.pkgs =
+            let
+              originalPkgs = import nixpkgs {
+                inherit system;
+                overlays = [ (import rust-overlay) ];
+              };
+            in
+            originalPkgs // {
+              lib = originalPkgs.lib // {
+                map = function: values: [ (function (builtins.head values)) ];
+              };
+            };""",
+        )
+        self.assert_fails("flake.nix does not provide canonical pkgs to perSystem")
+
     def test_assertion_decoy_cannot_replace_returned_checks(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",
@@ -447,6 +469,17 @@ in
             "nix/checks/rust-gates.nix",
             "      manifest = builtins.fromTOML",
             """      pathData = .let/file;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_line_comment_after_path_preserves_scope_keyword(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pathData = ./foo# let
+      ;
       manifest = builtins.fromTOML""",
         )
         result = self.run_checker()

@@ -9,7 +9,8 @@ use identus_crypto::secp256k1::{Secp256k1KeyPair, Secp256k1PrivateKey, Secp256k1
 use identus_crypto::secp256r1::{P256KeyPair, P256PrivateKey};
 use identus_crypto::x25519::{X25519KeyPair, X25519PublicKey};
 use identus_crypto::{
-    EncodeArray, EncodeJwk, EncodeVec, JwkCurve, JwkKeyType, PublicKeyJwk, Verifiable,
+    EncodeArray, EncodeJwk, EncodeVec, Error, JwkCurve, JwkKeyType, PublicKeyJwk, SecureRandom,
+    Verifiable,
 };
 
 use common::DetRandom;
@@ -19,6 +20,27 @@ const SAMPLE_32: [u8; 32] = [
     0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,
 ];
 
+struct FailingRandom;
+
+impl SecureRandom for FailingRandom {
+    fn fill_bytes(&mut self, _output: &mut [u8]) -> Result<(), Error> {
+        Err(Error::SecureRandomFailure)
+    }
+}
+
+#[derive(Default)]
+struct ZeroRandom {
+    calls: usize,
+}
+
+impl SecureRandom for ZeroRandom {
+    fn fill_bytes(&mut self, output: &mut [u8]) -> Result<(), Error> {
+        self.calls += 1;
+        output.fill(0);
+        Ok(())
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Ed25519
 // ---------------------------------------------------------------------------
@@ -26,7 +48,7 @@ const SAMPLE_32: [u8; 32] = [
 #[test]
 fn ed25519_generate_sign_verify_roundtrip() {
     let mut rng = DetRandom::new();
-    let kp = Ed25519KeyPair::generate(&mut rng);
+    let kp = Ed25519KeyPair::generate(&mut rng).unwrap();
     let message = b"ed25519 message";
     let signature = kp.sign(message);
     assert!(kp.public().verify(message, &signature));
@@ -45,7 +67,7 @@ fn ed25519_from_slice_invalid_size() {
 #[test]
 fn ed25519_encode_array_and_vec() {
     let mut rng = DetRandom::new();
-    let kp = Ed25519KeyPair::generate(&mut rng);
+    let kp = Ed25519KeyPair::generate(&mut rng).unwrap();
     let arr: [u8; 32] = kp.public().encode_array();
     let vec = kp.public().encode_vec();
     assert_eq!(vec.as_slice(), arr);
@@ -64,7 +86,7 @@ fn ed25519_private_key_bytes_roundtrip() {
 #[test]
 fn ed25519_jwk() {
     let mut rng = DetRandom::new();
-    let kp = Ed25519KeyPair::generate(&mut rng);
+    let kp = Ed25519KeyPair::generate(&mut rng).unwrap();
     let jwk = kp.public().encode_jwk();
     assert_eq!(jwk.kty(), JwkKeyType::Okp);
     assert_eq!(jwk.crv(), JwkCurve::Ed25519);
@@ -81,8 +103,8 @@ fn x25519_dh_yields_shared_secret() {
     let mut rng1 = DetRandom::new();
     let mut rng2 = DetRandom::new();
     rng2.cursor = 64; // distinct keys
-    let alice = X25519KeyPair::generate(&mut rng1);
-    let bob = X25519KeyPair::generate(&mut rng2);
+    let alice = X25519KeyPair::generate(&mut rng1).unwrap();
+    let bob = X25519KeyPair::generate(&mut rng2).unwrap();
     let s1 = alice.derive_shared(bob.public());
     let s2 = bob.derive_shared(alice.public());
     assert_eq!(s1, s2);
@@ -98,7 +120,7 @@ fn x25519_from_slice_rejects_wrong_length() {
 #[test]
 fn x25519_jwk() {
     let mut rng = DetRandom::new();
-    let kp = X25519KeyPair::generate(&mut rng);
+    let kp = X25519KeyPair::generate(&mut rng).unwrap();
     let jwk = kp.public().encode_jwk();
     assert_eq!(jwk.kty(), JwkKeyType::Okp);
     assert_eq!(jwk.crv(), JwkCurve::X25519);
@@ -120,7 +142,7 @@ fn x25519_encode_array_roundtrip() {
 #[test]
 fn secp256k1_generate_sign_verify_roundtrip() {
     let mut rng = DetRandom::new();
-    let kp = Secp256k1KeyPair::generate(&mut rng);
+    let kp = Secp256k1KeyPair::generate(&mut rng).unwrap();
     let message = b"secp256k1 message";
     let signature = kp.sign(message);
     assert_eq!(signature[0], 0x30); // DER SEQUENCE tag
@@ -160,7 +182,7 @@ fn secp256k1_jwk() {
 #[test]
 fn p256_generate_sign_verify_roundtrip() {
     let mut rng = DetRandom::new();
-    let kp = P256KeyPair::generate(&mut rng);
+    let kp = P256KeyPair::generate(&mut rng).unwrap();
     let message = b"p256 message";
     let signature = kp.sign(message);
     assert_eq!(signature[0], 0x30); // DER SEQUENCE tag
@@ -186,7 +208,47 @@ fn p256_jwk() {
 #[test]
 fn jwk_is_cloneable_and_eq() {
     let mut rng = DetRandom::new();
-    let jwk1 = Ed25519KeyPair::generate(&mut rng).public().encode_jwk();
+    let jwk1 = Ed25519KeyPair::generate(&mut rng)
+        .unwrap()
+        .public()
+        .encode_jwk();
     let jwk2: PublicKeyJwk = jwk1.clone();
     assert_eq!(jwk1, jwk2);
+}
+
+#[test]
+fn key_generation_propagates_entropy_failure() {
+    assert!(matches!(
+        Ed25519KeyPair::generate(&mut FailingRandom),
+        Err(Error::SecureRandomFailure)
+    ));
+    assert!(matches!(
+        X25519KeyPair::generate(&mut FailingRandom),
+        Err(Error::SecureRandomFailure)
+    ));
+    assert!(matches!(
+        Secp256k1KeyPair::generate(&mut FailingRandom),
+        Err(Error::SecureRandomFailure)
+    ));
+    assert!(matches!(
+        P256KeyPair::generate(&mut FailingRandom),
+        Err(Error::SecureRandomFailure)
+    ));
+}
+
+#[test]
+fn ec_key_generation_bounds_invalid_scalar_retries() {
+    let mut secp_rng = ZeroRandom::default();
+    assert!(matches!(
+        Secp256k1KeyPair::generate(&mut secp_rng),
+        Err(Error::SecureRandomFailure)
+    ));
+    assert_eq!(secp_rng.calls, 16);
+
+    let mut p256_rng = ZeroRandom::default();
+    assert!(matches!(
+        P256KeyPair::generate(&mut p256_rng),
+        Err(Error::SecureRandomFailure)
+    ));
+    assert_eq!(p256_rng.calls, 16);
 }

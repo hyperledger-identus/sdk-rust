@@ -5,8 +5,8 @@
 
 use identus_crypto::SecureRandom;
 
-/// A deterministic, stateful `SecureRandom` for tests. Each `generate_seed`
-/// call advances an internal cursor so successive calls yield distinct bytes.
+/// A deterministic, stateful `SecureRandom` for tests. Each `fill_bytes` call
+/// advances an internal cursor so successive calls yield distinct bytes.
 /// Never use this for production entropy.
 pub struct DetRandom {
     pub cursor: usize,
@@ -25,11 +25,12 @@ impl Default for DetRandom {
 }
 
 impl SecureRandom for DetRandom {
-    fn generate_seed(&mut self, num_bytes: usize) -> Vec<u8> {
+    fn fill_bytes(&mut self, output: &mut [u8]) -> Result<(), identus_crypto::Error> {
         let start = self.cursor;
-        self.cursor = self.cursor.wrapping_add(num_bytes);
-        (0..num_bytes)
-            .map(|i| ((start.wrapping_add(i)) % 256) as u8)
-            .collect()
+        self.cursor = self.cursor.wrapping_add(output.len());
+        for (index, byte) in output.iter_mut().enumerate() {
+            *byte = ((start.wrapping_add(index)) % 256) as u8;
+        }
+        Ok(())
     }
 }

@@ -5,10 +5,10 @@ mod common;
 
 use std::str::FromStr;
 
-use identus_crypto::Base64UrlStrNoPad;
 use identus_crypto::convert::ConvertEd25519;
 use identus_crypto::derivation::{EdHDKey, HDKey, MnemonicHelper};
 use identus_crypto::ed25519::Ed25519PrivateKey;
+use identus_crypto::{Base64UrlStrNoPad, Error, SecureRandom};
 
 const SAMPLE_32: [u8; 32] = [
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
@@ -538,12 +538,12 @@ fn bip39_invalid_mnemonic_is_rejected() {
 fn bip39_create_random_mnemonics_is_valid_and_deterministic() {
     use common::DetRandom;
     let mut rng = DetRandom::new();
-    let words = MnemonicHelper::create_random_mnemonics(&mut rng);
+    let words = MnemonicHelper::create_random_mnemonics(&mut rng).unwrap();
     assert_eq!(words.len(), 24);
     assert!(MnemonicHelper::is_valid_mnemonic_code(&words));
     // Deterministic: same rng state reproduces the same words.
     let mut rng2 = DetRandom::new();
-    let words2 = MnemonicHelper::create_random_mnemonics(&mut rng2);
+    let words2 = MnemonicHelper::create_random_mnemonics(&mut rng2).unwrap();
     assert_eq!(words, words2);
     let _seed = MnemonicHelper::create_seed(&words, "").unwrap();
 }
@@ -559,14 +559,34 @@ fn bip39_create_random_seed_uses_standard_empty_passphrase() {
     // through `create_random_seed` (which consumes the same amount of rng).
     let mut rng_a = DetRandom::new();
     let mut rng_b = DetRandom::new();
-    let words = MnemonicHelper::create_random_mnemonics(&mut rng_a);
-    let from_convenience = MnemonicHelper::create_random_seed(&mut rng_b);
+    let words = MnemonicHelper::create_random_mnemonics(&mut rng_a).unwrap();
+    let from_convenience = MnemonicHelper::create_random_seed(&mut rng_b).unwrap();
     // The convenience must derive with salt "mnemonic" (passphrase ""),
     // not the legacy "mnemonicAtalaPrism" hybrid.
     let standard = MnemonicHelper::create_seed(&words, "").unwrap();
     assert_eq!(from_convenience, standard);
     let legacy = MnemonicHelper::create_seed(&words, "AtalaPrism").unwrap();
     assert_ne!(from_convenience, legacy);
+}
+
+#[test]
+fn bip39_random_creation_propagates_entropy_failure() {
+    struct FailingRandom;
+
+    impl SecureRandom for FailingRandom {
+        fn fill_bytes(&mut self, _output: &mut [u8]) -> Result<(), Error> {
+            Err(Error::SecureRandomFailure)
+        }
+    }
+
+    assert!(matches!(
+        MnemonicHelper::create_random_mnemonics(&mut FailingRandom),
+        Err(Error::SecureRandomFailure)
+    ));
+    assert!(matches!(
+        MnemonicHelper::create_random_seed(&mut FailingRandom),
+        Err(Error::SecureRandomFailure)
+    ));
 }
 
 // ---------------------------------------------------------------------------

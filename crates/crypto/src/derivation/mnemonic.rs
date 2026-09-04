@@ -32,9 +32,10 @@ impl MnemonicHelper {
     }
 
     /// Create a random 24-word mnemonic using the injected [`SecureRandom`].
-    pub fn create_random_mnemonics(rng: &mut impl SecureRandom) -> Vec<String> {
-        let entropy = rng.generate_seed(ENTROPY_BYTES_24_WORDS);
-        Self::to_mnemonic_code(&entropy)
+    pub fn create_random_mnemonics(rng: &mut impl SecureRandom) -> Result<Vec<String>, Error> {
+        let mut entropy = [0u8; ENTROPY_BYTES_24_WORDS];
+        rng.fill_bytes(&mut entropy)?;
+        Ok(Self::to_mnemonic_code(&entropy))
     }
 
     /// Convert raw entropy into a mnemonic word list (BIP39).
@@ -101,10 +102,9 @@ impl MnemonicHelper {
 
     /// Convenience: create a random mnemonic and derive its seed with the
     /// standard default passphrase (`""`, i.e. salt `"mnemonic"`).
-    pub fn create_random_seed(rng: &mut impl SecureRandom) -> Vec<u8> {
-        let mnemonics = Self::create_random_mnemonics(rng);
+    pub fn create_random_seed(rng: &mut impl SecureRandom) -> Result<Vec<u8>, Error> {
+        let mnemonics = Self::create_random_mnemonics(rng)?;
         Self::create_seed(&mnemonics, DEFAULT_PASSPHRASE)
-            .expect("a freshly-created mnemonic is valid")
     }
 
     /// Shared validation + PBKDF2-HMAC-SHA512 core. The only per-variant input

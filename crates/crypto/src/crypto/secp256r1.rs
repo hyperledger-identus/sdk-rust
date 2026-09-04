@@ -99,18 +99,17 @@ impl P256PrivateKey {
 
 impl P256KeyPair {
     /// Generate a fresh keypair using the injected [`SecureRandom`] entropy port.
-    pub fn generate(rng: &mut impl SecureRandom) -> Self {
+    pub fn generate(rng: &mut impl SecureRandom) -> Result<Self, Error> {
         for _ in 0..16 {
-            let bytes = rng.generate_seed(PRIV_SIZE);
-            if let Ok(arr) = <[u8; PRIV_SIZE]>::try_from(bytes.as_slice()) {
-                if let Ok(secret) = SecretKey::from_slice(&arr) {
-                    let private = P256PrivateKey(secret);
-                    let public = private.to_public_key();
-                    return Self { private, public };
-                }
+            let mut bytes = [0u8; PRIV_SIZE];
+            rng.fill_bytes(&mut bytes)?;
+            if let Ok(secret) = SecretKey::from_slice(&bytes) {
+                let private = P256PrivateKey(secret);
+                let public = private.to_public_key();
+                return Ok(Self { private, public });
             }
         }
-        panic!("SecureRandom failed to produce a valid P-256 private key after 16 draws")
+        Err(Error::SecureRandomFailure)
     }
 
     /// The public half of the keypair.

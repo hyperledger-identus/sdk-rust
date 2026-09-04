@@ -299,3 +299,10 @@ Inherited `_type` SHALL be treated as a raw priority record.
   `${''imports''} = [...]` or `${"imports"} = [...]` spelling
 - **THEN** graph traversal follows the imported repository-local module and
   applies all protected-surface checks to it
+
+#### Scenario: Mapped gate constructor is replaced with a no-op
+
+- **WHEN** the mapped call remains `makeGate gate` but `makeGate` or one of its
+  immediate Cargo argument helpers no longer performs canonical
+  manifest-selected Crane dispatch
+- **THEN** structural validation rejects the disconnected gate implementation

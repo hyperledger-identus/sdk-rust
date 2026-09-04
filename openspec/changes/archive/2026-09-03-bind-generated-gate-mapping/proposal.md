@@ -13,6 +13,8 @@ still reports success.
 - Require every generated attribute name to come from the current manifest
   gate's `name` field.
 - Require every generated attribute value to come from `makeGate gate`.
+- Bind `makeGate` and its immediate Cargo argument helpers to the canonical
+  manifest-driven Crane dispatch implementation.
 - Require the manifest binding, mapping helpers, generated mapping, and
   published result to belong to the same immediate `perSystem` `let` scope.
 - Reject immediate bindings that shadow the trusted `builtins` or `pkgs`

@@ -158,6 +158,14 @@ validation diagnostic without a traceback. This deliberately constrains the
 small generator to a reviewable canonical form instead of attempting to infer
 semantic equivalence across arbitrary Nix expressions.
 
+The mapped call site is not sufficient evidence if the immediate `makeGate`
+binding can be replaced. The same bounded contract therefore normalizes and
+compares the complete `cargoArgumentAttribute`, `cargoArgs`, and `makeGate`
+statements, and requires the exact trusted `pkgs.lib` helper set used by those
+statements. This proves that `gate.operation` selects and invokes the declared
+Crane method with the manifest-derived toolchain, artifacts, source, and Cargo
+arguments.
+
 ## Alternatives considered
 
 - Evaluate the generator with Nix and inspect returned attribute names. This

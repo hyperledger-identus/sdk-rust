@@ -540,3 +540,16 @@ double-quoted and indented-string names. Both Nix-valid fixtures parse
 independently and the 103-test mutation suite follows the hidden override while
 rejecting each mutation. A contradiction-focused local review found no
 remaining whole-file root-import search or static-name filter gap.
+
+## Generator-dispatch binding correction contract
+
+A delayed review thread from `2a5e705` demonstrated that the mapped call site
+can remain canonical while the immediate `makeGate` binding is replaced with a
+no-op derivation. Every manifest name and Nix check then remains present, but
+none runs its declared Cargo operation. This P1 finding blocks merge.
+
+The validator SHALL bind the complete immediate `makeGate` implementation to
+manifest-selected Crane dispatch. Its transitive `cargoArgumentAttribute` and
+`cargoArgs` statements and exact trusted `pkgs.lib` helper imports SHALL be
+part of the same canonical contract. An exact no-op replacement mutation must
+fail closed before implementation evidence is accepted.

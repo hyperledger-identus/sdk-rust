@@ -892,6 +892,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     flake_imports: frozenset[Path] = frozenset()
     root_module: str | None = None
     root_statements: tuple[str, ...] | None = None
+    outputs_expression_complete = False
     if canonical_outputs is not None:
         argument_start = canonical_outputs.end()
         while (
@@ -909,7 +910,13 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
                 module_start += 1
             module_end = nix_delimited_end(flake_masked, module_start)
             if module_end is not None:
-                root_module = flake[module_start:module_end]
+                outputs_expression_complete = (
+                    re.fullmatch(r"\s*;\s*}\s*", flake_masked[module_end:]) is not None
+                )
+                if outputs_expression_complete:
+                    root_module = flake[module_start:module_end]
+    if canonical_outputs is not None and not outputs_expression_complete:
+        failures.append("flake.nix does not expose canonical unshadowed outputs")
     root_imports_unresolved = root_module is None
     if root_module is not None:
         root_statements = nix_module_result_statements(root_module)

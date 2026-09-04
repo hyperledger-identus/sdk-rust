@@ -972,6 +972,23 @@ in
         )
         self.assert_fails("flake.nix does not expose canonical unshadowed outputs")
 
+    def test_root_mkflake_call_cannot_have_trailing_composition(self) -> None:
+        (self.fixture / "override-output.nix").write_text(
+            "{ checks = { }; }\n", encoding="utf-8"
+        )
+        self.replace(
+            "flake.nix",
+            """    };
+}
+""",
+            """    }
+    // import ./override-output.nix;
+}
+""",
+        )
+        self.assert_nix_parses_if_available("flake.nix")
+        self.assert_fails("flake.nix does not expose canonical unshadowed outputs")
+
     def test_assertion_decoy_cannot_replace_returned_checks(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

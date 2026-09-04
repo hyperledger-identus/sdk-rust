@@ -862,3 +862,9 @@ The validator SHALL reject executable bare or statically selected
 bare or statically selected `attrNames` and `attrValues` as reflective
 attribute access. Exact path-construction and enumeration mutations must fail
 before new implementation evidence is accepted.
+
+The implementation at `837b2998b66a9baede475df5a14d3caef1eadbf8`
+meets that contract. Dynamic-constructor analysis now rejects `setAttrByPath`
+and the renaming `mapAttrs'` variant. Reflective analysis rejects `attrNames`,
+`attrValues`, and the adjacent `attrsToList` and `mapAttrsToList` enumeration
+helpers. Both exact hosted mutations fail in the 145-test suite.

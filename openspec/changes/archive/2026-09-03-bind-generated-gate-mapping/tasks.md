@@ -198,6 +198,6 @@
 - [x] 3.39 Rerun complete evidence after canonical `mkFlake` input binding and
       `scopedImport` rejection, then prepare both exact-head review threads for
       clearance.
-- [ ] 3.40 Rerun complete evidence after path-construction and reflective-
+- [x] 3.40 Rerun complete evidence after path-construction and reflective-
       enumeration rejection, then prepare both exact-head review threads for
       clearance.

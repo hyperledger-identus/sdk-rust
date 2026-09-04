@@ -412,3 +412,15 @@ aarch64-darwin Nix graph pass. Against PR base
 `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
 benchmark reports warm p50/p95 9.229/9.464 ms and process-cold p50/p95
 106.358/109.089 ms; the unchanged material-regression gate passes.
+
+## Final root explicit-config evidence
+
+Root-module explicit config rejection is implemented at
+`de7da620e6094fdc712c02e286f312952efd18f9`. The mutation suite passes
+137/137: the exact imported config override plus inherited and quoted config
+forms fail before provider acceptance. Ruff lint and format, canonical policy
+validation, the complete factory contract, and the compatible aarch64-darwin
+Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.269/9.553 ms and process-cold p50/p95
+105.492/107.513 ms; the unchanged material-regression gate passes.

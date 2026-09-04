@@ -183,5 +183,5 @@
       clearance.
 - [x] 3.35 Rerun complete evidence after indented control-escape rejection and
       prepare the exact-head review thread for clearance.
-- [ ] 3.36 Rerun complete evidence after root-config rejection and prepare the
+- [x] 3.36 Rerun complete evidence after root-config rejection and prepare the
       exact-head review thread for clearance.

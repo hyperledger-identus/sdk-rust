@@ -782,3 +782,9 @@ The validator SHALL reject any immediate `config` binding or inheritance in
 the isolated canonical root module before accepting its package provider. An
 exact Nix-valid imported config that forces generated checks away must fail
 before new implementation evidence is accepted.
+
+The implementation at `de7da620e6094fdc712c02e286f312952efd18f9`
+meets that contract. Root-module statements are already isolated from the
+canonical `mkFlake` result; validation now applies the existing immediate
+binding normalizer to reject direct, inherited, and quoted `config`. All three
+Nix-valid mutations fail in the 137-test suite.

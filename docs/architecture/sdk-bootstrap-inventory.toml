@@ -121,7 +121,7 @@ layer          = "credential-semantics"
 classification = "implemented"
 public_api     = "experimental"
 owner_issue    = "#79"
-summary        = "Bounded format-neutral presentation request, query, claim, challenge and candidate contracts."
+summary        = "Bounded format-neutral presentation request, candidate and validated disclosure-plan contracts."
 
 [[packages]]
 name           = "identus-messaging"

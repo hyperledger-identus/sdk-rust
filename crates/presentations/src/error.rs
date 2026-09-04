@@ -45,6 +45,32 @@ pub mod error_code {
         ErrorCode::new("presentation.candidate_unrequested_claim");
     pub const CANDIDATE_MISSING_REQUIRED_CLAIM: ErrorCode =
         ErrorCode::new("presentation.candidate_missing_required_claim");
+    pub const CANDIDATE_REQUEST_MISMATCH: ErrorCode =
+        ErrorCode::new("presentation.candidate_request_mismatch");
+    pub const INVALID_SELECTION_CLAIMS: ErrorCode =
+        ErrorCode::new("presentation.invalid_selection_claims");
+    pub const DUPLICATE_SELECTION_CLAIM: ErrorCode =
+        ErrorCode::new("presentation.duplicate_selection_claim");
+    pub const INVALID_DISCLOSURE_SELECTIONS: ErrorCode =
+        ErrorCode::new("presentation.invalid_disclosure_selections");
+    pub const DUPLICATE_DISCLOSURE_SELECTION: ErrorCode =
+        ErrorCode::new("presentation.duplicate_disclosure_selection");
+    pub const UNKNOWN_SELECTION_QUERY: ErrorCode =
+        ErrorCode::new("presentation.unknown_selection_query");
+    pub const UNKNOWN_SELECTION_CANDIDATE: ErrorCode =
+        ErrorCode::new("presentation.unknown_selection_candidate");
+    pub const SELECTION_UNREQUESTED_CLAIM: ErrorCode =
+        ErrorCode::new("presentation.selection_unrequested_claim");
+    pub const SELECTION_CLAIM_INTENT_MISMATCH: ErrorCode =
+        ErrorCode::new("presentation.selection_claim_intent_mismatch");
+    pub const SELECTION_UNAVAILABLE_CLAIM: ErrorCode =
+        ErrorCode::new("presentation.selection_unavailable_claim");
+    pub const SELECTION_MISSING_REQUIRED_CLAIM: ErrorCode =
+        ErrorCode::new("presentation.selection_missing_required_claim");
+    pub const MISSING_QUERY_SELECTION: ErrorCode =
+        ErrorCode::new("presentation.missing_query_selection");
+    pub const QUERY_MULTIPLICITY_EXCEEDED: ErrorCode =
+        ErrorCode::new("presentation.query_multiplicity_exceeded");
 }
 
 /// Typed reason that a presentation domain value could not be constructed.
@@ -93,6 +119,32 @@ pub enum PresentationError {
     CandidateUnrequestedClaim,
     /// A candidate omits a required query claim path.
     CandidateMissingRequiredClaim,
+    /// A candidate set was validated against a different request.
+    CandidateRequestMismatch,
+    /// A credential selection carries too many selected claims.
+    InvalidSelectionClaims,
+    /// A credential selection repeats a complete selected claim path.
+    DuplicateSelectionClaim,
+    /// A disclosure plan is empty or carries too many credential selections.
+    InvalidDisclosureSelections,
+    /// A disclosure plan repeats a query and credential handle pair.
+    DuplicateDisclosureSelection,
+    /// A disclosure selection references no query in the supplied request.
+    UnknownSelectionQuery,
+    /// A disclosure selection references no candidate in the supplied set.
+    UnknownSelectionCandidate,
+    /// A disclosure selection includes a claim absent from its query.
+    SelectionUnrequestedClaim,
+    /// A selected claim intent differs from its requested intent.
+    SelectionClaimIntentMismatch,
+    /// A selected claim was not reported satisfiable by its candidate.
+    SelectionUnavailableClaim,
+    /// A credential selection omits a required requested claim.
+    SelectionMissingRequiredClaim,
+    /// A disclosure plan does not cover one request query.
+    MissingQuerySelection,
+    /// A disclosure plan selects multiple credentials for a single-valued query.
+    QueryMultiplicityExceeded,
 }
 
 impl PresentationError {
@@ -181,6 +233,58 @@ impl PresentationError {
             Self::CandidateMissingRequiredClaim => (
                 code::CANDIDATE_MISSING_REQUIRED_CLAIM,
                 "presentation candidate omits a required claim",
+            ),
+            Self::CandidateRequestMismatch => (
+                code::CANDIDATE_REQUEST_MISMATCH,
+                "presentation candidate set belongs to a different request",
+            ),
+            Self::InvalidSelectionClaims => (
+                code::INVALID_SELECTION_CLAIMS,
+                "presentation selection claim collection is invalid",
+            ),
+            Self::DuplicateSelectionClaim => (
+                code::DUPLICATE_SELECTION_CLAIM,
+                "presentation selection repeats a claim path",
+            ),
+            Self::InvalidDisclosureSelections => (
+                code::INVALID_DISCLOSURE_SELECTIONS,
+                "presentation disclosure selection collection is invalid",
+            ),
+            Self::DuplicateDisclosureSelection => (
+                code::DUPLICATE_DISCLOSURE_SELECTION,
+                "presentation disclosure repeats a credential selection",
+            ),
+            Self::UnknownSelectionQuery => (
+                code::UNKNOWN_SELECTION_QUERY,
+                "presentation selection references an unknown query",
+            ),
+            Self::UnknownSelectionCandidate => (
+                code::UNKNOWN_SELECTION_CANDIDATE,
+                "presentation selection references an unknown candidate",
+            ),
+            Self::SelectionUnrequestedClaim => (
+                code::SELECTION_UNREQUESTED_CLAIM,
+                "presentation selection contains an unrequested claim",
+            ),
+            Self::SelectionClaimIntentMismatch => (
+                code::SELECTION_CLAIM_INTENT_MISMATCH,
+                "presentation selection claim intent does not match its query",
+            ),
+            Self::SelectionUnavailableClaim => (
+                code::SELECTION_UNAVAILABLE_CLAIM,
+                "presentation selection contains an unavailable claim",
+            ),
+            Self::SelectionMissingRequiredClaim => (
+                code::SELECTION_MISSING_REQUIRED_CLAIM,
+                "presentation selection omits a required claim",
+            ),
+            Self::MissingQuerySelection => (
+                code::MISSING_QUERY_SELECTION,
+                "presentation disclosure omits a query selection",
+            ),
+            Self::QueryMultiplicityExceeded => (
+                code::QUERY_MULTIPLICITY_EXCEEDED,
+                "presentation disclosure exceeds query multiplicity",
             ),
         }
     }

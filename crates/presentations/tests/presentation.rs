@@ -8,12 +8,14 @@ use identus_credentials::{
 use identus_presentations::{
     MAX_PRESENTATION_CANDIDATE_CLAIMS, MAX_PRESENTATION_CANDIDATES,
     MAX_PRESENTATION_CHALLENGE_BYTES, MAX_PRESENTATION_CREDENTIAL_HANDLE_BYTES,
-    MAX_PRESENTATION_FILTER_VALUES, MAX_PRESENTATION_PURPOSE_BYTES, MAX_PRESENTATION_QUERY_CLAIMS,
-    MAX_PRESENTATION_QUERY_ID_BYTES, MAX_PRESENTATION_REQUEST_QUERIES, PresentationCandidateSet,
+    MAX_PRESENTATION_DISCLOSURE_SELECTIONS, MAX_PRESENTATION_FILTER_VALUES,
+    MAX_PRESENTATION_PURPOSE_BYTES, MAX_PRESENTATION_QUERY_CLAIMS, MAX_PRESENTATION_QUERY_ID_BYTES,
+    MAX_PRESENTATION_REQUEST_QUERIES, MAX_PRESENTATION_SELECTION_CLAIMS, PresentationCandidateSet,
     PresentationChallenge, PresentationClaimIntent, PresentationClaimRequest,
     PresentationCredentialCandidate, PresentationCredentialFilters, PresentationCredentialHandle,
-    PresentationCredentialQuery, PresentationError, PresentationPurpose, PresentationQueryId,
-    PresentationRequest,
+    PresentationCredentialQuery, PresentationCredentialSelection, PresentationDisclosurePlan,
+    PresentationError, PresentationPurpose, PresentationQueryId, PresentationRequest,
+    PresentationSelectedClaim,
 };
 
 fn query_id(value: &str) -> PresentationQueryId {
@@ -93,6 +95,23 @@ fn candidate(
         claims,
     )
     .expect("valid candidate")
+}
+
+fn selected_claim(segments: &[&str], intent: PresentationClaimIntent) -> PresentationSelectedClaim {
+    PresentationSelectedClaim::new(path(segments), intent)
+}
+
+fn selection(
+    query: &str,
+    handle: &str,
+    claims: Vec<PresentationSelectedClaim>,
+) -> PresentationCredentialSelection {
+    PresentationCredentialSelection::new(
+        query_id(query),
+        PresentationCredentialHandle::from_text(handle).unwrap(),
+        claims,
+    )
+    .expect("valid credential selection")
 }
 
 #[test]
@@ -582,6 +601,433 @@ fn candidate_set_rejects_only_oversized_collections() {
 }
 
 #[test]
+fn disclosure_plan_unifies_dcql_midnight_and_dummy_selections() {
+    let family_name = path(&["family_name"]);
+    let postal_code = path(&["postal_code"]);
+    let birth_date = path(&["credentialSubject", "dateOfBirth"]);
+    let request = request(vec![
+        unrestricted_query(
+            "identity_card",
+            "dc+sd-jwt",
+            vec![
+                PresentationClaimRequest::new(
+                    family_name.clone(),
+                    PresentationClaimIntent::Reveal,
+                    true,
+                ),
+                PresentationClaimRequest::new(
+                    postal_code.clone(),
+                    PresentationClaimIntent::Reveal,
+                    false,
+                ),
+            ],
+        ),
+        PresentationCredentialQuery::new(
+            query_id("age_proof"),
+            format("midnight_cbor_phase1"),
+            true,
+            true,
+            PresentationCredentialFilters::unrestricted(),
+            vec![PresentationClaimRequest::new(
+                birth_date.clone(),
+                PresentationClaimIntent::Predicate,
+                true,
+            )],
+        )
+        .unwrap(),
+        unrestricted_query("future_format", "example+future", Vec::new()),
+    ]);
+    let candidates = PresentationCandidateSet::new(
+        &request,
+        vec![
+            candidate(
+                "identity_card",
+                "credential-1",
+                "dc+sd-jwt",
+                vec![family_name, postal_code],
+            ),
+            candidate(
+                "age_proof",
+                "credential-2",
+                "midnight_cbor_phase1",
+                vec![birth_date.clone()],
+            ),
+            candidate(
+                "age_proof",
+                "credential-3",
+                "midnight_cbor_phase1",
+                vec![birth_date],
+            ),
+            candidate(
+                "future_format",
+                "credential-4",
+                "example+future",
+                Vec::new(),
+            ),
+        ],
+    )
+    .unwrap();
+    let plan = PresentationDisclosurePlan::new(
+        &request,
+        &candidates,
+        vec![
+            selection(
+                "identity_card",
+                "credential-1",
+                vec![
+                    selected_claim(&["family_name"], PresentationClaimIntent::Reveal),
+                    selected_claim(&["postal_code"], PresentationClaimIntent::Reveal),
+                ],
+            ),
+            selection(
+                "age_proof",
+                "credential-2",
+                vec![selected_claim(
+                    &["credentialSubject", "dateOfBirth"],
+                    PresentationClaimIntent::Predicate,
+                )],
+            ),
+            selection(
+                "age_proof",
+                "credential-3",
+                vec![selected_claim(
+                    &["credentialSubject", "dateOfBirth"],
+                    PresentationClaimIntent::Predicate,
+                )],
+            ),
+            selection("future_format", "credential-4", Vec::new()),
+        ],
+    )
+    .expect("valid disclosure plan");
+
+    assert_eq!(plan.as_slice().len(), 4);
+    assert_eq!(
+        plan.as_slice()[0].credential_handle().as_text(),
+        Some("credential-1")
+    );
+    assert_eq!(plan.as_slice()[0].selected_claims().len(), 2);
+    assert_eq!(
+        plan.as_slice()[1].selected_claims()[0].intent(),
+        PresentationClaimIntent::Predicate
+    );
+    assert!(plan.as_slice()[3].selected_claims().is_empty());
+    assert_eq!(plan.into_vec().len(), 4);
+}
+
+#[test]
+fn credential_selection_claims_are_bounded_and_unique_by_path() {
+    let maximum = (0..MAX_PRESENTATION_SELECTION_CLAIMS)
+        .map(|index| selected_claim(&[&format!("claim{index}")], PresentationClaimIntent::Reveal))
+        .collect();
+    assert_eq!(
+        selection("query", "handle", maximum)
+            .selected_claims()
+            .len(),
+        MAX_PRESENTATION_SELECTION_CLAIMS
+    );
+
+    let oversized = (0..=MAX_PRESENTATION_SELECTION_CLAIMS)
+        .map(|index| selected_claim(&[&format!("claim{index}")], PresentationClaimIntent::Reveal))
+        .collect();
+    assert_eq!(
+        PresentationCredentialSelection::new(
+            query_id("query"),
+            PresentationCredentialHandle::from_text("handle").unwrap(),
+            oversized,
+        ),
+        Err(PresentationError::InvalidSelectionClaims)
+    );
+
+    let same_path = path(&["same"]);
+    assert_eq!(
+        PresentationCredentialSelection::new(
+            query_id("query"),
+            PresentationCredentialHandle::from_text("handle").unwrap(),
+            vec![
+                PresentationSelectedClaim::new(same_path.clone(), PresentationClaimIntent::Reveal,),
+                PresentationSelectedClaim::new(same_path, PresentationClaimIntent::Predicate),
+            ],
+        ),
+        Err(PresentationError::DuplicateSelectionClaim)
+    );
+}
+
+#[test]
+fn disclosure_plan_collection_is_non_empty_bounded_and_unique() {
+    let request = request(vec![
+        PresentationCredentialQuery::new(
+            query_id("query"),
+            format("example"),
+            true,
+            false,
+            PresentationCredentialFilters::unrestricted(),
+            Vec::new(),
+        )
+        .unwrap(),
+    ]);
+    let candidates = PresentationCandidateSet::new(
+        &request,
+        (0..MAX_PRESENTATION_DISCLOSURE_SELECTIONS)
+            .map(|index| candidate("query", &format!("handle-{index}"), "example", Vec::new()))
+            .collect(),
+    )
+    .unwrap();
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &request,
+            &candidates,
+            (0..MAX_PRESENTATION_DISCLOSURE_SELECTIONS)
+                .map(|index| selection("query", &format!("handle-{index}"), Vec::new()))
+                .collect(),
+        )
+        .unwrap()
+        .as_slice()
+        .len(),
+        MAX_PRESENTATION_DISCLOSURE_SELECTIONS
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(&request, &candidates, Vec::new()),
+        Err(PresentationError::InvalidDisclosureSelections)
+    );
+    let oversized_candidates = PresentationCandidateSet::new(
+        &request,
+        (0..=MAX_PRESENTATION_DISCLOSURE_SELECTIONS)
+            .map(|index| candidate("query", &format!("extra-{index}"), "example", Vec::new()))
+            .take(MAX_PRESENTATION_CANDIDATES)
+            .collect(),
+    )
+    .unwrap();
+    let oversized = (0..=MAX_PRESENTATION_DISCLOSURE_SELECTIONS)
+        .map(|index| selection("query", &format!("extra-{index}"), Vec::new()))
+        .collect();
+    assert_eq!(
+        PresentationDisclosurePlan::new(&request, &oversized_candidates, oversized),
+        Err(PresentationError::InvalidDisclosureSelections)
+    );
+
+    let one_candidate = PresentationCandidateSet::new(
+        &request,
+        vec![candidate("query", "same", "example", Vec::new())],
+    )
+    .unwrap();
+    let repeated = selection("query", "same", Vec::new());
+    assert_eq!(
+        PresentationDisclosurePlan::new(&request, &one_candidate, vec![repeated.clone(), repeated],),
+        Err(PresentationError::DuplicateDisclosureSelection)
+    );
+}
+
+#[test]
+fn disclosure_plan_rejects_unknown_query_candidate_and_claim_mismatches() {
+    let required = path(&["required"]);
+    let optional = path(&["optional"]);
+    let request = request(vec![unrestricted_query(
+        "query",
+        "example",
+        vec![
+            PresentationClaimRequest::new(required.clone(), PresentationClaimIntent::Reveal, true),
+            PresentationClaimRequest::new(optional, PresentationClaimIntent::Predicate, false),
+        ],
+    )]);
+    let candidates = PresentationCandidateSet::new(
+        &request,
+        vec![candidate("query", "available", "example", vec![required])],
+    )
+    .unwrap();
+
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &request,
+            &candidates,
+            vec![selection("unknown", "available", Vec::new())],
+        ),
+        Err(PresentationError::UnknownSelectionQuery)
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &request,
+            &candidates,
+            vec![selection(
+                "query",
+                "missing",
+                vec![selected_claim(
+                    &["required"],
+                    PresentationClaimIntent::Reveal,
+                )],
+            )],
+        ),
+        Err(PresentationError::UnknownSelectionCandidate)
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &request,
+            &candidates,
+            vec![selection(
+                "query",
+                "available",
+                vec![selected_claim(
+                    &["unrequested"],
+                    PresentationClaimIntent::Reveal,
+                )],
+            )],
+        ),
+        Err(PresentationError::SelectionUnrequestedClaim)
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &request,
+            &candidates,
+            vec![selection(
+                "query",
+                "available",
+                vec![selected_claim(
+                    &["required"],
+                    PresentationClaimIntent::Predicate,
+                )],
+            )],
+        ),
+        Err(PresentationError::SelectionClaimIntentMismatch)
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &request,
+            &candidates,
+            vec![selection(
+                "query",
+                "available",
+                vec![
+                    selected_claim(&["required"], PresentationClaimIntent::Reveal),
+                    selected_claim(&["optional"], PresentationClaimIntent::Predicate),
+                ],
+            )],
+        ),
+        Err(PresentationError::SelectionUnavailableClaim)
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &request,
+            &candidates,
+            vec![selection("query", "available", Vec::new())],
+        ),
+        Err(PresentationError::SelectionMissingRequiredClaim)
+    );
+}
+
+#[test]
+fn disclosure_plan_enforces_query_coverage_and_multiplicity() {
+    let request = request(vec![
+        unrestricted_query("single", "example", Vec::new()),
+        unrestricted_query("second", "example", Vec::new()),
+    ]);
+    let candidates = PresentationCandidateSet::new(
+        &request,
+        vec![
+            candidate("single", "one", "example", Vec::new()),
+            candidate("single", "two", "example", Vec::new()),
+            candidate("second", "one", "example", Vec::new()),
+        ],
+    )
+    .unwrap();
+
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &request,
+            &candidates,
+            vec![selection("single", "one", Vec::new())],
+        ),
+        Err(PresentationError::MissingQuerySelection)
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &request,
+            &candidates,
+            vec![
+                selection("single", "one", Vec::new()),
+                selection("single", "two", Vec::new()),
+                selection("second", "one", Vec::new()),
+            ],
+        ),
+        Err(PresentationError::QueryMultiplicityExceeded)
+    );
+
+    let same_handle_plan = PresentationDisclosurePlan::new(
+        &request,
+        &candidates,
+        vec![
+            selection("single", "one", Vec::new()),
+            selection("second", "one", Vec::new()),
+        ],
+    )
+    .expect("one handle may satisfy distinct query ids");
+    assert_eq!(same_handle_plan.as_slice().len(), 2);
+}
+
+#[test]
+fn disclosure_plan_revalidates_candidates_against_the_exact_request() {
+    let first_request = request(vec![unrestricted_query(
+        "query",
+        "example",
+        vec![claim(&["first"], PresentationClaimIntent::Reveal, true)],
+    )]);
+    let candidates = PresentationCandidateSet::new(
+        &first_request,
+        vec![candidate(
+            "query",
+            "credential",
+            "example",
+            vec![path(&["first"])],
+        )],
+    )
+    .unwrap();
+    let second_request = request(vec![unrestricted_query(
+        "query",
+        "example",
+        vec![claim(&["second"], PresentationClaimIntent::Reveal, true)],
+    )]);
+
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &second_request,
+            &candidates,
+            vec![selection(
+                "query",
+                "credential",
+                vec![selected_claim(&["second"], PresentationClaimIntent::Reveal,)],
+            )],
+        ),
+        Err(PresentationError::CandidateRequestMismatch)
+    );
+
+    let filtered_query = PresentationCredentialQuery::new(
+        query_id("query"),
+        format("example"),
+        false,
+        false,
+        PresentationCredentialFilters::new(
+            Some(vec![entity("did:example:restricted-issuer")]),
+            None,
+            None,
+        )
+        .unwrap(),
+        vec![claim(&["first"], PresentationClaimIntent::Reveal, true)],
+    )
+    .unwrap();
+    let filtered_request = request(vec![filtered_query]);
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &filtered_request,
+            &candidates,
+            vec![selection(
+                "query",
+                "credential",
+                vec![selected_claim(&["first"], PresentationClaimIntent::Reveal,)],
+            )],
+        ),
+        Err(PresentationError::CandidateRequestMismatch)
+    );
+}
+
+#[test]
 fn direct_and_aggregate_debug_redact_correlating_values() {
     let query_canary = "query-canary";
     let purpose_canary = "purpose-canary";
@@ -623,6 +1069,15 @@ fn direct_and_aggregate_debug_redact_correlating_values() {
     )
     .unwrap();
     let set = PresentationCandidateSet::new(&request, vec![candidate.clone()]).unwrap();
+    let selected =
+        PresentationSelectedClaim::new(path(&[path_canary]), PresentationClaimIntent::Reveal);
+    let selection = PresentationCredentialSelection::new(
+        query_id(query_canary),
+        PresentationCredentialHandle::from_text(handle_canary).unwrap(),
+        vec![selected.clone()],
+    )
+    .unwrap();
+    let plan = PresentationDisclosurePlan::new(&request, &set, vec![selection.clone()]).unwrap();
 
     let renderings = [
         format!("{:?}", query_id(query_canary)),
@@ -641,6 +1096,9 @@ fn direct_and_aggregate_debug_redact_correlating_values() {
         format!("{request:?}"),
         format!("{candidate:?}"),
         format!("{set:?}"),
+        format!("{selected:?}"),
+        format!("{selection:?}"),
+        format!("{plan:?}"),
     ];
     for rendered in renderings {
         for canary in [
@@ -745,6 +1203,58 @@ fn every_error_has_a_static_presentation_contract() {
             PresentationError::CandidateMissingRequiredClaim,
             "presentation.candidate_missing_required_claim",
         ),
+        (
+            PresentationError::CandidateRequestMismatch,
+            "presentation.candidate_request_mismatch",
+        ),
+        (
+            PresentationError::InvalidSelectionClaims,
+            "presentation.invalid_selection_claims",
+        ),
+        (
+            PresentationError::DuplicateSelectionClaim,
+            "presentation.duplicate_selection_claim",
+        ),
+        (
+            PresentationError::InvalidDisclosureSelections,
+            "presentation.invalid_disclosure_selections",
+        ),
+        (
+            PresentationError::DuplicateDisclosureSelection,
+            "presentation.duplicate_disclosure_selection",
+        ),
+        (
+            PresentationError::UnknownSelectionQuery,
+            "presentation.unknown_selection_query",
+        ),
+        (
+            PresentationError::UnknownSelectionCandidate,
+            "presentation.unknown_selection_candidate",
+        ),
+        (
+            PresentationError::SelectionUnrequestedClaim,
+            "presentation.selection_unrequested_claim",
+        ),
+        (
+            PresentationError::SelectionClaimIntentMismatch,
+            "presentation.selection_claim_intent_mismatch",
+        ),
+        (
+            PresentationError::SelectionUnavailableClaim,
+            "presentation.selection_unavailable_claim",
+        ),
+        (
+            PresentationError::SelectionMissingRequiredClaim,
+            "presentation.selection_missing_required_claim",
+        ),
+        (
+            PresentationError::MissingQuerySelection,
+            "presentation.missing_query_selection",
+        ),
+        (
+            PresentationError::QueryMultiplicityExceeded,
+            "presentation.query_multiplicity_exceeded",
+        ),
     ];
 
     for (error, expected_code) in cases {
@@ -781,7 +1291,7 @@ fn deterministic_untrusted_scalar_corpus_never_panics() {
 
 #[test]
 #[ignore = "manual release-mode construction diagnostic"]
-fn presentation_request_candidate_throughput_diagnostic() {
+fn presentation_request_candidate_plan_throughput_diagnostic() {
     const ITERATIONS: usize = 250_000;
     let started = Instant::now();
 
@@ -807,14 +1317,25 @@ fn presentation_request_candidate_throughput_diagnostic() {
             "age_proof",
             "credential-1",
             "midnight_cbor_phase1",
-            vec![requested],
+            vec![requested.clone()],
         );
-        let _ = black_box(PresentationCandidateSet::new(&request, vec![candidate]).unwrap());
+        let candidates = PresentationCandidateSet::new(&request, vec![candidate]).unwrap();
+        let selection = selection(
+            "age_proof",
+            "credential-1",
+            vec![PresentationSelectedClaim::new(
+                requested,
+                PresentationClaimIntent::Predicate,
+            )],
+        );
+        let _ = black_box(
+            PresentationDisclosurePlan::new(&request, &candidates, vec![selection]).unwrap(),
+        );
     }
 
     let elapsed = started.elapsed();
     let throughput = ITERATIONS as f64 / elapsed.as_secs_f64();
     eprintln!(
-        "validated {ITERATIONS} presentation request/candidate pairs in {elapsed:?} ({throughput:.0} pairs/s)"
+        "validated {ITERATIONS} presentation request/candidate/plan triples in {elapsed:?} ({throughput:.0} triples/s)"
     );
 }

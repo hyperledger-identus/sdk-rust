@@ -65,7 +65,8 @@ class BacklogContractTests(unittest.TestCase):
 
     def test_program_issue_cannot_claim_active_delivery(self) -> None:
         rows = [row.copy() for row in self.rows]
-        rows[7]["delivery_status"] = "specified"
+        program_row = next(row for row in rows if row["issue"] == "#20")
+        program_row["delivery_status"] = "specified"
         result = self.run_checker(rows)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("program issue #20 cannot own active component delivery", result.stderr)

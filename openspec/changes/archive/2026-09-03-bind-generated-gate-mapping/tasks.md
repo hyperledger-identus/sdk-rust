@@ -27,7 +27,7 @@
 - [x] 2.11 Reject `builtins` in immediate `perSystem` function formals.
 - [x] 2.12 Skip path/URI tokens during scope scanning and require token context
       for indented-string openers.
-- [ ] 2.13 Continue path scanning after balanced interpolation expressions.
+- [x] 2.13 Continue path scanning after balanced interpolation expressions.
 
 ## 3. Verification and integration
 
@@ -46,5 +46,5 @@
       corrections and prepare both review threads for hosted clearance.
 - [x] 3.9 Rerun complete local evidence after formal-root and token-context
       corrections and prepare all three review threads for hosted clearance.
-- [ ] 3.10 Rerun complete local evidence after the interpolated-path correction
+- [x] 3.10 Rerun complete local evidence after the interpolated-path correction
       and prepare its review thread for hosted clearance.

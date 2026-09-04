@@ -187,3 +187,10 @@ P2 finding blocks merge.
 The path scanner SHALL consume a balanced interpolation as part of the current
 path and resume scanning its remaining components. An exact interpolated-path
 fixture with a later `let` component must preserve canonical acceptance.
+
+The implementation at `0d2134c348b680d1e5245d1cc4d00decd13aa779`
+meets that contract. Path scanning delegates `${...}` to the balanced
+interpolation scanner and then resumes from its closing brace. The exact hosted
+review fixture passes both the 62-test mutation suite and independent Nix parse
+validation. A final contradiction-focused local review found no remaining
+interpolated-suffix bypass or delivery blocker.

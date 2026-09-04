@@ -101,3 +101,13 @@ Ruff lint and format checks, canonical policy validation, the 17-item factory
 contract, and the complete compatible aarch64-darwin Nix graph pass. The final
 isolated benchmark reports warm p50/p95 11.329/12.116 ms and process-cold
 p50/p95 51.667/53.976 ms, within the diagnostic guard.
+
+## Final interpolated-path evidence
+
+The interpolated-path correction is implemented at
+`0d2134c348b680d1e5245d1cc4d00decd13aa779`. The mutation suite passes 62/62,
+including `./prefix/${"x"}/let/file`; `nix-instantiate --parse` independently
+accepts that fixture. Ruff lint and format checks, canonical policy validation,
+the 17-item factory contract, and the complete compatible aarch64-darwin Nix
+graph pass. The final isolated benchmark reports warm p50/p95 12.083/12.789 ms
+and process-cold p50/p95 51.310/53.004 ms, within the diagnostic guard.

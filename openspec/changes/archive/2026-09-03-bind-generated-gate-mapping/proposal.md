@@ -101,6 +101,8 @@ still reports success.
 - Normalize layout whitespace in indented-string protected names and bind all
   reachable executable provider lock edges to their canonical topology and
   GitHub provenance.
+- Require the provider result to contain exactly its canonical publication,
+  and reject nontrivial interpolation in any quoted attribute-name string.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

@@ -624,3 +624,17 @@ Inherited `_type` SHALL be treated as a raw priority record.
   executable transitive input edges
 - **THEN** structural validation rejects the complete reachable provider graph
   unless the edge and target GitHub provenance match the canonical topology
+
+#### Scenario: Provider result adds a second statement
+
+- **WHEN** the toolchain `perSystem` result adds an import or any statement
+  beside the canonical `_module.args` publication
+- **THEN** structural validation rejects the non-canonical result before a
+  nested module can erase generated checks
+
+#### Scenario: Quoted attribute name computes its interpolation
+
+- **WHEN** an attribute-name string contains a nontrivial interpolation such
+  as a constant concatenation resolving to `disabledModules`
+- **THEN** structural validation rejects the ambiguous interpolated name rather
+  than masking it as inert string data

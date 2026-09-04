@@ -703,3 +703,18 @@ each directly trusted node's exact canonical input-edge set and validate every
 target as a leaf with its canonical original and locked GitHub provenance.
 Exact whitespace-shadow and `flake-parts` `nixpkgs-lib` redirection mutations
 must fail closed before new implementation evidence is accepted.
+
+## Closed provider result and quoted-name correction contract
+
+Delayed review found two more composition routes. An `imports` statement can
+sit beside the canonical toolchain provider publication because validation
+filters only recognized publication and override statements. A quoted
+attribute name containing constant-computed interpolation is entirely masked
+before the general computed-attribute check.
+
+The validator SHALL require the provider result attribute set to contain
+exactly one statement: the canonical `_module.args` publication. It SHALL also
+reject every quoted attribute-name string containing interpolation unless the
+complete literal normalizes to the already supported single static-string
+form. Exact nested-import and constant-concatenation mutations must fail closed
+before new implementation evidence is accepted.

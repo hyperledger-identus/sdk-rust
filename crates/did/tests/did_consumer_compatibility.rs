@@ -61,6 +61,7 @@ fn success(document: DidDocument, consumer: &'static str) -> DidResolutionResult
 struct StaticResolver {
     method: &'static str,
     consumer: &'static str,
+    document: Option<DidDocument>,
 }
 
 impl DidResolver for StaticResolver {
@@ -71,10 +72,12 @@ impl DidResolver for StaticResolver {
     ) -> DidResolutionFuture<'a> {
         Box::pin(async move {
             assert_eq!(did.method(), self.method);
-            success(
-                DidDocument::builder(did.clone()).build().unwrap(),
-                self.consumer,
-            )
+            let document = self
+                .document
+                .clone()
+                .unwrap_or_else(|| DidDocument::builder(did.clone()).build().unwrap());
+            assert_eq!(document.id(), did);
+            success(document, self.consumer)
         })
     }
 }
@@ -182,9 +185,33 @@ fn midnight_identity_projection_preserves_rich_public_document() {
 #[test]
 fn lace_projection_uses_object_safe_service_resolver_without_http_policy() {
     let did = Did::parse("did:midnight:testnet:lace-fixture").unwrap();
+    let value = json!({
+        "@context": "https://www.w3.org/ns/did/v1",
+        "id": did.as_str(),
+        "verificationMethod": [{
+            "id": format!("{did}#portal"),
+            "type": "Multikey",
+            "controller": did.as_str(),
+            "publicKeyMultibase": "z6MkrJVnaZkeFzdQy",
+            "lace:purpose": "portal-authentication"
+        }],
+        "authentication": [format!("{did}#portal")],
+        "service": [{
+            "id": format!("{did}#credential-inbox"),
+            "type": "CredentialInbox",
+            "serviceEndpoint": {
+                "uri": "https://identity.example/credentials",
+                "accept": ["application/vp+ld+json"]
+            },
+            "lace:priority": 1
+        }],
+        "lace:portal": {"enabled": true, "synthetic": true}
+    });
+    let document = parsed_document(value.clone());
     let resolver: Arc<dyn DidResolver> = Arc::new(StaticResolver {
         method: "midnight",
         consumer: "lace-id-portal",
+        document: Some(document),
     });
 
     let result = block_on(resolver.resolve(&did, &ResolutionOptions::empty()));
@@ -192,6 +219,15 @@ fn lace_projection_uses_object_safe_service_resolver_without_http_policy() {
     assert_eq!(result.metadata().extensions()["consumer"], "lace-id-portal");
     assert_eq!(result.metadata().extensions()["syntheticFixture"], true);
     assert!(result.metadata().content_type().is_none());
+    let resolved_document = result.document().expect("resolver returns a DID document");
+    assert_eq!(resolved_document.verification_methods().unwrap().len(), 1);
+    assert_eq!(resolved_document.authentication().unwrap().len(), 1);
+    assert_eq!(resolved_document.services().unwrap().len(), 1);
+    assert_eq!(
+        resolved_document.extensions()["lace:portal"]["enabled"],
+        true
+    );
+    assert_eq!(serde_json::to_value(resolved_document).unwrap(), value);
     assert_eq!(LACE_ID_PORTAL_REVISION.len(), 40);
 }
 
@@ -245,6 +281,7 @@ fn oxid_projection_layers_wallet_policy_and_composes_methods() {
             Arc::new(StaticResolver {
                 method: "midnight",
                 consumer: "oxid",
+                document: None,
             }),
         ))
         .unwrap()
@@ -253,6 +290,7 @@ fn oxid_projection_layers_wallet_policy_and_composes_methods() {
             Arc::new(StaticResolver {
                 method: "prism",
                 consumer: "neoprism",
+                document: None,
             }),
         ))
         .unwrap()

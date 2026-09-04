@@ -322,6 +322,7 @@ def nix_without_comments(text: str) -> str:
     return "".join(without_comments)
 
 
+@cache
 def nix_binds_attribute(text: str, name: str) -> bool:
     """Return whether executable Nix source binds a static attribute name."""
     source = nix_without_comments(text)
@@ -348,6 +349,7 @@ def nix_binds_attribute(text: str, name: str) -> bool:
     return False
 
 
+@cache
 def nix_uses_priority_override(text: str) -> bool:
     """Return whether Nix source contains an effective module override value."""
     source = nix_without_comments(text)
@@ -384,6 +386,7 @@ def nix_uses_priority_override(text: str) -> bool:
     return False
 
 
+@cache
 def nix_delimited_end(text: str, index: int) -> int | None:
     """Return the exclusive end of a balanced Nix delimiter expression."""
     pairs = {")": "(", "]": "[", "}": "{"}
@@ -408,7 +411,8 @@ def nix_delimited_end(text: str, index: int) -> int | None:
     return None
 
 
-def nix_local_imports(text: str, parent: Path) -> tuple[set[Path], bool]:
+@cache
+def nix_local_imports(text: str, parent: Path) -> tuple[frozenset[Path], bool]:
     """Resolve literal child- and parent-relative imports from a Nix module."""
     masked = nix_string_mask(nix_without_comments(text))
     imports: set[Path] = set()
@@ -447,7 +451,7 @@ def nix_local_imports(text: str, parent: Path) -> tuple[set[Path], bool]:
             index = path_end
         if "".join(residue).strip():
             unresolved = True
-    return imports, unresolved
+    return frozenset(imports), unresolved
 
 
 def nix_statement_binds(statement: str, name: str) -> bool:

@@ -805,6 +805,22 @@ in
         self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
         self.assert_fails("does not bind canonical Crane providers")
 
+    def test_provider_result_cannot_have_trailing_composition(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    };
+}
+""",
+            """    }
+    // {
+      _module.args.craneLib = { };
+    };
+}
+""",
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("does not bind canonical Crane providers")
+
     def test_local_map_cannot_replace_pkgs_lib_map(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

@@ -1762,7 +1762,10 @@ def validate_toolchains(
         result_masked = nix_string_mask(result_source)
         result_start = len(result_masked) - len(result_masked.lstrip())
         result_end = nix_delimited_end(result_masked, result_start)
-        if result_end is not None:
+        result_is_complete = result_end is not None and re.fullmatch(
+            r"\s*;\s*}\s*", result_masked[result_end:]
+        )
+        if result_is_complete:
             result_statements = top_level_nix_statements(
                 result_source[result_start + 1 : result_end - 1]
             )

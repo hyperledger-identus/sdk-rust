@@ -65,5 +65,8 @@ successfully.
 - Canonical specifications were synchronized and the change was archived as
   `2026-09-04-add-presentation-request-contracts`. The generated placeholder
   purpose was replaced with the reviewed capability intent.
+- The full post-archive `nix flake check --print-build-logs` rerun passed on
+  archive commit `40a928c`, including canonical factory validation and all 323
+  release workspace tests.
 - Hosted review/CI, merge, effort report, parent update, `develop` sync, and
   cleanup remain delivery evidence.

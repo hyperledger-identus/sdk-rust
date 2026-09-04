@@ -120,3 +120,6 @@ and added the new presentation activation requirement. OpenSpec generated a
 placeholder purpose for the new canonical presentation specification; it was
 replaced with the reviewed format-neutral capability intent before final
 validation.
+
+The post-archive tree at `40a928c` passed the complete Nix matrix, including
+the canonical factory contract and 323 release workspace tests.

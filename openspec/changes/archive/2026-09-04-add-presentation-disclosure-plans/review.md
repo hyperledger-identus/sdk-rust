@@ -44,3 +44,49 @@
     No donor dependency or code copy is justified.
 
 Verdict: READY to implement after strict structural validation.
+
+# Post-implementation architecture, API, privacy and performance review
+
+- **Date:** 2026-09-05
+- **Reviewed head:** `d5017723735bf37ccb8ce940c96fbe8855545c63`
+- **Develop base:** `4ca4605a9b0ab9e378943fa5046d691e259efa26`
+- **Result:** no unresolved blocker
+
+## Exact-diff findings
+
+1. The implementation remains format-neutral and storage-neutral. It adds no
+   manifest, lockfile, feature, serializer, runtime, chain or product-policy
+   dependency.
+2. The public surface is limited to bounded selected claims, bounded
+   credential selections and a request-validated disclosure plan. Existing
+   request and candidate types remain source compatible.
+3. Validation reuses one private candidate/request consistency routine. A
+   candidate set created for another request cannot be smuggled into a plan,
+   and a selected query/handle pair must exist in the revalidated set.
+4. Query coverage and multiplicity match the declared generic capability:
+   every query is covered, single queries select exactly one credential, and
+   multiple queries select one or more. The same opaque handle may satisfy
+   different query IDs.
+5. Claim validation is deliberately fail closed: each selected path is
+   requested with the same intent, supported by the candidate and complete for
+   required claims. Queries without explicit claim requests reject explicit
+   claim selection.
+6. Diagnostics reveal counts and stable static error identifiers only. They do
+   not format query IDs, credential handles or claim paths.
+7. Both collection bounds are enforced before nested scans. The maximum shape
+   is approximately 1.3 million bounded equality comparisons, with no I/O or
+   cryptography. The release diagnostic measured 983,298 complete
+   request/candidate/plan validations per second locally; this is evidence,
+   not a portable threshold.
+8. Positive tests cover DCQL-shaped, Midnight-shaped and unrelated format
+   identifiers. Negative tests cover every new static error, both upper
+   bounds, duplicates, cross-request use, unknown pairs, claim mismatches,
+   incomplete required claims, query coverage, multiplicity and redaction.
+9. Full native and Nix gates found one brittle pre-existing backlog negative
+   fixture exposed by moving `IDR-008` from program issue #20 to delivery issue
+   #81. The fixture now locates any program-owned `#20` row by contract instead
+   of assuming row eight; its six tests and the complete Nix matrix pass.
+10. Final donor and consumer receipts equal preflight. No donor repository was
+    switched, staged, copied from or modified by this change.
+
+Verdict: READY for specification synchronization and pull-request review.

@@ -9,6 +9,7 @@ use p256::{
     PublicKey, SecretKey,
     ecdsa::{Signature, SigningKey},
 };
+use zeroize::Zeroizing;
 
 #[cfg(feature = "cose")]
 use crate::cose::{CoseCurve, EncodeCose, PublicKeyCose};
@@ -101,9 +102,9 @@ impl P256KeyPair {
     /// Generate a fresh keypair using the injected [`SecureRandom`] entropy port.
     pub fn generate(rng: &mut impl SecureRandom) -> Result<Self, Error> {
         for _ in 0..16 {
-            let mut bytes = [0u8; PRIV_SIZE];
-            rng.fill_bytes(&mut bytes)?;
-            if let Ok(secret) = SecretKey::from_slice(&bytes) {
+            let mut bytes = Zeroizing::new([0u8; PRIV_SIZE]);
+            rng.fill_bytes(bytes.as_mut())?;
+            if let Ok(secret) = SecretKey::from_slice(bytes.as_ref()) {
                 let private = P256PrivateKey(secret);
                 let public = private.to_public_key();
                 return Ok(Self { private, public });

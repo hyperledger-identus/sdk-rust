@@ -25,6 +25,7 @@ hex           = { workspace = true, optional = true }
 serde         = { workspace = true, optional = true, features = [ "derive" ] }
 serde_json    = { workspace = true, optional = true }
 coset         = { workspace = true, optional = true }
+zeroize       = { workspace = true, optional = true }
 
 [features]
 default = [
@@ -47,17 +48,17 @@ kmp-compat = [  ]
 
 # `SecureRandom` is the only infrastructure port and is zero-dependency, so it
 # is always available (no `securerandom` feature).
-ed25519        = [ "jwk", "dep:ed25519-dalek" ]
-x25519         = [ "jwk", "dep:x25519-dalek" ]
-secp256k1      = [ "jwk", "dep:k256" ]
-secp256r1      = [ "jwk", "dep:p256" ]
+ed25519        = [ "jwk", "dep:ed25519-dalek", "dep:zeroize" ]
+x25519         = [ "jwk", "dep:x25519-dalek", "dep:zeroize" ]
+secp256k1      = [ "jwk", "dep:k256", "dep:zeroize" ]
+secp256r1      = [ "jwk", "dep:p256", "dep:zeroize" ]
 hash           = [ "dep:sha2" ]
 hex            = [ "dep:hex" ]
 base64         = [ "dep:base64" ]
 jwk            = [ "base64", "dep:serde", "dep:serde_json" ]
 jwk-thumbprint = [ "jwk", "hash" ]
 cose           = [ "dep:coset" ]
-derivation     = [ "hash", "dep:hmac", "dep:pbkdf2", "secp256k1", "ed25519" ]
+derivation     = [ "hash", "dep:hmac", "dep:pbkdf2", "dep:zeroize", "secp256k1", "ed25519" ]
 
 [dev-dependencies]
 hex      = { workspace = true }

@@ -2,6 +2,7 @@
 //! strict verify). Completes neoprism's verify-only port.
 
 use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
+use zeroize::Zeroizing;
 
 #[cfg(feature = "cose")]
 use crate::cose::{CoseCurve, EncodeCose, PublicKeyCose};
@@ -52,11 +53,11 @@ impl Ed25519PublicKey {
 impl Ed25519PrivateKey {
     /// Parse a 32-byte Ed25519 private key.
     pub fn from_slice(slice: &[u8]) -> Result<Self, Error> {
-        let arr: [u8; KEY_SIZE] = slice.try_into().map_err(|_| Error::InvalidKeySize {
+        let arr = Zeroizing::new(slice.try_into().map_err(|_| Error::InvalidKeySize {
             expected: KEY_SIZE,
             actual: slice.len(),
             key_type: key_type::<Self>(),
-        })?;
+        })?);
         Ok(Self(SigningKey::from_bytes(&arr)))
     }
 
@@ -82,8 +83,8 @@ impl Ed25519PrivateKey {
 impl Ed25519KeyPair {
     /// Generate a fresh keypair using the injected [`SecureRandom`] entropy port.
     pub fn generate(rng: &mut impl SecureRandom) -> Result<Self, Error> {
-        let mut seed = [0u8; KEY_SIZE];
-        rng.fill_bytes(&mut seed)?;
+        let mut seed = Zeroizing::new([0u8; KEY_SIZE]);
+        rng.fill_bytes(seed.as_mut())?;
         let private = Ed25519PrivateKey(SigningKey::from_bytes(&seed));
         let public = private.to_public_key();
         Ok(Self { private, public })

@@ -3,6 +3,7 @@
 //! port.
 
 use x25519_dalek::{PublicKey, StaticSecret};
+use zeroize::Zeroizing;
 
 #[cfg(feature = "cose")]
 use crate::cose::{CoseCurve, EncodeCose, PublicKeyCose};
@@ -47,12 +48,13 @@ impl X25519PublicKey {
 impl X25519PrivateKey {
     /// Parse a 32-byte X25519 private key.
     pub fn from_slice(slice: &[u8]) -> Result<Self, Error> {
-        let arr: [u8; KEY_SIZE] = slice.try_into().map_err(|_| Error::InvalidKeySize {
-            expected: KEY_SIZE,
-            actual: slice.len(),
-            key_type: key_type::<Self>(),
-        })?;
-        Ok(Self(StaticSecret::from(arr)))
+        let arr: Zeroizing<[u8; KEY_SIZE]> =
+            Zeroizing::new(slice.try_into().map_err(|_| Error::InvalidKeySize {
+                expected: KEY_SIZE,
+                actual: slice.len(),
+                key_type: key_type::<Self>(),
+            })?);
+        Ok(Self(StaticSecret::from(*arr)))
     }
 
     /// The 32-byte raw private key material.
@@ -69,16 +71,16 @@ impl X25519PrivateKey {
     /// Derive a Diffie-Hellman shared secret with `their_public`.
     #[must_use]
     pub fn derive_shared(&self, their_public: &X25519PublicKey) -> Vec<u8> {
-        self.0.diffie_hellman(&their_public.0).to_bytes().to_vec()
+        Zeroizing::new(self.0.diffie_hellman(&their_public.0).to_bytes()).to_vec()
     }
 }
 
 impl X25519KeyPair {
     /// Generate a fresh keypair using the injected [`SecureRandom`] entropy port.
     pub fn generate(rng: &mut impl SecureRandom) -> Result<Self, Error> {
-        let mut seed = [0u8; KEY_SIZE];
-        rng.fill_bytes(&mut seed)?;
-        let private = X25519PrivateKey(StaticSecret::from(seed));
+        let mut seed = Zeroizing::new([0u8; KEY_SIZE]);
+        rng.fill_bytes(seed.as_mut())?;
+        let private = X25519PrivateKey(StaticSecret::from(*seed));
         let public = private.to_public_key();
         Ok(Self { private, public })
     }

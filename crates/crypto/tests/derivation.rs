@@ -9,11 +9,50 @@ use identus_crypto::convert::ConvertEd25519;
 use identus_crypto::derivation::{EdHDKey, HDKey, MnemonicHelper};
 use identus_crypto::ed25519::Ed25519PrivateKey;
 use identus_crypto::{Base64UrlStrNoPad, Error, SecureRandom};
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 const SAMPLE_32: [u8; 32] = [
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
     0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,
 ];
+
+fn assert_zeroize_contract<T: Zeroize + ZeroizeOnDrop>() {}
+
+#[test]
+fn hd_keys_are_zeroizing_and_debug_redacted() {
+    assert_zeroize_contract::<HDKey>();
+    assert_zeroize_contract::<EdHDKey>();
+
+    let hd = HDKey::init_from_seed(&BIP32_SEED).unwrap();
+    let ed = EdHDKey::init_from_seed(&BIP32_SEED).unwrap();
+
+    assert_eq!(format!("{hd:?}"), "HDKey { depth: 0, child_index: 0, .. }");
+    assert_eq!(format!("{ed:?}"), "EdHDKey { depth: 0, index: 0, .. }");
+}
+
+#[test]
+fn explicit_hd_key_zeroization_clears_owned_state() {
+    let mut hd = HDKey::init_from_seed(&BIP32_SEED)
+        .unwrap()
+        .derive("m/0'")
+        .unwrap();
+    let mut ed = EdHDKey::init_from_seed(&BIP32_SEED)
+        .unwrap()
+        .derive("m/0'")
+        .unwrap();
+
+    hd.zeroize();
+    ed.zeroize();
+
+    assert_eq!(hd.private_key, [0; 32]);
+    assert_eq!(hd.chain_code, [0; 32]);
+    assert_eq!(hd.depth, 0);
+    assert_eq!(hd.child_index, 0);
+    assert_eq!(ed.private_key, [0; 32]);
+    assert_eq!(ed.chain_code, [0; 32]);
+    assert_eq!(ed.depth, 0);
+    assert_eq!(ed.index, 0);
+}
 
 // Vector 1 seed (16 bytes) — the canonical BIP-32 test vector 1 seed.
 const BIP32_SEED: [u8; 16] = [

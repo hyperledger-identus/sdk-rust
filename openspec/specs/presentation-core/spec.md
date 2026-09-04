@@ -366,11 +366,12 @@ and receipt-input throughput without a machine-dependent threshold.
 ### Requirement: Protocol state separates active phases and terminal outcomes
 
 The SDK SHALL provide a `PresentationLifecyclePhase` vocabulary containing
-`requested`, `awaiting_authorization`, `generating`, `ready`, `delivering` and
-`cancellation_requested`, and a distinct `PresentationTerminalOutcome`
-vocabulary containing `completed`, `refused`, `cancelled`, `expired` and
-`failed`. A `PresentationProtocolState` SHALL contain exactly one active phase
-or terminal outcome and SHALL report terminality without allocation.
+`requested`, `awaiting_authorization`, `generating`, `ready`, `delivering`,
+`generation_cancellation_requested` and `delivery_cancellation_requested`, and
+a distinct `PresentationTerminalOutcome` vocabulary containing `completed`,
+`refused`, `cancelled`, `expired` and `failed`. A
+`PresentationProtocolState` SHALL contain exactly one active phase or terminal
+outcome and SHALL report terminality without allocation.
 
 `awaiting_authorization` SHALL express only an unsatisfied external
 prerequisite. `completed` SHALL express only that the protocol adapter reports
@@ -398,12 +399,15 @@ The SDK SHALL accept only these directed state transitions:
   or `failed`;
 - `awaiting_authorization` to `generating`, `refused`, `cancelled`, `expired`
   or `failed`;
-- `generating` to `ready`, `cancellation_requested`, `cancelled`, `expired` or
-  `failed`;
+- `generating` to `ready`, `generation_cancellation_requested`, `cancelled`,
+  `expired` or `failed`;
 - `ready` to `delivering`, `cancelled`, `expired` or `failed`;
-- `delivering` to `cancellation_requested`, `completed`, `cancelled`,
-  `expired` or `failed`; and
-- `cancellation_requested` to `completed`, `cancelled`, `expired` or `failed`.
+- `delivering` to `delivery_cancellation_requested`, `completed`, `cancelled`,
+  `expired` or `failed`;
+- `generation_cancellation_requested` to `cancelled`, `expired` or `failed`;
+  and
+- `delivery_cancellation_requested` to `completed`, `cancelled`, `expired` or
+  `failed`.
 
 Every other pair, including self-transition, backward progress, a skipped
 generation/delivery boundary and any transition from a terminal outcome,
@@ -413,8 +417,14 @@ SHALL fail with one static typed error.
 
 - **WHEN** cancellation is requested while delivery may already be
   irreversible and the adapter subsequently observes terminal completion
-- **THEN** `cancellation_requested` SHALL be allowed to become `completed`
-  rather than fabricate rollback
+- **THEN** `delivery_cancellation_requested` SHALL be allowed to become
+  `completed` rather than fabricate rollback
+
+#### Scenario: generation cancellation cannot fabricate delivery
+
+- **WHEN** cancellation is requested during generation before an artifact is
+  ready or delivery begins
+- **THEN** `generation_cancellation_requested` SHALL reject `completed`
 
 #### Scenario: terminal truth cannot be rewritten
 

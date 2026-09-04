@@ -21,7 +21,7 @@ to retry a presentation that was already delivered.
 
 ## Decision
 
-1. Separate six active lifecycle phases from five terminal outcomes and wrap
+1. Separate seven active lifecycle phases from five terminal outcomes and wrap
    them in one `PresentationProtocolState`.
 2. Use `awaiting_authorization` as an external prerequisite, not a claim that
    the SDK captures or decides consent.
@@ -29,8 +29,10 @@ to retry a presentation that was already delivered.
    actual side-effect boundaries.
 4. Define one conservative transition table. Reject self-transitions,
    backward movement, phase skips and every transition from terminal state.
-5. Permit `cancellation_requested` to become either `cancelled` or `completed`
-   because irreversible completion may win the race.
+5. Preserve cancellation origin with `generation_cancellation_requested` and
+   `delivery_cancellation_requested`. Only the latter may become `completed`,
+   because irreversible delivery may win that race; pre-delivery cancellation
+   cannot fabricate completion.
 6. Define `completed` as protocol-adapter terminality only. Keep verifier
    acceptance, proof validity, credential trust and persistence evidence
    separate.
@@ -46,6 +48,8 @@ to retry a presentation that was already delivered.
 - Storage adapters can later persist an explicit vocabulary while owning
   concurrency, versioning and migration.
 - Protocol-specific substates remain adapter-owned.
+- The two data-free cancellation phases retain the minimum origin needed to
+  distinguish reversible generation from potentially irreversible delivery.
 - Applications that need consent, acknowledgement or audit evidence must store
   those facts separately rather than infer them from generic state.
 

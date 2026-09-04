@@ -28,7 +28,8 @@ Apollo remain read-only.
 ### D1 — Separate active phases from terminal outcomes
 
 `PresentationLifecyclePhase` contains `requested`, `awaiting_authorization`,
-`generating`, `ready`, `delivering` and `cancellation_requested`.
+`generating`, `ready`, `delivering`, `generation_cancellation_requested` and
+`delivery_cancellation_requested`.
 `PresentationTerminalOutcome` contains `completed`, `refused`, `cancelled`,
 `expired` and `failed`. `PresentationProtocolState` wraps exactly one phase or
 outcome and makes terminality explicit.
@@ -55,17 +56,20 @@ The allowed edges are:
 | --- | --- |
 | requested | awaiting_authorization, refused, cancelled, expired, failed |
 | awaiting_authorization | generating, refused, cancelled, expired, failed |
-| generating | ready, cancellation_requested, cancelled, expired, failed |
+| generating | ready, generation_cancellation_requested, cancelled, expired, failed |
 | ready | delivering, cancelled, expired, failed |
-| delivering | cancellation_requested, completed, cancelled, expired, failed |
-| cancellation_requested | completed, cancelled, expired, failed |
+| delivering | delivery_cancellation_requested, completed, cancelled, expired, failed |
+| generation_cancellation_requested | cancelled, expired, failed |
+| delivery_cancellation_requested | completed, cancelled, expired, failed |
 | any terminal outcome | none |
 
 The guard rejects self-transitions, backward transitions and phase skips. A
 caller that receives an idempotent replay may compare states before requesting
-a transition. Refusal is restricted to pre-generation phases. Completion from
-`cancellation_requested` is permitted because cancellation is a request, not a
-rollback guarantee; irreversible delivery may have won the race.
+a transition. Refusal is restricted to pre-generation phases. Cancellation
+origin remains explicit: generation cancellation cannot become completion,
+while completion from `delivery_cancellation_requested` is permitted because
+cancellation is a request, not a rollback guarantee and irreversible delivery
+may have won the race.
 
 ### D4 — Stable text is an adapter seam, not a wire format
 
@@ -99,6 +103,8 @@ reports throughput without encoding a machine-dependent correctness threshold.
 - `completed` is deliberately weak. Applications must store separate delivery,
   acknowledgement, verifier, proof and trust evidence when those distinctions
   matter.
+- Two cancellation phases add vocabulary, but prevent an origin-free state
+  from fabricating completion before delivery begins.
 - The state guard does not provide compare-and-swap, durability or concurrency
   control; storage ports and application services own those responsibilities.
 

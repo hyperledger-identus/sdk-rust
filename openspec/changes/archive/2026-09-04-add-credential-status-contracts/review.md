@@ -47,3 +47,45 @@
     no dependency or placeholder API is justified.
 
 Verdict: READY to implement after strict structural validation.
+
+# Post-implementation semantic, API, security, and performance review
+
+- **Date:** 2026-09-05
+- **Reviewed implementation:**
+  `63ff1284f5cd5f0a7a7ae2bcf26c12359d83fa25`
+- **Diff base:** `9463f1abfe7d0819c6a5944529fa3c1b8897c1d8`
+- **Result:** accepted with no unresolved finding
+
+## Exact-diff findings
+
+1. The API uses six role-specific public value types over one private opaque
+   implementation. No public alias permits a reference, handle, revision, or
+   observed value to be substituted accidentally.
+2. Method and purpose remain open and case-preserving. The implementation does
+   not import the Midnight mode enum, create a universal lifecycle enum, or
+   hard-code W3C terms.
+3. Binding and query construction exclude incomplete and contradictory states.
+   In particular, the reviewed implementation rejects a query whose binding is
+   absent from its own method or purpose allow-list.
+4. Every text constructor validates borrowed input before allocation; byte and
+   collection constructors retain transferred vectors. All duplicate scans run
+   only after 16-element bounds and allocate no temporary set.
+5. Direct and aggregate Debug implementations were traced recursively.
+   Reference, handle, revision, and value contents remain redacted; every new
+   error holds no caller data and bridges to a static credential code.
+6. Evidence preserves method-specific facts and rejects only a reversed known
+   observation/expiry interval. It does not claim freshness, proof validity,
+   trust, or usability.
+7. The exact diff changes no manifest, dependency, feature, lockfile, unsafe
+   code, wire codec, registry/network/ledger port, clock implementation, or
+   downstream repository.
+8. Boundary, deterministic corpus, W3C/Midnight consumer-shape, query,
+   privacy, time, and complete error-contract tests exercise every constructor.
+   The configured MSRV, etalon, cross-target, audit, deny, lint, docs, and
+   workspace-test gates all passed.
+9. The release diagnostic performs the full public query/evidence construction
+   path and reported 2,818,146 pairs/second without turning host timing into a
+   correctness threshold.
+
+Verdict: no unresolved semantic, API, security, privacy, performance,
+portability, or ownership-boundary finding remains.

@@ -11,34 +11,34 @@
 
 ## 2. Status contract implementation
 
-- [ ] 2.1 Add bounded role-specific method, purpose, reference, handle,
+- [x] 2.1 Add bounded role-specific method, purpose, reference, handle,
   revision, and observed-value types.
-- [ ] 2.2 Add complete bindings and a bounded unique binding collection.
-- [ ] 2.3 Add freshness and bounded allow-list requirements.
-- [ ] 2.4 Add complete query and attributable time-ordered evidence types.
-- [ ] 2.5 Add static error bridges and root exports without dependency,
+- [x] 2.2 Add complete bindings and a bounded unique binding collection.
+- [x] 2.3 Add freshness and bounded allow-list requirements.
+- [x] 2.4 Add complete query and attributable time-ordered evidence types.
+- [x] 2.5 Add static error bridges and root exports without dependency,
   feature, wire, or lockfile changes.
 
 ## 3. Evidence and performance
 
-- [ ] 3.1 Add W3C- and Midnight-shaped positive/consumer tests.
-- [ ] 3.2 Add scalar/opaque/collection/duplicate/freshness/time/privacy/error
+- [x] 3.1 Add W3C- and Midnight-shaped positive/consumer tests.
+- [x] 3.2 Add scalar/opaque/collection/duplicate/freshness/time/privacy/error
   negative tests, including exact boundaries.
-- [ ] 3.3 Add and run a manual release construction diagnostic and record the
+- [x] 3.3 Add and run a manual release construction diagnostic and record the
   toolchain/host/result without a pass threshold.
-- [ ] 3.4 Update the human inventory and canonical governance evidence.
-- [ ] 3.5 Verify donor/consumer final HEAD/branch/status receipts match
+- [x] 3.4 Update the human inventory and canonical governance evidence.
+- [x] 3.5 Verify donor/consumer final HEAD/branch/status receipts match
   preflight.
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Pass focused formatting, tests, no-default check, strict Clippy, and
+- [x] 4.1 Pass focused formatting, tests, no-default check, strict Clippy, and
   warning-denied docs.
-- [ ] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
+- [x] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
   supply-chain, and full Nix gates.
-- [ ] 4.3 Complete a distinct post-implementation API/security/performance
+- [x] 4.3 Complete a distinct post-implementation API/security/performance
   review and resolve every finding.
-- [ ] 4.4 Produce ready/receipt, synchronize canonical specs, archive the
+- [x] 4.4 Produce ready/receipt, synchronize canonical specs, archive the
   change, and prepare the signed/DCO issue-linked PR; hosted CI/review, merge,
   effort receipt, parent updates, `develop` sync, and cleanup remain GitHub
   evidence.

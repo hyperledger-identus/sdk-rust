@@ -457,3 +457,13 @@ inherited imports, inherited protected module keys, attribute reflection, and
 dynamic attribute-set construction outside the canonical generator. Exact
 mutations for every hosted finding must fail before implementation evidence is
 accepted.
+
+The implementation at `9093a493de364e96c1405825d9dbf9b64ce225c5`
+meets that contract. Root traversal retains unresolved residue after removing
+only static external flake-module selections. Shared cached predicates reject
+inherited import edges, reflective attribute lookup, computed keys, inherited
+protected keys, and runtime attribute-set constructors everywhere except the
+independently constrained generator. All five hosted fixtures plus inherited
+`disabledModules` and serialized-construction controls pass in the 92-test
+suite. A contradiction-focused local review found no unresolved issue within
+the defined closed boundary.

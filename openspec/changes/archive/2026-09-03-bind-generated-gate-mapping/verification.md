@@ -236,3 +236,16 @@ aarch64-darwin Nix graph pass. Against `develop` at
 `69d38874e3d3f669d60e129ed6882e835aedafe6`, the 20-sample benchmark reports
 warm p50/p95 8.518/8.991 ms and process-cold p50/p95 73.274/75.066 ms, with no
 material regression.
+
+## Final closed module-authoring boundary evidence
+
+The closed-boundary correction is implemented at
+`9093a493de364e96c1405825d9dbf9b64ce225c5`. The mutation suite passes 92/92:
+all five hosted bypasses fail closed, as do inherited `disabledModules` and
+serialized dynamic construction controls. Nix independently parses every
+hosted fixture. Ruff lint and format, canonical policy validation, all 17
+factory contracts, and the complete compatible aarch64-darwin Nix graph pass.
+Against `develop` at
+`69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample benchmark
+reports warm p50/p95 8.407/9.276 ms and process-cold p50/p95 71.298/74.014 ms,
+with no material regression.

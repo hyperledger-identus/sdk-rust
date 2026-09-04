@@ -90,5 +90,8 @@ canonical spec were repaired to retain both prior scenarios and add the new
 credential scenario. This was an evidence-spec merge defect, not a runtime/API
 finding; post-archive structural and full Nix checks must pass on the repair.
 
+The repaired archive at `99144fc` passed the complete post-archive Nix matrix,
+including the factory contract and all 280 workspace tests.
+
 Verdict: READY to publish as a signed/DCO, issue-linked pull request to
-`develop` after the repaired archive passes its post-archive gates.
+`develop`.

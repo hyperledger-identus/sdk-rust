@@ -62,5 +62,8 @@ the governed audit and all 26 derivations completed successfully.
   `2026-09-04-add-credential-verification-report`. The first sync dropped two
   existing scenarios from a modified requirement; the archived delta and
   canonical spec retain them in the reviewed repair.
+- The full post-archive `nix flake check --print-build-logs` rerun passed on
+  archive commit `99144fc`, including factory validation and 280 workspace
+  tests.
 - Hosted CI/review, merge, effort report, and parent updates remain delivery
   evidence.

@@ -105,6 +105,7 @@
 - [x] 2.57 Traverse literal imports from every reachable deferred `perSystem`
       result module.
 - [x] 2.58 Reject indented control escapes used to construct attribute names.
+- [ ] 2.59 Reject explicit root-module `config` composition.
 
 ## 3. Verification and integration
 
@@ -182,3 +183,5 @@
       clearance.
 - [x] 3.35 Rerun complete evidence after indented control-escape rejection and
       prepare the exact-head review thread for clearance.
+- [ ] 3.36 Rerun complete evidence after root-config rejection and prepare the
+      exact-head review thread for clearance.

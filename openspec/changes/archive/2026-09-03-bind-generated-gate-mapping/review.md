@@ -769,3 +769,16 @@ meets that contract. Computed-attribute detection now treats an indented control
 escape as ambiguous only when its complete literal is used as a binding or
 selection. Exact protected-root and priority-selector mutations fail in the
 134-test suite, while both existing ordinary string-data controls remain green.
+
+## Root explicit-config correction contract
+
+The exact-head review of `c803e1108722257d4482210dd79d8607d636fa53`
+found that the root `mkFlake` result can bind `config` to an imported module
+fragment. The local graph already rejects this composition, but the root flake
+must retain its canonical package-provider imports and is excluded from the
+general import-expression rule.
+
+The validator SHALL reject any immediate `config` binding or inheritance in
+the isolated canonical root module before accepting its package provider. An
+exact Nix-valid imported config that forces generated checks away must fail
+before new implementation evidence is accepted.

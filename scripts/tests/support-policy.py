@@ -469,6 +469,24 @@ in
         )
         self.assert_fails("local Nix module graph uses import expressions")
 
+    def test_root_imported_explicit_config_fails_closed(self) -> None:
+        (self.fixture / "override-output.nix").write_text(
+            """{ nixpkgs }: {
+  perSystem = { ... }: { checks = nixpkgs.lib.mkForce { }; };
+}
+""",
+            encoding="utf-8",
+        )
+        self.replace(
+            "flake.nix",
+            "      systems = [",
+            """      config = import ./override-output.nix { inherit nixpkgs; };
+
+      systems = [""",
+        )
+        self.assert_nix_parses_if_available("flake.nix")
+        self.assert_fails("root Nix module composes explicit config")
+
     def test_explicit_config_fails_closed(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",

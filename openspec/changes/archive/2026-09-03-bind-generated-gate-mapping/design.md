@@ -223,6 +223,11 @@ arguments.
   closed authoring profile does not require escaped attribute names, the
   attribute scanner rejects any such control escape in binding or selection
   position while preserving the same sequence in ordinary string data.
+- The canonical root module is deliberately exempt from the general import
+  primitive prohibition because its package provider imports Nixpkgs and the
+  Rust overlay. That exemption must not permit an additional top-level
+  `config` contribution: root-result statement isolation rejects `config`
+  directly, including inherited and statically quoted spellings.
 
 ## Verification
 

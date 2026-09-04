@@ -24,9 +24,10 @@ repository. Outside the independently constrained gate generator, reachable
 modules SHALL NOT inherit imports or protected keys, use reflective attribute
 access, or dynamically construct attribute sets. Import discovery SHALL inspect
 only immediate bindings of each returned top-level module attribute set and
-each reachable `perSystem` result module attribute set. Reachable local modules
-SHALL NOT evaluate `import` expressions or bind explicit top-level `config`;
-module dependencies SHALL use the traversed literal `imports` list.
+each reachable `perSystem` result module attribute set. The root result and
+reachable local modules SHALL NOT bind explicit top-level `config`. Reachable
+local modules SHALL NOT evaluate `import` expressions; module dependencies
+SHALL use the traversed literal `imports` list.
 Inherited `_type` SHALL be treated as a raw priority record.
 
 #### Scenario: Constant mapped name collapses the gate graph
@@ -287,6 +288,13 @@ Inherited `_type` SHALL be treated as a raw priority record.
 - **WHEN** a reachable module binds `config` from an imported local fragment
 - **THEN** structural validation rejects both the explicit config composition
   and executable import before the hidden checks can merge
+
+#### Scenario: Root module imports explicit config
+
+- **WHEN** the canonical root `mkFlake` module binds `config` from an imported
+  fragment that replaces generated checks
+- **THEN** structural validation rejects the root config contribution before
+  accepting the canonical package provider
 
 #### Scenario: Priority record fields are inherited
 

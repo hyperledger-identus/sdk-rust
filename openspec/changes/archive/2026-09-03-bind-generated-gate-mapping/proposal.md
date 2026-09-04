@@ -56,6 +56,14 @@ still reports success.
   targets cannot be proven by source traversal.
 - Reject computed attribute selections and competing `checks` contributions
   outside the canonical, independently validated gate modules.
+- Validate the complete root import expression, allowing only explicit static
+  input modules in addition to repository-local literal paths.
+- Reject inherited `imports` contributions because their effective graph
+  cannot be traversed from source.
+- Reject reflective attribute access and dynamic attribute-set construction in
+  reachable local modules outside the canonical generator.
+- Treat inherited `checks` and `disabledModules` contributions as protected
+  module-surface mutations, not only direct assignments.
 - Reject raw module `_type` tags independent of whether their values use
   double-quoted, indented, or computed Nix strings.
 - Recognize general Nix scheme URI literals whose scheme is followed directly

@@ -258,7 +258,12 @@ comments from comment delimiters inside valid Nix strings and SHALL recognize
 escaped delimiters in indented strings.
 Quoted or dynamic immediate binding roots SHALL NOT bypass trusted-root
 validation. Interpolation scanning SHALL balance nested expressions and string
-forms before determining an outer string's terminator.
+forms before determining an outer string's terminator. Root and reachable
+repository-local imports SHALL form a complete statically traversable graph;
+only static external `inputs.<name>.flakeModule` entries MAY remain outside the
+repository. Outside the independently constrained gate generator, reachable
+modules SHALL NOT inherit imports or protected keys, use reflective attribute
+access, or dynamically construct attribute sets.
 
 #### Scenario: Constant mapped name collapses the gate graph
 
@@ -466,3 +471,35 @@ forms before determining an outer string's terminator.
   computed attribute selection or contributes another `checks` binding
 - **THEN** structural validation rejects the ambiguous module contribution
   before it can erase generated checks
+
+#### Scenario: Root import expression hides a local edge
+
+- **WHEN** the root import list contains a computed or otherwise unresolved
+  entry instead of a repository-local literal path or static external flake
+  module
+- **THEN** structural validation rejects the incomplete root graph
+
+#### Scenario: Reachable module inherits imports
+
+- **WHEN** a reachable local module inherits `imports` from another expression
+- **THEN** graph traversal fails closed because it cannot prove every effective
+  repository-local edge
+
+#### Scenario: Priority helper is retrieved reflectively
+
+- **WHEN** a reachable module outside the canonical generator obtains a
+  priority constructor through `getAttr`
+- **THEN** structural validation rejects the reflective attribute access
+
+#### Scenario: Protected module key is constructed dynamically
+
+- **WHEN** a reachable module outside the canonical generator uses
+  `listToAttrs` to synthesize `checks`, `disabledModules`, or another effective
+  module key
+- **THEN** structural validation rejects the dynamic attribute-set construction
+
+#### Scenario: Protected key is inherited or computed
+
+- **WHEN** a reachable module inherits a protected module key or computes a raw
+  `_type` attribute name
+- **THEN** structural validation rejects the ambiguous module contribution

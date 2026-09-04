@@ -96,6 +96,20 @@ independently constrained. Other reachable modules must not use computed
 selectors or contribute competing `checks` bindings. An import path containing
 `${...}` is an expression rather than a statically resolvable graph edge and
 therefore fails closed.
+The root import list is held to the same completeness rule: repository-local
+entries must be literal paths and the only accepted non-local entries are
+static `inputs.<name>.flakeModule` selections. The parser propagates unresolved
+root residue instead of discarding it. Reachable modules that inherit
+`imports` are rejected because source traversal cannot prove the inherited
+edges.
+Outside the independently constrained generator, reachable modules also reject
+attribute reflection and construction through `getAttr` and `listToAttrs`.
+Those primitives can retrieve priority constructors or synthesize protected
+module keys without a visible static binding. Static inheritance of `checks`
+or `disabledModules` is rejected alongside direct assignments. This is a
+deliberately closed module-authoring boundary; future legitimate dynamic module
+composition requires a reviewed contract extension with its own effective
+graph evidence.
 Lexical scope scanning skips path and URI tokens before interpreting `let` or
 `in`, and recognizes an indented-string opener only at a token boundary. Valid
 path components and apostrophes within identifiers therefore cannot create
@@ -158,6 +172,10 @@ semantic equivalence across arbitrary Nix expressions.
   module surface therefore permits only direct literal import lists it can
   resolve, rejects `disabledModules`, and rejects raw module `_type` tags in
   the resulting reachable graph.
+- Nix reflection and attribute-set constructors can hide protected module
+  names without `${...}` syntax. Reachable modules therefore fail closed on
+  those primitives outside the canonical generator, whose use is separately
+  shape-validated.
 
 ## Verification
 

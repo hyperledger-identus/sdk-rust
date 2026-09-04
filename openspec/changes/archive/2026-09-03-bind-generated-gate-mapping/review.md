@@ -441,3 +441,19 @@ mutations plus competing static/inherited checks regressions pass in the
 85-test suite. All hosted fixtures parse with Nix, and a final
 contradiction-focused local review found no remaining static or computed route
 within the defined local module boundary.
+
+## Closed module-authoring boundary correction contract
+
+The settled-head review of `3c9c291` and two delayed threads from `c9d4166`
+identified five remaining bypasses: unresolved computed imports in the root
+list, computed raw `_type` names, inherited `imports`, priority helpers reached
+through `getAttr`, and protected keys synthesized through `listToAttrs`. Each
+can leave source-level discovery incomplete while Nix erases the manifest-
+generated checks, so all five P1 findings block merge.
+
+The validator SHALL preserve unresolved root-import evidence while explicitly
+allowing static external `inputs.<name>.flakeModule` entries. It SHALL reject
+inherited imports, inherited protected module keys, attribute reflection, and
+dynamic attribute-set construction outside the canonical generator. Exact
+mutations for every hosted finding must fail before implementation evidence is
+accepted.

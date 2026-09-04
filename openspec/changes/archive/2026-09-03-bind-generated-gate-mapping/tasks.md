@@ -57,6 +57,16 @@
       paths.
 - [x] 2.31 Reject computed attribute selectors and competing sibling checks
       contributions outside canonical gate modules.
+- [ ] 2.32 Preserve unresolved root-import evidence while allowing only static
+      external flake-module entries.
+- [ ] 2.33 Reject inherited imports whose repository-local graph cannot be
+      traversed from source.
+- [ ] 2.34 Reject reflective priority-constructor access outside the canonical
+      generator.
+- [ ] 2.35 Reject dynamic attribute-set construction that can synthesize
+      protected module keys.
+- [ ] 2.36 Reject inherited protected keys and cover computed raw `_type`
+      spelling explicitly.
 
 ## 3. Verification and integration
 
@@ -103,3 +113,5 @@
 - [x] 3.21 Rerun complete evidence after quoted-import, computed-selector, and
       interpolated-import corrections and prepare all three review threads for
       clearance.
+- [ ] 3.22 Rerun complete evidence after the closed module-authoring boundary
+      correction and prepare all five review threads for clearance.

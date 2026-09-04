@@ -222,3 +222,17 @@ remain green. Against `develop` at
 `69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample rerun reports
 warm p50/p95 7.998/8.851 ms and process-cold p50/p95 65.817/68.682 ms, with no
 material regression and no threshold change.
+
+## Final static module-boundary evidence
+
+The static module-boundary correction is implemented at
+`fc51d79049d5b77e9385578ab58a018771cb9b25`. The mutation suite passes 85/85:
+the quoted-import, computed-priority, and interpolated-import hosted findings
+fail closed, as do competing static and inherited checks contributions; the
+canonical generator's dynamic attribute operations remain accepted. All three
+hosted fixtures parse independently with Nix. Ruff lint and format, canonical
+policy validation, the 17-item factory contract, and the complete compatible
+aarch64-darwin Nix graph pass. Against `develop` at
+`69d38874e3d3f669d60e129ed6882e835aedafe6`, the 20-sample benchmark reports
+warm p50/p95 8.518/8.991 ms and process-cold p50/p95 73.274/75.066 ms, with no
+material regression.

@@ -431,6 +431,13 @@ reject any competing static `checks` binding outside the two canonical check
 modules. Exact mutations for all three hosted findings must fail while the
 generator's independently validated dynamic operation lookup remains accepted.
 
-Implementation evidence remains pending until the regressions fail first and
-the complete functional, performance, factory, and Nix gates pass on an
-immutable signed head.
+The implementation at `fc51d79049d5b77e9385578ab58a018771cb9b25`
+meets that contract. Central assignment discovery returns the value offset for
+bare, quoted, and directly dynamic names. Import traversal rejects interpolated
+paths and any executable list residue. Outside `rust-gates.nix`, executable
+`${...}` attributes are rejected; outside the two canonical gate modules,
+static or inherited `checks` contributions are rejected. The three hosted
+mutations plus competing static/inherited checks regressions pass in the
+85-test suite. All hosted fixtures parse with Nix, and a final
+contradiction-focused local review found no remaining static or computed route
+within the defined local module boundary.

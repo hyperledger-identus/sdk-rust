@@ -348,3 +348,17 @@ Inherited `_type` SHALL be treated as a raw priority record.
   merge operator or any other expression before the binding terminator
 - **THEN** structural validation rejects the trailing composition instead of
   accepting only its first attribute set
+
+#### Scenario: Locked trusted input changes provenance
+
+- **WHEN** a root input retains its canonical `flake.nix` URL but its direct
+  `flake.lock` mapping or locked GitHub owner/repository changes
+- **THEN** structural validation rejects the lock graph before trusting that
+  input as a gate provider or external module
+
+#### Scenario: Indented attribute name contains static interpolation
+
+- **WHEN** a reachable module spells a protected binding such as `inputs` as
+  `''${"inputs"}''`
+- **THEN** structural validation normalizes the static name and applies the
+  same trusted-root shadowing rule as for the bare spelling

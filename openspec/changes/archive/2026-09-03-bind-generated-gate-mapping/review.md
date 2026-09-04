@@ -638,3 +638,18 @@ meets that contract. It accepts provider result statements only when the first
 attribute set is followed exclusively by the synthetic binding terminator and
 module close. The exact trailing-merge fixture parses with Nix and fails in the
 117-test suite; canonical acceptance remains green.
+
+## Locked provenance and indented-name correction contract
+
+Delayed exact-head review found two remaining provider routes. Canonical URLs
+in `flake.nix` do not bind the root input mapping or the `locked` node that Nix
+actually evaluates. Separately, a protected binding named by an indented
+string containing one static interpolation is not normalized, so it can shadow
+the trusted `inputs` formal.
+
+The validator SHALL require every canonical root input to map directly to a
+lock node whose `original` and `locked` GitHub provenance matches its declared
+owner and repository (including the declared ref when present). It SHALL also
+normalize both double-quoted and indented-string outer forms containing one
+static string interpolation. Exact lock-owner, root-mapping, and indented-name
+mutations must fail closed before new implementation evidence is accepted.

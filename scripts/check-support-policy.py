@@ -7,7 +7,6 @@ import json
 import re
 import sys
 from functools import cache
-from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
@@ -1016,29 +1015,81 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         ),
         None,
     )
-    canonical_gate_statement_digests = {
+    canonical_gate_statements = {
         (
-            "cargoArgumentAttribute",
-            "0e20c50732bd25fea90b0025c2487a742e4e711a7baf46a9caef6fffb35e0a1e",
+            "cargoArgumentAttribute = {\n"
+            '        cargoBuild = "cargoExtraArgs";\n'
+            '        cargoClippy = "cargoClippyExtraArgs";\n'
+            '        cargoDoc = "cargoDocExtraArgs";\n'
+            '        cargoNextest = "cargoNextestExtraArgs";\n'
+            "      };"
         ),
         (
-            "cargoArgs",
-            "9984b03e5e55d0cc4f6b901ab254780a8c02aec1082d07b2d1847d893eaa58a3",
+            "cargoArgs =\n"
+            "        gate:\n"
+            "        escapeShellArgs (\n"
+            '          optionals gate.locked [ "--locked" ]\n'
+            '          ++ optionals gate.workspace [ "--workspace" ]\n'
+            "          ++ concatMap (package: [\n"
+            '            "--package"\n'
+            "            package\n"
+            "          ]) gate.packages\n"
+            "          ++ concatMap (package: [\n"
+            '            "--exclude"\n'
+            "            package\n"
+            "          ]) gate.exclude_packages\n"
+            '          ++ optionals gate.lib [ "--lib" ]\n'
+            '          ++ optionals gate.all_targets [ "--all-targets" ]\n'
+            '          ++ optionals gate.no_default_features [ "--no-default-features" ]\n'
+            '          ++ optionals gate.all_features [ "--all-features" ]\n'
+            "          ++ optionals (gate.features != [ ]) [\n"
+            '            "--features"\n'
+            '            (concatStringsSep "," gate.features)\n'
+            "          ]\n"
+            '          ++ optionals (gate.target != "") [\n'
+            '            "--target"\n'
+            "            gate.target\n"
+            "          ]\n"
+            "          ++ gate.extra_args\n"
+            "        );"
         ),
         (
-            "makeGate",
-            "d3110f08874d2f373bcf0f7d4067aeba8bb55f37e4c94f96f6e184fda236e893",
+            "makeGate =\n"
+            "        gate:\n"
+            "        let\n"
+            '          selectedCrane = if gate.toolchain == "msrv" then msrvCraneLib else craneLib;\n'
+            "          operation = getAttr gate.operation selectedCrane;\n"
+            "          argumentAttribute = cargoArgumentAttribute.${gate.operation} or null;\n"
+            '          selectedArtifacts = if gate.artifacts == "msrv" then msrvCargoArtifacts else cargoArtifacts;\n'
+            "        in\n"
+            "        operation (\n"
+            "          {\n"
+            '            src = if gate.source == "repository" then ./../.. else rustSrc;\n'
+            "          }\n"
+            '          // optionalAttrs (gate.artifacts != "none") {\n'
+            "            cargoArtifacts = selectedArtifacts;\n"
+            "          }\n"
+            "          // optionalAttrs (argumentAttribute != null) {\n"
+            "            ${argumentAttribute} = cargoArgs gate;\n"
+            "          }\n"
+            '          // optionalAttrs (gate.operation == "cargoBuild") {\n'
+            "            doCheck = false;\n"
+            "          }\n"
+            '          // optionalAttrs (gate.operation == "cargoAudit") {\n'
+            "            inherit (inputs) advisory-db;\n"
+            "          }\n"
+            "        );"
         ),
     }
     actual_gate_statements = {
-        (name, sha256(statement.strip().encode()).hexdigest())
+        statement.strip()
         for statement in statements
-        for name in ("cargoArgumentAttribute", "cargoArgs", "makeGate")
-        if nix_statement_binds(statement, name)
+        if any(
+            nix_statement_binds(statement, name)
+            for name in ("cargoArgumentAttribute", "cargoArgs", "makeGate")
+        )
     }
-    canonical_gate_construction = (
-        actual_gate_statements == canonical_gate_statement_digests
-    )
+    canonical_gate_construction = actual_gate_statements == canonical_gate_statements
     generated_pattern = (
         r"\s*generatedChecks\s*=\s*listToAttrs\s*\(\s*map\s*\("
         r"\s*gate\s*:\s*\{\s*inherit\s*\(\s*gate\s*\)\s*name\s*;"

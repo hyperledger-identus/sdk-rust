@@ -67,7 +67,7 @@
       protected module keys.
 - [x] 2.36 Reject inherited protected keys and cover computed raw `_type`
       spelling explicitly.
-- [ ] 2.37 Restrict import discovery and required-generator validation to
+- [x] 2.37 Restrict import discovery and required-generator validation to
       immediate bindings of the returned module attribute set.
 
 ## 3. Verification and integration
@@ -117,5 +117,5 @@
       clearance.
 - [x] 3.22 Rerun complete evidence after the closed module-authoring boundary
       correction and prepare all five review threads for clearance.
-- [ ] 3.23 Rerun complete evidence after module-result isolation and prepare
+- [x] 3.23 Rerun complete evidence after module-result isolation and prepare
       the nested-import-decoy thread for clearance.

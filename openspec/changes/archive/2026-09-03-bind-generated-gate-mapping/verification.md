@@ -249,3 +249,15 @@ Against `develop` at
 `69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample benchmark
 reports warm p50/p95 8.407/9.276 ms and process-cold p50/p95 71.298/74.014 ms,
 with no material regression.
+
+## Final module-result isolation evidence
+
+Module-result isolation is implemented at
+`b2b48f906ef67a18c857bb3996bc3754b24c83be`. The mutation suite passes 94/94:
+the exact nested import decoy fails and a positive control confirms inert
+import-shaped data does not become a graph edge. Ruff lint and format,
+canonical policy validation, all 17 factory contracts, and the complete
+compatible aarch64-darwin Nix graph pass. Against `develop` at
+`69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample benchmark
+reports warm p50/p95 9.101/27.849 ms and process-cold p50/p95 85.482/86.727 ms,
+with no material regression; p95 remains diagnostic by contract.

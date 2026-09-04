@@ -479,3 +479,12 @@ The validator SHALL isolate the direct returned module attribute set and
 discover imports only from its immediate bindings. The same structural import
 result SHALL prove the wrapper's required generator edge. An exact nested-decoy
 mutation must fail closed before implementation evidence is accepted.
+
+The implementation at `b2b48f906ef67a18c857bb3996bc3754b24c83be`
+meets that contract. A cached structural helper accepts only a direct module
+result attribute set, splits its immediate statements, and passes only an
+effective `imports` statement to literal-edge extraction. Recursive traversal
+and wrapper enforcement share that result. The exact inert-decoy mutation
+fails while a positive fixture proves nested import-shaped data is ignored when
+the effective generator edge remains. A contradiction-focused local review
+found no fallback global import scan or unresolved blocker.

@@ -100,5 +100,10 @@ tests. Second, the human inventory omitted explicit concrete-format/protocol
 exclusions; the boundary now names both. The archive-generated canonical spec
 purpose was also replaced from `TBD` with the reviewed capability intent.
 
+The final-head hosted review found one retained scenario from issue #71 that
+still excluded all credential verification, contradicting the newly accepted
+staged evidence surface. The scenario now excludes verifier execution and the
+other deferred capabilities while permitting the format-neutral evidence model.
+
 Verdict: READY to publish as a signed/DCO, issue-linked pull request to
 `develop`.

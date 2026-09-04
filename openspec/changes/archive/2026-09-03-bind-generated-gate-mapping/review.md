@@ -607,3 +607,15 @@ executable-name detection SHALL normalize bare and statically quoted builtin
 selections. Static attribute-name discovery SHALL also normalize a quoted name
 whose complete value is one static string interpolation. Exact Nix-valid
 mutations for all seven findings must fail before new evidence is accepted.
+
+The implementation at `08d10a9a190fc18fa682d024b05412a0f8b86f3e`
+meets that contract. Root input declarations are compared as an immediate
+canonical set before any external module is exempted; root provider validation
+uses only the effective root module's immediate `perSystem` statement; and the
+toolchain module binds the direct etalon/MSRV toolchains, Crane constructors,
+publication, formals, and trusted roots. One cached executable-name index
+normalizes bare and statically quoted selections, while static string
+normalization follows the quoted-interpolated imports edge. All seven reported
+mutations plus local Crane-input and scope-shadow controls fail in the 116-test
+suite. A distinct local review found no remaining unbound provider dependency
+or quoted-selector route within this boundary.

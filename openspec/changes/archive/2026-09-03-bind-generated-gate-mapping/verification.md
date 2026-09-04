@@ -312,3 +312,17 @@ and process-cold p50/p95 82.743/91.740 ms with no material regression. Hosted
 Ubuntu run `33851811403`, job `100956092337`, reports warm p50/p95
 12.654/21.236 ms and process-cold p50/p95 117.731/119.596 ms against baseline
 57.412/58.009 ms; the unchanged material-regression gate passes.
+
+## Final provider-provenance and static-selector evidence
+
+Trusted input, root-provider, Crane-provider, quoted-selector, and static-name
+hardening is implemented at
+`08d10a9a190fc18fa682d024b05412a0f8b86f3e`. The mutation suite passes 116/116:
+all seven hosted findings fail, as do a local Crane input replacement and an
+immediate `inputs` shadow in the toolchain scope. Every exact hosted fixture
+parses independently with Nix 2.34.6. Ruff lint/format, canonical policy
+validation, all 17 factory contracts, and the compatible aarch64-darwin Nix
+graph pass. Against `develop` at
+`69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample local benchmark
+reports warm p50/p95 9.000/9.475 ms and process-cold p50/p95 87.371/89.488 ms;
+the unchanged material-regression gate passes.

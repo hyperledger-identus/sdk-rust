@@ -79,12 +79,12 @@
       library imports to canonical manifest-driven Crane dispatch.
 - [x] 2.43 Replace cold-path statement normalization and hashing with direct
       canonical formatted-source comparison preserving every significant byte.
-- [ ] 2.44 Bind exempt external flake modules to canonical direct input URLs.
-- [ ] 2.45 Bind etalon and MSRV Crane providers to canonical direct toolchain
+- [x] 2.44 Bind exempt external flake modules to canonical direct input URLs.
+- [x] 2.45 Bind etalon and MSRV Crane providers to canonical direct toolchain
       construction.
-- [ ] 2.46 Anchor the package-provider check to the immediate root-module
+- [x] 2.46 Anchor the package-provider check to the immediate root-module
       `perSystem` statement.
-- [ ] 2.47 Normalize statically quoted executable builtin selections and quoted
+- [x] 2.47 Normalize statically quoted executable builtin selections and quoted
       attribute names containing a complete static interpolation.
 
 ## 3. Verification and integration
@@ -145,6 +145,6 @@
       the delayed no-op-gate review thread for clearance.
 - [x] 3.27 Clear the hosted process-cold performance gate with all 107
       functional mutations intact.
-- [ ] 3.28 Rerun complete evidence after provider-provenance, root anchoring,
+- [x] 3.28 Rerun complete evidence after provider-provenance, root anchoring,
       quoted-selector, and static-name corrections, then prepare all seven
       review threads for clearance.

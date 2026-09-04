@@ -84,5 +84,11 @@ untracked agent/tmp directories; and NeoPRISM
 `d6ad1ecade80757f08da4f9101d14c2fb1a4d02b` on `main`, clean. No downstream
 state changed.
 
-Verdict: READY to synchronize, archive, receipt, and publish as a signed/DCO,
-issue-linked pull request to `develop`.
+The first archive sync revealed that the delta's modified inventory requirement
+would replace two existing non-credential scenarios. The archived delta and
+canonical spec were repaired to retain both prior scenarios and add the new
+credential scenario. This was an evidence-spec merge defect, not a runtime/API
+finding; post-archive structural and full Nix checks must pass on the repair.
+
+Verdict: READY to publish as a signed/DCO, issue-linked pull request to
+`develop` after the repaired archive passes its post-archive gates.

@@ -5,9 +5,7 @@ and package maturity explicit and executable. It prevents seed placeholders or
 version metadata from becoming accidental capability or publication promises,
 while keeping protected live settings and release authority with accountable
 human maintainers.
-
 ## Requirements
-
 ### Requirement: One machine-readable bootstrap inventory defines local evidence
 
 The repository SHALL contain one normative machine-readable inventory that
@@ -122,7 +120,10 @@ The human-readable inventory SHALL identify the current public API families,
 feature surfaces and stabilization issue for every `implemented` package. It
 SHALL identify `identus-conformance` as verification-only and every placeholder
 as unsupported. It SHALL label all implemented surfaces experimental,
-unreleased and subject to focused component contracts.
+unreleased and subject to focused component contracts. The
+`identus-credentials` entry SHALL identify its bounded envelope and staged
+verification evidence while explicitly excluding trust, verifier execution,
+metadata/schema, status bindings, concrete formats, protocols, and storage.
 
 #### Scenario: Consumer inspects current foundations
 
@@ -136,6 +137,12 @@ unreleased and subject to focused component contracts.
 - **WHEN** a placeholder name overlaps a roadmap concept
 - **THEN** the inventory states that the name and dependency graph remain
   unaccepted until a focused issue replaces the placeholder
+
+#### Scenario: Consumer inspects current credential foundations
+
+- **WHEN** a consumer considers integrating `identus-credentials`
+- **THEN** the inventory identifies #71 and #73 as delivered experimental
+  slices without implying the deferred capabilities are supported
 
 ### Requirement: Governance evidence is local and release authority stays protected
 

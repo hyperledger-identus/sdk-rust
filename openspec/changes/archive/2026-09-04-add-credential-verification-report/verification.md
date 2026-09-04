@@ -55,5 +55,12 @@ the governed audit and all 26 derivations completed successfully.
 - Trust policy, verification execution/adapters, metadata/schema descriptors,
   evidence payloads, codecs, storage, FFI, publication, and downstream adoption
   remain focused follow-up slices.
-- Archive receipt, hosted CI/review, merge, effort report, and parent updates
-  remain delivery evidence.
+- Pre-archive factory receipt: branch `codex/idr-009a-verification-report`, head
+  `3788ae15c0f65524c437623636fbb60268b4aa5c`, merge base
+  `4e4cf5a8b4fb66e289629d287b4b87c63d5fc2bf`.
+- Canonical specs were synchronized and the change was archived as
+  `2026-09-04-add-credential-verification-report`. The first sync dropped two
+  existing scenarios from a modified requirement; the archived delta and
+  canonical spec retain them in the reviewed repair.
+- Hosted CI/review, merge, effort report, and parent updates remain delivery
+  evidence.

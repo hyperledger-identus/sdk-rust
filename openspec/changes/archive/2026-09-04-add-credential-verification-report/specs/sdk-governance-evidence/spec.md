@@ -11,6 +11,19 @@ unreleased and subject to focused component contracts. The
 verification evidence while explicitly excluding trust, verifier execution,
 metadata/schema, status bindings, concrete formats, protocols, and storage.
 
+#### Scenario: Consumer inspects current foundations
+
+- **WHEN** a consumer considers integrating core, derive, crypto, DID or the
+  entropy adapter
+- **THEN** the inventory identifies the real surface and owner issue while
+  warning that no immutable release or compatibility commitment exists
+
+#### Scenario: Placeholder name resembles a planned component
+
+- **WHEN** a placeholder name overlaps a roadmap concept
+- **THEN** the inventory states that the name and dependency graph remain
+  unaccepted until a focused issue replaces the placeholder
+
 #### Scenario: Consumer inspects current credential foundations
 
 - **WHEN** a consumer considers integrating `identus-credentials`

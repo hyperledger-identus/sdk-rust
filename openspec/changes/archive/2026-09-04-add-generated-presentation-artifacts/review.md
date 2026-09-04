@@ -92,3 +92,9 @@ validation passed.
     receipts match preflight, and no downstream repository changed.
 
 Verdict: READY for specification synchronization and pull-request review.
+
+Archive synchronization review found three inherited current-inventory
+requirements from #79/#81 that still required artifact and receipt exclusion.
+The archived delta and canonical governance spec now retain those slices as
+foundations while describing #83 as the current additive surface. This was an
+evidence-spec consistency correction; production API behavior did not change.

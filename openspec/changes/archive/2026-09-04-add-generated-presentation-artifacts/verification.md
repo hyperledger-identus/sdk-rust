@@ -78,3 +78,12 @@ workspace and Nix gates plus the distinct post-implementation review completed
 by `2026-09-05T07:02:57+08:00`, about 18 minutes wall-clock after issue
 creation. Hosted CI, review, correction and merge timing remain pull-request
 evidence.
+
+The pre-archive factory receipt recorded branch
+`codex/idr-008c-presentation-artifacts`, head
+`96647035f4f86e7bdbb799f8f710374b0e07830f` and merge base
+`9074f7f7490759763a683a8fd879dba3272e4ebc`. Canonical presentation and
+governance specs were synchronized and the change was archived as
+`2026-09-04-add-generated-presentation-artifacts`. Archive review found and
+repaired three older current-inventory requirements that still excluded the
+new #83 surface; the archived delta now records those modifications.

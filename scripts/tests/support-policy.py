@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import re
 import shutil
 import subprocess
@@ -434,6 +435,22 @@ in
         self.assert_nix_parses_if_available("flake.nix")
         self.assert_fails("does not bind canonical trusted input sources")
 
+    def test_locked_crane_provider_cannot_change_provenance(self) -> None:
+        path = self.fixture / "flake.lock"
+        lock = json.loads(path.read_text(encoding="utf-8"))
+        root_inputs = lock["nodes"][lock["root"]]["inputs"]
+        lock["nodes"][root_inputs["crane"]]["locked"]["owner"] = "attacker"
+        path.write_text(json.dumps(lock, indent=2) + "\n", encoding="utf-8")
+        self.assert_fails("flake.lock does not bind canonical trusted inputs")
+
+    def test_root_input_cannot_redirect_locked_crane_provider(self) -> None:
+        path = self.fixture / "flake.lock"
+        lock = json.loads(path.read_text(encoding="utf-8"))
+        root_inputs = lock["nodes"][lock["root"]]["inputs"]
+        root_inputs["crane"] = root_inputs["devshell"]
+        path.write_text(json.dumps(lock, indent=2) + "\n", encoding="utf-8")
+        self.assert_fails("flake.lock does not bind canonical trusted inputs")
+
     def test_inherited_imports_fail_closed(self) -> None:
         (self.fixture / "nix/holder.nix").write_text(
             "{ imports = [ ./override.nix ]; }\n", encoding="utf-8"
@@ -796,6 +813,20 @@ in
             "nix/rust-toolchain.nix",
             "      toolchain = pkgs.rust-bin.nightly",
             """      inputs = {
+        crane.mkLib = _: {
+          overrideToolchain = _: { };
+        };
+      };
+      toolchain = pkgs.rust-bin.nightly""",
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("does not bind canonical Crane providers")
+
+    def test_indented_interpolated_input_binding_cannot_shadow_formal(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "      toolchain = pkgs.rust-bin.nightly",
+            """      ''${"inputs"}'' = {
         crane.mkLib = _: {
           overrideToolchain = _: { };
         };

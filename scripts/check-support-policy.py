@@ -329,9 +329,16 @@ def nix_static_string_value(literal: str) -> str | None:
         return literal[1:-1]
     if re.fullmatch(r"''[A-Za-z_][A-Za-z0-9_'-]*''", literal):
         return literal[2:-2]
+    payload = None
+    if literal.startswith('"') and literal.endswith('"'):
+        payload = literal[1:-1]
+    elif literal.startswith("''") and literal.endswith("''"):
+        payload = literal[2:-2]
+    if payload is None:
+        return None
     interpolated = re.fullmatch(
-        r"^\"\$\{\s*(?:\"(?P<double>[A-Za-z_][A-Za-z0-9_'-]*)\"|''(?P<indented>[A-Za-z_][A-Za-z0-9_'-]*)'')\s*\}\"$",
-        literal,
+        r"^\$\{\s*(?:\"(?P<double>[A-Za-z_][A-Za-z0-9_'-]*)\"|''(?P<indented>[A-Za-z_][A-Za-z0-9_'-]*)'')\s*\}$",
+        payload,
     )
     if interpolated is None:
         return None
@@ -804,6 +811,73 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     }
     if actual_input_statements != canonical_input_statements:
         failures.append("flake.nix does not bind canonical trusted input sources")
+
+    canonical_input_provenance: dict[str, dict[str, str]] = {
+        "flake-parts": {"owner": "hercules-ci", "repo": "flake-parts"},
+        "nixpkgs": {
+            "owner": "NixOS",
+            "repo": "nixpkgs",
+            "ref": "nixpkgs-unstable",
+        },
+        "devshell": {"owner": "numtide", "repo": "devshell"},
+        "rust-overlay": {"owner": "oxalica", "repo": "rust-overlay"},
+        "crane": {"owner": "ipetkov", "repo": "crane"},
+        "advisory-db": {"owner": "rustsec", "repo": "advisory-db"},
+        "openspec": {"owner": "Fission-AI", "repo": "OpenSpec"},
+    }
+
+    def canonical_locked_inputs() -> bool:
+        try:
+            lock = json.loads((root / "flake.lock").read_text(encoding="utf-8"))
+            nodes = lock["nodes"]
+            root_inputs = nodes[lock["root"]]["inputs"]
+        except (FileNotFoundError, json.JSONDecodeError, KeyError, TypeError):
+            return False
+        if not isinstance(nodes, dict) or not isinstance(root_inputs, dict):
+            return False
+        if set(root_inputs) != set(canonical_input_provenance):
+            return False
+        for name, source in canonical_input_provenance.items():
+            node_name = root_inputs.get(name)
+            if not isinstance(node_name, str):
+                return False
+            node = nodes.get(node_name)
+            if not isinstance(node, dict):
+                return False
+            expected_original = {"type": "github", **source}
+            if node.get("original") != expected_original:
+                return False
+            locked = node.get("locked")
+            if not isinstance(locked, dict) or set(locked) != {
+                "lastModified",
+                "narHash",
+                "owner",
+                "repo",
+                "rev",
+                "type",
+            }:
+                return False
+            if any(locked.get(key) != source[key] for key in ("owner", "repo")):
+                return False
+            if locked.get("type") != "github":
+                return False
+            if not isinstance(locked.get("lastModified"), int):
+                return False
+            if re.fullmatch(r"[0-9a-f]{40}", str(locked.get("rev", ""))) is None:
+                return False
+            if (
+                re.fullmatch(
+                    r"sha256-[A-Za-z0-9+/]{43}=", str(locked.get("narHash", ""))
+                )
+                is None
+            ):
+                return False
+            if (node.get("flake", True) is False) != (name == "advisory-db"):
+                return False
+        return True
+
+    if not canonical_locked_inputs():
+        failures.append("flake.lock does not bind canonical trusted inputs")
     canonical_outputs = re.search(
         r"\boutputs\s*=\s*inputs\s*@\s*\{\s*flake-parts\s*,\s*"
         r"nixpkgs\s*,\s*rust-overlay\s*,\s*\.\.\.\s*\}\s*:\s*"

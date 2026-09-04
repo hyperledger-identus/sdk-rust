@@ -581,3 +581,9 @@ The first fingerprint implementation at `4ff81da` reduced hosted process-cold
 p50 from 130.533 ms to 118.832 ms, but a faster baseline tightened that run's
 ceiling to 117.474 ms. Direct transparent source comparison is required to
 remove the remaining startup cost without loosening the threshold.
+
+The direct comparison at `5f7b65120454a519e01aa23782e6c78b100f9354`
+meets that contract. Hosted Ubuntu run `33851811403`, job `100956092337`, passed
+with process-cold p50 117.731 ms, warm p50 12.654 ms, and no material
+regression; all 107 functional mutations and the complete Nix graph passed in
+the same run. The repository threshold is unchanged.

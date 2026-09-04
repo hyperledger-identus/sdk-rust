@@ -301,3 +301,14 @@ aarch64-darwin Nix graph pass. Against `develop` at
 `69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample benchmark
 reports warm p50/p95 8.911/9.509 ms and process-cold p50/p95 88.359/90.275 ms,
 with no material regression.
+
+## Final hosted generator-normalization performance evidence
+
+Direct canonical-source comparison is implemented at
+`5f7b65120454a519e01aa23782e6c78b100f9354`. All 107 mutations, Ruff, 17
+factory contracts, and the local compatible aarch64-darwin Nix graph remain
+green. Local comparison against `develop` reports warm p50/p95 8.879/9.368 ms
+and process-cold p50/p95 82.743/91.740 ms with no material regression. Hosted
+Ubuntu run `33851811403`, job `100956092337`, reports warm p50/p95
+12.654/21.236 ms and process-cold p50/p95 117.731/119.596 ms against baseline
+57.412/58.009 ms; the unchanged material-regression gate passes.

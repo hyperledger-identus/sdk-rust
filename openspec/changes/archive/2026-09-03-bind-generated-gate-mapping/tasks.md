@@ -77,7 +77,7 @@
       indented-string attribute name.
 - [x] 2.42 Bind `makeGate`, its Cargo argument helpers, and their trusted
       library imports to canonical manifest-driven Crane dispatch.
-- [ ] 2.43 Replace cold-path statement normalization and hashing with direct
+- [x] 2.43 Replace cold-path statement normalization and hashing with direct
       canonical formatted-source comparison preserving every significant byte.
 
 ## 3. Verification and integration
@@ -136,5 +136,5 @@
       for clearance.
 - [x] 3.26 Rerun complete evidence after generator-dispatch binding and prepare
       the delayed no-op-gate review thread for clearance.
-- [ ] 3.27 Clear the hosted process-cold performance gate with all 107
+- [x] 3.27 Clear the hosted process-cold performance gate with all 107
       functional mutations intact.

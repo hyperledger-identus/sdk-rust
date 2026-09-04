@@ -167,7 +167,7 @@ fn unrelated_formats_use_the_same_non_validating_envelope() {
 }
 
 #[test]
-fn every_error_bridges_to_static_credential_codes() {
+fn envelope_errors_bridge_to_static_credential_codes() {
     let cases = [
         (CredentialError::InvalidFormat, "credential.invalid_format"),
         (CredentialError::EmptyPayload, "credential.empty_payload"),

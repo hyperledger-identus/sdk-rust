@@ -51,7 +51,7 @@ Package presence, the layer rulebook and version `0.0.0` do not imply support.
 | `identus-derive` | `DeriveNewtype` and inert `port` procedural macros | Compile-time helper only; diagnostics and generated API remain experimental | issue #25 |
 | `identus-crypto` | encodings, JWK conversion, curve key types, sign/verify traits, hashes, secure-random port, BIP/SLIP derivation | Default, minimal and `kmp-compat` surfaces are tested; no custody, JOSE or Midnight Jubjub | issue #9 |
 | `identus-did` | initial `DidMethod`, `Version`, `Multihash` and error values | Not yet the DID Core model, DID URL, document or resolver contract | issue #5 |
-| `identus-credentials` | bounded format identifier, opaque credential/proof/private-material artifacts and non-validating envelope | no serde/codecs, trust, verification, status or storage | issue #71; later credential slices remain experimental |
+| `identus-credentials` | bounded format identifier, opaque artifacts/envelope and canonical staged verification evidence | no serde/codecs, concrete formats/protocols, trust decisions, verifier execution, metadata/schema, status bindings or storage | issues #71 and #73; later credential/verification slices remain experimental |
 | `identus-adapters-entropy` | `GetrandomSystemRandomAdapter`, `DeterministicRandomAdapter` | `getrandom` and `deterministic` are opt-in; deterministic entropy is test-only | issue #25 and later ports convergence |
 
 `identus-conformance` is verification-only. Its public `COMPONENT` marker does

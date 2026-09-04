@@ -393,6 +393,13 @@ def nix_constructs_attributes_dynamically(text: str) -> bool:
 
 
 @cache
+def nix_uses_import_expression(text: str) -> bool:
+    """Return whether executable Nix source evaluates the import primitive."""
+    source = nix_string_mask(nix_without_comments(text))
+    return re.search(r"(?<![A-Za-z0-9_'])\bimport\b", source) is not None
+
+
+@cache
 def nix_inherits_attribute(text: str, name: str) -> bool:
     """Return whether executable Nix source inherits an attribute name."""
     source = nix_string_mask(nix_without_comments(text))
@@ -407,9 +414,12 @@ def nix_inherits_attribute(text: str, name: str) -> bool:
 def nix_uses_priority_override(text: str) -> bool:
     """Return whether Nix source contains an effective module override value."""
     source = nix_without_comments(text)
-    if nix_binds_attribute(source, "_type"):
+    if nix_binds_attribute(source, "_type") or nix_inherits_attribute(source, "_type"):
         return True
-    if re.search(r"\b(?:mkForce|mkOverride)\b", nix_string_mask(source)):
+    priority_constructor = (
+        r"(?:mkForce|mkDefault|mkOptionDefault|mk[A-Za-z0-9_]*Override)"
+    )
+    if re.search(rf"\b{priority_constructor}\b", nix_string_mask(source)):
         return True
 
     index = 0
@@ -424,7 +434,8 @@ def nix_uses_priority_override(text: str) -> bool:
             continue
 
         literal = source[index:string_end]
-        if literal in {'"mkForce"', '"mkOverride"'}:
+        literal_name = literal[1:-1] if literal.startswith('"') else ""
+        if re.fullmatch(priority_constructor, literal_name):
             prefix = source[:index].rstrip()
             static_selection = prefix.endswith(".")
             dynamic_selection = prefix.endswith("${") and prefix[:-2].rstrip().endswith(
@@ -684,6 +695,15 @@ def nix_module_result_statements(text: str) -> tuple[str, ...] | None:
     return tuple(statements) if statements is not None else None
 
 
+@cache
+def nix_module_binds_attribute(text: str, name: str) -> bool:
+    """Return whether a direct Nix module result immediately binds an attribute."""
+    statements = nix_module_result_statements(text)
+    return statements is not None and any(
+        nix_statement_binds(statement, name) for statement in statements
+    )
+
+
 def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     checks_root = (root / "nix/checks").resolve()
     checks_entry = checks_root / "default.nix"
@@ -798,6 +818,28 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         failures.append(
             "local Nix module graph constructs attributes dynamically: "
             + ", ".join(dynamic_attribute_modules)
+        )
+    import_expression_modules = sorted(
+        str(path.relative_to(repository_root))
+        for path in local_module_graph
+        if path != flake_path
+        and nix_uses_import_expression(path.read_text(encoding="utf-8"))
+    )
+    if import_expression_modules:
+        failures.append(
+            "local Nix module graph uses import expressions: "
+            + ", ".join(import_expression_modules)
+        )
+    explicit_config_modules = sorted(
+        str(path.relative_to(repository_root))
+        for path in local_module_graph
+        if path != flake_path
+        and nix_module_binds_attribute(path.read_text(encoding="utf-8"), "config")
+    )
+    if explicit_config_modules:
+        failures.append(
+            "local Nix module graph composes explicit config: "
+            + ", ".join(explicit_config_modules)
         )
     competing_check_modules = sorted(
         str(path.relative_to(repository_root))

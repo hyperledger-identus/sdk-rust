@@ -198,6 +198,33 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("nix/checks/default.nix does not safely compose checks")
 
+    def test_check_wrapper_cannot_inherit_priority_record(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            """      checks = {
+        factory-contract""",
+            """      checks = {
+        inherit (pkgs.lib.mkVMOverride { }) _type priority content;
+        factory-contract""",
+        )
+        self.assert_fails("nix/checks/default.nix does not safely compose checks")
+
+    def test_check_wrapper_cannot_use_vm_override(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "      checks = {",
+            "      checks = pkgs.lib.mkVMOverride {",
+        )
+        self.assert_fails("nix/checks/default.nix does not safely compose checks")
+
+    def test_check_wrapper_cannot_use_quoted_vm_override(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "      checks = {",
+            '      checks = pkgs.lib."mkVMOverride" {',
+        )
+        self.assert_fails("nix/checks/default.nix does not safely compose checks")
+
     def test_sibling_module_cannot_force_away_imported_gates(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",
@@ -325,6 +352,35 @@ in
   perSystem =""",
         )
         self.assert_fails("local Nix module graph has unresolved imports")
+
+    def test_imported_explicit_config_fails_closed(self) -> None:
+        (self.fixture / "nix/override-config.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  config = import ./override-config.nix;\n  perSystem =",
+        )
+        self.assert_fails("local Nix module graph uses import expressions")
+
+    def test_explicit_config_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  config = { };\n  perSystem =",
+        )
+        self.assert_fails("local Nix module graph composes explicit config")
+
+    def test_import_syntax_in_string_data_remains_allowed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            '{\n  _module.args.importData = "config = import ./override.nix";\n  perSystem =',
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_computed_import_list_entry_fails_closed(self) -> None:
         self.replace(

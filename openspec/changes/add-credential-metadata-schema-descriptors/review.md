@@ -42,3 +42,35 @@
     dependency repoint, generated artifact, or consumer mutation is necessary.
 
 Verdict: READY to implement after strict structural validation.
+
+# Post-implementation semantic, API, security, and performance review
+
+- **Date:** 2026-09-05
+- **Reviewed implementation:**
+  `b605adb7f8d626607f6ef46c3c66dc48030802bb`
+- **Diff base:** `9aa33fcf8d2a6755270e46e435beae25f9ca75cf`
+- **Result:** accepted with all findings resolved
+
+## Exact-diff findings
+
+1. The initial implementation exposed a one-line private duplicate-check
+   wrapper with no semantic purpose. The review removed it and shared the
+   bounded helper directly within the crate.
+2. The initial metadata Debug view printed a constant `issuer_present: true`
+   field. The review removed the redundant field; the remaining view exposes
+   only collection counts and optional-validity presence.
+3. Scalar construction validates borrowed text before exactly one owned-string
+   allocation. Collection constructors retain input vectors, reject sizes
+   before pairwise scans, and allocate no temporary uniqueness set.
+4. Role-specific types prevent issuer/schema/type/claim substitution. Private
+   modules plus deliberate root exports leave format grammar, wire codecs,
+   parsing, verification, storage, and policy outside this contract.
+5. Entity and aggregate Debug output and every error bridge were re-read for
+   caller-controlled data. No issuer, subject, rejected scalar, or claim value
+   can enter the generic diagnostic surface.
+6. Exact minimum/maximum/over-limit, duplicate, ordering, and consumer-shaped
+   tests cover each constructor invariant. No dependency, feature, manifest,
+   lockfile, unsafe-code, or donor-source change is present.
+
+Verdict: no unresolved semantic, API, security, privacy, performance, or
+portability finding remains.

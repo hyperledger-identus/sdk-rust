@@ -10,34 +10,34 @@
 
 ## 2. Descriptor implementation
 
-- [ ] 2.1 Add bounded role-specific scalar descriptor types and disclosure
+- [x] 2.1 Add bounded role-specific scalar descriptor types and disclosure
   spelling/parser behavior.
-- [ ] 2.2 Add bounded claim paths and value-free claim descriptors.
-- [ ] 2.3 Add schema descriptors with bounded allocation-free uniqueness
+- [x] 2.2 Add bounded claim paths and value-free claim descriptors.
+- [x] 2.3 Add schema descriptors with bounded allocation-free uniqueness
   checks.
-- [ ] 2.4 Add normalized metadata with subject/type/schema uniqueness and
+- [x] 2.4 Add normalized metadata with subject/type/schema uniqueness and
   validity-order checks.
-- [ ] 2.5 Add static error bridges and root exports without dependency, feature,
+- [x] 2.5 Add static error bridges and root exports without dependency, feature,
   wire, or lockfile changes.
 
 ## 3. Evidence and performance
 
-- [ ] 3.1 Add Midnight-, Lace-, and W3C/SD-JWT-shaped positive tests.
-- [ ] 3.2 Add scalar/path/collection/duplicate/validity/privacy/error negative
+- [x] 3.1 Add Midnight-, Lace-, and W3C/SD-JWT-shaped positive tests.
+- [x] 3.2 Add scalar/path/collection/duplicate/validity/privacy/error negative
   tests, including exact boundaries.
-- [ ] 3.3 Add and run a manual release construction diagnostic and record the
+- [x] 3.3 Add and run a manual release construction diagnostic and record the
   observed toolchain/host/result without a pass threshold.
-- [ ] 3.4 Update the human inventory and canonical governance evidence.
-- [ ] 3.5 Verify donor/consumer final HEAD/branch/status receipts match
+- [x] 3.4 Update the human inventory and canonical governance evidence.
+- [x] 3.5 Verify donor/consumer final HEAD/branch/status receipts match
   preflight.
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Pass focused formatting, tests, no-default check, strict Clippy, and
+- [x] 4.1 Pass focused formatting, tests, no-default check, strict Clippy, and
   warning-denied docs.
-- [ ] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
+- [x] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
   supply-chain, and full Nix gates.
-- [ ] 4.3 Complete a distinct post-implementation API/security/performance
+- [x] 4.3 Complete a distinct post-implementation API/security/performance
   review and resolve every finding.
 - [ ] 4.4 Produce ready/receipt, synchronize canonical specs, archive the
   change, and prepare the signed/DCO issue-linked PR; hosted CI/review, merge,

@@ -209,3 +209,10 @@ token boundary. Its indented-string scanner SHALL consume both the `''\`
 prefix and the escaped character. Exact fixtures containing a `let` path
 component and an escaped interpolation opener must preserve canonical
 acceptance.
+
+The implementation at `12a39bfd86fc44d135d1f5772ac9a9c4ba623063`
+meets that contract. A slash-bearing token at a lexical boundary is recognized
+as an unprefixed relative path, and the indented control-escape branch advances
+past both its prefix and escaped character. Both exact hosted-review fixtures
+pass in the 64-test mutation suite. A final contradiction-focused local review
+found no remaining complete-path or escaped-interpolation blocker.

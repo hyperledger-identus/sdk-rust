@@ -111,3 +111,14 @@ accepts that fixture. Ruff lint and format checks, canonical policy validation,
 the 17-item factory contract, and the complete compatible aarch64-darwin Nix
 graph pass. The final isolated benchmark reports warm p50/p95 12.083/12.789 ms
 and process-cold p50/p95 51.310/53.004 ms, within the diagnostic guard.
+
+## Final complete-path and control-escape evidence
+
+The complete-relative-path and control-escape correction is implemented at
+`12a39bfd86fc44d135d1f5772ac9a9c4ba623063`. The mutation suite passes 64/64:
+`prefix/let/file` remains a single path token and `''\$` remains indented-string
+data rather than opening interpolation. Ruff lint and format checks, canonical
+policy validation, the 17-item factory contract, and the complete compatible
+aarch64-darwin Nix graph pass. The final isolated benchmark reports warm
+p50/p95 14.112/15.076 ms and process-cold p50/p95 54.056/57.701 ms, within the
+diagnostic guard.

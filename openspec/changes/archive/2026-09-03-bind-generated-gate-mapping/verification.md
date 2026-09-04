@@ -274,3 +274,17 @@ compatible aarch64-darwin Nix graph pass. Against `develop` at
 `69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample benchmark
 reports warm p50/p95 9.282/21.365 ms and process-cold p50/p95 85.307/87.589 ms,
 with no material regression; p95 remains diagnostic by contract.
+
+## Final canonical root-import and static-name evidence
+
+Canonical root anchoring and static computed-name traversal are implemented at
+`fb7e5ffb05b77fb60ed9aa80fd5c0a6ed25b07a0`. The mutation suite passes 103/103:
+the effective-root/inert-`mkFlake` decoy is rejected, and both `${"imports"}`
+and `${''imports''}` bindings are traversed to their priority-override target.
+All three fixtures parse independently with Nix 2.34.6; direct
+`''imports'' = [...]` is intentionally not a fixture because that spelling is
+invalid Nix. Ruff lint and format, canonical policy validation, all 17 factory
+contracts, and the complete compatible aarch64-darwin Nix graph pass. Against
+`develop` at `69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample
+benchmark reports warm p50/p95 9.139/10.147 ms and process-cold p50/p95
+83.521/87.827 ms, with no material regression.

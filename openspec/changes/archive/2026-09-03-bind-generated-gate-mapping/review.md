@@ -530,3 +530,13 @@ module-statement filtering SHALL recognize bare, double-quoted, and statically
 computed double-quoted or indented-string `imports` names. Exact Nix-valid
 mutations for both findings must fail closed before implementation evidence is
 accepted.
+
+The implementation at `fb7e5ffb05b77fb60ed9aa80fd5c0a6ed25b07a0`
+meets that contract. Balanced-delimiter parsing begins at the canonical
+`outputs` match and extracts only its two direct `mkFlake` arguments; root
+imports are then selected from immediate statements of that exact module
+attribute set. Immediate binding discovery also recognizes statically computed
+double-quoted and indented-string names. Both Nix-valid fixtures parse
+independently and the 103-test mutation suite follows the hidden override while
+rejecting each mutation. A contradiction-focused local review found no
+remaining whole-file root-import search or static-name filter gap.

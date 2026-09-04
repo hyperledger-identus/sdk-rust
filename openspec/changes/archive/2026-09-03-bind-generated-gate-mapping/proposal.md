@@ -85,6 +85,12 @@ still reports success.
   regression ceiling.
 - Cache pure module-source binding, override, delimiter, and import analyses so
   the closed graph contract retains its hosted warm-latency ceiling.
+- Bind external flake-module exemptions to canonical direct input URLs and
+  both Crane libraries to canonical direct toolchain construction.
+- Anchor package-provider validation to the effective root module's immediate
+  `perSystem` statement.
+- Normalize statically quoted executable builtin selections and quoted static
+  interpolations used as protected attribute names.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

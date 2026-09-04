@@ -587,3 +587,23 @@ meets that contract. Hosted Ubuntu run `33851811403`, job `100956092337`, passed
 with process-cold p50 117.731 ms, warm p50 12.654 ms, and no material
 regression; all 107 functional mutations and the complete Nix graph passed in
 the same run. The repository threshold is unchanged.
+
+## Provider provenance and static-selector correction contract
+
+The exact-head review of `2b996e8` and delayed reviews of prior heads exposed
+seven remaining executable-source routes. A repository-local flake input can
+masquerade as the exempt `inputs.devshell.flakeModule`; the upstream
+`craneLib` can replace every Cargo operation; a nested provider can satisfy the
+whole-root package-provider search; statically quoted `listToAttrs`, `import`,
+and `getAttr` selections disappear under string masking; and a quoted
+attribute name containing static interpolation can hide a local imports edge.
+Each mutation can erase or no-op generated gates and therefore blocks merge.
+
+The validator SHALL bind every exempt external flake module to its canonical
+direct input URL, bind the etalon and MSRV Crane libraries to their canonical
+direct toolchain construction, and validate the package provider only in the
+immediate statements of the effective canonical `mkFlake` root module. Shared
+executable-name detection SHALL normalize bare and statically quoted builtin
+selections. Static attribute-name discovery SHALL also normalize a quoted name
+whose complete value is one static string interpolation. Exact Nix-valid
+mutations for all seven findings must fail before new evidence is accepted.

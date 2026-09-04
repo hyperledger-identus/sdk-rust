@@ -547,3 +547,38 @@ Inherited `_type` SHALL be treated as a raw priority record.
   immediate Cargo argument helpers no longer performs canonical
   manifest-selected Crane dispatch
 - **THEN** structural validation rejects the disconnected gate implementation
+
+#### Scenario: External flake module resolves from repository-local source
+
+- **WHEN** an allowed `inputs.<name>.flakeModule` root import is retained but
+  that input's direct URL is replaced with a repository-local path
+- **THEN** structural validation rejects the non-canonical external module
+  provenance before trusting the root import exemption
+
+#### Scenario: Crane operation provider is replaced upstream
+
+- **WHEN** the gate generator remains canonical but `nix/rust-toolchain.nix`
+  wraps or replaces the etalon or MSRV Crane library operations
+- **THEN** structural validation rejects the non-canonical direct toolchain and
+  Crane provider contract
+
+#### Scenario: Nested provider decoy impersonates the effective provider
+
+- **WHEN** the effective root `perSystem` package provider is changed and inert
+  nested data retains a canonical-looking provider
+- **THEN** structural validation validates only the immediate `perSystem`
+  statement of the canonical `mkFlake` root module and rejects the mutation
+
+#### Scenario: Executable builtin uses a statically quoted selector
+
+- **WHEN** a reachable local module invokes `getAttr`, `listToAttrs`, `import`,
+  or another protected builtin through a statically quoted attribute selection
+- **THEN** structural validation normalizes the selector and applies the same
+  fail-closed rule as for its bare spelling
+
+#### Scenario: Quoted attribute name contains static interpolation
+
+- **WHEN** a reachable module spells `imports` as `"${"imports"}"` and points
+  it at a repository-local module
+- **THEN** graph traversal normalizes the static name, follows the local edge,
+  and applies every protected-surface check to the imported module

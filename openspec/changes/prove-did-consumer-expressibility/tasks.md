@@ -8,11 +8,11 @@
 
 ## 2. Compatibility evidence
 
-- [ ] 2.1 Add independently authored NeoPRISM and Midnight compatibility cases
-- [ ] 2.2 Add independently authored Lace and Oxid compatibility cases
-- [ ] 2.3 Prove strict bounded parsing, semantic preservation, typed projections,
+- [x] 2.1 Add independently authored NeoPRISM and Midnight compatibility cases
+- [x] 2.2 Add independently authored Lace and Oxid compatibility cases
+- [x] 2.3 Prove strict bounded parsing, semantic preservation, typed projections,
       explicit legacy-error migration and multi-method object-safe composition
-- [ ] 2.4 Document which method, chain, transport and product behavior remains
+- [x] 2.4 Document which method, chain, transport and product behavior remains
       downstream
 
 ## 3. Verification and delivery

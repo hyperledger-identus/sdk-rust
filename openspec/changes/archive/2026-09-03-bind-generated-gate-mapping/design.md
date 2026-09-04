@@ -62,6 +62,9 @@ Lexical scope scanning skips path and URI tokens before interpreting `let` or
 `in`, and recognizes an indented-string opener only at a token boundary. Valid
 path components and apostrophes within identifiers therefore cannot create
 phantom scopes or strings.
+Path scanning treats `${...}` as an embedded expression, delegates its balanced
+contents to the interpolation scanner, and then resumes the surrounding path.
+Scope keywords in a suffix after interpolation therefore remain path data.
 
 Two fixture mutations independently replace the mapped name with a constant
 and the mapped value with an empty attribute set. Both must return a stable

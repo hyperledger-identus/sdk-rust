@@ -176,3 +176,14 @@ runs before string, comment, and scope recognition, while indented strings
 require a non-identifier boundary. The exact three review mutations pass, Nix
 itself parses all positive fixtures, and a final contradiction-focused local
 review found no remaining token-context bypass or delivery blocker.
+
+## Interpolated-path correction contract
+
+The exact-head review of `463579b` found that a valid path token containing
+`${...}` is stopped at the interpolation opening brace. A later `/let/` suffix
+is then misread as a lexical scope keyword and causes a false rejection. This
+P2 finding blocks merge.
+
+The path scanner SHALL consume a balanced interpolation as part of the current
+path and resume scanning its remaining components. An exact interpolated-path
+fixture with a later `let` component must preserve canonical acceptance.

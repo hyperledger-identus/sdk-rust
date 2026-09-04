@@ -30,6 +30,7 @@ still reports success.
 - Reject a `builtins` binding in the immediate `perSystem` function formals.
 - Distinguish path/URI tokens and apostrophes inside identifiers from lexical
   `let`/`in` keywords and indented-string delimiters.
+- Continue path-token scanning across `${...}` interpolation boundaries.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

@@ -338,3 +338,9 @@ forms before determining an outer string's terminator.
 - **WHEN** an unrelated valid identifier contains adjacent apostrophes
 - **THEN** lexical preprocessing does not treat those apostrophes as an
   indented-string opener
+
+#### Scenario: Interpolated path suffix contains a scope keyword
+
+- **WHEN** a valid path contains `${...}` followed by a `let` or `in` component
+- **THEN** lexical preprocessing resumes the path token after interpolation and
+  does not interpret the suffix as a lexical scope

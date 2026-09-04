@@ -3,18 +3,22 @@
 - **Issue:** #65
 - **Develop base:** `d3380abc1b2238cc9ccfe4071104c2243ec02ba7`
 - **Specification commit:** `1d72341ab06e57fc539b51c3851ec13d37814e21`
-- **Implementation commit:** `f1b7603ff319341180efbf692187f0349fd5be9d`
+- **Implementation commit:** `eeaaedef0582d50d7527f59c53e946da9ce97363`
 - **Environment:** aarch64-darwin, repository-pinned Nix/Rust plus plain Cargo
 
 ## Focused evidence
 
-- `cargo test -p identus-did --test did_consumer_compatibility`: 4 passed.
+- `cargo test -p identus-did --all-features --test did_consumer_compatibility`:
+  4 passed.
+- `cargo test -p identus-did --no-default-features --test did_consumer_compatibility`:
+  4 passed.
 - `cargo test -p identus-did --all-features`: passed.
 - `cargo test -p identus-did --no-default-features`: passed.
 - Four named cases cover NeoPRISM, midnight-identity, Lace ID Portal and Oxid.
-- Strict parsing, semantic JSON preservation, explicit error migration,
-  private-JWK rejection, redacted malformed input and object-safe PRISM/
-  Midnight dispatch are exercised.
+- Strict parsing, semantic JSON preservation (including the complete synthetic
+  Lace resolver document), explicit error migration, private-JWK rejection,
+  redacted malformed input and object-safe PRISM/Midnight dispatch are
+  exercised.
 
 ## Workspace and factory gates
 
@@ -22,7 +26,8 @@
 - `cargo test --workspace --no-default-features`: passed.
 - `cargo clippy --workspace --all-targets --all-features -- -D warnings`:
   passed.
-- `RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps`: passed.
+- `RUSTDOCFLAGS='-D warnings' cargo doc --workspace --all-features --no-deps`:
+  passed.
 - `cargo fmt --all -- --check`, `git diff --check` and
   `./scripts/factory check`: passed.
 
@@ -36,7 +41,9 @@ TOML checks. The main release Nextest profile ran 255 tests: 255 passed and 9
 were skipped; all four new consumer cases passed.
 
 The local flake invocation omits incompatible `x86_64-linux`; hosted Ubuntu CI
-must supply that independent Nix gate before merge. The audit derivation emitted
+must supply that independent Nix gate before merge. Exact-head hosted CI is
+required after the evidence-only commit that records this review and receipt.
+The audit derivation emitted
 non-fatal offline sparse-index yanked-status diagnostics, and the Darwin Nix
 fixup hook emitted intermittent non-fatal scan-process diagnostics; the full
 flake command exited successfully. Neither was introduced by this test-only

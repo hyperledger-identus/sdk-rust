@@ -582,3 +582,10 @@ Inherited `_type` SHALL be treated as a raw priority record.
   it at a repository-local module
 - **THEN** graph traversal normalizes the static name, follows the local edge,
   and applies every protected-surface check to the imported module
+
+#### Scenario: Canonical provider result has trailing composition
+
+- **WHEN** the canonical-looking `perSystem` provider result is followed by a
+  merge operator or any other expression before the binding terminator
+- **THEN** structural validation rejects the trailing composition instead of
+  accepting only its first attribute set

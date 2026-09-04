@@ -619,3 +619,16 @@ normalization follows the quoted-interpolated imports edge. All seven reported
 mutations plus local Crane-input and scope-shadow controls fail in the 116-test
 suite. A distinct local review found no remaining unbound provider dependency
 or quoted-selector route within this boundary.
+
+## Provider result boundary correction contract
+
+The exact-head review of `f17dab9db270c4db2279631092a54ee3c3f146fb`
+found that the provider parser validates the first result attribute set but
+does not reject an expression composed after it. A Nix-valid `//` merge can
+therefore replace `_module.args` after the canonical publication has already
+satisfied structural validation.
+
+The validator SHALL require the parsed result attribute set to consume the
+complete `perSystem` result expression before its binding terminator. An exact
+mutation that appends a merge and replaces the effective `craneLib` must parse
+with Nix and fail closed before new implementation evidence is accepted.

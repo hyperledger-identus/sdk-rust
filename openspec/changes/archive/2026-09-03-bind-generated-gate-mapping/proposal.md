@@ -91,6 +91,8 @@ still reports success.
   `perSystem` statement.
 - Normalize statically quoted executable builtin selections and quoted static
   interpolations used as protected attribute names.
+- Require the canonical provider result attribute set to consume the complete
+  `perSystem` expression before its binding terminator.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

@@ -47,6 +47,12 @@ still reports success.
   override records, not only bare `mkForce` or `mkOverride` identifiers.
 - Resolve both child-relative and parent-relative literal imports while
   traversing the repository-local module graph.
+- Reject repository-local `disabledModules` contributions that can remove the
+  required generator from the effective graph.
+- Fail closed when a reachable module's `imports` value is not a directly
+  traversable literal list.
+- Reject raw module `_type` tags independent of whether their values use
+  double-quoted, indented, or computed Nix strings.
 - Recognize general Nix scheme URI literals whose scheme is followed directly
   by URI data without `//`.
 - Consume the escaped character after an indented-string `''\` prefix.

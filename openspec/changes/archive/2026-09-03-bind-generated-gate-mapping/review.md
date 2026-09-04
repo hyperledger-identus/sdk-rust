@@ -370,3 +370,20 @@ hosted mutations fail closed, an additional dynamic-selection mutation fails,
 and a string-data control remains accepted in the 76-test suite. All fixtures
 parse with Nix, and a final contradiction-focused local review found no
 remaining blocker within the defined effective-override contract.
+
+## Effective module-graph correction contract
+
+The exact-head review of `c5b518f` found three additional graph-composition
+bypasses. A sibling can contribute `disabledModules` for the required
+`rust-gates.nix`; a reachable module can hide a local override module behind a
+computed `imports` binding; and the raw override tag can use an indented string
+as `_type = ''override''`. Each mutation leaves the structural validator green
+while erasing generated checks, so all three P1 findings block merge.
+
+The validator SHALL reject repository-local `disabledModules` contributions,
+require every reachable `imports` binding to be a directly traversable literal
+list, and reject raw module `_type` tags independent of value spelling. Exact
+mutations for all three hosted findings must fail closed before integration.
+
+Implementation evidence remains pending until the regressions fail first and
+the focused and complete validation suites pass on an immutable signed head.

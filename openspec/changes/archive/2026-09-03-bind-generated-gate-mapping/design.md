@@ -81,6 +81,14 @@ quoted selections such as `pkgs.lib."mkForce"` cannot disappear when ordinary
 string contents are masked. Raw module values whose `_type` is `"override"`
 are rejected as the representation produced by `mkOverride`, even when no
 constructor identifier remains in source.
+Repository-local modules may not contribute `disabledModules`, because any
+such contribution can remove the required generator after the structural
+import check. Every `imports` binding must be a direct literal list whose local
+paths the scanner can resolve; aliases and other computed expressions fail
+closed instead of creating an incomplete graph. Raw module `_type` fields are
+also rejected regardless of their value spelling. This deliberately covers
+the internal representations of priority constructors without attempting to
+evaluate double-quoted, indented, or computed tag strings.
 Lexical scope scanning skips path and URI tokens before interpreting `let` or
 `in`, and recognizes an indented-string opener only at a token boundary. Valid
 path components and apostrophes within identifiers therefore cannot create
@@ -136,9 +144,9 @@ semantic equivalence across arbitrary Nix expressions.
   changes that introduce another root must update this explicit fail-closed
   set and its review evidence.
 - Static validation cannot prove arbitrary computed imports. The protected
-  module surface therefore permits only the literal local import forms it can
-  resolve and deliberately rejects every priority override value found in the
-  resulting reachable graph.
+  module surface therefore permits only direct literal import lists it can
+  resolve, rejects `disabledModules`, and rejects raw module `_type` tags in
+  the resulting reachable graph.
 
 ## Verification
 

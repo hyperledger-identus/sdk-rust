@@ -426,3 +426,24 @@ forms before determining an outer string's terminator.
   `_type` is `"override"`
 - **THEN** structural validation rejects the semantic priority override even
   when no priority-constructor identifier appears in source
+
+#### Scenario: Local module disables the gate generator
+
+- **WHEN** a repository-local module contributes `disabledModules` that can
+  remove the required gate generator
+- **THEN** structural validation rejects the disabling contribution before
+  evaluating the effective module graph
+
+#### Scenario: Import graph contains a computed edge
+
+- **WHEN** a reachable local module assigns `imports` from an alias or another
+  expression instead of a direct literal list
+- **THEN** graph traversal fails closed rather than accepting an incomplete
+  repository-local module graph
+
+#### Scenario: Raw module tag uses another string form
+
+- **WHEN** a reachable local module contains a raw `_type` tag using an
+  indented or computed Nix string
+- **THEN** structural validation rejects the raw module value independently of
+  the tag value's source spelling

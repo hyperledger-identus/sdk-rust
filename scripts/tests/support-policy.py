@@ -1279,6 +1279,16 @@ in
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_indented_control_escape_protected_name_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "      toolchain = pkgs.rust-bin.nightly",
+            r"""      ''input''\s'' = { crane.mkLib = _: { overrideToolchain = _: { }; }; };
+      toolchain = pkgs.rust-bin.nightly""",
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("local Nix module graph uses computed attributes")
+
     def test_quoted_trusted_root_binding_fails(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

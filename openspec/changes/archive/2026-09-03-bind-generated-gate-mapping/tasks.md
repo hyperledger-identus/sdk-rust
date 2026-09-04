@@ -104,6 +104,7 @@
       selections.
 - [x] 2.57 Traverse literal imports from every reachable deferred `perSystem`
       result module.
+- [ ] 2.58 Reject indented control escapes used to construct attribute names.
 
 ## 3. Verification and integration
 
@@ -179,3 +180,5 @@
 - [x] 3.34 Rerun complete evidence after normalized priority selection and
       deferred-module traversal, then prepare both exact-head threads for
       clearance.
+- [ ] 3.35 Rerun complete evidence after indented control-escape rejection and
+      prepare the exact-head review thread for clearance.

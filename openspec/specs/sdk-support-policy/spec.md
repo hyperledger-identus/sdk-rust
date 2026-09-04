@@ -626,6 +626,13 @@ Inherited `_type` SHALL be treated as a raw priority record.
 - **THEN** structural validation rejects the shadow exactly as it rejects the
   bare protected binding
 
+#### Scenario: Indented protected name uses a control escape
+
+- **WHEN** an indented-string binding or selection uses a Nix control escape
+  to construct a protected or executable attribute name
+- **THEN** structural validation rejects the ambiguous attribute rather than
+  treating the escaped source spelling as inert data
+
 #### Scenario: Trusted provider redirects a transitive lock input
 
 - **WHEN** a directly trusted lock node redirects, adds, or removes one of its

@@ -750,3 +750,16 @@ normalizer to selectors. The graph walker isolates direct and `let`-wrapped
 unsupported or computed deferred import shapes unresolved. The 132-test suite
 covers both exact hosted findings, a direct-result variant, unresolved imports,
 and inert nested import data.
+
+## Indented control-escape correction contract
+
+The exact-head review of `b88afbe50b2191b499449a46902beeb387bc9658`
+found that an indented-string attribute name can use `''\` to escape a
+character and normalize to a protected root without matching the static-name
+helper. The same syntax can therefore shadow `inputs` while the provider still
+appears canonical.
+
+The validator SHALL reject indented-string control escapes when the containing
+literal is used as an attribute binding or selection. The identical syntax in
+ordinary string data SHALL remain inert. An exact Nix-valid `inputs` shadow
+mutation must fail before new implementation evidence is accepted.

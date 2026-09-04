@@ -107,6 +107,7 @@ still reports success.
   priority-constructor selections.
 - Traverse literal imports from reachable deferred `perSystem` result modules
   as well as top-level module results.
+- Reject indented-string control escapes when they construct attribute names.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

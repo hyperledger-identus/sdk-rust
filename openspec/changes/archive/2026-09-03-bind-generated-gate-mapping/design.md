@@ -218,6 +218,11 @@ arguments.
 - Priority helpers can be selected through every static Nix string form. The
   override detector reuses the shared static-name normalizer rather than
   maintaining a narrower double-quoted parser.
+- Indented-string control escapes can construct an executable attribute name
+  whose source spelling does not match the normalized identifier. Because the
+  closed authoring profile does not require escaped attribute names, the
+  attribute scanner rejects any such control escape in binding or selection
+  position while preserving the same sequence in ordinary string data.
 
 ## Verification
 

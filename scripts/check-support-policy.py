@@ -467,57 +467,78 @@ def nix_delimited_end(text: str, index: int) -> int | None:
 
 @cache
 def nix_local_imports(
-    text: str, parent: Path, allow_external_flake_modules: bool = False
+    text: str,
+    parent: Path,
+    allow_external_flake_modules: bool = False,
+    module_result: bool = True,
 ) -> tuple[frozenset[Path], bool]:
     """Resolve literal child- and parent-relative imports from a Nix module."""
-    masked = nix_string_mask(nix_without_comments(text))
     imports: set[Path] = set()
-    unresolved = nix_inherits_attribute(text, "imports")
-    for assignment_end in nix_attribute_assignment_ends(text, "imports"):
-        list_start = assignment_end
-        while list_start < len(masked) and masked[list_start].isspace():
-            list_start += 1
-        if list_start == len(masked) or masked[list_start] != "[":
+    sources = (text,)
+    if module_result:
+        statements = nix_module_result_statements(text)
+        if statements is None:
+            return frozenset(), True
+        sources = tuple(
+            statement
+            for statement in statements
+            if nix_statement_binds(statement, "imports")
+        )
+    unresolved = any(nix_inherits_attribute(source, "imports") for source in sources)
+    for source in sources:
+        masked = nix_string_mask(nix_without_comments(source))
+        assignment_ends = nix_attribute_assignment_ends(source, "imports")
+        if (
+            module_result
+            and len(assignment_ends) != 1
+            and not nix_inherits_attribute(source, "imports")
+        ):
             unresolved = True
-            continue
-        list_end = nix_delimited_end(masked, list_start)
-        if list_end is None:
-            unresolved = True
-            continue
-        terminator = list_end
-        while terminator < len(masked) and masked[terminator].isspace():
-            terminator += 1
-        if terminator == len(masked) or masked[terminator] != ";":
-            unresolved = True
-        body = masked[list_start + 1 : list_end - 1]
-        residue = list(body)
-        index = 0
-        while index < len(body):
-            path_end = nix_path_or_uri_end(body, index)
-            if path_end is None:
-                index += 1
+        for assignment_end in assignment_ends:
+            list_start = assignment_end
+            while list_start < len(masked) and masked[list_start].isspace():
+                list_start += 1
+            if list_start == len(masked) or masked[list_start] != "[":
+                unresolved = True
                 continue
-            relative = body[index:path_end]
-            if relative.startswith(("./", "../")):
-                residue[index:path_end] = " " * (path_end - index)
-                if "${" in relative:
-                    unresolved = True
-                else:
-                    imported = (parent / relative).resolve()
-                    if imported.is_dir():
-                        imported = imported / "default.nix"
-                    imports.add(imported)
-            index = path_end
-        residue_text = "".join(residue)
-        if allow_external_flake_modules:
-            residue_text = re.sub(
-                r"(?<![A-Za-z0-9_'])inputs\.[A-Za-z_][A-Za-z0-9_'-]*"
-                r"\.flakeModule(?![A-Za-z0-9_'])",
-                "",
-                residue_text,
-            )
-        if residue_text.strip():
-            unresolved = True
+            list_end = nix_delimited_end(masked, list_start)
+            if list_end is None:
+                unresolved = True
+                continue
+            terminator = list_end
+            while terminator < len(masked) and masked[terminator].isspace():
+                terminator += 1
+            if terminator == len(masked) or masked[terminator] != ";":
+                unresolved = True
+            body = masked[list_start + 1 : list_end - 1]
+            residue = list(body)
+            index = 0
+            while index < len(body):
+                path_end = nix_path_or_uri_end(body, index)
+                if path_end is None:
+                    index += 1
+                    continue
+                relative = body[index:path_end]
+                if relative.startswith(("./", "../")):
+                    residue[index:path_end] = " " * (path_end - index)
+                    if "${" in relative:
+                        unresolved = True
+                    else:
+                        imported = (parent / relative).resolve()
+                        if imported.is_dir():
+                            imported = imported / "default.nix"
+                        imports.add(imported)
+                index = path_end
+            residue_text = "".join(residue)
+            if allow_external_flake_modules:
+                residue_text = re.sub(
+                    r"(?<![A-Za-z0-9_'])inputs\.[A-Za-z_][A-Za-z0-9_'-]*"
+                    r"\.flakeModule(?![A-Za-z0-9_'])",
+                    "",
+                    residue_text,
+                )
+            if residue_text.strip():
+                unresolved = True
     return frozenset(imports), unresolved
 
 
@@ -632,6 +653,37 @@ def top_level_nix_statements(text: str) -> list[str] | None:
     return statements
 
 
+@cache
+def nix_module_result_statements(text: str) -> tuple[str, ...] | None:
+    """Return immediate bindings from a direct Nix module result attribute set."""
+    source = nix_without_comments(text)
+    masked = nix_string_mask(source)
+    start = 0
+    while start < len(masked) and masked[start].isspace():
+        start += 1
+    if start == len(masked) or masked[start] != "{":
+        return None
+
+    first_end = nix_delimited_end(masked, start)
+    if first_end is None:
+        return None
+    after_first = first_end
+    while after_first < len(masked) and masked[after_first].isspace():
+        after_first += 1
+    if after_first < len(masked) and masked[after_first] == ":":
+        start = after_first + 1
+        while start < len(masked) and masked[start].isspace():
+            start += 1
+        if start == len(masked) or masked[start] != "{":
+            return None
+
+    result_end = nix_delimited_end(masked, start)
+    if result_end is None or masked[result_end:].strip():
+        return None
+    statements = top_level_nix_statements(source[start + 1 : result_end - 1])
+    return tuple(statements) if statements is not None else None
+
+
 def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     checks_root = (root / "nix/checks").resolve()
     checks_entry = checks_root / "default.nix"
@@ -663,6 +715,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             root_imports.group(0),
             flake_path.parent,
             allow_external_flake_modules=True,
+            module_result=False,
         )
     if root_imports_unresolved:
         failures.append("root Nix module graph has unresolved imports")
@@ -790,11 +843,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     priority_override = nix_uses_priority_override(default_nix)
     if wrapper_check_bindings != 1 or plain_wrapper_checks is None or priority_override:
         failures.append("nix/checks/default.nix does not safely compose checks")
-    imports_match = re.search(r"\bimports\s*=\s*\[(.*?)\];", default_nix, re.DOTALL)
-    check_imports: set[Path] = set()
-    if imports_match is not None:
-        for relative in re.findall(r"\./([A-Za-z0-9_./-]+)", imports_match.group(1)):
-            check_imports.add((checks_entry.parent / relative).resolve())
+    check_imports, _ = nix_local_imports(default_nix, checks_entry.parent)
     if generator_path not in check_imports:
         failures.append("nix/checks/default.nix does not import rust-gates.nix")
 

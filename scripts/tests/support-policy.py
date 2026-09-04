@@ -161,6 +161,35 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("does not import rust-gates.nix")
 
+    def test_nested_import_decoy_cannot_replace_generator_import(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            """  imports = [
+    ./rust-gates.nix
+  ];""",
+            """  _module.args.importDecoy = {
+    imports = [ ./rust-gates.nix ];
+  };
+  imports = [];""",
+        )
+        self.assert_fails("does not import rust-gates.nix")
+
+    def test_nested_import_data_is_not_a_graph_edge(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            """  imports = [
+    ./rust-gates.nix
+  ];""",
+            """  imports = [
+    ./rust-gates.nix
+  ];
+  _module.args.importData = {
+    imports = [ ./missing-decoy.nix ];
+  };""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_check_wrapper_cannot_force_away_imported_gates(self) -> None:
         self.replace(
             "nix/checks/default.nix",

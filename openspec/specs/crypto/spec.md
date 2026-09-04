@@ -348,6 +348,28 @@ return `Error::MnemonicInvalid` on failure.
   `kmp-compat` enabled
 - **THEN** the 64-byte seed SHALL match KMP `apollo` for the same inputs
 
+#### Scenario: KMP-compat seed matches cloud-agent legacy wallets
+
+- **WHEN** `create_seed_kmp(words, "")` is called with `kmp-compat` enabled
+- **THEN** the 64-byte seed SHALL match the seed `cloud-agent` produces via
+  `MnemonicHelper.createSeed(words, "")` with salt `""`
+
+#### Scenario: create_seed_kmp requires an explicit passphrase
+
+- **WHEN** the `create_seed_kmp` signature is inspected
+- **THEN** the `passphrase` parameter SHALL have no default value
+
+#### Scenario: Invalid mnemonic is rejected by both variants
+
+- **WHEN** a mnemonic containing a word not in the wordlist is validated
+- **THEN** `is_valid_mnemonic_code` SHALL return false, and both `create_seed`
+  and `create_seed_kmp` SHALL error with `crypto.mnemonic_invalid`
+
+#### Scenario: create_seed_kmp is unavailable without the feature
+
+- **WHEN** the crate is compiled without `--features kmp-compat`
+- **THEN** `create_seed_kmp` SHALL NOT be present on `MnemonicHelper`
+
 #### Scenario: Random mnemonic creation reports entropy failure
 
 - **WHEN** the injected entropy provider fails

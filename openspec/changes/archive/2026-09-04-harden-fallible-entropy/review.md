@@ -70,3 +70,13 @@ passed`. Neither diagnostic came from changed code.
 No downstream repository, `main`, release, publication, live setting, secret,
 or dependency state was changed. Verdict: READY for receipt, archive, signed
 issue-linked pull request, and exact-head hosted CI.
+
+## Hosted review correction
+
+The exact-head Codex review found that the synchronized BIP-39 requirement had
+dropped four unchanged KMP-compatibility scenarios. The canonical spec and
+archived delta now retain the cloud-agent empty-passphrase vector, explicit
+passphrase signature, invalid-mnemonic behavior for both variants, and
+feature-disabled API absence. A complete before/after scenario-name comparison
+confirms no other inherited scenario was lost; the two remaining renamed
+scenarios are the intentional `generate_seed` to `fill_bytes` migration.

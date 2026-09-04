@@ -94,6 +94,10 @@
       interpolation.
 - [x] 2.51 Reject trailing expression composition after the canonical root
       `mkFlake` invocation.
+- [ ] 2.52 Normalize indented-string layout whitespace when matching protected
+      binding roots.
+- [ ] 2.53 Validate the canonical topology and provenance of every reachable
+      executable provider lock edge.
 
 ## 3. Verification and integration
 
@@ -162,3 +166,5 @@
       enforcement and prepare both delayed review threads for clearance.
 - [x] 3.31 Rerun complete evidence after root-output boundary enforcement and
       prepare the exact-head review thread for clearance.
+- [ ] 3.32 Rerun complete evidence after indented-name and transitive-lock
+      enforcement and prepare both exact-head review threads for clearance.

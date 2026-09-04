@@ -369,3 +369,17 @@ Inherited `_type` SHALL be treated as a raw priority record.
   import, or any other expression before the `outputs` binding terminator
 - **THEN** structural validation rejects the trailing output composition
   instead of validating only the first call
+
+#### Scenario: Indented protected name uses layout whitespace
+
+- **WHEN** a reachable module binds a protected root using an indented-string
+  attribute name whose Nix layout whitespace normalizes to that root
+- **THEN** structural validation rejects the shadow exactly as it rejects the
+  bare protected binding
+
+#### Scenario: Trusted provider redirects a transitive lock input
+
+- **WHEN** a directly trusted lock node redirects, adds, or removes one of its
+  executable transitive input edges
+- **THEN** structural validation rejects the complete reachable provider graph
+  unless the edge and target GitHub provenance match the canonical topology

@@ -680,3 +680,18 @@ meets that contract. Root-module extraction now proceeds only when the second
 `mkFlake` argument is followed exclusively by the canonical binding terminator
 and root close. The exact imported-output merge parses with Nix and fails in
 the 121-test suite; canonical acceptance remains green.
+
+## Indented-name and transitive-lock correction contract
+
+The exact-head review of `27f1d686b324a54c2f57fad6adbd2028475440f2`
+found two additional trusted-root routes. Nix layout whitespace inside an
+indented-string attribute name can normalize to `inputs` without matching the
+current static-name helper. A directly trusted flake node can also redirect
+its executable transitive input while retaining canonical direct provenance.
+
+The validator SHALL normalize surrounding layout whitespace only for indented
+string names before matching a static protected identifier. It SHALL require
+each directly trusted node's exact canonical input-edge set and validate every
+target as a leaf with its canonical original and locked GitHub provenance.
+Exact whitespace-shadow and `flake-parts` `nixpkgs-lib` redirection mutations
+must fail closed before new implementation evidence is accepted.

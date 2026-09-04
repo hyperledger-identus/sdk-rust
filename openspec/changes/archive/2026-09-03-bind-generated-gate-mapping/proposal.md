@@ -98,6 +98,9 @@ still reports success.
   interpolation when they name protected attributes.
 - Require the canonical root `mkFlake` invocation to consume the complete
   `outputs` expression before its binding terminator.
+- Normalize layout whitespace in indented-string protected names and bind all
+  reachable executable provider lock edges to their canonical topology and
+  GitHub provenance.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

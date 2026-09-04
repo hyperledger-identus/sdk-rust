@@ -189,5 +189,5 @@
       exact-head review thread for clearance.
 - [x] 3.37 Rerun complete evidence after indirect reflective-access rejection
       and prepare the exact-head review thread for clearance.
-- [ ] 3.38 Rerun complete evidence after closing the root-module statement set
+- [x] 3.38 Rerun complete evidence after closing the root-module statement set
       and prepare the exact-head review thread for clearance.

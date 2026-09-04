@@ -820,3 +820,9 @@ The validator SHALL require the isolated root `mkFlake` module to contain
 exactly one immediate `imports`, `systems`, and `perSystem` statement and no
 other statement. Exact imported-`flake` and arbitrary-extra-statement mutations
 must fail before new implementation evidence is accepted.
+
+The implementation at `3715caf369f725f3c0b12743faa3e64e8df4f44f`
+meets that contract. Root-module validation now compares the complete immediate
+statement set with the three canonical bindings and requires each exactly once.
+Both the exact imported-`flake` mutation and an unrelated extra root statement
+fail in the 141-test suite.

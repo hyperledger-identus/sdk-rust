@@ -436,3 +436,15 @@ compatible aarch64-darwin Nix graph pass. Against PR base
 `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
 benchmark reports warm p50/p95 9.025/9.344 ms and process-cold p50/p95
 106.072/107.003 ms; the unchanged material-regression gate passes.
+
+## Final closed root-module evidence
+
+The exact canonical root-module statement set is enforced at
+`3715caf369f725f3c0b12743faa3e64e8df4f44f`. The mutation suite passes
+141/141: the exact imported `flake` composition and an arbitrary extra root
+statement fail, while the canonical root remains accepted. Ruff lint and
+format, canonical policy validation, the complete factory contract, and the
+compatible aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.421/10.123 ms and process-cold p50/p95
+109.080/112.398 ms; the unchanged material-regression gate passes.

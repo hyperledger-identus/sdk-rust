@@ -10,25 +10,25 @@
 
 ## 2. Verification implementation
 
-- [ ] 2.1 Add fixed stage names, status and bounded reason-code values.
-- [ ] 2.2 Add invariant-preserving stage construction and stable error bridges.
-- [ ] 2.3 Add canonical fixed-array report construction, derived outcome, and
+- [x] 2.1 Add fixed stage names, status and bounded reason-code values.
+- [x] 2.2 Add invariant-preserving stage construction and stable error bridges.
+- [x] 2.3 Add canonical fixed-array report construction, derived outcome, and
   direct lookup without collection allocation.
-- [ ] 2.4 Export the focused surface without adding dependencies or wire types.
+- [x] 2.4 Export the focused surface without adding dependencies or wire types.
 
 ## 3. Evidence and performance
 
-- [ ] 3.1 Add grammar, invariant, ordering, outcome-precedence, trust-separation,
+- [x] 3.1 Add grammar, invariant, ordering, outcome-precedence, trust-separation,
   donor-shaped, error/redaction, and component tests.
-- [ ] 3.2 Add and run the ignored release-mode construction diagnostic; record
+- [x] 3.2 Add and run the ignored release-mode construction diagnostic; record
   host/toolchain/result without making time a correctness gate.
-- [ ] 3.3 Update the human inventory and canonical governance evidence.
+- [x] 3.3 Update the human inventory and canonical governance evidence.
 - [ ] 3.4 Verify Oxid, midnight-identity, Lace ID Portal, and NeoPRISM final
   HEAD/branch/status receipts match preflight.
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Pass focused formatting, tests, no-default check, strict Clippy, and
+- [x] 4.1 Pass focused formatting, tests, no-default check, strict Clippy, and
   warning-denied docs.
 - [ ] 4.2 Pass workspace tests, factory/conformance, target/MSRV, supply-chain,
   and full Nix gates.

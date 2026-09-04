@@ -188,3 +188,17 @@ describe unsupported credential capabilities as future work.
 - **THEN** `identus-credentials` is accepted as implemented and experimental,
   is not listed as a placeholder, and does not imply support for credential
   metadata, verification, status, concrete formats or storage
+
+### Requirement: Credential verification activation is inventoried
+
+The human-readable bootstrap inventory SHALL identify the canonical staged
+verification evidence added under issue #73 as part of the experimental
+`identus-credentials` surface. It SHALL continue to exclude trust decisions,
+verifier execution, metadata/schema, status bindings, concrete formats,
+protocols, and storage.
+
+#### Scenario: Consumer inspects verification support
+
+- **WHEN** a consumer inspects `identus-credentials` in the bootstrap inventory
+- **THEN** the entry identifies #73 without implying that the SDK executes any
+  verification stage or makes a relying-party trust decision

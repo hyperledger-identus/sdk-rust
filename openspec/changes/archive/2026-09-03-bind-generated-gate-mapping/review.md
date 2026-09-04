@@ -801,3 +801,9 @@ The validator SHALL reject executable use of `attrByPath` and
 `getAttrFromPath` throughout the same reachable local-module graph as
 `getAttr`. Exact computed-path mutations replacing both Crane providers must
 fail before new implementation evidence is accepted.
+
+The implementation at `0b039e14cb1cf3c38e3fb8205e826d592cc88d27`
+meets that contract. The cached executable-name analysis now treats all three
+lookup helpers as reflective access. Exact `attrByPath` and `getAttrFromPath`
+provider-replacement mutations fail alongside the existing `getAttr` fixture
+in the 139-test suite.

@@ -424,3 +424,15 @@ Nix graph pass. Against PR base
 `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
 benchmark reports warm p50/p95 9.269/9.553 ms and process-cold p50/p95
 105.492/107.513 ms; the unchanged material-regression gate passes.
+
+## Final indirect reflective-access evidence
+
+Indirect reflective lookup rejection is implemented at
+`0b039e14cb1cf3c38e3fb8205e826d592cc88d27`. The mutation suite passes
+139/139: exact computed-path provider replacements through `attrByPath` and
+`getAttrFromPath` fail alongside the existing `getAttr` case. Ruff lint and
+format, canonical policy validation, the complete factory contract, and the
+compatible aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.025/9.344 ms and process-cold p50/p95
+106.072/107.003 ms; the unchanged material-regression gate passes.

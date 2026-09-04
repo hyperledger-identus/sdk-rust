@@ -326,3 +326,15 @@ graph pass. Against `develop` at
 `69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample local benchmark
 reports warm p50/p95 9.000/9.475 ms and process-cold p50/p95 87.371/89.488 ms;
 the unchanged material-regression gate passes.
+
+## Final provider-result boundary evidence
+
+Complete provider-result consumption is enforced at
+`020be7dc69dddda8863a1149ae1327974899de07`. The mutation suite passes 117/117:
+the exact Nix-valid trailing merge that replaces the effective `craneLib`
+fails, while the canonical provider result remains accepted. Ruff lint and
+format, canonical policy validation, the full factory-contract suite, and the
+compatible aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample benchmark
+reports warm p50/p95 9.200/10.197 ms and process-cold p50/p95 91.650/93.936 ms;
+the unchanged material-regression gate passes.

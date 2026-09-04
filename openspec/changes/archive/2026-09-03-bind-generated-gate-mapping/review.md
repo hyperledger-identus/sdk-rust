@@ -632,3 +632,9 @@ The validator SHALL require the parsed result attribute set to consume the
 complete `perSystem` result expression before its binding terminator. An exact
 mutation that appends a merge and replaces the effective `craneLib` must parse
 with Nix and fail closed before new implementation evidence is accepted.
+
+The implementation at `020be7dc69dddda8863a1149ae1327974899de07`
+meets that contract. It accepts provider result statements only when the first
+attribute set is followed exclusively by the synthetic binding terminator and
+module close. The exact trailing-merge fixture parses with Nix and fails in the
+117-test suite; canonical acceptance remains green.

@@ -86,7 +86,7 @@
       `perSystem` statement.
 - [x] 2.47 Normalize statically quoted executable builtin selections and quoted
       attribute names containing a complete static interpolation.
-- [ ] 2.48 Reject trailing expression composition after the canonical
+- [x] 2.48 Reject trailing expression composition after the canonical
       `perSystem` provider result.
 
 ## 3. Verification and integration
@@ -150,5 +150,5 @@
 - [x] 3.28 Rerun complete evidence after provider-provenance, root anchoring,
       quoted-selector, and static-name corrections, then prepare all seven
       review threads for clearance.
-- [ ] 3.29 Rerun complete evidence after provider-result boundary enforcement
+- [x] 3.29 Rerun complete evidence after provider-result boundary enforcement
       and prepare the exact-head review thread for clearance.

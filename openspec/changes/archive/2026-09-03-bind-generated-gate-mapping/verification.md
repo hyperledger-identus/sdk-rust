@@ -152,3 +152,13 @@ canonical policy validation, the factory contract, and the complete compatible
 aarch64-darwin Nix graph pass. The isolated benchmark reports warm p50/p95
 11.242/12.091 ms and process-cold p50/p95 54.271/56.245 ms, retaining margin
 below the hosted material-regression ceiling.
+
+## Final root-import evidence
+
+The root-import correction is implemented at
+`73d2d6451647e4d5c645a610fe341f0fd997f98b`. The mutation suite passes 68/68,
+including the exact enclosing `import` replacement that poisons `pkgs.lib.map`.
+Ruff, canonical policy validation, the factory contract, and the complete
+compatible aarch64-darwin Nix graph pass. The isolated benchmark reports warm
+p50/p95 11.306/11.894 ms and process-cold p50/p95 55.216/57.497 ms, retaining
+margin below the hosted material-regression ceiling.

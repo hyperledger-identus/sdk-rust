@@ -290,3 +290,10 @@ The validator SHALL require the flake to begin as a plain attribute set and
 the canonical `outputs` lambda to return `flake-parts.lib.mkFlake` directly.
 An exact enclosing-import mutation must fail before the package provider is
 accepted.
+
+The implementation at `73d2d6451647e4d5c645a610fe341f0fd997f98b`
+meets that contract. Root validation rejects wrappers before the plain flake
+attribute set and requires the only `outputs` binding to return `mkFlake`
+directly from the canonical input formals. The exact shadowed-import mutation
+fails in the 68-test suite. A final contradiction-focused local review found
+no remaining lexical route to replace the provider's builtin imports.

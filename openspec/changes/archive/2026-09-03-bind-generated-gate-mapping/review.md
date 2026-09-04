@@ -332,3 +332,14 @@ constructors. URI scanning SHALL recognize a token-boundary `scheme:` prefix
 followed by a non-empty Nix URI body without requiring `//`. An exact sibling
 `mkForce` mutation must fail, while an exact `mailto:` fixture must preserve
 canonical acceptance.
+
+The implementation at `2aaece7feae5051d872eb979000b9b0b2c40eef4`
+meets the functional contract. The local import graph is traversed recursively,
+priority constructors are rejected in every reachable repository module, and
+URI classification accepts the general non-empty `scheme:data` grammar. The
+exact sibling override fails and the independently Nix-parsed `mailto:` fixture
+passes in the 71-test suite. The initial graph traversal raised warm p50 above
+the material-regression ceiling; `11f9db0a374108fb4f9ec45c6632ef1333d53830`
+caches pure source masking and restores warm p50 to 7.741 ms. A final
+contradiction-focused local review found no remaining sibling-override,
+general-URI, or latency blocker.

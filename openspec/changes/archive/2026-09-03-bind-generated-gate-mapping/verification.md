@@ -172,3 +172,15 @@ gates. Ruff, canonical policy validation, the factory contract, and the
 complete compatible aarch64-darwin Nix graph pass. The isolated benchmark
 reports warm p50/p95 11.927/12.579 ms and process-cold p50/p95 55.173/56.551
 ms, retaining margin below the hosted material-regression ceiling.
+
+## Final module-graph and general-URI evidence
+
+The module-graph and general-URI corrections are implemented at
+`2aaece7feae5051d872eb979000b9b0b2c40eef4`, with source-mask caching at
+`11f9db0a374108fb4f9ec45c6632ef1333d53830`. The mutation suite passes 71/71:
+the exact sibling `mkForce` override fails closed, while
+`mailto:let@example.org` remains accepted and is independently Nix-parsed.
+Ruff, canonical policy validation, the factory contract, and the complete
+compatible aarch64-darwin Nix graph pass. The isolated benchmark reports warm
+p50/p95 7.741/8.284 ms and process-cold p50/p95 58.176/60.540 ms, retaining
+margin below the hosted material-regression ceiling.

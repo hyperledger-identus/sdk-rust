@@ -1099,6 +1099,8 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         )
     if root_imports_unresolved:
         failures.append("root Nix module graph has unresolved imports")
+    if root_module is not None and nix_module_binds_attribute(root_module, "config"):
+        failures.append("root Nix module composes explicit config")
     if checks_entry not in flake_imports:
         failures.append("flake.nix does not import the nix/checks module")
         return

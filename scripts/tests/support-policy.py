@@ -487,6 +487,28 @@ in
         self.assert_nix_parses_if_available("flake.nix")
         self.assert_fails("root Nix module composes explicit config")
 
+    def test_root_inherited_explicit_config_fails_closed(self) -> None:
+        self.replace(
+            "flake.nix",
+            "      systems = [",
+            """      inherit ({ config = { }; }) config;
+
+      systems = [""",
+        )
+        self.assert_nix_parses_if_available("flake.nix")
+        self.assert_fails("root Nix module composes explicit config")
+
+    def test_root_quoted_explicit_config_fails_closed(self) -> None:
+        self.replace(
+            "flake.nix",
+            "      systems = [",
+            """      "config" = { };
+
+      systems = [""",
+        )
+        self.assert_nix_parses_if_available("flake.nix")
+        self.assert_fails("root Nix module composes explicit config")
+
     def test_explicit_config_fails_closed(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",

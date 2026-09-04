@@ -105,7 +105,7 @@
 - [x] 2.57 Traverse literal imports from every reachable deferred `perSystem`
       result module.
 - [x] 2.58 Reject indented control escapes used to construct attribute names.
-- [ ] 2.59 Reject explicit root-module `config` composition.
+- [x] 2.59 Reject explicit root-module `config` composition.
 
 ## 3. Verification and integration
 

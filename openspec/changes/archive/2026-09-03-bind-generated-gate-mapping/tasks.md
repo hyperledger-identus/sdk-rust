@@ -106,7 +106,7 @@
       result module.
 - [x] 2.58 Reject indented control escapes used to construct attribute names.
 - [x] 2.59 Reject explicit root-module `config` composition.
-- [ ] 2.60 Reject indirect reflective priority lookup through path helpers.
+- [x] 2.60 Reject indirect reflective priority lookup through path helpers.
 
 ## 3. Verification and integration
 

@@ -455,7 +455,7 @@ def nix_uses_executable_name(text: str, names: tuple[str, ...]) -> bool:
 @cache
 def nix_uses_reflective_attribute_access(text: str) -> bool:
     """Return whether executable Nix source retrieves an attribute by name."""
-    return nix_uses_executable_name(text, ("getAttr",))
+    return nix_uses_executable_name(text, ("attrByPath", "getAttr", "getAttrFromPath"))
 
 
 @cache

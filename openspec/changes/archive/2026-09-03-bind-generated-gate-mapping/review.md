@@ -385,5 +385,13 @@ require every reachable `imports` binding to be a directly traversable literal
 list, and reject raw module `_type` tags independent of value spelling. Exact
 mutations for all three hosted findings must fail closed before integration.
 
-Implementation evidence remains pending until the regressions fail first and
-the focused and complete validation suites pass on an immutable signed head.
+The implementation at `6c4ba739d87c0b09a75a190babc75f2966b3b23b`
+meets that contract. Reachable local modules reject any static
+`disabledModules` binding and any raw `_type` field before value spelling is
+considered. Import scanning balances a direct list, requires its terminating
+semicolon, resolves every local path token, and fails closed if executable
+residue or an appended expression remains. The three exact hosted mutations
+and an additional computed-list-entry mutation fail in the 80-test suite. All
+three hosted fixtures parse with Nix, and a final contradiction-focused local
+review found no remaining blocker within the defined static module-graph
+contract.

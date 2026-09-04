@@ -198,3 +198,16 @@ aarch64-darwin Nix graph pass. Against `develop` at
 `69d38874e3d3f669d60e129ed6882e835aedafe6`, the 20-sample benchmark reports
 warm p50/p95 10.527/11.011 ms and process-cold p50/p95 60.259/62.391 ms, with
 no material regression.
+
+## Final effective module-graph evidence
+
+The module-graph escape-hatch correction is implemented at
+`6c4ba739d87c0b09a75a190babc75f2966b3b23b`. The mutation suite passes 80/80:
+the exact `disabledModules`, computed-import, and indented raw-tag findings
+fail closed, as does a computed entry inside an otherwise literal imports
+list. The three hosted fixtures parse independently with Nix. Ruff lint and
+format, canonical policy validation, the 17-item factory contract, and the
+complete compatible aarch64-darwin Nix graph pass. Against `develop` at
+`69d38874e3d3f669d60e129ed6882e835aedafe6`, the 20-sample benchmark reports
+warm p50/p95 15.128/16.124 ms and process-cold p50/p95 66.689/69.369 ms, with
+no material regression under the repository guard.

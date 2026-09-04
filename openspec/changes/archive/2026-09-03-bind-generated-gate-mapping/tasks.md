@@ -48,9 +48,9 @@
 - [x] 2.24 Detect quoted priority-constructor selections and raw module
       override records throughout the reachable graph.
 - [x] 2.25 Resolve parent-relative as well as child-relative local imports.
-- [ ] 2.26 Reject `disabledModules` in the repository-local module graph.
-- [ ] 2.27 Fail closed on imports values that are not direct literal lists.
-- [ ] 2.28 Reject raw module `_type` tags across all value spellings.
+- [x] 2.26 Reject `disabledModules` in the repository-local module graph.
+- [x] 2.27 Fail closed on imports values that are not direct literal lists.
+- [x] 2.28 Reject raw module `_type` tags across all value spellings.
 
 ## 3. Verification and integration
 
@@ -89,6 +89,6 @@
 - [x] 3.18 Rerun complete evidence after quoted-constructor,
       parent-relative-import, and raw-override corrections and prepare all
       three exact-head review threads for clearance.
-- [ ] 3.19 Rerun complete evidence after disabled-module, unresolved-import,
+- [x] 3.19 Rerun complete evidence after disabled-module, unresolved-import,
       and indented/raw-tag corrections and prepare all three exact-head review
       threads for clearance.

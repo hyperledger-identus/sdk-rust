@@ -555,7 +555,11 @@ def nix_local_imports(
 
 def nix_statement_binds(statement: str, name: str) -> bool:
     """Return whether an immediate let statement binds the given identifier."""
-    binding_name = rf'(?:{re.escape(name)}|"{re.escape(name)}")'
+    escaped_name = re.escape(name)
+    binding_name = (
+        rf'(?:{escaped_name}|"{escaped_name}"|\'\'{escaped_name}\'\'|'
+        rf'\$\{{\s*(?:"{escaped_name}"|\'\'{escaped_name}\'\')\s*\}})'
+    )
     if re.match(rf"\s*{binding_name}\s*(?:=|\.)", statement):
         return True
     inherited = re.fullmatch(
@@ -722,20 +726,32 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     outputs_bindings = len(re.findall(r"\boutputs\s*=", flake_masked))
     if not plain_root or outputs_bindings != 1 or canonical_outputs is None:
         failures.append("flake.nix does not expose canonical unshadowed outputs")
-    root_imports = re.search(
-        r"flake-parts\.lib\.mkFlake\s+\{[^{}]*\}\s+\{\s*"
-        r"imports\s*=\s*\[(.*?)\];",
-        flake_masked,
-        re.DOTALL,
-    )
     flake_imports: frozenset[Path] = frozenset()
-    root_imports_unresolved = root_imports is None
-    if root_imports is not None:
+    root_module: str | None = None
+    if canonical_outputs is not None:
+        argument_start = canonical_outputs.end()
+        while (
+            argument_start < len(flake_masked)
+            and flake_masked[argument_start].isspace()
+        ):
+            argument_start += 1
+        inputs_end = nix_delimited_end(flake_masked, argument_start)
+        if inputs_end is not None:
+            module_start = inputs_end
+            while (
+                module_start < len(flake_masked)
+                and flake_masked[module_start].isspace()
+            ):
+                module_start += 1
+            module_end = nix_delimited_end(flake_masked, module_start)
+            if module_end is not None:
+                root_module = flake[module_start:module_end]
+    root_imports_unresolved = root_module is None
+    if root_module is not None:
         flake_imports, root_imports_unresolved = nix_local_imports(
-            root_imports.group(0),
+            root_module,
             flake_path.parent,
             allow_external_flake_modules=True,
-            module_result=False,
         )
     if root_imports_unresolved:
         failures.append("root Nix module graph has unresolved imports")

@@ -117,6 +117,18 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn(expected, result.stderr)
 
+    def assert_nix_parses_if_available(self, relative: str) -> None:
+        nix_instantiate = shutil.which("nix-instantiate")
+        if nix_instantiate is None:
+            return
+        result = subprocess.run(
+            [nix_instantiate, "--parse", str(self.fixture / relative)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_canonical_policy_passes(self) -> None:
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -430,6 +442,68 @@ in
             '{\n  "imports" = [ ./override.nix ];\n  perSystem =',
         )
         self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_indented_string_import_binding_is_traversed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  ${''imports''} = [ ./override.nix ];\n  perSystem =",
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_computed_quoted_import_binding_is_traversed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            '{\n  ${"imports"} = [ ./override.nix ];\n  perSystem =',
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_inert_mk_flake_call_cannot_replace_root_imports(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "flake.nix",
+            """      imports = [
+        inputs.devshell.flakeModule
+        ./nix/rust-toolchain.nix
+        ./nix/devshells
+        ./nix/checks
+        ./nix/apps
+      ];""",
+            """      imports = builtins.attrValues {
+        a = inputs.devshell.flakeModule;
+        b = ./nix/rust-toolchain.nix;
+        c = ./nix/devshells;
+        d = ./nix/checks;
+        e = ./nix/apps;
+        f = ./nix/override.nix;
+      };
+
+      _module.args.importDecoy = _: flake-parts.lib.mkFlake { inherit inputs; } {
+        imports = [
+          inputs.devshell.flakeModule
+          ./nix/rust-toolchain.nix
+          ./nix/devshells
+          ./nix/checks
+          ./nix/apps
+        ];
+      };""",
+        )
+        self.assert_nix_parses_if_available("flake.nix")
+        self.assert_fails("root Nix module graph has unresolved imports")
 
     def test_computed_priority_selection_fails_closed(self) -> None:
         self.replace(

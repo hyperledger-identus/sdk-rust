@@ -180,6 +180,72 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("local Nix module graph uses priority overrides")
 
+    def test_quoted_priority_constructor_cannot_erase_generated_gates(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = pkgs.lib."mkForce" { };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_dynamic_priority_constructor_cannot_erase_generated_gates(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = pkgs.lib.${"mkForce"} { };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_priority_syntax_in_string_data_remains_allowed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      _module.args.priorityExample = ''
+        pkgs.lib."mkForce" { _type = "override"; }
+      '';
+      _module.args = {""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_parent_relative_module_override_is_reachable(self) -> None:
+        nested = self.fixture / "nix/nested/module.nix"
+        nested.parent.mkdir(parents=True)
+        nested.write_text("{ imports = [ ../override.nix ]; }\n", encoding="utf-8")
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  imports = [ ./nested/module.nix ];\n  perSystem =",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_raw_priority_override_cannot_erase_generated_gates(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = {
+        _type = "override";
+        priority = 0;
+        content = { };
+      };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
     def test_unused_manifest_mapping_cannot_replace_published_checks(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

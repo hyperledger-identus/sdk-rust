@@ -322,6 +322,62 @@ def nix_without_comments(text: str) -> str:
     return "".join(without_comments)
 
 
+def nix_uses_priority_override(text: str) -> bool:
+    """Return whether Nix source contains an effective module override value."""
+    source = nix_without_comments(text)
+    if re.search(r"\b(?:mkForce|mkOverride)\b", nix_string_mask(source)):
+        return True
+
+    index = 0
+    while index < len(source):
+        path_end = nix_path_or_uri_end(source, index)
+        if path_end is not None:
+            index = path_end
+            continue
+        string_end = nix_string_end(source, index)
+        if string_end is None:
+            index += 1
+            continue
+
+        literal = source[index:string_end]
+        if literal in {'"mkForce"', '"mkOverride"'}:
+            prefix = source[:index].rstrip()
+            static_selection = prefix.endswith(".")
+            dynamic_selection = prefix.endswith("${") and prefix[:-2].rstrip().endswith(
+                "."
+            )
+            if static_selection or dynamic_selection:
+                return True
+        if literal == '"override"':
+            prefix = source[:index].rstrip()
+            if re.search(r'(?:\b_type|"_type")\s*=\s*$', prefix):
+                return True
+        index = string_end
+    return False
+
+
+def nix_local_imports(text: str, parent: Path) -> set[Path]:
+    """Resolve literal child- and parent-relative imports from a Nix module."""
+    masked = nix_string_mask(nix_without_comments(text))
+    imports: set[Path] = set()
+    for binding in re.finditer(r"\bimports\s*=\s*\[(.*?)\];", masked, re.DOTALL):
+        body = binding.group(1)
+        index = 0
+        while index < len(body):
+            path_end = nix_path_or_uri_end(body, index)
+            if path_end is None:
+                index += 1
+                continue
+            relative = body[index:path_end]
+            if relative.startswith(("./", "../")):
+                imported = (parent / relative).resolve()
+                if imported.is_dir():
+                    imported = imported / "default.nix"
+                imports.add(imported)
+            index = path_end
+    return imports
+
+
 def nix_statement_binds(statement: str, name: str) -> bool:
     """Return whether an immediate let statement binds the given identifier."""
     binding_name = rf'(?:{re.escape(name)}|"{re.escape(name)}")'
@@ -453,16 +509,14 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     root_imports = re.search(
         r"flake-parts\.lib\.mkFlake\s+\{[^{}]*\}\s+\{\s*"
         r"imports\s*=\s*\[(.*?)\];",
-        flake,
+        flake_masked,
         re.DOTALL,
     )
-    flake_imports: set[Path] = set()
-    if root_imports is not None:
-        for relative in re.findall(r"\./([A-Za-z0-9_./-]+)", root_imports.group(1)):
-            imported = (flake_path.parent / relative).resolve()
-            if imported.is_dir():
-                imported = imported / "default.nix"
-            flake_imports.add(imported)
+    flake_imports = (
+        nix_local_imports(root_imports.group(0), flake_path.parent)
+        if root_imports is not None
+        else set()
+    )
     if checks_entry not in flake_imports:
         failures.append("flake.nix does not import the nix/checks module")
         return
@@ -479,23 +533,12 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         if module_path in local_module_graph or not module_path.is_file():
             continue
         local_module_graph.add(module_path)
-        module_source = nix_without_comments(module_path.read_text(encoding="utf-8"))
-        for imports in re.finditer(
-            r"\bimports\s*=\s*\[(.*?)\];", module_source, re.DOTALL
-        ):
-            for relative in re.findall(r"\./([A-Za-z0-9_./-]+)", imports.group(1)):
-                imported = (module_path.parent / relative).resolve()
-                if imported.is_dir():
-                    imported = imported / "default.nix"
-                pending_modules.append(imported)
+        module_source = module_path.read_text(encoding="utf-8")
+        pending_modules.extend(nix_local_imports(module_source, module_path.parent))
     priority_modules = sorted(
         str(path.relative_to(repository_root))
         for path in local_module_graph
-        if re.search(
-            r"\b(?:mkForce|mkOverride)\b",
-            nix_string_mask(nix_without_comments(path.read_text(encoding="utf-8"))),
-        )
-        is not None
+        if nix_uses_priority_override(path.read_text(encoding="utf-8"))
     )
     if priority_modules:
         failures.append(
@@ -519,12 +562,8 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     default_masked = nix_string_mask(default_nix)
     wrapper_check_bindings = len(re.findall(r"\bchecks\s*=", default_masked))
     plain_wrapper_checks = re.search(r"\bchecks\s*=\s*\{", default_masked)
-    priority_override = re.search(r"\b(?:mkForce|mkOverride)\b", default_masked)
-    if (
-        wrapper_check_bindings != 1
-        or plain_wrapper_checks is None
-        or priority_override is not None
-    ):
+    priority_override = nix_uses_priority_override(default_nix)
+    if wrapper_check_bindings != 1 or plain_wrapper_checks is None or priority_override:
         failures.append("nix/checks/default.nix does not safely compose checks")
     imports_match = re.search(r"\bimports\s*=\s*\[(.*?)\];", default_nix, re.DOTALL)
     check_imports: set[Path] = set()

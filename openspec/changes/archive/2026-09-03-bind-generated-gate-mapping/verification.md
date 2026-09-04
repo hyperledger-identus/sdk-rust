@@ -184,3 +184,17 @@ Ruff, canonical policy validation, the factory contract, and the complete
 compatible aarch64-darwin Nix graph pass. The isolated benchmark reports warm
 p50/p95 7.741/8.284 ms and process-cold p50/p95 58.176/60.540 ms, retaining
 margin below the hosted material-regression ceiling.
+
+## Final effective module-override evidence
+
+The effective-override correction is implemented at
+`49b7ca00d2b951293f50ec79249d3f006e27ec5b`. The mutation suite passes 76/76:
+the exact quoted-constructor, parent-relative-import, and raw-override hosted
+findings fail closed; a directly dynamic constructor selection also fails;
+and equivalent text inside indented-string data remains accepted. The three
+hosted fixtures parse independently with Nix. Ruff lint and format, canonical
+policy validation, the 17-item factory contract, and the complete compatible
+aarch64-darwin Nix graph pass. Against `develop` at
+`69d38874e3d3f669d60e129ed6882e835aedafe6`, the 20-sample benchmark reports
+warm p50/p95 10.527/11.011 ms and process-cold p50/p95 60.259/62.391 ms, with
+no material regression.

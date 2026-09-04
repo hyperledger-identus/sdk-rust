@@ -45,9 +45,9 @@
 - [x] 2.22 Walk the recursively reachable local flake module graph and reject
       competing priority overrides.
 - [x] 2.23 Recognize general non-double-slash Nix URI literals.
-- [ ] 2.24 Detect quoted priority-constructor selections and raw module
+- [x] 2.24 Detect quoted priority-constructor selections and raw module
       override records throughout the reachable graph.
-- [ ] 2.25 Resolve parent-relative as well as child-relative local imports.
+- [x] 2.25 Resolve parent-relative as well as child-relative local imports.
 
 ## 3. Verification and integration
 
@@ -83,6 +83,6 @@
       correction and prepare its exact-head review thread for clearance.
 - [x] 3.17 Rerun complete local evidence after module-graph and general-URI
       corrections and prepare both exact-head review threads for clearance.
-- [ ] 3.18 Rerun complete evidence after quoted-constructor,
+- [x] 3.18 Rerun complete evidence after quoted-constructor,
       parent-relative-import, and raw-override corrections and prepare all
       three exact-head review threads for clearance.

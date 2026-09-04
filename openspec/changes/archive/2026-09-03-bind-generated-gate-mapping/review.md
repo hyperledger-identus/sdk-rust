@@ -360,5 +360,13 @@ graph traversal SHALL preserve and resolve complete `./` and `../` import
 prefixes. Exact mutations for all three hosted findings must fail with the
 stable module-graph diagnostic before integration.
 
-Implementation evidence remains pending until the regressions fail first and
-the focused and complete validation suites pass on an immutable signed head.
+The implementation at `49b7ca00d2b951293f50ec79249d3f006e27ec5b`
+meets that contract. A shared lexical predicate recognizes bare, statically
+quoted, and directly dynamic priority-constructor selections plus raw
+`_type = "override"` values without treating string data as executable source.
+Local import extraction now uses the existing Nix path scanner and preserves
+complete child- and parent-relative tokens before resolution. The three exact
+hosted mutations fail closed, an additional dynamic-selection mutation fails,
+and a string-data control remains accepted in the 76-test suite. All fixtures
+parse with Nix, and a final contradiction-focused local review found no
+remaining blocker within the defined effective-override contract.

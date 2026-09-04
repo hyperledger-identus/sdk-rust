@@ -359,7 +359,9 @@ def nix_attribute_assignment_ends(text: str, name: str) -> tuple[int, ...]:
     masked = nix_string_mask(source)
     assignments = {
         match.end()
-        for match in re.finditer(rf"(?<![A-Za-z0-9_'])\b{re.escape(name)}\s*=", masked)
+        for match in re.finditer(
+            rf"(?<![A-Za-z0-9_'])\b{re.escape(name)}\s*=(?!=)", masked
+        )
     }
 
     index = 0
@@ -373,11 +375,11 @@ def nix_attribute_assignment_ends(text: str, name: str) -> tuple[int, ...]:
             index += 1
             continue
         if nix_static_string_value(source[index:string_end]) == name:
-            direct = re.match(r"\s*=", source[string_end:])
+            direct = re.match(r"\s*=(?!=)", source[string_end:])
             if direct is not None:
                 assignments.add(string_end + direct.end())
             prefix = source[:index].rstrip()
-            dynamic = re.match(r"\s*}\s*=", source[string_end:])
+            dynamic = re.match(r"\s*}\s*=(?!=)", source[string_end:])
             if prefix.endswith("${") and dynamic is not None:
                 assignments.add(string_end + dynamic.end())
         index = string_end
@@ -462,8 +464,10 @@ def nix_uses_reflective_attribute_access(text: str) -> bool:
             "attrNames",
             "attrValues",
             "attrsToList",
+            "collect",
             "getAttr",
             "getAttrFromPath",
+            "intersectAttrs",
             "mapAttrsToList",
         ),
     )
@@ -907,6 +911,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     checks_root = (root / "nix/checks").resolve()
     checks_entry = checks_root / "default.nix"
     generator_path = checks_root / "rust-gates.nix"
+    toolchain_provider_path = (root / "nix/rust-toolchain.nix").resolve()
     flake_path = root / "flake.nix"
     flake = nix_without_comments(flake_path.read_text(encoding="utf-8"))
     flake_masked = nix_string_mask(flake)
@@ -1179,6 +1184,22 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
                 str(path.relative_to(repository_root))
                 for path in sorted(unresolved_import_modules)
             )
+        )
+    protected_providers = ("craneLib", "msrvCraneLib", "msrvToolchain", "toolchain")
+    competing_provider_modules = sorted(
+        str(path.relative_to(repository_root))
+        for path in local_module_graph
+        if path != toolchain_provider_path
+        and any(
+            nix_binds_attribute(path.read_text(encoding="utf-8"), provider)
+            or nix_inherits_attribute(path.read_text(encoding="utf-8"), provider)
+            for provider in protected_providers
+        )
+    )
+    if competing_provider_modules:
+        failures.append(
+            "local Nix module graph publishes protected providers outside "
+            "nix/rust-toolchain.nix: " + ", ".join(competing_provider_modules)
         )
     disabled_modules = sorted(
         str(path.relative_to(repository_root))

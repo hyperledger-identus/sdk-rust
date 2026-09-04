@@ -112,9 +112,9 @@
 - [x] 2.63 Reject executable `scopedImport` in reachable local modules.
 - [x] 2.64 Reject path-based attribute construction through `setAttrByPath`.
 - [x] 2.65 Reject reflective enumeration through `attrNames` and `attrValues`.
-- [ ] 2.66 Reserve protected provider publication to the canonical toolchain
+- [x] 2.66 Reserve protected provider publication to the canonical toolchain
       module.
-- [ ] 2.67 Reject reflective `intersectAttrs` and `collect` helpers.
+- [x] 2.67 Reject reflective `intersectAttrs` and `collect` helpers.
 
 ## 3. Verification and integration
 

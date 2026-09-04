@@ -23,16 +23,16 @@
 - [x] 3.2 Add and run the ignored release-mode construction diagnostic; record
   host/toolchain/result without making time a correctness gate.
 - [x] 3.3 Update the human inventory and canonical governance evidence.
-- [ ] 3.4 Verify Oxid, midnight-identity, Lace ID Portal, and NeoPRISM final
+- [x] 3.4 Verify Oxid, midnight-identity, Lace ID Portal, and NeoPRISM final
   HEAD/branch/status receipts match preflight.
 
 ## 4. Verification and delivery
 
 - [x] 4.1 Pass focused formatting, tests, no-default check, strict Clippy, and
   warning-denied docs.
-- [ ] 4.2 Pass workspace tests, factory/conformance, target/MSRV, supply-chain,
+- [x] 4.2 Pass workspace tests, factory/conformance, target/MSRV, supply-chain,
   and full Nix gates.
-- [ ] 4.3 Complete a distinct post-implementation API/security/performance
+- [x] 4.3 Complete a distinct post-implementation API/security/performance
   review and resolve every finding.
 - [ ] 4.4 Produce ready/receipt, synchronize canonical specs, archive the
   change, and prepare the signed/DCO issue-linked PR; hosted CI/review, merge,

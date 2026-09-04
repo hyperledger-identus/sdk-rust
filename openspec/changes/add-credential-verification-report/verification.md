@@ -29,8 +29,31 @@ constructed 1,000,000 all-passed reports in 24.175167 ms, approximately
 41,364,761 reports/second. This is an observation, not a correctness threshold
 or cross-host performance promise.
 
-## Pending delivery evidence
+## Full commands passed
 
-The full workspace/flake matrix, exact-diff post-implementation review,
-consumer isolation receipts, archive receipt, signed commits, hosted CI/review,
-merge, effort report, and parent updates are recorded after those gates pass.
+- `./scripts/factory validate add-credential-verification-report`
+- `./scripts/factory check`
+- `cargo clippy --workspace --all-targets --all-features -- -D warnings`
+- `cargo test --workspace --all-features`
+- `cargo test --workspace --no-default-features`
+- `RUSTDOCFLAGS=-Dwarnings cargo doc --workspace --all-features --no-deps`
+- `nix flake check --print-build-logs` (all 26 compatible host checks; pinned
+  nightly, Rust 1.85 MSRV, native, Android, iOS, WASM, feature, docs, tests,
+  lint, dependency/license/advisory, and factory lanes)
+
+The Nix run emitted the repository's known non-fatal macOS fixup-hook
+segmentation diagnostics and offline crates.io yanked-index lookup diagnostics;
+the governed audit and all 26 derivations completed successfully.
+
+## Review and isolation
+
+- Pre-implementation semantic/API/security/performance review: no blocker.
+- Distinct post-implementation review of `develop@4e4cf5a...aee8789`: no
+  unresolved finding; no dependency or feature drift.
+- Oxid, midnight-identity, Lace ID Portal, and NeoPRISM final HEAD/branch/status
+  receipts match preflight. No consumer repository was mutated.
+- Trust policy, verification execution/adapters, metadata/schema descriptors,
+  evidence payloads, codecs, storage, FFI, publication, and downstream adoption
+  remain focused follow-up slices.
+- Archive receipt, hosted CI/review, merge, effort report, and parent updates
+  remain delivery evidence.

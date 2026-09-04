@@ -227,3 +227,10 @@ blocker; the concurrent security-agent installation warning is unrelated.
 The classifier SHALL retain every accepted path/URI form while avoiding
 regular-expression and iterator work on common non-path characters. Exact
 mutation behavior must remain 64/64 and the hosted warm-latency gate must pass.
+
+The implementation at `46443a63e5c4ddabfba5f93db23b45bdbcfbedbe`
+meets the local correction contract. Path classification is memoized across
+the repeated lexical passes, punctuation exits before prefix matching, and the
+relative-prefix test no longer allocates a generator. All 64 mutations remain
+green. Isolated warm p50 fell from 14.112 ms to 11.456 ms, restoring margin
+below the hosted ceiling pending exact-head hosted confirmation.

@@ -122,3 +122,12 @@ policy validation, the 17-item factory contract, and the complete compatible
 aarch64-darwin Nix graph pass. The final isolated benchmark reports warm
 p50/p95 14.112/15.076 ms and process-cold p50/p95 54.056/57.701 ms, within the
 diagnostic guard.
+
+## Final path-classifier performance evidence
+
+The hot-path correction is implemented at
+`46443a63e5c4ddabfba5f93db23b45bdbcfbedbe`. The 64/64 mutation suite, Ruff,
+canonical policy validation, and factory contract remain green. Isolated
+performance after the correction is warm p50/p95 11.456/13.591 ms and
+process-cold p50/p95 52.846/55.720 ms. Compared with the preceding local
+evidence, warm p50 improved by 18.8% while retaining every lexical case.

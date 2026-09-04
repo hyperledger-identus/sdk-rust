@@ -236,6 +236,12 @@ arguments.
   compose imported priority records. The root module is intentionally small,
   so validation requires exactly one immediate `imports`, `systems`, and
   `perSystem` statement; any new root capability requires a spec update.
+- A canonical root module can still receive a substituted `inputs` attribute
+  set through the first `mkFlake` argument. Root-call extraction therefore
+  validates that complete argument as the exact `{ inherit inputs; }` form.
+- Nix exposes both `import` and `builtins.scopedImport` for evaluating a file.
+  The closed reachable-module profile rejects both executable names, including
+  statically quoted selections, while leaving inert string data untouched.
 
 ## Verification
 

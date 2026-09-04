@@ -826,3 +826,18 @@ meets that contract. Root-module validation now compares the complete immediate
 statement set with the three canonical bindings and requires each exactly once.
 Both the exact imported-`flake` mutation and an unrelated extra root statement
 fail in the 141-test suite.
+
+## Canonical mkFlake-input and scoped-import correction contract
+
+The exact-head review of `d76f97417bfc26bd1a33c9c1f34960b2e1348b64`
+found two remaining provider routes. The first `mkFlake` argument can replace
+the captured `inputs` set before the otherwise canonical module is evaluated,
+and `builtins.scopedImport` can load a hidden repository-local priority record
+without matching the ordinary-import prohibition.
+
+The validator SHALL require the complete first argument of the effective
+canonical `mkFlake` call to be exactly `{ inherit inputs; }`. It SHALL reject
+executable bare or statically selected `scopedImport` throughout the same
+reachable local-module graph as `import`. Exact input-substitution and
+scoped-import mutations must fail before new implementation evidence is
+accepted.

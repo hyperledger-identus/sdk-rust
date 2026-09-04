@@ -27,9 +27,10 @@ only immediate bindings of each returned top-level module attribute set and
 each reachable `perSystem` result module attribute set. The root result SHALL
 contain exactly `imports`, `systems`, and the canonical `perSystem` provider;
 it SHALL NOT add `config`, `flake`, or any other statement. Reachable local
-modules SHALL NOT bind explicit top-level `config` or evaluate `import`
-expressions; module dependencies SHALL use the traversed literal `imports`
-list.
+modules SHALL NOT bind explicit top-level `config` or evaluate `import` or
+`scopedImport` expressions; module dependencies SHALL use the traversed literal
+`imports` list. The effective first argument to the canonical root `mkFlake`
+call SHALL be exactly `{ inherit inputs; }`.
 Inherited `_type` SHALL be treated as a raw priority record.
 
 #### Scenario: Constant mapped name collapses the gate graph
@@ -429,3 +430,17 @@ Inherited `_type` SHALL be treated as a raw priority record.
   as a constant concatenation resolving to `disabledModules`
 - **THEN** structural validation rejects the ambiguous interpolated name rather
   than masking it as inert string data
+
+#### Scenario: Effective mkFlake inputs are substituted
+
+- **WHEN** the first canonical `mkFlake` argument merges or replaces the
+  captured `inputs` before the root module is evaluated
+- **THEN** structural validation rejects the non-canonical argument before a
+  substituted provider can neutralize generated gates
+
+#### Scenario: scopedImport hides a reachable module
+
+- **WHEN** a reachable local module evaluates another file through bare or
+  statically selected `scopedImport`
+- **THEN** structural validation rejects the hidden import expression under
+  the same closed-profile rule as ordinary `import`

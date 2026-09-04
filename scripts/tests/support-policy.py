@@ -540,6 +540,45 @@ in
         self.assert_nix_parses_if_available("flake.nix")
         self.assert_fails("root Nix module has non-canonical statements")
 
+    def test_mk_flake_input_substitution_fails_closed(self) -> None:
+        self.replace(
+            "flake.nix",
+            "flake-parts.lib.mkFlake { inherit inputs; } {",
+            """flake-parts.lib.mkFlake {
+      inputs = inputs // {
+        crane.mkLib = _: {
+          overrideToolchain = _: {
+            cargoBuild = _: null;
+            cargoClippy = _: null;
+            cargoDeny = _: null;
+            cargoDoc = _: null;
+            cargoNextest = _: null;
+          };
+        };
+      };
+    } {""",
+        )
+        self.assert_nix_parses_if_available("flake.nix")
+        self.assert_fails("flake.nix does not pass canonical inputs to mkFlake")
+
+    def test_scoped_import_expression_fails_closed(self) -> None:
+        (self.fixture / "nix/checks/override-output.nix").write_text(
+            """{
+  _type = "override";
+  priority = 0;
+  content = { checks = { }; };
+}
+""",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/checks/default.nix",
+            "{\n  imports =",
+            "{\n  flake = builtins.scopedImport { } ./override-output.nix;\n  imports =",
+        )
+        self.assert_nix_parses_if_available("nix/checks/default.nix")
+        self.assert_fails("local Nix module graph uses import expressions")
+
     def test_explicit_config_fails_closed(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",

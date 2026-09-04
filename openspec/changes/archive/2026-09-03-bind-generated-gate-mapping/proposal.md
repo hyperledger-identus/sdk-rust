@@ -112,6 +112,10 @@ still reports success.
 - Reject indirect reflective lookup through `attrByPath` and `getAttrFromPath`.
 - Close the root `mkFlake` module to exactly `imports`, `systems`, and the
   canonical `perSystem` provider.
+- Require the effective first `mkFlake` argument to be exactly
+  `{ inherit inputs; }`.
+- Reject `scopedImport` wherever the closed local-module profile rejects the
+  ordinary `import` primitive.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

@@ -503,3 +503,12 @@ Reachable repository modules SHALL reject executable `import` expressions and
 explicit top-level `config` composition; local module dependencies must use the
 statically traversed module `imports` list. Exact mutations for both hosted
 findings must fail before implementation evidence is accepted.
+
+The implementation at `879425c8c683c676d9e2885c2cfdf4aefc742e57`
+meets that contract. Executable `import` tokens are detected after lexical
+string/comment masking, immediate module-result statements reject explicit
+`config`, and priority detection rejects inherited `_type` plus the complete
+current `mk*Override` constructor family. Both hosted mutations fail; direct
+and quoted VM-override controls fail; and import-like string data remains
+accepted in the 100-test suite. A contradiction-focused local review found no
+unresolved imported-config or inherited-priority route within this boundary.

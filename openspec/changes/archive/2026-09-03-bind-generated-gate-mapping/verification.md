@@ -261,3 +261,16 @@ compatible aarch64-darwin Nix graph pass. Against `develop` at
 `69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample benchmark
 reports warm p50/p95 9.101/27.849 ms and process-cold p50/p95 85.482/86.727 ms,
 with no material regression; p95 remains diagnostic by contract.
+
+## Final imported-config and inherited-priority evidence
+
+The imported-config and inherited-priority correction is implemented at
+`879425c8c683c676d9e2885c2cfdf4aefc742e57`. The mutation suite passes 100/100:
+both hosted exploits fail, direct and quoted VM-override controls fail, explicit
+config without import fails, and import-like string data remains accepted. Nix
+independently parses both hosted fixture shapes. Ruff lint and format,
+canonical policy validation, all 17 factory contracts, and the complete
+compatible aarch64-darwin Nix graph pass. Against `develop` at
+`69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample benchmark
+reports warm p50/p95 9.282/21.365 ms and process-cold p50/p95 85.307/87.589 ms,
+with no material regression; p95 remains diagnostic by contract.

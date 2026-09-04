@@ -69,9 +69,9 @@
       spelling explicitly.
 - [x] 2.37 Restrict import discovery and required-generator validation to
       immediate bindings of the returned module attribute set.
-- [ ] 2.38 Reject executable imports and explicit top-level config composition
+- [x] 2.38 Reject executable imports and explicit top-level config composition
       in reachable repository modules.
-- [ ] 2.39 Detect inherited raw module `_type` fields.
+- [x] 2.39 Detect inherited raw module `_type` fields.
 
 ## 3. Verification and integration
 
@@ -122,5 +122,5 @@
       correction and prepare all five review threads for clearance.
 - [x] 3.23 Rerun complete evidence after module-result isolation and prepare
       the nested-import-decoy thread for clearance.
-- [ ] 3.24 Rerun complete evidence after imported-config and inherited-priority
+- [x] 3.24 Rerun complete evidence after imported-config and inherited-priority
       corrections and prepare both review threads for clearance.

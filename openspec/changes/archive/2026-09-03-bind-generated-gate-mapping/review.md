@@ -216,3 +216,14 @@ as an unprefixed relative path, and the indented control-escape branch advances
 past both its prefix and escaped character. Both exact hosted-review fixtures
 pass in the 64-test mutation suite. A final contradiction-focused local review
 found no remaining complete-path or escaped-interpolation blocker.
+
+## Path-classifier performance correction contract
+
+Hosted macOS evidence for `fa90102` measured warm p50 18.312 ms against a
+17.866 ms material-regression ceiling. The full gate therefore failed even
+though the richer 64-test lexical contract passed. This is a real non-functional
+blocker; the concurrent security-agent installation warning is unrelated.
+
+The classifier SHALL retain every accepted path/URI form while avoiding
+regular-expression and iterator work on common non-path characters. Exact
+mutation behavior must remain 64/64 and the hosted warm-latency gate must pass.

@@ -31,6 +31,8 @@
 - [x] 2.14 Recognize unprefixed relative path literals at token boundaries.
 - [x] 2.15 Consume the escaped character after an indented-string control
       escape prefix.
+- [ ] 2.16 Optimize the path-classifier hot branch without weakening its
+      lexical cases.
 
 ## 3. Verification and integration
 
@@ -53,3 +55,5 @@
       and prepare its review thread for hosted clearance.
 - [x] 3.11 Rerun complete local evidence after relative-path and control-escape
       corrections and prepare both review threads for hosted clearance.
+- [ ] 3.12 Pass the local and hosted material-regression performance guard with
+      all 64 lexical mutations intact.

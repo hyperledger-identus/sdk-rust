@@ -69,6 +69,11 @@ An unprefixed token containing a slash is also classified as a relative Nix
 path when it begins at a token boundary. For indented-string control escapes,
 `''\` and its following character are consumed together so an escaped dollar
 cannot subsequently open interpolation.
+The path classifier is on multiple character-scanning hot loops. Its common
+non-path branch must use constant-time leading-character and token-boundary
+checks, with prefix scanning only for plausible path/URI starts; this preserves
+the lexical contract without paying regular-expression and generator overhead
+for every source character.
 
 Two fixture mutations independently replace the mapped name with a constant
 and the mapped value with an empty attribute set. Both must return a stable

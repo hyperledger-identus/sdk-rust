@@ -33,6 +33,8 @@ still reports success.
 - Continue path-token scanning across `${...}` interpolation boundaries.
 - Recognize unprefixed relative paths containing `/` as path tokens.
 - Consume the escaped character after an indented-string `''\` prefix.
+- Keep richer path classification within the existing hosted warm-latency
+  regression ceiling.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

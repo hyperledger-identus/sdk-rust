@@ -61,6 +61,30 @@ pub mod error_code {
     pub const DUPLICATE_CLAIM_PATH: ErrorCode = ErrorCode::new("credential.duplicate_claim_path");
     pub const INVALID_VALIDITY_RANGE: ErrorCode =
         ErrorCode::new("credential.invalid_validity_range");
+    pub const INVALID_STATUS_METHOD: ErrorCode = ErrorCode::new("credential.invalid_status_method");
+    pub const INVALID_STATUS_PURPOSE: ErrorCode =
+        ErrorCode::new("credential.invalid_status_purpose");
+    pub const INVALID_STATUS_REFERENCE: ErrorCode =
+        ErrorCode::new("credential.invalid_status_reference");
+    pub const INVALID_STATUS_HANDLE: ErrorCode = ErrorCode::new("credential.invalid_status_handle");
+    pub const INVALID_STATUS_REVISION: ErrorCode =
+        ErrorCode::new("credential.invalid_status_revision");
+    pub const INVALID_STATUS_VALUE: ErrorCode = ErrorCode::new("credential.invalid_status_value");
+    pub const INVALID_STATUS_BINDING_COLLECTION: ErrorCode =
+        ErrorCode::new("credential.invalid_status_binding_collection");
+    pub const DUPLICATE_STATUS_BINDING: ErrorCode =
+        ErrorCode::new("credential.duplicate_status_binding");
+    pub const INVALID_STATUS_FRESHNESS: ErrorCode =
+        ErrorCode::new("credential.invalid_status_freshness");
+    pub const INVALID_STATUS_REQUIREMENTS: ErrorCode =
+        ErrorCode::new("credential.invalid_status_requirements");
+    pub const DUPLICATE_STATUS_METHOD: ErrorCode =
+        ErrorCode::new("credential.duplicate_status_method");
+    pub const DUPLICATE_STATUS_PURPOSE: ErrorCode =
+        ErrorCode::new("credential.duplicate_status_purpose");
+    pub const INVALID_STATUS_EVIDENCE_RANGE: ErrorCode =
+        ErrorCode::new("credential.invalid_status_evidence_range");
+    pub const STATUS_QUERY_MISMATCH: ErrorCode = ErrorCode::new("credential.status_query_mismatch");
 }
 
 /// Typed reason that a credential domain value could not be constructed.
@@ -123,6 +147,34 @@ pub enum CredentialError {
     DuplicateClaimPath,
     /// A validity interval ends before it starts.
     InvalidValidityRange,
+    /// A status method identifier violates its text bounds.
+    InvalidStatusMethod,
+    /// A status purpose identifier violates its text bounds.
+    InvalidStatusPurpose,
+    /// A status reference violates its text or byte bounds.
+    InvalidStatusReference,
+    /// A status handle violates its text or byte bounds.
+    InvalidStatusHandle,
+    /// A status revision violates its text or byte bounds.
+    InvalidStatusRevision,
+    /// An observed status value violates its text or byte bounds.
+    InvalidStatusValue,
+    /// A status-binding collection is empty or exceeds its bound.
+    InvalidStatusBindingCollection,
+    /// A status-binding collection repeats an exact binding.
+    DuplicateStatusBinding,
+    /// A freshness value has no criterion.
+    InvalidStatusFreshness,
+    /// A status requirement allow-list is empty or exceeds its bound.
+    InvalidStatusRequirements,
+    /// A status requirement repeats a method.
+    DuplicateStatusMethod,
+    /// A status requirement repeats a purpose.
+    DuplicateStatusPurpose,
+    /// Status evidence expires before it was observed.
+    InvalidStatusEvidenceRange,
+    /// A query binding is excluded by its own structural allow-list.
+    StatusQueryMismatch,
 }
 
 impl CredentialError {
@@ -235,6 +287,62 @@ impl CredentialError {
                 error_code::INVALID_VALIDITY_RANGE,
                 "credential validity range is invalid",
             ),
+            Self::InvalidStatusMethod => (
+                error_code::INVALID_STATUS_METHOD,
+                "invalid credential status method",
+            ),
+            Self::InvalidStatusPurpose => (
+                error_code::INVALID_STATUS_PURPOSE,
+                "invalid credential status purpose",
+            ),
+            Self::InvalidStatusReference => (
+                error_code::INVALID_STATUS_REFERENCE,
+                "invalid credential status reference",
+            ),
+            Self::InvalidStatusHandle => (
+                error_code::INVALID_STATUS_HANDLE,
+                "invalid credential status handle",
+            ),
+            Self::InvalidStatusRevision => (
+                error_code::INVALID_STATUS_REVISION,
+                "invalid credential status revision",
+            ),
+            Self::InvalidStatusValue => (
+                error_code::INVALID_STATUS_VALUE,
+                "invalid credential status value",
+            ),
+            Self::InvalidStatusBindingCollection => (
+                error_code::INVALID_STATUS_BINDING_COLLECTION,
+                "invalid credential status binding collection",
+            ),
+            Self::DuplicateStatusBinding => (
+                error_code::DUPLICATE_STATUS_BINDING,
+                "credential status binding is duplicated",
+            ),
+            Self::InvalidStatusFreshness => (
+                error_code::INVALID_STATUS_FRESHNESS,
+                "invalid credential status freshness",
+            ),
+            Self::InvalidStatusRequirements => (
+                error_code::INVALID_STATUS_REQUIREMENTS,
+                "invalid credential status requirements",
+            ),
+            Self::DuplicateStatusMethod => (
+                error_code::DUPLICATE_STATUS_METHOD,
+                "credential status method is duplicated",
+            ),
+            Self::DuplicateStatusPurpose => (
+                error_code::DUPLICATE_STATUS_PURPOSE,
+                "credential status purpose is duplicated",
+            ),
+            Self::InvalidStatusEvidenceRange => (
+                error_code::INVALID_STATUS_EVIDENCE_RANGE,
+                "credential status evidence range is invalid",
+            ),
+            Self::StatusQueryMismatch => (
+                error_code::STATUS_QUERY_MISMATCH,
+                "credential status query binding is not accepted",
+            ),
         };
 
         IdentusError::public(code, ErrorKind::InvalidInput, CAPABILITY, public_message)
@@ -274,6 +382,22 @@ impl fmt::Display for CredentialError {
             Self::DuplicateClaimIdentifier => "credential claim identifier is duplicated",
             Self::DuplicateClaimPath => "credential claim path is duplicated",
             Self::InvalidValidityRange => "credential validity range is invalid",
+            Self::InvalidStatusMethod => "credential status method is invalid",
+            Self::InvalidStatusPurpose => "credential status purpose is invalid",
+            Self::InvalidStatusReference => "credential status reference is invalid",
+            Self::InvalidStatusHandle => "credential status handle is invalid",
+            Self::InvalidStatusRevision => "credential status revision is invalid",
+            Self::InvalidStatusValue => "credential status value is invalid",
+            Self::InvalidStatusBindingCollection => {
+                "credential status binding collection is invalid"
+            }
+            Self::DuplicateStatusBinding => "credential status binding is duplicated",
+            Self::InvalidStatusFreshness => "credential status freshness is invalid",
+            Self::InvalidStatusRequirements => "credential status requirements are invalid",
+            Self::DuplicateStatusMethod => "credential status method is duplicated",
+            Self::DuplicateStatusPurpose => "credential status purpose is duplicated",
+            Self::InvalidStatusEvidenceRange => "credential status evidence range is invalid",
+            Self::StatusQueryMismatch => "credential status query binding is not accepted",
         })
     }
 }

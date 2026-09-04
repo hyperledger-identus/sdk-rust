@@ -211,6 +211,13 @@ arguments.
   string spellings. Immediate-statement filtering normalizes those forms before
   import value analysis; direct indented-string attribute syntax is not valid
   Nix and is not used as the executable regression fixture.
+- Module imports can be contributed by both the top-level flake-parts module
+  and its deferred `perSystem` module result. The graph walker isolates both
+  returned attribute sets and follows only their immediate literal imports;
+  unsupported deferred result shapes fail closed.
+- Priority helpers can be selected through every static Nix string form. The
+  override detector reuses the shared static-name normalizer rather than
+  maintaining a narrower double-quoted parser.
 
 ## Verification
 

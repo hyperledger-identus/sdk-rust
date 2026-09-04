@@ -260,6 +260,26 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("local Nix module graph uses priority overrides")
 
+    def test_indented_priority_constructor_cannot_erase_generated_gates(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "        lint-nix = pkgs.callPackage ./lint-nix.nix { };",
+            "        lint-nix = pkgs.lib.''mkForce'' pkgs.hello;",
+        )
+        self.assert_nix_parses_if_available("nix/checks/default.nix")
+        self.assert_fails("nix/checks/default.nix does not safely compose checks")
+
+    def test_static_interpolated_priority_constructor_cannot_erase_gates(
+        self,
+    ) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "        lint-nix = pkgs.callPackage ./lint-nix.nix { };",
+            '        lint-nix = pkgs.lib."${"mkForce"}" pkgs.hello;',
+        )
+        self.assert_nix_parses_if_available("nix/checks/default.nix")
+        self.assert_fails("nix/checks/default.nix does not safely compose checks")
+
     def test_dynamic_priority_constructor_cannot_erase_generated_gates(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",
@@ -297,6 +317,22 @@ class SupportPolicyTests(unittest.TestCase):
             "{\n  perSystem =",
             "{\n  imports = [ ./nested/module.nix ];\n  perSystem =",
         )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_deferred_per_system_import_override_is_reachable(self) -> None:
+        (self.fixture / "nix/checks/erase.nix").write_text(
+            "{ pkgs, ... }: { checks = pkgs.lib.mkForce { }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/checks/default.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      imports = [ ./erase.nix ];
+      _module.args = {""",
+        )
+        self.assert_nix_parses_if_available("nix/checks/default.nix")
         self.assert_fails("local Nix module graph uses priority overrides")
 
     def test_raw_priority_override_cannot_erase_generated_gates(self) -> None:

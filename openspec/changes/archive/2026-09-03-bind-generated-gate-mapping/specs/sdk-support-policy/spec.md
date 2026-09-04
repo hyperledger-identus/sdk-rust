@@ -23,9 +23,10 @@ only static external `inputs.<name>.flakeModule` entries MAY remain outside the
 repository. Outside the independently constrained gate generator, reachable
 modules SHALL NOT inherit imports or protected keys, use reflective attribute
 access, or dynamically construct attribute sets. Import discovery SHALL inspect
-only immediate bindings of each returned module attribute set. Reachable local
-modules SHALL NOT evaluate `import` expressions or bind explicit top-level
-`config`; module dependencies SHALL use the traversed literal `imports` list.
+only immediate bindings of each returned top-level module attribute set and
+each reachable `perSystem` result module attribute set. Reachable local modules
+SHALL NOT evaluate `import` expressions or bind explicit top-level `config`;
+module dependencies SHALL use the traversed literal `imports` list.
 Inherited `_type` SHALL be treated as a raw priority record.
 
 #### Scenario: Constant mapped name collapses the gate graph
@@ -177,9 +178,16 @@ Inherited `_type` SHALL be treated as a raw priority record.
 #### Scenario: Quoted priority constructor erases generated checks
 
 - **WHEN** a reachable local module selects `mkForce` or `mkOverride` through
-  a quoted attribute name
+  a quoted, indented-string, or statically interpolated attribute name
 - **THEN** structural validation rejects the effective priority constructor
   before module merging can erase generated gates
+
+#### Scenario: Deferred per-system module imports an override
+
+- **WHEN** a reachable module's `perSystem` result imports another
+  repository-local module that replaces generated checks
+- **THEN** graph traversal follows the deferred import and structural
+  validation rejects the override before module merging
 
 #### Scenario: Parent-relative module contains a priority override
 

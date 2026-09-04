@@ -100,6 +100,10 @@
       executable provider lock edge.
 - [x] 2.54 Require exactly one canonical provider-result statement.
 - [x] 2.55 Reject nontrivial interpolation in quoted attribute-name strings.
+- [ ] 2.56 Normalize indented and statically interpolated priority-constructor
+      selections.
+- [ ] 2.57 Traverse literal imports from every reachable deferred `perSystem`
+      result module.
 
 ## 3. Verification and integration
 
@@ -172,3 +176,6 @@
       enforcement and prepare both exact-head review threads for clearance.
 - [x] 3.33 Rerun complete evidence after provider-result closure and ambiguous
       quoted-name rejection, then prepare both delayed threads for clearance.
+- [ ] 3.34 Rerun complete evidence after normalized priority selection and
+      deferred-module traversal, then prepare both exact-head threads for
+      clearance.

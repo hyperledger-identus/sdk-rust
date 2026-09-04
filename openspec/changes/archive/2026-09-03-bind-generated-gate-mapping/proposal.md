@@ -103,6 +103,10 @@ still reports success.
   GitHub provenance.
 - Require the provider result to contain exactly its canonical publication,
   and reject nontrivial interpolation in any quoted attribute-name string.
+- Normalize every supported static Nix string spelling when recognizing
+  priority-constructor selections.
+- Traverse literal imports from reachable deferred `perSystem` result modules
+  as well as top-level module results.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

@@ -726,3 +726,19 @@ detection inspects quoted strings used as bindings or selections and rejects
 any interpolated form the static-string normalizer cannot prove simple. Both
 hosted mutations fail in the 126-test suite, while an unrelated string-data
 control remains accepted outside the closed provider result.
+
+## Deferred-import and normalized-priority correction contract
+
+The exact-head review of `1bb821a5d5e2efa1e6ad72686181b2b7e110bd51`
+found two remaining module-composition routes. The priority scanner normalizes
+only ordinary double-quoted constructor selectors, despite the shared static
+name parser accepting indented and statically interpolated strings. The module
+graph walker follows only top-level module imports, so a reachable module can
+defer an override import into its `perSystem` result.
+
+The validator SHALL apply the shared static-string normalizer to every
+priority-constructor selector. It SHALL isolate every reachable `perSystem`
+result module and recursively traverse its immediate literal imports, failing
+closed if a declared deferred result cannot be statically isolated. Exact
+indented-selector, quoted-static-interpolation, and deferred-import mutations
+must fail before new implementation evidence is accepted.

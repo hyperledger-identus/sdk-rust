@@ -92,7 +92,7 @@
       provenance.
 - [x] 2.50 Normalize indented-string protected names containing one static
       interpolation.
-- [ ] 2.51 Reject trailing expression composition after the canonical root
+- [x] 2.51 Reject trailing expression composition after the canonical root
       `mkFlake` invocation.
 
 ## 3. Verification and integration
@@ -160,5 +160,5 @@
       and prepare the exact-head review thread for clearance.
 - [x] 3.30 Rerun complete evidence after locked-provenance and indented-name
       enforcement and prepare both delayed review threads for clearance.
-- [ ] 3.31 Rerun complete evidence after root-output boundary enforcement and
+- [x] 3.31 Rerun complete evidence after root-output boundary enforcement and
       prepare the exact-head review thread for clearance.

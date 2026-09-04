@@ -350,3 +350,15 @@ full factory-contract suite, and the compatible aarch64-darwin Nix graph pass.
 Against PR base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
 benchmark reports warm p50/p95 9.661/11.771 ms and process-cold p50/p95
 94.573/97.972 ms; the unchanged material-regression gate passes.
+
+## Final root-output boundary evidence
+
+Complete root-output consumption is enforced at
+`7721da562937a186088d49bbbb1336f82db90b74`. The mutation suite passes 121/121:
+the exact Nix-valid trailing import merge that erases generated checks fails,
+while the canonical `mkFlake` output remains accepted. Ruff lint and format,
+canonical policy validation, the full factory-contract suite, and the
+compatible aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample benchmark
+reports warm p50/p95 9.388/10.384 ms and process-cold p50/p95 91.578/94.764 ms;
+the unchanged material-regression gate passes.

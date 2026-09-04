@@ -674,3 +674,9 @@ The validator SHALL require the parsed second `mkFlake` argument to be followed
 only by the `outputs` binding terminator and root flake close. An exact Nix-valid
 mutation that merges an imported empty `checks` output must fail closed before
 new implementation evidence is accepted.
+
+The implementation at `7721da562937a186088d49bbbb1336f82db90b74`
+meets that contract. Root-module extraction now proceeds only when the second
+`mkFlake` argument is followed exclusively by the canonical binding terminator
+and root close. The exact imported-output merge parses with Nix and fails in
+the 121-test suite; canonical acceptance remains green.

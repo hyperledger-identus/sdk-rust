@@ -7,6 +7,7 @@ import json
 import re
 import sys
 from functools import cache
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
@@ -570,24 +571,6 @@ def nix_statement_binds(statement: str, name: str) -> bool:
     )
 
 
-@cache
-def nix_compact_source(text: str) -> str:
-    """Remove insignificant Nix whitespace while preserving string contents."""
-    source = nix_without_comments(text)
-    compact: list[str] = []
-    index = 0
-    while index < len(source):
-        string_end = nix_string_end(source, index)
-        if string_end is not None:
-            compact.append(source[index:string_end])
-            index = string_end
-            continue
-        if not source[index].isspace():
-            compact.append(source[index])
-        index += 1
-    return "".join(compact)
-
-
 def outer_per_system_let(text: str) -> tuple[str, str, str] | None:
     """Return perSystem's immediate let body, result, and function formals."""
     masked = nix_string_mask(text)
@@ -1033,78 +1016,29 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         ),
         None,
     )
-    canonical_gate_statements = {
-        nix_compact_source(statement)
-        for statement in (
-            """cargoArgumentAttribute = {
-              cargoBuild = "cargoExtraArgs";
-              cargoClippy = "cargoClippyExtraArgs";
-              cargoDoc = "cargoDocExtraArgs";
-              cargoNextest = "cargoNextestExtraArgs";
-            };""",
-            """cargoArgs =
-              gate:
-              escapeShellArgs (
-                optionals gate.locked [ "--locked" ]
-                ++ optionals gate.workspace [ "--workspace" ]
-                ++ concatMap (package: [
-                  "--package"
-                  package
-                ]) gate.packages
-                ++ concatMap (package: [
-                  "--exclude"
-                  package
-                ]) gate.exclude_packages
-                ++ optionals gate.lib [ "--lib" ]
-                ++ optionals gate.all_targets [ "--all-targets" ]
-                ++ optionals gate.no_default_features [ "--no-default-features" ]
-                ++ optionals gate.all_features [ "--all-features" ]
-                ++ optionals (gate.features != [ ]) [
-                  "--features"
-                  (concatStringsSep "," gate.features)
-                ]
-                ++ optionals (gate.target != "") [
-                  "--target"
-                  gate.target
-                ]
-                ++ gate.extra_args
-              );""",
-            """makeGate =
-              gate:
-              let
-                selectedCrane = if gate.toolchain == "msrv" then msrvCraneLib else craneLib;
-                operation = getAttr gate.operation selectedCrane;
-                argumentAttribute = cargoArgumentAttribute.${gate.operation} or null;
-                selectedArtifacts = if gate.artifacts == "msrv" then msrvCargoArtifacts else cargoArtifacts;
-              in
-              operation (
-                {
-                  src = if gate.source == "repository" then ./../.. else rustSrc;
-                }
-                // optionalAttrs (gate.artifacts != "none") {
-                  cargoArtifacts = selectedArtifacts;
-                }
-                // optionalAttrs (argumentAttribute != null) {
-                  ${argumentAttribute} = cargoArgs gate;
-                }
-                // optionalAttrs (gate.operation == "cargoBuild") {
-                  doCheck = false;
-                }
-                // optionalAttrs (gate.operation == "cargoAudit") {
-                  inherit (inputs) advisory-db;
-                }
-              );""",
-        )
+    canonical_gate_statement_digests = {
+        (
+            "cargoArgumentAttribute",
+            "0e20c50732bd25fea90b0025c2487a742e4e711a7baf46a9caef6fffb35e0a1e",
+        ),
+        (
+            "cargoArgs",
+            "9984b03e5e55d0cc4f6b901ab254780a8c02aec1082d07b2d1847d893eaa58a3",
+        ),
+        (
+            "makeGate",
+            "d3110f08874d2f373bcf0f7d4067aeba8bb55f37e4c94f96f6e184fda236e893",
+        ),
     }
     actual_gate_statements = {
-        nix_compact_source(statement)
+        (name, sha256(statement.strip().encode()).hexdigest())
         for statement in statements
-        if any(
-            nix_statement_binds(statement, name)
-            for name in ("cargoArgumentAttribute", "cargoArgs", "makeGate")
-        )
+        for name in ("cargoArgumentAttribute", "cargoArgs", "makeGate")
+        if nix_statement_binds(statement, name)
     }
-    canonical_gate_construction = actual_gate_statements == canonical_gate_statements
+    canonical_gate_construction = (
+        actual_gate_statements == canonical_gate_statement_digests
+    )
     generated_pattern = (
         r"\s*generatedChecks\s*=\s*listToAttrs\s*\(\s*map\s*\("
         r"\s*gate\s*:\s*\{\s*inherit\s*\(\s*gate\s*\)\s*name\s*;"

@@ -478,6 +478,16 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         failures.append("flake.nix does not provide canonical pkgs to perSystem")
 
     default_nix = nix_without_comments(checks_entry.read_text(encoding="utf-8"))
+    default_masked = nix_string_mask(default_nix)
+    wrapper_check_bindings = len(re.findall(r"\bchecks\s*=", default_masked))
+    plain_wrapper_checks = re.search(r"\bchecks\s*=\s*\{", default_masked)
+    priority_override = re.search(r"\b(?:mkForce|mkOverride)\b", default_masked)
+    if (
+        wrapper_check_bindings != 1
+        or plain_wrapper_checks is None
+        or priority_override is not None
+    ):
+        failures.append("nix/checks/default.nix does not safely compose checks")
     imports_match = re.search(r"\bimports\s*=\s*\[(.*?)\];", default_nix, re.DOTALL)
     check_imports: set[Path] = set()
     if imports_match is not None:

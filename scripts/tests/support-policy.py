@@ -161,6 +161,14 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("does not import rust-gates.nix")
 
+    def test_check_wrapper_cannot_force_away_imported_gates(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "      checks = {",
+            "      checks = pkgs.lib.mkForce {",
+        )
+        self.assert_fails("nix/checks/default.nix does not safely compose checks")
+
     def test_unused_manifest_mapping_cannot_replace_published_checks(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

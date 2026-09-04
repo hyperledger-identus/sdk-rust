@@ -272,6 +272,7 @@ def nix_string_end(text: str, index: int) -> int | None:
     return None
 
 
+@cache
 def nix_string_mask(text: str) -> str:
     """Mask Nix strings while preserving offsets for bounded source scanning."""
     masked = list(text)
@@ -290,6 +291,7 @@ def nix_string_mask(text: str) -> str:
     return "".join(masked)
 
 
+@cache
 def nix_without_comments(text: str) -> str:
     """Mask comments outside Nix strings while preserving source shape."""
     without_comments = list(text)

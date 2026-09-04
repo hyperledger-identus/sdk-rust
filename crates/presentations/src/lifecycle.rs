@@ -18,8 +18,10 @@ pub enum PresentationLifecyclePhase {
     Ready,
     /// A protocol adapter is handing artifacts to its destination.
     Delivering,
-    /// Cancellation was requested while work may already be irreversible.
-    CancellationRequested,
+    /// Cancellation was requested before generation produced a ready artifact.
+    GenerationCancellationRequested,
+    /// Cancellation was requested while delivery may already be irreversible.
+    DeliveryCancellationRequested,
 }
 
 impl PresentationLifecyclePhase {
@@ -32,7 +34,8 @@ impl PresentationLifecyclePhase {
             Self::Generating => "generating",
             Self::Ready => "ready",
             Self::Delivering => "delivering",
-            Self::CancellationRequested => "cancellation_requested",
+            Self::GenerationCancellationRequested => "generation_cancellation_requested",
+            Self::DeliveryCancellationRequested => "delivery_cancellation_requested",
         }
     }
 }
@@ -47,7 +50,8 @@ impl FromStr for PresentationLifecyclePhase {
             "generating" => Ok(Self::Generating),
             "ready" => Ok(Self::Ready),
             "delivering" => Ok(Self::Delivering),
-            "cancellation_requested" => Ok(Self::CancellationRequested),
+            "generation_cancellation_requested" => Ok(Self::GenerationCancellationRequested),
+            "delivery_cancellation_requested" => Ok(Self::DeliveryCancellationRequested),
             _ => Err(PresentationError::InvalidLifecyclePhase),
         }
     }
@@ -192,7 +196,7 @@ impl PresentationProtocolState {
                     )
             ) | (
                 Active(Phase::Generating),
-                Active(Phase::Ready | Phase::CancellationRequested)
+                Active(Phase::Ready | Phase::GenerationCancellationRequested)
                     | Terminal(Outcome::Cancelled | Outcome::Expired | Outcome::Failed)
             ) | (
                 Active(Phase::Ready),
@@ -200,7 +204,7 @@ impl PresentationProtocolState {
                     | Terminal(Outcome::Cancelled | Outcome::Expired | Outcome::Failed)
             ) | (
                 Active(Phase::Delivering),
-                Active(Phase::CancellationRequested)
+                Active(Phase::DeliveryCancellationRequested)
                     | Terminal(
                         Outcome::Completed
                             | Outcome::Cancelled
@@ -208,7 +212,10 @@ impl PresentationProtocolState {
                             | Outcome::Failed
                     )
             ) | (
-                Active(Phase::CancellationRequested),
+                Active(Phase::GenerationCancellationRequested),
+                Terminal(Outcome::Cancelled | Outcome::Expired | Outcome::Failed)
+            ) | (
+                Active(Phase::DeliveryCancellationRequested),
                 Terminal(
                     Outcome::Completed | Outcome::Cancelled | Outcome::Expired | Outcome::Failed
                 )

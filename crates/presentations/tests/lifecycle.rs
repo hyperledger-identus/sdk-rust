@@ -6,13 +6,14 @@ use identus_presentations::{
     PresentationTerminalOutcome as Outcome,
 };
 
-const PHASES: [Phase; 6] = [
+const PHASES: [Phase; 7] = [
     Phase::Requested,
     Phase::AwaitingAuthorization,
     Phase::Generating,
     Phase::Ready,
     Phase::Delivering,
-    Phase::CancellationRequested,
+    Phase::GenerationCancellationRequested,
+    Phase::DeliveryCancellationRequested,
 ];
 
 const OUTCOMES: [Outcome; 5] = [
@@ -23,13 +24,14 @@ const OUTCOMES: [Outcome; 5] = [
     Outcome::Failed,
 ];
 
-const STATES: [State; 11] = [
+const STATES: [State; 12] = [
     State::Active(Phase::Requested),
     State::Active(Phase::AwaitingAuthorization),
     State::Active(Phase::Generating),
     State::Active(Phase::Ready),
     State::Active(Phase::Delivering),
-    State::Active(Phase::CancellationRequested),
+    State::Active(Phase::GenerationCancellationRequested),
+    State::Active(Phase::DeliveryCancellationRequested),
     State::Terminal(Outcome::Completed),
     State::Terminal(Outcome::Refused),
     State::Terminal(Outcome::Cancelled),
@@ -37,35 +39,38 @@ const STATES: [State; 11] = [
     State::Terminal(Outcome::Failed),
 ];
 
-const ALLOWED: [(State, State); 28] = [
+const ALLOWED: [(State, State); 31] = [
     (STATES[0], STATES[1]),
-    (STATES[0], STATES[7]),
     (STATES[0], STATES[8]),
     (STATES[0], STATES[9]),
     (STATES[0], STATES[10]),
+    (STATES[0], STATES[11]),
     (STATES[1], STATES[2]),
-    (STATES[1], STATES[7]),
     (STATES[1], STATES[8]),
     (STATES[1], STATES[9]),
     (STATES[1], STATES[10]),
+    (STATES[1], STATES[11]),
     (STATES[2], STATES[3]),
     (STATES[2], STATES[5]),
-    (STATES[2], STATES[8]),
     (STATES[2], STATES[9]),
     (STATES[2], STATES[10]),
+    (STATES[2], STATES[11]),
     (STATES[3], STATES[4]),
-    (STATES[3], STATES[8]),
     (STATES[3], STATES[9]),
     (STATES[3], STATES[10]),
-    (STATES[4], STATES[5]),
+    (STATES[3], STATES[11]),
     (STATES[4], STATES[6]),
-    (STATES[4], STATES[8]),
+    (STATES[4], STATES[7]),
     (STATES[4], STATES[9]),
     (STATES[4], STATES[10]),
-    (STATES[5], STATES[6]),
-    (STATES[5], STATES[8]),
+    (STATES[4], STATES[11]),
     (STATES[5], STATES[9]),
     (STATES[5], STATES[10]),
+    (STATES[5], STATES[11]),
+    (STATES[6], STATES[7]),
+    (STATES[6], STATES[9]),
+    (STATES[6], STATES[10]),
+    (STATES[6], STATES[11]),
 ];
 
 #[test]
@@ -76,7 +81,8 @@ fn lifecycle_vocabulary_round_trips_exactly() {
         "generating",
         "ready",
         "delivering",
-        "cancellation_requested",
+        "generation_cancellation_requested",
+        "delivery_cancellation_requested",
     ];
     for (phase, spelling) in PHASES.into_iter().zip(phase_spellings) {
         assert_eq!(phase.as_str(), spelling);
@@ -102,6 +108,7 @@ fn lifecycle_parsing_is_strict_and_redacted() {
         "requested ",
         "Requested",
         "awaiting-consent",
+        "cancellation_requested",
         "succeeded",
         "state-canary",
     ] {
@@ -167,7 +174,7 @@ fn terminal_states_are_immutable_and_data_free() {
 #[test]
 fn cancellation_request_reports_the_observed_race_truthfully() {
     let cancelling = State::active(Phase::Delivering)
-        .transition_to(State::active(Phase::CancellationRequested))
+        .transition_to(State::active(Phase::DeliveryCancellationRequested))
         .expect("delivery can request cancellation");
     assert_eq!(
         cancelling.transition_to(State::terminal(Outcome::Cancelled)),
@@ -176,6 +183,18 @@ fn cancellation_request_reports_the_observed_race_truthfully() {
     assert_eq!(
         cancelling.transition_to(State::terminal(Outcome::Completed)),
         Ok(State::terminal(Outcome::Completed))
+    );
+
+    let cancelling_generation = State::active(Phase::Generating)
+        .transition_to(State::active(Phase::GenerationCancellationRequested))
+        .expect("generation can request cancellation");
+    assert_eq!(
+        cancelling_generation.transition_to(State::terminal(Outcome::Cancelled)),
+        Ok(State::terminal(Outcome::Cancelled))
+    );
+    assert_eq!(
+        cancelling_generation.transition_to(State::terminal(Outcome::Completed)),
+        Err(PresentationError::InvalidProtocolTransition)
     );
 
     assert!(

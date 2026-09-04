@@ -24,6 +24,10 @@ pub const MAX_PRESENTATION_REQUEST_QUERIES: usize = 16;
 pub const MAX_PRESENTATION_CANDIDATE_CLAIMS: usize = 64;
 /// Maximum number of credential candidates in one validated set.
 pub const MAX_PRESENTATION_CANDIDATES: usize = 64;
+/// Maximum number of explicitly selected claims for one credential.
+pub const MAX_PRESENTATION_SELECTION_CLAIMS: usize = 64;
+/// Maximum number of credential selections in one disclosure plan.
+pub const MAX_PRESENTATION_DISCLOSURE_SELECTIONS: usize = 64;
 
 fn valid_text(value: &str, maximum: usize) -> bool {
     !value.is_empty()
@@ -639,6 +643,101 @@ impl fmt::Debug for PresentationCredentialCandidate {
     }
 }
 
+/// One value-free claim choice copied from a presentation request.
+#[must_use]
+#[derive(Clone, PartialEq, Eq)]
+pub struct PresentationSelectedClaim {
+    path: CredentialClaimPath,
+    intent: PresentationClaimIntent,
+}
+
+impl PresentationSelectedClaim {
+    /// Construct a selected claim from an already validated path and intent.
+    pub const fn new(path: CredentialClaimPath, intent: PresentationClaimIntent) -> Self {
+        Self { path, intent }
+    }
+
+    /// Return the selected credential claim path.
+    pub const fn path(&self) -> &CredentialClaimPath {
+        &self.path
+    }
+
+    /// Return the selected reveal-or-predicate intent.
+    pub const fn intent(&self) -> PresentationClaimIntent {
+        self.intent
+    }
+}
+
+impl fmt::Debug for PresentationSelectedClaim {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PresentationSelectedClaim")
+            .field("path_segments", &self.path.segments().len())
+            .field("intent", &self.intent)
+            .finish_non_exhaustive()
+    }
+}
+
+/// One credential and its explicitly selected, value-free claims.
+#[must_use]
+#[derive(Clone, PartialEq, Eq)]
+pub struct PresentationCredentialSelection {
+    query_id: PresentationQueryId,
+    credential_handle: PresentationCredentialHandle,
+    selected_claims: Vec<PresentationSelectedClaim>,
+}
+
+impl PresentationCredentialSelection {
+    /// Construct a bounded selection with unique complete claim paths.
+    pub fn new(
+        query_id: PresentationQueryId,
+        credential_handle: PresentationCredentialHandle,
+        selected_claims: Vec<PresentationSelectedClaim>,
+    ) -> Result<Self, PresentationError> {
+        if selected_claims.len() > MAX_PRESENTATION_SELECTION_CLAIMS {
+            return Err(PresentationError::InvalidSelectionClaims);
+        }
+        if selected_claims.iter().enumerate().any(|(index, claim)| {
+            selected_claims[..index]
+                .iter()
+                .any(|previous| previous.path() == claim.path())
+        }) {
+            return Err(PresentationError::DuplicateSelectionClaim);
+        }
+        Ok(Self {
+            query_id,
+            credential_handle,
+            selected_claims,
+        })
+    }
+
+    /// Return the request query this selection addresses.
+    pub const fn query_id(&self) -> &PresentationQueryId {
+        &self.query_id
+    }
+
+    /// Return the selected opaque local credential handle.
+    pub const fn credential_handle(&self) -> &PresentationCredentialHandle {
+        &self.credential_handle
+    }
+
+    /// Borrow the explicitly selected claim paths and intents.
+    pub fn selected_claims(&self) -> &[PresentationSelectedClaim] {
+        &self.selected_claims
+    }
+}
+
+impl fmt::Debug for PresentationCredentialSelection {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PresentationCredentialSelection")
+            .field("query_id", &self.query_id)
+            .field("credential_handle", &self.credential_handle)
+            .field("claim_count", &self.selected_claims.len())
+            .finish_non_exhaustive()
+    }
+}
+
 /// Bounded candidates proven structurally consistent with one request.
 #[must_use]
 #[derive(Clone, PartialEq, Eq)]
@@ -650,6 +749,18 @@ impl PresentationCandidateSet {
         request: &PresentationRequest,
         candidates: Vec<PresentationCredentialCandidate>,
     ) -> Result<Self, PresentationError> {
+        Self::validate_candidates(request, &candidates)?;
+        Ok(Self(candidates))
+    }
+
+    fn validate_against(&self, request: &PresentationRequest) -> Result<(), PresentationError> {
+        Self::validate_candidates(request, &self.0)
+    }
+
+    fn validate_candidates(
+        request: &PresentationRequest,
+        candidates: &[PresentationCredentialCandidate],
+    ) -> Result<(), PresentationError> {
         if candidates.len() > MAX_PRESENTATION_CANDIDATES {
             return Err(PresentationError::InvalidCandidates);
         }
@@ -662,7 +773,7 @@ impl PresentationCandidateSet {
             return Err(PresentationError::DuplicateCandidate);
         }
 
-        for candidate in &candidates {
+        for candidate in candidates {
             let query = request
                 .query(candidate.query_id())
                 .ok_or(PresentationError::UnknownCandidateQuery)?;
@@ -687,7 +798,17 @@ impl PresentationCandidateSet {
                 return Err(PresentationError::CandidateMissingRequiredClaim);
             }
         }
-        Ok(Self(candidates))
+        Ok(())
+    }
+
+    fn candidate(
+        &self,
+        query_id: &PresentationQueryId,
+        credential_handle: &PresentationCredentialHandle,
+    ) -> Option<&PresentationCredentialCandidate> {
+        self.0.iter().find(|candidate| {
+            candidate.query_id() == query_id && candidate.credential_handle() == credential_handle
+        })
     }
 
     /// Borrow the ordered validated candidates.
@@ -706,6 +827,104 @@ impl fmt::Debug for PresentationCandidateSet {
         formatter
             .debug_struct("PresentationCandidateSet")
             .field("candidate_count", &self.0.len())
+            .finish_non_exhaustive()
+    }
+}
+
+/// A bounded, structurally validated input for format-specific proof generation.
+#[must_use]
+#[derive(Clone, PartialEq, Eq)]
+pub struct PresentationDisclosurePlan(Vec<PresentationCredentialSelection>);
+
+impl PresentationDisclosurePlan {
+    /// Validate and retain already-made credential and claim selections.
+    pub fn new(
+        request: &PresentationRequest,
+        candidates: &PresentationCandidateSet,
+        selections: Vec<PresentationCredentialSelection>,
+    ) -> Result<Self, PresentationError> {
+        if selections.is_empty() || selections.len() > MAX_PRESENTATION_DISCLOSURE_SELECTIONS {
+            return Err(PresentationError::InvalidDisclosureSelections);
+        }
+        candidates.validate_against(request)?;
+        if selections.iter().enumerate().any(|(index, selection)| {
+            selections[..index].iter().any(|previous| {
+                previous.query_id() == selection.query_id()
+                    && previous.credential_handle() == selection.credential_handle()
+            })
+        }) {
+            return Err(PresentationError::DuplicateDisclosureSelection);
+        }
+
+        for selection in &selections {
+            let query = request
+                .query(selection.query_id())
+                .ok_or(PresentationError::UnknownSelectionQuery)?;
+            let candidate = candidates
+                .candidate(selection.query_id(), selection.credential_handle())
+                .ok_or(PresentationError::UnknownSelectionCandidate)?;
+
+            for selected_claim in selection.selected_claims() {
+                let requested_claim = query
+                    .claims()
+                    .iter()
+                    .find(|claim| claim.path() == selected_claim.path())
+                    .ok_or(PresentationError::SelectionUnrequestedClaim)?;
+                if requested_claim.intent() != selected_claim.intent() {
+                    return Err(PresentationError::SelectionClaimIntentMismatch);
+                }
+                if !candidate
+                    .satisfiable_claims()
+                    .iter()
+                    .any(|path| path == selected_claim.path())
+                {
+                    return Err(PresentationError::SelectionUnavailableClaim);
+                }
+            }
+
+            if query.claims().iter().any(|requested_claim| {
+                requested_claim.required()
+                    && !selection.selected_claims().iter().any(|selected_claim| {
+                        selected_claim.path() == requested_claim.path()
+                            && selected_claim.intent() == requested_claim.intent()
+                    })
+            }) {
+                return Err(PresentationError::SelectionMissingRequiredClaim);
+            }
+        }
+
+        for query in request.queries() {
+            let count = selections
+                .iter()
+                .filter(|selection| selection.query_id() == query.id())
+                .count();
+            if count == 0 {
+                return Err(PresentationError::MissingQuerySelection);
+            }
+            if !query.multiple() && count != 1 {
+                return Err(PresentationError::QueryMultiplicityExceeded);
+            }
+        }
+
+        Ok(Self(selections))
+    }
+
+    /// Borrow the ordered credential selections.
+    pub fn as_slice(&self) -> &[PresentationCredentialSelection] {
+        &self.0
+    }
+
+    /// Consume the plan and return its credential selections.
+    pub fn into_vec(self) -> Vec<PresentationCredentialSelection> {
+        self.0
+    }
+}
+
+impl fmt::Debug for PresentationDisclosurePlan {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PresentationDisclosurePlan")
+            .field("selection_count", &self.0.len())
             .finish_non_exhaustive()
     }
 }

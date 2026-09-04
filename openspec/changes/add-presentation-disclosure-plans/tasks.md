@@ -10,26 +10,28 @@
 
 ## 2. Presentation selection implementation
 
-- [ ] 2.1 Add bounded selected-claim and credential-selection values with
+- [x] 2.1 Add bounded selected-claim and credential-selection values with
   redacted diagnostics.
-- [ ] 2.2 Reuse candidate-set request validation and add disclosure-plan
+- [x] 2.2 Reuse candidate-set request validation and add disclosure-plan
   validation for candidate membership, claims, query coverage and multiplicity.
-- [ ] 2.3 Add static error bridges and root exports without a new dependency.
+- [x] 2.3 Add static error bridges and root exports without a new dependency.
 
 ## 3. Evidence and performance
 
-- [ ] 3.1 Add shared DCQL-, Midnight- and unrelated-format positive tests.
-- [ ] 3.2 Add maximum-bound, duplicate, cross-request, unknown candidate,
+- [x] 3.1 Add shared DCQL-, Midnight- and unrelated-format positive tests.
+- [x] 3.2 Add maximum-bound, duplicate, cross-request, unknown candidate,
   multiplicity, claim mismatch, required coverage, redaction and complete
   error-contract negative tests.
-- [ ] 3.3 Extend and run the manual release diagnostic and record its exact
+- [x] 3.3 Extend and run the manual release diagnostic and record its exact
   toolchain, host and result without a timing threshold.
-- [ ] 3.4 Verify donor and consumer final HEAD/branch/status receipts equal
+- [x] 3.4 Update human and machine inventories plus canonical governance
+  evidence for the added experimental surface.
+- [ ] 3.5 Verify donor and consumer final HEAD/branch/status receipts equal
   preflight.
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Pass focused formatting, tests, no-default check, strict Clippy and
+- [x] 4.1 Pass focused formatting, tests, no-default check, strict Clippy and
   warning-denied docs.
 - [ ] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
   supply-chain and full Nix gates.

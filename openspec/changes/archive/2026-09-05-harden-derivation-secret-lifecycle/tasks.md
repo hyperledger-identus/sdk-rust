@@ -24,7 +24,7 @@
 - [x] 4.1 Pass focused crate tests and relevant feature combinations.
 - [x] 4.2 Pass workspace format, test, clippy, docs, OpenSpec, and factory gates.
 - [x] 4.3 Pass declared MSRV, native, mobile, WASM, supply-chain, and Nix gates.
-- [ ] 4.4 Complete a distinct post-implementation security/API review.
-- [ ] 4.5 Produce ready/receipt, synchronize canonical specs, archive the change,
+- [x] 4.4 Complete a distinct post-implementation security/API review.
+- [x] 4.5 Produce ready/receipt, synchronize canonical specs, archive the change,
   and prepare the issue-linked signed/DCO PR; hosted CI, merge, issue closure,
   parent update, and `develop` sync remain authoritative GitHub evidence.

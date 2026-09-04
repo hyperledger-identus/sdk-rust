@@ -661,3 +661,16 @@ locked node must preserve the declared owner/repository with a commit-shaped
 revision and SRI hash. The static-name normalizer now applies the same single
 interpolation rule to both Nix string forms. All three exact mutations fail in
 the 120-test suite while canonical acceptance remains green.
+
+## Root output boundary correction contract
+
+The exact-head review of `62daa9f644ecfe6727f4d1dd968278ad3902a79c`
+found that root discovery validates the canonical `mkFlake` call's two
+arguments but does not reject an expression composed after that call. Because
+the root flake is intentionally exempt from the general import-expression
+rule, a trailing imported set can replace generated outputs after validation.
+
+The validator SHALL require the parsed second `mkFlake` argument to be followed
+only by the `outputs` binding terminator and root flake close. An exact Nix-valid
+mutation that merges an imported empty `checks` output must fail closed before
+new implementation evidence is accepted.

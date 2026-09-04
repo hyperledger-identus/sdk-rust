@@ -362,3 +362,10 @@ Inherited `_type` SHALL be treated as a raw priority record.
   `''${"inputs"}''`
 - **THEN** structural validation normalizes the static name and applies the
   same trusted-root shadowing rule as for the bare spelling
+
+#### Scenario: Canonical mkFlake call has trailing composition
+
+- **WHEN** the canonical-looking root `mkFlake` call is followed by a merge,
+  import, or any other expression before the `outputs` binding terminator
+- **THEN** structural validation rejects the trailing output composition
+  instead of validating only the first call

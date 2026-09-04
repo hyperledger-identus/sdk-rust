@@ -280,6 +280,15 @@ class SupportPolicyTests(unittest.TestCase):
         self.assert_nix_parses_if_available("nix/checks/default.nix")
         self.assert_fails("nix/checks/default.nix does not safely compose checks")
 
+    def test_control_escaped_priority_constructor_cannot_erase_gates(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "        lint-nix = pkgs.callPackage ./lint-nix.nix { };",
+            r"""        lint-nix = pkgs.lib.''mkFor''\ce'' pkgs.hello;""",
+        )
+        self.assert_nix_parses_if_available("nix/checks/default.nix")
+        self.assert_fails("local Nix module graph uses computed attributes")
+
     def test_dynamic_priority_constructor_cannot_erase_generated_gates(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",

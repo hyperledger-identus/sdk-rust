@@ -104,7 +104,7 @@
       selections.
 - [x] 2.57 Traverse literal imports from every reachable deferred `perSystem`
       result module.
-- [ ] 2.58 Reject indented control escapes used to construct attribute names.
+- [x] 2.58 Reject indented control escapes used to construct attribute names.
 
 ## 3. Verification and integration
 

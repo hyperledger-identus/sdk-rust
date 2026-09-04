@@ -408,7 +408,11 @@ def nix_uses_computed_attribute(text: str) -> bool:
             index += 1
             continue
         literal = source[index:string_end]
-        if "${" in literal and nix_static_string_value(literal) is None:
+        ambiguous_interpolation = (
+            "${" in literal and nix_static_string_value(literal) is None
+        )
+        indented_control_escape = literal.startswith("''") and "''\\" in literal
+        if ambiguous_interpolation or indented_control_escape:
             follows_attribute = (
                 re.match(r"\s*(?:=|\.)", source[string_end:]) is not None
             )

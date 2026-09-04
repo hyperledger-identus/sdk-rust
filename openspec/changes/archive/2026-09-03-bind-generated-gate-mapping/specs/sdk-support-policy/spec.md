@@ -150,3 +150,17 @@ forms before determining an outer string's terminator.
   override such as `mkForce` or `mkOverride` for its checks contribution
 - **THEN** structural validation rejects the wrapper before module merging can
   erase the required generated gates
+
+#### Scenario: Sibling module forces generated checks away
+
+- **WHEN** another repository-local module reachable from the root import
+  graph uses a module-priority override that can replace checks
+- **THEN** structural validation rejects the competing module before merging
+  can erase the required generated gates
+
+#### Scenario: URI literal omits double slashes
+
+- **WHEN** a valid general URI such as `mailto:let@example.org` contains a
+  lexical scope keyword without using `//`
+- **THEN** lexical preprocessing recognizes the complete URI token and does
+  not interpret its data as a lexical scope

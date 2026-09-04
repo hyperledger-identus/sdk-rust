@@ -42,6 +42,9 @@
       `import`.
 - [x] 2.21 Reject check-wrapper priority overrides that can erase imported
       generated checks.
+- [ ] 2.22 Walk the recursively reachable local flake module graph and reject
+      competing priority overrides.
+- [ ] 2.23 Recognize general non-double-slash Nix URI literals.
 
 ## 3. Verification and integration
 
@@ -75,3 +78,5 @@
       prepare its exact-head review thread for clearance.
 - [x] 3.16 Rerun complete local evidence after the wrapper-composition
       correction and prepare its exact-head review thread for clearance.
+- [ ] 3.17 Rerun complete local evidence after module-graph and general-URI
+      corrections and prepare both exact-head review threads for clearance.

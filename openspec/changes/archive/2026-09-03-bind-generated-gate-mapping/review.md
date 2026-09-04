@@ -316,3 +316,19 @@ attribute-set binding and cannot contain `mkForce` or `mkOverride`. The exact
 forced checks mutation fails in the 69-test suite. A final
 contradiction-focused local review found no remaining priority route that can
 erase the imported generated checks.
+
+## Module-graph and general-URI correction contract
+
+The exact-head review of `6357cb1` found two additional boundaries. A sibling
+module already imported by the root flake can use `mkForce` to erase generated
+checks even though `nix/checks/default.nix` remains canonical. Separately, Nix
+accepts URI literals such as `mailto:let@example.org`, but the scanner requires
+`://` and misreads `let` as a lexical scope. The module finding is P1 and the
+URI finding is P2; both block merge.
+
+The validator SHALL recursively inspect every repository-local module
+reachable through the root import graph and reject module-priority
+constructors. URI scanning SHALL recognize a token-boundary `scheme:` prefix
+followed by a non-empty Nix URI body without requiring `//`. An exact sibling
+`mkForce` mutation must fail, while an exact `mailto:` fixture must preserve
+canonical acceptance.

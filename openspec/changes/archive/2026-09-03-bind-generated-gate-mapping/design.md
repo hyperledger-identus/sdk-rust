@@ -70,6 +70,10 @@ The `nix/checks/default.nix` wrapper must define its local checks as one plain
 attribute set and must not use module-priority constructors such as `mkForce`
 or `mkOverride`. Such a priority override can otherwise win module merging and
 erase every generated check despite retaining the generator import.
+Every repository-local module reachable from the root flake's imports is
+walked recursively and held to the same no-priority-override rule. A sibling or
+nested module therefore cannot erase generated checks during flake-parts
+composition.
 Lexical scope scanning skips path and URI tokens before interpreting `let` or
 `in`, and recognizes an indented-string opener only at a token boundary. Valid
 path components and apostrophes within identifiers therefore cannot create
@@ -85,6 +89,9 @@ indented-string control escapes,
 cannot subsequently open interpolation.
 Path scanning stops before `#`, allowing the existing line-comment scanner to
 mask the remainder of the line before lexical scope processing.
+URI recognition follows Nix's general `scheme:data` form and requires a
+non-empty URI body; `//` is not required. This covers `mailto:` and similar
+valid literals while retaining token-boundary checks.
 The path classifier is on multiple character-scanning hot loops. Its common
 non-path branch must use constant-time leading-character and token-boundary
 checks, with prefix scanning only for plausible path/URI starts; this preserves

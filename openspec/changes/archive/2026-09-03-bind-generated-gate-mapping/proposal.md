@@ -41,6 +41,10 @@ still reports success.
   the remaining source line.
 - Require the check-wrapper module to contribute a plain checks attribute set
   without priority overrides that can erase imported generated checks.
+- Reject priority overrides throughout the recursively reachable local flake
+  module graph, not only in the check wrapper.
+- Recognize general Nix scheme URI literals whose scheme is followed directly
+  by URI data without `//`.
 - Consume the escaped character after an indented-string `''\` prefix.
 - Keep richer path classification within the existing hosted warm-latency
   regression ceiling.

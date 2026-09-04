@@ -51,6 +51,7 @@ Package presence, the layer rulebook and version `0.0.0` do not imply support.
 | `identus-derive` | `DeriveNewtype` and inert `port` procedural macros | Compile-time helper only; diagnostics and generated API remain experimental | issue #25 |
 | `identus-crypto` | encodings, JWK conversion, curve key types, sign/verify traits, hashes, secure-random port, BIP/SLIP derivation | Default, minimal and `kmp-compat` surfaces are tested; no custody, JOSE or Midnight Jubjub | issue #9 |
 | `identus-did` | initial `DidMethod`, `Version`, `Multihash` and error values | Not yet the DID Core model, DID URL, document or resolver contract | issue #5 |
+| `identus-credentials` | bounded format identifier, opaque credential/proof/private-material artifacts and non-validating envelope | no serde/codecs, trust, verification, status or storage | issue #71; later credential slices remain experimental |
 | `identus-adapters-entropy` | `GetrandomSystemRandomAdapter`, `DeterministicRandomAdapter` | `getrandom` and `deterministic` are opt-in; deterministic entropy is test-only | issue #25 and later ports convergence |
 
 `identus-conformance` is verification-only. Its public `COMPONENT` marker does
@@ -61,7 +62,6 @@ not make architecture guards a supported runtime API.
 | Package | Current meaning | Next decision |
 | --- | --- | --- |
 | `identus-trust` | marker only; no trust-policy or registry API | issue #6 or a narrower trust/status issue |
-| `identus-credentials` | marker only; no credential model or verification API | issue #6 |
 | `identus-presentations` | marker only; no presentation model or derivation API | issue #6 |
 | `identus-messaging` | marker only; no DIDComm implementation | conditional row under issue #20 |
 | `identus-openid4vc` | marker only; not an umbrella protocol commitment | focused OID4VCI issue #7 and later protocol issues |

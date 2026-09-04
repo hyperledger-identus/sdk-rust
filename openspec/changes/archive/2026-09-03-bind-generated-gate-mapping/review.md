@@ -407,3 +407,10 @@ The implementation SHALL memoize those pure results, expose cached import
 paths immutably, preserve all 80 functional mutations, and pass the unchanged
 hosted material-regression guard. Threshold relaxation is not an acceptable
 fix.
+
+The implementation at `f5c1f0d9aaff3c84265413d36cded26b3406f80f`
+meets that contract. The four pure module-source analyses are cached and local
+import results are returned as a `frozenset`. All 80 mutations remain green.
+The exact local 20-sample rerun reduced warm p50 from 15.128 ms to 7.998 ms,
+with no material regression against `develop`; the unchanged hosted threshold
+remains the integration gate.

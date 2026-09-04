@@ -51,7 +51,7 @@
 - [x] 2.26 Reject `disabledModules` in the repository-local module graph.
 - [x] 2.27 Fail closed on imports values that are not direct literal lists.
 - [x] 2.28 Reject raw module `_type` tags across all value spellings.
-- [ ] 2.29 Cache immutable module-source analysis without weakening graph
+- [x] 2.29 Cache immutable module-source analysis without weakening graph
       validation.
 
 ## 3. Verification and integration
@@ -94,5 +94,5 @@
 - [x] 3.19 Rerun complete evidence after disabled-module, unresolved-import,
       and indented/raw-tag corrections and prepare all three exact-head review
       threads for clearance.
-- [ ] 3.20 Clear the hosted warm-latency regression without changing the
+- [x] 3.20 Clear the hosted warm-latency regression without changing the
       material-regression threshold or any functional mutation.

@@ -211,3 +211,14 @@ complete compatible aarch64-darwin Nix graph pass. Against `develop` at
 `69d38874e3d3f669d60e129ed6882e835aedafe6`, the 20-sample benchmark reports
 warm p50/p95 15.128/16.124 ms and process-cold p50/p95 66.689/69.369 ms, with
 no material regression under the repository guard.
+
+## Final module-analysis performance evidence
+
+Pure module-source analysis is cached at
+`f5c1f0d9aaff3c84265413d36cded26b3406f80f`, with cached import paths exposed
+immutably. The 80/80 mutation suite, Ruff, canonical policy validation, the
+17-item factory contract, and the complete compatible aarch64-darwin Nix graph
+remain green. Against `develop` at
+`69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample rerun reports
+warm p50/p95 7.998/8.851 ms and process-cold p50/p95 65.817/68.682 ms, with no
+material regression and no threshold change.

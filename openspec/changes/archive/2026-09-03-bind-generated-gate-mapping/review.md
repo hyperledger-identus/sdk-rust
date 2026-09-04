@@ -763,3 +763,9 @@ The validator SHALL reject indented-string control escapes when the containing
 literal is used as an attribute binding or selection. The identical syntax in
 ordinary string data SHALL remain inert. An exact Nix-valid `inputs` shadow
 mutation must fail before new implementation evidence is accepted.
+
+The implementation at `bf99ffaeb23b2cf50a99b4f6d257741a4bd2abd4`
+meets that contract. Computed-attribute detection now treats an indented control
+escape as ambiguous only when its complete literal is used as a binding or
+selection. Exact protected-root and priority-selector mutations fail in the
+134-test suite, while both existing ordinary string-data controls remain green.

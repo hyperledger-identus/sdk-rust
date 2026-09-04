@@ -400,3 +400,15 @@ complete factory contract, and the compatible aarch64-darwin Nix graph pass.
 Against PR base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact
 20-sample benchmark reports warm p50/p95 9.231/9.697 ms and process-cold
 p50/p95 107.902/110.647 ms; the unchanged material-regression gate passes.
+
+## Final indented control-escape evidence
+
+Indented control escapes in executable attribute positions are rejected at
+`bf99ffaeb23b2cf50a99b4f6d257741a4bd2abd4`. The mutation suite passes
+134/134: exact protected-root and priority-selector escapes fail, while the
+same syntax remains accepted in ordinary string data. Ruff lint and format,
+canonical policy validation, the complete factory contract, and the compatible
+aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.229/9.464 ms and process-cold p50/p95
+106.358/109.089 ms; the unchanged material-regression gate passes.

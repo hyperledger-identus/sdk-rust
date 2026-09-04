@@ -180,5 +180,5 @@
 - [x] 3.34 Rerun complete evidence after normalized priority selection and
       deferred-module traversal, then prepare both exact-head threads for
       clearance.
-- [ ] 3.35 Rerun complete evidence after indented control-escape rejection and
+- [x] 3.35 Rerun complete evidence after indented control-escape rejection and
       prepare the exact-head review thread for clearance.

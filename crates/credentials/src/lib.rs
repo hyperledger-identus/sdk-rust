@@ -1,11 +1,29 @@
-//! Quarantined credential placeholder for the Identus Rust SDK.
+//! Format-neutral credential semantics for the Identus Rust SDK.
 //!
-//! No credential model, format or verification API is accepted by this marker.
+//! The crate currently owns only a bounded, non-validating envelope for
+//! format-produced credential artifacts. Construction preserves bytes; it
+//! does not parse, verify, trust, store, or apply wallet policy.
+
+#![forbid(unsafe_code)]
+
+mod artifact;
+mod envelope;
+pub mod error;
+mod format;
+
+pub use artifact::{
+    CredentialDetachedProof, CredentialPayload, CredentialPrivateMaterial,
+    MAX_CREDENTIAL_DETACHED_PROOF_BYTES, MAX_CREDENTIAL_PAYLOAD_BYTES,
+    MAX_CREDENTIAL_PRIVATE_MATERIAL_BYTES,
+};
+pub use envelope::CredentialEnvelope;
+pub use error::CredentialError;
+pub use format::{CredentialFormat, MAX_CREDENTIAL_FORMAT_BYTES};
 
 use identus_core::Component;
 
 /// Metadata for the `identus-credentials` crate.
 pub const COMPONENT: Component = Component {
     name: "identus-credentials",
-    summary: "Quarantined credential placeholder; no accepted domain API.",
+    summary: "Bounded format-neutral credential artifacts and envelope semantics.",
 };

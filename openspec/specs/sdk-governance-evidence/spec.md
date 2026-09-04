@@ -173,3 +173,18 @@ GitHub, Cargo, Nix, donors or consumers.
 
 - **WHEN** the inventory validator runs without network or GitHub credentials
 - **THEN** local validation produces the same result
+
+### Requirement: Credential envelope activation is inventoried
+
+The machine-readable and human-readable bootstrap inventories SHALL classify
+`identus-credentials` as an implemented, experimental credential-semantics
+package after its bounded format-neutral envelope contract is accepted. The
+inventories SHALL identify issue #71 as the focused owner and SHALL continue to
+describe unsupported credential capabilities as future work.
+
+#### Scenario: Consumer inspects the credential package
+
+- **WHEN** a consumer inspects the bootstrap inventory after issue #71
+- **THEN** `identus-credentials` is accepted as implemented and experimental,
+  is not listed as a placeholder, and does not imply support for credential
+  metadata, verification, status, concrete formats or storage

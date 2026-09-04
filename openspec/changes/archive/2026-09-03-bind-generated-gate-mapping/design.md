@@ -66,7 +66,9 @@ Path scanning treats `${...}` as an embedded expression, delegates its balanced
 contents to the interpolation scanner, and then resumes the surrounding path.
 Scope keywords in a suffix after interpolation therefore remain path data.
 An unprefixed token containing a slash is also classified as a relative Nix
-path when it begins at a token boundary. For indented-string control escapes,
+path when it begins at a token boundary, including when its first component
+begins with punctuation accepted by the path-prefix grammar. For
+indented-string control escapes,
 `''\` and its following character are consumed together so an escaped dollar
 cannot subsequently open interpolation.
 The path classifier is on multiple character-scanning hot loops. Its common

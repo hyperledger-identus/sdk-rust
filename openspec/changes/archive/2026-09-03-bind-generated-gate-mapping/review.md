@@ -234,3 +234,16 @@ the repeated lexical passes, punctuation exits before prefix matching, and the
 relative-prefix test no longer allocates a generator. All 64 mutations remain
 green. Isolated warm p50 fell from 14.112 ms to 11.456 ms, restoring margin
 below the hosted ceiling pending exact-head hosted confirmation.
+
+## Punctuation-prefixed path correction contract
+
+The exact-head review of `cbb39a7` found that Nix accepts an unprefixed
+relative path such as `.let/file`, but the classifier limits unprefixed token
+starts to alphanumeric characters and underscore. The later scope scan can
+therefore misread `let` as a lexical keyword and reject a canonical generator.
+This P2 finding blocks merge.
+
+The validator SHALL treat every leading character accepted by
+`NIX_UNPREFIXED_PATH_PREFIX` as a plausible unprefixed path start when it
+appears at a token boundary. An exact `.let/file` fixture must preserve
+canonical acceptance without weakening the existing path and URI cases.

@@ -110,6 +110,13 @@ forms before determining an outer string's terminator.
 - **THEN** lexical preprocessing recognizes the complete path token and does
   not interpret its components as lexical scopes
 
+#### Scenario: Unprefixed relative path begins with punctuation
+
+- **WHEN** a valid unprefixed relative path begins with punctuation accepted
+  by the Nix path-prefix grammar and contains a `let` or `in` component
+- **THEN** lexical preprocessing recognizes the complete path token and does
+  not interpret its components as lexical scopes
+
 #### Scenario: Indented-string control escape precedes interpolation syntax
 
 - **WHEN** `''\` escapes a character that would otherwise begin `${...}`

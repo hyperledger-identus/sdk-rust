@@ -31,7 +31,8 @@ still reports success.
 - Distinguish path/URI tokens and apostrophes inside identifiers from lexical
   `let`/`in` keywords and indented-string delimiters.
 - Continue path-token scanning across `${...}` interpolation boundaries.
-- Recognize unprefixed relative paths containing `/` as path tokens.
+- Recognize unprefixed relative paths containing `/`, including tokens whose
+  first component begins with valid punctuation, as path tokens.
 - Consume the escaped character after an indented-string `''\` prefix.
 - Keep richer path classification within the existing hosted warm-latency
   regression ceiling.

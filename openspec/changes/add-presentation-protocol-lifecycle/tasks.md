@@ -25,16 +25,16 @@
 - [x] 3.3 Update human/machine inventories and backlog linkage; synchronize
   canonical governance evidence during archival.
   governance evidence for the experimental lifecycle surface.
-- [ ] 3.4 Verify donor and consumer final HEAD/branch/status receipts equal
+- [x] 3.4 Verify donor and consumer final HEAD/branch/status receipts equal
   preflight.
 
 ## 4. Verification and delivery
 
 - [x] 4.1 Pass focused formatting, tests, no-default check, strict Clippy and
   warning-denied docs.
-- [ ] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
+- [x] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
   supply-chain and full Nix gates.
-- [ ] 4.3 Complete a distinct post-implementation architecture/API/lifecycle/
+- [x] 4.3 Complete a distinct post-implementation architecture/API/lifecycle/
   performance review and resolve every finding.
 - [ ] 4.4 Produce ready/receipt, synchronize canonical specs, archive the
   change, and prepare the signed/DCO issue-linked PR; hosted CI/review, merge,

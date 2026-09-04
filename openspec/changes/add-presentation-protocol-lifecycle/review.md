@@ -36,3 +36,45 @@
 
 Verdict: READY to implement after ADR 0030 and strict structural validation
 pass.
+
+# Post-implementation architecture, API and lifecycle review
+
+- **Date:** 2026-09-05
+- **Reviewed production head:** `4814a03fbe7b504bfeb3de9903f3a36eeced7d8b`
+- **Exact diff:** `develop@8fb5335...4814a03`
+- **Result:** no unresolved finding
+
+## Exact-diff findings
+
+1. The implementation is isolated in a new cohesive `lifecycle` module within
+   the existing credential-semantics crate. It changes no manifest, lockfile,
+   feature, dependency, unsafe-code, serializer, wire, runtime, transport,
+   storage, chain or product surface.
+2. Active phases and terminal outcomes are separate copyable enums. The
+   composed state contains no identifier, request, verifier, credential,
+   artifact, timestamp, transport result, error detail or audit evidence.
+3. `awaiting_authorization` remains authority-neutral. No API records or
+   validates user consent, custody approval, enterprise policy or agent
+   authority.
+4. `completed` is documented as adapter-reported terminality only. It cannot
+   carry or imply proof validity, verifier acceptance, credential trust,
+   acknowledgement or receipt persistence.
+5. The transition match implements exactly the 28 allowed edges frozen in the
+   specification. A separate 11-by-11 table test checks all 121 pairs rather
+   than reproducing only positive examples.
+6. Terminal states reject every outgoing edge. Refusal is accepted only before
+   generation; generation cannot skip `ready` and delivery; backward and self
+   transitions fail.
+7. `cancellation_requested` may become either `cancelled` or `completed`, so a
+   late cancellation never fabricates rollback after irreversible delivery.
+8. Phase, outcome and state spellings round-trip exactly. Unknown, padded,
+   differently cased and legacy `succeeded` spellings fail through distinct
+   zero-data errors with static SDK contracts.
+9. The transition and parsing paths allocate no memory and perform no external
+   access. The pinned release diagnostic observed about 505 million transition
+   decisions per second without defining a portable threshold.
+10. Focused, workspace, factory and all 26 compatible local Nix checks passed,
+    including Rust 1.85 MSRV and 340 principal tests. Consumer/donor postflight
+    revisions and pre-existing status entries match preflight.
+
+Verdict: READY for specification synchronization and pull-request review.

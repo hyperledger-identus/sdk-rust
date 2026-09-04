@@ -807,3 +807,16 @@ meets that contract. The cached executable-name analysis now treats all three
 lookup helpers as reflective access. Exact `attrByPath` and `getAttrFromPath`
 provider-replacement mutations fail alongside the existing `getAttr` fixture
 in the 139-test suite.
+
+## Closed root-module correction contract
+
+The exact-head review of `83c86b2626220e62ce01c9be6e9f75489a3740c0`
+found that rejecting root `config` alone leaves the flake-parts `flake` option
+available for imported raw priority composition. The root flake must retain
+two canonical `import` expressions for its package provider, so whole-file
+import rejection is not appropriate.
+
+The validator SHALL require the isolated root `mkFlake` module to contain
+exactly one immediate `imports`, `systems`, and `perSystem` statement and no
+other statement. Exact imported-`flake` and arbitrary-extra-statement mutations
+must fail before new implementation evidence is accepted.

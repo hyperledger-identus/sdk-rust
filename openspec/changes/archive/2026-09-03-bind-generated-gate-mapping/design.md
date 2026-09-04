@@ -232,6 +232,10 @@ arguments.
   `getAttrFromPath`, both of which can retrieve a priority constructor from a
   computed path. The closed local-module profile rejects all three executable
   lookup helpers; canonical gate-generator use remains separately constrained.
+- Rejecting only root `config` leaves other flake-parts output options able to
+  compose imported priority records. The root module is intentionally small,
+  so validation requires exactly one immediate `imports`, `systems`, and
+  `perSystem` statement; any new root capability requires a spec update.
 
 ## Verification
 

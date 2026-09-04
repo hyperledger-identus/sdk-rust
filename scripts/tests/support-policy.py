@@ -509,6 +509,37 @@ in
         self.assert_nix_parses_if_available("flake.nix")
         self.assert_fails("root Nix module composes explicit config")
 
+    def test_root_imported_flake_output_fails_closed(self) -> None:
+        (self.fixture / "override-output.nix").write_text(
+            """{
+  _type = "override";
+  priority = 0;
+  content = { checks = { }; };
+}
+""",
+            encoding="utf-8",
+        )
+        self.replace(
+            "flake.nix",
+            "      systems = [",
+            """      flake = import ./override-output.nix;
+
+      systems = [""",
+        )
+        self.assert_nix_parses_if_available("flake.nix")
+        self.assert_fails("root Nix module has non-canonical statements")
+
+    def test_root_arbitrary_extra_statement_fails_closed(self) -> None:
+        self.replace(
+            "flake.nix",
+            "      systems = [",
+            """      debug = true;
+
+      systems = [""",
+        )
+        self.assert_nix_parses_if_available("flake.nix")
+        self.assert_fails("root Nix module has non-canonical statements")
+
     def test_explicit_config_fails_closed(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",

@@ -64,6 +64,8 @@ still reports success.
   reachable local modules outside the canonical generator.
 - Treat inherited `checks` and `disabledModules` contributions as protected
   module-surface mutations, not only direct assignments.
+- Discover imports only from immediate bindings of the returned module
+  attribute set so nested data cannot impersonate an effective graph edge.
 - Reject raw module `_type` tags independent of whether their values use
   double-quoted, indented, or computed Nix strings.
 - Recognize general Nix scheme URI literals whose scheme is followed directly

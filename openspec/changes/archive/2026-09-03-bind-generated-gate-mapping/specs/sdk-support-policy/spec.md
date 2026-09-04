@@ -22,7 +22,8 @@ repository-local imports SHALL form a complete statically traversable graph;
 only static external `inputs.<name>.flakeModule` entries MAY remain outside the
 repository. Outside the independently constrained gate generator, reachable
 modules SHALL NOT inherit imports or protected keys, use reflective attribute
-access, or dynamically construct attribute sets.
+access, or dynamically construct attribute sets. Import discovery SHALL inspect
+only immediate bindings of each returned module attribute set.
 
 #### Scenario: Constant mapped name collapses the gate graph
 
@@ -262,3 +263,10 @@ access, or dynamically construct attribute sets.
 - **WHEN** a reachable module inherits a protected module key or computes a raw
   `_type` attribute name
 - **THEN** structural validation rejects the ambiguous module contribution
+
+#### Scenario: Nested import data impersonates a graph edge
+
+- **WHEN** a module removes its effective generator import but retains a
+  canonical-looking `imports` assignment inside inert nested data
+- **THEN** graph traversal ignores the nested decoy and rejects the missing
+  effective generator edge

@@ -467,3 +467,15 @@ independently constrained generator. All five hosted fixtures plus inherited
 `disabledModules` and serialized-construction controls pass in the 92-test
 suite. A contradiction-focused local review found no unresolved issue within
 the defined closed boundary.
+
+## Module-result isolation correction contract
+
+A delayed review thread from `3c9c291` demonstrated that a nested inert
+`imports = [ ./rust-gates.nix ];` value can satisfy global source discovery
+after the effective top-level import is removed. The validator then accepts a
+generator edge that flake-parts never evaluates. This P1 finding blocks merge.
+
+The validator SHALL isolate the direct returned module attribute set and
+discover imports only from its immediate bindings. The same structural import
+result SHALL prove the wrapper's required generator edge. An exact nested-decoy
+mutation must fail closed before implementation evidence is accepted.

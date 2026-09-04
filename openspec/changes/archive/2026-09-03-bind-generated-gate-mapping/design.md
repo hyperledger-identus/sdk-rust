@@ -110,6 +110,13 @@ or `disabledModules` is rejected alongside direct assignments. This is a
 deliberately closed module-authoring boundary; future legitimate dynamic module
 composition requires a reviewed contract extension with its own effective
 graph evidence.
+Import discovery first isolates the direct returned module attribute set and
+splits only its immediate bindings. A nested `imports` attribute inside option
+data, function bodies, or another attribute value is not a graph edge and
+cannot satisfy either recursive traversal or the required generator import.
+Reachable local module expressions that do not expose a direct statically
+bounded result attribute set fail closed instead of falling back to a global
+source scan.
 Lexical scope scanning skips path and URI tokens before interpreting `let` or
 `in`, and recognizes an indented-string opener only at a token boundary. Valid
 path components and apostrophes within identifiers therefore cannot create
@@ -176,6 +183,9 @@ semantic equivalence across arbitrary Nix expressions.
   names without `${...}` syntax. Reachable modules therefore fail closed on
   those primitives outside the canonical generator, whose use is separately
   shape-validated.
+- Nested source data can contain canonical-looking import assignments. Module
+  result isolation and immediate-statement splitting prevent those decoys from
+  entering the effective import graph.
 
 ## Verification
 

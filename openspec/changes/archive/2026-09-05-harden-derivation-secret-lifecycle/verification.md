@@ -52,3 +52,12 @@ the existing crypto fuzz targets do not exercise secret-buffer lifetimes.
 - Release/adoption follow-up: Apollo lifecycle, Cardano V2 derivation,
   key-handle/custody ports, publication, release, and downstream adoption stay
   separate.
+
+## Hosted review follow-up
+
+PR #70 produced one valid P2 finding against head `98389f0`: the random-seed
+convenience path held its internally consumed mnemonic word vector in ordinary
+storage. The path now wraps that vector and its strings in `Zeroizing`. The
+focused crypto all-feature suite, strict crypto Clippy, formatting, factory
+contract, and diff hygiene passed after remediation; exact-head hosted gates
+remain the authoritative merge evidence.

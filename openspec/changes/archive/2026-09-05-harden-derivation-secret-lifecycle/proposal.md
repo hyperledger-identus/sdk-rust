@@ -13,8 +13,9 @@ exit condition for redacted, zeroizing secret material.
   type and derivation metadata.
 - Make both HD types implement `Zeroize` and `ZeroizeOnDrop` for their owned
   private key, chain code, and metadata.
-- Hold curve-generation entropy, mnemonic entropy, HMAC input/output, and
-  PBKDF2 output intermediates in zeroizing storage.
+- Hold curve-generation entropy, mnemonic entropy, internally consumed
+  mnemonic word strings, HMAC input/output, and PBKDF2 output intermediates in
+  zeroizing storage.
 - Add compile-time trait, explicit-erasure, debug-redaction, and unchanged
   vector tests.
 - Add `zeroize` 1.9 as a direct, workspace-governed dependency without

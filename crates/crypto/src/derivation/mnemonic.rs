@@ -107,7 +107,7 @@ impl MnemonicHelper {
     /// Convenience: create a random mnemonic and derive its seed with the
     /// standard default passphrase (`""`, i.e. salt `"mnemonic"`).
     pub fn create_random_seed(rng: &mut impl SecureRandom) -> Result<Vec<u8>, Error> {
-        let mnemonics = Self::create_random_mnemonics(rng)?;
+        let mnemonics = Zeroizing::new(Self::create_random_mnemonics(rng)?);
         Self::create_seed(&mnemonics, DEFAULT_PASSPHRASE)
     }
 

@@ -17,7 +17,8 @@ owned secret types, but those guarantees do not cover the SDK-owned copies.
 Declare `zeroize` 1.9 as a direct workspace dependency. HD key values implement
 `Zeroize` and `ZeroizeOnDrop` and use manual debug implementations that omit
 private key and chain code. SDK-owned temporary entropy, HMAC input/output,
-mnemonic entropy, and PBKDF2 output use `Zeroizing` guards.
+mnemonic entropy, internally consumed mnemonic word strings, and PBKDF2 output
+use `Zeroizing` guards.
 
 The public raw HD fields and secret-returning APIs remain unchanged in this
 compatibility-preserving slice. Callers own and must protect any copies they

@@ -701,9 +701,9 @@ The crypto capability SHALL prevent raw secret material from entering safe
 `Debug`, `Display`, error, serialization, or FFI surfaces. `HDKey` and
 `EdHDKey` SHALL implement `Zeroize` and `ZeroizeOnDrop`; their formatting SHALL
 show only public derivation metadata and SHALL omit private key and chain-code
-bytes. SDK-owned temporary entropy, mnemonic entropy, HD HMAC input/output,
-and PBKDF2 output buffers SHALL use zeroizing storage and preserve every
-existing algorithm and byte output.
+bytes. SDK-owned temporary entropy, internally consumed mnemonic word strings,
+mnemonic entropy, HD HMAC input/output, and PBKDF2 output buffers SHALL use
+zeroizing storage and preserve every existing algorithm and byte output.
 
 This is a best-effort owned-buffer contract. It SHALL NOT claim to erase
 caller-created or compiler-created copies, allocator state, swap, crash dumps,
@@ -734,6 +734,13 @@ returned values SHALL be caller-owned.
   succeeds or returns an error
 - **THEN** the SDK-owned entropy buffer SHALL be guarded by drop-time
   zeroization and SHALL NOT be included in formatting or errors
+
+#### Scenario: internally consumed random mnemonic words are scoped for erasure
+
+- **WHEN** random seed convenience creation converts SDK-owned entropy into
+  mnemonic word strings and consumes them internally
+- **THEN** the word vector and its strings SHALL be guarded by drop-time
+  zeroization while caller-returned mnemonic words remain caller-owned
 
 #### Scenario: derivation outputs remain compatible
 

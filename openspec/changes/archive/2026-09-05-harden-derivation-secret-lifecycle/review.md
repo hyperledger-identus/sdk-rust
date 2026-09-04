@@ -79,3 +79,22 @@ changed.
 
 Verdict: READY to synchronize, archive, receipt, and publish as an issue-linked
 signed/DCO pull request for exact-head hosted review.
+
+# Hosted review remediation
+
+- **Pull request:** #70
+- **Reviewed head:** `98389f0b515095e22cc37529699d7898aec828c5`
+- **Finding:** one valid P2 lifecycle gap
+
+The hosted review observed that `create_random_seed` converted guarded entropy
+into an ordinary SDK-owned `Vec<String>` before deriving the seed. The API now
+wraps that internally consumed word vector in `Zeroizing`, so the vector and
+its strings are erased on normal and error-path drop. Caller-returned mnemonic
+words remain caller-owned, preserving the public API and the stated boundary.
+
+Focused all-feature tests, strict Clippy, formatting, factory validation, and
+diff hygiene passed after remediation. The existing deterministic random-seed
+test proves unchanged output; memory-after-drop inspection remains
+intentionally excluded because it would require unsafe or invalid access.
+
+Verdict: finding resolved locally; ready for exact-head hosted gates.

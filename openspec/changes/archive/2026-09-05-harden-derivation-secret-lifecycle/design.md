@@ -59,8 +59,9 @@ appearing usable and follows the derive contract uniformly.
 
 ### D4 — Zeroizing intermediates without output changes
 
-Curve and mnemonic entropy arrays, HD derivation data and HMAC output, and the
-PBKDF2 result array use `Zeroizing`. Public results are constructed exactly as
+Curve and mnemonic entropy arrays, internally consumed mnemonic word strings,
+HD derivation data and HMAC output, and the PBKDF2 result array use
+`Zeroizing`. Public results are constructed exactly as
 before. Returned raw secret arrays or vectors necessarily become caller-owned
 copies and are outside the callee drop boundary.
 

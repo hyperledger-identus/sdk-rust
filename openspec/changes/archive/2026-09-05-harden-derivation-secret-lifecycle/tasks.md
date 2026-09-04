@@ -28,3 +28,5 @@
 - [x] 4.5 Produce ready/receipt, synchronize canonical specs, archive the change,
   and prepare the issue-linked signed/DCO PR; hosted CI, merge, issue closure,
   parent update, and `develop` sync remain authoritative GitHub evidence.
+- [x] 4.6 Resolve the hosted review finding by guarding internally consumed
+  random-mnemonic word strings and rerun focused gates.

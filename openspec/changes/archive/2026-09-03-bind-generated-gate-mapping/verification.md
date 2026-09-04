@@ -387,3 +387,16 @@ aarch64-darwin Nix graph pass. Against PR base
 `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample benchmark
 reports warm p50/p95 9.719/10.079 ms and process-cold p50/p95 92.157/94.625 ms;
 the unchanged material-regression gate passes.
+
+## Final deferred-import and normalized-priority evidence
+
+Deferred `perSystem` import traversal and normalized priority selections are
+implemented at `6da35d5b09914d9cc9a41b9ae34b4e19cbc0d82f`. The mutation
+suite passes 132/132: indented and quoted-static-interpolated `mkForce`
+selectors fail; imports from direct and `let`-wrapped deferred modules are
+traversed; unresolved deferred imports fail closed; and nested import-shaped
+data remains inert. Ruff lint and format, canonical policy validation, the
+complete factory contract, and the compatible aarch64-darwin Nix graph pass.
+Against PR base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact
+20-sample benchmark reports warm p50/p95 9.231/9.697 ms and process-cold
+p50/p95 107.902/110.647 ms; the unchanged material-regression gate passes.

@@ -176,6 +176,6 @@
       enforcement and prepare both exact-head review threads for clearance.
 - [x] 3.33 Rerun complete evidence after provider-result closure and ambiguous
       quoted-name rejection, then prepare both delayed threads for clearance.
-- [ ] 3.34 Rerun complete evidence after normalized priority selection and
+- [x] 3.34 Rerun complete evidence after normalized priority selection and
       deferred-module traversal, then prepare both exact-head threads for
       clearance.

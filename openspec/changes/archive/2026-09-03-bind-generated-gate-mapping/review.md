@@ -742,3 +742,11 @@ result module and recursively traverse its immediate literal imports, failing
 closed if a declared deferred result cannot be statically isolated. Exact
 indented-selector, quoted-static-interpolation, and deferred-import mutations
 must fail before new implementation evidence is accepted.
+
+The implementation at `6da35d5b09914d9cc9a41b9ae34b4e19cbc0d82f`
+meets that contract. Priority detection now applies the shared static-string
+normalizer to selectors. The graph walker isolates direct and `let`-wrapped
+`perSystem` result modules, follows their immediate literal imports, and marks
+unsupported or computed deferred import shapes unresolved. The 132-test suite
+covers both exact hosted findings, a direct-result variant, unresolved imports,
+and inert nested import data.

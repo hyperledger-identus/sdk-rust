@@ -563,3 +563,15 @@ shadowing. The exact no-op constructor, detached Cargo-argument builder,
 altered operation-argument mapping, and shadowed Crane library fixtures all
 parse with Nix and fail in the 107-test suite. A contradiction-focused local
 review found no unbound immediate dependency in the canonical constructor.
+
+## Generator-normalization cold-path correction contract
+
+The first hosted run of `73db2a7` passed functional validation but reported
+process-cold p50 130.533 ms against a 125.616 ms material-regression ceiling.
+The new compact normalizer invokes the complete cached string parser at every
+source character, including the overwhelmingly common non-quote branch.
+
+The normalizer SHALL use constant-time leading-character guards before string
+parsing while preserving every quoted and indented-string byte. The 107
+functional mutations must remain green, and hosted process-cold p50 must return
+below the unchanged repository ceiling before integration.

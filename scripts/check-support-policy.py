@@ -83,6 +83,7 @@ REQUIRED_FEATURE_SURFACES = {
 }
 ALLOWED_TIERS = {"host-tested", "compile-checked", "planned", "not-supported"}
 NIX_URI_PREFIX = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://")
+NIX_UNPREFIXED_PATH_PREFIX = re.compile(r"[A-Za-z0-9._+?-]+/")
 
 
 def load_toml(path: Path, failures: list[str]) -> dict[str, Any]:
@@ -168,7 +169,13 @@ def nix_path_or_uri_end(text: str, index: int) -> int | None:
     uri_boundary = character.isalpha() and (
         index == 0 or not (text[index - 1].isalnum() or text[index - 1] in "+.-")
     )
-    if character not in "./~<" and not uri_boundary:
+    token_boundary = index == 0 or not (
+        text[index - 1].isalnum() or text[index - 1] in "_'.+-"
+    )
+    unprefixed_path = (
+        token_boundary and NIX_UNPREFIXED_PATH_PREFIX.match(text, index) is not None
+    )
+    if character not in "./~<" and not uri_boundary and not unprefixed_path:
         return None
     relative_path = any(
         text.startswith(prefix, index) for prefix in ("./", "../", "~/")
@@ -185,7 +192,7 @@ def nix_path_or_uri_end(text: str, index: int) -> int | None:
         end = text.find(">", index + 1)
         if end != -1 and not any(character.isspace() for character in text[index:end]):
             return end + 1
-    if not (relative_path or absolute_path or uri):
+    if not (relative_path or absolute_path or uri or unprefixed_path):
         return None
 
     cursor = index + 1
@@ -249,7 +256,7 @@ def nix_string_end(text: str, index: int) -> int | None:
             if text.startswith("''", cursor):
                 escaped = cursor + 2 < len(text) and text[cursor + 2] in "$'\\"
                 if escaped:
-                    cursor += 3
+                    cursor += 4 if text[cursor + 2] == "\\" else 3
                     continue
                 return cursor + 2
             if text.startswith("${", cursor):

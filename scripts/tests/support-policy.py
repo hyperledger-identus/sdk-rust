@@ -432,6 +432,26 @@ in
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_unprefixed_relative_path_preserves_scope_keyword(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pathData = prefix/let/file;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_indented_control_escape_consumes_escaped_interpolation(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            r"""      escapedInterpolation = ''literal ''\${" # still data'';
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_adjacent_apostrophes_inside_identifier_preserve_valid_source(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

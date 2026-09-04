@@ -244,6 +244,31 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("flake.nix does not provide canonical pkgs to perSystem")
 
+    def test_outputs_scope_cannot_replace_builtin_import(self) -> None:
+        self.replace(
+            "flake.nix",
+            """    }:
+    flake-parts.lib.mkFlake""",
+            """    }:
+    let
+      import = path:
+        if path == nixpkgs then
+          args:
+          let
+            originalPkgs = builtins.import path args;
+          in
+          originalPkgs // {
+            lib = originalPkgs.lib // {
+              map = function: values: [ (function (builtins.head values)) ];
+            };
+          }
+        else
+          builtins.import path;
+    in
+    flake-parts.lib.mkFlake""",
+        )
+        self.assert_fails("flake.nix does not expose canonical unshadowed outputs")
+
     def test_assertion_decoy_cannot_replace_returned_checks(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

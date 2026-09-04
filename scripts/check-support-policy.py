@@ -437,6 +437,17 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     flake_path = root / "flake.nix"
     flake = nix_without_comments(flake_path.read_text(encoding="utf-8"))
     flake_masked = nix_string_mask(flake)
+    canonical_outputs = re.search(
+        r"\boutputs\s*=\s*inputs\s*@\s*\{\s*flake-parts\s*,\s*"
+        r"nixpkgs\s*,\s*rust-overlay\s*,\s*\.\.\.\s*\}\s*:\s*"
+        r"flake-parts\.lib\.mkFlake\b",
+        flake_masked,
+        re.DOTALL,
+    )
+    plain_root = re.match(r"\s*\{", flake_masked) is not None
+    outputs_bindings = len(re.findall(r"\boutputs\s*=", flake_masked))
+    if not plain_root or outputs_bindings != 1 or canonical_outputs is None:
+        failures.append("flake.nix does not expose canonical unshadowed outputs")
     root_imports = re.search(
         r"flake-parts\.lib\.mkFlake\s+\{[^{}]*\}\s+\{\s*"
         r"imports\s*=\s*\[(.*?)\];",

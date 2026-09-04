@@ -202,7 +202,7 @@ semantic equivalence across arbitrary Nix expressions.
 - Static attribute names have bare, double-quoted, and statically computed Nix
   string spellings. Immediate-statement filtering normalizes those forms before
   import value analysis; direct indented-string attribute syntax is not valid
-  Nix and is not treated as execution evidence.
+  Nix and is not used as the executable regression fixture.
 
 ## Verification
 

@@ -162,3 +162,13 @@ Ruff, canonical policy validation, the factory contract, and the complete
 compatible aarch64-darwin Nix graph pass. The isolated benchmark reports warm
 p50/p95 11.306/11.894 ms and process-cold p50/p95 55.216/57.497 ms, retaining
 margin below the hosted material-regression ceiling.
+
+## Final check-wrapper composition evidence
+
+The wrapper-composition correction is implemented at
+`4601449dd43d6866adc28ba7235c728f8471cce6`. The mutation suite passes 69/69,
+including the exact `pkgs.lib.mkForce` override that previously erased imported
+gates. Ruff, canonical policy validation, the factory contract, and the
+complete compatible aarch64-darwin Nix graph pass. The isolated benchmark
+reports warm p50/p95 11.927/12.579 ms and process-cold p50/p95 55.173/56.551
+ms, retaining margin below the hosted material-regression ceiling.

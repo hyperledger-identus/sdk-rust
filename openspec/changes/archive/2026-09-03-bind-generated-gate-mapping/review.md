@@ -309,3 +309,10 @@ P1 finding blocks merge.
 The validator SHALL require exactly one plain wrapper `checks` attribute-set
 binding and reject module-priority constructors in the wrapper. An exact
 forced-empty-checks mutation must fail before the import graph is accepted.
+
+The implementation at `4601449dd43d6866adc28ba7235c728f8471cce6`
+meets that contract. The wrapper must expose exactly one plain `checks`
+attribute-set binding and cannot contain `mkForce` or `mkOverride`. The exact
+forced checks mutation fails in the 69-test suite. A final
+contradiction-focused local review found no remaining priority route that can
+erase the imported generated checks.

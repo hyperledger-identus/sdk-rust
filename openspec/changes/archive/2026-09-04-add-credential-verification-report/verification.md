@@ -13,7 +13,7 @@
 ## Focused commands passed
 
 - `cargo fmt --all -- --check`
-- `cargo test -p identus-credentials --all-features` (20 passed; one manual
+- `cargo test -p identus-credentials --all-features` (21 passed; one manual
   diagnostic ignored)
 - `cargo check -p identus-credentials --no-default-features`
 - `cargo clippy -p identus-credentials --all-targets --all-features -- -D warnings`
@@ -65,5 +65,7 @@ the governed audit and all 26 derivations completed successfully.
 - The full post-archive `nix flake check --print-build-logs` rerun passed on
   archive commit `99144fc`, including factory validation and 280 workspace
   tests.
+- Hosted review findings for reverse stage-name conversion and explicit
+  inventory exclusions were accepted and fixed with focused regression tests.
 - Hosted CI/review, merge, effort report, and parent updates remain delivery
   evidence.

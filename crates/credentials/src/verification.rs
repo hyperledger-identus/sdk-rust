@@ -47,6 +47,19 @@ impl VerificationStageName {
         }
     }
 
+    /// Parse a canonical machine spelling without allocation.
+    pub fn parse(value: &str) -> Result<Self, CredentialError> {
+        match value {
+            "structural" => Ok(Self::Structural),
+            "issuer_key" => Ok(Self::IssuerKey),
+            "proof" => Ok(Self::Proof),
+            "temporal" => Ok(Self::Temporal),
+            "status" => Ok(Self::Status),
+            "schema" => Ok(Self::Schema),
+            _ => Err(CredentialError::InvalidVerificationStageName),
+        }
+    }
+
     const fn index(self) -> usize {
         match self {
             Self::Structural => 0,
@@ -56,6 +69,14 @@ impl VerificationStageName {
             Self::Status => 4,
             Self::Schema => 5,
         }
+    }
+}
+
+impl FromStr for VerificationStageName {
+    type Err = CredentialError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Self::parse(value)
     }
 }
 

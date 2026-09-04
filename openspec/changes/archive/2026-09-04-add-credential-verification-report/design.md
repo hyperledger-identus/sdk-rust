@@ -96,9 +96,10 @@ that is appropriate.
 
 ### D6 — Stable construction errors and measured hot path
 
-Extend `CredentialError` with invalid reason code, missing/unexpected reason,
-and non-canonical report errors. All bridge through the existing `credential`
-capability with static `credential.*` codes and `InvalidInput` kind.
+Extend `CredentialError` with invalid stage name, invalid reason code,
+missing/unexpected reason, and non-canonical report errors. All bridge through
+the existing `credential` capability with static `credential.*` codes and
+`InvalidInput` kind.
 
 A manual ignored release-mode diagnostic measures complete valid-report
 construction. It prints throughput but has no wall-clock assertion, avoiding

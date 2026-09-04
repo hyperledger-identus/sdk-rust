@@ -1,7 +1,10 @@
 # credential-verification Specification
 
 ## Purpose
-TBD - created by archiving change add-credential-verification-report. Update Purpose after archive.
+
+Define bounded, format-neutral evidence from credential verification without
+performing verification or conflating evidence validity with product trust.
+
 ## Requirements
 ### Requirement: Fixed policy-neutral verification stage taxonomy
 
@@ -112,4 +115,3 @@ construction throughput without enforcing a machine-dependent time threshold.
 - **WHEN** the ignored release diagnostic is run explicitly
 - **THEN** it SHALL construct complete reports through the production API and
   print elapsed/throughput data without changing correctness acceptance
-

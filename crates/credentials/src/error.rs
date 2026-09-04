@@ -21,6 +21,8 @@ pub mod error_code {
         ErrorCode::new("credential.empty_private_material");
     pub const PRIVATE_MATERIAL_TOO_LARGE: ErrorCode =
         ErrorCode::new("credential.private_material_too_large");
+    pub const INVALID_VERIFICATION_STAGE_NAME: ErrorCode =
+        ErrorCode::new("credential.invalid_verification_stage_name");
     pub const INVALID_VERIFICATION_REASON_CODE: ErrorCode =
         ErrorCode::new("credential.invalid_verification_reason_code");
     pub const MISSING_VERIFICATION_REASON: ErrorCode =
@@ -49,6 +51,8 @@ pub enum CredentialError {
     EmptyPrivateMaterial,
     /// Format-private material exceeds its size limit.
     PrivateMaterialTooLarge,
+    /// A verification stage spelling is not part of the fixed taxonomy.
+    InvalidVerificationStageName,
     /// A verification reason violates its token grammar or size limit.
     InvalidVerificationReasonCode,
     /// A failed or not-checked stage has no machine reason.
@@ -85,6 +89,10 @@ impl CredentialError {
                 error_code::PRIVATE_MATERIAL_TOO_LARGE,
                 "credential private material exceeds the size limit",
             ),
+            Self::InvalidVerificationStageName => (
+                error_code::INVALID_VERIFICATION_STAGE_NAME,
+                "invalid credential verification stage name",
+            ),
             Self::InvalidVerificationReasonCode => (
                 error_code::INVALID_VERIFICATION_REASON_CODE,
                 "invalid credential verification reason code",
@@ -117,6 +125,7 @@ impl fmt::Display for CredentialError {
             Self::DetachedProofTooLarge => "credential detached proof exceeds the size limit",
             Self::EmptyPrivateMaterial => "credential private material is empty",
             Self::PrivateMaterialTooLarge => "credential private material exceeds the size limit",
+            Self::InvalidVerificationStageName => "credential verification stage name is invalid",
             Self::InvalidVerificationReasonCode => "credential verification reason code is invalid",
             Self::MissingVerificationReason => "credential verification reason is required",
             Self::UnexpectedVerificationReason => "credential verification reason is not allowed",

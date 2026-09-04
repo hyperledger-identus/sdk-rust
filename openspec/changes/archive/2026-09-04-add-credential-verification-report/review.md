@@ -93,5 +93,12 @@ finding; post-archive structural and full Nix checks must pass on the repair.
 The repaired archive at `99144fc` passed the complete post-archive Nix matrix,
 including the factory contract and all 280 workspace tests.
 
+Hosted Codex review found two contract gaps before merge. First, stable stage
+spellings lacked the reverse parser required for a round trip; the fix adds an
+allocation-free closed match, a static redacted error, and positive/negative
+tests. Second, the human inventory omitted explicit concrete-format/protocol
+exclusions; the boundary now names both. The archive-generated canonical spec
+purpose was also replaced from `TBD` with the reviewed capability intent.
+
 Verdict: READY to publish as a signed/DCO, issue-linked pull request to
 `develop`.

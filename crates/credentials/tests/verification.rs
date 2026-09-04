@@ -37,6 +37,30 @@ fn stage_taxonomy_is_complete_canonical_and_policy_neutral() {
             .iter()
             .all(|name| name.as_str() != "trust")
     );
+
+    for name in VerificationStageName::ALL {
+        assert_eq!(VerificationStageName::from_str(name.as_str()), Ok(name));
+        assert_eq!(name.to_string(), name.as_str());
+    }
+}
+
+#[test]
+fn stage_names_reject_noncanonical_input_without_echoing_it() {
+    for value in [
+        "",
+        "issuer/key",
+        "issuer-key",
+        "Trust",
+        "status ",
+        "unknown",
+    ] {
+        let error = VerificationStageName::parse(value).expect_err("invalid stage name");
+        assert_eq!(error, CredentialError::InvalidVerificationStageName);
+        if !value.is_empty() {
+            assert!(!error.to_string().contains(value));
+            assert!(!error.to_identus_error().to_string().contains(value));
+        }
+    }
 }
 
 #[test]
@@ -249,6 +273,10 @@ fn independent_formats_and_donor_shaped_status_evidence_share_the_report() {
 #[test]
 fn verification_errors_bridge_to_static_credential_codes() {
     let cases = [
+        (
+            CredentialError::InvalidVerificationStageName,
+            "credential.invalid_verification_stage_name",
+        ),
         (
             CredentialError::InvalidVerificationReasonCode,
             "credential.invalid_verification_reason_code",

@@ -131,3 +131,13 @@ canonical policy validation, and factory contract remain green. Isolated
 performance after the correction is warm p50/p95 11.456/13.591 ms and
 process-cold p50/p95 52.846/55.720 ms. Compared with the preceding local
 evidence, warm p50 improved by 18.8% while retaining every lexical case.
+
+## Final punctuation-prefixed path evidence
+
+The punctuation-prefixed path correction is implemented at
+`0eeea86b75079c4b60e18bb10c3de7b44a7c6908`. The mutation suite passes 65/65,
+including the independently Nix-parsed `.let/file` fixture. Ruff lint and
+format checks, canonical policy validation, the factory contract, and the
+complete compatible aarch64-darwin Nix graph pass. The isolated benchmark
+reports warm p50/p95 11.338/11.721 ms and process-cold p50/p95 52.676/54.017
+ms, retaining margin below the hosted material-regression ceiling.

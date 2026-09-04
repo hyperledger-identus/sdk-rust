@@ -247,3 +247,10 @@ The validator SHALL treat every leading character accepted by
 `NIX_UNPREFIXED_PATH_PREFIX` as a plausible unprefixed path start when it
 appears at a token boundary. An exact `.let/file` fixture must preserve
 canonical acceptance without weakening the existing path and URI cases.
+
+The implementation at `0eeea86b75079c4b60e18bb10c3de7b44a7c6908`
+meets that contract. The classifier's constant-time plausible-start check now
+uses the same punctuation set as its compiled prefix grammar, and the exact
+fixture passes both the 65-test mutation suite and independent Nix parse
+validation. A final contradiction-focused local review found no remaining
+punctuation-prefixed path blocker.

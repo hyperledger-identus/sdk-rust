@@ -59,5 +59,5 @@
       corrections and prepare both review threads for hosted clearance.
 - [x] 3.12 Pass the local material-regression guard with all 64 lexical
       mutations intact and prepare the hosted performance rerun.
-- [ ] 3.13 Rerun complete local evidence after the punctuation-prefixed path
+- [x] 3.13 Rerun complete local evidence after the punctuation-prefixed path
       correction and prepare its exact-head review thread for clearance.

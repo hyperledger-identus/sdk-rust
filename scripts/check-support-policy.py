@@ -323,12 +323,14 @@ def nix_without_comments(text: str) -> str:
 
 
 @cache
-def nix_binds_attribute(text: str, name: str) -> bool:
-    """Return whether executable Nix source binds a static attribute name."""
+def nix_attribute_assignment_ends(text: str, name: str) -> tuple[int, ...]:
+    """Return offsets after static or directly dynamic attribute assignments."""
     source = nix_without_comments(text)
     masked = nix_string_mask(source)
-    if re.search(rf"(?<![A-Za-z0-9_'])\b{re.escape(name)}\s*=", masked):
-        return True
+    assignments = {
+        match.end()
+        for match in re.finditer(rf"(?<![A-Za-z0-9_'])\b{re.escape(name)}\s*=", masked)
+    }
 
     quoted_names = {f'"{name}"', f"''{name}''"}
     index = 0
@@ -341,12 +343,40 @@ def nix_binds_attribute(text: str, name: str) -> bool:
         if string_end is None:
             index += 1
             continue
-        if source[index:string_end] in quoted_names and re.match(
-            r"\s*=", source[string_end:]
-        ):
-            return True
+        if source[index:string_end] in quoted_names:
+            direct = re.match(r"\s*=", source[string_end:])
+            if direct is not None:
+                assignments.add(string_end + direct.end())
+            prefix = source[:index].rstrip()
+            dynamic = re.match(r"\s*}\s*=", source[string_end:])
+            if prefix.endswith("${") and dynamic is not None:
+                assignments.add(string_end + dynamic.end())
         index = string_end
-    return False
+    return tuple(sorted(assignments))
+
+
+@cache
+def nix_binds_attribute(text: str, name: str) -> bool:
+    """Return whether executable Nix source binds an attribute name."""
+    return bool(nix_attribute_assignment_ends(text, name))
+
+
+@cache
+def nix_uses_computed_attribute(text: str) -> bool:
+    """Return whether executable Nix source contains a computed attribute."""
+    source = nix_string_mask(nix_without_comments(text))
+    return "${" in source
+
+
+@cache
+def nix_inherits_attribute(text: str, name: str) -> bool:
+    """Return whether executable Nix source inherits an attribute name."""
+    source = nix_string_mask(nix_without_comments(text))
+    return any(
+        re.search(rf"(?<![A-Za-z0-9_'])\b{re.escape(name)}\b", match.group(1))
+        is not None
+        for match in re.finditer(r"\binherit\b(.*?);", source, re.DOTALL)
+    )
 
 
 @cache
@@ -417,8 +447,8 @@ def nix_local_imports(text: str, parent: Path) -> tuple[frozenset[Path], bool]:
     masked = nix_string_mask(nix_without_comments(text))
     imports: set[Path] = set()
     unresolved = False
-    for binding in re.finditer(r"(?<![A-Za-z0-9_'])\bimports\s*=", masked):
-        list_start = binding.end()
+    for assignment_end in nix_attribute_assignment_ends(text, "imports"):
+        list_start = assignment_end
         while list_start < len(masked) and masked[list_start].isspace():
             list_start += 1
         if list_start == len(masked) or masked[list_start] != "[":
@@ -444,10 +474,13 @@ def nix_local_imports(text: str, parent: Path) -> tuple[frozenset[Path], bool]:
             relative = body[index:path_end]
             if relative.startswith(("./", "../")):
                 residue[index:path_end] = " " * (path_end - index)
-                imported = (parent / relative).resolve()
-                if imported.is_dir():
-                    imported = imported / "default.nix"
-                imports.add(imported)
+                if "${" in relative:
+                    unresolved = True
+                else:
+                    imported = (parent / relative).resolve()
+                    if imported.is_dir():
+                        imported = imported / "default.nix"
+                    imports.add(imported)
             index = path_end
         if "".join(residue).strip():
             unresolved = True
@@ -568,6 +601,7 @@ def top_level_nix_statements(text: str) -> list[str] | None:
 def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     checks_root = (root / "nix/checks").resolve()
     checks_entry = checks_root / "default.nix"
+    generator_path = checks_root / "rust-gates.nix"
     flake_path = root / "flake.nix"
     flake = nix_without_comments(flake_path.read_text(encoding="utf-8"))
     flake_masked = nix_string_mask(flake)
@@ -635,6 +669,31 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             "local Nix module graph uses disabledModules: "
             + ", ".join(disabled_modules)
         )
+    computed_attribute_modules = sorted(
+        str(path.relative_to(repository_root))
+        for path in local_module_graph
+        if path != generator_path
+        and nix_uses_computed_attribute(path.read_text(encoding="utf-8"))
+    )
+    if computed_attribute_modules:
+        failures.append(
+            "local Nix module graph uses computed attributes: "
+            + ", ".join(computed_attribute_modules)
+        )
+    competing_check_modules = sorted(
+        str(path.relative_to(repository_root))
+        for path in local_module_graph
+        if path not in {checks_entry, generator_path}
+        and (
+            nix_binds_attribute(path.read_text(encoding="utf-8"), "checks")
+            or nix_inherits_attribute(path.read_text(encoding="utf-8"), "checks")
+        )
+    )
+    if competing_check_modules:
+        failures.append(
+            "local Nix module graph contributes competing checks: "
+            + ", ".join(competing_check_modules)
+        )
     priority_modules = sorted(
         str(path.relative_to(repository_root))
         for path in local_module_graph
@@ -670,7 +729,6 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     if imports_match is not None:
         for relative in re.findall(r"\./([A-Za-z0-9_./-]+)", imports_match.group(1)):
             check_imports.add((checks_entry.parent / relative).resolve())
-    generator_path = checks_root / "rust-gates.nix"
     if generator_path not in check_imports:
         failures.append("nix/checks/default.nix does not import rust-gates.nix")
 

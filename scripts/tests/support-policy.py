@@ -295,6 +295,73 @@ in
         )
         self.assert_fails("local Nix module graph has unresolved imports")
 
+    def test_quoted_import_binding_is_traversed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            '{\n  "imports" = [ ./override.nix ];\n  perSystem =',
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_computed_priority_selection_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = pkgs.lib.${"mk" + "Force"} { };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses computed attributes")
+
+    def test_interpolated_import_path_fails_closed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            """{
+  imports = [ ./${"override"}.nix ];
+  perSystem =""",
+        )
+        self.assert_fails("local Nix module graph has unresolved imports")
+
+    def test_sibling_module_cannot_contribute_competing_checks(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = { };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph contributes competing checks")
+
+    def test_sibling_module_cannot_inherit_competing_checks(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """      pkgs,
+      ...""",
+            """      pkgs,
+      checks,
+      ...""",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      inherit checks;
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph contributes competing checks")
+
     def test_unused_manifest_mapping_cannot_replace_published_checks(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

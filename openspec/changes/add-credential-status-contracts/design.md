@@ -87,7 +87,8 @@ generic restriction; `Some(empty)` is rejected rather than overloaded as a
 second spelling of unrestricted. It intentionally omits Midnight's `required`
 flag and accepted lifecycle states: query existence already requires a binding,
 while credential selection and usability decisions belong to verifier/product
-policy.
+policy. Query construction also rejects a complete binding excluded by its own
+allow-lists, so contradictory executable-shaped state cannot escape.
 
 ### D5 — Queries and evidence remain attributable
 

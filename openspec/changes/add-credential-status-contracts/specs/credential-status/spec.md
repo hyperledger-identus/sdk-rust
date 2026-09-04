@@ -74,8 +74,9 @@ optional maximum `DurationMillis` age, with at least one criterion.
 allow-lists of 1–16 unique values plus optional freshness. `None` SHALL mean no
 generic restriction; an empty present allow-list SHALL be rejected. A
 `CredentialStatusQuery` SHALL own one complete binding and one requirements
-value without choosing a clock, comparing revisions, retrieving status, or
-deciding credential usability.
+value. Construction SHALL reject a binding excluded by either of its own
+allow-lists, without choosing a clock, comparing revisions, retrieving status,
+or deciding credential usability.
 
 #### Scenario: two freshness strategies fit one query contract
 
@@ -87,7 +88,7 @@ deciding credential usability.
 #### Scenario: ambiguous requirement shapes fail at construction
 
 - **WHEN** freshness has no criterion or a present allow-list is empty,
-  oversized, or duplicated
+  oversized, or duplicated, or a query binding is excluded by its requirements
 - **THEN** construction SHALL reject the shape instead of assigning sentinel
   semantics
 

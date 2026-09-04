@@ -14,6 +14,7 @@ pub mod error;
 mod format;
 mod metadata;
 mod schema;
+mod status;
 mod verification;
 
 pub use artifact::{
@@ -37,6 +38,16 @@ pub use schema::{
     CredentialSchemaDescriptor, MAX_CREDENTIAL_CLAIM_PATH_SEGMENTS, MAX_CREDENTIAL_SCHEMA_CLAIMS,
     MAX_CREDENTIAL_TYPES,
 };
+pub use status::{
+    CredentialStatusBinding, CredentialStatusBindings, CredentialStatusEvidence,
+    CredentialStatusFreshness, CredentialStatusHandle, CredentialStatusMethod,
+    CredentialStatusPurpose, CredentialStatusQuery, CredentialStatusReference,
+    CredentialStatusRequirements, CredentialStatusRevision, CredentialStatusValue,
+    MAX_CREDENTIAL_STATUS_BINDINGS, MAX_CREDENTIAL_STATUS_HANDLE_BYTES,
+    MAX_CREDENTIAL_STATUS_METHOD_BYTES, MAX_CREDENTIAL_STATUS_PURPOSE_BYTES,
+    MAX_CREDENTIAL_STATUS_REFERENCE_BYTES, MAX_CREDENTIAL_STATUS_REQUIREMENT_VALUES,
+    MAX_CREDENTIAL_STATUS_REVISION_BYTES, MAX_CREDENTIAL_STATUS_VALUE_BYTES,
+};
 pub use verification::{
     MAX_VERIFICATION_REASON_CODE_BYTES, VERIFICATION_STAGE_COUNT, VerificationOutcome,
     VerificationReasonCode, VerificationReport, VerificationStage, VerificationStageName,
@@ -48,5 +59,5 @@ use identus_core::Component;
 /// Metadata for the `identus-credentials` crate.
 pub const COMPONENT: Component = Component {
     name: "identus-credentials",
-    summary: "Bounded credential artifacts, descriptors and staged verification evidence.",
+    summary: "Bounded credential artifacts, descriptors, status and verification evidence.",
 };

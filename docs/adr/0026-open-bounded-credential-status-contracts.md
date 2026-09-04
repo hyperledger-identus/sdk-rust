@@ -30,6 +30,7 @@ entry, so a fixed global lifecycle vocabulary is also insufficient.
 6. Use optional non-empty, unique, bounded method/purpose allow-lists for query
    requirements. Query existence already requires a binding; required-status
    selection and accepted-value decisions remain verifier/product policy.
+   Reject a query whose binding is excluded by its own allow-lists.
 7. Attribute evidence to a complete binding, preserve an open value and
    optional revision/timestamps, and reject only a reversed known time range.
 8. Check bounds before allocation-free pairwise duplicate scans, retain

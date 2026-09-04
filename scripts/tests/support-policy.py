@@ -844,6 +844,52 @@ in {
         self.assert_nix_parses_if_available("nix/reflective.nix")
         self.assert_fails("local Nix module graph uses reflective attributes")
 
+    def test_set_attr_by_path_config_override_fails_closed(self) -> None:
+        (self.fixture / "nix/path-constructor.nix").write_text(
+            """{ perSystem = { pkgs, ... }: {
+  config = pkgs.lib.setAttrByPath [ "checks" ] (
+    (pkgs.lib.setAttrByPath [ "_type" ] "override") // {
+      priority = 0;
+      content = { };
+    }
+  );
+}; }
+""",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  imports = [ ./path-constructor.nix ];\n  perSystem =",
+        )
+        self.assert_nix_parses_if_available("nix/path-constructor.nix")
+        self.assert_fails("local Nix module graph constructs attributes dynamically")
+
+    def test_attr_enumeration_priority_constructor_fails_closed(self) -> None:
+        (self.fixture / "nix/reflective-enumeration.nix").write_text(
+            """{ perSystem = { pkgs, ... }: let
+  pairs = pkgs.lib.zipLists
+    (builtins.attrNames pkgs.lib)
+    (builtins.attrValues pkgs.lib);
+  pair = builtins.head (
+    builtins.filter (item: builtins.elemAt item 0 == "mk" + "Force") pairs
+  );
+  force = builtins.elemAt pair 1;
+in {
+  _module.args.craneLib = force { };
+  _module.args.msrvCraneLib = force { };
+}; }
+""",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  imports = [ ./reflective-enumeration.nix ];\n  perSystem =",
+        )
+        self.assert_nix_parses_if_available("nix/reflective-enumeration.nix")
+        self.assert_fails("local Nix module graph uses reflective attributes")
+
     def test_quoted_get_attr_selection_fails_closed(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",

@@ -116,6 +116,9 @@ still reports success.
   `{ inherit inputs; }`.
 - Reject `scopedImport` wherever the closed local-module profile rejects the
   ordinary `import` primitive.
+- Reject path-based attribute construction through `setAttrByPath` and
+  equivalent statically selected spellings.
+- Reject reflective attribute enumeration through `attrNames` and `attrValues`.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

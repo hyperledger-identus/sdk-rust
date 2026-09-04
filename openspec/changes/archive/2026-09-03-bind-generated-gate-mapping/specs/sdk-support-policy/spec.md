@@ -31,6 +31,8 @@ modules SHALL NOT bind explicit top-level `config` or evaluate `import` or
 `scopedImport` expressions; module dependencies SHALL use the traversed literal
 `imports` list. The effective first argument to the canonical root `mkFlake`
 call SHALL be exactly `{ inherit inputs; }`.
+Reflective access SHALL include attribute-name/value enumeration, and dynamic
+construction SHALL include path-based attribute constructors.
 Inherited `_type` SHALL be treated as a raw priority record.
 
 #### Scenario: Constant mapped name collapses the gate graph
@@ -444,3 +446,15 @@ Inherited `_type` SHALL be treated as a raw priority record.
   statically selected `scopedImport`
 - **THEN** structural validation rejects the hidden import expression under
   the same closed-profile rule as ordinary `import`
+
+#### Scenario: Path constructor creates protected config
+
+- **WHEN** a reachable module uses `setAttrByPath` to construct `config.checks`
+  and a raw priority record without literal protected bindings
+- **THEN** structural validation rejects the path-based attribute constructor
+
+#### Scenario: Attribute enumeration recovers a protected provider
+
+- **WHEN** a reachable module pairs `attrNames` with `attrValues` to recover a
+  priority constructor without selecting its protected name
+- **THEN** structural validation rejects the reflective enumeration primitives

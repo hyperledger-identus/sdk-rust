@@ -242,6 +242,12 @@ arguments.
 - Nix exposes both `import` and `builtins.scopedImport` for evaluating a file.
   The closed reachable-module profile rejects both executable names, including
   statically quoted selections, while leaving inert string data untouched.
+- Path construction can avoid both literal and computed attribute-binding
+  syntax. The closed profile therefore classifies `setAttrByPath` with the
+  existing dynamic attribute constructors.
+- Attribute enumeration can recover a protected function without spelling its
+  selector. The closed profile classifies `attrNames` and `attrValues` with the
+  existing reflective lookup primitives.
 
 ## Verification
 

@@ -848,3 +848,17 @@ and accepts only its single direct `inherit inputs;` statement. Executable-name
 analysis now applies the import prohibition to both `import` and
 `scopedImport`, including selected spellings. Both exact hosted mutations fail
 in the 143-test suite.
+
+## Path-construction and enumeration correction contract
+
+The exact-head review of `620b767760af5fe3e9ae4f67463691b45ca54040`
+found two remaining dynamic-provider routes. `setAttrByPath` can construct both
+`config.checks` and a raw priority record without a protected name appearing in
+binding position. Separately, `attrNames` and `attrValues` can enumerate and
+recover `mkForce` without selecting that name.
+
+The validator SHALL reject executable bare or statically selected
+`setAttrByPath` as dynamic attribute construction. It SHALL reject executable
+bare or statically selected `attrNames` and `attrValues` as reflective
+attribute access. Exact path-construction and enumeration mutations must fail
+before new implementation evidence is accepted.

@@ -22,8 +22,11 @@ over-disclosure and mismatch errors to every adapter.
    credential handle and zero to 64 unique-path selected claims.
 3. Add a disclosure plan containing 1–64 credential selections and validate it
    against both a presentation request and candidate set.
-4. Revalidate candidates against the supplied request rather than embedding a
-   request fingerprint or trusting construction history.
+4. Bind each candidate set to a private clone of its exact bounded request.
+   Reject plan construction when the supplied request differs in any field,
+   then structurally revalidate the candidates against that request rather
+   than relying on construction history alone or defining a separate request
+   fingerprint contract.
 5. Require every selection pair to be available, every selected path and
    intent to be requested, every path to be satisfiable, and every required
    claim to be selected.
@@ -42,8 +45,10 @@ over-disclosure and mismatch errors to every adapter.
   validated, format-neutral input.
 - The SDK does not decide consent, ranking, trust, optional alternatives or
   proof feasibility and does not carry private claim material.
-- Candidate validation repeats bounded work at plan construction, avoiding a
-  hidden identity or hashing contract.
+- Exact snapshot equality prevents a candidate enumerated under one request
+  from being reused under another request with different filters or context;
+  candidate validation then repeats bounded structural work at plan
+  construction without introducing a hidden identity or hashing contract.
 - DCQL claim/credential sets, generated presentation/receipt values, lifecycle
   state, proof execution, storage, FFI, downstream adoption and release remain
   focused follow-up work.

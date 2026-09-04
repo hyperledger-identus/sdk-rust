@@ -117,6 +117,18 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn(expected, result.stderr)
 
+    def assert_nix_parses_if_available(self, relative: str) -> None:
+        nix_instantiate = shutil.which("nix-instantiate")
+        if nix_instantiate is None:
+            return
+        result = subprocess.run(
+            [nix_instantiate, "--parse", str(self.fixture / relative)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_canonical_policy_passes(self) -> None:
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -161,6 +173,446 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("does not import rust-gates.nix")
 
+    def test_nested_import_decoy_cannot_replace_generator_import(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            """  imports = [
+    ./rust-gates.nix
+  ];""",
+            """  _module.args.importDecoy = {
+    imports = [ ./rust-gates.nix ];
+  };
+  imports = [];""",
+        )
+        self.assert_fails("does not import rust-gates.nix")
+
+    def test_nested_import_data_is_not_a_graph_edge(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            """  imports = [
+    ./rust-gates.nix
+  ];""",
+            """  imports = [
+    ./rust-gates.nix
+  ];
+  _module.args.importData = {
+    imports = [ ./missing-decoy.nix ];
+  };""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_check_wrapper_cannot_force_away_imported_gates(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "      checks = {",
+            "      checks = pkgs.lib.mkForce {",
+        )
+        self.assert_fails("nix/checks/default.nix does not safely compose checks")
+
+    def test_check_wrapper_cannot_inherit_priority_record(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            """      checks = {
+        factory-contract""",
+            """      checks = {
+        inherit (pkgs.lib.mkVMOverride { }) _type priority content;
+        factory-contract""",
+        )
+        self.assert_fails("nix/checks/default.nix does not safely compose checks")
+
+    def test_check_wrapper_cannot_use_vm_override(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "      checks = {",
+            "      checks = pkgs.lib.mkVMOverride {",
+        )
+        self.assert_fails("nix/checks/default.nix does not safely compose checks")
+
+    def test_check_wrapper_cannot_use_quoted_vm_override(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "      checks = {",
+            '      checks = pkgs.lib."mkVMOverride" {',
+        )
+        self.assert_fails("nix/checks/default.nix does not safely compose checks")
+
+    def test_sibling_module_cannot_force_away_imported_gates(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = pkgs.lib.mkForce { };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_quoted_priority_constructor_cannot_erase_generated_gates(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = pkgs.lib."mkForce" { };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_dynamic_priority_constructor_cannot_erase_generated_gates(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = pkgs.lib.${"mkForce"} { };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_priority_syntax_in_string_data_remains_allowed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      _module.args.priorityExample = ''
+        pkgs.lib."mkForce" { _type = "override"; }
+      '';
+      _module.args = {""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_parent_relative_module_override_is_reachable(self) -> None:
+        nested = self.fixture / "nix/nested/module.nix"
+        nested.parent.mkdir(parents=True)
+        nested.write_text("{ imports = [ ../override.nix ]; }\n", encoding="utf-8")
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  imports = [ ./nested/module.nix ];\n  perSystem =",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_raw_priority_override_cannot_erase_generated_gates(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = {
+        _type = "override";
+        priority = 0;
+        content = { };
+      };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_indented_raw_override_cannot_erase_generated_gates(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = {
+        _type = ''override'';
+        priority = 0;
+        content = { };
+      };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_local_module_cannot_disable_gate_generator(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  disabledModules = [ ./checks/rust-gates.nix ];\n  perSystem =",
+        )
+        self.assert_fails("local Nix module graph uses disabledModules")
+
+    def test_inherited_disabled_modules_fail_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            """{
+  inherit ({ disabledModules = [ ./checks/rust-gates.nix ]; }) disabledModules;
+  perSystem =""",
+        )
+        self.assert_fails("local Nix module graph uses disabledModules")
+
+    def test_computed_import_expression_fails_closed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{ inputs, ... }:\n{\n  perSystem =",
+            """{ inputs, ... }:
+let
+  localModules = [ ./override.nix ];
+in
+{
+  imports = localModules;
+  perSystem =""",
+        )
+        self.assert_fails("local Nix module graph has unresolved imports")
+
+    def test_imported_explicit_config_fails_closed(self) -> None:
+        (self.fixture / "nix/override-config.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  config = import ./override-config.nix;\n  perSystem =",
+        )
+        self.assert_fails("local Nix module graph uses import expressions")
+
+    def test_explicit_config_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  config = { };\n  perSystem =",
+        )
+        self.assert_fails("local Nix module graph composes explicit config")
+
+    def test_import_syntax_in_string_data_remains_allowed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            '{\n  _module.args.importData = "config = import ./override.nix";\n  perSystem =',
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_computed_import_list_entry_fails_closed(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "  imports = [\n    ./rust-gates.nix\n  ];",
+            "  imports = [\n    ./rust-gates.nix\n    extraModule\n  ];",
+        )
+        self.assert_fails("local Nix module graph has unresolved imports")
+
+    def test_computed_root_import_expression_fails_closed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "flake.nix",
+            "        inputs.devshell.flakeModule\n",
+            """        inputs.devshell.flakeModule
+        (inputs.self + "/nix/override.nix")
+""",
+        )
+        self.assert_fails("root Nix module graph has unresolved imports")
+
+    def test_inherited_imports_fail_closed(self) -> None:
+        (self.fixture / "nix/holder.nix").write_text(
+            "{ imports = [ ./override.nix ]; }\n", encoding="utf-8"
+        )
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  inherit (import ./holder.nix) imports;\n  perSystem =",
+        )
+        self.assert_fails("local Nix module graph has unresolved imports")
+
+    def test_quoted_import_binding_is_traversed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            '{\n  "imports" = [ ./override.nix ];\n  perSystem =',
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_indented_string_import_binding_is_traversed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  ${''imports''} = [ ./override.nix ];\n  perSystem =",
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_computed_quoted_import_binding_is_traversed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            '{\n  ${"imports"} = [ ./override.nix ];\n  perSystem =',
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_inert_mk_flake_call_cannot_replace_root_imports(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "flake.nix",
+            """      imports = [
+        inputs.devshell.flakeModule
+        ./nix/rust-toolchain.nix
+        ./nix/devshells
+        ./nix/checks
+        ./nix/apps
+      ];""",
+            """      imports = builtins.attrValues {
+        a = inputs.devshell.flakeModule;
+        b = ./nix/rust-toolchain.nix;
+        c = ./nix/devshells;
+        d = ./nix/checks;
+        e = ./nix/apps;
+        f = ./nix/override.nix;
+      };
+
+      _module.args.importDecoy = _: flake-parts.lib.mkFlake { inherit inputs; } {
+        imports = [
+          inputs.devshell.flakeModule
+          ./nix/rust-toolchain.nix
+          ./nix/devshells
+          ./nix/checks
+          ./nix/apps
+        ];
+      };""",
+        )
+        self.assert_nix_parses_if_available("flake.nix")
+        self.assert_fails("root Nix module graph has unresolved imports")
+
+    def test_computed_priority_selection_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = pkgs.lib.${"mk" + "Force"} { };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses computed attributes")
+
+    def test_reflective_priority_constructor_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = { } // ((builtins.getAttr "mkForce" pkgs.lib) { });
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses reflective attributes")
+
+    def test_dynamic_protected_attribute_construction_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    };
+}""",
+            """    };
+}
+// builtins.listToAttrs [
+  {
+    name = "disabledModules";
+    value = [ ./checks/rust-gates.nix ];
+  }
+]""",
+        )
+        self.assert_fails("local Nix module graph constructs attributes dynamically")
+
+    def test_serialized_attribute_construction_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    };
+}""",
+            """    };
+}
+// builtins.fromJSON ''{"disabledModules": []}''""",
+        )
+        self.assert_fails("local Nix module graph constructs attributes dynamically")
+
+    def test_computed_raw_override_attribute_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = {
+        ${"_type"} = "override";
+        priority = 0;
+        content = { };
+      };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses computed attributes")
+
+    def test_interpolated_import_path_fails_closed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            """{
+  imports = [ ./${"override"}.nix ];
+  perSystem =""",
+        )
+        self.assert_fails("local Nix module graph has unresolved imports")
+
+    def test_sibling_module_cannot_contribute_competing_checks(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = { };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph contributes competing checks")
+
+    def test_sibling_module_cannot_inherit_competing_checks(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """      pkgs,
+      ...""",
+            """      pkgs,
+      checks,
+      ...""",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      inherit checks;
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph contributes competing checks")
+
     def test_unused_manifest_mapping_cannot_replace_published_checks(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",
@@ -172,7 +624,152 @@ class SupportPolicyTests(unittest.TestCase):
             "        }) manifest.gates\n      );\n    in",
             "        }) manifest.gates\n      );\n      generatedChecks = { };\n    in",
         )
-        self.assert_fails("does not derive generatedChecks from manifest.gates")
+        self.assert_fails("does not map gate names and values from manifest entries")
+
+    def test_constant_mapped_name_cannot_collapse_gate_graph(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "          inherit (gate) name;",
+            '          name = "rust-gate";',
+        )
+        self.assert_fails("does not map gate names and values from manifest entries")
+
+    def test_mapped_value_must_use_current_gate(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "          value = makeGate gate;",
+            "          value = { };",
+        )
+        self.assert_fails("does not map gate names and values from manifest entries")
+
+    def test_make_gate_binding_cannot_be_replaced_with_noop(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      makeGate =",
+            "      realMakeGate =",
+        )
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      generatedChecks =",
+            """      makeGate = gate: pkgs.runCommand "noop-${gate.name}" { } "touch $out";
+      generatedChecks =""",
+        )
+        self.assert_nix_parses_if_available("nix/checks/rust-gates.nix")
+        self.assert_fails("does not bind canonical gate construction")
+
+    def test_cargo_args_binding_cannot_be_replaced(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      cargoArgs =\n        gate:",
+            "      realCargoArgs =\n        gate:",
+        )
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      makeGate =",
+            '      cargoArgs = _: "";\n      makeGate =',
+        )
+        self.assert_nix_parses_if_available("nix/checks/rust-gates.nix")
+        self.assert_fails("does not bind canonical gate construction")
+
+    def test_cargo_argument_mapping_cannot_be_replaced(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            '        cargoNextest = "cargoNextestExtraArgs";',
+            '        cargoNextest = "cargoExtraArgs";',
+        )
+        self.assert_nix_parses_if_available("nix/checks/rust-gates.nix")
+        self.assert_fails("does not bind canonical gate construction")
+
+    def test_crane_library_cannot_be_shadowed(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      craneLib = builtins.mapAttrs (
+        _: _: _: pkgs.runCommand "noop" { } "touch $out"
+      ) cargoArgumentAttribute;
+      manifest = builtins.fromTOML""",
+        )
+        self.assert_nix_parses_if_available("nix/checks/rust-gates.nix")
+        self.assert_fails("shadows trusted root(s) in perSystem let: craneLib")
+
+    def test_local_map_cannot_replace_pkgs_lib_map(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "        map\n        optionalAttrs",
+            "        optionalAttrs",
+        )
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "        optionals\n        ;\n      manifest",
+            """        optionals
+        ;
+      map = _: _: [ { name = "rust-gate"; value = { }; } ];
+      manifest""",
+        )
+        self.assert_fails("does not inherit map and listToAttrs from pkgs.lib")
+
+    def test_local_list_to_attrs_cannot_replace_pkgs_lib_helper(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "        listToAttrs\n        map",
+            "        map",
+        )
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "        optionals\n        ;\n      manifest",
+            """        optionals
+        ;
+      listToAttrs = _: { rust-gate = { }; };
+      manifest""",
+        )
+        self.assert_fails("does not inherit map and listToAttrs from pkgs.lib")
+
+    def test_wrapped_pkgs_provider_cannot_replace_library_helper(self) -> None:
+        self.replace(
+            "flake.nix",
+            """          _module.args.pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ (import rust-overlay) ];
+          };""",
+            """          _module.args.pkgs =
+            let
+              originalPkgs = import nixpkgs {
+                inherit system;
+                overlays = [ (import rust-overlay) ];
+              };
+            in
+            originalPkgs // {
+              lib = originalPkgs.lib // {
+                map = function: values: [ (function (builtins.head values)) ];
+              };
+            };""",
+        )
+        self.assert_fails("flake.nix does not provide canonical pkgs to perSystem")
+
+    def test_outputs_scope_cannot_replace_builtin_import(self) -> None:
+        self.replace(
+            "flake.nix",
+            """    }:
+    flake-parts.lib.mkFlake""",
+            """    }:
+    let
+      import = path:
+        if path == nixpkgs then
+          args:
+          let
+            originalPkgs = builtins.import path args;
+          in
+          originalPkgs // {
+            lib = originalPkgs.lib // {
+              map = function: values: [ (function (builtins.head values)) ];
+            };
+          }
+        else
+          builtins.import path;
+    in
+    flake-parts.lib.mkFlake""",
+        )
+        self.assert_fails("flake.nix does not expose canonical unshadowed outputs")
 
     def test_assertion_decoy_cannot_replace_returned_checks(self) -> None:
         self.replace(
@@ -190,6 +787,260 @@ class SupportPolicyTests(unittest.TestCase):
 }""",
         )
         self.assert_fails("does not return generatedChecks as top-level checks")
+
+    def test_shadowed_generated_checks_cannot_replace_mapped_result(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            """    in
+    {
+      checks = generatedChecks;
+    };
+}""",
+            """    in
+    let
+      generatedChecks = { };
+    in
+    {
+      checks = generatedChecks;
+    };
+}""",
+        )
+        self.assert_fails(
+            "does not directly return its manifest-mapped generatedChecks"
+        )
+
+    def test_nested_mapping_inputs_cannot_use_outer_bindings_as_decoys(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            """      generatedChecks = listToAttrs (
+        map (gate: {
+          inherit (gate) name;
+          value = makeGate gate;
+        }) manifest.gates
+      );
+    in
+    {
+      checks = generatedChecks;
+    };""",
+            """    in
+    let
+      map = _: _: [ { name = \"rust-gate\"; value = { }; } ];
+      listToAttrs = _: { rust-gate = { }; };
+      manifest = { gates = [ ]; };
+      generatedChecks = listToAttrs (
+        map (gate: {
+          inherit (gate) name;
+          value = makeGate gate;
+        }) manifest.gates
+      );
+    in
+    {
+      checks = generatedChecks;
+    };""",
+        )
+        self.assert_fails(
+            "does not directly return its manifest-mapped generatedChecks"
+        )
+
+    def test_same_scope_builtins_cannot_replace_global_builtins(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      builtins = {
+        readFile = _: "";
+        fromTOML = _: { gates = [ ]; };
+      };
+      manifest = builtins.fromTOML""",
+        )
+        self.assert_fails("shadows trusted root(s) in perSystem let: builtins")
+
+    def test_same_scope_pkgs_cannot_replace_function_argument(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pkgs = { lib = {
+        map = _: _: [ ];
+        listToAttrs = _: { };
+      }; };
+      manifest = builtins.fromTOML""",
+        )
+        self.assert_fails("shadows trusted root(s) in perSystem let: pkgs")
+
+    def test_comment_markers_inside_strings_preserve_valid_source(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      urlData = "https://example.invalid/#fragment";
+      blockData = ''literal /* not a comment */ text'';
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_string_delimiters_inside_comments_do_not_mask_live_source(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      # An unmatched " inside a comment is not a string.
+      /* Neither is " an unmatched string inside a block comment. */
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_enclosing_let_cannot_shadow_trusted_root(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            """{ inputs, ... }:
+{
+  perSystem =""",
+            """{ inputs, ... }:
+let
+  builtins = {
+    readFile = _: "";
+    fromTOML = _: { gates = [ ]; };
+  };
+in
+{
+  perSystem =""",
+        )
+        self.assert_fails(
+            "does not expose perSystem as the direct canonical module result"
+        )
+
+    def test_indented_string_escapes_do_not_terminate_string(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      interpolationEscape = ''literal ''${notInterpolation} # string data'';
+      quoteEscape = ''literal ''' quote # string data'';
+      controlEscape = ''literal ''\\n # string data'';
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_quoted_trusted_root_binding_fails(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      "builtins" = {
+        readFile = _: "";
+        fromTOML = _: { gates = [ ]; };
+      };
+      manifest = builtins.fromTOML""",
+        )
+        self.assert_fails("shadows trusted root(s) in perSystem let: builtins")
+
+    def test_dynamic_binding_root_fails(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      ${"dynamicRoot"} = true;
+      manifest = builtins.fromTOML""",
+        )
+        self.assert_fails("uses a quoted or dynamic immediate let binding root")
+
+    def test_nested_strings_inside_interpolation_preserve_valid_source(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      nestedQuoted = "${builtins.toString "https://example.invalid/#fragment"}";
+      nestedIndented = ''outer ${builtins.toString ''literal /* string data */''} tail'';
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_per_system_formal_cannot_shadow_global_builtins(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      pkgs,\n      craneLib,",
+            "      pkgs,\n      builtins,\n      craneLib,",
+        )
+        self.assert_fails("binds builtins in perSystem formals")
+
+    def test_path_and_uri_scope_keywords_preserve_valid_source(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pathData = ./let/in/file;
+      uriData = https://example.invalid/let/in;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_general_uri_preserves_scope_keyword(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      uriData = mailto:let@example.org;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_interpolated_path_resumes_before_scope_keyword(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pathData = ./prefix/${"x"}/let/file;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_unprefixed_relative_path_preserves_scope_keyword(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pathData = prefix/let/file;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_punctuated_unprefixed_path_preserves_scope_keyword(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pathData = .let/file;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_line_comment_after_path_preserves_scope_keyword(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pathData = ./foo# let
+      ;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_indented_control_escape_consumes_escaped_interpolation(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            r"""      escapedInterpolation = ''literal ''\${" # still data'';
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_adjacent_apostrophes_inside_identifier_preserve_valid_source(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      unused''name = true;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_check_graph_must_be_imported_by_flake(self) -> None:
         self.replace("flake.nix", "        ./nix/checks\n", "")

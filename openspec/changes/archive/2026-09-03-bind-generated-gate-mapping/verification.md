@@ -312,3 +312,175 @@ and process-cold p50/p95 82.743/91.740 ms with no material regression. Hosted
 Ubuntu run `33851811403`, job `100956092337`, reports warm p50/p95
 12.654/21.236 ms and process-cold p50/p95 117.731/119.596 ms against baseline
 57.412/58.009 ms; the unchanged material-regression gate passes.
+
+## Final provider-provenance and static-selector evidence
+
+Trusted input, root-provider, Crane-provider, quoted-selector, and static-name
+hardening is implemented at
+`de59d4edf8019b17d4e370e4b3ec7731b2e55310`. The mutation suite passes 116/116:
+all seven hosted findings fail, as do a local Crane input replacement and an
+immediate `inputs` shadow in the toolchain scope. Every exact hosted fixture
+parses independently with Nix 2.34.6. Ruff lint/format, canonical policy
+validation, all 17 factory contracts, and the compatible aarch64-darwin Nix
+graph pass. Against `develop` at
+`69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample local benchmark
+reports warm p50/p95 9.000/9.475 ms and process-cold p50/p95 87.371/89.488 ms;
+the unchanged material-regression gate passes.
+
+## Final provider-result boundary evidence
+
+Complete provider-result consumption is enforced at
+`020be7dc69dddda8863a1149ae1327974899de07`. The mutation suite passes 117/117:
+the exact Nix-valid trailing merge that replaces the effective `craneLib`
+fails, while the canonical provider result remains accepted. Ruff lint and
+format, canonical policy validation, the full factory-contract suite, and the
+compatible aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample benchmark
+reports warm p50/p95 9.200/10.197 ms and process-cold p50/p95 91.650/93.936 ms;
+the unchanged material-regression gate passes.
+
+## Final locked-provenance and indented-name evidence
+
+Locked source provenance and indented interpolated names are enforced at
+`6a5b13ea10f3eae8f137c6dd7892d3fcb967b265`. The mutation suite passes 120/120:
+a changed Crane lock owner, a root mapping redirected to devshell, and an
+indented interpolated `inputs` shadow all fail; the Nix-valid shadow fixture is
+independently parsed. Ruff lint and format, canonical policy validation, the
+full factory-contract suite, and the compatible aarch64-darwin Nix graph pass.
+Against PR base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.661/11.771 ms and process-cold p50/p95
+94.573/97.972 ms; the unchanged material-regression gate passes.
+
+## Final root-output boundary evidence
+
+Complete root-output consumption is enforced at
+`7721da562937a186088d49bbbb1336f82db90b74`. The mutation suite passes 121/121:
+the exact Nix-valid trailing import merge that erases generated checks fails,
+while the canonical `mkFlake` output remains accepted. Ruff lint and format,
+canonical policy validation, the full factory-contract suite, and the
+compatible aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample benchmark
+reports warm p50/p95 9.388/10.384 ms and process-cold p50/p95 91.578/94.764 ms;
+the unchanged material-regression gate passes.
+
+## Final indented-name and transitive-lock evidence
+
+Indented protected-name normalization and complete provider lock topology are
+enforced at `08c808cf7836d7f7873a7e1d27e50d876669cf80`. The mutation suite passes
+124/124: the exact Nix-valid layout-whitespace `inputs` shadow, transitive edge
+redirection, and transitive target-owner replacement all fail, while canonical
+source remains accepted. Ruff lint and format, canonical policy validation,
+the full factory-contract suite, and the compatible aarch64-darwin Nix graph
+pass. Against PR base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact
+20-sample benchmark reports warm p50/p95 9.085/9.582 ms and process-cold p50/p95
+87.937/93.288 ms; the unchanged material-regression gate passes.
+
+## Final closed provider-result and quoted-name evidence
+
+The closed provider result and ambiguous quoted-name rejection are implemented
+at `63f1e97dfc37062c1bd081c7c590c092bb7f4d72`. The mutation suite passes
+126/126: a nested per-system import and quoted constant-concatenation
+`disabledModules` binding fail, while unrelated priority-looking string data
+remains accepted outside the provider result. Ruff lint and format, canonical
+policy validation, the full factory-contract suite, and the compatible
+aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample benchmark
+reports warm p50/p95 9.719/10.079 ms and process-cold p50/p95 92.157/94.625 ms;
+the unchanged material-regression gate passes.
+
+## Final deferred-import and normalized-priority evidence
+
+Deferred `perSystem` import traversal and normalized priority selections are
+implemented at `6da35d5b09914d9cc9a41b9ae34b4e19cbc0d82f`. The mutation
+suite passes 132/132: indented and quoted-static-interpolated `mkForce`
+selectors fail; imports from direct and `let`-wrapped deferred modules are
+traversed; unresolved deferred imports fail closed; and nested import-shaped
+data remains inert. Ruff lint and format, canonical policy validation, the
+complete factory contract, and the compatible aarch64-darwin Nix graph pass.
+Against PR base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact
+20-sample benchmark reports warm p50/p95 9.231/9.697 ms and process-cold
+p50/p95 107.902/110.647 ms; the unchanged material-regression gate passes.
+
+## Final indented control-escape evidence
+
+Indented control escapes in executable attribute positions are rejected at
+`bf99ffaeb23b2cf50a99b4f6d257741a4bd2abd4`. The mutation suite passes
+134/134: exact protected-root and priority-selector escapes fail, while the
+same syntax remains accepted in ordinary string data. Ruff lint and format,
+canonical policy validation, the complete factory contract, and the compatible
+aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.229/9.464 ms and process-cold p50/p95
+106.358/109.089 ms; the unchanged material-regression gate passes.
+
+## Final root explicit-config evidence
+
+Root-module explicit config rejection is implemented at
+`de7da620e6094fdc712c02e286f312952efd18f9`. The mutation suite passes
+137/137: the exact imported config override plus inherited and quoted config
+forms fail before provider acceptance. Ruff lint and format, canonical policy
+validation, the complete factory contract, and the compatible aarch64-darwin
+Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.269/9.553 ms and process-cold p50/p95
+105.492/107.513 ms; the unchanged material-regression gate passes.
+
+## Final indirect reflective-access evidence
+
+Indirect reflective lookup rejection is implemented at
+`0b039e14cb1cf3c38e3fb8205e826d592cc88d27`. The mutation suite passes
+139/139: exact computed-path provider replacements through `attrByPath` and
+`getAttrFromPath` fail alongside the existing `getAttr` case. Ruff lint and
+format, canonical policy validation, the complete factory contract, and the
+compatible aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.025/9.344 ms and process-cold p50/p95
+106.072/107.003 ms; the unchanged material-regression gate passes.
+
+## Final closed root-module evidence
+
+The exact canonical root-module statement set is enforced at
+`3715caf369f725f3c0b12743faa3e64e8df4f44f`. The mutation suite passes
+141/141: the exact imported `flake` composition and an arbitrary extra root
+statement fail, while the canonical root remains accepted. Ruff lint and
+format, canonical policy validation, the complete factory contract, and the
+compatible aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.421/10.123 ms and process-cold p50/p95
+109.080/112.398 ms; the unchanged material-regression gate passes.
+
+## Final mkFlake-input and scoped-import evidence
+
+Canonical first-argument binding and scoped-import rejection are implemented
+at `8144d23d59ea112ff5fc38220bf8d7342da2c9b9`. The mutation suite passes
+143/143: the exact substituted-input provider and reachable `scopedImport`
+mutations fail while canonical source and inert import-like string data remain
+accepted. Ruff lint and format, canonical policy validation, the complete
+factory contract, and the compatible aarch64-darwin Nix graph pass. Against PR
+base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.314/10.074 ms and process-cold p50/p95
+111.450/140.899 ms; the unchanged material-regression gate passes.
+
+## Final path-construction and enumeration evidence
+
+Path-based construction and reflective enumeration rejection are implemented
+at `837b2998b66a9baede475df5a14d3caef1eadbf8`. The mutation suite passes
+145/145: exact `setAttrByPath` config/priority construction and
+`attrNames`/`attrValues` provider recovery fail while canonical source remains
+accepted. Ruff lint and format, canonical policy validation, the complete
+factory contract, and the compatible aarch64-darwin Nix graph pass. Against PR
+base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.413/9.936 ms and process-cold p50/p95
+109.612/115.871 ms; the unchanged material-regression gate passes.
+
+## Final protected-provider ownership evidence
+
+Protected-provider ownership and reflective collection rejection are
+implemented at `67d9ff0165353d037564d692b1c604c84ebf8b0a`. The mutation
+suite passes 146/146: the exact `intersectAttrs`/`collect` recovery cannot
+publish competing Crane providers outside the canonical toolchain module.
+Ruff lint and format, canonical policy validation, the complete factory
+contract, and the compatible aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.907/10.472 ms and process-cold p50/p95
+116.454/118.492 ms; the unchanged material-regression gate passes.

@@ -211,6 +211,49 @@ arguments.
   string spellings. Immediate-statement filtering normalizes those forms before
   import value analysis; direct indented-string attribute syntax is not valid
   Nix and is not used as the executable regression fixture.
+- Module imports can be contributed by both the top-level flake-parts module
+  and its deferred `perSystem` module result. The graph walker isolates both
+  returned attribute sets and follows only their immediate literal imports;
+  unsupported deferred result shapes fail closed.
+- Priority helpers can be selected through every static Nix string form. The
+  override detector reuses the shared static-name normalizer rather than
+  maintaining a narrower double-quoted parser.
+- Indented-string control escapes can construct an executable attribute name
+  whose source spelling does not match the normalized identifier. Because the
+  closed authoring profile does not require escaped attribute names, the
+  attribute scanner rejects any such control escape in binding or selection
+  position while preserving the same sequence in ordinary string data.
+- The canonical root module is deliberately exempt from the general import
+  primitive prohibition because its package provider imports Nixpkgs and the
+  Rust overlay. That exemption must not permit an additional top-level
+  `config` contribution: root-result statement isolation rejects `config`
+  directly, including inherited and statically quoted spellings.
+- Reflection is not limited to `getAttr`: Nixpkgs exposes `attrByPath` and
+  `getAttrFromPath`, both of which can retrieve a priority constructor from a
+  computed path. The closed local-module profile rejects all three executable
+  lookup helpers; canonical gate-generator use remains separately constrained.
+- Rejecting only root `config` leaves other flake-parts output options able to
+  compose imported priority records. The root module is intentionally small,
+  so validation requires exactly one immediate `imports`, `systems`, and
+  `perSystem` statement; any new root capability requires a spec update.
+- A canonical root module can still receive a substituted `inputs` attribute
+  set through the first `mkFlake` argument. Root-call extraction therefore
+  validates that complete argument as the exact `{ inherit inputs; }` form.
+- Nix exposes both `import` and `builtins.scopedImport` for evaluating a file.
+  The closed reachable-module profile rejects both executable names, including
+  statically quoted selections, while leaving inert string data untouched.
+- Path construction can avoid both literal and computed attribute-binding
+  syntax. The closed profile therefore classifies `setAttrByPath` with the
+  existing dynamic attribute constructors.
+- Attribute enumeration can recover a protected function without spelling its
+  selector. The closed profile classifies `attrNames` and `attrValues` with the
+  existing reflective lookup primitives.
+- A denylist of reflective primitives is defense in depth, not the provider
+  ownership boundary. Any binding or inheritance of the four protected
+  toolchain/Crane providers outside `nix/rust-toolchain.nix` is rejected,
+  including nested `_module.args` publication.
+- `intersectAttrs` combined with recursive `collect` is another way to recover
+  a function without selection. Both are classified as reflective helpers.
 
 ## Verification
 

@@ -85,6 +85,44 @@ still reports success.
   regression ceiling.
 - Cache pure module-source binding, override, delimiter, and import analyses so
   the closed graph contract retains its hosted warm-latency ceiling.
+- Bind external flake-module exemptions to canonical direct input URLs and
+  both Crane libraries to canonical direct toolchain construction.
+- Anchor package-provider validation to the effective root module's immediate
+  `perSystem` statement.
+- Normalize statically quoted executable builtin selections and quoted static
+  interpolations used as protected attribute names.
+- Require the canonical provider result attribute set to consume the complete
+  `perSystem` expression before its binding terminator.
+- Bind canonical root input declarations to their direct locked GitHub
+  provenance, and normalize indented strings containing one static
+  interpolation when they name protected attributes.
+- Require the canonical root `mkFlake` invocation to consume the complete
+  `outputs` expression before its binding terminator.
+- Normalize layout whitespace in indented-string protected names and bind all
+  reachable executable provider lock edges to their canonical topology and
+  GitHub provenance.
+- Require the provider result to contain exactly its canonical publication,
+  and reject nontrivial interpolation in any quoted attribute-name string.
+- Normalize every supported static Nix string spelling when recognizing
+  priority-constructor selections.
+- Traverse literal imports from reachable deferred `perSystem` result modules
+  as well as top-level module results.
+- Reject indented-string control escapes when they construct attribute names.
+- Reject explicit `config` composition in the canonical root `mkFlake` module.
+- Reject indirect reflective lookup through `attrByPath` and `getAttrFromPath`.
+- Close the root `mkFlake` module to exactly `imports`, `systems`, and the
+  canonical `perSystem` provider.
+- Require the effective first `mkFlake` argument to be exactly
+  `{ inherit inputs; }`.
+- Reject `scopedImport` wherever the closed local-module profile rejects the
+  ordinary `import` primitive.
+- Reject path-based attribute construction through `setAttrByPath` and
+  equivalent statically selected spellings.
+- Reject reflective attribute enumeration through `attrNames` and `attrValues`.
+- Reserve publication of `craneLib`, `msrvCraneLib`, `toolchain`, and
+  `msrvToolchain` to the canonical toolchain module.
+- Reject reflective intersection/collection helpers that can recover a
+  protected provider without selecting its name.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

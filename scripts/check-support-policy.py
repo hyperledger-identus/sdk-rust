@@ -323,16 +323,47 @@ def nix_without_comments(text: str) -> str:
 
 
 @cache
+def nix_static_string_value(literal: str) -> str | None:
+    """Return the value of a simple static Nix string expression."""
+    if re.fullmatch(r'"[A-Za-z_][A-Za-z0-9_\'-]*"', literal):
+        return literal[1:-1]
+    if re.fullmatch(r"''[A-Za-z_][A-Za-z0-9_'-]*''", literal):
+        return literal[2:-2]
+    payload = None
+    indented = False
+    if literal.startswith('"') and literal.endswith('"'):
+        payload = literal[1:-1]
+    elif literal.startswith("''") and literal.endswith("''"):
+        payload = literal[2:-2]
+        indented = True
+    if payload is None:
+        return None
+    if indented:
+        normalized = payload.strip()
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_'-]*", normalized):
+            return normalized
+        payload = normalized
+    interpolated = re.fullmatch(
+        r"^\$\{\s*(?:\"(?P<double>[A-Za-z_][A-Za-z0-9_'-]*)\"|''(?P<indented>[A-Za-z_][A-Za-z0-9_'-]*)'')\s*\}$",
+        payload,
+    )
+    if interpolated is None:
+        return None
+    return interpolated.group("double") or interpolated.group("indented")
+
+
+@cache
 def nix_attribute_assignment_ends(text: str, name: str) -> tuple[int, ...]:
     """Return offsets after static or directly dynamic attribute assignments."""
     source = nix_without_comments(text)
     masked = nix_string_mask(source)
     assignments = {
         match.end()
-        for match in re.finditer(rf"(?<![A-Za-z0-9_'])\b{re.escape(name)}\s*=", masked)
+        for match in re.finditer(
+            rf"(?<![A-Za-z0-9_'])\b{re.escape(name)}\s*=(?!=)", masked
+        )
     }
 
-    quoted_names = {f'"{name}"', f"''{name}''"}
     index = 0
     while index < len(source):
         path_end = nix_path_or_uri_end(source, index)
@@ -343,12 +374,12 @@ def nix_attribute_assignment_ends(text: str, name: str) -> tuple[int, ...]:
         if string_end is None:
             index += 1
             continue
-        if source[index:string_end] in quoted_names:
-            direct = re.match(r"\s*=", source[string_end:])
+        if nix_static_string_value(source[index:string_end]) == name:
+            direct = re.match(r"\s*=(?!=)", source[string_end:])
             if direct is not None:
                 assignments.add(string_end + direct.end())
             prefix = source[:index].rstrip()
-            dynamic = re.match(r"\s*}\s*=", source[string_end:])
+            dynamic = re.match(r"\s*}\s*=(?!=)", source[string_end:])
             if prefix.endswith("${") and dynamic is not None:
                 assignments.add(string_end + dynamic.end())
         index = string_end
@@ -364,21 +395,87 @@ def nix_binds_attribute(text: str, name: str) -> bool:
 @cache
 def nix_uses_computed_attribute(text: str) -> bool:
     """Return whether executable Nix source contains a computed attribute."""
-    source = nix_string_mask(nix_without_comments(text))
-    return "${" in source
+    source = nix_without_comments(text)
+    if "${" in nix_string_mask(source):
+        return True
+
+    index = 0
+    while index < len(source):
+        path_end = nix_path_or_uri_end(source, index)
+        if path_end is not None:
+            index = path_end
+            continue
+        string_end = nix_string_end(source, index)
+        if string_end is None:
+            index += 1
+            continue
+        literal = source[index:string_end]
+        ambiguous_interpolation = (
+            "${" in literal and nix_static_string_value(literal) is None
+        )
+        indented_control_escape = literal.startswith("''") and "''\\" in literal
+        if ambiguous_interpolation or indented_control_escape:
+            follows_attribute = (
+                re.match(r"\s*(?:=|\.)", source[string_end:]) is not None
+            )
+            follows_selection = source[:index].rstrip().endswith(".")
+            if follows_attribute or follows_selection:
+                return True
+        index = string_end
+    return False
+
+
+@cache
+def nix_executable_names(text: str) -> frozenset[str]:
+    """Return bare and statically selected executable names in source."""
+    source = nix_without_comments(text)
+    masked = nix_string_mask(source)
+    names = set(re.findall(r"(?<![A-Za-z0-9_'])\b[A-Za-z_][A-Za-z0-9_'-]*\b", masked))
+
+    index = 0
+    while index < len(source):
+        path_end = nix_path_or_uri_end(source, index)
+        if path_end is not None:
+            index = path_end
+            continue
+        string_end = nix_string_end(source, index)
+        if string_end is None:
+            index += 1
+            continue
+        selected = nix_static_string_value(source[index:string_end])
+        if selected is not None and source[:index].rstrip().endswith("."):
+            names.add(selected)
+        index = string_end
+    return frozenset(names)
+
+
+def nix_uses_executable_name(text: str, names: tuple[str, ...]) -> bool:
+    """Return whether source executes a bare or statically selected name."""
+    return not nix_executable_names(text).isdisjoint(names)
 
 
 @cache
 def nix_uses_reflective_attribute_access(text: str) -> bool:
     """Return whether executable Nix source retrieves an attribute by name."""
-    source = nix_string_mask(nix_without_comments(text))
-    return re.search(r"(?<![A-Za-z0-9_'])\bgetAttr\b", source) is not None
+    return nix_uses_executable_name(
+        text,
+        (
+            "attrByPath",
+            "attrNames",
+            "attrValues",
+            "attrsToList",
+            "collect",
+            "getAttr",
+            "getAttrFromPath",
+            "intersectAttrs",
+            "mapAttrsToList",
+        ),
+    )
 
 
 @cache
 def nix_constructs_attributes_dynamically(text: str) -> bool:
     """Return whether executable Nix source constructs attribute names at runtime."""
-    source = nix_string_mask(nix_without_comments(text))
     constructors = (
         "fromJSON",
         "fromTOML",
@@ -386,17 +483,17 @@ def nix_constructs_attributes_dynamically(text: str) -> bool:
         "groupBy",
         "listToAttrs",
         "mapAttrs",
+        "mapAttrs'",
+        "setAttrByPath",
         "zipAttrsWith",
     )
-    names = "|".join(constructors)
-    return re.search(rf"(?<![A-Za-z0-9_'])\b(?:{names})\b", source) is not None
+    return nix_uses_executable_name(text, constructors)
 
 
 @cache
 def nix_uses_import_expression(text: str) -> bool:
     """Return whether executable Nix source evaluates the import primitive."""
-    source = nix_string_mask(nix_without_comments(text))
-    return re.search(r"(?<![A-Za-z0-9_'])\bimport\b", source) is not None
+    return nix_uses_executable_name(text, ("import", "scopedImport"))
 
 
 @cache
@@ -434,7 +531,7 @@ def nix_uses_priority_override(text: str) -> bool:
             continue
 
         literal = source[index:string_end]
-        literal_name = literal[1:-1] if literal.startswith('"') else ""
+        literal_name = nix_static_string_value(literal) or ""
         if re.fullmatch(priority_constructor, literal_name):
             prefix = source[:index].rstrip()
             static_selection = prefix.endswith(".")
@@ -480,7 +577,7 @@ def nix_delimited_end(text: str, index: int) -> int | None:
 def nix_local_imports(
     text: str,
     parent: Path,
-    allow_external_flake_modules: bool = False,
+    allowed_external_flake_modules: frozenset[str] = frozenset(),
     module_result: bool = True,
 ) -> tuple[frozenset[Path], bool]:
     """Resolve literal child- and parent-relative imports from a Nix module."""
@@ -541,10 +638,10 @@ def nix_local_imports(
                         imports.add(imported)
                 index = path_end
             residue_text = "".join(residue)
-            if allow_external_flake_modules:
+            for external_module in allowed_external_flake_modules:
                 residue_text = re.sub(
-                    r"(?<![A-Za-z0-9_'])inputs\.[A-Za-z_][A-Za-z0-9_'-]*"
-                    r"\.flakeModule(?![A-Za-z0-9_'])",
+                    rf"(?<![A-Za-z0-9_']){re.escape(external_module)}"
+                    r"(?![A-Za-z0-9_'])",
                     "",
                     residue_text,
                 )
@@ -555,6 +652,15 @@ def nix_local_imports(
 
 def nix_statement_binds(statement: str, name: str) -> bool:
     """Return whether an immediate let statement binds the given identifier."""
+    stripped = statement.lstrip()
+    if stripped.startswith(('"', "''")):
+        string_end = nix_string_end(stripped, 0)
+        if (
+            string_end is not None
+            and nix_static_string_value(stripped[:string_end]) == name
+            and re.match(r"\s*(?:=|\.)", stripped[string_end:]) is not None
+        ):
+            return True
     escaped_name = re.escape(name)
     binding_name = (
         rf'(?:{escaped_name}|"{escaped_name}"|\'\'{escaped_name}\'\'|'
@@ -699,6 +805,99 @@ def nix_module_result_statements(text: str) -> tuple[str, ...] | None:
     return tuple(statements) if statements is not None else None
 
 
+def nix_outer_let_result_start(text: str, index: int) -> int | None:
+    """Return the start of an outer let expression's result after `in`."""
+    if re.match(r"let\b", text[index:]) is None:
+        return None
+    index += len("let")
+    delimiters: list[str] = []
+    nested_lets = 0
+    pairs = {")": "(", "]": "[", "}": "{"}
+    while index < len(text):
+        path_end = nix_path_or_uri_end(text, index)
+        if path_end is not None:
+            index = path_end
+            continue
+        character = text[index]
+        if character in "([{":
+            delimiters.append(character)
+            index += 1
+            continue
+        if character in pairs:
+            if not delimiters or delimiters.pop() != pairs[character]:
+                return None
+            index += 1
+            continue
+        if character.isalpha() or character == "_":
+            end = index + 1
+            while end < len(text) and (text[end].isalnum() or text[end] in "_-'"):
+                end += 1
+            token = text[index:end]
+            if token == "let":
+                nested_lets += 1
+            elif token == "in":
+                if nested_lets:
+                    nested_lets -= 1
+                elif not delimiters:
+                    return end
+            index = end
+            continue
+        index += 1
+    return None
+
+
+@cache
+def nix_per_system_result_module(text: str) -> tuple[str | None, bool]:
+    """Isolate a reachable module's deferred perSystem result module."""
+    statements = nix_module_result_statements(text)
+    if statements is None:
+        return None, False
+    per_system = tuple(
+        statement
+        for statement in statements
+        if nix_statement_binds(statement, "perSystem")
+    )
+    if not per_system:
+        return None, False
+    if len(per_system) != 1:
+        return None, True
+
+    source = nix_without_comments(per_system[0])
+    masked = nix_string_mask(source)
+    assignment_ends = nix_attribute_assignment_ends(source, "perSystem")
+    if len(assignment_ends) != 1:
+        return None, True
+    index = assignment_ends[0]
+    while index < len(masked) and masked[index].isspace():
+        index += 1
+    if index == len(masked) or masked[index] != "{":
+        return None, True
+    formals_end = nix_delimited_end(masked, index)
+    if formals_end is None:
+        return None, True
+    index = formals_end
+    while index < len(masked) and masked[index].isspace():
+        index += 1
+    if index == len(masked) or masked[index] != ":":
+        return None, True
+    index += 1
+    while index < len(masked) and masked[index].isspace():
+        index += 1
+    if re.match(r"let\b", masked[index:]) is not None:
+        result_start = nix_outer_let_result_start(masked, index)
+        if result_start is None:
+            return None, True
+        index = result_start
+        while index < len(masked) and masked[index].isspace():
+            index += 1
+    if index == len(masked) or masked[index] != "{":
+        return None, True
+    result_end = nix_delimited_end(masked, index)
+    if result_end is None or re.fullmatch(r"\s*;\s*", masked[result_end:]) is None:
+        return None, True
+    return source[index:result_end], False
+
+
 @cache
 def nix_module_binds_attribute(text: str, name: str) -> bool:
     """Return whether a direct Nix module result immediately binds an attribute."""
@@ -712,9 +911,163 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     checks_root = (root / "nix/checks").resolve()
     checks_entry = checks_root / "default.nix"
     generator_path = checks_root / "rust-gates.nix"
+    toolchain_provider_path = (root / "nix/rust-toolchain.nix").resolve()
     flake_path = root / "flake.nix"
     flake = nix_without_comments(flake_path.read_text(encoding="utf-8"))
     flake_masked = nix_string_mask(flake)
+    flake_statements = nix_module_result_statements(flake)
+    inputs_statement = next(
+        (
+            statement
+            for statement in flake_statements or ()
+            if nix_statement_binds(statement, "inputs")
+        ),
+        None,
+    )
+    inputs_module = None
+    if inputs_statement is not None:
+        inputs_match = re.fullmatch(
+            r"\s*inputs\s*=\s*(\{.*\})\s*;\s*", inputs_statement, re.DOTALL
+        )
+        if inputs_match is not None:
+            inputs_module = inputs_match.group(1)
+    input_statements = nix_module_result_statements(inputs_module or "")
+
+    def compact_statement(value: str) -> str:
+        return re.sub(r"\s+", " ", value).strip()
+
+    canonical_input_statements = {
+        'flake-parts.url = "github:hercules-ci/flake-parts";',
+        'nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";',
+        'devshell.url = "github:numtide/devshell";',
+        'rust-overlay.url = "github:oxalica/rust-overlay";',
+        'crane.url = "github:ipetkov/crane";',
+        compact_statement(
+            """advisory-db = {
+              url = "github:rustsec/advisory-db";
+              flake = false;
+            };"""
+        ),
+        'openspec.url = "github:Fission-AI/OpenSpec";',
+    }
+    actual_input_statements = {
+        compact_statement(statement) for statement in input_statements or ()
+    }
+    if actual_input_statements != canonical_input_statements:
+        failures.append("flake.nix does not bind canonical trusted input sources")
+
+    canonical_input_provenance: dict[str, dict[str, str]] = {
+        "flake-parts": {"owner": "hercules-ci", "repo": "flake-parts"},
+        "nixpkgs": {
+            "owner": "NixOS",
+            "repo": "nixpkgs",
+            "ref": "nixpkgs-unstable",
+        },
+        "devshell": {"owner": "numtide", "repo": "devshell"},
+        "rust-overlay": {"owner": "oxalica", "repo": "rust-overlay"},
+        "crane": {"owner": "ipetkov", "repo": "crane"},
+        "advisory-db": {"owner": "rustsec", "repo": "advisory-db"},
+        "openspec": {"owner": "Fission-AI", "repo": "OpenSpec"},
+    }
+    canonical_transitive_input_provenance: dict[str, dict[str, dict[str, str]]] = {
+        "flake-parts": {
+            "nixpkgs-lib": {"owner": "nix-community", "repo": "nixpkgs.lib"}
+        },
+        "devshell": {
+            "nixpkgs": {
+                "owner": "NixOS",
+                "repo": "nixpkgs",
+                "ref": "nixpkgs-unstable",
+            }
+        },
+        "rust-overlay": {
+            "nixpkgs": {
+                "owner": "NixOS",
+                "repo": "nixpkgs",
+                "ref": "nixpkgs-unstable",
+            }
+        },
+        "openspec": {
+            "nixpkgs": {
+                "owner": "NixOS",
+                "repo": "nixpkgs",
+                "ref": "nixos-unstable",
+            }
+        },
+    }
+
+    def canonical_locked_inputs() -> bool:
+        try:
+            lock = json.loads((root / "flake.lock").read_text(encoding="utf-8"))
+            nodes = lock["nodes"]
+            root_inputs = nodes[lock["root"]]["inputs"]
+        except (FileNotFoundError, json.JSONDecodeError, KeyError, TypeError):
+            return False
+        if not isinstance(nodes, dict) or not isinstance(root_inputs, dict):
+            return False
+        if set(root_inputs) != set(canonical_input_provenance):
+            return False
+
+        def canonical_node(
+            node_name: object, source: dict[str, str], *, flake: bool = True
+        ) -> dict[str, Any] | None:
+            if not isinstance(node_name, str):
+                return None
+            node = nodes.get(node_name)
+            if not isinstance(node, dict):
+                return None
+            expected_original = {"type": "github", **source}
+            if node.get("original") != expected_original:
+                return None
+            locked = node.get("locked")
+            if not isinstance(locked, dict) or set(locked) != {
+                "lastModified",
+                "narHash",
+                "owner",
+                "repo",
+                "rev",
+                "type",
+            }:
+                return None
+            if any(locked.get(key) != source[key] for key in ("owner", "repo")):
+                return None
+            if locked.get("type") != "github":
+                return None
+            if not isinstance(locked.get("lastModified"), int):
+                return None
+            if re.fullmatch(r"[0-9a-f]{40}", str(locked.get("rev", ""))) is None:
+                return None
+            if (
+                re.fullmatch(
+                    r"sha256-[A-Za-z0-9+/]{43}=", str(locked.get("narHash", ""))
+                )
+                is None
+            ):
+                return None
+            if node.get("flake", True) is not flake:
+                return None
+            return node
+
+        for name, source in canonical_input_provenance.items():
+            node = canonical_node(
+                root_inputs.get(name), source, flake=name != "advisory-db"
+            )
+            if node is None:
+                return False
+            expected_inputs = canonical_transitive_input_provenance.get(name, {})
+            node_inputs = node.get("inputs", {})
+            if not isinstance(node_inputs, dict) or set(node_inputs) != set(
+                expected_inputs
+            ):
+                return False
+            for input_name, input_source in expected_inputs.items():
+                target = canonical_node(node_inputs.get(input_name), input_source)
+                if target is None or target.get("inputs", {}) != {}:
+                    return False
+        return True
+
+    if not canonical_locked_inputs():
+        failures.append("flake.lock does not bind canonical trusted inputs")
     canonical_outputs = re.search(
         r"\boutputs\s*=\s*inputs\s*@\s*\{\s*flake-parts\s*,\s*"
         r"nixpkgs\s*,\s*rust-overlay\s*,\s*\.\.\.\s*\}\s*:\s*"
@@ -728,6 +1081,9 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         failures.append("flake.nix does not expose canonical unshadowed outputs")
     flake_imports: frozenset[Path] = frozenset()
     root_module: str | None = None
+    root_statements: tuple[str, ...] | None = None
+    canonical_mk_flake_inputs = False
+    outputs_expression_complete = False
     if canonical_outputs is not None:
         argument_start = canonical_outputs.end()
         while (
@@ -737,6 +1093,16 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             argument_start += 1
         inputs_end = nix_delimited_end(flake_masked, argument_start)
         if inputs_end is not None:
+            inputs_argument = flake[argument_start:inputs_end]
+            inputs_argument_statements = nix_module_result_statements(inputs_argument)
+            canonical_mk_flake_inputs = (
+                inputs_argument_statements is not None
+                and len(inputs_argument_statements) == 1
+                and re.fullmatch(
+                    r"\s*inherit\s+inputs\s*;\s*", inputs_argument_statements[0]
+                )
+                is not None
+            )
             module_start = inputs_end
             while (
                 module_start < len(flake_masked)
@@ -745,16 +1111,39 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
                 module_start += 1
             module_end = nix_delimited_end(flake_masked, module_start)
             if module_end is not None:
-                root_module = flake[module_start:module_end]
+                outputs_expression_complete = (
+                    re.fullmatch(r"\s*;\s*}\s*", flake_masked[module_end:]) is not None
+                )
+                if outputs_expression_complete:
+                    root_module = flake[module_start:module_end]
+    if canonical_outputs is not None and not outputs_expression_complete:
+        failures.append("flake.nix does not expose canonical unshadowed outputs")
+    if not canonical_mk_flake_inputs:
+        failures.append("flake.nix does not pass canonical inputs to mkFlake")
     root_imports_unresolved = root_module is None
     if root_module is not None:
+        root_statements = nix_module_result_statements(root_module)
         flake_imports, root_imports_unresolved = nix_local_imports(
             root_module,
             flake_path.parent,
-            allow_external_flake_modules=True,
+            allowed_external_flake_modules=frozenset({"inputs.devshell.flakeModule"}),
         )
     if root_imports_unresolved:
         failures.append("root Nix module graph has unresolved imports")
+    canonical_root_bindings = ("imports", "systems", "perSystem")
+    canonical_root_statements = (
+        root_statements is not None
+        and len(root_statements) == len(canonical_root_bindings)
+        and all(
+            sum(nix_statement_binds(statement, name) for statement in root_statements)
+            == 1
+            for name in canonical_root_bindings
+        )
+    )
+    if not canonical_root_statements:
+        failures.append("root Nix module has non-canonical statements")
+    if root_module is not None and nix_module_binds_attribute(root_module, "config"):
+        failures.append("root Nix module composes explicit config")
     if checks_entry not in flake_imports:
         failures.append("flake.nix does not import the nix/checks module")
         return
@@ -776,8 +1165,17 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         module_imports, unresolved_imports = nix_local_imports(
             module_source, module_path.parent
         )
+        deferred_module, deferred_unresolved = nix_per_system_result_module(
+            module_source
+        )
+        if deferred_module is not None:
+            deferred_imports, deferred_imports_unresolved = nix_local_imports(
+                deferred_module, module_path.parent
+            )
+            module_imports = module_imports | deferred_imports
+            deferred_unresolved = deferred_unresolved or deferred_imports_unresolved
         pending_modules.extend(module_imports)
-        if unresolved_imports:
+        if unresolved_imports or deferred_unresolved:
             unresolved_import_modules.add(module_path)
     if unresolved_import_modules:
         failures.append(
@@ -786,6 +1184,22 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
                 str(path.relative_to(repository_root))
                 for path in sorted(unresolved_import_modules)
             )
+        )
+    protected_providers = ("craneLib", "msrvCraneLib", "msrvToolchain", "toolchain")
+    competing_provider_modules = sorted(
+        str(path.relative_to(repository_root))
+        for path in local_module_graph
+        if path != toolchain_provider_path
+        and any(
+            nix_binds_attribute(path.read_text(encoding="utf-8"), provider)
+            or nix_inherits_attribute(path.read_text(encoding="utf-8"), provider)
+            for provider in protected_providers
+        )
+    )
+    if competing_provider_modules:
+        failures.append(
+            "local Nix module graph publishes protected providers outside "
+            "nix/rust-toolchain.nix: " + ", ".join(competing_provider_modules)
         )
     disabled_modules = sorted(
         str(path.relative_to(repository_root))
@@ -882,16 +1296,28 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             + ", ".join(priority_modules)
         )
 
-    canonical_pkgs_provider = re.search(
-        r"\bperSystem\s*=\s*\{\s*system\s*,\s*\.\.\.\s*\}\s*:\s*\{\s*"
+    provider_pattern = (
+        r"\s*perSystem\s*=\s*\{\s*system\s*,\s*\.\.\.\s*\}\s*:\s*\{\s*"
         r"_module\.args\.pkgs\s*=\s*import\s+nixpkgs\s*\{\s*"
         r"inherit\s+system\s*;\s*overlays\s*=\s*\[\s*"
         r"\(\s*import\s+rust-overlay\s*\)\s*\]\s*;\s*\}\s*;\s*"
-        r"\}\s*;\s*\}\s*;\s*\}\s*$",
-        flake_masked,
-        re.DOTALL,
+        r"\}\s*;\s*"
     )
-    if canonical_pkgs_provider is None:
+    provider_statements = [
+        statement
+        for statement in root_statements or ()
+        if nix_statement_binds(statement, "perSystem")
+    ]
+    canonical_pkgs_provider = (
+        len(provider_statements) == 1
+        and re.fullmatch(
+            provider_pattern,
+            nix_string_mask(provider_statements[0]),
+            re.DOTALL,
+        )
+        is not None
+    )
+    if not canonical_pkgs_provider:
         failures.append("flake.nix does not provide canonical pkgs to perSystem")
 
     default_nix = nix_without_comments(checks_entry.read_text(encoding="utf-8"))
@@ -1590,6 +2016,111 @@ def validate_toolchains(
     rust_nix = nix_without_comments(
         (root / "nix/rust-toolchain.nix").read_text(encoding="utf-8")
     )
+    rust_module_statements = nix_module_result_statements(rust_nix)
+    rust_per_system_statements = [
+        statement
+        for statement in rust_module_statements or ()
+        if nix_statement_binds(statement, "perSystem")
+    ]
+    canonical_rust_module_formals = (
+        re.match(
+            r"\s*\{\s*inputs\s*,\s*\.\.\.\s*\}\s*:\s*\{",
+            nix_string_mask(rust_nix),
+        )
+        is not None
+    )
+    toolchain_scope = (
+        outer_per_system_let("{ inputs, ... }: {" + rust_per_system_statements[0] + "}")
+        if canonical_rust_module_formals and len(rust_per_system_statements) == 1
+        else None
+    )
+    toolchain_statements = (
+        top_level_nix_statements(toolchain_scope[0])
+        if toolchain_scope is not None
+        else None
+    )
+
+    def compact(value: str) -> str:
+        return re.sub(r"\s+", " ", value).strip()
+
+    etalon_date = str(toolchains.get("etalon", "")).removeprefix("nightly-")
+    expected_toolchain_statements = {
+        compact(
+            f'''toolchain = pkgs.rust-bin.nightly."{etalon_date}".default.override {{
+              extensions = [ "rust-src" "rust-analyzer" ];
+              targets = [
+                "aarch64-apple-ios"
+                "aarch64-linux-android"
+                "wasm32-unknown-unknown"
+              ];
+            }};'''
+        ),
+        "craneLib = (inputs.crane.mkLib pkgs).overrideToolchain toolchain;",
+        f'msrvToolchain = pkgs.rust-bin.stable."{toolchains.get("msrv", "")}".minimal;',
+        "msrvCraneLib = (inputs.crane.mkLib pkgs).overrideToolchain msrvToolchain;",
+    }
+    protected_toolchain_names = (
+        "inputs",
+        "pkgs",
+        "toolchain",
+        "craneLib",
+        "msrvToolchain",
+        "msrvCraneLib",
+    )
+    actual_toolchain_statements = {
+        compact(statement)
+        for statement in toolchain_statements or ()
+        if any(
+            nix_statement_binds(statement, name) for name in protected_toolchain_names
+        )
+    }
+    expected_provider_publication = compact(
+        """{
+          inherit craneLib msrvCraneLib msrvToolchain toolchain ;
+        };"""
+    )
+    result_statements: list[str] | None = None
+    if toolchain_scope is not None:
+        result_source = toolchain_scope[1]
+        result_masked = nix_string_mask(result_source)
+        result_start = len(result_masked) - len(result_masked.lstrip())
+        result_end = nix_delimited_end(result_masked, result_start)
+        result_is_complete = result_end is not None and re.fullmatch(
+            r"\s*;\s*}\s*", result_masked[result_end:]
+        )
+        if result_is_complete:
+            result_statements = top_level_nix_statements(
+                result_source[result_start + 1 : result_end - 1]
+            )
+    provider_publications = {
+        compact(re.sub(r"^\s*_module\.args\s*=\s*", "", statement))
+        for statement in result_statements or ()
+        if re.match(r"\s*_module\.args\s*=", statement) is not None
+    }
+    direct_provider_overrides = any(
+        re.match(
+            r"\s*_module\.args\."
+            r"(?:craneLib|msrvCraneLib|msrvToolchain|toolchain)\s*=",
+            statement,
+        )
+        is not None
+        for statement in result_statements or ()
+    )
+    toolchain_formals = (
+        {entry.strip() for entry in toolchain_scope[2].split(",") if entry.strip()}
+        if toolchain_scope is not None
+        else set()
+    )
+    if (
+        actual_toolchain_statements != expected_toolchain_statements
+        or len(result_statements or ()) != 1
+        or provider_publications != {expected_provider_publication}
+        or direct_provider_overrides
+        or toolchain_formals != {"pkgs", "..."}
+    ):
+        failures.append(
+            "nix/rust-toolchain.nix does not bind canonical Crane providers"
+        )
     for token in [
         f'nightly."{str(toolchains.get("etalon", "")).removeprefix("nightly-")}"',
         f'stable."{toolchains.get("msrv", "")}"',

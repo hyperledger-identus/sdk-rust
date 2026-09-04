@@ -23,9 +23,19 @@ only static external `inputs.<name>.flakeModule` entries MAY remain outside the
 repository. Outside the independently constrained gate generator, reachable
 modules SHALL NOT inherit imports or protected keys, use reflective attribute
 access, or dynamically construct attribute sets. Import discovery SHALL inspect
-only immediate bindings of each returned module attribute set. Reachable local
-modules SHALL NOT evaluate `import` expressions or bind explicit top-level
-`config`; module dependencies SHALL use the traversed literal `imports` list.
+only immediate bindings of each returned top-level module attribute set and
+each reachable `perSystem` result module attribute set. The root result SHALL
+contain exactly `imports`, `systems`, and the canonical `perSystem` provider;
+it SHALL NOT add `config`, `flake`, or any other statement. Reachable local
+modules SHALL NOT bind explicit top-level `config` or evaluate `import` or
+`scopedImport` expressions; module dependencies SHALL use the traversed literal
+`imports` list. The effective first argument to the canonical root `mkFlake`
+call SHALL be exactly `{ inherit inputs; }`.
+Reflective access SHALL include attribute-name/value enumeration, and dynamic
+construction SHALL include path-based attribute constructors.
+Only `nix/rust-toolchain.nix` SHALL bind or inherit `craneLib`, `msrvCraneLib`,
+`toolchain`, or `msrvToolchain`. Reflective access SHALL also include attribute
+intersection and recursive collection helpers.
 Inherited `_type` SHALL be treated as a raw priority record.
 
 #### Scenario: Constant mapped name collapses the gate graph
@@ -177,9 +187,16 @@ Inherited `_type` SHALL be treated as a raw priority record.
 #### Scenario: Quoted priority constructor erases generated checks
 
 - **WHEN** a reachable local module selects `mkForce` or `mkOverride` through
-  a quoted attribute name
+  a quoted, indented-string, or statically interpolated attribute name
 - **THEN** structural validation rejects the effective priority constructor
   before module merging can erase generated gates
+
+#### Scenario: Deferred per-system module imports an override
+
+- **WHEN** a reachable module's `perSystem` result imports another
+  repository-local module that replaces generated checks
+- **THEN** graph traversal follows the deferred import and structural
+  validation rejects the override before module merging
 
 #### Scenario: Parent-relative module contains a priority override
 
@@ -251,7 +268,7 @@ Inherited `_type` SHALL be treated as a raw priority record.
 #### Scenario: Priority helper is retrieved reflectively
 
 - **WHEN** a reachable module outside the canonical generator obtains a
-  priority constructor through `getAttr`
+  priority constructor through `getAttr`, `attrByPath`, or `getAttrFromPath`
 - **THEN** structural validation rejects the reflective attribute access
 
 #### Scenario: Protected module key is constructed dynamically
@@ -280,6 +297,20 @@ Inherited `_type` SHALL be treated as a raw priority record.
 - **THEN** structural validation rejects both the explicit config composition
   and executable import before the hidden checks can merge
 
+#### Scenario: Root module imports explicit config
+
+- **WHEN** the canonical root `mkFlake` module binds `config` from an imported
+  fragment that replaces generated checks
+- **THEN** structural validation rejects the root config contribution before
+  accepting the canonical package provider
+
+#### Scenario: Root module imports flake outputs
+
+- **WHEN** the canonical root `mkFlake` module adds `flake` or another statement
+  that imports a priority override for generated outputs
+- **THEN** structural validation rejects the non-canonical root statement
+  before accepting the canonical package provider
+
 #### Scenario: Priority record fields are inherited
 
 - **WHEN** a checks value inherits `_type`, `priority`, and `content` from a
@@ -306,3 +337,135 @@ Inherited `_type` SHALL be treated as a raw priority record.
   immediate Cargo argument helpers no longer performs canonical
   manifest-selected Crane dispatch
 - **THEN** structural validation rejects the disconnected gate implementation
+
+#### Scenario: External flake module resolves from repository-local source
+
+- **WHEN** an allowed `inputs.<name>.flakeModule` root import is retained but
+  that input's direct URL is replaced with a repository-local path
+- **THEN** structural validation rejects the non-canonical external module
+  provenance before trusting the root import exemption
+
+#### Scenario: Crane operation provider is replaced upstream
+
+- **WHEN** the gate generator remains canonical but `nix/rust-toolchain.nix`
+  wraps or replaces the etalon or MSRV Crane library operations
+- **THEN** structural validation rejects the non-canonical direct toolchain and
+  Crane provider contract
+
+#### Scenario: Nested provider decoy impersonates the effective provider
+
+- **WHEN** the effective root `perSystem` package provider is changed and inert
+  nested data retains a canonical-looking provider
+- **THEN** structural validation validates only the immediate `perSystem`
+  statement of the canonical `mkFlake` root module and rejects the mutation
+
+#### Scenario: Executable builtin uses a statically quoted selector
+
+- **WHEN** a reachable local module invokes `getAttr`, `listToAttrs`, `import`,
+  or another protected builtin through a statically quoted attribute selection
+- **THEN** structural validation normalizes the selector and applies the same
+  fail-closed rule as for its bare spelling
+
+#### Scenario: Quoted attribute name contains static interpolation
+
+- **WHEN** a reachable module spells `imports` as `"${"imports"}"` and points
+  it at a repository-local module
+- **THEN** graph traversal normalizes the static name, follows the local edge,
+  and applies every protected-surface check to the imported module
+
+#### Scenario: Canonical provider result has trailing composition
+
+- **WHEN** the canonical-looking `perSystem` provider result is followed by a
+  merge operator or any other expression before the binding terminator
+- **THEN** structural validation rejects the trailing composition instead of
+  accepting only its first attribute set
+
+#### Scenario: Locked trusted input changes provenance
+
+- **WHEN** a root input retains its canonical `flake.nix` URL but its direct
+  `flake.lock` mapping or locked GitHub owner/repository changes
+- **THEN** structural validation rejects the lock graph before trusting that
+  input as a gate provider or external module
+
+#### Scenario: Indented attribute name contains static interpolation
+
+- **WHEN** a reachable module spells a protected binding such as `inputs` as
+  `''${"inputs"}''`
+- **THEN** structural validation normalizes the static name and applies the
+  same trusted-root shadowing rule as for the bare spelling
+
+#### Scenario: Canonical mkFlake call has trailing composition
+
+- **WHEN** the canonical-looking root `mkFlake` call is followed by a merge,
+  import, or any other expression before the `outputs` binding terminator
+- **THEN** structural validation rejects the trailing output composition
+  instead of validating only the first call
+
+#### Scenario: Indented protected name uses layout whitespace
+
+- **WHEN** a reachable module binds a protected root using an indented-string
+  attribute name whose Nix layout whitespace normalizes to that root
+- **THEN** structural validation rejects the shadow exactly as it rejects the
+  bare protected binding
+
+#### Scenario: Indented protected name uses a control escape
+
+- **WHEN** an indented-string binding or selection uses a Nix control escape
+  to construct a protected or executable attribute name
+- **THEN** structural validation rejects the ambiguous attribute rather than
+  treating the escaped source spelling as inert data
+
+#### Scenario: Trusted provider redirects a transitive lock input
+
+- **WHEN** a directly trusted lock node redirects, adds, or removes one of its
+  executable transitive input edges
+- **THEN** structural validation rejects the complete reachable provider graph
+  unless the edge and target GitHub provenance match the canonical topology
+
+#### Scenario: Provider result adds a second statement
+
+- **WHEN** the toolchain `perSystem` result adds an import or any statement
+  beside the canonical `_module.args` publication
+- **THEN** structural validation rejects the non-canonical result before a
+  nested module can erase generated checks
+
+#### Scenario: Quoted attribute name computes its interpolation
+
+- **WHEN** an attribute-name string contains a nontrivial interpolation such
+  as a constant concatenation resolving to `disabledModules`
+- **THEN** structural validation rejects the ambiguous interpolated name rather
+  than masking it as inert string data
+
+#### Scenario: Effective mkFlake inputs are substituted
+
+- **WHEN** the first canonical `mkFlake` argument merges or replaces the
+  captured `inputs` before the root module is evaluated
+- **THEN** structural validation rejects the non-canonical argument before a
+  substituted provider can neutralize generated gates
+
+#### Scenario: scopedImport hides a reachable module
+
+- **WHEN** a reachable local module evaluates another file through bare or
+  statically selected `scopedImport`
+- **THEN** structural validation rejects the hidden import expression under
+  the same closed-profile rule as ordinary `import`
+
+#### Scenario: Path constructor creates protected config
+
+- **WHEN** a reachable module uses `setAttrByPath` to construct `config.checks`
+  and a raw priority record without literal protected bindings
+- **THEN** structural validation rejects the path-based attribute constructor
+
+#### Scenario: Attribute enumeration recovers a protected provider
+
+- **WHEN** a reachable module pairs `attrNames` with `attrValues` to recover a
+  priority constructor without selecting its protected name
+- **THEN** structural validation rejects the reflective enumeration primitives
+
+#### Scenario: Reflective collection publishes competing providers
+
+- **WHEN** a reachable non-toolchain module combines `intersectAttrs` and
+  `collect` to recover a priority constructor and publishes competing Crane
+  providers
+- **THEN** structural validation rejects both the reflective helpers and the
+  unauthorized protected-provider definitions

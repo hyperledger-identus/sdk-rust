@@ -587,3 +587,303 @@ meets that contract. Hosted Ubuntu run `33851811403`, job `100956092337`, passed
 with process-cold p50 117.731 ms, warm p50 12.654 ms, and no material
 regression; all 107 functional mutations and the complete Nix graph passed in
 the same run. The repository threshold is unchanged.
+
+## Provider provenance and static-selector correction contract
+
+The exact-head review of `2b996e8` and delayed reviews of prior heads exposed
+seven remaining executable-source routes. A repository-local flake input can
+masquerade as the exempt `inputs.devshell.flakeModule`; the upstream
+`craneLib` can replace every Cargo operation; a nested provider can satisfy the
+whole-root package-provider search; statically quoted `listToAttrs`, `import`,
+and `getAttr` selections disappear under string masking; and a quoted
+attribute name containing static interpolation can hide a local imports edge.
+Each mutation can erase or no-op generated gates and therefore blocks merge.
+
+The validator SHALL bind every exempt external flake module to its canonical
+direct input URL, bind the etalon and MSRV Crane libraries to their canonical
+direct toolchain construction, and validate the package provider only in the
+immediate statements of the effective canonical `mkFlake` root module. Shared
+executable-name detection SHALL normalize bare and statically quoted builtin
+selections. Static attribute-name discovery SHALL also normalize a quoted name
+whose complete value is one static string interpolation. Exact Nix-valid
+mutations for all seven findings must fail before new evidence is accepted.
+
+The implementation at `de59d4edf8019b17d4e370e4b3ec7731b2e55310`
+meets that contract. Root input declarations are compared as an immediate
+canonical set before any external module is exempted; root provider validation
+uses only the effective root module's immediate `perSystem` statement; and the
+toolchain module binds the direct etalon/MSRV toolchains, Crane constructors,
+publication, formals, and trusted roots. One cached executable-name index
+normalizes bare and statically quoted selections, while static string
+normalization follows the quoted-interpolated imports edge. All seven reported
+mutations plus local Crane-input and scope-shadow controls fail in the 116-test
+suite. A distinct local review found no remaining unbound provider dependency
+or quoted-selector route within this boundary.
+
+## Provider result boundary correction contract
+
+The exact-head review of `f17dab9db270c4db2279631092a54ee3c3f146fb`
+found that the provider parser validates the first result attribute set but
+does not reject an expression composed after it. A Nix-valid `//` merge can
+therefore replace `_module.args` after the canonical publication has already
+satisfied structural validation.
+
+The validator SHALL require the parsed result attribute set to consume the
+complete `perSystem` result expression before its binding terminator. An exact
+mutation that appends a merge and replaces the effective `craneLib` must parse
+with Nix and fail closed before new implementation evidence is accepted.
+
+The implementation at `020be7dc69dddda8863a1149ae1327974899de07`
+meets that contract. It accepts provider result statements only when the first
+attribute set is followed exclusively by the synthetic binding terminator and
+module close. The exact trailing-merge fixture parses with Nix and fails in the
+117-test suite; canonical acceptance remains green.
+
+## Locked provenance and indented-name correction contract
+
+Delayed exact-head review found two remaining provider routes. Canonical URLs
+in `flake.nix` do not bind the root input mapping or the `locked` node that Nix
+actually evaluates. Separately, a protected binding named by an indented
+string containing one static interpolation is not normalized, so it can shadow
+the trusted `inputs` formal.
+
+The validator SHALL require every canonical root input to map directly to a
+lock node whose `original` and `locked` GitHub provenance matches its declared
+owner and repository (including the declared ref when present). It SHALL also
+normalize both double-quoted and indented-string outer forms containing one
+static string interpolation. Exact lock-owner, root-mapping, and indented-name
+mutations must fail closed before new implementation evidence is accepted.
+
+The implementation at `08c808cf7836d7f7873a7e1d27e50d876669cf80`
+meets that contract. Indented static names are normalized after surrounding
+layout whitespace is removed, without changing double-quoted name semantics.
+Each direct provider now has an exact input-edge contract, and every expected
+target must be a leaf with canonical original and locked GitHub provenance.
+The two hosted mutations and an adjacent transitive-owner mutation fail in the
+124-test suite while canonical acceptance remains green.
+
+The implementation at `6a5b13ea10f3eae8f137c6dd7892d3fcb967b265`
+meets that contract. Root mappings must be direct strings, all seven declared
+inputs must resolve to nodes with exact original GitHub declarations, and each
+locked node must preserve the declared owner/repository with a commit-shaped
+revision and SRI hash. The static-name normalizer now applies the same single
+interpolation rule to both Nix string forms. All three exact mutations fail in
+the 120-test suite while canonical acceptance remains green.
+
+## Root output boundary correction contract
+
+The exact-head review of `62daa9f644ecfe6727f4d1dd968278ad3902a79c`
+found that root discovery validates the canonical `mkFlake` call's two
+arguments but does not reject an expression composed after that call. Because
+the root flake is intentionally exempt from the general import-expression
+rule, a trailing imported set can replace generated outputs after validation.
+
+The validator SHALL require the parsed second `mkFlake` argument to be followed
+only by the `outputs` binding terminator and root flake close. An exact Nix-valid
+mutation that merges an imported empty `checks` output must fail closed before
+new implementation evidence is accepted.
+
+The implementation at `7721da562937a186088d49bbbb1336f82db90b74`
+meets that contract. Root-module extraction now proceeds only when the second
+`mkFlake` argument is followed exclusively by the canonical binding terminator
+and root close. The exact imported-output merge parses with Nix and fails in
+the 121-test suite; canonical acceptance remains green.
+
+## Indented-name and transitive-lock correction contract
+
+The exact-head review of `27f1d686b324a54c2f57fad6adbd2028475440f2`
+found two additional trusted-root routes. Nix layout whitespace inside an
+indented-string attribute name can normalize to `inputs` without matching the
+current static-name helper. A directly trusted flake node can also redirect
+its executable transitive input while retaining canonical direct provenance.
+
+The validator SHALL normalize surrounding layout whitespace only for indented
+string names before matching a static protected identifier. It SHALL require
+each directly trusted node's exact canonical input-edge set and validate every
+target as a leaf with its canonical original and locked GitHub provenance.
+Exact whitespace-shadow and `flake-parts` `nixpkgs-lib` redirection mutations
+must fail closed before new implementation evidence is accepted.
+
+## Closed provider result and quoted-name correction contract
+
+Delayed review found two more composition routes. An `imports` statement can
+sit beside the canonical toolchain provider publication because validation
+filters only recognized publication and override statements. A quoted
+attribute name containing constant-computed interpolation is entirely masked
+before the general computed-attribute check.
+
+The validator SHALL require the provider result attribute set to contain
+exactly one statement: the canonical `_module.args` publication. It SHALL also
+reject every quoted attribute-name string containing interpolation unless the
+complete literal normalizes to the already supported single static-string
+form. Exact nested-import and constant-concatenation mutations must fail closed
+before new implementation evidence is accepted.
+
+The implementation at `63f1e97dfc37062c1bd081c7c590c092bb7f4d72`
+meets that contract. Provider-result validation now compares the complete
+statement count as well as the canonical publication. Computed-attribute
+detection inspects quoted strings used as bindings or selections and rejects
+any interpolated form the static-string normalizer cannot prove simple. Both
+hosted mutations fail in the 126-test suite, while an unrelated string-data
+control remains accepted outside the closed provider result.
+
+## Deferred-import and normalized-priority correction contract
+
+The exact-head review of `1bb821a5d5e2efa1e6ad72686181b2b7e110bd51`
+found two remaining module-composition routes. The priority scanner normalizes
+only ordinary double-quoted constructor selectors, despite the shared static
+name parser accepting indented and statically interpolated strings. The module
+graph walker follows only top-level module imports, so a reachable module can
+defer an override import into its `perSystem` result.
+
+The validator SHALL apply the shared static-string normalizer to every
+priority-constructor selector. It SHALL isolate every reachable `perSystem`
+result module and recursively traverse its immediate literal imports, failing
+closed if a declared deferred result cannot be statically isolated. Exact
+indented-selector, quoted-static-interpolation, and deferred-import mutations
+must fail before new implementation evidence is accepted.
+
+The implementation at `6da35d5b09914d9cc9a41b9ae34b4e19cbc0d82f`
+meets that contract. Priority detection now applies the shared static-string
+normalizer to selectors. The graph walker isolates direct and `let`-wrapped
+`perSystem` result modules, follows their immediate literal imports, and marks
+unsupported or computed deferred import shapes unresolved. The 132-test suite
+covers both exact hosted findings, a direct-result variant, unresolved imports,
+and inert nested import data.
+
+## Indented control-escape correction contract
+
+The exact-head review of `b88afbe50b2191b499449a46902beeb387bc9658`
+found that an indented-string attribute name can use `''\` to escape a
+character and normalize to a protected root without matching the static-name
+helper. The same syntax can therefore shadow `inputs` while the provider still
+appears canonical.
+
+The validator SHALL reject indented-string control escapes when the containing
+literal is used as an attribute binding or selection. The identical syntax in
+ordinary string data SHALL remain inert. An exact Nix-valid `inputs` shadow
+mutation must fail before new implementation evidence is accepted.
+
+The implementation at `bf99ffaeb23b2cf50a99b4f6d257741a4bd2abd4`
+meets that contract. Computed-attribute detection now treats an indented control
+escape as ambiguous only when its complete literal is used as a binding or
+selection. Exact protected-root and priority-selector mutations fail in the
+134-test suite, while both existing ordinary string-data controls remain green.
+
+## Root explicit-config correction contract
+
+The exact-head review of `c803e1108722257d4482210dd79d8607d636fa53`
+found that the root `mkFlake` result can bind `config` to an imported module
+fragment. The local graph already rejects this composition, but the root flake
+must retain its canonical package-provider imports and is excluded from the
+general import-expression rule.
+
+The validator SHALL reject any immediate `config` binding or inheritance in
+the isolated canonical root module before accepting its package provider. An
+exact Nix-valid imported config that forces generated checks away must fail
+before new implementation evidence is accepted.
+
+The implementation at `de7da620e6094fdc712c02e286f312952efd18f9`
+meets that contract. Root-module statements are already isolated from the
+canonical `mkFlake` result; validation now applies the existing immediate
+binding normalizer to reject direct, inherited, and quoted `config`. All three
+Nix-valid mutations fail in the 137-test suite.
+
+## Indirect reflective-access correction contract
+
+The exact-head review of `80a2640b6e301bd1c3e50857556c4f176466dfbb`
+found that a reachable module can retrieve `mkForce` through a computed
+attribute path without using the already-rejected `getAttr` token. Nixpkgs
+provides both fallback-capable `attrByPath` and strict `getAttrFromPath`
+variants.
+
+The validator SHALL reject executable use of `attrByPath` and
+`getAttrFromPath` throughout the same reachable local-module graph as
+`getAttr`. Exact computed-path mutations replacing both Crane providers must
+fail before new implementation evidence is accepted.
+
+The implementation at `0b039e14cb1cf3c38e3fb8205e826d592cc88d27`
+meets that contract. The cached executable-name analysis now treats all three
+lookup helpers as reflective access. Exact `attrByPath` and `getAttrFromPath`
+provider-replacement mutations fail alongside the existing `getAttr` fixture
+in the 139-test suite.
+
+## Closed root-module correction contract
+
+The exact-head review of `83c86b2626220e62ce01c9be6e9f75489a3740c0`
+found that rejecting root `config` alone leaves the flake-parts `flake` option
+available for imported raw priority composition. The root flake must retain
+two canonical `import` expressions for its package provider, so whole-file
+import rejection is not appropriate.
+
+The validator SHALL require the isolated root `mkFlake` module to contain
+exactly one immediate `imports`, `systems`, and `perSystem` statement and no
+other statement. Exact imported-`flake` and arbitrary-extra-statement mutations
+must fail before new implementation evidence is accepted.
+
+The implementation at `3715caf369f725f3c0b12743faa3e64e8df4f44f`
+meets that contract. Root-module validation now compares the complete immediate
+statement set with the three canonical bindings and requires each exactly once.
+Both the exact imported-`flake` mutation and an unrelated extra root statement
+fail in the 141-test suite.
+
+## Canonical mkFlake-input and scoped-import correction contract
+
+The exact-head review of `d76f97417bfc26bd1a33c9c1f34960b2e1348b64`
+found two remaining provider routes. The first `mkFlake` argument can replace
+the captured `inputs` set before the otherwise canonical module is evaluated,
+and `builtins.scopedImport` can load a hidden repository-local priority record
+without matching the ordinary-import prohibition.
+
+The validator SHALL require the complete first argument of the effective
+canonical `mkFlake` call to be exactly `{ inherit inputs; }`. It SHALL reject
+executable bare or statically selected `scopedImport` throughout the same
+reachable local-module graph as `import`. Exact input-substitution and
+scoped-import mutations must fail before new implementation evidence is
+accepted.
+
+The implementation at `8144d23d59ea112ff5fc38220bf8d7342da2c9b9`
+meets that contract. Root-call extraction parses the complete first argument
+and accepts only its single direct `inherit inputs;` statement. Executable-name
+analysis now applies the import prohibition to both `import` and
+`scopedImport`, including selected spellings. Both exact hosted mutations fail
+in the 143-test suite.
+
+## Path-construction and enumeration correction contract
+
+The exact-head review of `620b767760af5fe3e9ae4f67463691b45ca54040`
+found two remaining dynamic-provider routes. `setAttrByPath` can construct both
+`config.checks` and a raw priority record without a protected name appearing in
+binding position. Separately, `attrNames` and `attrValues` can enumerate and
+recover `mkForce` without selecting that name.
+
+The validator SHALL reject executable bare or statically selected
+`setAttrByPath` as dynamic attribute construction. It SHALL reject executable
+bare or statically selected `attrNames` and `attrValues` as reflective
+attribute access. Exact path-construction and enumeration mutations must fail
+before new implementation evidence is accepted.
+
+The implementation at `837b2998b66a9baede475df5a14d3caef1eadbf8`
+meets that contract. Dynamic-constructor analysis now rejects `setAttrByPath`
+and the renaming `mapAttrs'` variant. Reflective analysis rejects `attrNames`,
+`attrValues`, and the adjacent `attrsToList` and `mapAttrsToList` enumeration
+helpers. Both exact hosted mutations fail in the 145-test suite.
+
+## Protected-provider ownership correction contract
+
+The exact-head review of `cf6d50f62372c4453d24554a182c8be0b46207d3`
+found that `intersectAttrs` plus `collect` can recover `mkForce` without any
+recognized lookup or enumeration helper, then publish competing `craneLib` and
+`msrvCraneLib` providers from another reachable module.
+
+The validator SHALL make the canonical toolchain module the exclusive publisher
+of `craneLib`, `msrvCraneLib`, `toolchain`, and `msrvToolchain`. It SHALL also
+classify executable bare or statically selected `intersectAttrs` and `collect`
+as reflective access. The exact reflective-collection mutation must fail before
+new implementation evidence is accepted.
+
+The implementation at `67d9ff0165353d037564d692b1c604c84ebf8b0a`
+meets that contract. The graph validator now rejects every protected-provider
+binding or inheritance outside the canonical toolchain module, including nested
+publication. Reflective analysis additionally rejects `intersectAttrs` and
+`collect`. The exact hosted mutation fails in the 146-test suite.

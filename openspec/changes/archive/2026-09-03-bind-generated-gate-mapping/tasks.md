@@ -79,6 +79,42 @@
       library imports to canonical manifest-driven Crane dispatch.
 - [x] 2.43 Replace cold-path statement normalization and hashing with direct
       canonical formatted-source comparison preserving every significant byte.
+- [x] 2.44 Bind exempt external flake modules to canonical direct input URLs.
+- [x] 2.45 Bind etalon and MSRV Crane providers to canonical direct toolchain
+      construction.
+- [x] 2.46 Anchor the package-provider check to the immediate root-module
+      `perSystem` statement.
+- [x] 2.47 Normalize statically quoted executable builtin selections and quoted
+      attribute names containing a complete static interpolation.
+- [x] 2.48 Reject trailing expression composition after the canonical
+      `perSystem` provider result.
+- [x] 2.49 Validate canonical root-input mappings and direct locked GitHub
+      provenance.
+- [x] 2.50 Normalize indented-string protected names containing one static
+      interpolation.
+- [x] 2.51 Reject trailing expression composition after the canonical root
+      `mkFlake` invocation.
+- [x] 2.52 Normalize indented-string layout whitespace when matching protected
+      binding roots.
+- [x] 2.53 Validate the canonical topology and provenance of every reachable
+      executable provider lock edge.
+- [x] 2.54 Require exactly one canonical provider-result statement.
+- [x] 2.55 Reject nontrivial interpolation in quoted attribute-name strings.
+- [x] 2.56 Normalize indented and statically interpolated priority-constructor
+      selections.
+- [x] 2.57 Traverse literal imports from every reachable deferred `perSystem`
+      result module.
+- [x] 2.58 Reject indented control escapes used to construct attribute names.
+- [x] 2.59 Reject explicit root-module `config` composition.
+- [x] 2.60 Reject indirect reflective priority lookup through path helpers.
+- [x] 2.61 Require the exact canonical root-module statement set.
+- [x] 2.62 Require the exact canonical first `mkFlake` argument.
+- [x] 2.63 Reject executable `scopedImport` in reachable local modules.
+- [x] 2.64 Reject path-based attribute construction through `setAttrByPath`.
+- [x] 2.65 Reject reflective enumeration through `attrNames` and `attrValues`.
+- [x] 2.66 Reserve protected provider publication to the canonical toolchain
+      module.
+- [x] 2.67 Reject reflective `intersectAttrs` and `collect` helpers.
 
 ## 3. Verification and integration
 
@@ -138,3 +174,36 @@
       the delayed no-op-gate review thread for clearance.
 - [x] 3.27 Clear the hosted process-cold performance gate with all 107
       functional mutations intact.
+- [x] 3.28 Rerun complete evidence after provider-provenance, root anchoring,
+      quoted-selector, and static-name corrections, then prepare all seven
+      review threads for clearance.
+- [x] 3.29 Rerun complete evidence after provider-result boundary enforcement
+      and prepare the exact-head review thread for clearance.
+- [x] 3.30 Rerun complete evidence after locked-provenance and indented-name
+      enforcement and prepare both delayed review threads for clearance.
+- [x] 3.31 Rerun complete evidence after root-output boundary enforcement and
+      prepare the exact-head review thread for clearance.
+- [x] 3.32 Rerun complete evidence after indented-name and transitive-lock
+      enforcement and prepare both exact-head review threads for clearance.
+- [x] 3.33 Rerun complete evidence after provider-result closure and ambiguous
+      quoted-name rejection, then prepare both delayed threads for clearance.
+- [x] 3.34 Rerun complete evidence after normalized priority selection and
+      deferred-module traversal, then prepare both exact-head threads for
+      clearance.
+- [x] 3.35 Rerun complete evidence after indented control-escape rejection and
+      prepare the exact-head review thread for clearance.
+- [x] 3.36 Rerun complete evidence after root-config rejection and prepare the
+      exact-head review thread for clearance.
+- [x] 3.37 Rerun complete evidence after indirect reflective-access rejection
+      and prepare the exact-head review thread for clearance.
+- [x] 3.38 Rerun complete evidence after closing the root-module statement set
+      and prepare the exact-head review thread for clearance.
+- [x] 3.39 Rerun complete evidence after canonical `mkFlake` input binding and
+      `scopedImport` rejection, then prepare both exact-head review threads for
+      clearance.
+- [x] 3.40 Rerun complete evidence after path-construction and reflective-
+      enumeration rejection, then prepare both exact-head review threads for
+      clearance.
+- [x] 3.41 Rerun complete evidence after protected-provider ownership and
+      reflective collection rejection, then prepare the exact-head review
+      thread for clearance.

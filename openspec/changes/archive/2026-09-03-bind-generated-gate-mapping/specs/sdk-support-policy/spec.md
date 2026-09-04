@@ -285,3 +285,17 @@ Inherited `_type` SHALL be treated as a raw priority record.
 - **WHEN** a checks value inherits `_type`, `priority`, and `content` from a
   module priority constructor result
 - **THEN** structural validation rejects the inherited raw priority record
+
+#### Scenario: Inert mkFlake call impersonates root imports
+
+- **WHEN** the canonical `outputs` call uses an unresolved imports expression
+  and inert nested data contains a second canonical-looking `mkFlake` call
+- **THEN** root graph discovery remains anchored to the effective canonical
+  call and rejects the unresolved imports
+
+#### Scenario: Imports use an indented-string attribute name
+
+- **WHEN** a reachable module binds `imports` using the static
+  `''imports'' = [...]` spelling
+- **THEN** graph traversal follows the imported repository-local module and
+  applies all protected-surface checks to it

@@ -512,3 +512,18 @@ current `mk*Override` constructor family. Both hosted mutations fail; direct
 and quoted VM-override controls fail; and import-like string data remains
 accepted in the 100-test suite. A contradiction-focused local review found no
 unresolved imported-config or inherited-priority route within this boundary.
+
+## Canonical root-import and static-name correction contract
+
+Exact-head review of `2a5e705` identified two remaining import-graph bypasses.
+An inert second `flake-parts.lib.mkFlake` call can supply the whole-file root
+import match while the canonical `outputs` call uses an unresolved expression,
+and an effective `''imports'' = [...]` binding is discarded before the shared
+assignment parser can normalize it. Both can conceal a local priority override,
+so both P1 findings block merge.
+
+The validator SHALL extract root imports only from the direct canonical
+`mkFlake` expression already identified as the sole `outputs` result. Immediate
+module-statement filtering SHALL recognize bare, double-quoted, and
+indented-string static `imports` names. Exact Nix-valid mutations for both
+findings must fail closed before implementation evidence is accepted.

@@ -196,6 +196,12 @@ semantic equivalence across arbitrary Nix expressions.
 - Imports embedded in option values bypass a graph limited to the module
   `imports` option. The closed authoring profile rejects the executable import
   primitive and explicit `config` composition in reachable local modules.
+- A whole-file search can select an inert canonical-looking `mkFlake` call.
+  Root import extraction is therefore bounded to the direct expression returned
+  by the sole validated `outputs` binding.
+- Static attribute names have bare, double-quoted, and indented-string Nix
+  spellings. Immediate-statement filtering normalizes all three before import
+  value analysis.
 
 ## Verification
 

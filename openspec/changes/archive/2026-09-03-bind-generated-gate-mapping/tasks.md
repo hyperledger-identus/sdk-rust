@@ -72,6 +72,9 @@
 - [x] 2.38 Reject executable imports and explicit top-level config composition
       in reachable repository modules.
 - [x] 2.39 Detect inherited raw module `_type` fields.
+- [ ] 2.40 Anchor root imports to the canonical `outputs` `mkFlake` result.
+- [ ] 2.41 Traverse immediate imports bound through indented-string attribute
+      syntax.
 
 ## 3. Verification and integration
 
@@ -124,3 +127,6 @@
       the nested-import-decoy thread for clearance.
 - [x] 3.24 Rerun complete evidence after imported-config and inherited-priority
       corrections and prepare both review threads for clearance.
+- [ ] 3.25 Rerun complete evidence after canonical-root anchoring and
+      indented-string import normalization, then prepare both review threads
+      for clearance.

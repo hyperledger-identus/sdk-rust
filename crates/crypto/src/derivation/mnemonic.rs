@@ -5,6 +5,7 @@
 
 use pbkdf2::pbkdf2_hmac;
 use sha2::Sha512;
+use zeroize::Zeroizing;
 
 use crate::error::Error;
 use crate::securerandom::SecureRandom;
@@ -33,9 +34,9 @@ impl MnemonicHelper {
 
     /// Create a random 24-word mnemonic using the injected [`SecureRandom`].
     pub fn create_random_mnemonics(rng: &mut impl SecureRandom) -> Result<Vec<String>, Error> {
-        let mut entropy = [0u8; ENTROPY_BYTES_24_WORDS];
-        rng.fill_bytes(&mut entropy)?;
-        Ok(Self::to_mnemonic_code(&entropy))
+        let mut entropy = Zeroizing::new([0u8; ENTROPY_BYTES_24_WORDS]);
+        rng.fill_bytes(entropy.as_mut())?;
+        Ok(Self::to_mnemonic_code(entropy.as_ref()))
     }
 
     /// Convert raw entropy into a mnemonic word list (BIP39).
@@ -80,7 +81,10 @@ impl MnemonicHelper {
     /// Errors with [`Error::MnemonicInvalid`] if any word is not in the
     /// wordlist.
     pub fn create_seed(mnemonics: &[String], passphrase: &str) -> Result<Vec<u8>, Error> {
-        Self::derive_seed(mnemonics, &format!("{SALT_PREFIX}{passphrase}"))
+        let mut salt = Zeroizing::new(String::with_capacity(SALT_PREFIX.len() + passphrase.len()));
+        salt.push_str(SALT_PREFIX);
+        salt.push_str(passphrase);
+        Self::derive_seed(mnemonics, &salt)
     }
 
     /// Derive a 64-byte seed from `mnemonics` and `passphrase` using the
@@ -103,7 +107,7 @@ impl MnemonicHelper {
     /// Convenience: create a random mnemonic and derive its seed with the
     /// standard default passphrase (`""`, i.e. salt `"mnemonic"`).
     pub fn create_random_seed(rng: &mut impl SecureRandom) -> Result<Vec<u8>, Error> {
-        let mnemonics = Self::create_random_mnemonics(rng)?;
+        let mnemonics = Zeroizing::new(Self::create_random_mnemonics(rng)?);
         Self::create_seed(&mnemonics, DEFAULT_PASSPHRASE)
     }
 
@@ -114,13 +118,13 @@ impl MnemonicHelper {
         if !Self::is_valid_mnemonic_code(mnemonics) {
             return Err(Error::MnemonicInvalid);
         }
-        let mnemonic_string = mnemonics.join(" ");
-        let mut dk = [0u8; PBKDF2_DK_LEN];
+        let mnemonic_string = Zeroizing::new(mnemonics.join(" "));
+        let mut dk = Zeroizing::new([0u8; PBKDF2_DK_LEN]);
         pbkdf2_hmac::<Sha512>(
             mnemonic_string.as_bytes(),
             salt.as_bytes(),
             PBKDF2_ITERATIONS,
-            &mut dk,
+            dk.as_mut(),
         );
         Ok(dk.to_vec())
     }

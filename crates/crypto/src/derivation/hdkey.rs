@@ -6,6 +6,7 @@
 
 use k256::elliptic_curve::ops::Reduce;
 use k256::{FieldBytes, Scalar, U256};
+use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
 use crate::derivation::path::{DerivationAxis, DerivationPath};
 use crate::error::Error;
@@ -15,11 +16,15 @@ const KEY_SIZE: usize = 32;
 const MASTER_KEY: &[u8] = b"Bitcoin seed";
 
 /// A BIP32 HD key for secp256k1.
-#[derive(Debug, Clone)]
+///
+/// Owned key material is zeroized on drop and omitted from [`Debug`](std::fmt::Debug).
+/// The raw fields remain available for compatibility; callers are responsible
+/// for protecting and erasing any copies they create.
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct HDKey {
-    /// The 32-byte private key.
+    /// The 32-byte private key. Any copied value becomes caller-owned secret material.
     pub private_key: [u8; KEY_SIZE],
-    /// The 32-byte chain code.
+    /// The 32-byte chain code. Any copied value becomes caller-owned secret material.
     pub chain_code: [u8; KEY_SIZE],
     /// The depth in the derivation tree.
     pub depth: u32,
@@ -27,11 +32,20 @@ pub struct HDKey {
     pub child_index: u32,
 }
 
+impl std::fmt::Debug for HDKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HDKey")
+            .field("depth", &self.depth)
+            .field("child_index", &self.child_index)
+            .finish_non_exhaustive()
+    }
+}
+
 impl HDKey {
     /// Derive the master HD key from a seed (any length, per BIP-32) via
     /// HMAC-SHA512 keyed with `"Bitcoin seed"`.
     pub fn init_from_seed(seed: &[u8]) -> Result<Self, Error> {
-        let i = hmac_sha512(MASTER_KEY, seed);
+        let i = Zeroizing::new(hmac_sha512(MASTER_KEY, seed));
         let mut private_key = [0u8; KEY_SIZE];
         let mut chain_code = [0u8; KEY_SIZE];
         private_key.copy_from_slice(&i[0..KEY_SIZE]);
@@ -51,11 +65,11 @@ impl HDKey {
             return Err(Error::DerivationFailed);
         }
         // data = 0x00 || ser256(k_par) || ser32(i)
-        let mut data = Vec::with_capacity(1 + KEY_SIZE + 4);
+        let mut data = Zeroizing::new(Vec::with_capacity(1 + KEY_SIZE + 4));
         data.push(0x00);
         data.extend_from_slice(&self.private_key);
         data.extend_from_slice(&axis.raw().to_be_bytes());
-        let i = hmac_sha512(&self.chain_code, &data);
+        let i = Zeroizing::new(hmac_sha512(&self.chain_code, &data));
         let il = &i[0..KEY_SIZE];
         let ir = &i[KEY_SIZE..];
 

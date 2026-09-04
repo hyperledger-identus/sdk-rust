@@ -517,13 +517,16 @@ unresolved imported-config or inherited-priority route within this boundary.
 
 Exact-head review of `2a5e705` identified two remaining import-graph bypasses.
 An inert second `flake-parts.lib.mkFlake` call can supply the whole-file root
-import match while the canonical `outputs` call uses an unresolved expression,
-and an effective `''imports'' = [...]` binding is discarded before the shared
-assignment parser can normalize it. Both can conceal a local priority override,
-so both P1 findings block merge.
+import match while the canonical `outputs` call uses an unresolved expression.
+The review's direct `''imports'' = [...]` spelling is rejected by Nix 2.34.6;
+the valid statically computed `${''imports''} = [...]` form is rejected by the
+existing computed-attribute gate but is discarded from graph traversal before
+the shared assignment parser can normalize it. Complete graph evidence should
+still inspect its target, so both findings block final review clearance.
 
 The validator SHALL extract root imports only from the direct canonical
 `mkFlake` expression already identified as the sole `outputs` result. Immediate
-module-statement filtering SHALL recognize bare, double-quoted, and
-indented-string static `imports` names. Exact Nix-valid mutations for both
-findings must fail closed before implementation evidence is accepted.
+module-statement filtering SHALL recognize bare, double-quoted, and statically
+computed double-quoted or indented-string `imports` names. Exact Nix-valid
+mutations for both findings must fail closed before implementation evidence is
+accepted.

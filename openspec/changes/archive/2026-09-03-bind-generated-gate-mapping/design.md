@@ -199,9 +199,10 @@ semantic equivalence across arbitrary Nix expressions.
 - A whole-file search can select an inert canonical-looking `mkFlake` call.
   Root import extraction is therefore bounded to the direct expression returned
   by the sole validated `outputs` binding.
-- Static attribute names have bare, double-quoted, and indented-string Nix
-  spellings. Immediate-statement filtering normalizes all three before import
-  value analysis.
+- Static attribute names have bare, double-quoted, and statically computed Nix
+  string spellings. Immediate-statement filtering normalizes those forms before
+  import value analysis; direct indented-string attribute syntax is not valid
+  Nix and is not treated as execution evidence.
 
 ## Verification
 

@@ -293,9 +293,9 @@ Inherited `_type` SHALL be treated as a raw priority record.
 - **THEN** root graph discovery remains anchored to the effective canonical
   call and rejects the unresolved imports
 
-#### Scenario: Imports use an indented-string attribute name
+#### Scenario: Imports use a statically computed string attribute name
 
-- **WHEN** a reachable module binds `imports` using the static
-  `''imports'' = [...]` spelling
+- **WHEN** a reachable module binds `imports` using the valid static
+  `${''imports''} = [...]` or `${"imports"} = [...]` spelling
 - **THEN** graph traversal follows the imported repository-local module and
   applies all protected-surface checks to it

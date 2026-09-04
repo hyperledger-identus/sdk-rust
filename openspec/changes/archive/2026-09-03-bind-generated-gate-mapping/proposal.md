@@ -72,8 +72,8 @@ still reports success.
 - Treat inherited `_type` fields as raw module priority records.
 - Anchor root import discovery to the already-validated canonical `mkFlake`
   call so an inert second call cannot impersonate the effective graph.
-- Normalize indented-string attribute names when selecting immediate module
-  `imports` bindings.
+- Normalize statically computed indented-string attribute names when selecting
+  immediate module `imports` bindings.
 - Reject raw module `_type` tags independent of whether their values use
   double-quoted, indented, or computed Nix strings.
 - Recognize general Nix scheme URI literals whose scheme is followed directly

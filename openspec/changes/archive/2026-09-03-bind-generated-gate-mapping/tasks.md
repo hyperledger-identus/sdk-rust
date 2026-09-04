@@ -73,8 +73,8 @@
       in reachable repository modules.
 - [x] 2.39 Detect inherited raw module `_type` fields.
 - [ ] 2.40 Anchor root imports to the canonical `outputs` `mkFlake` result.
-- [ ] 2.41 Traverse immediate imports bound through indented-string attribute
-      syntax.
+- [ ] 2.41 Traverse immediate imports bound through a statically computed
+      indented-string attribute name.
 
 ## 3. Verification and integration
 

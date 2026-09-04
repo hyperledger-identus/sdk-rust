@@ -77,8 +77,8 @@
       indented-string attribute name.
 - [x] 2.42 Bind `makeGate`, its Cargo argument helpers, and their trusted
       library imports to canonical manifest-driven Crane dispatch.
-- [ ] 2.43 Replace cold-path statement normalization with canonical
-      formatted-source fingerprints that preserve every significant byte.
+- [ ] 2.43 Replace cold-path statement normalization and hashing with direct
+      canonical formatted-source comparison preserving every significant byte.
 
 ## 3. Verification and integration
 

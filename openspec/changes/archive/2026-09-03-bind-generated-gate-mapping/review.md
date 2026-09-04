@@ -571,7 +571,13 @@ process-cold p50 130.533 ms against a 125.616 ms material-regression ceiling.
 The new compact normalizer invokes the complete cached string parser at every
 source character, including the overwhelmingly common non-quote branch.
 
-The binding SHALL use canonical formatted-source fingerprints, preserving every
-source byte after insignificant outer trim and avoiding a second lexical pass.
-The 107 functional mutations must remain green, and hosted process-cold p50
-must return below the unchanged repository ceiling before integration.
+The binding SHALL compare canonical formatted source directly, preserving every
+source byte after insignificant outer trim and avoiding both a second lexical
+pass and cryptographic-module startup. The 107 functional mutations must remain
+green, and hosted process-cold p50 must return below the unchanged repository
+ceiling before integration.
+
+The first fingerprint implementation at `4ff81da` reduced hosted process-cold
+p50 from 130.533 ms to 118.832 ms, but a faster baseline tightened that run's
+ceiling to 117.474 ms. Direct transparent source comparison is required to
+remove the remaining startup cost without loosening the threshold.

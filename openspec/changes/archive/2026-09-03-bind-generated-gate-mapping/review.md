@@ -343,3 +343,22 @@ the material-regression ceiling; `11f9db0a374108fb4f9ec45c6632ef1333d53830`
 caches pure source masking and restores warm p50 to 7.741 ms. A final
 contradiction-focused local review found no remaining sibling-override,
 general-URI, or latency blocker.
+
+## Effective module-override correction contract
+
+The exact-head review of `7b4fffc` found three further ways to erase generated
+checks. A quoted attribute selection such as `pkgs.lib."mkForce"` disappears
+under ordinary string masking; a `../override.nix` import is misread from its
+second dot as a child-relative path; and the raw module value
+`{ _type = "override"; priority = 0; content = { }; }` has `mkOverride`
+semantics without retaining the constructor name. All three findings are P1
+and block merge.
+
+The validator SHALL detect bare and quoted priority constructors plus raw
+module override records in every reachable repository-local module. Literal
+graph traversal SHALL preserve and resolve complete `./` and `../` import
+prefixes. Exact mutations for all three hosted findings must fail with the
+stable module-graph diagnostic before integration.
+
+Implementation evidence remains pending until the regressions fail first and
+the focused and complete validation suites pass on an immutable signed head.

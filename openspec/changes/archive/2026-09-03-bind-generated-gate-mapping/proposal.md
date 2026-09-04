@@ -43,6 +43,10 @@ still reports success.
   without priority overrides that can erase imported generated checks.
 - Reject priority overrides throughout the recursively reachable local flake
   module graph, not only in the check wrapper.
+- Recognize quoted priority-constructor attribute selections and raw module
+  override records, not only bare `mkForce` or `mkOverride` identifiers.
+- Resolve both child-relative and parent-relative literal imports while
+  traversing the repository-local module graph.
 - Recognize general Nix scheme URI literals whose scheme is followed directly
   by URI data without `//`.
 - Consume the escaped character after an indented-string `''\` prefix.

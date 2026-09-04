@@ -74,6 +74,13 @@ Every repository-local module reachable from the root flake's imports is
 walked recursively and held to the same no-priority-override rule. A sibling or
 nested module therefore cannot erase generated checks during flake-parts
 composition.
+Literal import discovery preserves the complete `./` or `../` prefix and
+resolves it against the importing module before enforcing the repository
+boundary. Priority detection operates on effective constructor positions, so
+quoted selections such as `pkgs.lib."mkForce"` cannot disappear when ordinary
+string contents are masked. Raw module values whose `_type` is `"override"`
+are rejected as the representation produced by `mkOverride`, even when no
+constructor identifier remains in source.
 Lexical scope scanning skips path and URI tokens before interpreting `let` or
 `in`, and recognizes an indented-string opener only at a token boundary. Valid
 path components and apostrophes within identifiers therefore cannot create
@@ -128,6 +135,10 @@ semantic equivalence across arbitrary Nix expressions.
   accepted mapping contract currently relies only on `builtins` and `pkgs`;
   changes that introduce another root must update this explicit fail-closed
   set and its review evidence.
+- Static validation cannot prove arbitrary computed imports. The protected
+  module surface therefore permits only the literal local import forms it can
+  resolve and deliberately rejects every priority override value found in the
+  resulting reachable graph.
 
 ## Verification
 

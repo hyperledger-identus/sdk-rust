@@ -164,3 +164,24 @@ forms before determining an outer string's terminator.
   lexical scope keyword without using `//`
 - **THEN** lexical preprocessing recognizes the complete URI token and does
   not interpret its data as a lexical scope
+
+#### Scenario: Quoted priority constructor erases generated checks
+
+- **WHEN** a reachable local module selects `mkForce` or `mkOverride` through
+  a quoted attribute name
+- **THEN** structural validation rejects the effective priority constructor
+  before module merging can erase generated gates
+
+#### Scenario: Parent-relative module contains a priority override
+
+- **WHEN** a reachable module imports a repository-local module using `../`
+  and that module contains a priority override
+- **THEN** graph traversal resolves the complete parent-relative path and
+  structural validation rejects the override
+
+#### Scenario: Raw override record erases generated checks
+
+- **WHEN** a reachable local module contributes a raw module value whose
+  `_type` is `"override"`
+- **THEN** structural validation rejects the semantic priority override even
+  when no priority-constructor identifier appears in source

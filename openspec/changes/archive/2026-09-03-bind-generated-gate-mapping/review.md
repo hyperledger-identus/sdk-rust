@@ -653,3 +653,11 @@ owner and repository (including the declared ref when present). It SHALL also
 normalize both double-quoted and indented-string outer forms containing one
 static string interpolation. Exact lock-owner, root-mapping, and indented-name
 mutations must fail closed before new implementation evidence is accepted.
+
+The implementation at `6a5b13ea10f3eae8f137c6dd7892d3fcb967b265`
+meets that contract. Root mappings must be direct strings, all seven declared
+inputs must resolve to nodes with exact original GitHub declarations, and each
+locked node must preserve the declared owner/repository with a commit-shaped
+revision and SRI hash. The static-name normalizer now applies the same single
+interpolation rule to both Nix string forms. All three exact mutations fail in
+the 120-test suite while canonical acceptance remains green.

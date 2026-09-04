@@ -338,3 +338,15 @@ compatible aarch64-darwin Nix graph pass. Against PR base
 `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample benchmark
 reports warm p50/p95 9.200/10.197 ms and process-cold p50/p95 91.650/93.936 ms;
 the unchanged material-regression gate passes.
+
+## Final locked-provenance and indented-name evidence
+
+Locked source provenance and indented interpolated names are enforced at
+`6a5b13ea10f3eae8f137c6dd7892d3fcb967b265`. The mutation suite passes 120/120:
+a changed Crane lock owner, a root mapping redirected to devshell, and an
+indented interpolated `inputs` shadow all fail; the Nix-valid shadow fixture is
+independently parsed. Ruff lint and format, canonical policy validation, the
+full factory-contract suite, and the compatible aarch64-darwin Nix graph pass.
+Against PR base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.661/11.771 ms and process-cold p50/p95
+94.573/97.972 ms; the unchanged material-regression gate passes.

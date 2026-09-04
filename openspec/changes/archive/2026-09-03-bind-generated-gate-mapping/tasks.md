@@ -88,9 +88,9 @@
       attribute names containing a complete static interpolation.
 - [x] 2.48 Reject trailing expression composition after the canonical
       `perSystem` provider result.
-- [ ] 2.49 Validate canonical root-input mappings and direct locked GitHub
+- [x] 2.49 Validate canonical root-input mappings and direct locked GitHub
       provenance.
-- [ ] 2.50 Normalize indented-string protected names containing one static
+- [x] 2.50 Normalize indented-string protected names containing one static
       interpolation.
 
 ## 3. Verification and integration
@@ -156,5 +156,5 @@
       review threads for clearance.
 - [x] 3.29 Rerun complete evidence after provider-result boundary enforcement
       and prepare the exact-head review thread for clearance.
-- [ ] 3.30 Rerun complete evidence after locked-provenance and indented-name
+- [x] 3.30 Rerun complete evidence after locked-provenance and indented-name
       enforcement and prepare both delayed review threads for clearance.

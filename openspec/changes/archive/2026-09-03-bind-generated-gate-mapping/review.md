@@ -297,3 +297,15 @@ attribute set and requires the only `outputs` binding to return `mkFlake`
 directly from the canonical input formals. The exact shadowed-import mutation
 fails in the 68-test suite. A final contradiction-focused local review found
 no remaining lexical route to replace the provider's builtin imports.
+
+## Check-wrapper composition correction contract
+
+The exact-head review of `140513c` found that `nix/checks/default.nix` can keep
+the generator import but replace its local checks definition with
+`pkgs.lib.mkForce { }`. Flake-parts module merging then selects the forced empty
+set and silently removes the 23 generated gates while validation passes. This
+P1 finding blocks merge.
+
+The validator SHALL require exactly one plain wrapper `checks` attribute-set
+binding and reject module-priority constructors in the wrapper. An exact
+forced-empty-checks mutation must fail before the import graph is accepted.

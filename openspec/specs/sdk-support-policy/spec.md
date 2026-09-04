@@ -384,3 +384,10 @@ forms before determining an outer string's terminator.
   that redefines `import` while retaining a canonical-looking package provider
 - **THEN** structural validation rejects the non-canonical root or outputs
   shape before trusting the package provider
+
+#### Scenario: Check wrapper forces generated checks away
+
+- **WHEN** the module that imports the generated checks uses a priority
+  override such as `mkForce` or `mkOverride` for its checks contribution
+- **THEN** structural validation rejects the wrapper before module merging can
+  erase the required generated gates

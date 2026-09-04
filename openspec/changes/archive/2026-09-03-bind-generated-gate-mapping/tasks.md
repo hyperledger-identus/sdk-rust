@@ -40,6 +40,8 @@
 - [x] 2.19 Stop path scanning at line-comment markers.
 - [x] 2.20 Reject lexical wrappers that can shadow the root flake's builtin
       `import`.
+- [ ] 2.21 Reject check-wrapper priority overrides that can erase imported
+      generated checks.
 
 ## 3. Verification and integration
 
@@ -71,3 +73,5 @@
       clearance.
 - [x] 3.15 Rerun complete local evidence after the root-import correction and
       prepare its exact-head review thread for clearance.
+- [ ] 3.16 Rerun complete local evidence after the wrapper-composition
+      correction and prepare its exact-head review thread for clearance.

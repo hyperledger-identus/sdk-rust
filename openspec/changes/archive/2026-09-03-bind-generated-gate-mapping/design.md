@@ -66,6 +66,10 @@ The root flake itself must be a plain attribute set, and the `outputs` lambda
 must return `flake-parts.lib.mkFlake` directly. This excludes an enclosing
 `let` that can shadow the builtin `import` while preserving the provider's
 canonical-looking text.
+The `nix/checks/default.nix` wrapper must define its local checks as one plain
+attribute set and must not use module-priority constructors such as `mkForce`
+or `mkOverride`. Such a priority override can otherwise win module merging and
+erase every generated check despite retaining the generator import.
 Lexical scope scanning skips path and URI tokens before interpreting `let` or
 `in`, and recognizes an indented-string opener only at a token boundary. Valid
 path components and apostrophes within identifiers therefore cannot create

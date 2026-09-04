@@ -39,6 +39,8 @@ still reports success.
   enclosing lexical scope cannot replace the builtin `import`.
 - Stop path tokens at a Nix line-comment marker so comment preprocessing owns
   the remaining source line.
+- Require the check-wrapper module to contribute a plain checks attribute set
+  without priority overrides that can erase imported generated checks.
 - Consume the escaped character after an indented-string `''\` prefix.
 - Keep richer path classification within the existing hosted warm-latency
   regression ceiling.

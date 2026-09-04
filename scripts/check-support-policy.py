@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+from functools import cache
 from pathlib import Path
 from typing import Any
 
@@ -163,9 +164,13 @@ def nix_block_comment_end(text: str, index: int) -> int:
     return index
 
 
+@cache
 def nix_path_or_uri_end(text: str, index: int) -> int | None:
     """Return the end of a path or URI token beginning at index."""
     character = text[index]
+    plausible_word_start = character.isalnum() or character == "_"
+    if character not in "./~<" and not plausible_word_start:
+        return None
     uri_boundary = character.isalpha() and (
         index == 0 or not (text[index - 1].isalnum() or text[index - 1] in "+.-")
     )
@@ -173,13 +178,13 @@ def nix_path_or_uri_end(text: str, index: int) -> int | None:
         text[index - 1].isalnum() or text[index - 1] in "_'.+-"
     )
     unprefixed_path = (
-        token_boundary and NIX_UNPREFIXED_PATH_PREFIX.match(text, index) is not None
+        plausible_word_start
+        and token_boundary
+        and NIX_UNPREFIXED_PATH_PREFIX.match(text, index) is not None
     )
     if character not in "./~<" and not uri_boundary and not unprefixed_path:
         return None
-    relative_path = any(
-        text.startswith(prefix, index) for prefix in ("./", "../", "~/")
-    )
+    relative_path = text.startswith(("./", "../", "~/"), index)
     absolute_path = (
         text.startswith("/", index)
         and not text.startswith(("/*", "//"), index)

@@ -393,8 +393,30 @@ def nix_binds_attribute(text: str, name: str) -> bool:
 @cache
 def nix_uses_computed_attribute(text: str) -> bool:
     """Return whether executable Nix source contains a computed attribute."""
-    source = nix_string_mask(nix_without_comments(text))
-    return "${" in source
+    source = nix_without_comments(text)
+    if "${" in nix_string_mask(source):
+        return True
+
+    index = 0
+    while index < len(source):
+        path_end = nix_path_or_uri_end(source, index)
+        if path_end is not None:
+            index = path_end
+            continue
+        string_end = nix_string_end(source, index)
+        if string_end is None:
+            index += 1
+            continue
+        literal = source[index:string_end]
+        if "${" in literal and nix_static_string_value(literal) is None:
+            follows_attribute = (
+                re.match(r"\s*(?:=|\.)", source[string_end:]) is not None
+            )
+            follows_selection = source[:index].rstrip().endswith(".")
+            if follows_attribute or follows_selection:
+                return True
+        index = string_end
+    return False
 
 
 @cache
@@ -1924,6 +1946,7 @@ def validate_toolchains(
     )
     if (
         actual_toolchain_statements != expected_toolchain_statements
+        or len(result_statements or ()) != 1
         or provider_publications != {expected_provider_publication}
         or direct_provider_overrides
         or toolchain_formals != {"pkgs", "..."}

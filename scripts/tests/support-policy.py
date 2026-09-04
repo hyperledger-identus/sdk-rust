@@ -274,13 +274,12 @@ class SupportPolicyTests(unittest.TestCase):
     def test_priority_syntax_in_string_data_remains_allowed(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",
-            """    {
-      _module.args = {""",
-            """    {
-      _module.args.priorityExample = ''
-        pkgs.lib."mkForce" { _type = "override"; }
-      '';
-      _module.args = {""",
+            "{\n  perSystem =",
+            """{
+  _module.args.priorityExample = ''
+    pkgs.lib."mkForce" { _type = "override"; }
+  '';
+  perSystem =""",
         )
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -522,6 +521,15 @@ in
         )
         self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
         self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_computed_quoted_protected_name_fails_closed(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "  imports = [",
+            '  "${"disabled" + "Modules"}" = [ ./rust-gates.nix ];\n  imports = [',
+        )
+        self.assert_nix_parses_if_available("nix/checks/default.nix")
+        self.assert_fails("local Nix module graph uses computed attributes")
 
     def test_quoted_interpolated_import_binding_is_traversed(self) -> None:
         (self.fixture / "nix/override.nix").write_text(
@@ -882,6 +890,22 @@ in
     };
 }
 """,
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("does not bind canonical Crane providers")
+
+    def test_provider_result_cannot_add_import_statement(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ pkgs, ... }: { checks = pkgs.lib.mkForce { }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      imports = [ ./override.nix ];
+      _module.args = {""",
         )
         self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
         self.assert_fails("does not bind canonical Crane providers")

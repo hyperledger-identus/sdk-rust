@@ -642,6 +642,56 @@ in
         )
         self.assert_fails("does not map gate names and values from manifest entries")
 
+    def test_make_gate_binding_cannot_be_replaced_with_noop(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      makeGate =",
+            "      realMakeGate =",
+        )
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      generatedChecks =",
+            """      makeGate = gate: pkgs.runCommand "noop-${gate.name}" { } "touch $out";
+      generatedChecks =""",
+        )
+        self.assert_nix_parses_if_available("nix/checks/rust-gates.nix")
+        self.assert_fails("does not bind canonical gate construction")
+
+    def test_cargo_args_binding_cannot_be_replaced(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      cargoArgs =\n        gate:",
+            "      realCargoArgs =\n        gate:",
+        )
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      makeGate =",
+            '      cargoArgs = _: "";\n      makeGate =',
+        )
+        self.assert_nix_parses_if_available("nix/checks/rust-gates.nix")
+        self.assert_fails("does not bind canonical gate construction")
+
+    def test_cargo_argument_mapping_cannot_be_replaced(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            '        cargoNextest = "cargoNextestExtraArgs";',
+            '        cargoNextest = "cargoExtraArgs";',
+        )
+        self.assert_nix_parses_if_available("nix/checks/rust-gates.nix")
+        self.assert_fails("does not bind canonical gate construction")
+
+    def test_crane_library_cannot_be_shadowed(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      craneLib = builtins.mapAttrs (
+        _: _: _: pkgs.runCommand "noop" { } "touch $out"
+      ) cargoArgumentAttribute;
+      manifest = builtins.fromTOML""",
+        )
+        self.assert_nix_parses_if_available("nix/checks/rust-gates.nix")
+        self.assert_fails("shadows trusted root(s) in perSystem let: craneLib")
+
     def test_local_map_cannot_replace_pkgs_lib_map(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

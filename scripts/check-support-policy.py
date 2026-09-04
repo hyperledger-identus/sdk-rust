@@ -570,6 +570,24 @@ def nix_statement_binds(statement: str, name: str) -> bool:
     )
 
 
+@cache
+def nix_compact_source(text: str) -> str:
+    """Remove insignificant Nix whitespace while preserving string contents."""
+    source = nix_without_comments(text)
+    compact: list[str] = []
+    index = 0
+    while index < len(source):
+        string_end = nix_string_end(source, index)
+        if string_end is not None:
+            compact.append(source[index:string_end])
+            index = string_end
+            continue
+        if not source[index].isspace():
+            compact.append(source[index])
+        index += 1
+    return "".join(compact)
+
+
 def outer_per_system_let(text: str) -> tuple[str, str, str] | None:
     """Return perSystem's immediate let body, result, and function formals."""
     masked = nix_string_mask(text)
@@ -923,11 +941,21 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         if outer_scope is not None
         else []
     )
-    invalid_formals = [
+    malformed_formals = [
         entry
         for entry in formal_entries
         if entry != "..." and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_'-]*", entry) is None
     ]
+    expected_formals = {
+        "pkgs",
+        "craneLib",
+        "msrvCraneLib",
+        "cargoArtifacts",
+        "msrvCargoArtifacts",
+        "rustSrc",
+        "...",
+    }
+    invalid_formals = bool(malformed_formals) or set(formal_entries) != expected_formals
     shadows_global_builtins = "builtins" in formal_entries
     if shadows_global_builtins:
         failures.append("rust-gates.nix binds builtins in perSystem formals")
@@ -935,7 +963,16 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         failures.append("rust-gates.nix uses non-canonical perSystem formals")
     shadowed_trusted_roots = sorted(
         root
-        for root in ("builtins", "pkgs")
+        for root in (
+            "builtins",
+            "pkgs",
+            "inputs",
+            "craneLib",
+            "msrvCraneLib",
+            "cargoArtifacts",
+            "msrvCargoArtifacts",
+            "rustSrc",
+        )
         if any(nix_statement_binds(statement, root) for statement in statements)
     )
     if shadowed_trusted_roots:
@@ -970,7 +1007,17 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         if library_inherit is not None
         else set()
     )
-    if not {"listToAttrs", "map"}.issubset(inherited_helpers):
+    expected_helpers = {
+        "concatMap",
+        "concatStringsSep",
+        "escapeShellArgs",
+        "getAttr",
+        "listToAttrs",
+        "map",
+        "optionalAttrs",
+        "optionals",
+    }
+    if inherited_helpers != expected_helpers:
         failures.append(
             "rust-gates.nix does not inherit map and listToAttrs from pkgs.lib"
         )
@@ -986,6 +1033,78 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         ),
         None,
     )
+    canonical_gate_statements = {
+        nix_compact_source(statement)
+        for statement in (
+            """cargoArgumentAttribute = {
+              cargoBuild = "cargoExtraArgs";
+              cargoClippy = "cargoClippyExtraArgs";
+              cargoDoc = "cargoDocExtraArgs";
+              cargoNextest = "cargoNextestExtraArgs";
+            };""",
+            """cargoArgs =
+              gate:
+              escapeShellArgs (
+                optionals gate.locked [ "--locked" ]
+                ++ optionals gate.workspace [ "--workspace" ]
+                ++ concatMap (package: [
+                  "--package"
+                  package
+                ]) gate.packages
+                ++ concatMap (package: [
+                  "--exclude"
+                  package
+                ]) gate.exclude_packages
+                ++ optionals gate.lib [ "--lib" ]
+                ++ optionals gate.all_targets [ "--all-targets" ]
+                ++ optionals gate.no_default_features [ "--no-default-features" ]
+                ++ optionals gate.all_features [ "--all-features" ]
+                ++ optionals (gate.features != [ ]) [
+                  "--features"
+                  (concatStringsSep "," gate.features)
+                ]
+                ++ optionals (gate.target != "") [
+                  "--target"
+                  gate.target
+                ]
+                ++ gate.extra_args
+              );""",
+            """makeGate =
+              gate:
+              let
+                selectedCrane = if gate.toolchain == "msrv" then msrvCraneLib else craneLib;
+                operation = getAttr gate.operation selectedCrane;
+                argumentAttribute = cargoArgumentAttribute.${gate.operation} or null;
+                selectedArtifacts = if gate.artifacts == "msrv" then msrvCargoArtifacts else cargoArtifacts;
+              in
+              operation (
+                {
+                  src = if gate.source == "repository" then ./../.. else rustSrc;
+                }
+                // optionalAttrs (gate.artifacts != "none") {
+                  cargoArtifacts = selectedArtifacts;
+                }
+                // optionalAttrs (argumentAttribute != null) {
+                  ${argumentAttribute} = cargoArgs gate;
+                }
+                // optionalAttrs (gate.operation == "cargoBuild") {
+                  doCheck = false;
+                }
+                // optionalAttrs (gate.operation == "cargoAudit") {
+                  inherit (inputs) advisory-db;
+                }
+              );""",
+        )
+    }
+    actual_gate_statements = {
+        nix_compact_source(statement)
+        for statement in statements
+        if any(
+            nix_statement_binds(statement, name)
+            for name in ("cargoArgumentAttribute", "cargoArgs", "makeGate")
+        )
+    }
+    canonical_gate_construction = actual_gate_statements == canonical_gate_statements
     generated_pattern = (
         r"\s*generatedChecks\s*=\s*listToAttrs\s*\(\s*map\s*\("
         r"\s*gate\s*:\s*\{\s*inherit\s*\(\s*gate\s*\)\s*name\s*;"
@@ -1016,6 +1135,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
                 published_result,
             )
         )
+        and canonical_gate_construction
         and not shadowed_trusted_roots
         and not ambiguous_binding_root
         and not shadows_global_builtins
@@ -1023,6 +1143,8 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     )
     if manifest_binding is None:
         failures.append("rust-gates.nix does not parse gates.toml as manifest")
+    if not canonical_gate_construction:
+        failures.append("rust-gates.nix does not bind canonical gate construction")
     if generated_binding is None:
         failures.append(
             "rust-gates.nix does not map gate names and values from manifest entries"

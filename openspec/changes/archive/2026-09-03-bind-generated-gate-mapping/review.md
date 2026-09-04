@@ -488,3 +488,18 @@ and wrapper enforcement share that result. The exact inert-decoy mutation
 fails while a positive fixture proves nested import-shaped data is ignored when
 the effective generator edge remains. A contradiction-focused local review
 found no fallback global import scan or unresolved blocker.
+
+## Imported-config and inherited-priority correction contract
+
+A delayed review thread from `5eb0be6` and the exact-head review of `b549f9c`
+identified two remaining module-composition routes. A checks value can inherit
+`_type`, `priority`, and `content` from a priority constructor, and an explicit
+`config` value can import a local fragment whose checks use `mkForce`. Both
+erase the generated gates while the validator passes, so both P1 findings block
+merge.
+
+The validator SHALL reject inherited `_type` fields as raw priority records.
+Reachable repository modules SHALL reject executable `import` expressions and
+explicit top-level `config` composition; local module dependencies must use the
+statically traversed module `imports` list. Exact mutations for both hosted
+findings must fail before implementation evidence is accepted.

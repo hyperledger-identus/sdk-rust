@@ -66,6 +66,10 @@ still reports success.
   module-surface mutations, not only direct assignments.
 - Discover imports only from immediate bindings of the returned module
   attribute set so nested data cannot impersonate an effective graph edge.
+- Reject executable `import` expressions and explicit top-level `config`
+  composition in reachable repository modules; local module dependencies must
+  use the statically traversed `imports` list.
+- Treat inherited `_type` fields as raw module priority records.
 - Reject raw module `_type` tags independent of whether their values use
   double-quoted, indented, or computed Nix strings.
 - Recognize general Nix scheme URI literals whose scheme is followed directly

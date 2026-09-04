@@ -117,6 +117,13 @@ cannot satisfy either recursive traversal or the required generator import.
 Reachable local module expressions that do not expose a direct statically
 bounded result attribute set fail closed instead of falling back to a global
 source scan.
+Reachable repository modules may not evaluate the Nix `import` primitive or
+bind an explicit top-level `config` value. The repository's canonical modules
+use direct option definitions and declare module dependencies only through
+literal `imports` lists, so this closes imported configuration fragments and
+imported option values without excluding current behavior. Raw priority-record
+detection also rejects inherited `_type`; the record cannot evade detection by
+inheriting its discriminator from a constructor result.
 Lexical scope scanning skips path and URI tokens before interpreting `let` or
 `in`, and recognizes an indented-string opener only at a token boundary. Valid
 path components and apostrophes within identifiers therefore cannot create
@@ -186,6 +193,9 @@ semantic equivalence across arbitrary Nix expressions.
 - Nested source data can contain canonical-looking import assignments. Module
   result isolation and immediate-statement splitting prevent those decoys from
   entering the effective import graph.
+- Imports embedded in option values bypass a graph limited to the module
+  `imports` option. The closed authoring profile rejects the executable import
+  primitive and explicit `config` composition in reachable local modules.
 
 ## Verification
 

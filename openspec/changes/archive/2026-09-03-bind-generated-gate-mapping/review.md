@@ -608,7 +608,7 @@ selections. Static attribute-name discovery SHALL also normalize a quoted name
 whose complete value is one static string interpolation. Exact Nix-valid
 mutations for all seven findings must fail before new evidence is accepted.
 
-The implementation at `08d10a9a190fc18fa682d024b05412a0f8b86f3e`
+The implementation at `de59d4edf8019b17d4e370e4b3ec7731b2e55310`
 meets that contract. Root input declarations are compared as an immediate
 canonical set before any external module is exempted; root provider validation
 uses only the effective root module's immediate `perSystem` statement; and the

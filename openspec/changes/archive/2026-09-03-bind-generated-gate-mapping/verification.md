@@ -317,7 +317,7 @@ Ubuntu run `33851811403`, job `100956092337`, reports warm p50/p95
 
 Trusted input, root-provider, Crane-provider, quoted-selector, and static-name
 hardening is implemented at
-`08d10a9a190fc18fa682d024b05412a0f8b86f3e`. The mutation suite passes 116/116:
+`de59d4edf8019b17d4e370e4b3ec7731b2e55310`. The mutation suite passes 116/116:
 all seven hosted findings fail, as do a local Crane input replacement and an
 immediate `inputs` shadow in the toolchain scope. Every exact hosted fixture
 parses independently with Nix 2.34.6. Ruff lint/format, canonical policy

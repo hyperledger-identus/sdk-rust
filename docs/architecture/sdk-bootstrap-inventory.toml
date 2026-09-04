@@ -112,7 +112,7 @@ layer          = "credential-semantics"
 classification = "implemented"
 public_api     = "experimental"
 owner_issue    = "#71"
-summary        = "Bounded format-neutral artifacts, envelope and staged verification evidence."
+summary        = "Bounded format-neutral artifacts, envelope, metadata/schema descriptors and staged verification evidence."
 
 [[packages]]
 name           = "identus-presentations"

@@ -121,9 +121,10 @@ feature surfaces and stabilization issue for every `implemented` package. It
 SHALL identify `identus-conformance` as verification-only and every placeholder
 as unsupported. It SHALL label all implemented surfaces experimental,
 unreleased and subject to focused component contracts. The
-`identus-credentials` entry SHALL identify its bounded envelope and staged
-verification evidence while explicitly excluding trust, verifier execution,
-metadata/schema, status bindings, concrete formats, protocols, and storage.
+`identus-credentials` entry SHALL identify its bounded envelope, metadata/schema
+descriptors, and staged verification evidence while explicitly excluding claim
+values, trust, verifier/schema execution, status/holder bindings, concrete
+formats, protocols, display/localization, wire codecs, and storage.
 
 #### Scenario: Consumer inspects current foundations
 
@@ -141,8 +142,8 @@ metadata/schema, status bindings, concrete formats, protocols, and storage.
 #### Scenario: Consumer inspects current credential foundations
 
 - **WHEN** a consumer considers integrating `identus-credentials`
-- **THEN** the inventory identifies #71 and #73 as delivered experimental
-  slices without implying the deferred capabilities are supported
+- **THEN** the inventory identifies #71, #73, and #75 as delivered
+  experimental slices without implying the deferred capabilities are supported
 
 ### Requirement: Governance evidence is local and release authority stays protected
 
@@ -193,17 +194,17 @@ describe unsupported credential capabilities as future work.
 
 - **WHEN** a consumer inspects the bootstrap inventory after issue #71
 - **THEN** `identus-credentials` is accepted as implemented and experimental,
-  is not listed as a placeholder, and does not imply support for credential
-  metadata, verifier execution, status bindings, concrete formats, protocols,
-  or storage
+  is not listed as a placeholder, and the envelope slice by itself does not
+  imply metadata, verifier execution, status bindings, concrete formats,
+  protocols, or storage
 
 ### Requirement: Credential verification activation is inventoried
 
 The human-readable bootstrap inventory SHALL identify the canonical staged
 verification evidence added under issue #73 as part of the experimental
-`identus-credentials` surface. It SHALL continue to exclude trust decisions,
-verifier execution, metadata/schema, status bindings, concrete formats,
-protocols, and storage.
+`identus-credentials` surface. The verification slice SHALL continue to
+exclude trust decisions, verifier execution, metadata/schema, status bindings,
+concrete formats, protocols, and storage.
 
 #### Scenario: Consumer inspects verification support
 

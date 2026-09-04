@@ -6,16 +6,18 @@ use identus_credentials::{
     CredentialSchemaId, CredentialType,
 };
 use identus_presentations::{
+    GeneratedPresentation, MAX_GENERATED_PRESENTATION_ARTIFACTS, MAX_GENERATED_PRESENTATION_BYTES,
+    MAX_PRESENTATION_ARTIFACT_BINDINGS, MAX_PRESENTATION_ARTIFACT_BYTES,
     MAX_PRESENTATION_CANDIDATE_CLAIMS, MAX_PRESENTATION_CANDIDATES,
     MAX_PRESENTATION_CHALLENGE_BYTES, MAX_PRESENTATION_CREDENTIAL_HANDLE_BYTES,
     MAX_PRESENTATION_DISCLOSURE_SELECTIONS, MAX_PRESENTATION_FILTER_VALUES,
     MAX_PRESENTATION_PURPOSE_BYTES, MAX_PRESENTATION_QUERY_CLAIMS, MAX_PRESENTATION_QUERY_ID_BYTES,
-    MAX_PRESENTATION_REQUEST_QUERIES, MAX_PRESENTATION_SELECTION_CLAIMS, PresentationCandidateSet,
-    PresentationChallenge, PresentationClaimIntent, PresentationClaimRequest,
-    PresentationCredentialCandidate, PresentationCredentialFilters, PresentationCredentialHandle,
-    PresentationCredentialQuery, PresentationCredentialSelection, PresentationDisclosurePlan,
-    PresentationError, PresentationPurpose, PresentationQueryId, PresentationRequest,
-    PresentationSelectedClaim,
+    MAX_PRESENTATION_REQUEST_QUERIES, MAX_PRESENTATION_SELECTION_CLAIMS, PresentationArtifact,
+    PresentationArtifactBinding, PresentationCandidateSet, PresentationChallenge,
+    PresentationClaimIntent, PresentationClaimRequest, PresentationCredentialCandidate,
+    PresentationCredentialFilters, PresentationCredentialHandle, PresentationCredentialQuery,
+    PresentationCredentialSelection, PresentationDisclosurePlan, PresentationError,
+    PresentationPurpose, PresentationQueryId, PresentationRequest, PresentationSelectedClaim,
 };
 
 fn query_id(value: &str) -> PresentationQueryId {
@@ -112,6 +114,61 @@ fn selection(
         claims,
     )
     .expect("valid credential selection")
+}
+
+fn binding(query: &str, handle: &str) -> PresentationArtifactBinding {
+    PresentationArtifactBinding::new(
+        query_id(query),
+        PresentationCredentialHandle::from_text(handle).unwrap(),
+    )
+}
+
+fn artifact(
+    format_name: &str,
+    bindings: Vec<PresentationArtifactBinding>,
+    bytes: Vec<u8>,
+) -> PresentationArtifact {
+    PresentationArtifact::new(format(format_name), bindings, bytes).expect("valid artifact")
+}
+
+fn multi_selection_fixture(
+    count: usize,
+    format_name: &str,
+) -> (PresentationRequest, PresentationDisclosurePlan) {
+    let request = request(vec![
+        PresentationCredentialQuery::new(
+            query_id("query"),
+            format(format_name),
+            true,
+            true,
+            PresentationCredentialFilters::unrestricted(),
+            Vec::new(),
+        )
+        .unwrap(),
+    ]);
+    let candidates = PresentationCandidateSet::new(
+        &request,
+        (0..count)
+            .map(|index| {
+                candidate(
+                    "query",
+                    &format!("credential-{index}"),
+                    format_name,
+                    Vec::new(),
+                )
+            })
+            .collect(),
+    )
+    .unwrap();
+    let plan = PresentationDisclosurePlan::new(
+        &request,
+        &candidates,
+        (0..count)
+            .map(|index| selection("query", &format!("credential-{index}"), Vec::new()))
+            .collect(),
+    )
+    .unwrap();
+    (request, plan)
 }
 
 #[test]
@@ -1028,6 +1085,410 @@ fn disclosure_plan_revalidates_candidates_against_the_exact_request() {
 }
 
 #[test]
+fn generated_presentation_unifies_per_credential_and_aggregate_artifacts() {
+    let family_name = path(&["family_name"]);
+    let birth_date = path(&["credentialSubject", "dateOfBirth"]);
+    let request = request(vec![
+        unrestricted_query(
+            "identity_card",
+            "dc+sd-jwt",
+            vec![PresentationClaimRequest::new(
+                family_name.clone(),
+                PresentationClaimIntent::Reveal,
+                true,
+            )],
+        ),
+        PresentationCredentialQuery::new(
+            query_id("age_proof"),
+            format("midnight_cbor_phase1"),
+            true,
+            true,
+            PresentationCredentialFilters::unrestricted(),
+            vec![PresentationClaimRequest::new(
+                birth_date.clone(),
+                PresentationClaimIntent::Predicate,
+                true,
+            )],
+        )
+        .unwrap(),
+        unrestricted_query("future_format", "example+future", Vec::new()),
+    ]);
+    let candidates = PresentationCandidateSet::new(
+        &request,
+        vec![
+            candidate(
+                "identity_card",
+                "credential-1",
+                "dc+sd-jwt",
+                vec![family_name],
+            ),
+            candidate(
+                "age_proof",
+                "credential-2",
+                "midnight_cbor_phase1",
+                vec![birth_date.clone()],
+            ),
+            candidate(
+                "age_proof",
+                "credential-3",
+                "midnight_cbor_phase1",
+                vec![birth_date],
+            ),
+            candidate(
+                "future_format",
+                "credential-4",
+                "example+future",
+                Vec::new(),
+            ),
+        ],
+    )
+    .unwrap();
+    let plan = PresentationDisclosurePlan::new(
+        &request,
+        &candidates,
+        vec![
+            selection(
+                "identity_card",
+                "credential-1",
+                vec![selected_claim(
+                    &["family_name"],
+                    PresentationClaimIntent::Reveal,
+                )],
+            ),
+            selection(
+                "age_proof",
+                "credential-2",
+                vec![selected_claim(
+                    &["credentialSubject", "dateOfBirth"],
+                    PresentationClaimIntent::Predicate,
+                )],
+            ),
+            selection(
+                "age_proof",
+                "credential-3",
+                vec![selected_claim(
+                    &["credentialSubject", "dateOfBirth"],
+                    PresentationClaimIntent::Predicate,
+                )],
+            ),
+            selection("future_format", "credential-4", Vec::new()),
+        ],
+    )
+    .unwrap();
+    let artifacts = vec![
+        artifact(
+            "example+future",
+            vec![binding("future_format", "credential-4")],
+            b"dummy-presentation".to_vec(),
+        ),
+        artifact(
+            "midnight_cbor_phase1",
+            vec![
+                binding("age_proof", "credential-2"),
+                binding("age_proof", "credential-3"),
+            ],
+            vec![0xd8, 0x18, 0x2a],
+        ),
+        artifact(
+            "dc+sd-jwt",
+            vec![binding("identity_card", "credential-1")],
+            b"eyJhbGciOi...~kb-jwt".to_vec(),
+        ),
+    ];
+    let artifact_vector_address = artifacts.as_ptr();
+
+    let generated = GeneratedPresentation::new(&request, plan, artifacts).unwrap();
+    assert_eq!(generated.artifacts().as_ptr(), artifact_vector_address);
+    assert_eq!(generated.artifacts()[0].format().as_str(), "example+future");
+    assert_eq!(
+        generated.artifacts()[1].bindings().len(),
+        2,
+        "one Midnight artifact may aggregate two selected credentials"
+    );
+    assert_eq!(generated.artifacts()[2].as_bytes(), b"eyJhbGciOi...~kb-jwt");
+
+    let receipt = generated.receipt_input();
+    assert_eq!(receipt.verifier().as_str(), "https://verifier.example");
+    assert_eq!(
+        receipt.purpose().map(PresentationPurpose::as_str),
+        Some("Prove eligibility")
+    );
+    assert_eq!(receipt.entries().len(), 4);
+    assert_eq!(receipt.entries()[0].query_id().as_str(), "identity_card");
+    assert_eq!(
+        receipt.entries()[0].credential_handle().as_text(),
+        Some("credential-1")
+    );
+    assert_eq!(receipt.entries()[0].format().as_str(), "dc+sd-jwt");
+    assert_eq!(receipt.entries()[1].query_id().as_str(), "age_proof");
+    assert_eq!(
+        receipt.entries()[1].selected_claims()[0].intent(),
+        PresentationClaimIntent::Predicate
+    );
+    assert_eq!(receipt.entries()[3].query_id().as_str(), "future_format");
+    assert_eq!(generated.into_artifacts().len(), 3);
+}
+
+#[test]
+fn artifact_bindings_and_payload_are_bounded_and_zero_copy() {
+    assert_eq!(
+        PresentationArtifact::new(format("example"), Vec::new(), vec![1]),
+        Err(PresentationError::InvalidArtifactBindings)
+    );
+    let oversized_bindings = (0..=MAX_PRESENTATION_ARTIFACT_BINDINGS)
+        .map(|index| binding("query", &format!("credential-{index}")))
+        .collect();
+    assert_eq!(
+        PresentationArtifact::new(format("example"), oversized_bindings, vec![1]),
+        Err(PresentationError::InvalidArtifactBindings)
+    );
+    let repeated = binding("query", "credential");
+    assert_eq!(
+        PresentationArtifact::new(format("example"), vec![repeated.clone(), repeated], vec![1],),
+        Err(PresentationError::DuplicateArtifactBinding)
+    );
+    assert_eq!(
+        PresentationArtifact::new(
+            format("example"),
+            vec![binding("query", "credential")],
+            Vec::new(),
+        ),
+        Err(PresentationError::InvalidArtifactPayload)
+    );
+
+    let maximum = vec![0xa5; MAX_PRESENTATION_ARTIFACT_BYTES];
+    let allocation = maximum.as_ptr();
+    let artifact = PresentationArtifact::new(
+        format("example"),
+        vec![binding("query", "credential")],
+        maximum,
+    )
+    .unwrap();
+    assert_eq!(artifact.as_bytes().as_ptr(), allocation);
+    assert_eq!(artifact.as_bytes().len(), MAX_PRESENTATION_ARTIFACT_BYTES);
+    assert_eq!(artifact.into_bytes().len(), MAX_PRESENTATION_ARTIFACT_BYTES);
+
+    assert_eq!(
+        PresentationArtifact::new(
+            format("example"),
+            vec![binding("query", "credential")],
+            vec![0; MAX_PRESENTATION_ARTIFACT_BYTES + 1],
+        ),
+        Err(PresentationError::InvalidArtifactPayload)
+    );
+}
+
+#[test]
+fn generated_presentation_enforces_collection_and_total_byte_bounds() {
+    let (request, plan) = multi_selection_fixture(1, "example");
+    assert_eq!(
+        GeneratedPresentation::new(&request, plan, Vec::new()),
+        Err(PresentationError::InvalidGeneratedArtifacts)
+    );
+
+    let (request, plan) = multi_selection_fixture(1, "example");
+    let repeated = artifact("example", vec![binding("query", "credential-0")], vec![1]);
+    assert_eq!(
+        GeneratedPresentation::new(
+            &request,
+            plan,
+            vec![repeated; MAX_GENERATED_PRESENTATION_ARTIFACTS + 1],
+        ),
+        Err(PresentationError::InvalidGeneratedArtifacts)
+    );
+
+    let payload_size = 1_024 * 1_024;
+    let (request, plan) = multi_selection_fixture(16, "example");
+    let artifacts = (0..16)
+        .map(|index| {
+            artifact(
+                "example",
+                vec![binding("query", &format!("credential-{index}"))],
+                vec![index as u8; payload_size],
+            )
+        })
+        .collect();
+    let generated = GeneratedPresentation::new(&request, plan, artifacts).unwrap();
+    assert_eq!(
+        generated
+            .artifacts()
+            .iter()
+            .map(|artifact| artifact.as_bytes().len())
+            .sum::<usize>(),
+        MAX_GENERATED_PRESENTATION_BYTES
+    );
+    drop(generated);
+
+    let (request, plan) = multi_selection_fixture(17, "example");
+    let artifacts = (0..17)
+        .map(|index| {
+            artifact(
+                "example",
+                vec![binding("query", &format!("credential-{index}"))],
+                vec![index as u8; payload_size],
+            )
+        })
+        .collect();
+    assert_eq!(
+        GeneratedPresentation::new(&request, plan, artifacts),
+        Err(PresentationError::ArtifactPayloadBudgetExceeded)
+    );
+}
+
+#[test]
+fn generated_presentation_rejects_request_format_and_binding_mismatches() {
+    let (first_request, first_plan) = multi_selection_fixture(1, "example");
+    let second_request = PresentationRequest::new(
+        entity("https://another-verifier.example"),
+        first_request.purpose().cloned(),
+        first_request.challenge().cloned(),
+        first_request.queries().to_vec(),
+    )
+    .unwrap();
+    assert_eq!(
+        GeneratedPresentation::new(
+            &second_request,
+            first_plan,
+            vec![artifact(
+                "example",
+                vec![binding("query", "credential-0")],
+                vec![1],
+            )],
+        ),
+        Err(PresentationError::DisclosureRequestMismatch)
+    );
+
+    let (request, plan) = multi_selection_fixture(1, "example");
+    assert_eq!(
+        GeneratedPresentation::new(
+            &request,
+            plan,
+            vec![artifact(
+                "example",
+                vec![binding("query", "unknown")],
+                vec![1],
+            )],
+        ),
+        Err(PresentationError::UnknownArtifactSelection)
+    );
+
+    let (request, plan) = multi_selection_fixture(1, "example");
+    assert_eq!(
+        GeneratedPresentation::new(
+            &request,
+            plan,
+            vec![artifact(
+                "other-format",
+                vec![binding("query", "credential-0")],
+                vec![1],
+            )],
+        ),
+        Err(PresentationError::ArtifactFormatMismatch)
+    );
+
+    let (request, plan) = multi_selection_fixture(1, "example");
+    assert_eq!(
+        GeneratedPresentation::new(
+            &request,
+            plan,
+            vec![
+                artifact("example", vec![binding("query", "credential-0")], vec![1],),
+                artifact("example", vec![binding("query", "credential-0")], vec![2],),
+            ],
+        ),
+        Err(PresentationError::DuplicateGeneratedArtifactBinding)
+    );
+
+    let (request, plan) = multi_selection_fixture(2, "example");
+    assert_eq!(
+        GeneratedPresentation::new(
+            &request,
+            plan,
+            vec![artifact(
+                "example",
+                vec![binding("query", "credential-0")],
+                vec![1],
+            )],
+        ),
+        Err(PresentationError::MissingArtifactSelection)
+    );
+}
+
+#[test]
+fn artifact_and_receipt_debug_redact_all_correlating_values() {
+    let query_canary = "artifact-query-canary";
+    let handle_canary = "artifact-handle-canary";
+    let path_canary = "artifact-path-canary";
+    let verifier_canary = "did:example:artifact-verifier-canary";
+    let purpose_canary = "artifact-purpose-canary";
+    let challenge_canary = "artifact-challenge-canary";
+    let payload_canary = b"artifact-payload-canary";
+    let request = PresentationRequest::new(
+        entity(verifier_canary),
+        Some(PresentationPurpose::parse(purpose_canary).unwrap()),
+        Some(PresentationChallenge::from_text(challenge_canary).unwrap()),
+        vec![unrestricted_query(
+            query_canary,
+            "example-safe-format",
+            vec![claim(&[path_canary], PresentationClaimIntent::Reveal, true)],
+        )],
+    )
+    .unwrap();
+    let candidates = PresentationCandidateSet::new(
+        &request,
+        vec![candidate(
+            query_canary,
+            handle_canary,
+            "example-safe-format",
+            vec![path(&[path_canary])],
+        )],
+    )
+    .unwrap();
+    let plan = PresentationDisclosurePlan::new(
+        &request,
+        &candidates,
+        vec![selection(
+            query_canary,
+            handle_canary,
+            vec![selected_claim(
+                &[path_canary],
+                PresentationClaimIntent::Reveal,
+            )],
+        )],
+    )
+    .unwrap();
+    let binding = binding(query_canary, handle_canary);
+    let artifact = artifact(
+        "example-safe-format",
+        vec![binding.clone()],
+        payload_canary.to_vec(),
+    );
+    let generated = GeneratedPresentation::new(&request, plan, vec![artifact.clone()]).unwrap();
+    let receipt = generated.receipt_input();
+    let renderings = [
+        format!("{binding:?}"),
+        format!("{artifact:?}"),
+        format!("{generated:?}"),
+        format!("{:?}", generated.disclosure_plan()),
+        format!("{:?}", receipt.entries()[0]),
+        format!("{receipt:?}"),
+    ];
+    for rendered in renderings {
+        for canary in [
+            query_canary,
+            handle_canary,
+            path_canary,
+            verifier_canary,
+            purpose_canary,
+            challenge_canary,
+            std::str::from_utf8(payload_canary).unwrap(),
+        ] {
+            assert!(!rendered.contains(canary), "leaked {canary}: {rendered}");
+        }
+    }
+}
+
+#[test]
 fn direct_and_aggregate_debug_redact_correlating_values() {
     let query_canary = "query-canary";
     let purpose_canary = "purpose-canary";
@@ -1255,6 +1716,46 @@ fn every_error_has_a_static_presentation_contract() {
             PresentationError::QueryMultiplicityExceeded,
             "presentation.query_multiplicity_exceeded",
         ),
+        (
+            PresentationError::DisclosureRequestMismatch,
+            "presentation.disclosure_request_mismatch",
+        ),
+        (
+            PresentationError::InvalidArtifactBindings,
+            "presentation.invalid_artifact_bindings",
+        ),
+        (
+            PresentationError::DuplicateArtifactBinding,
+            "presentation.duplicate_artifact_binding",
+        ),
+        (
+            PresentationError::InvalidArtifactPayload,
+            "presentation.invalid_artifact_payload",
+        ),
+        (
+            PresentationError::InvalidGeneratedArtifacts,
+            "presentation.invalid_generated_artifacts",
+        ),
+        (
+            PresentationError::ArtifactPayloadBudgetExceeded,
+            "presentation.artifact_payload_budget_exceeded",
+        ),
+        (
+            PresentationError::UnknownArtifactSelection,
+            "presentation.unknown_artifact_selection",
+        ),
+        (
+            PresentationError::ArtifactFormatMismatch,
+            "presentation.artifact_format_mismatch",
+        ),
+        (
+            PresentationError::DuplicateGeneratedArtifactBinding,
+            "presentation.duplicate_generated_artifact_binding",
+        ),
+        (
+            PresentationError::MissingArtifactSelection,
+            "presentation.missing_artifact_selection",
+        ),
     ];
 
     for (error, expected_code) in cases {
@@ -1291,7 +1792,7 @@ fn deterministic_untrusted_scalar_corpus_never_panics() {
 
 #[test]
 #[ignore = "manual release-mode construction diagnostic"]
-fn presentation_request_candidate_plan_throughput_diagnostic() {
+fn presentation_generation_and_receipt_input_throughput_diagnostic() {
     const ITERATIONS: usize = 250_000;
     let started = Instant::now();
 
@@ -1328,14 +1829,20 @@ fn presentation_request_candidate_plan_throughput_diagnostic() {
                 PresentationClaimIntent::Predicate,
             )],
         );
-        let _ = black_box(
-            PresentationDisclosurePlan::new(&request, &candidates, vec![selection]).unwrap(),
-        );
+        let plan = PresentationDisclosurePlan::new(&request, &candidates, vec![selection]).unwrap();
+        let artifact = PresentationArtifact::new(
+            format("midnight_cbor_phase1"),
+            vec![binding("age_proof", "credential-1")],
+            vec![0xd8, 0x18, 0x2a],
+        )
+        .unwrap();
+        let generated = GeneratedPresentation::new(&request, plan, vec![artifact]).unwrap();
+        let _ = black_box(generated.receipt_input());
     }
 
     let elapsed = started.elapsed();
     let throughput = ITERATIONS as f64 / elapsed.as_secs_f64();
     eprintln!(
-        "validated {ITERATIONS} presentation request/candidate/plan triples in {elapsed:?} ({throughput:.0} triples/s)"
+        "validated {ITERATIONS} presentation generation/receipt-input flows in {elapsed:?} ({throughput:.0} flows/s)"
     );
 }

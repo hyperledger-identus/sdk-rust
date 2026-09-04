@@ -71,6 +71,26 @@ pub mod error_code {
         ErrorCode::new("presentation.missing_query_selection");
     pub const QUERY_MULTIPLICITY_EXCEEDED: ErrorCode =
         ErrorCode::new("presentation.query_multiplicity_exceeded");
+    pub const DISCLOSURE_REQUEST_MISMATCH: ErrorCode =
+        ErrorCode::new("presentation.disclosure_request_mismatch");
+    pub const INVALID_ARTIFACT_BINDINGS: ErrorCode =
+        ErrorCode::new("presentation.invalid_artifact_bindings");
+    pub const DUPLICATE_ARTIFACT_BINDING: ErrorCode =
+        ErrorCode::new("presentation.duplicate_artifact_binding");
+    pub const INVALID_ARTIFACT_PAYLOAD: ErrorCode =
+        ErrorCode::new("presentation.invalid_artifact_payload");
+    pub const INVALID_GENERATED_ARTIFACTS: ErrorCode =
+        ErrorCode::new("presentation.invalid_generated_artifacts");
+    pub const ARTIFACT_PAYLOAD_BUDGET_EXCEEDED: ErrorCode =
+        ErrorCode::new("presentation.artifact_payload_budget_exceeded");
+    pub const UNKNOWN_ARTIFACT_SELECTION: ErrorCode =
+        ErrorCode::new("presentation.unknown_artifact_selection");
+    pub const ARTIFACT_FORMAT_MISMATCH: ErrorCode =
+        ErrorCode::new("presentation.artifact_format_mismatch");
+    pub const DUPLICATE_GENERATED_ARTIFACT_BINDING: ErrorCode =
+        ErrorCode::new("presentation.duplicate_generated_artifact_binding");
+    pub const MISSING_ARTIFACT_SELECTION: ErrorCode =
+        ErrorCode::new("presentation.missing_artifact_selection");
 }
 
 /// Typed reason that a presentation domain value could not be constructed.
@@ -145,6 +165,26 @@ pub enum PresentationError {
     MissingQuerySelection,
     /// A disclosure plan selects multiple credentials for a single-valued query.
     QueryMultiplicityExceeded,
+    /// A disclosure plan was paired with a different presentation request.
+    DisclosureRequestMismatch,
+    /// An artifact binding collection is empty or exceeds its bound.
+    InvalidArtifactBindings,
+    /// An artifact repeats a query and credential handle binding.
+    DuplicateArtifactBinding,
+    /// An opaque artifact payload is empty or exceeds its item bound.
+    InvalidArtifactPayload,
+    /// A generated presentation artifact collection is empty or oversized.
+    InvalidGeneratedArtifacts,
+    /// Generated artifact payload bytes exceed the aggregate budget.
+    ArtifactPayloadBudgetExceeded,
+    /// An artifact binding references no selection in the disclosure plan.
+    UnknownArtifactSelection,
+    /// An artifact format differs from one of its bound request queries.
+    ArtifactFormatMismatch,
+    /// One selection binding occurs in more than one generated artifact.
+    DuplicateGeneratedArtifactBinding,
+    /// A disclosure-plan selection has no generated artifact binding.
+    MissingArtifactSelection,
 }
 
 impl PresentationError {
@@ -285,6 +325,46 @@ impl PresentationError {
             Self::QueryMultiplicityExceeded => (
                 code::QUERY_MULTIPLICITY_EXCEEDED,
                 "presentation disclosure exceeds query multiplicity",
+            ),
+            Self::DisclosureRequestMismatch => (
+                code::DISCLOSURE_REQUEST_MISMATCH,
+                "presentation disclosure plan belongs to a different request",
+            ),
+            Self::InvalidArtifactBindings => (
+                code::INVALID_ARTIFACT_BINDINGS,
+                "presentation artifact binding collection is invalid",
+            ),
+            Self::DuplicateArtifactBinding => (
+                code::DUPLICATE_ARTIFACT_BINDING,
+                "presentation artifact repeats a selection binding",
+            ),
+            Self::InvalidArtifactPayload => (
+                code::INVALID_ARTIFACT_PAYLOAD,
+                "presentation artifact payload is invalid",
+            ),
+            Self::InvalidGeneratedArtifacts => (
+                code::INVALID_GENERATED_ARTIFACTS,
+                "generated presentation artifact collection is invalid",
+            ),
+            Self::ArtifactPayloadBudgetExceeded => (
+                code::ARTIFACT_PAYLOAD_BUDGET_EXCEEDED,
+                "generated presentation artifact bytes exceed the budget",
+            ),
+            Self::UnknownArtifactSelection => (
+                code::UNKNOWN_ARTIFACT_SELECTION,
+                "presentation artifact references an unknown selection",
+            ),
+            Self::ArtifactFormatMismatch => (
+                code::ARTIFACT_FORMAT_MISMATCH,
+                "presentation artifact format does not match its selection",
+            ),
+            Self::DuplicateGeneratedArtifactBinding => (
+                code::DUPLICATE_GENERATED_ARTIFACT_BINDING,
+                "generated presentation repeats a selection binding",
+            ),
+            Self::MissingArtifactSelection => (
+                code::MISSING_ARTIFACT_SELECTION,
+                "generated presentation omits a selection binding",
             ),
         }
     }

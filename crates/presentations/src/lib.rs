@@ -12,15 +12,19 @@ mod model;
 
 pub use error::PresentationError;
 pub use model::{
+    GeneratedPresentation, MAX_GENERATED_PRESENTATION_ARTIFACTS, MAX_GENERATED_PRESENTATION_BYTES,
+    MAX_PRESENTATION_ARTIFACT_BINDINGS, MAX_PRESENTATION_ARTIFACT_BYTES,
     MAX_PRESENTATION_CANDIDATE_CLAIMS, MAX_PRESENTATION_CANDIDATES,
     MAX_PRESENTATION_CHALLENGE_BYTES, MAX_PRESENTATION_CREDENTIAL_HANDLE_BYTES,
     MAX_PRESENTATION_DISCLOSURE_SELECTIONS, MAX_PRESENTATION_FILTER_VALUES,
     MAX_PRESENTATION_PURPOSE_BYTES, MAX_PRESENTATION_QUERY_CLAIMS, MAX_PRESENTATION_QUERY_ID_BYTES,
-    MAX_PRESENTATION_REQUEST_QUERIES, MAX_PRESENTATION_SELECTION_CLAIMS, PresentationCandidateSet,
-    PresentationChallenge, PresentationClaimIntent, PresentationClaimRequest,
-    PresentationCredentialCandidate, PresentationCredentialFilters, PresentationCredentialHandle,
-    PresentationCredentialQuery, PresentationCredentialSelection, PresentationDisclosurePlan,
-    PresentationPurpose, PresentationQueryId, PresentationRequest, PresentationSelectedClaim,
+    MAX_PRESENTATION_REQUEST_QUERIES, MAX_PRESENTATION_SELECTION_CLAIMS, PresentationArtifact,
+    PresentationArtifactBinding, PresentationCandidateSet, PresentationChallenge,
+    PresentationClaimIntent, PresentationClaimRequest, PresentationCredentialCandidate,
+    PresentationCredentialFilters, PresentationCredentialHandle, PresentationCredentialQuery,
+    PresentationCredentialSelection, PresentationDisclosurePlan, PresentationPurpose,
+    PresentationQueryId, PresentationReceiptEntry, PresentationReceiptInput, PresentationRequest,
+    PresentationSelectedClaim,
 };
 
 use identus_core::Component;
@@ -28,5 +32,5 @@ use identus_core::Component;
 /// Metadata for the `identus-presentations` crate.
 pub const COMPONENT: Component = Component {
     name: "identus-presentations",
-    summary: "Bounded format-neutral request, candidate, and disclosure-plan semantics.",
+    summary: "Bounded format-neutral request, disclosure-plan, and generated-artifact semantics.",
 };

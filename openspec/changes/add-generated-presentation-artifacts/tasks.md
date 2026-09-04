@@ -10,20 +10,20 @@
 
 ## 2. Generated presentation implementation
 
-- [ ] 2.1 Bind disclosure plans to their exact requests without changing their
+- [x] 2.1 Bind disclosure plans to their exact requests without changing their
   public selection accessors.
-- [ ] 2.2 Add bounded artifact bindings and opaque artifact payload values with
+- [x] 2.2 Add bounded artifact bindings and opaque artifact payload values with
   redacted diagnostics.
-- [ ] 2.3 Add generated-presentation correlation and complete plan-coverage
+- [x] 2.3 Add generated-presentation correlation and complete plan-coverage
   validation.
-- [ ] 2.4 Add value-free receipt entries/input derived in disclosure-plan order.
-- [ ] 2.5 Add static error bridges and root exports without a new dependency.
+- [x] 2.4 Add value-free receipt entries/input derived in disclosure-plan order.
+- [x] 2.5 Add static error bridges and root exports without a new dependency.
 
 ## 3. Evidence and performance
 
-- [ ] 3.1 Add OID4VP-, Midnight- and unrelated-format one-to-one and aggregate
+- [x] 3.1 Add OID4VP-, Midnight- and unrelated-format one-to-one and aggregate
   positive tests.
-- [ ] 3.2 Add maximum-bound, payload/total-budget, duplicate, unknown, missing,
+- [x] 3.2 Add maximum-bound, payload/total-budget, duplicate, unknown, missing,
   format, cross-request, order, redaction and complete error-contract tests.
 - [ ] 3.3 Extend and run the manual release diagnostic and record exact
   toolchain, host and result without a timing threshold.

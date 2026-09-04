@@ -28,6 +28,14 @@ pub const MAX_PRESENTATION_CANDIDATES: usize = 64;
 pub const MAX_PRESENTATION_SELECTION_CLAIMS: usize = 64;
 /// Maximum number of credential selections in one disclosure plan.
 pub const MAX_PRESENTATION_DISCLOSURE_SELECTIONS: usize = 64;
+/// Maximum number of selection bindings carried by one presentation artifact.
+pub const MAX_PRESENTATION_ARTIFACT_BINDINGS: usize = 64;
+/// Maximum byte length of one opaque presentation artifact.
+pub const MAX_PRESENTATION_ARTIFACT_BYTES: usize = 4 * 1_024 * 1_024;
+/// Maximum number of artifacts in one generated presentation.
+pub const MAX_GENERATED_PRESENTATION_ARTIFACTS: usize = 64;
+/// Maximum aggregate artifact bytes in one generated presentation.
+pub const MAX_GENERATED_PRESENTATION_BYTES: usize = 16 * 1_024 * 1_024;
 
 fn valid_text(value: &str, maximum: usize) -> bool {
     !value.is_empty()
@@ -843,7 +851,10 @@ impl fmt::Debug for PresentationCandidateSet {
 /// A bounded, structurally validated input for format-specific proof generation.
 #[must_use]
 #[derive(Clone, PartialEq, Eq)]
-pub struct PresentationDisclosurePlan(Vec<PresentationCredentialSelection>);
+pub struct PresentationDisclosurePlan {
+    request: PresentationRequest,
+    selections: Vec<PresentationCredentialSelection>,
+}
 
 impl PresentationDisclosurePlan {
     /// Validate and retain already-made credential and claim selections.
@@ -915,17 +926,27 @@ impl PresentationDisclosurePlan {
             }
         }
 
-        Ok(Self(selections))
+        Ok(Self {
+            request: request.clone(),
+            selections,
+        })
+    }
+
+    fn validate_against(&self, request: &PresentationRequest) -> Result<(), PresentationError> {
+        if self.request != *request {
+            return Err(PresentationError::DisclosureRequestMismatch);
+        }
+        Ok(())
     }
 
     /// Borrow the ordered credential selections.
     pub fn as_slice(&self) -> &[PresentationCredentialSelection] {
-        &self.0
+        &self.selections
     }
 
     /// Consume the plan and return its credential selections.
     pub fn into_vec(self) -> Vec<PresentationCredentialSelection> {
-        self.0
+        self.selections
     }
 }
 
@@ -933,7 +954,324 @@ impl fmt::Debug for PresentationDisclosurePlan {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("PresentationDisclosurePlan")
-            .field("selection_count", &self.0.len())
+            .field("selection_count", &self.selections.len())
+            .finish_non_exhaustive()
+    }
+}
+
+/// One disclosure-plan selection represented by a generated artifact.
+#[must_use]
+#[derive(Clone, PartialEq, Eq)]
+pub struct PresentationArtifactBinding {
+    query_id: PresentationQueryId,
+    credential_handle: PresentationCredentialHandle,
+}
+
+impl PresentationArtifactBinding {
+    /// Identify one disclosure selection by query and opaque credential handle.
+    pub const fn new(
+        query_id: PresentationQueryId,
+        credential_handle: PresentationCredentialHandle,
+    ) -> Self {
+        Self {
+            query_id,
+            credential_handle,
+        }
+    }
+
+    /// Return the request query represented by the artifact.
+    pub const fn query_id(&self) -> &PresentationQueryId {
+        &self.query_id
+    }
+
+    /// Return the opaque local credential handle represented by the artifact.
+    pub const fn credential_handle(&self) -> &PresentationCredentialHandle {
+        &self.credential_handle
+    }
+}
+
+impl fmt::Debug for PresentationArtifactBinding {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PresentationArtifactBinding")
+            .finish_non_exhaustive()
+    }
+}
+
+/// Opaque bounded bytes produced by one format-specific presentation adapter.
+#[must_use]
+#[derive(Clone, PartialEq, Eq)]
+pub struct PresentationArtifact {
+    format: CredentialFormat,
+    bindings: Vec<PresentationArtifactBinding>,
+    bytes: Vec<u8>,
+}
+
+impl PresentationArtifact {
+    /// Construct an opaque artifact with bounded unique selection bindings.
+    pub fn new(
+        format: CredentialFormat,
+        bindings: Vec<PresentationArtifactBinding>,
+        bytes: Vec<u8>,
+    ) -> Result<Self, PresentationError> {
+        if bindings.is_empty() || bindings.len() > MAX_PRESENTATION_ARTIFACT_BINDINGS {
+            return Err(PresentationError::InvalidArtifactBindings);
+        }
+        if has_duplicates(&bindings) {
+            return Err(PresentationError::DuplicateArtifactBinding);
+        }
+        if bytes.is_empty() || bytes.len() > MAX_PRESENTATION_ARTIFACT_BYTES {
+            return Err(PresentationError::InvalidArtifactPayload);
+        }
+        Ok(Self {
+            format,
+            bindings,
+            bytes,
+        })
+    }
+
+    /// Return the format that owns the opaque artifact representation.
+    pub const fn format(&self) -> &CredentialFormat {
+        &self.format
+    }
+
+    /// Borrow the disclosure selections represented by this artifact.
+    pub fn bindings(&self) -> &[PresentationArtifactBinding] {
+        &self.bindings
+    }
+
+    /// Borrow the exact opaque artifact bytes.
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+
+    /// Consume the artifact and return its exact opaque byte vector.
+    pub fn into_bytes(self) -> Vec<u8> {
+        self.bytes
+    }
+}
+
+impl fmt::Debug for PresentationArtifact {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PresentationArtifact")
+            .field("format", &self.format)
+            .field("binding_count", &self.bindings.len())
+            .field("byte_length", &self.bytes.len())
+            .finish_non_exhaustive()
+    }
+}
+
+/// Validated generated presentation artifacts covering one disclosure plan.
+#[must_use]
+#[derive(Clone, PartialEq, Eq)]
+pub struct GeneratedPresentation {
+    plan: PresentationDisclosurePlan,
+    artifacts: Vec<PresentationArtifact>,
+}
+
+impl GeneratedPresentation {
+    /// Validate exact request, format, uniqueness and plan coverage invariants.
+    pub fn new(
+        request: &PresentationRequest,
+        plan: PresentationDisclosurePlan,
+        artifacts: Vec<PresentationArtifact>,
+    ) -> Result<Self, PresentationError> {
+        if artifacts.is_empty() || artifacts.len() > MAX_GENERATED_PRESENTATION_ARTIFACTS {
+            return Err(PresentationError::InvalidGeneratedArtifacts);
+        }
+        plan.validate_against(request)?;
+
+        let total_bytes = artifacts.iter().try_fold(0_usize, |total, artifact| {
+            total.checked_add(artifact.as_bytes().len())
+        });
+        if total_bytes.is_none_or(|total| total > MAX_GENERATED_PRESENTATION_BYTES) {
+            return Err(PresentationError::ArtifactPayloadBudgetExceeded);
+        }
+
+        for (artifact_index, artifact) in artifacts.iter().enumerate() {
+            for binding in artifact.bindings() {
+                let selection = plan
+                    .as_slice()
+                    .iter()
+                    .find(|selection| {
+                        selection.query_id() == binding.query_id()
+                            && selection.credential_handle() == binding.credential_handle()
+                    })
+                    .ok_or(PresentationError::UnknownArtifactSelection)?;
+                let query = request
+                    .query(selection.query_id())
+                    .ok_or(PresentationError::UnknownArtifactSelection)?;
+                if artifact.format() != query.format() {
+                    return Err(PresentationError::ArtifactFormatMismatch);
+                }
+                if artifacts[..artifact_index].iter().any(|previous| {
+                    previous.bindings().iter().any(|previous_binding| {
+                        previous_binding.query_id() == binding.query_id()
+                            && previous_binding.credential_handle() == binding.credential_handle()
+                    })
+                }) {
+                    return Err(PresentationError::DuplicateGeneratedArtifactBinding);
+                }
+            }
+        }
+
+        if plan.as_slice().iter().any(|selection| {
+            !artifacts.iter().any(|artifact| {
+                artifact.bindings().iter().any(|binding| {
+                    binding.query_id() == selection.query_id()
+                        && binding.credential_handle() == selection.credential_handle()
+                })
+            })
+        }) {
+            return Err(PresentationError::MissingArtifactSelection);
+        }
+
+        Ok(Self { plan, artifacts })
+    }
+
+    /// Borrow the disclosure plan covered by the artifacts.
+    pub const fn disclosure_plan(&self) -> &PresentationDisclosurePlan {
+        &self.plan
+    }
+
+    /// Borrow the ordered generated artifacts.
+    pub fn artifacts(&self) -> &[PresentationArtifact] {
+        &self.artifacts
+    }
+
+    /// Derive a value-free owner-private input for downstream receipt policy.
+    pub fn receipt_input(&self) -> PresentationReceiptInput {
+        PresentationReceiptInput::from_generated(self)
+    }
+
+    /// Consume the generated presentation and return its artifact vector.
+    pub fn into_artifacts(self) -> Vec<PresentationArtifact> {
+        self.artifacts
+    }
+}
+
+impl fmt::Debug for GeneratedPresentation {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let binding_count = self
+            .artifacts
+            .iter()
+            .map(|artifact| artifact.bindings.len())
+            .sum::<usize>();
+        let byte_length = self
+            .artifacts
+            .iter()
+            .map(|artifact| artifact.bytes.len())
+            .sum::<usize>();
+        formatter
+            .debug_struct("GeneratedPresentation")
+            .field("selection_count", &self.plan.selections.len())
+            .field("artifact_count", &self.artifacts.len())
+            .field("binding_count", &binding_count)
+            .field("byte_length", &byte_length)
+            .finish_non_exhaustive()
+    }
+}
+
+/// Value-free owner-private record of one generated disclosure selection.
+#[must_use]
+#[derive(Clone, PartialEq, Eq)]
+pub struct PresentationReceiptEntry {
+    query_id: PresentationQueryId,
+    credential_handle: PresentationCredentialHandle,
+    format: CredentialFormat,
+    selected_claims: Vec<PresentationSelectedClaim>,
+}
+
+impl PresentationReceiptEntry {
+    /// Return the request query represented by this receipt entry.
+    pub const fn query_id(&self) -> &PresentationQueryId {
+        &self.query_id
+    }
+
+    /// Return the owner-private local credential handle.
+    pub const fn credential_handle(&self) -> &PresentationCredentialHandle {
+        &self.credential_handle
+    }
+
+    /// Return the selected credential's format.
+    pub const fn format(&self) -> &CredentialFormat {
+        &self.format
+    }
+
+    /// Borrow the value-free selected claims in disclosure-plan order.
+    pub fn selected_claims(&self) -> &[PresentationSelectedClaim] {
+        &self.selected_claims
+    }
+}
+
+impl fmt::Debug for PresentationReceiptEntry {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PresentationReceiptEntry")
+            .field("format", &self.format)
+            .field("claim_count", &self.selected_claims.len())
+            .finish_non_exhaustive()
+    }
+}
+
+/// Value-free input for a consumer-owned presentation receipt service.
+#[must_use]
+#[derive(Clone, PartialEq, Eq)]
+pub struct PresentationReceiptInput {
+    verifier: CredentialEntityId,
+    purpose: Option<PresentationPurpose>,
+    entries: Vec<PresentationReceiptEntry>,
+}
+
+impl PresentationReceiptInput {
+    fn from_generated(generated: &GeneratedPresentation) -> Self {
+        let request = &generated.plan.request;
+        let entries = generated
+            .plan
+            .selections
+            .iter()
+            .map(|selection| {
+                let query = request
+                    .query(selection.query_id())
+                    .expect("validated disclosure plan query must remain present");
+                PresentationReceiptEntry {
+                    query_id: selection.query_id.clone(),
+                    credential_handle: selection.credential_handle.clone(),
+                    format: query.format.clone(),
+                    selected_claims: selection.selected_claims.clone(),
+                }
+            })
+            .collect();
+        Self {
+            verifier: request.verifier.clone(),
+            purpose: request.purpose.clone(),
+            entries,
+        }
+    }
+
+    /// Return the verifier from the exact validated presentation request.
+    pub const fn verifier(&self) -> &CredentialEntityId {
+        &self.verifier
+    }
+
+    /// Return the optional purpose without retaining the request challenge.
+    pub const fn purpose(&self) -> Option<&PresentationPurpose> {
+        self.purpose.as_ref()
+    }
+
+    /// Borrow receipt entries in disclosure-plan order.
+    pub fn entries(&self) -> &[PresentationReceiptEntry] {
+        &self.entries
+    }
+}
+
+impl fmt::Debug for PresentationReceiptInput {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PresentationReceiptInput")
+            .field("has_purpose", &self.purpose.is_some())
+            .field("entry_count", &self.entries.len())
             .finish_non_exhaustive()
     }
 }

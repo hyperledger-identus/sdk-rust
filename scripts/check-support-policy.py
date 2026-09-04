@@ -190,6 +190,9 @@ def nix_path_or_uri_end(text: str, index: int) -> int | None:
 
     cursor = index + 1
     while cursor < len(text):
+        if text.startswith("${", cursor):
+            cursor = nix_interpolation_end(text, cursor + 2)
+            continue
         if text[cursor].isspace() or text[cursor] in ";,()[]{}":
             break
         cursor += 1
@@ -337,6 +340,10 @@ def outer_per_system_let(text: str) -> tuple[str, str, str] | None:
     index = body_start
     pairs = {")": "(", "]": "[", "}": "{"}
     while index < len(masked):
+        path_end = nix_path_or_uri_end(masked, index)
+        if path_end is not None:
+            index = path_end
+            continue
         character = masked[index]
         if character in "([{":
             delimiters.append(character)

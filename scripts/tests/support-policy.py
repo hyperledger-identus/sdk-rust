@@ -422,6 +422,16 @@ in
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_interpolated_path_resumes_before_scope_keyword(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pathData = ./prefix/${"x"}/let/file;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_adjacent_apostrophes_inside_identifier_preserve_valid_source(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

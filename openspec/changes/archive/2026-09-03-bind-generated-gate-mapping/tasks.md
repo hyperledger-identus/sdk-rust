@@ -106,6 +106,7 @@
       result module.
 - [x] 2.58 Reject indented control escapes used to construct attribute names.
 - [x] 2.59 Reject explicit root-module `config` composition.
+- [ ] 2.60 Reject indirect reflective priority lookup through path helpers.
 
 ## 3. Verification and integration
 
@@ -185,3 +186,5 @@
       prepare the exact-head review thread for clearance.
 - [x] 3.36 Rerun complete evidence after root-config rejection and prepare the
       exact-head review thread for clearance.
+- [ ] 3.37 Rerun complete evidence after indirect reflective-access rejection
+      and prepare the exact-head review thread for clearance.

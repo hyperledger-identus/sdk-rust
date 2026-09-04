@@ -788,3 +788,16 @@ meets that contract. Root-module statements are already isolated from the
 canonical `mkFlake` result; validation now applies the existing immediate
 binding normalizer to reject direct, inherited, and quoted `config`. All three
 Nix-valid mutations fail in the 137-test suite.
+
+## Indirect reflective-access correction contract
+
+The exact-head review of `80a2640b6e301bd1c3e50857556c4f176466dfbb`
+found that a reachable module can retrieve `mkForce` through a computed
+attribute path without using the already-rejected `getAttr` token. Nixpkgs
+provides both fallback-capable `attrByPath` and strict `getAttrFromPath`
+variants.
+
+The validator SHALL reject executable use of `attrByPath` and
+`getAttrFromPath` throughout the same reachable local-module graph as
+`getAttr`. Exact computed-path mutations replacing both Crane providers must
+fail before new implementation evidence is accepted.

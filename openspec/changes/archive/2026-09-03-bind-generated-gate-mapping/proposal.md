@@ -109,6 +109,7 @@ still reports success.
   as well as top-level module results.
 - Reject indented-string control escapes when they construct attribute names.
 - Reject explicit `config` composition in the canonical root `mkFlake` module.
+- Reject indirect reflective lookup through `attrByPath` and `getAttrFromPath`.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

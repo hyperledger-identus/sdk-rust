@@ -228,6 +228,10 @@ arguments.
   Rust overlay. That exemption must not permit an additional top-level
   `config` contribution: root-result statement isolation rejects `config`
   directly, including inherited and statically quoted spellings.
+- Reflection is not limited to `getAttr`: Nixpkgs exposes `attrByPath` and
+  `getAttrFromPath`, both of which can retrieve a priority constructor from a
+  computed path. The closed local-module profile rejects all three executable
+  lookup helpers; canonical gate-generator use remains separately constrained.
 
 ## Verification
 

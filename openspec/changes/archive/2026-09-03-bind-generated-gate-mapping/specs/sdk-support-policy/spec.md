@@ -260,7 +260,7 @@ Inherited `_type` SHALL be treated as a raw priority record.
 #### Scenario: Priority helper is retrieved reflectively
 
 - **WHEN** a reachable module outside the canonical generator obtains a
-  priority constructor through `getAttr`
+  priority constructor through `getAttr`, `attrByPath`, or `getAttrFromPath`
 - **THEN** structural validation rejects the reflective attribute access
 
 #### Scenario: Protected module key is constructed dynamically

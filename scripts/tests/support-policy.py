@@ -736,6 +736,44 @@ in
         )
         self.assert_fails("local Nix module graph uses reflective attributes")
 
+    def test_attr_by_path_priority_constructor_fails_closed(self) -> None:
+        (self.fixture / "nix/reflective.nix").write_text(
+            """{ perSystem = { pkgs, ... }: let
+  force = pkgs.lib.attrByPath [ ("mk" + "Force") ] null pkgs.lib;
+in {
+  _module.args.craneLib = force { };
+  _module.args.msrvCraneLib = force { };
+}; }
+""",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  imports = [ ./reflective.nix ];\n  perSystem =",
+        )
+        self.assert_nix_parses_if_available("nix/reflective.nix")
+        self.assert_fails("local Nix module graph uses reflective attributes")
+
+    def test_get_attr_from_path_priority_constructor_fails_closed(self) -> None:
+        (self.fixture / "nix/reflective.nix").write_text(
+            """{ perSystem = { pkgs, ... }: let
+  force = pkgs.lib.getAttrFromPath [ ("mk" + "Force") ] pkgs.lib;
+in {
+  _module.args.craneLib = force { };
+  _module.args.msrvCraneLib = force { };
+}; }
+""",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  imports = [ ./reflective.nix ];\n  perSystem =",
+        )
+        self.assert_nix_parses_if_available("nix/reflective.nix")
+        self.assert_fails("local Nix module graph uses reflective attributes")
+
     def test_quoted_get_attr_selection_fails_closed(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",

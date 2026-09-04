@@ -472,3 +472,15 @@ factory contract, and the compatible aarch64-darwin Nix graph pass. Against PR
 base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
 benchmark reports warm p50/p95 9.413/9.936 ms and process-cold p50/p95
 109.612/115.871 ms; the unchanged material-regression gate passes.
+
+## Final protected-provider ownership evidence
+
+Protected-provider ownership and reflective collection rejection are
+implemented at `67d9ff0165353d037564d692b1c604c84ebf8b0a`. The mutation
+suite passes 146/146: the exact `intersectAttrs`/`collect` recovery cannot
+publish competing Crane providers outside the canonical toolchain module.
+Ruff lint and format, canonical policy validation, the complete factory
+contract, and the compatible aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.907/10.472 ms and process-cold p50/p95
+116.454/118.492 ms; the unchanged material-regression gate passes.

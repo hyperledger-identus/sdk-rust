@@ -881,3 +881,9 @@ of `craneLib`, `msrvCraneLib`, `toolchain`, and `msrvToolchain`. It SHALL also
 classify executable bare or statically selected `intersectAttrs` and `collect`
 as reflective access. The exact reflective-collection mutation must fail before
 new implementation evidence is accepted.
+
+The implementation at `67d9ff0165353d037564d692b1c604c84ebf8b0a`
+meets that contract. The graph validator now rejects every protected-provider
+binding or inheritance outside the canonical toolchain module, including nested
+publication. Reflective analysis additionally rejects `intersectAttrs` and
+`collect`. The exact hosted mutation fails in the 146-test suite.

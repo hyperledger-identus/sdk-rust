@@ -204,6 +204,6 @@
 - [x] 3.40 Rerun complete evidence after path-construction and reflective-
       enumeration rejection, then prepare both exact-head review threads for
       clearance.
-- [ ] 3.41 Rerun complete evidence after protected-provider ownership and
+- [x] 3.41 Rerun complete evidence after protected-provider ownership and
       reflective collection rejection, then prepare the exact-head review
       thread for clearance.

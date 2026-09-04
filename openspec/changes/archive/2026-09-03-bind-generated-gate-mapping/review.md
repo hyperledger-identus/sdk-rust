@@ -554,15 +554,15 @@ manifest-selected Crane dispatch. Its transitive `cargoArgumentAttribute` and
 part of the same canonical contract. An exact no-op replacement mutation must
 fail closed before implementation evidence is accepted.
 
-The implementation at `46d966a03f07eacc13cee69a652406c0a2f39f67`
-meets that contract. A string-aware normal form binds the complete three
-immediate construction statements while preserving literal contents. Helper
-inheritance and `perSystem` formals must equal their canonical sets, and every
-provider root referenced by the constructor is protected from immediate-let
-shadowing. The exact no-op constructor, detached Cargo-argument builder,
-altered operation-argument mapping, and shadowed Crane library fixtures all
-parse with Nix and fail in the 107-test suite. A contradiction-focused local
-review found no unbound immediate dependency in the canonical constructor.
+The implementation beginning at
+`46d966a03f07eacc13cee69a652406c0a2f39f67` binds the complete three immediate
+construction statements. Helper inheritance and `perSystem` formals must equal
+their canonical sets, and every provider root referenced by the constructor is
+protected from immediate-let shadowing. The exact no-op constructor, detached
+Cargo-argument builder, altered operation-argument mapping, and shadowed Crane
+library fixtures all parse with Nix and fail in the 107-test suite. A
+contradiction-focused local review found no unbound immediate dependency in the
+canonical constructor.
 
 ## Generator-normalization cold-path correction contract
 
@@ -571,7 +571,7 @@ process-cold p50 130.533 ms against a 125.616 ms material-regression ceiling.
 The new compact normalizer invokes the complete cached string parser at every
 source character, including the overwhelmingly common non-quote branch.
 
-The normalizer SHALL use constant-time leading-character guards before string
-parsing while preserving every quoted and indented-string byte. The 107
-functional mutations must remain green, and hosted process-cold p50 must return
-below the unchanged repository ceiling before integration.
+The binding SHALL use canonical formatted-source fingerprints, preserving every
+source byte after insignificant outer trim and avoiding a second lexical pass.
+The 107 functional mutations must remain green, and hosted process-cold p50
+must return below the unchanged repository ceiling before integration.

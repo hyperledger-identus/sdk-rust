@@ -194,3 +194,18 @@ interpolation scanner and then resumes from its closing brace. The exact hosted
 review fixture passes both the 62-test mutation suite and independent Nix parse
 validation. A final contradiction-focused local review found no remaining
 interpolated-suffix bypass or delivery blocker.
+
+## Complete-relative-path and control-escape correction contract
+
+The exact-head review of `21e3510` found two further valid token forms. Nix
+accepts an unprefixed relative path such as `prefix/let/file`, but the scanner
+does not classify it as a path and misreads `let`. Separately, `''\` escapes
+the following character in an indented string, but the scanner consumes only
+the prefix and can reinterpret an escaped dollar as `${...}`. Both P2 findings
+block merge.
+
+The validator SHALL recognize an unprefixed slash-bearing relative path at a
+token boundary. Its indented-string scanner SHALL consume both the `''\`
+prefix and the escaped character. Exact fixtures containing a `let` path
+component and an escaped interpolation opener must preserve canonical
+acceptance.

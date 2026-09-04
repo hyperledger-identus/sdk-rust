@@ -344,3 +344,15 @@ forms before determining an outer string's terminator.
 - **WHEN** a valid path contains `${...}` followed by a `let` or `in` component
 - **THEN** lexical preprocessing resumes the path token after interpolation and
   does not interpret the suffix as a lexical scope
+
+#### Scenario: Unprefixed relative path contains a scope keyword
+
+- **WHEN** a valid unprefixed relative path contains a `let` or `in` component
+- **THEN** lexical preprocessing recognizes the complete path token and does
+  not interpret its components as lexical scopes
+
+#### Scenario: Indented-string control escape precedes interpolation syntax
+
+- **WHEN** `''\` escapes a character that would otherwise begin `${...}`
+- **THEN** lexical preprocessing consumes the escaped character as string data
+  and does not open interpolation

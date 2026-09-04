@@ -28,6 +28,9 @@
 - [x] 2.12 Skip path/URI tokens during scope scanning and require token context
       for indented-string openers.
 - [x] 2.13 Continue path scanning after balanced interpolation expressions.
+- [ ] 2.14 Recognize unprefixed relative path literals at token boundaries.
+- [ ] 2.15 Consume the escaped character after an indented-string control
+      escape prefix.
 
 ## 3. Verification and integration
 
@@ -48,3 +51,5 @@
       corrections and prepare all three review threads for hosted clearance.
 - [x] 3.10 Rerun complete local evidence after the interpolated-path correction
       and prepare its review thread for hosted clearance.
+- [ ] 3.11 Rerun complete local evidence after relative-path and control-escape
+      corrections and prepare both review threads for hosted clearance.

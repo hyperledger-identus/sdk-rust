@@ -65,6 +65,10 @@ phantom scopes or strings.
 Path scanning treats `${...}` as an embedded expression, delegates its balanced
 contents to the interpolation scanner, and then resumes the surrounding path.
 Scope keywords in a suffix after interpolation therefore remain path data.
+An unprefixed token containing a slash is also classified as a relative Nix
+path when it begins at a token boundary. For indented-string control escapes,
+`''\` and its following character are consumed together so an escaped dollar
+cannot subsequently open interpolation.
 
 Two fixture mutations independently replace the mapped name with a constant
 and the mapped value with an empty attribute set. Both must return a stable

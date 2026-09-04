@@ -31,6 +31,8 @@ still reports success.
 - Distinguish path/URI tokens and apostrophes inside identifiers from lexical
   `let`/`in` keywords and indented-string delimiters.
 - Continue path-token scanning across `${...}` interpolation boundaries.
+- Recognize unprefixed relative paths containing `/` as path tokens.
+- Consume the escaped character after an indented-string `''\` prefix.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

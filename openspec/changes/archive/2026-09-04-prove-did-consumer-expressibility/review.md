@@ -24,3 +24,29 @@
    redaction remain normative; compatibility evidence cannot weaken them.
 7. No new crate, dependency, wire form or public API is needed by the reviewed
    design. Discovery of such a need would reopen semantic review before code.
+
+# Post-implementation provenance, security and API review
+
+- **Reviewed head:** `f1b7603ff319341180efbf692187f0349fd5be9d`
+- **Review completed:** 2026-09-04
+- **Result:** passed with no unresolved finding
+
+The exact diff from the recorded `develop` base was re-read after focused,
+workspace and full Nix verification. The implementation changes only a public-
+API integration test, an architecture evidence matrix and OpenSpec artifacts;
+Cargo manifests, lockfiles and production Rust are unchanged.
+
+All four cases cite the immutable revisions from the accepted source matrix.
+Their values are synthetic and independently authored from W3C fields and
+public API observations. No donor source, fixture, credential, identifier or
+private key is copied. Lace remains explicitly evidence-only.
+
+The cases preserve the existing strict entry points and verify lossless open
+fields, public-only key material, private JWK rejection, redacted malformed-DID
+failure, explicit legacy-keyword migration and exact multi-method dispatch.
+They do not claim method semantics, downstream compilation, runtime interop,
+cryptographic verification, HTTP, VDR, storage, custody, trust or compliance.
+
+No new dependency, feature, unsafe code, network access, chain type, runtime or
+public API enters the diff. Issue #50 remains dormant and unmodified. The
+change is independently reversible and does not touch `main` or a consumer.

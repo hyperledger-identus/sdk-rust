@@ -17,8 +17,8 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run focused, crate, workspace, formatting, lint, docs, factory and Nix
+- [x] 3.1 Run focused, crate, workspace, formatting, lint, docs, factory and Nix
       gates and record exact evidence
-- [ ] 3.2 Complete and record a distinct local provenance/security/API review
-- [ ] 3.3 Sync the canonical did-core specification, archive the change, produce
+- [x] 3.2 Complete and record a distinct local provenance/security/API review
+- [x] 3.3 Sync the canonical did-core specification, archive the change, produce
       the factory receipt and prepare the issue-linked PR

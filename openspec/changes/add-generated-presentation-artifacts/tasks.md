@@ -25,20 +25,20 @@
   positive tests.
 - [x] 3.2 Add maximum-bound, payload/total-budget, duplicate, unknown, missing,
   format, cross-request, order, redaction and complete error-contract tests.
-- [ ] 3.3 Extend and run the manual release diagnostic and record exact
+- [x] 3.3 Extend and run the manual release diagnostic and record exact
   toolchain, host and result without a timing threshold.
-- [ ] 3.4 Update human/machine inventories, backlog linkage and canonical
+- [x] 3.4 Update human/machine inventories, backlog linkage and canonical
   governance evidence for the added experimental surface.
-- [ ] 3.5 Verify donor and consumer final HEAD/branch/status receipts equal
+- [x] 3.5 Verify donor and consumer final HEAD/branch/status receipts equal
   preflight.
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Pass focused formatting, tests, no-default check, strict Clippy and
+- [x] 4.1 Pass focused formatting, tests, no-default check, strict Clippy and
   warning-denied docs.
-- [ ] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
+- [x] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
   supply-chain and full Nix gates.
-- [ ] 4.3 Complete a distinct post-implementation architecture/API/privacy/
+- [x] 4.3 Complete a distinct post-implementation architecture/API/privacy/
   performance review and resolve every finding.
 - [ ] 4.4 Produce ready/receipt, synchronize canonical specs, archive the
   change, and prepare the signed/DCO issue-linked PR; hosted CI/review, merge,

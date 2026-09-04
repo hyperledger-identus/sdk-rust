@@ -254,3 +254,19 @@ uses the same punctuation set as its compiled prefix grammar, and the exact
 fixture passes both the 65-test mutation suite and independent Nix parse
 validation. A final contradiction-focused local review found no remaining
 punctuation-prefixed path blocker.
+
+## Package-provider and path-comment correction contract
+
+The exact-head review of `1372bb7` found that the root flake can supply a
+wrapped `pkgs` value whose `lib.map` collapses generated gates while the
+generator retains its canonical inheritance. It also found that a valid path
+immediately followed by `# let` consumes the comment marker as path data and
+later misreads `let` as a scope keyword. The provider finding is P1 and the
+path-comment finding is P2; both block merge.
+
+The validator SHALL require the package-set provider in the root flake's
+canonical `perSystem` block to be the direct `import nixpkgs` expression with
+the current system and Rust overlay. It SHALL terminate a path token before
+`#` so the comment masker can consume the rest of the line. An exact
+helper-override mutation must fail, while an exact path-followed-by-comment
+fixture must preserve canonical acceptance.

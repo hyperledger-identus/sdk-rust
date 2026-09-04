@@ -33,8 +33,11 @@
       escape prefix.
 - [x] 2.16 Optimize the path-classifier hot branch without weakening its
       lexical cases.
-- [ ] 2.17 Recognize punctuation-prefixed unprefixed relative paths at token
+- [x] 2.17 Recognize punctuation-prefixed unprefixed relative paths at token
       boundaries.
+- [ ] 2.18 Validate the canonical `perSystem` package-set provider in
+      `flake.nix` and reject helper overrides.
+- [ ] 2.19 Stop path scanning at line-comment markers.
 
 ## 3. Verification and integration
 
@@ -61,3 +64,6 @@
       mutations intact and prepare the hosted performance rerun.
 - [x] 3.13 Rerun complete local evidence after the punctuation-prefixed path
       correction and prepare its exact-head review thread for clearance.
+- [ ] 3.14 Rerun complete local evidence after package-provider and
+      path-comment corrections and prepare both exact-head review threads for
+      clearance.

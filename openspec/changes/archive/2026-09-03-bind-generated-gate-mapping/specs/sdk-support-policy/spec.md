@@ -122,3 +122,17 @@ forms before determining an outer string's terminator.
 - **WHEN** `''\` escapes a character that would otherwise begin `${...}`
 - **THEN** lexical preprocessing consumes the escaped character as string data
   and does not open interpolation
+
+#### Scenario: Package provider replaces an inherited mapping helper
+
+- **WHEN** `flake.nix` wraps or extends the package set supplied to
+  `perSystem` so `pkgs.lib.map` or `pkgs.lib.listToAttrs` can be replaced
+- **THEN** structural validation rejects the non-canonical package provider
+  before trusting the inherited helpers
+
+#### Scenario: Line comment immediately follows a path token
+
+- **WHEN** a valid path is immediately followed by a `#` line comment whose
+  data contains a `let` or `in` token
+- **THEN** path scanning stops at `#` and comment preprocessing prevents the
+  comment data from changing lexical scope

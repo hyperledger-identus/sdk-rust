@@ -33,6 +33,10 @@ still reports success.
 - Continue path-token scanning across `${...}` interpolation boundaries.
 - Recognize unprefixed relative paths containing `/`, including tokens whose
   first component begins with valid punctuation, as path tokens.
+- Require the `perSystem` `pkgs` provider to be the canonical direct nixpkgs
+  import before trusting helpers inherited from `pkgs.lib`.
+- Stop path tokens at a Nix line-comment marker so comment preprocessing owns
+  the remaining source line.
 - Consume the escaped character after an indented-string `''\` prefix.
 - Keep richer path classification within the existing hosted warm-latency
   regression ceiling.

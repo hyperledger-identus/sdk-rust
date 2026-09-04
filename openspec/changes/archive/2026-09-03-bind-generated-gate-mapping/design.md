@@ -58,6 +58,10 @@ An inner string delimiter therefore cannot terminate its outer string.
 The accepted `perSystem` formal set is parsed as simple identifier arguments;
 `builtins` is rejected because the mapping contract requires the global root,
 while the canonical `pkgs` argument remains required for `pkgs.lib` helpers.
+The root flake must supply that argument through the canonical direct
+`import nixpkgs` expression with the current system and Rust overlay. A wrapped
+or extended package set is rejected because it can replace `lib.map` or
+`lib.listToAttrs` before the generator inherits them.
 Lexical scope scanning skips path and URI tokens before interpreting `let` or
 `in`, and recognizes an indented-string opener only at a token boundary. Valid
 path components and apostrophes within identifiers therefore cannot create
@@ -71,6 +75,8 @@ begins with punctuation accepted by the path-prefix grammar. For
 indented-string control escapes,
 `''\` and its following character are consumed together so an escaped dollar
 cannot subsequently open interpolation.
+Path scanning stops before `#`, allowing the existing line-comment scanner to
+mask the remainder of the line before lexical scope processing.
 The path classifier is on multiple character-scanning hot loops. Its common
 non-path branch must use constant-time leading-character and token-boundary
 checks, with prefix scanning only for plausible path/URI starts; this preserves

@@ -462,6 +462,7 @@ name = "identus-presentations"
 version = "0.0.0"
 dependencies = [
  "identus-core",
+ "identus-credentials",
 ]
 
 [[package]]

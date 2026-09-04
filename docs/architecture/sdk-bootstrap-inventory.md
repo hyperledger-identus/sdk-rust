@@ -52,6 +52,7 @@ Package presence, the layer rulebook and version `0.0.0` do not imply support.
 | `identus-crypto` | encodings, JWK conversion, curve key types, sign/verify traits, hashes, secure-random port, BIP/SLIP derivation | Default, minimal and `kmp-compat` surfaces are tested; no custody, JOSE or Midnight Jubjub | issue #9 |
 | `identus-did` | initial `DidMethod`, `Version`, `Multihash` and error values | Not yet the DID Core model, DID URL, document or resolver contract | issue #5 |
 | `identus-credentials` | bounded format identifier, opaque artifacts/envelope, metadata/schema descriptors, status bindings/freshness/query/evidence and canonical staged verification evidence | no claim values, serde/wire codecs, concrete formats/protocols, trust decisions, verifier/schema/status execution, holder bindings, status proof payloads, display/localization or storage | issues #71, #73, #75 and #77; later credential/verification slices remain experimental |
+| `identus-presentations` | bounded request/query/claim/challenge and request-validated candidate contracts | no protocol wire, candidate lookup/ranking, consent, proof execution, presentation artifact/receipt, lifecycle, storage, FFI, chain or product behavior | issue #79; later presentation slices remain experimental |
 | `identus-adapters-entropy` | `GetrandomSystemRandomAdapter`, `DeterministicRandomAdapter` | `getrandom` and `deterministic` are opt-in; deterministic entropy is test-only | issue #25 and later ports convergence |
 
 `identus-conformance` is verification-only. Its public `COMPONENT` marker does
@@ -62,7 +63,6 @@ not make architecture guards a supported runtime API.
 | Package | Current meaning | Next decision |
 | --- | --- | --- |
 | `identus-trust` | marker only; no trust-policy or registry API | issue #6 or a narrower trust/status issue |
-| `identus-presentations` | marker only; no presentation model or derivation API | issue #6 |
 | `identus-messaging` | marker only; no DIDComm implementation | conditional row under issue #20 |
 | `identus-openid4vc` | marker only; not an umbrella protocol commitment | focused OID4VCI issue #7 and later protocol issues |
 | `identus-wallet` | marker only; product wallet policy remains downstream | remove or replace through a focused architecture decision |

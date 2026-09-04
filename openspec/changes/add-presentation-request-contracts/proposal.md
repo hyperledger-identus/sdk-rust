@@ -39,7 +39,8 @@ candidate types.
 - **Code:** replace the presentation marker with focused modules, errors,
   exports, tests, and component metadata.
 - **Dependencies:** add only the inward workspace dependency on
-  `identus-credentials`; retain `identus-core`; no external or lockfile edge.
+  `identus-credentials`; retain `identus-core`; the lock records that local
+  edge, with no external package or version change.
 - **Compatibility:** additive experimental API in an unpublished placeholder;
   no wire or SemVer commitment.
 - **Consumers:** all donor and product repositories remain read-only; adoption

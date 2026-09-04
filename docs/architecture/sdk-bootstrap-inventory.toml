@@ -118,10 +118,10 @@ summary        = "Bounded format-neutral artifacts, envelope, metadata/schema de
 name           = "identus-presentations"
 path           = "crates/presentations"
 layer          = "credential-semantics"
-classification = "placeholder"
-public_api     = "none"
-owner_issue    = "#6"
-summary        = "Quarantined seed marker; no accepted presentation API or namespace."
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#79"
+summary        = "Bounded format-neutral presentation request, query, claim, challenge and candidate contracts."
 
 [[packages]]
 name           = "identus-messaging"

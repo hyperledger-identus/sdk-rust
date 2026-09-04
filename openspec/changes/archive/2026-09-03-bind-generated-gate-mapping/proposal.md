@@ -35,6 +35,8 @@ still reports success.
   first component begins with valid punctuation, as path tokens.
 - Require the `perSystem` `pkgs` provider to be the canonical direct nixpkgs
   import before trusting helpers inherited from `pkgs.lib`.
+- Require a plain root flake attribute set and direct `outputs` result so an
+  enclosing lexical scope cannot replace the builtin `import`.
 - Stop path tokens at a Nix line-comment marker so comment preprocessing owns
   the remaining source line.
 - Consume the escaped character after an indented-string `''\` prefix.

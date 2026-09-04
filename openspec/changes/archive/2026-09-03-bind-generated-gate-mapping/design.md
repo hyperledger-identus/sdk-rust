@@ -62,6 +62,10 @@ The root flake must supply that argument through the canonical direct
 `import nixpkgs` expression with the current system and Rust overlay. A wrapped
 or extended package set is rejected because it can replace `lib.map` or
 `lib.listToAttrs` before the generator inherits them.
+The root flake itself must be a plain attribute set, and the `outputs` lambda
+must return `flake-parts.lib.mkFlake` directly. This excludes an enclosing
+`let` that can shadow the builtin `import` while preserving the provider's
+canonical-looking text.
 Lexical scope scanning skips path and URI tokens before interpreting `let` or
 `in`, and recognizes an indented-string opener only at a token boundary. Valid
 path components and apostrophes within identifiers therefore cannot create

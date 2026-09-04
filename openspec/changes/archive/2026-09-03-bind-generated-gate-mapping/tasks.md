@@ -38,6 +38,8 @@
 - [x] 2.18 Validate the canonical `perSystem` package-set provider in
       `flake.nix` and reject helper overrides.
 - [x] 2.19 Stop path scanning at line-comment markers.
+- [ ] 2.20 Reject lexical wrappers that can shadow the root flake's builtin
+      `import`.
 
 ## 3. Verification and integration
 
@@ -67,3 +69,5 @@
 - [x] 3.14 Rerun complete local evidence after package-provider and
       path-comment corrections and prepare both exact-head review threads for
       clearance.
+- [ ] 3.15 Rerun complete local evidence after the root-import correction and
+      prepare its exact-head review thread for clearance.

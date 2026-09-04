@@ -277,3 +277,16 @@ to the end of the root flake module, and path scanning yields before `#`. The
 exact helper-override mutation fails and the independently Nix-parsed comment
 fixture passes in the 67-test mutation suite. A final contradiction-focused
 local review found no remaining provider or comment-boundary blocker.
+
+## Root-import correction contract
+
+The exact-head review of `72ed8c8` found that the provider's textual suffix can
+remain canonical beneath an enclosing `let` that replaces the builtin
+`import`. The replacement delegates to the real importer and then poisons
+`pkgs.lib.map`, so the 23 manifest gates can still collapse while the validator
+passes. This P1 finding blocks merge.
+
+The validator SHALL require the flake to begin as a plain attribute set and
+the canonical `outputs` lambda to return `flake-parts.lib.mkFlake` directly.
+An exact enclosing-import mutation must fail before the package provider is
+accepted.

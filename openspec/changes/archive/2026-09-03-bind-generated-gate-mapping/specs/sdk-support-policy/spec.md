@@ -136,3 +136,10 @@ forms before determining an outer string's terminator.
   data contains a `let` or `in` token
 - **THEN** path scanning stops at `#` and comment preprocessing prevents the
   comment data from changing lexical scope
+
+#### Scenario: Enclosing scope replaces the builtin import
+
+- **WHEN** the root flake or its `outputs` result is wrapped in a lexical scope
+  that redefines `import` while retaining a canonical-looking package provider
+- **THEN** structural validation rejects the non-canonical root or outputs
+  shape before trusting the package provider

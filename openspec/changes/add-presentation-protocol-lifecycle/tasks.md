@@ -10,26 +10,27 @@
 
 ## 2. Lifecycle implementation
 
-- [ ] 2.1 Add phase, terminal-outcome and protocol-state values with stable
+- [x] 2.1 Add phase, terminal-outcome and protocol-state values with stable
   spellings and strict parsing.
-- [ ] 2.2 Add active/terminal inspection and deterministic transition
+- [x] 2.2 Add active/terminal inspection and deterministic transition
   validation.
-- [ ] 2.3 Add static error bridges and root exports without a new dependency.
+- [x] 2.3 Add static error bridges and root exports without a new dependency.
 
 ## 3. Evidence and performance
 
-- [ ] 3.1 Add exhaustive state-pair transition, parsing, terminal immutability,
+- [x] 3.1 Add exhaustive state-pair transition, parsing, terminal immutability,
   cancellation-race and completion-truthfulness tests.
-- [ ] 3.2 Extend and run the manual release diagnostic and record exact
+- [x] 3.2 Extend and run the manual release diagnostic and record exact
   toolchain, host and result without a timing threshold.
-- [ ] 3.3 Update human/machine inventories, backlog linkage and canonical
+- [x] 3.3 Update human/machine inventories and backlog linkage; synchronize
+  canonical governance evidence during archival.
   governance evidence for the experimental lifecycle surface.
 - [ ] 3.4 Verify donor and consumer final HEAD/branch/status receipts equal
   preflight.
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Pass focused formatting, tests, no-default check, strict Clippy and
+- [x] 4.1 Pass focused formatting, tests, no-default check, strict Clippy and
   warning-denied docs.
 - [ ] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
   supply-chain and full Nix gates.

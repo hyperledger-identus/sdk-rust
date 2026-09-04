@@ -120,8 +120,8 @@ path           = "crates/presentations"
 layer          = "credential-semantics"
 classification = "implemented"
 public_api     = "experimental"
-owner_issue    = "#83"
-summary        = "Bounded format-neutral presentation request, candidate, disclosure-plan, opaque generated-artifact and value-free receipt-input contracts."
+owner_issue    = "#85"
+summary        = "Bounded format-neutral presentation request, candidate, disclosure-plan, generated-artifact, receipt-input and protocol lifecycle contracts."
 
 [[packages]]
 name           = "identus-messaging"

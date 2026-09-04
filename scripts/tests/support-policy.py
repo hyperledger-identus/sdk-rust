@@ -169,6 +169,17 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("nix/checks/default.nix does not safely compose checks")
 
+    def test_sibling_module_cannot_force_away_imported_gates(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = pkgs.lib.mkForce { };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
     def test_unused_manifest_mapping_cannot_replace_published_checks(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",
@@ -472,6 +483,16 @@ in
             "      manifest = builtins.fromTOML",
             """      pathData = ./let/in/file;
       uriData = https://example.invalid/let/in;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_general_uri_preserves_scope_keyword(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      uriData = mailto:let@example.org;
       manifest = builtins.fromTOML""",
         )
         result = self.run_checker()

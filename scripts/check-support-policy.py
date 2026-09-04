@@ -83,7 +83,7 @@ REQUIRED_FEATURE_SURFACES = {
     "entropy-all",
 }
 ALLOWED_TIERS = {"host-tested", "compile-checked", "planned", "not-supported"}
-NIX_URI_PREFIX = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://")
+NIX_URI_PREFIX = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:[A-Za-z0-9%/?@&=+$,_.!~*'-]")
 NIX_UNPREFIXED_PATH_PREFIX = re.compile(r"[A-Za-z0-9._+?-]+/")
 
 
@@ -464,6 +464,42 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     if checks_entry not in flake_imports:
         failures.append("flake.nix does not import the nix/checks module")
         return
+
+    repository_root = root.resolve()
+    local_module_graph: set[Path] = {flake_path.resolve()}
+    pending_modules = list(flake_imports)
+    while pending_modules:
+        module_path = pending_modules.pop()
+        try:
+            module_path.relative_to(repository_root)
+        except ValueError:
+            continue
+        if module_path in local_module_graph or not module_path.is_file():
+            continue
+        local_module_graph.add(module_path)
+        module_source = nix_without_comments(module_path.read_text(encoding="utf-8"))
+        for imports in re.finditer(
+            r"\bimports\s*=\s*\[(.*?)\];", module_source, re.DOTALL
+        ):
+            for relative in re.findall(r"\./([A-Za-z0-9_./-]+)", imports.group(1)):
+                imported = (module_path.parent / relative).resolve()
+                if imported.is_dir():
+                    imported = imported / "default.nix"
+                pending_modules.append(imported)
+    priority_modules = sorted(
+        str(path.relative_to(repository_root))
+        for path in local_module_graph
+        if re.search(
+            r"\b(?:mkForce|mkOverride)\b",
+            nix_string_mask(nix_without_comments(path.read_text(encoding="utf-8"))),
+        )
+        is not None
+    )
+    if priority_modules:
+        failures.append(
+            "local Nix module graph uses priority overrides: "
+            + ", ".join(priority_modules)
+        )
 
     canonical_pkgs_provider = re.search(
         r"\bperSystem\s*=\s*\{\s*system\s*,\s*\.\.\.\s*\}\s*:\s*\{\s*"

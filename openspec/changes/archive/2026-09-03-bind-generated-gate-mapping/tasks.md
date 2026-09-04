@@ -53,6 +53,10 @@
 - [x] 2.28 Reject raw module `_type` tags across all value spellings.
 - [x] 2.29 Cache immutable module-source analysis without weakening graph
       validation.
+- [ ] 2.30 Normalize quoted import bindings and reject interpolated import
+      paths.
+- [ ] 2.31 Reject computed attribute selectors and competing sibling checks
+      contributions outside canonical gate modules.
 
 ## 3. Verification and integration
 
@@ -96,3 +100,6 @@
       threads for clearance.
 - [x] 3.20 Clear the hosted warm-latency regression without changing the
       material-regression threshold or any functional mutation.
+- [ ] 3.21 Rerun complete evidence after quoted-import, computed-selector, and
+      interpolated-import corrections and prepare all three review threads for
+      clearance.

@@ -414,3 +414,23 @@ import results are returned as a `frozenset`. All 80 mutations remain green.
 The exact local 20-sample rerun reduced warm p50 from 15.128 ms to 7.998 ms,
 with no material regression against `develop`; the unchanged hosted threshold
 remains the integration gate.
+
+## Static module-boundary correction contract
+
+A delayed review thread on `890afed` and exact-head review of `c9d4166` found
+three further graph spellings. Static `"imports" = [...]` is hidden by string
+masking, `pkgs.lib.${"mk" + "Force"}` computes a priority constructor, and
+`./${"override"}.nix` is resolved as an unevaluated source spelling and then
+silently skipped. Each permits a reachable sibling to erase generated checks,
+so all three P1 findings block merge.
+
+The validator SHALL normalize bare and statically quoted attribute assignments
+for graph discovery, reject import paths containing interpolation, and reject
+computed attribute selections outside the canonical generator. It SHALL also
+reject any competing static `checks` binding outside the two canonical check
+modules. Exact mutations for all three hosted findings must fail while the
+generator's independently validated dynamic operation lookup remains accepted.
+
+Implementation evidence remains pending until the regressions fail first and
+the complete functional, performance, factory, and Nix gates pass on an
+immutable signed head.

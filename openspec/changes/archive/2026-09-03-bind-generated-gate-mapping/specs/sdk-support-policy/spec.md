@@ -206,3 +206,22 @@ forms before determining an outer string's terminator.
   indented or computed Nix string
 - **THEN** structural validation rejects the raw module value independently of
   the tag value's source spelling
+
+#### Scenario: Import binding uses a static quoted name
+
+- **WHEN** a reachable module spells `imports` as a statically quoted attribute
+- **THEN** graph traversal normalizes the binding and traverses every local
+  literal edge
+
+#### Scenario: Import path contains interpolation
+
+- **WHEN** a reachable imports list contains a local path with `${...}`
+- **THEN** graph traversal fails closed instead of resolving the unevaluated
+  source spelling as a filesystem path
+
+#### Scenario: Sibling computes an attribute selection
+
+- **WHEN** a reachable module outside the canonical gate generator uses a
+  computed attribute selection or contributes another `checks` binding
+- **THEN** structural validation rejects the ambiguous module contribution
+  before it can erase generated checks

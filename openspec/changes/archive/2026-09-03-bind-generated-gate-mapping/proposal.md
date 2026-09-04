@@ -51,6 +51,11 @@ still reports success.
   required generator from the effective graph.
 - Fail closed when a reachable module's `imports` value is not a directly
   traversable literal list.
+- Normalize static quoted attribute bindings when discovering import edges.
+- Reject interpolated local import paths because their effective filesystem
+  targets cannot be proven by source traversal.
+- Reject computed attribute selections and competing `checks` contributions
+  outside the canonical, independently validated gate modules.
 - Reject raw module `_type` tags independent of whether their values use
   double-quoted, indented, or computed Nix strings.
 - Recognize general Nix scheme URI literals whose scheme is followed directly

@@ -89,6 +89,13 @@ closed instead of creating an incomplete graph. Raw module `_type` fields are
 also rejected regardless of their value spelling. This deliberately covers
 the internal representations of priority constructors without attempting to
 evaluate double-quoted, indented, or computed tag strings.
+Static quoted attribute names are normalized for import discovery. Computed
+attribute selection is permitted only inside the canonical `rust-gates.nix`
+generator, whose dynamic operation lookup and published checks binding are
+independently constrained. Other reachable modules must not use computed
+selectors or contribute competing `checks` bindings. An import path containing
+`${...}` is an expression rather than a statically resolvable graph edge and
+therefore fails closed.
 Lexical scope scanning skips path and URI tokens before interpreting `let` or
 `in`, and recognizes an indented-string opener only at a token boundary. Valid
 path components and apostrophes within identifiers therefore cannot create

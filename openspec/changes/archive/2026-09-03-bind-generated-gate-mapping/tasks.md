@@ -112,6 +112,9 @@
 - [x] 2.63 Reject executable `scopedImport` in reachable local modules.
 - [x] 2.64 Reject path-based attribute construction through `setAttrByPath`.
 - [x] 2.65 Reject reflective enumeration through `attrNames` and `attrValues`.
+- [ ] 2.66 Reserve protected provider publication to the canonical toolchain
+      module.
+- [ ] 2.67 Reject reflective `intersectAttrs` and `collect` helpers.
 
 ## 3. Verification and integration
 
@@ -201,3 +204,6 @@
 - [x] 3.40 Rerun complete evidence after path-construction and reflective-
       enumeration rejection, then prepare both exact-head review threads for
       clearance.
+- [ ] 3.41 Rerun complete evidence after protected-provider ownership and
+      reflective collection rejection, then prepare the exact-head review
+      thread for clearance.

@@ -868,3 +868,16 @@ meets that contract. Dynamic-constructor analysis now rejects `setAttrByPath`
 and the renaming `mapAttrs'` variant. Reflective analysis rejects `attrNames`,
 `attrValues`, and the adjacent `attrsToList` and `mapAttrsToList` enumeration
 helpers. Both exact hosted mutations fail in the 145-test suite.
+
+## Protected-provider ownership correction contract
+
+The exact-head review of `cf6d50f62372c4453d24554a182c8be0b46207d3`
+found that `intersectAttrs` plus `collect` can recover `mkForce` without any
+recognized lookup or enumeration helper, then publish competing `craneLib` and
+`msrvCraneLib` providers from another reachable module.
+
+The validator SHALL make the canonical toolchain module the exclusive publisher
+of `craneLib`, `msrvCraneLib`, `toolchain`, and `msrvToolchain`. It SHALL also
+classify executable bare or statically selected `intersectAttrs` and `collect`
+as reflective access. The exact reflective-collection mutation must fail before
+new implementation evidence is accepted.

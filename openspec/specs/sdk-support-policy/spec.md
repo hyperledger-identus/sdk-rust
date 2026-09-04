@@ -274,6 +274,9 @@ modules SHALL NOT bind explicit top-level `config` or evaluate `import` or
 call SHALL be exactly `{ inherit inputs; }`.
 Reflective access SHALL include attribute-name/value enumeration, and dynamic
 construction SHALL include path-based attribute constructors.
+Only `nix/rust-toolchain.nix` SHALL bind or inherit `craneLib`, `msrvCraneLib`,
+`toolchain`, or `msrvToolchain`. Reflective access SHALL also include attribute
+intersection and recursive collection helpers.
 Inherited `_type` SHALL be treated as a raw priority record.
 
 #### Scenario: Constant mapped name collapses the gate graph
@@ -699,3 +702,11 @@ Inherited `_type` SHALL be treated as a raw priority record.
 - **WHEN** a reachable module pairs `attrNames` with `attrValues` to recover a
   priority constructor without selecting its protected name
 - **THEN** structural validation rejects the reflective enumeration primitives
+
+#### Scenario: Reflective collection publishes competing providers
+
+- **WHEN** a reachable non-toolchain module combines `intersectAttrs` and
+  `collect` to recover a priority constructor and publishes competing Crane
+  providers
+- **THEN** structural validation rejects both the reflective helpers and the
+  unauthorized protected-provider definitions

@@ -119,6 +119,10 @@ still reports success.
 - Reject path-based attribute construction through `setAttrByPath` and
   equivalent statically selected spellings.
 - Reject reflective attribute enumeration through `attrNames` and `attrValues`.
+- Reserve publication of `craneLib`, `msrvCraneLib`, `toolchain`, and
+  `msrvToolchain` to the canonical toolchain module.
+- Reject reflective intersection/collection helpers that can recover a
+  protected provider without selecting its name.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

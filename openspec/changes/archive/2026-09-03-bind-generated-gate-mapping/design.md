@@ -248,6 +248,12 @@ arguments.
 - Attribute enumeration can recover a protected function without spelling its
   selector. The closed profile classifies `attrNames` and `attrValues` with the
   existing reflective lookup primitives.
+- A denylist of reflective primitives is defense in depth, not the provider
+  ownership boundary. Any binding or inheritance of the four protected
+  toolchain/Crane providers outside `nix/rust-toolchain.nix` is rejected,
+  including nested `_module.args` publication.
+- `intersectAttrs` combined with recursive `collect` is another way to recover
+  a function without selection. Both are classified as reflective helpers.
 
 ## Verification
 

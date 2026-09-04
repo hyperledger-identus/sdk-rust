@@ -890,6 +890,27 @@ in {
         self.assert_nix_parses_if_available("nix/reflective-enumeration.nix")
         self.assert_fails("local Nix module graph uses reflective attributes")
 
+    def test_reflective_collection_cannot_publish_providers(self) -> None:
+        (self.fixture / "nix/reflective-collection.nix").write_text(
+            """{ perSystem = { pkgs, ... }: let
+  force = builtins.head (pkgs.lib.collect builtins.isFunction (
+    builtins.intersectAttrs { "mkForce" = null; } pkgs.lib
+  ));
+in {
+  _module.args.craneLib = force { };
+  _module.args.msrvCraneLib = force { };
+}; }
+""",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  imports = [ ./reflective-collection.nix ];\n  perSystem =",
+        )
+        self.assert_nix_parses_if_available("nix/reflective-collection.nix")
+        self.assert_fails("publishes protected providers outside")
+
     def test_quoted_get_attr_selection_fails_closed(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",

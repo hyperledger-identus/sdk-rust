@@ -553,3 +553,13 @@ manifest-selected Crane dispatch. Its transitive `cargoArgumentAttribute` and
 `cargoArgs` statements and exact trusted `pkgs.lib` helper imports SHALL be
 part of the same canonical contract. An exact no-op replacement mutation must
 fail closed before implementation evidence is accepted.
+
+The implementation at `46d966a03f07eacc13cee69a652406c0a2f39f67`
+meets that contract. A string-aware normal form binds the complete three
+immediate construction statements while preserving literal contents. Helper
+inheritance and `perSystem` formals must equal their canonical sets, and every
+provider root referenced by the constructor is protected from immediate-let
+shadowing. The exact no-op constructor, detached Cargo-argument builder,
+altered operation-argument mapping, and shadowed Crane library fixtures all
+parse with Nix and fail in the 107-test suite. A contradiction-focused local
+review found no unbound immediate dependency in the canonical constructor.

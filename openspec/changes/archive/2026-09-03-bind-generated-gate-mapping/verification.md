@@ -288,3 +288,16 @@ contracts, and the complete compatible aarch64-darwin Nix graph pass. Against
 `develop` at `69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample
 benchmark reports warm p50/p95 9.139/10.147 ms and process-cold p50/p95
 83.521/87.827 ms, with no material regression.
+
+## Final generator-dispatch binding evidence
+
+Manifest-selected gate construction is bound at
+`46d966a03f07eacc13cee69a652406c0a2f39f67`. The mutation suite passes 107/107:
+the hosted no-op `makeGate` replacement fails, as do detached `cargoArgs`, an
+altered operation-to-argument mapping, and a shadowed Crane provider. All four
+fixtures parse independently with Nix 2.34.6. Ruff lint and format, canonical
+policy validation, all 17 factory contracts, and the complete compatible
+aarch64-darwin Nix graph pass. Against `develop` at
+`69d38874e3d3f669d60e129ed6882e835aedafe6`, the exact 20-sample benchmark
+reports warm p50/p95 8.911/9.509 ms and process-cold p50/p95 88.359/90.275 ms,
+with no material regression.

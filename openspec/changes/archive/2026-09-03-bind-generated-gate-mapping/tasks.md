@@ -75,7 +75,7 @@
 - [x] 2.40 Anchor root imports to the canonical `outputs` `mkFlake` result.
 - [x] 2.41 Traverse immediate imports bound through a statically computed
       indented-string attribute name.
-- [ ] 2.42 Bind `makeGate`, its Cargo argument helpers, and their trusted
+- [x] 2.42 Bind `makeGate`, its Cargo argument helpers, and their trusted
       library imports to canonical manifest-driven Crane dispatch.
 
 ## 3. Verification and integration
@@ -132,5 +132,5 @@
 - [x] 3.25 Rerun complete evidence after canonical-root anchoring and
       indented-string import normalization, then prepare both review threads
       for clearance.
-- [ ] 3.26 Rerun complete evidence after generator-dispatch binding and prepare
+- [x] 3.26 Rerun complete evidence after generator-dispatch binding and prepare
       the delayed no-op-gate review thread for clearance.

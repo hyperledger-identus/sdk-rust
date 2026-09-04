@@ -141,3 +141,14 @@ format checks, canonical policy validation, the factory contract, and the
 complete compatible aarch64-darwin Nix graph pass. The isolated benchmark
 reports warm p50/p95 11.338/11.721 ms and process-cold p50/p95 52.676/54.017
 ms, retaining margin below the hosted material-regression ceiling.
+
+## Final provider and path-comment evidence
+
+The package-provider and path-comment corrections are implemented at
+`19fe2f9c6b8f4feaf141859b3e3493e85dc968c9`. The mutation suite passes 67/67:
+the exact `pkgs.lib.map` override fails closed, while a path immediately
+followed by `# let` remains accepted and is independently Nix-parsed. Ruff,
+canonical policy validation, the factory contract, and the complete compatible
+aarch64-darwin Nix graph pass. The isolated benchmark reports warm p50/p95
+11.242/12.091 ms and process-cold p50/p95 54.271/56.245 ms, retaining margin
+below the hosted material-regression ceiling.

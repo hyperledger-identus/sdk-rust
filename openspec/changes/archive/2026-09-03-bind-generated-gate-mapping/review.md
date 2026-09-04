@@ -270,3 +270,10 @@ the current system and Rust overlay. It SHALL terminate a path token before
 `#` so the comment masker can consume the rest of the line. An exact
 helper-override mutation must fail, while an exact path-followed-by-comment
 fixture must preserve canonical acceptance.
+
+The implementation at `19fe2f9c6b8f4feaf141859b3e3493e85dc968c9`
+meets that contract. Provider validation anchors the canonical direct import
+to the end of the root flake module, and path scanning yields before `#`. The
+exact helper-override mutation fails and the independently Nix-parsed comment
+fixture passes in the 67-test mutation suite. A final contradiction-focused
+local review found no remaining provider or comment-boundary blocker.

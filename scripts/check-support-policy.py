@@ -476,7 +476,7 @@ def nix_constructs_attributes_dynamically(text: str) -> bool:
 @cache
 def nix_uses_import_expression(text: str) -> bool:
     """Return whether executable Nix source evaluates the import primitive."""
-    return nix_uses_executable_name(text, ("import",))
+    return nix_uses_executable_name(text, ("import", "scopedImport"))
 
 
 @cache
@@ -1064,6 +1064,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     flake_imports: frozenset[Path] = frozenset()
     root_module: str | None = None
     root_statements: tuple[str, ...] | None = None
+    canonical_mk_flake_inputs = False
     outputs_expression_complete = False
     if canonical_outputs is not None:
         argument_start = canonical_outputs.end()
@@ -1074,6 +1075,16 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             argument_start += 1
         inputs_end = nix_delimited_end(flake_masked, argument_start)
         if inputs_end is not None:
+            inputs_argument = flake[argument_start:inputs_end]
+            inputs_argument_statements = nix_module_result_statements(inputs_argument)
+            canonical_mk_flake_inputs = (
+                inputs_argument_statements is not None
+                and len(inputs_argument_statements) == 1
+                and re.fullmatch(
+                    r"\s*inherit\s+inputs\s*;\s*", inputs_argument_statements[0]
+                )
+                is not None
+            )
             module_start = inputs_end
             while (
                 module_start < len(flake_masked)
@@ -1089,6 +1100,8 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
                     root_module = flake[module_start:module_end]
     if canonical_outputs is not None and not outputs_expression_complete:
         failures.append("flake.nix does not expose canonical unshadowed outputs")
+    if not canonical_mk_flake_inputs:
+        failures.append("flake.nix does not pass canonical inputs to mkFlake")
     root_imports_unresolved = root_module is None
     if root_module is not None:
         root_statements = nix_module_result_statements(root_module)

@@ -108,8 +108,8 @@
 - [x] 2.59 Reject explicit root-module `config` composition.
 - [x] 2.60 Reject indirect reflective priority lookup through path helpers.
 - [x] 2.61 Require the exact canonical root-module statement set.
-- [ ] 2.62 Require the exact canonical first `mkFlake` argument.
-- [ ] 2.63 Reject executable `scopedImport` in reachable local modules.
+- [x] 2.62 Require the exact canonical first `mkFlake` argument.
+- [x] 2.63 Reject executable `scopedImport` in reachable local modules.
 
 ## 3. Verification and integration
 

@@ -98,8 +98,8 @@
       binding roots.
 - [x] 2.53 Validate the canonical topology and provenance of every reachable
       executable provider lock edge.
-- [ ] 2.54 Require exactly one canonical provider-result statement.
-- [ ] 2.55 Reject nontrivial interpolation in quoted attribute-name strings.
+- [x] 2.54 Require exactly one canonical provider-result statement.
+- [x] 2.55 Reject nontrivial interpolation in quoted attribute-name strings.
 
 ## 3. Verification and integration
 
@@ -170,5 +170,5 @@
       prepare the exact-head review thread for clearance.
 - [x] 3.32 Rerun complete evidence after indented-name and transitive-lock
       enforcement and prepare both exact-head review threads for clearance.
-- [ ] 3.33 Rerun complete evidence after provider-result closure and ambiguous
+- [x] 3.33 Rerun complete evidence after provider-result closure and ambiguous
       quoted-name rejection, then prepare both delayed threads for clearance.

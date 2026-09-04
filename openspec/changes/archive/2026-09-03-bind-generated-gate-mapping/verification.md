@@ -374,3 +374,16 @@ the full factory-contract suite, and the compatible aarch64-darwin Nix graph
 pass. Against PR base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact
 20-sample benchmark reports warm p50/p95 9.085/9.582 ms and process-cold p50/p95
 87.937/93.288 ms; the unchanged material-regression gate passes.
+
+## Final closed provider-result and quoted-name evidence
+
+The closed provider result and ambiguous quoted-name rejection are implemented
+at `63f1e97dfc37062c1bd081c7c590c092bb7f4d72`. The mutation suite passes
+126/126: a nested per-system import and quoted constant-concatenation
+`disabledModules` binding fail, while unrelated priority-looking string data
+remains accepted outside the provider result. Ruff lint and format, canonical
+policy validation, the full factory-contract suite, and the compatible
+aarch64-darwin Nix graph pass. Against PR base
+`0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample benchmark
+reports warm p50/p95 9.719/10.079 ms and process-cold p50/p95 92.157/94.625 ms;
+the unchanged material-regression gate passes.

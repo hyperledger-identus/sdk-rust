@@ -718,3 +718,11 @@ reject every quoted attribute-name string containing interpolation unless the
 complete literal normalizes to the already supported single static-string
 form. Exact nested-import and constant-concatenation mutations must fail closed
 before new implementation evidence is accepted.
+
+The implementation at `63f1e97dfc37062c1bd081c7c590c092bb7f4d72`
+meets that contract. Provider-result validation now compares the complete
+statement count as well as the canonical publication. Computed-attribute
+detection inspects quoted strings used as bindings or selections and rejects
+any interpolated form the static-string normalizer cannot prove simple. Both
+hosted mutations fail in the 126-test suite, while an unrelated string-data
+control remains accepted outside the closed provider result.

@@ -841,3 +841,10 @@ executable bare or statically selected `scopedImport` throughout the same
 reachable local-module graph as `import`. Exact input-substitution and
 scoped-import mutations must fail before new implementation evidence is
 accepted.
+
+The implementation at `8144d23d59ea112ff5fc38220bf8d7342da2c9b9`
+meets that contract. Root-call extraction parses the complete first argument
+and accepts only its single direct `inherit inputs;` statement. Executable-name
+analysis now applies the import prohibition to both `import` and
+`scopedImport`, including selected spellings. Both exact hosted mutations fail
+in the 143-test suite.

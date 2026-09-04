@@ -448,3 +448,15 @@ compatible aarch64-darwin Nix graph pass. Against PR base
 `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
 benchmark reports warm p50/p95 9.421/10.123 ms and process-cold p50/p95
 109.080/112.398 ms; the unchanged material-regression gate passes.
+
+## Final mkFlake-input and scoped-import evidence
+
+Canonical first-argument binding and scoped-import rejection are implemented
+at `8144d23d59ea112ff5fc38220bf8d7342da2c9b9`. The mutation suite passes
+143/143: the exact substituted-input provider and reachable `scopedImport`
+mutations fail while canonical source and inert import-like string data remain
+accepted. Ruff lint and format, canonical policy validation, the complete
+factory contract, and the compatible aarch64-darwin Nix graph pass. Against PR
+base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample
+benchmark reports warm p50/p95 9.314/10.074 ms and process-cold p50/p95
+111.450/140.899 ms; the unchanged material-regression gate passes.

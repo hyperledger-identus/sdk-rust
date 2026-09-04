@@ -193,6 +193,6 @@
       and prepare the exact-head review thread for clearance.
 - [x] 3.38 Rerun complete evidence after closing the root-module statement set
       and prepare the exact-head review thread for clearance.
-- [ ] 3.39 Rerun complete evidence after canonical `mkFlake` input binding and
+- [x] 3.39 Rerun complete evidence after canonical `mkFlake` input binding and
       `scopedImport` rejection, then prepare both exact-head review threads for
       clearance.

@@ -322,9 +322,37 @@ def nix_without_comments(text: str) -> str:
     return "".join(without_comments)
 
 
+def nix_binds_attribute(text: str, name: str) -> bool:
+    """Return whether executable Nix source binds a static attribute name."""
+    source = nix_without_comments(text)
+    masked = nix_string_mask(source)
+    if re.search(rf"(?<![A-Za-z0-9_'])\b{re.escape(name)}\s*=", masked):
+        return True
+
+    quoted_names = {f'"{name}"', f"''{name}''"}
+    index = 0
+    while index < len(source):
+        path_end = nix_path_or_uri_end(source, index)
+        if path_end is not None:
+            index = path_end
+            continue
+        string_end = nix_string_end(source, index)
+        if string_end is None:
+            index += 1
+            continue
+        if source[index:string_end] in quoted_names and re.match(
+            r"\s*=", source[string_end:]
+        ):
+            return True
+        index = string_end
+    return False
+
+
 def nix_uses_priority_override(text: str) -> bool:
     """Return whether Nix source contains an effective module override value."""
     source = nix_without_comments(text)
+    if nix_binds_attribute(source, "_type"):
+        return True
     if re.search(r"\b(?:mkForce|mkOverride)\b", nix_string_mask(source)):
         return True
 
@@ -356,12 +384,53 @@ def nix_uses_priority_override(text: str) -> bool:
     return False
 
 
-def nix_local_imports(text: str, parent: Path) -> set[Path]:
+def nix_delimited_end(text: str, index: int) -> int | None:
+    """Return the exclusive end of a balanced Nix delimiter expression."""
+    pairs = {")": "(", "]": "[", "}": "{"}
+    if index >= len(text) or text[index] not in "([{":
+        return None
+    delimiters = [text[index]]
+    index += 1
+    while index < len(text):
+        path_end = nix_path_or_uri_end(text, index)
+        if path_end is not None:
+            index = path_end
+            continue
+        character = text[index]
+        if character in "([{":
+            delimiters.append(character)
+        elif character in pairs:
+            if not delimiters or delimiters.pop() != pairs[character]:
+                return None
+            if not delimiters:
+                return index + 1
+        index += 1
+    return None
+
+
+def nix_local_imports(text: str, parent: Path) -> tuple[set[Path], bool]:
     """Resolve literal child- and parent-relative imports from a Nix module."""
     masked = nix_string_mask(nix_without_comments(text))
     imports: set[Path] = set()
-    for binding in re.finditer(r"\bimports\s*=\s*\[(.*?)\];", masked, re.DOTALL):
-        body = binding.group(1)
+    unresolved = False
+    for binding in re.finditer(r"(?<![A-Za-z0-9_'])\bimports\s*=", masked):
+        list_start = binding.end()
+        while list_start < len(masked) and masked[list_start].isspace():
+            list_start += 1
+        if list_start == len(masked) or masked[list_start] != "[":
+            unresolved = True
+            continue
+        list_end = nix_delimited_end(masked, list_start)
+        if list_end is None:
+            unresolved = True
+            continue
+        terminator = list_end
+        while terminator < len(masked) and masked[terminator].isspace():
+            terminator += 1
+        if terminator == len(masked) or masked[terminator] != ";":
+            unresolved = True
+        body = masked[list_start + 1 : list_end - 1]
+        residue = list(body)
         index = 0
         while index < len(body):
             path_end = nix_path_or_uri_end(body, index)
@@ -370,12 +439,15 @@ def nix_local_imports(text: str, parent: Path) -> set[Path]:
                 continue
             relative = body[index:path_end]
             if relative.startswith(("./", "../")):
+                residue[index:path_end] = " " * (path_end - index)
                 imported = (parent / relative).resolve()
                 if imported.is_dir():
                     imported = imported / "default.nix"
                 imports.add(imported)
             index = path_end
-    return imports
+        if "".join(residue).strip():
+            unresolved = True
+    return imports, unresolved
 
 
 def nix_statement_binds(statement: str, name: str) -> bool:
@@ -513,7 +585,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         re.DOTALL,
     )
     flake_imports = (
-        nix_local_imports(root_imports.group(0), flake_path.parent)
+        nix_local_imports(root_imports.group(0), flake_path.parent)[0]
         if root_imports is not None
         else set()
     )
@@ -524,6 +596,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     repository_root = root.resolve()
     local_module_graph: set[Path] = {flake_path.resolve()}
     pending_modules = list(flake_imports)
+    unresolved_import_modules: set[Path] = set()
     while pending_modules:
         module_path = pending_modules.pop()
         try:
@@ -534,7 +607,30 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             continue
         local_module_graph.add(module_path)
         module_source = module_path.read_text(encoding="utf-8")
-        pending_modules.extend(nix_local_imports(module_source, module_path.parent))
+        module_imports, unresolved_imports = nix_local_imports(
+            module_source, module_path.parent
+        )
+        pending_modules.extend(module_imports)
+        if unresolved_imports:
+            unresolved_import_modules.add(module_path)
+    if unresolved_import_modules:
+        failures.append(
+            "local Nix module graph has unresolved imports: "
+            + ", ".join(
+                str(path.relative_to(repository_root))
+                for path in sorted(unresolved_import_modules)
+            )
+        )
+    disabled_modules = sorted(
+        str(path.relative_to(repository_root))
+        for path in local_module_graph
+        if nix_binds_attribute(path.read_text(encoding="utf-8"), "disabledModules")
+    )
+    if disabled_modules:
+        failures.append(
+            "local Nix module graph uses disabledModules: "
+            + ", ".join(disabled_modules)
+        )
     priority_modules = sorted(
         str(path.relative_to(repository_root))
         for path in local_module_graph

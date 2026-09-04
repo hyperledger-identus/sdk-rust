@@ -246,6 +246,55 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("local Nix module graph uses priority overrides")
 
+    def test_indented_raw_override_cannot_erase_generated_gates(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = {
+        _type = ''override'';
+        priority = 0;
+        content = { };
+      };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_local_module_cannot_disable_gate_generator(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  disabledModules = [ ./checks/rust-gates.nix ];\n  perSystem =",
+        )
+        self.assert_fails("local Nix module graph uses disabledModules")
+
+    def test_computed_import_expression_fails_closed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{ inputs, ... }:\n{\n  perSystem =",
+            """{ inputs, ... }:
+let
+  localModules = [ ./override.nix ];
+in
+{
+  imports = localModules;
+  perSystem =""",
+        )
+        self.assert_fails("local Nix module graph has unresolved imports")
+
+    def test_computed_import_list_entry_fails_closed(self) -> None:
+        self.replace(
+            "nix/checks/default.nix",
+            "  imports = [\n    ./rust-gates.nix\n  ];",
+            "  imports = [\n    ./rust-gates.nix\n    extraModule\n  ];",
+        )
+        self.assert_fails("local Nix module graph has unresolved imports")
+
     def test_unused_manifest_mapping_cannot_replace_published_checks(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

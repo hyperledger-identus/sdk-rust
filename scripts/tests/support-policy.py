@@ -269,6 +269,16 @@ class SupportPolicyTests(unittest.TestCase):
         )
         self.assert_fails("local Nix module graph uses disabledModules")
 
+    def test_inherited_disabled_modules_fail_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            """{
+  inherit ({ disabledModules = [ ./checks/rust-gates.nix ]; }) disabledModules;
+  perSystem =""",
+        )
+        self.assert_fails("local Nix module graph uses disabledModules")
+
     def test_computed_import_expression_fails_closed(self) -> None:
         (self.fixture / "nix/override.nix").write_text(
             "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
@@ -295,6 +305,35 @@ in
         )
         self.assert_fails("local Nix module graph has unresolved imports")
 
+    def test_computed_root_import_expression_fails_closed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "flake.nix",
+            "        inputs.devshell.flakeModule\n",
+            """        inputs.devshell.flakeModule
+        (inputs.self + "/nix/override.nix")
+""",
+        )
+        self.assert_fails("root Nix module graph has unresolved imports")
+
+    def test_inherited_imports_fail_closed(self) -> None:
+        (self.fixture / "nix/holder.nix").write_text(
+            "{ imports = [ ./override.nix ]; }\n", encoding="utf-8"
+        )
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  inherit (import ./holder.nix) imports;\n  perSystem =",
+        )
+        self.assert_fails("local Nix module graph has unresolved imports")
+
     def test_quoted_import_binding_is_traversed(self) -> None:
         (self.fixture / "nix/override.nix").write_text(
             "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
@@ -314,6 +353,59 @@ in
       _module.args = {""",
             """    {
       checks = pkgs.lib.${"mk" + "Force"} { };
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses computed attributes")
+
+    def test_reflective_priority_constructor_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = { } // ((builtins.getAttr "mkForce" pkgs.lib) { });
+      _module.args = {""",
+        )
+        self.assert_fails("local Nix module graph uses reflective attributes")
+
+    def test_dynamic_protected_attribute_construction_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    };
+}""",
+            """    };
+}
+// builtins.listToAttrs [
+  {
+    name = "disabledModules";
+    value = [ ./checks/rust-gates.nix ];
+  }
+]""",
+        )
+        self.assert_fails("local Nix module graph constructs attributes dynamically")
+
+    def test_serialized_attribute_construction_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    };
+}""",
+            """    };
+}
+// builtins.fromJSON ''{"disabledModules": []}''""",
+        )
+        self.assert_fails("local Nix module graph constructs attributes dynamically")
+
+    def test_computed_raw_override_attribute_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = {
+        ${"_type"} = "override";
+        priority = 0;
+        content = { };
+      };
       _module.args = {""",
         )
         self.assert_fails("local Nix module graph uses computed attributes")

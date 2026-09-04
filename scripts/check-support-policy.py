@@ -369,6 +369,30 @@ def nix_uses_computed_attribute(text: str) -> bool:
 
 
 @cache
+def nix_uses_reflective_attribute_access(text: str) -> bool:
+    """Return whether executable Nix source retrieves an attribute by name."""
+    source = nix_string_mask(nix_without_comments(text))
+    return re.search(r"(?<![A-Za-z0-9_'])\bgetAttr\b", source) is not None
+
+
+@cache
+def nix_constructs_attributes_dynamically(text: str) -> bool:
+    """Return whether executable Nix source constructs attribute names at runtime."""
+    source = nix_string_mask(nix_without_comments(text))
+    constructors = (
+        "fromJSON",
+        "fromTOML",
+        "genAttrs",
+        "groupBy",
+        "listToAttrs",
+        "mapAttrs",
+        "zipAttrsWith",
+    )
+    names = "|".join(constructors)
+    return re.search(rf"(?<![A-Za-z0-9_'])\b(?:{names})\b", source) is not None
+
+
+@cache
 def nix_inherits_attribute(text: str, name: str) -> bool:
     """Return whether executable Nix source inherits an attribute name."""
     source = nix_string_mask(nix_without_comments(text))
@@ -442,11 +466,13 @@ def nix_delimited_end(text: str, index: int) -> int | None:
 
 
 @cache
-def nix_local_imports(text: str, parent: Path) -> tuple[frozenset[Path], bool]:
+def nix_local_imports(
+    text: str, parent: Path, allow_external_flake_modules: bool = False
+) -> tuple[frozenset[Path], bool]:
     """Resolve literal child- and parent-relative imports from a Nix module."""
     masked = nix_string_mask(nix_without_comments(text))
     imports: set[Path] = set()
-    unresolved = False
+    unresolved = nix_inherits_attribute(text, "imports")
     for assignment_end in nix_attribute_assignment_ends(text, "imports"):
         list_start = assignment_end
         while list_start < len(masked) and masked[list_start].isspace():
@@ -482,7 +508,15 @@ def nix_local_imports(text: str, parent: Path) -> tuple[frozenset[Path], bool]:
                         imported = imported / "default.nix"
                     imports.add(imported)
             index = path_end
-        if "".join(residue).strip():
+        residue_text = "".join(residue)
+        if allow_external_flake_modules:
+            residue_text = re.sub(
+                r"(?<![A-Za-z0-9_'])inputs\.[A-Za-z_][A-Za-z0-9_'-]*"
+                r"\.flakeModule(?![A-Za-z0-9_'])",
+                "",
+                residue_text,
+            )
+        if residue_text.strip():
             unresolved = True
     return frozenset(imports), unresolved
 
@@ -622,11 +656,16 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         flake_masked,
         re.DOTALL,
     )
-    flake_imports = (
-        nix_local_imports(root_imports.group(0), flake_path.parent)[0]
-        if root_imports is not None
-        else set()
-    )
+    flake_imports: frozenset[Path] = frozenset()
+    root_imports_unresolved = root_imports is None
+    if root_imports is not None:
+        flake_imports, root_imports_unresolved = nix_local_imports(
+            root_imports.group(0),
+            flake_path.parent,
+            allow_external_flake_modules=True,
+        )
+    if root_imports_unresolved:
+        failures.append("root Nix module graph has unresolved imports")
     if checks_entry not in flake_imports:
         failures.append("flake.nix does not import the nix/checks module")
         return
@@ -662,7 +701,12 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     disabled_modules = sorted(
         str(path.relative_to(repository_root))
         for path in local_module_graph
-        if nix_binds_attribute(path.read_text(encoding="utf-8"), "disabledModules")
+        if (
+            nix_binds_attribute(path.read_text(encoding="utf-8"), "disabledModules")
+            or nix_inherits_attribute(
+                path.read_text(encoding="utf-8"), "disabledModules"
+            )
+        )
     )
     if disabled_modules:
         failures.append(
@@ -679,6 +723,28 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         failures.append(
             "local Nix module graph uses computed attributes: "
             + ", ".join(computed_attribute_modules)
+        )
+    reflective_attribute_modules = sorted(
+        str(path.relative_to(repository_root))
+        for path in local_module_graph
+        if path != generator_path
+        and nix_uses_reflective_attribute_access(path.read_text(encoding="utf-8"))
+    )
+    if reflective_attribute_modules:
+        failures.append(
+            "local Nix module graph uses reflective attributes: "
+            + ", ".join(reflective_attribute_modules)
+        )
+    dynamic_attribute_modules = sorted(
+        str(path.relative_to(repository_root))
+        for path in local_module_graph
+        if path != generator_path
+        and nix_constructs_attributes_dynamically(path.read_text(encoding="utf-8"))
+    )
+    if dynamic_attribute_modules:
+        failures.append(
+            "local Nix module graph constructs attributes dynamically: "
+            + ", ".join(dynamic_attribute_modules)
         )
     competing_check_modules = sorted(
         str(path.relative_to(repository_root))

@@ -442,6 +442,16 @@ in
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_punctuated_unprefixed_path_preserves_scope_keyword(self) -> None:
+        self.replace(
+            "nix/checks/rust-gates.nix",
+            "      manifest = builtins.fromTOML",
+            """      pathData = .let/file;
+      manifest = builtins.fromTOML""",
+        )
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_indented_control_escape_consumes_escaped_interpolation(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",

@@ -168,8 +168,8 @@ def nix_block_comment_end(text: str, index: int) -> int:
 def nix_path_or_uri_end(text: str, index: int) -> int | None:
     """Return the end of a path or URI token beginning at index."""
     character = text[index]
-    plausible_word_start = character.isalnum() or character == "_"
-    if character not in "./~<" and not plausible_word_start:
+    plausible_unprefixed_start = character.isalnum() or character in "._+?-"
+    if character not in "./~<" and not plausible_unprefixed_start:
         return None
     uri_boundary = character.isalpha() and (
         index == 0 or not (text[index - 1].isalnum() or text[index - 1] in "+.-")
@@ -178,7 +178,7 @@ def nix_path_or_uri_end(text: str, index: int) -> int | None:
         text[index - 1].isalnum() or text[index - 1] in "_'.+-"
     )
     unprefixed_path = (
-        plausible_word_start
+        plausible_unprefixed_start
         and token_boundary
         and NIX_UNPREFIXED_PATH_PREFIX.match(text, index) is not None
     )

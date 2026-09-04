@@ -416,6 +416,24 @@ in
         )
         self.assert_fails("root Nix module graph has unresolved imports")
 
+    def test_external_flake_module_cannot_resolve_from_local_path(self) -> None:
+        self.replace(
+            "flake.nix",
+            'devshell.url = "github:numtide/devshell";',
+            'devshell.url = "path:./evil";',
+        )
+        self.assert_nix_parses_if_available("flake.nix")
+        self.assert_fails("does not bind canonical trusted input sources")
+
+    def test_crane_provider_cannot_resolve_from_local_input(self) -> None:
+        self.replace(
+            "flake.nix",
+            'crane.url = "github:ipetkov/crane";',
+            'crane.url = "path:./evil-crane";',
+        )
+        self.assert_nix_parses_if_available("flake.nix")
+        self.assert_fails("does not bind canonical trusted input sources")
+
     def test_inherited_imports_fail_closed(self) -> None:
         (self.fixture / "nix/holder.nix").write_text(
             "{ imports = [ ./override.nix ]; }\n", encoding="utf-8"
@@ -465,6 +483,21 @@ in
             "nix/rust-toolchain.nix",
             "{\n  perSystem =",
             '{\n  ${"imports"} = [ ./override.nix ];\n  perSystem =',
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_quoted_interpolated_import_binding_is_traversed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            """{
+  "${"imports"}" = [ ./override.nix ];
+  perSystem =""",
         )
         self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
         self.assert_fails("local Nix module graph uses priority overrides")
@@ -527,6 +560,18 @@ in
         )
         self.assert_fails("local Nix module graph uses reflective attributes")
 
+    def test_quoted_get_attr_selection_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    {
+      checks = { } // ((builtins."getAttr" "mkForce" pkgs.lib) { });
+      _module.args = {""",
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("local Nix module graph uses reflective attributes")
+
     def test_dynamic_protected_attribute_construction_fails_closed(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",
@@ -542,6 +587,38 @@ in
 ]""",
         )
         self.assert_fails("local Nix module graph constructs attributes dynamically")
+
+    def test_quoted_list_to_attrs_selection_fails_closed(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            """    {
+      _module.args = {""",
+            """    builtins."listToAttrs" [
+      {
+        name = "checks";
+        value = pkgs.lib.mkForce { };
+      }
+    ]
+    // {
+      _module.args = {""",
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("local Nix module graph constructs attributes dynamically")
+
+    def test_quoted_import_selection_fails_closed(self) -> None:
+        (self.fixture / "nix/override.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { checks = pkgs.lib.mkForce { }; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            """{
+  config = builtins."import" ./override.nix;
+  perSystem =""",
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("local Nix module graph uses import expressions")
 
     def test_serialized_attribute_construction_fails_closed(self) -> None:
         self.replace(
@@ -692,6 +769,42 @@ in
         self.assert_nix_parses_if_available("nix/checks/rust-gates.nix")
         self.assert_fails("shadows trusted root(s) in perSystem let: craneLib")
 
+    def test_crane_library_operations_cannot_be_replaced_upstream(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "      craneLib = (inputs.crane.mkLib pkgs).overrideToolchain toolchain;",
+            """      craneLib =
+        let
+          original = (inputs.crane.mkLib pkgs).overrideToolchain toolchain;
+          noop = _: pkgs.runCommand "noop" { } "touch $out";
+        in
+        original // {
+          cargoAudit = noop;
+          cargoBuild = noop;
+          cargoClippy = noop;
+          cargoDeny = noop;
+          cargoDoc = noop;
+          cargoFmt = noop;
+          cargoNextest = noop;
+        };""",
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("does not bind canonical Crane providers")
+
+    def test_crane_input_cannot_be_shadowed_in_toolchain_scope(self) -> None:
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "      toolchain = pkgs.rust-bin.nightly",
+            """      inputs = {
+        crane.mkLib = _: {
+          overrideToolchain = _: { };
+        };
+      };
+      toolchain = pkgs.rust-bin.nightly""",
+        )
+        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_fails("does not bind canonical Crane providers")
+
     def test_local_map_cannot_replace_pkgs_lib_map(self) -> None:
         self.replace(
             "nix/checks/rust-gates.nix",
@@ -744,6 +857,47 @@ in
               };
             };""",
         )
+        self.assert_fails("flake.nix does not provide canonical pkgs to perSystem")
+
+    def test_nested_provider_decoy_cannot_validate_mutated_root_provider(self) -> None:
+        self.replace(
+            "flake.nix",
+            """      perSystem =
+        { system, ... }:
+        {
+          _module.args.pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ (import rust-overlay) ];
+          };
+        };""",
+            """      perSystem =
+        { system, ... }:
+        let
+          originalPkgs = import nixpkgs {
+            inherit system;
+            overlays = [ (import rust-overlay) ];
+          };
+        in
+        {
+          _module.args.pkgs = originalPkgs // {
+            lib = originalPkgs.lib // {
+              map = function: values: [ (function (builtins.head values)) ];
+            };
+          };
+        };
+
+      _module.args.providerDecoy = {
+        perSystem =
+          { system, ... }:
+          {
+            _module.args.pkgs = import nixpkgs {
+              inherit system;
+              overlays = [ (import rust-overlay) ];
+            };
+          };
+      };""",
+        )
+        self.assert_nix_parses_if_available("flake.nix")
         self.assert_fails("flake.nix does not provide canonical pkgs to perSystem")
 
     def test_outputs_scope_cannot_replace_builtin_import(self) -> None:

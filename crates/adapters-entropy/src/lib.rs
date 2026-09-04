@@ -50,16 +50,13 @@ pub struct GetrandomSystemRandomAdapter;
 
 #[cfg(feature = "getrandom")]
 impl SecureRandom for GetrandomSystemRandomAdapter {
-    fn generate_seed(&mut self, num_bytes: usize) -> Vec<u8> {
-        let mut out = vec![0u8; num_bytes];
-        getrandom::getrandom(&mut out)
-            .expect("getrandom::getrandom failed for the configured target/runtime");
-        out
+    fn fill_bytes(&mut self, output: &mut [u8]) -> Result<(), identus_crypto::Error> {
+        getrandom::getrandom(output).map_err(|_| identus_crypto::Error::SecureRandomFailure)
     }
 }
 
 /// A deterministic [`SecureRandom`] adapter for **tests only**. It returns
-/// `num_bytes` bytes drawn from a fixed, repeatable 256-byte sequence, so
+/// bytes drawn from a fixed, repeatable 256-byte sequence, so
 /// `generate`/`create_random_mnemonics` calls are reproducible across crates.
 ///
 /// Never use this for production entropy.
@@ -69,23 +66,11 @@ pub struct DeterministicRandomAdapter;
 
 #[cfg(feature = "deterministic")]
 impl SecureRandom for DeterministicRandomAdapter {
-    fn generate_seed(&mut self, num_bytes: usize) -> Vec<u8> {
-        const POOL: [u8; 256] = {
-            let mut p = [0u8; 256];
-            let mut i = 0;
-            while i < 256 {
-                p[i] = (i % 256) as u8;
-                i += 1;
-            }
-            p
-        };
-        let mut out = Vec::with_capacity(num_bytes);
-        let mut idx: usize = 0;
-        while out.len() < num_bytes {
-            out.push(POOL[idx % 256]);
-            idx = idx.wrapping_add(1);
+    fn fill_bytes(&mut self, output: &mut [u8]) -> Result<(), identus_crypto::Error> {
+        for (index, byte) in output.iter_mut().enumerate() {
+            *byte = (index % 256) as u8;
         }
-        out
+        Ok(())
     }
 }
 
@@ -96,9 +81,11 @@ mod tests {
     #[test]
     fn getrandom_adapter_returns_requested_length_and_is_nonzero() {
         let mut adapter = GetrandomSystemRandomAdapter;
-        let seed = adapter.generate_seed(32);
-        assert_eq!(seed.len(), 32);
+        let mut seed = [0u8; 32];
+        adapter.fill_bytes(&mut seed).unwrap();
         assert!(seed.iter().any(|&b| b != 0), "seed must not be all-zero");
+
+        adapter.fill_bytes(&mut []).unwrap();
     }
 }
 
@@ -109,18 +96,27 @@ mod deterministic_tests {
     #[test]
     fn deterministic_adapter_is_reproducible_across_calls() {
         let mut a = DeterministicRandomAdapter;
-        let first = a.generate_seed(32);
-        let second = a.generate_seed(32);
+        let mut first = [0u8; 32];
+        let mut second = [0u8; 32];
+        a.fill_bytes(&mut first).unwrap();
+        a.fill_bytes(&mut second).unwrap();
         assert_eq!(first, second, "same N must yield byte-identical seeds");
     }
 
     #[test]
     fn deterministic_adapter_is_reproducible_across_instances() {
-        let seed_a = DeterministicRandomAdapter.generate_seed(64);
-        let seed_b = DeterministicRandomAdapter.generate_seed(64);
+        let mut seed_a = [0u8; 64];
+        let mut seed_b = [0u8; 64];
+        DeterministicRandomAdapter.fill_bytes(&mut seed_a).unwrap();
+        DeterministicRandomAdapter.fill_bytes(&mut seed_b).unwrap();
         assert_eq!(
             seed_a, seed_b,
             "distinct instances must agree for the same N"
         );
+    }
+
+    #[test]
+    fn deterministic_adapter_accepts_an_empty_slice() {
+        DeterministicRandomAdapter.fill_bytes(&mut []).unwrap();
     }
 }

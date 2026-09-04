@@ -21,6 +21,10 @@ use identus_derive as identus;
 /// guard) and enforces the no-`Port`-suffix naming rule at compile time.
 #[identus::port]
 pub trait SecureRandom {
-    /// Generate `num_bytes` cryptographically-secure random bytes.
-    fn generate_seed(&mut self, num_bytes: usize) -> Vec<u8>;
+    /// Fill caller-owned storage with cryptographically secure random bytes.
+    ///
+    /// Implementations must return [`crate::Error::SecureRandomFailure`] when
+    /// their backing provider fails. Callers must not use the buffer after an
+    /// error because a provider may have written only part of it.
+    fn fill_bytes(&mut self, output: &mut [u8]) -> Result<(), crate::Error>;
 }

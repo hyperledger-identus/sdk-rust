@@ -81,14 +81,12 @@ impl Ed25519PrivateKey {
 
 impl Ed25519KeyPair {
     /// Generate a fresh keypair using the injected [`SecureRandom`] entropy port.
-    pub fn generate(rng: &mut impl SecureRandom) -> Self {
-        let seed: [u8; KEY_SIZE] = rng
-            .generate_seed(KEY_SIZE)
-            .try_into()
-            .expect("SecureRandom must return the requested number of bytes");
+    pub fn generate(rng: &mut impl SecureRandom) -> Result<Self, Error> {
+        let mut seed = [0u8; KEY_SIZE];
+        rng.fill_bytes(&mut seed)?;
         let private = Ed25519PrivateKey(SigningKey::from_bytes(&seed));
         let public = private.to_public_key();
-        Self { private, public }
+        Ok(Self { private, public })
     }
 
     /// The public half of the keypair.

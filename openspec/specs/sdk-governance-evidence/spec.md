@@ -121,16 +121,20 @@ feature surfaces and stabilization issue for every `implemented` package. It
 SHALL identify `identus-conformance` as verification-only and every placeholder
 as unsupported. It SHALL label all implemented surfaces experimental,
 unreleased and subject to focused component contracts. The
-`identus-credentials` entry SHALL identify its bounded envelope, metadata/schema
-descriptors, status binding/freshness/query/evidence contracts, and staged
-verification evidence while explicitly excluding claim values, trust,
-verifier/schema/status execution, holder bindings, status proof payloads,
+`identus-credentials` entry SHALL identify its bounded envelope,
+metadata/schema descriptors, status binding/freshness/query/evidence contracts,
+and staged verification evidence while explicitly excluding claim values,
+trust, verifier/schema/status execution, holder bindings, status proof payloads,
 concrete formats, protocols, display/localization, wire codecs, and storage.
+The `identus-presentations` entry SHALL identify its bounded semantic
+request/query/claim/challenge/candidate contracts while explicitly excluding
+protocol wire, candidate lookup/ranking, consent, proof execution,
+artifact/receipt, lifecycle, storage, FFI, chain, and product behavior.
 
 #### Scenario: Consumer inspects current foundations
 
-- **WHEN** a consumer considers integrating core, derive, crypto, DID or the
-  entropy adapter
+- **WHEN** a consumer considers integrating core, derive, crypto, DID, the
+  credential/presentation semantics, or the entropy adapter
 - **THEN** the inventory identifies the real surface and owner issue while
   warning that no immutable release or compatibility commitment exists
 
@@ -145,6 +149,12 @@ concrete formats, protocols, display/localization, wire codecs, and storage.
 - **WHEN** a consumer considers integrating `identus-credentials`
 - **THEN** the inventory identifies #71, #73, #75, and #77 as delivered
   experimental slices without implying the deferred capabilities are supported
+
+#### Scenario: Consumer inspects current presentation foundations
+
+- **WHEN** a consumer considers integrating `identus-presentations`
+- **THEN** the inventory identifies #79 as an experimental first slice without
+  implying protocol, selection, consent, proof, lifecycle, or storage support
 
 ### Requirement: Governance evidence is local and release authority stays protected
 
@@ -227,3 +237,20 @@ and trust or credential-usability decisions.
 - **WHEN** a consumer inspects `identus-credentials` in the bootstrap inventory
 - **THEN** the entry identifies #77 without implying that the SDK retrieves,
   verifies, interprets, or acts on credential status
+
+### Requirement: Presentation request activation is inventoried
+
+The machine-readable and human-readable bootstrap inventories SHALL classify
+`identus-presentations` as an implemented, experimental
+credential-semantics package after issue #79. They SHALL identify its bounded
+request/query/claim/challenge/candidate contracts and SHALL continue to exclude
+DCQL/protocol wire, lookup and selection policy, consent, proof execution,
+presentation artifacts/receipts, lifecycle state, storage, FFI, and product or
+chain behavior.
+
+#### Scenario: Consumer inspects presentation support
+
+- **WHEN** a consumer inspects `identus-presentations` in the bootstrap
+  inventory
+- **THEN** the entry identifies #79 and its request/query/candidate boundary
+  without implying that a complete presentation protocol or wallet flow exists

@@ -335,6 +335,53 @@ class SupportPolicyTests(unittest.TestCase):
         self.assert_nix_parses_if_available("nix/checks/default.nix")
         self.assert_fails("local Nix module graph uses priority overrides")
 
+    def test_direct_deferred_per_system_import_override_is_reachable(self) -> None:
+        (self.fixture / "nix/erase.nix").write_text(
+            "{ pkgs, ... }: { checks = pkgs.lib.mkForce { }; }\n",
+            encoding="utf-8",
+        )
+        (self.fixture / "nix/direct.nix").write_text(
+            "{ perSystem = { pkgs, ... }: { imports = [ ./erase.nix ]; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  imports = [ ./direct.nix ];\n  perSystem =",
+        )
+        self.assert_nix_parses_if_available("nix/direct.nix")
+        self.assert_fails("local Nix module graph uses priority overrides")
+
+    def test_deferred_per_system_computed_import_fails_closed(self) -> None:
+        (self.fixture / "nix/direct.nix").write_text(
+            "{ perSystem = { ... }: { imports = localModules; }; }\n",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  imports = [ ./direct.nix ];\n  perSystem =",
+        )
+        self.assert_nix_parses_if_available("nix/direct.nix")
+        self.assert_fails("local Nix module graph has unresolved imports")
+
+    def test_nested_deferred_import_data_is_not_a_graph_edge(self) -> None:
+        (self.fixture / "nix/direct.nix").write_text(
+            """{ perSystem = { ... }: {
+  _module.args.importData = { imports = [ ./missing-decoy.nix ]; };
+}; }
+""",
+            encoding="utf-8",
+        )
+        self.replace(
+            "nix/rust-toolchain.nix",
+            "{\n  perSystem =",
+            "{\n  imports = [ ./direct.nix ];\n  perSystem =",
+        )
+        self.assert_nix_parses_if_available("nix/direct.nix")
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_raw_priority_override_cannot_erase_generated_gates(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",

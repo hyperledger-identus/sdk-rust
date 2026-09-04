@@ -510,7 +510,7 @@ def nix_uses_priority_override(text: str) -> bool:
             continue
 
         literal = source[index:string_end]
-        literal_name = literal[1:-1] if literal.startswith('"') else ""
+        literal_name = nix_static_string_value(literal) or ""
         if re.fullmatch(priority_constructor, literal_name):
             prefix = source[:index].rstrip()
             static_selection = prefix.endswith(".")
@@ -784,6 +784,99 @@ def nix_module_result_statements(text: str) -> tuple[str, ...] | None:
     return tuple(statements) if statements is not None else None
 
 
+def nix_outer_let_result_start(text: str, index: int) -> int | None:
+    """Return the start of an outer let expression's result after `in`."""
+    if re.match(r"let\b", text[index:]) is None:
+        return None
+    index += len("let")
+    delimiters: list[str] = []
+    nested_lets = 0
+    pairs = {")": "(", "]": "[", "}": "{"}
+    while index < len(text):
+        path_end = nix_path_or_uri_end(text, index)
+        if path_end is not None:
+            index = path_end
+            continue
+        character = text[index]
+        if character in "([{":
+            delimiters.append(character)
+            index += 1
+            continue
+        if character in pairs:
+            if not delimiters or delimiters.pop() != pairs[character]:
+                return None
+            index += 1
+            continue
+        if character.isalpha() or character == "_":
+            end = index + 1
+            while end < len(text) and (text[end].isalnum() or text[end] in "_-'"):
+                end += 1
+            token = text[index:end]
+            if token == "let":
+                nested_lets += 1
+            elif token == "in":
+                if nested_lets:
+                    nested_lets -= 1
+                elif not delimiters:
+                    return end
+            index = end
+            continue
+        index += 1
+    return None
+
+
+@cache
+def nix_per_system_result_module(text: str) -> tuple[str | None, bool]:
+    """Isolate a reachable module's deferred perSystem result module."""
+    statements = nix_module_result_statements(text)
+    if statements is None:
+        return None, False
+    per_system = tuple(
+        statement
+        for statement in statements
+        if nix_statement_binds(statement, "perSystem")
+    )
+    if not per_system:
+        return None, False
+    if len(per_system) != 1:
+        return None, True
+
+    source = nix_without_comments(per_system[0])
+    masked = nix_string_mask(source)
+    assignment_ends = nix_attribute_assignment_ends(source, "perSystem")
+    if len(assignment_ends) != 1:
+        return None, True
+    index = assignment_ends[0]
+    while index < len(masked) and masked[index].isspace():
+        index += 1
+    if index == len(masked) or masked[index] != "{":
+        return None, True
+    formals_end = nix_delimited_end(masked, index)
+    if formals_end is None:
+        return None, True
+    index = formals_end
+    while index < len(masked) and masked[index].isspace():
+        index += 1
+    if index == len(masked) or masked[index] != ":":
+        return None, True
+    index += 1
+    while index < len(masked) and masked[index].isspace():
+        index += 1
+    if re.match(r"let\b", masked[index:]) is not None:
+        result_start = nix_outer_let_result_start(masked, index)
+        if result_start is None:
+            return None, True
+        index = result_start
+        while index < len(masked) and masked[index].isspace():
+            index += 1
+    if index == len(masked) or masked[index] != "{":
+        return None, True
+    result_end = nix_delimited_end(masked, index)
+    if result_end is None or re.fullmatch(r"\s*;\s*", masked[result_end:]) is None:
+        return None, True
+    return source[index:result_end], False
+
+
 @cache
 def nix_module_binds_attribute(text: str, name: str) -> bool:
     """Return whether a direct Nix module result immediately binds an attribute."""
@@ -1023,8 +1116,17 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         module_imports, unresolved_imports = nix_local_imports(
             module_source, module_path.parent
         )
+        deferred_module, deferred_unresolved = nix_per_system_result_module(
+            module_source
+        )
+        if deferred_module is not None:
+            deferred_imports, deferred_imports_unresolved = nix_local_imports(
+                deferred_module, module_path.parent
+            )
+            module_imports = module_imports | deferred_imports
+            deferred_unresolved = deferred_unresolved or deferred_imports_unresolved
         pending_modules.extend(module_imports)
-        if unresolved_imports:
+        if unresolved_imports or deferred_unresolved:
             unresolved_import_modules.add(module_path)
     if unresolved_import_modules:
         failures.append(

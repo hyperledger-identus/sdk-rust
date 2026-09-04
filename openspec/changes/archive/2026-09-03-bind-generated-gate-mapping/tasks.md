@@ -100,9 +100,9 @@
       executable provider lock edge.
 - [x] 2.54 Require exactly one canonical provider-result statement.
 - [x] 2.55 Reject nontrivial interpolation in quoted attribute-name strings.
-- [ ] 2.56 Normalize indented and statically interpolated priority-constructor
+- [x] 2.56 Normalize indented and statically interpolated priority-constructor
       selections.
-- [ ] 2.57 Traverse literal imports from every reachable deferred `perSystem`
+- [x] 2.57 Traverse literal imports from every reachable deferred `perSystem`
       result module.
 
 ## 3. Verification and integration

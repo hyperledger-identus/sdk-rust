@@ -362,3 +362,15 @@ compatible aarch64-darwin Nix graph pass. Against PR base
 `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact 20-sample benchmark
 reports warm p50/p95 9.388/10.384 ms and process-cold p50/p95 91.578/94.764 ms;
 the unchanged material-regression gate passes.
+
+## Final indented-name and transitive-lock evidence
+
+Indented protected-name normalization and complete provider lock topology are
+enforced at `08c808cf7836d7f7873a7e1d27e50d876669cf80`. The mutation suite passes
+124/124: the exact Nix-valid layout-whitespace `inputs` shadow, transitive edge
+redirection, and transitive target-owner replacement all fail, while canonical
+source remains accepted. Ruff lint and format, canonical policy validation,
+the full factory-contract suite, and the compatible aarch64-darwin Nix graph
+pass. Against PR base `0ed7fe42519df5d6778444fe31f3769ad05fc70c`, the exact
+20-sample benchmark reports warm p50/p95 9.085/9.582 ms and process-cold p50/p95
+87.937/93.288 ms; the unchanged material-regression gate passes.

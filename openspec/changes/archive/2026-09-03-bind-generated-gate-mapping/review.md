@@ -654,6 +654,14 @@ normalize both double-quoted and indented-string outer forms containing one
 static string interpolation. Exact lock-owner, root-mapping, and indented-name
 mutations must fail closed before new implementation evidence is accepted.
 
+The implementation at `08c808cf7836d7f7873a7e1d27e50d876669cf80`
+meets that contract. Indented static names are normalized after surrounding
+layout whitespace is removed, without changing double-quoted name semantics.
+Each direct provider now has an exact input-edge contract, and every expected
+target must be a leaf with canonical original and locked GitHub provenance.
+The two hosted mutations and an adjacent transitive-owner mutation fail in the
+124-test suite while canonical acceptance remains green.
+
 The implementation at `6a5b13ea10f3eae8f137c6dd7892d3fcb967b265`
 meets that contract. Root mappings must be direct strings, all seven declared
 inputs must resolve to nodes with exact original GitHub declarations, and each

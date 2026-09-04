@@ -112,6 +112,10 @@ non-path branch must use constant-time leading-character and token-boundary
 checks, with prefix scanning only for plausible path/URI starts; this preserves
 the lexical contract without paying regular-expression and generator overhead
 for every source character.
+Module binding, override, delimiter, and import analysis is also a pure
+function of immutable source text and the importing directory. Those results
+are memoized across warm validator samples; cached import sets are immutable so
+callers cannot corrupt subsequent validation.
 
 Two fixture mutations independently replace the mapped name with a constant
 and the mapped value with an empty attribute set. Both must return a stable

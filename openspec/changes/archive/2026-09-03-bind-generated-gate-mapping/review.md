@@ -395,3 +395,15 @@ and an additional computed-list-entry mutation fail in the 80-test suite. All
 three hosted fixtures parse with Nix, and a final contradiction-focused local
 review found no remaining blocker within the defined static module-graph
 contract.
+
+## Module-analysis performance correction contract
+
+Hosted macOS CI on `890afed` passed the complete functional validator but
+measured warm p50 at 24.373 ms against a 23.806 ms material-regression ceiling.
+The repeated binding, override, delimiter, and import scans are pure over
+immutable source inputs and currently rerun across every warm sample.
+
+The implementation SHALL memoize those pure results, expose cached import
+paths immutably, preserve all 80 functional mutations, and pass the unchanged
+hosted material-regression guard. Threshold relaxation is not an acceptable
+fix.

@@ -58,6 +58,8 @@ still reports success.
 - Consume the escaped character after an indented-string `''\` prefix.
 - Keep richer path classification within the existing hosted warm-latency
   regression ceiling.
+- Cache pure module-source binding, override, delimiter, and import analyses so
+  the closed graph contract retains its hosted warm-latency ceiling.
 - Add exact fail-closed regressions for constant-name collapse and detached
   mapped values, helper replacement, and nested input shadowing.
 - Record the contract and verification evidence without changing the gate

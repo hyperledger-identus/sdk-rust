@@ -455,7 +455,18 @@ def nix_uses_executable_name(text: str, names: tuple[str, ...]) -> bool:
 @cache
 def nix_uses_reflective_attribute_access(text: str) -> bool:
     """Return whether executable Nix source retrieves an attribute by name."""
-    return nix_uses_executable_name(text, ("attrByPath", "getAttr", "getAttrFromPath"))
+    return nix_uses_executable_name(
+        text,
+        (
+            "attrByPath",
+            "attrNames",
+            "attrValues",
+            "attrsToList",
+            "getAttr",
+            "getAttrFromPath",
+            "mapAttrsToList",
+        ),
+    )
 
 
 @cache
@@ -468,6 +479,8 @@ def nix_constructs_attributes_dynamically(text: str) -> bool:
         "groupBy",
         "listToAttrs",
         "mapAttrs",
+        "mapAttrs'",
+        "setAttrByPath",
         "zipAttrsWith",
     )
     return nix_uses_executable_name(text, constructors)

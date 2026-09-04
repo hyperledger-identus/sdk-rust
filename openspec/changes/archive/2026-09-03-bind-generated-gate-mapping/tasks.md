@@ -110,8 +110,8 @@
 - [x] 2.61 Require the exact canonical root-module statement set.
 - [x] 2.62 Require the exact canonical first `mkFlake` argument.
 - [x] 2.63 Reject executable `scopedImport` in reachable local modules.
-- [ ] 2.64 Reject path-based attribute construction through `setAttrByPath`.
-- [ ] 2.65 Reject reflective enumeration through `attrNames` and `attrValues`.
+- [x] 2.64 Reject path-based attribute construction through `setAttrByPath`.
+- [x] 2.65 Reject reflective enumeration through `attrNames` and `attrValues`.
 
 ## 3. Verification and integration
 

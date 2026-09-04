@@ -330,12 +330,19 @@ def nix_static_string_value(literal: str) -> str | None:
     if re.fullmatch(r"''[A-Za-z_][A-Za-z0-9_'-]*''", literal):
         return literal[2:-2]
     payload = None
+    indented = False
     if literal.startswith('"') and literal.endswith('"'):
         payload = literal[1:-1]
     elif literal.startswith("''") and literal.endswith("''"):
         payload = literal[2:-2]
+        indented = True
     if payload is None:
         return None
+    if indented:
+        normalized = payload.strip()
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_'-]*", normalized):
+            return normalized
+        payload = normalized
     interpolated = re.fullmatch(
         r"^\$\{\s*(?:\"(?P<double>[A-Za-z_][A-Za-z0-9_'-]*)\"|''(?P<indented>[A-Za-z_][A-Za-z0-9_'-]*)'')\s*\}$",
         payload,
@@ -825,6 +832,32 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         "advisory-db": {"owner": "rustsec", "repo": "advisory-db"},
         "openspec": {"owner": "Fission-AI", "repo": "OpenSpec"},
     }
+    canonical_transitive_input_provenance: dict[str, dict[str, dict[str, str]]] = {
+        "flake-parts": {
+            "nixpkgs-lib": {"owner": "nix-community", "repo": "nixpkgs.lib"}
+        },
+        "devshell": {
+            "nixpkgs": {
+                "owner": "NixOS",
+                "repo": "nixpkgs",
+                "ref": "nixpkgs-unstable",
+            }
+        },
+        "rust-overlay": {
+            "nixpkgs": {
+                "owner": "NixOS",
+                "repo": "nixpkgs",
+                "ref": "nixpkgs-unstable",
+            }
+        },
+        "openspec": {
+            "nixpkgs": {
+                "owner": "NixOS",
+                "repo": "nixpkgs",
+                "ref": "nixos-unstable",
+            }
+        },
+    }
 
     def canonical_locked_inputs() -> bool:
         try:
@@ -837,16 +870,18 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             return False
         if set(root_inputs) != set(canonical_input_provenance):
             return False
-        for name, source in canonical_input_provenance.items():
-            node_name = root_inputs.get(name)
+
+        def canonical_node(
+            node_name: object, source: dict[str, str], *, flake: bool = True
+        ) -> dict[str, Any] | None:
             if not isinstance(node_name, str):
-                return False
+                return None
             node = nodes.get(node_name)
             if not isinstance(node, dict):
-                return False
+                return None
             expected_original = {"type": "github", **source}
             if node.get("original") != expected_original:
-                return False
+                return None
             locked = node.get("locked")
             if not isinstance(locked, dict) or set(locked) != {
                 "lastModified",
@@ -856,24 +891,42 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
                 "rev",
                 "type",
             }:
-                return False
+                return None
             if any(locked.get(key) != source[key] for key in ("owner", "repo")):
-                return False
+                return None
             if locked.get("type") != "github":
-                return False
+                return None
             if not isinstance(locked.get("lastModified"), int):
-                return False
+                return None
             if re.fullmatch(r"[0-9a-f]{40}", str(locked.get("rev", ""))) is None:
-                return False
+                return None
             if (
                 re.fullmatch(
                     r"sha256-[A-Za-z0-9+/]{43}=", str(locked.get("narHash", ""))
                 )
                 is None
             ):
+                return None
+            if node.get("flake", True) is not flake:
+                return None
+            return node
+
+        for name, source in canonical_input_provenance.items():
+            node = canonical_node(
+                root_inputs.get(name), source, flake=name != "advisory-db"
+            )
+            if node is None:
                 return False
-            if (node.get("flake", True) is False) != (name == "advisory-db"):
+            expected_inputs = canonical_transitive_input_provenance.get(name, {})
+            node_inputs = node.get("inputs", {})
+            if not isinstance(node_inputs, dict) or set(node_inputs) != set(
+                expected_inputs
+            ):
                 return False
+            for input_name, input_source in expected_inputs.items():
+                target = canonical_node(node_inputs.get(input_name), input_source)
+                if target is None or target.get("inputs", {}) != {}:
+                    return False
         return True
 
     if not canonical_locked_inputs():

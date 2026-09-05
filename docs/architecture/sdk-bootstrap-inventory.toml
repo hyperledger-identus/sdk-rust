@@ -145,10 +145,10 @@ summary        = "Quarantined seed marker; accepted OpenID protocols will use fo
 name           = "identus-wallet"
 path           = "crates/wallet"
 layer          = "orchestration"
-classification = "placeholder"
-public_api     = "none"
-owner_issue    = "#20"
-summary        = "Quarantined seed marker; product wallet orchestration remains downstream."
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#89"
+summary        = "Bounded least-authority storage vocabulary and five async ports; depends only on core and the derive port marker."
 
 [[packages]]
 name           = "identus-agent"

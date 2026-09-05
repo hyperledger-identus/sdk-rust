@@ -132,12 +132,17 @@ request, candidate, disclosure-plan, generated-artifact, receipt-input and
 protocol lifecycle contracts while explicitly excluding protocol
 wire/transport, candidate lookup/ranking, selection/consent/authorization
 policy, proof execution/verification, verifier acceptance, receipt
-outcome/persistence/policy, storage, FFI, chain and product behavior.
+outcome/persistence/policy, storage, FFI, chain and product behavior. The
+`identus-wallet` entry SHALL identify bounded shared storage vocabulary plus
+the five associated-type storage ports under #89 while explicitly excluding a
+wallet product, SDK-owned records, concrete storage, encryption, codecs,
+transactions, synchronization, custody, policy, protocols, chains and FFI.
 
 #### Scenario: Consumer inspects current foundations
 
-- **WHEN** a consumer considers integrating core, derive, crypto, DID, the
-  credential/presentation semantics, or the entropy adapter
+- **WHEN** a consumer considers integrating core, derive, crypto, DID,
+  credential/presentation semantics, wallet storage ports or the entropy
+  adapter
 - **THEN** the inventory identifies the real surface and owner issue while
   warning that no immutable release or compatibility commitment exists
 
@@ -160,6 +165,12 @@ outcome/persistence/policy, storage, FFI, chain and product behavior.
   experimental slices without implying protocol wire/transport, selection,
   consent or authorization policy, proof execution/verification, verifier
   acceptance, receipt service or storage support
+
+#### Scenario: Consumer inspects wallet storage foundations
+
+- **WHEN** a consumer considers integrating `identus-wallet`
+- **THEN** the inventory identifies #89 as an experimental port contract and
+  does not imply a production adapter, storage format, wallet or custody
 
 ### Requirement: Governance evidence is local and release authority stays protected
 
@@ -319,3 +330,17 @@ behavior.
 - **THEN** the entry identifies the allocation-free state vocabulary and guard
   without implying a complete protocol engine, durable session or success
   receipt
+
+### Requirement: Wallet storage activation is inventoried
+
+The human and machine inventories SHALL reclassify `identus-wallet` from a
+quarantined placeholder to implemented experimental orchestration only when
+the issue #89 port surface, bounds, redaction and tests exist. The inventory
+SHALL record runtime `identus-core` plus build-time `identus-derive` as the
+complete dependency cone and SHALL continue to deny publication.
+
+#### Scenario: Inventory validates the activated package
+
+- **WHEN** the bootstrap inventory validator inspects `identus-wallet`
+- **THEN** its source shape, classification, public families, issue ownership
+  and dependencies agree with the implemented storage-port contract

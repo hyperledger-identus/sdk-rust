@@ -107,12 +107,13 @@ accepted product commitment.
 | `identus-adapters-entropy` | system entropy adapter | retain as the first ports implementation and review runtime/target support |
 | `identus-conformance` | dependency-layer and workspace guards | expand with provenance and architecture evidence |
 
-The inherited `identus-agent`, `identus-bindings`, `identus-credentials`,
-`identus-messaging`, `identus-openid4vc`, `identus-presentations`,
-`identus-trust` and `identus-wallet` packages are empty placeholders. They must
-not be published or represented as supported capabilities. Each is removed,
-quarantined or replaced only through an accepted component issue and namespace
-decision.
+The inherited `identus-agent`, `identus-bindings`, `identus-messaging`,
+`identus-openid4vc` and `identus-trust` packages remain empty placeholders.
+They must not be published or represented as supported capabilities. Each is
+removed, quarantined or replaced only through an accepted component issue and
+namespace decision. Focused issues have activated experimental credential,
+presentation and wallet-storage surfaces in their inherited packages; this is
+not a namespace-stability, publication or wallet-product commitment.
 
 The intended component portfolio below is a planning target. A crate enters
 the supported portfolio only through an accepted slice; inherited names do not

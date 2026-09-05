@@ -142,21 +142,42 @@ pub(super) fn read_manifest(path: &Path) -> toml::Value {
     toml::from_str(&contents).unwrap_or_else(|e| panic!("failed to parse {}: {e}", path.display()))
 }
 
-/// The `[dependencies]` keys of a crate manifest that are workspace members.
+/// The runtime dependency keys of a crate manifest that are workspace members.
+///
+/// This includes both top-level `[dependencies]` and every
+/// `[target.'...'.dependencies]` table. Target-specific runtime edges are
+/// still architecture edges and must not bypass the layer or verification-leaf
+/// invariants. Development and build dependencies remain outside this helper.
 pub(super) fn inward_workspace_deps(
     manifest: &toml::Value,
     workspace: &HashSet<String>,
 ) -> Vec<String> {
-    let mut deps = Vec::new();
-    if let Some(table) = manifest.get("dependencies").and_then(|d| d.as_table()) {
-        for key in table.keys() {
-            if workspace.contains(key) {
-                deps.push(key.clone());
-            }
+    let mut deps = HashSet::new();
+    collect_inward_workspace_deps(manifest.get("dependencies"), workspace, &mut deps);
+
+    if let Some(targets) = manifest.get("target").and_then(|t| t.as_table()) {
+        for target in targets.values() {
+            let Some(target) = target.as_table() else {
+                continue;
+            };
+            collect_inward_workspace_deps(target.get("dependencies"), workspace, &mut deps);
         }
     }
+
+    let mut deps: Vec<String> = deps.into_iter().collect();
     deps.sort();
     deps
+}
+
+fn collect_inward_workspace_deps(
+    value: Option<&toml::Value>,
+    workspace: &HashSet<String>,
+    out: &mut HashSet<String>,
+) {
+    let Some(table) = value.and_then(toml::Value::as_table) else {
+        return;
+    };
+    out.extend(table.keys().filter(|key| workspace.contains(*key)).cloned());
 }
 
 /// The crate's `package.name` from its manifest.

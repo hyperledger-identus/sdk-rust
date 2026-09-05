@@ -4,7 +4,7 @@ The `sdk-rust` workspace is a hexagonal ring of implemented experimental
 foundations and quarantined seed placeholders. Domain and protocol crates
 define primitives and ports only after focused component contracts;
 adapter-family crates and composition roots sit outside those semantics;
-conformance validates them and is never depended on by production.
+verification crates validate them and are never depended on by production.
 `identus-derive` is a build-time `proc-macro = true` crate admitted to the
 foundation layer and excluded from the runtime ring. Dependency direction is
 inward and is enforced from the moment real code lands. This capability's
@@ -12,8 +12,8 @@ enduring rules are:
 
 - **Foundation is dependency-free.** `identus-core` has no `identus-*` workspace dependencies and no dependency on product, protocol, adapter, binding, or conformance crates.
 - **Dependency direction is inward.** Domain crates depend only on foundation and other domain-primitive crates. Credential/protocol/orchestration crates depend on their inner rings. Adapters and bindings may depend on stable domain/protocol/wallet crates, but domain crates must not depend back on adapters, bindings, or services.
-- **Adapters, bindings, and conformance sit outside domain semantics.** Production crates (`core`, `crypto`, `did`, `trust`, `credentials`, `presentations`, `messaging`, `openid4vc`, `wallet`, `agent`) SHALL NOT depend on any `identus-adapters-<family>` crate, `identus-bindings`, or `identus-conformance`.
-- **Conformance is never a production dependency.** `identus-conformance` may use dev-dependencies to validate contracts, but production crates must not depend on it.
+- **Adapters, bindings, and conformance sit outside domain semantics.** Production crates (`core`, `crypto`, `did`, `trust`, `credentials`, `presentations`, `messaging`, `openid4vc`, `wallet`, `agent`) SHALL NOT depend on any `identus-adapters-<family>` crate, `identus-bindings`, `identus-conformance`, or `identus-wallet-conformance`.
+- **Conformance is never a production dependency.** Verification crates may depend inward only as narrowly pinned by the guard; production crates must not depend on them.
 - **Layer membership is the contract.** The in-source `LAYER_RULES` const defines which crates belong to which layer; the guard asserts the manifests conform. The layers are:
 
 | Layer | Crates |
@@ -24,7 +24,7 @@ enduring rules are:
 | protocol-semantics | `identus-messaging`, `identus-openid4vc` |
 | orchestration | `identus-wallet`, `identus-agent` |
 | outer-boundary | `identus-adapters-entropy`, `identus-bindings` |
-| verification | `identus-conformance` |
+| verification | `identus-conformance`, `identus-wallet-conformance` |
 ## Requirements
 ### Requirement: Crate stubs at minimal code depth
 
@@ -40,10 +40,11 @@ is a release, namespace or future capability commitment.
 `identus-credentials`, `identus-presentations`, `identus-wallet` and
 `identus-adapters-entropy` contain implemented experimental foundations,
 semantics or orchestration ports and SHALL NOT be described as stubs.
-`identus-conformance` contains verification-only guards and SHALL NOT be
-described as a runtime stub. The wallet activation SHALL remain limited to the
-storage-port surface accepted under issue #89 and SHALL NOT claim a wallet
-product, custody or persistence implementation.
+`identus-conformance` and `identus-wallet-conformance` contain verification-only
+guards and test support and SHALL NOT be described as runtime stubs. The wallet
+activation SHALL remain limited to the storage-port surface accepted under
+issue #89 and the conformance support accepted under issue #91 and SHALL NOT
+claim a wallet product, custody or persistence implementation.
 
 #### Scenario: Each remaining placeholder self-describes via COMPONENT
 
@@ -81,26 +82,62 @@ allowed inward edge.
 
 ### Requirement: In-source layer rulebook
 
-`identus-conformance` SHALL encode the layer rules as an in-source `pub(crate) const LAYER_RULES` (typed Rust data), porting the seed's `layer_rules` and `allowed_target_layers_by_source_layer`: the 7 layers (foundation, domain-primitives, credential-semantics, protocol-semantics, orchestration, outer-boundary, verification), each layer's `identus-*` crate membership, and each source layer's allowed inward target layers. The rulebook SHALL be the guard's source of truth for layer membership and direction. Each member entry SHALL carry a `proc_macro: bool` flag indicating whether the crate is a proc-macro crate (`[lib] proc-macro = true`); `proc_macro = true` crates are exempt from the inward-direction policy (see "Rust dep-graph guard enforces layer rules"). The `identus-derive` crate SHALL be a foundation-layer member flagged `proc_macro = true`. No `.json` fixture file SHALL be introduced for this purpose.
+`identus-conformance` SHALL encode the layer rules as an in-source
+`pub(crate) const LAYER_RULES` (typed Rust data), porting the seed's
+`layer_rules` and `allowed_target_layers_by_source_layer`: the 7 layers
+(foundation, domain-primitives, credential-semantics, protocol-semantics,
+orchestration, outer-boundary, verification), each layer's `identus-*` crate
+membership, and each source layer's allowed inward target layers. The
+rulebook SHALL be the guard's source of truth for layer membership and
+direction. Each member entry SHALL carry a `proc_macro: bool` flag indicating
+whether the crate is a proc-macro crate (`[lib] proc-macro = true`);
+`proc_macro = true` crates are exempt from the inward-direction policy (see
+"Rust dep-graph guard enforces layer rules"). The `identus-derive` crate SHALL
+be a foundation-layer member flagged `proc_macro = true`. No `.json` fixture
+file SHALL be introduced for this purpose.
+
+The verification layer SHALL contain `identus-conformance` and
+`identus-wallet-conformance` and SHALL permit direct dependencies on
+foundation or orchestration. `identus-wallet-conformance` SHALL use only the
+orchestration allowance; `identus-conformance` SHALL retain only its existing
+foundation dependency.
 
 #### Scenario: Rulebook defines all 7 layers and all workspace crates
 
 - **WHEN** `LAYER_RULES` is inspected
-- **THEN** it SHALL list the foundation, domain-primitives, credential-semantics, protocol-semantics, orchestration, outer-boundary, and verification layers, and every `identus-*` workspace crate SHALL appear in exactly one layer's membership, and `identus-derive` SHALL appear in the foundation layer flagged `proc_macro = true`
+- **THEN** it SHALL list the foundation, domain-primitives,
+  credential-semantics, protocol-semantics, orchestration, outer-boundary, and
+  verification layers, and every `identus-*` workspace crate SHALL appear in
+  exactly one layer's membership, and `identus-derive` SHALL appear in the
+  foundation layer flagged `proc_macro = true`
 
 #### Scenario: Rulebook carries a proc_macro flag per member
 
 - **WHEN** a member entry in `LAYER_RULES` is inspected
-- **THEN** it SHALL expose a `proc_macro: bool` field; `identus-derive`'s entry SHALL set it `true` and every other existing member SHALL set it `false`
+- **THEN** it SHALL expose a `proc_macro: bool` field; `identus-derive`'s entry
+  SHALL set it `true` and every other existing member SHALL set it `false`
 
-#### Scenario: Rulebook encodes the seed's inward-direction policy
+#### Scenario: Rulebook encodes the accepted inward-direction policy
 
 - **WHEN** `LAYER_RULES`'s allowed-inward lists are inspected
-- **THEN** each source layer's allowed target layers SHALL match the seed's `allowed_target_layers_by_source_layer` (foundation → none; domain-primitives → foundation + domain-primitives; credential-semantics → those plus credential-semantics; protocol-semantics → those plus protocol-semantics; orchestration → those plus orchestration; outer-boundary → foundation through orchestration; verification → foundation)
+- **THEN** each source layer's allowed target layers SHALL match the seed's
+  `allowed_target_layers_by_source_layer` (foundation → none;
+  domain-primitives → foundation + domain-primitives; credential-semantics →
+  those plus credential-semantics; protocol-semantics → those plus
+  protocol-semantics; orchestration → those plus orchestration;
+  outer-boundary → foundation through orchestration), while verification
+  SHALL allow foundation + orchestration for its two narrowly guarded members
+
+#### Scenario: Wallet verification points inward to its contract
+
+- **WHEN** the rulebook and workspace manifests are inspected
+- **THEN** `identus-wallet-conformance` appears once in verification, its edge
+  to `identus-wallet` is accepted, and all production edges to verification
+  remain rejected
 
 ### Requirement: Rust dep-graph guard enforces layer rules
 
-`identus-conformance` SHALL contain a `#[test]` that reads `crates/*/Cargo.toml` and the root `Cargo.toml` (via the `toml` crate), identifies workspace-internal dependencies by membership in the root `[workspace.dependencies]`, and asserts every workspace-internal `[dependencies]` edge obeys the layer rules encoded in the in-source `LAYER_RULES` const. The guard SHALL treat any dependency edge whose target crate is flagged `proc_macro = true` in `LAYER_RULES` as exempt from the inward-direction policy: such an edge SHALL be permitted regardless of the source crate's layer. The guard's workspace-crate-count assertions (the total member count across `LAYER_RULES` and the count of `crates/*/Cargo.toml` manifests) SHALL be derived from `LAYER_RULES` membership (no hard-coded literal), and SHALL account for `identus-derive` as a workspace crate (a foundation `proc_macro = true` member) alongside every other `LAYER_RULES` member. The guard SHALL read no `.json` file and SHALL invoke no subprocess. The guard SHALL run through the existing crane `rust-test` nix check with no Node, no `serde_json`, and no nix config change.
+`identus-conformance` SHALL contain a `#[test]` that reads `crates/*/Cargo.toml` and the root `Cargo.toml` (via the `toml` crate), identifies workspace-internal dependencies by membership in the root `[workspace.dependencies]`, and asserts every workspace-internal runtime dependency edge in top-level `[dependencies]` and target-specific `[target.'...'.dependencies]` obeys the layer rules encoded in the in-source `LAYER_RULES` const. Target-specific dev- and build-dependencies SHALL remain outside the runtime-edge set. The guard SHALL treat any dependency edge whose target crate is flagged `proc_macro = true` in `LAYER_RULES` as exempt from the inward-direction policy: such an edge SHALL be permitted regardless of the source crate's layer. The guard's workspace-crate-count assertions (the total member count across `LAYER_RULES` and the count of `crates/*/Cargo.toml` manifests) SHALL be derived from `LAYER_RULES` membership (no hard-coded literal), and SHALL account for `identus-derive` as a workspace crate (a foundation `proc_macro = true` member) alongside every other `LAYER_RULES` member. The guard SHALL read no `.json` file and SHALL invoke no subprocess. The guard SHALL run through the existing crane `rust-test` nix check with no Node, no `serde_json`, and no nix config change.
 
 #### Scenario: Guard permits a dependency on a proc-macro crate from any layer
 
@@ -122,10 +159,18 @@ allowed inward edge.
 - **WHEN** a domain crate (e.g. `identus-did`) declares a `[dependencies]` entry on an outer-boundary crate (e.g. `identus-adapters-entropy`) that is NOT flagged `proc_macro = true`
 - **THEN** the guard test SHALL fail
 
-#### Scenario: Guard fails when a production crate depends on conformance
+#### Scenario: Guard fails when a production crate depends on verification
 
-- **WHEN** any production crate declares a `[dependencies]` entry on `identus-conformance`
+- **WHEN** any production crate declares a `[dependencies]` entry on
+  `identus-conformance` or `identus-wallet-conformance`
 - **THEN** the guard test SHALL fail
+
+#### Scenario: Target-specific runtime edges cannot bypass the guard
+
+- **WHEN** a workspace crate declares an internal dependency under a
+  target-specific `[target.'...'.dependencies]` table
+- **THEN** the guard SHALL apply the same layer and verification-leaf rules as
+  it applies to top-level runtime dependencies
 
 ### Requirement: Foundation has no workspace dependencies
 
@@ -274,3 +319,17 @@ The `identus-conformance` guard SHALL derive the expected workspace crate count 
 
 - **WHEN** the guard evaluates whether a production crate depends on `identus-adapters-entropy`
 - **THEN** it SHALL treat `identus-adapters-entropy` as an outer-boundary crate (via `LAYER_RULES` membership) and reject the edge
+
+### Requirement: Wallet conformance is a separate verification leaf
+
+`identus-wallet-conformance` SHALL be a verification-layer crate depending
+only on the inward orchestration-layer `identus-wallet` crate. It SHALL expose
+consumer behavioral test support and SHALL not be a dependency of any
+production SDK crate. `identus-conformance` SHALL retain repository structure
+and architecture enforcement; neither crate SHALL become a production adapter.
+
+#### Scenario: Verification dependency direction is inspected
+
+- **WHEN** the workspace dependency guard reads both conformance manifests
+- **THEN** the wallet conformance edge to wallet is accepted and every
+  production-to-verification edge remains rejected

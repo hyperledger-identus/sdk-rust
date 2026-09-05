@@ -185,3 +185,12 @@ classification = "verification"
 public_api     = "internal"
 owner_issue    = "#25"
 summary        = "Repository-only architecture, source and conformance guards."
+
+[[packages]]
+name           = "identus-wallet-conformance"
+path           = "crates/wallet-conformance"
+layer          = "verification"
+classification = "verification"
+public_api     = "internal"
+owner_issue    = "#91"
+summary        = "Reusable executor-neutral behavioral checks for wallet storage adapters; depends only on identus-wallet."

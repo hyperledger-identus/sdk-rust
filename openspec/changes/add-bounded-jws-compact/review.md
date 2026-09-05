@@ -64,3 +64,57 @@
     repository.
 
 Verdict: READY to implement after ADR 0034 and strict OpenSpec validation pass.
+
+# Post-implementation architecture, API, standards, security and performance review
+
+- **Date:** 2026-09-05
+- **Reviewed commits:** `7af3a3f..b9efe32`
+- **Result:** no unresolved finding
+
+## Findings and dispositions
+
+1. The public state transition is explicit: callers construct a
+   `JwsSigningInput`, sign its exact bytes outside this crate, and receive an
+   `UnverifiedCompactJws` only after attaching bytes. Parsing never claims
+   signature, key, DID, proof, issuer, audience or trust validity.
+2. Parsing retains the exact received compact and signs/verifies the original
+   first two segments. It never regenerates protected-header JSON, satisfying
+   the RFC 7515 signing-input boundary.
+3. The complete compact size is rejected before splitting or cloning. Every
+   encoded segment is alphabet-checked and decoded-length-checked before
+   allocation, then checked again after decoding and by canonical re-encoding.
+4. The closed header visitor rejects duplicates, unknown names, non-string
+   values, missing `alg`, trailing JSON and invalid UTF-8. `none` is rejected,
+   while positive algorithm allowlisting and key/algorithm binding remain
+   deliberately outside the codec as required by RFC 8725.
+5. Review found that `max_header_string_bytes` initially bounded only `typ`
+   and `kid`; it now also bounds `alg`, in addition to the fixed 64-byte
+   visible-ASCII algorithm ceiling. Exact and over-limit cases cover the
+   shared bound.
+6. A negative test initially combined a deliberately small header limit with
+   a long proof `typ`, obscuring the compact-size condition under test. The
+   fixture was isolated so each limit test reaches the intended boundary.
+7. The first full Nix run found two repository integration defects: the
+   bootstrap-inventory fixture still expected 15 packages, and the new
+   manifest did not match Taplo formatting. Both were corrected before the
+   authoritative rerun.
+8. Cross-target review found the support policy still selected only the four
+   pre-existing portable crates. `identus-jose` is now part of the declarative
+   WASM, Android ARM64 and iOS ARM64 package sets, the validator's required
+   set, policy prose and mutation tests; all three target builds pass.
+9. The runtime dependency cone remains `identus-core`, `base64`, `serde` and
+   `serde_json`. There is no crypto backend, randomness, network, async,
+   platform, protocol or donor-repository dependency.
+10. Errors and Debug implementations disclose only static classes, algorithm,
+    type metadata and byte lengths. Tests assert caller-controlled
+    key identifiers, payloads, signatures and compact strings are absent.
+11. The deterministic matrix covers 63 payload/signature combinations; the
+    ignored release diagnostic parsed 100,000 values in 110.21925 ms
+    (approximately 907,283 operations/second). This is observation only, not
+    a portable performance claim.
+12. Oxid and Lace ID Portal remain at their pinned commits with all observed
+    file digests and pre-existing untracked paths unchanged. No donor code or
+    fixture was copied.
+
+Verdict: READY for canonical spec synchronization, archive and delivery under
+#95 after the immutable verification receipt is recorded.

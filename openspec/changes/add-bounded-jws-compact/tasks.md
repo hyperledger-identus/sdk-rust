@@ -28,15 +28,15 @@
   release parse-throughput diagnostic.
 - [x] 3.4 Update architecture rulebook, tests, human/machine inventory,
   blueprint status and the canonical `IDR-004` ledger.
-- [ ] 3.5 Verify both donor checkout states still match their preflight state.
+- [x] 3.5 Verify both donor checkout states still match their preflight state.
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Pass focused formatting, tests, no-default check, strict Clippy and
+- [x] 4.1 Pass focused formatting, tests, no-default check, strict Clippy and
   warning-denied docs.
-- [ ] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
+- [x] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
   supply-chain and full Nix gates.
-- [ ] 4.3 Complete a distinct post-implementation architecture/API/standards/
+- [x] 4.3 Complete a distinct post-implementation architecture/API/standards/
   security/performance review and resolve every finding.
 - [ ] 4.4 Produce ready/receipt, synchronize canonical specs, archive the
   change, and prepare the signed/DCO issue-linked PR; hosted review/CI, merge,

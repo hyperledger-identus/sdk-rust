@@ -139,3 +139,27 @@ U+0085 is rejected through the same static error as ASCII controls.
 
 Verdict: RESOLVED locally; rerun focused validation and all hosted checks on
 the amended head before merge.
+
+# Current-head hosted-review amendment
+
+- **Date:** 2026-09-05
+- **Findings:** PR #96 review threads `discussion_r3939567663` and
+  `discussion_r3939567668`
+- **Reviewed implementation:** `e399120`
+
+## Findings and dispositions
+
+The staged builder reserved only two bytes beyond the header/payload signing
+input, accounting for the final separator and not the two base64url characters
+needed by the smallest permitted one-byte signature. It could therefore return
+a state for which every signature attachment failed. The minimum is now three
+bytes, with exact-fit and one-byte-too-small regression cases.
+
+The executable rulebook placed `identus-jose` in credential semantics, but the
+canonical crate-ring specification still enumerated the pre-JOSE production
+and layer membership. The canonical contract now includes JOSE in the layer
+table, implemented and production sets, and an explicit inward dependency
+scenario. A historical crate-ring delta accompanies the archived change.
+
+Verdict: RESOLVED locally; rerun focused validation and all hosted checks on
+the amended head before merge.

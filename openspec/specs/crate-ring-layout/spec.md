@@ -12,7 +12,7 @@ enduring rules are:
 
 - **Foundation is dependency-free.** `identus-core` has no `identus-*` workspace dependencies and no dependency on product, protocol, adapter, binding, or conformance crates.
 - **Dependency direction is inward.** Domain crates depend only on foundation and other domain-primitive crates. Credential/protocol/orchestration crates depend on their inner rings. Adapters and bindings may depend on stable domain/protocol/wallet crates, but domain crates must not depend back on adapters, bindings, or services.
-- **Adapters, bindings, and conformance sit outside domain semantics.** Production crates (`core`, `crypto`, `did`, `trust`, `credentials`, `presentations`, `messaging`, `openid4vc`, `wallet`, `agent`) SHALL NOT depend on any `identus-adapters-<family>` crate, `identus-bindings`, `identus-conformance`, or `identus-wallet-conformance`.
+- **Adapters, bindings, and conformance sit outside domain semantics.** Production crates (`core`, `crypto`, `did`, `trust`, `credentials`, `presentations`, `jose`, `messaging`, `openid4vc`, `wallet`, `agent`) SHALL NOT depend on any `identus-adapters-<family>` crate, `identus-bindings`, `identus-conformance`, or `identus-wallet-conformance`.
 - **Conformance is never a production dependency.** Verification crates may depend inward only as narrowly pinned by the guard; production crates must not depend on them.
 - **Layer membership is the contract.** The in-source `LAYER_RULES` const defines which crates belong to which layer; the guard asserts the manifests conform. The layers are:
 
@@ -20,7 +20,7 @@ enduring rules are:
 |---|---|
 | foundation | `identus-core`, `identus-derive` |
 | domain-primitives | `identus-crypto`, `identus-did`, `identus-trust` |
-| credential-semantics | `identus-credentials`, `identus-presentations` |
+| credential-semantics | `identus-credentials`, `identus-presentations`, `identus-jose` |
 | protocol-semantics | `identus-messaging`, `identus-openid4vc` |
 | orchestration | `identus-wallet`, `identus-agent` |
 | outer-boundary | `identus-adapters-entropy`, `identus-bindings` |
@@ -37,7 +37,7 @@ metadata. The name and layer membership preserve seed evidence only; neither
 is a release, namespace or future capability commitment.
 
 `identus-core`, `identus-derive`, `identus-crypto`, `identus-did`,
-`identus-credentials`, `identus-presentations`, `identus-wallet` and
+`identus-credentials`, `identus-presentations`, `identus-jose`, `identus-wallet` and
 `identus-adapters-entropy` contain implemented experimental foundations,
 semantics or orchestration ports and SHALL NOT be described as stubs.
 `identus-conformance` and `identus-wallet-conformance` contain verification-only
@@ -102,6 +102,11 @@ foundation or orchestration. `identus-wallet-conformance` SHALL use only the
 orchestration allowance; `identus-conformance` SHALL retain only its existing
 foundation dependency.
 
+The credential-semantics layer SHALL contain `identus-credentials`,
+`identus-presentations` and `identus-jose`. The JOSE member SHALL retain only
+its accepted foundation dependency on `identus-core`; wire-format dependencies
+do not change its workspace-layer edge.
+
 #### Scenario: Rulebook defines all 7 layers and all workspace crates
 
 - **WHEN** `LAYER_RULES` is inspected
@@ -116,6 +121,13 @@ foundation dependency.
 - **WHEN** a member entry in `LAYER_RULES` is inspected
 - **THEN** it SHALL expose a `proc_macro: bool` field; `identus-derive`'s entry
   SHALL set it `true` and every other existing member SHALL set it `false`
+
+#### Scenario: JOSE is reusable credential semantics
+
+- **WHEN** the rulebook and `identus-jose` manifest are inspected
+- **THEN** `identus-jose` appears exactly once in credential-semantics and its
+  only `identus-*` runtime dependency is the inward foundation crate
+  `identus-core`
 
 #### Scenario: Rulebook encodes the accepted inward-direction policy
 
@@ -299,7 +311,7 @@ test/conformance aid and SHALL NOT be represented as production randomness.
 
 ### Requirement: Adapter-family crates are composition-root-only dependencies
 
-No production crate (`identus-core`, `identus-crypto`, `identus-did`, `identus-trust`, `identus-credentials`, `identus-presentations`, `identus-messaging`, `identus-openid4vc`, `identus-wallet`, `identus-agent`) SHALL depend on any `identus-adapters-<family>` crate. Adapter-family crates SHALL be consumed only by binaries, examples, and `identus-bindings` (the composition root). This restates the inward-direction policy for adapter-family crates specifically.
+No production crate (`identus-core`, `identus-crypto`, `identus-did`, `identus-trust`, `identus-credentials`, `identus-presentations`, `identus-jose`, `identus-messaging`, `identus-openid4vc`, `identus-wallet`, `identus-agent`) SHALL depend on any `identus-adapters-<family>` crate. Adapter-family crates SHALL be consumed only by binaries, examples, and `identus-bindings` (the composition root). This restates the inward-direction policy for adapter-family crates specifically.
 
 #### Scenario: a domain crate depending on an adapter-family crate is rejected
 

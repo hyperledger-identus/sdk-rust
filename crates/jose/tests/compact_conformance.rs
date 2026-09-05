@@ -280,6 +280,38 @@ fn enforces_each_configured_limit_at_the_boundary() {
         Err(JoseError::CompactTooLarge)
     );
 
+    let minimum_input = JwsSigningInput::new(
+        ProtectedHeader::new("EdDSA", None, None, defaults).expect("header"),
+        Vec::new(),
+        defaults,
+    )
+    .expect("unbounded signing input");
+    let minimum_compact_len = minimum_input.as_bytes().len() + 3;
+    let exact_minimum = JwsLimits::new(minimum_compact_len, 256, 3, 2, 8).expect("limits");
+    let exact_minimum_input = JwsSigningInput::new(
+        ProtectedHeader::new("EdDSA", None, None, exact_minimum).expect("header"),
+        Vec::new(),
+        exact_minimum,
+    )
+    .expect("smallest signature fits");
+    assert_eq!(
+        exact_minimum_input
+            .attach_signature(vec![0])
+            .expect("one-byte signature")
+            .compact()
+            .len(),
+        minimum_compact_len
+    );
+    let unusable_compact = JwsLimits::new(minimum_compact_len - 1, 256, 3, 2, 8).expect("limits");
+    assert_eq!(
+        JwsSigningInput::new(
+            ProtectedHeader::new("EdDSA", None, None, unusable_compact).expect("header"),
+            Vec::new(),
+            unusable_compact,
+        ),
+        Err(JoseError::CompactTooLarge)
+    );
+
     let raw_header = br#"{"alg":"EdDSA"}"#;
     let header_compact = compact_from_raw(raw_header, b"123", b"12");
     let exact_header =

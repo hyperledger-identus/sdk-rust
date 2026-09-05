@@ -123,14 +123,15 @@ as unsupported. It SHALL label all implemented surfaces experimental,
 unreleased and subject to focused component contracts. The
 `identus-credentials` entry SHALL identify its bounded envelope,
 metadata/schema descriptors, status binding/freshness/query/evidence contracts,
-and staged verification evidence while explicitly excluding claim values,
-trust, verifier/schema/status execution, holder bindings, status proof payloads,
-concrete formats, protocols, display/localization, wire codecs, and storage.
-The `identus-presentations` entry SHALL identify its bounded semantic request,
-candidate, disclosure-plan, generated-artifact, receipt-input and protocol
-lifecycle contracts while explicitly excluding protocol wire/transport,
-candidate lookup/ranking, selection/consent/authorization policy, proof
-execution/verification, verifier acceptance, receipt
+canonical staged verification evidence, async verifier port and bounded exact
+format registry while explicitly excluding claim values, trust decisions,
+concrete verifier/schema/status execution, holder bindings, status proof
+payloads, concrete formats, protocols, display/localization, wire codecs and
+storage. The `identus-presentations` entry SHALL identify its bounded semantic
+request, candidate, disclosure-plan, generated-artifact, receipt-input and
+protocol lifecycle contracts while explicitly excluding protocol
+wire/transport, candidate lookup/ranking, selection/consent/authorization
+policy, proof execution/verification, verifier acceptance, receipt
 outcome/persistence/policy, storage, FFI, chain and product behavior.
 
 #### Scenario: Consumer inspects current foundations
@@ -149,8 +150,8 @@ outcome/persistence/policy, storage, FFI, chain and product behavior.
 #### Scenario: Consumer inspects current credential foundations
 
 - **WHEN** a consumer considers integrating `identus-credentials`
-- **THEN** the inventory identifies #71, #73, #75, and #77 as delivered
-  experimental slices without implying the deferred capabilities are supported
+- **THEN** the inventory identifies #71, #73, #75, #77 and #87 as delivered
+  experimental slices without implying concrete verification or trust support
 
 #### Scenario: Consumer inspects current presentation foundations
 
@@ -216,16 +217,17 @@ describe unsupported credential capabilities as future work.
 ### Requirement: Credential verification activation is inventoried
 
 The human-readable bootstrap inventory SHALL identify the canonical staged
-verification evidence added under issue #73 as part of the experimental
-`identus-credentials` surface. The verification slice SHALL continue to
-exclude trust decisions, verifier execution, metadata/schema, status bindings,
-concrete formats, protocols, and storage.
+verification evidence added under issue #73 and the async execution port plus
+bounded exact-format registry added under issue #87 as parts of the
+experimental `identus-credentials` surface. The verification surface SHALL
+continue to exclude trust decisions and concrete parsing, proof, DID, status,
+schema, clock, network, retry, storage, format, protocol and product behavior.
 
 #### Scenario: Consumer inspects verification support
 
 - **WHEN** a consumer inspects `identus-credentials` in the bootstrap inventory
-- **THEN** the entry identifies #73 without implying that the SDK executes any
-  verification stage or makes a relying-party trust decision
+- **THEN** the entry identifies #73 and #87, distinguishes generic dispatch
+  from concrete verification, and does not imply a relying-party trust decision
 
 ### Requirement: Credential status activation is inventoried
 

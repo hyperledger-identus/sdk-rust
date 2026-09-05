@@ -42,6 +42,29 @@ pub mod error_code {
     pub const EMPTY_SIGNATURE: ErrorCode = ErrorCode::new("jose.empty_signature");
     /// Size arithmetic could not be represented safely.
     pub const SIZE_OVERFLOW: ErrorCode = ErrorCode::new("jose.size_overflow");
+    /// A protected-header algorithm is outside the accepted closed set.
+    pub const UNSUPPORTED_ALGORITHM: ErrorCode = ErrorCode::new("jose.unsupported_algorithm");
+    /// Header, key, signer, or verifier algorithms did not match exactly.
+    pub const ALGORITHM_MISMATCH: ErrorCode = ErrorCode::new("jose.algorithm_mismatch");
+    /// A verification key was incompatible with its selected algorithm.
+    pub const INVALID_VERIFICATION_KEY: ErrorCode = ErrorCode::new("jose.invalid_verification_key");
+    /// The signature-suite registry capacity was invalid.
+    pub const INVALID_REGISTRY_CAPACITY: ErrorCode =
+        ErrorCode::new("jose.invalid_registry_capacity");
+    /// The signature-suite registry had no remaining capacity.
+    pub const REGISTRY_FULL: ErrorCode = ErrorCode::new("jose.registry_full");
+    /// A signature suite duplicated an already registered algorithm.
+    pub const DUPLICATE_ALGORITHM: ErrorCode = ErrorCode::new("jose.duplicate_algorithm");
+    /// The selected algorithm was not in the caller's registry allowlist.
+    pub const ALGORITHM_NOT_ALLOWED: ErrorCode = ErrorCode::new("jose.algorithm_not_allowed");
+    /// A compact value carried a signature with the wrong fixed width.
+    pub const INVALID_SIGNATURE_LENGTH: ErrorCode = ErrorCode::new("jose.invalid_signature_length");
+    /// An external signer rejected the operation.
+    pub const SIGNING_REJECTED: ErrorCode = ErrorCode::new("jose.signing_rejected");
+    /// An external signer was unavailable.
+    pub const SIGNER_UNAVAILABLE: ErrorCode = ErrorCode::new("jose.signer_unavailable");
+    /// Cryptographic signature verification failed.
+    pub const SIGNATURE_INVALID: ErrorCode = ErrorCode::new("jose.signature_invalid");
 }
 
 /// A static reason that a bounded JWS Compact operation failed.
@@ -80,6 +103,28 @@ pub enum JoseError {
     EmptySignature,
     /// Size arithmetic overflowed.
     SizeOverflow,
+    /// The protected-header algorithm is outside the accepted closed set.
+    UnsupportedAlgorithm,
+    /// Header, key, signer, or suite algorithms did not match exactly.
+    AlgorithmMismatch,
+    /// The selected public key is incompatible with the selected algorithm.
+    InvalidVerificationKey,
+    /// The signature-suite registry capacity is zero or above its hard bound.
+    InvalidRegistryCapacity,
+    /// The signature-suite registry has no remaining capacity.
+    RegistryFull,
+    /// A suite for the same algorithm is already registered.
+    DuplicateAlgorithm,
+    /// The selected algorithm is absent from the caller's registry.
+    AlgorithmNotAllowed,
+    /// A compact value supplied a signature of the wrong length.
+    InvalidSignatureLength,
+    /// An external signer rejected the requested operation.
+    SigningRejected,
+    /// An external signer could not service the requested operation.
+    SignerUnavailable,
+    /// The selected signature did not verify.
+    SignatureInvalid,
 }
 
 impl JoseError {
@@ -130,8 +175,54 @@ impl JoseError {
             ),
             Self::EmptySignature => (error_code::EMPTY_SIGNATURE, "JWS signature is empty"),
             Self::SizeOverflow => (error_code::SIZE_OVERFLOW, "JWS size is invalid"),
+            Self::UnsupportedAlgorithm => (
+                error_code::UNSUPPORTED_ALGORITHM,
+                "JWS algorithm is unsupported",
+            ),
+            Self::AlgorithmMismatch => (
+                error_code::ALGORITHM_MISMATCH,
+                "JWS algorithm binding does not match",
+            ),
+            Self::InvalidVerificationKey => (
+                error_code::INVALID_VERIFICATION_KEY,
+                "JWS verification key is invalid",
+            ),
+            Self::InvalidRegistryCapacity => (
+                error_code::INVALID_REGISTRY_CAPACITY,
+                "JWS signature registry capacity is invalid",
+            ),
+            Self::RegistryFull => (error_code::REGISTRY_FULL, "JWS signature registry is full"),
+            Self::DuplicateAlgorithm => (
+                error_code::DUPLICATE_ALGORITHM,
+                "JWS signature algorithm is already registered",
+            ),
+            Self::AlgorithmNotAllowed => (
+                error_code::ALGORITHM_NOT_ALLOWED,
+                "JWS signature algorithm is not allowed",
+            ),
+            Self::InvalidSignatureLength => (
+                error_code::INVALID_SIGNATURE_LENGTH,
+                "JWS signature length is invalid",
+            ),
+            Self::SigningRejected => (
+                error_code::SIGNING_REJECTED,
+                "JWS signing operation was rejected",
+            ),
+            Self::SignerUnavailable => {
+                (error_code::SIGNER_UNAVAILABLE, "JWS signer is unavailable")
+            }
+            Self::SignatureInvalid => (
+                error_code::SIGNATURE_INVALID,
+                "JWS signature verification failed",
+            ),
         };
-        IdentusError::public(code, ErrorKind::InvalidInput, CAPABILITY, message)
+        let kind = match self {
+            Self::UnsupportedAlgorithm | Self::AlgorithmNotAllowed => ErrorKind::Unsupported,
+            Self::SigningRejected | Self::SignerUnavailable => ErrorKind::Crypto,
+            Self::SignatureInvalid => ErrorKind::VerificationFailed,
+            _ => ErrorKind::InvalidInput,
+        };
+        IdentusError::public(code, kind, CAPABILITY, message)
     }
 }
 

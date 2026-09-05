@@ -191,6 +191,21 @@ fn p256_generate_sign_verify_roundtrip() {
 }
 
 #[test]
+fn p256_fixed_signature_preserves_der_api_and_rejects_tampering() {
+    let private = P256PrivateKey::from_slice(&SAMPLE_32).expect("P-256 private key");
+    let public = private.to_public_key();
+    let message = b"fixed-width p256 message";
+    let fixed = private.sign_fixed(message);
+    let der = private.sign(message);
+
+    assert_eq!(fixed.len(), 64);
+    assert_eq!(der.first(), Some(&0x30));
+    assert!(public.verify_fixed(message, &fixed));
+    assert!(!public.verify_fixed(b"tampered", &fixed));
+    assert!(public.verify(message, &der));
+}
+
+#[test]
 fn p256_jwk() {
     let sk = P256PrivateKey::from_slice(&SAMPLE_32).unwrap();
     let jwk = sk.to_public_key().encode_jwk();

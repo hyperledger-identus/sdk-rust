@@ -237,11 +237,14 @@ succeeds — preserving cross-node (JVM PRISM) compatibility.
 
 The crate SHALL provide `P256PublicKey`, `P256PrivateKey`, and `P256KeyPair`
 with fallible `generate(rng: &mut impl SecureRandom) -> Result<Self, Error>`,
-`sign`, `verify`, and `EncodeJwk`, for parity with the KMP
+DER-compatible `sign`/`verify`, fixed-width `sign_fixed`/`verify_fixed`, and
+`EncodeJwk`, for parity with the KMP
 `KMMEllipticCurve::SECP256r1` surface (a gap in neoprism's port). Generation
 SHALL return immediately on provider failure and SHALL return
 `Error::SecureRandomFailure` after at most sixteen successfully filled but
-invalid scalar candidates.
+invalid scalar candidates. The fixed-width methods SHALL use exactly 64 bytes
+containing the unsigned big-endian P-256 `r` value followed by `s`; adding
+them SHALL NOT change the inherited DER surface.
 
 #### Scenario: P-256 keypair generates, signs, and verifies
 
@@ -255,6 +258,13 @@ invalid scalar candidates.
 - **WHEN** entropy fails or sixteen filled candidates are invalid scalars
 - **THEN** generation SHALL return `Error::SecureRandomFailure` without panic
   or exposing candidate bytes
+
+#### Scenario: P-256 supports fixed-width protocol signatures additively
+
+- **WHEN** a typed P-256 private key calls `sign_fixed` and its public key
+  calls `verify_fixed` over the same message
+- **THEN** the 64-byte `r || s` value verifies, tampering fails, and the
+  existing DER `sign`/`verify` path remains unchanged
 
 ### Requirement: SecureRandom — the single infrastructure port
 

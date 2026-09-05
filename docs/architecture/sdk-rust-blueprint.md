@@ -274,9 +274,12 @@ boundaries and reject algorithm confusion, ambiguous keys and unbounded claims.
 
 Issue #95 implements the first wire-only foundation: bounded canonical Compact
 Serialization, a closed initial protected header, exact signing-input
-preservation and explicit unverified state. Signing ports, signature-suite/DID
-verification, OpenID4VCI proof claims and coverage-guided fuzzing remain
-separate accepted slices under #8.
+preservation and explicit unverified state. Issue #98 adds runtime-neutral
+external signing, exact algorithm-bound public keys, a bounded caller-owned
+allowlist/dispatcher, fully specified `Ed25519` and `ES256` suites, opt-in
+legacy `EdDSA`, and explicit cryptographically verified state. DID key
+authorization and OpenID4VCI proof claims remain #99; coverage-guided fuzzing
+remains #100.
 
 ### B09 — OID4VCI Final (`#7`)
 

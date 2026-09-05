@@ -450,6 +450,7 @@ version = "0.0.0"
 dependencies = [
  "base64",
  "identus-core",
+ "identus-crypto",
  "serde",
  "serde_json",
 ]

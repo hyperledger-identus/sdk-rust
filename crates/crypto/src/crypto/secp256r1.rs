@@ -96,6 +96,14 @@ impl P256PrivateKey {
         let signature: Signature = signing_key.sign(message);
         signature.to_der().as_bytes().to_vec()
     }
+
+    /// Sign `message`, returning the fixed-width 64-byte `r || s` value.
+    #[must_use]
+    pub fn sign_fixed(&self, message: &[u8]) -> [u8; 64] {
+        let mut signing_key = SigningKey::from(&self.0);
+        let signature: Signature = signing_key.sign(message);
+        signature.to_bytes().into()
+    }
 }
 
 impl P256KeyPair {
@@ -159,6 +167,24 @@ impl Verifiable for P256PublicKey {
         }
         // normalized-s fallback (cheap robustness against high-s signatures
         // produced by other libraries); no bitcoin-transcode for P-256.
+        let Some(normalized) = signature.normalize_s() else {
+            return false;
+        };
+        verifying_key.verify(message, &normalized).is_ok()
+    }
+}
+
+impl P256PublicKey {
+    /// Verify a fixed-width 64-byte `r || s` signature over `message`.
+    #[must_use]
+    pub fn verify_fixed(&self, message: &[u8], signature: &[u8; 64]) -> bool {
+        let verifying_key: p256::ecdsa::VerifyingKey = self.0.into();
+        let Ok(signature) = Signature::from_slice(signature) else {
+            return false;
+        };
+        if verifying_key.verify(message, &signature).is_ok() {
+            return true;
+        }
         let Some(normalized) = signature.normalize_s() else {
             return false;
         };

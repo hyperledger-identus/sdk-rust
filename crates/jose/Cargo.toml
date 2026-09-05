@@ -9,6 +9,7 @@ publish.workspace      = true
 [dependencies]
 base64.workspace       = true
 identus-core.workspace = true
+identus-crypto         = { workspace = true, features = [ "ed25519", "secp256r1" ] }
 serde.workspace        = true
 serde_json.workspace   = true
 

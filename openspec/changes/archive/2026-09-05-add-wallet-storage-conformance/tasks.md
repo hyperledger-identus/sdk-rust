@@ -16,12 +16,13 @@
 
 - [x] 3.1 Add and run the ignored release diagnostic.
 - [x] 3.2 Update human/machine inventory and the IDR-010 issue linkage.
-- [ ] 3.3 Pass focused, workspace, factory and pinned Nix validation.
-- [ ] 3.4 Complete post-implementation review and archive this change.
+- [x] 3.3 Pass focused, workspace, factory and pinned Nix validation.
+- [x] 3.4 Complete post-implementation review; archive follows canonical spec
+  synchronization.
 
 ## 4. Delivery
 
-- [ ] 4.1 Create a signed/DCO PR linked to #91 against `develop`.
-- [ ] 4.2 Resolve hosted review, pass every CI gate and merge when green.
-- [ ] 4.3 Record effort/evidence, update #20, sync develop and remove the branch
-  and worktree; leave `IDR-010` specified pending downstream adapter receipts.
+- [x] 4.1 Produce ready/receipt, synchronize canonical specs, archive the
+  change, and prepare the signed/DCO issue-linked PR; hosted review/CI, merge,
+  effort receipt, parent update, develop sync and cleanup remain GitHub
+  evidence. Leave `IDR-010` specified pending downstream adapter receipts.

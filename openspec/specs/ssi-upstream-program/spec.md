@@ -134,20 +134,20 @@ adoption issue passes compatibility evidence.
 
 ### Requirement: IDR-010 storage ports have focused ownership
 
-The canonical backlog SHALL move `IDR-010` from the program queue to
-`specified` under focused issue #89 when the policy-neutral port contract
-enters implementation. It SHALL remain short of delivered until independent
-in-memory and encrypted consumer adapters pass conformance. Concrete product
+The canonical backlog SHALL keep `IDR-010` at `specified` under focused issue
+#91 after the port contract from #89 gains reusable behavioral conformance.
+It SHALL remain short of delivered until independent in-memory and encrypted
+consumer adapters publish immutable conformance receipts. Concrete product
 storage SHALL remain downstream.
 
-#### Scenario: Generic storage contract enters implementation
+#### Scenario: Reusable conformance enters implementation
 
-- **WHEN** issue #89 activates the `identus-wallet` storage-port surface
-- **THEN** the IDR-010 row references #89 with status `specified` and preserves
+- **WHEN** issue #91 adds the wallet storage test-support crate
+- **THEN** the IDR-010 row references #91 with status `specified` and preserves
   its existing priority, gate, predecessors, outcome and acceptance evidence
 
-#### Scenario: SDK ports exist without consumer conformance
+#### Scenario: SDK-local harness passes without consumer receipts
 
-- **WHEN** all generic storage ports and SDK-local test doubles pass but no
-  immutable consumer adapter conformance receipt exists
+- **WHEN** all generic checks and SDK-local test doubles pass but fewer than two
+  independent immutable consumer receipts exist
 - **THEN** IDR-010 remains `specified` rather than `delivered`

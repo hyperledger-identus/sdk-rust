@@ -1,0 +1,162 @@
+# jws-compact Specification
+
+## Purpose
+TBD - created by archiving change add-bounded-jws-compact. Update Purpose after archive.
+## Requirements
+### Requirement: JWS Compact parsing is allocation-bounded and canonical
+
+The SDK SHALL parse exactly three JWS Compact segments separated by exactly two
+period characters. The protected-header and signature segments SHALL be
+non-empty; the payload segment MAY encode an empty octet sequence. Parsing
+SHALL reject a complete compact value above the configured bound before
+decoding and SHALL reject each segment whose decoded-length estimate or actual
+decoded length exceeds its configured header, payload or signature bound.
+
+Every segment SHALL use RFC 7515 base64url encoding without padding,
+whitespace, line breaks or non-alphabet characters. The parser SHALL require
+decode-and-re-encode equality so alternate encodings do not cross the public
+boundary. All size arithmetic SHALL fail closed on overflow.
+
+#### Scenario: arbitrary bounded payload bytes survive parsing
+
+- **WHEN** a three-segment compact value contains a valid protected header, an
+  arbitrary payload within its byte bound and a non-empty bounded signature
+- **THEN** parsing succeeds and returns the exact payload and signature octets
+
+#### Scenario: empty payload remains RFC-compatible
+
+- **WHEN** the payload octet sequence is empty and the compact value therefore
+  contains an empty middle segment
+- **THEN** parsing succeeds while an empty protected-header or signature
+  segment is rejected
+
+#### Scenario: encoded input cannot amplify allocation
+
+- **WHEN** the total compact input, estimated decoded segment or actual decoded
+  segment crosses its configured maximum
+- **THEN** parsing fails through a static size error without returning partial
+  data or echoing the rejected input
+
+#### Scenario: base64url aliases fail closed
+
+- **WHEN** any segment contains padding, whitespace, a non-URL-safe character,
+  an invalid remainder or another representation that does not re-encode
+  byte-for-byte
+- **THEN** the whole compact value is rejected as non-canonical base64url
+
+### Requirement: Protected headers have a small closed validated surface
+
+The protected header SHALL be one complete UTF-8 JSON object containing exactly
+one string `alg` member and at most one string `typ` and `kid` member. Unknown
+or duplicate members, trailing JSON, non-string values and a missing `alg`
+SHALL be rejected. `alg` SHALL contain 1 through 64 visible ASCII bytes, SHALL
+be case-sensitive and SHALL NOT equal `none`. `typ` and `kid`, when present,
+SHALL be non-empty UTF-8 strings without Unicode control code points and SHALL
+fit the configured protected-header string bound.
+
+The codec SHALL NOT infer that any algorithm is registered, asymmetric,
+supported or compatible with a key. It SHALL NOT accept `jwk`, `x5c`, `crit`,
+`b64`, key-attestation or trust-chain semantics until a focused profile owns
+their validation.
+
+#### Scenario: consumer-shaped common headers are reusable
+
+- **WHEN** a header supplies EdDSA or ES256, an optional DID URL `kid`, and an
+  optional explicit proof type
+- **THEN** the codec preserves the exact validated strings without applying
+  DID, proof-type or algorithm-selection policy
+
+#### Scenario: ambiguous header input is rejected
+
+- **WHEN** a header duplicates a member, uses an unknown member, has a wrong
+  JSON type, omits `alg`, adds trailing JSON, or exceeds a string bound
+- **THEN** parsing fails through a static header error
+
+#### Scenario: unsecured algorithm is not representable
+
+- **WHEN** a caller constructs or parses a protected header with `alg` equal to
+  the case-sensitive value `none`
+- **THEN** the SDK rejects it before an unverified compact value is created
+
+### Requirement: Exact signing input is preserved in explicit states
+
+Parsing SHALL return an owned type named `UnverifiedCompactJws`. It SHALL retain
+the exact accepted compact text and expose the signing input as the exact ASCII
+bytes of the received protected-header segment, one period, and the received
+payload segment. It SHALL NOT rebuild that input from decoded or reserialized
+JSON.
+
+Encoding SHALL first create a `JwsSigningInput` from a validated header and
+arbitrary bounded payload. That state SHALL expose exact signing-input bytes.
+Attaching a non-empty bounded signature SHALL produce an
+`UnverifiedCompactJws` whose compact text uses canonical unpadded base64url and
+whose accessors return the original payload and signature bytes. Neither state
+SHALL claim cryptographic verification.
+
+#### Scenario: RFC signing input remains byte-exact
+
+- **WHEN** the RFC 7515 compact example is parsed
+- **THEN** the exposed signing input and original compact text remain exactly
+  byte-for-byte equal to the received values despite header formatting/order
+
+#### Scenario: caller signs the prepared bytes externally
+
+- **WHEN** a caller prepares a header and payload, signs the returned input
+  through an external capability and attaches the resulting signature
+- **THEN** the final compact value parses to the same header, payload,
+  signature and signing input without this crate receiving a private key
+
+### Requirement: Limits and failures are misuse-resistant and redaction-safe
+
+`JwsLimits` SHALL require positive bounds for complete compact bytes, decoded
+header bytes, decoded payload bytes, decoded signature bytes and protected
+header string bytes. Its SDK defaults SHALL be 65,536; 4,096; 49,152; 1,024;
+and 2,048 bytes respectively. Callers MAY select different positive bounds;
+those values SHALL be observable without exposing compact content.
+
+All `JoseError` variants SHALL contain no caller-controlled data and SHALL map
+to static `jose.*` SDK errors under the `jose` capability. Debug output for
+limits, signing-input state and unverified compact values SHALL omit compact
+text, payload bytes, signature bytes and `kid`; it MAY expose counts plus
+non-secret `alg` and `typ` metadata.
+
+#### Scenario: invalid configuration cannot disable a bound
+
+- **WHEN** any configured maximum is zero
+- **THEN** limit construction fails and no parser/encoder can use that
+  configuration
+
+#### Scenario: canaries do not enter diagnostics
+
+- **WHEN** a compact value, payload, signature and `kid` contain distinct
+  canaries and success/error states are formatted
+- **THEN** none of those canaries appears in Display, Debug or the core error
+  bridge
+
+### Requirement: Codec conformance and cost remain observable
+
+The test suite SHALL cover the RFC 7515 compact example, independently
+reconstructed Oxid and Lace ID Portal shapes, every exact lower/upper size
+boundary, deterministic varied-length round-trips and every documented
+rejection class. Tests SHALL prove that parsed values remain explicitly
+unverified and that no production dependency on a donor or cryptographic
+backend exists.
+
+An ignored release diagnostic SHALL repeatedly parse a representative
+proof-shaped compact value, validate the result and print elapsed time plus
+operations per second. It SHALL use no machine-specific performance threshold
+and SHALL not replace correctness checks. Coverage-guided fuzzing SHALL remain
+a tracked #8 follow-up until repository fuzz tooling is accepted.
+
+#### Scenario: bounded matrix round-trips
+
+- **WHEN** deterministic payload and signature values span zero or one byte
+  through their configured representative bounds
+- **THEN** canonical encoding and parsing preserve every byte and exact signing
+  input
+
+#### Scenario: maintainer measures parser cost
+
+- **WHEN** the ignored diagnostic is run in release mode
+- **THEN** it validates each parsed value and reports total iterations,
+  elapsed time and parse throughput without a timing assertion

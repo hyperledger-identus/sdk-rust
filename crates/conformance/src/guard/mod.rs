@@ -12,7 +12,7 @@
 //! production dependency graph.
 
 use crate::{LAYER_RULES, Layer};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use syn::File;
@@ -106,7 +106,29 @@ pub(super) fn check_dep_edge(source: &str, target: &str) -> Result<(), String> {
 /// are ignored here; they are enumerated separately by the external-dep
 /// guard.
 pub(super) fn workspace_crate_names(root_manifest: &toml::Value) -> HashSet<String> {
-    let mut names = HashSet::new();
+    let names: HashSet<String> = workspace_dependency_packages(root_manifest)
+        .into_values()
+        .collect();
+    let expected: HashSet<String> = LAYER_RULES
+        .iter()
+        .flat_map(|rule| rule.members.iter().map(|member| member.name.to_owned()))
+        .collect();
+    assert_eq!(
+        names, expected,
+        "root [workspace.dependencies] must list every workspace crate"
+    );
+    names
+}
+
+/// Map each internal root dependency key to the package Cargo resolves.
+///
+/// A root workspace dependency can itself be renamed with `package`. Member
+/// declarations using `workspace = true` inherit this identity and cannot
+/// override it locally.
+pub(super) fn workspace_dependency_packages(
+    root_manifest: &toml::Value,
+) -> HashMap<String, String> {
+    let mut packages = HashMap::new();
     if let Some(deps) = root_manifest
         .get("workspace")
         .and_then(|w| w.get("dependencies"))
@@ -121,18 +143,27 @@ pub(super) fn workspace_crate_names(root_manifest: &toml::Value) -> HashSet<Stri
                 .map(|t| t.contains_key("path"))
                 .unwrap_or(false);
             if is_internal {
-                names.insert(key.clone());
+                let package = value
+                    .as_table()
+                    .and_then(|fields| fields.get("package"))
+                    .and_then(toml::Value::as_str)
+                    .unwrap_or(key);
+                packages.insert(key.clone(), package.to_owned());
             }
         }
     }
-    // Sanity: the workspace dependency map must list exactly the
-    // `LAYER_RULES`-derived workspace crate count.
-    assert_eq!(
-        names.len(),
-        LAYER_RULES.iter().map(|r| r.members.len()).sum::<usize>(),
-        "root [workspace.dependencies] must list every workspace crate"
-    );
-    names
+    packages
+}
+
+/// The root dependency keys Cargo members use with `workspace = true`.
+///
+/// These aliases classify inherited entries as internal for dependency-source
+/// policy, while [`workspace_dependency_packages`] supplies canonical package
+/// identities to the architecture graph.
+pub(super) fn workspace_dependency_keys(root_manifest: &toml::Value) -> HashSet<String> {
+    workspace_dependency_packages(root_manifest)
+        .into_keys()
+        .collect()
 }
 
 /// Parse a `Cargo.toml` file into a `toml::Value`.
@@ -151,16 +182,27 @@ pub(super) fn read_manifest(path: &Path) -> toml::Value {
 pub(super) fn inward_workspace_deps(
     manifest: &toml::Value,
     workspace: &HashSet<String>,
+    inherited: &HashMap<String, String>,
 ) -> Vec<String> {
     let mut deps = HashSet::new();
-    collect_inward_workspace_deps(manifest.get("dependencies"), workspace, &mut deps);
+    collect_inward_workspace_deps(
+        manifest.get("dependencies"),
+        workspace,
+        inherited,
+        &mut deps,
+    );
 
     if let Some(targets) = manifest.get("target").and_then(|t| t.as_table()) {
         for target in targets.values() {
             let Some(target) = target.as_table() else {
                 continue;
             };
-            collect_inward_workspace_deps(target.get("dependencies"), workspace, &mut deps);
+            collect_inward_workspace_deps(
+                target.get("dependencies"),
+                workspace,
+                inherited,
+                &mut deps,
+            );
         }
     }
 
@@ -172,12 +214,30 @@ pub(super) fn inward_workspace_deps(
 fn collect_inward_workspace_deps(
     value: Option<&toml::Value>,
     workspace: &HashSet<String>,
+    inherited: &HashMap<String, String>,
     out: &mut HashSet<String>,
 ) {
     let Some(table) = value.and_then(toml::Value::as_table) else {
         return;
     };
-    out.extend(table.keys().filter(|key| workspace.contains(*key)).cloned());
+    for (alias, declaration) in table {
+        let fields = declaration.as_table();
+        let inherits = fields
+            .and_then(|fields| fields.get("workspace"))
+            .and_then(toml::Value::as_bool)
+            .unwrap_or(false);
+        let package = if inherits {
+            inherited.get(alias).map(String::as_str).unwrap_or(alias)
+        } else {
+            fields
+                .and_then(|fields| fields.get("package"))
+                .and_then(toml::Value::as_str)
+                .unwrap_or(alias)
+        };
+        if workspace.contains(package) {
+            out.insert(package.to_owned());
+        }
+    }
 }
 
 /// The crate's `package.name` from its manifest.

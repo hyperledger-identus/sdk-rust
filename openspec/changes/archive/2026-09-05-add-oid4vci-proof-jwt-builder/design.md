@@ -51,7 +51,7 @@ fail closed.
 
 ### D3 — make flow semantics explicit in the claims API
 
-`ProofJwtClient` is either `Identified(String)` or
+`Oid4vciProofJwtClient` is either `Identified(String)` or
 `AnonymousPreAuthorized`. Serialization emits `iss` only for the first case,
 so anonymous callers cannot accidentally send an issuer claim. `aud` and
 optional `nonce` are bounded, non-empty, control-free strings; `iat` is an

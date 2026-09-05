@@ -19,22 +19,22 @@
 
 ## 3. Evidence and integration
 
-- [ ] 3.1 Add Final-spec key-reference and identified/anonymous positive cases.
-- [ ] 3.2 Add negative tests for ambiguous/private/malformed/unbounded inputs,
+- [x] 3.1 Add Final-spec key-reference and identified/anonymous positive cases.
+- [x] 3.2 Add negative tests for ambiguous/private/malformed/unbounded inputs,
   algorithm confusion, signer isolation and redaction.
-- [ ] 3.3 Add independently reconstructed Oxid behavior and Lace deferred-gap
+- [x] 3.3 Add independently reconstructed Oxid behavior and Lace deferred-gap
   cases plus release-only builder throughput evidence.
-- [ ] 3.4 Update canonical architecture/specs/docs and verify consumer HEAD/
+- [x] 3.4 Update canonical architecture/specs/docs and verify consumer HEAD/
   status receipts remain unchanged.
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Pass focused formatting, tests, minimal features, strict Clippy and
+- [x] 4.1 Pass focused formatting, tests, minimal features, strict Clippy and
   warning-denied docs.
-- [ ] 4.2 Pass workspace, factory/conformance, target/MSRV, supply-chain and
+- [x] 4.2 Pass workspace, factory/conformance, target/MSRV, supply-chain and
   full Nix gates.
-- [ ] 4.3 Complete a distinct post-implementation architecture/API/standards/
+- [x] 4.3 Complete a distinct post-implementation architecture/API/standards/
   security/performance review and resolve every finding.
-- [ ] 4.4 Produce ready/receipt, sync canonical specs, archive the change and
+- [x] 4.4 Produce ready/receipt, sync canonical specs, archive the change and
   prepare the signed/DCO issue-linked PR; hosted review, green CI, merge,
   roadmap receipts and cleanup remain GitHub evidence.

@@ -9,7 +9,7 @@
 - [x] 2.1 Resolve dependency aliases through the declared package identity.
 - [x] 2.2 Resolve `workspace = true` aliases through the root declaration and
   ignore member-local package overrides.
-- [ ] 2.3 Retain root alias keys for internal/external dependency-source
+- [x] 2.3 Retain root alias keys for internal/external dependency-source
   classification.
 - [x] 2.4 Add positive, deduplication and unauthorized-leaf regression tests.
 

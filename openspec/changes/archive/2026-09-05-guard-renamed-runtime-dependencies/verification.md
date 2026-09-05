@@ -20,10 +20,11 @@ runtime dependency or public SDK behavior.
 
 ## Hosted-review amendment
 
-The Cargo-inheritance regression added after hosted review passes in the same
-22-test conformance suite. Strict formatting and all-target/all-feature Clippy
-also pass on implementation commit `d38b4cf`. The pinned full-gate evidence
-below is rerun on the amended head before delivery.
+The Cargo-inheritance regression added after hosted review passed in the same
+22-test conformance suite. A subsequent cross-guard alias regression brings
+the focused suite to 23/23. Strict formatting and all-target/all-feature
+Clippy pass on current implementation commit `c30bed5`. The pinned full-gate
+evidence below is rerun on the amended head before delivery.
 
 ## Pinned Nix gate
 

@@ -65,3 +65,24 @@ entry and proves that both resolve to the Cargo-effective identities.
 
 Verdict: RESOLVED locally; rerun the full pinned and hosted gates on the amended
 head before merge.
+
+# Current-head hosted-review amendment
+
+- **Date:** 2026-09-05
+- **Finding:** PR #94 review thread `PRRT_kwDOQ45BA86ff7f1`
+- **Reviewed implementation:** `c30bed5`
+
+## Finding and disposition
+
+The first inheritance amendment correctly canonicalized root package identity
+for the architecture graph, but reused that canonical set in the external
+dependency-source guard. A renamed internal root key could therefore be
+misclassified as external. The finding was accepted before merge.
+
+The guards now derive two deliberately distinct views from the same root map:
+canonical package identities for layer edges and root dependency keys for
+internal/external classification. A cross-guard regression proves a member
+inheriting `core-alias` produces canonical graph edge `identus-core` without
+producing an external-dependency entry.
+
+Verdict: RESOLVED locally; rerun full pinned and hosted gates before merge.

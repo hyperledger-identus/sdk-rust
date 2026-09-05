@@ -87,3 +87,13 @@ Verdict: READY to implement after strict OpenSpec validation.
     release tests.
 
 Verdict: READY to synchronize canonical specs and archive the change.
+
+## Hosted review follow-up
+
+- **Finding:** PR #92 observed that target-specific runtime dependency tables
+  were not part of the verification-leaf dependency set.
+- **Resolution:** the shared runtime-edge collector now includes top-level and
+  every target-specific `dependencies` table, deduplicates repeated edges, and
+  continues to exclude development/build dependencies. A focused regression
+  test and canonical crate-ring scenario make the behavior executable.
+- **Status:** resolved before merge.

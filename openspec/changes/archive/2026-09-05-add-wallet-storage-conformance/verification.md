@@ -49,3 +49,11 @@ The SDK now supplies reusable behavioral checks, not a production adapter.
 No consumer or donor repository was modified. `IDR-010` remains `specified`
 until two independent downstream receipts exist, including one encrypted
 adapter.
+
+## Hosted review hardening
+
+PR #92 identified that target-specific runtime dependency tables were not part
+of the verification-leaf dependency set. The shared collector now applies the
+same layer and leaf checks to top-level and target-specific runtime edges,
+deduplicates repeated edges, and continues to exclude development/build
+dependencies. A focused regression test proves the boundary before merge.

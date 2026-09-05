@@ -137,7 +137,7 @@ foundation dependency.
 
 ### Requirement: Rust dep-graph guard enforces layer rules
 
-`identus-conformance` SHALL contain a `#[test]` that reads `crates/*/Cargo.toml` and the root `Cargo.toml` (via the `toml` crate), identifies workspace-internal dependencies by membership in the root `[workspace.dependencies]`, and asserts every workspace-internal `[dependencies]` edge obeys the layer rules encoded in the in-source `LAYER_RULES` const. The guard SHALL treat any dependency edge whose target crate is flagged `proc_macro = true` in `LAYER_RULES` as exempt from the inward-direction policy: such an edge SHALL be permitted regardless of the source crate's layer. The guard's workspace-crate-count assertions (the total member count across `LAYER_RULES` and the count of `crates/*/Cargo.toml` manifests) SHALL be derived from `LAYER_RULES` membership (no hard-coded literal), and SHALL account for `identus-derive` as a workspace crate (a foundation `proc_macro = true` member) alongside every other `LAYER_RULES` member. The guard SHALL read no `.json` file and SHALL invoke no subprocess. The guard SHALL run through the existing crane `rust-test` nix check with no Node, no `serde_json`, and no nix config change.
+`identus-conformance` SHALL contain a `#[test]` that reads `crates/*/Cargo.toml` and the root `Cargo.toml` (via the `toml` crate), identifies workspace-internal dependencies by membership in the root `[workspace.dependencies]`, and asserts every workspace-internal runtime dependency edge in top-level `[dependencies]` and target-specific `[target.'...'.dependencies]` obeys the layer rules encoded in the in-source `LAYER_RULES` const. Target-specific dev- and build-dependencies SHALL remain outside the runtime-edge set. The guard SHALL treat any dependency edge whose target crate is flagged `proc_macro = true` in `LAYER_RULES` as exempt from the inward-direction policy: such an edge SHALL be permitted regardless of the source crate's layer. The guard's workspace-crate-count assertions (the total member count across `LAYER_RULES` and the count of `crates/*/Cargo.toml` manifests) SHALL be derived from `LAYER_RULES` membership (no hard-coded literal), and SHALL account for `identus-derive` as a workspace crate (a foundation `proc_macro = true` member) alongside every other `LAYER_RULES` member. The guard SHALL read no `.json` file and SHALL invoke no subprocess. The guard SHALL run through the existing crane `rust-test` nix check with no Node, no `serde_json`, and no nix config change.
 
 #### Scenario: Guard permits a dependency on a proc-macro crate from any layer
 
@@ -164,6 +164,13 @@ foundation dependency.
 - **WHEN** any production crate declares a `[dependencies]` entry on
   `identus-conformance` or `identus-wallet-conformance`
 - **THEN** the guard test SHALL fail
+
+#### Scenario: Target-specific runtime edges cannot bypass the guard
+
+- **WHEN** a workspace crate declares an internal dependency under a
+  target-specific `[target.'...'.dependencies]` table
+- **THEN** the guard SHALL apply the same layer and verification-leaf rules as
+  it applies to top-level runtime dependencies
 
 ### Requirement: Foundation has no workspace dependencies
 

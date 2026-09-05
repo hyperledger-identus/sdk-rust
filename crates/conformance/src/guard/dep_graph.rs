@@ -156,6 +156,37 @@ fn wallet_conformance_is_an_inward_verification_leaf() {
 }
 
 #[test]
+fn target_specific_runtime_dependencies_are_inward_edges() {
+    let manifest: toml::Value = toml::from_str(
+        r#"
+            [dependencies]
+            identus-wallet.workspace = true
+
+            [target.'cfg(unix)'.dependencies]
+            identus-core.workspace = true
+
+            [target.'cfg(windows)'.dependencies]
+            identus-wallet.workspace = true
+
+            [target.'cfg(unix)'.dev-dependencies]
+            identus-did.workspace = true
+        "#,
+    )
+    .expect("test manifest is valid TOML");
+    let workspace = HashSet::from([
+        "identus-core".to_owned(),
+        "identus-did".to_owned(),
+        "identus-wallet".to_owned(),
+    ]);
+
+    assert_eq!(
+        inward_workspace_deps(&manifest, &workspace),
+        ["identus-core", "identus-wallet"],
+        "target-specific runtime dependencies must be collected once, while dev-dependencies stay excluded"
+    );
+}
+
+#[test]
 fn no_inline_external_dependency_versions() {
     let workspace_root = workspace_root();
     let root_manifest_path = workspace_root.join("Cargo.toml");

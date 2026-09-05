@@ -116,3 +116,9 @@ gaps. All were accepted and corrected before merge:
 Regression cases cover the aggregate payload and certificate/header bound
 interactions. A fresh exact-head hosted review is required after the corrective
 commit; no finding is considered resolved merely by this record.
+
+The second hosted review of `8824d8e` found two additional P2 issues. Parsing
+now uses a bounded `x5c` sequence visitor that rejects the ninth element without
+allocating its string, and claims Debug output no longer includes the `iat`
+value. Wire parsing and diagnostic-canary regressions cover both corrections;
+another fresh exact-head review remains mandatory.

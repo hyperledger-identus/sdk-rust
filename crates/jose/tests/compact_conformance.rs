@@ -257,6 +257,13 @@ fn protected_headers_reject_ambiguous_or_unsafe_key_references() {
             r#"{"alg":"Ed25519","x5c":["not base64!"]}"#.to_owned(),
             JoseError::InvalidHeaderValue,
         ),
+        (
+            format!(
+                r#"{{"alg":"Ed25519","x5c":[{}]}}"#,
+                [r#""AQID""#; MAX_X5C_CERTIFICATES + 1].join(",")
+            ),
+            JoseError::InvalidHeaderValue,
+        ),
     ];
 
     for (header, expected) in cases {

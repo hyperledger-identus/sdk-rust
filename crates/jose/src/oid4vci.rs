@@ -176,7 +176,6 @@ impl fmt::Debug for Oid4vciProofJwtClaims {
             .debug_struct("Oid4vciProofJwtClaims")
             .field("client", &self.client)
             .field("has_nonce", &self.nonce.is_some())
-            .field("issued_at", &self.issued_at)
             .finish_non_exhaustive()
     }
 }

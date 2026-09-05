@@ -5,7 +5,7 @@ use std::fmt;
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use identus_crypto::PublicKeyJwk;
-use serde::de::{Error as _, MapAccess, Visitor};
+use serde::de::{Error as _, IgnoredAny, MapAccess, SeqAccess, Visitor};
 use serde::ser::SerializeStruct;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -293,8 +293,9 @@ impl<'de> Visitor<'de> for RawProtectedHeaderVisitor {
                         return Err(M::Error::custom(DUPLICATE_MARKER));
                     }
                     x5c = Some(
-                        map.next_value::<Vec<String>>()
-                            .map_err(|_| M::Error::custom(INVALID_VALUE_MARKER))?,
+                        map.next_value::<BoundedX5c>()
+                            .map_err(|_| M::Error::custom(INVALID_VALUE_MARKER))?
+                            .0,
                     );
                 }
                 _ => return Err(M::Error::custom(UNKNOWN_MARKER)),
@@ -315,6 +316,55 @@ impl<'de> Visitor<'de> for RawProtectedHeaderVisitor {
             type_,
             key_reference,
         })
+    }
+}
+
+struct BoundedX5c(Vec<String>);
+
+impl<'de> Deserialize<'de> for BoundedX5c {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_seq(BoundedX5cVisitor)
+    }
+}
+
+struct BoundedX5cVisitor;
+
+impl<'de> Visitor<'de> for BoundedX5cVisitor {
+    type Value = BoundedX5c;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("a bounded x5c certificate chain")
+    }
+
+    fn visit_seq<S>(self, mut sequence: S) -> Result<Self::Value, S::Error>
+    where
+        S: SeqAccess<'de>,
+    {
+        if sequence
+            .size_hint()
+            .is_some_and(|length| length > MAX_X5C_CERTIFICATES)
+        {
+            return Err(S::Error::custom(INVALID_VALUE_MARKER));
+        }
+        let mut values = Vec::with_capacity(
+            sequence
+                .size_hint()
+                .unwrap_or(MAX_X5C_CERTIFICATES)
+                .min(MAX_X5C_CERTIFICATES),
+        );
+        while values.len() < MAX_X5C_CERTIFICATES {
+            let Some(value) = sequence.next_element::<String>()? else {
+                return Ok(BoundedX5c(values));
+            };
+            values.push(value);
+        }
+        if sequence.next_element::<IgnoredAny>()?.is_some() {
+            return Err(S::Error::custom(INVALID_VALUE_MARKER));
+        }
+        Ok(BoundedX5c(values))
     }
 }
 

@@ -263,11 +263,12 @@ fn invalid_claims_and_fixed_output_bounds_precede_external_signing() {
 #[test]
 fn algorithm_mismatch_and_diagnostics_do_not_leak_proof_values() {
     let canary = "proof-canary-never-render";
+    let issued_at_canary = 1_725_689_123_i64;
     let limits = Oid4vciProofJwtLimits::default();
     let claims = Oid4vciProofJwtClaims::new(
         Oid4vciProofJwtClient::identified(canary),
         canary,
-        42,
+        issued_at_canary,
         Some(canary.to_owned()),
         limits,
     )
@@ -288,6 +289,7 @@ fn algorithm_mismatch_and_diagnostics_do_not_leak_proof_values() {
     assert!(signer.calls().is_empty());
     for rendered in [claims_debug, input_debug, format!("{error:?} {error}")] {
         assert!(!rendered.contains(canary));
+        assert!(!rendered.contains(&issued_at_canary.to_string()));
     }
 }
 

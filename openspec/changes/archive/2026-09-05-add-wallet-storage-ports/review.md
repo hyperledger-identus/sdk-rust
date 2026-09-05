@@ -57,3 +57,64 @@
     performance threshold belongs in correctness CI.
 
 Verdict: READY to implement after ADR 0032 and strict OpenSpec validation pass.
+
+# Post-implementation architecture, API, security and performance review
+
+- **Date:** 2026-09-05
+- **Reviewed production head:** `24c383549c48357e09ad6b8dde4235096bba6245`
+- **Exact diff:** `develop@51410443...24c38354`
+- **Result:** no unresolved finding
+
+## Exact-diff findings
+
+1. The wallet activation is cohesive: production behavior is isolated in one
+   `storage` module and the crate root only documents and exports it. No wallet
+   product, adapter, persistence format, encryption or custody code entered.
+2. The complete runtime cone is `identus-core` plus the workspace's procedural
+   port marker in `identus-derive`. No external, executor, async-trait, format,
+   DID, credential, protocol, chain or product dependency was introduced.
+3. Revisions and cursors reject empty and oversized inputs, preserve exact
+   adapter bytes, expose no serialization or ordering contract and render only
+   byte length. Page sizes and page construction enforce their 256-entry bound
+   and the non-progress invariant.
+4. `Stored<T>`, `StorageWrite<T>` and `StoragePage<T>` implement Debug without
+   `T: Debug` and omit all values/entries/token bytes. Receipt Debug omits its
+   revision bytes. A non-Debug canary proves these properties dynamically.
+5. `StorageError` is data-free. Every variant maps to a fixed
+   `wallet.storage_*` code, fixed public message and the `wallet.storage`
+   capability; no backend cause or caller-owned value can cross the bridge.
+6. Each port is a separate explicit top-level `#[identus::port]` trait. The
+   source-based conformance guard discovers all declarations, while associated
+   types keep consumer records out of the SDK and make fully specified trait
+   objects object-safe.
+7. `SecretStore` and `StatusCacheStore` expose only load, write and delete.
+   Credential, DID and protocol stores alone expose bounded recovery indexes;
+   there is no generic repository supertrait or accidental secret enumeration.
+8. Conditional test-double behavior fails closed on stale/missing revisions,
+   rotates successful write revisions and preserves the record after a failed
+   mutation. Unconditional deletion of a missing key reports `NotFound`.
+9. The recovery-index test is deterministic, scope-bound, resumable and never
+   returns more than requested. Index entries remain independent consumer
+   types and no stored value is needed to define the production list API.
+10. String-shaped and struct-shaped consumers compile through independent
+    dynamic ports. Shared trait objects dispatch concurrently using boxed Send
+    futures without adding an SDK executor.
+11. The release diagnostic exercised 1,000,000 ready loads across all five
+    trait surfaces at approximately 14.3 million calls/s on this host. The
+    accepted boxing cost is observable and no machine threshold was added.
+12. Focused, native-workspace, factory and all 30 compatible local Nix checks
+    passed, including Rust 1.85, WASM, Android, iOS, strict lints, supply-chain
+    policy and the 356-test principal release suite. Consumer postflight state
+    exactly matches preflight.
+
+## Implementation-review corrections
+
+1. An early local draft generated the five traits through declarative macros.
+   That compiled but hid their names from the repository's source-based port
+   discovery. It was replaced before the implementation commit with five
+   explicit top-level declarations; naming conformance now observes them.
+2. The first test executor waker would have unparked the thread performing the
+   wake rather than the thread polling the future. It now captures and unparks
+   the polling thread, preserving correct behavior if a future becomes pending.
+
+Verdict: READY for specification synchronization and pull-request review.

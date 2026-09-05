@@ -50,3 +50,38 @@ match the issue #89 preflight exactly. Oxid remains at `bfe3b481` with its two
 pre-existing untracked paths; midnight-identity remains at `427f8571` with its
 dirty nested `third_party/midnight-did`; Lace ID Portal remains at `804de0a9`
 with its three pre-existing untracked paths. No consumer file was modified.
+
+## Full reproducible matrix
+
+- `cargo fmt --all -- --check`: passed.
+- `cargo test -p identus-wallet --no-default-features`: passed.
+- `RUSTDOCFLAGS='-D warnings' cargo doc -p identus-wallet --no-deps`: passed.
+- `cargo test --workspace --all-features`: passed.
+- `cargo test --workspace --no-default-features`: passed.
+- `cargo clippy --workspace --all-targets --all-features -- -D warnings`:
+  passed.
+- `RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps`: passed.
+- `nix flake check --print-build-logs`: all 30 compatible aarch64-darwin
+  checks passed, including Rust 1.85 MSRV, native, Android AArch64, iOS
+  AArch64, WASM, feature, lint, documentation, factory, dependency, license,
+  advisory and release Nextest lanes. The principal suite ran 356 tests: 356
+  passed and 16 manual diagnostics were skipped.
+
+Nix reported `x86_64-linux` as incompatible with the local system; hosted
+Ubuntu CI supplies that independent gate. Existing nonfatal offline crates.io
+yanked-lookups and macOS fixup-hook diagnostics did not fail a derivation.
+
+## Compatibility and boundary evidence
+
+- Specification commit:
+  `cec2b2f3bd4d011a53ebfaf3d5c9ea3aad97768d`.
+- Implementation commit:
+  `24c383549c48357e09ad6b8dde4235096bba6245`.
+- The wallet crate's direct dependency tree contains only `identus-core` and
+  the `identus-derive` procedural macro. No Cargo feature or external package
+  was added.
+- IDR-010 remains `specified`, not delivered: production in-memory and
+  encrypted consumer adapters have not yet supplied conformance receipts.
+- The distinct exact-diff review is recorded in `review.md`; its two draft
+  corrections were applied before the implementation commit and it has no
+  unresolved finding.

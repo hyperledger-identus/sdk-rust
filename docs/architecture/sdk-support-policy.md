@@ -41,7 +41,9 @@ requires a reviewed policy change and matching Cargo/Nix evidence.
 
 Workspace defaults, crypto without default features, KMP compatibility and the
 entropy adapter empty/deterministic/system-random combinations are isolated
-build or test surfaces on both the MSRV and etalon toolchains. The structural
+build or test surfaces on both the MSRV and etalon toolchains. Minimal crypto
+has independent Clippy, test and MSRV build evidence, so optional integration
+targets cannot rely on unrelated workspace feature unification. The structural
 validator compares each gate's manifest operation, toolchain, effective package
 set, explicit workspace mode, workspace exclusions, structured Cargo target,
 default-feature mode and complete feature set with the machine policy.

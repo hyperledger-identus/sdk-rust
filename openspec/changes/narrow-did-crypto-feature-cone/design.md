@@ -71,11 +71,31 @@ adds a real dependency.
 ### D5 — use existing platform gates and focused graph evidence
 
 The existing workspace default, MSRV, browser-WASM, Android ARM64 and iOS ARM64
-gates already compile `identus-did`. A dedicated Nix feature surface would
+gates already compile `identus-did`. A dedicated DID Nix feature surface would
 duplicate those builds because the crate has no features. This change instead
 runs focused default/no-default checks and tests, records both Cargo trees, and
 runs the full existing gate set. The graph receipt is evidence for this
 unreleased change, not a permanent build-time or binary-size promise.
+
+### D6 — gate crypto integration targets by their true prerequisites
+
+Removing the DID edge makes the workspace no-default build honest and exposed
+five crypto integration targets that imported feature-gated APIs without Cargo
+`required-features`. Record the minimum complete target prerequisites:
+
+| Test target | Required crypto features |
+| --- | --- |
+| `cose` | `cose` |
+| `curves` | `ed25519`, `secp256k1`, `secp256r1`, `x25519` |
+| `derivation` | `derivation`, `x25519` |
+| `jwk` | `jwk-thumbprint` |
+| `secp256k1_compat` | `hex`, `secp256k1` |
+
+`error_bridging` remains ungated because the redaction-safe error contract is
+always available and valuable on the minimal surface. Add one generated Nix
+`rust-test-crypto-minimal` gate to the existing `crypto-minimal` policy entry.
+Unlike a duplicate DID gate, this exercises distinct behavior: Cargo must skip
+unsupported test targets while still running always-available crypto tests.
 
 ## Risks and trade-offs
 
@@ -91,6 +111,9 @@ unreleased change, not a permanent build-time or binary-size promise.
 - Exact internal dependency assertions require an intentional spec/test edit
   when the DID crate gains a legitimate dependency. This is useful review
   friction at the reusable domain boundary.
+- Cargo target metadata is explicit maintenance surface. A new crypto
+  integration target that imports optional APIs must declare its own minimum
+  feature set or the minimal gate fails at compile time.
 
 ## Rollback and migration
 

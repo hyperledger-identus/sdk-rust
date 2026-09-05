@@ -38,6 +38,9 @@ at the operation-owning boundary, such as the JOSE proof verifier.
 5. Use existing host, MSRV and compile-only target gates plus focused
    default/no-default Cargo tree evidence. Do not add duplicate permanent Nix
    gates for a crate with no feature variants.
+6. Declare the exact complete feature prerequisites of each crypto integration
+   target exposed by the honest no-default workspace graph. Add an isolated
+   minimal-crypto test gate so future feature-unification regressions fail.
 
 ## Consequences
 

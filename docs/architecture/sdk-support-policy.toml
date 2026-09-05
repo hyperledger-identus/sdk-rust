@@ -1,5 +1,5 @@
 schema_version  = 1
-policy_revision = "2026-09-04"
+policy_revision = "2026-09-05"
 
 [toolchains]
 msrv                  = "1.85.0"
@@ -29,6 +29,7 @@ rust-msrv-entropy-deterministic = "cargoBuild"
 rust-msrv-entropy-getrandom     = "cargoBuild"
 rust-msrv-entropy-minimal       = "cargoBuild"
 rust-test                       = "cargoNextest"
+rust-test-crypto-minimal        = "cargoNextest"
 rust-test-entropy-all           = "cargoNextest"
 rust-test-entropy-deterministic = "cargoNextest"
 rust-test-entropy-getrandom     = "cargoNextest"
@@ -139,13 +140,16 @@ msrv_gate           = "rust-msrv"
 evidence_token      = "--no-fail-fast --no-tests=pass"
 
 [[features]]
-name                = "crypto-minimal"
-package             = "identus-crypto"
+name = "crypto-minimal"
+package = "identus-crypto"
 no_default_features = true
-features            = [  ]
-gates               = [ "rust-clippy-crypto-minimal" ]
-msrv_gate           = "rust-msrv-crypto-minimal"
-evidence_token      = "--no-default-features"
+features = [  ]
+gates = [
+  "rust-clippy-crypto-minimal",
+  "rust-test-crypto-minimal",
+]
+msrv_gate = "rust-msrv-crypto-minimal"
+evidence_token = "--no-default-features"
 
 [[features]]
 name                = "crypto-kmp-compat"

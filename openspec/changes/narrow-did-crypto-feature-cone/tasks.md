@@ -17,6 +17,8 @@
   dependency cone.
 - [x] 2.3 Update ADR and architecture inventory/blueprint evidence, including
   the already accepted JOSE-to-DID edge.
+- [x] 2.4 Gate crypto integration-test targets by their exact complete feature
+  prerequisites and add an isolated minimal-crypto test gate.
 
 ## 3. Verification and delivery
 

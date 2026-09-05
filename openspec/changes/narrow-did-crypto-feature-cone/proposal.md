@@ -20,6 +20,9 @@ public-key material in a DID document and algorithm-specific key validation.
   to an algorithm-bound key.
 - Add an executable manifest guard for the exact current internal DID runtime
   dependency cone.
+- Declare exact feature prerequisites for crypto integration-test targets and
+  add an isolated minimal-crypto test gate so feature unification cannot mask
+  them again.
 - Prove that DID default and no-default builds have the same crypto-free graph
   and retain current behavior on supported hosts and compile-only targets.
 - Correct the current architecture inventory and dependency contract to match
@@ -28,9 +31,10 @@ public-key material in a DID document and algorithm-specific key validation.
 ## Non-goals
 
 This change does not alter DID syntax, documents, resolution, dereferencing,
-registration, caching, JWK wire validation, algorithms, JOSE verification,
-method-specific behavior, public APIs, donor repositories or publication. It
-does not introduce DID crate features merely to represent absent behavior.
+registration, caching, JWK wire validation, cryptographic algorithms, JOSE
+verification, method-specific behavior, public APIs, donor repositories or
+publication. It does not introduce DID crate features merely to represent
+absent behavior.
 
 ## Impact
 

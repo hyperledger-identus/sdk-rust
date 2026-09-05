@@ -56,6 +56,9 @@ plus the active OpenSpec contract.
 - Existing platform/MSRV gates are sufficient because DID has no feature
   variants. Focused default/no-default Cargo checks and graph receipts cover
   the change without adding duplicate permanent Nix jobs.
+- One minimal-crypto test gate is justified because it exercises a distinct
+  failure mode: feature-gated integration targets must be skipped or compiled
+  only when their declared prerequisites are present.
 
 ### Scope and provenance
 

@@ -56,4 +56,48 @@
 
 ## Post-implementation review
 
-Pending implementation and verification.
+- **Date:** 2026-09-06
+- **Result:** accepted locally after one lint-only correction; no unresolved
+  correctness, security, compatibility, provenance or performance finding
+
+### Review findings and resolution
+
+- The first strict fuzz Clippy pass found `sliced_string_as_bytes` in the exact
+  signing-input assertion. It was corrected to slice `compact.as_bytes()`;
+  strict Clippy then passed. This did not change semantics.
+- Review confirmed `text:` normalization is opt-in, removes at most LF plus a
+  preceding CR, and is applied only to the default whole-input route. The raw
+  prefix/suffix limit route remains byte-exact.
+- Review confirmed rejection is ordinary, accepted segments are independently
+  decoded/re-encoded, the second separator defines the exact signing input,
+  and staged reconstruction compares semantic fields rather than JSON text.
+- Review confirmed the parser-only error allowlist is closed at the harness
+  boundary and each accepted variant is checked against its stable `jose.*`
+  bridge and `jose` capability.
+- Review confirmed fuzz dependencies and the recalculated lock remain confined
+  to `fuzz/`; production APIs, root lock, targets and downstream repositories
+  are unchanged.
+
+### Verification receipt
+
+- JWS corpus replay: 12 files, 13 executions, no finding.
+- Deterministic JWS smoke: seed `424242`, 4,096 executions, 944 covered edges,
+  2,777 feature edges, peak RSS 51 MiB, no finding, one elapsed second after
+  compilation.
+- Existing DID and crypto corpus replay: all four targets passed.
+- Fuzz workspace: formatting, strict Clippy, cargo-deny and RustSec passed.
+  Cargo-deny emitted only repository-wide unmatched-allowance warnings.
+- `identus-jose --all-features`: 45 passed, 4 diagnostics ignored.
+- Workspace `--all-features`: passed in full.
+- `nix flake check --print-build-logs`: all 31 host/MSRV/target/lint/docs/test/
+  supply-chain checks passed; the primary nextest lane ran 411 tests with 21
+  diagnostics skipped. Existing Nix evaluation/dependency warnings were not
+  branch-owned failures.
+- No crash artifact was created and the curated corpus stayed clean because
+  generated growth ran in a temporary copy.
+
+### Scope conclusion
+
+The campaign reaches the intended useful assurance point without adding a
+structured generator, cryptographic verification, OSS-Fuzz, or downstream
+integration. Those remain independently prioritizable follow-ups.

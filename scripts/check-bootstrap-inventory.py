@@ -70,6 +70,10 @@ PUBLIC_API_BY_CLASS = {
     "verification": "internal",
     "placeholder": "none",
 }
+VERIFICATION_PACKAGES = {
+    "identus-conformance",
+    "identus-wallet-conformance",
+}
 LAYER_NAMES = {
     "Foundation": "foundation",
     "DomainPrimitives": "domain-primitives",
@@ -472,8 +476,10 @@ def validate_packages(
             placeholder_source_is_minimal(root, name, workspace_path, failures)
         elif classification == "implemented":
             implemented_source_has_api(root, name, workspace_path, failures)
-        elif classification == "verification" and name != "identus-conformance":
-            failures.append(f"{name}: only identus-conformance may be verification-only")
+        elif classification == "verification" and name not in VERIFICATION_PACKAGES:
+            failures.append(
+                f"{name}: package is not an accepted verification-only crate"
+            )
 
 
 def validate(root: Path) -> list[str]:

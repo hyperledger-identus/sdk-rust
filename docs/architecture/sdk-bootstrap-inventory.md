@@ -56,8 +56,12 @@ Package presence, the layer rulebook and version `0.0.0` do not imply support.
 | `identus-wallet` | bounded opaque storage revision/cursor/page vocabulary, explicit single-record mutation receipts, and separate associated-type `SecretStore`, `CredentialStore`, `DidStore`, `ProtocolStateStore` and `StatusCacheStore` async ports | no wallet product, SDK-owned records, concrete storage, encryption, codecs, cross-record transactions, synchronization, custody, policy, protocol, chain or FFI behavior; runtime cone is `identus-core` plus the `identus-derive` port marker | issue #89; production adapters and cross-consumer conformance remain downstream |
 | `identus-adapters-entropy` | `GetrandomSystemRandomAdapter`, `DeterministicRandomAdapter` | `getrandom` and `deterministic` are opt-in; deterministic entropy is test-only | issue #25 and later ports convergence |
 
-`identus-conformance` is verification-only. Its public `COMPONENT` marker does
-not make architecture guards a supported runtime API.
+`identus-conformance` and `identus-wallet-conformance` are verification-only.
+The former enforces repository structure. The latter provides five public
+executor-neutral wallet adapter checks under issue #91, but its SDK-local
+memory implementation is test-only and is neither a production adapter nor a
+downstream adoption receipt. Neither crate is a supported production runtime
+dependency.
 
 ## Quarantined placeholders
 

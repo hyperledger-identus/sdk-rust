@@ -7,15 +7,15 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add and classify the `identus-wallet-conformance` workspace crate.
-- [ ] 2.2 Implement static failure/report vocabulary and exact lifecycle checks.
-- [ ] 2.3 Implement bounded list checks and five port-specific public entry points.
-- [ ] 2.4 Add a test-only memory implementation for all entry points and failures.
+- [x] 2.1 Add and classify the `identus-wallet-conformance` workspace crate.
+- [x] 2.2 Implement static failure/report vocabulary and exact lifecycle checks.
+- [x] 2.3 Implement bounded list checks and five port-specific public entry points.
+- [x] 2.4 Add a test-only memory implementation for all entry points and failures.
 
 ## 3. Evidence
 
-- [ ] 3.1 Add and run the ignored release diagnostic.
-- [ ] 3.2 Update human/machine inventory and the IDR-010 issue linkage.
+- [x] 3.1 Add and run the ignored release diagnostic.
+- [x] 3.2 Update human/machine inventory and the IDR-010 issue linkage.
 - [ ] 3.3 Pass focused, workspace, factory and pinned Nix validation.
 - [ ] 3.4 Complete post-implementation review and archive this change.
 

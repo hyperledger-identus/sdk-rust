@@ -2,8 +2,7 @@
 //!
 //! Moved verbatim from the prior single-file `lib.rs` `mod guard` block,
 //! retargeted to use the shared helpers in `guard/mod.rs` and the rulebook
-//! items re-exported from `rulebook.rs`. The guard's required behavior is
-//! unchanged.
+//! items re-exported from `rulebook.rs`.
 
 use super::*;
 
@@ -101,6 +100,20 @@ fn manifests_conform_to_layer_rules() {
             check_dep_edge(&source, target).unwrap_or_else(|e| panic!("layer violation: {e}"));
         }
 
+        match source.as_str() {
+            "identus-conformance" => assert_eq!(
+                deps,
+                ["identus-core"],
+                "repository conformance must retain its core-only runtime edge"
+            ),
+            "identus-wallet-conformance" => assert_eq!(
+                deps,
+                ["identus-wallet"],
+                "wallet conformance must retain its wallet-only runtime edge"
+            ),
+            _ => {}
+        }
+
         // Foundation is runtime-dependency-free: `identus-core` MAY only
         // depend on workspace crates flagged `proc_macro = true` (e.g.
         // `identus-derive`), never on a runtime `identus-*` crate.
@@ -134,6 +147,12 @@ fn proc_macro_carve_out_scenarios() {
     assert!(check_dep_edge("identus-crypto", "identus-conformance").is_err());
     // A conforming inward edge passes.
     assert!(check_dep_edge("identus-did", "identus-core").is_ok());
+}
+
+#[test]
+fn wallet_conformance_is_an_inward_verification_leaf() {
+    assert!(check_dep_edge("identus-wallet-conformance", "identus-wallet").is_ok());
+    assert!(check_dep_edge("identus-wallet", "identus-wallet-conformance").is_err());
 }
 
 #[test]

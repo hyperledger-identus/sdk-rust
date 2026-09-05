@@ -176,10 +176,16 @@ pub(crate) const LAYER_RULES: &[LayerRule] = &[
     },
     LayerRule {
         layer: Layer::Verification,
-        members: &[Member {
-            name: "identus-conformance",
-            proc_macro: false,
-        }],
-        allowed_target_layers: &[Layer::Foundation],
+        members: &[
+            Member {
+                name: "identus-conformance",
+                proc_macro: false,
+            },
+            Member {
+                name: "identus-wallet-conformance",
+                proc_macro: false,
+            },
+        ],
+        allowed_target_layers: &[Layer::Foundation, Layer::Orchestration],
     },
 ];

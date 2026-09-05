@@ -482,6 +482,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-wallet-conformance"
+version = "0.0.0"
+dependencies = [
+ "identus-wallet",
+]
+
+[[package]]
 name = "indexmap"
 version = "2.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

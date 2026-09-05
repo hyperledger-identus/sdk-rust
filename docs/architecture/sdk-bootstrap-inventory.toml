@@ -111,8 +111,8 @@ path           = "crates/credentials"
 layer          = "credential-semantics"
 classification = "implemented"
 public_api     = "experimental"
-owner_issue    = "#71"
-summary        = "Bounded format-neutral artifacts, envelope, metadata/schema descriptors, status contracts and staged verification evidence."
+owner_issue    = "#87"
+summary        = "Bounded format-neutral artifacts, envelope, descriptors, status, staged verification evidence, async verifier port and exact-format registry."
 
 [[packages]]
 name           = "identus-presentations"

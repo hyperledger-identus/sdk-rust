@@ -48,8 +48,8 @@ one string `alg` member and at most one string `typ` and `kid` member. Unknown
 or duplicate members, trailing JSON, non-string values and a missing `alg`
 SHALL be rejected. `alg` SHALL contain 1 through 64 visible ASCII bytes, SHALL
 be case-sensitive and SHALL NOT equal `none`. `typ` and `kid`, when present,
-SHALL be non-empty UTF-8 strings without ASCII control characters and SHALL fit
-the configured protected-header string bound.
+SHALL be non-empty UTF-8 strings without Unicode control code points and SHALL
+fit the configured protected-header string bound.
 
 The codec SHALL NOT infer that any algorithm is registered, asymmetric,
 supported or compatible with a key. It SHALL NOT accept `jwk`, `x5c`, `crit`,

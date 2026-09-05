@@ -154,6 +154,10 @@ fn rejects_invalid_closed_protected_headers() {
         (br#"{"typ":"JWT"}"#, JoseError::MissingAlgorithm),
         (br#"{"alg":"none"}"#, JoseError::InvalidHeaderValue),
         (br#"{"alg":7}"#, JoseError::InvalidHeaderValue),
+        (
+            br#"{"alg":"EdDSA","typ":"\u0085"}"#,
+            JoseError::InvalidHeaderValue,
+        ),
         (br#"[]"#, JoseError::InvalidProtectedHeader),
         (
             b"{\"alg\":\"EdDSA\"} true",
@@ -175,7 +179,7 @@ fn rejects_invalid_closed_protected_headers() {
             Err(JoseError::InvalidHeaderValue)
         );
     }
-    for value in ["", "control\n"] {
+    for value in ["", "control\n", "control\u{0085}"] {
         assert_eq!(
             ProtectedHeader::new("EdDSA", Some(value), None, JwsLimits::default()),
             Err(JoseError::InvalidHeaderValue)

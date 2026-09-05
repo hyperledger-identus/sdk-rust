@@ -118,3 +118,24 @@ Verdict: READY to implement after ADR 0034 and strict OpenSpec validation pass.
 
 Verdict: READY for canonical spec synchronization, archive and delivery under
 #95 after the immutable verification receipt is recorded.
+
+# Hosted-review amendment
+
+- **Date:** 2026-09-05
+- **Finding:** PR #96 review thread `discussion_r3939524420`
+- **Reviewed implementation:** `677a9f3`
+
+## Finding and disposition
+
+Hosted review correctly identified that the canonical requirement excluded
+only ASCII control characters while `char::is_control` rejected the complete
+Unicode Control category. The issue, design and pre-implementation review all
+specified non-control UTF-8; accepting C1 controls such as U+0085 would weaken
+that intended validation without a consumer requirement.
+
+The canonical and archived requirements now explicitly exclude Unicode
+control code points. Construction and encoded JSON parsing regressions prove
+U+0085 is rejected through the same static error as ASCII controls.
+
+Verdict: RESOLVED locally; rerun focused validation and all hosted checks on
+the amended head before merge.

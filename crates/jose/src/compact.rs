@@ -5,6 +5,7 @@ use std::io::{self, Write};
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+use serde::Serialize;
 
 use crate::{JoseError, JwsLimits, ProtectedHeader};
 
@@ -32,12 +33,13 @@ impl JwsSigningInput {
             return Err(JoseError::PayloadTooLarge);
         }
         let header_bytes = encode_bounded_header(&protected_header, limits)?;
-        let encoded_header = URL_SAFE_NO_PAD.encode(header_bytes);
-        let encoded_payload = URL_SAFE_NO_PAD.encode(&payload);
-        let encoded_len = encoded_header
-            .len()
+        let encoded_header_len =
+            base64::encoded_len(header_bytes.len(), false).ok_or(JoseError::SizeOverflow)?;
+        let encoded_payload_len =
+            base64::encoded_len(payload.len(), false).ok_or(JoseError::SizeOverflow)?;
+        let encoded_len = encoded_header_len
             .checked_add(1)
-            .and_then(|length| length.checked_add(encoded_payload.len()))
+            .and_then(|length| length.checked_add(encoded_payload_len))
             .ok_or(JoseError::SizeOverflow)?;
         // The final form needs the last separator plus at least two base64url
         // characters for the required one-byte signature.
@@ -46,9 +48,9 @@ impl JwsSigningInput {
             return Err(JoseError::CompactTooLarge);
         }
         let mut encoded = String::with_capacity(encoded_len);
-        encoded.push_str(&encoded_header);
+        URL_SAFE_NO_PAD.encode_string(header_bytes, &mut encoded);
         encoded.push('.');
-        encoded.push_str(&encoded_payload);
+        URL_SAFE_NO_PAD.encode_string(&payload, &mut encoded);
         Ok(Self {
             protected_header,
             payload,
@@ -118,13 +120,23 @@ fn encode_bounded_header(
     header: &ProtectedHeader,
     limits: JwsLimits,
 ) -> Result<Vec<u8>, JoseError> {
-    let mut writer = BoundedWriter::new(limits.max_protected_header_bytes());
-    if serde_json::to_writer(&mut writer, header).is_err() {
-        return Err(if writer.exceeded {
-            JoseError::ProtectedHeaderTooLarge
-        } else {
-            JoseError::InvalidProtectedHeader
-        });
+    encode_bounded_json(
+        header,
+        limits.max_protected_header_bytes(),
+        JoseError::ProtectedHeaderTooLarge,
+        JoseError::InvalidProtectedHeader,
+    )
+}
+
+pub(crate) fn encode_bounded_json<T: Serialize + ?Sized>(
+    value: &T,
+    maximum: usize,
+    too_large: JoseError,
+    invalid: JoseError,
+) -> Result<Vec<u8>, JoseError> {
+    let mut writer = BoundedWriter::new(maximum);
+    if serde_json::to_writer(&mut writer, value).is_err() {
+        return Err(if writer.exceeded { too_large } else { invalid });
     }
     Ok(writer.bytes)
 }
@@ -149,7 +161,7 @@ impl Write for BoundedWriter {
     fn write(&mut self, input: &[u8]) -> io::Result<usize> {
         if input.len() > self.maximum.saturating_sub(self.bytes.len()) {
             self.exceeded = true;
-            return Err(io::Error::other("protected header exceeds its byte limit"));
+            return Err(io::Error::other("JSON value exceeds its byte limit"));
         }
         self.bytes.extend_from_slice(input);
         Ok(input.len())

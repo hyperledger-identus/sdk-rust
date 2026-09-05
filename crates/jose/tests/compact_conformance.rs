@@ -194,6 +194,16 @@ fn rejects_invalid_closed_protected_headers() {
             Err(JoseError::InvalidHeaderValue)
         );
     }
+    let tiny_string_limit = JwsLimits::new(128, 64, 32, 32, 8).expect("tiny string limit");
+    assert_eq!(
+        ProtectedHeader::new(
+            "ES256",
+            None,
+            Some("borrowed-key-id-too-large"),
+            tiny_string_limit
+        ),
+        Err(JoseError::InvalidHeaderValue)
+    );
 }
 
 #[test]
@@ -275,6 +285,17 @@ fn protected_headers_reject_ambiguous_or_unsafe_key_references() {
                 MAX_X5C_CERTIFICATES + 1
             ])),
             JwsLimits::default(),
+        ),
+        Err(JoseError::InvalidHeaderValue)
+    );
+    let header_smaller_than_string =
+        JwsLimits::new(65_536, 8, 64, 64, 1_024).expect("separate header bounds");
+    assert_eq!(
+        ProtectedHeader::with_key_reference(
+            "Ed25519",
+            None,
+            Some(JwsKeyReference::X5c(vec!["AQIDAQIDAQID".to_owned()])),
+            header_smaller_than_string,
         ),
         Err(JoseError::InvalidHeaderValue)
     );

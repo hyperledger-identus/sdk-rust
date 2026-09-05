@@ -237,6 +237,27 @@ fn invalid_claims_and_fixed_output_bounds_precede_external_signing() {
         Err(JoseError::CompactTooLarge)
     ));
     assert!(signer.calls().is_empty());
+
+    let small_payload_jws =
+        JwsLimits::new(65_536, 4_096, 32, 1_024, 2_048).expect("small payload limit");
+    let small_payload_limits =
+        Oid4vciProofJwtLimits::new(small_payload_jws, 64).expect("proof limits");
+    let claims = Oid4vciProofJwtClaims::new(
+        Oid4vciProofJwtClient::AnonymousPreAuthorized,
+        "audience-within-the-claim-bound",
+        0,
+        Some("nonce-within-the-claim-bound".to_owned()),
+        small_payload_limits,
+    )
+    .expect("individually bounded claims");
+    assert!(matches!(
+        Oid4vciProofJwtBuilder::new(small_payload_limits).prepare(
+            JwsAlgorithm::Ed25519,
+            JwsKeyReference::KeyId("key-1".to_owned()),
+            claims,
+        ),
+        Err(JoseError::PayloadTooLarge)
+    ));
 }
 
 #[test]

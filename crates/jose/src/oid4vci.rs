@@ -4,6 +4,7 @@ use std::fmt;
 
 use serde::Serialize;
 
+use crate::compact::encode_bounded_json;
 use crate::{
     JoseError, JwsAlgorithm, JwsKeyReference, JwsLimits, JwsSigner, JwsSigningInput,
     JwsVerificationKey, ProtectedHeader, UnverifiedCompactJws,
@@ -103,18 +104,28 @@ impl Oid4vciProofJwtClaims {
     /// Validate profile claims under the supplied allocation limits.
     pub fn new(
         client: Oid4vciProofJwtClient,
-        audience: impl Into<String>,
+        audience: impl AsRef<str>,
         issued_at: i64,
         nonce: Option<String>,
         limits: Oid4vciProofJwtLimits,
     ) -> Result<Self, JoseError> {
+        let audience = audience.as_ref();
+        if client
+            .issuer()
+            .is_some_and(|value| !valid_claim(value, limits))
+            || !valid_claim(audience, limits)
+            || nonce
+                .as_deref()
+                .is_some_and(|value| !valid_claim(value, limits))
+        {
+            return Err(JoseError::InvalidProofClaims);
+        }
         let claims = Self {
             client,
-            audience: audience.into(),
+            audience: audience.to_owned(),
             issued_at,
             nonce,
         };
-        claims.validate(limits)?;
         Ok(claims)
     }
 
@@ -200,8 +211,12 @@ impl Oid4vciProofJwtBuilder {
             Some(key_reference),
             self.limits.jws(),
         )?;
-        let payload = serde_json::to_vec(&WireClaims::from(&claims))
-            .map_err(|_| JoseError::InvalidProofClaims)?;
+        let payload = encode_bounded_json(
+            &WireClaims::from(&claims),
+            self.limits.jws().max_payload_bytes(),
+            JoseError::PayloadTooLarge,
+            JoseError::InvalidProofClaims,
+        )?;
         let input = JwsSigningInput::new(header, payload, self.limits.jws())?;
         Ok(Oid4vciProofSigningInput { input })
     }

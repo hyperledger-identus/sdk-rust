@@ -65,6 +65,9 @@ impl ProtectedHeader {
         key_id: Option<&str>,
         limits: JwsLimits,
     ) -> Result<Self, JoseError> {
+        if key_id.is_some_and(|value| !valid_optional(value, limits)) {
+            return Err(JoseError::InvalidHeaderValue);
+        }
         let key_reference = key_id.map(|value| JwsKeyReference::KeyId(value.to_owned()));
         Self::with_key_reference(algorithm, type_, key_reference, limits)
     }
@@ -341,6 +344,7 @@ fn valid_key_reference(value: &JwsKeyReference, limits: JwsLimits) -> bool {
                 && values.len() <= MAX_X5C_CERTIFICATES
                 && values.iter().all(|value| {
                     valid_optional(value, limits)
+                        && value.len() <= limits.max_protected_header_bytes()
                         && STANDARD.decode(value).is_ok_and(|bytes| !bytes.is_empty())
                 })
         }

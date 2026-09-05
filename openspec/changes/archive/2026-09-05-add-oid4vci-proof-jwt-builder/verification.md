@@ -49,6 +49,12 @@ proof_preparation_throughput_diagnostic -- --ignored --nocapture` prepared
 operations/second. This is informational evidence, not a machine-independent
 threshold.
 
+After hosted-review allocation hardening, the same exact-head diagnostic
+prepared 100,000 inputs in 99.436833 ms, approximately 1,005,664
+operations/second. The bounded writer and single-buffer compact encoding remain
+above one million preparations per second in this local observation; neither
+measurement is a release gate.
+
 ## Review and boundaries
 
 The distinct post-implementation review is recorded in `review.md`. Its one

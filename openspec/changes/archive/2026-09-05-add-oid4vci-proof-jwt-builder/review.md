@@ -100,3 +100,19 @@ None. Implementation may begin after strict structural/factory validation.
 
 None. The implementation is ready for spec synchronization, archive and hosted
 review.
+
+## Hosted exact-head review remediation — 2026-09-05
+
+The first hosted review of `13b31b7` found three related P2 allocation-bound
+gaps. All were accepted and corrected before merge:
+
+- the borrowed audience is now validated before its bounded owned copy is
+  allocated;
+- proof claims use the shared bounded JSON writer, stopping at the configured
+  payload ceiling even when individually valid claims exceed it together; and
+- an encoded `x5c` entry that cannot fit the complete decoded header ceiling is
+  rejected before base64 decoding allocates output.
+
+Regression cases cover the aggregate payload and certificate/header bound
+interactions. A fresh exact-head hosted review is required after the corrective
+commit; no finding is considered resolved merely by this record.

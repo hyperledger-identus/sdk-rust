@@ -42,7 +42,9 @@ impl JwsSigningInput {
             .checked_add(1)
             .and_then(|length| length.checked_add(encoded_payload.len()))
             .ok_or(JoseError::SizeOverflow)?;
-        let minimum_compact_len = encoded_len.checked_add(2).ok_or(JoseError::SizeOverflow)?;
+        // The final form needs the last separator plus at least two base64url
+        // characters for the required one-byte signature.
+        let minimum_compact_len = encoded_len.checked_add(3).ok_or(JoseError::SizeOverflow)?;
         if minimum_compact_len > limits.max_compact_bytes() {
             return Err(JoseError::CompactTooLarge);
         }

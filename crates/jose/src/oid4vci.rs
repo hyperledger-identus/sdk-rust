@@ -78,7 +78,7 @@ impl Oid4vciProofJwtClient {
         Ok(Self::Identified(client_id.to_owned()))
     }
 
-    fn issuer(&self) -> Option<&str> {
+    pub(crate) fn issuer(&self) -> Option<&str> {
         match self {
             Self::Identified(value) => Some(value),
             Self::AnonymousPreAuthorized => None,
@@ -132,6 +132,23 @@ impl Oid4vciProofJwtClaims {
             issued_at,
             nonce,
         };
+        Ok(claims)
+    }
+
+    pub(crate) fn from_parsed(
+        client: Oid4vciProofJwtClient,
+        audience: String,
+        issued_at: i64,
+        nonce: Option<String>,
+        limits: Oid4vciProofJwtLimits,
+    ) -> Result<Self, JoseError> {
+        let claims = Self {
+            client,
+            audience,
+            issued_at,
+            nonce,
+        };
+        claims.validate(limits)?;
         Ok(claims)
     }
 
@@ -318,7 +335,7 @@ impl<'a> From<&'a Oid4vciProofJwtClaims> for WireClaims<'a> {
     }
 }
 
-fn valid_claim(value: &str, limits: Oid4vciProofJwtLimits) -> bool {
+pub(crate) fn valid_claim(value: &str, limits: Oid4vciProofJwtLimits) -> bool {
     !value.is_empty()
         && value.len() <= limits.max_claim_string_bytes()
         && !value.chars().any(char::is_control)

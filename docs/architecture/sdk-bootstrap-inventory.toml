@@ -130,7 +130,7 @@ layer          = "credential-semantics"
 classification = "implemented"
 public_api     = "experimental"
 owner_issue    = "#99"
-summary        = "Bounded JWS Compact, signature capabilities and staged OpenID4VCI Final proof-JWT holder construction."
+summary        = "Bounded JWS Compact, signature capabilities, and staged OpenID4VCI Final proof-JWT holder construction and issuer verification."
 
 [[packages]]
 name           = "identus-messaging"

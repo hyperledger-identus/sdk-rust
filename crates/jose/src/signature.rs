@@ -37,7 +37,7 @@ impl JwsAlgorithm {
         }
     }
 
-    fn parse(value: &str) -> Result<Self, JoseError> {
+    pub(crate) fn parse(value: &str) -> Result<Self, JoseError> {
         match value {
             "Ed25519" => Ok(Self::Ed25519),
             "ES256" => Ok(Self::Es256),

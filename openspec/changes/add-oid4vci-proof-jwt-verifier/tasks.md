@@ -11,40 +11,40 @@
 
 ## 2. Profile and key verification
 
-- [ ] 2.1 Add bounded duplicate-safe proof-claim parsing and the explicit
+- [x] 2.1 Add bounded duplicate-safe proof-claim parsing and the explicit
   parsed state.
-- [ ] 2.2 Add inline-JWK, authenticated DID-URL and injected `x5c` key
+- [x] 2.2 Add inline-JWK, authenticated DID-URL and injected `x5c` key
   selection plus exact suite-registry signature verification.
-- [ ] 2.3 Add explicit cryptographically verified state and static redacted
+- [x] 2.3 Add explicit cryptographically verified state and static redacted
   key-resolution/provider failures.
 
 ## 3. Issuer authorization
 
-- [ ] 3.1 Add validated client, audience, nonce, freshness and skew policy.
-- [ ] 3.2 Add injected wall-clock evaluation and checked NumericDate
+- [x] 3.1 Add validated client, audience, nonce, freshness and skew policy.
+- [x] 3.2 Add injected wall-clock evaluation and checked NumericDate
   arithmetic.
-- [ ] 3.3 Add the atomic replay-guard port/input and authorized proof state,
+- [x] 3.3 Add the atomic replay-guard port/input and authorized proof state,
   invoking replay only after every prior gate passes.
 
 ## 4. Evidence and integration
 
-- [ ] 4.1 Add Final-profile inline-JWK, DID-backed and `x5c` provider positive
+- [x] 4.1 Add Final-profile inline-JWK, DID-backed and `x5c` provider positive
   cases plus exact staged-state assertions.
-- [ ] 4.2 Add independent negative tests for type/algorithm/key reference,
+- [x] 4.2 Add independent negative tests for type/algorithm/key reference,
   claims/client/audience/nonce/time, DID relationship/material, signature,
   certificate provider, replay, provider isolation and diagnostics.
-- [ ] 4.3 Add independently reconstructed Oxid behavior and Lace deferred-gap
+- [x] 4.3 Add independently reconstructed Oxid behavior and Lace deferred-gap
   evidence plus a release-only verifier throughput diagnostic.
-- [ ] 4.4 Update the dependency guard, blueprint/inventory/specs/docs and verify
+- [x] 4.4 Update the dependency guard, blueprint/inventory/specs/docs and verify
   downstream HEAD/status receipts remain unchanged.
 
 ## 5. Verification and delivery
 
-- [ ] 5.1 Pass focused formatting, tests, minimal features, strict Clippy and
+- [x] 5.1 Pass focused formatting, tests, minimal features, strict Clippy and
   warning-denied docs.
-- [ ] 5.2 Pass workspace, factory/conformance, target/MSRV, supply-chain and
+- [x] 5.2 Pass workspace, factory/conformance, target/MSRV, supply-chain and
   full Nix gates.
-- [ ] 5.3 Complete a distinct post-implementation architecture/API/standards/
+- [x] 5.3 Complete a distinct post-implementation architecture/API/standards/
   security/performance review and resolve every finding.
 - [ ] 5.4 Produce ready/receipt, sync canonical specs, archive the change and
   prepare the signed/DCO issue-linked PR; hosted review, green CI, merge,

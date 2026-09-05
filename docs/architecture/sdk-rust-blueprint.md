@@ -280,8 +280,11 @@ allowlist/dispatcher, fully specified `Ed25519` and `ES256` suites, opt-in
 legacy `EdDSA`, and explicit cryptographically verified state. DID key
 authorization and OpenID4VCI proof claims are split under #99: the first
 delivery adds exclusive bounded `kid`/public-`jwk`/`x5c` headers plus staged
-holder construction, and the second adds caller-policy and DID-backed issuer
-verification. Coverage-guided fuzzing remains #100.
+holder construction. Its second delivery adds three-stage issuer verification,
+exact DID `authentication` authorization, an injected X.509 leaf-key provider,
+explicit client/audience/nonce/freshness policy and an atomic caller-owned
+replay gate. Coverage-guided fuzzing remains #100, while optional proof
+attestation and trust-chain headers remain #104.
 
 ### B09 — OID4VCI Final (`#7`)
 

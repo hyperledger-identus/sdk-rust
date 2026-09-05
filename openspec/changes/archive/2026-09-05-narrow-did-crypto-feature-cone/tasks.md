@@ -22,12 +22,12 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Prove focused DID default/no-default checks, tests, strict Clippy,
+- [x] 3.1 Prove focused DID default/no-default checks, tests, strict Clippy,
   warning-denied docs and crypto-free Cargo trees.
-- [ ] 3.2 Pass workspace default/no-default/all-feature, factory/conformance,
+- [x] 3.2 Pass workspace default/no-default/all-feature, factory/conformance,
   MSRV, target, supply-chain and full Nix gates.
-- [ ] 3.3 Complete a distinct post-implementation architecture/API/security/
+- [x] 3.3 Complete a distinct post-implementation architecture/API/security/
   compatibility/performance review and resolve every finding.
-- [ ] 3.4 Produce ready/receipt, sync canonical specs, archive the change and
+- [x] 3.4 Produce ready/receipt, sync canonical specs, archive the change and
   deliver a signed/DCO issue-linked PR; hosted review, green CI, merge and
   cleanup remain GitHub evidence.

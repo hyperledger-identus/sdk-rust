@@ -71,4 +71,43 @@ plus the active OpenSpec contract.
 
 ## Post-implementation review
 
-Pending implementation and verification.
+**Date:** 2026-09-05
+
+**Reviewed production head:**
+`f035e36ad773c26447babd083c973621b1b5f96d`
+
+**Exact diff:** `develop@ed6cbed2...f035e36a`
+
+**Result:** no unresolved finding.
+
+### Exact-diff findings
+
+1. The DID runtime edge to `identus-crypto` was unused and is removed. Its
+   exact internal normal-dependency set is now `identus-core` plus the
+   `identus-derive` proc macro, enforced by repository conformance.
+2. DID's direct use of Serde derives had been hidden by Cargo feature
+   unification through crypto. Declaring `serde/derive` at the use site removes
+   that accidental coupling without changing Rust or wire APIs.
+3. DID parsing and public-JWK validation remain structural, bounded and
+   public-only. No key, signature, curve or authorization validation moved or
+   disappeared; operation-owning consumers continue to bind algorithms.
+4. The reduced DID tree contains core, derive, Serde and JSON only; tests add
+   only `uriparse`. `identus-crypto` and its curve, hashing, derivation and COSE
+   packages are absent from both default and no-default DID trees.
+5. Full no-default workspace testing exposed crypto integration targets that
+   compiled only because DID had activated crypto defaults. Exact
+   `required-features` declarations now make each target honest, while the
+   always-available error contract continues to execute in minimal mode.
+6. A generated Nix test gate now runs minimal crypto independently alongside
+   its strict Clippy and Rust 1.85 build gates. This closes the feature-
+   unification masking path without duplicating DID gates.
+7. Default, no-default and all-feature workspace checks preserve behavior. The
+   complete local Nix matrix passed all 29 compatible aarch64-darwin checks,
+   including 411 principal tests and the new 8-test crypto-minimal lane.
+8. The canonical JOSE dependency text is corrected to match ADR 0037 and the
+   merged verifier implementation: core, crypto and DID are its only internal
+   runtime dependencies.
+9. No donor code, fixture or new external dependency entered. Downstream
+   repositories remained read-only, and no public API or MSRV changed.
+
+Verdict: READY for specification synchronization and pull-request review.

@@ -342,7 +342,10 @@ through its dependency key. It SHALL compare the resolved identity to canonical
 workspace package names, deduplicate repeated identities, and apply layer and
 verification-leaf rules to the resulting set. Renaming a dependency SHALL NOT
 hide an internal runtime edge. Development and build dependencies SHALL remain
-outside this runtime-edge set.
+outside this runtime-edge set. When a member dependency declares
+`workspace = true`, the guard SHALL resolve its identity from the matching root
+`[workspace.dependencies]` entry, including that root entry's `package` rename,
+and SHALL ignore a member-local `package` field just as Cargo 1.85 does.
 
 #### Scenario: Renamed internal dependency reaches the layer guard
 
@@ -361,3 +364,11 @@ outside this runtime-edge set.
 - **WHEN** `identus-wallet-conformance` adds a renamed runtime dependency whose
   package is not `identus-wallet`
 - **THEN** its exact wallet-only dependency assertion SHALL fail
+
+#### Scenario: Inherited dependency identity comes from the workspace root
+
+- **WHEN** a member declares
+  `identus-did = { workspace = true, package = "identus-derive" }` and the root
+  `identus-did` workspace dependency resolves to package `identus-did`
+- **THEN** the guard SHALL inspect an edge to `identus-did`, not
+  `identus-derive`, because Cargo ignores the member-local package override

@@ -7,6 +7,8 @@
 ## 2. Implementation
 
 - [x] 2.1 Resolve dependency aliases through the declared package identity.
+- [ ] 2.2 Resolve `workspace = true` aliases through the root declaration and
+  ignore member-local package overrides.
 - [x] 2.2 Add positive, deduplication and unauthorized-leaf regression tests.
 
 ## 3. Evidence and delivery

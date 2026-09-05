@@ -31,6 +31,10 @@ pub mod error_code {
         ErrorCode::new("credential.unexpected_verification_reason");
     pub const NON_CANONICAL_VERIFICATION_REPORT: ErrorCode =
         ErrorCode::new("credential.non_canonical_verification_report");
+    pub const DUPLICATE_CREDENTIAL_VERIFIER_FORMAT: ErrorCode =
+        ErrorCode::new("credential.duplicate_verifier_format");
+    pub const TOO_MANY_CREDENTIAL_VERIFIER_FORMATS: ErrorCode =
+        ErrorCode::new("credential.too_many_verifier_formats");
     pub const INVALID_ENTITY_IDENTIFIER: ErrorCode =
         ErrorCode::new("credential.invalid_entity_identifier");
     pub const INVALID_CREDENTIAL_TYPE: ErrorCode =
@@ -115,6 +119,10 @@ pub enum CredentialError {
     UnexpectedVerificationReason,
     /// Verification stages are not complete and canonically ordered.
     NonCanonicalVerificationReport,
+    /// A verifier registry repeats an exact credential format binding.
+    DuplicateCredentialVerifierFormat,
+    /// A verifier registry exceeds its bounded format capacity.
+    TooManyCredentialVerifierFormats,
     /// An issuer or subject identifier violates the descriptor bounds.
     InvalidEntityIdentifier,
     /// A credential type violates the descriptor bounds.
@@ -222,6 +230,14 @@ impl CredentialError {
             Self::NonCanonicalVerificationReport => (
                 error_code::NON_CANONICAL_VERIFICATION_REPORT,
                 "credential verification report is not canonical",
+            ),
+            Self::DuplicateCredentialVerifierFormat => (
+                error_code::DUPLICATE_CREDENTIAL_VERIFIER_FORMAT,
+                "credential verifier format is duplicated",
+            ),
+            Self::TooManyCredentialVerifierFormats => (
+                error_code::TOO_MANY_CREDENTIAL_VERIFIER_FORMATS,
+                "credential verifier registry exceeds the format limit",
             ),
             Self::InvalidEntityIdentifier => (
                 error_code::INVALID_ENTITY_IDENTIFIER,
@@ -365,6 +381,10 @@ impl fmt::Display for CredentialError {
             Self::UnexpectedVerificationReason => "credential verification reason is not allowed",
             Self::NonCanonicalVerificationReport => {
                 "credential verification report is not canonical"
+            }
+            Self::DuplicateCredentialVerifierFormat => "credential verifier format is duplicated",
+            Self::TooManyCredentialVerifierFormats => {
+                "credential verifier registry exceeds the format limit"
             }
             Self::InvalidEntityIdentifier => "credential entity identifier is invalid",
             Self::InvalidCredentialType => "credential type is invalid",

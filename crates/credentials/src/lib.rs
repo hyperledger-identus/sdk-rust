@@ -2,8 +2,9 @@
 //!
 //! The crate owns a bounded, non-validating envelope for format-produced
 //! credential artifacts, format-neutral descriptive metadata, and a canonical
-//! report for verifier-produced evidence. It does not parse artifacts, perform
-//! checks, decide trust, store data, or apply wallet policy.
+//! report plus execution seam for verifier-produced evidence. It does not parse
+//! artifacts, implement checks, decide trust, store data, or apply wallet
+//! policy.
 
 #![forbid(unsafe_code)]
 
@@ -16,6 +17,7 @@ mod metadata;
 mod schema;
 mod status;
 mod verification;
+mod verifier;
 
 pub use artifact::{
     CredentialDetachedProof, CredentialPayload, CredentialPrivateMaterial,
@@ -53,11 +55,16 @@ pub use verification::{
     VerificationReasonCode, VerificationReport, VerificationStage, VerificationStageName,
     VerificationStageStatus,
 };
+pub use verifier::{
+    CredentialVerificationError, CredentialVerificationFuture, CredentialVerificationRequest,
+    CredentialVerificationResult, CredentialVerifier, CredentialVerifierRegistry,
+    CredentialVerifierRegistryBuilder, MAX_CREDENTIAL_VERIFIER_REGISTRY_ENTRIES,
+};
 
 use identus_core::Component;
 
 /// Metadata for the `identus-credentials` crate.
 pub const COMPONENT: Component = Component {
     name: "identus-credentials",
-    summary: "Bounded credential artifacts, descriptors, status and verification evidence.",
+    summary: "Bounded credential artifacts, descriptors, status and verification seams.",
 };

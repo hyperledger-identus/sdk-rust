@@ -10,18 +10,18 @@
 
 ## 2. Verifier execution implementation
 
-- [ ] 2.1 Add the borrowed verification request and object-safe async port.
-- [ ] 2.2 Add static operational errors and stable SDK error bridges.
-- [ ] 2.3 Add bounded builder, immutable exact-format registry and inspection.
-- [ ] 2.4 Export the surface and declare only the port-marker dependency.
+- [x] 2.1 Add the borrowed verification request and object-safe async port.
+- [x] 2.2 Add static operational errors and stable SDK error bridges.
+- [x] 2.3 Add bounded builder, immutable exact-format registry and inspection.
+- [x] 2.4 Export the surface and declare only the port-marker dependency.
 
 ## 3. Evidence and performance
 
-- [ ] 3.1 Add object-safety, least-authority, exact-dispatch, valid/invalid/
+- [x] 3.1 Add object-safety, least-authority, exact-dispatch, valid/invalid/
   indeterminate report, operational-error and trust-separation tests.
-- [ ] 3.2 Add duplicate/capacity/redaction/deterministic-order tests and run the
+- [x] 3.2 Add duplicate/capacity/redaction/deterministic-order tests and run the
   ignored release diagnostic through the production registry.
-- [ ] 3.3 Update human/machine inventories and canonical governance evidence.
+- [x] 3.3 Update human/machine inventories and canonical governance evidence.
 - [ ] 3.4 Verify every donor/consumer postflight state matches preflight.
 
 ## 4. Verification and delivery

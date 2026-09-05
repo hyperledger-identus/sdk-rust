@@ -1,7 +1,11 @@
-# JWS signature capabilities Specification
+# jws-signature-capabilities Specification
 
-## ADDED Requirements
+## Purpose
+Define runtime-neutral JWS signing and verification capabilities with explicit
+algorithm allowlists, bound public keys, strict Ed25519/ES256 primitives,
+bounded dispatch, and redaction-safe verified-state transitions.
 
+## Requirements
 ### Requirement: Supported algorithms are closed, case-sensitive and fully bound
 
 The SDK SHALL represent the accepted JOSE signing algorithms as a closed
@@ -9,7 +13,7 @@ case-sensitive set containing `Ed25519`, `ES256`, and an explicitly deprecated
 compatibility value `EdDSA`. `Ed25519` SHALL mean EdDSA using only the Ed25519
 parameter set. `ES256` SHALL mean ECDSA using P-256 and SHA-256. `EdDSA` SHALL
 also be restricted to Ed25519 in this compatibility surface and SHALL never be
-registered by the recommended registry.
+pre-registered by the recommended constructor.
 
 Every verification key SHALL be bound by construction to exactly one of these
 algorithms. The binding SHALL require an OKP/Ed25519 JWK for `Ed25519` or
@@ -49,9 +53,8 @@ runtime, network transport or custody policy.
 Signing a `JwsSigningInput` through this capability SHALL require the
 protected-header algorithm to equal the signer's algorithm. The returned
 signature SHALL be exactly 64 bytes for all algorithms in this slice. Software
-adapters SHALL borrow accepted `identus-crypto`
-private-key types and SHALL emit strict Ed25519 or raw big-endian `R || S`
-ES256 signatures.
+adapters SHALL borrow accepted `identus-crypto` private-key types and SHALL
+emit strict Ed25519 or raw big-endian `R || S` ES256 signatures.
 
 #### Scenario: an external signer receives byte-exact input
 
@@ -77,9 +80,9 @@ Verification SHALL borrow an `UnverifiedCompactJws`, find exactly one suite
 by the case-sensitive protected-header algorithm, and pass that suite the
 exact `UnverifiedCompactJws::signing_input()` bytes, the decoded signature
 octets, and the already algorithm-bound public JWK. Only a successful suite
-result SHALL construct an owned `VerifiedCompactJws`. The verified type SHALL retain
-the accepted algorithm and original compact value but SHALL NOT claim key
-authorization, DID relationship, claims validity, freshness or trust.
+result SHALL construct an owned `VerifiedCompactJws`. The verified type SHALL
+retain the accepted algorithm and original compact value but SHALL NOT claim
+key authorization, DID relationship, claims validity, freshness or trust.
 
 #### Scenario: exact received signing input is verified
 

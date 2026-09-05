@@ -160,3 +160,20 @@ reflect the RFC 9864 compatibility decision.
 
 Verdict: READY for canonical synchronization, archive and issue-linked
 delivery after the immutable factory receipt is recorded.
+
+# Archive synchronization amendment
+
+- **Date:** 2026-09-05
+- **Result:** generated semantic-loss finding resolved
+
+OpenSpec correctly created the new canonical signature-capability spec, but
+its mechanical application of the crate-ring `MODIFIED` delta replaced the
+complete existing layer-rule requirement with the abbreviated delta text.
+That removed unrelated normative scenarios even though structural validation
+still passed. The canonical requirement was restored byte-for-byte from the
+reviewed implementation checkpoint, which already contains the intended
+JOSE-to-crypto wording. The historical delta remains archived, the new
+capability spec has a concrete purpose, and strict factory validation passes
+with no unrelated canonical requirement loss.
+
+Verdict: RESOLVED before the archive commit.

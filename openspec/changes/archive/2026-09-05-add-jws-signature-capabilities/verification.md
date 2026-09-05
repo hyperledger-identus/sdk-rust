@@ -17,6 +17,10 @@
 
 ## Host, architecture and factory gates
 
+- immutable factory receipt: branch
+  `codex/idr-004-jws-signature-ports`, head
+  `1df2debad40036e2220ce7307f5fcc2d9398e5c4`, develop merge base
+  `54f46e9b94ce3fe66f9e2c04c389051549ac39a4`.
 - `cargo clippy --workspace --all-targets --all-features -- -D warnings`:
   passed.
 - `cargo test --workspace --all-features`: passed.

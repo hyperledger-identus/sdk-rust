@@ -46,6 +46,6 @@
   full Nix gates.
 - [x] 5.3 Complete a distinct post-implementation architecture/API/standards/
   security/performance review and resolve every finding.
-- [ ] 5.4 Produce ready/receipt, sync canonical specs, archive the change and
+- [x] 5.4 Produce ready/receipt, sync canonical specs, archive the change and
   prepare the signed/DCO issue-linked PR; hosted review, green CI, merge,
   roadmap receipts and cleanup remain GitHub evidence.

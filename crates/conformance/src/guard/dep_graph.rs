@@ -79,6 +79,7 @@ fn manifests_conform_to_layer_rules() {
     let root_manifest_path = workspace_root.join("Cargo.toml");
     let root_manifest = read_manifest(&root_manifest_path);
     let workspace = workspace_crate_names(&root_manifest);
+    let inherited = workspace_dependency_packages(&root_manifest);
 
     let manifest_paths = crate_manifest_paths(&workspace_root);
     assert_eq!(
@@ -94,7 +95,7 @@ fn manifests_conform_to_layer_rules() {
             workspace.contains(&source),
             "{source} is not declared in root [workspace.dependencies]"
         );
-        let deps = inward_workspace_deps(&manifest, &workspace);
+        let deps = inward_workspace_deps(&manifest, &workspace, &inherited);
 
         for target in &deps {
             check_dep_edge(&source, target).unwrap_or_else(|e| panic!("layer violation: {e}"));
@@ -162,6 +163,8 @@ fn target_specific_runtime_dependencies_are_inward_edges() {
             [dependencies]
             identus-wallet.workspace = true
             core-alias = { package = "identus-core", path = "../core" }
+            identus-did = { workspace = true, package = "identus-derive" }
+            inherited-core = { workspace = true }
 
             [target.'cfg(unix)'.dependencies]
             wallet-again = { package = "identus-wallet", path = "../wallet" }
@@ -178,14 +181,24 @@ fn target_specific_runtime_dependencies_are_inward_edges() {
         "identus-core".to_owned(),
         "identus-crypto".to_owned(),
         "identus-did".to_owned(),
+        "identus-derive".to_owned(),
         "identus-wallet".to_owned(),
     ]);
+    let inherited = HashMap::from([
+        ("identus-wallet".to_owned(), "identus-wallet".to_owned()),
+        ("identus-did".to_owned(), "identus-did".to_owned()),
+        ("inherited-core".to_owned(), "identus-core".to_owned()),
+    ]);
 
-    let deps = inward_workspace_deps(&manifest, &workspace);
+    let deps = inward_workspace_deps(&manifest, &workspace, &inherited);
     assert_eq!(
         deps,
         ["identus-core", "identus-did", "identus-wallet"],
-        "renamed target runtime dependencies must resolve to canonical packages once, while dev-dependencies stay excluded"
+        "renamed runtime dependencies must resolve to canonical packages once, inherited dependencies must use root identity, and dev-dependencies must stay excluded"
+    );
+    assert!(
+        !deps.contains(&"identus-derive".to_owned()),
+        "a member-local package override must not alter an inherited dependency"
     );
     assert_ne!(
         deps,

@@ -32,5 +32,8 @@ insert_final_newline = true
 [fuzz/corpus/public_cose/**]
 insert_final_newline = true
 
+[fuzz/corpus/jws_compact/**]
+insert_final_newline = true
+
 [Makefile]
 indent_style = tab

@@ -65,6 +65,10 @@
 - The first strict fuzz Clippy pass found `sliced_string_as_bytes` in the exact
   signing-input assertion. It was corrected to slice `compact.as_bytes()`;
   strict Clippy then passed. This did not change semantics.
+- The first hosted EditorConfig gate correctly found that newline-terminated
+  `text:` seeds conflicted with the generic raw-corpus rule. A target-specific
+  final-newline exception, matching the existing JWK/COSE text transports, was
+  added; the harness still removes that one line ending before parsing.
 - Review confirmed `text:` normalization is opt-in, removes at most LF plus a
   preceding CR, and is applied only to the default whole-input route. The raw
   prefix/suffix limit route remains byte-exact.

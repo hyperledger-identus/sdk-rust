@@ -42,3 +42,26 @@ Verdict: READY to implement after strict OpenSpec validation.
    artifact changed.
 
 Verdict: READY to archive and deliver under #93.
+
+# Hosted-review amendment
+
+- **Date:** 2026-09-05
+- **Finding:** PR #94 review thread `PRRT_kwDOQ45BA86ffw9Z`
+- **Reviewed implementation:** `d38b4cf`
+
+## Finding and disposition
+
+The initial implementation trusted a member-local `package` field even when
+the declaration also set `workspace = true`. Cargo 1.85 ignores that local
+override and inherits package identity from the matching root
+`[workspace.dependencies]` entry, so the guard could model a different edge
+from Cargo's resolved graph. The finding was accepted before merge.
+
+The amended collector now builds the internal root key-to-package map and uses
+it for every inherited top-level and target-specific runtime dependency.
+Ordinary non-inherited renames retain their explicit package identity. A
+regression combines a deceptive member-local override with a renamed root
+entry and proves that both resolve to the Cargo-effective identities.
+
+Verdict: RESOLVED locally; rerun the full pinned and hosted gates on the amended
+head before merge.

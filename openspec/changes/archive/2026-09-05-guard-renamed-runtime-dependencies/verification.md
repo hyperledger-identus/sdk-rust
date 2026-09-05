@@ -18,6 +18,13 @@
 Only verification source and specification evidence changed. The fix adds no
 runtime dependency or public SDK behavior.
 
+## Hosted-review amendment
+
+The Cargo-inheritance regression added after hosted review passes in the same
+22-test conformance suite. Strict formatting and all-target/all-feature Clippy
+also pass on implementation commit `d38b4cf`. The pinned full-gate evidence
+below is rerun on the amended head before delivery.
+
 ## Pinned Nix gate
 
 The repository-pinned `nix flake check --print-build-logs` passed all 26

@@ -38,3 +38,12 @@ and SHALL ignore a member-local `package` field just as Cargo 1.85 does.
   `identus-did` workspace dependency resolves to package `identus-did`
 - **THEN** the guard SHALL inspect an edge to `identus-did`, not
   `identus-derive`, because Cargo ignores the member-local package override
+
+#### Scenario: Root aliases remain internal to dependency-source checks
+
+- **WHEN** a root internal dependency is declared as
+  `core-alias = { package = "identus-core", path = "crates/core" }` and a
+  member inherits `core-alias.workspace = true`
+- **THEN** the architecture guard SHALL inspect canonical package
+  `identus-core` while the external-dependency guard SHALL classify the
+  `core-alias` key as internal rather than requiring an external root version

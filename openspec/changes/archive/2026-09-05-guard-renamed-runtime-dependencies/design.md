@@ -26,6 +26,10 @@ package identities.
   crate.
 - A member-local package override cannot change an inherited dependency's
   canonical root identity.
+- Root dependency keys remain the internal/external classification vocabulary;
+  canonical package identities remain the layer-graph vocabulary. The two
+  representations are intentionally derived from one root map rather than
+  conflated.
 - Multiple aliases cannot fabricate multiple edges or perturb exact leaf
   assertions.
 - Target-specific dev/build dependencies remain excluded from runtime edges.

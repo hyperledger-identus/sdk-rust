@@ -103,9 +103,9 @@ orchestration allowance; `identus-conformance` SHALL retain only its existing
 foundation dependency.
 
 The credential-semantics layer SHALL contain `identus-credentials`,
-`identus-presentations` and `identus-jose`. The JOSE member SHALL retain only
-its accepted foundation dependency on `identus-core`; wire-format dependencies
-do not change its workspace-layer edge.
+`identus-presentations` and `identus-jose`. The JOSE member MAY depend inward
+on `identus-core` and `identus-crypto`; it SHALL NOT depend on a protocol,
+orchestration, outer-boundary, chain or product crate.
 
 #### Scenario: Rulebook defines all 7 layers and all workspace crates
 
@@ -126,8 +126,8 @@ do not change its workspace-layer edge.
 
 - **WHEN** the rulebook and `identus-jose` manifest are inspected
 - **THEN** `identus-jose` appears exactly once in credential-semantics and its
-  only `identus-*` runtime dependency is the inward foundation crate
-  `identus-core`
+  only `identus-*` runtime dependencies are the inward `identus-core` and
+  `identus-crypto` crates
 
 #### Scenario: Rulebook encodes the accepted inward-direction policy
 

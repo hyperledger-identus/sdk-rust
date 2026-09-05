@@ -5,7 +5,7 @@ members  = [ "crates/*" ]
 [workspace.dependencies]
 identus-adapters-entropy   = { path = "crates/adapters-entropy" }
 identus-core               = { path = "crates/core" }
-identus-crypto             = { path = "crates/crypto" }
+identus-crypto             = { path = "crates/crypto", default-features = false }
 identus-derive             = { path = "crates/derive" }
 identus-did                = { path = "crates/did" }
 identus-trust              = { path = "crates/trust" }

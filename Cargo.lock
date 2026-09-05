@@ -451,6 +451,7 @@ dependencies = [
  "base64",
  "identus-core",
  "identus-crypto",
+ "identus-did",
  "serde",
  "serde_json",
 ]

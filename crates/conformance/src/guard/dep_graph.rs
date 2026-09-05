@@ -160,6 +160,7 @@ fn wallet_conformance_is_an_inward_verification_leaf() {
 fn jose_is_reusable_below_protocol_semantics() {
     assert!(check_dep_edge("identus-jose", "identus-core").is_ok());
     assert!(check_dep_edge("identus-jose", "identus-crypto").is_ok());
+    assert!(check_dep_edge("identus-jose", "identus-did").is_ok());
     assert!(check_dep_edge("identus-openid4vc", "identus-jose").is_ok());
     assert!(check_dep_edge("identus-crypto", "identus-jose").is_err());
 }

@@ -69,6 +69,43 @@ pub mod error_code {
     pub const SIGNATURE_INVALID: ErrorCode = ErrorCode::new("jose.signature_invalid");
     /// OID4VCI proof claims violated the bounded profile.
     pub const INVALID_PROOF_CLAIMS: ErrorCode = ErrorCode::new("jose.invalid_proof_claims");
+    /// The proof did not carry the exact OID4VCI protected type.
+    pub const INVALID_PROOF_TYPE: ErrorCode = ErrorCode::new("jose.invalid_proof_type");
+    /// The proof omitted its signing-key reference.
+    pub const MISSING_PROOF_KEY_REFERENCE: ErrorCode =
+        ErrorCode::new("jose.missing_proof_key_reference");
+    /// The selected proof key-reference form is not supported by this verifier.
+    pub const UNSUPPORTED_PROOF_KEY_REFERENCE: ErrorCode =
+        ErrorCode::new("jose.unsupported_proof_key_reference");
+    /// DID key dereferencing or projection failed.
+    pub const PROOF_KEY_RESOLUTION_FAILED: ErrorCode =
+        ErrorCode::new("jose.proof_key_resolution_failed");
+    /// The selected DID key was not authorized for authentication.
+    pub const PROOF_KEY_NOT_AUTHORIZED: ErrorCode = ErrorCode::new("jose.proof_key_not_authorized");
+    /// No certificate-key provider was supplied for an X.509 reference.
+    pub const X5C_PROVIDER_REQUIRED: ErrorCode = ErrorCode::new("jose.x5c_provider_required");
+    /// The certificate-key provider rejected the supplied chain.
+    pub const X5C_REJECTED: ErrorCode = ErrorCode::new("jose.x5c_rejected");
+    /// The certificate-key provider could not service the request.
+    pub const X5C_PROVIDER_UNAVAILABLE: ErrorCode = ErrorCode::new("jose.x5c_provider_unavailable");
+    /// Issuer proof policy inputs were invalid.
+    pub const INVALID_PROOF_POLICY: ErrorCode = ErrorCode::new("jose.invalid_proof_policy");
+    /// The proof issuer/client did not match policy.
+    pub const PROOF_CLIENT_MISMATCH: ErrorCode = ErrorCode::new("jose.proof_client_mismatch");
+    /// The proof audience did not match policy.
+    pub const PROOF_AUDIENCE_MISMATCH: ErrorCode = ErrorCode::new("jose.proof_audience_mismatch");
+    /// The proof nonce did not match policy.
+    pub const PROOF_NONCE_MISMATCH: ErrorCode = ErrorCode::new("jose.proof_nonce_mismatch");
+    /// The proof issuance time was older than policy permits.
+    pub const PROOF_STALE: ErrorCode = ErrorCode::new("jose.proof_stale");
+    /// The proof issuance time was too far in the future.
+    pub const PROOF_ISSUED_IN_FUTURE: ErrorCode = ErrorCode::new("jose.proof_issued_in_future");
+    /// The injected clock could not provide a trustworthy observation.
+    pub const PROOF_CLOCK_UNAVAILABLE: ErrorCode = ErrorCode::new("jose.proof_clock_unavailable");
+    /// The replay guard rejected a proof.
+    pub const PROOF_REPLAY_REJECTED: ErrorCode = ErrorCode::new("jose.proof_replay_rejected");
+    /// The replay guard could not service the request.
+    pub const PROOF_REPLAY_UNAVAILABLE: ErrorCode = ErrorCode::new("jose.proof_replay_unavailable");
 }
 
 /// A static reason that a bounded JWS Compact operation failed.
@@ -133,6 +170,40 @@ pub enum JoseError {
     SignatureInvalid,
     /// OID4VCI proof claims are empty, unbounded, or otherwise invalid.
     InvalidProofClaims,
+    /// The protected `typ` is not exactly `openid4vci-proof+jwt`.
+    InvalidProofType,
+    /// No signing-key reference is present in the protected header.
+    MissingProofKeyReference,
+    /// The selected signing-key reference cannot be resolved by this profile.
+    UnsupportedProofKeyReference,
+    /// A DID key could not be resolved or projected safely.
+    ProofKeyResolutionFailed,
+    /// A DID key was not authorized by the exact authentication relationship.
+    ProofKeyNotAuthorized,
+    /// An X.509 reference requires an injected certificate-key provider.
+    X5cProviderRequired,
+    /// The certificate-key provider rejected the chain.
+    X5cRejected,
+    /// The certificate-key provider was unavailable.
+    X5cProviderUnavailable,
+    /// Caller-supplied proof policy is invalid.
+    InvalidProofPolicy,
+    /// The proof issuer/client mode does not match caller policy.
+    ProofClientMismatch,
+    /// The proof audience does not match caller policy.
+    ProofAudienceMismatch,
+    /// The proof nonce does not match caller policy.
+    ProofNonceMismatch,
+    /// The proof is older than the caller's accepted window.
+    ProofStale,
+    /// The proof issuance time is too far in the future.
+    ProofIssuedInFuture,
+    /// The injected wall clock was unavailable.
+    ProofClockUnavailable,
+    /// The caller-owned replay guard rejected the proof.
+    ProofReplayRejected,
+    /// The caller-owned replay guard was unavailable.
+    ProofReplayUnavailable,
 }
 
 impl JoseError {
@@ -231,11 +302,90 @@ impl JoseError {
                 error_code::INVALID_PROOF_CLAIMS,
                 "OID4VCI proof JWT claims are invalid",
             ),
+            Self::InvalidProofType => (
+                error_code::INVALID_PROOF_TYPE,
+                "OID4VCI proof JWT type is invalid",
+            ),
+            Self::MissingProofKeyReference => (
+                error_code::MISSING_PROOF_KEY_REFERENCE,
+                "OID4VCI proof JWT key reference is missing",
+            ),
+            Self::UnsupportedProofKeyReference => (
+                error_code::UNSUPPORTED_PROOF_KEY_REFERENCE,
+                "OID4VCI proof JWT key reference is unsupported",
+            ),
+            Self::ProofKeyResolutionFailed => (
+                error_code::PROOF_KEY_RESOLUTION_FAILED,
+                "OID4VCI proof JWT key resolution failed",
+            ),
+            Self::ProofKeyNotAuthorized => (
+                error_code::PROOF_KEY_NOT_AUTHORIZED,
+                "OID4VCI proof JWT key is not authorized",
+            ),
+            Self::X5cProviderRequired => (
+                error_code::X5C_PROVIDER_REQUIRED,
+                "OID4VCI proof JWT certificate provider is required",
+            ),
+            Self::X5cRejected => (
+                error_code::X5C_REJECTED,
+                "OID4VCI proof JWT certificate chain was rejected",
+            ),
+            Self::X5cProviderUnavailable => (
+                error_code::X5C_PROVIDER_UNAVAILABLE,
+                "OID4VCI proof JWT certificate provider is unavailable",
+            ),
+            Self::InvalidProofPolicy => (
+                error_code::INVALID_PROOF_POLICY,
+                "OID4VCI proof JWT policy is invalid",
+            ),
+            Self::ProofClientMismatch => (
+                error_code::PROOF_CLIENT_MISMATCH,
+                "OID4VCI proof JWT client does not match",
+            ),
+            Self::ProofAudienceMismatch => (
+                error_code::PROOF_AUDIENCE_MISMATCH,
+                "OID4VCI proof JWT audience does not match",
+            ),
+            Self::ProofNonceMismatch => (
+                error_code::PROOF_NONCE_MISMATCH,
+                "OID4VCI proof JWT nonce does not match",
+            ),
+            Self::ProofStale => (error_code::PROOF_STALE, "OID4VCI proof JWT is stale"),
+            Self::ProofIssuedInFuture => (
+                error_code::PROOF_ISSUED_IN_FUTURE,
+                "OID4VCI proof JWT issuance time is in the future",
+            ),
+            Self::ProofClockUnavailable => (
+                error_code::PROOF_CLOCK_UNAVAILABLE,
+                "OID4VCI proof JWT clock is unavailable",
+            ),
+            Self::ProofReplayRejected => (
+                error_code::PROOF_REPLAY_REJECTED,
+                "OID4VCI proof JWT replay was rejected",
+            ),
+            Self::ProofReplayUnavailable => (
+                error_code::PROOF_REPLAY_UNAVAILABLE,
+                "OID4VCI proof JWT replay guard is unavailable",
+            ),
         };
         let kind = match self {
-            Self::UnsupportedAlgorithm | Self::AlgorithmNotAllowed => ErrorKind::Unsupported,
+            Self::UnsupportedAlgorithm
+            | Self::AlgorithmNotAllowed
+            | Self::UnsupportedProofKeyReference => ErrorKind::Unsupported,
             Self::SigningRejected | Self::SignerUnavailable => ErrorKind::Crypto,
-            Self::SignatureInvalid => ErrorKind::VerificationFailed,
+            Self::X5cProviderUnavailable
+            | Self::ProofClockUnavailable
+            | Self::ProofReplayUnavailable => ErrorKind::Internal,
+            Self::SignatureInvalid
+            | Self::ProofKeyResolutionFailed
+            | Self::ProofKeyNotAuthorized
+            | Self::X5cRejected
+            | Self::ProofClientMismatch
+            | Self::ProofAudienceMismatch
+            | Self::ProofNonceMismatch
+            | Self::ProofStale
+            | Self::ProofIssuedInFuture
+            | Self::ProofReplayRejected => ErrorKind::VerificationFailed,
             _ => ErrorKind::InvalidInput,
         };
         IdentusError::public(code, kind, CAPABILITY, message)

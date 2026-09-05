@@ -161,28 +161,40 @@ fn target_specific_runtime_dependencies_are_inward_edges() {
         r#"
             [dependencies]
             identus-wallet.workspace = true
+            core-alias = { package = "identus-core", path = "../core" }
 
             [target.'cfg(unix)'.dependencies]
-            identus-core.workspace = true
+            wallet-again = { package = "identus-wallet", path = "../wallet" }
 
             [target.'cfg(windows)'.dependencies]
-            identus-wallet.workspace = true
+            unauthorized-leaf-edge = { package = "identus-did", path = "../did" }
 
             [target.'cfg(unix)'.dev-dependencies]
-            identus-did.workspace = true
+            dev-only-alias = { package = "identus-crypto", path = "../crypto" }
         "#,
     )
     .expect("test manifest is valid TOML");
     let workspace = HashSet::from([
         "identus-core".to_owned(),
+        "identus-crypto".to_owned(),
         "identus-did".to_owned(),
         "identus-wallet".to_owned(),
     ]);
 
+    let deps = inward_workspace_deps(&manifest, &workspace);
     assert_eq!(
-        inward_workspace_deps(&manifest, &workspace),
-        ["identus-core", "identus-wallet"],
-        "target-specific runtime dependencies must be collected once, while dev-dependencies stay excluded"
+        deps,
+        ["identus-core", "identus-did", "identus-wallet"],
+        "renamed target runtime dependencies must resolve to canonical packages once, while dev-dependencies stay excluded"
+    );
+    assert_ne!(
+        deps,
+        ["identus-wallet"],
+        "the wallet-only verification-leaf assertion must observe an unauthorized renamed edge"
+    );
+    assert!(
+        check_dep_edge("identus-wallet-conformance", "identus-core").is_ok(),
+        "the exact leaf assertion must reject extra dependencies even when the broad layer rule permits them"
     );
 }
 

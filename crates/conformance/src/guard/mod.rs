@@ -177,7 +177,16 @@ fn collect_inward_workspace_deps(
     let Some(table) = value.and_then(toml::Value::as_table) else {
         return;
     };
-    out.extend(table.keys().filter(|key| workspace.contains(*key)).cloned());
+    for (alias, declaration) in table {
+        let package = declaration
+            .as_table()
+            .and_then(|fields| fields.get("package"))
+            .and_then(toml::Value::as_str)
+            .unwrap_or(alias);
+        if workspace.contains(package) {
+            out.insert(package.to_owned());
+        }
+    }
 }
 
 /// The crate's `package.name` from its manifest.

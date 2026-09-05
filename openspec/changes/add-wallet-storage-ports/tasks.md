@@ -10,20 +10,20 @@
 
 ## 2. Storage contract implementation
 
-- [ ] 2.1 Add bounded opaque revision/cursor/page vocabulary and static errors.
-- [ ] 2.2 Add stored/write/delete receipts with value-redacted Debug behavior.
-- [ ] 2.3 Add five separate associated-type, object-safe async store traits.
-- [ ] 2.4 Activate and export the wallet surface with only core/derive edges.
+- [x] 2.1 Add bounded opaque revision/cursor/page vocabulary and static errors.
+- [x] 2.2 Add stored/write/delete receipts with value-redacted Debug behavior.
+- [x] 2.3 Add five separate associated-type, object-safe async store traits.
+- [x] 2.4 Activate and export the wallet surface with only core/derive edges.
 
 ## 3. Evidence and performance
 
-- [ ] 3.1 Add consumer-shaped exact-key, missing-read, conditional mutation,
+- [x] 3.1 Add consumer-shaped exact-key, missing-read, conditional mutation,
   revision-rotation and deletion tests.
-- [ ] 3.2 Add pagination, redaction, object-safety, non-enumerable-secret and
+- [x] 3.2 Add pagination, redaction, object-safety, non-enumerable-secret and
   concurrent-dispatch tests.
-- [ ] 3.3 Add and run an ignored release trait-object dispatch diagnostic.
-- [ ] 3.4 Update human/machine inventories and the canonical IDR-010 ledger.
-- [ ] 3.5 Verify each donor/consumer postflight state matches preflight.
+- [x] 3.3 Add and run an ignored release trait-object dispatch diagnostic.
+- [x] 3.4 Update human/machine inventories and the canonical IDR-010 ledger.
+- [x] 3.5 Verify each donor/consumer postflight state matches preflight.
 
 ## 4. Verification and delivery
 

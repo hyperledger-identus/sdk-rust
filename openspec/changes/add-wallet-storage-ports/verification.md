@@ -29,3 +29,24 @@ because repository-level licensing remains unresolved.
 Implementation, focused, workspace, factory, target, Nix, diagnostic and
 review evidence will be appended after each result is observed. Unrun commands
 remain unclaimed.
+
+## Focused implementation evidence
+
+- `cargo test -p identus-wallet --all-targets`: 9 passed, 1 ignored.
+- `cargo clippy -p identus-wallet --all-targets -- -D warnings`: passed.
+- `cargo test -p identus-wallet --release --test storage -- --ignored
+  --nocapture`: 1,000,000 calls across all five dynamic ports in 69.971 ms,
+  approximately 14,291,635 calls/s; diagnostic only, with no threshold.
+- `scripts/check-bootstrap-inventory.py`: 14 packages passed.
+- `scripts/factory check`: 23 OpenSpec/factory items passed.
+- `cargo test -p identus-conformance naming_guard_passes -- --nocapture`:
+  passed and discovered the explicit port declarations.
+- `git diff --check`: passed.
+
+## Postflight repository isolation
+
+Postflight revisions, status entries and all recorded source SHA-256 digests
+match the issue #89 preflight exactly. Oxid remains at `bfe3b481` with its two
+pre-existing untracked paths; midnight-identity remains at `427f8571` with its
+dirty nested `third_party/midnight-did`; Lace ID Portal remains at `804de0a9`
+with its three pre-existing untracked paths. No consumer file was modified.

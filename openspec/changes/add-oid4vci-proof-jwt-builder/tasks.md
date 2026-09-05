@@ -11,10 +11,10 @@
 
 ## 2. Header and builder implementation
 
-- [ ] 2.1 Add the bounded exclusive JOSE key-reference model while preserving
+- [x] 2.1 Add the bounded exclusive JOSE key-reference model while preserving
   the existing header constructor and wire behavior.
-- [ ] 2.2 Add the OID4VCI client/claims/limits inputs and static error surface.
-- [ ] 2.3 Add staged proof preparation, exact signer delegation and typed signed
+- [x] 2.2 Add the OID4VCI client/claims/limits inputs and static error surface.
+- [x] 2.3 Add staged proof preparation, exact signer delegation and typed signed
   proof output without ambient clock, custody or verification.
 
 ## 3. Evidence and integration

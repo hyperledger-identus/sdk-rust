@@ -129,8 +129,8 @@ path           = "crates/jose"
 layer          = "credential-semantics"
 classification = "implemented"
 public_api     = "experimental"
-owner_issue    = "#95"
-summary        = "Bounded canonical JWS Compact parsing and staged encoding with explicit unverified state."
+owner_issue    = "#99"
+summary        = "Bounded JWS Compact, signature capabilities and staged OpenID4VCI Final proof-JWT holder construction."
 
 [[packages]]
 name           = "identus-messaging"

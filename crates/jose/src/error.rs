@@ -38,6 +38,8 @@ pub mod error_code {
     pub const MISSING_ALGORITHM: ErrorCode = ErrorCode::new("jose.missing_algorithm");
     /// A supported protected-header member had an invalid value.
     pub const INVALID_HEADER_VALUE: ErrorCode = ErrorCode::new("jose.invalid_header_value");
+    /// More than one mutually exclusive protected key reference was present.
+    pub const AMBIGUOUS_KEY_REFERENCE: ErrorCode = ErrorCode::new("jose.ambiguous_key_reference");
     /// A compact signature was empty.
     pub const EMPTY_SIGNATURE: ErrorCode = ErrorCode::new("jose.empty_signature");
     /// Size arithmetic could not be represented safely.
@@ -65,6 +67,8 @@ pub mod error_code {
     pub const SIGNER_UNAVAILABLE: ErrorCode = ErrorCode::new("jose.signer_unavailable");
     /// Cryptographic signature verification failed.
     pub const SIGNATURE_INVALID: ErrorCode = ErrorCode::new("jose.signature_invalid");
+    /// OID4VCI proof claims violated the bounded profile.
+    pub const INVALID_PROOF_CLAIMS: ErrorCode = ErrorCode::new("jose.invalid_proof_claims");
 }
 
 /// A static reason that a bounded JWS Compact operation failed.
@@ -99,6 +103,8 @@ pub enum JoseError {
     MissingAlgorithm,
     /// A protected-header member has an invalid type, spelling, or size.
     InvalidHeaderValue,
+    /// More than one of `kid`, `jwk`, or `x5c` was present.
+    AmbiguousKeyReference,
     /// The signature byte sequence is empty.
     EmptySignature,
     /// Size arithmetic overflowed.
@@ -125,6 +131,8 @@ pub enum JoseError {
     SignerUnavailable,
     /// The selected signature did not verify.
     SignatureInvalid,
+    /// OID4VCI proof claims are empty, unbounded, or otherwise invalid.
+    InvalidProofClaims,
 }
 
 impl JoseError {
@@ -173,6 +181,10 @@ impl JoseError {
                 error_code::INVALID_HEADER_VALUE,
                 "JWS protected header value is invalid",
             ),
+            Self::AmbiguousKeyReference => (
+                error_code::AMBIGUOUS_KEY_REFERENCE,
+                "JWS protected header key reference is ambiguous",
+            ),
             Self::EmptySignature => (error_code::EMPTY_SIGNATURE, "JWS signature is empty"),
             Self::SizeOverflow => (error_code::SIZE_OVERFLOW, "JWS size is invalid"),
             Self::UnsupportedAlgorithm => (
@@ -214,6 +226,10 @@ impl JoseError {
             Self::SignatureInvalid => (
                 error_code::SIGNATURE_INVALID,
                 "JWS signature verification failed",
+            ),
+            Self::InvalidProofClaims => (
+                error_code::INVALID_PROOF_CLAIMS,
+                "OID4VCI proof JWT claims are invalid",
             ),
         };
         let kind = match self {

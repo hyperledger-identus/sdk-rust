@@ -2,9 +2,10 @@
 //!
 //! Parsing returns [`UnverifiedCompactJws`]. A caller-selected bounded
 //! [`SignatureSuiteRegistry`] can produce [`VerifiedCompactJws`] after exact
-//! algorithm/key binding and cryptographic verification. The crate does not
-//! interpret JWT claims, resolve or authorize DID keys, decide trust, or hold
-//! private key material.
+//! algorithm/key binding and cryptographic verification. Its narrow
+//! OpenID4VCI holder profile constructs required proof claims but does not
+//! validate issuer policy. The crate does not resolve or authorize DID keys,
+//! decide trust, or hold private key material.
 
 #![forbid(unsafe_code)]
 
@@ -12,12 +13,18 @@ mod compact;
 mod error;
 mod header;
 mod limits;
+mod oid4vci;
 mod signature;
 
 pub use compact::{JwsSigningInput, UnverifiedCompactJws};
 pub use error::{CAPABILITY, JoseError, error_code};
-pub use header::ProtectedHeader;
+pub use header::{JwsKeyReference, MAX_X5C_CERTIFICATES, ProtectedHeader};
 pub use limits::JwsLimits;
+pub use oid4vci::{
+    DEFAULT_MAX_PROOF_CLAIM_STRING_BYTES, OID4VCI_PROOF_JWT_TYPE, Oid4vciProofJwt,
+    Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtLimits,
+    Oid4vciProofSigningInput,
+};
 pub use signature::{
     Ed25519SignatureSuite, Ed25519Signer, Es256SignatureSuite, Es256Signer, JwsAlgorithm,
     JwsSignatureSuite, JwsSigner, JwsVerificationKey, LegacyEdDsaSignatureSuite,
@@ -29,5 +36,5 @@ use identus_core::Component;
 /// Metadata for the `identus-jose` crate.
 pub const COMPONENT: Component = Component {
     name: "identus-jose",
-    summary: "Bounded JWS Compact and signature capabilities.",
+    summary: "Bounded JWS Compact, signatures, and narrow proof profiles.",
 };

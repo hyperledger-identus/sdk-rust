@@ -122,3 +122,9 @@ now uses a bounded `x5c` sequence visitor that rejects the ninth element without
 allocating its string, and claims Debug output no longer includes the `iat`
 value. Wire parsing and diagnostic-canary regressions cover both corrections;
 another fresh exact-head review remains mandatory.
+
+The third hosted review of `bab62a2` found the matching allocation issue in the
+identified-client convenience constructor. It now accepts a borrowed value plus
+the proof limits, validates before allocating, and returns the static claims
+error on rejection. The empty and oversized client paths are covered through
+the limit-aware constructor; a fourth exact-head review remains mandatory.

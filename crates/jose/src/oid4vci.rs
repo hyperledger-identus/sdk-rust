@@ -66,10 +66,16 @@ pub enum Oid4vciProofJwtClient {
 }
 
 impl Oid4vciProofJwtClient {
-    /// Construct an identified client value.
-    #[must_use]
-    pub fn identified(client_id: impl Into<String>) -> Self {
-        Self::Identified(client_id.into())
+    /// Validate and construct an identified client value.
+    pub fn identified(
+        client_id: impl AsRef<str>,
+        limits: Oid4vciProofJwtLimits,
+    ) -> Result<Self, JoseError> {
+        let client_id = client_id.as_ref();
+        if !valid_claim(client_id, limits) {
+            return Err(JoseError::InvalidProofClaims);
+        }
+        Ok(Self::Identified(client_id.to_owned()))
     }
 
     fn issuer(&self) -> Option<&str> {

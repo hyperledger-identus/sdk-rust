@@ -45,7 +45,7 @@ impl JwsSigner for RecordingSigner {
 
 fn identified_claims(limits: Oid4vciProofJwtLimits) -> Oid4vciProofJwtClaims {
     Oid4vciProofJwtClaims::new(
-        Oid4vciProofJwtClient::identified("wallet-client"),
+        Oid4vciProofJwtClient::identified("wallet-client", limits).expect("valid client"),
         "https://credential-issuer.example.com",
         1_701_960_444,
         Some("server-nonce".to_owned()),
@@ -186,14 +186,17 @@ fn x5c_reference_is_bounded_but_not_misrepresented_as_trusted() {
 #[test]
 fn invalid_claims_and_fixed_output_bounds_precede_external_signing() {
     let default_limits = Oid4vciProofJwtLimits::default();
+    assert!(matches!(
+        Oid4vciProofJwtClient::identified("", default_limits),
+        Err(JoseError::InvalidProofClaims)
+    ));
+    let tiny_claim_limits =
+        Oid4vciProofJwtLimits::new(JwsLimits::default(), 4).expect("tiny claim limit");
+    assert!(matches!(
+        Oid4vciProofJwtClient::identified("borrowed-client-too-large", tiny_claim_limits),
+        Err(JoseError::InvalidProofClaims)
+    ));
     for invalid in [
-        Oid4vciProofJwtClaims::new(
-            Oid4vciProofJwtClient::identified(""),
-            "https://issuer.example",
-            0,
-            None,
-            default_limits,
-        ),
         Oid4vciProofJwtClaims::new(
             Oid4vciProofJwtClient::AnonymousPreAuthorized,
             "",
@@ -266,7 +269,7 @@ fn algorithm_mismatch_and_diagnostics_do_not_leak_proof_values() {
     let issued_at_canary = 1_725_689_123_i64;
     let limits = Oid4vciProofJwtLimits::default();
     let claims = Oid4vciProofJwtClaims::new(
-        Oid4vciProofJwtClient::identified(canary),
+        Oid4vciProofJwtClient::identified(canary, limits).expect("bounded client"),
         canary,
         issued_at_canary,
         Some(canary.to_owned()),

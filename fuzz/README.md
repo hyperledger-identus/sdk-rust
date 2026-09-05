@@ -35,7 +35,8 @@ static codec-error bridges. Its independently authored corpus includes the RFC
 7515 Appendix A.1 compact value plus Oxid OID4VCI-proof and Lace credential
 shapes reconstructed from public protocol concepts; no donor fixture bytes are
 copied. Committed examples use a reviewable `text:` transport that removes one
-repository line ending. Arbitrary unprefixed input remains byte-for-byte raw.
+repository line ending; EditorConfig classifies this target corpus as text with
+a final newline. Arbitrary unprefixed input remains byte-for-byte raw.
 
 Generated campaign growth runs in a temporary copy, so it cannot dirty the
 curated corpus. Findings are written beneath `fuzz/artifacts/` and must be

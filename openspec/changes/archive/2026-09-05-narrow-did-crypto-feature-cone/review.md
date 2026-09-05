@@ -1,0 +1,113 @@
+# Review: narrow the DID crypto feature cone
+
+## Pre-implementation review
+
+**Revision reviewed:** `develop@ed6cbed292e27de4096adb2cb81622591ce1c7c5`
+plus the active OpenSpec contract.
+
+**Result:** ready to implement; no unresolved blocker.
+
+### Architecture and cohesion
+
+- The source inventory is exhaustive across `crates/did`: production code uses
+  `identus-core`, `identus-derive`, `serde` and `serde_json`; tests add only the
+  `uriparse` oracle. There is no `identus_crypto` import.
+- Removing the edge increases cohesion. DID owns syntax and structural public
+  material; algorithm/key validation remains in the operation-owning consumer.
+- DID directly uses Serde derive macros. Its manifest must select that existing
+  external feature itself rather than receiving it from crypto's unified graph.
+- Replacing the edge with a smaller crypto feature was rejected because even
+  the JWK helper API is unused and would preserve false coupling.
+- `identus-derive` is genuinely used by newtypes and port declarations and is
+  therefore retained.
+
+### API and compatibility
+
+- No Rust item, trait, type, error, serialized representation or behavior
+  changes.
+- Cargo does not permit a transitive dependency to be imported without a
+  direct manifest declaration, so removing this edge cannot remove an
+  intentional DID public API.
+- A multi-dependency consumer may have accidentally relied on Cargo feature
+  unification from DID to enable crypto defaults. That implicit configuration
+  is deliberately unsupported: the unpublished SDK requires the consumer that
+  uses crypto to request its exact capabilities.
+- Adding an empty/default DID feature map would add configuration surface
+  without selectable behavior and is rejected.
+
+### Security and correctness
+
+- Existing public-JWK validation still rejects registered private members and
+  simultaneous JWK/multibase material. Removing an unused crate cannot bypass
+  those local checks.
+- The contract explicitly prevents structural DID parsing from being
+  represented as curve-point, signature or authorization validation.
+- The exact-dependency guard catches silent reintroduction of a permitted but
+  unreviewed domain-to-domain edge.
+
+### Performance and delivery
+
+- Baseline `cargo tree -p identus-did --no-default-features --depth 2` shows
+  the unused edge activating 14 direct crypto dependencies, including four
+  curve packages plus hashing, derivation and COSE support.
+- The expected outcome is a smaller compile graph for DID-only consumers. It
+  is measurement evidence only; no environment-dependent build-time threshold
+  is introduced.
+- Existing platform/MSRV gates are sufficient because DID has no feature
+  variants. Focused default/no-default Cargo checks and graph receipts cover
+  the change without adding duplicate permanent Nix jobs.
+- One minimal-crypto test gate is justified because it exercises a distinct
+  failure mode: feature-gated integration targets must be skipped or compiled
+  only when their declared prerequisites are present.
+
+### Scope and provenance
+
+- No donor code or fixture is copied and all downstream repositories remain
+  read-only.
+- Correcting the canonical JOSE dependency text from core/crypto to
+  core/crypto/DID records ADR 0037 and the already merged verifier edge; it
+  introduces no additional implementation scope.
+- The change is reversible, issue-linked and appropriate for one focused PR.
+
+## Post-implementation review
+
+**Date:** 2026-09-05
+
+**Reviewed production head:**
+`f035e36ad773c26447babd083c973621b1b5f96d`
+
+**Exact diff:** `develop@ed6cbed2...f035e36a`
+
+**Result:** no unresolved finding.
+
+### Exact-diff findings
+
+1. The DID runtime edge to `identus-crypto` was unused and is removed. Its
+   exact internal normal-dependency set is now `identus-core` plus the
+   `identus-derive` proc macro, enforced by repository conformance.
+2. DID's direct use of Serde derives had been hidden by Cargo feature
+   unification through crypto. Declaring `serde/derive` at the use site removes
+   that accidental coupling without changing Rust or wire APIs.
+3. DID parsing and public-JWK validation remain structural, bounded and
+   public-only. No key, signature, curve or authorization validation moved or
+   disappeared; operation-owning consumers continue to bind algorithms.
+4. The reduced DID tree contains core, derive, Serde and JSON only; tests add
+   only `uriparse`. `identus-crypto` and its curve, hashing, derivation and COSE
+   packages are absent from both default and no-default DID trees.
+5. Full no-default workspace testing exposed crypto integration targets that
+   compiled only because DID had activated crypto defaults. Exact
+   `required-features` declarations now make each target honest, while the
+   always-available error contract continues to execute in minimal mode.
+6. A generated Nix test gate now runs minimal crypto independently alongside
+   its strict Clippy and Rust 1.85 build gates. This closes the feature-
+   unification masking path without duplicating DID gates.
+7. Default, no-default and all-feature workspace checks preserve behavior. The
+   complete local Nix matrix passed all 29 compatible aarch64-darwin checks,
+   including 411 principal tests and the new 8-test crypto-minimal lane.
+8. The canonical JOSE dependency text is corrected to match ADR 0037 and the
+   merged verifier implementation: core, crypto and DID are its only internal
+   runtime dependencies.
+9. No donor code, fixture or new external dependency entered. Downstream
+   repositories remained read-only, and no public API or MSRV changed.
+
+Verdict: READY for specification synchronization and pull-request review.

@@ -104,8 +104,8 @@ foundation dependency.
 
 The credential-semantics layer SHALL contain `identus-credentials`,
 `identus-presentations` and `identus-jose`. The JOSE member MAY depend inward
-on `identus-core` and `identus-crypto`; it SHALL NOT depend on a protocol,
-orchestration, outer-boundary, chain or product crate.
+on `identus-core`, `identus-crypto` and `identus-did`; it SHALL NOT depend on a
+protocol, orchestration, outer-boundary, chain or product crate.
 
 #### Scenario: Rulebook defines all 7 layers and all workspace crates
 
@@ -126,8 +126,8 @@ orchestration, outer-boundary, chain or product crate.
 
 - **WHEN** the rulebook and `identus-jose` manifest are inspected
 - **THEN** `identus-jose` appears exactly once in credential-semantics and its
-  only `identus-*` runtime dependencies are the inward `identus-core` and
-  `identus-crypto` crates
+  only `identus-*` runtime dependencies are the inward `identus-core`,
+  `identus-crypto` and `identus-did` crates
 
 #### Scenario: Rulebook encodes the accepted inward-direction policy
 
@@ -146,6 +146,28 @@ orchestration, outer-boundary, chain or product crate.
 - **THEN** `identus-wallet-conformance` appears once in verification, its edge
   to `identus-wallet` is accepted, and all production edges to verification
   remain rejected
+
+### Requirement: Exact DID dependency cone is guarded
+
+The manifest conformance test SHALL assert that the current internal normal
+dependencies of `identus-did` are exactly `identus-core` and
+`identus-derive`. The broad domain-layer rule MAY permit other inward edges,
+but no unused edge SHALL enter this reusable crate without a focused contract
+that deliberately updates the exact assertion.
+
+#### Scenario: Unused crypto coupling returns
+
+- **WHEN** the DID manifest adds `identus-crypto` without updating an accepted
+  component contract and its exact dependency assertion
+- **THEN** repository conformance fails even though the broad ring direction
+  would otherwise permit the domain-to-domain edge
+
+#### Scenario: Current DID manifest remains minimal
+
+- **WHEN** repository conformance inspects the DID manifest
+- **THEN** its internal dependency set equals `identus-core` plus the
+  `identus-derive` proc macro and no crypto feature is transitively selected by
+  DID
 
 ### Requirement: Rust dep-graph guard enforces layer rules
 

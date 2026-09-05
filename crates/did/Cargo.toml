@@ -8,9 +8,8 @@ publish.workspace      = true
 
 [dependencies]
 identus-core.workspace   = true
-identus-crypto           = { workspace = true, features = [ "default" ] }
 identus-derive.workspace = true
-serde.workspace          = true
+serde                    = { workspace = true, features = [ "derive" ] }
 serde_json.workspace     = true
 
 [dev-dependencies]

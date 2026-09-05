@@ -109,6 +109,24 @@ target              = ""
 extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
 
 [[gates]]
+name                = "rust-test-crypto-minimal"
+operation           = "cargoNextest"
+toolchain           = "etalon"
+source              = "rust"
+artifacts           = "etalon"
+locked              = false
+workspace           = false
+packages            = [ "identus-crypto" ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = false
+no_default_features = true
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
+
+[[gates]]
 name                = "rust-test-kmp-compat"
 operation           = "cargoNextest"
 toolchain           = "etalon"

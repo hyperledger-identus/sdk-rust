@@ -41,13 +41,20 @@ requires a reviewed policy change and matching Cargo/Nix evidence.
 
 Workspace defaults, crypto without default features, KMP compatibility and the
 entropy adapter empty/deterministic/system-random combinations are isolated
-build or test surfaces on both the MSRV and etalon toolchains. The structural
+build or test surfaces on both the MSRV and etalon toolchains. Minimal crypto
+has independent Clippy, test and MSRV build evidence, so optional integration
+targets cannot rely on unrelated workspace feature unification. The structural
 validator compares each gate's manifest operation, toolchain, effective package
 set, explicit workspace mode, workspace exclusions, structured Cargo target,
 default-feature mode and complete feature set with the machine policy.
 `all_features` supplements these checks; it cannot replace them because Cargo
 feature unification can hide incorrect gates. Duplicate host, target, feature
 or gate keys are rejected as ambiguous policy.
+
+`identus-did` declares no Cargo features: its default and no-default surfaces
+are intentionally identical and its exact internal dependency cone is guarded
+by repository conformance. It is compiled by the workspace host/MSRV gates and
+the browser/mobile target gates without activating crypto algorithms itself.
 
 `nix/checks/rust-gates.nix` generates every named Rust check from the manifest.
 Only that generator, reached from `flake.nix` through

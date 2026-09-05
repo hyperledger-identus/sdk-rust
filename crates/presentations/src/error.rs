@@ -91,6 +91,14 @@ pub mod error_code {
         ErrorCode::new("presentation.duplicate_generated_artifact_binding");
     pub const MISSING_ARTIFACT_SELECTION: ErrorCode =
         ErrorCode::new("presentation.missing_artifact_selection");
+    pub const INVALID_LIFECYCLE_PHASE: ErrorCode =
+        ErrorCode::new("presentation.invalid_lifecycle_phase");
+    pub const INVALID_TERMINAL_OUTCOME: ErrorCode =
+        ErrorCode::new("presentation.invalid_terminal_outcome");
+    pub const INVALID_PROTOCOL_STATE: ErrorCode =
+        ErrorCode::new("presentation.invalid_protocol_state");
+    pub const INVALID_PROTOCOL_TRANSITION: ErrorCode =
+        ErrorCode::new("presentation.invalid_protocol_transition");
 }
 
 /// Typed reason that a presentation domain value could not be constructed.
@@ -185,6 +193,14 @@ pub enum PresentationError {
     DuplicateGeneratedArtifactBinding,
     /// A disclosure-plan selection has no generated artifact binding.
     MissingArtifactSelection,
+    /// A lifecycle phase spelling is outside the fixed generic vocabulary.
+    InvalidLifecyclePhase,
+    /// A terminal outcome spelling is outside the fixed generic vocabulary.
+    InvalidTerminalOutcome,
+    /// A protocol state spelling is outside the fixed generic vocabulary.
+    InvalidProtocolState,
+    /// A directed lifecycle transition violates the generic state machine.
+    InvalidProtocolTransition,
 }
 
 impl PresentationError {
@@ -365,6 +381,22 @@ impl PresentationError {
             Self::MissingArtifactSelection => (
                 code::MISSING_ARTIFACT_SELECTION,
                 "generated presentation omits a selection binding",
+            ),
+            Self::InvalidLifecyclePhase => (
+                code::INVALID_LIFECYCLE_PHASE,
+                "presentation lifecycle phase is invalid",
+            ),
+            Self::InvalidTerminalOutcome => (
+                code::INVALID_TERMINAL_OUTCOME,
+                "presentation terminal outcome is invalid",
+            ),
+            Self::InvalidProtocolState => (
+                code::INVALID_PROTOCOL_STATE,
+                "presentation protocol state is invalid",
+            ),
+            Self::InvalidProtocolTransition => (
+                code::INVALID_PROTOCOL_TRANSITION,
+                "presentation protocol transition is invalid",
             ),
         }
     }

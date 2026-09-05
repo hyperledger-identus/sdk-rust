@@ -1756,6 +1756,22 @@ fn every_error_has_a_static_presentation_contract() {
             PresentationError::MissingArtifactSelection,
             "presentation.missing_artifact_selection",
         ),
+        (
+            PresentationError::InvalidLifecyclePhase,
+            "presentation.invalid_lifecycle_phase",
+        ),
+        (
+            PresentationError::InvalidTerminalOutcome,
+            "presentation.invalid_terminal_outcome",
+        ),
+        (
+            PresentationError::InvalidProtocolState,
+            "presentation.invalid_protocol_state",
+        ),
+        (
+            PresentationError::InvalidProtocolTransition,
+            "presentation.invalid_protocol_transition",
+        ),
     ];
 
     for (error, expected_code) in cases {

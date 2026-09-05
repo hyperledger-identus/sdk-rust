@@ -1,16 +1,20 @@
-//! Format-neutral presentation request and candidate semantics.
+//! Format-neutral presentation semantics and lifecycle state.
 //!
 //! The crate owns bounded structural values shared by holder-side presentation
 //! adapters. It does not decode protocol requests, discover or rank
 //! credentials, choose selections, execute proofs, decide consent or trust, or
-//! store state.
+//! persist state or perform external effects.
 
 #![forbid(unsafe_code)]
 
 pub mod error;
+mod lifecycle;
 mod model;
 
 pub use error::PresentationError;
+pub use lifecycle::{
+    PresentationLifecyclePhase, PresentationProtocolState, PresentationTerminalOutcome,
+};
 pub use model::{
     GeneratedPresentation, MAX_GENERATED_PRESENTATION_ARTIFACTS, MAX_GENERATED_PRESENTATION_BYTES,
     MAX_PRESENTATION_ARTIFACT_BINDINGS, MAX_PRESENTATION_ARTIFACT_BYTES,
@@ -32,5 +36,5 @@ use identus_core::Component;
 /// Metadata for the `identus-presentations` crate.
 pub const COMPONENT: Component = Component {
     name: "identus-presentations",
-    summary: "Bounded format-neutral request, disclosure-plan, and generated-artifact semantics.",
+    summary: "Bounded format-neutral presentation semantics and lifecycle state.",
 };

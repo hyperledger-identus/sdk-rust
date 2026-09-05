@@ -47,3 +47,53 @@
     this seam.
 
 Verdict: READY to implement after ADR 0031 and strict OpenSpec validation pass.
+
+# Post-implementation architecture, API, security and performance review
+
+- **Date:** 2026-09-05
+- **Reviewed production head:** `86e8c91f56827b8bbed5b17b3fb899359195f2e8`
+- **Exact diff:** `develop@e22fa8e...86e8c91`
+- **Result:** no unresolved finding
+
+## Exact-diff findings
+
+1. Production behavior is isolated in one cohesive `verifier` module in the
+   existing credential-semantics crate. The only dependency change is the
+   repository-standard build-time port marker; no external, runtime, feature,
+   chain, protocol, storage or trust dependency was added.
+2. `CredentialVerificationRequest` can be constructed only from an accepted
+   envelope and contains three borrowed references: format, payload and
+   optional detached proof. Private material is structurally absent; request
+   creation clones no artifact buffer.
+3. Request Debug contains only the format token and artifact lengths. The port
+   and all operational error values carry no payload, proof, endpoint, dynamic
+   cause or private material.
+4. The boxed borrowing-future signature is object-safe and follows the SDK's
+   existing DID port convention. Concrete adapters remain free to inject their
+   async runtime dependencies without pushing them inward.
+5. Successful execution returns only the existing canonical six-stage report.
+   Tests prove valid, invalid and indeterminate results; invalid proof remains
+   an `Ok(Invalid report)` and cannot be confused with operational failure.
+6. Unsupported, unavailable and internal operation errors are fixed, copyable
+   and redaction-safe. None maps to `VerificationFailed`; trust remains absent
+   from both the request and result.
+7. The builder owns each already-validated format directly as a `BTreeMap`
+   key, rejects duplicate exact bindings before replacement and rejects entry
+   65. It performs no redundant format-string allocation.
+8. The built registry is immutable and clone-cheap through `Arc`. It dispatches
+   solely by the declared `CredentialFormat`; the production path does not
+   inspect or copy payload/proof bytes and has no fallback or retry ambiguity.
+9. Format enumeration is lexically deterministic and adapter details are not
+   rendered. Empty/unknown registries fail closed without invoking a different
+   verifier.
+10. The release diagnostic polled a ready adapter through the production
+    registry at about 21.2 million dispatches/second on the pinned toolchain.
+    The accepted per-call boxed-future allocation is visible in that number and
+    no host-dependent threshold was introduced.
+11. Focused all-feature/no-default tests, strict Clippy, warning-denied docs,
+    workspace variants, factory checks and all 27 compatible local Nix gates
+    passed, including Rust 1.85 MSRV and 347 principal tests.
+12. Oxid, midnight-identity, Lace ID Portal, NeoPRISM and Apollo postflight
+    revisions and pre-existing worktree states exactly match preflight.
+
+Verdict: READY for specification synchronization and pull-request review.

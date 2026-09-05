@@ -22,15 +22,15 @@
 - [x] 3.2 Add duplicate/capacity/redaction/deterministic-order tests and run the
   ignored release diagnostic through the production registry.
 - [x] 3.3 Update human/machine inventories and canonical governance evidence.
-- [ ] 3.4 Verify every donor/consumer postflight state matches preflight.
+- [x] 3.4 Verify every donor/consumer postflight state matches preflight.
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Pass focused formatting, tests, no-default check, strict Clippy and
+- [x] 4.1 Pass focused formatting, tests, no-default check, strict Clippy and
   warning-denied docs.
-- [ ] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
+- [x] 4.2 Pass workspace tests, factory/conformance, target/MSRV,
   supply-chain and full Nix gates.
-- [ ] 4.3 Complete a distinct post-implementation architecture/API/security/
+- [x] 4.3 Complete a distinct post-implementation architecture/API/security/
   performance review and resolve every finding.
 - [ ] 4.4 Produce ready/receipt, synchronize canonical specs, archive the
   change, and prepare the signed/DCO issue-linked PR; hosted review/CI, merge,

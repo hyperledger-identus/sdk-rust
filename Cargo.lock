@@ -437,7 +437,6 @@ name = "identus-did"
 version = "0.0.0"
 dependencies = [
  "identus-core",
- "identus-crypto",
  "identus-derive",
  "serde",
  "serde_json",

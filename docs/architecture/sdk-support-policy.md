@@ -49,6 +49,11 @@ default-feature mode and complete feature set with the machine policy.
 feature unification can hide incorrect gates. Duplicate host, target, feature
 or gate keys are rejected as ambiguous policy.
 
+`identus-did` declares no Cargo features: its default and no-default surfaces
+are intentionally identical and its exact internal dependency cone is guarded
+by repository conformance. It is compiled by the workspace host/MSRV gates and
+the browser/mobile target gates without activating crypto algorithms itself.
+
 `nix/checks/rust-gates.nix` generates every named Rust check from the manifest.
 Only that generator, reached from `flake.nix` through
 `nix/checks/default.nix`, counts as execution evidence. Gate names or Cargo-like

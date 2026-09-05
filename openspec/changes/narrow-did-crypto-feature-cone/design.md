@@ -22,6 +22,11 @@ the workspace root; it did not correspond to an implemented DID capability.
 Current JOSE code performs the later algorithm/key conversion through its own
 explicit Ed25519/P-256 crypto dependency after DID dereferencing.
 
+An isolated check after removing the edge also exposed one legitimate feature
+that DID had inherited accidentally: `identus-crypto`'s JWK feature enabled
+Serde's derive macros for the shared Serde package. DID uses those macros
+directly and therefore must request `serde/derive` in its own manifest.
+
 ## Decisions
 
 ### D1 — remove the unused dependency
@@ -30,6 +35,8 @@ Delete `identus-crypto` from the DID manifest. Do not replace it with `jwk` or
 any curve feature: the DID crate calls none of those APIs, and a narrower unused
 edge would still violate dependency minimization. `identus-did` continues to
 depend internally on `identus-core` and the `identus-derive` proc macro only.
+Its existing Serde dependency explicitly requests the derive feature that DID
+source actually uses, eliminating reliance on transitive feature unification.
 
 ### D2 — retain a structural JWK boundary
 
@@ -75,6 +82,9 @@ unreleased change, not a permanent build-time or binary-size promise.
 - A downstream crate that accidentally relied on `identus-did` to activate
   crypto defaults will have to request its own crypto capabilities. That is the
   desired Cargo ownership model and affects no API of the unpublished SDK.
+- The first isolated build correctly failed when Serde derive stopped being
+  transitively enabled. Declaring the directly used capability on DID fixes the
+  cause and gives the focused default/no-default checks regression value.
 - Structural JWK validation does not prove curve points or signature fitness.
   The existing API and documentation already make this distinction; this
   change preserves it rather than weakening validation.

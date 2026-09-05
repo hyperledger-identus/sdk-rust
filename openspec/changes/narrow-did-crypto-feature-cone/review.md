@@ -14,6 +14,8 @@ plus the active OpenSpec contract.
   `uriparse` oracle. There is no `identus_crypto` import.
 - Removing the edge increases cohesion. DID owns syntax and structural public
   material; algorithm/key validation remains in the operation-owning consumer.
+- DID directly uses Serde derive macros. Its manifest must select that existing
+  external feature itself rather than receiving it from crypto's unified graph.
 - Replacing the edge with a smaller crypto feature was rejected because even
   the JWK helper API is unused and would preserve false coupling.
 - `identus-derive` is genuinely used by newtypes and port declarations and is

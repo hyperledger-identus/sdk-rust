@@ -255,6 +255,12 @@ errors. Decide parser strategy and wire-error dialect in an ADR.
 **Exit:** midnight-identity and neoprism compile consumer-shaped adapters
 outside their production branches; W3C and negative/fuzz vectors pass.
 
+Issue #101 removes the unused `identus-did -> identus-crypto` default-feature
+edge. DID documents retain bounded structural public-JWK handling, while an
+operation-owning consumer such as JOSE selects and binds its exact algorithms.
+The featureless DID crate therefore adds no curve, derivation, hashing or COSE
+code to a DID-only dependency cone.
+
 ### B06 — DID Resolution HTTP (`#10`)
 
 Port the chain-neutral Axum binding after B05. Keep content negotiation and

@@ -11,11 +11,11 @@
 
 ## 2. Dependency boundary
 
-- [ ] 2.1 Remove the unused `identus-crypto` DID dependency without adding a
-  replacement feature or changing public behavior.
-- [ ] 2.2 Add an executable conformance assertion for the exact internal DID
+- [x] 2.1 Remove the unused `identus-crypto` DID dependency, declare the
+  directly used Serde derive capability and change no public behavior.
+- [x] 2.2 Add an executable conformance assertion for the exact internal DID
   dependency cone.
-- [ ] 2.3 Update ADR and architecture inventory/blueprint evidence, including
+- [x] 2.3 Update ADR and architecture inventory/blueprint evidence, including
   the already accepted JOSE-to-DID edge.
 
 ## 3. Verification and delivery

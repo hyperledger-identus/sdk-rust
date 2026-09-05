@@ -94,7 +94,7 @@ layer          = "domain-primitives"
 classification = "implemented"
 public_api     = "experimental"
 owner_issue    = "#5"
-summary        = "Initial generic DID method, version and multihash value foundations."
+summary        = "Bounded generic DID values, documents, resolution, dereferencing, registration and caching with a crypto-free runtime cone."
 
 [[packages]]
 name           = "identus-trust"

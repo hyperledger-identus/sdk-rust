@@ -13,6 +13,8 @@ public-key material in a DID document and algorithm-specific key validation.
 
 - Remove the unused `identus-did -> identus-crypto` dependency instead of
   replacing it with another speculative feature selection.
+- Request Serde's derive capability directly instead of inheriting it through
+  Cargo feature unification from crypto.
 - Keep DID `publicKeyJwk` handling structural, bounded and public-only; callers
   that perform cryptographic operations remain responsible for converting it
   to an algorithm-bound key.
@@ -36,7 +38,8 @@ does not introduce DID crate features merely to represent absent behavior.
 - **Owner:** `identus-did` manifest and repository conformance evidence.
 - **Compatibility:** behavior-neutral and unreleased; the public Rust and wire
   surfaces do not change.
-- **Dependencies:** one unused internal dependency is removed; no dependency is
-  added and no lockfile package is expected to change at workspace scope.
+- **Dependencies:** one unused internal dependency is removed and the existing
+  Serde dependency requests its used derive capability explicitly; no package
+  is added and no lockfile package is expected to change at workspace scope.
 - **Rollback:** restore the manifest edge and remove its regression assertion;
   no data, API or consumer migration is involved.

@@ -107,6 +107,11 @@ fn manifests_conform_to_layer_rules() {
                 ["identus-core"],
                 "repository conformance must retain its core-only runtime edge"
             ),
+            "identus-did" => assert_eq!(
+                deps,
+                ["identus-core", "identus-derive"],
+                "DID must retain its exact crypto-free internal dependency cone"
+            ),
             "identus-wallet-conformance" => assert_eq!(
                 deps,
                 ["identus-wallet"],

@@ -1,10 +1,15 @@
+use std::collections::BTreeMap;
 use std::hint::black_box;
 use std::time::Instant;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use identus_core::IdentusError;
-use identus_jose::{JoseError, JwsLimits, JwsSigningInput, ProtectedHeader, UnverifiedCompactJws};
+use identus_crypto::{JwkCurve, PublicKeyJwk};
+use identus_jose::{
+    JoseError, JwsKeyReference, JwsLimits, JwsSigningInput, MAX_X5C_CERTIFICATES, ProtectedHeader,
+    UnverifiedCompactJws,
+};
 
 const RFC_HEADER: &str = "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9";
 const RFC_PAYLOAD: &str = "eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ";
@@ -148,7 +153,7 @@ fn rejects_invalid_closed_protected_headers() {
             JoseError::DuplicateProtectedHeader,
         ),
         (
-            br#"{"alg":"EdDSA","jwk":{}}"#,
+            br#"{"alg":"EdDSA","unsupported":{}}"#,
             JoseError::UnknownProtectedHeader,
         ),
         (br#"{"typ":"JWT"}"#, JoseError::MissingAlgorithm),
@@ -189,6 +194,149 @@ fn rejects_invalid_closed_protected_headers() {
             Err(JoseError::InvalidHeaderValue)
         );
     }
+    let tiny_string_limit = JwsLimits::new(128, 64, 32, 32, 8).expect("tiny string limit");
+    assert_eq!(
+        ProtectedHeader::new(
+            "ES256",
+            None,
+            Some("borrowed-key-id-too-large"),
+            tiny_string_limit
+        ),
+        Err(JoseError::InvalidHeaderValue)
+    );
+}
+
+#[test]
+fn protected_headers_round_trip_one_exclusive_public_key_reference() {
+    let jwk = PublicKeyJwk::new_okp(JwkCurve::Ed25519, [7; 32]).expect("public JWK");
+    let references = [
+        JwsKeyReference::KeyId("did:example:holder#key-1".to_owned()),
+        JwsKeyReference::Jwk(jwk),
+        JwsKeyReference::X5c(vec!["AQID".to_owned(), "BAUG".to_owned()]),
+    ];
+
+    for key_reference in references {
+        let header = ProtectedHeader::with_key_reference(
+            "Ed25519",
+            Some("openid4vci-proof+jwt"),
+            Some(key_reference),
+            JwsLimits::default(),
+        )
+        .expect("bounded key reference");
+        let compact = JwsSigningInput::new(header.clone(), b"{}".to_vec(), JwsLimits::default())
+            .expect("signing input")
+            .attach_signature(vec![1; 64])
+            .expect("compact");
+        let parsed = UnverifiedCompactJws::parse(compact.compact(), JwsLimits::default())
+            .expect("parse emitted header");
+        assert_eq!(parsed.protected_header(), &header);
+    }
+}
+
+#[test]
+fn protected_headers_reject_ambiguous_or_unsafe_key_references() {
+    let coordinate = URL_SAFE_NO_PAD.encode([7; 32]);
+    let cases = [
+        (
+            format!(
+                r#"{{"alg":"Ed25519","kid":"key-1","jwk":{{"kty":"OKP","crv":"Ed25519","x":"{coordinate}"}}}}"#
+            ),
+            JoseError::AmbiguousKeyReference,
+        ),
+        (
+            format!(
+                r#"{{"alg":"Ed25519","jwk":{{"kty":"OKP","crv":"Ed25519","x":"{coordinate}","d":"private"}}}}"#
+            ),
+            JoseError::InvalidHeaderValue,
+        ),
+        (
+            r#"{"alg":"Ed25519","x5c":[]}"#.to_owned(),
+            JoseError::InvalidHeaderValue,
+        ),
+        (
+            r#"{"alg":"Ed25519","x5c":["not base64!"]}"#.to_owned(),
+            JoseError::InvalidHeaderValue,
+        ),
+        (
+            format!(
+                r#"{{"alg":"Ed25519","x5c":[{}]}}"#,
+                [r#""AQID""#; MAX_X5C_CERTIFICATES + 1].join(",")
+            ),
+            JoseError::InvalidHeaderValue,
+        ),
+    ];
+
+    for (header, expected) in cases {
+        let compact = compact_from_raw(header.as_bytes(), b"{}", &[1; 64]);
+        assert_eq!(
+            UnverifiedCompactJws::parse(&compact, JwsLimits::default()),
+            Err(expected)
+        );
+    }
+
+    assert_eq!(
+        ProtectedHeader::with_key_reference(
+            "Ed25519",
+            None,
+            Some(JwsKeyReference::X5c(Vec::new())),
+            JwsLimits::default(),
+        ),
+        Err(JoseError::InvalidHeaderValue)
+    );
+    assert_eq!(
+        ProtectedHeader::with_key_reference(
+            "Ed25519",
+            None,
+            Some(JwsKeyReference::X5c(vec![
+                "AQID".to_owned();
+                MAX_X5C_CERTIFICATES + 1
+            ])),
+            JwsLimits::default(),
+        ),
+        Err(JoseError::InvalidHeaderValue)
+    );
+    let header_smaller_than_string =
+        JwsLimits::new(65_536, 8, 64, 64, 1_024).expect("separate header bounds");
+    assert_eq!(
+        ProtectedHeader::with_key_reference(
+            "Ed25519",
+            None,
+            Some(JwsKeyReference::X5c(vec!["AQIDAQIDAQID".to_owned()])),
+            header_smaller_than_string,
+        ),
+        Err(JoseError::InvalidHeaderValue)
+    );
+}
+
+#[test]
+fn protected_header_serialization_stops_at_the_configured_byte_limit() {
+    let mut extensions = BTreeMap::new();
+    extensions.insert("large-public-metadata".to_owned(), json_string(16_384));
+    let jwk = PublicKeyJwk::from_parts(
+        identus_crypto::JwkKeyType::Okp,
+        JwkCurve::Ed25519,
+        &URL_SAFE_NO_PAD.encode([7; 32]),
+        None,
+        extensions,
+    )
+    .expect("structurally valid public JWK");
+    let limits = JwsLimits::new(65_536, 256, 64, 64, 2_048).expect("limits");
+    let header = ProtectedHeader::with_key_reference(
+        "Ed25519",
+        Some("openid4vci-proof+jwt"),
+        Some(JwsKeyReference::Jwk(jwk)),
+        limits,
+    )
+    .expect("header shape");
+
+    assert_eq!(
+        JwsSigningInput::new(header, b"{}".to_vec(), limits),
+        Err(JoseError::ProtectedHeaderTooLarge)
+    );
+}
+
+fn json_string(length: usize) -> serde_json::Value {
+    serde_json::Value::String("x".repeat(length))
 }
 
 #[test]

@@ -1,9 +1,11 @@
 //! Bounded JWS Compact parsing and staged encoding.
 
 use std::fmt;
+use std::io::{self, Write};
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+use serde::Serialize;
 
 use crate::{JoseError, JwsLimits, ProtectedHeader};
 
@@ -30,17 +32,14 @@ impl JwsSigningInput {
         if payload.len() > limits.max_payload_bytes() {
             return Err(JoseError::PayloadTooLarge);
         }
-        let header_bytes =
-            serde_json::to_vec(&protected_header).map_err(|_| JoseError::InvalidProtectedHeader)?;
-        if header_bytes.len() > limits.max_protected_header_bytes() {
-            return Err(JoseError::ProtectedHeaderTooLarge);
-        }
-        let encoded_header = URL_SAFE_NO_PAD.encode(header_bytes);
-        let encoded_payload = URL_SAFE_NO_PAD.encode(&payload);
-        let encoded_len = encoded_header
-            .len()
+        let header_bytes = encode_bounded_header(&protected_header, limits)?;
+        let encoded_header_len =
+            base64::encoded_len(header_bytes.len(), false).ok_or(JoseError::SizeOverflow)?;
+        let encoded_payload_len =
+            base64::encoded_len(payload.len(), false).ok_or(JoseError::SizeOverflow)?;
+        let encoded_len = encoded_header_len
             .checked_add(1)
-            .and_then(|length| length.checked_add(encoded_payload.len()))
+            .and_then(|length| length.checked_add(encoded_payload_len))
             .ok_or(JoseError::SizeOverflow)?;
         // The final form needs the last separator plus at least two base64url
         // characters for the required one-byte signature.
@@ -49,9 +48,9 @@ impl JwsSigningInput {
             return Err(JoseError::CompactTooLarge);
         }
         let mut encoded = String::with_capacity(encoded_len);
-        encoded.push_str(&encoded_header);
+        URL_SAFE_NO_PAD.encode_string(header_bytes, &mut encoded);
         encoded.push('.');
-        encoded.push_str(&encoded_payload);
+        URL_SAFE_NO_PAD.encode_string(&payload, &mut encoded);
         Ok(Self {
             protected_header,
             payload,
@@ -117,13 +116,72 @@ impl JwsSigningInput {
     }
 }
 
+fn encode_bounded_header(
+    header: &ProtectedHeader,
+    limits: JwsLimits,
+) -> Result<Vec<u8>, JoseError> {
+    encode_bounded_json(
+        header,
+        limits.max_protected_header_bytes(),
+        JoseError::ProtectedHeaderTooLarge,
+        JoseError::InvalidProtectedHeader,
+    )
+}
+
+pub(crate) fn encode_bounded_json<T: Serialize + ?Sized>(
+    value: &T,
+    maximum: usize,
+    too_large: JoseError,
+    invalid: JoseError,
+) -> Result<Vec<u8>, JoseError> {
+    let mut writer = BoundedWriter::new(maximum);
+    if serde_json::to_writer(&mut writer, value).is_err() {
+        return Err(if writer.exceeded { too_large } else { invalid });
+    }
+    Ok(writer.bytes)
+}
+
+struct BoundedWriter {
+    bytes: Vec<u8>,
+    maximum: usize,
+    exceeded: bool,
+}
+
+impl BoundedWriter {
+    fn new(maximum: usize) -> Self {
+        Self {
+            bytes: Vec::with_capacity(maximum.min(1_024)),
+            maximum,
+            exceeded: false,
+        }
+    }
+}
+
+impl Write for BoundedWriter {
+    fn write(&mut self, input: &[u8]) -> io::Result<usize> {
+        if input.len() > self.maximum.saturating_sub(self.bytes.len()) {
+            self.exceeded = true;
+            return Err(io::Error::other("JSON value exceeds its byte limit"));
+        }
+        self.bytes.extend_from_slice(input);
+        Ok(input.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
 impl fmt::Debug for JwsSigningInput {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("JwsSigningInput")
             .field("algorithm", &self.protected_header.algorithm())
             .field("type", &self.protected_header.type_())
-            .field("has_key_id", &self.protected_header.key_id().is_some())
+            .field(
+                "has_key_reference",
+                &self.protected_header.key_reference().is_some(),
+            )
             .field("payload_len", &self.payload.len())
             .field("signing_input_len", &self.encoded.len())
             .finish()

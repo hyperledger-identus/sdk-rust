@@ -155,6 +155,17 @@ pub(super) fn workspace_dependency_packages(
     packages
 }
 
+/// The root dependency keys Cargo members use with `workspace = true`.
+///
+/// These aliases classify inherited entries as internal for dependency-source
+/// policy, while [`workspace_dependency_packages`] supplies canonical package
+/// identities to the architecture graph.
+pub(super) fn workspace_dependency_keys(root_manifest: &toml::Value) -> HashSet<String> {
+    workspace_dependency_packages(root_manifest)
+        .into_keys()
+        .collect()
+}
+
 /// Parse a `Cargo.toml` file into a `toml::Value`.
 pub(super) fn read_manifest(path: &Path) -> toml::Value {
     let contents = fs::read_to_string(path)

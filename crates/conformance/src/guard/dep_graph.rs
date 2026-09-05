@@ -212,11 +212,44 @@ fn target_specific_runtime_dependencies_are_inward_edges() {
 }
 
 #[test]
+fn root_alias_has_distinct_graph_and_source_identities() {
+    let root: toml::Value = toml::from_str(
+        r#"
+            [workspace.dependencies]
+            core-alias = { package = "identus-core", path = "crates/core" }
+        "#,
+    )
+    .expect("test root manifest is valid TOML");
+    let member: toml::Value = toml::from_str(
+        r#"
+            [dependencies]
+            core-alias.workspace = true
+        "#,
+    )
+    .expect("test member manifest is valid TOML");
+
+    let inherited = workspace_dependency_packages(&root);
+    let canonical = HashSet::from(["identus-core".to_owned()]);
+    assert_eq!(
+        inward_workspace_deps(&member, &canonical, &inherited),
+        ["identus-core"],
+        "the architecture graph must use the root declaration's canonical package"
+    );
+
+    let internal_keys = workspace_dependency_keys(&root);
+    assert_eq!(internal_keys, HashSet::from(["core-alias".to_owned()]));
+    assert!(
+        external_dep_entries("consumer", &member, &internal_keys).is_empty(),
+        "the external dependency guard must retain the inherited root alias as internal"
+    );
+}
+
+#[test]
 fn no_inline_external_dependency_versions() {
     let workspace_root = workspace_root();
     let root_manifest_path = workspace_root.join("Cargo.toml");
     let root_manifest = read_manifest(&root_manifest_path);
-    let workspace = workspace_crate_names(&root_manifest);
+    let workspace = workspace_dependency_keys(&root_manifest);
 
     // The external dep names declared at the workspace level (non-path
     // entries in [workspace.dependencies]).

@@ -30,7 +30,8 @@ existing wallet ecosystems still contain RFC 8037-era `EdDSA` values.
    reject duplicates and unregistered algorithms without fallback.
 4. Add synchronous object-safe signer and verifier capabilities over exact
    public signing-input bytes. Runtime, transport, retry and cancellation
-   remain outer-layer responsibilities.
+   remain outer-layer responsibilities. Preflight the fixed output against
+   signature and compact bounds before invoking an external signer.
 5. Expose typed software signers that borrow accepted crypto private keys;
    never add raw-key or custody APIs to JOSE.
 6. Reuse strict Ed25519 verification. Add fixed-width P-256 primitive methods

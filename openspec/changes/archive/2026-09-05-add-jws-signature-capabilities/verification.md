@@ -3,7 +3,7 @@
 ## Focused capability gates
 
 - `cargo test -p identus-jose --all-features`: compact codec 8 passed / 1
-  release diagnostic ignored; signature capabilities 12 passed / 1 release
+  release diagnostic ignored; signature capabilities 13 passed / 1 release
   diagnostic ignored.
 - strict all-target/all-feature JOSE Clippy and warning-denied JOSE docs:
   passed.

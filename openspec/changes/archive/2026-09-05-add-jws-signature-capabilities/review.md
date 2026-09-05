@@ -177,3 +177,22 @@ capability spec has a concrete purpose, and strict factory validation passes
 with no unrelated canonical requirement loss.
 
 Verdict: RESOLVED before the archive commit.
+
+# Hosted-review amendment
+
+- **Date:** 2026-09-05
+- **Finding:** PR #103 thread `PRRT_kwDOQ45BA86fhJVz`
+- **Reviewed implementation:** `a96132b7d4a8e264d3e21c01b1fae05eb8fa0dc6`
+
+Hosted review correctly found that `JwsSigningInput::new` reserves only the
+smallest valid signature while this slice's signer output is always 64 bytes.
+A tight signature limit or compact limit could therefore invoke an HSM,
+remote provider or agent before attachment returned a locally knowable size
+error. `sign_with` now checks the fixed decoded length and exact unpadded
+base64url compact length before calling the capability. `attach_signature`
+reuses the same allocation-free validator. Regressions prove both impossible
+configurations return their static size errors without invoking the recording
+signer.
+
+Verdict: RESOLVED locally; rerun focused and complete gates on the amended
+head before merge.

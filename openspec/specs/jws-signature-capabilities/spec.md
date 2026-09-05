@@ -55,6 +55,8 @@ protected-header algorithm to equal the signer's algorithm. The returned
 signature SHALL be exactly 64 bytes for all algorithms in this slice. Software
 adapters SHALL borrow accepted `identus-crypto` private-key types and SHALL
 emit strict Ed25519 or raw big-endian `R || S` ES256 signatures.
+Before invoking the signer, the SDK SHALL prove that a 64-byte signature fits
+both the configured decoded-signature bound and complete compact bound.
 
 #### Scenario: an external signer receives byte-exact input
 
@@ -68,6 +70,13 @@ emit strict Ed25519 or raw big-endian `R || S` ES256 signatures.
   unavailable
 - **THEN** signing fails through a static error and no compact value is
   returned
+
+#### Scenario: impossible fixed output avoids signer side effects
+
+- **WHEN** the configured signature or compact bound cannot contain the
+  fixed 64-byte signature and its unpadded base64url representation
+- **THEN** signing fails through the applicable static size error before the
+  external signer is invoked
 
 ### Requirement: Verification is an allocation-bounded explicit state transition
 

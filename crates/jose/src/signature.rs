@@ -86,6 +86,7 @@ impl JwsSigningInput {
         if header_algorithm != signer.algorithm() {
             return Err(JoseError::AlgorithmMismatch);
         }
+        self.validate_signature_length(SIGNATURE_BYTES)?;
         let signature = signer
             .sign(self.as_bytes())
             .map_err(|failure| match failure {

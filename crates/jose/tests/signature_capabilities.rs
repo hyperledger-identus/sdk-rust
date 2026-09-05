@@ -302,6 +302,37 @@ fn external_signer_receives_exact_bytes_and_failures_are_static() {
     assert_eq!(compact.signing_input(), expected);
 }
 
+#[test]
+fn signing_preflight_avoids_external_work_when_fixed_output_cannot_fit() {
+    let payload = br#"{"nonce":"fresh","aud":"https://issuer.example"}"#.to_vec();
+    let cases = [
+        (
+            JwsLimits::new(65_536, 4_096, 49_152, 63, 2_048).expect("limits"),
+            JoseError::SignatureTooLarge,
+        ),
+        {
+            let signing_input_length = prepared("Ed25519").as_bytes().len();
+            (
+                JwsLimits::new(signing_input_length + 3, 4_096, 49_152, 64, 2_048).expect("limits"),
+                JoseError::CompactTooLarge,
+            )
+        },
+    ];
+
+    for (limits, expected_error) in cases {
+        let input = JwsSigningInput::new(header("Ed25519"), payload.clone(), limits)
+            .expect("one-byte minimum still fits");
+        let seen = Arc::new(Mutex::new(Vec::new()));
+        let signer = RecordingSigner {
+            seen: Arc::clone(&seen),
+            result: Ok([0x5a; 64]),
+        };
+
+        assert_eq!(input.sign_with(&signer), Err(expected_error));
+        assert!(seen.lock().expect("recording lock").is_empty());
+    }
+}
+
 struct RecordingSuite {
     seen: Arc<Mutex<Vec<u8>>>,
 }

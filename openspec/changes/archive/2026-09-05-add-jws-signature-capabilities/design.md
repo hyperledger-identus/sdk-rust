@@ -79,6 +79,11 @@ requires two concrete consumers and cancellation semantics.
 The software adapters borrow typed `identus-crypto` private keys. They neither
 accept raw secret bytes nor own key lifecycle. Header/signer equality is
 enforced before a compact value is returned.
+Because every closed signer returns 64 bytes, signing preflights the decoded
+signature limit and calculated unpadded-base64url compact length before
+invoking the capability. This avoids an HSM, remote-provider or agent side
+effect for an operation that local bounds already make impossible. Attachment
+reuses the same length validation.
 
 ### D5 — P-256 fixed-width primitives remain in crypto
 

@@ -75,24 +75,34 @@ impl JwsSigningInput {
         &self.payload
     }
 
-    /// Attach external signature bytes and create an explicitly unverified JWS.
-    pub fn attach_signature(self, signature: Vec<u8>) -> Result<UnverifiedCompactJws, JoseError> {
-        if signature.is_empty() {
+    pub(crate) fn validate_signature_length(
+        &self,
+        signature_length: usize,
+    ) -> Result<(), JoseError> {
+        if signature_length == 0 {
             return Err(JoseError::EmptySignature);
         }
-        if signature.len() > self.limits.max_signature_bytes() {
+        if signature_length > self.limits.max_signature_bytes() {
             return Err(JoseError::SignatureTooLarge);
         }
-        let encoded_signature = URL_SAFE_NO_PAD.encode(&signature);
-        let compact_len = self
+        let encoded_signature_length =
+            base64::encoded_len(signature_length, false).ok_or(JoseError::SizeOverflow)?;
+        let compact_length = self
             .encoded
             .len()
             .checked_add(1)
-            .and_then(|length| length.checked_add(encoded_signature.len()))
+            .and_then(|length| length.checked_add(encoded_signature_length))
             .ok_or(JoseError::SizeOverflow)?;
-        if compact_len > self.limits.max_compact_bytes() {
+        if compact_length > self.limits.max_compact_bytes() {
             return Err(JoseError::CompactTooLarge);
         }
+        Ok(())
+    }
+
+    /// Attach external signature bytes and create an explicitly unverified JWS.
+    pub fn attach_signature(self, signature: Vec<u8>) -> Result<UnverifiedCompactJws, JoseError> {
+        self.validate_signature_length(signature.len())?;
+        let encoded_signature = URL_SAFE_NO_PAD.encode(&signature);
         let signing_input_end = self.encoded.len();
         let mut compact = self.encoded;
         compact.push('.');

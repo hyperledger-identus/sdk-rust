@@ -445,6 +445,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-jose"
+version = "0.0.0"
+dependencies = [
+ "base64",
+ "identus-core",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "identus-messaging"
 version = "0.0.0"
 dependencies = [

@@ -124,6 +124,15 @@ owner_issue    = "#85"
 summary        = "Bounded format-neutral presentation request, candidate, disclosure-plan, generated-artifact, receipt-input and protocol lifecycle contracts."
 
 [[packages]]
+name           = "identus-jose"
+path           = "crates/jose"
+layer          = "credential-semantics"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#95"
+summary        = "Bounded canonical JWS Compact parsing and staged encoding with explicit unverified state."
+
+[[packages]]
 name           = "identus-messaging"
 path           = "crates/messaging"
 layer          = "protocol-semantics"

@@ -157,6 +157,13 @@ fn wallet_conformance_is_an_inward_verification_leaf() {
 }
 
 #[test]
+fn jose_is_reusable_below_protocol_semantics() {
+    assert!(check_dep_edge("identus-jose", "identus-core").is_ok());
+    assert!(check_dep_edge("identus-openid4vc", "identus-jose").is_ok());
+    assert!(check_dep_edge("identus-crypto", "identus-jose").is_err());
+}
+
+#[test]
 fn target_specific_runtime_dependencies_are_inward_edges() {
     let manifest: toml::Value = toml::from_str(
         r#"

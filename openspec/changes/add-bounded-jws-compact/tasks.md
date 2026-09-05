@@ -11,22 +11,22 @@
 
 ## 2. Compact codec implementation
 
-- [ ] 2.1 Add `identus-jose` with validated limits and protected-header values.
-- [ ] 2.2 Implement allocation-bounded canonical base64url segment decoding and
+- [x] 2.1 Add `identus-jose` with validated limits and protected-header values.
+- [x] 2.2 Implement allocation-bounded canonical base64url segment decoding and
   strict protected-header deserialization.
-- [ ] 2.3 Implement staged signing-input encoding, signature attachment and
+- [x] 2.3 Implement staged signing-input encoding, signature attachment and
   exact, explicitly unverified parse accessors.
-- [ ] 2.4 Add static redaction-safe errors, Debug output and core error bridge.
+- [x] 2.4 Add static redaction-safe errors, Debug output and core error bridge.
 
 ## 3. Evidence and performance
 
-- [ ] 3.1 Add RFC 7515 and independently reconstructed Oxid/Portal-shaped
+- [x] 3.1 Add RFC 7515 and independently reconstructed Oxid/Portal-shaped
   positive conformance cases.
-- [ ] 3.2 Add negative cases for every structural, canonical, header and size
+- [x] 3.2 Add negative cases for every structural, canonical, header and size
   boundary, including valid empty payload handling.
-- [ ] 3.3 Add deterministic bounded round-trip matrices and run the ignored
+- [x] 3.3 Add deterministic bounded round-trip matrices and run the ignored
   release parse-throughput diagnostic.
-- [ ] 3.4 Update architecture rulebook, tests, human/machine inventory,
+- [x] 3.4 Update architecture rulebook, tests, human/machine inventory,
   blueprint status and the canonical `IDR-004` ledger.
 - [ ] 3.5 Verify both donor checkout states still match their preflight state.
 

@@ -272,6 +272,12 @@ Deliver strict, narrowly profiled JWS compact handling and proof-JWT
 builder/verifier APIs over DID resolution and signing ports. Fuzz all decoder
 boundaries and reject algorithm confusion, ambiguous keys and unbounded claims.
 
+Issue #95 implements the first wire-only foundation: bounded canonical Compact
+Serialization, a closed initial protected header, exact signing-input
+preservation and explicit unverified state. Signing ports, signature-suite/DID
+verification, OpenID4VCI proof claims and coverage-guided fuzzing remain
+separate accepted slices under #8.
+
 ### B09 — OID4VCI Final (`#7`)
 
 Move the already cross-implementation-tested Oxid/Portal profile into one

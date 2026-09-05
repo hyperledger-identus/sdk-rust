@@ -11,6 +11,7 @@ identus-did                = { path = "crates/did" }
 identus-trust              = { path = "crates/trust" }
 identus-credentials        = { path = "crates/credentials" }
 identus-presentations      = { path = "crates/presentations" }
+identus-jose               = { path = "crates/jose" }
 identus-messaging          = { path = "crates/messaging" }
 identus-openid4vc          = { path = "crates/openid4vc" }
 identus-wallet             = { path = "crates/wallet" }

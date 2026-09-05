@@ -6,6 +6,8 @@
 - **Specification commit:** `becc2dfabbf90d432b41df685ce15e4f134f71ca`
 - **Implementation commit:** `4814a03fbe7b504bfeb3de9903f3a36eeced7d8b`
 - **OpenSpec metadata commit:** `9c66eb5bcd9e10856a195f24514a50eb5edeca86`
+- **Hosted-review specification correction:** `4345156`
+- **Hosted-review implementation correction:** `5b67401`
 - **Environment:** aarch64-darwin, repository-pinned Nix and Rust toolchains
 - **Result:** every applicable local gate passed
 
@@ -16,12 +18,14 @@
   intentionally ignored.
 - The same focused suite passed with no default features, strict Clippy,
   warning-denied rustdoc and formatting.
-- An independent allowed-edge table exercised all 121 ordered pairs across six
-  active phases and five terminal outcomes: exactly 28 edges were accepted.
+- An independent allowed-edge table exercised all 144 ordered pairs across
+  seven active phases and five terminal outcomes: exactly 31 edges were
+  accepted.
 - Tests cover exact phase/outcome/state spelling, strict unknown/padded/case
   rejection, redacted error contracts, active/terminal accessors, terminal
   immutability, refusal timing, required generation/delivery boundaries and
-  cancellation-versus-completion races.
+  both cancellation origins. Generation cancellation rejects completion while
+  delivery cancellation permits an observed completion race.
 
 ## Full reproducible matrix
 
@@ -33,7 +37,7 @@
   passed.
 - `./scripts/factory validate add-presentation-protocol-lifecycle` and
   `./scripts/factory check`: passed.
-- `nix flake check --print-build-logs`: all 26 compatible aarch64-darwin
+- `nix flake check --print-build-logs`: all 27 compatible aarch64-darwin
   checks passed, including pinned nightly, Rust 1.85 MSRV, native, Android,
   iOS, WASM, feature, lint, documentation, factory, dependency, license,
   advisory and release Nextest lanes. The principal suite ran 340 tests: 340
@@ -48,8 +52,8 @@ derivation.
 
 `cargo test -p identus-presentations --release
 presentation_lifecycle_transition_throughput_diagnostic -- --ignored
---nocapture` validated 2,000,000 state-pair decisions in `3.962917ms`, about
-504,678,751 decisions/second, using
+--nocapture` validated 2,000,000 state-pair decisions in `3.5525ms`, about
+562,983,814 decisions/second, using
 `rustc 1.96.0-nightly (91021ccc7 2026-03-17)` on
 `aarch64-apple-darwin`. This is an observation, not a portable pass threshold.
 
@@ -89,3 +93,9 @@ The archive receipt recorded branch
 governance specs were synchronized and the change was archived as
 `2026-09-04-add-presentation-protocol-lifecycle`. Local issue-to-archive
 elapsed time was approximately 15m45s; hosted PR timing remains separate.
+
+The first hosted review at `99475e0` found an origin-free cancellation path
+that could move from generation cancellation to completion. The issue was
+amended before corrective implementation. Corrective head `5b67401` preserves
+generation and delivery cancellation separately, and the full local evidence
+set above was rerun before requesting a fresh hosted review.

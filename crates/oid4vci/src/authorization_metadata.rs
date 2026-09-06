@@ -43,6 +43,12 @@ pub struct TokenEndpoint {
 }
 
 impl TokenEndpoint {
+    pub(crate) fn duplicate(&self) -> Self {
+        Self {
+            value: Zeroizing::new(self.value.to_string()),
+        }
+    }
+
     /// Borrow the exact Token Endpoint URL.
     pub fn as_str(&self) -> &str {
         &self.value

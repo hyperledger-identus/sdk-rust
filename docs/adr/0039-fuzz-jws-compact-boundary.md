@@ -40,8 +40,8 @@ Coverage-guided mutation is the remaining planned assurance layer.
 - JWS representation invariants receive repeatable sanitizer-backed regression
   search without widening SDK APIs or compile graphs.
 - Shared `fuzz/**` changes conservatively trigger the existing DID and crypto
-  campaigns as well as JWS; source-only JOSE work triggers only its own lane,
-  while crypto source changes trigger both crypto and dependent JWS campaigns.
+  campaigns as well as JWS. Root dependency declarations and every local crate
+  in JOSE's dependency cone trigger the dependent JWS campaign.
 - The campaign reduces risk but cannot prove absence of defects.
 
 ## Rejected alternatives

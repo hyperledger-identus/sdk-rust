@@ -76,8 +76,8 @@ ceiling, per-input timeout, memory ceiling, corpus reload and worker count.
 Maintainer-invoked local or externally scheduled soak SHALL remain
 independently bounded. The `develop` workflow SHALL NOT claim GitHub schedule or
 manual triggers while the reserved empty `main` remains the default branch. The
-JWS PR/push workflow SHALL run for changes to JOSE and its transitive crypto
-source.
+JWS PR/push workflow SHALL run for changes to the root dependency declarations
+and every local crate in JOSE's dependency cone.
 
 An original reviewable corpus and dictionary SHALL cover the RFC example,
 independently reconstructed Oxid/Lace shapes and existing structural,

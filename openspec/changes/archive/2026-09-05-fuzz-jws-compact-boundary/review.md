@@ -99,8 +99,10 @@
   inventory still called completed issue #100 a follow-up. Both records now
   identify the bounded fuzz campaign as delivered and leave only #104 pending.
 - The subsequent rereview found that crypto-only changes did not enqueue the
-  dependent JWS campaign. Both PR and `develop` push path filters now include
-  `crates/crypto/**`, and the canonical contract records that integration gate.
+  dependent JWS campaign. A further review exposed the same omission for root
+  dependency declarations and JOSE's other local path dependencies. Both PR
+  and `develop` push filters now cover `Cargo.toml` plus the full local cone:
+  `core`, `crypto`, `derive`, `did`, and `jose`.
 
 ### Verification receipt
 

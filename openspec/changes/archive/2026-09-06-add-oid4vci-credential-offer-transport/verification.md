@@ -6,6 +6,10 @@
 - Develop base: `ddf64219ada97f9cb2287cfcb6da808d98f8b1a9`
 - Specification commit: `f73fa2fb3ccff9874cd0df40ae79e9986036b11f`
 - Implementation commit: `e52d22c53ee4dab57d0c9541fe418c187173054b`
+- Hosted-review spec correction:
+  `3a4d23bbb9645f90844c747d469d53ac388777eb`
+- Hosted-review implementation correction:
+  `5c96bcb005203a832ffc44b752a3be07c2eb0905`
 - Branch: `codex/oid4vci-credential-offer`
 - Owner: unpublished `identus-oid4vci` protocol-semantics crate
 
@@ -53,7 +57,14 @@ local machine. This is observational evidence, not a portable threshold.
 The distinct exact-diff review is recorded in `review.md`. It corrected the
 unsupported error taxonomy, an authority-normalization edge, and standards
 fixture provenance. Focused tests and strict lint/docs passed after correction;
-no finding remains unresolved.
+no local finding remains unresolved.
+
+The first exact-head hosted review on PR #112 found that accepted JSON depth
+configurations could exceed the parser's recursion capability. The contract
+now publishes a hard configurable ceiling of 64; focused all/no-default tests
+prove an exact 64-level object succeeds and configuration 65 fails before
+parsing. A replacement-head hosted review and full CI rerun remain required
+before merge.
 
 ## Repository isolation and deferred scope
 

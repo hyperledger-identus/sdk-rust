@@ -98,3 +98,18 @@ The original-wire authority guard, strict single-pair form decoder, exact JSON
 retention, HTTPS-only reference syntax, and no-network boundary now match the
 OpenSpec contract. Oxid and Lace ID Portal remain unchanged at their recorded
 preflight revisions and worktree states.
+
+# Hosted exact-head follow-up
+
+- **Reviewed head:** `865e7bfe953520ff3abbc7c0baf1323cad53751d`
+- **Finding:** P2 — a caller could configure depth above Serde JSON's internal
+  recursion limit, so the accepted policy was not always enforceable
+- **Specification correction:** `3a4d23bbb9645f90844c747d469d53ac388777eb`
+- **Implementation correction:** `5c96bcb005203a832ffc44b752a3be07c2eb0905`
+- **Result:** resolved locally; exact replacement head requires hosted rerun
+
+The public contract now caps caller-configured JSON container depth at 64,
+while retaining the default of 16. This remains deliberately below the parser's
+internal recursion ceiling. The constructor rejects 65 before parsing, and an
+exact 64-level object is accepted with sufficient byte/node limits, proving
+that every accepted depth policy is honored by the SDK's own boundary.

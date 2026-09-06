@@ -201,6 +201,13 @@ impl CredentialIssuerMetadata {
                     .any(|server| server.as_str() == hint.as_str())
         })
     }
+
+    pub(crate) fn has_effective_authorization_server(&self, issuer: &str) -> bool {
+        match &self.authorization_servers {
+            Some(servers) => servers.iter().any(|server| server.as_str() == issuer),
+            None => self.credential_issuer.as_str() == issuer,
+        }
+    }
 }
 
 impl fmt::Debug for CredentialIssuerMetadata {

@@ -41,3 +41,39 @@ The proposal, design, capability requirements, program replacement, and task
 map are semantically complete, objectively testable, reversible, and within
 the standing mandate. No correctness, security, privacy, compatibility,
 provenance, target, or product-scope blocker remains before implementation.
+
+# Exact-diff implementation review
+
+## Candidate reviewed
+
+- Base: `bbffe94c8731b2cadc33949761e93bfffc7fbf39`.
+- Specification commit: `1f733afad08b41c98564f457807496887a2253df`.
+- Production implementation commit:
+  `cd2027767a5626fe8c44f656b820d70c3d42da2e`.
+- Exact diff: `origin/develop...cd2027767a5626fe8c44f656b820d70c3d42da2e`.
+
+## Review findings
+
+1. **No blocker — every JSON value consumes the aggregate node budget.** The
+   parser counts the top-level object before entry, the known `c_nonce` string
+   through the shared bounded-string parser, and every unknown scalar or
+   container recursively through the strict scanner.
+2. **No blocker — unknown extensions remain structurally strict.** Decoded
+   duplicate names are rejected at every object depth; malformed, trailing,
+   over-deep, and over-wide structures fail before a response is returned.
+3. **No blocker — the public state proves only the reviewed body contract.**
+   The response exposes byte length and an exact opaque nonce, while omitting
+   transport, issuer, expiry, entropy, freshness, replay, and request-flow
+   claims.
+4. **No blocker — correlation-sensitive data stays out of generic surfaces.**
+   The nonce is zeroizing, available only through an explicitly sensitive
+   borrow, and absent from Debug, Display, Serde, errors, and raw-body access.
+5. **No blocker — compatibility boundaries are unchanged.** The change adds
+   no manifest, lockfile, feature, dependency, unsafe, FFI, chain, consumer,
+   or product mutation and retains the existing runtime dependency cone.
+
+## Decision
+
+The exact production diff is minimal, contract-complete, and ready for the
+recorded reproducibility and archive gates. No unresolved local finding
+remains.

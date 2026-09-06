@@ -70,4 +70,3 @@ Oxid and Lace ID Portal were read-only evidence sources. Their final revisions,
 pre-existing status entries, and recorded source digests match issue #115's
 preflight receipt. No consumer, `main`, release, publication, repository
 setting, or chain state changed.
-

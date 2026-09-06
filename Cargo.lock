@@ -463,6 +463,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-oid4vci"
+version = "0.0.0"
+dependencies = [
+ "identus-core",
+ "serde_json",
+ "uriparse",
+ "zeroize",
+]
+
+[[package]]
 name = "identus-openid4vc"
 version = "0.0.0"
 dependencies = [

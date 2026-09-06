@@ -12,7 +12,7 @@ enduring rules are:
 
 - **Foundation is dependency-free.** `identus-core` has no `identus-*` workspace dependencies and no dependency on product, protocol, adapter, binding, or conformance crates.
 - **Dependency direction is inward.** Domain crates depend only on foundation and other domain-primitive crates. Credential/protocol/orchestration crates depend on their inner rings. Adapters and bindings may depend on stable domain/protocol/wallet crates, but domain crates must not depend back on adapters, bindings, or services.
-- **Adapters, bindings, and conformance sit outside domain semantics.** Production crates (`core`, `crypto`, `did`, `trust`, `credentials`, `presentations`, `jose`, `messaging`, `openid4vc`, `wallet`, `agent`) SHALL NOT depend on any `identus-adapters-<family>` crate, `identus-bindings`, `identus-conformance`, or `identus-wallet-conformance`.
+- **Adapters, bindings, and conformance sit outside domain semantics.** Production crates (`core`, `crypto`, `did`, `trust`, `credentials`, `presentations`, `jose`, `messaging`, `openid4vc`, `oid4vci`, `wallet`, `agent`) SHALL NOT depend on any `identus-adapters-<family>` crate, `identus-bindings`, `identus-conformance`, or `identus-wallet-conformance`.
 - **Conformance is never a production dependency.** Verification crates may depend inward only as narrowly pinned by the guard; production crates must not depend on them.
 - **Layer membership is the contract.** The in-source `LAYER_RULES` const defines which crates belong to which layer; the guard asserts the manifests conform. The layers are:
 
@@ -21,7 +21,7 @@ enduring rules are:
 | foundation | `identus-core`, `identus-derive` |
 | domain-primitives | `identus-crypto`, `identus-did`, `identus-trust` |
 | credential-semantics | `identus-credentials`, `identus-presentations`, `identus-jose` |
-| protocol-semantics | `identus-messaging`, `identus-openid4vc` |
+| protocol-semantics | `identus-messaging`, `identus-openid4vc`, `identus-oid4vci` |
 | orchestration | `identus-wallet`, `identus-agent` |
 | outer-boundary | `identus-adapters-entropy`, `identus-bindings` |
 | verification | `identus-conformance`, `identus-wallet-conformance` |
@@ -333,7 +333,7 @@ test/conformance aid and SHALL NOT be represented as production randomness.
 
 ### Requirement: Adapter-family crates are composition-root-only dependencies
 
-No production crate (`identus-core`, `identus-crypto`, `identus-did`, `identus-trust`, `identus-credentials`, `identus-presentations`, `identus-jose`, `identus-messaging`, `identus-openid4vc`, `identus-wallet`, `identus-agent`) SHALL depend on any `identus-adapters-<family>` crate. Adapter-family crates SHALL be consumed only by binaries, examples, and `identus-bindings` (the composition root). This restates the inward-direction policy for adapter-family crates specifically.
+No production crate (`identus-core`, `identus-crypto`, `identus-did`, `identus-trust`, `identus-credentials`, `identus-presentations`, `identus-jose`, `identus-messaging`, `identus-openid4vc`, `identus-oid4vci`, `identus-wallet`, `identus-agent`) SHALL depend on any `identus-adapters-<family>` crate. Adapter-family crates SHALL be consumed only by binaries, examples, and `identus-bindings` (the composition root). This restates the inward-direction policy for adapter-family crates specifically.
 
 #### Scenario: a domain crate depending on an adapter-family crate is rejected
 
@@ -415,3 +415,31 @@ and SHALL ignore a member-local `package` field just as Cargo 1.85 does.
 - **THEN** the architecture guard SHALL inspect canonical package
   `identus-core` while the external-dependency guard SHALL classify the
   `core-alias` key as internal rather than requiring an external root version
+
+### Requirement: Focused OID4VCI protocol semantics are independently activated
+
+The workspace SHALL classify `identus-oid4vci` as an implemented experimental
+protocol-semantics crate owned by issue #111. It SHALL appear exactly once in
+`LAYER_RULES` and in the root workspace dependency map. The quarantined
+`identus-openid4vc` umbrella placeholder SHALL remain a separate marker-only
+package and SHALL NOT become a dependency or facade for the focused crate.
+
+`identus-oid4vci` SHALL depend at runtime only on `identus-core` among workspace
+packages. It SHALL NOT depend on JOSE, DID, crypto, wallet, agent, adapter,
+binding, verification, chain, or product crates until a focused later contract
+accepts a narrower protocol capability requiring such an inward edge.
+
+#### Scenario: focused crate and umbrella marker remain distinct
+
+- **WHEN** the workspace manifests, rulebook, and bootstrap inventory are
+  inspected
+- **THEN** `identus-oid4vci` is implemented protocol semantics while
+  `identus-openid4vc` remains a quarantined marker with no dependency edge
+  between them
+
+#### Scenario: transport dependency cone stays minimal
+
+- **WHEN** conformance inspects the new package manifest and resolved runtime
+  dependency graph
+- **THEN** its only internal runtime dependency is `identus-core` and every
+  external dependency is workspace-pinned

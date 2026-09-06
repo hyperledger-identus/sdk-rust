@@ -112,6 +112,11 @@ fn manifests_conform_to_layer_rules() {
                 ["identus-core", "identus-derive"],
                 "DID must retain its exact crypto-free internal dependency cone"
             ),
+            "identus-oid4vci" => assert_eq!(
+                deps,
+                ["identus-core"],
+                "OID4VCI transport must retain its exact foundation-only internal dependency cone"
+            ),
             "identus-wallet-conformance" => assert_eq!(
                 deps,
                 ["identus-wallet"],
@@ -168,6 +173,13 @@ fn jose_is_reusable_below_protocol_semantics() {
     assert!(check_dep_edge("identus-jose", "identus-did").is_ok());
     assert!(check_dep_edge("identus-openid4vc", "identus-jose").is_ok());
     assert!(check_dep_edge("identus-crypto", "identus-jose").is_err());
+}
+
+#[test]
+fn oid4vci_transport_retains_a_foundation_only_internal_cone() {
+    assert!(check_dep_edge("identus-oid4vci", "identus-core").is_ok());
+    assert!(check_dep_edge("identus-oid4vci", "identus-jose").is_ok());
+    assert!(check_dep_edge("identus-core", "identus-oid4vci").is_err());
 }
 
 #[test]

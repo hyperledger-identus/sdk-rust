@@ -19,7 +19,7 @@ fails; neither source may silently make a stronger claim.
 The host-tested systems are `x86_64-linux` and `aarch64-darwin`. Browser WASM,
 Android ARM64 and iOS ARM64 are compile-checked for `identus-core`,
 `identus-crypto`, `identus-did`, `identus-jose` and
-`identus-adapters-entropy`, with the entropy adapter's `getrandom` backend
+`identus-oid4vci` and `identus-adapters-entropy`, with the entropy adapter's `getrandom` backend
 explicitly selected. Windows and WASI are planned without a compatibility
 promise.
 

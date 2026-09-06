@@ -3,9 +3,10 @@ use std::ops::Range;
 use zeroize::Zeroizing;
 
 use crate::{
-    AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits, CredentialOfferError,
-    CredentialOfferGrantLimits, CredentialOfferLimits, CredentialOfferSemanticLimits,
-    TokenErrorResponseLimits, TokenResponseLimits,
+    AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits,
+    CredentialNonceResponseLimits, CredentialOfferError, CredentialOfferGrantLimits,
+    CredentialOfferLimits, CredentialOfferSemanticLimits, TokenErrorResponseLimits,
+    TokenResponseLimits,
 };
 
 const AUTHORIZATION_CODE_GRANT: &str = "authorization_code";
@@ -73,6 +74,10 @@ pub(crate) struct TokenErrorResponseFields {
     pub(crate) error: Zeroizing<String>,
     pub(crate) error_description: Option<Zeroizing<String>>,
     pub(crate) error_uri: Option<Zeroizing<String>>,
+}
+
+pub(crate) struct CredentialNonceResponseFields {
+    pub(crate) nonce: Zeroizing<String>,
 }
 
 pub(crate) fn validate_json(
@@ -247,6 +252,31 @@ pub(crate) fn parse_token_error_response_fields(
     scanner.skip_whitespace();
     if scanner.cursor != input.len() {
         return Err(CredentialOfferError::InvalidTokenErrorResponse);
+    }
+    Ok(fields)
+}
+
+pub(crate) fn parse_credential_nonce_response_fields(
+    input: &[u8],
+    limits: CredentialNonceResponseLimits,
+) -> Result<CredentialNonceResponseFields, CredentialOfferError> {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
+        max_depth: limits.max_json_depth(),
+        max_nodes: limits.max_json_nodes(),
+        nodes: 0,
+    };
+    scanner.skip_whitespace();
+    scanner.visit_node()?;
+    let depth = scanner.enter_container(0)?;
+    if !scanner.consume_if(b'{') {
+        return Err(CredentialOfferError::InvalidCredentialNonceResponse);
+    }
+    let fields = scanner.parse_credential_nonce_response_object(depth, limits)?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(CredentialOfferError::InvalidCredentialNonceResponse);
     }
     Ok(fields)
 }
@@ -673,6 +703,40 @@ impl Scanner<'_> {
             error: error.ok_or(CredentialOfferError::InvalidTokenErrorResponse)?,
             error_description,
             error_uri,
+        })
+    }
+
+    fn parse_credential_nonce_response_object(
+        &mut self,
+        depth: usize,
+        limits: CredentialNonceResponseLimits,
+    ) -> Result<CredentialNonceResponseFields, CredentialOfferError> {
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidCredentialNonceResponse);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut nonce = None;
+        loop {
+            let name = self.parse_unique_member_name(&mut names)?;
+            self.require_member_separator()?;
+            if name.as_str() == "c_nonce" {
+                nonce = Some(self.parse_nonempty_bounded_string(
+                    limits.max_nonce_bytes(),
+                    CredentialOfferError::InvalidCredentialNonce,
+                    CredentialOfferError::CredentialNonceTooLarge,
+                )?);
+            } else {
+                self.parse_value(depth)?;
+            }
+            if self.finish_or_continue_object()? {
+                break;
+            }
+        }
+
+        Ok(CredentialNonceResponseFields {
+            nonce: nonce.ok_or(CredentialOfferError::InvalidCredentialNonceResponse)?,
         })
     }
 

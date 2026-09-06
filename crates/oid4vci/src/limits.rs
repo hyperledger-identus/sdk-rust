@@ -451,6 +451,71 @@ impl Default for TokenErrorResponseLimits {
     }
 }
 
+/// Resource limits for an OID4VCI Credential Nonce Response core.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CredentialNonceResponseLimits {
+    max_json_bytes: usize,
+    max_json_depth: usize,
+    max_json_nodes: usize,
+    max_nonce_bytes: usize,
+}
+
+impl CredentialNonceResponseLimits {
+    /// Construct a positive nonce-response policy with a supported JSON depth.
+    pub const fn new(
+        max_json_bytes: usize,
+        max_json_depth: usize,
+        max_json_nodes: usize,
+        max_nonce_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_json_bytes == 0
+            || max_json_depth == 0
+            || max_json_depth > MAX_CONFIGURABLE_JSON_DEPTH
+            || max_json_nodes == 0
+            || max_nonce_bytes == 0
+        {
+            return Err(CredentialOfferError::InvalidCredentialNonceResponseLimits);
+        }
+        Ok(Self {
+            max_json_bytes,
+            max_json_depth,
+            max_json_nodes,
+            max_nonce_bytes,
+        })
+    }
+
+    /// Maximum bytes in the complete JSON response.
+    pub const fn max_json_bytes(self) -> usize {
+        self.max_json_bytes
+    }
+
+    /// Maximum JSON container depth.
+    pub const fn max_json_depth(self) -> usize {
+        self.max_json_depth
+    }
+
+    /// Maximum aggregate JSON value nodes.
+    pub const fn max_json_nodes(self) -> usize {
+        self.max_json_nodes
+    }
+
+    /// Maximum decoded UTF-8 bytes in the Credential Nonce.
+    pub const fn max_nonce_bytes(self) -> usize {
+        self.max_nonce_bytes
+    }
+}
+
+impl Default for CredentialNonceResponseLimits {
+    fn default() -> Self {
+        Self {
+            max_json_bytes: 16_384,
+            max_json_depth: 16,
+            max_json_nodes: 256,
+            max_nonce_bytes: 4_096,
+        }
+    }
+}
+
 /// Resource limits for unsigned Credential Issuer Metadata.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialIssuerMetadataLimits {

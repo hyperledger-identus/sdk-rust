@@ -9,16 +9,16 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add positive Credential Nonce Response limits and strict bounded
+- [x] 2.1 Add positive Credential Nonce Response limits and strict bounded
   parsing for required opaque `c_nonce` plus discarded extensions.
-- [ ] 2.2 Add zeroizing nonce/partial-response types, stable fieldless errors,
+- [x] 2.2 Add zeroizing nonce/partial-response types, stable fieldless errors,
   crate exports, and content-free diagnostics.
-- [ ] 2.3 Update ADR, blueprint, and canonical IDR-023 ledger pointer without
+- [x] 2.3 Update ADR, blueprint, and canonical IDR-023 ledger pointer without
   changing dependencies, manifests, lockfile, features, or consumers.
 
 ## 3. Verification and integration
 
-- [ ] 3.1 Add positive, negative, Unicode, bound, extension, malformed-input,
+- [x] 3.1 Add positive, negative, Unicode, bound, extension, malformed-input,
   duplicate, and diagnostic-canary tests for every contract branch.
 - [ ] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,
   workspace/factory/preservation gates, and the full target/supply-chain Nix

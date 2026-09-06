@@ -5,14 +5,15 @@
 //! agreement, a partial Authorization Server Metadata core, and explicit
 //! Pre-Authorized Code server and Transaction Code input binding, and bounded
 //! construction of the mandatory Pre-Authorized Token Request form plus a
-//! partial successful Token Response core and Token Error Response core. It
-//! performs no network access, does not validate complete RFC 8414 metadata or
-//! Token Response Authorization Details, and establishes no issuer, server, or
-//! token trust.
+//! partial successful Token Response, Token Error Response, and Credential
+//! Nonce Response core. It performs no network access, does not validate
+//! complete RFC 8414 metadata or Token Response Authorization Details, and
+//! establishes no issuer, server, token, or nonce trust.
 
 #![forbid(unsafe_code)]
 
 mod authorization_metadata;
+mod credential_nonce_response;
 mod error;
 mod grants;
 mod json;
@@ -30,6 +31,7 @@ pub use authorization_metadata::{
     AUTHORIZATION_CODE_GRANT_TYPE, AuthorizationEndpoint, AuthorizationServerMetadataCore,
     GrantTypeIdentifier, IMPLICIT_GRANT_TYPE, PRE_AUTHORIZED_CODE_GRANT_TYPE, TokenEndpoint,
 };
+pub use credential_nonce_response::{CredentialNonce, CredentialNonceResponseCore};
 pub use error::{CAPABILITY, CredentialOfferError, error_code};
 pub use grants::{
     AuthorizationCodeGrant, AuthorizationServerIdentifier, CredentialOfferWithGrants, IssuerState,
@@ -37,10 +39,10 @@ pub use grants::{
     TransactionCodeInputMode, TransactionCodeRequirements,
 };
 pub use limits::{
-    AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits, CredentialOfferGrantLimits,
-    CredentialOfferLimits, CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
-    PreAuthorizedTokenRequestLimits, TokenErrorResponseLimits, TokenResponseLimits,
-    TransactionCodeInputLimits,
+    AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits,
+    CredentialNonceResponseLimits, CredentialOfferGrantLimits, CredentialOfferLimits,
+    CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH, PreAuthorizedTokenRequestLimits,
+    TokenErrorResponseLimits, TokenResponseLimits, TransactionCodeInputLimits,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,

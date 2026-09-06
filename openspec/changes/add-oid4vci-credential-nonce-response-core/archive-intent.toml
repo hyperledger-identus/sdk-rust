@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
+canonical_sha256 = "915aee2897d535e3d5ddf3b460ad7e3982cf4ccdd61794430ede1c449fc7dfe7"
+reason           = "Advance the in-progress OID4VCI ledger from completed child #129 to bounded Credential Nonce Response child #131 without claiming protocol completion."

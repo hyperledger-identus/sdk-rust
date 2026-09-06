@@ -310,6 +310,12 @@ invocation transport: strict by-value JSON or least-authority HTTPS reference,
 with explicit resource limits and redaction. Offer-member semantics, fetching,
 trust and issuance state remain later slices under #7.
 
+The second bounded delivery, issue #113, consumes that transport into a
+validated core Credential Offer: exact HTTPS issuer syntax, a non-empty unique
+configuration-ID list, object-shaped opaque grants, lossless extensions, and
+independent semantic bounds. Grant internals, metadata matching, fetching,
+trust, authorization selection, and issuance state remain later slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

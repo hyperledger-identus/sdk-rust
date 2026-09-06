@@ -1,4 +1,4 @@
-//! Static, redaction-safe Credential Offer transport errors.
+//! Static, redaction-safe Credential Offer errors.
 
 use std::fmt;
 
@@ -24,6 +24,21 @@ pub mod error_code {
     pub const JSON_TOO_MANY_NODES: ErrorCode = ErrorCode::new("oid4vci.json_too_many_nodes");
     pub const REFERENCE_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vci.reference_too_large");
     pub const UNSAFE_REFERENCE_URI: ErrorCode = ErrorCode::new("oid4vci.unsafe_reference_uri");
+    pub const INVALID_SEMANTIC_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_semantic_limits");
+    pub const INVALID_OFFER_FIELDS: ErrorCode = ErrorCode::new("oid4vci.invalid_offer_fields");
+    pub const ISSUER_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vci.issuer_too_large");
+    pub const UNSAFE_CREDENTIAL_ISSUER: ErrorCode =
+        ErrorCode::new("oid4vci.unsafe_credential_issuer");
+    pub const INVALID_CONFIGURATION_IDS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_configuration_ids");
+    pub const CONFIGURATION_ID_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.configuration_id_too_large");
+    pub const TOO_MANY_CONFIGURATION_IDS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_configuration_ids");
+    pub const DUPLICATE_CONFIGURATION_ID: ErrorCode =
+        ErrorCode::new("oid4vci.duplicate_configuration_id");
+    pub const INVALID_GRANTS: ErrorCode = ErrorCode::new("oid4vci.invalid_grants");
 }
 
 /// A static reason that Credential Offer transport validation failed.
@@ -44,6 +59,15 @@ pub enum CredentialOfferError {
     JsonTooManyNodes,
     ReferenceTooLarge,
     UnsafeReferenceUri,
+    InvalidSemanticLimits,
+    InvalidOfferFields,
+    IssuerTooLarge,
+    UnsafeCredentialIssuer,
+    InvalidConfigurationIds,
+    ConfigurationIdTooLarge,
+    TooManyConfigurationIds,
+    DuplicateConfigurationId,
+    InvalidGrants,
 }
 
 impl CredentialOfferError {
@@ -109,6 +133,51 @@ impl CredentialOfferError {
                 error_code::UNSAFE_REFERENCE_URI,
                 ErrorKind::InvalidInput,
                 "OID4VCI Credential Offer reference URI is unsafe",
+            ),
+            Self::InvalidSemanticLimits => (
+                error_code::INVALID_SEMANTIC_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Offer semantic limits are invalid",
+            ),
+            Self::InvalidOfferFields => (
+                error_code::INVALID_OFFER_FIELDS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Offer required fields are invalid",
+            ),
+            Self::IssuerTooLarge => (
+                error_code::ISSUER_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Issuer Identifier is too large",
+            ),
+            Self::UnsafeCredentialIssuer => (
+                error_code::UNSAFE_CREDENTIAL_ISSUER,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Issuer Identifier is unsafe",
+            ),
+            Self::InvalidConfigurationIds => (
+                error_code::INVALID_CONFIGURATION_IDS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Configuration IDs are invalid",
+            ),
+            Self::ConfigurationIdTooLarge => (
+                error_code::CONFIGURATION_ID_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Configuration ID is too large",
+            ),
+            Self::TooManyConfigurationIds => (
+                error_code::TOO_MANY_CONFIGURATION_IDS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Offer has too many configuration IDs",
+            ),
+            Self::DuplicateConfigurationId => (
+                error_code::DUPLICATE_CONFIGURATION_ID,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Offer repeats a configuration ID",
+            ),
+            Self::InvalidGrants => (
+                error_code::INVALID_GRANTS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Offer grants are invalid",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

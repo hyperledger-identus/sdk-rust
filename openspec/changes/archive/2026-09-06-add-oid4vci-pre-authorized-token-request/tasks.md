@@ -1,0 +1,31 @@
+## 1. Contract and provenance
+
+- [x] 1.1 Create issue #125 before implementation and record exact base,
+  normative hashes, consumer revisions/status, source paths/hashes, license,
+  public/wire/error contract, non-scope, threats, bounds, targets, and rollback.
+- [x] 1.2 Define and semantically review the additive capability and complete
+  IDR-023 replacement with zero unresolved blockers.
+
+## 2. Implementation
+
+- [x] 2.1 Add positive request-body limits, exact checked sizing, deterministic
+  form encoding, and the consuming Token Request state.
+- [x] 2.2 Add stable fieldless errors, crate exports, explicit sensitive-body
+  access, and redacted diagnostics.
+- [x] 2.3 Update ADR, blueprint, and canonical IDR-023 ledger pointer without
+  changing dependencies, manifests, features, parsers, or consumers.
+
+## 3. Verification and integration
+
+- [x] 3.1 Add positive, negative, exact-bound, encoding-conformance, endpoint,
+  and diagnostic-canary tests for every contract branch.
+- [x] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,
+  workspace/factory/preservation gates, and the full target/supply-chain Nix
+  matrix; record exact evidence and consumer-isolation receipts.
+- [x] 3.3 Complete and record a distinct local review with no unresolved
+  finding, mark tasks complete, run ready/receipt, guarded archive, and final
+  exact-head verification.
+- [x] 3.4 Prepare the signed/DCO, issue-linked PR delivery packet for
+  `develop`, including exact-head hosted Codex review and required CI gates,
+  protected merge, issue/parent updates, `develop` sync, and cleanup as the
+  post-archive integration procedure.

@@ -240,6 +240,37 @@ impl Default for TransactionCodeInputLimits {
     }
 }
 
+/// Resource limits for a constructed Pre-Authorized Code Token Request.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PreAuthorizedTokenRequestLimits {
+    max_form_body_bytes: usize,
+}
+
+impl PreAuthorizedTokenRequestLimits {
+    /// Construct a positive encoded form-body policy.
+    pub const fn new(max_form_body_bytes: usize) -> Result<Self, CredentialOfferError> {
+        if max_form_body_bytes == 0 {
+            return Err(CredentialOfferError::InvalidPreAuthorizedTokenRequestLimits);
+        }
+        Ok(Self {
+            max_form_body_bytes,
+        })
+    }
+
+    /// Maximum encoded UTF-8 bytes in the complete form body.
+    pub const fn max_form_body_bytes(self) -> usize {
+        self.max_form_body_bytes
+    }
+}
+
+impl Default for PreAuthorizedTokenRequestLimits {
+    fn default() -> Self {
+        Self {
+            max_form_body_bytes: 16_384,
+        }
+    }
+}
+
 /// Resource limits for unsigned Credential Issuer Metadata.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialIssuerMetadataLimits {

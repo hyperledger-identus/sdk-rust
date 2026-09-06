@@ -360,6 +360,15 @@ validity verdict. Token Request encoding/execution, client
 identity/authentication, responses, trust, retries/replay controls, and
 issuance state remain later slices.
 
+The eighth bounded delivery, issue #125, consumes that prepared input state
+into one headless `PreAuthorizedTokenRequest`. It carries the validated Token
+Endpoint, static POST/media-type guidance, and an exact bounded UTF-8 form body
+containing the mandatory Final fields in deterministic order. The secret body
+is zeroized and available only through an explicitly sensitive accessor;
+diagnostics remain data-free. HTTP execution, client identity/authentication,
+optional authorization selectors, responses, trust, retries/replay controls,
+and issuance state remain later slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

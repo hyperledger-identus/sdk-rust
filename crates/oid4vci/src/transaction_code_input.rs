@@ -18,6 +18,10 @@ pub struct CredentialOfferWithPreAuthorizedTokenInput {
 }
 
 impl CredentialOfferWithPreAuthorizedTokenInput {
+    pub(crate) fn transaction_code(&self) -> Option<&str> {
+        self.transaction_code.as_deref().map(String::as_str)
+    }
+
     /// Borrow the bound Pre-Authorized Code server state.
     pub const fn credential_offer_with_pre_authorized_server(
         &self,

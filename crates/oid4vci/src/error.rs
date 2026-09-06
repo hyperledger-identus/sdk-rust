@@ -132,6 +132,10 @@ pub mod error_code {
         ErrorCode::new("oid4vci.transaction_code_input_empty");
     pub const TRANSACTION_CODE_INPUT_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.transaction_code_input_too_large");
+    pub const INVALID_PRE_AUTHORIZED_TOKEN_REQUEST_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_pre_authorized_token_request_limits");
+    pub const PRE_AUTHORIZED_TOKEN_REQUEST_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.pre_authorized_token_request_too_large");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -212,6 +216,8 @@ pub enum CredentialOfferError {
     TransactionCodeInputUnexpected,
     TransactionCodeInputEmpty,
     TransactionCodeInputTooLarge,
+    InvalidPreAuthorizedTokenRequestLimits,
+    PreAuthorizedTokenRequestTooLarge,
 }
 
 impl CredentialOfferError {
@@ -577,6 +583,16 @@ impl CredentialOfferError {
                 error_code::TRANSACTION_CODE_INPUT_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI Transaction Code input is too large",
+            ),
+            Self::InvalidPreAuthorizedTokenRequestLimits => (
+                error_code::INVALID_PRE_AUTHORIZED_TOKEN_REQUEST_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Pre-Authorized Token Request limits are invalid",
+            ),
+            Self::PreAuthorizedTokenRequestTooLarge => (
+                error_code::PRE_AUTHORIZED_TOKEN_REQUEST_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Pre-Authorized Token Request is too large",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

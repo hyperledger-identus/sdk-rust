@@ -15,9 +15,10 @@
   warnings`: passed.
 - `RUSTDOCFLAGS='-D warnings' cargo doc --locked --workspace --all-features
   --no-deps`: passed.
-- `cargo fmt --all -- --check`, `git diff --check`, dependency-tree inspection,
-  and `./scripts/factory check`: passed.
-- Both commits are GPG-signed and contain matching DCO trailers.
+- `cargo fmt --all -- --check`, base-to-worktree `git diff --check`,
+  dependency-tree inspection, and `./scripts/factory check`: passed.
+- The two named authored commits are GPG-signed and contain matching DCO
+  trailers.
 
 ## Full reproducible matrix
 

@@ -170,6 +170,16 @@ pub mod error_code {
         ErrorCode::new("oid4vci.invalid_token_error_uri");
     pub const TOKEN_ERROR_URI_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.token_error_uri_too_large");
+    pub const INVALID_CREDENTIAL_NONCE_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_nonce_response_limits");
+    pub const CREDENTIAL_NONCE_RESPONSE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_nonce_response_too_large");
+    pub const INVALID_CREDENTIAL_NONCE_RESPONSE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_nonce_response");
+    pub const INVALID_CREDENTIAL_NONCE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_nonce");
+    pub const CREDENTIAL_NONCE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_nonce_too_large");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -273,6 +283,11 @@ pub enum CredentialOfferError {
     TokenErrorDescriptionTooLarge,
     InvalidTokenErrorUri,
     TokenErrorUriTooLarge,
+    InvalidCredentialNonceResponseLimits,
+    CredentialNonceResponseTooLarge,
+    InvalidCredentialNonceResponse,
+    InvalidCredentialNonce,
+    CredentialNonceTooLarge,
 }
 
 impl CredentialOfferError {
@@ -753,6 +768,31 @@ impl CredentialOfferError {
                 error_code::TOKEN_ERROR_URI_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI Token Error Response URI is too large",
+            ),
+            Self::InvalidCredentialNonceResponseLimits => (
+                error_code::INVALID_CREDENTIAL_NONCE_RESPONSE_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Nonce Response limits are invalid",
+            ),
+            Self::CredentialNonceResponseTooLarge => (
+                error_code::CREDENTIAL_NONCE_RESPONSE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Nonce Response is too large",
+            ),
+            Self::InvalidCredentialNonceResponse => (
+                error_code::INVALID_CREDENTIAL_NONCE_RESPONSE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Nonce Response core is invalid",
+            ),
+            Self::InvalidCredentialNonce => (
+                error_code::INVALID_CREDENTIAL_NONCE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Nonce is invalid",
+            ),
+            Self::CredentialNonceTooLarge => (
+                error_code::CREDENTIAL_NONCE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Nonce is too large",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

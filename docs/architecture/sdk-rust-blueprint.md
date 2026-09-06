@@ -387,6 +387,15 @@ status/header validation, request correlation, retry/remediation policy, URI
 navigation, trust, nonce, Credential Requests/Responses, and replay controls
 remain later slices.
 
+The eleventh bounded delivery, issue #131, parses a bounded OID4VCI Final
+`CredentialNonceResponseCore`. It retains the required opaque non-empty
+`c_nonce` exactly in zeroizing storage without inventing base64url, ASCII,
+entropy, fixed-length, or expiry semantics; bounded unknown members are checked
+and discarded, and diagnostics remain data-free. Metadata endpoint exposure,
+Nonce Request transport, HTTP status/media/cache/DPoP validation, Issuer nonce
+generation, freshness/replay state, proof construction, and Credential
+Requests/Responses remain later slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

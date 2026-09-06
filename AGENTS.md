@@ -74,6 +74,8 @@ Before changing files, read:
 - Run `scripts/factory check` throughout draft work.
 - Run `scripts/factory ready <change>` and `receipt <change>` before final
   review, then sync specs and archive the completed change.
+- Archive completed changes through `scripts/factory archive <change>` so
+  partial `MODIFIED` requirements fail before canonical specifications change.
 - Complete and record a distinct local review pass.
 - Open a signed, DCO-bearing PR targeting `develop` with the issue reference
   and evidence receipt.

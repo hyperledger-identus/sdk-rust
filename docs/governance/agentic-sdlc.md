@@ -93,7 +93,9 @@ The agent then:
 
 Before final review, the agent runs `scripts/factory ready <change>` and
 `scripts/factory receipt <change>`, syncs reviewed delta specs and archives the
-completed OpenSpec change. Product-specific gates remain separate evidence.
+completed OpenSpec change through `scripts/factory archive <change>` so lossy
+`MODIFIED` replacements fail before canonical mutation. Product-specific gates
+remain separate evidence.
 
 ## Hard repository isolation
 

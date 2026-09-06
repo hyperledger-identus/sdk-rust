@@ -73,6 +73,7 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/factory check
 ./scripts/factory ready <change>
 ./scripts/factory receipt <change>
+./scripts/factory archive <change>
 ./scripts/check-bootstrap-inventory.py
 ./scripts/check-ssi-upstream-backlog.py
 ./scripts/check-support-policy.py
@@ -90,9 +91,31 @@ nix run .#factory -- check
 | `check` | runs the CI-safe structural and OpenSpec gates; incomplete draft tasks are allowed |
 | `ready` | requires the named active change and every task to be complete |
 | `receipt` | runs readiness, then prints immutable branch/head/base identifiers |
+| `archive` | runs readiness and preservation preflight, archives through pinned OpenSpec, then validates the resulting store |
 
 The receipt proves only the factory contract. Rust, target, conformance,
 security and release gates must be attached separately and truthfully.
+
+OpenSpec `MODIFIED` operations replace a complete canonical requirement. The
+repository checker permits the default additive path only when every existing
+nonblank canonical line survives in order. An intentional rewrite or deletion
+requires `archive-intent.toml` in the active change:
+
+```toml
+[[modified_requirement]]
+capability = "example-capability"
+requirement = "Existing requirement"
+canonical_sha256 = "<normalized canonical requirement SHA-256>"
+reason = "Why replacing canonical behavior is intentional"
+```
+
+The acknowledgement is bound to the exact canonical block, moves into archive
+evidence and never enters the living spec. Missing, malformed, stale, duplicate
+or unused entries fail. A missing-intent diagnostic prints the required
+canonical hash without printing the requirement body. Use
+`scripts/factory archive <change>` rather than raw `openspec archive`; the
+facade checks readiness and preservation before any canonical or active-change
+mutation.
 
 The SSI backlog checker validates the canonical SDK component ledger offline.
 It rejects missing or duplicate rows, schema and enum drift, non-SDK ownership,
@@ -150,7 +173,8 @@ A change is ready for final review when:
 4. focused and repository-wide gates are recorded exactly;
 5. provenance, threats, bounds and compatibility are addressed;
 6. consumer repositories remain unchanged unless separately authorized;
-7. current capability specs are synced and the completed change is archived;
+7. current capability specs are synced and the completed change is archived
+   through the guarded factory command;
 8. a distinct local review pass has no unresolved blocker;
 9. the signed, DCO-bearing PR targets `develop` and references its issue.
 

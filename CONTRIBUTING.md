@@ -38,12 +38,22 @@ openspec validate <change> --strict --no-interactive
 ./scripts/factory check
 ./scripts/factory ready <change>
 ./scripts/factory receipt <change>
+./scripts/factory archive <change>
 ```
 
 Use the issue or Discussion for durable collaboration. Check tasks only after
 their implementation and focused evidence pass. Before opening a ready pull
 request, complete a distinct local review pass, sync reviewed delta specs and
-archive the completed change.
+archive the completed change through the factory facade.
+
+A `MODIFIED` delta is a complete requirement replacement. Copy the entire
+canonical requirement block before editing it. Purely additive replacements
+must preserve every existing nonblank line in order. If an intentional rewrite
+or deletion is required, add `archive-intent.toml` to the active change with
+the capability, requirement, exact normalized canonical SHA-256 and a nonempty
+rationale. The preservation checker rejects missing, stale, duplicate or unused
+acknowledgements; `scripts/factory archive` runs that preflight before OpenSpec
+can mutate canonical specifications.
 
 ## Component issue contract
 

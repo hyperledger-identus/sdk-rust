@@ -49,7 +49,7 @@ locally; hosted Linux remains mandatory before merge.
   ignored extensions, transition equivalence, and diagnostic canaries pass.
 - The normal dependency tree remains `identus-core`, `serde_json`, `uriparse`,
   and `zeroize` only.
-- All three branch commits before archive have good local GPG signatures and
+- All four branch commits before archive have good local GPG signatures and
   DCO trailers.
 
 ## Consumer isolation

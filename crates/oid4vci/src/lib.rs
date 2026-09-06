@@ -1,7 +1,8 @@
 //! Bounded OpenID for Verifiable Credential Issuance protocol semantics.
 //!
 //! The crate distinguishes Credential Offer invocation transport, offer/grant
-//! semantics, unsigned Credential Issuer Metadata, exact cross-document
+//! semantics, unsigned Credential Issuer Metadata with optional Final Nonce
+//! Endpoint discovery, exact cross-document
 //! agreement, a partial Authorization Server Metadata core, and explicit
 //! Pre-Authorized Code server and Transaction Code input binding, and bounded
 //! construction of the mandatory Pre-Authorized Token Request form plus a
@@ -46,7 +47,7 @@ pub use limits::{
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,
-    CredentialIssuerMetadata, CredentialOfferWithMetadata,
+    CredentialIssuerMetadata, CredentialOfferWithMetadata, NonceEndpoint,
 };
 pub use pre_authorized_server::CredentialOfferWithPreAuthorizedServer;
 pub use pre_authorized_token_request::{

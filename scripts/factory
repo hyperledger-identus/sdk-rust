@@ -85,6 +85,17 @@ print_receipt() {
   printf 'Product-specific gates: not asserted; attach their outputs separately\n'
 }
 
+archive_change() {
+  local change_name=${1:-}
+  [[ -n "$change_name" ]] || fail "archive requires an active OpenSpec change name"
+
+  ready_change "$change_name"
+  "$factory_root/scripts/check-openspec-archive.py" "$factory_root" --change "$change_name"
+  run_openspec archive "$change_name" --yes
+  check_factory
+  printf 'factory: change archived safely: %s\n' "$change_name"
+}
+
 doctor() {
   check_factory
 
@@ -131,6 +142,7 @@ Commands:
   check               Run the CI-safe factory and OpenSpec structural gates
   ready <change>      Require valid artifacts and every task to be complete
   receipt <change>    Run readiness and print immutable handoff identifiers
+  archive <change>    Preflight, archive and validate a completed change
   help                Show this help
 USAGE
 }
@@ -160,6 +172,9 @@ case "$command_name" in
     ;;
   receipt)
     print_receipt "${1:-}"
+    ;;
+  archive)
+    archive_change "${1:-}"
     ;;
   help | --help | -h)
     usage

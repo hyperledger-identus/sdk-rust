@@ -14,6 +14,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/ssi-upstream-backlog.py"
 "$repository_root/scripts/tests/support-policy.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
+"$repository_root/scripts/tests/openspec-archive.py"
 
 required_files=(
   AGENTS.md
@@ -42,11 +43,13 @@ required_files=(
   scripts/factory
   scripts/check-factory.sh
   scripts/check-bootstrap-inventory.py
+  scripts/check-openspec-archive.py
   scripts/check-support-policy.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-pr-policy.sh
   scripts/tests/factory-contract.sh
   scripts/tests/bootstrap-inventory.py
+  scripts/tests/openspec-archive.py
   scripts/tests/pr-policy.sh
   scripts/tests/support-policy.py
   .github/CODEOWNERS
@@ -60,7 +63,7 @@ required_files=(
 for relative_path in "${required_files[@]}"; do
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
   case "$relative_path" in
-    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/governance/repository-settings.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | nix/checks/gates.toml | nix/checks/rust-gates.nix | scripts/benchmark-support-policy.py | scripts/check-bootstrap-inventory.py | scripts/check-support-policy.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/support-policy.py)
+    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/governance/repository-settings.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | nix/checks/gates.toml | nix/checks/rust-gates.nix | scripts/benchmark-support-policy.py | scripts/check-bootstrap-inventory.py | scripts/check-openspec-archive.py | scripts/factory | scripts/check-support-policy.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/openspec-archive.py | scripts/tests/support-policy.py)
       cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
       ;;
     *)
@@ -71,11 +74,13 @@ done
 chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" \
   "$fixture_root/scripts/benchmark-support-policy.py" \
   "$fixture_root/scripts/check-bootstrap-inventory.py" \
+  "$fixture_root/scripts/check-openspec-archive.py" \
   "$fixture_root/scripts/check-pr-policy.sh" \
   "$fixture_root/scripts/check-support-policy.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/tests/bootstrap-inventory.py" \
   "$fixture_root/scripts/tests/factory-contract.sh" \
+  "$fixture_root/scripts/tests/openspec-archive.py" \
   "$fixture_root/scripts/tests/pr-policy.sh" \
   "$fixture_root/scripts/tests/support-policy.py"
 
@@ -131,6 +136,62 @@ mkdir -p "$fixture_root/nested"
 git -C "$fixture_root" add -f nested/.env
 if "$checker" "$fixture_root" >/dev/null 2>&1; then
   printf 'factory-contract test: nested tracked local state was accepted\n' >&2
+  exit 1
+fi
+
+mkdir -p "$fixture_root/openspec/specs/example-capability" "$fixture_root/fake-bin"
+cat >"$fixture_root/openspec/specs/example-capability/spec.md" <<'EOF'
+# Example Specification
+
+## Requirements
+
+### Requirement: Existing behavior
+
+The system SHALL preserve both behaviors.
+
+#### Scenario: First behavior
+
+- **WHEN** the first path runs
+- **THEN** the first result remains
+
+#### Scenario: Unrelated behavior
+
+- **WHEN** the unrelated path runs
+- **THEN** the unrelated result remains
+EOF
+cat >"$change_root/specs/example-capability/spec.md" <<'EOF'
+## MODIFIED Requirements
+
+### Requirement: Existing behavior
+
+The system SHALL preserve only one behavior.
+
+#### Scenario: First behavior
+
+- **WHEN** the first path runs
+- **THEN** the first result remains
+EOF
+printf '%s\n' '- [x] 1.1 Example task' >"$change_root/tasks.md"
+cat >"$fixture_root/fake-bin/openspec" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >>"$OPENSPEC_CALL_LOG"
+EOF
+chmod +x "$fixture_root/fake-bin/openspec"
+: >"$fixture_root/openspec-calls.log"
+canonical_before=$(git -C "$fixture_root" hash-object openspec/specs/example-capability/spec.md)
+if PATH="$fixture_root/fake-bin:$PATH" \
+  OPENSPEC_CALL_LOG="$fixture_root/openspec-calls.log" \
+  "$fixture_root/scripts/factory" archive example-change >/dev/null 2>&1; then
+  printf 'factory-contract test: lossy archive wrapper request was accepted\n' >&2
+  exit 1
+fi
+canonical_after=$(git -C "$fixture_root" hash-object openspec/specs/example-capability/spec.md)
+if [[ "$canonical_before" != "$canonical_after" || ! -d "$change_root" ]]; then
+  printf 'factory-contract test: rejected archive mutated OpenSpec state\n' >&2
+  exit 1
+fi
+if grep -Eq '^archive( |$)' "$fixture_root/openspec-calls.log"; then
+  printf 'factory-contract test: OpenSpec archive ran before preservation failure\n' >&2
   exit 1
 fi
 

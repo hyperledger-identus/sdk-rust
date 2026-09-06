@@ -37,11 +37,13 @@ required_files=(
   scripts/factory
   scripts/check-factory.sh
   scripts/check-bootstrap-inventory.py
+  scripts/check-openspec-archive.py
   scripts/check-support-policy.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-pr-policy.sh
   scripts/tests/factory-contract.sh
   scripts/tests/bootstrap-inventory.py
+  scripts/tests/openspec-archive.py
   scripts/tests/pr-policy.sh
   scripts/tests/support-policy.py
   .github/CODEOWNERS
@@ -58,7 +60,7 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in scripts/factory scripts/benchmark-support-policy.py scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-pr-policy.sh scripts/check-support-policy.py scripts/check-ssi-upstream-backlog.py scripts/tests/bootstrap-inventory.py scripts/tests/factory-contract.sh scripts/tests/pr-policy.sh scripts/tests/support-policy.py; do
+for executable_path in scripts/factory scripts/benchmark-support-policy.py scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-support-policy.py scripts/check-ssi-upstream-backlog.py scripts/tests/bootstrap-inventory.py scripts/tests/factory-contract.sh scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/support-policy.py; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi
@@ -102,6 +104,12 @@ else
       report_failure "active change $change_name has no parseable task checkbox"
     fi
   done < <(find "$changes_root" -mindepth 1 -maxdepth 1 -type d ! -name archive -print0)
+fi
+
+if [[ -x "$factory_root/scripts/check-openspec-archive.py" ]]; then
+  if ! "$factory_root/scripts/check-openspec-archive.py" "$factory_root"; then
+    report_failure "OpenSpec archive-preservation validation failed"
+  fi
 fi
 
 if [[ -f "$factory_root/.pi/chains/afk.yaml" ]] && grep -q 'add-newtype-macro' "$factory_root/.pi/chains/afk.yaml"; then

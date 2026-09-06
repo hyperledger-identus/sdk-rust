@@ -3,7 +3,7 @@
 use std::fmt;
 
 use base64::Engine as _;
-use base64::engine::general_purpose::STANDARD;
+use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
 use identus_crypto::PublicKeyJwk;
 use serde::de::{Error as _, IgnoredAny, MapAccess, SeqAccess, Visitor};
 use serde::ser::SerializeStruct;
@@ -544,12 +544,17 @@ fn valid_compact_token(value: &str, limits: JwsLimits) -> bool {
     let payload = segments.next();
     let signature = segments.next();
     segments.next().is_none()
-        && [header, payload, signature].into_iter().all(|segment| {
-            segment.is_some_and(|segment| {
-                !segment.is_empty()
-                    && segment
-                        .bytes()
-                        .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
-            })
-        })
+        && [header, payload, signature]
+            .into_iter()
+            .all(|segment| segment.is_some_and(valid_base64url_segment))
+}
+
+fn valid_base64url_segment(segment: &str) -> bool {
+    !segment.is_empty()
+        && segment
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
+        && URL_SAFE_NO_PAD
+            .decode(segment)
+            .is_ok_and(|decoded| URL_SAFE_NO_PAD.encode(decoded) == segment)
 }

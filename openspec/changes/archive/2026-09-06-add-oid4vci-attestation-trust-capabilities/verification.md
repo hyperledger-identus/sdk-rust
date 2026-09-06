@@ -66,3 +66,9 @@ post-archive Nix matrix was rerun against the archived tree and passed.
 The distinct exact-diff review is recorded in `review.md`. Its two test-only
 coverage findings were resolved and the affected focused tests, strict Clippy
 and warning-denied docs passed afterward. No unresolved finding remains.
+
+The first hosted Codex review on `3838d7fc264a6bacba9618ce5611551edfc4a6f5`
+found that alphabet-only compact-token checking admitted undecodable Base64url
+segments. Canonical decode/re-encode validation and constructor/raw-parser
+regressions were added. The replacement head must repeat focused, full CI and
+hosted-review gates before merge.

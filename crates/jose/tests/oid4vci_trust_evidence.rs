@@ -24,7 +24,8 @@ use identus_jose::{
 const PRIVATE_BYTES: [u8; 32] = [0x41; 32];
 const ATTESTATION: &str = "eyJ0eXAiOiJrZXktYXR0ZXN0YXRpb24rand0In0.e30.AQ";
 const ENTITY_CONFIGURATION: &str = "eyJ0eXAiOiJlbnRpdHktc3RhdGVtZW50K2p3dCJ9.e30.AQ";
-const SUBORDINATE_STATEMENT: &str = "eyJ0eXAiOiJlbnRpdHktc3RhdGVtZW50K2p3dCJ9.e31.Ag";
+const SUBORDINATE_STATEMENT: &str =
+    "eyJ0eXAiOiJlbnRpdHktc3RhdGVtZW50K2p3dCJ9.eyJzdWIiOiJsZWFmIn0.Ag";
 const KEY_ID: &str = "federation-proof-key";
 const AUDIENCE: &str = "https://credential-issuer.example";
 const NONCE: &str = "server-nonce";
@@ -255,6 +256,7 @@ fn invalid_evidence_and_ambiguous_key_sources_fail_before_signing() {
     let limits = Oid4vciProofJwtLimits::default();
     for invalid in [
         Oid4vciProofJwtEvidence::new(Some("not-a-jwt".to_owned()), None, limits),
+        Oid4vciProofJwtEvidence::new(Some("A.A.A".to_owned()), None, limits),
         Oid4vciProofJwtEvidence::new(None, Some(Vec::new()), limits),
         Oid4vciProofJwtEvidence::new(None, Some(vec![ENTITY_CONFIGURATION.to_owned(); 9]), limits),
     ] {
@@ -280,6 +282,12 @@ fn parser_rejects_malformed_duplicate_and_unknown_evidence_members() {
         (
             raw_compact(&format!(
                 r#"{{"alg":"Ed25519","typ":"openid4vci-proof+jwt","kid":"{KEY_ID}","key_attestation":"bad"}}"#
+            )),
+            JoseError::InvalidHeaderValue,
+        ),
+        (
+            raw_compact(&format!(
+                r#"{{"alg":"Ed25519","typ":"openid4vci-proof+jwt","kid":"{KEY_ID}","key_attestation":"A.A.A"}}"#
             )),
             JoseError::InvalidHeaderValue,
         ),

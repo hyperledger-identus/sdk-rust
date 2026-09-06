@@ -83,3 +83,14 @@ None. Implementation may begin after strict OpenSpec and factory validation.
 ### Final findings
 
 No unresolved finding remains.
+
+## Hosted review cycle — 2026-09-06
+
+- Hosted Codex reviewed exact head `3838d7fc264a6bacba9618ce5611551edfc4a6f5`
+  and found one P2: alphabet-only checking admitted undecodable Base64url
+  segments such as `A.A.A`.
+- Resolution: every nested compact-token segment is now decoded and
+  canonically re-encoded with unpadded Base64url before evidence is accepted.
+  Constructor and raw-parser regressions cover the counterexample.
+- A fresh hosted review is required on the replacement head. No finding is
+  treated as resolved until the focused and full gates pass on that head.

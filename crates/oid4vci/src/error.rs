@@ -136,6 +136,22 @@ pub mod error_code {
         ErrorCode::new("oid4vci.invalid_pre_authorized_token_request_limits");
     pub const PRE_AUTHORIZED_TOKEN_REQUEST_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.pre_authorized_token_request_too_large");
+    pub const INVALID_TOKEN_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_token_response_limits");
+    pub const TOKEN_RESPONSE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.token_response_too_large");
+    pub const INVALID_TOKEN_RESPONSE: ErrorCode = ErrorCode::new("oid4vci.invalid_token_response");
+    pub const INVALID_ACCESS_TOKEN: ErrorCode = ErrorCode::new("oid4vci.invalid_access_token");
+    pub const ACCESS_TOKEN_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vci.access_token_too_large");
+    pub const INVALID_TOKEN_TYPE: ErrorCode = ErrorCode::new("oid4vci.invalid_token_type");
+    pub const TOKEN_TYPE_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vci.token_type_too_large");
+    pub const INVALID_TOKEN_EXPIRES_IN: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_token_expires_in");
+    pub const INVALID_REFRESH_TOKEN: ErrorCode = ErrorCode::new("oid4vci.invalid_refresh_token");
+    pub const REFRESH_TOKEN_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.refresh_token_too_large");
+    pub const INVALID_TOKEN_SCOPE: ErrorCode = ErrorCode::new("oid4vci.invalid_token_scope");
+    pub const TOKEN_SCOPE_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vci.token_scope_too_large");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -218,6 +234,18 @@ pub enum CredentialOfferError {
     TransactionCodeInputTooLarge,
     InvalidPreAuthorizedTokenRequestLimits,
     PreAuthorizedTokenRequestTooLarge,
+    InvalidTokenResponseLimits,
+    TokenResponseTooLarge,
+    InvalidTokenResponse,
+    InvalidAccessToken,
+    AccessTokenTooLarge,
+    InvalidTokenType,
+    TokenTypeTooLarge,
+    InvalidTokenExpiresIn,
+    InvalidRefreshToken,
+    RefreshTokenTooLarge,
+    InvalidTokenScope,
+    TokenScopeTooLarge,
 }
 
 impl CredentialOfferError {
@@ -593,6 +621,66 @@ impl CredentialOfferError {
                 error_code::PRE_AUTHORIZED_TOKEN_REQUEST_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI Pre-Authorized Token Request is too large",
+            ),
+            Self::InvalidTokenResponseLimits => (
+                error_code::INVALID_TOKEN_RESPONSE_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Response limits are invalid",
+            ),
+            Self::TokenResponseTooLarge => (
+                error_code::TOKEN_RESPONSE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Response is too large",
+            ),
+            Self::InvalidTokenResponse => (
+                error_code::INVALID_TOKEN_RESPONSE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Response core is invalid",
+            ),
+            Self::InvalidAccessToken => (
+                error_code::INVALID_ACCESS_TOKEN,
+                ErrorKind::InvalidInput,
+                "OID4VCI access token is invalid",
+            ),
+            Self::AccessTokenTooLarge => (
+                error_code::ACCESS_TOKEN_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI access token is too large",
+            ),
+            Self::InvalidTokenType => (
+                error_code::INVALID_TOKEN_TYPE,
+                ErrorKind::InvalidInput,
+                "OID4VCI token type is invalid",
+            ),
+            Self::TokenTypeTooLarge => (
+                error_code::TOKEN_TYPE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI token type is too large",
+            ),
+            Self::InvalidTokenExpiresIn => (
+                error_code::INVALID_TOKEN_EXPIRES_IN,
+                ErrorKind::InvalidInput,
+                "OID4VCI token expiry is invalid",
+            ),
+            Self::InvalidRefreshToken => (
+                error_code::INVALID_REFRESH_TOKEN,
+                ErrorKind::InvalidInput,
+                "OID4VCI refresh token is invalid",
+            ),
+            Self::RefreshTokenTooLarge => (
+                error_code::REFRESH_TOKEN_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI refresh token is too large",
+            ),
+            Self::InvalidTokenScope => (
+                error_code::INVALID_TOKEN_SCOPE,
+                ErrorKind::InvalidInput,
+                "OID4VCI token scope is invalid",
+            ),
+            Self::TokenScopeTooLarge => (
+                error_code::TOKEN_SCOPE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI token scope is too large",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

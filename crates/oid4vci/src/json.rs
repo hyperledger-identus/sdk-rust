@@ -5,6 +5,7 @@ use zeroize::Zeroizing;
 use crate::{
     AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits, CredentialOfferError,
     CredentialOfferGrantLimits, CredentialOfferLimits, CredentialOfferSemanticLimits,
+    TokenResponseLimits,
 };
 
 const AUTHORIZATION_CODE_GRANT: &str = "authorization_code";
@@ -57,6 +58,15 @@ pub(crate) struct AuthorizationServerMetadataFields {
     pub(crate) token_endpoint: Option<Zeroizing<String>>,
     pub(crate) grant_types_supported: Option<Vec<Zeroizing<String>>>,
     pub(crate) anonymous_pre_authorized_access: Option<bool>,
+}
+
+pub(crate) struct TokenResponseFields {
+    pub(crate) access_token: Zeroizing<String>,
+    pub(crate) token_type: Zeroizing<String>,
+    pub(crate) expires_in: Option<u64>,
+    pub(crate) refresh_token: Option<Zeroizing<String>>,
+    pub(crate) scope: Option<Zeroizing<String>>,
+    pub(crate) authorization_details_present: bool,
 }
 
 pub(crate) fn validate_json(
@@ -181,6 +191,31 @@ pub(crate) fn parse_authorization_server_metadata_fields(
     scanner.skip_whitespace();
     if scanner.cursor != input.len() {
         return Err(CredentialOfferError::InvalidAuthorizationServerMetadata);
+    }
+    Ok(fields)
+}
+
+pub(crate) fn parse_token_response_fields(
+    input: &[u8],
+    limits: TokenResponseLimits,
+) -> Result<TokenResponseFields, CredentialOfferError> {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
+        max_depth: limits.max_json_depth(),
+        max_nodes: limits.max_json_nodes(),
+        nodes: 0,
+    };
+    scanner.skip_whitespace();
+    scanner.visit_node()?;
+    let depth = scanner.enter_container(0)?;
+    if !scanner.consume_if(b'{') {
+        return Err(CredentialOfferError::InvalidTokenResponse);
+    }
+    let fields = scanner.parse_token_response_object(depth, limits)?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(CredentialOfferError::InvalidTokenResponse);
     }
     Ok(fields)
 }
@@ -479,6 +514,81 @@ impl Scanner<'_> {
                 None
             },
             anonymous_pre_authorized_access,
+        })
+    }
+
+    fn parse_token_response_object(
+        &mut self,
+        depth: usize,
+        limits: TokenResponseLimits,
+    ) -> Result<TokenResponseFields, CredentialOfferError> {
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidTokenResponse);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut access_token = None;
+        let mut token_type = None;
+        let mut expires_in = None;
+        let mut refresh_token = None;
+        let mut scope = None;
+        let mut authorization_details_present = false;
+        loop {
+            let name = self.parse_unique_member_name(&mut names)?;
+            self.require_member_separator()?;
+            match name.as_str() {
+                "access_token" => {
+                    access_token = Some(self.parse_nonempty_bounded_string(
+                        limits.max_access_token_bytes(),
+                        CredentialOfferError::InvalidAccessToken,
+                        CredentialOfferError::AccessTokenTooLarge,
+                    )?);
+                }
+                "token_type" => {
+                    token_type = Some(self.parse_nonempty_bounded_string(
+                        limits.max_token_type_bytes(),
+                        CredentialOfferError::InvalidTokenType,
+                        CredentialOfferError::TokenTypeTooLarge,
+                    )?);
+                }
+                "expires_in" => {
+                    expires_in = Some(
+                        self.parse_non_negative_u64(CredentialOfferError::InvalidTokenExpiresIn)?,
+                    );
+                }
+                "refresh_token" => {
+                    refresh_token = Some(self.parse_nonempty_bounded_string(
+                        limits.max_refresh_token_bytes(),
+                        CredentialOfferError::InvalidRefreshToken,
+                        CredentialOfferError::RefreshTokenTooLarge,
+                    )?);
+                }
+                "scope" => {
+                    scope = Some(self.parse_nonempty_bounded_string(
+                        limits.max_scope_bytes(),
+                        CredentialOfferError::InvalidTokenScope,
+                        CredentialOfferError::TokenScopeTooLarge,
+                    )?);
+                }
+                "authorization_details" => {
+                    authorization_details_present = true;
+                    self.parse_value(depth)?;
+                }
+                _ => self.parse_value(depth)?,
+            }
+            if self.finish_or_continue_object()? {
+                break;
+            }
+        }
+
+        Ok(TokenResponseFields {
+            access_token: access_token.ok_or(CredentialOfferError::InvalidTokenResponse)?,
+            token_type: token_type.ok_or(CredentialOfferError::InvalidTokenResponse)?,
+            expires_in,
+            refresh_token,
+            scope,
+            authorization_details_present,
         })
     }
 
@@ -970,6 +1080,35 @@ impl Scanner<'_> {
             return Err(CredentialOfferError::InvalidTransactionCodeLength);
         }
         Ok(value)
+    }
+
+    fn parse_non_negative_u64(
+        &mut self,
+        invalid: CredentialOfferError,
+    ) -> Result<u64, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        let start = self.cursor;
+        match self.peek() {
+            Some(b'0') => {
+                self.cursor += 1;
+                if self.peek().is_some_and(|byte| byte.is_ascii_digit()) {
+                    return Err(invalid);
+                }
+            }
+            Some(b'1'..=b'9') => self.consume_digits(),
+            _ => return Err(invalid),
+        }
+        if self
+            .peek()
+            .is_some_and(|byte| matches!(byte, b'.' | b'e' | b'E'))
+        {
+            return Err(invalid);
+        }
+        std::str::from_utf8(&self.input[start..self.cursor])
+            .ok()
+            .and_then(|value| value.parse::<u64>().ok())
+            .ok_or(invalid)
     }
 
     fn parse_configuration_ids(

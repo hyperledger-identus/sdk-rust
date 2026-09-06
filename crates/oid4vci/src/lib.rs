@@ -4,9 +4,10 @@
 //! semantics, unsigned Credential Issuer Metadata, exact cross-document
 //! agreement, a partial Authorization Server Metadata core, and explicit
 //! Pre-Authorized Code server and Transaction Code input binding, and bounded
-//! construction of the mandatory Pre-Authorized Token Request form. It
-//! performs no network access, does not validate complete RFC 8414 metadata,
-//! and establishes no issuer or server trust.
+//! construction of the mandatory Pre-Authorized Token Request form plus a
+//! partial successful Token Response core. It performs no network access, does
+//! not validate complete RFC 8414 metadata or Token Response Authorization
+//! Details, and establishes no issuer, server, or token trust.
 
 #![forbid(unsafe_code)]
 
@@ -19,6 +20,7 @@ mod metadata;
 mod pre_authorized_server;
 mod pre_authorized_token_request;
 mod semantic;
+mod token_response;
 mod transaction_code_input;
 mod transport;
 
@@ -35,7 +37,7 @@ pub use grants::{
 pub use limits::{
     AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits, CredentialOfferGrantLimits,
     CredentialOfferLimits, CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
-    PreAuthorizedTokenRequestLimits, TransactionCodeInputLimits,
+    PreAuthorizedTokenRequestLimits, TokenResponseLimits, TransactionCodeInputLimits,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,
@@ -46,6 +48,7 @@ pub use pre_authorized_token_request::{
     PreAuthorizedTokenRequest, TOKEN_REQUEST_HTTP_METHOD, TOKEN_REQUEST_MEDIA_TYPE,
 };
 pub use semantic::{CredentialConfigurationId, CredentialIssuerIdentifier, CredentialOffer};
+pub use token_response::{TokenResponseCore, TokenType};
 pub use transaction_code_input::CredentialOfferWithPreAuthorizedTokenInput;
 pub use transport::{CredentialOfferReference, CredentialOfferRequest, EmbeddedCredentialOffer};
 

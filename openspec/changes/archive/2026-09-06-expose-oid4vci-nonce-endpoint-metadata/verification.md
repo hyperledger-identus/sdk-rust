@@ -77,6 +77,10 @@ evaluation and Darwin fixup warnings did not fail a derivation.
   `961b94735a148e3fc3c1c62f2bb241679ad7fd2a60e08032e2ec9ae88a6828bc`.
 - No manifest, lockfile, Cargo feature, dependency, consumer, chain or product
   repository changed.
-- Both existing commits have valid local signatures and DCO sign-offs.
+- The four branch commits through archive commit
+  `7562dd53b693257cbe77e8bacde6167e745157f5` have valid local signatures and
+  DCO sign-offs. GitHub's ephemeral pull-request merge commit is CI input, not
+  a repository-facing commit; the protected squash merge remains subject to
+  the repository's verified-signature and DCO controls.
 - The distinct exact-diff review is recorded in `review.md`; no unresolved
   finding remains.

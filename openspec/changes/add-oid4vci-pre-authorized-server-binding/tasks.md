@@ -25,13 +25,13 @@
   preservation, static-error, and diagnostic-canary evidence.
 - [x] 3.3 Record ADR 0046 and advance blueprint/canonical `IDR-023` tracking
   without claiming request construction or protocol-engine completion.
-- [ ] 3.4 Verify consumer HEAD/status/path receipts against preflight.
+- [x] 3.4 Verify consumer HEAD/status/path receipts against preflight.
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Pass focused fmt, all/no-default tests, strict Clippy, and docs.
-- [ ] 4.2 Pass factory, workspace, target/MSRV, supply-chain, and full Nix gates.
-- [ ] 4.3 Complete a distinct post-implementation review and resolve every
+- [x] 4.1 Pass focused fmt, all/no-default tests, strict Clippy, and docs.
+- [x] 4.2 Pass factory, workspace, target/MSRV, supply-chain, and full Nix gates.
+- [x] 4.3 Complete a distinct post-implementation review and resolve every
   architecture/API/standards/security/resource finding.
 - [ ] 4.4 Produce ready/receipt, synchronize and archive specs, then open the
   signed/DCO issue-linked PR for exact-head hosted CI/review and eligible merge.

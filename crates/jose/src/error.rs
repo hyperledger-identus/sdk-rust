@@ -88,6 +88,24 @@ pub mod error_code {
     pub const X5C_REJECTED: ErrorCode = ErrorCode::new("jose.x5c_rejected");
     /// The certificate-key provider could not service the request.
     pub const X5C_PROVIDER_UNAVAILABLE: ErrorCode = ErrorCode::new("jose.x5c_provider_unavailable");
+    /// OID4VCI proof trust evidence violated its bounded profile.
+    pub const INVALID_PROOF_EVIDENCE: ErrorCode = ErrorCode::new("jose.invalid_proof_evidence");
+    /// No trust-chain provider was supplied for a federation-bound proof.
+    pub const TRUST_CHAIN_PROVIDER_REQUIRED: ErrorCode =
+        ErrorCode::new("jose.trust_chain_provider_required");
+    /// The trust-chain provider rejected the supplied chain or key selection.
+    pub const TRUST_CHAIN_REJECTED: ErrorCode = ErrorCode::new("jose.trust_chain_rejected");
+    /// The trust-chain provider could not service the request.
+    pub const TRUST_CHAIN_PROVIDER_UNAVAILABLE: ErrorCode =
+        ErrorCode::new("jose.trust_chain_provider_unavailable");
+    /// No key-attestation validator was supplied for an attested proof.
+    pub const KEY_ATTESTATION_PROVIDER_REQUIRED: ErrorCode =
+        ErrorCode::new("jose.key_attestation_provider_required");
+    /// The key-attestation validator rejected the supplied evidence.
+    pub const KEY_ATTESTATION_REJECTED: ErrorCode = ErrorCode::new("jose.key_attestation_rejected");
+    /// The key-attestation validator could not service the request.
+    pub const KEY_ATTESTATION_PROVIDER_UNAVAILABLE: ErrorCode =
+        ErrorCode::new("jose.key_attestation_provider_unavailable");
     /// Issuer proof policy inputs were invalid.
     pub const INVALID_PROOF_POLICY: ErrorCode = ErrorCode::new("jose.invalid_proof_policy");
     /// The proof issuer/client did not match policy.
@@ -186,6 +204,20 @@ pub enum JoseError {
     X5cRejected,
     /// The certificate-key provider was unavailable.
     X5cProviderUnavailable,
+    /// OID4VCI proof trust evidence is malformed or uses an ambiguous key source.
+    InvalidProofEvidence,
+    /// A federation-bound proof requires an injected trust-chain provider.
+    TrustChainProviderRequired,
+    /// The injected trust-chain provider rejected the chain.
+    TrustChainRejected,
+    /// The injected trust-chain provider was unavailable.
+    TrustChainProviderUnavailable,
+    /// An attested proof requires an injected key-attestation validator.
+    KeyAttestationProviderRequired,
+    /// The injected key-attestation validator rejected the evidence.
+    KeyAttestationRejected,
+    /// The injected key-attestation validator was unavailable.
+    KeyAttestationProviderUnavailable,
     /// Caller-supplied proof policy is invalid.
     InvalidProofPolicy,
     /// The proof issuer/client mode does not match caller policy.
@@ -334,6 +366,34 @@ impl JoseError {
                 error_code::X5C_PROVIDER_UNAVAILABLE,
                 "OID4VCI proof JWT certificate provider is unavailable",
             ),
+            Self::InvalidProofEvidence => (
+                error_code::INVALID_PROOF_EVIDENCE,
+                "OID4VCI proof JWT trust evidence is invalid",
+            ),
+            Self::TrustChainProviderRequired => (
+                error_code::TRUST_CHAIN_PROVIDER_REQUIRED,
+                "OID4VCI proof JWT trust-chain provider is required",
+            ),
+            Self::TrustChainRejected => (
+                error_code::TRUST_CHAIN_REJECTED,
+                "OID4VCI proof JWT trust chain was rejected",
+            ),
+            Self::TrustChainProviderUnavailable => (
+                error_code::TRUST_CHAIN_PROVIDER_UNAVAILABLE,
+                "OID4VCI proof JWT trust-chain provider is unavailable",
+            ),
+            Self::KeyAttestationProviderRequired => (
+                error_code::KEY_ATTESTATION_PROVIDER_REQUIRED,
+                "OID4VCI proof JWT key-attestation validator is required",
+            ),
+            Self::KeyAttestationRejected => (
+                error_code::KEY_ATTESTATION_REJECTED,
+                "OID4VCI proof JWT key attestation was rejected",
+            ),
+            Self::KeyAttestationProviderUnavailable => (
+                error_code::KEY_ATTESTATION_PROVIDER_UNAVAILABLE,
+                "OID4VCI proof JWT key-attestation validator is unavailable",
+            ),
             Self::InvalidProofPolicy => (
                 error_code::INVALID_PROOF_POLICY,
                 "OID4VCI proof JWT policy is invalid",
@@ -374,12 +434,16 @@ impl JoseError {
             | Self::UnsupportedProofKeyReference => ErrorKind::Unsupported,
             Self::SigningRejected | Self::SignerUnavailable => ErrorKind::Crypto,
             Self::X5cProviderUnavailable
+            | Self::TrustChainProviderUnavailable
+            | Self::KeyAttestationProviderUnavailable
             | Self::ProofClockUnavailable
             | Self::ProofReplayUnavailable => ErrorKind::Internal,
             Self::SignatureInvalid
             | Self::ProofKeyResolutionFailed
             | Self::ProofKeyNotAuthorized
             | Self::X5cRejected
+            | Self::TrustChainRejected
+            | Self::KeyAttestationRejected
             | Self::ProofClientMismatch
             | Self::ProofAudienceMismatch
             | Self::ProofNonceMismatch

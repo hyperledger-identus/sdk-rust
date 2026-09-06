@@ -290,8 +290,10 @@ holder construction. Its second delivery adds three-stage issuer verification,
 exact DID `authentication` authorization, an injected X.509 leaf-key provider,
 explicit client/audience/nonce/freshness policy and an atomic caller-owned
 replay gate. Issue #100 supplies bounded coverage-guided fuzzing across the
-Compact boundary. Optional proof attestation and trust-chain headers remain in
-issue #104.
+Compact boundary. Issue #104 adds bounded opaque proof-attestation and
+trust-chain headers, explicit holder construction, an injected OpenID
+Federation key provider, an injected key-attestation validator and a distinct
+trust-evaluated state without selecting platform or product trust policy.
 
 ### B09 — OID4VCI Final (`#7`)
 

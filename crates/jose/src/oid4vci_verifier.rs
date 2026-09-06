@@ -42,6 +42,92 @@ pub trait Oid4vciX5cKeyProvider: Send + Sync {
     ) -> Oid4vciX5cKeyFuture<'a>;
 }
 
+/// Static failure returned by an injected OpenID Federation trust-chain provider.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum Oid4vciTrustChainFailure {
+    /// The chain, selected key or caller-owned trust policy was rejected.
+    Rejected,
+    /// The provider could not service the request.
+    Unavailable,
+}
+
+/// Future returned by [`Oid4vciTrustChainKeyProvider`].
+pub type Oid4vciTrustChainKeyFuture<'a> =
+    Pin<Box<dyn Future<Output = Result<PublicKeyJwk, Oid4vciTrustChainFailure>> + Send + 'a>>;
+
+/// Caller-owned OpenID Federation validation and proof-key selection capability.
+pub trait Oid4vciTrustChainKeyProvider: Send + Sync {
+    /// Validate one bounded chain and return the trusted key selected by `key_id`.
+    fn verification_key<'a>(
+        &'a self,
+        algorithm: JwsAlgorithm,
+        key_id: &'a str,
+        chain: &'a [String],
+    ) -> Oid4vciTrustChainKeyFuture<'a>;
+}
+
+/// Static failure returned by an injected key-attestation validator.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum Oid4vciKeyAttestationFailure {
+    /// The attestation, key binding or caller-owned trust policy was rejected.
+    Rejected,
+    /// The validator could not service the request.
+    Unavailable,
+}
+
+/// Borrowed bounded evidence supplied to a key-attestation validator.
+#[derive(Clone, Copy)]
+pub struct Oid4vciKeyAttestationInput<'a> {
+    attestation: &'a str,
+    proof_key: &'a PublicKeyJwk,
+    proof_nonce: Option<&'a str>,
+}
+
+impl<'a> Oid4vciKeyAttestationInput<'a> {
+    /// Borrow the bounded untrusted key-attestation compact token.
+    #[must_use]
+    pub const fn attestation(&self) -> &'a str {
+        self.attestation
+    }
+
+    /// Borrow the exact key that verified the outer proof signature.
+    #[must_use]
+    pub const fn proof_key(&self) -> &'a PublicKeyJwk {
+        self.proof_key
+    }
+
+    /// Borrow the validated outer proof nonce, when supplied.
+    #[must_use]
+    pub const fn proof_nonce(&self) -> Option<&'a str> {
+        self.proof_nonce
+    }
+}
+
+impl fmt::Debug for Oid4vciKeyAttestationInput<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Oid4vciKeyAttestationInput")
+            .field("attestation_len", &self.attestation.len())
+            .field("has_proof_nonce", &self.proof_nonce.is_some())
+            .finish_non_exhaustive()
+    }
+}
+
+/// Future returned by [`Oid4vciKeyAttestationValidator`].
+pub type Oid4vciKeyAttestationFuture<'a> =
+    Pin<Box<dyn Future<Output = Result<(), Oid4vciKeyAttestationFailure>> + Send + 'a>>;
+
+/// Caller-owned nested key-attestation validation and trust capability.
+pub trait Oid4vciKeyAttestationValidator: Send + Sync {
+    /// Validate and trust one attestation bound to the exact outer proof key.
+    fn validate<'a>(
+        &'a self,
+        input: Oid4vciKeyAttestationInput<'a>,
+    ) -> Oid4vciKeyAttestationFuture<'a>;
+}
+
 /// Static failure returned by an injected replay guard.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
@@ -269,6 +355,56 @@ impl fmt::Debug for Oid4vciParsedProofJwt {
 pub struct Oid4vciVerifiedProofJwt {
     proof: VerifiedCompactJws,
     claims: Oid4vciProofJwtClaims,
+    proof_key: PublicKeyJwk,
+}
+
+/// A cryptographically verified proof whose optional trust evidence is accepted.
+#[derive(Clone, PartialEq, Eq)]
+pub struct Oid4vciTrustedProofJwt {
+    verified: Oid4vciVerifiedProofJwt,
+}
+
+impl Oid4vciTrustedProofJwt {
+    /// Borrow the underlying cryptographically verified proof.
+    #[must_use]
+    pub const fn verified(&self) -> &Oid4vciVerifiedProofJwt {
+        &self.verified
+    }
+
+    /// Borrow the recognized claims carried by the trusted proof.
+    #[must_use]
+    pub const fn claims(&self) -> &Oid4vciProofJwtClaims {
+        self.verified.claims()
+    }
+}
+
+impl fmt::Debug for Oid4vciTrustedProofJwt {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Oid4vciTrustedProofJwt")
+            .field("algorithm", &self.verified.proof.algorithm())
+            .field(
+                "has_key_attestation",
+                &self
+                    .verified
+                    .proof
+                    .as_compact()
+                    .protected_header()
+                    .key_attestation()
+                    .is_some(),
+            )
+            .field(
+                "trust_chain_len",
+                &self
+                    .verified
+                    .proof
+                    .as_compact()
+                    .protected_header()
+                    .trust_chain()
+                    .map_or(0, <[String]>::len),
+            )
+            .finish_non_exhaustive()
+    }
 }
 
 impl Oid4vciVerifiedProofJwt {
@@ -300,20 +436,26 @@ impl fmt::Debug for Oid4vciVerifiedProofJwt {
 /// A cryptographically verified proof accepted by explicit issuer policy.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Oid4vciAuthorizedProofJwt {
-    verified: Oid4vciVerifiedProofJwt,
+    trusted: Oid4vciTrustedProofJwt,
 }
 
 impl Oid4vciAuthorizedProofJwt {
     /// Borrow the underlying key-bound cryptographic evidence.
     #[must_use]
     pub const fn verified(&self) -> &Oid4vciVerifiedProofJwt {
-        &self.verified
+        self.trusted.verified()
+    }
+
+    /// Borrow the trust-evaluated proof evidence.
+    #[must_use]
+    pub const fn trusted(&self) -> &Oid4vciTrustedProofJwt {
+        &self.trusted
     }
 
     /// Borrow the issuer-authorized recognized claims.
     #[must_use]
     pub const fn claims(&self) -> &Oid4vciProofJwtClaims {
-        self.verified.claims()
+        self.trusted.claims()
     }
 }
 
@@ -321,10 +463,10 @@ impl fmt::Debug for Oid4vciAuthorizedProofJwt {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("Oid4vciAuthorizedProofJwt")
-            .field("algorithm", &self.verified.proof.algorithm())
+            .field("algorithm", &self.trusted.verified.proof.algorithm())
             .field(
                 "compact_len",
-                &self.verified.proof.as_compact().compact().len(),
+                &self.trusted.verified.proof.as_compact().compact().len(),
             )
             .finish_non_exhaustive()
     }
@@ -336,6 +478,8 @@ pub struct Oid4vciProofJwtVerifier<'a> {
     suites: &'a SignatureSuiteRegistry,
     did_dereferencer: Option<&'a dyn DidUrlDereferencer>,
     x5c_provider: Option<&'a dyn Oid4vciX5cKeyProvider>,
+    trust_chain_provider: Option<&'a dyn Oid4vciTrustChainKeyProvider>,
+    key_attestation_validator: Option<&'a dyn Oid4vciKeyAttestationValidator>,
 }
 
 impl<'a> Oid4vciProofJwtVerifier<'a> {
@@ -352,7 +496,29 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
             suites,
             did_dereferencer,
             x5c_provider,
+            trust_chain_provider: None,
+            key_attestation_validator: None,
         }
+    }
+
+    /// Add the caller-owned OpenID Federation trust-chain capability.
+    #[must_use]
+    pub const fn with_trust_chain_provider(
+        mut self,
+        provider: &'a dyn Oid4vciTrustChainKeyProvider,
+    ) -> Self {
+        self.trust_chain_provider = Some(provider);
+        self
+    }
+
+    /// Add the caller-owned key-attestation validation capability.
+    #[must_use]
+    pub const fn with_key_attestation_validator(
+        mut self,
+        validator: &'a dyn Oid4vciKeyAttestationValidator,
+    ) -> Self {
+        self.key_attestation_validator = Some(validator);
+        self
     }
 
     /// Parse and validate the bounded profile without invoking providers.
@@ -364,6 +530,11 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
         }
         if header.key_reference().is_none() {
             return Err(JoseError::MissingProofKeyReference);
+        }
+        if header.trust_chain().is_some()
+            && !matches!(header.key_reference(), Some(JwsKeyReference::KeyId(_)))
+        {
+            return Err(JoseError::InvalidProofEvidence);
         }
         let algorithm = JwsAlgorithm::parse(header.algorithm())?;
         if !self.suites.contains(algorithm) {
@@ -398,26 +569,66 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
         let selected = header
             .key_reference()
             .ok_or(JoseError::MissingProofKeyReference)?;
-        let proof = match selected {
+        let (proof, proof_key) = match selected {
             JwsKeyReference::Jwk(public_key) => {
                 let key = JwsVerificationKey::new(algorithm, public_key)?;
-                self.suites.verify(&parsed.compact, &key)?
+                (
+                    self.suites.verify(&parsed.compact, &key)?,
+                    public_key.clone(),
+                )
             }
             JwsKeyReference::KeyId(value) => {
-                let public_key = self.resolve_did_key(value).await?;
+                let public_key = if let Some(chain) = header.trust_chain() {
+                    self.resolve_trust_chain_key(algorithm, value, chain)
+                        .await?
+                } else {
+                    self.resolve_did_key(value).await?
+                };
                 let key = JwsVerificationKey::new(algorithm, &public_key)?;
-                self.suites.verify(&parsed.compact, &key)?
+                (self.suites.verify(&parsed.compact, &key)?, public_key)
             }
             JwsKeyReference::X5c(value) => {
                 let public_key = self.resolve_x5c_key(algorithm, value).await?;
                 let key = JwsVerificationKey::new(algorithm, &public_key)?;
-                self.suites.verify(&parsed.compact, &key)?
+                (self.suites.verify(&parsed.compact, &key)?, public_key)
             }
         };
         Ok(Oid4vciVerifiedProofJwt {
             proof,
             claims: parsed.claims,
+            proof_key,
         })
+    }
+
+    /// Validate optional proof trust evidence through caller-owned capabilities.
+    pub async fn validate_trust(
+        &self,
+        verified: Oid4vciVerifiedProofJwt,
+    ) -> Result<Oid4vciTrustedProofJwt, JoseError> {
+        if let Some(attestation) = verified
+            .proof
+            .as_compact()
+            .protected_header()
+            .key_attestation()
+        {
+            let validator = self
+                .key_attestation_validator
+                .ok_or(JoseError::KeyAttestationProviderRequired)?;
+            validator
+                .validate(Oid4vciKeyAttestationInput {
+                    attestation,
+                    proof_key: &verified.proof_key,
+                    proof_nonce: verified.claims.nonce(),
+                })
+                .await
+                .map_err(|failure| match failure {
+                    Oid4vciKeyAttestationFailure::Rejected => JoseError::KeyAttestationRejected,
+                    Oid4vciKeyAttestationFailure::Unavailable => {
+                        JoseError::KeyAttestationProviderUnavailable
+                    }
+                })?;
+        }
+        Ok(Oid4vciTrustedProofJwt { verified })
     }
 
     /// Apply explicit issuer claims, freshness and replay policy.
@@ -429,7 +640,20 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
         replay: &dyn Oid4vciProofReplayGuard,
     ) -> Result<Oid4vciAuthorizedProofJwt, JoseError> {
         validate_policy_with_clock(&verified.claims, policy, clock)?;
-        accept_replay(verified, replay).await
+        let trusted = self.validate_trust(verified).await?;
+        accept_replay(trusted, replay).await
+    }
+
+    /// Apply issuer claims, freshness and replay policy to trust-evaluated proof.
+    pub async fn authorize_trusted(
+        &self,
+        trusted: Oid4vciTrustedProofJwt,
+        policy: &Oid4vciProofJwtPolicy,
+        clock: &dyn WallClock,
+        replay: &dyn Oid4vciProofReplayGuard,
+    ) -> Result<Oid4vciAuthorizedProofJwt, JoseError> {
+        validate_policy_with_clock(trusted.claims(), policy, clock)?;
+        accept_replay(trusted, replay).await
     }
 
     /// Compose parsing, key-bound signature verification and issuer policy.
@@ -443,7 +667,8 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
         let parsed = self.parse(value)?;
         validate_policy_with_clock(&parsed.claims, policy, clock)?;
         let verified = self.verify_signature(parsed).await?;
-        accept_replay(verified, replay).await
+        let trusted = self.validate_trust(verified).await?;
+        accept_replay(trusted, replay).await
     }
 
     async fn resolve_did_key(&self, value: &str) -> Result<PublicKeyJwk, JoseError> {
@@ -496,6 +721,24 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
                 Oid4vciX5cKeyFailure::Unavailable => JoseError::X5cProviderUnavailable,
             })
     }
+
+    async fn resolve_trust_chain_key(
+        &self,
+        algorithm: JwsAlgorithm,
+        key_id: &str,
+        chain: &[String],
+    ) -> Result<PublicKeyJwk, JoseError> {
+        let provider = self
+            .trust_chain_provider
+            .ok_or(JoseError::TrustChainProviderRequired)?;
+        provider
+            .verification_key(algorithm, key_id, chain)
+            .await
+            .map_err(|failure| match failure {
+                Oid4vciTrustChainFailure::Rejected => JoseError::TrustChainRejected,
+                Oid4vciTrustChainFailure::Unavailable => JoseError::TrustChainProviderUnavailable,
+            })
+    }
 }
 
 impl fmt::Debug for Oid4vciProofJwtVerifier<'_> {
@@ -506,6 +749,14 @@ impl fmt::Debug for Oid4vciProofJwtVerifier<'_> {
             .field("algorithm_count", &self.suites.len())
             .field("has_did_dereferencer", &self.did_dereferencer.is_some())
             .field("has_x5c_provider", &self.x5c_provider.is_some())
+            .field(
+                "has_trust_chain_provider",
+                &self.trust_chain_provider.is_some(),
+            )
+            .field(
+                "has_key_attestation_validator",
+                &self.key_attestation_validator.is_some(),
+            )
             .finish()
     }
 }
@@ -557,20 +808,20 @@ fn validate_policy_with_clock(
 }
 
 async fn accept_replay(
-    verified: Oid4vciVerifiedProofJwt,
+    trusted: Oid4vciTrustedProofJwt,
     replay: &dyn Oid4vciProofReplayGuard,
 ) -> Result<Oid4vciAuthorizedProofJwt, JoseError> {
     replay
         .accept(Oid4vciProofReplayInput {
-            proof: &verified.proof,
-            claims: &verified.claims,
+            proof: &trusted.verified.proof,
+            claims: &trusted.verified.claims,
         })
         .await
         .map_err(|failure| match failure {
             Oid4vciProofReplayFailure::Rejected => JoseError::ProofReplayRejected,
             Oid4vciProofReplayFailure::Unavailable => JoseError::ProofReplayUnavailable,
         })?;
-    Ok(Oid4vciAuthorizedProofJwt { verified })
+    Ok(Oid4vciAuthorizedProofJwt { trusted })
 }
 
 fn validate_freshness(

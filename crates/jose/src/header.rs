@@ -3,7 +3,7 @@
 use std::fmt;
 
 use base64::Engine as _;
-use base64::engine::general_purpose::STANDARD;
+use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
 use identus_crypto::PublicKeyJwk;
 use serde::de::{Error as _, IgnoredAny, MapAccess, SeqAccess, Visitor};
 use serde::ser::SerializeStruct;
@@ -20,6 +20,8 @@ const AMBIGUOUS_KEY_REFERENCE_MARKER: &str = "identus-jose:ambiguous-key-referen
 
 /// Maximum number of certificates accepted in one protected `x5c` chain.
 pub const MAX_X5C_CERTIFICATES: usize = 8;
+/// Maximum number of entity statements accepted in one protected trust chain.
+pub const MAX_TRUST_CHAIN_ENTRIES: usize = 8;
 
 /// One exclusive public key reference carried by a protected JWS header.
 #[derive(Clone, PartialEq, Eq)]
@@ -47,14 +49,17 @@ impl fmt::Debug for JwsKeyReference {
 
 /// A validated, deliberately closed JWS protected header.
 ///
-/// The supported surface is `alg`, optional `typ`, and at most one `kid`,
-/// public `jwk`, or `x5c`. Algorithm allowlisting, certificate validation and
-/// key authorization belong to verifier profiles.
+/// The supported surface is `alg`, optional `typ`, at most one `kid`, public
+/// `jwk`, or `x5c`, and optional bounded `key_attestation` and `trust_chain`
+/// evidence. Algorithm allowlisting, nested JWT validation, certificate and
+/// federation validation, trust, and key authorization belong to profiles.
 #[derive(Clone, PartialEq, Eq)]
 pub struct ProtectedHeader {
     algorithm: String,
     type_: Option<String>,
     key_reference: Option<JwsKeyReference>,
+    key_attestation: Option<String>,
+    trust_chain: Option<Vec<String>>,
 }
 
 impl ProtectedHeader {
@@ -79,11 +84,23 @@ impl ProtectedHeader {
         key_reference: Option<JwsKeyReference>,
         limits: JwsLimits,
     ) -> Result<Self, JoseError> {
+        Self::with_key_reference_and_evidence(algorithm, type_, key_reference, None, None, limits)
+    }
+
+    pub(crate) fn with_key_reference_and_evidence(
+        algorithm: &str,
+        type_: Option<&str>,
+        key_reference: Option<JwsKeyReference>,
+        key_attestation: Option<String>,
+        trust_chain: Option<Vec<String>>,
+        limits: JwsLimits,
+    ) -> Result<Self, JoseError> {
         validate_algorithm(algorithm, limits)?;
         if type_.is_some_and(|value| !valid_optional(value, limits))
             || key_reference
                 .as_ref()
                 .is_some_and(|value| !valid_key_reference(value, limits))
+            || !valid_protected_evidence(key_attestation.as_deref(), trust_chain.as_deref(), limits)
         {
             return Err(JoseError::InvalidHeaderValue);
         }
@@ -91,6 +108,8 @@ impl ProtectedHeader {
             algorithm: algorithm.to_owned(),
             type_: type_.map(str::to_owned),
             key_reference,
+            key_attestation,
+            trust_chain,
         })
     }
 
@@ -136,12 +155,24 @@ impl ProtectedHeader {
         }
     }
 
+    /// Borrow the untrusted bounded key-attestation compact token, if present.
+    pub fn key_attestation(&self) -> Option<&str> {
+        self.key_attestation.as_deref()
+    }
+
+    /// Borrow the untrusted bounded OpenID Federation trust chain, if present.
+    pub fn trust_chain(&self) -> Option<&[String]> {
+        self.trust_chain.as_deref()
+    }
+
     pub(crate) fn parse(bytes: &[u8], limits: JwsLimits) -> Result<Self, JoseError> {
         let raw = serde_json::from_slice::<RawProtectedHeader>(bytes).map_err(map_json_error)?;
-        Self::with_key_reference(
+        Self::with_key_reference_and_evidence(
             &raw.algorithm,
             raw.type_.as_deref(),
             raw.key_reference,
+            raw.key_attestation,
+            raw.trust_chain,
             limits,
         )
     }
@@ -156,6 +187,11 @@ impl ProtectedHeader {
                 .key_reference
                 .as_ref()
                 .is_some_and(|value| !valid_key_reference(value, limits))
+            || !valid_protected_evidence(
+                self.key_attestation.as_deref(),
+                self.trust_chain.as_deref(),
+                limits,
+            )
         {
             return Err(JoseError::InvalidHeaderValue);
         }
@@ -170,6 +206,11 @@ impl fmt::Debug for ProtectedHeader {
             .field("algorithm", &self.algorithm)
             .field("type", &self.type_)
             .field("key_reference", &self.key_reference_kind())
+            .field("has_key_attestation", &self.key_attestation.is_some())
+            .field(
+                "trust_chain_len",
+                &self.trust_chain.as_ref().map_or(0, Vec::len),
+            )
             .finish()
     }
 }
@@ -179,8 +220,11 @@ impl Serialize for ProtectedHeader {
     where
         S: Serializer,
     {
-        let member_count =
-            1 + usize::from(self.type_.is_some()) + usize::from(self.key_reference.is_some());
+        let member_count = 1
+            + usize::from(self.type_.is_some())
+            + usize::from(self.key_reference.is_some())
+            + usize::from(self.key_attestation.is_some())
+            + usize::from(self.trust_chain.is_some());
         let mut state = serializer.serialize_struct("ProtectedHeader", member_count)?;
         state.serialize_field("alg", &self.algorithm)?;
         if let Some(type_) = &self.type_ {
@@ -191,6 +235,12 @@ impl Serialize for ProtectedHeader {
             Some(JwsKeyReference::Jwk(value)) => state.serialize_field("jwk", value)?,
             Some(JwsKeyReference::X5c(value)) => state.serialize_field("x5c", value)?,
             None => {}
+        }
+        if let Some(value) = &self.key_attestation {
+            state.serialize_field("key_attestation", value)?;
+        }
+        if let Some(value) = &self.trust_chain {
+            state.serialize_field("trust_chain", value)?;
         }
         state.end()
     }
@@ -245,6 +295,8 @@ struct RawProtectedHeader {
     algorithm: String,
     type_: Option<String>,
     key_reference: Option<JwsKeyReference>,
+    key_attestation: Option<String>,
+    trust_chain: Option<Vec<String>>,
 }
 
 impl<'de> Deserialize<'de> for RawProtectedHeader {
@@ -274,6 +326,8 @@ impl<'de> Visitor<'de> for RawProtectedHeaderVisitor {
         let mut key_id = None;
         let mut jwk = None;
         let mut x5c = None;
+        let mut key_attestation = None;
+        let mut trust_chain = None;
         while let Some(key) = map.next_key::<String>()? {
             match key.as_str() {
                 "alg" => read_string(&mut map, &mut algorithm)?,
@@ -298,6 +352,17 @@ impl<'de> Visitor<'de> for RawProtectedHeaderVisitor {
                             .0,
                     );
                 }
+                "key_attestation" => read_string(&mut map, &mut key_attestation)?,
+                "trust_chain" => {
+                    if trust_chain.is_some() {
+                        return Err(M::Error::custom(DUPLICATE_MARKER));
+                    }
+                    trust_chain = Some(
+                        map.next_value::<BoundedTrustChain>()
+                            .map_err(|_| M::Error::custom(INVALID_VALUE_MARKER))?
+                            .0,
+                    );
+                }
                 _ => return Err(M::Error::custom(UNKNOWN_MARKER)),
             }
         }
@@ -315,6 +380,8 @@ impl<'de> Visitor<'de> for RawProtectedHeaderVisitor {
             algorithm,
             type_,
             key_reference,
+            key_attestation,
+            trust_chain,
         })
     }
 }
@@ -368,6 +435,55 @@ impl<'de> Visitor<'de> for BoundedX5cVisitor {
     }
 }
 
+struct BoundedTrustChain(Vec<String>);
+
+impl<'de> Deserialize<'de> for BoundedTrustChain {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_seq(BoundedTrustChainVisitor)
+    }
+}
+
+struct BoundedTrustChainVisitor;
+
+impl<'de> Visitor<'de> for BoundedTrustChainVisitor {
+    type Value = BoundedTrustChain;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("a bounded OpenID Federation trust chain")
+    }
+
+    fn visit_seq<S>(self, mut sequence: S) -> Result<Self::Value, S::Error>
+    where
+        S: SeqAccess<'de>,
+    {
+        if sequence
+            .size_hint()
+            .is_some_and(|length| length > MAX_TRUST_CHAIN_ENTRIES)
+        {
+            return Err(S::Error::custom(INVALID_VALUE_MARKER));
+        }
+        let mut values = Vec::with_capacity(
+            sequence
+                .size_hint()
+                .unwrap_or(MAX_TRUST_CHAIN_ENTRIES)
+                .min(MAX_TRUST_CHAIN_ENTRIES),
+        );
+        while values.len() < MAX_TRUST_CHAIN_ENTRIES {
+            let Some(value) = sequence.next_element::<String>()? else {
+                return Ok(BoundedTrustChain(values));
+            };
+            values.push(value);
+        }
+        if sequence.next_element::<IgnoredAny>()?.is_some() {
+            return Err(S::Error::custom(INVALID_VALUE_MARKER));
+        }
+        Ok(BoundedTrustChain(values))
+    }
+}
+
 fn read_string<'de, M>(map: &mut M, target: &mut Option<String>) -> Result<(), M::Error>
 where
     M: MapAccess<'de>,
@@ -399,4 +515,46 @@ fn valid_key_reference(value: &JwsKeyReference, limits: JwsLimits) -> bool {
                 })
         }
     }
+}
+
+pub(crate) fn valid_protected_evidence(
+    key_attestation: Option<&str>,
+    trust_chain: Option<&[String]>,
+    limits: JwsLimits,
+) -> bool {
+    key_attestation.is_none_or(|value| valid_compact_token(value, limits))
+        && trust_chain.is_none_or(|values| {
+            !values.is_empty()
+                && values.len() <= MAX_TRUST_CHAIN_ENTRIES
+                && values
+                    .iter()
+                    .all(|value| valid_compact_token(value, limits))
+        })
+}
+
+fn valid_compact_token(value: &str, limits: JwsLimits) -> bool {
+    if value.is_empty()
+        || value.len() > limits.max_header_string_bytes()
+        || !value.bytes().all(|byte| byte.is_ascii_graphic())
+    {
+        return false;
+    }
+    let mut segments = value.split('.');
+    let header = segments.next();
+    let payload = segments.next();
+    let signature = segments.next();
+    segments.next().is_none()
+        && [header, payload, signature]
+            .into_iter()
+            .all(|segment| segment.is_some_and(valid_base64url_segment))
+}
+
+fn valid_base64url_segment(segment: &str) -> bool {
+    !segment.is_empty()
+        && segment
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
+        && URL_SAFE_NO_PAD
+            .decode(segment)
+            .is_ok_and(|decoded| URL_SAFE_NO_PAD.encode(decoded) == segment)
 }

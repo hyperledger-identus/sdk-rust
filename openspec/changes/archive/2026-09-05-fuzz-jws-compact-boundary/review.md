@@ -95,6 +95,9 @@
   retaining independent exact same-limit reparsing. A one-time tight-limit
   probe proves the accepted exponent-form JWK extension serializes to a longer
   canonical header without creating a false fuzz crash.
+- Final current-head review found that the architecture blueprint and bootstrap
+  inventory still called completed issue #100 a follow-up. Both records now
+  identify the bounded fuzz campaign as delivered and leave only #104 pending.
 
 ### Verification receipt
 

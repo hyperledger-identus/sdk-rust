@@ -1,0 +1,11 @@
+[[modified_requirement]]
+capability       = "oid4vci-credential-offer"
+requirement      = "Grants and extensions remain lossless but least-authority"
+canonical_sha256 = "65d4d62fc32b796cd380ae4abfd7b254ef4f40676cf5cc5b43306ad4ccc59e06"
+reason           = "Issue #117 intentionally replaces the deferred metadata-agreement statement with the explicit consuming metadata-matched state while preserving every established grant-shape rule."
+
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
+canonical_sha256 = "addad7feab05c2adccf3ab75fc3381038a0684b30d2884e8f218fd307ca4c444"
+reason           = "Issue #117 advances the in-progress IDR-023 ledger from completed grant issue #115 to bounded unsigned metadata agreement without claiming the broader protocol engine is delivered."

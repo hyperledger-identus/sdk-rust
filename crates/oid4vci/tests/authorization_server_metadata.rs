@@ -18,11 +18,11 @@ fn metadata(json: &str) -> Result<AuthorizationServerMetadataCore, CredentialOff
 fn accepts_consumer_shape_as_a_partial_core_without_full_conformance_claim() {
     let json = format!(
         r#"{{
-  "grant_types_supported":["{PRE_AUTHORIZED_CODE_GRANT_TYPE}"],
-  "issuer":"{ISSUER}",
-  "pre-authorized_grant_anonymous_access_supported":true,
-  "token_endpoint":"https://issuer.example/api/issuer/token",
-  "future":{{"large":1e999999,"nested":[true,null]}}
+        "grant_types_supported":["{PRE_AUTHORIZED_CODE_GRANT_TYPE}"],
+        "issuer":"{ISSUER}",
+        "pre-authorized_grant_anonymous_access_supported":true,
+        "token_endpoint":"https://issuer.example/api/issuer/token",
+        "future":{{"large":1e999999,"nested":[true,null]}}
 }}"#,
     );
     let parsed = metadata(&json).expect("consumer metadata core");

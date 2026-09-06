@@ -37,7 +37,7 @@ pub struct AuthorizationServerIdentifier {
 }
 
 impl AuthorizationServerIdentifier {
-    fn try_from_value(value: Zeroizing<String>) -> Result<Self, CredentialOfferError> {
+    pub(crate) fn try_from_value(value: Zeroizing<String>) -> Result<Self, CredentialOfferError> {
         if !is_valid_https_identifier(value.as_str()) {
             return Err(CredentialOfferError::UnsafeAuthorizationServer);
         }

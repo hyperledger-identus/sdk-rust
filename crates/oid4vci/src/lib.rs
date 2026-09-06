@@ -1,8 +1,8 @@
 //! Bounded OpenID for Verifiable Credential Issuance protocol semantics.
 //!
-//! The crate distinguishes Credential Offer invocation transport from bounded
-//! core-member semantics. It performs no network access and establishes no
-//! issuer trust.
+//! The crate distinguishes Credential Offer invocation transport, offer/grant
+//! semantics, unsigned Credential Issuer Metadata, and exact cross-document
+//! agreement. It performs no network access and establishes no issuer trust.
 
 #![forbid(unsafe_code)]
 
@@ -10,6 +10,7 @@ mod error;
 mod grants;
 mod json;
 mod limits;
+mod metadata;
 mod semantic;
 mod transport;
 
@@ -20,8 +21,12 @@ pub use grants::{
     TransactionCodeInputMode, TransactionCodeRequirements,
 };
 pub use limits::{
-    CredentialOfferGrantLimits, CredentialOfferLimits, CredentialOfferSemanticLimits,
-    MAX_CONFIGURABLE_JSON_DEPTH,
+    CredentialIssuerMetadataLimits, CredentialOfferGrantLimits, CredentialOfferLimits,
+    CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
+};
+pub use metadata::{
+    CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,
+    CredentialIssuerMetadata, CredentialOfferWithMetadata,
 };
 pub use semantic::{CredentialConfigurationId, CredentialIssuerIdentifier, CredentialOffer};
 pub use transport::{CredentialOfferReference, CredentialOfferRequest, EmbeddedCredentialOffer};

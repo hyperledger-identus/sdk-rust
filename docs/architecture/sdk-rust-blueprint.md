@@ -325,6 +325,15 @@ extensions lossless. Metadata matching, fetching, trust, grant selection,
 authorization/token messages, replay controls, and issuance state remain later
 slices.
 
+The fourth bounded delivery, issue #117, parses a bounded unsigned Credential
+Issuer Metadata core and consumes it with the grant-validated offer to prove
+exact issuer, offered-configuration, and multi-server grant-hint agreement.
+It retains exact unknown metadata while exposing only safe issuer,
+Authorization Server, Credential Endpoint, configuration ID, and opaque format
+summaries. HTTP retrieval, signed metadata/trust, OAuth Authorization Server
+metadata, format-profile interpretation, grant selection, endpoint messages,
+replay controls, and issuance state remain later slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

@@ -208,3 +208,120 @@ impl Default for CredentialOfferGrantLimits {
         }
     }
 }
+
+/// Resource limits for unsigned Credential Issuer Metadata.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CredentialIssuerMetadataLimits {
+    max_json_bytes: usize,
+    max_json_depth: usize,
+    max_json_nodes: usize,
+    max_credential_issuer_bytes: usize,
+    max_credential_endpoint_bytes: usize,
+    max_authorization_server_bytes: usize,
+    max_authorization_servers: usize,
+    max_credential_configuration_id_bytes: usize,
+    max_credential_format_bytes: usize,
+    max_credential_configurations: usize,
+}
+
+impl CredentialIssuerMetadataLimits {
+    /// Construct a positive metadata resource policy with a supported depth.
+    #[allow(clippy::too_many_arguments)]
+    pub const fn new(
+        max_json_bytes: usize,
+        max_json_depth: usize,
+        max_json_nodes: usize,
+        max_credential_issuer_bytes: usize,
+        max_credential_endpoint_bytes: usize,
+        max_authorization_server_bytes: usize,
+        max_authorization_servers: usize,
+        max_credential_configuration_id_bytes: usize,
+        max_credential_format_bytes: usize,
+        max_credential_configurations: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_json_bytes == 0
+            || max_json_depth == 0
+            || max_json_depth > MAX_CONFIGURABLE_JSON_DEPTH
+            || max_json_nodes == 0
+            || max_credential_issuer_bytes == 0
+            || max_credential_endpoint_bytes == 0
+            || max_authorization_server_bytes == 0
+            || max_authorization_servers == 0
+            || max_credential_configuration_id_bytes == 0
+            || max_credential_format_bytes == 0
+            || max_credential_configurations == 0
+        {
+            return Err(CredentialOfferError::InvalidMetadataLimits);
+        }
+        Ok(Self {
+            max_json_bytes,
+            max_json_depth,
+            max_json_nodes,
+            max_credential_issuer_bytes,
+            max_credential_endpoint_bytes,
+            max_authorization_server_bytes,
+            max_authorization_servers,
+            max_credential_configuration_id_bytes,
+            max_credential_format_bytes,
+            max_credential_configurations,
+        })
+    }
+
+    /// Maximum bytes in the complete unsigned JSON document.
+    pub const fn max_json_bytes(self) -> usize {
+        self.max_json_bytes
+    }
+    /// Maximum JSON container depth.
+    pub const fn max_json_depth(self) -> usize {
+        self.max_json_depth
+    }
+    /// Maximum aggregate JSON value nodes.
+    pub const fn max_json_nodes(self) -> usize {
+        self.max_json_nodes
+    }
+    /// Maximum decoded bytes in the Credential Issuer Identifier.
+    pub const fn max_credential_issuer_bytes(self) -> usize {
+        self.max_credential_issuer_bytes
+    }
+    /// Maximum decoded bytes in the Credential Endpoint URL.
+    pub const fn max_credential_endpoint_bytes(self) -> usize {
+        self.max_credential_endpoint_bytes
+    }
+    /// Maximum decoded bytes in one Authorization Server identifier.
+    pub const fn max_authorization_server_bytes(self) -> usize {
+        self.max_authorization_server_bytes
+    }
+    /// Maximum advertised Authorization Server count.
+    pub const fn max_authorization_servers(self) -> usize {
+        self.max_authorization_servers
+    }
+    /// Maximum decoded bytes in one Credential Configuration ID.
+    pub const fn max_credential_configuration_id_bytes(self) -> usize {
+        self.max_credential_configuration_id_bytes
+    }
+    /// Maximum decoded bytes in one Credential Format identifier.
+    pub const fn max_credential_format_bytes(self) -> usize {
+        self.max_credential_format_bytes
+    }
+    /// Maximum Credential Configuration count.
+    pub const fn max_credential_configurations(self) -> usize {
+        self.max_credential_configurations
+    }
+}
+
+impl Default for CredentialIssuerMetadataLimits {
+    fn default() -> Self {
+        Self {
+            max_json_bytes: 131_072,
+            max_json_depth: 16,
+            max_json_nodes: 1_024,
+            max_credential_issuer_bytes: 2_048,
+            max_credential_endpoint_bytes: 2_048,
+            max_authorization_server_bytes: 2_048,
+            max_authorization_servers: 16,
+            max_credential_configuration_id_bytes: 256,
+            max_credential_format_bytes: 128,
+            max_credential_configurations: 128,
+        }
+    }
+}

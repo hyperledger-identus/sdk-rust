@@ -122,6 +122,16 @@ pub mod error_code {
         ErrorCode::new("oid4vci.pre_authorized_grant_not_supported");
     pub const TOKEN_ENDPOINT_REQUIRED: ErrorCode =
         ErrorCode::new("oid4vci.token_endpoint_required");
+    pub const INVALID_TRANSACTION_CODE_INPUT_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_transaction_code_input_limits");
+    pub const TRANSACTION_CODE_INPUT_REQUIRED: ErrorCode =
+        ErrorCode::new("oid4vci.transaction_code_input_required");
+    pub const TRANSACTION_CODE_INPUT_UNEXPECTED: ErrorCode =
+        ErrorCode::new("oid4vci.transaction_code_input_unexpected");
+    pub const TRANSACTION_CODE_INPUT_EMPTY: ErrorCode =
+        ErrorCode::new("oid4vci.transaction_code_input_empty");
+    pub const TRANSACTION_CODE_INPUT_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.transaction_code_input_too_large");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -197,6 +207,11 @@ pub enum CredentialOfferError {
     PreAuthorizedServerHintMismatch,
     PreAuthorizedGrantNotSupported,
     TokenEndpointRequired,
+    InvalidTransactionCodeInputLimits,
+    TransactionCodeInputRequired,
+    TransactionCodeInputUnexpected,
+    TransactionCodeInputEmpty,
+    TransactionCodeInputTooLarge,
 }
 
 impl CredentialOfferError {
@@ -537,6 +552,31 @@ impl CredentialOfferError {
                 error_code::TOKEN_ENDPOINT_REQUIRED,
                 ErrorKind::InvalidInput,
                 "OID4VCI selected Authorization Server has no Token Endpoint",
+            ),
+            Self::InvalidTransactionCodeInputLimits => (
+                error_code::INVALID_TRANSACTION_CODE_INPUT_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Transaction Code input limits are invalid",
+            ),
+            Self::TransactionCodeInputRequired => (
+                error_code::TRANSACTION_CODE_INPUT_REQUIRED,
+                ErrorKind::InvalidInput,
+                "OID4VCI Transaction Code input is required",
+            ),
+            Self::TransactionCodeInputUnexpected => (
+                error_code::TRANSACTION_CODE_INPUT_UNEXPECTED,
+                ErrorKind::InvalidInput,
+                "OID4VCI Transaction Code input is unexpected",
+            ),
+            Self::TransactionCodeInputEmpty => (
+                error_code::TRANSACTION_CODE_INPUT_EMPTY,
+                ErrorKind::InvalidInput,
+                "OID4VCI Transaction Code input is empty",
+            ),
+            Self::TransactionCodeInputTooLarge => (
+                error_code::TRANSACTION_CODE_INPUT_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Transaction Code input is too large",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

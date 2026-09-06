@@ -209,6 +209,37 @@ impl Default for CredentialOfferGrantLimits {
     }
 }
 
+/// Resource limits for caller-owned Transaction Code input.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TransactionCodeInputLimits {
+    max_transaction_code_bytes: usize,
+}
+
+impl TransactionCodeInputLimits {
+    /// Construct a positive Transaction Code input policy.
+    pub const fn new(max_transaction_code_bytes: usize) -> Result<Self, CredentialOfferError> {
+        if max_transaction_code_bytes == 0 {
+            return Err(CredentialOfferError::InvalidTransactionCodeInputLimits);
+        }
+        Ok(Self {
+            max_transaction_code_bytes,
+        })
+    }
+
+    /// Maximum decoded UTF-8 bytes in caller-owned Transaction Code input.
+    pub const fn max_transaction_code_bytes(self) -> usize {
+        self.max_transaction_code_bytes
+    }
+}
+
+impl Default for TransactionCodeInputLimits {
+    fn default() -> Self {
+        Self {
+            max_transaction_code_bytes: 256,
+        }
+    }
+}
+
 /// Resource limits for unsigned Credential Issuer Metadata.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialIssuerMetadataLimits {

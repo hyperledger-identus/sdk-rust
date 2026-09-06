@@ -3,9 +3,9 @@
 //! The crate distinguishes Credential Offer invocation transport, offer/grant
 //! semantics, unsigned Credential Issuer Metadata, exact cross-document
 //! agreement, a partial Authorization Server Metadata core, and explicit
-//! Pre-Authorized Code server binding. It performs no network access, does not
-//! construct endpoint messages or validate complete RFC 8414 metadata, and
-//! establishes no issuer or server trust.
+//! Pre-Authorized Code server and Transaction Code input binding. It performs
+//! no network access, does not construct endpoint messages or validate complete
+//! RFC 8414 metadata, and establishes no issuer or server trust.
 
 #![forbid(unsafe_code)]
 
@@ -17,6 +17,7 @@ mod limits;
 mod metadata;
 mod pre_authorized_server;
 mod semantic;
+mod transaction_code_input;
 mod transport;
 
 pub use authorization_metadata::{
@@ -32,6 +33,7 @@ pub use grants::{
 pub use limits::{
     AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits, CredentialOfferGrantLimits,
     CredentialOfferLimits, CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
+    TransactionCodeInputLimits,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,
@@ -39,6 +41,7 @@ pub use metadata::{
 };
 pub use pre_authorized_server::CredentialOfferWithPreAuthorizedServer;
 pub use semantic::{CredentialConfigurationId, CredentialIssuerIdentifier, CredentialOffer};
+pub use transaction_code_input::CredentialOfferWithPreAuthorizedTokenInput;
 pub use transport::{CredentialOfferReference, CredentialOfferRequest, EmbeddedCredentialOffer};
 
 use identus_core::Component;

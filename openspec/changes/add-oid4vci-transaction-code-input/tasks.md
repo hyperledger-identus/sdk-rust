@@ -8,16 +8,16 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add positive Transaction Code input limits, immediate zeroizing
+- [x] 2.1 Add positive Transaction Code input limits, immediate zeroizing
   ownership, exact presence agreement, and the consuming prepared-input state.
-- [ ] 2.2 Add stable fieldless errors, crate exports, redacted diagnostics, and
+- [x] 2.2 Add stable fieldless errors, crate exports, redacted diagnostics, and
   crate-private-only raw access for later request construction.
-- [ ] 2.3 Update ADR, blueprint, and canonical IDR-023 ledger pointer without
+- [x] 2.3 Update ADR, blueprint, and canonical IDR-023 ledger pointer without
   changing dependencies, manifests, features, parsers, or consumers.
 
 ## 3. Verification and integration
 
-- [ ] 3.1 Add positive, negative, exact-bound, multibyte, ownership, and
+- [x] 3.1 Add positive, negative, exact-bound, multibyte, ownership, and
   diagnostic-canary tests for every contract branch.
 - [ ] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,
   workspace/factory/preservation gates, and the full target/supply-chain Nix

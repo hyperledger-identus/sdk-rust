@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
+canonical_sha256 = "e9fd09b32490c3c45f0429986d2f3b3671b1b7274375064fe9f0fa865bc91e67"
+reason           = "Issue #121 advances in-progress IDR-023 from completed Authorization Server Metadata parsing issue #119 to an explicit Pre-Authorized Code server-binding state without claiming request construction or the broader protocol engine."

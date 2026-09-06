@@ -12,9 +12,9 @@ on:
       - "crates/jose/**"
       - deny.toml
       - flake.lock
+      - flake.nix
       - "fuzz/**"
-      - nix/devshells/default.nix
-      - nix/rust-toolchain.nix
+      - "nix/**"
       - "scripts/fuzz-jws.sh"
   push:
     branches: [develop]
@@ -28,9 +28,9 @@ on:
       - "crates/jose/**"
       - deny.toml
       - flake.lock
+      - flake.nix
       - "fuzz/**"
-      - nix/devshells/default.nix
-      - nix/rust-toolchain.nix
+      - "nix/**"
       - "scripts/fuzz-jws.sh"
 permissions:
   contents: read

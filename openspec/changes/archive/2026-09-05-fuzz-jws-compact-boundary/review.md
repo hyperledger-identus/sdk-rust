@@ -103,6 +103,9 @@
   dependency declarations and JOSE's other local path dependencies. Both PR
   and `develop` push filters now cover `Cargo.toml` plus the full local cone:
   `core`, `crypto`, `derive`, `did`, and `jose`.
+- Final workflow review found the Nix entrypoint was still omitted. The filters
+  now cover `flake.nix`, `flake.lock`, and all of `nix/**`, matching every Nix
+  input that can change the sanitizer environment.
 
 ### Verification receipt
 

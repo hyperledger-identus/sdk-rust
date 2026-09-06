@@ -101,10 +101,11 @@ RustSec against the independent lock, then smoke. The reserved empty default
 `main` cannot host GitHub schedule/manual events for a workflow on `develop`,
 so bounded soak remains a documented local/external command. Root dependency
 declarations and the complete local JOSE dependency cone (`core`, `crypto`,
-`derive`, `did`, and `jose`) trigger the JWS integration campaign. Failure
-artifacts are retained for 14 days as untrusted input. A real defect is
-reproduced, minimized, committed as a seed and named deterministic regression,
-then fixed or filed.
+`derive`, `did`, and `jose`) trigger the JWS integration campaign. So do the
+flake entrypoint, lock and complete `nix/**` configuration surface that defines
+the campaign environment. Failure artifacts are retained for 14 days as
+untrusted input. A real defect is reproduced, minimized, committed as a seed
+and named deterministic regression, then fixed or filed.
 
 ## Threat Contract
 

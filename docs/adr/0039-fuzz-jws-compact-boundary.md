@@ -41,7 +41,8 @@ Coverage-guided mutation is the remaining planned assurance layer.
   search without widening SDK APIs or compile graphs.
 - Shared `fuzz/**` changes conservatively trigger the existing DID and crypto
   campaigns as well as JWS. Root dependency declarations and every local crate
-  in JOSE's dependency cone trigger the dependent JWS campaign.
+  in JOSE's dependency cone trigger the dependent JWS campaign, as do the flake
+  entrypoint and complete imported Nix configuration surface.
 - The campaign reduces risk but cannot prove absence of defects.
 
 ## Rejected alternatives

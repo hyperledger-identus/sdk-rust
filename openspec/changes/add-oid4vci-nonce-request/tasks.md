@@ -8,16 +8,16 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add the owned request value and metadata-bound constructor without a
+- [x] 2.1 Add the owned request value and metadata-bound constructor without a
   raw-string or automatic-transport surface.
-- [ ] 2.2 Expose exact POST, empty-body and no-access-token guidance plus the
+- [x] 2.2 Expose exact POST, empty-body and no-access-token guidance plus the
   static missing-endpoint error.
-- [ ] 2.3 Update ADR, blueprint and canonical IDR-023 ledger pointer without
+- [x] 2.3 Update ADR, blueprint and canonical IDR-023 ledger pointer without
   changing dependencies, manifests, lockfile, features or consumers.
 
 ## 3. Verification and integration
 
-- [ ] 3.1 Add positive, missing-endpoint, ownership, consumer-shaped and
+- [x] 3.1 Add positive, missing-endpoint, ownership, consumer-shaped and
   diagnostic-canary tests for every contract branch.
 - [ ] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,
   workspace/factory/preservation gates and the full target/supply-chain Nix

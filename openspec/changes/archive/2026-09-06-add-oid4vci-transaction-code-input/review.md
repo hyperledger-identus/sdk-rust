@@ -73,3 +73,9 @@ the standing mandate. No unresolved blocker remains before implementation.
     the 487-test principal suite. Consumer receipts match preflight exactly.
 
 Verdict: READY for specification synchronization and pull-request review.
+
+## Archive-stage correction
+
+The guarded archive appended extra blank lines at the two canonical specs' ends
+of file. They were removed before the archive commit; this was a
+text-hygiene-only correction with no requirement or implementation change.

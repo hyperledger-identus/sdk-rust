@@ -29,15 +29,7 @@ impl CredentialIssuerIdentifier {
         if authority.is_empty() || authority.first() == Some(&b':') {
             return Err(CredentialOfferError::UnsafeCredentialIssuer);
         }
-        let parsed = URI::try_from(value.as_str())
-            .map_err(|_| CredentialOfferError::UnsafeCredentialIssuer)?;
-        if !parsed.scheme().as_str().eq_ignore_ascii_case("https")
-            || parsed.host().is_none()
-            || parsed.has_username()
-            || parsed.has_password()
-            || parsed.query().is_some()
-            || parsed.fragment().is_some()
-        {
+        if !is_valid_https_issuer(value.as_str()) {
             return Err(CredentialOfferError::UnsafeCredentialIssuer);
         }
         Ok(Self { value })
@@ -47,6 +39,87 @@ impl CredentialIssuerIdentifier {
     pub fn as_str(&self) -> &str {
         &self.value
     }
+}
+
+fn is_valid_https_issuer(value: &str) -> bool {
+    URI::try_from(value).is_ok_and(|parsed| has_safe_issuer_components(&parsed))
+        || is_valid_ipvfuture_https_issuer(value)
+}
+
+fn has_safe_issuer_components(parsed: &URI<'_>) -> bool {
+    parsed.scheme().as_str().eq_ignore_ascii_case("https")
+        && parsed.host().is_some()
+        && !parsed.has_username()
+        && !parsed.has_password()
+        && parsed.query().is_none()
+        && parsed.fragment().is_none()
+}
+
+// `uriparse` 0.6.4 does not recognize RFC 3986 IPvFuture literals. Validate
+// that host production locally, then replace only the literal with a known
+// IPv6 host so `uriparse` still validates every other URI component.
+fn is_valid_ipvfuture_https_issuer(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    let authority_end = bytes[8..]
+        .iter()
+        .position(|byte| matches!(byte, b'/' | b'?' | b'#'))
+        .map_or(bytes.len(), |offset| 8 + offset);
+    let authority = &bytes[8..authority_end];
+    if authority.first() != Some(&b'[') {
+        return false;
+    }
+    let Some(close) = authority.iter().position(|byte| *byte == b']') else {
+        return false;
+    };
+    if !is_valid_ipvfuture_literal(&authority[1..close]) {
+        return false;
+    }
+    let port = &authority[close + 1..];
+    if !port.is_empty() && (port[0] != b':' || !port[1..].iter().all(u8::is_ascii_digit)) {
+        return false;
+    }
+
+    let mut normalized = Zeroizing::new(String::with_capacity(value.len()));
+    normalized.push_str(&value[..8]);
+    normalized.push_str("[::1]");
+    normalized.push_str(&value[8 + close + 1..]);
+    URI::try_from(normalized.as_str()).is_ok_and(|parsed| has_safe_issuer_components(&parsed))
+}
+
+fn is_valid_ipvfuture_literal(value: &[u8]) -> bool {
+    if !value
+        .first()
+        .is_some_and(|byte| matches!(byte, b'v' | b'V'))
+    {
+        return false;
+    }
+    let Some(dot) = value.iter().position(|byte| *byte == b'.') else {
+        return false;
+    };
+    dot > 1
+        && dot + 1 < value.len()
+        && value[1..dot].iter().all(u8::is_ascii_hexdigit)
+        && value[dot + 1..].iter().all(|byte| {
+            byte.is_ascii_alphanumeric()
+                || matches!(
+                    byte,
+                    b'-' | b'.'
+                        | b'_'
+                        | b'~'
+                        | b'!'
+                        | b'$'
+                        | b'&'
+                        | b'\''
+                        | b'('
+                        | b')'
+                        | b'*'
+                        | b'+'
+                        | b','
+                        | b';'
+                        | b'='
+                        | b':'
+                )
+        })
 }
 
 impl fmt::Debug for CredentialIssuerIdentifier {

@@ -87,3 +87,16 @@ protected decision remains. Structural factory validation is separate evidence.
   revisions, status, and path digests exactly match preflight.
 
 No blocking or advisory implementation finding remains.
+
+## Hosted exact-head review follow-up
+
+- **Finding resolved:** hosted review of `8cf1fe9e3310910ff56a37f7621e54f82ddcadd8`
+  identified that `uriparse` 0.6.4 rejects RFC 3986 IPvFuture hosts despite
+  the semantic contract accepting syntactically valid HTTPS issuer hosts.
+- **Resolution:** the issuer validator now recognizes the IPvFuture host
+  production directly and substitutes only that literal with a known IPv6
+  host before asking `uriparse` to validate every remaining URI component.
+  The temporary normalized URI uses zeroizing storage.
+- **Regression evidence:** a valid IPvFuture issuer with port and path passes;
+  malformed version, empty address, invalid character, suffix, and port forms
+  fail closed. A fresh exact-head hosted review remains required.

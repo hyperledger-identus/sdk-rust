@@ -32,7 +32,7 @@ cargo tree -p identus-oid4vci --edges normal
 
 The local `aarch64-darwin` flake ran 27 checks. Evidence includes Rust 1.85
 MSRV, browser-WASM, Android ARM64, iOS ARM64, strict Clippy/docs/format,
-factory/archive preservation, 441/441 principal nextest cases, feature
+factory/archive preservation, 442/442 principal nextest cases, feature
 matrices, dependency policy, deny, and audit derivations. The configured audit
 gate reported unavailable yanked-index lookups in its offline index while the
 advisory scan and overall derivation passed; no dependency changed in this
@@ -41,8 +41,10 @@ locally; hosted Linux remains mandatory before merge.
 
 ## Focused evidence
 
-- 9/9 semantic integration tests passed with all features and without default
+- 10/10 semantic integration tests passed with all features and without default
   features; the 12 existing transport tests also remained green.
+- RFC 3986 IPvFuture issuer-host acceptance and malformed near-neighbor
+  rejection pass after resolving the first hosted exact-head review finding.
 - Official Final and independently reconstructed Oxid/Lace shapes pass.
 - Missing/type-confused fields, unsafe issuers, empty/duplicate/oversized ID
   collections, non-object grants, exact field limits, arbitrary-magnitude

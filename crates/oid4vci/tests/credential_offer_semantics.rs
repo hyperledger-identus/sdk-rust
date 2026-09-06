@@ -157,6 +157,31 @@ fn validates_issuer_identifier_syntax_without_claiming_trust() {
 }
 
 #[test]
+fn accepts_rfc_3986_ipvfuture_issuer_hosts() {
+    let issuer = "https://[v1.fe80]:8443/tenant";
+    let json =
+        format!(r#"{{"credential_issuer":"{issuer}","credential_configuration_ids":["A"]}}"#);
+    let offer = semantic(&json).expect("RFC 3986 IPvFuture host should validate");
+    assert_eq!(offer.credential_issuer().as_str(), issuer);
+
+    for issuer in [
+        "https://[v1.]",
+        "https://[v.fe80]",
+        "https://[vG.fe80]",
+        "https://[v1.fe80]suffix",
+        "https://[v1.fe80]:invalid",
+    ] {
+        let json =
+            format!(r#"{{"credential_issuer":"{issuer}","credential_configuration_ids":["A"]}}"#);
+        assert_eq!(
+            semantic(&json).expect_err("malformed IPvFuture issuer must fail"),
+            CredentialOfferError::UnsafeCredentialIssuer,
+            "unexpected result for {issuer}"
+        );
+    }
+}
+
+#[test]
 fn configuration_ids_are_unique_after_json_decoding() {
     assert_eq!(
         semantic(

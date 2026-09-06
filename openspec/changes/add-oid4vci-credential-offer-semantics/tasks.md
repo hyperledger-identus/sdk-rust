@@ -29,8 +29,8 @@
 ## 4. Verification and delivery
 
 - [x] 4.1 Pass focused fmt, all/no-default tests, strict Clippy, and docs.
-- [ ] 4.2 Pass factory, workspace, target/MSRV, supply-chain, and full Nix gates.
-- [ ] 4.3 Complete a distinct post-implementation review and resolve all
+- [x] 4.2 Pass factory, workspace, target/MSRV, supply-chain, and full Nix gates.
+- [x] 4.3 Complete a distinct post-implementation review and resolve all
   architecture/API/standards/security/resource findings.
-- [ ] 4.4 Produce ready/receipt, synchronize and archive specs, then open the
+- [x] 4.4 Produce ready/receipt, synchronize and archive specs, then open the
   signed/DCO issue-linked PR for exact-head hosted CI/review and eligible merge.

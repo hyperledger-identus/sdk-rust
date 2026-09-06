@@ -56,4 +56,34 @@ protected decision remains. Structural factory validation is separate evidence.
 
 ## Post-implementation review
 
-Pending implementation and verification.
+### Exact reviewed delta
+
+- Base: `ff227f68927d0958230600c4f0d448d585c08ad0`.
+- Candidate implementation: `b62bd5bb21f7ea8de21a778ed09a52f26f80944d`.
+- Review method: fresh requirement-to-code pass, complete base diff inspection,
+  dependency-tree inspection, error/redaction audit, standards edge-case audit,
+  and independent rerun of focused plus repository gates.
+
+### Findings
+
+- **Architecture/API — pass:** the state transition consumes only validated
+  embedded transport; references cannot be misrepresented as fetched offers.
+  The new API remains additive, unpublished, non-serializing, and explicit.
+- **Standards — pass:** issuer URL components, required field cardinality,
+  decoded-ID uniqueness/order, optional object grants, unknown top-level
+  members, and empty-ID handling match the pinned Final text.
+- **Security/privacy — pass:** content-bearing values use zeroizing ownership;
+  custom `Debug` exposes only safe type/count/presence state; every error and
+  core bridge is static. No network, trust, flow-selection, or replay claim is
+  introduced.
+- **Resource behavior — pass:** field bytes and count are checked before public
+  semantic construction. The second scan reuses the exact transport
+  depth/node limits and lexically skips unknown numeric magnitude without a
+  generic JSON value tree.
+- **Portability/dependencies — pass:** the normal dependency tree is unchanged;
+  Rust 1.85, browser-WASM, Android ARM64, iOS ARM64, Darwin Nix, plain Cargo,
+  docs, lint, and tests pass.
+- **Provenance/isolation — pass:** no donor material was copied. Consumer
+  revisions, status, and path digests exactly match preflight.
+
+No blocking or advisory implementation finding remains.

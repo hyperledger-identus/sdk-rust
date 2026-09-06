@@ -1,8 +1,10 @@
 //! Bounded OpenID for Verifiable Credential Issuance protocol semantics.
 //!
 //! The crate distinguishes Credential Offer invocation transport, offer/grant
-//! semantics, unsigned Credential Issuer Metadata, and exact cross-document
-//! agreement. It performs no network access and establishes no issuer trust.
+//! semantics, unsigned Credential Issuer Metadata, exact cross-document
+//! agreement, and a partial Authorization Server Metadata core. It performs no
+//! network access, does not validate complete RFC 8414 metadata, and
+//! establishes no issuer or server trust.
 
 #![forbid(unsafe_code)]
 

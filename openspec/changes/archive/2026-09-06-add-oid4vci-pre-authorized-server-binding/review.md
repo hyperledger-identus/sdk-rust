@@ -78,4 +78,10 @@ Verdict: READY to implement after ADR 0046 and strict OpenSpec validation.
     Rust 1.85, WASM, Android, iOS, strict lints/docs, supply-chain policy, and
     the 479-test principal suite. Consumer receipts match preflight exactly.
 
+## Archive-stage correction
+
+The guarded archive appended extra blank lines at the two canonical specs' ends
+of file. They were removed before the archive commit; this was a
+text-hygiene-only correction with no requirement or implementation change.
+
 Verdict: READY for specification synchronization and pull-request review.

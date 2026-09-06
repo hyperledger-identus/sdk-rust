@@ -79,3 +79,6 @@ diagnostics did not fail a derivation.
 - No manifest, lockfile, Cargo feature, parser, limit, or dependency changed.
 - The distinct exact-diff review is recorded in `review.md`; no unresolved
   finding remains.
+- The guarded archive completed and its generated trailing blank-line warnings
+  were corrected before the archive commit; canonical semantic validation is
+  unchanged.

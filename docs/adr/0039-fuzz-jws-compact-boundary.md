@@ -20,11 +20,13 @@ Coverage-guided mutation is the remaining planned assurance layer.
 2. Interpret every UTF-8 input under default limits and, when possible, derive
    five capped positive limits from ten prefix bytes for a second suffix parse.
    A harness-only `text:` transport removes one repository line ending from
-   committed exact-text seeds; arbitrary unprefixed bytes remain raw.
+   committed exact-text seeds; a ten-byte `limits:` transport does the same for
+   its derived-limit suffix. Arbitrary unprefixed bytes remain raw.
 3. Assert exact input/signing-input preservation, independent segment
    canonicality, same-limit reparsing, staged semantic encoding and fixed error
    bridges. Treat rejection as valid.
-4. Keep reviewable independently authored RFC/Oxid/Lace and negative seeds. Reuse
+4. Keep reviewable independently authored RFC/Oxid/Lace, key-reference,
+   accepted derived-limit and negative seeds. Reuse
    the pinned Nix/cargo-fuzz runtime and fixed replay/smoke/bounded-soak model.
 5. Upload only failing artifacts; minimize and promote real defects to corpus
    and deterministic tests before merge.

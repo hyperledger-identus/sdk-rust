@@ -17,7 +17,8 @@ pub(crate) fn fuzz_jws_compact(data: &[u8]) {
 
     if data.len() >= 10 {
         let limits = derived_limits(&data[..10]);
-        if let Ok(compact) = std::str::from_utf8(&data[10..]) {
+        let suffix = decode_limit_seed(data);
+        if let Ok(compact) = std::str::from_utf8(&suffix) {
             check(compact, limits);
         }
     }
@@ -30,6 +31,16 @@ fn decode_text_seed(data: &[u8]) -> Cow<'_, [u8]> {
     let text = text.strip_suffix(b"\n").unwrap_or(text);
     let text = text.strip_suffix(b"\r").unwrap_or(text);
     Cow::Borrowed(text)
+}
+
+fn decode_limit_seed(data: &[u8]) -> Cow<'_, [u8]> {
+    let suffix = &data[10..];
+    if !data.starts_with(b"limits:") {
+        return Cow::Borrowed(suffix);
+    }
+    let suffix = suffix.strip_suffix(b"\n").unwrap_or(suffix);
+    let suffix = suffix.strip_suffix(b"\r").unwrap_or(suffix);
+    Cow::Borrowed(suffix)
 }
 
 fn derived_limits(prefix: &[u8]) -> JwsLimits {

@@ -56,7 +56,10 @@ and splitting them would duplicate decoding and campaign cost.
 The complete byte slice is interpreted as JWS text under SDK default limits
 when it is UTF-8. Committed exact-text seeds may use a harness-only `text:`
 prefix; that route removes one repository line ending before parsing so Git
-text files remain exact examples. Unprefixed bytes are never normalized. When
+text files remain exact examples. A `limits:` prefix occupying the first ten
+bytes applies the same line-ending transport only to the derived-limit suffix,
+allowing committed accepted values to seed that route. Unprefixed bytes are
+never normalized. When
 at least ten bytes exist, five little-endian `u16` values
 select positive limits and the remaining bytes are independently interpreted as
 JWS text. Modulo mapping caps the derived compact/header/payload/signature/string

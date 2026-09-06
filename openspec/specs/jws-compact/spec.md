@@ -221,6 +221,10 @@ canonicality, header and limit rejection families without donor fixture bytes.
 Exact-text seeds MAY use a documented harness-only `text:` transport that
 removes one repository line ending; unprefixed arbitrary bytes SHALL remain
 unchanged.
+The corpus SHALL seed at least one accepted derived-limit suffix and complete
+encoded `kid`, public/private `jwk`, ambiguous-reference, and valid/invalid
+`x5c` header families. A documented `limits:` prefix MAY occupy the ten limit
+selection bytes and remove one repository line ending from its suffix.
 Failures SHALL be retained as untrusted artifacts, minimized and promoted to
 committed corpus plus a deterministic regression before merge. Execution time
 MAY be recorded but SHALL NOT become a machine-specific threshold.

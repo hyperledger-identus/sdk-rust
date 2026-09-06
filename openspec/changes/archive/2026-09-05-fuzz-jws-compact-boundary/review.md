@@ -81,12 +81,17 @@
 - Review confirmed fuzz dependencies and the recalculated lock remain confined
   to `fuzz/`; production APIs, root lock, targets and downstream repositories
   are unchanged.
+- Automated PR review found two P2 corpus gaps: accepted derived-limit parsing
+  was unseeded, and decoded `jwk`/`x5c` key-reference paths were not reachable
+  from raw dictionary words. The `limits:000` transport now seeds an accepted
+  suffix under a derived tuple, and six complete encoded fixtures cover valid
+  public JWK/X.509 plus ambiguous, private, empty and invalid rejection paths.
 
 ### Verification receipt
 
-- JWS corpus replay: 12 files, 13 executions, no finding.
-- Deterministic JWS smoke: seed `424242`, 4,096 executions, 944 covered edges,
-  2,777 feature edges, peak RSS 51 MiB, no finding, one elapsed second after
+- JWS corpus replay: 19 files, 20 executions, no finding.
+- Deterministic JWS smoke: seed `424242`, 4,096 executions, 1,359 covered
+  edges, 3,583 feature edges, peak RSS 52 MiB, no finding, one second after
   compilation.
 - Existing DID and crypto corpus replay: all four targets passed.
 - Fuzz workspace: formatting, strict Clippy, cargo-deny and RustSec passed.

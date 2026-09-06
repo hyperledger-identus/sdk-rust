@@ -36,7 +36,12 @@ static codec-error bridges. Its independently authored corpus includes the RFC
 shapes reconstructed from public protocol concepts; no donor fixture bytes are
 copied. Committed examples use a reviewable `text:` transport that removes one
 repository line ending; EditorConfig classifies this target corpus as text with
-a final newline. Arbitrary unprefixed input remains byte-for-byte raw.
+a final newline. The `limits:000` seed prefix occupies the ten limit-selection
+bytes and applies the same line-ending transport to its valid compact suffix,
+so accepted values are exercised under derived limits. Arbitrary unprefixed
+input remains byte-for-byte raw. Complete encoded corpus values cover `kid`,
+public/private `jwk`, ambiguous key references, and valid/invalid `x5c` paths;
+dictionary words alone are not treated as coverage for decoded JSON members.
 
 Generated campaign growth runs in a temporary copy, so it cannot dirty the
 curated corpus. Findings are written beneath `fuzz/artifacts/` and must be

@@ -1,7 +1,8 @@
+use identus_core::{ErrorKind, IdentusError};
 use identus_oid4vci::{
-    CredentialIssuerMetadata, CredentialIssuerMetadataLimits, CredentialOffer,
+    CAPABILITY, CredentialIssuerMetadata, CredentialIssuerMetadataLimits, CredentialOffer,
     CredentialOfferError, CredentialOfferGrantLimits, CredentialOfferLimits,
-    CredentialOfferSemanticLimits, EmbeddedCredentialOffer,
+    CredentialOfferSemanticLimits, EmbeddedCredentialOffer, error_code,
 };
 
 const ISSUER: &str = "https://credential-issuer.example.com/tenant";
@@ -58,6 +59,7 @@ fn accepts_final_and_consumer_shaped_metadata_without_format_policy() {
         parsed.credential_endpoint().as_str(),
         "https://credential-issuer.example.com:8443/tenant/credential?version=1"
     );
+    assert!(parsed.nonce_endpoint().is_none());
     assert_eq!(parsed.effective_authorization_server_count(), 1);
     assert_eq!(
         parsed.effective_authorization_server(0),
@@ -83,6 +85,21 @@ fn omitted_authorization_servers_uses_issuer_as_effective_default() {
     assert_eq!(parsed.effective_authorization_server_count(), 1);
     assert_eq!(parsed.effective_authorization_server(0), Some(ISSUER));
     assert_eq!(parsed.effective_authorization_server(1), None);
+}
+
+#[test]
+fn exposes_the_exact_optional_final_nonce_endpoint() {
+    let nonce_endpoint = "https://nonce.example.com:8443/tenant/nonce?wallet=holder";
+    let json = core_metadata(
+        &format!(r#", "nonce_endpoint":"{nonce_endpoint}""#),
+        r#"{"degree":{"format":"dc+sd-jwt"}}"#,
+    );
+    let parsed = metadata(&json).expect("metadata");
+    assert_eq!(
+        parsed.nonce_endpoint().map(|endpoint| endpoint.as_str()),
+        Some(nonce_endpoint)
+    );
+    assert_eq!(parsed.as_json(), json);
 }
 
 #[test]
@@ -180,6 +197,38 @@ fn rejects_invalid_required_fields_endpoints_and_configurations() {
 }
 
 #[test]
+fn rejects_invalid_nonce_endpoint_shapes_with_static_errors() {
+    for value in ["\"\"", "7", "null", "[]"] {
+        let json = core_metadata(
+            &format!(r#", "nonce_endpoint":{value}"#),
+            r#"{"degree":{"format":"dc+sd-jwt"}}"#,
+        );
+        let result = metadata(&json);
+        assert!(
+            matches!(result, Err(CredentialOfferError::InvalidMetadata)),
+            "unexpected result for {value}: {result:?}"
+        );
+    }
+
+    for endpoint in [
+        "http://nonce.example/nonce",
+        "https://user:secret@nonce.example/nonce",
+        "https://nonce.example/nonce#fragment",
+        "https://",
+        "not-a-uri",
+    ] {
+        let json = core_metadata(
+            &format!(r#", "nonce_endpoint":"{endpoint}""#),
+            r#"{"degree":{"format":"dc+sd-jwt"}}"#,
+        );
+        assert!(matches!(
+            metadata(&json),
+            Err(CredentialOfferError::UnsafeNonceEndpoint)
+        ));
+    }
+}
+
+#[test]
 fn rejects_invalid_duplicate_and_excessive_authorization_servers() {
     for authorization_servers in [
         r#", "authorization_servers":[]"#,
@@ -218,6 +267,14 @@ fn duplicate_members_at_any_depth_and_trailing_json_fail_closed() {
     let duplicate_nested = format!(
         r#"{{"credential_issuer":"{ISSUER}","credential_endpoint":"https://e.example/c","credential_configurations_supported":{{"x":{{"format":"f","fu\u0074ure":1,"future":2}}}}}}"#,
     );
+    let duplicate_nonce_endpoint = core_metadata(
+        r#", "nonce_endpoint":"https://nonce.example/a", "nonce_endpoint":"https://nonce.example/b""#,
+        r#"{"x":{"format":"f"}}"#,
+    );
+    assert!(matches!(
+        metadata(&duplicate_nonce_endpoint),
+        Err(CredentialOfferError::DuplicateJsonProperty)
+    ));
     for json in [
         duplicate_root,
         duplicate_nested,
@@ -329,6 +386,51 @@ fn metadata_limits_are_positive_inspectable_and_exact() {
 }
 
 #[test]
+fn shared_endpoint_limit_applies_independently_and_exactly() {
+    let nonce_endpoint = format!("https://nonce.example/{}", "n".repeat(64));
+    let json = core_metadata(
+        &format!(r#", "nonce_endpoint":"{nonce_endpoint}""#),
+        r#"{"degree":{"format":"fmt"}}"#,
+    );
+    let exact = CredentialIssuerMetadataLimits::new(
+        json.len(),
+        3,
+        8,
+        ISSUER.len(),
+        nonce_endpoint.len(),
+        17,
+        1,
+        6,
+        3,
+        1,
+    )
+    .expect("limits");
+    let parsed = CredentialIssuerMetadata::parse(&json, ISSUER, exact).expect("exact endpoint");
+    assert_eq!(
+        parsed.nonce_endpoint().map(|endpoint| endpoint.as_str()),
+        Some(nonce_endpoint.as_str())
+    );
+
+    let one_less = CredentialIssuerMetadataLimits::new(
+        json.len(),
+        3,
+        8,
+        ISSUER.len(),
+        nonce_endpoint.len() - 1,
+        17,
+        1,
+        6,
+        3,
+        1,
+    )
+    .expect("limits");
+    assert!(matches!(
+        CredentialIssuerMetadata::parse(&json, ISSUER, one_less),
+        Err(CredentialOfferError::NonceEndpointTooLarge)
+    ));
+}
+
+#[test]
 fn metadata_and_errors_do_not_disclose_caller_content() {
     let canary = "METADATA_SECRET_CANARY_41b4";
     let json = core_metadata(
@@ -341,9 +443,61 @@ fn metadata_and_errors_do_not_disclose_caller_content() {
     assert!(!format!("{:?}", parsed.credential_configurations()[0].format()).contains(canary));
     assert!(!format!("{:?}", parsed.credential_endpoint()).contains(canary));
 
+    let nonce_url = format!("https://nonce.example/nonce?canary={canary}");
+    let nonce_json = core_metadata(
+        &format!(r#", "nonce_endpoint":"{nonce_url}""#),
+        r#"{"degree":{"format":"dc+sd-jwt"}}"#,
+    );
+    let nonce_metadata = metadata(&nonce_json).expect("metadata with nonce endpoint");
+    assert!(!format!("{nonce_metadata:?}").contains(canary));
+    assert!(
+        !format!(
+            "{:?}",
+            nonce_metadata.nonce_endpoint().expect("nonce endpoint")
+        )
+        .contains(canary)
+    );
+
     let error =
         CredentialIssuerMetadata::parse(canary, ISSUER, CredentialIssuerMetadataLimits::default())
             .expect_err("invalid metadata");
     assert!(!format!("{error:?} {error}").contains(canary));
     assert!(!format!("{:?}", error.to_identus_error()).contains(canary));
+
+    let unsafe_json = core_metadata(
+        &format!(r#", "nonce_endpoint":"http://nonce.example/{canary}""#),
+        r#"{"degree":{"format":"dc+sd-jwt"}}"#,
+    );
+    let unsafe_error = metadata(&unsafe_json).expect_err("unsafe nonce endpoint");
+    assert!(matches!(
+        unsafe_error,
+        CredentialOfferError::UnsafeNonceEndpoint
+    ));
+    assert!(!format!("{unsafe_error:?} {unsafe_error}").contains(canary));
+    assert!(!format!("{:?}", unsafe_error.to_identus_error()).contains(canary));
+
+    for (error, code) in [
+        (
+            CredentialOfferError::NonceEndpointTooLarge,
+            error_code::NONCE_ENDPOINT_TOO_LARGE,
+        ),
+        (
+            CredentialOfferError::UnsafeNonceEndpoint,
+            error_code::UNSAFE_NONCE_ENDPOINT,
+        ),
+    ] {
+        let core: IdentusError = error.into();
+        assert_eq!(core.code(), code);
+        assert_eq!(core.kind(), ErrorKind::InvalidInput);
+        assert_eq!(core.capability(), Some(CAPABILITY));
+        for value in [
+            format!("{error}"),
+            format!("{error:?}"),
+            format!("{core}"),
+            format!("{core:?}"),
+        ] {
+            assert!(!value.contains(canary));
+            assert!(!value.contains(&nonce_url));
+        }
+    }
 }

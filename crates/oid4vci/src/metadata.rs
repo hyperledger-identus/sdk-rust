@@ -28,6 +28,26 @@ impl fmt::Debug for CredentialEndpoint {
     }
 }
 
+/// A syntactically validated HTTPS Credential Issuer Nonce Endpoint URL.
+pub struct NonceEndpoint {
+    value: Zeroizing<String>,
+}
+
+impl NonceEndpoint {
+    /// Borrow the exact Nonce Endpoint URL.
+    pub fn as_str(&self) -> &str {
+        &self.value
+    }
+}
+
+impl fmt::Debug for NonceEndpoint {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("NonceEndpoint")
+            .finish_non_exhaustive()
+    }
+}
+
 /// An opaque Credential Format identifier from issuer metadata.
 pub struct CredentialFormatIdentifier {
     value: Zeroizing<String>,
@@ -77,13 +97,14 @@ impl fmt::Debug for CredentialConfigurationSummary {
 /// Bounded unsigned Credential Issuer Metadata core.
 ///
 /// This state proves syntax and an exact expected-issuer comparison. It does
-/// not prove retrieval provenance, signer trust, endpoint safety, reachability,
+/// not prove retrieval provenance, signer trust, network safety, reachability,
 /// or support for any advertised format.
 pub struct CredentialIssuerMetadata {
     json: Zeroizing<String>,
     credential_issuer: CredentialIssuerIdentifier,
     authorization_servers: Option<Vec<AuthorizationServerIdentifier>>,
     credential_endpoint: CredentialEndpoint,
+    nonce_endpoint: Option<NonceEndpoint>,
     credential_configurations: Vec<CredentialConfigurationSummary>,
 }
 
@@ -122,6 +143,16 @@ impl CredentialIssuerMetadata {
         if !is_valid_https_endpoint(fields.credential_endpoint.as_str()) {
             return Err(CredentialOfferError::UnsafeCredentialEndpoint);
         }
+        let nonce_endpoint = fields
+            .nonce_endpoint
+            .map(|value| {
+                if is_valid_https_endpoint(value.as_str()) {
+                    Ok(NonceEndpoint { value })
+                } else {
+                    Err(CredentialOfferError::UnsafeNonceEndpoint)
+                }
+            })
+            .transpose()?;
         let credential_configurations = fields
             .credential_configurations
             .into_iter()
@@ -139,6 +170,7 @@ impl CredentialIssuerMetadata {
             credential_endpoint: CredentialEndpoint {
                 value: fields.credential_endpoint,
             },
+            nonce_endpoint,
             credential_configurations,
         })
     }
@@ -174,6 +206,11 @@ impl CredentialIssuerMetadata {
     /// Borrow the validated Credential Endpoint.
     pub const fn credential_endpoint(&self) -> &CredentialEndpoint {
         &self.credential_endpoint
+    }
+
+    /// Borrow the advertised Nonce Endpoint, or `None` when `c_nonce` is not required.
+    pub const fn nonce_endpoint(&self) -> Option<&NonceEndpoint> {
+        self.nonce_endpoint.as_ref()
     }
 
     /// Borrow ordered Credential Configuration summaries.
@@ -222,6 +259,7 @@ impl fmt::Debug for CredentialIssuerMetadata {
                 "authorization_server_count",
                 &self.effective_authorization_server_count(),
             )
+            .field("nonce_endpoint_advertised", &self.nonce_endpoint.is_some())
             .field(
                 "credential_configuration_count",
                 &self.credential_configurations.len(),

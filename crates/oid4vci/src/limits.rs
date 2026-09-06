@@ -590,7 +590,9 @@ impl CredentialIssuerMetadataLimits {
     pub const fn max_credential_issuer_bytes(self) -> usize {
         self.max_credential_issuer_bytes
     }
-    /// Maximum decoded bytes in the Credential Endpoint URL.
+    /// Maximum decoded bytes in each Credential or Nonce Endpoint URL.
+    ///
+    /// The shared budget applies independently to each endpoint value.
     pub const fn max_credential_endpoint_bytes(self) -> usize {
         self.max_credential_endpoint_bytes
     }

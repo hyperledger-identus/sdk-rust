@@ -28,8 +28,9 @@ lookup or authorization-flow selection.
    implying that any grant type is supported or usable.
 6. Keep all values non-serializing and redacted, store owned strings in
    zeroizing buffers, and extend the static error/code taxonomy.
-7. Add only the workspace-owned `serde` interface dependency. Do not add HTTP,
-   async, crypto, DID, storage, chain, platform, or product authority.
+7. Extend the existing bounded lexical scanner and keep the dependency cone
+   unchanged. Do not add HTTP, async, crypto, DID, storage, chain, platform, or
+   product authority.
 
 ## Consequences
 

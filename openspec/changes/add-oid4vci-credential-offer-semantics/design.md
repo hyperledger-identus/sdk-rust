@@ -40,17 +40,17 @@ The API does not implement `Serialize` or `Display`; custom `Debug` shows only
 type shape and safe counts/booleans. Explicit accessors are required to inspect
 the issuer, IDs, or retained JSON.
 
-### D2 — use a selective Serde visitor without materializing unknown values
+### D2 — extend the bounded scanner without materializing unknown values
 
-A custom map visitor decodes only the required strings/array and checks that
-`grants` has map shape. `IgnoredAny` consumes unknown top-level values and
-opaque grant content. This avoids constructing an unbounded generic JSON tree
-or converting arbitrary-magnitude numeric extensions, while the preceding
-transport scanner remains authoritative for full syntax, depth, node, and
-duplicate-name bounds.
+A semantic pass through the existing bounded scanner decodes only the required
+strings/array and checks that `grants` has object shape. The scanner consumes
+unknown top-level values and opaque grant content lexically. This avoids
+constructing an unbounded generic JSON tree or converting arbitrary-magnitude
+numeric extensions, while retaining the same syntax, depth, node, and
+duplicate-name rules as transport validation.
 
-The direct `serde` dependency is already workspace-owned and contains no
-runtime authority. `serde_json` remains the concrete syntax adapter.
+The dependency cone remains unchanged. `serde_json` is used only to decode
+already scanned JSON string tokens.
 
 ### D3 — keep semantic limits separate
 

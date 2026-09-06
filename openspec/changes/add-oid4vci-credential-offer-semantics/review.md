@@ -38,10 +38,10 @@
 
 - **Pass:** independent positive semantic ceilings preserve the existing
   transport constructor/API and bound decoded field allocation.
-- **Pass:** selective deserialization with `IgnoredAny` avoids a generic value
-  tree and fixed-width conversion of ignored numeric extensions.
-- **Pass:** `serde` is workspace-owned and compatible with the existing target
-  matrix; no async, HTTP, crypto, runtime, platform, or chain dependency enters.
+- **Pass:** selective lexical scanning avoids a generic value tree and
+  fixed-width conversion of ignored numeric extensions.
+- **Pass:** the dependency cone remains unchanged; no async, HTTP, crypto,
+  runtime, platform, or chain dependency enters.
 
 ### Provenance and isolation
 

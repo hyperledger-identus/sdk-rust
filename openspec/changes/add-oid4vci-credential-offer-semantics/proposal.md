@@ -33,8 +33,8 @@ consumers; publish; release; or promote to `main`.
 - **Owner:** existing unpublished `identus-oid4vci` protocol-semantics crate.
 - **Compatibility:** additive experimental API; no wire output and no released
   compatibility promise.
-- **Dependencies:** add the already workspace-owned `serde` parsing interface;
-  retain `identus-core`, `serde_json`, `uriparse`, and `zeroize`; no runtime,
+- **Dependencies:** retain `identus-core`, `serde_json`, `uriparse`, and
+  `zeroize`; no runtime,
   transport, crypto, chain, storage, or product dependency.
 - **Rollback:** revert the additive semantic types and records while retaining
   the #111 transport boundary.

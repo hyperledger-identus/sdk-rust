@@ -152,6 +152,24 @@ pub mod error_code {
         ErrorCode::new("oid4vci.refresh_token_too_large");
     pub const INVALID_TOKEN_SCOPE: ErrorCode = ErrorCode::new("oid4vci.invalid_token_scope");
     pub const TOKEN_SCOPE_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vci.token_scope_too_large");
+    pub const INVALID_TOKEN_ERROR_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_token_error_response_limits");
+    pub const TOKEN_ERROR_RESPONSE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.token_error_response_too_large");
+    pub const INVALID_TOKEN_ERROR_RESPONSE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_token_error_response");
+    pub const INVALID_TOKEN_ENDPOINT_ERROR_CODE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_token_endpoint_error_code");
+    pub const TOKEN_ENDPOINT_ERROR_CODE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.token_endpoint_error_code_too_large");
+    pub const INVALID_TOKEN_ERROR_DESCRIPTION: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_token_error_description");
+    pub const TOKEN_ERROR_DESCRIPTION_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.token_error_description_too_large");
+    pub const INVALID_TOKEN_ERROR_URI: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_token_error_uri");
+    pub const TOKEN_ERROR_URI_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.token_error_uri_too_large");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -246,6 +264,15 @@ pub enum CredentialOfferError {
     RefreshTokenTooLarge,
     InvalidTokenScope,
     TokenScopeTooLarge,
+    InvalidTokenErrorResponseLimits,
+    TokenErrorResponseTooLarge,
+    InvalidTokenErrorResponse,
+    InvalidTokenEndpointErrorCode,
+    TokenEndpointErrorCodeTooLarge,
+    InvalidTokenErrorDescription,
+    TokenErrorDescriptionTooLarge,
+    InvalidTokenErrorUri,
+    TokenErrorUriTooLarge,
 }
 
 impl CredentialOfferError {
@@ -681,6 +708,51 @@ impl CredentialOfferError {
                 error_code::TOKEN_SCOPE_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI token scope is too large",
+            ),
+            Self::InvalidTokenErrorResponseLimits => (
+                error_code::INVALID_TOKEN_ERROR_RESPONSE_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Error Response limits are invalid",
+            ),
+            Self::TokenErrorResponseTooLarge => (
+                error_code::TOKEN_ERROR_RESPONSE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Error Response is too large",
+            ),
+            Self::InvalidTokenErrorResponse => (
+                error_code::INVALID_TOKEN_ERROR_RESPONSE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Error Response core is invalid",
+            ),
+            Self::InvalidTokenEndpointErrorCode => (
+                error_code::INVALID_TOKEN_ENDPOINT_ERROR_CODE,
+                ErrorKind::InvalidInput,
+                "OID4VCI token endpoint error code is invalid",
+            ),
+            Self::TokenEndpointErrorCodeTooLarge => (
+                error_code::TOKEN_ENDPOINT_ERROR_CODE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI token endpoint error code is too large",
+            ),
+            Self::InvalidTokenErrorDescription => (
+                error_code::INVALID_TOKEN_ERROR_DESCRIPTION,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Error Response description is invalid",
+            ),
+            Self::TokenErrorDescriptionTooLarge => (
+                error_code::TOKEN_ERROR_DESCRIPTION_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Error Response description is too large",
+            ),
+            Self::InvalidTokenErrorUri => (
+                error_code::INVALID_TOKEN_ERROR_URI,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Error Response URI is invalid",
+            ),
+            Self::TokenErrorUriTooLarge => (
+                error_code::TOKEN_ERROR_URI_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Error Response URI is too large",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

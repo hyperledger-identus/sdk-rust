@@ -5,9 +5,10 @@
 //! agreement, a partial Authorization Server Metadata core, and explicit
 //! Pre-Authorized Code server and Transaction Code input binding, and bounded
 //! construction of the mandatory Pre-Authorized Token Request form plus a
-//! partial successful Token Response core. It performs no network access, does
-//! not validate complete RFC 8414 metadata or Token Response Authorization
-//! Details, and establishes no issuer, server, or token trust.
+//! partial successful Token Response core and Token Error Response core. It
+//! performs no network access, does not validate complete RFC 8414 metadata or
+//! Token Response Authorization Details, and establishes no issuer, server, or
+//! token trust.
 
 #![forbid(unsafe_code)]
 
@@ -20,6 +21,7 @@ mod metadata;
 mod pre_authorized_server;
 mod pre_authorized_token_request;
 mod semantic;
+mod token_error_response;
 mod token_response;
 mod transaction_code_input;
 mod transport;
@@ -37,7 +39,8 @@ pub use grants::{
 pub use limits::{
     AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits, CredentialOfferGrantLimits,
     CredentialOfferLimits, CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
-    PreAuthorizedTokenRequestLimits, TokenResponseLimits, TransactionCodeInputLimits,
+    PreAuthorizedTokenRequestLimits, TokenErrorResponseLimits, TokenResponseLimits,
+    TransactionCodeInputLimits,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,
@@ -48,6 +51,9 @@ pub use pre_authorized_token_request::{
     PreAuthorizedTokenRequest, TOKEN_REQUEST_HTTP_METHOD, TOKEN_REQUEST_MEDIA_TYPE,
 };
 pub use semantic::{CredentialConfigurationId, CredentialIssuerIdentifier, CredentialOffer};
+pub use token_error_response::{
+    TokenEndpointErrorCode, TokenEndpointErrorKind, TokenErrorResponseCore, TokenErrorUri,
+};
 pub use token_response::{TokenResponseCore, TokenType};
 pub use transaction_code_input::CredentialOfferWithPreAuthorizedTokenInput;
 pub use transport::{CredentialOfferReference, CredentialOfferRequest, EmbeddedCredentialOffer};

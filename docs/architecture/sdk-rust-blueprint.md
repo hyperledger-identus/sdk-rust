@@ -378,6 +378,15 @@ Authorization Details and Credential Dataset semantics, token trust/time,
 refresh, nonce, Credential Requests/Responses, and replay controls remain later
 slices.
 
+The tenth bounded delivery, issue #129, parses a bounded OAuth
+`TokenErrorResponseCore`. It preserves exact extension-compatible error codes,
+classifies the six standard token-endpoint errors, validates optional untrusted
+developer description and URI-reference metadata, discards bounded unknown
+members, zeroizes retained strings, and keeps diagnostics data-free. HTTP
+status/header validation, request correlation, retry/remediation policy, URI
+navigation, trust, nonce, Credential Requests/Responses, and replay controls
+remain later slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

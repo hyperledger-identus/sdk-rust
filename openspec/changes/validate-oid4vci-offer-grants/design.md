@@ -39,9 +39,10 @@ JSON while exposing optional typed known grants. A caller can therefore observe
 absence, an empty grants object, either known alternative, or both without the
 SDK choosing a flow or claiming that any flow is usable.
 
-Unknown grant names and unknown members inside known grants remain in the exact
-retained JSON and are skipped semantically. The Final requires wallets to
-ignore unrecognized top-level parameters and allows extension grant types.
+Unknown grant names with object-shaped values and unknown members inside known
+grants remain in the exact retained JSON and are skipped semantically. The
+Final defines every grant value as an object, requires wallets to ignore
+unrecognized top-level parameters, and allows extension grant types.
 
 ### D2 — preserve secret-bearing values behind explicit accessors
 

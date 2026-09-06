@@ -15,21 +15,7 @@ pub struct CredentialIssuerIdentifier {
 
 impl CredentialIssuerIdentifier {
     fn try_from_value(value: Zeroizing<String>) -> Result<Self, CredentialOfferError> {
-        let bytes = value.as_bytes();
-        if !bytes
-            .get(..8)
-            .is_some_and(|prefix| prefix.eq_ignore_ascii_case(b"https://"))
-        {
-            return Err(CredentialOfferError::UnsafeCredentialIssuer);
-        }
-        let authority = &bytes[8..bytes[8..]
-            .iter()
-            .position(|byte| matches!(byte, b'/' | b'?' | b'#'))
-            .map_or(bytes.len(), |offset| 8 + offset)];
-        if authority.is_empty() || authority.first() == Some(&b':') {
-            return Err(CredentialOfferError::UnsafeCredentialIssuer);
-        }
-        if !is_valid_https_issuer(value.as_str()) {
+        if !is_valid_https_identifier(value.as_str()) {
             return Err(CredentialOfferError::UnsafeCredentialIssuer);
         }
         Ok(Self { value })
@@ -41,7 +27,22 @@ impl CredentialIssuerIdentifier {
     }
 }
 
-fn is_valid_https_issuer(value: &str) -> bool {
+pub(crate) fn is_valid_https_identifier(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if !bytes
+        .get(..8)
+        .is_some_and(|prefix| prefix.eq_ignore_ascii_case(b"https://"))
+    {
+        return false;
+    }
+    let authority_end = bytes[8..]
+        .iter()
+        .position(|byte| matches!(byte, b'/' | b'?' | b'#'))
+        .map_or(bytes.len(), |offset| 8 + offset);
+    let authority = &bytes[8..authority_end];
+    if authority.is_empty() || authority.first() == Some(&b':') {
+        return false;
+    }
     URI::try_from(value).is_ok_and(|parsed| has_safe_issuer_components(&parsed))
         || is_valid_ipvfuture_https_issuer(value)
 }
@@ -202,6 +203,10 @@ impl CredentialOffer {
     /// Borrow the exact decoded JSON retained from transport validation.
     pub fn as_json(&self) -> &str {
         self.embedded.as_json()
+    }
+
+    pub(crate) const fn transport_limits(&self) -> crate::CredentialOfferLimits {
+        self.embedded.limits()
     }
 }
 

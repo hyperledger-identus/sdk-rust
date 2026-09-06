@@ -134,3 +134,77 @@ impl Default for CredentialOfferSemanticLimits {
         }
     }
 }
+
+/// Resource limits for known Credential Offer grant members.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CredentialOfferGrantLimits {
+    max_issuer_state_bytes: usize,
+    max_pre_authorized_code_bytes: usize,
+    max_authorization_server_bytes: usize,
+    max_transaction_code_description_bytes: usize,
+    max_transaction_code_length: usize,
+}
+
+impl CredentialOfferGrantLimits {
+    /// Construct a positive grant resource policy.
+    pub const fn new(
+        max_issuer_state_bytes: usize,
+        max_pre_authorized_code_bytes: usize,
+        max_authorization_server_bytes: usize,
+        max_transaction_code_description_bytes: usize,
+        max_transaction_code_length: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_issuer_state_bytes == 0
+            || max_pre_authorized_code_bytes == 0
+            || max_authorization_server_bytes == 0
+            || max_transaction_code_description_bytes == 0
+            || max_transaction_code_length == 0
+        {
+            return Err(CredentialOfferError::InvalidGrantLimits);
+        }
+        Ok(Self {
+            max_issuer_state_bytes,
+            max_pre_authorized_code_bytes,
+            max_authorization_server_bytes,
+            max_transaction_code_description_bytes,
+            max_transaction_code_length,
+        })
+    }
+
+    /// Maximum decoded UTF-8 bytes in an opaque issuer state.
+    pub const fn max_issuer_state_bytes(self) -> usize {
+        self.max_issuer_state_bytes
+    }
+
+    /// Maximum decoded UTF-8 bytes in a Pre-Authorized Code.
+    pub const fn max_pre_authorized_code_bytes(self) -> usize {
+        self.max_pre_authorized_code_bytes
+    }
+
+    /// Maximum decoded UTF-8 bytes in an Authorization Server identifier.
+    pub const fn max_authorization_server_bytes(self) -> usize {
+        self.max_authorization_server_bytes
+    }
+
+    /// Maximum decoded UTF-8 bytes in Transaction Code guidance.
+    pub const fn max_transaction_code_description_bytes(self) -> usize {
+        self.max_transaction_code_description_bytes
+    }
+
+    /// Maximum advertised Transaction Code length.
+    pub const fn max_transaction_code_length(self) -> usize {
+        self.max_transaction_code_length
+    }
+}
+
+impl Default for CredentialOfferGrantLimits {
+    fn default() -> Self {
+        Self {
+            max_issuer_state_bytes: 2_048,
+            max_pre_authorized_code_bytes: 4_096,
+            max_authorization_server_bytes: 2_048,
+            max_transaction_code_description_bytes: 1_200,
+            max_transaction_code_length: 64,
+        }
+    }
+}

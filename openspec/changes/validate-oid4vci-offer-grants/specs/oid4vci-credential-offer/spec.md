@@ -3,10 +3,10 @@
 ### Requirement: Grants and extensions remain lossless but least-authority
 
 The optional `grants` member SHALL be absent or a JSON object. An absent or
-empty object SHALL be accepted without selecting a flow. Unknown grant names,
-unknown members inside known grants, and all unrecognized top-level parameters
-SHALL be ignored semantically while remaining present in the retained exact
-JSON.
+empty object SHALL be accepted without selecting a flow. Every grant value
+SHALL be an object. Unknown grant names with object values, unknown members
+inside known grants, and all unrecognized top-level parameters SHALL be ignored
+semantically while remaining present in the retained exact JSON.
 
 A `CredentialOffer` SHALL advance to `CredentialOfferWithGrants` only by a
 consuming transition under positive grant limits. The result SHALL expose
@@ -50,8 +50,8 @@ Authorization Server hint.
 
 #### Scenario: absent and extension grants remain lossless
 
-- **WHEN** grants are absent, empty, or contain unknown grant names/members and
-  arbitrary-magnitude unknown numbers
+- **WHEN** grants are absent, empty, or contain unknown object-shaped grant
+  names/members and arbitrary-magnitude unknown numbers
 - **THEN** grant validation succeeds without a known alternative and the exact
   retained JSON preserves every extension
 

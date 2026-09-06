@@ -11,23 +11,23 @@
 
 ## 2. Grant implementation
 
-- [ ] 2.1 Add grant limits and static redacted error/core-code variants.
-- [ ] 2.2 Extend the selective bounded scanner for known grants, opaque
+- [x] 2.1 Add grant limits and static redacted error/core-code variants.
+- [x] 2.2 Extend the selective bounded scanner for known grants, opaque
   extensions, strict Transaction Code fields, and exact integer/character
   limits.
-- [ ] 2.3 Add grant, Transaction Code, and Authorization Server value types plus
+- [x] 2.3 Add grant, Transaction Code, and Authorization Server value types plus
   the consuming `CredentialOfferWithGrants` transition and safe accessors.
 
 ## 3. Evidence and architecture
 
-- [ ] 3.1 Add official Authorization Code and Pre-Authorized Code examples,
+- [x] 3.1 Add official Authorization Code and Pre-Authorized Code examples,
   both-known-grant, empty-grants, and independently reconstructed consumer
   positives.
-- [ ] 3.2 Add type/empty/bound/mode/integer/legacy-null/unknown-extension and
+- [x] 3.2 Add type/empty/bound/mode/integer/legacy-null/unknown-extension and
   diagnostic-canary negatives plus direct/invocation transition equivalence.
-- [ ] 3.3 Record ADR 0043 and advance the blueprint/canonical `IDR-023` issue
+- [x] 3.3 Record ADR 0043 and advance the blueprint/canonical `IDR-023` issue
   without claiming metadata, protocol state, or the full engine is delivered.
-- [ ] 3.4 Verify consumer HEAD/status receipts exactly match preflight.
+- [x] 3.4 Verify consumer HEAD/status receipts exactly match preflight.
 
 ## 4. Verification and delivery
 

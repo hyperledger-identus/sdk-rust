@@ -69,6 +69,10 @@ evaluation and Darwin fixup warnings did not fail a derivation.
   `c05f7cd4a91248e8dd55aa69c9418728770b0c7e`.
 - Reviewed production implementation commit:
   `2865b7e27245f62fcb580d6f598b90615d2f91b6`.
+- Review and verification-evidence commit:
+  `23ae2eb11c85e00a577201f55f06287e6929a44c`.
+- Guarded OpenSpec archive commit:
+  `77ead3be52e38a79d380868a74954e65c475e6bd`.
 - Request implementation SHA-256:
   `369cf7ecedc7c0d91b6d490231717d88b6be1d7a8d9b9f17ef9be3fc5880ca0c`.
 - Metadata state SHA-256:
@@ -77,8 +81,8 @@ evaluation and Darwin fixup warnings did not fail a derivation.
   `962d7c5da095496da964405bfef870319f90d328332af399453a934b0087ba82`.
 - No manifest, lockfile, Cargo feature, dependency, consumer, chain or product
   repository changed.
-- The two branch commits through the production implementation have valid
-  local signatures and DCO sign-offs. Guarded archive and final commit
-  signature evidence are recorded after the archive transition.
+- The four branch commits through the guarded archive have valid local
+  signatures and DCO sign-offs. The final receipt-only commit is checked with
+  the same local signature and DCO policy before delivery.
 - The distinct exact-diff review is recorded in `review.md`; no unresolved
   finding remains.

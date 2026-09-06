@@ -8,7 +8,6 @@ publish.workspace      = true
 
 [dependencies]
 identus-core.workspace = true
-serde.workspace        = true
 serde_json.workspace   = true
 uriparse.workspace     = true
 zeroize.workspace      = true

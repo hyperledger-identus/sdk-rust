@@ -1,6 +1,5 @@
-use std::fmt;
+use std::ops::Range;
 
-use serde::de::{self, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor};
 use zeroize::Zeroizing;
 
 use crate::CredentialOfferError;
@@ -10,182 +9,227 @@ pub(crate) fn validate_json(
     max_depth: usize,
     max_nodes: usize,
 ) -> Result<(), CredentialOfferError> {
-    let mut state = ScanState {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
         max_depth,
         max_nodes,
         nodes: 0,
-        root_is_object: false,
-        failure: None,
     };
-    let mut deserializer = serde_json::Deserializer::from_slice(input);
-    if (ScanSeed {
-        state: &mut state,
-        depth: 0,
-    })
-    .deserialize(&mut deserializer)
-    .is_err()
-    {
-        return Err(state
-            .failure
-            .unwrap_or(CredentialOfferError::InvalidEmbeddedJson));
+    scanner.skip_whitespace();
+    if scanner.peek() != Some(b'{') {
+        return Err(CredentialOfferError::InvalidEmbeddedJson);
     }
-    deserializer
-        .end()
-        .map_err(|_| CredentialOfferError::InvalidEmbeddedJson)?;
-    if !state.root_is_object {
+    scanner.parse_value(0)?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
         return Err(CredentialOfferError::InvalidEmbeddedJson);
     }
     Ok(())
 }
 
-struct ScanState {
+struct Scanner<'a> {
+    input: &'a [u8],
+    cursor: usize,
     max_depth: usize,
     max_nodes: usize,
     nodes: usize,
-    root_is_object: bool,
-    failure: Option<CredentialOfferError>,
 }
 
-impl ScanState {
-    fn visit_node<E: de::Error>(&mut self) -> Result<(), E> {
+impl Scanner<'_> {
+    fn parse_value(&mut self, depth: usize) -> Result<(), CredentialOfferError> {
         self.nodes = self.nodes.saturating_add(1);
         if self.nodes > self.max_nodes {
-            return self.fail(CredentialOfferError::JsonTooManyNodes);
+            return Err(CredentialOfferError::JsonTooManyNodes);
         }
-        Ok(())
-    }
 
-    fn enter_container<E: de::Error>(&mut self, depth: usize) -> Result<(), E> {
-        if depth > self.max_depth {
-            return self.fail(CredentialOfferError::JsonTooDeep);
+        self.skip_whitespace();
+        match self.peek() {
+            Some(b'{') => {
+                let depth = self.enter_container(depth)?;
+                self.cursor += 1;
+                self.parse_object(depth)
+            }
+            Some(b'[') => {
+                let depth = self.enter_container(depth)?;
+                self.cursor += 1;
+                self.parse_array(depth)
+            }
+            Some(b'"') => {
+                let token = self.scan_string()?;
+                let _decoded = Zeroizing::new(
+                    serde_json::from_slice::<String>(&self.input[token])
+                        .map_err(|_| CredentialOfferError::InvalidEmbeddedJson)?,
+                );
+                Ok(())
+            }
+            Some(b't') => self.consume_literal(b"true"),
+            Some(b'f') => self.consume_literal(b"false"),
+            Some(b'n') => self.consume_literal(b"null"),
+            Some(b'-' | b'0'..=b'9') => self.scan_number(),
+            _ => Err(CredentialOfferError::InvalidEmbeddedJson),
         }
-        Ok(())
     }
 
-    fn fail<T, E: de::Error>(&mut self, reason: CredentialOfferError) -> Result<T, E> {
-        self.failure = Some(reason);
-        Err(E::custom(ScanFailure))
-    }
-}
-
-struct ScanFailure;
-
-impl fmt::Display for ScanFailure {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("JSON value violates the Credential Offer resource policy")
-    }
-}
-
-struct ScanSeed<'a> {
-    state: &'a mut ScanState,
-    depth: usize,
-}
-
-impl<'de> DeserializeSeed<'de> for ScanSeed<'_> {
-    type Value = ();
-
-    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        self.state.visit_node()?;
-        deserializer.deserialize_any(ScanVisitor {
-            state: self.state,
-            depth: self.depth,
-        })
-    }
-}
-
-struct ScanVisitor<'a> {
-    state: &'a mut ScanState,
-    depth: usize,
-}
-
-impl<'de> Visitor<'de> for ScanVisitor<'_> {
-    type Value = ();
-
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("a bounded JSON value")
-    }
-
-    fn visit_bool<E>(self, _value: bool) -> Result<Self::Value, E> {
-        Ok(())
-    }
-
-    fn visit_i64<E>(self, _value: i64) -> Result<Self::Value, E> {
-        Ok(())
-    }
-
-    fn visit_u64<E>(self, _value: u64) -> Result<Self::Value, E> {
-        Ok(())
-    }
-
-    fn visit_f64<E>(self, _value: f64) -> Result<Self::Value, E> {
-        Ok(())
-    }
-
-    fn visit_str<E>(self, _value: &str) -> Result<Self::Value, E> {
-        Ok(())
-    }
-
-    fn visit_borrowed_str<E>(self, _value: &'de str) -> Result<Self::Value, E> {
-        Ok(())
-    }
-
-    fn visit_string<E>(self, value: String) -> Result<Self::Value, E> {
-        let _value = Zeroizing::new(value);
-        Ok(())
-    }
-
-    fn visit_none<E>(self) -> Result<Self::Value, E> {
-        Ok(())
-    }
-
-    fn visit_unit<E>(self) -> Result<Self::Value, E> {
-        Ok(())
-    }
-
-    fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
-    where
-        A: SeqAccess<'de>,
-    {
-        let child_depth = self.depth.saturating_add(1);
-        self.state.enter_container(child_depth)?;
-        while sequence
-            .next_element_seed(ScanSeed {
-                state: &mut *self.state,
-                depth: child_depth,
-            })?
-            .is_some()
-        {}
-        Ok(())
-    }
-
-    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-    where
-        A: MapAccess<'de>,
-    {
-        let child_depth = self.depth.saturating_add(1);
-        self.state.enter_container(child_depth)?;
-        if self.depth == 0 {
-            self.state.root_is_object = true;
+    fn parse_object(&mut self, depth: usize) -> Result<(), CredentialOfferError> {
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Ok(());
         }
+
         let mut names: Vec<Zeroizing<String>> = Vec::new();
-
-        while let Some(name) = map.next_key::<String>()? {
-            let name = Zeroizing::new(name);
+        loop {
+            self.skip_whitespace();
+            if self.peek() != Some(b'"') {
+                return Err(CredentialOfferError::InvalidEmbeddedJson);
+            }
+            let token = self.scan_string()?;
+            let name = Zeroizing::new(
+                serde_json::from_slice::<String>(&self.input[token])
+                    .map_err(|_| CredentialOfferError::InvalidEmbeddedJson)?,
+            );
             if names
                 .iter()
                 .any(|existing| existing.as_str() == name.as_str())
             {
-                return self.state.fail(CredentialOfferError::DuplicateJsonProperty);
+                return Err(CredentialOfferError::DuplicateJsonProperty);
             }
             names.push(name);
-            map.next_value_seed(ScanSeed {
-                state: &mut *self.state,
-                depth: child_depth,
-            })?;
+
+            self.skip_whitespace();
+            if !self.consume_if(b':') {
+                return Err(CredentialOfferError::InvalidEmbeddedJson);
+            }
+            self.parse_value(depth)?;
+            self.skip_whitespace();
+            match self.peek() {
+                Some(b',') => self.cursor += 1,
+                Some(b'}') => {
+                    self.cursor += 1;
+                    return Ok(());
+                }
+                _ => return Err(CredentialOfferError::InvalidEmbeddedJson),
+            }
+        }
+    }
+
+    fn parse_array(&mut self, depth: usize) -> Result<(), CredentialOfferError> {
+        self.skip_whitespace();
+        if self.consume_if(b']') {
+            return Ok(());
+        }
+
+        loop {
+            self.parse_value(depth)?;
+            self.skip_whitespace();
+            match self.peek() {
+                Some(b',') => self.cursor += 1,
+                Some(b']') => {
+                    self.cursor += 1;
+                    return Ok(());
+                }
+                _ => return Err(CredentialOfferError::InvalidEmbeddedJson),
+            }
+        }
+    }
+
+    fn enter_container(&self, depth: usize) -> Result<usize, CredentialOfferError> {
+        let child_depth = depth.saturating_add(1);
+        if child_depth > self.max_depth {
+            return Err(CredentialOfferError::JsonTooDeep);
+        }
+        Ok(child_depth)
+    }
+
+    fn scan_string(&mut self) -> Result<Range<usize>, CredentialOfferError> {
+        let start = self.cursor;
+        self.cursor += 1;
+        while let Some(byte) = self.peek() {
+            match byte {
+                b'"' => {
+                    self.cursor += 1;
+                    return Ok(start..self.cursor);
+                }
+                b'\\' => {
+                    self.cursor += 1;
+                    if self.peek().is_none() {
+                        return Err(CredentialOfferError::InvalidEmbeddedJson);
+                    }
+                    self.cursor += 1;
+                }
+                _ => self.cursor += 1,
+            }
+        }
+        Err(CredentialOfferError::InvalidEmbeddedJson)
+    }
+
+    fn scan_number(&mut self) -> Result<(), CredentialOfferError> {
+        self.consume_if(b'-');
+        match self.peek() {
+            Some(b'0') => {
+                self.cursor += 1;
+                if self.peek().is_some_and(|byte| byte.is_ascii_digit()) {
+                    return Err(CredentialOfferError::InvalidEmbeddedJson);
+                }
+            }
+            Some(b'1'..=b'9') => self.consume_digits(),
+            _ => return Err(CredentialOfferError::InvalidEmbeddedJson),
+        }
+
+        if self.consume_if(b'.') {
+            if !self.peek().is_some_and(|byte| byte.is_ascii_digit()) {
+                return Err(CredentialOfferError::InvalidEmbeddedJson);
+            }
+            self.consume_digits();
+        }
+
+        if self.peek().is_some_and(|byte| matches!(byte, b'e' | b'E')) {
+            self.cursor += 1;
+            if self.peek().is_some_and(|byte| matches!(byte, b'+' | b'-')) {
+                self.cursor += 1;
+            }
+            if !self.peek().is_some_and(|byte| byte.is_ascii_digit()) {
+                return Err(CredentialOfferError::InvalidEmbeddedJson);
+            }
+            self.consume_digits();
         }
         Ok(())
+    }
+
+    fn consume_digits(&mut self) {
+        while self.peek().is_some_and(|byte| byte.is_ascii_digit()) {
+            self.cursor += 1;
+        }
+    }
+
+    fn consume_literal(&mut self, literal: &[u8]) -> Result<(), CredentialOfferError> {
+        if self.input.get(self.cursor..self.cursor + literal.len()) == Some(literal) {
+            self.cursor += literal.len();
+            Ok(())
+        } else {
+            Err(CredentialOfferError::InvalidEmbeddedJson)
+        }
+    }
+
+    fn skip_whitespace(&mut self) {
+        while self
+            .peek()
+            .is_some_and(|byte| matches!(byte, b' ' | b'\n' | b'\r' | b'\t'))
+        {
+            self.cursor += 1;
+        }
+    }
+
+    fn consume_if(&mut self, expected: u8) -> bool {
+        if self.peek() == Some(expected) {
+            self.cursor += 1;
+            true
+        } else {
+            false
+        }
+    }
+
+    fn peek(&self) -> Option<u8> {
+        self.input.get(self.cursor).copied()
     }
 }

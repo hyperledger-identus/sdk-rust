@@ -154,6 +154,66 @@ fn embedded_json_requires_one_bounded_unambiguous_object() {
             .as_json(),
         extension
     );
+
+    for number in [
+        "1e400",
+        "-1e400",
+        "18446744073709551616",
+        "-9223372036854775809",
+        "0.123456789012345678901234567890",
+    ] {
+        let json = format!(r#"{{"extension":{number}}}"#);
+        assert_eq!(
+            EmbeddedCredentialOffer::try_from_json(&json, limits)
+                .expect("valid number magnitude must remain opaque")
+                .as_json(),
+            json
+        );
+    }
+
+    for number in ["01", "-", "1.", "1e", "1e+", "+1", ".1", "NaN", "Infinity"] {
+        let json = format!(r#"{{"extension":{number}}}"#);
+        assert_eq!(
+            EmbeddedCredentialOffer::try_from_json(&json, limits)
+                .expect_err("malformed JSON number must fail"),
+            CredentialOfferError::InvalidEmbeddedJson
+        );
+    }
+}
+
+#[test]
+fn structural_scanner_enforces_complete_json_grammar() {
+    let limits = CredentialOfferLimits::default();
+    for json in [
+        r#"{}"#,
+        r#" { "values" : [null, true, false, -0, 0, 1, -1, 1.0, 1E+2, {"nested":[]}] } "#,
+        r#"{"escaped":"quote=\" slash=\\ solidus=\/ unicode=\u0061 pair=\uD834\uDD1E"}"#,
+    ] {
+        assert!(
+            EmbeddedCredentialOffer::try_from_json(json, limits).is_ok(),
+            "valid JSON object was rejected: {json}"
+        );
+    }
+
+    for json in [
+        r#"{"a":true false}"#,
+        r#"{"a":nul}"#,
+        r#"{"a" 1}"#,
+        r#"{"a":1,}"#,
+        r#"{"a":[1,]}"#,
+        r#"{"a":"\q"}"#,
+        r#"{"a":"\u12"}"#,
+        r#"{"a":"\uD800"}"#,
+        "{\"a\":\"raw\nnewline\"}",
+        "{\"a\":1}\u{000b}",
+    ] {
+        assert_eq!(
+            EmbeddedCredentialOffer::try_from_json(json, limits)
+                .expect_err("malformed JSON structure must fail"),
+            CredentialOfferError::InvalidEmbeddedJson,
+            "unexpected error for {json:?}"
+        );
+    }
 }
 
 #[test]

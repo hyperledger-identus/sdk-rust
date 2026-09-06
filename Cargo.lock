@@ -467,7 +467,6 @@ name = "identus-oid4vci"
 version = "0.0.0"
 dependencies = [
  "identus-core",
- "serde",
  "serde_json",
  "uriparse",
  "zeroize",

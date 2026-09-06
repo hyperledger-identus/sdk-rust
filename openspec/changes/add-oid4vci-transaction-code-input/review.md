@@ -28,3 +28,48 @@
 The proposal, design, capability requirements, program replacement, and task
 map are semantically complete, objectively testable, reversible, and within
 the standing mandate. No unresolved blocker remains before implementation.
+
+# Post-implementation exact-diff review
+
+- **Date:** 2026-09-07
+- **Reviewed production head:** `3fd92d97ca3cc3f8c9c518fb8dc491d3960fd18f`
+- **Exact diff:** `develop@b22ba18c...3fd92d97`
+- **Method:** fresh architecture/API/standards/security/resource review after
+  focused, workspace, and full Nix gates
+- **Result:** no unresolved finding
+
+## Exact-diff findings
+
+1. The only public construction path consumes the server-bound predecessor;
+   successful construction therefore preserves the established offer,
+   metadata, selected Authorization Server, grant-support, and Token Endpoint
+   invariants.
+2. A present `tx_code` object, including `{}`, requires input, while an absent
+   object rejects input. The transition does not reinterpret `input_mode`,
+   `length`, or `description` as code-validation policy.
+3. Caller-owned input moves into `Zeroizing<String>` before presence, empty,
+   and byte-bound validation. Rejected owned values and successful retained
+   values consequently share the same erasure boundary without cloning.
+4. The positive configurable limit defaults to 256 decoded UTF-8 bytes. Byte
+   length is checked exactly, including multibyte values, with no trim,
+   normalization, parsing, or data-dependent allocation.
+5. The success state exposes its predecessor and a presence bit only. It has
+   no public raw-secret accessor or serialization contract; later in-crate
+   Token Request work can consume the private field without widening this API.
+6. Debug output contains only the type and presence bit. Five new fieldless
+   errors map to stable, static `oid4vci.*` contracts, and canary tests cover
+   the direct and bridged Debug/Display surfaces.
+7. Eight focused tests cover positive, negative, exact-bound, multibyte,
+   predecessor, advisory-metadata, limit, and diagnostic branches in both
+   feature modes.
+8. No manifest, lockfile, feature, parser, existing limit, dependency, HTTP,
+   runtime, crypto, DID, storage, consumer, chain, or product code changed.
+   The normal dependency cone is unchanged.
+9. ADR 0047, blueprint, backlog, and OpenSpec consistently describe an input
+   presence/resource proof—not correctness, authentication, replay safety, or
+   a serializable Token Request.
+10. Focused/workspace Cargo and all 27 compatible Nix checks pass, including
+    Rust 1.85, WASM, Android, iOS, strict lints/docs, supply-chain policy, and
+    the 487-test principal suite. Consumer receipts match preflight exactly.
+
+Verdict: READY for specification synchronization and pull-request review.

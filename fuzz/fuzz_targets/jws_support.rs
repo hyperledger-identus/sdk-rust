@@ -100,22 +100,50 @@ fn assert_accepted(compact: &str, limits: JwsLimits, parsed: &UnverifiedCompactJ
         "same-limit parse was not deterministic"
     );
 
+    let rebuild_limits = canonical_rebuild_limits(parsed, limits);
     let rebuilt = JwsSigningInput::new(
         parsed.protected_header().clone(),
         parsed.payload().to_vec(),
-        limits,
+        rebuild_limits,
     )
     .unwrap_or_else(|_| panic!("accepted JWS semantics must rebuild"))
     .attach_signature(parsed.signature().to_vec())
     .unwrap_or_else(|_| panic!("accepted JWS signature must reattach"));
-    let rebuilt = UnverifiedCompactJws::parse(rebuilt.compact(), limits)
-        .unwrap_or_else(|_| panic!("rebuilt JWS must parse under identical limits"));
+    let rebuilt = UnverifiedCompactJws::parse(rebuilt.compact(), rebuild_limits)
+        .unwrap_or_else(|_| panic!("rebuilt JWS must parse under canonical output limits"));
     assert!(
         rebuilt.protected_header() == parsed.protected_header()
             && rebuilt.payload() == parsed.payload()
             && rebuilt.signature() == parsed.signature(),
         "staged JWS rebuild changed accepted semantics"
     );
+}
+
+fn canonical_rebuild_limits(parsed: &UnverifiedCompactJws, limits: JwsLimits) -> JwsLimits {
+    let header = serde_json::to_vec(parsed.protected_header())
+        .unwrap_or_else(|_| panic!("accepted protected header must serialize"));
+    let compact = encoded_len(header.len())
+        .checked_add(encoded_len(parsed.payload().len()))
+        .and_then(|length| length.checked_add(encoded_len(parsed.signature().len())))
+        .and_then(|length| length.checked_add(2))
+        .unwrap_or_else(|| panic!("bounded canonical JWS size must be representable"));
+    JwsLimits::new(
+        limits.max_compact_bytes().max(compact),
+        limits.max_protected_header_bytes().max(header.len()),
+        limits.max_payload_bytes().max(parsed.payload().len()),
+        limits.max_signature_bytes().max(parsed.signature().len()),
+        limits.max_header_string_bytes(),
+    )
+    .unwrap_or_else(|_| panic!("canonical JWS rebuild limits must be valid"))
+}
+
+fn encoded_len(length: usize) -> usize {
+    length / 3 * 4
+        + match length % 3 {
+            0 => 0,
+            1 => 2,
+            _ => 3,
+        }
 }
 
 fn assert_static_codec_error(error: JoseError) {
@@ -170,5 +198,29 @@ fn assert_default_resource_boundary() {
             ),
             "over-limit compact input was not rejected at the resource boundary"
         );
+
+        let raw_header = br#"{"alg":"Ed25519","jwk":{"kty":"OKP","crv":"Ed25519","x":"BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc","ext":1e1}}"#;
+        let tight_compact = format!(
+            "{}..{}",
+            URL_SAFE_NO_PAD.encode(raw_header),
+            URL_SAFE_NO_PAD.encode(b"x")
+        );
+        let tight_limits = JwsLimits::new(
+            tight_compact.len(),
+            raw_header.len(),
+            1,
+            1,
+            64,
+        )
+        .unwrap_or_else(|_| panic!("tight canonical-growth limits must be valid"));
+        let parsed = UnverifiedCompactJws::parse(&tight_compact, tight_limits)
+            .unwrap_or_else(|_| panic!("tight representation-dependent JWS must parse"));
+        let canonical_header = serde_json::to_vec(parsed.protected_header())
+            .unwrap_or_else(|_| panic!("accepted protected header must serialize"));
+        assert!(
+            canonical_header.len() > raw_header.len(),
+            "canonical-growth probe no longer exercises a larger encoding"
+        );
+        assert_accepted(&tight_compact, tight_limits, &parsed);
     });
 }

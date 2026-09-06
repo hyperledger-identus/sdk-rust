@@ -19,10 +19,13 @@ Enter the repository's Nix shell or let the wrapper enter it for you:
 
 `replay` executes the committed corpus once. `smoke` uses one process, seed
 `424242`, 4,096 runs per target, and is the PR/push gate. `soak` uses a fresh
-libFuzzer seed and at most 300 seconds per target. All modes cap inputs at 8
-KiB, individual executions at five seconds, and RSS at 1 GiB. The JWS lane uses
-a 128 KiB ceiling to cross its 64 KiB public compact-input boundary. Targets with
-explicit parser bounds also run deterministic exact and one-byte-over probes.
+libFuzzer seed and at most 300 seconds per target. The JWS soak is invoked
+locally or by an external scheduler because the reserved empty `main` branch
+cannot host GitHub scheduled/manual workflow events for `develop`. All modes cap
+inputs at 8 KiB, individual executions at five seconds, and RSS at 1 GiB. The
+JWS lane uses a 128 KiB ceiling to cross its 64 KiB public compact-input
+boundary. Targets with explicit parser bounds also run deterministic exact and
+one-byte-over probes.
 
 The crypto lane covers validated public JWK parsing, RFC 7638 thumbprints,
 bounded public COSE Key parsing, deterministic serialization, and structural
@@ -42,6 +45,9 @@ so accepted values are exercised under derived limits. Arbitrary unprefixed
 input remains byte-for-byte raw. Complete encoded corpus values cover `kid`,
 public/private `jwk`, ambiguous key references, and valid/invalid `x5c` paths;
 dictionary words alone are not treated as coverage for decoded JSON members.
+Semantic rebuilds use an envelope widened only when canonical header encoding
+needs more bytes than the accepted representation; same-limit reparsing remains
+an independent exact-input invariant.
 
 Generated campaign growth runs in a temporary copy, so it cannot dirty the
 curated corpus. Findings are written beneath `fuzz/artifacts/` and must be

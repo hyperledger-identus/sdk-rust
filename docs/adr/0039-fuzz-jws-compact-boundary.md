@@ -24,10 +24,12 @@ Coverage-guided mutation is the remaining planned assurance layer.
    its derived-limit suffix. Arbitrary unprefixed bytes remain raw.
 3. Assert exact input/signing-input preservation, independent segment
    canonicality, same-limit reparsing, staged semantic encoding and fixed error
-   bridges. Treat rejection as valid.
+   bridges. Canonical rebuild may minimally widen representation-size limits
+   while same-limit reparsing remains exact. Treat rejection as valid.
 4. Keep reviewable independently authored RFC/Oxid/Lace, key-reference,
    accepted derived-limit and negative seeds. Reuse
-   the pinned Nix/cargo-fuzz runtime and fixed replay/smoke/bounded-soak model.
+   the pinned Nix/cargo-fuzz runtime and fixed replay/smoke/bounded-soak model;
+   soak is local or externally scheduled while reserved `main` stays empty.
 5. Upload only failing artifacts; minimize and promote real defects to corpus
    and deterministic tests before merge.
 6. Stop at the bounded campaign and existing full gates. Cryptographic

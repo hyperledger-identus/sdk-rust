@@ -81,7 +81,8 @@ Rejection is valid. Every accepted value must:
   same unpadded base64url text;
 - reparse to an equal public value under the same limits; and
 - rebuild through `JwsSigningInput` plus the original payload/signature, then
-  parse to the same protected-header, payload and signature semantics.
+  parse to the same protected-header, payload and signature semantics under an
+  envelope widened only for the measured canonical output.
 
 Every parser error must be one of the static codec boundary variants and map to
 its fixed `jose.*` code/capability. Assertions and custom panic messages never
@@ -91,12 +92,14 @@ contain input, payload, signature, header or identifier bytes.
 
 `scripts/fuzz-jws.sh` owns selection and all libFuzzer flags. Replay uses the
 committed corpus once. PR/push smoke uses seed `424242`, one worker and 4,096
-runs. Scheduled/manual soak uses at most 300 seconds. All modes use exact
+runs. Local or externally scheduled soak uses at most 300 seconds. All modes use exact
 cargo-fuzz `0.13.2`, no corpus reload, a five-second execution timeout, a
 one-GiB RSS limit and a temporary writable corpus copy.
 
 The path-scoped Ubuntu workflow runs formatting, strict Clippy, cargo-deny and
-RustSec against the independent lock, then smoke or soak. Failure artifacts are
+RustSec against the independent lock, then smoke. The reserved empty default
+`main` cannot host GitHub schedule/manual events for a workflow on `develop`,
+so bounded soak remains a documented local/external command. Failure artifacts are
 retained for 14 days as untrusted input. A real defect is reproduced, minimized,
 committed as a seed and named deterministic regression, then fixed or filed.
 

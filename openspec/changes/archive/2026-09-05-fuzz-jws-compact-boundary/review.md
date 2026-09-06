@@ -86,12 +86,21 @@
   from raw dictionary words. The `limits:000` transport now seeds an accepted
   suffix under a derived tuple, and six complete encoded fixtures cover valid
   public JWK/X.509 plus ambiguous, private, empty and invalid rejection paths.
+- Current-head rereview found two further P2 contract mismatches. Hosted soak
+  triggers were unreachable because reserved empty `main` is the GitHub default
+  branch; the workflow now truthfully gates PR/push smoke while bounded soak is
+  local or externally scheduled. Semantic rebuild also incorrectly reused
+  parser-only limits when canonical JSON could grow; the harness now measures
+  canonical output and minimally widens only representation-size limits, while
+  retaining independent exact same-limit reparsing. A one-time tight-limit
+  probe proves the accepted exponent-form JWK extension serializes to a longer
+  canonical header without creating a false fuzz crash.
 
 ### Verification receipt
 
 - JWS corpus replay: 19 files, 20 executions, no finding.
-- Deterministic JWS smoke: seed `424242`, 4,096 executions, 1,359 covered
-  edges, 3,583 feature edges, peak RSS 52 MiB, no finding, one second after
+- Deterministic JWS smoke: seed `424242`, 4,096 executions, 1,473 covered
+  edges, 3,654 feature edges, peak RSS 53 MiB, no finding, one second after
   compilation.
 - Existing DID and crypto corpus replay: all four targets passed.
 - Fuzz workspace: formatting, strict Clippy, cargo-deny and RustSec passed.

@@ -180,7 +180,9 @@ bounded positive `JwsLimits` tuples for an independent suffix parse. Rejection
 SHALL be valid. Every accepted value SHALL preserve exact compact and signing-
 input bytes, contain only independently confirmed canonical unpadded base64url
 segments, reparse equally and rebuild through the public staged encoder with
-equal header, payload and signature semantics.
+equal header, payload and signature semantics. Same-limit reparsing SHALL remain
+exact; semantic rebuild MAY minimally widen representation-size limits to fit
+the measured canonical protected-header output.
 
 Every rejected input SHALL return a static codec-boundary `JoseError` with its
 fixed `jose.*` bridge. Fuzz-only dependencies SHALL remain in the independent
@@ -213,7 +215,9 @@ The repository SHALL expose one documented JWS command interface for corpus
 replay, fixed-seed smoke and time-boxed soak through the pinned sanitizer
 compiler, runner and runtime. PR/push smoke SHALL fix the seed, run count, input
 ceiling, per-input timeout, memory ceiling, corpus reload and worker count.
-Scheduled/manual soak SHALL remain independently bounded.
+Maintainer-invoked local or externally scheduled soak SHALL remain
+independently bounded. The `develop` workflow SHALL NOT claim GitHub schedule or
+manual triggers while the reserved empty `main` remains the default branch.
 
 An original reviewable corpus and dictionary SHALL cover the RFC example,
 independently reconstructed Oxid/Lace shapes and existing structural,
@@ -237,7 +241,7 @@ MAY be recorded but SHALL NOT become a machine-specific threshold.
 
 #### Scenario: longer search remains bounded and diagnosable
 
-- **WHEN** a scheduled or manually dispatched soak finds a sanitizer or
+- **WHEN** a local or externally scheduled soak finds a sanitizer or
   invariant failure
 - **THEN** it stops within the documented envelope and preserves the input for
   minimization without custom logging of its bytes

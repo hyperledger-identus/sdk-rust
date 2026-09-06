@@ -22,16 +22,12 @@ on:
       - nix/devshells/default.nix
       - nix/rust-toolchain.nix
       - "scripts/fuzz-jws.sh"
-  schedule:
-    - cron: "53 3 * * *"
-  workflow_dispatch:
-
 permissions:
   contents: read
 
 concurrency:
   group: jws-fuzz-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'schedule' }}
+  cancel-in-progress: true
 
 jobs:
   fuzz:
@@ -62,10 +58,6 @@ jobs:
       - name: Run deterministic smoke
         if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: nix develop --command ./scripts/fuzz-jws.sh smoke
-
-      - name: Run bounded soak
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: nix develop --command ./scripts/fuzz-jws.sh soak
 
       - name: Preserve failing inputs
         if: failure()

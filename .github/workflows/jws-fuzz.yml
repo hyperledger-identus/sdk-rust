@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/jws-fuzz.yml"
+      - "crates/crypto/**"
       - "crates/jose/**"
       - deny.toml
       - flake.lock
@@ -15,6 +16,7 @@ on:
     branches: [develop]
     paths:
       - ".github/workflows/jws-fuzz.yml"
+      - "crates/crypto/**"
       - "crates/jose/**"
       - deny.toml
       - flake.lock

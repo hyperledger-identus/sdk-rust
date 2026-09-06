@@ -98,6 +98,9 @@
 - Final current-head review found that the architecture blueprint and bootstrap
   inventory still called completed issue #100 a follow-up. Both records now
   identify the bounded fuzz campaign as delivered and leave only #104 pending.
+- The subsequent rereview found that crypto-only changes did not enqueue the
+  dependent JWS campaign. Both PR and `develop` push path filters now include
+  `crates/crypto/**`, and the canonical contract records that integration gate.
 
 ### Verification receipt
 

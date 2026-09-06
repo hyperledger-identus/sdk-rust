@@ -99,9 +99,11 @@ one-GiB RSS limit and a temporary writable corpus copy.
 The path-scoped Ubuntu workflow runs formatting, strict Clippy, cargo-deny and
 RustSec against the independent lock, then smoke. The reserved empty default
 `main` cannot host GitHub schedule/manual events for a workflow on `develop`,
-so bounded soak remains a documented local/external command. Failure artifacts are
-retained for 14 days as untrusted input. A real defect is reproduced, minimized,
-committed as a seed and named deterministic regression, then fixed or filed.
+so bounded soak remains a documented local/external command. Both JOSE source
+and its transitive crypto source trigger the JWS integration campaign. Failure
+artifacts are retained for 14 days as untrusted input. A real defect is
+reproduced, minimized, committed as a seed and named deterministic regression,
+then fixed or filed.
 
 ## Threat Contract
 

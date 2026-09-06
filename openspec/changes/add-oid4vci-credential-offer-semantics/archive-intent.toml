@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
+canonical_sha256 = "7e1334ea6b58133920363a2b16327c99b47e45edec307d02e718db975a4d9d7a"
+reason           = "Issue #113 deliberately advances the in-progress IDR-023 ledger from completed transport issue #111 to the next bounded semantic Credential Offer slice without claiming the broader protocol engine is delivered."

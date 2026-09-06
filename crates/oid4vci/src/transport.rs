@@ -65,6 +65,7 @@ impl CredentialOfferRequest {
 /// An embedded Credential Offer whose transport JSON is bounded and unambiguous.
 pub struct EmbeddedCredentialOffer {
     json: Zeroizing<String>,
+    limits: CredentialOfferLimits,
 }
 
 impl EmbeddedCredentialOffer {
@@ -83,12 +84,17 @@ impl EmbeddedCredentialOffer {
         )?;
         Ok(Self {
             json: Zeroizing::new(json.to_owned()),
+            limits,
         })
     }
 
     /// Borrow the exact decoded JSON object.
     pub fn as_json(&self) -> &str {
         &self.json
+    }
+
+    pub(crate) const fn limits(&self) -> CredentialOfferLimits {
+        self.limits
     }
 }
 

@@ -2,7 +2,13 @@ use std::ops::Range;
 
 use zeroize::Zeroizing;
 
-use crate::CredentialOfferError;
+use crate::{CredentialOfferError, CredentialOfferLimits, CredentialOfferSemanticLimits};
+
+pub(crate) struct CredentialOfferFields {
+    pub(crate) credential_issuer: Zeroizing<String>,
+    pub(crate) credential_configuration_ids: Vec<Zeroizing<String>>,
+    pub(crate) grants_present: bool,
+}
 
 pub(crate) fn validate_json(
     input: &[u8],
@@ -28,6 +34,32 @@ pub(crate) fn validate_json(
     Ok(())
 }
 
+pub(crate) fn parse_credential_offer_fields(
+    input: &[u8],
+    transport_limits: CredentialOfferLimits,
+    semantic_limits: CredentialOfferSemanticLimits,
+) -> Result<CredentialOfferFields, CredentialOfferError> {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
+        max_depth: transport_limits.max_json_depth(),
+        max_nodes: transport_limits.max_json_nodes(),
+        nodes: 0,
+    };
+    scanner.skip_whitespace();
+    scanner.visit_node()?;
+    let depth = scanner.enter_container(0)?;
+    if !scanner.consume_if(b'{') {
+        return Err(CredentialOfferError::InvalidEmbeddedJson);
+    }
+    let fields = scanner.parse_credential_offer_object(depth, semantic_limits)?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(CredentialOfferError::InvalidEmbeddedJson);
+    }
+    Ok(fields)
+}
+
 struct Scanner<'a> {
     input: &'a [u8],
     cursor: usize,
@@ -38,10 +70,7 @@ struct Scanner<'a> {
 
 impl Scanner<'_> {
     fn parse_value(&mut self, depth: usize) -> Result<(), CredentialOfferError> {
-        self.nodes = self.nodes.saturating_add(1);
-        if self.nodes > self.max_nodes {
-            return Err(CredentialOfferError::JsonTooManyNodes);
-        }
+        self.visit_node()?;
 
         self.skip_whitespace();
         match self.peek() {
@@ -69,6 +98,168 @@ impl Scanner<'_> {
             Some(b'-' | b'0'..=b'9') => self.scan_number(),
             _ => Err(CredentialOfferError::InvalidEmbeddedJson),
         }
+    }
+
+    fn parse_credential_offer_object(
+        &mut self,
+        depth: usize,
+        limits: CredentialOfferSemanticLimits,
+    ) -> Result<CredentialOfferFields, CredentialOfferError> {
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidOfferFields);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut credential_issuer = None;
+        let mut credential_configuration_ids = None;
+        let mut grants_present = false;
+
+        loop {
+            self.skip_whitespace();
+            if self.peek() != Some(b'"') {
+                return Err(CredentialOfferError::InvalidEmbeddedJson);
+            }
+            let token = self.scan_string()?;
+            let name = Zeroizing::new(
+                serde_json::from_slice::<String>(&self.input[token])
+                    .map_err(|_| CredentialOfferError::InvalidEmbeddedJson)?,
+            );
+            if names
+                .iter()
+                .any(|existing| existing.as_str() == name.as_str())
+            {
+                return Err(CredentialOfferError::DuplicateJsonProperty);
+            }
+            names.push(name);
+
+            self.skip_whitespace();
+            if !self.consume_if(b':') {
+                return Err(CredentialOfferError::InvalidEmbeddedJson);
+            }
+            match names.last().map(|name| name.as_str()) {
+                Some("credential_issuer") => {
+                    if credential_issuer.is_some() {
+                        return Err(CredentialOfferError::InvalidOfferFields);
+                    }
+                    credential_issuer = Some(self.parse_bounded_string(
+                        limits.max_credential_issuer_bytes(),
+                        CredentialOfferError::InvalidOfferFields,
+                        CredentialOfferError::IssuerTooLarge,
+                    )?);
+                }
+                Some("credential_configuration_ids") => {
+                    if credential_configuration_ids.is_some() {
+                        return Err(CredentialOfferError::InvalidOfferFields);
+                    }
+                    credential_configuration_ids =
+                        Some(self.parse_configuration_ids(depth, limits)?);
+                }
+                Some("grants") => {
+                    self.skip_whitespace();
+                    if self.peek() != Some(b'{') {
+                        return Err(CredentialOfferError::InvalidGrants);
+                    }
+                    grants_present = true;
+                    self.parse_value(depth)?;
+                }
+                Some(_) => self.parse_value(depth)?,
+                None => return Err(CredentialOfferError::InvalidEmbeddedJson),
+            }
+
+            self.skip_whitespace();
+            match self.peek() {
+                Some(b',') => self.cursor += 1,
+                Some(b'}') => {
+                    self.cursor += 1;
+                    break;
+                }
+                _ => return Err(CredentialOfferError::InvalidEmbeddedJson),
+            }
+        }
+
+        Ok(CredentialOfferFields {
+            credential_issuer: credential_issuer.ok_or(CredentialOfferError::InvalidOfferFields)?,
+            credential_configuration_ids: credential_configuration_ids
+                .ok_or(CredentialOfferError::InvalidConfigurationIds)?,
+            grants_present,
+        })
+    }
+
+    fn parse_configuration_ids(
+        &mut self,
+        depth: usize,
+        limits: CredentialOfferSemanticLimits,
+    ) -> Result<Vec<Zeroizing<String>>, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        if !self.consume_if(b'[') {
+            return Err(CredentialOfferError::InvalidConfigurationIds);
+        }
+        self.enter_container(depth)?;
+        self.skip_whitespace();
+        if self.consume_if(b']') {
+            return Err(CredentialOfferError::InvalidConfigurationIds);
+        }
+
+        let mut ids = Vec::new();
+        loop {
+            if ids.len() == limits.max_credential_configuration_ids() {
+                return Err(CredentialOfferError::TooManyConfigurationIds);
+            }
+            let id = self.parse_bounded_string(
+                limits.max_credential_configuration_id_bytes(),
+                CredentialOfferError::InvalidConfigurationIds,
+                CredentialOfferError::ConfigurationIdTooLarge,
+            )?;
+            if ids
+                .iter()
+                .any(|existing: &Zeroizing<String>| existing.as_str() == id.as_str())
+            {
+                return Err(CredentialOfferError::DuplicateConfigurationId);
+            }
+            ids.push(id);
+
+            self.skip_whitespace();
+            match self.peek() {
+                Some(b',') => self.cursor += 1,
+                Some(b']') => {
+                    self.cursor += 1;
+                    return Ok(ids);
+                }
+                _ => return Err(CredentialOfferError::InvalidEmbeddedJson),
+            }
+        }
+    }
+
+    fn parse_bounded_string(
+        &mut self,
+        max_bytes: usize,
+        invalid: CredentialOfferError,
+        too_large: CredentialOfferError,
+    ) -> Result<Zeroizing<String>, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        if self.peek() != Some(b'"') {
+            return Err(invalid);
+        }
+        let token = self.scan_string()?;
+        let value = Zeroizing::new(
+            serde_json::from_slice::<String>(&self.input[token])
+                .map_err(|_| CredentialOfferError::InvalidEmbeddedJson)?,
+        );
+        if value.len() > max_bytes {
+            return Err(too_large);
+        }
+        Ok(value)
+    }
+
+    fn visit_node(&mut self) -> Result<(), CredentialOfferError> {
+        self.nodes = self.nodes.saturating_add(1);
+        if self.nodes > self.max_nodes {
+            return Err(CredentialOfferError::JsonTooManyNodes);
+        }
+        Ok(())
     }
 
     fn parse_object(&mut self, depth: usize) -> Result<(), CredentialOfferError> {

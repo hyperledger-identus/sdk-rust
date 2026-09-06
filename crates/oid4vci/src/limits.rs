@@ -80,3 +80,57 @@ impl Default for CredentialOfferLimits {
         }
     }
 }
+
+/// Resource limits for semantic Credential Offer fields.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CredentialOfferSemanticLimits {
+    max_credential_issuer_bytes: usize,
+    max_credential_configuration_id_bytes: usize,
+    max_credential_configuration_ids: usize,
+}
+
+impl CredentialOfferSemanticLimits {
+    /// Construct a positive semantic resource policy.
+    pub const fn new(
+        max_credential_issuer_bytes: usize,
+        max_credential_configuration_id_bytes: usize,
+        max_credential_configuration_ids: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_credential_issuer_bytes == 0
+            || max_credential_configuration_id_bytes == 0
+            || max_credential_configuration_ids == 0
+        {
+            return Err(CredentialOfferError::InvalidSemanticLimits);
+        }
+        Ok(Self {
+            max_credential_issuer_bytes,
+            max_credential_configuration_id_bytes,
+            max_credential_configuration_ids,
+        })
+    }
+
+    /// Maximum decoded UTF-8 bytes in the Credential Issuer Identifier.
+    pub const fn max_credential_issuer_bytes(self) -> usize {
+        self.max_credential_issuer_bytes
+    }
+
+    /// Maximum decoded UTF-8 bytes in one Credential Configuration ID.
+    pub const fn max_credential_configuration_id_bytes(self) -> usize {
+        self.max_credential_configuration_id_bytes
+    }
+
+    /// Maximum number of Credential Configuration IDs in one offer.
+    pub const fn max_credential_configuration_ids(self) -> usize {
+        self.max_credential_configuration_ids
+    }
+}
+
+impl Default for CredentialOfferSemanticLimits {
+    fn default() -> Self {
+        Self {
+            max_credential_issuer_bytes: 2_048,
+            max_credential_configuration_id_bytes: 256,
+            max_credential_configuration_ids: 32,
+        }
+    }
+}

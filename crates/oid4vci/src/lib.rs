@@ -1,7 +1,7 @@
 //! Bounded OpenID for Verifiable Credential Issuance protocol semantics.
 //!
-//! This first slice validates only the Credential Offer invocation transport.
-//! It does not interpret offer members, perform network access, or establish
+//! The crate distinguishes Credential Offer invocation transport from bounded
+//! core-member semantics. It performs no network access and establishes no
 //! issuer trust.
 
 #![forbid(unsafe_code)]
@@ -9,10 +9,14 @@
 mod error;
 mod json;
 mod limits;
+mod semantic;
 mod transport;
 
 pub use error::{CAPABILITY, CredentialOfferError, error_code};
-pub use limits::{CredentialOfferLimits, MAX_CONFIGURABLE_JSON_DEPTH};
+pub use limits::{
+    CredentialOfferLimits, CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
+};
+pub use semantic::{CredentialConfigurationId, CredentialIssuerIdentifier, CredentialOffer};
 pub use transport::{CredentialOfferReference, CredentialOfferRequest, EmbeddedCredentialOffer};
 
 use identus_core::Component;

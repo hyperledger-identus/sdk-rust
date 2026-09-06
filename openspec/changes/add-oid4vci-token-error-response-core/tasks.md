@@ -8,16 +8,16 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add positive error-response limits and bounded strict parsing for
+- [x] 2.1 Add positive error-response limits and bounded strict parsing for
   required code, optional description/URI, and ignored extensions.
-- [ ] 2.2 Add the open exact code, closed RFC classification, zeroizing partial
+- [x] 2.2 Add the open exact code, closed RFC classification, zeroizing partial
   response/URI types, stable errors, crate exports, and redacted diagnostics.
-- [ ] 2.3 Update ADR, blueprint, and canonical IDR-023 ledger pointer without
+- [x] 2.3 Update ADR, blueprint, and canonical IDR-023 ledger pointer without
   changing dependencies, manifests, features, or consumers.
 
 ## 3. Verification and integration
 
-- [ ] 3.1 Add positive, negative, grammar, classification, bound, extension,
+- [x] 3.1 Add positive, negative, grammar, classification, bound, extension,
   URI, and diagnostic-canary tests for every contract branch.
 - [ ] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,
   workspace/factory/preservation gates, and the full target/supply-chain Nix

@@ -5,7 +5,7 @@ use zeroize::Zeroizing;
 use crate::{
     AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits, CredentialOfferError,
     CredentialOfferGrantLimits, CredentialOfferLimits, CredentialOfferSemanticLimits,
-    TokenResponseLimits,
+    TokenErrorResponseLimits, TokenResponseLimits,
 };
 
 const AUTHORIZATION_CODE_GRANT: &str = "authorization_code";
@@ -67,6 +67,12 @@ pub(crate) struct TokenResponseFields {
     pub(crate) refresh_token: Option<Zeroizing<String>>,
     pub(crate) scope: Option<Zeroizing<String>>,
     pub(crate) authorization_details_present: bool,
+}
+
+pub(crate) struct TokenErrorResponseFields {
+    pub(crate) error: Zeroizing<String>,
+    pub(crate) error_description: Option<Zeroizing<String>>,
+    pub(crate) error_uri: Option<Zeroizing<String>>,
 }
 
 pub(crate) fn validate_json(
@@ -216,6 +222,31 @@ pub(crate) fn parse_token_response_fields(
     scanner.skip_whitespace();
     if scanner.cursor != input.len() {
         return Err(CredentialOfferError::InvalidTokenResponse);
+    }
+    Ok(fields)
+}
+
+pub(crate) fn parse_token_error_response_fields(
+    input: &[u8],
+    limits: TokenErrorResponseLimits,
+) -> Result<TokenErrorResponseFields, CredentialOfferError> {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
+        max_depth: limits.max_json_depth(),
+        max_nodes: limits.max_json_nodes(),
+        nodes: 0,
+    };
+    scanner.skip_whitespace();
+    scanner.visit_node()?;
+    let depth = scanner.enter_container(0)?;
+    if !scanner.consume_if(b'{') {
+        return Err(CredentialOfferError::InvalidTokenErrorResponse);
+    }
+    let fields = scanner.parse_token_error_response_object(depth, limits)?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(CredentialOfferError::InvalidTokenErrorResponse);
     }
     Ok(fields)
 }
@@ -589,6 +620,59 @@ impl Scanner<'_> {
             refresh_token,
             scope,
             authorization_details_present,
+        })
+    }
+
+    fn parse_token_error_response_object(
+        &mut self,
+        depth: usize,
+        limits: TokenErrorResponseLimits,
+    ) -> Result<TokenErrorResponseFields, CredentialOfferError> {
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidTokenErrorResponse);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut error = None;
+        let mut error_description = None;
+        let mut error_uri = None;
+        loop {
+            let name = self.parse_unique_member_name(&mut names)?;
+            self.require_member_separator()?;
+            match name.as_str() {
+                "error" => {
+                    error = Some(self.parse_nonempty_bounded_string(
+                        limits.max_error_code_bytes(),
+                        CredentialOfferError::InvalidTokenEndpointErrorCode,
+                        CredentialOfferError::TokenEndpointErrorCodeTooLarge,
+                    )?);
+                }
+                "error_description" => {
+                    error_description = Some(self.parse_nonempty_bounded_string(
+                        limits.max_error_description_bytes(),
+                        CredentialOfferError::InvalidTokenErrorDescription,
+                        CredentialOfferError::TokenErrorDescriptionTooLarge,
+                    )?);
+                }
+                "error_uri" => {
+                    error_uri = Some(self.parse_nonempty_bounded_string(
+                        limits.max_error_uri_bytes(),
+                        CredentialOfferError::InvalidTokenErrorUri,
+                        CredentialOfferError::TokenErrorUriTooLarge,
+                    )?);
+                }
+                _ => self.parse_value(depth)?,
+            }
+            if self.finish_or_continue_object()? {
+                break;
+            }
+        }
+
+        Ok(TokenErrorResponseFields {
+            error: error.ok_or(CredentialOfferError::InvalidTokenErrorResponse)?,
+            error_description,
+            error_uri,
         })
     }
 

@@ -1003,6 +1003,41 @@ fn verifier_errors_bridge_to_stable_static_contracts() {
             ErrorKind::Internal,
         ),
         (
+            JoseError::InvalidProofEvidence,
+            error_code::INVALID_PROOF_EVIDENCE,
+            ErrorKind::InvalidInput,
+        ),
+        (
+            JoseError::TrustChainProviderRequired,
+            error_code::TRUST_CHAIN_PROVIDER_REQUIRED,
+            ErrorKind::InvalidInput,
+        ),
+        (
+            JoseError::TrustChainRejected,
+            error_code::TRUST_CHAIN_REJECTED,
+            ErrorKind::VerificationFailed,
+        ),
+        (
+            JoseError::TrustChainProviderUnavailable,
+            error_code::TRUST_CHAIN_PROVIDER_UNAVAILABLE,
+            ErrorKind::Internal,
+        ),
+        (
+            JoseError::KeyAttestationProviderRequired,
+            error_code::KEY_ATTESTATION_PROVIDER_REQUIRED,
+            ErrorKind::InvalidInput,
+        ),
+        (
+            JoseError::KeyAttestationRejected,
+            error_code::KEY_ATTESTATION_REJECTED,
+            ErrorKind::VerificationFailed,
+        ),
+        (
+            JoseError::KeyAttestationProviderUnavailable,
+            error_code::KEY_ATTESTATION_PROVIDER_UNAVAILABLE,
+            ErrorKind::Internal,
+        ),
+        (
             JoseError::InvalidProofPolicy,
             error_code::INVALID_PROOF_POLICY,
             ErrorKind::InvalidInput,

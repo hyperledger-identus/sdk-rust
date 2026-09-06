@@ -5,6 +5,7 @@ use std::fmt;
 use serde::Serialize;
 
 use crate::compact::encode_bounded_json;
+use crate::header::valid_protected_evidence;
 use crate::{
     JoseError, JwsAlgorithm, JwsKeyReference, JwsLimits, JwsSigner, JwsSigningInput,
     JwsVerificationKey, ProtectedHeader, UnverifiedCompactJws,
@@ -53,6 +54,85 @@ impl Default for Oid4vciProofJwtLimits {
             jws: JwsLimits::default(),
             max_claim_string_bytes: DEFAULT_MAX_PROOF_CLAIM_STRING_BYTES,
         }
+    }
+}
+
+/// Optional bounded trust evidence carried by an OID4VCI proof header.
+#[derive(Clone, PartialEq, Eq)]
+pub struct Oid4vciProofJwtEvidence {
+    key_attestation: Option<String>,
+    trust_chain: Option<Vec<String>>,
+}
+
+impl Oid4vciProofJwtEvidence {
+    /// Validate opaque evidence before it can enter a protected signing input.
+    pub fn new(
+        key_attestation: Option<String>,
+        trust_chain: Option<Vec<String>>,
+        limits: Oid4vciProofJwtLimits,
+    ) -> Result<Self, JoseError> {
+        if !valid_protected_evidence(
+            key_attestation.as_deref(),
+            trust_chain.as_deref(),
+            limits.jws(),
+        ) {
+            return Err(JoseError::InvalidProofEvidence);
+        }
+        Ok(Self {
+            key_attestation,
+            trust_chain,
+        })
+    }
+
+    /// Construct an evidence-free proof configuration.
+    #[must_use]
+    pub const fn none() -> Self {
+        Self {
+            key_attestation: None,
+            trust_chain: None,
+        }
+    }
+
+    /// Borrow the untrusted key-attestation compact token, when present.
+    #[must_use]
+    pub fn key_attestation(&self) -> Option<&str> {
+        self.key_attestation.as_deref()
+    }
+
+    /// Borrow the untrusted OpenID Federation trust chain, when present.
+    #[must_use]
+    pub fn trust_chain(&self) -> Option<&[String]> {
+        self.trust_chain.as_deref()
+    }
+
+    fn validate(&self, limits: Oid4vciProofJwtLimits) -> Result<(), JoseError> {
+        if !valid_protected_evidence(
+            self.key_attestation.as_deref(),
+            self.trust_chain.as_deref(),
+            limits.jws(),
+        ) {
+            return Err(JoseError::InvalidProofEvidence);
+        }
+        Ok(())
+    }
+}
+
+impl Default for Oid4vciProofJwtEvidence {
+    fn default() -> Self {
+        Self::none()
+    }
+}
+
+impl fmt::Debug for Oid4vciProofJwtEvidence {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Oid4vciProofJwtEvidence")
+            .field("has_key_attestation", &self.key_attestation.is_some())
+            .field(
+                "trust_chain_len",
+                &self.trust_chain.as_ref().map_or(0, Vec::len),
+            )
+            .finish()
     }
 }
 
@@ -223,14 +303,36 @@ impl Oid4vciProofJwtBuilder {
         key_reference: JwsKeyReference,
         claims: Oid4vciProofJwtClaims,
     ) -> Result<Oid4vciProofSigningInput, JoseError> {
+        self.prepare_with_evidence(
+            algorithm,
+            key_reference,
+            claims,
+            Oid4vciProofJwtEvidence::none(),
+        )
+    }
+
+    /// Validate and encode a proof carrying optional attestation evidence.
+    pub fn prepare_with_evidence(
+        &self,
+        algorithm: JwsAlgorithm,
+        key_reference: JwsKeyReference,
+        claims: Oid4vciProofJwtClaims,
+        evidence: Oid4vciProofJwtEvidence,
+    ) -> Result<Oid4vciProofSigningInput, JoseError> {
         claims.validate(self.limits)?;
+        evidence.validate(self.limits)?;
+        if evidence.trust_chain.is_some() && !matches!(key_reference, JwsKeyReference::KeyId(_)) {
+            return Err(JoseError::InvalidProofEvidence);
+        }
         if let JwsKeyReference::Jwk(public_key) = &key_reference {
             JwsVerificationKey::new(algorithm, public_key)?;
         }
-        let header = ProtectedHeader::with_key_reference(
+        let header = ProtectedHeader::with_key_reference_and_evidence(
             algorithm.as_str(),
             Some(OID4VCI_PROOF_JWT_TYPE),
             Some(key_reference),
+            evidence.key_attestation,
+            evidence.trust_chain,
             self.limits.jws(),
         )?;
         let payload = encode_bounded_json(

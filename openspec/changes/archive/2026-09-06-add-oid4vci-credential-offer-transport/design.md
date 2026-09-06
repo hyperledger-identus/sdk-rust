@@ -82,8 +82,9 @@ push and holds intermediate bytes in `Zeroizing<Vec<u8>>`.
 
 Default limits are 32,768 invocation bytes, 16,384 decoded embedded bytes,
 2,048 decoded reference bytes, JSON depth 16, and 128 aggregate JSON nodes.
-All limits must be positive and are observable. Callers may choose smaller or
-larger positive values within their deployment policy.
+All limits must be positive and are observable. Callers may choose different
+positive values within their deployment policy, except JSON depth is capped at
+64 so the public ceiling remains below Serde JSON's internal recursion limit.
 
 ### D5 — embedded JSON rejects ambiguous/resource-hostile forms
 

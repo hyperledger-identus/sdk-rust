@@ -34,9 +34,10 @@ Issue #3 retains namespace and publication authority.
 4. Accept only the registered `openid-credential-offer://?` form with exactly
    one literal `credential_offer` or `credential_offer_uri` parameter. Match
    URI schemes case-insensitively and parameter names case-sensitively.
-5. Bound complete and decoded input, JSON depth, and aggregate nodes. Reject
-   malformed form encoding, UTF-8, duplicate JSON names, trailing JSON,
-   parameter smuggling, and unsafe reference-URI syntax.
+5. Bound complete and decoded input, JSON depth, and aggregate nodes. Cap the
+   caller-configurable container depth at 64, below the JSON parser's internal
+   recursion ceiling. Reject malformed form encoding, UTF-8, duplicate JSON
+   names, trailing JSON, parameter smuggling, and unsafe reference-URI syntax.
 6. Require references to be absolute HTTPS URIs with a non-empty host and no
    user information or fragment. Do not claim this prevents SSRF or proves
    issuer trust; fetching and destination policy remain outside the package.

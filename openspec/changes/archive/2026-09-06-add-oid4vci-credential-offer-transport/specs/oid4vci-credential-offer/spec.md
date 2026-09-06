@@ -117,7 +117,10 @@ an outer adapter and later protocol state.
 `CredentialOfferLimits` SHALL require positive maxima for invocation bytes,
 decoded embedded JSON bytes, decoded reference URI bytes, JSON depth, and JSON
 nodes. Defaults SHALL be 32,768; 16,384; 2,048; 16; and 128 respectively.
-Callers MAY provide different positive limits and inspect them.
+Callers MAY provide different positive limits and inspect them, except the
+configured JSON depth SHALL NOT exceed 64. This hard ceiling SHALL remain below
+the underlying JSON parser's recursion limit so every accepted configuration
+can be honored deterministically.
 
 Embedded JSON and reference URI types SHALL erase owned content on drop and
 SHALL omit it from `Debug`. They SHALL implement neither `Display` nor Serde
@@ -129,6 +132,12 @@ query value, JSON, reference URI, and any Pre-Authorized Code.
 
 - **WHEN** any configured maximum is zero
 - **THEN** construction fails and no parser can use that limit set
+
+#### Scenario: JSON depth configuration matches parser capability
+
+- **WHEN** JSON depth is configured at 64 or at the smallest larger value
+- **THEN** 64 is accepted and honored while the larger configuration is
+  rejected before parsing
 
 #### Scenario: sensitive canaries never enter diagnostics
 

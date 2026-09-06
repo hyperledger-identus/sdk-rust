@@ -73,12 +73,24 @@ The type SHALL retain the exact decoded JSON without interpreting required
 Credential Offer members, grants, extensions, or trust. Unknown object members
 SHALL remain present for a later semantic parser.
 
+JSON number tokens SHALL be validated only against the JSON number grammar.
+The transport boundary SHALL NOT convert them to a fixed-width integer or
+floating-point representation, and SHALL accept any syntactically valid number
+whose containing offer remains within the configured resource limits.
+
 #### Scenario: opaque extensions survive transport validation
 
 - **WHEN** a bounded object includes required-looking members and unknown
   nested extension members with unique names
 - **THEN** transport parsing succeeds and the exact decoded object remains
   available without semantic acceptance being claimed
+
+#### Scenario: number magnitude remains opaque
+
+- **WHEN** an embedded object's extension contains a syntactically valid JSON
+  number outside fixed-width integer or floating-point ranges
+- **THEN** transport validation accepts and retains the exact number token
+- **AND** malformed number grammar is still rejected
 
 #### Scenario: ambiguous JSON fails closed
 

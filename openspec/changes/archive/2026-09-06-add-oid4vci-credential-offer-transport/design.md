@@ -88,13 +88,14 @@ positive values within their deployment policy, except JSON depth is capped at
 
 ### D5 — embedded JSON rejects ambiguous/resource-hostile forms
 
-A streaming Serde visitor validates the full input before a public value is
+A bounded structural scanner validates the full input before a public value is
 created. It counts every scalar/container node, checks container depth, and
 uses an object-local bounded list of zeroizing decoded member names so literal
-and escaped duplicate names are equivalent. Allocated decoded string values
-are also zeroized. The same scan classifies the root, so trailing JSON and a
-non-object root are rejected without building a second JSON tree. The raw
-object is retained; it is not normalized or reserialized.
+and escaped duplicate names are equivalent. Number tokens are checked against
+the JSON grammar without conversion to machine numeric types, so their
+magnitude remains opaque. The same scan classifies the root, so trailing JSON
+and a non-object root are rejected without building a second JSON tree. The
+raw object is retained; it is not normalized or reserialized.
 
 The node ceiling bounds aggregate array/object expansion. The byte ceiling
 bounds member-name retention and scalar storage. Semantic field limits and

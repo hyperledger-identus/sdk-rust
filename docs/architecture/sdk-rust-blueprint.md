@@ -342,6 +342,15 @@ does not claim complete RFC 8414 conformance. Discovery, signed metadata,
 trust, server/grant selection, endpoint messages, replay controls, and issuance
 state remain later slices.
 
+The sixth bounded delivery, issue #121, consumes the matched Credential Offer
+and Credential Issuer Metadata state with one caller-selected Authorization
+Server Metadata core. It proves that the offer contains the Pre-Authorized Code
+grant, the server is effectively advertised and matches any grant hint, the
+grant is explicitly supported, and a Token Endpoint is present. Server
+discovery/ranking, trust, client authentication, Transaction Code input, Token
+Request construction, endpoint execution, responses, retries, replay controls,
+and issuance state remain later slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

@@ -2,8 +2,9 @@
 //!
 //! The crate distinguishes Credential Offer invocation transport, offer/grant
 //! semantics, unsigned Credential Issuer Metadata, exact cross-document
-//! agreement, and a partial Authorization Server Metadata core. It performs no
-//! network access, does not validate complete RFC 8414 metadata, and
+//! agreement, a partial Authorization Server Metadata core, and explicit
+//! Pre-Authorized Code server binding. It performs no network access, does not
+//! construct endpoint messages or validate complete RFC 8414 metadata, and
 //! establishes no issuer or server trust.
 
 #![forbid(unsafe_code)]
@@ -14,6 +15,7 @@ mod grants;
 mod json;
 mod limits;
 mod metadata;
+mod pre_authorized_server;
 mod semantic;
 mod transport;
 
@@ -35,6 +37,7 @@ pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,
     CredentialIssuerMetadata, CredentialOfferWithMetadata,
 };
+pub use pre_authorized_server::CredentialOfferWithPreAuthorizedServer;
 pub use semantic::{CredentialConfigurationId, CredentialIssuerIdentifier, CredentialOffer};
 pub use transport::{CredentialOfferReference, CredentialOfferRequest, EmbeddedCredentialOffer};
 

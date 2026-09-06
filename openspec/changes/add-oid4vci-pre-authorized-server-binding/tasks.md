@@ -12,18 +12,18 @@
 
 ## 2. State transition
 
-- [ ] 2.1 Add stable static errors for each failed binding invariant.
-- [ ] 2.2 Add the consuming Pre-Authorized server transition and owned success
+- [x] 2.1 Add stable static errors for each failed binding invariant.
+- [x] 2.2 Add the consuming Pre-Authorized server transition and owned success
   state with predecessor-state accessors and data-free Debug.
-- [ ] 2.3 Keep selection caller-owned and preserve the dependency, feature,
+- [x] 2.3 Keep selection caller-owned and preserve the dependency, feature,
   parsing, allocation, and least-authority boundaries.
 
 ## 3. Evidence and architecture
 
-- [ ] 3.1 Add single-default, multiple-server, and exact-hint success cases.
-- [ ] 3.2 Add every missing/mismatch/unsupported/endpoint rejection, state
+- [x] 3.1 Add single-default, multiple-server, and exact-hint success cases.
+- [x] 3.2 Add every missing/mismatch/unsupported/endpoint rejection, state
   preservation, static-error, and diagnostic-canary evidence.
-- [ ] 3.3 Record ADR 0046 and advance blueprint/canonical `IDR-023` tracking
+- [x] 3.3 Record ADR 0046 and advance blueprint/canonical `IDR-023` tracking
   without claiming request construction or protocol-engine completion.
 - [ ] 3.4 Verify consumer HEAD/status/path receipts against preflight.
 

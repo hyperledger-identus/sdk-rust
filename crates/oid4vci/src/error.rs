@@ -112,6 +112,16 @@ pub mod error_code {
     pub const DUPLICATE_GRANT_TYPE: ErrorCode = ErrorCode::new("oid4vci.duplicate_grant_type");
     pub const INVALID_ANONYMOUS_PRE_AUTHORIZED_ACCESS: ErrorCode =
         ErrorCode::new("oid4vci.invalid_anonymous_pre_authorized_access");
+    pub const PRE_AUTHORIZED_CODE_GRANT_MISSING: ErrorCode =
+        ErrorCode::new("oid4vci.pre_authorized_code_grant_missing");
+    pub const AUTHORIZATION_SERVER_NOT_ADVERTISED: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_server_not_advertised");
+    pub const PRE_AUTHORIZED_SERVER_HINT_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vci.pre_authorized_server_hint_mismatch");
+    pub const PRE_AUTHORIZED_GRANT_NOT_SUPPORTED: ErrorCode =
+        ErrorCode::new("oid4vci.pre_authorized_grant_not_supported");
+    pub const TOKEN_ENDPOINT_REQUIRED: ErrorCode =
+        ErrorCode::new("oid4vci.token_endpoint_required");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -182,6 +192,11 @@ pub enum CredentialOfferError {
     TooManyGrantTypes,
     DuplicateGrantType,
     InvalidAnonymousPreAuthorizedAccess,
+    PreAuthorizedCodeGrantMissing,
+    AuthorizationServerNotAdvertised,
+    PreAuthorizedServerHintMismatch,
+    PreAuthorizedGrantNotSupported,
+    TokenEndpointRequired,
 }
 
 impl CredentialOfferError {
@@ -497,6 +512,31 @@ impl CredentialOfferError {
                 error_code::INVALID_ANONYMOUS_PRE_AUTHORIZED_ACCESS,
                 ErrorKind::InvalidInput,
                 "OID4VCI anonymous Pre-Authorized Code metadata is invalid",
+            ),
+            Self::PreAuthorizedCodeGrantMissing => (
+                error_code::PRE_AUTHORIZED_CODE_GRANT_MISSING,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Offer has no Pre-Authorized Code grant",
+            ),
+            Self::AuthorizationServerNotAdvertised => (
+                error_code::AUTHORIZATION_SERVER_NOT_ADVERTISED,
+                ErrorKind::InvalidInput,
+                "OID4VCI selected Authorization Server is not advertised",
+            ),
+            Self::PreAuthorizedServerHintMismatch => (
+                error_code::PRE_AUTHORIZED_SERVER_HINT_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VCI selected Authorization Server does not match the offered hint",
+            ),
+            Self::PreAuthorizedGrantNotSupported => (
+                error_code::PRE_AUTHORIZED_GRANT_NOT_SUPPORTED,
+                ErrorKind::InvalidInput,
+                "OID4VCI selected Authorization Server does not support the Pre-Authorized Code grant",
+            ),
+            Self::TokenEndpointRequired => (
+                error_code::TOKEN_ENDPOINT_REQUIRED,
+                ErrorKind::InvalidInput,
+                "OID4VCI selected Authorization Server has no Token Endpoint",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

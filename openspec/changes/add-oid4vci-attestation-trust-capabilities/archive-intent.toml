@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability = "jws-compact"
+requirement = "Protected headers have a small closed validated surface"
+canonical_sha256 = "6aaac63c1759efad201ba264000aaace1c7e3c9b5dcf1af6277b354e49c781f4"
+reason = "Issue #104 deliberately replaces rejection of two now-Final OID4VCI/OpenID Federation members with bounded opaque retention and explicit injected trust validation."

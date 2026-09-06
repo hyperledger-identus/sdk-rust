@@ -289,8 +289,9 @@ delivery adds exclusive bounded `kid`/public-`jwk`/`x5c` headers plus staged
 holder construction. Its second delivery adds three-stage issuer verification,
 exact DID `authentication` authorization, an injected X.509 leaf-key provider,
 explicit client/audience/nonce/freshness policy and an atomic caller-owned
-replay gate. Coverage-guided fuzzing remains #100, while optional proof
-attestation and trust-chain headers remain #104.
+replay gate. Issue #100 supplies bounded coverage-guided fuzzing across the
+Compact boundary. Optional proof attestation and trust-chain headers remain in
+issue #104.
 
 ### B09 — OID4VCI Final (`#7`)
 

@@ -21,12 +21,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
-name = "base64ct"
-version = "1.8.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
-
-[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -331,17 +325,13 @@ dependencies = [
  "base64",
  "coset",
  "ed25519-dalek",
- "hex",
- "hmac",
  "identus-core",
  "identus-derive",
- "k256",
  "p256",
- "pbkdf2",
  "serde",
  "serde_json",
  "sha2",
- "x25519-dalek",
+ "zeroize",
 ]
 
 [[package]]
@@ -358,8 +348,19 @@ name = "identus-did"
 version = "0.0.0"
 dependencies = [
  "identus-core",
- "identus-crypto",
  "identus-derive",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "identus-jose"
+version = "0.0.0"
+dependencies = [
+ "base64",
+ "identus-core",
+ "identus-crypto",
+ "identus-did",
  "serde",
  "serde_json",
 ]
@@ -368,9 +369,11 @@ dependencies = [
 name = "identus-sdk-fuzz"
 version = "0.0.0"
 dependencies = [
+ "base64",
  "hex",
  "identus-crypto",
  "identus-did",
+ "identus-jose",
  "libfuzzer-sys",
  "serde",
  "serde_json",
@@ -390,18 +393,6 @@ checksum = "1c00acbd29eabad4a2392fa0e921c874934dbbf4194312ad20f04a0ed67a3cb3"
 dependencies = [
  "getrandom",
  "libc",
-]
-
-[[package]]
-name = "k256"
-version = "0.13.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6e3919bbaa2945715f0bb6d3934a173d1e9a59ac23767fbaaef277265a7411b"
-dependencies = [
- "cfg-if",
- "ecdsa",
- "elliptic-curve",
- "sha2",
 ]
 
 [[package]]
@@ -435,29 +426,6 @@ dependencies = [
  "ecdsa",
  "elliptic-curve",
  "primeorder",
- "sha2",
-]
-
-[[package]]
-name = "password-hash"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "346f04948ba92c43e8469c1ee6736c7563d71012b17d40745260fe106aac2166"
-dependencies = [
- "base64ct",
- "rand_core",
- "subtle",
-]
-
-[[package]]
-name = "pbkdf2"
-version = "0.12.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8ed6a7761f76e3b9f92dfb0a60a6a6477c61024b775147ff0973a02653abaf2"
-dependencies = [
- "digest",
- "hmac",
- "password-hash",
  "sha2",
 ]
 
@@ -642,18 +610,6 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
-
-[[package]]
-name = "x25519-dalek"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7e468321c81fb07fa7f4c636c3972b9100f0346e5b6a9f2bd0603a52f7ed277"
-dependencies = [
- "curve25519-dalek",
- "rand_core",
- "serde",
- "zeroize",
-]
 
 [[package]]
 name = "zerocopy"

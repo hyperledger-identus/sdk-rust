@@ -1,0 +1,79 @@
+name: JWS Compact fuzzing
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/jws-fuzz.yml"
+      - Cargo.toml
+      - "crates/core/**"
+      - "crates/crypto/**"
+      - "crates/derive/**"
+      - "crates/did/**"
+      - "crates/jose/**"
+      - deny.toml
+      - flake.lock
+      - flake.nix
+      - "fuzz/**"
+      - "nix/**"
+      - "scripts/fuzz-jws.sh"
+  push:
+    branches: [develop]
+    paths:
+      - ".github/workflows/jws-fuzz.yml"
+      - Cargo.toml
+      - "crates/core/**"
+      - "crates/crypto/**"
+      - "crates/derive/**"
+      - "crates/did/**"
+      - "crates/jose/**"
+      - deny.toml
+      - flake.lock
+      - flake.nix
+      - "fuzz/**"
+      - "nix/**"
+      - "scripts/fuzz-jws.sh"
+permissions:
+  contents: read
+
+concurrency:
+  group: jws-fuzz-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fuzz:
+    name: sanitizer campaign (${{ github.event_name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
+
+      - name: Check fuzz dependency policy
+        run: |
+          nix develop --command cargo fmt --manifest-path fuzz/Cargo.toml -- --check
+          nix develop --command cargo clippy --manifest-path fuzz/Cargo.toml --bins -- -D warnings
+          nix develop --command cargo deny --manifest-path fuzz/Cargo.toml --locked check
+          nix develop --command cargo audit --file fuzz/Cargo.lock --deny warnings
+
+      - name: Run deterministic smoke
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: nix develop --command ./scripts/fuzz-jws.sh smoke
+
+      - name: Preserve failing inputs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: jws-fuzz-artifacts-${{ github.sha }}
+          path: fuzz/artifacts/jws_compact
+          if-no-files-found: ignore
+          retention-days: 14

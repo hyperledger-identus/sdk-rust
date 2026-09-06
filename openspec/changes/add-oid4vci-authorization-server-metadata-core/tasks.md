@@ -12,21 +12,21 @@
 
 ## 2. Core implementation
 
-- [ ] 2.1 Add Authorization Server Metadata limits and static redacted errors.
-- [ ] 2.2 Extend the selective bounded scanner for issuer, optional endpoints,
+- [x] 2.1 Add Authorization Server Metadata limits and static redacted errors.
+- [x] 2.2 Extend the selective bounded scanner for issuer, optional endpoints,
   optional grant types, and the OID4VCI anonymous-access flag.
-- [ ] 2.3 Add the partial core type, safe accessors, exact JSON retention, and
+- [x] 2.3 Add the partial core type, safe accessors, exact JSON retention, and
   explicit/effective default semantics.
 
 ## 3. Evidence and architecture
 
-- [ ] 3.1 Add official- and consumer-shaped positives for endpoints, explicit
+- [x] 3.1 Add official- and consumer-shaped positives for endpoints, explicit
   and omitted grants, anonymous-access omission/default, and opaque extensions.
-- [ ] 3.2 Add malformed/type/duplicate/bound/issuer/endpoint/grant negatives,
+- [x] 3.2 Add malformed/type/duplicate/bound/issuer/endpoint/grant negatives,
   exact-bound cases, partial-conformance assertions, and diagnostic canaries.
-- [ ] 3.3 Record the ADR and advance blueprint/canonical `IDR-023` tracking
+- [x] 3.3 Record the ADR and advance blueprint/canonical `IDR-023` tracking
   without claiming discovery, full RFC 8414 conformance, or engine completion.
-- [ ] 3.4 Verify consumer HEAD/status/path receipts against preflight.
+- [x] 3.4 Verify consumer HEAD/status/path receipts against preflight.
 
 ## 4. Verification and delivery
 

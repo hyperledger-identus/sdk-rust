@@ -325,3 +325,98 @@ impl Default for CredentialIssuerMetadataLimits {
         }
     }
 }
+
+/// Resource limits for the partial Authorization Server Metadata core.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AuthorizationServerMetadataLimits {
+    max_json_bytes: usize,
+    max_json_depth: usize,
+    max_json_nodes: usize,
+    max_issuer_bytes: usize,
+    max_endpoint_bytes: usize,
+    max_grant_type_bytes: usize,
+    max_grant_types: usize,
+}
+
+impl AuthorizationServerMetadataLimits {
+    /// Construct a positive metadata policy with a supported JSON depth.
+    pub const fn new(
+        max_json_bytes: usize,
+        max_json_depth: usize,
+        max_json_nodes: usize,
+        max_issuer_bytes: usize,
+        max_endpoint_bytes: usize,
+        max_grant_type_bytes: usize,
+        max_grant_types: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_json_bytes == 0
+            || max_json_depth == 0
+            || max_json_depth > MAX_CONFIGURABLE_JSON_DEPTH
+            || max_json_nodes == 0
+            || max_issuer_bytes == 0
+            || max_endpoint_bytes == 0
+            || max_grant_type_bytes == 0
+            || max_grant_types == 0
+        {
+            return Err(CredentialOfferError::InvalidAuthorizationServerMetadataLimits);
+        }
+        Ok(Self {
+            max_json_bytes,
+            max_json_depth,
+            max_json_nodes,
+            max_issuer_bytes,
+            max_endpoint_bytes,
+            max_grant_type_bytes,
+            max_grant_types,
+        })
+    }
+
+    /// Maximum bytes in the complete JSON object.
+    pub const fn max_json_bytes(self) -> usize {
+        self.max_json_bytes
+    }
+
+    /// Maximum JSON container depth.
+    pub const fn max_json_depth(self) -> usize {
+        self.max_json_depth
+    }
+
+    /// Maximum aggregate JSON value nodes.
+    pub const fn max_json_nodes(self) -> usize {
+        self.max_json_nodes
+    }
+
+    /// Maximum decoded UTF-8 bytes in the issuer identifier.
+    pub const fn max_issuer_bytes(self) -> usize {
+        self.max_issuer_bytes
+    }
+
+    /// Maximum decoded UTF-8 bytes in either interpreted endpoint.
+    pub const fn max_endpoint_bytes(self) -> usize {
+        self.max_endpoint_bytes
+    }
+
+    /// Maximum decoded UTF-8 bytes in one grant type.
+    pub const fn max_grant_type_bytes(self) -> usize {
+        self.max_grant_type_bytes
+    }
+
+    /// Maximum number of explicitly advertised grant types.
+    pub const fn max_grant_types(self) -> usize {
+        self.max_grant_types
+    }
+}
+
+impl Default for AuthorizationServerMetadataLimits {
+    fn default() -> Self {
+        Self {
+            max_json_bytes: 131_072,
+            max_json_depth: 16,
+            max_json_nodes: 1_024,
+            max_issuer_bytes: 2_048,
+            max_endpoint_bytes: 2_048,
+            max_grant_type_bytes: 256,
+            max_grant_types: 32,
+        }
+    }
+}

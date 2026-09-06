@@ -91,6 +91,27 @@ pub mod error_code {
         ErrorCode::new("oid4vci.offered_configuration_missing");
     pub const INVALID_AUTHORIZATION_SERVER_HINT: ErrorCode =
         ErrorCode::new("oid4vci.invalid_authorization_server_hint");
+    pub const INVALID_AUTHORIZATION_SERVER_METADATA_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_server_metadata_limits");
+    pub const AUTHORIZATION_SERVER_METADATA_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_server_metadata_too_large");
+    pub const INVALID_AUTHORIZATION_SERVER_METADATA: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_server_metadata");
+    pub const AUTHORIZATION_SERVER_METADATA_ISSUER_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_server_metadata_issuer_mismatch");
+    pub const AUTHORIZATION_ENDPOINT_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_endpoint_too_large");
+    pub const UNSAFE_AUTHORIZATION_ENDPOINT: ErrorCode =
+        ErrorCode::new("oid4vci.unsafe_authorization_endpoint");
+    pub const TOKEN_ENDPOINT_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.token_endpoint_too_large");
+    pub const UNSAFE_TOKEN_ENDPOINT: ErrorCode = ErrorCode::new("oid4vci.unsafe_token_endpoint");
+    pub const INVALID_GRANT_TYPES: ErrorCode = ErrorCode::new("oid4vci.invalid_grant_types");
+    pub const GRANT_TYPE_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vci.grant_type_too_large");
+    pub const TOO_MANY_GRANT_TYPES: ErrorCode = ErrorCode::new("oid4vci.too_many_grant_types");
+    pub const DUPLICATE_GRANT_TYPE: ErrorCode = ErrorCode::new("oid4vci.duplicate_grant_type");
+    pub const INVALID_ANONYMOUS_PRE_AUTHORIZED_ACCESS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_anonymous_pre_authorized_access");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -148,6 +169,19 @@ pub enum CredentialOfferError {
     OfferMetadataIssuerMismatch,
     OfferedConfigurationMissing,
     InvalidAuthorizationServerHint,
+    InvalidAuthorizationServerMetadataLimits,
+    AuthorizationServerMetadataTooLarge,
+    InvalidAuthorizationServerMetadata,
+    AuthorizationServerMetadataIssuerMismatch,
+    AuthorizationEndpointTooLarge,
+    UnsafeAuthorizationEndpoint,
+    TokenEndpointTooLarge,
+    UnsafeTokenEndpoint,
+    InvalidGrantTypes,
+    GrantTypeTooLarge,
+    TooManyGrantTypes,
+    DuplicateGrantType,
+    InvalidAnonymousPreAuthorizedAccess,
 }
 
 impl CredentialOfferError {
@@ -398,6 +432,71 @@ impl CredentialOfferError {
                 error_code::INVALID_AUTHORIZATION_SERVER_HINT,
                 ErrorKind::InvalidInput,
                 "OID4VCI offered Authorization Server hint is invalid for metadata",
+            ),
+            Self::InvalidAuthorizationServerMetadataLimits => (
+                error_code::INVALID_AUTHORIZATION_SERVER_METADATA_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Server Metadata limits are invalid",
+            ),
+            Self::AuthorizationServerMetadataTooLarge => (
+                error_code::AUTHORIZATION_SERVER_METADATA_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Server Metadata is too large",
+            ),
+            Self::InvalidAuthorizationServerMetadata => (
+                error_code::INVALID_AUTHORIZATION_SERVER_METADATA,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Server Metadata core is invalid",
+            ),
+            Self::AuthorizationServerMetadataIssuerMismatch => (
+                error_code::AUTHORIZATION_SERVER_METADATA_ISSUER_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Server Metadata issuer does not match",
+            ),
+            Self::AuthorizationEndpointTooLarge => (
+                error_code::AUTHORIZATION_ENDPOINT_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Endpoint is too large",
+            ),
+            Self::UnsafeAuthorizationEndpoint => (
+                error_code::UNSAFE_AUTHORIZATION_ENDPOINT,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Endpoint is unsafe",
+            ),
+            Self::TokenEndpointTooLarge => (
+                error_code::TOKEN_ENDPOINT_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Endpoint is too large",
+            ),
+            Self::UnsafeTokenEndpoint => (
+                error_code::UNSAFE_TOKEN_ENDPOINT,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Endpoint is unsafe",
+            ),
+            Self::InvalidGrantTypes => (
+                error_code::INVALID_GRANT_TYPES,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Server grant types are invalid",
+            ),
+            Self::GrantTypeTooLarge => (
+                error_code::GRANT_TYPE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Server grant type is too large",
+            ),
+            Self::TooManyGrantTypes => (
+                error_code::TOO_MANY_GRANT_TYPES,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Server Metadata has too many grant types",
+            ),
+            Self::DuplicateGrantType => (
+                error_code::DUPLICATE_GRANT_TYPE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Server Metadata repeats a grant type",
+            ),
+            Self::InvalidAnonymousPreAuthorizedAccess => (
+                error_code::INVALID_ANONYMOUS_PRE_AUTHORIZED_ACCESS,
+                ErrorKind::InvalidInput,
+                "OID4VCI anonymous Pre-Authorized Code metadata is invalid",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

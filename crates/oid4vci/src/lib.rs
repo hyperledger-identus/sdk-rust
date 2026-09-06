@@ -6,6 +6,7 @@
 
 #![forbid(unsafe_code)]
 
+mod authorization_metadata;
 mod error;
 mod grants;
 mod json;
@@ -14,6 +15,10 @@ mod metadata;
 mod semantic;
 mod transport;
 
+pub use authorization_metadata::{
+    AUTHORIZATION_CODE_GRANT_TYPE, AuthorizationEndpoint, AuthorizationServerMetadataCore,
+    GrantTypeIdentifier, IMPLICIT_GRANT_TYPE, PRE_AUTHORIZED_CODE_GRANT_TYPE, TokenEndpoint,
+};
 pub use error::{CAPABILITY, CredentialOfferError, error_code};
 pub use grants::{
     AuthorizationCodeGrant, AuthorizationServerIdentifier, CredentialOfferWithGrants, IssuerState,
@@ -21,8 +26,8 @@ pub use grants::{
     TransactionCodeInputMode, TransactionCodeRequirements,
 };
 pub use limits::{
-    CredentialIssuerMetadataLimits, CredentialOfferGrantLimits, CredentialOfferLimits,
-    CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
+    AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits, CredentialOfferGrantLimits,
+    CredentialOfferLimits, CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,

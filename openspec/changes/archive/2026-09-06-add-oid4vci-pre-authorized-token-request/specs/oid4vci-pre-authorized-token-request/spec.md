@@ -9,7 +9,7 @@ when all requirements in this capability succeed.
 The request SHALL contain exactly one `grant_type` with the Final
 Pre-Authorized Code grant identifier, exactly one `pre-authorized_code` copied
 from the offer, and exactly one `tx_code` if and only if the predecessor bound
-one. Their deterministic order SHALL be `grant_type`, `pre-authorized-code`,
+one. Their deterministic order SHALL be `grant_type`, `pre-authorized_code`,
 then optional `tx_code`. The spelling of the second wire parameter SHALL be
 `pre-authorized_code`.
 

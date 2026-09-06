@@ -8,24 +8,24 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add positive request-body limits, exact checked sizing, deterministic
+- [x] 2.1 Add positive request-body limits, exact checked sizing, deterministic
   form encoding, and the consuming Token Request state.
-- [ ] 2.2 Add stable fieldless errors, crate exports, explicit sensitive-body
+- [x] 2.2 Add stable fieldless errors, crate exports, explicit sensitive-body
   access, and redacted diagnostics.
-- [ ] 2.3 Update ADR, blueprint, and canonical IDR-023 ledger pointer without
+- [x] 2.3 Update ADR, blueprint, and canonical IDR-023 ledger pointer without
   changing dependencies, manifests, features, parsers, or consumers.
 
 ## 3. Verification and integration
 
-- [ ] 3.1 Add positive, negative, exact-bound, encoding-conformance, endpoint,
+- [x] 3.1 Add positive, negative, exact-bound, encoding-conformance, endpoint,
   and diagnostic-canary tests for every contract branch.
-- [ ] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,
+- [x] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,
   workspace/factory/preservation gates, and the full target/supply-chain Nix
   matrix; record exact evidence and consumer-isolation receipts.
-- [ ] 3.3 Complete and record a distinct local review with no unresolved
+- [x] 3.3 Complete and record a distinct local review with no unresolved
   finding, mark tasks complete, run ready/receipt, guarded archive, and final
   exact-head verification.
-- [ ] 3.4 Prepare the signed/DCO, issue-linked PR delivery packet for
+- [x] 3.4 Prepare the signed/DCO, issue-linked PR delivery packet for
   `develop`, including exact-head hosted Codex review and required CI gates,
   protected merge, issue/parent updates, `develop` sync, and cleanup as the
   post-archive integration procedure.

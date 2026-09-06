@@ -1,11 +1,14 @@
 //! Bounded OpenID for Verifiable Credential Issuance protocol semantics.
 //!
 //! The crate distinguishes Credential Offer invocation transport, offer/grant
-//! semantics, unsigned Credential Issuer Metadata, and exact cross-document
-//! agreement. It performs no network access and establishes no issuer trust.
+//! semantics, unsigned Credential Issuer Metadata, exact cross-document
+//! agreement, and a partial Authorization Server Metadata core. It performs no
+//! network access, does not validate complete RFC 8414 metadata, and
+//! establishes no issuer or server trust.
 
 #![forbid(unsafe_code)]
 
+mod authorization_metadata;
 mod error;
 mod grants;
 mod json;
@@ -14,6 +17,10 @@ mod metadata;
 mod semantic;
 mod transport;
 
+pub use authorization_metadata::{
+    AUTHORIZATION_CODE_GRANT_TYPE, AuthorizationEndpoint, AuthorizationServerMetadataCore,
+    GrantTypeIdentifier, IMPLICIT_GRANT_TYPE, PRE_AUTHORIZED_CODE_GRANT_TYPE, TokenEndpoint,
+};
 pub use error::{CAPABILITY, CredentialOfferError, error_code};
 pub use grants::{
     AuthorizationCodeGrant, AuthorizationServerIdentifier, CredentialOfferWithGrants, IssuerState,
@@ -21,8 +28,8 @@ pub use grants::{
     TransactionCodeInputMode, TransactionCodeRequirements,
 };
 pub use limits::{
-    CredentialIssuerMetadataLimits, CredentialOfferGrantLimits, CredentialOfferLimits,
-    CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
+    AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits, CredentialOfferGrantLimits,
+    CredentialOfferLimits, CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,

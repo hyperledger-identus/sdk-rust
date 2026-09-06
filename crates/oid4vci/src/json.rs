@@ -3,8 +3,8 @@ use std::ops::Range;
 use zeroize::Zeroizing;
 
 use crate::{
-    CredentialIssuerMetadataLimits, CredentialOfferError, CredentialOfferGrantLimits,
-    CredentialOfferLimits, CredentialOfferSemanticLimits,
+    AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits, CredentialOfferError,
+    CredentialOfferGrantLimits, CredentialOfferLimits, CredentialOfferSemanticLimits,
 };
 
 const AUTHORIZATION_CODE_GRANT: &str = "authorization_code";
@@ -49,6 +49,14 @@ pub(crate) struct CredentialIssuerMetadataFields {
 pub(crate) struct CredentialConfigurationFields {
     pub(crate) id: Zeroizing<String>,
     pub(crate) format: Zeroizing<String>,
+}
+
+pub(crate) struct AuthorizationServerMetadataFields {
+    pub(crate) issuer: Zeroizing<String>,
+    pub(crate) authorization_endpoint: Option<Zeroizing<String>>,
+    pub(crate) token_endpoint: Option<Zeroizing<String>>,
+    pub(crate) grant_types_supported: Option<Vec<Zeroizing<String>>>,
+    pub(crate) anonymous_pre_authorized_access: Option<bool>,
 }
 
 pub(crate) fn validate_json(
@@ -148,6 +156,31 @@ pub(crate) fn parse_credential_issuer_metadata_fields(
     scanner.skip_whitespace();
     if scanner.cursor != input.len() {
         return Err(CredentialOfferError::InvalidMetadata);
+    }
+    Ok(fields)
+}
+
+pub(crate) fn parse_authorization_server_metadata_fields(
+    input: &[u8],
+    limits: AuthorizationServerMetadataLimits,
+) -> Result<AuthorizationServerMetadataFields, CredentialOfferError> {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
+        max_depth: limits.max_json_depth(),
+        max_nodes: limits.max_json_nodes(),
+        nodes: 0,
+    };
+    scanner.skip_whitespace();
+    scanner.visit_node()?;
+    let depth = scanner.enter_container(0)?;
+    if !scanner.consume_if(b'{') {
+        return Err(CredentialOfferError::InvalidAuthorizationServerMetadata);
+    }
+    let fields = scanner.parse_authorization_server_metadata_object(depth, limits)?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(CredentialOfferError::InvalidAuthorizationServerMetadata);
     }
     Ok(fields)
 }
@@ -376,6 +409,122 @@ impl Scanner<'_> {
             credential_configurations: credential_configurations
                 .ok_or(CredentialOfferError::InvalidCredentialConfigurations)?,
         })
+    }
+
+    fn parse_authorization_server_metadata_object(
+        &mut self,
+        depth: usize,
+        limits: AuthorizationServerMetadataLimits,
+    ) -> Result<AuthorizationServerMetadataFields, CredentialOfferError> {
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidAuthorizationServerMetadata);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut issuer = None;
+        let mut authorization_endpoint = None;
+        let mut token_endpoint = None;
+        let mut grant_types_supported = None;
+        let mut grant_types_present = false;
+        let mut anonymous_pre_authorized_access = None;
+        loop {
+            let name = self.parse_unique_member_name(&mut names)?;
+            self.require_member_separator()?;
+            match name.as_str() {
+                "issuer" => {
+                    issuer = Some(self.parse_nonempty_bounded_string(
+                        limits.max_issuer_bytes(),
+                        CredentialOfferError::InvalidAuthorizationServerMetadata,
+                        CredentialOfferError::AuthorizationServerTooLarge,
+                    )?);
+                }
+                "authorization_endpoint" => {
+                    authorization_endpoint = Some(self.parse_nonempty_bounded_string(
+                        limits.max_endpoint_bytes(),
+                        CredentialOfferError::InvalidAuthorizationServerMetadata,
+                        CredentialOfferError::AuthorizationEndpointTooLarge,
+                    )?);
+                }
+                "token_endpoint" => {
+                    token_endpoint = Some(self.parse_nonempty_bounded_string(
+                        limits.max_endpoint_bytes(),
+                        CredentialOfferError::InvalidAuthorizationServerMetadata,
+                        CredentialOfferError::TokenEndpointTooLarge,
+                    )?);
+                }
+                "grant_types_supported" => {
+                    grant_types_present = true;
+                    grant_types_supported = Some(self.parse_grant_types(depth, limits)?);
+                }
+                "pre-authorized_grant_anonymous_access_supported" => {
+                    anonymous_pre_authorized_access = Some(self.parse_boolean(
+                        CredentialOfferError::InvalidAnonymousPreAuthorizedAccess,
+                    )?);
+                }
+                _ => self.parse_value(depth)?,
+            }
+            if self.finish_or_continue_object()? {
+                break;
+            }
+        }
+
+        Ok(AuthorizationServerMetadataFields {
+            issuer: issuer.ok_or(CredentialOfferError::InvalidAuthorizationServerMetadata)?,
+            authorization_endpoint,
+            token_endpoint,
+            grant_types_supported: if grant_types_present {
+                grant_types_supported
+            } else {
+                None
+            },
+            anonymous_pre_authorized_access,
+        })
+    }
+
+    fn parse_grant_types(
+        &mut self,
+        depth: usize,
+        limits: AuthorizationServerMetadataLimits,
+    ) -> Result<Vec<Zeroizing<String>>, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        if !self.consume_if(b'[') {
+            return Err(CredentialOfferError::InvalidGrantTypes);
+        }
+        self.enter_container(depth)?;
+        self.skip_whitespace();
+        if self.consume_if(b']') {
+            return Err(CredentialOfferError::InvalidGrantTypes);
+        }
+
+        let mut grant_types = Vec::new();
+        loop {
+            if grant_types.len() == limits.max_grant_types() {
+                return Err(CredentialOfferError::TooManyGrantTypes);
+            }
+            let grant_type = self.parse_nonempty_bounded_string(
+                limits.max_grant_type_bytes(),
+                CredentialOfferError::InvalidGrantTypes,
+                CredentialOfferError::GrantTypeTooLarge,
+            )?;
+            if grant_types
+                .iter()
+                .any(|existing: &Zeroizing<String>| existing.as_str() == grant_type.as_str())
+            {
+                return Err(CredentialOfferError::DuplicateGrantType);
+            }
+            grant_types.push(grant_type);
+            self.skip_whitespace();
+            match self.peek() {
+                Some(b',') => self.cursor += 1,
+                Some(b']') => {
+                    self.cursor += 1;
+                    return Ok(grant_types);
+                }
+                _ => return Err(CredentialOfferError::InvalidGrantTypes),
+            }
+        }
     }
 
     fn parse_authorization_servers(
@@ -778,6 +927,23 @@ impl Scanner<'_> {
             return Err(invalid);
         }
         Ok(value)
+    }
+
+    fn parse_boolean(
+        &mut self,
+        invalid_error: CredentialOfferError,
+    ) -> Result<bool, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        if self.input[self.cursor..].starts_with(b"true") {
+            self.cursor += 4;
+            Ok(true)
+        } else if self.input[self.cursor..].starts_with(b"false") {
+            self.cursor += 5;
+            Ok(false)
+        } else {
+            Err(invalid_error)
+        }
     }
 
     fn parse_positive_integer(&mut self, max: usize) -> Result<usize, CredentialOfferError> {

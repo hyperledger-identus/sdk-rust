@@ -334,6 +334,14 @@ summaries. HTTP retrieval, signed metadata/trust, OAuth Authorization Server
 metadata, format-profile interpretation, grant selection, endpoint messages,
 replay controls, and issuance state remain later slices.
 
+The fifth bounded delivery, issue #119, parses a bounded, lossless
+`AuthorizationServerMetadataCore` with exact RFC 8414 issuer binding, safe
+optional authorization/token endpoints, explicit or defaulted grant types, and
+the OID4VCI anonymous Pre-Authorized Code flag. Its partial type deliberately
+does not claim complete RFC 8414 conformance. Discovery, signed metadata,
+trust, server/grant selection, endpoint messages, replay controls, and issuance
+state remain later slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

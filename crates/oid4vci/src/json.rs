@@ -3,8 +3,8 @@ use std::ops::Range;
 use zeroize::Zeroizing;
 
 use crate::{
-    CredentialOfferError, CredentialOfferGrantLimits, CredentialOfferLimits,
-    CredentialOfferSemanticLimits,
+    CredentialIssuerMetadataLimits, CredentialOfferError, CredentialOfferGrantLimits,
+    CredentialOfferLimits, CredentialOfferSemanticLimits,
 };
 
 const AUTHORIZATION_CODE_GRANT: &str = "authorization_code";
@@ -37,6 +37,18 @@ pub(crate) struct TransactionCodeFields {
     pub(crate) input_mode: Option<Zeroizing<String>>,
     pub(crate) length: Option<usize>,
     pub(crate) description: Option<Zeroizing<String>>,
+}
+
+pub(crate) struct CredentialIssuerMetadataFields {
+    pub(crate) credential_issuer: Zeroizing<String>,
+    pub(crate) authorization_servers: Option<Vec<Zeroizing<String>>>,
+    pub(crate) credential_endpoint: Zeroizing<String>,
+    pub(crate) credential_configurations: Vec<CredentialConfigurationFields>,
+}
+
+pub(crate) struct CredentialConfigurationFields {
+    pub(crate) id: Zeroizing<String>,
+    pub(crate) format: Zeroizing<String>,
 }
 
 pub(crate) fn validate_json(
@@ -111,6 +123,31 @@ pub(crate) fn parse_credential_offer_grant_fields(
     scanner.skip_whitespace();
     if scanner.cursor != input.len() {
         return Err(CredentialOfferError::InvalidEmbeddedJson);
+    }
+    Ok(fields)
+}
+
+pub(crate) fn parse_credential_issuer_metadata_fields(
+    input: &[u8],
+    limits: CredentialIssuerMetadataLimits,
+) -> Result<CredentialIssuerMetadataFields, CredentialOfferError> {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
+        max_depth: limits.max_json_depth(),
+        max_nodes: limits.max_json_nodes(),
+        nodes: 0,
+    };
+    scanner.skip_whitespace();
+    scanner.visit_node()?;
+    let depth = scanner.enter_container(0)?;
+    if !scanner.consume_if(b'{') {
+        return Err(CredentialOfferError::InvalidMetadata);
+    }
+    let fields = scanner.parse_credential_issuer_metadata_object(depth, limits)?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(CredentialOfferError::InvalidMetadata);
     }
     Ok(fields)
 }
@@ -276,6 +313,185 @@ impl Scanner<'_> {
             authorization_code: None,
             pre_authorized_code: None,
         }))
+    }
+
+    fn parse_credential_issuer_metadata_object(
+        &mut self,
+        depth: usize,
+        limits: CredentialIssuerMetadataLimits,
+    ) -> Result<CredentialIssuerMetadataFields, CredentialOfferError> {
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidMetadata);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut credential_issuer = None;
+        let mut authorization_servers = None;
+        let mut authorization_servers_present = false;
+        let mut credential_endpoint = None;
+        let mut credential_configurations = None;
+        loop {
+            let name = self.parse_unique_member_name(&mut names)?;
+            self.require_member_separator()?;
+            match name.as_str() {
+                "credential_issuer" => {
+                    credential_issuer = Some(self.parse_nonempty_bounded_string(
+                        limits.max_credential_issuer_bytes(),
+                        CredentialOfferError::InvalidMetadata,
+                        CredentialOfferError::IssuerTooLarge,
+                    )?);
+                }
+                "authorization_servers" => {
+                    authorization_servers_present = true;
+                    authorization_servers = Some(self.parse_authorization_servers(depth, limits)?);
+                }
+                "credential_endpoint" => {
+                    credential_endpoint = Some(self.parse_nonempty_bounded_string(
+                        limits.max_credential_endpoint_bytes(),
+                        CredentialOfferError::InvalidMetadata,
+                        CredentialOfferError::CredentialEndpointTooLarge,
+                    )?);
+                }
+                "credential_configurations_supported" => {
+                    credential_configurations =
+                        Some(self.parse_credential_configurations(depth, limits)?);
+                }
+                _ => self.parse_value(depth)?,
+            }
+            if self.finish_or_continue_object()? {
+                break;
+            }
+        }
+
+        Ok(CredentialIssuerMetadataFields {
+            credential_issuer: credential_issuer.ok_or(CredentialOfferError::InvalidMetadata)?,
+            authorization_servers: if authorization_servers_present {
+                authorization_servers
+            } else {
+                None
+            },
+            credential_endpoint: credential_endpoint
+                .ok_or(CredentialOfferError::InvalidMetadata)?,
+            credential_configurations: credential_configurations
+                .ok_or(CredentialOfferError::InvalidCredentialConfigurations)?,
+        })
+    }
+
+    fn parse_authorization_servers(
+        &mut self,
+        depth: usize,
+        limits: CredentialIssuerMetadataLimits,
+    ) -> Result<Vec<Zeroizing<String>>, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        if !self.consume_if(b'[') {
+            return Err(CredentialOfferError::InvalidAuthorizationServers);
+        }
+        self.enter_container(depth)?;
+        self.skip_whitespace();
+        if self.consume_if(b']') {
+            return Err(CredentialOfferError::InvalidAuthorizationServers);
+        }
+
+        let mut servers = Vec::new();
+        loop {
+            if servers.len() == limits.max_authorization_servers() {
+                return Err(CredentialOfferError::TooManyAuthorizationServers);
+            }
+            let server = self.parse_nonempty_bounded_string(
+                limits.max_authorization_server_bytes(),
+                CredentialOfferError::InvalidAuthorizationServers,
+                CredentialOfferError::AuthorizationServerTooLarge,
+            )?;
+            if servers
+                .iter()
+                .any(|existing: &Zeroizing<String>| existing.as_str() == server.as_str())
+            {
+                return Err(CredentialOfferError::DuplicateAuthorizationServer);
+            }
+            servers.push(server);
+            self.skip_whitespace();
+            match self.peek() {
+                Some(b',') => self.cursor += 1,
+                Some(b']') => {
+                    self.cursor += 1;
+                    return Ok(servers);
+                }
+                _ => return Err(CredentialOfferError::InvalidMetadata),
+            }
+        }
+    }
+
+    fn parse_credential_configurations(
+        &mut self,
+        depth: usize,
+        limits: CredentialIssuerMetadataLimits,
+    ) -> Result<Vec<CredentialConfigurationFields>, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        if !self.consume_if(b'{') {
+            return Err(CredentialOfferError::InvalidCredentialConfigurations);
+        }
+        let depth = self.enter_container(depth)?;
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidCredentialConfigurations);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut configurations = Vec::new();
+        loop {
+            if configurations.len() == limits.max_credential_configurations() {
+                return Err(CredentialOfferError::TooManyCredentialConfigurations);
+            }
+            let id = self.parse_unique_member_name(&mut names)?;
+            if id.len() > limits.max_credential_configuration_id_bytes() {
+                return Err(CredentialOfferError::ConfigurationIdTooLarge);
+            }
+            self.require_member_separator()?;
+            let format = self.parse_credential_configuration(depth, limits)?;
+            configurations.push(CredentialConfigurationFields { id, format });
+            if self.finish_or_continue_object()? {
+                return Ok(configurations);
+            }
+        }
+    }
+
+    fn parse_credential_configuration(
+        &mut self,
+        depth: usize,
+        limits: CredentialIssuerMetadataLimits,
+    ) -> Result<Zeroizing<String>, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        if !self.consume_if(b'{') {
+            return Err(CredentialOfferError::InvalidCredentialConfigurations);
+        }
+        let depth = self.enter_container(depth)?;
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidCredentialFormat);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut format = None;
+        loop {
+            let name = self.parse_unique_member_name(&mut names)?;
+            self.require_member_separator()?;
+            if name.as_str() == "format" {
+                format = Some(self.parse_nonempty_bounded_string(
+                    limits.max_credential_format_bytes(),
+                    CredentialOfferError::InvalidCredentialFormat,
+                    CredentialOfferError::CredentialFormatTooLarge,
+                )?);
+            } else {
+                self.parse_value(depth)?;
+            }
+            if self.finish_or_continue_object()? {
+                return format.ok_or(CredentialOfferError::InvalidCredentialFormat);
+            }
+        }
     }
 
     fn parse_known_grants(

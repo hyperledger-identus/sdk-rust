@@ -1,4 +1,4 @@
-//! Static, redaction-safe Credential Offer errors.
+//! Static, redaction-safe OID4VCI input-validation errors.
 
 use std::fmt;
 
@@ -61,9 +61,39 @@ pub mod error_code {
         ErrorCode::new("oid4vci.transaction_code_length_too_large");
     pub const TRANSACTION_CODE_DESCRIPTION_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.transaction_code_description_too_large");
+    pub const INVALID_METADATA_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_metadata_limits");
+    pub const METADATA_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vci.metadata_too_large");
+    pub const INVALID_METADATA: ErrorCode = ErrorCode::new("oid4vci.invalid_metadata");
+    pub const METADATA_ISSUER_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vci.metadata_issuer_mismatch");
+    pub const CREDENTIAL_ENDPOINT_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_endpoint_too_large");
+    pub const UNSAFE_CREDENTIAL_ENDPOINT: ErrorCode =
+        ErrorCode::new("oid4vci.unsafe_credential_endpoint");
+    pub const INVALID_AUTHORIZATION_SERVERS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_servers");
+    pub const TOO_MANY_AUTHORIZATION_SERVERS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_authorization_servers");
+    pub const DUPLICATE_AUTHORIZATION_SERVER: ErrorCode =
+        ErrorCode::new("oid4vci.duplicate_authorization_server");
+    pub const INVALID_CREDENTIAL_CONFIGURATIONS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_configurations");
+    pub const TOO_MANY_CREDENTIAL_CONFIGURATIONS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_credential_configurations");
+    pub const INVALID_CREDENTIAL_FORMAT: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_format");
+    pub const CREDENTIAL_FORMAT_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_format_too_large");
+    pub const OFFER_METADATA_ISSUER_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vci.offer_metadata_issuer_mismatch");
+    pub const OFFERED_CONFIGURATION_MISSING: ErrorCode =
+        ErrorCode::new("oid4vci.offered_configuration_missing");
+    pub const INVALID_AUTHORIZATION_SERVER_HINT: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_server_hint");
 }
 
-/// A static reason that Credential Offer validation failed.
+/// A static reason that OID4VCI validation failed.
 ///
 /// Variants deliberately carry no input, offset, JSON, URI, or parser cause.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -102,6 +132,22 @@ pub enum CredentialOfferError {
     InvalidTransactionCodeLength,
     TransactionCodeLengthTooLarge,
     TransactionCodeDescriptionTooLarge,
+    InvalidMetadataLimits,
+    MetadataTooLarge,
+    InvalidMetadata,
+    MetadataIssuerMismatch,
+    CredentialEndpointTooLarge,
+    UnsafeCredentialEndpoint,
+    InvalidAuthorizationServers,
+    TooManyAuthorizationServers,
+    DuplicateAuthorizationServer,
+    InvalidCredentialConfigurations,
+    TooManyCredentialConfigurations,
+    InvalidCredentialFormat,
+    CredentialFormatTooLarge,
+    OfferMetadataIssuerMismatch,
+    OfferedConfigurationMissing,
+    InvalidAuthorizationServerHint,
 }
 
 impl CredentialOfferError {
@@ -141,22 +187,22 @@ impl CredentialOfferError {
             Self::InvalidEmbeddedJson => (
                 error_code::INVALID_EMBEDDED_JSON,
                 ErrorKind::InvalidInput,
-                "OID4VCI embedded Credential Offer JSON is invalid",
+                "OID4VCI JSON object is invalid",
             ),
             Self::DuplicateJsonProperty => (
                 error_code::DUPLICATE_JSON_PROPERTY,
                 ErrorKind::InvalidInput,
-                "OID4VCI embedded Credential Offer repeats a JSON member",
+                "OID4VCI JSON object repeats a member",
             ),
             Self::JsonTooDeep => (
                 error_code::JSON_TOO_DEEP,
                 ErrorKind::InvalidInput,
-                "OID4VCI embedded Credential Offer JSON is too deep",
+                "OID4VCI JSON object is too deep",
             ),
             Self::JsonTooManyNodes => (
                 error_code::JSON_TOO_MANY_NODES,
                 ErrorKind::InvalidInput,
-                "OID4VCI embedded Credential Offer JSON has too many nodes",
+                "OID4VCI JSON object has too many nodes",
             ),
             Self::ReferenceTooLarge => (
                 error_code::REFERENCE_TOO_LARGE,
@@ -272,6 +318,86 @@ impl CredentialOfferError {
                 error_code::TRANSACTION_CODE_DESCRIPTION_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI Transaction Code description is too large",
+            ),
+            Self::InvalidMetadataLimits => (
+                error_code::INVALID_METADATA_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Issuer Metadata limits are invalid",
+            ),
+            Self::MetadataTooLarge => (
+                error_code::METADATA_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Issuer Metadata is too large",
+            ),
+            Self::InvalidMetadata => (
+                error_code::INVALID_METADATA,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Issuer Metadata is invalid",
+            ),
+            Self::MetadataIssuerMismatch => (
+                error_code::METADATA_ISSUER_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Issuer Metadata identifier does not match",
+            ),
+            Self::CredentialEndpointTooLarge => (
+                error_code::CREDENTIAL_ENDPOINT_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Endpoint is too large",
+            ),
+            Self::UnsafeCredentialEndpoint => (
+                error_code::UNSAFE_CREDENTIAL_ENDPOINT,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Endpoint is unsafe",
+            ),
+            Self::InvalidAuthorizationServers => (
+                error_code::INVALID_AUTHORIZATION_SERVERS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Server metadata is invalid",
+            ),
+            Self::TooManyAuthorizationServers => (
+                error_code::TOO_MANY_AUTHORIZATION_SERVERS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Issuer Metadata has too many Authorization Servers",
+            ),
+            Self::DuplicateAuthorizationServer => (
+                error_code::DUPLICATE_AUTHORIZATION_SERVER,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Issuer Metadata repeats an Authorization Server",
+            ),
+            Self::InvalidCredentialConfigurations => (
+                error_code::INVALID_CREDENTIAL_CONFIGURATIONS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Configurations are invalid",
+            ),
+            Self::TooManyCredentialConfigurations => (
+                error_code::TOO_MANY_CREDENTIAL_CONFIGURATIONS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Issuer Metadata has too many configurations",
+            ),
+            Self::InvalidCredentialFormat => (
+                error_code::INVALID_CREDENTIAL_FORMAT,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Format identifier is invalid",
+            ),
+            Self::CredentialFormatTooLarge => (
+                error_code::CREDENTIAL_FORMAT_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Format identifier is too large",
+            ),
+            Self::OfferMetadataIssuerMismatch => (
+                error_code::OFFER_METADATA_ISSUER_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VCI offer and metadata issuer identifiers do not match",
+            ),
+            Self::OfferedConfigurationMissing => (
+                error_code::OFFERED_CONFIGURATION_MISSING,
+                ErrorKind::InvalidInput,
+                "OID4VCI offered Credential Configuration is missing from metadata",
+            ),
+            Self::InvalidAuthorizationServerHint => (
+                error_code::INVALID_AUTHORIZATION_SERVER_HINT,
+                ErrorKind::InvalidInput,
+                "OID4VCI offered Authorization Server hint is invalid for metadata",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

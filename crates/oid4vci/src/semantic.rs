@@ -14,7 +14,7 @@ pub struct CredentialIssuerIdentifier {
 }
 
 impl CredentialIssuerIdentifier {
-    fn try_from_value(value: Zeroizing<String>) -> Result<Self, CredentialOfferError> {
+    pub(crate) fn try_from_value(value: Zeroizing<String>) -> Result<Self, CredentialOfferError> {
         if !is_valid_https_identifier(value.as_str()) {
             return Err(CredentialOfferError::UnsafeCredentialIssuer);
         }
@@ -28,6 +28,14 @@ impl CredentialIssuerIdentifier {
 }
 
 pub(crate) fn is_valid_https_identifier(value: &str) -> bool {
+    is_valid_https_uri(value, false)
+}
+
+pub(crate) fn is_valid_https_endpoint(value: &str) -> bool {
+    is_valid_https_uri(value, true)
+}
+
+fn is_valid_https_uri(value: &str, allow_query: bool) -> bool {
     let bytes = value.as_bytes();
     if !bytes
         .get(..8)
@@ -43,23 +51,23 @@ pub(crate) fn is_valid_https_identifier(value: &str) -> bool {
     if authority.is_empty() || authority.first() == Some(&b':') {
         return false;
     }
-    URI::try_from(value).is_ok_and(|parsed| has_safe_issuer_components(&parsed))
-        || is_valid_ipvfuture_https_issuer(value)
+    URI::try_from(value).is_ok_and(|parsed| has_safe_https_components(&parsed, allow_query))
+        || is_valid_ipvfuture_https_uri(value, allow_query)
 }
 
-fn has_safe_issuer_components(parsed: &URI<'_>) -> bool {
+fn has_safe_https_components(parsed: &URI<'_>, allow_query: bool) -> bool {
     parsed.scheme().as_str().eq_ignore_ascii_case("https")
         && parsed.host().is_some()
         && !parsed.has_username()
         && !parsed.has_password()
-        && parsed.query().is_none()
+        && (allow_query || parsed.query().is_none())
         && parsed.fragment().is_none()
 }
 
 // `uriparse` 0.6.4 does not recognize RFC 3986 IPvFuture literals. Validate
 // that host production locally, then replace only the literal with a known
 // IPv6 host so `uriparse` still validates every other URI component.
-fn is_valid_ipvfuture_https_issuer(value: &str) -> bool {
+fn is_valid_ipvfuture_https_uri(value: &str, allow_query: bool) -> bool {
     let bytes = value.as_bytes();
     let authority_end = bytes[8..]
         .iter()
@@ -84,7 +92,8 @@ fn is_valid_ipvfuture_https_issuer(value: &str) -> bool {
     normalized.push_str(&value[..8]);
     normalized.push_str("[::1]");
     normalized.push_str(&value[8 + close + 1..]);
-    URI::try_from(normalized.as_str()).is_ok_and(|parsed| has_safe_issuer_components(&parsed))
+    URI::try_from(normalized.as_str())
+        .is_ok_and(|parsed| has_safe_https_components(&parsed, allow_query))
 }
 
 fn is_valid_ipvfuture_literal(value: &[u8]) -> bool {

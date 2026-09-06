@@ -396,6 +396,15 @@ Nonce Request transport, HTTP status/media/cache/DPoP validation, Issuer nonce
 generation, freshness/replay state, proof construction, and Credential
 Requests/Responses remain later slices.
 
+The twelfth bounded delivery, issue #133, exposes the optional OID4VCI Final
+`nonce_endpoint` from bounded Credential Issuer Metadata as an exact,
+redaction-safe HTTPS URL. It reuses the existing endpoint byte budget without
+breaking the public limits constructor, preserves port/path/query components,
+and distinguishes unsafe and oversized values with static diagnostics. Nonce
+Request transport, HTTP status/media/cache/DPoP validation, endpoint trust and
+network safety, nonce lifecycle, proof construction, and Credential
+Requests/Responses remain later slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

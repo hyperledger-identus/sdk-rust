@@ -12,7 +12,7 @@ mod limits;
 mod transport;
 
 pub use error::{CAPABILITY, CredentialOfferError, error_code};
-pub use limits::CredentialOfferLimits;
+pub use limits::{CredentialOfferLimits, MAX_CONFIGURABLE_JSON_DEPTH};
 pub use transport::{CredentialOfferReference, CredentialOfferRequest, EmbeddedCredentialOffer};
 
 use identus_core::Component;

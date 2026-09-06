@@ -1,5 +1,11 @@
 use crate::CredentialOfferError;
 
+/// Highest supported caller-configured JSON container depth.
+///
+/// This stays below the underlying JSON parser's recursion limit so every
+/// accepted policy can be enforced by the SDK's own deterministic boundary.
+pub const MAX_CONFIGURABLE_JSON_DEPTH: usize = 64;
+
 /// Resource limits for Credential Offer transport parsing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialOfferLimits {
@@ -11,7 +17,7 @@ pub struct CredentialOfferLimits {
 }
 
 impl CredentialOfferLimits {
-    /// Construct a positive resource policy.
+    /// Construct a positive resource policy with a supported JSON depth.
     pub const fn new(
         max_invocation_bytes: usize,
         max_embedded_json_bytes: usize,
@@ -23,6 +29,7 @@ impl CredentialOfferLimits {
             || max_embedded_json_bytes == 0
             || max_reference_uri_bytes == 0
             || max_json_depth == 0
+            || max_json_depth > MAX_CONFIGURABLE_JSON_DEPTH
             || max_json_nodes == 0
         {
             return Err(CredentialOfferError::InvalidLimits);

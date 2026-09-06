@@ -1,7 +1,7 @@
 use identus_core::{ErrorKind, IdentusError};
 use identus_oid4vci::{
     CAPABILITY, CredentialOfferError, CredentialOfferLimits, CredentialOfferReference,
-    CredentialOfferRequest, EmbeddedCredentialOffer, error_code,
+    CredentialOfferRequest, EmbeddedCredentialOffer, MAX_CONFIGURABLE_JSON_DEPTH, error_code,
 };
 
 fn encode_form(value: &str) -> String {
@@ -269,6 +269,31 @@ fn limits_are_positive_inspectable_and_enforced() {
             Err(CredentialOfferError::InvalidLimits)
         );
     }
+
+    let at_depth_ceiling = format!(
+        "{}0{}",
+        r#"{"value":"#.repeat(MAX_CONFIGURABLE_JSON_DEPTH),
+        "}".repeat(MAX_CONFIGURABLE_JSON_DEPTH)
+    );
+    let supported_depth = CredentialOfferLimits::new(
+        1,
+        at_depth_ceiling.len(),
+        1,
+        MAX_CONFIGURABLE_JSON_DEPTH,
+        MAX_CONFIGURABLE_JSON_DEPTH + 1,
+    )
+    .expect("hard JSON depth ceiling must be configurable");
+    assert!(EmbeddedCredentialOffer::try_from_json(&at_depth_ceiling, supported_depth).is_ok());
+    assert_eq!(
+        CredentialOfferLimits::new(
+            1,
+            at_depth_ceiling.len(),
+            1,
+            MAX_CONFIGURABLE_JSON_DEPTH + 1,
+            MAX_CONFIGURABLE_JSON_DEPTH + 2,
+        ),
+        Err(CredentialOfferError::InvalidLimits)
+    );
 
     let invocation = embedded_invocation("{}");
     let short = CredentialOfferLimits::new(invocation.len() - 1, 2, 1, 1, 1)

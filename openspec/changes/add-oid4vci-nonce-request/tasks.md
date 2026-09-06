@@ -19,12 +19,12 @@
 
 - [x] 3.1 Add positive, missing-endpoint, ownership, consumer-shaped and
   diagnostic-canary tests for every contract branch.
-- [ ] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,
+- [x] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,
   workspace/factory/preservation gates and the full target/supply-chain Nix
   matrix; record exact evidence and consumer-isolation receipts.
-- [ ] 3.3 Complete and record a distinct exact-diff local review with no
+- [x] 3.3 Complete and record a distinct exact-diff local review with no
   unresolved finding, mark tasks complete, run ready/receipt, guarded archive
   and final exact-head verification.
-- [ ] 3.4 Prepare the signed/DCO, issue-linked PR delivery packet for
+- [x] 3.4 Prepare the signed/DCO, issue-linked PR delivery packet for
   `develop`, then require exact-head hosted review, all CI gates, protected
   merge, issue/parent updates, `develop` sync and cleanup.

@@ -10,15 +10,17 @@
   `3a4d23bbb9645f90844c747d469d53ac388777eb`
 - Hosted-review implementation correction:
   `5c96bcb005203a832ffc44b752a3be07c2eb0905`
+- Second hosted-review spec correction: `982056f`
+- Second hosted-review implementation correction: `315d050`
 - Branch: `codex/oid4vci-credential-offer`
 - Owner: unpublished `identus-oid4vci` protocol-semantics crate
 
 ## Focused and workspace evidence
 
 - `cargo fmt --all -- --check`: passed.
-- `cargo test -p identus-oid4vci --all-features --locked`: 11 passed and one
+- `cargo test -p identus-oid4vci --all-features --locked`: 12 passed and one
   release diagnostic skipped.
-- `cargo test -p identus-oid4vci --no-default-features --locked`: 11 passed
+- `cargo test -p identus-oid4vci --no-default-features --locked`: 12 passed
   and one release diagnostic skipped.
 - `cargo clippy -p identus-oid4vci --all-targets --all-features --locked --
   -D warnings`: passed.
@@ -37,11 +39,11 @@
 
 ## Full reproducible matrix
 
-`nix flake check --print-build-logs` passed all 27 compatible
+`nix flake check --print-build-logs` passed all 31 scheduled compatible
 `aarch64-darwin` checks. The matrix included Rust 1.85 MSRV, native workspace,
 strict Clippy, warning-denied docs, browser WASM, Android ARM64, iOS ARM64,
 factory/policy/text/TOML/Nix lint, cargo-deny, cargo-audit, and release Nextest
-lanes. The principal release suite ran 431 tests: 431 passed and 22 were
+lanes. The principal release suite ran 432 tests: 432 passed and 22 were
 skipped. Dedicated getrandom and no-default crypto profiles also passed.
 
 Nix reported `x86_64-linux` as incompatible with the local system; hosted
@@ -50,8 +52,9 @@ yanked-lookup and macOS fixup-hook diagnostics did not fail a derivation.
 
 ## Diagnostic and review evidence
 
-The ignored release diagnostic parsed and consumed 40,000 embedded/reference
-invocations in 21.097 ms, approximately 1,896,004 operations per second on the
+The post-correction ignored release diagnostic parsed and consumed 40,000
+embedded/reference invocations in 24.538167 ms, approximately 1,630,114
+operations per second on the
 local machine. This is observational evidence, not a portable threshold.
 
 The distinct exact-diff review is recorded in `review.md`. It corrected the
@@ -63,8 +66,17 @@ The first exact-head hosted review on PR #112 found that accepted JSON depth
 configurations could exceed the parser's recursion capability. The contract
 now publishes a hard configurable ceiling of 64; focused all/no-default tests
 prove an exact 64-level object succeeds and configuration 65 fails before
-parsing. A replacement-head hosted review and full CI rerun remain required
-before merge.
+parsing. That correction passed the full local Nix matrix before the
+replacement hosted review.
+
+The replacement exact-head hosted review on `03b0c21` then found fixed-width
+number conversion at a supposedly opaque JSON transport boundary. The
+contract was corrected first in `982056f`; `315d050` replaces numeric
+deserialization with bounded lexical grammar validation while continuing to
+use Serde for exact string decoding. The expanded corpus accepts valid
+arbitrary-magnitude number tokens and rejects malformed numbers plus structural
+and string edge cases. A new exact-head hosted review and full CI rerun remain
+required before merge.
 
 ## Repository isolation and deferred scope
 

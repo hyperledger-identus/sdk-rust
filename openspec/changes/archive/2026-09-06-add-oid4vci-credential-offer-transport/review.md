@@ -113,3 +113,22 @@ while retaining the default of 16. This remains deliberately below the parser's
 internal recursion ceiling. The constructor rejects 65 before parsing, and an
 exact 64-level object is accepted with sufficient byte/node limits, proving
 that every accepted depth policy is honored by the SDK's own boundary.
+
+# Hosted exact-head second follow-up
+
+- **Reviewed head:** `03b0c2155e5fa9c31e73f8f232f0d68f60cfee6d`
+- **Finding:** P2 — Serde's default number conversion rejected valid JSON
+  numbers outside its fixed-width floating-point range
+- **Specification correction:** `982056f`
+- **Implementation correction:** `315d050`
+- **Result:** resolved locally; exact replacement head requires hosted rerun
+
+The transport contract now explicitly keeps number magnitude opaque. A
+bounded structural scanner validates object/array grammar, exact JSON number
+syntax, depth, aggregate nodes, root shape, and complete input without numeric
+conversion. Member names and string values still use Serde's exact string
+decoder, preserving escape validation and decoded duplicate-name equivalence;
+their allocations remain zeroizing. Regression evidence accepts `1e400`,
+integer overflow values, and long fractions exactly while rejecting malformed
+integer, fraction, exponent, sign, non-finite, separator, literal, string, and
+surrogate forms.

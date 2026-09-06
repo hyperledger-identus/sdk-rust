@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
+canonical_sha256 = "e1000e7dfc8b1ea304cee92a74f4b60c58e8432762779d5ee4d4d402962cebc8"
+reason           = "Issue #123 advances in-progress IDR-023 from completed server-binding issue #121 to a bounded, zeroizing Transaction Code input-presence state without claiming Token Request construction or the broader protocol engine."

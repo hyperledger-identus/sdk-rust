@@ -351,6 +351,15 @@ discovery/ranking, trust, client authentication, Transaction Code input, Token
 Request construction, endpoint execution, responses, retries, replay controls,
 and issuance state remain later slices.
 
+The seventh bounded delivery, issue #123, consumes that server-bound state
+with optional caller-owned Transaction Code input. It requires input exactly
+when the Final offer contains a `tx_code` object, applies an independent byte
+bound, immediately adopts zeroizing ownership, and exposes only input presence
+publicly. Advertised mode/length remain UI guidance rather than a local
+validity verdict. Token Request encoding/execution, client
+identity/authentication, responses, trust, retries/replay controls, and
+issuance state remain later slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

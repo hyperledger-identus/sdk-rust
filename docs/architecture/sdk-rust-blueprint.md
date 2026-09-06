@@ -369,6 +369,15 @@ diagnostics remain data-free. HTTP execution, client identity/authentication,
 optional authorization selectors, responses, trust, retries/replay controls,
 and issuance state remain later slices.
 
+The ninth bounded delivery, issue #127, parses a bounded successful
+`TokenResponseCore`. It validates the mandatory OAuth token fields and optional
+expiry, refresh token, and scope; ignores bounded unknown members semantically;
+owns response secrets in zeroizing storage; and reports only whether
+`authorization_details` is present. HTTP response validation, correlation,
+Authorization Details and Credential Dataset semantics, token trust/time,
+refresh, nonce, Credential Requests/Responses, and replay controls remain later
+slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

@@ -271,6 +271,101 @@ impl Default for PreAuthorizedTokenRequestLimits {
     }
 }
 
+/// Resource limits for a successful OAuth Token Response core.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TokenResponseLimits {
+    max_json_bytes: usize,
+    max_json_depth: usize,
+    max_json_nodes: usize,
+    max_access_token_bytes: usize,
+    max_token_type_bytes: usize,
+    max_refresh_token_bytes: usize,
+    max_scope_bytes: usize,
+}
+
+impl TokenResponseLimits {
+    /// Construct a positive response policy with a supported JSON depth.
+    pub const fn new(
+        max_json_bytes: usize,
+        max_json_depth: usize,
+        max_json_nodes: usize,
+        max_access_token_bytes: usize,
+        max_token_type_bytes: usize,
+        max_refresh_token_bytes: usize,
+        max_scope_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_json_bytes == 0
+            || max_json_depth == 0
+            || max_json_depth > MAX_CONFIGURABLE_JSON_DEPTH
+            || max_json_nodes == 0
+            || max_access_token_bytes == 0
+            || max_token_type_bytes == 0
+            || max_refresh_token_bytes == 0
+            || max_scope_bytes == 0
+        {
+            return Err(CredentialOfferError::InvalidTokenResponseLimits);
+        }
+        Ok(Self {
+            max_json_bytes,
+            max_json_depth,
+            max_json_nodes,
+            max_access_token_bytes,
+            max_token_type_bytes,
+            max_refresh_token_bytes,
+            max_scope_bytes,
+        })
+    }
+
+    /// Maximum bytes in the complete JSON response.
+    pub const fn max_json_bytes(self) -> usize {
+        self.max_json_bytes
+    }
+
+    /// Maximum JSON container depth.
+    pub const fn max_json_depth(self) -> usize {
+        self.max_json_depth
+    }
+
+    /// Maximum aggregate JSON value nodes.
+    pub const fn max_json_nodes(self) -> usize {
+        self.max_json_nodes
+    }
+
+    /// Maximum decoded access-token bytes.
+    pub const fn max_access_token_bytes(self) -> usize {
+        self.max_access_token_bytes
+    }
+
+    /// Maximum decoded token-type bytes.
+    pub const fn max_token_type_bytes(self) -> usize {
+        self.max_token_type_bytes
+    }
+
+    /// Maximum decoded refresh-token bytes.
+    pub const fn max_refresh_token_bytes(self) -> usize {
+        self.max_refresh_token_bytes
+    }
+
+    /// Maximum decoded scope bytes.
+    pub const fn max_scope_bytes(self) -> usize {
+        self.max_scope_bytes
+    }
+}
+
+impl Default for TokenResponseLimits {
+    fn default() -> Self {
+        Self {
+            max_json_bytes: 65_536,
+            max_json_depth: 16,
+            max_json_nodes: 1_024,
+            max_access_token_bytes: 16_384,
+            max_token_type_bytes: 256,
+            max_refresh_token_bytes: 16_384,
+            max_scope_bytes: 4_096,
+        }
+    }
+}
+
 /// Resource limits for unsigned Credential Issuer Metadata.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialIssuerMetadataLimits {

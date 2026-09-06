@@ -43,4 +43,42 @@ provenance, target or product-scope blocker remains before implementation.
 
 # Exact-diff implementation review
 
-Pending implementation.
+## Candidate reviewed
+
+- Base: `f9771a16707889bf516d1a23a25603ed95ed207b`.
+- Specification commit: `9eb7b503477c0ae3dab10443600ffa40b1f0590e`.
+- Production implementation commit:
+  `147d437e3da63e233b991d867a20f3a41c4b8634`.
+- Exact diff:
+  `origin/develop...147d437e3da63e233b991d867a20f3a41c4b8634`.
+
+## Review findings
+
+1. **No blocker — the optional member stays inside the established parser.**
+   `nonce_endpoint` uses the same decoded-name uniqueness, aggregate-node,
+   non-empty string and raw-document bounds as every existing known metadata
+   member; unknown extensions remain retained in the original bounded JSON.
+2. **No blocker — the shared byte policy is independent.** The parser applies
+   `max_credential_endpoint_bytes` separately to each endpoint string. An
+   accepted Credential Endpoint consumes no part of the Nonce Endpoint budget,
+   and the public constructor and default values are unchanged.
+3. **No blocker — URL semantics match the reviewed contract.** Both endpoint
+   types reuse the HTTPS-with-host validator; ports, paths and queries remain
+   exact while userinfo and fragments fail closed.
+4. **No blocker — absence is explicit and transport-free.** The metadata owns
+   `Option<NonceEndpoint>` and exposes only a borrow. No fallback, request,
+   network, trust, nonce lifecycle, proof or credential-flow behavior enters
+   the type state.
+5. **No blocker — remote content is absent from diagnostics.** Endpoint Debug
+   is redacted, metadata Debug exposes only an advertised boolean, and both new
+   fieldless errors bridge to static tested codes and messages.
+6. **No blocker — compatibility boundaries are unchanged.** No manifest,
+   lockfile, dependency, feature, unsafe, FFI, target, chain, consumer or
+   product file changes. The runtime cone remains `identus-core`, `serde_json`,
+   `uriparse` and `zeroize`.
+
+## Decision
+
+The exact production diff is minimal, contract-complete and ready for the
+recorded reproducibility and archive gates. No unresolved local finding
+remains.

@@ -8,23 +8,23 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Parse the optional bounded `nonce_endpoint` within the existing
+- [x] 2.1 Parse the optional bounded `nonce_endpoint` within the existing
   issuer metadata strict JSON boundary.
-- [ ] 2.2 Add the redacted `NonceEndpoint`, optional accessor and stable
+- [x] 2.2 Add the redacted `NonceEndpoint`, optional accessor and stable
   field-specific errors without changing the public limits constructor.
-- [ ] 2.3 Update ADR, blueprint and canonical IDR-023 ledger pointer without
+- [x] 2.3 Update ADR, blueprint and canonical IDR-023 ledger pointer without
   changing dependencies, manifests, lockfile, features or consumers.
 
 ## 3. Verification and integration
 
-- [ ] 3.1 Add positive, negative, exact-bound, duplicate and diagnostic-canary
+- [x] 3.1 Add positive, negative, exact-bound, duplicate and diagnostic-canary
   tests for every contract branch.
-- [ ] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,
+- [x] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,
   workspace/factory/preservation gates and the full target/supply-chain Nix
   matrix; record exact evidence and consumer-isolation receipts.
-- [ ] 3.3 Complete and record a distinct exact-diff local review with no
+- [x] 3.3 Complete and record a distinct exact-diff local review with no
   unresolved finding, mark tasks complete, run ready/receipt, guarded archive
   and final exact-head verification.
-- [ ] 3.4 Prepare the signed/DCO, issue-linked PR delivery packet for
+- [x] 3.4 Prepare the signed/DCO, issue-linked PR delivery packet for
   `develop`, then require exact-head hosted review, all CI gates, protected
   merge, issue/parent updates, `develop` sync and cleanup.

@@ -7,14 +7,21 @@
 #![forbid(unsafe_code)]
 
 mod error;
+mod grants;
 mod json;
 mod limits;
 mod semantic;
 mod transport;
 
 pub use error::{CAPABILITY, CredentialOfferError, error_code};
+pub use grants::{
+    AuthorizationCodeGrant, AuthorizationServerIdentifier, CredentialOfferWithGrants, IssuerState,
+    PreAuthorizedCode, PreAuthorizedCodeGrant, TransactionCodeDescription,
+    TransactionCodeInputMode, TransactionCodeRequirements,
+};
 pub use limits::{
-    CredentialOfferLimits, CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
+    CredentialOfferGrantLimits, CredentialOfferLimits, CredentialOfferSemanticLimits,
+    MAX_CONFIGURABLE_JSON_DEPTH,
 };
 pub use semantic::{CredentialConfigurationId, CredentialIssuerIdentifier, CredentialOffer};
 pub use transport::{CredentialOfferReference, CredentialOfferRequest, EmbeddedCredentialOffer};

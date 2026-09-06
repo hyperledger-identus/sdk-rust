@@ -156,8 +156,8 @@ path           = "crates/oid4vci"
 layer          = "protocol-semantics"
 classification = "implemented"
 public_api     = "experimental"
-owner_issue    = "#111"
-summary        = "Bounded OID4VCI Final Credential Offer by-value and by-reference transport validation."
+owner_issue    = "#115"
+summary        = "Bounded OID4VCI Final Credential Offer transport, core semantics, and known grant-shape validation."
 
 [[packages]]
 name           = "identus-wallet"

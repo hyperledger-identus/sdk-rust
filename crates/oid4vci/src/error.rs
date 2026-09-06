@@ -39,9 +39,31 @@ pub mod error_code {
     pub const DUPLICATE_CONFIGURATION_ID: ErrorCode =
         ErrorCode::new("oid4vci.duplicate_configuration_id");
     pub const INVALID_GRANTS: ErrorCode = ErrorCode::new("oid4vci.invalid_grants");
+    pub const INVALID_GRANT_LIMITS: ErrorCode = ErrorCode::new("oid4vci.invalid_grant_limits");
+    pub const INVALID_AUTHORIZATION_CODE_GRANT: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_code_grant");
+    pub const INVALID_PRE_AUTHORIZED_CODE_GRANT: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_pre_authorized_code_grant");
+    pub const ISSUER_STATE_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vci.issuer_state_too_large");
+    pub const PRE_AUTHORIZED_CODE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.pre_authorized_code_too_large");
+    pub const AUTHORIZATION_SERVER_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_server_too_large");
+    pub const UNSAFE_AUTHORIZATION_SERVER: ErrorCode =
+        ErrorCode::new("oid4vci.unsafe_authorization_server");
+    pub const INVALID_TRANSACTION_CODE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_transaction_code");
+    pub const INVALID_TRANSACTION_CODE_MODE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_transaction_code_mode");
+    pub const INVALID_TRANSACTION_CODE_LENGTH: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_transaction_code_length");
+    pub const TRANSACTION_CODE_LENGTH_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.transaction_code_length_too_large");
+    pub const TRANSACTION_CODE_DESCRIPTION_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.transaction_code_description_too_large");
 }
 
-/// A static reason that Credential Offer transport validation failed.
+/// A static reason that Credential Offer validation failed.
 ///
 /// Variants deliberately carry no input, offset, JSON, URI, or parser cause.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -68,6 +90,18 @@ pub enum CredentialOfferError {
     TooManyConfigurationIds,
     DuplicateConfigurationId,
     InvalidGrants,
+    InvalidGrantLimits,
+    InvalidAuthorizationCodeGrant,
+    InvalidPreAuthorizedCodeGrant,
+    IssuerStateTooLarge,
+    PreAuthorizedCodeTooLarge,
+    AuthorizationServerTooLarge,
+    UnsafeAuthorizationServer,
+    InvalidTransactionCode,
+    InvalidTransactionCodeMode,
+    InvalidTransactionCodeLength,
+    TransactionCodeLengthTooLarge,
+    TransactionCodeDescriptionTooLarge,
 }
 
 impl CredentialOfferError {
@@ -178,6 +212,66 @@ impl CredentialOfferError {
                 error_code::INVALID_GRANTS,
                 ErrorKind::InvalidInput,
                 "OID4VCI Credential Offer grants are invalid",
+            ),
+            Self::InvalidGrantLimits => (
+                error_code::INVALID_GRANT_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Offer grant limits are invalid",
+            ),
+            Self::InvalidAuthorizationCodeGrant => (
+                error_code::INVALID_AUTHORIZATION_CODE_GRANT,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Code grant is invalid",
+            ),
+            Self::InvalidPreAuthorizedCodeGrant => (
+                error_code::INVALID_PRE_AUTHORIZED_CODE_GRANT,
+                ErrorKind::InvalidInput,
+                "OID4VCI Pre-Authorized Code grant is invalid",
+            ),
+            Self::IssuerStateTooLarge => (
+                error_code::ISSUER_STATE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI issuer state is too large",
+            ),
+            Self::PreAuthorizedCodeTooLarge => (
+                error_code::PRE_AUTHORIZED_CODE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Pre-Authorized Code is too large",
+            ),
+            Self::AuthorizationServerTooLarge => (
+                error_code::AUTHORIZATION_SERVER_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Server identifier is too large",
+            ),
+            Self::UnsafeAuthorizationServer => (
+                error_code::UNSAFE_AUTHORIZATION_SERVER,
+                ErrorKind::InvalidInput,
+                "OID4VCI Authorization Server identifier is unsafe",
+            ),
+            Self::InvalidTransactionCode => (
+                error_code::INVALID_TRANSACTION_CODE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Transaction Code requirements are invalid",
+            ),
+            Self::InvalidTransactionCodeMode => (
+                error_code::INVALID_TRANSACTION_CODE_MODE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Transaction Code input mode is invalid",
+            ),
+            Self::InvalidTransactionCodeLength => (
+                error_code::INVALID_TRANSACTION_CODE_LENGTH,
+                ErrorKind::InvalidInput,
+                "OID4VCI Transaction Code length is invalid",
+            ),
+            Self::TransactionCodeLengthTooLarge => (
+                error_code::TRANSACTION_CODE_LENGTH_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Transaction Code length is too large",
+            ),
+            Self::TransactionCodeDescriptionTooLarge => (
+                error_code::TRANSACTION_CODE_DESCRIPTION_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Transaction Code description is too large",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

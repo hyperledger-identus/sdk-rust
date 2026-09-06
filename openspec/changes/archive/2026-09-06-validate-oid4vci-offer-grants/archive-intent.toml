@@ -1,0 +1,11 @@
+[[modified_requirement]]
+capability       = "oid4vci-credential-offer"
+requirement      = "Grants and extensions remain lossless but least-authority"
+canonical_sha256 = "d516da63a4bab8dd5a98e54ff0a520ec1463da4dfaca33293484a370bf15dffa"
+reason           = "Issue #115 intentionally replaces opaque-only grant handling with a consuming bounded view of the two Final known grant shapes while retaining absent, empty, unknown, and exact-JSON behavior."
+
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
+canonical_sha256 = "e3f7a86b3f8c222c511153944e5b04db509722121e95819a23dc076e1407635f"
+reason           = "Issue #115 deliberately advances the in-progress IDR-023 ledger from completed core-offer issue #113 to the next bounded grant-shape slice without claiming the broader protocol engine is delivered."

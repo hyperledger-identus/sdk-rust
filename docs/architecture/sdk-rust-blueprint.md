@@ -316,6 +316,15 @@ configuration-ID list, object-shaped opaque grants, lossless extensions, and
 independent semantic bounds. Grant internals, metadata matching, fetching,
 trust, authorization selection, and issuance state remain later slices.
 
+The third bounded delivery, issue #115, consumes the core offer into a
+grant-validated state. It exposes the Final Authorization Code and
+Pre-Authorized Code alternatives without choosing a flow; validates bounded
+opaque state/code values, RFC 8414 Authorization Server syntax, and Transaction
+Code object/mode/length/description rules; and keeps unknown object-shaped grant
+extensions lossless. Metadata matching, fetching, trust, grant selection,
+authorization/token messages, replay controls, and issuance state remain later
+slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

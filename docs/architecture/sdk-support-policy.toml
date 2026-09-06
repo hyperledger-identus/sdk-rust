@@ -1,5 +1,5 @@
 schema_version  = 1
-policy_revision = "2026-09-05"
+policy_revision = "2026-09-06"
 
 [toolchains]
 msrv                  = "1.85.0"
@@ -76,6 +76,7 @@ packages = [
   "identus-crypto",
   "identus-did",
   "identus-jose",
+  "identus-oid4vci",
   "identus-adapters-entropy",
 ]
 no_default_features = false
@@ -93,6 +94,7 @@ packages = [
   "identus-crypto",
   "identus-did",
   "identus-jose",
+  "identus-oid4vci",
   "identus-adapters-entropy",
 ]
 no_default_features = false
@@ -110,6 +112,7 @@ packages = [
   "identus-crypto",
   "identus-did",
   "identus-jose",
+  "identus-oid4vci",
   "identus-adapters-entropy",
 ]
 no_default_features = false

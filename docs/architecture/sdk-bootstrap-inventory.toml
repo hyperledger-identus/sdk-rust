@@ -151,6 +151,15 @@ owner_issue    = "#7"
 summary        = "Quarantined seed marker; accepted OpenID protocols will use focused crates."
 
 [[packages]]
+name           = "identus-oid4vci"
+path           = "crates/oid4vci"
+layer          = "protocol-semantics"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#111"
+summary        = "Bounded OID4VCI Final Credential Offer by-value and by-reference transport validation."
+
+[[packages]]
 name           = "identus-wallet"
 path           = "crates/wallet"
 layer          = "orchestration"

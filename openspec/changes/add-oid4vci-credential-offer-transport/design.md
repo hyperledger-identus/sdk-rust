@@ -89,9 +89,11 @@ larger positive values within their deployment policy.
 
 A streaming Serde visitor validates the full input before a public value is
 created. It counts every scalar/container node, checks container depth, and
-uses an object-local set of decoded member names so literal and escaped
-duplicate names are equivalent. Trailing JSON and a non-object root are
-rejected. The raw object is retained; it is not normalized or reserialized.
+uses an object-local bounded list of zeroizing decoded member names so literal
+and escaped duplicate names are equivalent. Allocated decoded string values
+are also zeroized. The same scan classifies the root, so trailing JSON and a
+non-object root are rejected without building a second JSON tree. The raw
+object is retained; it is not normalized or reserialized.
 
 The node ceiling bounds aggregate array/object expansion. The byte ceiling
 bounds member-name retention and scalar storage. Semantic field limits and
@@ -138,8 +140,9 @@ for MSRV, Linux/macOS, WASM/mobile, lint, tests, docs, and supply chain.
   boundary.
 - `uriparse` validates syntax but not destination trust. Returning a typed
   reference rather than fetching it preserves least authority.
-- Double inspection of small embedded input (streaming validation and root
-  classification) adds bounded cost and keeps the public representation exact.
+- Linear duplicate checks trade a bounded amount of CPU for collision-free
+  comparison and zeroizing owned names; the aggregate node ceiling caps that
+  work while keeping the public representation exact.
 
 ## Migration and rollback
 

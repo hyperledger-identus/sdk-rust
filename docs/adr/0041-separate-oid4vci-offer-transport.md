@@ -19,7 +19,7 @@ The selected seed contains an `identus-openid4vc` marker. The blueprint rejects
 turning that inherited name into an umbrella protocol commitment and instead
 plans focused `identus-oid4vci`, `identus-oid4vp`, and `identus-siopv2`
 packages. Issue #7 already accepts the OID4VCI package direction, while issue
-#3 retains namespace and publication authority.
+Issue #3 retains namespace and publication authority.
 
 ## Decision
 

@@ -113,7 +113,10 @@ They must not be published or represented as supported capabilities. Each is
 removed, quarantined or replaced only through an accepted component issue and
 namespace decision. Focused issues have activated experimental credential,
 presentation and wallet-storage surfaces in their inherited packages; this is
-not a namespace-stability, publication or wallet-product commitment.
+not a namespace-stability, publication or wallet-product commitment. Issue
+Issue #111 activates the separate experimental `identus-oid4vci` package for the
+Credential Offer transport boundary without changing the quarantined
+`identus-openid4vc` umbrella marker.
 
 The intended component portfolio below is a planning target. A crate enters
 the supported portfolio only through an accepted slice; inherited names do not
@@ -301,6 +304,11 @@ Move the already cross-implementation-tested Oxid/Portal profile into one
 versioned wire/state crate. Extension points remain chain-owned. Acceptance
 requires the provenance-preserving fixture suite and both consumers' design
 review, not production consumer edits.
+
+The first bounded delivery, issue #111, accepts only the Final Credential Offer
+invocation transport: strict by-value JSON or least-authority HTTPS reference,
+with explicit resource limits and redaction. Offer-member semantics, fetching,
+trust and issuance state remain later slices under #7.
 
 ### B10 — OID4VP Final, DCQL and SIOPv2
 

@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
+canonical_sha256 = "fa801d879f3bd27bba67691219fc9d0914bdd5b1d6d9acf59543a89bb0f920fb"
+reason           = "Advance the in-progress IDR-023 child pointer and replace the completed nonce HTTP response slice contract with the next bounded JWT Credential Request contract."

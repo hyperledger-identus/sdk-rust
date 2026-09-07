@@ -27,7 +27,8 @@ Do not adopt `bip32 0.5.3` for `HDKey`. Correct the implementation by reusing
 the exact scalar parsing and arithmetic already provided by `k256 0.13`:
 
 1. Accept every seed length from 16 through 64 bytes and reject others.
-2. Validate the master HMAC left half with `SecretKey::from_slice`.
+2. Validate the master HMAC left half with `Scalar::from_repr` plus an explicit
+   nonzero check.
 3. Parse child `IL` with `Scalar::from_repr`, never modular reduction.
 4. Permit zero `IL`, add it to the validated parent scalar, and reject a zero
    result or `IL >= n`.

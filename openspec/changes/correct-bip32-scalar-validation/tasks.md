@@ -6,17 +6,17 @@
 
 ## 2. Standards-correct derivation
 
-- [ ] 2.1 Enforce every BIP-32-valid seed length from 16 through 64 bytes
-- [ ] 2.2 Validate master and child scalars without modular reduction by reusing
+- [x] 2.1 Enforce every BIP-32-valid seed length from 16 through 64 bytes
+- [x] 2.2 Validate master and child scalars without modular reduction by reusing
       the existing `k256` primitive
-- [ ] 2.3 Permit zero child tweak, reject zero child result and check depth
+- [x] 2.3 Permit zero child tweak, reject zero child result and check depth
       overflow while preserving the hardened-only facade
-- [ ] 2.4 Keep all secret intermediates zeroizing and failures redacted
+- [x] 2.4 Keep all secret intermediates zeroizing and failures redacted
 
 ## 3. Conformance and boundary evidence
 
-- [ ] 3.1 Retain official BIP-32 vectors 1–4 and Apollo parity
-- [ ] 3.2 Add every seed boundary plus synthetic zero/order master, order child,
+- [x] 3.1 Retain official BIP-32 vectors 1–4 and Apollo parity
+- [x] 3.2 Add every seed boundary plus synthetic zero/order master, order child,
       zero-tweak, zero-result and depth-overflow cases
 - [ ] 3.3 Prove public API, minimal/default/KMP graph and diagnostic stability
 

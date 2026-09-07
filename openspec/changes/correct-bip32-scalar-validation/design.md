@@ -20,10 +20,11 @@ coupling.
 
 ### 1. Reuse `k256`, not the `bip32` framework
 
-Parse master private-key bytes with `k256::SecretKey::from_slice`. Parse child
-`IL` with `Scalar::from_repr`, which rejects values at or above the group order
-without modular reduction and permits zero. Add it to the validated parent's
-scalar and reject a zero result before serializing the child.
+Parse master and parent private-key bytes with `Scalar::from_repr` plus an
+explicit nonzero check. Parse child `IL` with the same function, which rejects
+values at or above the group order without modular reduction and permits zero.
+Add it to the validated parent's scalar and reject a zero result before
+serializing the child.
 
 This delegates curve scalar representation, validation, arithmetic and
 serialization to the established RustCrypto primitive already required by the

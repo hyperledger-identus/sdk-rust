@@ -36,8 +36,8 @@ facade rather than dependency types.
   [`240679a2454945783acc4f9e7d3bae839359b0b7`](https://github.com/iqlusioninc/crates/tree/240679a2454945783acc4f9e7d3bae839359b0b7/bip32);
   the formerly cited `fe053be`
   revision is newer repository state, not the published artifact source.
-- Existing exact `k256 0.13` provides `SecretKey::from_slice` and
-  `PrimeField::from_repr`/`Scalar` arithmetic needed for exact validation.
+- Existing exact `k256 0.13` provides `PrimeField::from_repr` and `Scalar`
+  arithmetic needed for exact validation.
 
 ## Candidate decisions
 
@@ -101,12 +101,12 @@ to justify its broader graph and a zero-tweak workaround.
 
 ## Security and lifecycle design
 
-Use `SecretKey::from_slice` to validate master and parent key bytes. Use
-`Scalar::from_repr`, not `Reduce`, for `IL`; it accepts zero and rejects values
-at or above the order. Add the validated parent scalar, reject zero, serialize
-into zeroizing storage, and retain the existing redacted facade. HMAC output
-remains in `Zeroizing`. No raw value enters an error, formatter, serializer,
-log or public third-party type.
+Use `Scalar::from_repr` plus an explicit nonzero check to validate master and
+parent key bytes. Use the same exact parser, not `Reduce`, for `IL`; it accepts
+zero and rejects values at or above the order. Add the validated parent scalar,
+reject a zero result, serialize into zeroizing storage, and retain the existing
+redacted facade. HMAC output remains in `Zeroizing`. No raw value enters an
+error, formatter, serializer, log or public third-party type.
 
 ## Rejected or deferred candidates
 

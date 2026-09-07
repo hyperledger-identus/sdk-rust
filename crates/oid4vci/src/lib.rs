@@ -24,6 +24,8 @@ mod credential_nonce_request;
 mod credential_nonce_response;
 mod error;
 mod grants;
+mod http_field;
+mod immediate_credential_http_response;
 mod immediate_credential_response;
 mod json;
 mod jwt_credential_request;
@@ -51,6 +53,7 @@ pub use grants::{
     PreAuthorizedCode, PreAuthorizedCodeGrant, TransactionCodeDescription,
     TransactionCodeInputMode, TransactionCodeRequirements,
 };
+pub use immediate_credential_http_response::RequestBoundImmediateCredentialResponse;
 pub use immediate_credential_response::{
     CredentialValueKind, ImmediateCredentialResponseCore, IssuedCredential,
 };
@@ -60,9 +63,10 @@ pub use jwt_credential_request::{
 pub use limits::{
     AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits,
     CredentialNonceHttpResponseLimits, CredentialNonceResponseLimits, CredentialOfferGrantLimits,
-    CredentialOfferLimits, CredentialOfferSemanticLimits, ImmediateCredentialResponseLimits,
-    JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH, PreAuthorizedTokenRequestLimits,
-    TokenErrorResponseLimits, TokenResponseLimits, TransactionCodeInputLimits,
+    CredentialOfferLimits, CredentialOfferSemanticLimits, ImmediateCredentialHttpResponseLimits,
+    ImmediateCredentialResponseLimits, JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH,
+    PreAuthorizedTokenRequestLimits, TokenErrorResponseLimits, TokenResponseLimits,
+    TransactionCodeInputLimits,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,

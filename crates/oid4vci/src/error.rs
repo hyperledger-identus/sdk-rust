@@ -241,6 +241,16 @@ pub mod error_code {
         ErrorCode::new("oid4vci.invalid_credential_notification_id");
     pub const CREDENTIAL_NOTIFICATION_ID_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.credential_notification_id_too_large");
+    pub const INVALID_IMMEDIATE_CREDENTIAL_HTTP_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_immediate_credential_http_response_limits");
+    pub const INVALID_IMMEDIATE_CREDENTIAL_HTTP_STATUS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_immediate_credential_http_status");
+    pub const IMMEDIATE_CREDENTIAL_CONTENT_TYPE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.immediate_credential_content_type_too_large");
+    pub const INVALID_IMMEDIATE_CREDENTIAL_CONTENT_TYPE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_immediate_credential_content_type");
+    pub const CREDENTIAL_RESPONSE_EXCEEDS_PROOF_COUNT: ErrorCode =
+        ErrorCode::new("oid4vci.credential_response_exceeds_proof_count");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -380,6 +390,11 @@ pub enum CredentialOfferError {
     IssuedCredentialsTooLarge,
     InvalidCredentialNotificationId,
     CredentialNotificationIdTooLarge,
+    InvalidImmediateCredentialHttpResponseLimits,
+    InvalidImmediateCredentialHttpStatus,
+    ImmediateCredentialContentTypeTooLarge,
+    InvalidImmediateCredentialContentType,
+    CredentialResponseExceedsProofCount,
 }
 
 impl CredentialOfferError {
@@ -1040,6 +1055,31 @@ impl CredentialOfferError {
                 error_code::CREDENTIAL_NOTIFICATION_ID_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI Credential Response notification identifier is too large",
+            ),
+            Self::InvalidImmediateCredentialHttpResponseLimits => (
+                error_code::INVALID_IMMEDIATE_CREDENTIAL_HTTP_RESPONSE_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI immediate Credential HTTP response limits are invalid",
+            ),
+            Self::InvalidImmediateCredentialHttpStatus => (
+                error_code::INVALID_IMMEDIATE_CREDENTIAL_HTTP_STATUS,
+                ErrorKind::InvalidInput,
+                "OID4VCI immediate Credential HTTP status is invalid",
+            ),
+            Self::ImmediateCredentialContentTypeTooLarge => (
+                error_code::IMMEDIATE_CREDENTIAL_CONTENT_TYPE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI immediate Credential Content-Type is too large",
+            ),
+            Self::InvalidImmediateCredentialContentType => (
+                error_code::INVALID_IMMEDIATE_CREDENTIAL_CONTENT_TYPE,
+                ErrorKind::InvalidInput,
+                "OID4VCI immediate Credential Content-Type is invalid",
+            ),
+            Self::CredentialResponseExceedsProofCount => (
+                error_code::CREDENTIAL_RESPONSE_EXCEEDS_PROOF_COUNT,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Response exceeds request proof count",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

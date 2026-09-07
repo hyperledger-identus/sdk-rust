@@ -8,16 +8,16 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add positive immediate HTTP limits and extract the existing private
+- [x] 2.1 Add positive immediate HTTP limits and extract the existing private
   HTTP field grammar without public Nonce behavior drift.
-- [ ] 2.2 Add request-bound immediate response validation for exact status,
+- [x] 2.2 Add request-bound immediate response validation for exact status,
   media, bounded body and the necessary proof-count upper bound.
-- [ ] 2.3 Add static fieldless errors and update ADR, blueprint, inventory and
+- [x] 2.3 Add static fieldless errors and update ADR, blueprint, inventory and
   canonical IDR-023 ledger pointer without dependency or target changes.
 
 ## 3. Verification and integration
 
-- [ ] 3.1 Add status, media, boundary, validation-order, equal/fewer/excess
+- [x] 3.1 Add status, media, boundary, validation-order, equal/fewer/excess
   cardinality, state, consumer-shaped and diagnostic-canary tests plus Nonce
   HTTP regression evidence.
 - [ ] 3.2 Run focused feature modes, strict Clippy/docs, workspace/factory,

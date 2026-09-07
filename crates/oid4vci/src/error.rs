@@ -175,6 +175,20 @@ pub mod error_code {
         ErrorCode::new("oid4vci.invalid_token_error_uri");
     pub const TOKEN_ERROR_URI_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.token_error_uri_too_large");
+    pub const INVALID_CREDENTIAL_ERROR_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_error_response_limits");
+    pub const CREDENTIAL_ERROR_RESPONSE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_error_response_too_large");
+    pub const INVALID_CREDENTIAL_ERROR_RESPONSE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_error_response");
+    pub const INVALID_CREDENTIAL_ENDPOINT_ERROR_CODE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_endpoint_error_code");
+    pub const CREDENTIAL_ENDPOINT_ERROR_CODE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_endpoint_error_code_too_large");
+    pub const INVALID_CREDENTIAL_ERROR_DESCRIPTION: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_error_description");
+    pub const CREDENTIAL_ERROR_DESCRIPTION_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_error_description_too_large");
     pub const INVALID_CREDENTIAL_NONCE_RESPONSE_LIMITS: ErrorCode =
         ErrorCode::new("oid4vci.invalid_credential_nonce_response_limits");
     pub const CREDENTIAL_NONCE_RESPONSE_TOO_LARGE: ErrorCode =
@@ -357,6 +371,13 @@ pub enum CredentialOfferError {
     TokenErrorDescriptionTooLarge,
     InvalidTokenErrorUri,
     TokenErrorUriTooLarge,
+    InvalidCredentialErrorResponseLimits,
+    CredentialErrorResponseTooLarge,
+    InvalidCredentialErrorResponse,
+    InvalidCredentialEndpointErrorCode,
+    CredentialEndpointErrorCodeTooLarge,
+    InvalidCredentialErrorDescription,
+    CredentialErrorDescriptionTooLarge,
     InvalidCredentialNonceResponseLimits,
     CredentialNonceResponseTooLarge,
     InvalidCredentialNonceResponse,
@@ -890,6 +911,41 @@ impl CredentialOfferError {
                 error_code::TOKEN_ERROR_URI_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI Token Error Response URI is too large",
+            ),
+            Self::InvalidCredentialErrorResponseLimits => (
+                error_code::INVALID_CREDENTIAL_ERROR_RESPONSE_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Error Response limits are invalid",
+            ),
+            Self::CredentialErrorResponseTooLarge => (
+                error_code::CREDENTIAL_ERROR_RESPONSE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Error Response is too large",
+            ),
+            Self::InvalidCredentialErrorResponse => (
+                error_code::INVALID_CREDENTIAL_ERROR_RESPONSE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Error Response core is invalid",
+            ),
+            Self::InvalidCredentialEndpointErrorCode => (
+                error_code::INVALID_CREDENTIAL_ENDPOINT_ERROR_CODE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Endpoint error code is invalid",
+            ),
+            Self::CredentialEndpointErrorCodeTooLarge => (
+                error_code::CREDENTIAL_ENDPOINT_ERROR_CODE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Endpoint error code is too large",
+            ),
+            Self::InvalidCredentialErrorDescription => (
+                error_code::INVALID_CREDENTIAL_ERROR_DESCRIPTION,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Error Response description is invalid",
+            ),
+            Self::CredentialErrorDescriptionTooLarge => (
+                error_code::CREDENTIAL_ERROR_DESCRIPTION_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Error Response description is too large",
             ),
             Self::InvalidCredentialNonceResponseLimits => (
                 error_code::INVALID_CREDENTIAL_NONCE_RESPONSE_LIMITS,

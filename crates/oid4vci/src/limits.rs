@@ -451,6 +451,81 @@ impl Default for TokenErrorResponseLimits {
     }
 }
 
+/// Resource limits for an OID4VCI Credential Error Response core.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CredentialErrorResponseLimits {
+    max_json_bytes: usize,
+    max_json_depth: usize,
+    max_json_nodes: usize,
+    max_error_code_bytes: usize,
+    max_error_description_bytes: usize,
+}
+
+impl CredentialErrorResponseLimits {
+    /// Construct a positive error-response policy with a supported JSON depth.
+    pub const fn new(
+        max_json_bytes: usize,
+        max_json_depth: usize,
+        max_json_nodes: usize,
+        max_error_code_bytes: usize,
+        max_error_description_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_json_bytes == 0
+            || max_json_depth == 0
+            || max_json_depth > MAX_CONFIGURABLE_JSON_DEPTH
+            || max_json_nodes == 0
+            || max_error_code_bytes == 0
+            || max_error_description_bytes == 0
+        {
+            return Err(CredentialOfferError::InvalidCredentialErrorResponseLimits);
+        }
+        Ok(Self {
+            max_json_bytes,
+            max_json_depth,
+            max_json_nodes,
+            max_error_code_bytes,
+            max_error_description_bytes,
+        })
+    }
+
+    /// Maximum bytes in the complete JSON response.
+    pub const fn max_json_bytes(self) -> usize {
+        self.max_json_bytes
+    }
+
+    /// Maximum JSON container depth.
+    pub const fn max_json_depth(self) -> usize {
+        self.max_json_depth
+    }
+
+    /// Maximum aggregate JSON value nodes.
+    pub const fn max_json_nodes(self) -> usize {
+        self.max_json_nodes
+    }
+
+    /// Maximum decoded bytes in the error code.
+    pub const fn max_error_code_bytes(self) -> usize {
+        self.max_error_code_bytes
+    }
+
+    /// Maximum decoded bytes in the optional developer description.
+    pub const fn max_error_description_bytes(self) -> usize {
+        self.max_error_description_bytes
+    }
+}
+
+impl Default for CredentialErrorResponseLimits {
+    fn default() -> Self {
+        Self {
+            max_json_bytes: 32_768,
+            max_json_depth: 16,
+            max_json_nodes: 512,
+            max_error_code_bytes: 256,
+            max_error_description_bytes: 4_096,
+        }
+    }
+}
+
 /// Resource limits for an OID4VCI Credential Nonce Response core.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialNonceResponseLimits {

@@ -7,13 +7,15 @@
 //! Pre-Authorized Code server and Transaction Code input binding, and bounded
 //! construction of the mandatory Pre-Authorized Token Request form plus a
 //! partial successful Token Response, Token Error Response, and Credential
-//! Nonce Response core. It performs no network access, does not validate
+//! Nonce Response core, plus a transport-neutral Final Credential Nonce
+//! Request description. It performs no network access, does not validate
 //! complete RFC 8414 metadata or Token Response Authorization Details, and
 //! establishes no issuer, server, token, or nonce trust.
 
 #![forbid(unsafe_code)]
 
 mod authorization_metadata;
+mod credential_nonce_request;
 mod credential_nonce_response;
 mod error;
 mod grants;
@@ -31,6 +33,9 @@ mod transport;
 pub use authorization_metadata::{
     AUTHORIZATION_CODE_GRANT_TYPE, AuthorizationEndpoint, AuthorizationServerMetadataCore,
     GrantTypeIdentifier, IMPLICIT_GRANT_TYPE, PRE_AUTHORIZED_CODE_GRANT_TYPE, TokenEndpoint,
+};
+pub use credential_nonce_request::{
+    CredentialNonceRequest, NONCE_REQUEST_BODY, NONCE_REQUEST_HTTP_METHOD,
 };
 pub use credential_nonce_response::{CredentialNonce, CredentialNonceResponseCore};
 pub use error::{CAPABILITY, CredentialOfferError, error_code};

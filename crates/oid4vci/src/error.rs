@@ -74,6 +74,8 @@ pub mod error_code {
     pub const NONCE_ENDPOINT_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.nonce_endpoint_too_large");
     pub const UNSAFE_NONCE_ENDPOINT: ErrorCode = ErrorCode::new("oid4vci.unsafe_nonce_endpoint");
+    pub const NONCE_ENDPOINT_REQUIRED: ErrorCode =
+        ErrorCode::new("oid4vci.nonce_endpoint_required");
     pub const INVALID_AUTHORIZATION_SERVERS: ErrorCode =
         ErrorCode::new("oid4vci.invalid_authorization_servers");
     pub const TOO_MANY_AUTHORIZATION_SERVERS: ErrorCode =
@@ -232,6 +234,7 @@ pub enum CredentialOfferError {
     UnsafeCredentialEndpoint,
     NonceEndpointTooLarge,
     UnsafeNonceEndpoint,
+    NonceEndpointRequired,
     InvalidAuthorizationServers,
     TooManyAuthorizationServers,
     DuplicateAuthorizationServer,
@@ -503,6 +506,11 @@ impl CredentialOfferError {
                 error_code::UNSAFE_NONCE_ENDPOINT,
                 ErrorKind::InvalidInput,
                 "OID4VCI Nonce Endpoint is unsafe",
+            ),
+            Self::NonceEndpointRequired => (
+                error_code::NONCE_ENDPOINT_REQUIRED,
+                ErrorKind::InvalidInput,
+                "OID4VCI Nonce Endpoint is required",
             ),
             Self::InvalidAuthorizationServers => (
                 error_code::INVALID_AUTHORIZATION_SERVERS,

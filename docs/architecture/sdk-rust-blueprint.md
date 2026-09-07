@@ -405,6 +405,14 @@ Request transport, HTTP status/media/cache/DPoP validation, endpoint trust and
 network safety, nonce lifecycle, proof construction, and Credential
 Requests/Responses remain later slices.
 
+The thirteenth bounded delivery, issue #135, constructs an owned,
+transport-neutral Final `CredentialNonceRequest` only from issuer metadata
+that advertises a validated Nonce Endpoint. It exposes exactly POST, an empty
+byte body, and no access-token requirement while keeping the endpoint in
+independent zeroizing storage. HTTP execution and headers, network policy,
+response validation and correlation, trust, nonce lifecycle, proof
+construction, and Credential Requests/Responses remain later slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

@@ -8,7 +8,7 @@ else
   repository_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 fi
 checker="$repository_root/scripts/check-pr-policy.sh"
-valid_body=$'- Issue: #16\n- Local review: passed by a fresh review pass'
+valid_body=$'- Issue: #16\n- Local review: passed by a fresh review pass\n- Constraint impact: routine\n- Limitations: none'
 output_file=$(mktemp)
 trap 'rm -f "$output_file"' EXIT
 
@@ -34,14 +34,21 @@ assert_rejected "a pull request without an issue" \
   env PR_BASE_REF=develop PR_DRAFT=false \
   PR_BODY='- Local review: passed locally' "$checker"
 assert_rejected "a pull request without local review" \
-  env PR_BASE_REF=develop PR_DRAFT=false PR_BODY='- Issue: #16' "$checker"
+  env PR_BASE_REF=develop PR_DRAFT=false \
+  PR_BODY=$'- Issue: #16\n- Constraint impact: routine\n- Limitations: none' "$checker"
+assert_rejected "a pull request without constraint impact" \
+  env PR_BASE_REF=develop PR_DRAFT=false \
+  PR_BODY=$'- Issue: #16\n- Local review: passed\n- Limitations: none' "$checker"
+assert_rejected "a pull request without limitations" \
+  env PR_BASE_REF=develop PR_DRAFT=false \
+  PR_BODY=$'- Issue: #16\n- Local review: passed\n- Constraint impact: routine' "$checker"
 assert_rejected "an unchanged pull request template" \
   env PR_BASE_REF=develop PR_DRAFT=false \
-  PR_BODY=$'- Issue: <!-- Required: #123 -->\n- Local review: <!-- Required: passed -->' \
+  PR_BODY=$'- Issue: <!-- Required: #123 -->\n- Local review: <!-- Required: passed -->\n- Constraint impact: <!-- Required: none/routine/material -->\n- Limitations: <!-- Required -->' \
   "$checker"
 
 PR_BASE_REF=develop PR_DRAFT=false \
-  PR_BODY=$'Closes #16\n- Local review: completed by maintainer' \
+  PR_BODY=$'Closes #16\n- Local review: completed by maintainer\n- Constraint impact: none\n- Limitations: none' \
   "$checker" >/dev/null
 
 printf 'pr-policy tests: passed\n'

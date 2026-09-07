@@ -40,10 +40,12 @@ Interpret the user input as a change id (the directory name under `openspec/chan
    **Fallback:** if the CLI is unavailable or the change is not found, read directly from `openspec/changes/<id>/` — `proposal.md`, `specs/<capability>/spec.md`, `design.md`, `tasks.md`, `.openspec.yaml`. If the change cannot be found by either route, stop the review and report the issue clearly.
 
 2. **Read every artifact file** referenced by `artifactPaths`. Also read
-   `changeRoot/research.md`; it is a factory artifact even when the OpenSpec
-   schema does not list it in `artifactPaths`. If `design.md` is absent, note
-   it (it's optional) and skip design-dependent checks. If `research.md` is
-   absent, stop and report factory research-readiness blocker **B9**.
+   `changeRoot/research.md` and `changeRoot/constraints.md`; they are factory
+   artifacts even when the OpenSpec schema does not list them in
+   `artifactPaths`. If `design.md` is absent, note it (it's optional) and skip
+   design-dependent checks. If `research.md` is absent, stop and report
+   factory research-readiness blocker **B9**. If `constraints.md` is absent,
+   stop and report constraint-readiness blocker **B10**.
 
 3. **Load the current spec for each modified/removed/renamed capability.** For every capability folder under the change's `specs/` whose `spec.md` contains `## MODIFIED Requirements`, `## REMOVED Requirements`, or `## RENAMED Requirements`, also read `openspec/specs/<capability>/spec.md`. These current-spec files are required for the Delta Integrity checks. If a current spec is missing where one is expected, that is itself a finding (Capability mismatch / Delta Integrity).
 
@@ -123,6 +125,7 @@ A **blocker** is anything that will halt or derail implementation, or make the c
 | **B5** | **Capability mismatch** — the proposal's "Capabilities" list does not match the change's `specs/` folders, or a "Modified Capability" does not exist in `openspec/specs/`. | The implementer does not know what they are touching. |
 | **B6** | **No entry point** — a task says what to build but not where (no file path, module, or integration point). | Implementation cannot start. |
 | **B9** | **Research not ready** — `research.md` is missing, marked draft, has unresolved blockers, omits required evidence for its class, or the implementation direction contradicts its dispositions. | The factory would begin implementation without an approved evidence basis. |
+| **B10** | **Constraint impact not ready** — `constraints.md` is missing, has unresolved blockers, confuses target/deferred state with an effective promise, or a material outcome lacks its exact decision reference. | The factory could activate a surprising consumer or product constraint without authority. |
 
 #### Conditional blockers (Major by default; escalate to Blocker only when the condition is confirmed)
 
@@ -164,6 +167,20 @@ Common blocker patterns by category, for spotting them:
 - Are source claims reproducible from pinned URLs, commands, fixtures or
   immutable revisions rather than generated prose alone?
 
+### 10. Constraint and limitation readiness
+
+- Does `constraints.md` agree with the proposal, design, tasks, implementation
+  and `docs/governance/sdk-constraints.toml`?
+- Are effective promises, future targets, deferred work and prohibited
+  behavior distinguished explicitly?
+- Does `material` cover every changed compiler/target/feature, public/wire/data,
+  product boundary, security/privacy/crypto, license, certification, enforced
+  budget, release or irreversible migration outcome?
+- Does a material record cite the exact durable direction that resolves the
+  outcome, and are consumer impact, activation and rollback substantive?
+- Does a new limitation state what remains unsupported or unverified rather
+  than implying completion from compile-only or structural evidence?
+
 ---
 
 ## Output format
@@ -180,7 +197,7 @@ For each issue, produce a structured finding:
 **Location:** [Which artifact and part: proposal | specs/<capability>/spec.md | design | tasks | .openspec.yaml | dependencies]
 
 **Issue:**
-[2-4 sentences. Quote the problematic text if relevant. Explain why it's a problem. If this is a blocker, state which blocker ID (B1–B9) it matches and why the condition holds.]
+[2-4 sentences. Quote the problematic text if relevant. Explain why it's a problem. If this is a blocker, state which blocker ID (B1–B10) it matches and why the condition holds.]
 
 **Recommendation:**
 [One concrete action. E.g., "Add a task in tasks.md section 2 covering the `### Requirement: Token refresh` spec." / "Change the MODIFIED header in specs/auth/spec.md to `### Requirement: Session refresh` to match the current spec." / "Replace 'latest' with a pinned version in design.md."]
@@ -203,7 +220,7 @@ At the end, provide a **summary section**:
 
 - **0 blockers, no heavy majors** → READY
 - **0 blockers + heavy majors** → NEEDS REVISION (can start, but revise as you go)
-- **≥1 blocker** → NEEDS REVISION (do not start implementation until cleared)
+- **≥1 blocker (B1–B10)** → NEEDS REVISION (do not start implementation until cleared)
 - **no specs or no tasks at all** → DRAFT (not ready for review)
 
 Remind the user, regardless of verdict, to run `openspec validate <change-id>` for the structural checks this review deliberately does not duplicate.

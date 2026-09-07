@@ -1,5 +1,6 @@
 steps:
   - prompt: Run `scripts/factory research-ready $ARGUMENTS`; stop before implementation if it fails
+  - prompt: Run `scripts/factory constraints-ready $ARGUMENTS`; stop before implementation if it fails
   - prompt: Use `openspec-apply-change` skill to implement $ARGUMENTS
   - prompt: Ensure the completed work done is checked in the `tasks.md` of the openspec change
   - prompt: Run `scripts/factory check` and report the exact result

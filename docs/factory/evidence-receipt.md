@@ -16,6 +16,10 @@ Source SHAs/paths/licenses:
 Research class/status:
 Research readiness command:
 Candidate dispositions and rejected-dependency ledger:
+Constraint impact/status/reference:
+Affected constraint IDs and effective/target state:
+Introduced or changed limitations:
+Constraint readiness command:
 Normative standards/profiles:
 Public API and wire impact:
 Threats, privacy and resource bounds:

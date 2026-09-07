@@ -14,6 +14,7 @@ Propose a new change - create the change and generate all artifacts in one step.
 I'll create a change with artifacts:
 - proposal.md (what & why)
 - research.md (sources, reuse decisions, compatibility evidence and blockers)
+- constraints.md (effective/target state, limitations, impact and decision authority)
 - design.md (how)
 - tasks.md (implementation steps)
 
@@ -89,9 +90,11 @@ When ready to implement, run /opsx-apply
    ```
 
    Create `research.md` using `docs/factory/research-readiness.md`, perform the
-   proportionate source and candidate review, then run
-   `scripts/factory research-ready "<name>"`. Do not describe the change as
-   ready for implementation until this gate passes.
+   proportionate source and candidate review, and create `constraints.md`
+   using `docs/governance/constraints-and-limitations.md`. Then run
+   `scripts/factory research-ready "<name>"` and `scripts/factory
+   constraints-ready "<name>"`. Do not describe the change as ready for
+   implementation until both gates pass.
 
 **Output**
 

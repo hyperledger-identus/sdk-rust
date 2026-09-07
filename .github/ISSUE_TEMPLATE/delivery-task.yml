@@ -34,6 +34,15 @@ body:
     validations:
       required: true
 
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and limitations
+      description: State none, routine or material impact and disclose any newly unsupported or unverified surface.
+      placeholder: "Impact: routine; limitations: none"
+    validations:
+      required: true
+
   - type: dropdown
     id: openspec
     attributes:

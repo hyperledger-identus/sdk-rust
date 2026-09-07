@@ -19,6 +19,7 @@
 - Agent roles used:
 - `scripts/factory ready <change>`: passed/not applicable
 - `scripts/factory research-ready <change>`: passed/not applicable
+- `scripts/factory constraints-ready <change>`: passed/not applicable
 - Factory receipt attached: yes/no/not applicable
 
 ## Local review
@@ -45,6 +46,14 @@
 - Serialized/wire behavior:
 - Feature/MSRV/target impact:
 - Migration or rollback:
+
+## Constraints and limitations
+
+- Constraint impact: <!-- Required: none/routine/material -->
+- Affected constraint IDs: none/SDK-...
+- Effective versus target state:
+- Limitations: <!-- Required: none or explicit unsupported/unverified surface -->
+- Decision authority/activation path:
 
 ## Security and privacy
 
@@ -76,11 +85,13 @@ factory receipt:
 - [ ] distinct local review completed with no unresolved blocker
 - [ ] OpenSpec contract complete or exemption recorded
 - [ ] pre-implementation research readiness recorded when applicable
+- [ ] constraint readiness and material decision authority recorded when applicable
 - [ ] factory readiness and receipt recorded when applicable
 - [ ] DCO and verified signatures
 - [ ] tests, negative cases and docs updated
 - [ ] provenance/license recorded
 - [ ] public/wire compatibility reviewed
+- [ ] targets and limitations are not represented as effective promises
 - [ ] no chain or product dependency in generic crates
 - [ ] no raw secret material in logs/errors/serialization/FFI
 - [ ] release notes/migration updated when applicable

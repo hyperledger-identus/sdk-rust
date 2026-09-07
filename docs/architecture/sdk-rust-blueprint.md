@@ -27,7 +27,9 @@ The [Rust reuse research](../research/rust-library-reuse/report-source.md),
 [ADR 0061](../adr/0061-adopt-narrow-crates-behind-identus-facades.md) and
 [ADR 0062](../adr/0062-use-a-rolling-near-current-msrv.md) govern third-party
 crate selection and the planned transition from the still-effective Rust 1.85
-floor.
+floor. [ADR 0063](../adr/0063-make-material-constraints-explicit.md) and the
+[constraint index](../governance/sdk-constraints.toml) distinguish effective
+cross-cutting promises, future targets, prohibitions and known limitations.
 
 ## 1. Mission
 
@@ -78,26 +80,31 @@ offline and does not build a donor or consumer repository.
 2. **Research before implementation.** Every qualifying OpenSpec change
    passes `factory research-ready`; foundational/protocol/security work records
    build-versus-adopt evidence and negative decisions.
-3. **One component at a time.** One issue, one worktree, one focused ready PR
+3. **Constraints before activation.** Every qualifying change passes
+   `factory constraints-ready`; targets, limitations and effective promises
+   remain distinct, and material outcomes cite their exact decision authority.
+4. **One component at a time.** One issue, one worktree, one focused ready PR
    after local review, and one independently testable result.
-4. **No roadmap stubs.** Do not create empty crates merely to reserve the
+5. **No roadmap stubs.** Do not create empty crates merely to reserve the
    future workspace layout. Namespace placeholders are a release-governance
    operation under issue #3, not API commitments.
-5. **Plain Cargo is first class.** Nix is the reproducible maintainer/CI path,
+6. **Plain Cargo is first class.** Nix is the reproducible maintainer/CI path,
    but a consumer can build and test supported crates with stable Cargo.
-6. **Stable Rust.** Nightly-only language features are rejected. MSRV changes
+7. **Stable Rust.** Nightly-only language features are rejected. MSRV changes
    are explicit compatibility decisions and cannot follow a rolling toolchain
    accidentally.
-7. **Verification is not trust.** The SDK returns technical evidence. The
+8. **Verification is not trust.** The SDK returns technical evidence. The
    consumer decides whether an issuer, verifier, chain, credential or action is
    trusted and permitted.
-8. **Secrets are handles.** Secret bytes never cross a public protocol, log,
+9. **Secrets are handles.** Secret bytes never cross a public protocol, log,
    error or FFI surface when an opaque provider/handle can be used.
-9. **Parsed is not verified.** Public types preserve construction state where
+10. **Parsed is not verified.** Public types preserve construction state where
    confusing untrusted syntax with verified semantics would be unsafe.
-10. **Bound every input.** Parsers and decoders have byte, element, nesting,
-   decompression, redirect and time limits with privacy-safe errors.
-11. **Evidence travels with code.** Vectors record source, source revision,
+11. **Bound every new or changed input.** New and materially changed parsers
+   and decoders have byte, element, nesting, decompression, redirect and time
+   limits with privacy-safe errors. Inherited surfaces remain unsupported for
+   unbounded hostile input until their limits are audited and enforced.
+12. **Evidence travels with code.** Vectors record source, source revision,
     license, retrieval date, transformation and expected result.
 
 ## 4. Baseline and target crate portfolio
@@ -535,6 +542,8 @@ Every implementation issue and PR records:
 - security, docs and conformance review requirements;
 - candidate version, rollback and downstream adoption issue;
 - confirmation that consumer repositories were read-only.
+- constraint-impact class, affected index IDs and introduced limitations;
+- exact decision authority and activation path for a material outcome.
 
 The source matrix classification (`extract`, `adapt`, `conformance-only`, or
 `remain-downstream`) is recorded before a port. A downstream deletion or

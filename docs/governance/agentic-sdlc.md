@@ -37,31 +37,37 @@ are adapters; OpenSpec artifacts and factory commands are the shared contract.
 mandate / backlog
    │
    ▼
-issue-framed ──► source-audited ──► research-ready ──► contract-ready
-                                                            │
-                                                            ▼
-                                                     implementation
-                                                            │
-                                                            ▼
-                                                  verified candidate
-                                                            │
-                                                            ▼
-                                              local review + issue-linked PR
-                                                            │
-                                                            ▼
-                                                  green CI + develop merge
-                                                            │
-                                         ┌──────────────────┴───────────────┐
-                                         ▼                                  ▼
-                                protected release                  next component slice
+issue-framed ──► source-audited ──► research-ready ──► constraint-ready
+                                                               │
+                                                               ▼
+                                                        contract-ready
+                                                               │
+                                                               ▼
+                                                        implementation
+                                                               │
+                                                               ▼
+                                                     verified candidate
+                                                               │
+                                                               ▼
+                                                 local review + issue-linked PR
+                                                               │
+                                                               ▼
+                                                     green CI + develop merge
+                                                               │
+                                            ┌──────────────────┴───────────────┐
+                                            ▼                                  ▼
+                                   protected release                  next component slice
 ```
 
-An agent cannot skip `research-ready` or `contract-ready` for behavior, public
-API, architecture, protocol, security or multi-step work. Research-ready means
+An agent cannot skip `research-ready`, `constraint-ready` or `contract-ready`
+for behavior, public API, architecture, protocol, security or multi-step work.
+Research-ready means
 the current implementation, sources, reuse candidates and risks have an
 explicit evidence-backed disposition with no blocker. Contract-ready means the
 artifacts are complete and semantically reviewed. Neither is a human approval
-state. `scripts/factory check` proves structural validity only.
+state. Constraint-ready means effective promises, future targets, limitations,
+consumer impact and decision authority are explicit with no blocker.
+`scripts/factory check` proves structural validity only.
 Downstream adoption is never part of the upstream implementation state.
 
 ## One-slice operating contract
@@ -81,19 +87,22 @@ The agent then:
 2. audits normative sources and existing implementations;
 3. records candidate adoption/rejection evidence and passes
    `scripts/factory research-ready <change>`;
-4. establishes and semantically reviews the public contract and negative cases
+4. records constraint and limitation impact and passes
+   `scripts/factory constraints-ready <change>`; a proposed material outcome
+   stops activation until its exact direction is recorded;
+5. establishes and semantically reviews the public contract and negative cases
    before porting;
-5. records provenance for every adapted file or fixture;
-6. implements only the bounded slice;
-7. runs proportional gates and reports unrun gates exactly;
-8. produces a standalone consumer-shaped proof when needed;
-9. verifies consumer HEAD/status did not change;
-10. completes and records a distinct local review pass;
-11. pushes the focused branch and opens a ready, issue-linked pull request
+6. records provenance for every adapted file or fixture;
+7. implements only the bounded slice;
+8. runs proportional gates and reports unrun gates exactly;
+9. produces a standalone consumer-shaped proof when needed;
+10. verifies consumer HEAD/status did not change;
+11. completes and records a distinct local review pass;
+12. pushes the focused branch and opens a ready, issue-linked pull request
     targeting `develop`;
-12. monitors required CI and merges the eligible pull request into `develop`
+13. monitors required CI and merges the eligible pull request into `develop`
     when every gate is green and no blocking review remains;
-13. continues to the next eligible slice without waiting for ceremonial
+14. continues to the next eligible slice without waiting for ceremonial
     approval, but stops before release, publication, `main` promotion,
     repository administration, security disclosure or consumer adoption unless
     explicitly authorized by the responsible human.

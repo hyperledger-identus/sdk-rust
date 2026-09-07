@@ -1,0 +1,329 @@
+schema_version  = 1
+policy_revision = "2026-09-07"
+governing_adr   = "docs/adr/0063-make-material-constraints-explicit.md"
+
+[[entries]]
+id               = "SDK-REPO-001"
+kind             = "guardrail"
+category         = "repository"
+state            = "effective"
+summary          = "Develop is the active integration branch."
+scope            = "Normal issue-linked SDK delivery."
+canonical_source = "docs/adr/0003-delegate-develop-integration.md"
+authority        = "Accepted sponsor-directed ADR 0003."
+rationale        = "Continuous SDK work needs one protected integration line."
+consumer_impact  = "Consumers evaluate candidates from develop; this is not a release promise."
+enforcement      = [ "pull-request-policy base-branch check", "factory doctor ancestry check" ]
+owner            = "SDK maintainers"
+review_triggers  = [ "branch strategy changes", "main activation is proposed" ]
+activation       = "Already effective through ADR 0003 and repository integration policy."
+rollback         = "A superseding branch-strategy ADR and protected-settings migration are required."
+
+[[entries]]
+id               = "SDK-REPO-002"
+kind             = "hard"
+category         = "release"
+state            = "prohibited"
+summary          = "Normal delivery, publication and release from main are prohibited during bootstrap."
+scope            = "The reserved main branch and all crate publication operations."
+canonical_source = "docs/adr/0001-bootstrap-branch-selection.md"
+authority        = "Accepted bootstrap ADR 0001 and repository governance."
+rationale        = "Main is intentionally minimal until release ownership and promotion policy exist."
+consumer_impact  = "No artifact from main is represented as the supported SDK release line."
+enforcement      = [ "factory doctor rejects main", "release authority remains human-protected" ]
+owner            = "SDK maintainers and release managers"
+review_triggers  = [ "main activation proposal", "trusted publishing becomes operational" ]
+activation       = "The prohibition is already effective; lifting it requires a dedicated ADR and maintainer authority."
+rollback         = "Restore the reserved branch and revoke any unapproved release claim through protected governance."
+
+[[entries]]
+id               = "SDK-ARCH-001"
+kind             = "hard"
+category         = "architecture"
+state            = "effective"
+summary          = "Generic SDK crates remain chain-neutral and product-neutral."
+scope            = "All workspace normal, development, build and target-scoped dependencies."
+canonical_source = "docs/architecture/sdk-rust-blueprint.md#2-repository-boundary"
+authority        = "Accepted SDK blueprint and governance."
+rationale        = "Reusable SSI foundations must not import Midnight, Cardano or wallet-product policy."
+consumer_impact  = "Oxid, midnight-identity, NeoPRISM and other consumers integrate through ports and downstream adapters."
+enforcement      = [ "identus-conformance dependency boundary", "Cargo lockfile/source checks" ]
+owner            = "SDK maintainers"
+review_triggers  = [ "new chain dependency", "product policy proposed in an SDK crate" ]
+activation       = "Already effective through the SDK blueprint."
+rollback         = "Requires a product-boundary ADR and migration plan for every affected consumer."
+
+[[entries]]
+id               = "SDK-ARCH-002"
+kind             = "guardrail"
+category         = "architecture"
+state            = "effective"
+summary          = "Workspace dependencies point inward through the accepted crate layers."
+scope            = "Every internal dependency edge, including aliases and target-specific declarations."
+canonical_source = "docs/architecture/sdk-rust-blueprint.md#5-target-dependency-direction"
+authority        = "Accepted SDK blueprint."
+rationale        = "Low coupling and high cohesion require a predictable dependency direction."
+consumer_impact  = "Consumers can adopt narrow crates without pulling protocol, platform or product layers accidentally."
+enforcement      = [ "identus-conformance dependency graph guard", "workspace dependency conventions" ]
+owner            = "SDK maintainers"
+review_triggers  = [ "new crate", "new upward or sideways dependency edge" ]
+activation       = "Already effective; a new exceptional edge requires a focused ADR."
+rollback         = "Remove the edge or supersede the layer decision with dependency-cone evidence."
+
+[[entries]]
+id               = "SDK-COMPAT-001"
+kind             = "guardrail"
+category         = "compatibility"
+state            = "effective"
+summary          = "Supported SDK surfaces compile on stable Rust without nightly-only language features."
+scope            = "All supported public crate and feature surfaces."
+canonical_source = "docs/architecture/sdk-rust-blueprint.md#3-bootstrap-principles"
+authority        = "Accepted SDK blueprint."
+rationale        = "Plain stable Cargo is a first-class consumer path."
+consumer_impact  = "Consumers are not forced onto a nightly compiler by supported SDK code."
+enforcement      = [ "MSRV compile gates", "stable or pinned-etalon workspace gates" ]
+owner            = "SDK maintainers"
+review_triggers  = [ "nightly-only feature proposed", "toolchain policy changes" ]
+activation       = "Already effective."
+rollback         = "A compatibility ADR and explicit consumer migration would be required."
+
+[[entries]]
+id               = "SDK-COMPAT-002"
+kind             = "budget"
+category         = "compatibility"
+state            = "effective"
+summary          = "Rust 1.85.0 is the effective minimum supported Rust version."
+scope            = "Every supported workspace feature surface named by support policy."
+canonical_source = "docs/architecture/sdk-support-policy.toml#toolchains.msrv"
+authority        = "Current machine-readable support policy."
+rationale        = "The effective compiler floor is the value actually enforced by the compatibility matrix."
+consumer_impact  = "Consumers using Rust older than 1.85.0 receive no compile-compatibility promise."
+enforcement      = [ "Cargo workspace rust-version", "Nix rust-msrv gates", "support-policy checker" ]
+owner            = "SDK maintainers"
+review_triggers  = [ "quarterly MSRV review", "dependency cannot resolve", "supported consumer constraint" ]
+activation       = "Already effective; changing the value requires the material activation path."
+rollback         = "Before release, restore the prior floor and gates; after release, publish a compatible corrective release."
+value            = "1.85.0"
+value_source     = "toolchains.msrv"
+
+[[entries]]
+id               = "SDK-COMPAT-003"
+kind             = "budget"
+category         = "compatibility"
+state            = "target"
+summary          = "Rust 1.95.0 is the researched initial near-current MSRV target."
+scope            = "Potential future workspace compiler floor."
+canonical_source = "docs/adr/0062-use-a-rolling-near-current-msrv.md"
+authority        = "ADR 0062 research direction; not an effective support-policy value."
+rationale        = "Stable minus three releases balances maintained-crate access with a qualification window."
+consumer_impact  = "Activation would require every SDK consumer to use Rust 1.95.0 or newer."
+enforcement      = [ "none while target", "issue #154 must add complete MSRV and target gates before activation" ]
+owner            = "SDK maintainers and product sponsor"
+review_triggers  = [ "issue #154 implementation", "quarterly MSRV review", "consumer compatibility evidence changes" ]
+activation       = "Issue #154 must record exact sponsor direction, consumer impact and atomic Cargo/Nix/policy enforcement."
+rollback         = "Keep Rust 1.85.0 effective or select a different explicitly directed target."
+value            = "1.95.0"
+
+[[entries]]
+id               = "SDK-SEC-001"
+kind             = "hard"
+category         = "security"
+state            = "prohibited"
+summary          = "Unsafe Rust is prohibited by default."
+scope            = "All SDK source unless a dedicated safety ADR explicitly grants a bounded exception."
+canonical_source = "CONTRIBUTING.md#development-rules"
+authority        = "Repository security and contribution policy."
+rationale        = "Identity and cryptographic code needs auditable memory-safety boundaries."
+consumer_impact  = "Consumers do not inherit undocumented unsafe SDK implementation."
+enforcement      = [ "contribution policy", "semantic and source review" ]
+owner            = "SDK maintainers and security reviewers"
+review_triggers  = [ "unsafe block proposed", "native dependency introduced" ]
+activation       = "The policy is effective; issue #169 tracks uniform machine enforcement, and any exception requires a dedicated ADR, invariants and specialist review."
+rollback         = "Remove the unsafe code or revoke the bounded exception."
+
+[[entries]]
+id               = "SDK-SEC-002"
+kind             = "hard"
+category         = "security"
+state            = "prohibited"
+summary          = "Raw secret material cannot cross diagnostics, serialization or FFI surfaces."
+scope            = "Errors, Display, Debug, logs, serialized public types and bindings."
+canonical_source = "docs/architecture/sdk-rust-blueprint.md#3-bootstrap-principles"
+authority        = "Accepted SDK security boundary."
+rationale        = "Identity wallets handle correlating and cryptographic secrets."
+consumer_impact  = "Consumers receive handles or deliberately sensitive accessors rather than accidental secret copies."
+enforcement      = [ "redaction tests", "negative serialization tests", "security review" ]
+owner            = "SDK maintainers and security reviewers"
+review_triggers  = [ "new secret-bearing type", "new FFI surface", "new diagnostics" ]
+activation       = "Already effective."
+rollback         = "Remove the leaking surface and treat any real exposure through the private security process."
+
+[[entries]]
+id               = "SDK-SEC-003"
+kind             = "guardrail"
+category         = "security"
+state            = "effective"
+summary          = "Every new or materially changed untrusted input boundary has explicit resource limits and redaction-safe errors."
+scope            = "New or materially changed parsers, decoders, collections, redirects, decompression, recursion and protocol state inputs."
+canonical_source = "docs/architecture/sdk-rust-blueprint.md#3-bootstrap-principles"
+authority        = "Accepted SDK assurance model."
+rationale        = "New headless and agentic surfaces need deterministic denial-of-service boundaries while inherited gaps are audited explicitly."
+consumer_impact  = "New or changed boundaries fail outside declared limits; inherited surfaces without bound evidence remain covered by SDK-LIM-007."
+enforcement      = [ "boundary tests", "negative tests", "fuzz/property tests for eligible parsers" ]
+owner            = "Component steward and security reviewer"
+review_triggers  = [ "new untrusted input", "limit change", "new parser or decoder" ]
+activation       = "Already effective for new and materially changed boundaries."
+rollback         = "Restore the previous safe limit or ship an explicitly reviewed replacement budget."
+
+[[entries]]
+id               = "SDK-DELIVERY-001"
+kind             = "guardrail"
+category         = "delivery"
+state            = "effective"
+summary          = "Qualifying work is issue-linked, spec-driven, distinctly reviewed and CI-gated."
+scope            = "Behavior, API, architecture, protocol, security, dependency-policy and multi-step changes."
+canonical_source = "docs/governance/agentic-sdlc.md#one-slice-operating-contract"
+authority        = "Accepted agentic SDLC and ADRs 0003/0004."
+rationale        = "Continuous autonomous delivery needs durable intent and objective integration evidence."
+consumer_impact  = "Consumers can trace shipped behavior to a contract and validation receipt."
+enforcement      = [ "factory checks", "pull-request policy", "required CI and protected merge path" ]
+owner            = "SDK maintainers"
+review_triggers  = [ "factory lifecycle changes", "integration policy changes" ]
+activation       = "Already effective."
+rollback         = "A governance ADR is required to weaken or replace the evidence path."
+
+[[entries]]
+id               = "SDK-LIM-001"
+kind             = "limitation"
+category         = "compatibility"
+state            = "effective"
+summary          = "Bootstrap and 0.0.x artifacts carry no stable public API promise."
+scope            = "All unpublished or bootstrap SDK crates before an accepted candidate release."
+canonical_source = "docs/architecture/sdk-rust-blueprint.md#9-version-and-compatibility-policy"
+authority        = "Accepted SDK version policy."
+rationale        = "The current crate portfolio and namespaces are still being crystallized."
+consumer_impact  = "Consumers must pin exact revisions and expect migration until a release contract exists."
+enforcement      = [ "Cargo publish=false", "bootstrap inventory", "release policy" ]
+owner            = "SDK maintainers and release managers"
+review_triggers  = [ "candidate publication", "crate namespace acceptance", "1.0 planning" ]
+activation       = "Already effective as a limitation."
+rollback         = "Replace with an accepted versioned release and migration policy."
+
+[[entries]]
+id               = "SDK-LIM-002"
+kind             = "limitation"
+category         = "platform"
+state            = "effective"
+summary          = "No FFI surface is currently supported."
+scope            = "UniFFI, JNI, Swift, Node, WASM bindings and cross-language ABI claims."
+canonical_source = "docs/architecture/sdk-support-policy.toml#ffi"
+authority        = "Current machine-readable support policy."
+rationale        = "The inherited bindings package has no accepted value, handle or memory contract."
+consumer_impact  = "Non-Rust consumers do not yet have a supported SDK binding."
+enforcement      = [ "support-policy checker", "bootstrap inventory quarantine" ]
+owner            = "SDK maintainers"
+review_triggers  = [ "binding issue accepted", "candidate FFI package proposed" ]
+activation       = "Already effective as a limitation."
+rollback         = "Replace only after a versioned FFI contract and target evidence are accepted."
+
+[[entries]]
+id               = "SDK-LIM-003"
+kind             = "limitation"
+category         = "platform"
+state            = "effective"
+summary          = "Browser WASM, Android ARM64 and iOS ARM64 are compile-checked, not runtime-certified."
+scope            = "Portable packages listed under the three compile-checked targets in support policy."
+canonical_source = "docs/architecture/sdk-support-policy.toml#targets"
+authority        = "Current machine-readable support policy."
+rationale        = "Compile evidence does not prove linking, device runtime, packaging, storage or certification."
+consumer_impact  = "Consumers must provide and test platform integration before claiming production support."
+enforcement      = [ "target compile gates", "support tier and limitation validation" ]
+owner            = "SDK maintainers and downstream platform owners"
+review_triggers  = [ "runtime harness added", "FFI accepted", "platform certification proposed" ]
+activation       = "Already effective as a limitation."
+rollback         = "Upgrade individual targets only after their runtime and packaging evidence is accepted."
+
+[[entries]]
+id               = "SDK-LIM-004"
+kind             = "limitation"
+category         = "platform"
+state            = "deferred"
+summary          = "Windows and WASI have no required compatibility gate or support promise."
+scope            = "x86_64-pc-windows-msvc and wasm32-wasip1."
+canonical_source = "docs/architecture/sdk-support-policy.toml#targets"
+authority        = "Current machine-readable support policy."
+rationale        = "No validated consumer outcome or complete gate exists during bootstrap."
+consumer_impact  = "Consumers cannot infer Windows or WASI compatibility from other host/target results."
+enforcement      = [ "planned target entries have no gates or package claims", "support-policy checker" ]
+owner            = "SDK maintainers"
+review_triggers  = [ "named consumer requires Windows", "named consumer requires WASI" ]
+activation       = "A focused issue must define packages, tier, limitations and evidence before support."
+rollback         = "Remove an incomplete target claim or restore deferred state."
+
+[[entries]]
+id               = "SDK-LIM-005"
+kind             = "limitation"
+category         = "product"
+state            = "effective"
+summary          = "The SDK does not own wallet product, chain, consent, custody or trust policy."
+scope            = "Oxid, Lace, Midnight, PRISM and future product/chain decisions."
+canonical_source = "docs/architecture/sdk-rust-blueprint.md#1-mission"
+authority        = "Accepted SDK mission and repository boundary."
+rationale        = "Generic SSI components must remain reusable across products and chains."
+consumer_impact  = "Consumers supply product policy and chain-specific adapters around SDK evidence and ports."
+enforcement      = [ "dependency boundary", "issue non-scope", "architecture review" ]
+owner            = "SDK and downstream product maintainers"
+review_triggers  = [ "product behavior proposed in SDK", "new chain family integration" ]
+activation       = "Already effective as a limitation."
+rollback         = "Requires a repository mission and ownership decision with downstream migration."
+
+[[entries]]
+id               = "SDK-LIM-006"
+kind             = "limitation"
+category         = "delivery"
+state            = "effective"
+summary          = "Upstream SDK delivery does not mutate or prove downstream adoption."
+scope            = "Oxid, midnight-identity, NeoPRISM, Lace ID Portal and other consumers."
+canonical_source = "docs/governance/agentic-sdlc.md#hard-repository-isolation"
+authority        = "Accepted agentic SDLC."
+rationale        = "Upstream crystallization and downstream migration must remain independently reversible."
+consumer_impact  = "A merged SDK capability is available for adoption but does not claim any consumer uses it."
+enforcement      = [ "consumer preflight/final receipts", "separate downstream issue requirement" ]
+owner            = "SDK and downstream product maintainers"
+review_triggers  = [ "downstream adoption authorized", "consumer conformance harness proposed" ]
+activation       = "Already effective as a limitation."
+rollback         = "Revert the upstream change independently; downstream changes remain separately owned."
+
+[[entries]]
+id               = "SDK-LIM-007"
+kind             = "limitation"
+category         = "security"
+state            = "effective"
+summary          = "A repository-wide resource-bound audit of inherited input types is incomplete."
+scope            = "Existing parser and value-construction surfaces that have not recorded explicit byte, element, nesting or work bounds."
+canonical_source = "docs/architecture/sdk-rust-blueprint.md#3-bootstrap-principles"
+authority        = "Current bootstrap evidence and accepted SDK assurance model."
+rationale        = "The forward design rule cannot honestly imply that every inherited surface is already bounded."
+consumer_impact  = "Consumers must apply outer input limits where a type lacks explicit bound evidence; identus-core Url currently has no intrinsic byte limit."
+enforcement      = [ "constraint index disclosure", "new/change boundary review", "focused remediation issues and tests" ]
+owner            = "SDK maintainers and security reviewers"
+review_triggers  = [ "inherited parser is touched", "resource-bound audit runs", "consumer handles hostile input directly" ]
+activation       = "Already effective as a disclosed limitation; issue #168 must provide an exhaustive audit and enforced negative tests before removing it."
+rollback         = "Restore the limitation if a supposedly bounded inherited surface is found to accept unbounded work or allocation."
+
+[[entries]]
+id               = "SDK-LIM-008"
+kind             = "limitation"
+category         = "security"
+state            = "effective"
+summary          = "The unsafe-code prohibition is not uniformly machine-enforced across all workspace crates."
+scope            = "Supported crate roots, tests, examples, build surfaces and feature combinations lacking a workspace or crate-level unsafe_code forbid gate."
+canonical_source = "CONTRIBUTING.md#development-rules"
+authority        = "Current repository policy and reviewed enforcement evidence."
+rationale        = "A human policy and source review do not prove the full workspace rejects every unauthorized unsafe block."
+consumer_impact  = "Consumers may rely on the prohibition as project policy, but CI does not yet supply complete machine evidence for every crate surface."
+enforcement      = [ "constraint index disclosure", "semantic and source review", "issue #169 remediation tracking" ]
+owner            = "SDK maintainers and security reviewers"
+review_triggers  = [ "unsafe code is proposed", "crate or feature surface is added", "issue #169 enforcement lands" ]
+activation       = "Already effective as a disclosed limitation; issue #169 must prove uniform negative enforcement before removing it."
+rollback         = "Restore the limitation if any supported crate or feature surface can compile unauthorized unsafe Rust."

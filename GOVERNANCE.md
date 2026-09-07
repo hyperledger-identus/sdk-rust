@@ -118,6 +118,26 @@ An ADR is required when a decision:
 ADRs are immutable after integration. A later ADR may supersede one and must
 explain migration and compatibility impact.
 
+## Constraints and limitations
+
+Material cross-cutting constraints and known unsupported surfaces are indexed
+in [sdk-constraints.toml](docs/governance/sdk-constraints.toml) and explained
+in [constraints-and-limitations.md](docs/governance/constraints-and-limitations.md).
+The index references controlling ADRs, specifications and policy files rather
+than replacing them.
+
+Every qualifying OpenSpec change declares whether its constraint impact is
+`none`, `routine` or `material`. A target, candidate, planned surface or review
+date is not an effective promise. A new or changed material consumer/product
+outcome requires an exact durable sponsor or responsible-maintainer direction
+before implementation or activation, unless an existing effective entry or
+roadmap decision already authorizes that exact outcome. Routine reversible
+choices remain within standing agent authority and require no format approval.
+
+Exceptions remain separate, bounded records with an owner, scope, rationale,
+exit trigger and security/maintenance cost. They do not silently weaken the
+indexed base rule.
+
 ## Consensus and deadlock
 
 Maintainers seek lazy consensus: after the documented review period, a proposal

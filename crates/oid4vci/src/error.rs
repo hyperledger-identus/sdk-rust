@@ -189,6 +189,16 @@ pub mod error_code {
         ErrorCode::new("oid4vci.invalid_credential_error_description");
     pub const CREDENTIAL_ERROR_DESCRIPTION_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.credential_error_description_too_large");
+    pub const INVALID_CREDENTIAL_ERROR_HTTP_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_error_http_response_limits");
+    pub const INVALID_CREDENTIAL_ERROR_HTTP_STATUS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_error_http_status");
+    pub const CREDENTIAL_ERROR_CONTENT_TYPE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_error_content_type_too_large");
+    pub const INVALID_CREDENTIAL_ERROR_CONTENT_TYPE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_error_content_type");
+    pub const GENERIC_CREDENTIAL_ERROR_CODE_FORBIDDEN: ErrorCode =
+        ErrorCode::new("oid4vci.generic_credential_error_code_forbidden");
     pub const INVALID_CREDENTIAL_NONCE_RESPONSE_LIMITS: ErrorCode =
         ErrorCode::new("oid4vci.invalid_credential_nonce_response_limits");
     pub const CREDENTIAL_NONCE_RESPONSE_TOO_LARGE: ErrorCode =
@@ -378,6 +388,11 @@ pub enum CredentialOfferError {
     CredentialEndpointErrorCodeTooLarge,
     InvalidCredentialErrorDescription,
     CredentialErrorDescriptionTooLarge,
+    InvalidCredentialErrorHttpResponseLimits,
+    InvalidCredentialErrorHttpStatus,
+    CredentialErrorContentTypeTooLarge,
+    InvalidCredentialErrorContentType,
+    GenericCredentialErrorCodeForbidden,
     InvalidCredentialNonceResponseLimits,
     CredentialNonceResponseTooLarge,
     InvalidCredentialNonceResponse,
@@ -946,6 +961,31 @@ impl CredentialOfferError {
                 error_code::CREDENTIAL_ERROR_DESCRIPTION_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI Credential Error Response description is too large",
+            ),
+            Self::InvalidCredentialErrorHttpResponseLimits => (
+                error_code::INVALID_CREDENTIAL_ERROR_HTTP_RESPONSE_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Error HTTP response limits are invalid",
+            ),
+            Self::InvalidCredentialErrorHttpStatus => (
+                error_code::INVALID_CREDENTIAL_ERROR_HTTP_STATUS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Error HTTP status is invalid",
+            ),
+            Self::CredentialErrorContentTypeTooLarge => (
+                error_code::CREDENTIAL_ERROR_CONTENT_TYPE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Error Content-Type is too large",
+            ),
+            Self::InvalidCredentialErrorContentType => (
+                error_code::INVALID_CREDENTIAL_ERROR_CONTENT_TYPE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Error Content-Type is invalid",
+            ),
+            Self::GenericCredentialErrorCodeForbidden => (
+                error_code::GENERIC_CREDENTIAL_ERROR_CODE_FORBIDDEN,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential payload error uses a forbidden generic code",
             ),
             Self::InvalidCredentialNonceResponseLimits => (
                 error_code::INVALID_CREDENTIAL_NONCE_RESPONSE_LIMITS,

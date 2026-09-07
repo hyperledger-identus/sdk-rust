@@ -83,7 +83,8 @@ header input is retained.
 A private byte parser validates:
 
 - Content-Type as one RFC 9110 media type, after outer OWS, with token
-  type/subtype and zero or more syntactically valid semicolon parameters;
+  type/subtype and zero or more syntactically valid semicolon parameter
+  elements, including empty elements permitted by the RFC grammar;
 - Cache-Control as an RFC 9111 comma list of token directives with optional
   token or quoted-string arguments, permitting empty list elements as the HTTP
   list extension does;

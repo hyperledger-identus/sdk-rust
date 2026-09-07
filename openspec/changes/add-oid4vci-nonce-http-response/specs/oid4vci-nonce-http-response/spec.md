@@ -63,7 +63,7 @@ SHALL fail without MIME sniffing.
 #### Scenario: JSON media type casing and parameters interoperate
 
 - **WHEN** Content-Type uses any ASCII casing of `application/json` with valid
-  token or quoted-string parameters
+  token, quoted-string or RFC-compatible empty parameter elements
 - **THEN** its media type passes without retaining or interpreting parameters
 
 #### Scenario: malformed or ambiguous media type fails

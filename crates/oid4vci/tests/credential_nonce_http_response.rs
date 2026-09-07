@@ -103,6 +103,7 @@ fn json_media_type_casing_and_valid_parameters_interoperate() {
         "\tapplication/json \t",
         "application/json;charset=utf-8",
         "application/json ; charset=\"utf-8\" ;profile=wallet",
+        "application/json;; ; charset=utf-8;",
         "application/json;x=\"a,b;c\\\"d\"",
         "application/json;x=\"opaque-€\"",
     ] {
@@ -122,7 +123,6 @@ fn missing_different_ambiguous_and_malformed_media_types_fail_closed() {
         "application/json, text/plain",
         "application//json",
         "application/json/extra",
-        "application/json;",
         "application/json;=value",
         "application/json;charset =utf-8",
         "application/json;charset= utf-8",

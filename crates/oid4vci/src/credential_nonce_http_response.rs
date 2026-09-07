@@ -60,6 +60,9 @@ fn is_application_json(bytes: &[u8]) -> bool {
             return false;
         }
         cursor.ows();
+        if cursor.done() || cursor.peek() == Some(b';') {
+            continue;
+        }
         if cursor.token().is_none() || !cursor.take(b'=') || !cursor.token_or_quoted() {
             return false;
         }

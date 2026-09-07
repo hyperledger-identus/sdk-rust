@@ -433,6 +433,18 @@ trust and freshness, Authorization Details/Credential identifiers, encryption,
 format or chain extensions, and Credential Response processing remain later
 slices.
 
+The sixteenth bounded delivery, issue #141, parses the unencrypted Final
+immediate Credential Response JSON body. It requires a non-empty ordered
+`credentials` array, accepts only string or object credential values, retains
+their exact JSON in zeroizing ownership, exposes decoded string values, accepts
+an optional opaque `notification_id`, and bounds response structure, member
+counts, credential counts and retained allocations independently. Unknown
+unique extensions remain interoperable while duplicate names fail, and the
+deferred `transaction_id` branch is reported as explicitly unsupported. HTTP
+metadata/provenance, request correlation, error/deferred/encrypted responses,
+format decoding and verification, issuer/schema/status trust, notifications,
+storage, chain extensions and product policy remain later layers.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

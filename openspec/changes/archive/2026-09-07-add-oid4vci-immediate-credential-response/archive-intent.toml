@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
+canonical_sha256 = "50be82e89c2127a3e1c12b3164cf9d5d9095c57143ceb6ab27a10083280f2f5f"
+reason           = "Advance the in-progress IDR-023 pointer from the completed request-construction child to the next bounded immediate Credential Response parsing contract."

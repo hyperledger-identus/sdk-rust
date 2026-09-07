@@ -5,8 +5,8 @@ use zeroize::Zeroizing;
 use crate::{
     AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits,
     CredentialNonceResponseLimits, CredentialOfferError, CredentialOfferGrantLimits,
-    CredentialOfferLimits, CredentialOfferSemanticLimits, TokenErrorResponseLimits,
-    TokenResponseLimits,
+    CredentialOfferLimits, CredentialOfferSemanticLimits, ImmediateCredentialResponseLimits,
+    TokenErrorResponseLimits, TokenResponseLimits,
 };
 
 const AUTHORIZATION_CODE_GRANT: &str = "authorization_code";
@@ -79,6 +79,16 @@ pub(crate) struct TokenErrorResponseFields {
 
 pub(crate) struct CredentialNonceResponseFields {
     pub(crate) nonce: Zeroizing<String>,
+}
+
+pub(crate) struct ImmediateCredentialResponseFields {
+    pub(crate) credentials: Vec<IssuedCredentialFields>,
+    pub(crate) notification_id: Option<Zeroizing<String>>,
+}
+
+pub(crate) struct IssuedCredentialFields {
+    pub(crate) exact_json: Zeroizing<String>,
+    pub(crate) decoded_string: Option<Zeroizing<String>>,
 }
 
 pub(crate) fn validate_json(
@@ -278,6 +288,31 @@ pub(crate) fn parse_credential_nonce_response_fields(
     scanner.skip_whitespace();
     if scanner.cursor != input.len() {
         return Err(CredentialOfferError::InvalidCredentialNonceResponse);
+    }
+    Ok(fields)
+}
+
+pub(crate) fn parse_immediate_credential_response_fields(
+    input: &[u8],
+    limits: ImmediateCredentialResponseLimits,
+) -> Result<ImmediateCredentialResponseFields, CredentialOfferError> {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
+        max_depth: limits.max_json_depth(),
+        max_nodes: limits.max_json_nodes(),
+        nodes: 0,
+    };
+    scanner.skip_whitespace();
+    scanner.visit_node()?;
+    let depth = scanner.enter_container(0)?;
+    if !scanner.consume_if(b'{') {
+        return Err(CredentialOfferError::InvalidImmediateCredentialResponse);
+    }
+    let fields = scanner.parse_immediate_credential_response_object(depth, limits)?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(CredentialOfferError::InvalidImmediateCredentialResponse);
     }
     Ok(fields)
 }
@@ -747,6 +782,188 @@ impl Scanner<'_> {
 
         Ok(CredentialNonceResponseFields {
             nonce: nonce.ok_or(CredentialOfferError::InvalidCredentialNonceResponse)?,
+        })
+    }
+
+    fn parse_immediate_credential_response_object(
+        &mut self,
+        depth: usize,
+        limits: ImmediateCredentialResponseLimits,
+    ) -> Result<ImmediateCredentialResponseFields, CredentialOfferError> {
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidImmediateCredentialResponse);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut credentials = None;
+        let mut notification_id = None;
+        let mut deferred = false;
+        let mut interval = false;
+        loop {
+            if names.len() == limits.max_response_members() {
+                return Err(CredentialOfferError::TooManyCredentialResponseMembers);
+            }
+            let name = self.parse_unique_member_name(&mut names)?;
+            self.require_member_separator()?;
+            match name.as_str() {
+                "credentials" => {
+                    credentials = Some(self.parse_issued_credentials(depth, limits)?);
+                }
+                "notification_id" => {
+                    notification_id = Some(self.parse_nonempty_bounded_string(
+                        limits.max_notification_id_bytes(),
+                        CredentialOfferError::InvalidCredentialNotificationId,
+                        CredentialOfferError::CredentialNotificationIdTooLarge,
+                    )?);
+                }
+                "transaction_id" => {
+                    deferred = true;
+                    self.parse_value(depth)?;
+                }
+                "interval" => {
+                    interval = true;
+                    self.parse_value(depth)?;
+                }
+                _ => self.parse_value(depth)?,
+            }
+            if self.finish_or_continue_object()? {
+                break;
+            }
+        }
+
+        if deferred {
+            return Err(CredentialOfferError::DeferredCredentialResponseUnsupported);
+        }
+        if interval {
+            return Err(CredentialOfferError::InvalidImmediateCredentialResponse);
+        }
+        Ok(ImmediateCredentialResponseFields {
+            credentials: credentials
+                .ok_or(CredentialOfferError::InvalidImmediateCredentialResponse)?,
+            notification_id,
+        })
+    }
+
+    fn parse_issued_credentials(
+        &mut self,
+        depth: usize,
+        limits: ImmediateCredentialResponseLimits,
+    ) -> Result<Vec<IssuedCredentialFields>, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        if !self.consume_if(b'[') {
+            return Err(CredentialOfferError::InvalidImmediateCredentialResponse);
+        }
+        let depth = self.enter_container(depth)?;
+        self.skip_whitespace();
+        if self.consume_if(b']') {
+            return Err(CredentialOfferError::InvalidImmediateCredentialResponse);
+        }
+
+        let mut credentials = Vec::new();
+        let mut total_bytes = 0usize;
+        loop {
+            if credentials.len() == limits.max_credentials() {
+                return Err(CredentialOfferError::TooManyIssuedCredentials);
+            }
+            let credential = self.parse_issued_credential(depth, limits)?;
+            total_bytes = total_bytes
+                .checked_add(credential.exact_json.len())
+                .ok_or(CredentialOfferError::IssuedCredentialsTooLarge)?;
+            if total_bytes > limits.max_total_credential_bytes() {
+                return Err(CredentialOfferError::IssuedCredentialsTooLarge);
+            }
+            credentials.push(credential);
+
+            self.skip_whitespace();
+            match self.peek() {
+                Some(b',') => self.cursor += 1,
+                Some(b']') => {
+                    self.cursor += 1;
+                    return Ok(credentials);
+                }
+                _ => return Err(CredentialOfferError::InvalidImmediateCredentialResponse),
+            }
+        }
+    }
+
+    fn parse_issued_credential(
+        &mut self,
+        depth: usize,
+        limits: ImmediateCredentialResponseLimits,
+    ) -> Result<IssuedCredentialFields, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        if !self.consume_if(b'{') {
+            return Err(CredentialOfferError::InvalidIssuedCredential);
+        }
+        let depth = self.enter_container(depth)?;
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidIssuedCredential);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut credential = None;
+        loop {
+            if names.len() == limits.max_credential_members() {
+                return Err(CredentialOfferError::TooManyIssuedCredentialMembers);
+            }
+            let name = self.parse_unique_member_name(&mut names)?;
+            self.require_member_separator()?;
+            if name.as_str() == "credential" {
+                credential = Some(self.parse_issued_credential_value(depth, limits)?);
+            } else {
+                self.parse_value(depth)?;
+            }
+            if self.finish_or_continue_object()? {
+                break;
+            }
+        }
+
+        credential.ok_or(CredentialOfferError::InvalidIssuedCredential)
+    }
+
+    fn parse_issued_credential_value(
+        &mut self,
+        depth: usize,
+        limits: ImmediateCredentialResponseLimits,
+    ) -> Result<IssuedCredentialFields, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        let start = self.cursor;
+        let decoded_string = match self.peek() {
+            Some(b'"') => {
+                let token = self.scan_string()?;
+                Some(Zeroizing::new(
+                    serde_json::from_slice::<String>(&self.input[token])
+                        .map_err(|_| CredentialOfferError::InvalidIssuedCredential)?,
+                ))
+            }
+            Some(b'{') => {
+                let depth = self.enter_container(depth)?;
+                self.cursor += 1;
+                self.parse_object(depth)?;
+                None
+            }
+            _ => return Err(CredentialOfferError::InvalidIssuedCredential),
+        };
+        let exact = self
+            .input
+            .get(start..self.cursor)
+            .ok_or(CredentialOfferError::InvalidIssuedCredential)?;
+        if exact.len() > limits.max_credential_bytes() {
+            return Err(CredentialOfferError::IssuedCredentialTooLarge);
+        }
+        let exact_json = Zeroizing::new(
+            std::str::from_utf8(exact)
+                .map_err(|_| CredentialOfferError::InvalidIssuedCredential)?
+                .to_owned(),
+        );
+        Ok(IssuedCredentialFields {
+            exact_json,
+            decoded_string,
         })
     }
 

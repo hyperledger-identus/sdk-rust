@@ -155,28 +155,29 @@ storage SHALL remain downstream.
 ### Requirement: IDR-023 begins with a focused Credential Offer transport slice
 
 The canonical backlog SHALL keep `IDR-023` at `in_progress` and advance its
-issue reference from completed child #135 to active child #137. Issue #137
-SHALL deliver only a bounded, request-bound OID4VCI Final Credential Nonce HTTP
-response transition: positive field/body limits, 2xx status validation, exact
-case-insensitive `application/json` media-type classification, RFC-structured
-bare `no-store` recognition, reuse of the strict response-body parser, and
-fieldless redaction-safe errors without retaining transport inputs.
+issue reference from completed child #137 to active child #139. Issue #139
+SHALL deliver only bounded, transport-neutral construction of the unencrypted
+OID4VCI Final Credential Request configuration-ID/JWT-proof path from matched
+offer/metadata, a successful Bearer Token Response without unvalidated
+Authorization Details, one offered configuration index and non-empty
+holder-produced proof JWTs. It SHALL use positive proof/body/authorization
+limits, deterministic JSON, zeroizing ownership and fieldless redaction-safe
+errors.
 
-The slice SHALL NOT claim the full OID4VCI engine, metadata discovery or
-retrieval, signed metadata, complete RFC 8414 conformance, trust, HTTP
-execution, DNS/TLS/redirect/private-network policy, generic header collection,
-compression/framing validation, DPoP handling, Issuer nonce generation or
-unpredictability, actual response provenance, nonce freshness/expiry or replay
-safety, proof construction/verification, Credential Requests/Responses,
-consumer adoption, publication or release.
+The slice SHALL NOT claim the full OID4VCI engine, metadata discovery or trust,
+HTTP execution, TLS/DNS/redirect/private-network policy, DPoP, token trust,
+freshness, scope or refresh, Authorization Details or Credential identifiers,
+proof construction/verification/trust/freshness/replay, proofless or non-JWT
+requests, format/chain extensions, request/response encryption, Credential
+Response/error/deferred processing, consumer adoption, publication or release.
 
 #### Scenario: ledger points at the active bounded child
 
-- **WHEN** issue #137 is implemented
-- **THEN** `IDR-023` references #137 with `delivery_status=in_progress`
+- **WHEN** issue #139 is implemented
+- **THEN** `IDR-023` references #139 with `delivery_status=in_progress`
 - **AND** #7 and #20 remain the open component/program parents
 
-#### Scenario: response envelope validation is not protocol-engine completion
+#### Scenario: request construction is not protocol-engine completion
 
-- **WHEN** Final Nonce HTTP response status/media/cache/body gates pass
+- **WHEN** the bounded Final configuration-ID/JWT-proof request is constructed
 - **THEN** the backlog keeps `IDR-023` in progress rather than delivered

@@ -197,6 +197,26 @@ pub mod error_code {
         ErrorCode::new("oid4vci.credential_nonce_cache_control_too_large");
     pub const INVALID_CREDENTIAL_NONCE_CACHE_CONTROL: ErrorCode =
         ErrorCode::new("oid4vci.invalid_credential_nonce_cache_control");
+    pub const INVALID_JWT_CREDENTIAL_REQUEST_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_jwt_credential_request_limits");
+    pub const CREDENTIAL_REQUEST_CONFIGURATION_MISSING: ErrorCode =
+        ErrorCode::new("oid4vci.credential_request_configuration_missing");
+    pub const CREDENTIAL_REQUEST_AUTHORIZATION_DETAILS_UNSUPPORTED: ErrorCode =
+        ErrorCode::new("oid4vci.credential_request_authorization_details_unsupported");
+    pub const CREDENTIAL_REQUEST_TOKEN_TYPE_UNSUPPORTED: ErrorCode =
+        ErrorCode::new("oid4vci.credential_request_token_type_unsupported");
+    pub const INVALID_CREDENTIAL_REQUEST_BEARER_TOKEN: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_request_bearer_token");
+    pub const CREDENTIAL_REQUEST_PROOFS_REQUIRED: ErrorCode =
+        ErrorCode::new("oid4vci.credential_request_proofs_required");
+    pub const TOO_MANY_CREDENTIAL_REQUEST_PROOFS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_credential_request_proofs");
+    pub const CREDENTIAL_REQUEST_PROOF_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_request_proof_too_large");
+    pub const CREDENTIAL_REQUEST_AUTHORIZATION_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_request_authorization_too_large");
+    pub const CREDENTIAL_REQUEST_BODY_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_request_body_too_large");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -314,6 +334,16 @@ pub enum CredentialOfferError {
     InvalidCredentialNonceContentType,
     CredentialNonceCacheControlTooLarge,
     InvalidCredentialNonceCacheControl,
+    InvalidJwtCredentialRequestLimits,
+    CredentialRequestConfigurationMissing,
+    CredentialRequestAuthorizationDetailsUnsupported,
+    CredentialRequestTokenTypeUnsupported,
+    InvalidCredentialRequestBearerToken,
+    CredentialRequestProofsRequired,
+    TooManyCredentialRequestProofs,
+    CredentialRequestProofTooLarge,
+    CredentialRequestAuthorizationTooLarge,
+    CredentialRequestBodyTooLarge,
 }
 
 impl CredentialOfferError {
@@ -864,6 +894,56 @@ impl CredentialOfferError {
                 error_code::INVALID_CREDENTIAL_NONCE_CACHE_CONTROL,
                 ErrorKind::InvalidInput,
                 "OID4VCI Credential Nonce Cache-Control is invalid",
+            ),
+            Self::InvalidJwtCredentialRequestLimits => (
+                error_code::INVALID_JWT_CREDENTIAL_REQUEST_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI JWT Credential Request limits are invalid",
+            ),
+            Self::CredentialRequestConfigurationMissing => (
+                error_code::CREDENTIAL_REQUEST_CONFIGURATION_MISSING,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Request configuration is not offered",
+            ),
+            Self::CredentialRequestAuthorizationDetailsUnsupported => (
+                error_code::CREDENTIAL_REQUEST_AUTHORIZATION_DETAILS_UNSUPPORTED,
+                ErrorKind::Unsupported,
+                "OID4VCI Credential Request Authorization Details are unsupported",
+            ),
+            Self::CredentialRequestTokenTypeUnsupported => (
+                error_code::CREDENTIAL_REQUEST_TOKEN_TYPE_UNSUPPORTED,
+                ErrorKind::Unsupported,
+                "OID4VCI Credential Request token type is unsupported",
+            ),
+            Self::InvalidCredentialRequestBearerToken => (
+                error_code::INVALID_CREDENTIAL_REQUEST_BEARER_TOKEN,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Request Bearer token is invalid",
+            ),
+            Self::CredentialRequestProofsRequired => (
+                error_code::CREDENTIAL_REQUEST_PROOFS_REQUIRED,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Request requires JWT proofs",
+            ),
+            Self::TooManyCredentialRequestProofs => (
+                error_code::TOO_MANY_CREDENTIAL_REQUEST_PROOFS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Request has too many JWT proofs",
+            ),
+            Self::CredentialRequestProofTooLarge => (
+                error_code::CREDENTIAL_REQUEST_PROOF_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Request JWT proof is too large",
+            ),
+            Self::CredentialRequestAuthorizationTooLarge => (
+                error_code::CREDENTIAL_REQUEST_AUTHORIZATION_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Request Authorization value is too large",
+            ),
+            Self::CredentialRequestBodyTooLarge => (
+                error_code::CREDENTIAL_REQUEST_BODY_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Request body is too large",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

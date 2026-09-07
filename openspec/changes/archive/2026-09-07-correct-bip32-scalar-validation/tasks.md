@@ -26,5 +26,5 @@
       supported portable targets, deny, audit and complete Nix/factory gates
 - [x] 4.2 Perform distinct correctness/security review and record findings
 - [x] 4.3 Rebase onto `develop` after PR #181 merges, then rerun the focused gate
-- [ ] 4.4 Sync canonical spec, archive safely and prepare the signed/DCO
+- [x] 4.4 Sync canonical spec, archive safely and prepare the signed/DCO
       issue-linked PR packet; hosted CI/review and green-only merge remain PR evidence

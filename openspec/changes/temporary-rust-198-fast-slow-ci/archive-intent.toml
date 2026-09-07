@@ -1,0 +1,17 @@
+[[modified_requirement]]
+capability = "dependency-research-readiness"
+requirement = "Compiler-floor selection is phase-appropriate and measurable"
+canonical_sha256 = "d297de2144ee73ec9cc72912c2712a95d66a623c7001f09a026374fc3b27cdb1"
+reason = "Sponsor direction intentionally replaces independent lower-MSRV gating with one Rust 1.98.1 compiler during the temporary unpublished active-development phase."
+
+[[modified_requirement]]
+capability = "sdk-support-policy"
+requirement = "Temporary active-development compiler and CI lanes"
+canonical_sha256 = "f697227e8d268ee5dc6bb141777945625d7c952c8bd0236dc19c00e67659eb45"
+reason = "The prior three-compiler per-PR contract is intentionally replaced by one Rust 1.98.1 compiler plus fast pull-request and weekly/manual slow lanes."
+
+[[modified_requirement]]
+capability = "sdk-support-policy"
+requirement = "Supported feature surfaces are isolated"
+canonical_sha256 = "35e5a45a4bb87ce95d7881d219de3bcfa812f01d126993f1da883e0ffa2ff7b7"
+reason = "Feature isolation remains mandatory, but its exhaustive evidence intentionally moves from an independent lower-MSRV lane to weekly/manual slow validation on Rust 1.98.1."

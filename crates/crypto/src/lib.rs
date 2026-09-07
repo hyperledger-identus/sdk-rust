@@ -44,7 +44,7 @@ pub mod convert;
 
 pub mod crypto;
 
-#[cfg(feature = "derivation")]
+#[cfg(any(feature = "derivation", feature = "cardano-bip32"))]
 pub mod derivation;
 
 pub use enc::{EncodeArray, EncodeVec, Verifiable};
@@ -90,8 +90,12 @@ pub use crypto::secp256r1::{P256KeyPair, P256PrivateKey, P256PublicKey};
 #[cfg(feature = "x25519")]
 pub use crypto::x25519::{X25519KeyPair, X25519PrivateKey, X25519PublicKey};
 
+#[cfg(any(feature = "derivation", feature = "cardano-bip32"))]
+pub use derivation::path;
+#[cfg(feature = "cardano-bip32")]
+pub use derivation::{CardanoV2ExtendedPrivateKey, CardanoV2ExtendedPublicKey};
 #[cfg(feature = "derivation")]
-pub use derivation::{EdHDKey, HDKey, MnemonicHelper, path};
+pub use derivation::{EdHDKey, HDKey, MnemonicHelper};
 
 /// Metadata for the `identus-crypto` crate.
 pub const COMPONENT: Component = Component {

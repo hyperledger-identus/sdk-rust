@@ -122,6 +122,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "cryptoxide"
+version = "0.6.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8bb2a43afb0fd8b53101f79f153795c449ba80762361d8b868f4a75c6d03057"
+
+[[package]]
 name = "curve25519-dalek"
 version = "4.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -190,6 +196,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "115531babc129696a58c64a4fef0a8bf9e9698629fb97e9e40767d235cfbcd53"
 dependencies = [
  "signature",
+]
+
+[[package]]
+name = "ed25519-bip32"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10c212afef25445afd5cd3fc05941661b0473e681d7a39991b46c2821dbb9ba6"
+dependencies = [
+ "cryptoxide",
 ]
 
 [[package]]
@@ -404,6 +419,7 @@ version = "0.0.0"
 dependencies = [
  "base64",
  "coset",
+ "ed25519-bip32",
  "ed25519-dalek",
  "hex",
  "hmac",

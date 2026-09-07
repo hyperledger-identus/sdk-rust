@@ -747,6 +747,48 @@ impl Default for ImmediateCredentialResponseLimits {
     }
 }
 
+/// Resource limits for a caller-supplied immediate Credential HTTP response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ImmediateCredentialHttpResponseLimits {
+    response_limits: ImmediateCredentialResponseLimits,
+    max_content_type_bytes: usize,
+}
+
+impl ImmediateCredentialHttpResponseLimits {
+    /// Combine body limits with a positive Content-Type field-value bound.
+    pub const fn new(
+        response_limits: ImmediateCredentialResponseLimits,
+        max_content_type_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_content_type_bytes == 0 {
+            return Err(CredentialOfferError::InvalidImmediateCredentialHttpResponseLimits);
+        }
+        Ok(Self {
+            response_limits,
+            max_content_type_bytes,
+        })
+    }
+
+    /// Return the bounded immediate response-body policy.
+    pub const fn response_limits(self) -> ImmediateCredentialResponseLimits {
+        self.response_limits
+    }
+
+    /// Maximum bytes in the effective Content-Type field value.
+    pub const fn max_content_type_bytes(self) -> usize {
+        self.max_content_type_bytes
+    }
+}
+
+impl Default for ImmediateCredentialHttpResponseLimits {
+    fn default() -> Self {
+        Self {
+            response_limits: ImmediateCredentialResponseLimits::default(),
+            max_content_type_bytes: 1_024,
+        }
+    }
+}
+
 /// Resource limits for unsigned Credential Issuer Metadata.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialIssuerMetadataLimits {

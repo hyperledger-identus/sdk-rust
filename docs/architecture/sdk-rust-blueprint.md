@@ -445,6 +445,17 @@ metadata/provenance, request correlation, error/deferred/encrypted responses,
 format decoding and verification, issuer/schema/status trust, notifications,
 storage, chain extensions and product policy remain later layers.
 
+The seventeenth bounded delivery, issue #143, binds that immediate response to
+the originating configuration-ID/JWT-proof request. It requires exact HTTP
+status 200, a bounded RFC-shaped case-insensitive `application/json` effective
+media type, the existing bounded body parser, and the necessary
+`credential_count <= proof_count` upper bound. Status 202 remains explicitly
+unsupported and is classified before remote fields are inspected. The state
+does not claim HTTP execution or provenance, distinct proof keys,
+credential-to-key binding, format verification, trust, notification execution,
+storage or replay safety; error/deferred/encrypted responses remain later
+slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

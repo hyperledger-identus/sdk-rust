@@ -126,6 +126,7 @@ fn missing_different_ambiguous_and_malformed_media_types_fail_closed() {
         "application/json;=value",
         "application/json;charset =utf-8",
         "application/json;charset= utf-8",
+        "application/json;charset=utf-8;CHARSET=iso-8859-1",
         "application/json;charset=\"unterminated",
         "application/json;charset=\"bad\\\nvalue\"",
         "application/json\r\nX-Injected: value",

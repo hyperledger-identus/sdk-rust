@@ -1854,6 +1854,22 @@ in
         )
         self.assert_fails("must not declare the pull_request trigger")
 
+    def test_slow_lane_cannot_be_scheduled_daily(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            '    - cron: "23 2 * * 1"',
+            '    - cron: "23 2 * * *"',
+        )
+        self.assert_fails("must retain the pinned weekly schedule")
+
+    def test_fast_gate_selector_comment_is_not_evidence(self) -> None:
+        self.replace(
+            ".github/workflows/factory-contract.yml",
+            "            .#checks.x86_64-linux.rust-build \\\n",
+            "            # .#checks.x86_64-linux.rust-build \\\n",
+        )
+        self.assert_fails("is missing fast gate selector .#checks.x86_64-linux.rust-build")
+
     def test_fuzz_lane_cannot_return_to_pull_requests(self) -> None:
         self.replace(
             ".github/workflows/did-fuzz.yml",

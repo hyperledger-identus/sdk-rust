@@ -2410,6 +2410,28 @@ def validate_ci_lanes(
             failures.append(f"cannot read {field} {relative}: {error}")
             return "", relative
 
+    def trigger_block(workflow: str, trigger: str) -> str:
+        lines = workflow.splitlines()
+        start = next(
+            (
+                index
+                for index, line in enumerate(lines)
+                if re.fullmatch(rf"  {re.escape(trigger)}:\s*", line)
+            ),
+            None,
+        )
+        if start is None:
+            return ""
+        end = next(
+            (
+                index
+                for index in range(start + 1, len(lines))
+                if re.match(r"  \S", lines[index])
+            ),
+            len(lines),
+        )
+        return "\n".join(lines[start + 1 : end])
+
     fast, fast_path = workflow_text("fast_workflow")
     if fast:
         for trigger in ("pull_request", "push", "workflow_dispatch"):
@@ -2421,11 +2443,17 @@ def validate_ci_lanes(
             failures.append(f"{fast_path} workflow name must be fast")
         if re.search(r"^  fast:\s*$", fast, re.MULTILINE) is None:
             failures.append(f"{fast_path} must publish the fast job status")
+        for trigger in ("pull_request", "push"):
+            block = trigger_block(fast, trigger)
+            if re.search(r"^      - develop\s*$", block, re.MULTILINE) is None:
+                failures.append(f"{fast_path} {trigger} trigger must target develop")
         for gate in sorted(expected_fast_gates):
             selector = f".#checks.x86_64-linux.{gate}"
-            if selector not in fast:
+            if re.search(
+                rf"^\s+{re.escape(selector)}(?:\s+\\)?\s*$", fast, re.MULTILINE
+            ) is None:
                 failures.append(f"{fast_path} is missing fast gate selector {selector}")
-        if "nix flake check" in fast:
+        if re.search(r"^\s*run:\s*nix flake check\s*$", fast, re.MULTILINE):
             failures.append(f"{fast_path} must not run the exhaustive flake check")
 
     slow, slow_path = workflow_text("slow_workflow")
@@ -2438,17 +2466,20 @@ def validate_ci_lanes(
                 failures.append(f"{slow_path} must not declare the {trigger} trigger")
         if re.search(r"^name:\s*slow\s*$", slow, re.MULTILINE) is None:
             failures.append(f"{slow_path} workflow name must be slow")
-        if "nix flake check" not in slow:
+        if re.search(r"^\s*run:\s*nix flake check\s*$", slow, re.MULTILINE) is None:
             failures.append(f"{slow_path} must run the exhaustive nix flake check")
+        if '    - cron: "23 2 * * 1"' not in trigger_block(slow, "schedule"):
+            failures.append(f"{slow_path} must retain the pinned weekly schedule")
         for runner in ("ubuntu-latest", "macos-latest"):
             if runner not in slow:
                 failures.append(f"{slow_path} matrix is missing {runner}")
 
-    for relative_path in (
-        ".github/workflows/crypto-fuzz.yml",
-        ".github/workflows/did-fuzz.yml",
-        ".github/workflows/jws-fuzz.yml",
-    ):
+    fuzz_workflows = {
+        ".github/workflows/crypto-fuzz.yml": '    - cron: "41 3 * * 1"',
+        ".github/workflows/did-fuzz.yml": '    - cron: "17 3 * * 2"',
+        ".github/workflows/jws-fuzz.yml": '    - cron: "53 3 * * 3"',
+    }
+    for relative_path, expected_cron in fuzz_workflows.items():
         try:
             workflow = (root / relative_path).read_text(encoding="utf-8")
         except OSError as error:
@@ -2460,6 +2491,8 @@ def validate_ci_lanes(
         for trigger in ("pull_request", "push"):
             if re.search(rf"^  {trigger}:\s*$", workflow, re.MULTILINE):
                 failures.append(f"{relative_path} must not declare the {trigger} trigger")
+        if expected_cron not in trigger_block(workflow, "schedule"):
+            failures.append(f"{relative_path} must retain its pinned weekly schedule")
 
 
 def validate_hosts(

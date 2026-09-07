@@ -21,6 +21,11 @@ and update the ADR before integration.
 | impierce `openid4vc` production crates | `e9d99d21`; crates.io 0.1 placeholders | `publication-readiness`, `coupling` | Treat upstream as a read-only final-spec oracle. | Non-placeholder crates are published from a pinned release without git patches and expose a narrow core surface. |
 | OWF `sd-jwt-rs` | 0.7.1 / `146546cc` | `draft-version` | Implement RFC 9901 behind Identus credential/presentation states. | A published release explicitly implements RFC 9901 and passes the RFC vectors and SDK negative cases. |
 | `didcomm` | 0.4.1 / `4388350d` | `maintenance`, `draft-version`, `dependency-cone` | No DIDComm runtime dependency; keep IDR-041 conditional. | An actively maintained release targets DIDComm 2.1, passes current vectors and removes stale git/native dependencies. |
+| Procivis ONE Core | `e66ec8c5` | `coupling`, `dependency-cone`, `publication-readiness` | Identus-owned components; use ONE Core as a capability oracle. | A cohesive published component is isolated from application, transport, database, runtime and product policy. |
+| DIF `did-key.rs` | 0.2.1 / `eb00da60` | `maintenance`, `dependency-cone` | Identus-owned method adapter; use behavior and vectors as an oracle. | A maintained release modernizes cryptography and proves exact key-family plus SDK target parity. |
+| AnonCreds v2 Rust | `691297a7` | `publication-readiness`, `draft-version`, `native-unsafe` | Keep the capability uncommitted; monitor research and profiles. | A stable interoperability profile, reviewed release, vectors, declared Rust floor and mobile/WASM evidence exist. |
+| OWF VCX | 0.68.0 / `5fa3cd50` | `coupling`, `dependency-cone`, `publication-readiness` | Use Aries/AATH state-machine behavior as an oracle. | One unique cohesive component is isolated from the unpublished wallet/runtime/VDR graph. |
+| Spruce DIDKit | `57a3b451` | `maintenance`, `coupling` | Evaluate maintained underlying Spruce SSI crates directly. | The repository is maintained and unarchived with unique value absent from its underlying libraries. |
 | RustCrypto `jose-jwk` | 0.1.2 / `0a9a98a9` | `publication-readiness`, `coupling`, `low-payoff` | Identus JWK facade; use as a differential oracle. | API maturity and operation coverage remove local risky mechanics without exporting crate types. |
 
 ## Conditional rather than rejected
@@ -35,6 +40,8 @@ dependencies until their named prerequisite is satisfied:
 | `isomdl 0.2.0` | [#161](https://github.com/hyperledger-identus/sdk-rust/issues/161): a spike isolates holder/verifier core from CLI, RNG, X.509 and transport choices and measures all target/cone costs. |
 | `oauth2 5.0.0` | [#160](https://github.com/hyperledger-identus/sdk-rust/issues/160): a spike proves authorization-code/PKCE reuse without importing HTTP clients, clock, URL or token policy into protocol domain crates. |
 | `aries-askar` | [#162](https://github.com/hyperledger-identus/sdk-rust/issues/162): an optional adapter proves storage-port fit, cancellation/concurrency, migrations, secret redaction, platform linking and a no-database core boundary. |
+| selected Spruce SSI crates | [ADR 0066](../../adr/0066-conditionally-adopt-narrow-spruce-ssi-crates.md): a named crate passes exact-profile, effective Rust/toolchain, dependency-cone, target, security and facade-isolation gates; the umbrella remains prohibited. |
+| `anoncreds-rs` | [ADR 0073](../../adr/0073-conditionally-adopt-anoncreds-rs.md): IDR-050 is activated and a focused optional adapter proves native/mobile, OpenSSL, unsafe, secret, VDR and conformance boundaries. |
 | `uniffi 0.32.0` | [#163](https://github.com/hyperledger-identus/sdk-rust/issues/163): binding value/opaque-handle/error contracts stabilize and native runtime tests exist; UniFFI stays out of generic core crates. |
 
 Reason codes are deliberately finite: `MSRV`, `dependency-cone`,

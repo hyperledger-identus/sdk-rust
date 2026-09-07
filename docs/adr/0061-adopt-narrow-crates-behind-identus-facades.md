@@ -70,6 +70,14 @@ are maintained in the [not-adopted ledger](../research/rust-library-reuse/not-ad
 and [#164](https://github.com/hyperledger-identus/sdk-rust/issues/164) owns the
 first dev-only oracle harness.
 
+The [repository portfolio](../research/rust-library-reuse/repository-portfolio.md)
+and ADRs 0066 through 0077 refine this rule for twelve SSI repositories. ADR
+0066 supersedes the Spruce-specific oracle-only sentence above for a named
+narrow crate while leaving the `ssi` umbrella prohibited. A
+repository-level `conditional-adopt` permits evaluation of one narrow crate or
+optional adapter; it does not approve an umbrella framework or supersede the
+evidence requirements in this ADR.
+
 ADR 0008 remains in force. A `did_url_parser` spike may propose superseding its
 self-contained parser decision only after full syntax/error/target parity is
 demonstrated. This ADR does not silently change already published behavior.

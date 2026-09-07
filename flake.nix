@@ -9,6 +9,9 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     devshell.url = "github:numtide/devshell";
     rust-overlay.url = "github:oxalica/rust-overlay";
+    # Current stable validation is independent from NeoPRISM's historical
+    # nightly overlay pin. Keep both inputs explicit and lock-reviewed.
+    stable-rust-overlay.url = "github:oxalica/rust-overlay/ca7f624be3935a5bc46d2c240515491ab8675503";
     crane.url = "github:ipetkov/crane";
     advisory-db = {
       url = "github:rustsec/advisory-db";
@@ -22,6 +25,7 @@
       flake-parts,
       nixpkgs,
       rust-overlay,
+      stable-rust-overlay,
       ...
     }:
     flake-parts.lib.mkFlake { inherit inputs; } {
@@ -41,9 +45,15 @@
       perSystem =
         { system, ... }:
         {
-          _module.args.pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ (import rust-overlay) ];
+          _module.args = {
+            pkgs = import nixpkgs {
+              inherit system;
+              overlays = [ (import rust-overlay) ];
+            };
+            stablePkgs = import nixpkgs {
+              inherit system;
+              overlays = [ (import stable-rust-overlay) ];
+            };
           };
         };
     };

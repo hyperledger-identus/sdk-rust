@@ -66,6 +66,10 @@ class SupportPolicyTests(unittest.TestCase):
             "flake.lock",
             "docs/architecture/sdk-support-policy.toml",
             "docs/adr/0002-neoprism-toolchain-alignment.md",
+            ".github/workflows/crypto-fuzz.yml",
+            ".github/workflows/did-fuzz.yml",
+            ".github/workflows/jws-fuzz.yml",
+            "nix/devshells/default.nix",
             "nix/rust-toolchain.nix",
         ]:
             destination = self.fixture / relative
@@ -137,6 +141,57 @@ class SupportPolicyTests(unittest.TestCase):
     def test_cargo_msrv_drift_fails(self) -> None:
         self.replace("Cargo.toml", 'rust-version = "1.85.0"', 'rust-version = "1.86.0"')
         self.assert_fails("does not match policy MSRV")
+
+    def test_primary_stable_drift_fails(self) -> None:
+        self.replace(
+            "docs/architecture/sdk-support-policy.toml",
+            'primary                      = "1.98.1"',
+            'primary                      = "1.98.0"',
+        )
+        self.assert_fails("toolchains.primary must be 1.98.1")
+
+    def test_stable_overlay_lock_drift_fails(self) -> None:
+        self.replace(
+            "flake.lock",
+            "ca7f624be3935a5bc46d2c240515491ab8675503",
+            "da7f624be3935a5bc46d2c240515491ab8675503",
+        )
+        self.assert_fails("stable-rust-overlay lock revision")
+
+    def test_etalon_gate_cannot_use_primary_provider(self) -> None:
+        self.replace_gate(
+            "rust-etalon", 'toolchain = "etalon"', 'toolchain = "primary"'
+        )
+        self.assert_fails("not built with the etalon toolchain")
+
+    def test_primary_gate_cannot_use_etalon_artifacts(self) -> None:
+        self.replace_gate("rust-test", 'artifacts = "primary"', 'artifacts = "etalon"')
+        self.assert_fails("artifacts must match its toolchain")
+
+    def test_primary_gate_cannot_move_wholly_to_etalon(self) -> None:
+        self.replace_gate("rust-test", 'toolchain = "primary"', 'toolchain = "etalon"')
+        self.replace_gate("rust-test", 'artifacts = "primary"', 'artifacts = "etalon"')
+        self.assert_fails("gate rust-test must use primary toolchain")
+
+    def test_etalon_gate_must_cover_locked_all_feature_workspace(self) -> None:
+        self.replace_gate("rust-etalon", "all_features = true", "all_features = false")
+        self.assert_fails("etalon policy gate rust-etalon selects packages")
+
+    def test_fuzz_shell_cannot_use_primary_toolchain(self) -> None:
+        self.replace(
+            "nix/devshells/default.nix",
+            "          etalonToolchain\n          stdenv.cc",
+            "          toolchain\n          stdenv.cc",
+        )
+        self.assert_fails("must bind the dedicated fuzz shell to etalonToolchain")
+
+    def test_fuzz_workflow_cannot_use_primary_shell(self) -> None:
+        self.replace(
+            ".github/workflows/crypto-fuzz.yml",
+            "nix develop .#fuzz --command ./scripts/fuzz-crypto.sh smoke all",
+            "nix develop --command ./scripts/fuzz-crypto.sh smoke all",
+        )
+        self.assert_fails("must run scripts/fuzz-crypto.sh through the dedicated fuzz shell")
 
     def test_missing_dimension_fails(self) -> None:
         self.replace(
@@ -1026,8 +1081,10 @@ in {
         self.replace(
             "nix/rust-toolchain.nix",
             """      pkgs,
+      stablePkgs,
       ...""",
             """      pkgs,
+      stablePkgs,
       checks,
       ...""",
         )
@@ -1145,13 +1202,13 @@ in {
     def test_crane_input_cannot_be_shadowed_in_toolchain_scope(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",
-            "      toolchain = pkgs.rust-bin.nightly",
+            "      toolchain = stablePkgs.rust-bin.stable",
             """      inputs = {
         crane.mkLib = _: {
           overrideToolchain = _: { };
         };
       };
-      toolchain = pkgs.rust-bin.nightly""",
+      toolchain = stablePkgs.rust-bin.stable""",
         )
         self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
         self.assert_fails("does not bind canonical Crane providers")
@@ -1159,13 +1216,13 @@ in {
     def test_indented_interpolated_input_binding_cannot_shadow_formal(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",
-            "      toolchain = pkgs.rust-bin.nightly",
+            "      toolchain = stablePkgs.rust-bin.stable",
             """      ''${"inputs"}'' = {
         crane.mkLib = _: {
           overrideToolchain = _: { };
         };
       };
-      toolchain = pkgs.rust-bin.nightly""",
+      toolchain = stablePkgs.rust-bin.stable""",
         )
         self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
         self.assert_fails("does not bind canonical Crane providers")
@@ -1173,14 +1230,14 @@ in {
     def test_indented_layout_input_binding_cannot_shadow_formal(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",
-            "      toolchain = pkgs.rust-bin.nightly",
+            "      toolchain = stablePkgs.rust-bin.stable",
             """      ''
         inputs'' = {
         crane.mkLib = _: {
           overrideToolchain = _: { };
         };
       };
-      toolchain = pkgs.rust-bin.nightly""",
+      toolchain = stablePkgs.rust-bin.stable""",
         )
         self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
         self.assert_fails("does not bind canonical Crane providers")
@@ -1252,24 +1309,25 @@ in {
     def test_wrapped_pkgs_provider_cannot_replace_library_helper(self) -> None:
         self.replace(
             "flake.nix",
-            """          _module.args.pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ (import rust-overlay) ];
-          };""",
-            """          _module.args.pkgs =
-            let
-              originalPkgs = import nixpkgs {
-                inherit system;
-                overlays = [ (import rust-overlay) ];
-              };
-            in
-            originalPkgs // {
-              lib = originalPkgs.lib // {
-                map = function: values: [ (function (builtins.head values)) ];
+            """            pkgs = import nixpkgs {
+              inherit system;
+              overlays = [ (import rust-overlay) ];
+            };""",
+            """            pkgs =
+              let
+                originalPkgs = import nixpkgs {
+                  inherit system;
+                  overlays = [ (import rust-overlay) ];
+                };
+              in
+              originalPkgs // {
+                lib = originalPkgs.lib // {
+                  map = function: values: [ (function (builtins.head values)) ];
+                };
               };
             };""",
         )
-        self.assert_fails("flake.nix does not provide canonical pkgs to perSystem")
+        self.assert_fails("flake.nix")
 
     def test_nested_provider_decoy_cannot_validate_mutated_root_provider(self) -> None:
         self.replace(
@@ -1277,9 +1335,15 @@ in {
             """      perSystem =
         { system, ... }:
         {
-          _module.args.pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ (import rust-overlay) ];
+          _module.args = {
+            pkgs = import nixpkgs {
+              inherit system;
+              overlays = [ (import rust-overlay) ];
+            };
+            stablePkgs = import nixpkgs {
+              inherit system;
+              overlays = [ (import stable-rust-overlay) ];
+            };
           };
         };""",
             """      perSystem =
@@ -1291,9 +1355,15 @@ in {
           };
         in
         {
-          _module.args.pkgs = originalPkgs // {
-            lib = originalPkgs.lib // {
-              map = function: values: [ (function (builtins.head values)) ];
+          _module.args = {
+            pkgs = originalPkgs // {
+              lib = originalPkgs.lib // {
+                map = function: values: [ (function (builtins.head values)) ];
+              };
+            };
+            stablePkgs = import nixpkgs {
+              inherit system;
+              overlays = [ (import stable-rust-overlay) ];
             };
           };
         };
@@ -1302,9 +1372,15 @@ in {
         perSystem =
           { system, ... }:
           {
-            _module.args.pkgs = import nixpkgs {
-              inherit system;
-              overlays = [ (import rust-overlay) ];
+            _module.args = {
+              pkgs = import nixpkgs {
+                inherit system;
+                overlays = [ (import rust-overlay) ];
+              };
+              stablePkgs = import nixpkgs {
+                inherit system;
+                overlays = [ (import stable-rust-overlay) ];
+              };
             };
           };
       };""",
@@ -1506,9 +1582,9 @@ in
     def test_indented_control_escape_protected_name_fails_closed(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",
-            "      toolchain = pkgs.rust-bin.nightly",
+            "      toolchain = stablePkgs.rust-bin.stable",
             r"""      ''input''\s'' = { crane.mkLib = _: { overrideToolchain = _: { }; }; };
-      toolchain = pkgs.rust-bin.nightly""",
+      toolchain = stablePkgs.rust-bin.stable""",
         )
         self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
         self.assert_fails("local Nix module graph uses computed attributes")
@@ -1782,9 +1858,9 @@ in
     def test_compound_enum_fields_fail_without_traceback(self) -> None:
         for field, value in (
             ("operation", "cargoBuild"),
-            ("toolchain", "etalon"),
+            ("toolchain", "primary"),
             ("source", "rust"),
-            ("artifacts", "etalon"),
+            ("artifacts", "primary"),
         ):
             self.replace_gate(
                 "rust-build-wasm32",

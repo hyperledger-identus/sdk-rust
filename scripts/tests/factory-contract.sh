@@ -45,6 +45,7 @@ required_files=(
   docs/adr/0003-delegate-develop-integration.md
   docs/adr/0062-use-a-rolling-near-current-msrv.md
   docs/adr/0063-make-material-constraints-explicit.md
+  docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   openspec/config.yaml
@@ -76,7 +77,7 @@ required_files=(
 for relative_path in "${required_files[@]}"; do
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
   case "$relative_path" in
-    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-rust-blueprint.md | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/factory/research-readiness.md | docs/governance/constraints-and-limitations.md | docs/governance/repository-settings.md | docs/governance/sdk-constraints.toml | docs/adr/0001-bootstrap-branch-selection.md | docs/adr/0003-delegate-develop-integration.md | docs/adr/0062-use-a-rolling-near-current-msrv.md | docs/adr/0063-make-material-constraints-explicit.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | nix/checks/gates.toml | nix/checks/rust-gates.nix | scripts/benchmark-support-policy.py | scripts/check-bootstrap-inventory.py | scripts/check-constraints.py | scripts/check-openspec-archive.py | scripts/check-research-readiness.py | scripts/factory | scripts/check-support-policy.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/constraints.py | scripts/tests/openspec-archive.py | scripts/tests/research-readiness.py | scripts/tests/support-policy.py)
+    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-rust-blueprint.md | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/factory/research-readiness.md | docs/governance/constraints-and-limitations.md | docs/governance/repository-settings.md | docs/governance/sdk-constraints.toml | docs/adr/0001-bootstrap-branch-selection.md | docs/adr/0003-delegate-develop-integration.md | docs/adr/0062-use-a-rolling-near-current-msrv.md | docs/adr/0063-make-material-constraints-explicit.md | docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | nix/checks/gates.toml | nix/checks/rust-gates.nix | scripts/benchmark-support-policy.py | scripts/check-bootstrap-inventory.py | scripts/check-constraints.py | scripts/check-openspec-archive.py | scripts/check-research-readiness.py | scripts/factory | scripts/check-support-policy.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/constraints.py | scripts/tests/openspec-archive.py | scripts/tests/research-readiness.py | scripts/tests/support-policy.py)
       cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
       ;;
     *)
@@ -103,6 +104,12 @@ chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh
 
 for relative_path in Cargo.toml flake.nix flake.lock \
   docs/adr/0002-neoprism-toolchain-alignment.md nix/rust-toolchain.nix; do
+  mkdir -p "$fixture_root/$(dirname "$relative_path")"
+  cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
+done
+for relative_path in .github/workflows/crypto-fuzz.yml \
+  .github/workflows/did-fuzz.yml .github/workflows/jws-fuzz.yml \
+  nix/devshells/default.nix; do
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
   cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
 done

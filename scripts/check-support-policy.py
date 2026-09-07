@@ -943,6 +943,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         'nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";',
         'devshell.url = "github:numtide/devshell";',
         'rust-overlay.url = "github:oxalica/rust-overlay";',
+        'stable-rust-overlay.url = "github:oxalica/rust-overlay/ca7f624be3935a5bc46d2c240515491ab8675503";',
         'crane.url = "github:ipetkov/crane";',
         compact_statement(
             """advisory-db = {
@@ -967,6 +968,11 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         },
         "devshell": {"owner": "numtide", "repo": "devshell"},
         "rust-overlay": {"owner": "oxalica", "repo": "rust-overlay"},
+        "stable-rust-overlay": {
+            "owner": "oxalica",
+            "repo": "rust-overlay",
+            "rev": "ca7f624be3935a5bc46d2c240515491ab8675503",
+        },
         "crane": {"owner": "ipetkov", "repo": "crane"},
         "advisory-db": {"owner": "rustsec", "repo": "advisory-db"},
         "openspec": {"owner": "Fission-AI", "repo": "OpenSpec"},
@@ -983,6 +989,13 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             }
         },
         "rust-overlay": {
+            "nixpkgs": {
+                "owner": "NixOS",
+                "repo": "nixpkgs",
+                "ref": "nixpkgs-unstable",
+            }
+        },
+        "stable-rust-overlay": {
             "nixpkgs": {
                 "owner": "NixOS",
                 "repo": "nixpkgs",
@@ -1072,7 +1085,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         failures.append("flake.lock does not bind canonical trusted inputs")
     canonical_outputs = re.search(
         r"\boutputs\s*=\s*inputs\s*@\s*\{\s*flake-parts\s*,\s*"
-        r"nixpkgs\s*,\s*rust-overlay\s*,\s*\.\.\.\s*\}\s*:\s*"
+        r"nixpkgs\s*,\s*rust-overlay\s*,\s*stable-rust-overlay\s*,\s*\.\.\.\s*\}\s*:\s*"
         r"flake-parts\.lib\.mkFlake\b",
         flake_masked,
         re.DOTALL,
@@ -1187,7 +1200,14 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
                 for path in sorted(unresolved_import_modules)
             )
         )
-    protected_providers = ("craneLib", "msrvCraneLib", "msrvToolchain", "toolchain")
+    protected_providers = (
+        "craneLib",
+        "etalonCraneLib",
+        "etalonToolchain",
+        "msrvCraneLib",
+        "msrvToolchain",
+        "toolchain",
+    )
     competing_provider_modules = sorted(
         str(path.relative_to(repository_root))
         for path in local_module_graph
@@ -1300,10 +1320,12 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
 
     provider_pattern = (
         r"\s*perSystem\s*=\s*\{\s*system\s*,\s*\.\.\.\s*\}\s*:\s*\{\s*"
-        r"_module\.args\.pkgs\s*=\s*import\s+nixpkgs\s*\{\s*"
-        r"inherit\s+system\s*;\s*overlays\s*=\s*\[\s*"
-        r"\(\s*import\s+rust-overlay\s*\)\s*\]\s*;\s*\}\s*;\s*"
-        r"\}\s*;\s*"
+        r"_module\.args\s*=\s*\{\s*"
+        r"pkgs\s*=\s*import\s+nixpkgs\s*\{\s*inherit\s+system\s*;\s*"
+        r"overlays\s*=\s*\[\s*\(\s*import\s+rust-overlay\s*\)\s*\]\s*;\s*\}\s*;\s*"
+        r"stablePkgs\s*=\s*import\s+nixpkgs\s*\{\s*inherit\s+system\s*;\s*"
+        r"overlays\s*=\s*\[\s*\(\s*import\s+stable-rust-overlay\s*\)\s*\]\s*;\s*\}\s*;\s*"
+        r"\}\s*;\s*\}\s*;\s*"
     )
     provider_statements = [
         statement
@@ -1359,8 +1381,10 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
     expected_formals = {
         "pkgs",
         "craneLib",
+        "etalonCraneLib",
         "msrvCraneLib",
         "cargoArtifacts",
+        "etalonCargoArtifacts",
         "msrvCargoArtifacts",
         "rustSrc",
         "...",
@@ -1378,8 +1402,10 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             "pkgs",
             "inputs",
             "craneLib",
+            "etalonCraneLib",
             "msrvCraneLib",
             "cargoArtifacts",
+            "etalonCargoArtifacts",
             "msrvCargoArtifacts",
             "rustSrc",
         )
@@ -1485,10 +1511,22 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             "makeGate =\n"
             "        gate:\n"
             "        let\n"
-            '          selectedCrane = if gate.toolchain == "msrv" then msrvCraneLib else craneLib;\n'
+            "          selectedCrane =\n"
+            '            if gate.toolchain == "primary" then\n'
+            "              craneLib\n"
+            '            else if gate.toolchain == "etalon" then\n'
+            "              etalonCraneLib\n"
+            "            else\n"
+            "              msrvCraneLib;\n"
             "          operation = getAttr gate.operation selectedCrane;\n"
             "          argumentAttribute = cargoArgumentAttribute.${gate.operation} or null;\n"
-            '          selectedArtifacts = if gate.artifacts == "msrv" then msrvCargoArtifacts else cargoArtifacts;\n'
+            "          selectedArtifacts =\n"
+            '            if gate.artifacts == "primary" then\n'
+            "              cargoArtifacts\n"
+            '            else if gate.artifacts == "etalon" then\n'
+            "              etalonCargoArtifacts\n"
+            "            else\n"
+            "              msrvCargoArtifacts;\n"
             "        in\n"
             "        operation (\n"
             "          {\n"
@@ -1639,7 +1677,11 @@ def load_gate_manifest(
             operation = ""
         gate["operation"] = operation
         toolchain = gate.get("toolchain")
-        if not isinstance(toolchain, str) or toolchain not in {"etalon", "msrv"}:
+        if not isinstance(toolchain, str) or toolchain not in {
+            "primary",
+            "etalon",
+            "msrv",
+        }:
             failures.append(f"gate {name} has invalid toolchain {toolchain!r}")
             toolchain = ""
         gate["toolchain"] = toolchain
@@ -1651,6 +1693,7 @@ def load_gate_manifest(
         artifacts = gate.get("artifacts")
         if not isinstance(artifacts, str) or artifacts not in {
             "none",
+            "primary",
             "etalon",
             "msrv",
         }:
@@ -1778,6 +1821,10 @@ def load_gate_manifest(
             failures.append(f"gate {name} etalon toolchain cannot use MSRV artifacts")
         if gate.get("artifacts") == "etalon" and gate.get("toolchain") != "etalon":
             failures.append(f"gate {name} etalon artifacts require etalon toolchain")
+        if gate.get("toolchain") == "primary" and gate.get("artifacts") == "msrv":
+            failures.append(f"gate {name} primary toolchain cannot use MSRV artifacts")
+        if gate.get("artifacts") == "primary" and gate.get("toolchain") != "primary":
+            failures.append(f"gate {name} primary artifacts require primary toolchain")
 
         for feature in features:
             package_name, separator, feature_name = feature.partition("/")
@@ -1884,6 +1931,18 @@ def validate_gate_operations(
             failures.append(
                 f"gate {gate} uses Crane operation {definition.get('operation')}, "
                 f"expected {operations[gate]} in {GATE_MANIFEST_PATH}"
+            )
+        expected_toolchain = (
+            "msrv"
+            if gate.startswith("rust-msrv")
+            else "etalon"
+            if gate == "rust-etalon"
+            else "primary"
+        )
+        if definition.get("toolchain") != expected_toolchain:
+            failures.append(
+                f"gate {gate} must use {expected_toolchain} toolchain, "
+                f"found {definition.get('toolchain')!r}"
             )
 
 
@@ -1996,10 +2055,14 @@ def validate_toolchains(
     toolchains = require_table(policy, "toolchains", failures)
     expected = {
         "msrv": "1.85.0",
+        "primary": "1.98.1",
         "etalon": "nightly-2026-03-18",
+        "fuzz": "etalon",
+        "msrv_candidate": "1.89.0",
         "neoprism_revision": "8becb225132efb1d9302b2c5f6ed4d87b84e8685",
         "nixpkgs_revision": "c27cdad491a991b11ed731760aa2ef8db0cb0410",
         "rust_overlay_revision": "f17186f52e82ec5cf40920b58eac63b78692ac7c",
+        "stable_rust_overlay_revision": "ca7f624be3935a5bc46d2c240515491ab8675503",
         "nix_version": "2.34.8",
     }
     for field, expected_value in expected.items():
@@ -2046,18 +2109,30 @@ def validate_toolchains(
         return re.sub(r"\s+", " ", value).strip()
 
     etalon_date = str(toolchains.get("etalon", "")).removeprefix("nightly-")
+    primary = str(toolchains.get("primary", ""))
     expected_toolchain_statements = {
         compact(
-            f'''toolchain = pkgs.rust-bin.nightly."{etalon_date}".default.override {{
+            f"""toolchain = stablePkgs.rust-bin.stable."{primary}".default.override {{
               extensions = [ "rust-src" "rust-analyzer" ];
               targets = [
                 "aarch64-apple-ios"
                 "aarch64-linux-android"
                 "wasm32-unknown-unknown"
               ];
-            }};'''
+            }};"""
+        ),
+        compact(
+            f"""etalonToolchain = pkgs.rust-bin.nightly."{etalon_date}".default.override {{
+              extensions = [ "rust-src" "rust-analyzer" ];
+              targets = [
+                "aarch64-apple-ios"
+                "aarch64-linux-android"
+                "wasm32-unknown-unknown"
+              ];
+            }};"""
         ),
         "craneLib = (inputs.crane.mkLib pkgs).overrideToolchain toolchain;",
+        "etalonCraneLib = (inputs.crane.mkLib pkgs).overrideToolchain etalonToolchain;",
         f'msrvToolchain = pkgs.rust-bin.stable."{toolchains.get("msrv", "")}".minimal;',
         "msrvCraneLib = (inputs.crane.mkLib pkgs).overrideToolchain msrvToolchain;",
     }
@@ -2066,6 +2141,8 @@ def validate_toolchains(
         "pkgs",
         "toolchain",
         "craneLib",
+        "etalonToolchain",
+        "etalonCraneLib",
         "msrvToolchain",
         "msrvCraneLib",
     )
@@ -2078,7 +2155,7 @@ def validate_toolchains(
     }
     expected_provider_publication = compact(
         """{
-          inherit craneLib msrvCraneLib msrvToolchain toolchain ;
+          inherit craneLib etalonCraneLib etalonToolchain msrvCraneLib msrvToolchain toolchain ;
         };"""
     )
     result_statements: list[str] | None = None
@@ -2102,7 +2179,7 @@ def validate_toolchains(
     direct_provider_overrides = any(
         re.match(
             r"\s*_module\.args\."
-            r"(?:craneLib|msrvCraneLib|msrvToolchain|toolchain)\s*=",
+            r"(?:craneLib|etalonCraneLib|etalonToolchain|msrvCraneLib|msrvToolchain|toolchain)\s*=",
             statement,
         )
         is not None
@@ -2118,12 +2195,13 @@ def validate_toolchains(
         or len(result_statements or ()) != 1
         or provider_publications != {expected_provider_publication}
         or direct_provider_overrides
-        or toolchain_formals != {"pkgs", "..."}
+        or toolchain_formals != {"pkgs", "stablePkgs", "..."}
     ):
         failures.append(
             "nix/rust-toolchain.nix does not bind canonical Crane providers"
         )
     for token in [
+        f'stable."{toolchains.get("primary", "")}"',
         f'nightly."{str(toolchains.get("etalon", "")).removeprefix("nightly-")}"',
         f'stable."{toolchains.get("msrv", "")}"',
     ]:
@@ -2146,6 +2224,53 @@ def validate_toolchains(
         failures.append(
             "nix/rust-toolchain.nix does not wire msrvCraneLib to msrvToolchain"
         )
+
+    fuzz_shell_path = root / "nix/devshells/default.nix"
+    try:
+        fuzz_shell = nix_without_comments(fuzz_shell_path.read_text(encoding="utf-8"))
+    except OSError as error:
+        failures.append(f"cannot read dedicated fuzz shell: {error}")
+        fuzz_shell = ""
+    fuzz_shell_match = re.search(
+        r"devshells\.fuzz\s*=\s*\{.*?packages\s*=\s*with\s+pkgs\s*;\s*"
+        r"\[(.*?)\]\s*;",
+        fuzz_shell,
+        re.DOTALL,
+    )
+    fuzz_packages = fuzz_shell_match.group(1) if fuzz_shell_match else ""
+    if (
+        fuzz_shell_match is None
+        or re.search(r"\betalonToolchain\b", fuzz_packages) is None
+        or re.search(r"\bcargo-fuzz\b", fuzz_packages) is None
+        or re.search(r"\btoolchain\b", fuzz_packages) is not None
+    ):
+        failures.append(
+            "nix/devshells/default.nix must bind the dedicated fuzz shell to "
+            "etalonToolchain and cargo-fuzz"
+        )
+
+    fuzz_workflows = {
+        ".github/workflows/crypto-fuzz.yml": "scripts/fuzz-crypto.sh",
+        ".github/workflows/did-fuzz.yml": "scripts/fuzz-did.sh",
+        ".github/workflows/jws-fuzz.yml": "scripts/fuzz-jws.sh",
+    }
+    for relative_path, script in fuzz_workflows.items():
+        try:
+            workflow = (root / relative_path).read_text(encoding="utf-8")
+        except OSError as error:
+            failures.append(f"cannot read fuzz workflow {relative_path}: {error}")
+            continue
+        script_commands = [
+            line.strip()
+            for line in workflow.splitlines()
+            if line.strip().startswith("run:") and script in line
+        ]
+        if not script_commands or any(
+            "nix develop .#fuzz --command" not in line for line in script_commands
+        ):
+            failures.append(
+                f"{relative_path} must run {script} through the dedicated fuzz shell"
+            )
 
     for target, tier in REQUIRED_TARGETS.items():
         if tier == "compile-checked" and f'"{target}"' not in rust_nix:
@@ -2170,11 +2295,16 @@ def validate_toolchains(
         root_inputs = nodes["root"]["inputs"]
         nixpkgs_rev = nodes[root_inputs["nixpkgs"]]["locked"]["rev"]
         overlay_rev = nodes[root_inputs["rust-overlay"]]["locked"]["rev"]
+        stable_overlay_rev = nodes[root_inputs["stable-rust-overlay"]]["locked"]["rev"]
         if nixpkgs_rev != toolchains.get("nixpkgs_revision"):
             failures.append("root nixpkgs lock revision does not match support policy")
         if overlay_rev != toolchains.get("rust_overlay_revision"):
             failures.append(
                 "root rust-overlay lock revision does not match support policy"
+            )
+        if stable_overlay_rev != toolchains.get("stable_rust_overlay_revision"):
+            failures.append(
+                "root stable-rust-overlay lock revision does not match support policy"
             )
     except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
         failures.append(f"cannot validate flake.lock root inputs: {error}")
@@ -2188,6 +2318,32 @@ def validate_toolchains(
             failures.append(f"ADR 0002 does not record policy {field} {value}")
 
     validate_gate("rust-msrv", "", gates, "MSRV policy", failures)
+    validate_gate("rust-etalon", "", gates, "etalon policy", failures)
+    if gates.get("rust-etalon", {}).get("toolchain") != "etalon":
+        failures.append(
+            "etalon policy gate rust-etalon is not built with the etalon toolchain"
+        )
+    declared_workspace, _ = workspace_packages(root, cargo, failures)
+    validate_gate_cargo_selection(
+        "rust-etalon",
+        declared_workspace,
+        True,
+        False,
+        {"<all-features>"},
+        None,
+        declared_workspace,
+        gates,
+        "etalon policy",
+        failures,
+    )
+    etalon_gate = gates.get("rust-etalon", {})
+    if (
+        etalon_gate.get("locked") is not True
+        or etalon_gate.get("all_targets") is not True
+    ):
+        failures.append(
+            "etalon policy gate rust-etalon must be locked and select all targets"
+        )
 
 
 def validate_hosts(

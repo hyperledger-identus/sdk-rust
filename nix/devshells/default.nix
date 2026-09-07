@@ -2,6 +2,7 @@
   perSystem =
     {
       pkgs,
+      etalonToolchain,
       toolchain,
       inputs',
       ...
@@ -71,6 +72,39 @@
           {
             name = "OPENSPEC_TELEMETRY";
             value = "0";
+          }
+        ]
+        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+          {
+            name = "LIBRARY_PATH";
+            value = "${pkgs.libiconv}/lib";
+          }
+        ];
+      };
+
+      # libFuzzer's sanitizer instrumentation uses nightly-only compiler
+      # options. Keep that operational exception explicit and pinned to the
+      # NeoPRISM etalon instead of weakening the stable default shell.
+      devshells.fuzz = {
+        devshell.name = "sdk-rust-fuzz";
+
+        packages = with pkgs; [
+          etalonToolchain
+          stdenv.cc
+          pkg-config
+          openssl
+          cargo-fuzz
+          cacert
+        ];
+
+        env = [
+          {
+            name = "SSL_CERT_FILE";
+            value = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+          }
+          {
+            name = "LANG";
+            value = "C.utf8";
           }
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [

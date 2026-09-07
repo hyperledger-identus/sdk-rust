@@ -181,8 +181,9 @@ must run the repository's Nix, MSRV, feature and target gates after integration.
 
 The current locked SDK graph has 94 external packages: 73 declare a
 `rust-version` and 21 do not. The absence of a declaration is therefore not
-evidence of compatibility. This is why ADR 0062 chooses a tested rolling floor
-instead of calculating an unreliable ecosystem “average.”
+evidence of compatibility. ADR 0064 supersedes ADR 0062 and uses these probes
+to select Rust 1.89 as the next evidence-gated candidate while leaving Rust
+1.85 effective, rather than calculating an unreliable ecosystem “average.”
 
 ## Security and maintenance evidence
 
@@ -240,9 +241,9 @@ separate from the final `ready` gate.
 | ---: | --- | --- |
 | 1 | [#152 — BIP-39 mechanics](https://github.com/hyperledger-identus/sdk-rust/issues/152) | `adopt`; correctness first |
 | 2 | [#153 — BIP-32 mechanics](https://github.com/hyperledger-identus/sdk-rust/issues/153) | `adopt`; correctness first |
-| 3 | [#154 — Rust 1.95 MSRV](https://github.com/hyperledger-identus/sdk-rust/issues/154) | implement ADR 0062 |
+| 3 | [#170 — evidence-driven Rust policy](https://github.com/hyperledger-identus/sdk-rust/issues/170) | implement ADR 0064; retain 1.85 and evaluate 1.89 |
 | 4 | [#155 — multihash](https://github.com/hyperledger-identus/sdk-rust/issues/155) | `adopt` |
-| 5 | [#156 — multibase](https://github.com/hyperledger-identus/sdk-rust/issues/156) | `conditional-adopt` after #154 |
+| 5 | [#156 — multibase](https://github.com/hyperledger-identus/sdk-rust/issues/156) | `conditional-adopt` after its Rust 1.89/MSRV evidence passes |
 | 6 | [#157 — RFC 3986 engine](https://github.com/hyperledger-identus/sdk-rust/issues/157) | `adopt` with parser parity |
 | 7 | [#158 — form encoding](https://github.com/hyperledger-identus/sdk-rust/issues/158) | `adopt` |
 | 8 | [#159 — DID parser parity](https://github.com/hyperledger-identus/sdk-rust/issues/159) | `spike` |

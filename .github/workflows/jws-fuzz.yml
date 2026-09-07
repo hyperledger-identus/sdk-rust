@@ -67,7 +67,7 @@ jobs:
 
       - name: Run deterministic smoke
         if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: nix develop --command ./scripts/fuzz-jws.sh smoke
+        run: nix develop .#fuzz --command ./scripts/fuzz-jws.sh smoke
 
       - name: Preserve failing inputs
         if: failure()

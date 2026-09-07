@@ -111,18 +111,56 @@ id               = "SDK-COMPAT-003"
 kind             = "budget"
 category         = "compatibility"
 state            = "target"
-summary          = "Rust 1.95.0 is the researched initial near-current MSRV target."
+summary          = "Rust 1.89.0 is the next evidence-gated MSRV candidate."
 scope            = "Potential future workspace compiler floor."
-canonical_source = "docs/adr/0062-use-a-rolling-near-current-msrv.md"
-authority        = "ADR 0062 research direction; not an effective support-policy value."
-rationale        = "Stable minus three releases balances maintained-crate access with a qualification window."
-consumer_impact  = "Activation would require every SDK consumer to use Rust 1.95.0 or newer."
-enforcement      = [ "none while target", "issue #154 must add complete MSRV and target gates before activation" ]
+canonical_source = "docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md"
+authority        = "Sponsor-directed ADR 0064; not an effective support-policy value."
+rationale        = "The candidate is available in the existing Nix baseline and admits known Rust 1.88/1.89 ecosystem candidates without an unsupported jump to 1.95."
+consumer_impact  = "Activation would require every common-floor SDK consumer to use Rust 1.89.0 or newer."
+enforcement      = [ "none while target", "a focused activation issue must add complete MSRV, target and downstream evidence" ]
 owner            = "SDK maintainers and product sponsor"
-review_triggers  = [ "issue #154 implementation", "quarterly MSRV review", "consumer compatibility evidence changes" ]
-activation       = "Issue #154 must record exact sponsor direction, consumer impact and atomic Cargo/Nix/policy enforcement."
-rollback         = "Keep Rust 1.85.0 effective or select a different explicitly directed target."
-value            = "1.95.0"
+review_triggers  = [ "required dependency needs Rust 1.89", "supported target evidence changes", "consumer compatibility evidence changes" ]
+activation       = "A focused issue must record exact direction, measured product value, consumer impact and atomic Cargo/Nix/policy enforcement."
+rollback         = "Keep Rust 1.85.0 effective or select a different explicitly directed candidate."
+value            = "1.89.0"
+
+[[entries]]
+id               = "SDK-COMPAT-004"
+kind             = "budget"
+category         = "compatibility"
+state            = "effective"
+summary          = "Rust 1.98.1 is the pinned primary development and validation compiler."
+scope            = "Full Rust quality gates and supported compile-target checks."
+canonical_source = "docs/architecture/sdk-support-policy.toml#toolchains.primary"
+authority        = "Sponsor-directed ADR 0064 and machine-readable support policy."
+rationale        = "Current stable catches stable compatibility and uses the corrected point release after the 1.98.0 vtable miscompilation."
+consumer_impact  = "Contributors use current stable diagnostics; this does not raise the Rust 1.85 consumer floor."
+enforcement      = [ "Nix primary Crane provider", "manifest-derived quality and target gates", "support-policy checker" ]
+owner            = "SDK maintainers"
+review_triggers  = [ "Rust stable security or correctness patch", "primary compiler update", "target artifact availability changes" ]
+activation       = "Effective through ADR 0064 and the issue #170 implementation."
+rollback         = "Restore the prior primary provider without changing the separately enforced MSRV."
+value            = "1.98.1"
+value_source     = "toolchains.primary"
+
+[[entries]]
+id               = "SDK-COMPAT-005"
+kind             = "guardrail"
+category         = "compatibility"
+state            = "effective"
+summary          = "NeoPRISM nightly remains an independent integration and sanitizer-fuzz etalon."
+scope            = "A locked all-feature workspace compatibility build and explicitly named fuzz shell."
+canonical_source = "docs/architecture/sdk-support-policy.toml#toolchains.etalon"
+authority        = "ADRs 0002 and 0064."
+rationale        = "NeoPRISM currently requires a nightly feature while the SDK must remain stable-compatible."
+consumer_impact  = "NeoPRISM integration and sanitizer evidence remain visible without forcing SDK consumers onto nightly."
+enforcement      = [ "Nix etalon Crane provider", "rust-etalon gate", "dedicated fuzz devshell", "support-policy checker" ]
+owner            = "SDK and NeoPRISM maintainers"
+review_triggers  = [ "NeoPRISM removes nightly features", "NeoPRISM etalon refresh", "etalon gate failure" ]
+activation       = "Already effective; ADR 0064 narrows it from primary compiler to integration etalon."
+rollback         = "Restore the prior etalon gate or coordinate a superseding NeoPRISM alignment ADR."
+value            = "nightly-2026-03-18"
+value_source     = "toolchains.etalon"
 
 [[entries]]
 id               = "SDK-SEC-001"

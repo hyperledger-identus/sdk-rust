@@ -1,13 +1,17 @@
 schema_version  = 1
-policy_revision = "2026-09-06"
+policy_revision = "2026-09-07"
 
 [toolchains]
-msrv                  = "1.85.0"
-etalon                = "nightly-2026-03-18"
-neoprism_revision     = "8becb225132efb1d9302b2c5f6ed4d87b84e8685"
-nixpkgs_revision      = "c27cdad491a991b11ed731760aa2ef8db0cb0410"
-rust_overlay_revision = "f17186f52e82ec5cf40920b58eac63b78692ac7c"
-nix_version           = "2.34.8"
+msrv                         = "1.85.0"
+primary                      = "1.98.1"
+etalon                       = "nightly-2026-03-18"
+fuzz                         = "etalon"
+msrv_candidate               = "1.89.0"
+neoprism_revision            = "8becb225132efb1d9302b2c5f6ed4d87b84e8685"
+nixpkgs_revision             = "c27cdad491a991b11ed731760aa2ef8db0cb0410"
+rust_overlay_revision        = "f17186f52e82ec5cf40920b58eac63b78692ac7c"
+stable_rust_overlay_revision = "ca7f624be3935a5bc46d2c240515491ab8675503"
+nix_version                  = "2.34.8"
 
 [gate_operations]
 rust-audit                      = "cargoAudit"
@@ -20,6 +24,7 @@ rust-clippy-entropy-minimal     = "cargoClippy"
 rust-clippy-kmp-compat          = "cargoClippy"
 rust-deny                       = "cargoDeny"
 rust-doc                        = "cargoDoc"
+rust-etalon                     = "cargoBuild"
 rust-fmt                        = "cargoFmt"
 rust-msrv                       = "cargoBuild"
 rust-msrv-crypto-kmp-compat     = "cargoBuild"
@@ -44,6 +49,7 @@ gates = [
   "rust-clippy",
   "rust-test",
   "rust-doc",
+  "rust-etalon",
   "rust-msrv",
   "rust-deny",
   "rust-audit",
@@ -59,6 +65,7 @@ gates = [
   "rust-clippy",
   "rust-test",
   "rust-doc",
+  "rust-etalon",
   "rust-msrv",
   "rust-deny",
   "rust-audit",

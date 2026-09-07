@@ -1,0 +1,11 @@
+[[modified_requirement]]
+capability       = "dependency-research-readiness"
+requirement      = "MSRV selection is measurable and independently gated"
+canonical_sha256 = "8fd8e8be0a7c6d4742f7c942ef5666e1932158d468793c875ee74a8576f2a982"
+reason           = "Replace the release-distance formula with the sponsor-directed evidence-driven MSRV policy."
+
+[[modified_requirement]]
+capability       = "sdk-support-policy"
+requirement      = "MSRV and etalon toolchain are independent gates"
+canonical_sha256 = "f59274e5840b75dc1a74d3615b3379053c7ec94e61d791f7430ec5a557864069"
+reason           = "Add an independently pinned primary stable compiler without weakening MSRV or etalon evidence."

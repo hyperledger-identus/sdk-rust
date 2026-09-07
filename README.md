@@ -45,8 +45,9 @@ Feature branches and pull requests target `develop`.
 ### Prerequisite
 
 - [Nix](https://nixos.org/) with flakes enabled for the reproducible toolchain;
-  the flake pins the same Rust and Nix baseline as NeoPRISM. A toolchain that
-  satisfies the declared MSRV remains suitable for plain-Cargo development.
+  the flake pins primary stable Rust separately while retaining NeoPRISM's Nix
+  baseline and nightly etalon. A toolchain that satisfies the declared MSRV
+  remains suitable for plain-Cargo development.
 
 ```bash
 # Enter the devshell
@@ -58,6 +59,9 @@ nix develop -c cargo test --workspace
 
 # Format Rust and Nix
 nix run .#format
+
+# Run sanitizer fuzzing with the pinned nightly shell
+nix develop .#fuzz -c ./scripts/fuzz-jws.sh smoke
 
 # Run the complete repository gate
 nix flake check

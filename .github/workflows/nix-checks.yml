@@ -41,6 +41,21 @@ jobs:
             ./scripts/benchmark-support-policy.py --samples 20
           fi
 
+      # The hosted Ubuntu image has substantially less free space than the
+      # combined primary, MSRV and etalon derivations need. These SDKs are not
+      # used by this Rust/Nix job; reclaim them before populating the Nix store.
+      - name: Reclaim Linux runner disk for multi-toolchain checks
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          df -h /
+          sudo rm -rf \
+            /opt/ghc \
+            /usr/local/.ghcup \
+            /usr/local/lib/android \
+            /usr/share/dotnet
+          df -h /
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
 

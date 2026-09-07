@@ -748,6 +748,91 @@ impl Default for JwtCredentialRequestLimits {
     }
 }
 
+/// Resource limits for a deferred OID4VCI Credential Response body.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DeferredCredentialResponseLimits {
+    max_json_bytes: usize,
+    max_json_depth: usize,
+    max_json_nodes: usize,
+    max_response_members: usize,
+    max_transaction_id_bytes: usize,
+    max_interval_bytes: usize,
+}
+
+impl DeferredCredentialResponseLimits {
+    /// Construct a positive response policy with a supported JSON depth.
+    pub const fn new(
+        max_json_bytes: usize,
+        max_json_depth: usize,
+        max_json_nodes: usize,
+        max_response_members: usize,
+        max_transaction_id_bytes: usize,
+        max_interval_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_json_bytes == 0
+            || max_json_depth == 0
+            || max_json_depth > MAX_CONFIGURABLE_JSON_DEPTH
+            || max_json_nodes == 0
+            || max_response_members == 0
+            || max_transaction_id_bytes == 0
+            || max_interval_bytes == 0
+        {
+            return Err(CredentialOfferError::InvalidDeferredCredentialResponseLimits);
+        }
+        Ok(Self {
+            max_json_bytes,
+            max_json_depth,
+            max_json_nodes,
+            max_response_members,
+            max_transaction_id_bytes,
+            max_interval_bytes,
+        })
+    }
+
+    /// Maximum bytes in the complete JSON response.
+    pub const fn max_json_bytes(self) -> usize {
+        self.max_json_bytes
+    }
+
+    /// Maximum JSON container depth.
+    pub const fn max_json_depth(self) -> usize {
+        self.max_json_depth
+    }
+
+    /// Maximum aggregate JSON value nodes.
+    pub const fn max_json_nodes(self) -> usize {
+        self.max_json_nodes
+    }
+
+    /// Maximum top-level response members.
+    pub const fn max_response_members(self) -> usize {
+        self.max_response_members
+    }
+
+    /// Maximum decoded UTF-8 bytes in the transaction identifier.
+    pub const fn max_transaction_id_bytes(self) -> usize {
+        self.max_transaction_id_bytes
+    }
+
+    /// Maximum bytes in the exact interval JSON-number lexeme.
+    pub const fn max_interval_bytes(self) -> usize {
+        self.max_interval_bytes
+    }
+}
+
+impl Default for DeferredCredentialResponseLimits {
+    fn default() -> Self {
+        Self {
+            max_json_bytes: 32_768,
+            max_json_depth: 16,
+            max_json_nodes: 512,
+            max_response_members: 16,
+            max_transaction_id_bytes: 2_048,
+            max_interval_bytes: 128,
+        }
+    }
+}
+
 /// Resource limits for an immediate OID4VCI Credential Response body.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ImmediateCredentialResponseLimits {

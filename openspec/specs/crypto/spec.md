@@ -342,6 +342,19 @@ prefix) for one-way legacy PRISM wallet import; it SHALL require an explicit
 passphrase. Both deterministic seed functions SHALL validate the mnemonic and
 return `Error::MnemonicInvalid` on failure.
 
+Validation SHALL enforce BIP-39 English word counts and checksums, not word
+membership alone. Entropy conversion SHALL accept exactly 16, 20, 24, 28 or 32
+bytes and preserve its existing empty-vector failure shape for every other
+length. Mnemonic sentences and standard passphrases SHALL use NFKD before seed
+derivation. Any normalized text owned by the implementation and every fixed
+seed temporary SHALL be zeroized on drop. Dependency mnemonic/error/formatter
+types SHALL remain private.
+
+The KMP path SHALL share strict normalized mnemonic validation but SHALL keep
+the legacy passphrase bytes and unprefixed salt unchanged. Its local PBKDF2
+mechanics SHALL remain isolated behind `kmp-compat`; the standard path SHALL use
+the adopted BIP-39 engine.
+
 #### Scenario: BIP39 seed derivation matches known vectors
 
 - **WHEN** a known mnemonic and passphrase are fed to `create_seed`
@@ -385,6 +398,38 @@ return `Error::MnemonicInvalid` on failure.
 - **WHEN** the injected entropy provider fails
 - **THEN** random mnemonic and random seed creation SHALL return
   `Error::SecureRandomFailure` without panic or mnemonic construction
+
+#### Scenario: All standard entropy sizes map to exact word counts
+
+- **WHEN** entropy of 16, 20, 24, 28 or 32 bytes is converted
+- **THEN** the result SHALL contain 12, 15, 18, 21 or 24 valid English words,
+  respectively
+
+#### Scenario: Non-standard entropy fails without panic
+
+- **WHEN** empty, undersized, oversized or non-32-bit-aligned entropy is
+  converted through the existing infallible API
+- **THEN** the result SHALL be an empty vector
+
+#### Scenario: Word count and checksum are validated
+
+- **WHEN** empty, unsupported-count, unknown-word or checksum-invalid input is
+  validated or used for either seed function
+- **THEN** validation SHALL be false and derivation SHALL return only the
+  stable redacted `crypto.mnemonic_invalid` error
+
+#### Scenario: Standard Unicode passphrases are NFKD-equivalent
+
+- **WHEN** canonically composed and decomposed representations of the same
+  Unicode passphrase are used with a valid English mnemonic
+- **THEN** `create_seed` SHALL return the same byte-exact published/independent
+  BIP-39 seed and owned normalization buffers SHALL be zeroizing
+
+#### Scenario: Dependency remains a private implementation detail
+
+- **WHEN** the generated public API and feature-disabled graph are inspected
+- **THEN** no `bip39`, `Mnemonic`, dependency error or dependency formatting
+  type SHALL be public and the package SHALL be absent without derivation
 
 ### Requirement: Ed25519 to X25519 conversion
 

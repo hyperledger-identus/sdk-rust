@@ -124,19 +124,19 @@ records:
 
 An expired or scope-less exception is a blocker, not tacit permission.
 
-## MSRV example
+## Compiler-floor example
 
-- `SDK-COMPAT-002` is effective: Rust 1.85.0, enforced by Cargo, Nix and the
-  support-policy gates.
-- `SDK-COMPAT-003` is a target: Rust 1.89.0, selected in ADR 0064 as the next
-  candidate through measured dependency and consumer evidence.
+- `SDK-COMPAT-002` is effective: Rust 1.98.1 is the temporary workspace floor,
+  enforced by Cargo, Nix and the support-policy checker.
+- `SDK-COMPAT-003` is deferred: the release-candidate compiler matrix is not
+  selected during unpublished active development.
 - `SDK-COMPAT-004` is effective: Rust 1.98.1 is the primary stable validation
-  compiler, but it does not change the consumer floor.
-- `SDK-COMPAT-005` is effective: NeoPRISM's pinned nightly remains a separate
-  integration etalon.
-- A future issue cannot turn the 1.89 target into the effective floor merely by
-  updating files. It must prove product value, supported targets and affected
-  consumers and receive an exact activation decision first.
+  compiler.
+- `SDK-COMPAT-005` is effective: Rust 1.98.1 is also the temporary
+  compatibility etalon; the nightly is isolated to sanitizer tooling.
+- A release candidate or the 2026-12-08 review must use named consumer and
+  target evidence to select a new matrix. The temporary policy cannot become a
+  publication promise merely through elapsed time.
 
 This distinction preserves useful research without converting it into a
 surprise compatibility promise.

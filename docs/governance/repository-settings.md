@@ -34,23 +34,25 @@ Do not attach checks that cannot run on its intentionally minimal tree.
 
 ## Required checks on `develop`
 
-Checks should converge on stable names so rules survive workflow refactors:
+During the temporary active-development phase, configure these stable required
+statuses:
 
 - `DCO`;
 - `pull-request-policy`;
-- `factory-contract`;
-- `file-hygiene`;
-- `rust-fmt`;
-- `rust-clippy`;
-- `rust-test`;
-- `rust-doc`;
-- `rust-msrv`;
-- `rust-wasm` for eligible workspace members;
-- `dependency-policy` (`cargo deny`, source, license and ban rules);
-- `security-advisories`;
-- `architecture` (layer/dependency and generated/fixture drift);
-- language-appropriate code scanning;
-- `scorecard` or equivalent supply-chain posture.
+- `fast`;
+- the applicable file-hygiene job names.
+
+`fast` is the single Rust/factory merge signal and includes factory structure,
+formatting, workspace build, strict Clippy and normal tests. The `slow` and
+nightly sanitizer statuses are weekly/manual evidence and are deliberately not
+required for active-development pull requests. Before any release candidate,
+ADR 0081 requires a new compatibility decision and current green slow evidence.
+
+After `fast` first succeeds on `develop`, a maintainer must add that exact
+status to the ruleset and use a test pull request to prove merge and auto-merge
+remain blocked while it is pending. The repository currently has no active
+`develop` branch protection, so documentation alone must not be represented as
+enforcement.
 
 CodeQL must not be represented as Rust coverage unless GitHub supports Rust for
 this repository. A ruleset must never require an impossible or differently

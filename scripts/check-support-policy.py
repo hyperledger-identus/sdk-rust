@@ -1880,6 +1880,13 @@ def validate_gate(
 
 def referenced_policy_gates(policy: dict[str, Any]) -> set[str]:
     gates: set[str] = set()
+    ci = policy.get("ci", {})
+    if isinstance(ci, dict):
+        gates.update(
+            gate
+            for gate in ci.get("fast_gates", [])
+            if isinstance(gate, str) and gate.startswith("rust-")
+        )
     for host in policy.get("hosts", []):
         if isinstance(host, dict):
             gates.update(
@@ -2054,11 +2061,10 @@ def validate_toolchains(
 ) -> None:
     toolchains = require_table(policy, "toolchains", failures)
     expected = {
-        "msrv": "1.85.0",
+        "msrv": "1.98.1",
         "primary": "1.98.1",
-        "etalon": "nightly-2026-03-18",
-        "fuzz": "etalon",
-        "msrv_candidate": "1.89.0",
+        "etalon": "1.98.1",
+        "fuzz": "nightly-2026-03-18",
         "neoprism_revision": "8becb225132efb1d9302b2c5f6ed4d87b84e8685",
         "nixpkgs_revision": "c27cdad491a991b11ed731760aa2ef8db0cb0410",
         "rust_overlay_revision": "f17186f52e82ec5cf40920b58eac63b78692ac7c",
@@ -2108,7 +2114,7 @@ def validate_toolchains(
     def compact(value: str) -> str:
         return re.sub(r"\s+", " ", value).strip()
 
-    etalon_date = str(toolchains.get("etalon", "")).removeprefix("nightly-")
+    fuzz_date = str(toolchains.get("fuzz", "")).removeprefix("nightly-")
     primary = str(toolchains.get("primary", ""))
     expected_toolchain_statements = {
         compact(
@@ -2121,20 +2127,16 @@ def validate_toolchains(
               ];
             }};"""
         ),
+        "etalonToolchain = toolchain;",
+        "msrvToolchain = toolchain;",
         compact(
-            f"""etalonToolchain = pkgs.rust-bin.nightly."{etalon_date}".default.override {{
-              extensions = [ "rust-src" "rust-analyzer" ];
-              targets = [
-                "aarch64-apple-ios"
-                "aarch64-linux-android"
-                "wasm32-unknown-unknown"
-              ];
+            f"""fuzzToolchain = pkgs.rust-bin.nightly."{fuzz_date}".default.override {{
+              extensions = [ "rust-src" ];
             }};"""
         ),
         "craneLib = (inputs.crane.mkLib pkgs).overrideToolchain toolchain;",
-        "etalonCraneLib = (inputs.crane.mkLib pkgs).overrideToolchain etalonToolchain;",
-        f'msrvToolchain = pkgs.rust-bin.stable."{toolchains.get("msrv", "")}".minimal;',
-        "msrvCraneLib = (inputs.crane.mkLib pkgs).overrideToolchain msrvToolchain;",
+        "etalonCraneLib = craneLib;",
+        "msrvCraneLib = craneLib;",
     }
     protected_toolchain_names = (
         "inputs",
@@ -2143,6 +2145,7 @@ def validate_toolchains(
         "craneLib",
         "etalonToolchain",
         "etalonCraneLib",
+        "fuzzToolchain",
         "msrvToolchain",
         "msrvCraneLib",
     )
@@ -2155,7 +2158,7 @@ def validate_toolchains(
     }
     expected_provider_publication = compact(
         """{
-          inherit craneLib etalonCraneLib etalonToolchain msrvCraneLib msrvToolchain toolchain ;
+          inherit craneLib etalonCraneLib etalonToolchain fuzzToolchain msrvCraneLib msrvToolchain toolchain ;
         };"""
     )
     result_statements: list[str] | None = None
@@ -2179,7 +2182,7 @@ def validate_toolchains(
     direct_provider_overrides = any(
         re.match(
             r"\s*_module\.args\."
-            r"(?:craneLib|etalonCraneLib|etalonToolchain|msrvCraneLib|msrvToolchain|toolchain)\s*=",
+            r"(?:craneLib|etalonCraneLib|etalonToolchain|fuzzToolchain|msrvCraneLib|msrvToolchain|toolchain)\s*=",
             statement,
         )
         is not None
@@ -2202,27 +2205,24 @@ def validate_toolchains(
         )
     for token in [
         f'stable."{toolchains.get("primary", "")}"',
-        f'nightly."{str(toolchains.get("etalon", "")).removeprefix("nightly-")}"',
-        f'stable."{toolchains.get("msrv", "")}"',
+        f'nightly."{str(toolchains.get("fuzz", "")).removeprefix("nightly-")}"',
     ]:
         if token not in rust_nix:
             failures.append(f"nix/rust-toolchain.nix does not select {token}")
 
-    msrv = re.escape(str(toolchains.get("msrv", "")))
     if not re.search(
-        rf'msrvToolchain\s*=\s*pkgs\.rust-bin\.stable\."{msrv}"\.minimal\s*;',
+        r"msrvToolchain\s*=\s*toolchain\s*;",
         rust_nix,
     ):
         failures.append(
-            "nix/rust-toolchain.nix does not bind msrvToolchain to the policy stable toolchain"
+            "nix/rust-toolchain.nix does not alias msrvToolchain to the primary toolchain"
         )
     if not re.search(
-        r"msrvCraneLib\s*=\s*\(inputs\.crane\.mkLib\s+pkgs\)"
-        r"\.overrideToolchain\s+msrvToolchain\s*;",
+        r"msrvCraneLib\s*=\s*craneLib\s*;",
         rust_nix,
     ):
         failures.append(
-            "nix/rust-toolchain.nix does not wire msrvCraneLib to msrvToolchain"
+            "nix/rust-toolchain.nix does not alias msrvCraneLib to the primary Crane provider"
         )
 
     fuzz_shell_path = root / "nix/devshells/default.nix"
@@ -2240,13 +2240,13 @@ def validate_toolchains(
     fuzz_packages = fuzz_shell_match.group(1) if fuzz_shell_match else ""
     if (
         fuzz_shell_match is None
-        or re.search(r"\betalonToolchain\b", fuzz_packages) is None
+        or re.search(r"\bfuzzToolchain\b", fuzz_packages) is None
         or re.search(r"\bcargo-fuzz\b", fuzz_packages) is None
         or re.search(r"\btoolchain\b", fuzz_packages) is not None
     ):
         failures.append(
             "nix/devshells/default.nix must bind the dedicated fuzz shell to "
-            "etalonToolchain and cargo-fuzz"
+            "fuzzToolchain and cargo-fuzz"
         )
 
     fuzz_workflows = {
@@ -2344,6 +2344,122 @@ def validate_toolchains(
         failures.append(
             "etalon policy gate rust-etalon must be locked and select all targets"
         )
+
+
+def validate_ci_lanes(
+    root: Path,
+    policy: dict[str, Any],
+    gates: dict[str, dict[str, Any]],
+    failures: list[str],
+) -> None:
+    ci = require_table(policy, "ci", failures)
+    expected_scalars = {
+        "fast_workflow": ".github/workflows/factory-contract.yml",
+        "fast_status": "fast",
+        "fast_system": "x86_64-linux",
+        "slow_workflow": ".github/workflows/nix-checks.yml",
+        "slow_status": "slow",
+        "slow_cadence": "weekly-and-manual",
+        "slow_scope": "all-flake-checks",
+        "review_by": "2026-12-08",
+    }
+    for field, expected_value in expected_scalars.items():
+        actual = require_nonempty_string(ci, field, "[ci]", failures)
+        if actual and actual != expected_value:
+            failures.append(f"ci.{field} must be {expected_value}, found {actual}")
+    if ci.get("release_candidate_eligible") is not False:
+        failures.append("ci.release_candidate_eligible must remain false")
+
+    expected_fast_gates = {
+        "factory-contract",
+        "lint-nix",
+        "lint-text",
+        "lint-toml",
+        "rust-fmt",
+        "rust-build",
+        "rust-clippy",
+        "rust-test",
+    }
+    fast_gates = ci.get("fast_gates")
+    if not isinstance(fast_gates, list) or any(
+        not isinstance(gate, str) or not gate for gate in fast_gates
+    ):
+        failures.append("ci.fast_gates must be a list of non-empty gate names")
+        fast_gate_set: set[str] = set()
+    else:
+        fast_gate_set = set(fast_gates)
+        if len(fast_gates) != len(fast_gate_set):
+            failures.append("ci.fast_gates must not contain duplicates")
+    if fast_gate_set != expected_fast_gates:
+        failures.append(
+            "ci.fast_gates must define the temporary Linux fast lane: "
+            f"missing={sorted(expected_fast_gates - fast_gate_set)}, "
+            f"extra={sorted(fast_gate_set - expected_fast_gates)}"
+        )
+    for gate in sorted(fast_gate_set):
+        if gate.startswith("rust-") and gate not in gates:
+            failures.append(f"ci.fast_gates references undefined Nix gate {gate}")
+
+    def workflow_text(field: str) -> tuple[str, str]:
+        relative = ci.get(field)
+        if not isinstance(relative, str) or not relative:
+            return "", str(relative)
+        try:
+            return (root / relative).read_text(encoding="utf-8"), relative
+        except OSError as error:
+            failures.append(f"cannot read {field} {relative}: {error}")
+            return "", relative
+
+    fast, fast_path = workflow_text("fast_workflow")
+    if fast:
+        for trigger in ("pull_request", "push", "workflow_dispatch"):
+            if re.search(rf"^  {trigger}:\s*$", fast, re.MULTILINE) is None:
+                failures.append(f"{fast_path} must declare the {trigger} trigger")
+        if re.search(r"^  schedule:\s*$", fast, re.MULTILINE):
+            failures.append(f"{fast_path} must not declare a schedule trigger")
+        if re.search(r"^name:\s*fast\s*$", fast, re.MULTILINE) is None:
+            failures.append(f"{fast_path} workflow name must be fast")
+        if re.search(r"^  fast:\s*$", fast, re.MULTILINE) is None:
+            failures.append(f"{fast_path} must publish the fast job status")
+        for gate in sorted(expected_fast_gates):
+            selector = f".#checks.x86_64-linux.{gate}"
+            if selector not in fast:
+                failures.append(f"{fast_path} is missing fast gate selector {selector}")
+        if "nix flake check" in fast:
+            failures.append(f"{fast_path} must not run the exhaustive flake check")
+
+    slow, slow_path = workflow_text("slow_workflow")
+    if slow:
+        for trigger in ("schedule", "workflow_dispatch"):
+            if re.search(rf"^  {trigger}:\s*$", slow, re.MULTILINE) is None:
+                failures.append(f"{slow_path} must declare the {trigger} trigger")
+        for trigger in ("pull_request", "push"):
+            if re.search(rf"^  {trigger}:\s*$", slow, re.MULTILINE):
+                failures.append(f"{slow_path} must not declare the {trigger} trigger")
+        if re.search(r"^name:\s*slow\s*$", slow, re.MULTILINE) is None:
+            failures.append(f"{slow_path} workflow name must be slow")
+        if "nix flake check" not in slow:
+            failures.append(f"{slow_path} must run the exhaustive nix flake check")
+        for runner in ("ubuntu-latest", "macos-latest"):
+            if runner not in slow:
+                failures.append(f"{slow_path} matrix is missing {runner}")
+
+    for relative_path in (
+        ".github/workflows/crypto-fuzz.yml",
+        ".github/workflows/did-fuzz.yml",
+        ".github/workflows/jws-fuzz.yml",
+    ):
+        try:
+            workflow = (root / relative_path).read_text(encoding="utf-8")
+        except OSError as error:
+            failures.append(f"cannot read fuzz workflow {relative_path}: {error}")
+            continue
+        for trigger in ("schedule", "workflow_dispatch"):
+            if re.search(rf"^  {trigger}:\s*$", workflow, re.MULTILINE) is None:
+                failures.append(f"{relative_path} must declare the {trigger} trigger")
+        for trigger in ("pull_request", "push"):
+            if re.search(rf"^  {trigger}:\s*$", workflow, re.MULTILINE):
+                failures.append(f"{relative_path} must not declare the {trigger} trigger")
 
 
 def validate_hosts(
@@ -2589,6 +2705,7 @@ def validate(root: Path) -> list[str]:
     validate_gate_wiring(root, failures)
     validate_gate_operations(policy, gates, failures)
     validate_toolchains(root, policy, cargo, gates, failures)
+    validate_ci_lanes(root, policy, gates, failures)
     validate_hosts(policy, gates, failures)
     validate_targets(policy, packages, manifests, gates, failures)
     validate_features(policy, manifests, gates, failures)

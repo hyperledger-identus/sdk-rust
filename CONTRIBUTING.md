@@ -79,9 +79,9 @@ Implementation issues must state:
 
 ## Development rules
 
-- Use the repository's Nix-pinned primary stable toolchain for ordinary work,
-  preserve the independent NeoPRISM etalon and declared MSRV gates, and do not
-  introduce nightly-only features.
+- Use the repository's Nix-pinned Rust 1.98.1 toolchain for ordinary work and
+  do not introduce nightly-only features. The separate fuzz shell is a
+  sanitizer-tooling exception, not a supported compiler.
 - Do not make a target MSRV, platform, feature, public contract, certification
   or release intent effective without the material constraint activation path.
 - Keep default features minimal and list every meaningful feature combination.
@@ -130,9 +130,12 @@ cargo doc --workspace --no-deps
 nix flake check
 ```
 
-Eligible crates also run MSRV, WASM/mobile target, minimal-feature, fuzz,
-conformance and public-API checks defined by their component issue. If a tool is
-unavailable, report the exact unrun gate; do not claim it passed.
+During the temporary active-development policy, pull requests run the Linux
+`fast` factory/build/lint/test line. Eligible crates also receive WASM/mobile,
+minimal-feature, fuzz, conformance and public-API evidence through the weekly
+or manually dispatched slow workflows. Before a release candidate, all slow
+evidence must be current and green. If a tool is unavailable, report the exact
+unrun gate; do not claim it passed.
 
 ## Commits
 

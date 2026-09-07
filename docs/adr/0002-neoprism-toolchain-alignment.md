@@ -1,5 +1,10 @@
 # ADR 0002: align the development toolchain with NeoPRISM
 
+> **Compiler selection superseded:** ADR 0081 retains NeoPRISM's Nix baseline
+> and historical provenance but uses stable Rust 1.98.1 for ordinary SDK work.
+> The recorded nightly remains only a sanitizer-tooling exception during the
+> temporary active-development phase.
+
 - **Status:** Accepted by project-sponsor direction
 - **Date:** 2026-09-02
 - **Decision authority:** explicit project-sponsor direction; future pin changes

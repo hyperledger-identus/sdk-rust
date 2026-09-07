@@ -66,6 +66,8 @@ class SupportPolicyTests(unittest.TestCase):
             "flake.lock",
             "docs/architecture/sdk-support-policy.toml",
             "docs/adr/0002-neoprism-toolchain-alignment.md",
+            ".github/workflows/factory-contract.yml",
+            ".github/workflows/nix-checks.yml",
             ".github/workflows/crypto-fuzz.yml",
             ".github/workflows/did-fuzz.yml",
             ".github/workflows/jws-fuzz.yml",
@@ -139,7 +141,7 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_cargo_msrv_drift_fails(self) -> None:
-        self.replace("Cargo.toml", 'rust-version = "1.85.0"', 'rust-version = "1.86.0"')
+        self.replace("Cargo.toml", 'rust-version = "1.98.1"', 'rust-version = "1.98.0"')
         self.assert_fails("does not match policy MSRV")
 
     def test_primary_stable_drift_fails(self) -> None:
@@ -180,16 +182,16 @@ class SupportPolicyTests(unittest.TestCase):
     def test_fuzz_shell_cannot_use_primary_toolchain(self) -> None:
         self.replace(
             "nix/devshells/default.nix",
-            "          etalonToolchain\n          stdenv.cc",
+            "          fuzzToolchain\n          stdenv.cc",
             "          toolchain\n          stdenv.cc",
         )
-        self.assert_fails("must bind the dedicated fuzz shell to etalonToolchain")
+        self.assert_fails("must bind the dedicated fuzz shell to fuzzToolchain")
 
     def test_fuzz_workflow_cannot_use_primary_shell(self) -> None:
         self.replace(
             ".github/workflows/crypto-fuzz.yml",
-            "nix develop .#fuzz --command ./scripts/fuzz-crypto.sh smoke all",
-            "nix develop --command ./scripts/fuzz-crypto.sh smoke all",
+            "nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak all",
+            "nix develop --command ./scripts/fuzz-crypto.sh soak all",
         )
         self.assert_fails("must run scripts/fuzz-crypto.sh through the dedicated fuzz shell")
 
@@ -1828,13 +1830,37 @@ in
         )
         self.assert_fails("rust-test-kmp-compat is not built with the MSRV toolchain")
 
-    def test_msrv_crane_library_must_wrap_stable_toolchain(self) -> None:
+    def test_msrv_crane_library_must_alias_primary_provider(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",
-            "overrideToolchain msrvToolchain",
-            "overrideToolchain toolchain",
+            "msrvCraneLib = craneLib;",
+            "msrvCraneLib = etalonCraneLib;",
         )
-        self.assert_fails("does not wire msrvCraneLib to msrvToolchain")
+        self.assert_fails("does not alias msrvCraneLib to the primary Crane provider")
+
+    def test_fast_lane_cannot_drop_a_required_gate(self) -> None:
+        self.replace(
+            ".github/workflows/factory-contract.yml",
+            "            .#checks.x86_64-linux.rust-build \\\n",
+            "",
+        )
+        self.assert_fails("is missing fast gate selector .#checks.x86_64-linux.rust-build")
+
+    def test_slow_lane_cannot_return_to_pull_requests(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "on:\n  schedule:",
+            "on:\n  pull_request:\n  schedule:",
+        )
+        self.assert_fails("must not declare the pull_request trigger")
+
+    def test_fuzz_lane_cannot_return_to_pull_requests(self) -> None:
+        self.replace(
+            ".github/workflows/did-fuzz.yml",
+            "on:\n  schedule:",
+            "on:\n  pull_request:\n  schedule:",
+        )
+        self.assert_fails("must not declare the pull_request trigger")
 
     def test_unknown_gate_field_fails(self) -> None:
         self.replace_gate(

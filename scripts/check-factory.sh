@@ -33,6 +33,7 @@ required_files=(
   docs/governance/agentic-sdlc.md
   docs/governance/repository-settings.md
   docs/adr/0003-delegate-develop-integration.md
+  docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   openspec/config.yaml
@@ -58,6 +59,7 @@ required_files=(
   .github/ISSUE_TEMPLATE/delivery-task.yml
   .github/pull_request_template.md
   .github/workflows/factory-contract.yml
+  .github/workflows/nix-checks.yml
   .github/workflows/pull-request-policy.yml
 )
 

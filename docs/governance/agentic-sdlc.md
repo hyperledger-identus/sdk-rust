@@ -107,6 +107,12 @@ The agent then:
     repository administration, security disclosure or consumer adoption unless
     explicitly authorized by the responsible human.
 
+Under ADR 0081, “required CI” means the exact Ubuntu `fast` status for normal
+active-development integration. Weekly/manual `slow` and sanitizer results are
+retained evidence and visible pre-release debt, not per-PR merge gates. Agents
+must triage failures they encounter and may not prepare a release candidate or
+publish while that debt or the release-phase compiler decision is unresolved.
+
 Before final review, the agent runs `scripts/factory ready <change>` and
 `scripts/factory receipt <change>`, syncs reviewed delta specs and archives the
 completed OpenSpec change through `scripts/factory archive <change>` so lossy

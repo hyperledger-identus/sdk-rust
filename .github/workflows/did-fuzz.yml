@@ -1,30 +1,8 @@
 name: DID lexical fuzzing
 
 on:
-  pull_request:
-    paths:
-      - .github/workflows/did-fuzz.yml
-      - crates/did/**
-      - deny.toml
-      - flake.lock
-      - fuzz/**
-      - nix/devshells/default.nix
-      - nix/rust-toolchain.nix
-      - scripts/fuzz-did.sh
-  push:
-    branches:
-      - develop
-    paths:
-      - .github/workflows/did-fuzz.yml
-      - crates/did/**
-      - deny.toml
-      - flake.lock
-      - fuzz/**
-      - nix/devshells/default.nix
-      - nix/rust-toolchain.nix
-      - scripts/fuzz-did.sh
   schedule:
-    - cron: "17 3 * * *"
+    - cron: "17 3 * * 2"
   workflow_dispatch:
 
 permissions:
@@ -32,11 +10,11 @@ permissions:
 
 concurrency:
   group: did-fuzz-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 jobs:
   fuzz:
-    name: sanitizer campaign (${{ github.event_name }})
+    name: nightly sanitizer experiment (${{ github.event_name }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -61,12 +39,7 @@ jobs:
           nix develop --command cargo deny --manifest-path fuzz/Cargo.toml --locked check
           nix develop --command cargo audit --file fuzz/Cargo.lock --deny warnings
 
-      - name: Run deterministic smoke
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: nix develop .#fuzz --command ./scripts/fuzz-did.sh smoke all
-
-      - name: Run bounded soak
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      - name: Run bounded nightly soak
         run: nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all
 
       - name: Preserve failing inputs

@@ -25,9 +25,10 @@ verification-only and quarantined-placeholder packages and records the
 repository-local `IDR-001` evidence.
 The [Rust reuse research](../research/rust-library-reuse/report-source.md),
 [ADR 0061](../adr/0061-adopt-narrow-crates-behind-identus-facades.md) and
-[ADR 0064](../adr/0064-separate-primary-rust-from-evidence-driven-msrv.md)
-govern third-party crate selection and independent primary-stable, MSRV and
-etalon policy. [ADR 0063](../adr/0063-make-material-constraints-explicit.md) and the
+[ADR 0081](../adr/0081-use-temporary-rust-198-fast-slow-ci.md) govern
+third-party crate selection and the temporary Rust/CI policy. ADR 0064 remains
+the rollback reference for a later consumer-driven compatibility matrix.
+[ADR 0063](../adr/0063-make-material-constraints-explicit.md) and the
 [constraint index](../governance/sdk-constraints.toml) distinguish effective
 cross-cutting promises, future targets, prohibitions and known limitations.
 
@@ -184,15 +185,18 @@ The exact graph can become narrower. A new upward or sideways dependency needs
 an ADR and dependency-cone evidence.
 
 The support matrix deliberately separates host-tested Rust behavior from
-compile-only browser/mobile evidence and from planned targets. Rust `1.85.0`
-is tested as the stable consumer floor independently of primary stable Rust
-`1.98.1` and the pinned NeoPRISM-etalon nightly. There is no supported FFI during bootstrap, and
-binary size/build time remain measurement-only until a candidate release
-defines reproducible artifacts and budgets.
+compile-only browser/mobile evidence and planned targets. During unpublished
+active development, Rust `1.98.1` is the single workspace floor, development
+compiler and compatibility etalon. The complete target and feature matrix runs
+weekly or manually; a pinned nightly is used only for sanitizer tooling. There
+is no supported FFI during bootstrap, and binary size/build time remain
+measurement-only until a candidate release defines reproducible artifacts and
+budgets.
 
-ADR 0064 replaces the rolling policy with evidence-driven selection and names
-Rust 1.89 as the next candidate. Rust 1.85 remains effective until a focused
-activation decision updates Cargo, Nix and machine policy together.
+ADR 0081 expires for release planning on 2026-12-08 or when release-candidate
+preparation begins. That transition requires a focused, consumer-driven
+compiler and evidence decision; this temporary policy cannot authorize
+publication.
 
 ## 6. Delivery program
 
@@ -552,22 +556,24 @@ it is never part of the upstream implementation issue.
 
 ### Per-PR fast lane
 
-- formatting, lint and targeted unit/integration/doctest;
-- affected feature/minimal-feature checks;
-- architecture and dependency guards;
-- fixture/provenance/generated-file drift;
-- docs/link checks and public API diff;
-- secret, license, source and advisory checks.
+- one Ubuntu `fast` status on Rust 1.98.1;
+- factory/repository structure and Nix/TOML/text lint;
+- workspace formatting, build, strict Clippy and normal tests.
 
-### Candidate lane
+### Weekly/manual slow lane
 
 - full workspace and target matrix;
-- MSRV, pinned primary stable and the independent NeoPRISM-etalon toolchain;
+- existing compatibility-labelled gates on the same Rust 1.98.1 compiler;
 - WASM/mobile compile for eligible crates;
 - fuzz/property/negative tests for parsers and crypto boundaries;
 - cross-implementation conformance;
 - SBOM, checksums and signed provenance;
 - independent security review for crypto, parser, protocol and FFI changes.
+
+Slow or sanitizer failures are pre-release debt. They do not block each
+active-development merge, but every failure must be resolved before a release
+candidate, together with the replacement compatibility decision required by
+ADR 0081.
 
 Coverage is a ratchet, not an aggregate vanity score. Critical parser,
 verification, secret and state-transition paths need explicit branch coverage

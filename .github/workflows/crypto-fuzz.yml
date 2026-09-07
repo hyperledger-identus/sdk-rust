@@ -1,29 +1,8 @@
 name: Crypto public-key fuzzing
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/crypto-fuzz.yml"
-      - "crates/crypto/**"
-      - deny.toml
-      - flake.lock
-      - "fuzz/**"
-      - nix/devshells/default.nix
-      - nix/rust-toolchain.nix
-      - "scripts/fuzz-crypto.sh"
-  push:
-    branches: [develop]
-    paths:
-      - ".github/workflows/crypto-fuzz.yml"
-      - "crates/crypto/**"
-      - deny.toml
-      - flake.lock
-      - "fuzz/**"
-      - nix/devshells/default.nix
-      - nix/rust-toolchain.nix
-      - "scripts/fuzz-crypto.sh"
   schedule:
-    - cron: "41 3 * * *"
+    - cron: "41 3 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -35,7 +14,7 @@ concurrency:
 
 jobs:
   fuzz:
-    name: sanitizer campaign (${{ github.event_name }})
+    name: nightly sanitizer experiment (${{ github.event_name }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -59,12 +38,7 @@ jobs:
           nix develop --command cargo deny --manifest-path fuzz/Cargo.toml --locked check
           nix develop --command cargo audit --file fuzz/Cargo.lock --deny warnings
 
-      - name: Run deterministic smoke
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: nix develop .#fuzz --command ./scripts/fuzz-crypto.sh smoke all
-
-      - name: Run bounded soak
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      - name: Run bounded nightly soak
         run: nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak all
 
       - name: Preserve failing inputs

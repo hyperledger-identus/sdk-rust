@@ -1,4 +1,4 @@
-name: AI Software Factory
+name: fast
 
 on:
   pull_request:
@@ -13,12 +13,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: factory-contract-${{ github.workflow }}-${{ github.ref }}
+  group: fast-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  contract:
-    name: factory-contract
+  fast:
+    name: fast
     runs-on: ubuntu-latest
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -31,5 +31,17 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
 
-      - name: Validate the factory contract
-        run: nix build .#checks.x86_64-linux.factory-contract --print-build-logs
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
+
+      - name: Run fast factory and Rust gates
+        run: |
+          nix build --print-build-logs \
+            .#checks.x86_64-linux.factory-contract \
+            .#checks.x86_64-linux.lint-nix \
+            .#checks.x86_64-linux.lint-text \
+            .#checks.x86_64-linux.lint-toml \
+            .#checks.x86_64-linux.rust-fmt \
+            .#checks.x86_64-linux.rust-build \
+            .#checks.x86_64-linux.rust-clippy \
+            .#checks.x86_64-linux.rust-test

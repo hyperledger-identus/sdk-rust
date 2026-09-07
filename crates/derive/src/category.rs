@@ -15,27 +15,26 @@ pub(crate) enum Category {
 /// Classify `ty` into a category, or emit a compile error listing the
 /// supported inner types.
 pub(crate) fn classify(ty: &syn::Type) -> syn::Result<Category> {
-    if let syn::Type::Path(tp) = ty {
-        if tp.qself.is_none() {
-            if let Some(seg) = tp.path.segments.last() {
-                return match seg.ident.to_string().as_str() {
-                    "String" => Ok(Category::Str),
-                    "u8" | "u16" | "u32" | "u64" | "u128" | "usize" | "i8" | "i16" | "i32"
-                    | "i64" | "i128" | "isize" | "f32" | "f64" => Ok(Category::Num),
-                    "Vec" => {
-                        if is_vec_u8(seg) {
-                            Ok(Category::Bytes)
-                        } else {
-                            Err(syn::Error::new_spanned(
-                                ty,
-                                "Newtype `Vec` inner type must be `Vec<u8>`",
-                            ))
-                        }
-                    }
-                    _ => Err(unrecognised(ty)),
-                };
+    if let syn::Type::Path(tp) = ty
+        && tp.qself.is_none()
+        && let Some(seg) = tp.path.segments.last()
+    {
+        return match seg.ident.to_string().as_str() {
+            "String" => Ok(Category::Str),
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" | "i8" | "i16" | "i32" | "i64"
+            | "i128" | "isize" | "f32" | "f64" => Ok(Category::Num),
+            "Vec" => {
+                if is_vec_u8(seg) {
+                    Ok(Category::Bytes)
+                } else {
+                    Err(syn::Error::new_spanned(
+                        ty,
+                        "Newtype `Vec` inner type must be `Vec<u8>`",
+                    ))
+                }
             }
-        }
+            _ => Err(unrecognised(ty)),
+        };
     }
     Err(unrecognised(ty))
 }

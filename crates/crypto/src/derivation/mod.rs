@@ -13,8 +13,6 @@ pub mod hdkey;
 #[cfg(feature = "derivation")]
 pub mod mnemonic;
 pub mod path;
-#[cfg(feature = "derivation")]
-pub mod wordlist;
 
 #[cfg(feature = "cardano-bip32")]
 pub use cardano_v2::{CardanoV2ExtendedPrivateKey, CardanoV2ExtendedPublicKey};

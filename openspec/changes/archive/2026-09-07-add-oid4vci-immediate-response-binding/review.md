@@ -99,3 +99,21 @@ crossed. Implementation may proceed.
 No unresolved correctness, security, privacy, compatibility, provenance,
 target, test, documentation or product-scope finding remains. The exact diff
 is locally approved for guarded archive and ready PR delivery to `develop`.
+
+## Hosted exact-head review follow-up
+
+- **Finding resolved — duplicate media parameters:** hosted review of
+  `527be800ed5b867430a2e4400c5f85e3357c8440` correctly identified that the
+  shared media parser accepted case-insensitive duplicate parameter names.
+  The parser now retains the bounded parameter-name slices and rejects a
+  repeat before consuming its value. Immediate Credential and existing Nonce
+  HTTP suites both cover `charset`/`CHARSET` ambiguity.
+- **Finding cleared — unrelated commit signature:** the hosted signature
+  comment inspected `642c5dd57e538d989e55bcbbdee8242e3a935f2d`, which is not a commit in this
+  PR. Every commit in `origin/develop..795c8237cf5bb96647a4de462c7859fb8fd33e33`
+  has a good GPG signature and a matching `Signed-off-by` trailer; the DCO gate
+  is green.
+- **Regression evidence:** formatting, focused immediate/Nonce suites in both
+  feature modes, and strict package Clippy pass. The remediation diff adds no
+  dependency, public API, error, target, or retained remote-value change. A
+  fresh exact-head hosted review and full protected CI remain required.

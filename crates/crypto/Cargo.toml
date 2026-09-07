@@ -14,6 +14,7 @@ identus-derive.workspace = true
 # `workspace-dependency-conventions`). `ring` is intentionally absent —
 # entropy adapters live in `identus-adapters-entropy` (now `getrandom`-backed).
 ed25519-dalek = { workspace = true, optional = true }
+ed25519-bip32 = { workspace = true, optional = true }
 k256          = { workspace = true, optional = true }
 p256          = { workspace = true, optional = true }
 x25519-dalek  = { workspace = true, optional = true }
@@ -40,10 +41,12 @@ default = [
   "jwk-thumbprint",
   "cose",
   "derivation",
+  "cardano-bip32",
 ]
 
 # Opt-in KMP (`apollo`) interop escape hatch for legacy PRISM wallet import.
-# Empty gate for now; a future ed25519-bip32 interop change will add `dep:ed25519-bip32`.
+# Empty gate for now; compatibility adapters remain separate from the reusable
+# Cardano V2 primitive exposed by `cardano-bip32`.
 kmp-compat = [  ]
 
 # `SecureRandom` is the only infrastructure port and is zero-dependency, so it
@@ -59,6 +62,7 @@ jwk            = [ "base64", "dep:serde", "dep:serde_json" ]
 jwk-thumbprint = [ "jwk", "hash" ]
 cose           = [ "dep:coset" ]
 derivation     = [ "hash", "dep:hmac", "dep:pbkdf2", "dep:zeroize", "secp256k1", "ed25519" ]
+cardano-bip32  = [ "dep:ed25519-bip32", "dep:zeroize" ]
 
 [dev-dependencies]
 hex      = { workspace = true }
@@ -79,6 +83,11 @@ required-features = [ "ed25519", "secp256k1", "secp256r1", "x25519" ]
 name              = "derivation"
 path              = "tests/derivation.rs"
 required-features = [ "derivation", "x25519" ]
+
+[[test]]
+name              = "cardano_bip32"
+path              = "tests/cardano_bip32.rs"
+required-features = [ "cardano-bip32" ]
 
 [[test]]
 name              = "jwk"

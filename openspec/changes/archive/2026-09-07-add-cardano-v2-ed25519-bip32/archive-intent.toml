@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "crypto"
+requirement      = "Feature-gated with all-on default"
+canonical_sha256 = "dd7d37cffa99ed392be60c4c44b1c5dba13b6b56a5bbff3713ba14982b40841f"
+reason           = "Add the Cardano V2 derivation feature to the exhaustive feature contract and all-capabilities default while preserving every existing feature guarantee."

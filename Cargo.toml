@@ -37,6 +37,7 @@ uriparse                   = "=0.6.4"
 # `getrandom`-backed adapter (see the `add-getrandom-entropy-adapter`
 # change); `ring` is no longer a workspace dependency.
 ed25519-dalek = { version = "2", default-features = false, features = [ "fast", "zeroize" ] }
+ed25519-bip32 = { version = "=0.4.3", default-features = false }
 k256          = { version = "0.13", default-features = false, features = [ "arithmetic", "ecdsa" ] }
 p256          = { version = "0.13", default-features = false, features = [ "arithmetic", "ecdsa" ] }
 x25519-dalek  = { version = "2", features = [ "static_secrets" ] }

@@ -39,7 +39,11 @@ Interpret the user input as a change id (the directory name under `openspec/chan
 
    **Fallback:** if the CLI is unavailable or the change is not found, read directly from `openspec/changes/<id>/` — `proposal.md`, `specs/<capability>/spec.md`, `design.md`, `tasks.md`, `.openspec.yaml`. If the change cannot be found by either route, stop the review and report the issue clearly.
 
-2. **Read every artifact file** referenced by `artifactPaths`. If `design.md` is absent, note it (it's optional) and skip design-dependent checks.
+2. **Read every artifact file** referenced by `artifactPaths`. Also read
+   `changeRoot/research.md`; it is a factory artifact even when the OpenSpec
+   schema does not list it in `artifactPaths`. If `design.md` is absent, note
+   it (it's optional) and skip design-dependent checks. If `research.md` is
+   absent, stop and report factory research-readiness blocker **B9**.
 
 3. **Load the current spec for each modified/removed/renamed capability.** For every capability folder under the change's `specs/` whose `spec.md` contains `## MODIFIED Requirements`, `## REMOVED Requirements`, or `## RENAMED Requirements`, also read `openspec/specs/<capability>/spec.md`. These current-spec files are required for the Delta Integrity checks. If a current spec is missing where one is expected, that is itself a finding (Capability mismatch / Delta Integrity).
 
@@ -118,6 +122,7 @@ A **blocker** is anything that will halt or derail implementation, or make the c
 | **B4** | **Cross-artifact contradiction** — proposal/spec/design/tasks disagree on a load-bearing point. | There is no single source of truth to build against. |
 | **B5** | **Capability mismatch** — the proposal's "Capabilities" list does not match the change's `specs/` folders, or a "Modified Capability" does not exist in `openspec/specs/`. | The implementer does not know what they are touching. |
 | **B6** | **No entry point** — a task says what to build but not where (no file path, module, or integration point). | Implementation cannot start. |
+| **B9** | **Research not ready** — `research.md` is missing, marked draft, has unresolved blockers, omits required evidence for its class, or the implementation direction contradicts its dispositions. | The factory would begin implementation without an approved evidence basis. |
 
 #### Conditional blockers (Major by default; escalate to Blocker only when the condition is confirmed)
 
@@ -143,6 +148,22 @@ Common blocker patterns by category, for spotting them:
 - Is the change folder name kebab-case and descriptive?
 - Are cross-references (to other changes, specs, or external URLs) reachable?
 
+### 9. Research readiness
+
+- Does `research.md` classify the change proportionately and use `Research
+  status: ready` with no unresolved blockers before implementation?
+- For foundational, protocol, cryptography/security, storage or FFI changes,
+  does it record authoritative sources, candidate alternatives, exact
+  versions/revisions, MSRV, dependency cone, license/provenance, supported
+  targets, security/resource bounds, rollback and reconsideration triggers?
+- Does every candidate have one explicit disposition from the factory
+  vocabulary: `adopt`, `conditional-adopt`, `spike`, `oracle`,
+  `retain-local`, `not-adopt` or `not-applicable`?
+- Do proposal, design and tasks implement the researched decision, or do they
+  silently introduce an unevaluated dependency or greenfield mechanism?
+- Are source claims reproducible from pinned URLs, commands, fixtures or
+  immutable revisions rather than generated prose alone?
+
 ---
 
 ## Output format
@@ -159,7 +180,7 @@ For each issue, produce a structured finding:
 **Location:** [Which artifact and part: proposal | specs/<capability>/spec.md | design | tasks | .openspec.yaml | dependencies]
 
 **Issue:**
-[2-4 sentences. Quote the problematic text if relevant. Explain why it's a problem. If this is a blocker, state which blocker ID (B1–B8) it matches and why the condition holds.]
+[2-4 sentences. Quote the problematic text if relevant. Explain why it's a problem. If this is a blocker, state which blocker ID (B1–B9) it matches and why the condition holds.]
 
 **Recommendation:**
 [One concrete action. E.g., "Add a task in tasks.md section 2 covering the `### Requirement: Token refresh` spec." / "Change the MODIFIED header in specs/auth/spec.md to `### Requirement: Session refresh` to match the current spec." / "Replace 'latest' with a pinned version in design.md."]

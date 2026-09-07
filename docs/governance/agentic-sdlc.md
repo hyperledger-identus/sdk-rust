@@ -37,26 +37,31 @@ are adapters; OpenSpec artifacts and factory commands are the shared contract.
 mandate / backlog
    │
    ▼
-issue-framed ──► source-audited ──► contract-ready ──► implementation
-                                            │
-                                            ▼
-                                  verified candidate
-                                            │
-                                            ▼
-                              local review + issue-linked PR
-                                            │
-                                            ▼
-                                  green CI + develop merge
-                                            │
-                         ┌──────────────────┴───────────────┐
-                         ▼                                  ▼
-                protected release                  next component slice
+issue-framed ──► source-audited ──► research-ready ──► contract-ready
+                                                            │
+                                                            ▼
+                                                     implementation
+                                                            │
+                                                            ▼
+                                                  verified candidate
+                                                            │
+                                                            ▼
+                                              local review + issue-linked PR
+                                                            │
+                                                            ▼
+                                                  green CI + develop merge
+                                                            │
+                                         ┌──────────────────┴───────────────┐
+                                         ▼                                  ▼
+                                protected release                  next component slice
 ```
 
-An agent cannot skip `contract-ready` for behavior, public API, architecture,
-protocol, security or multi-step work. Ready means the artifacts are complete,
-semantically reviewed and contain no unresolved blocker; it is not a human
-approval state. `scripts/factory check` proves structural validity only.
+An agent cannot skip `research-ready` or `contract-ready` for behavior, public
+API, architecture, protocol, security or multi-step work. Research-ready means
+the current implementation, sources, reuse candidates and risks have an
+explicit evidence-backed disposition with no blocker. Contract-ready means the
+artifacts are complete and semantically reviewed. Neither is a human approval
+state. `scripts/factory check` proves structural validity only.
 Downstream adoption is never part of the upstream implementation state.
 
 ## One-slice operating contract
@@ -74,19 +79,21 @@ The agent then:
 
 1. works in a dedicated worktree outside consumer repositories;
 2. audits normative sources and existing implementations;
-3. establishes and semantically reviews the public contract and negative cases
+3. records candidate adoption/rejection evidence and passes
+   `scripts/factory research-ready <change>`;
+4. establishes and semantically reviews the public contract and negative cases
    before porting;
-4. records provenance for every adapted file or fixture;
-5. implements only the bounded slice;
-6. runs proportional gates and reports unrun gates exactly;
-7. produces a standalone consumer-shaped proof when needed;
-8. verifies consumer HEAD/status did not change;
-9. completes and records a distinct local review pass;
-10. pushes the focused branch and opens a ready, issue-linked pull request
+5. records provenance for every adapted file or fixture;
+6. implements only the bounded slice;
+7. runs proportional gates and reports unrun gates exactly;
+8. produces a standalone consumer-shaped proof when needed;
+9. verifies consumer HEAD/status did not change;
+10. completes and records a distinct local review pass;
+11. pushes the focused branch and opens a ready, issue-linked pull request
     targeting `develop`;
-11. monitors required CI and merges the eligible pull request into `develop`
+12. monitors required CI and merges the eligible pull request into `develop`
     when every gate is green and no blocking review remains;
-12. continues to the next eligible slice without waiting for ceremonial
+13. continues to the next eligible slice without waiting for ceremonial
     approval, but stops before release, publication, `main` promotion,
     repository administration, security disclosure or consumer adoption unless
     explicitly authorized by the responsible human.

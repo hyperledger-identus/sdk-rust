@@ -15,6 +15,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/support-policy.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
 "$repository_root/scripts/tests/openspec-archive.py"
+"$repository_root/scripts/tests/research-readiness.py"
 
 required_files=(
   AGENTS.md
@@ -27,6 +28,7 @@ required_files=(
   RELEASING.md
   SECURITY.md
   docs/factory/README.md
+  docs/factory/research-readiness.md
   docs/architecture/sdk-bootstrap-inventory.md
   docs/architecture/sdk-bootstrap-inventory.toml
   docs/architecture/sdk-support-policy.md
@@ -47,10 +49,12 @@ required_files=(
   scripts/check-support-policy.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-pr-policy.sh
+  scripts/check-research-readiness.py
   scripts/tests/factory-contract.sh
   scripts/tests/bootstrap-inventory.py
   scripts/tests/openspec-archive.py
   scripts/tests/pr-policy.sh
+  scripts/tests/research-readiness.py
   scripts/tests/support-policy.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
@@ -63,7 +67,7 @@ required_files=(
 for relative_path in "${required_files[@]}"; do
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
   case "$relative_path" in
-    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/governance/repository-settings.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | nix/checks/gates.toml | nix/checks/rust-gates.nix | scripts/benchmark-support-policy.py | scripts/check-bootstrap-inventory.py | scripts/check-openspec-archive.py | scripts/factory | scripts/check-support-policy.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/openspec-archive.py | scripts/tests/support-policy.py)
+    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/factory/research-readiness.md | docs/governance/repository-settings.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | nix/checks/gates.toml | nix/checks/rust-gates.nix | scripts/benchmark-support-policy.py | scripts/check-bootstrap-inventory.py | scripts/check-openspec-archive.py | scripts/check-research-readiness.py | scripts/factory | scripts/check-support-policy.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/openspec-archive.py | scripts/tests/research-readiness.py | scripts/tests/support-policy.py)
       cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
       ;;
     *)
@@ -76,12 +80,14 @@ chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh
   "$fixture_root/scripts/check-bootstrap-inventory.py" \
   "$fixture_root/scripts/check-openspec-archive.py" \
   "$fixture_root/scripts/check-pr-policy.sh" \
+  "$fixture_root/scripts/check-research-readiness.py" \
   "$fixture_root/scripts/check-support-policy.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/tests/bootstrap-inventory.py" \
   "$fixture_root/scripts/tests/factory-contract.sh" \
   "$fixture_root/scripts/tests/openspec-archive.py" \
   "$fixture_root/scripts/tests/pr-policy.sh" \
+  "$fixture_root/scripts/tests/research-readiness.py" \
   "$fixture_root/scripts/tests/support-policy.py"
 
 for relative_path in Cargo.toml flake.nix flake.lock \
@@ -111,6 +117,47 @@ for artifact in .openspec.yaml proposal.md design.md; do
 done
 : >"$change_root/specs/example-capability/spec.md"
 printf '%s\n' '- [ ] 1.1 Example task' >"$change_root/tasks.md"
+cat >"$change_root/research.md" <<'EOF'
+# Research readiness
+
+Research class: routine
+Research status: ready
+Decision date: 2026-09-07
+Source retrieval date: 2026-09-07
+Research blockers: none
+
+## Problem and existing implementation
+
+Not applicable to this fixture.
+
+## Normative sources
+
+Not applicable to this fixture.
+
+## Candidate decisions
+
+The fixture records `not-applicable`.
+
+## Compatibility and dependency evidence
+
+Not applicable to this fixture.
+
+## Security, privacy and maintenance evidence
+
+Not applicable to this fixture.
+
+## Rejected or deferred candidates
+
+Not applicable to this fixture.
+
+## Open questions and blockers
+
+None.
+
+## Evidence commands
+
+The factory contract test is the evidence.
+EOF
 : >"$fixture_root/.pi/chains/afk.yaml"
 
 "$checker" "$fixture_root" >/dev/null

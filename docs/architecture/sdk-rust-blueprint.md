@@ -23,6 +23,11 @@ machine-readable [support policy](sdk-support-policy.toml) and its
 [bootstrap inventory](sdk-bootstrap-inventory.md) distinguishes implemented,
 verification-only and quarantined-placeholder packages and records the
 repository-local `IDR-001` evidence.
+The [Rust reuse research](../research/rust-library-reuse/report-source.md),
+[ADR 0061](../adr/0061-adopt-narrow-crates-behind-identus-facades.md) and
+[ADR 0062](../adr/0062-use-a-rolling-near-current-msrv.md) govern third-party
+crate selection and the planned transition from the still-effective Rust 1.85
+floor.
 
 ## 1. Mission
 
@@ -70,26 +75,29 @@ offline and does not build a donor or consumer repository.
 
 1. **Contract before port.** Every component issue defines its standards,
    owner crate, public contract, non-goals and evidence before code moves.
-2. **One component at a time.** One issue, one worktree, one focused ready PR
+2. **Research before implementation.** Every qualifying OpenSpec change
+   passes `factory research-ready`; foundational/protocol/security work records
+   build-versus-adopt evidence and negative decisions.
+3. **One component at a time.** One issue, one worktree, one focused ready PR
    after local review, and one independently testable result.
-3. **No roadmap stubs.** Do not create empty crates merely to reserve the
+4. **No roadmap stubs.** Do not create empty crates merely to reserve the
    future workspace layout. Namespace placeholders are a release-governance
    operation under issue #3, not API commitments.
-4. **Plain Cargo is first class.** Nix is the reproducible maintainer/CI path,
+5. **Plain Cargo is first class.** Nix is the reproducible maintainer/CI path,
    but a consumer can build and test supported crates with stable Cargo.
-5. **Stable Rust.** Nightly-only language features are rejected. MSRV changes
+6. **Stable Rust.** Nightly-only language features are rejected. MSRV changes
    are explicit compatibility decisions and cannot follow a rolling toolchain
    accidentally.
-6. **Verification is not trust.** The SDK returns technical evidence. The
+7. **Verification is not trust.** The SDK returns technical evidence. The
    consumer decides whether an issuer, verifier, chain, credential or action is
    trusted and permitted.
-7. **Secrets are handles.** Secret bytes never cross a public protocol, log,
+8. **Secrets are handles.** Secret bytes never cross a public protocol, log,
    error or FFI surface when an opaque provider/handle can be used.
-8. **Parsed is not verified.** Public types preserve construction state where
+9. **Parsed is not verified.** Public types preserve construction state where
    confusing untrusted syntax with verified semantics would be unsafe.
-9. **Bound every input.** Parsers and decoders have byte, element, nesting,
+10. **Bound every input.** Parsers and decoders have byte, element, nesting,
    decompression, redirect and time limits with privacy-safe errors.
-10. **Evidence travels with code.** Vectors record source, source revision,
+11. **Evidence travels with code.** Vectors record source, source revision,
     license, retrieval date, transformation and expected result.
 
 ## 4. Baseline and target crate portfolio
@@ -174,6 +182,12 @@ is tested as the stable consumer floor independently of the pinned
 NeoPRISM-etalon nightly. There is no supported FFI during bootstrap, and
 binary size/build time remain measurement-only until a candidate release
 defines reproducible artifacts and budgets.
+
+ADR 0062 accepts a rolling stable-minus-three policy and identifies Rust 1.95
+as the first transition target. Issue
+[#154](https://github.com/hyperledger-identus/sdk-rust/issues/154) must update
+Cargo, Nix and machine policy together before that becomes an effective claim;
+this blueprint continues to report Rust 1.85 until then.
 
 ## 6. Delivery program
 

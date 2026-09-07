@@ -13,6 +13,9 @@ Develop merge base:
 Mandate/roadmap source:
 Agent roles used:
 Source SHAs/paths/licenses:
+Research class/status:
+Research readiness command:
+Candidate dispositions and rejected-dependency ledger:
 Normative standards/profiles:
 Public API and wire impact:
 Threats, privacy and resource bounds:

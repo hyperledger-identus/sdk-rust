@@ -17,6 +17,9 @@ standing mandate / backlog / issue
       explore and source audit
                │
                ▼
+    research-ready decision
+               │
+               ▼
   OpenSpec proposal + specs + design + tasks
                │
                ▼
@@ -57,10 +60,17 @@ Before implementation, the change must contain:
 
 - `.openspec.yaml` using the `spec-driven` schema;
 - `proposal.md` explaining intent, scope and capabilities;
+- `research.md` recording the current implementation, normative sources,
+  adopt/build/reject decisions, compatibility evidence and zero blockers;
 - `specs/<capability>/spec.md` with testable normative scenarios;
 - `design.md` recording implementation decisions and trade-offs;
 - `tasks.md` with ordered, parseable checkboxes;
 - a semantic review with zero uncleared blockers.
+
+Run `scripts/factory research-ready <change>` before the first implementation
+edit. The [research readiness contract](research-readiness.md) is lightweight
+for routine changes and requires a full candidate/evidence matrix for new
+protocol, foundational, cryptography/security, storage or FFI work.
 
 ## Factory commands
 
@@ -71,6 +81,7 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/factory status
 ./scripts/factory validate <change>
 ./scripts/factory check
+./scripts/factory research-ready <change>
 ./scripts/factory ready <change>
 ./scripts/factory receipt <change>
 ./scripts/factory archive <change>
@@ -89,6 +100,7 @@ nix run .#factory -- check
 | `status` | shows Git identity and active OpenSpec changes |
 | `validate` | runs strict structural validation for one change or the whole store |
 | `check` | runs the CI-safe structural and OpenSpec gates; incomplete draft tasks are allowed |
+| `research-ready` | requires reviewed research, an explicit candidate disposition and zero declared research blockers before implementation |
 | `ready` | requires the named active change and every task to be complete |
 | `receipt` | runs readiness, then prints immutable branch/head/base identifiers |
 | `archive` | runs readiness and preservation preflight, archives through pinned OpenSpec, then validates the resulting store |
@@ -167,16 +179,18 @@ request records the mandate or roadmap source and local or specialist reviews.
 
 A change is ready for final review when:
 
-1. its OpenSpec artifacts pass structural and semantic review;
-2. every implementation task is checked and maps to a requirement;
-3. `scripts/factory ready <change>` passes;
-4. focused and repository-wide gates are recorded exactly;
-5. provenance, threats, bounds and compatibility are addressed;
-6. consumer repositories remain unchanged unless separately authorized;
-7. current capability specs are synced and the completed change is archived
+1. `scripts/factory research-ready <change>` passed before implementation and
+   remains consistent with the result;
+2. its OpenSpec artifacts pass structural and semantic review;
+3. every implementation task is checked and maps to a requirement;
+4. `scripts/factory ready <change>` passes;
+5. focused and repository-wide gates are recorded exactly;
+6. provenance, threats, bounds and compatibility are addressed;
+7. consumer repositories remain unchanged unless separately authorized;
+8. current capability specs are synced and the completed change is archived
    through the guarded factory command;
-8. a distinct local review pass has no unresolved blocker;
-9. the signed, DCO-bearing PR targets `develop` and references its issue.
+9. a distinct local review pass has no unresolved blocker;
+10. the signed, DCO-bearing PR targets `develop` and references its issue.
 
 ## Client adapters
 

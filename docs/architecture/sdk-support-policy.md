@@ -63,6 +63,12 @@ or gate keys are rejected as ambiguous policy.
 The etalon supplies a separate locked all-feature workspace build rather than
 duplicating the primary quality matrix.
 
+Sanitizer-backed fuzzing is the bounded operational exception: libFuzzer uses
+nightly-only compiler instrumentation, so fuzz workflows explicitly enter the
+named `fuzz` devshell backed by the pinned etalon toolchain. The default
+devshell and all ordinary quality gates remain on primary stable, and fuzz
+success is not MSRV evidence.
+
 `identus-did` declares no Cargo features: its default and no-default surfaces
 are intentionally identical and its exact internal dependency cone is guarded
 by repository conformance. It is compiled by the workspace host/MSRV gates and

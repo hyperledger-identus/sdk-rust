@@ -13,7 +13,7 @@
 
 ## Local gates
 
-- Focused policy suite: 152/152 passed.
+- Focused policy suite: 154/154 passed after adding fuzz-shell drift coverage.
 - Focused constraint suite: 12/12 passed.
 - Factory contract, support-policy checker, constraint checker, research gate
   and constraint gate: passed.
@@ -35,6 +35,13 @@
   mutated.
 - x86_64-Linux was omitted locally as incompatible with the Darwin host and
   remains mandatory hosted-CI evidence before merge.
+- Initial hosted fuzz smoke runs correctly failed after the default shell moved
+  to stable because libFuzzer passed nightly-only `-Zsanitizer`. The follow-up
+  uses the pinned etalon only through a named fuzz shell; repeated hosted checks
+  remain required before merge.
+- The named fuzz shell reports the pinned nightly compiler and the local JWS
+  sanitizer smoke completed all 4,096 deterministic runs without a finding.
+- The full local flake check passed again after the fuzz-shell correction.
 
 ## Review result
 

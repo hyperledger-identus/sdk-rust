@@ -60,6 +60,9 @@ nix develop -c cargo test --workspace
 # Format Rust and Nix
 nix run .#format
 
+# Run sanitizer fuzzing with the pinned nightly shell
+nix develop .#fuzz -c ./scripts/fuzz-jws.sh smoke
+
 # Run the complete repository gate
 nix flake check
 ```

@@ -61,11 +61,11 @@ jobs:
 
       - name: Run deterministic smoke
         if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: nix develop --command ./scripts/fuzz-crypto.sh smoke all
+        run: nix develop .#fuzz --command ./scripts/fuzz-crypto.sh smoke all
 
       - name: Run bounded soak
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: nix develop --command ./scripts/fuzz-crypto.sh soak all
+        run: nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak all
 
       - name: Preserve failing inputs
         if: failure()

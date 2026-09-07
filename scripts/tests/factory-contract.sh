@@ -107,6 +107,12 @@ for relative_path in Cargo.toml flake.nix flake.lock \
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
   cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
 done
+for relative_path in .github/workflows/crypto-fuzz.yml \
+  .github/workflows/did-fuzz.yml .github/workflows/jws-fuzz.yml \
+  nix/devshells/default.nix; do
+  mkdir -p "$fixture_root/$(dirname "$relative_path")"
+  cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
+done
 mkdir -p "$fixture_root/nix"
 cp -R "$repository_root/nix/checks/." "$fixture_root/nix/checks"
 while IFS= read -r manifest; do

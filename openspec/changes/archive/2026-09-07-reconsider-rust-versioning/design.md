@@ -32,6 +32,13 @@ This change records Rust 1.89 as the next candidate but intentionally leaves
 Cargo `rust-version`, the MSRV toolchain and every MSRV gate at 1.85. A later
 issue must prove supported targets and named consumers before activation.
 
+### Keep sanitizer fuzzing on an explicit nightly shell
+
+The default devshell follows primary stable. A separate `fuzz` devshell uses
+the already pinned etalon nightly because libFuzzer passes nightly-only
+sanitizer flags. Fuzz workflows select this shell explicitly; dependency
+policy checks continue to use the stable default shell.
+
 ## Risks and mitigations
 
 - Two overlays can be cross-wired: the offline validator binds every provider,
@@ -41,6 +48,9 @@ issue must prove supported targets and named consumers before activation.
 - A single etalon build may miss nightly-only diagnostics: the SDK prohibits
   nightly-only code; etalon is forward/integration evidence, not the primary
   quality compiler.
+- Fuzz workflows can accidentally inherit stable: the support-policy checker
+  binds their script invocations to the dedicated etalon-backed fuzz shell and
+  negative tests reject provider drift.
 - Host success can overstate mobile/WASM support: existing compile-only tiers
   and limitations remain unchanged, and CI supplies its declared target gates.
 

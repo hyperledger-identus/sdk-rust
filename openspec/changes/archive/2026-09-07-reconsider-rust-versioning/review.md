@@ -40,7 +40,8 @@
 
 ## Verification
 
-- `python3 scripts/tests/support-policy.py`: 152 passed.
+- `python3 scripts/tests/support-policy.py`: 154 passed after the hosted-CI
+  correction.
 - `python3 scripts/tests/constraints.py`: 12 passed.
 - `bash scripts/tests/factory-contract.sh`: passed.
 - `python3 scripts/check-support-policy.py`: passed.
@@ -57,6 +58,12 @@
   destructive rewrite.
 - Post-archive `./scripts/factory check` and the full Nix flake check passed
   again with 46 canonical capabilities and zero active changes.
+- Hosted CI then showed that sanitizer fuzz commands inherited the stable
+  default shell and rejected `-Zsanitizer`. A dedicated etalon-backed fuzz
+  shell, explicit workflow selection and two negative policy tests resolve the
+  branch-owned integration finding without weakening the stable default.
+- `nix develop .#fuzz -c ./scripts/fuzz-jws.sh smoke`: passed all 4,096
+  deterministic runs locally, and the complete flake check passed again.
 
 The local flake check ran on aarch64-Darwin and omitted x86_64-Linux as an
 incompatible system. Required GitHub CI must provide the independent hosted

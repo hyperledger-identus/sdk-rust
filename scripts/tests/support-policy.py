@@ -66,6 +66,10 @@ class SupportPolicyTests(unittest.TestCase):
             "flake.lock",
             "docs/architecture/sdk-support-policy.toml",
             "docs/adr/0002-neoprism-toolchain-alignment.md",
+            ".github/workflows/crypto-fuzz.yml",
+            ".github/workflows/did-fuzz.yml",
+            ".github/workflows/jws-fuzz.yml",
+            "nix/devshells/default.nix",
             "nix/rust-toolchain.nix",
         ]:
             destination = self.fixture / relative
@@ -172,6 +176,22 @@ class SupportPolicyTests(unittest.TestCase):
     def test_etalon_gate_must_cover_locked_all_feature_workspace(self) -> None:
         self.replace_gate("rust-etalon", "all_features = true", "all_features = false")
         self.assert_fails("etalon policy gate rust-etalon selects packages")
+
+    def test_fuzz_shell_cannot_use_primary_toolchain(self) -> None:
+        self.replace(
+            "nix/devshells/default.nix",
+            "          etalonToolchain\n          stdenv.cc",
+            "          toolchain\n          stdenv.cc",
+        )
+        self.assert_fails("must bind the dedicated fuzz shell to etalonToolchain")
+
+    def test_fuzz_workflow_cannot_use_primary_shell(self) -> None:
+        self.replace(
+            ".github/workflows/crypto-fuzz.yml",
+            "nix develop .#fuzz --command ./scripts/fuzz-crypto.sh smoke all",
+            "nix develop --command ./scripts/fuzz-crypto.sh smoke all",
+        )
+        self.assert_fails("must run scripts/fuzz-crypto.sh through the dedicated fuzz shell")
 
     def test_missing_dimension_fails(self) -> None:
         self.replace(

@@ -40,9 +40,13 @@ different problems and must not move as one number.
 6. The NeoPRISM-derived nixpkgs, rust-overlay and Nix version remain pinned. A
    second exact rust-overlay revision supplies primary stable until a later
    coordinated etalon refresh can remove that need.
-7. Beta or moving nightly checks may be advisory but are never release or MSRV
+7. Sanitizer fuzz campaigns use an explicitly named shell backed by the pinned
+   etalon nightly because libFuzzer requires nightly compiler instrumentation.
+   This operational exception does not make nightly the default compiler or
+   substitute for primary/MSRV gates.
+8. Beta or moving nightly checks may be advisory but are never release or MSRV
    evidence.
-8. Dioxus is an Oxid consumer concern and cannot set the generic SDK MSRV. A
+9. Dioxus is an Oxid consumer concern and cannot set the generic SDK MSRV. A
    future FFI or platform boundary crate may request a higher crate-local MSRV
    only through its own material ADR; core crates do not rise automatically.
 
@@ -62,6 +66,8 @@ are insufficient on their own.
 - Consumers keep the existing Rust 1.85 compatibility promise.
 - NeoPRISM interoperability remains visible without making nightly the SDK's
   ordinary compiler.
+- Fuzz campaigns keep deterministic sanitizer instrumentation through a
+  dedicated pinned-nightly shell rather than inheriting the stable devshell.
 - Two rust-overlay pins add explicit maintenance cost and must be updated only
   through focused, lock-reviewed changes.
 - Rust 1.89 ecosystem candidates can be evaluated without pre-committing every

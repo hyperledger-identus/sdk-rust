@@ -2057,6 +2057,7 @@ def validate_toolchains(
         "msrv": "1.85.0",
         "primary": "1.98.1",
         "etalon": "nightly-2026-03-18",
+        "fuzz": "etalon",
         "msrv_candidate": "1.89.0",
         "neoprism_revision": "8becb225132efb1d9302b2c5f6ed4d87b84e8685",
         "nixpkgs_revision": "c27cdad491a991b11ed731760aa2ef8db0cb0410",
@@ -2223,6 +2224,53 @@ def validate_toolchains(
         failures.append(
             "nix/rust-toolchain.nix does not wire msrvCraneLib to msrvToolchain"
         )
+
+    fuzz_shell_path = root / "nix/devshells/default.nix"
+    try:
+        fuzz_shell = nix_without_comments(fuzz_shell_path.read_text(encoding="utf-8"))
+    except OSError as error:
+        failures.append(f"cannot read dedicated fuzz shell: {error}")
+        fuzz_shell = ""
+    fuzz_shell_match = re.search(
+        r"devshells\.fuzz\s*=\s*\{.*?packages\s*=\s*with\s+pkgs\s*;\s*"
+        r"\[(.*?)\]\s*;",
+        fuzz_shell,
+        re.DOTALL,
+    )
+    fuzz_packages = fuzz_shell_match.group(1) if fuzz_shell_match else ""
+    if (
+        fuzz_shell_match is None
+        or re.search(r"\betalonToolchain\b", fuzz_packages) is None
+        or re.search(r"\bcargo-fuzz\b", fuzz_packages) is None
+        or re.search(r"\btoolchain\b", fuzz_packages) is not None
+    ):
+        failures.append(
+            "nix/devshells/default.nix must bind the dedicated fuzz shell to "
+            "etalonToolchain and cargo-fuzz"
+        )
+
+    fuzz_workflows = {
+        ".github/workflows/crypto-fuzz.yml": "scripts/fuzz-crypto.sh",
+        ".github/workflows/did-fuzz.yml": "scripts/fuzz-did.sh",
+        ".github/workflows/jws-fuzz.yml": "scripts/fuzz-jws.sh",
+    }
+    for relative_path, script in fuzz_workflows.items():
+        try:
+            workflow = (root / relative_path).read_text(encoding="utf-8")
+        except OSError as error:
+            failures.append(f"cannot read fuzz workflow {relative_path}: {error}")
+            continue
+        script_commands = [
+            line.strip()
+            for line in workflow.splitlines()
+            if line.strip().startswith("run:") and script in line
+        ]
+        if not script_commands or any(
+            "nix develop .#fuzz --command" not in line for line in script_commands
+        ):
+            failures.append(
+                f"{relative_path} must run {script} through the dedicated fuzz shell"
+            )
 
     for target, tier in REQUIRED_TARGETS.items():
         if tier == "compile-checked" and f'"{target}"' not in rust_nix:

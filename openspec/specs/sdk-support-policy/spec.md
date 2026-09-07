@@ -46,7 +46,9 @@ pinned NeoPRISM-etalon nightly `2026-03-18`. Passing on primary stable or the
 etalon SHALL NOT substitute for the corresponding MSRV gate. Each Crane
 builder and dependency-artifact provider SHALL be wired to its
 machine-declared toolchain and SHALL fail structural validation when classes
-are cross-wired.
+are cross-wired. Sanitizer fuzz campaigns that require nightly compiler
+instrumentation SHALL use an explicitly named devshell backed by the pinned
+etalon and SHALL NOT change the primary default shell.
 
 #### Scenario: Nightly-only language use enters the SDK
 
@@ -85,6 +87,13 @@ are cross-wired.
   workspace gate uses the NeoPRISM etalon provider
 - **THEN** structural validation fails because the integration evidence is
   incomplete
+
+#### Scenario: Sanitizer fuzzing runs after primary becomes stable
+
+- **WHEN** a deterministic or soak fuzz campaign invokes nightly-only
+  sanitizer instrumentation
+- **THEN** its workflow enters the dedicated etalon-backed fuzz shell while
+  ordinary development and quality gates remain on primary stable
 
 ### Requirement: Evidence tiers do not overstate support
 

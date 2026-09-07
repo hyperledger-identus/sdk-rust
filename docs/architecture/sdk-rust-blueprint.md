@@ -413,6 +413,15 @@ independent zeroizing storage. HTTP execution and headers, network policy,
 response validation and correlation, trust, nonce lifecycle, proof
 construction, and Credential Requests/Responses remain later slices.
 
+The fourteenth bounded delivery, issue #137, validates caller-supplied Final
+Credential Nonce HTTP response metadata through a validated request. It
+requires a 2xx status, an RFC-shaped case-insensitive `application/json` media
+type, an RFC-shaped Cache-Control list containing bare `no-store`, independent
+field/body bounds, and the existing strict response-body parser. HTTP
+execution, network/trust policy, generic header collection, DPoP, actual
+response provenance, nonce lifecycle, proof construction, and Credential
+Requests/Responses remain later slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

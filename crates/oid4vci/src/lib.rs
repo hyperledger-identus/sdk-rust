@@ -8,13 +8,15 @@
 //! construction of the mandatory Pre-Authorized Token Request form plus a
 //! partial successful Token Response, Token Error Response, and Credential
 //! Nonce Response core, plus a transport-neutral Final Credential Nonce
-//! Request description. It performs no network access, does not validate
-//! complete RFC 8414 metadata or Token Response Authorization Details, and
-//! establishes no issuer, server, token, or nonce trust.
+//! Request description and bounded validation of its mandatory HTTP response
+//! metadata. It performs no network access, does not validate complete RFC
+//! 8414 metadata or Token Response Authorization Details, and establishes no
+//! issuer, server, token, or nonce trust.
 
 #![forbid(unsafe_code)]
 
 mod authorization_metadata;
+mod credential_nonce_http_response;
 mod credential_nonce_request;
 mod credential_nonce_response;
 mod error;
@@ -46,9 +48,10 @@ pub use grants::{
 };
 pub use limits::{
     AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits,
-    CredentialNonceResponseLimits, CredentialOfferGrantLimits, CredentialOfferLimits,
-    CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH, PreAuthorizedTokenRequestLimits,
-    TokenErrorResponseLimits, TokenResponseLimits, TransactionCodeInputLimits,
+    CredentialNonceHttpResponseLimits, CredentialNonceResponseLimits, CredentialOfferGrantLimits,
+    CredentialOfferLimits, CredentialOfferSemanticLimits, MAX_CONFIGURABLE_JSON_DEPTH,
+    PreAuthorizedTokenRequestLimits, TokenErrorResponseLimits, TokenResponseLimits,
+    TransactionCodeInputLimits,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,

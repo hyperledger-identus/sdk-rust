@@ -516,6 +516,57 @@ impl Default for CredentialNonceResponseLimits {
     }
 }
 
+/// Resource limits for a caller-supplied Credential Nonce HTTP response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CredentialNonceHttpResponseLimits {
+    response_limits: CredentialNonceResponseLimits,
+    max_content_type_bytes: usize,
+    max_cache_control_bytes: usize,
+}
+
+impl CredentialNonceHttpResponseLimits {
+    /// Combine body limits with positive HTTP field-value byte bounds.
+    pub const fn new(
+        response_limits: CredentialNonceResponseLimits,
+        max_content_type_bytes: usize,
+        max_cache_control_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_content_type_bytes == 0 || max_cache_control_bytes == 0 {
+            return Err(CredentialOfferError::InvalidCredentialNonceHttpResponseLimits);
+        }
+        Ok(Self {
+            response_limits,
+            max_content_type_bytes,
+            max_cache_control_bytes,
+        })
+    }
+
+    /// Return the bounded JSON response policy.
+    pub const fn response_limits(self) -> CredentialNonceResponseLimits {
+        self.response_limits
+    }
+
+    /// Maximum bytes in the effective Content-Type field value.
+    pub const fn max_content_type_bytes(self) -> usize {
+        self.max_content_type_bytes
+    }
+
+    /// Maximum bytes in the effective Cache-Control field value.
+    pub const fn max_cache_control_bytes(self) -> usize {
+        self.max_cache_control_bytes
+    }
+}
+
+impl Default for CredentialNonceHttpResponseLimits {
+    fn default() -> Self {
+        Self {
+            response_limits: CredentialNonceResponseLimits::default(),
+            max_content_type_bytes: 1_024,
+            max_cache_control_bytes: 4_096,
+        }
+    }
+}
+
 /// Resource limits for unsigned Credential Issuer Metadata.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialIssuerMetadataLimits {

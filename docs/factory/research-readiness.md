@@ -73,6 +73,15 @@ includes:
 - objective reconsideration triggers; and
 - exact commands actually run, with unrun checks stated truthfully.
 
+The offline checker recognizes those categories through explicit terms in the
+record. Use unambiguous wording such as “current implementation”, “consumer”,
+“version”, “feature”, “revision”, “license”, “provenance”, “MSRV”, “target”,
+“direct and resolved dependency cone”, “unsafe”, “native”, “supply-chain”,
+“public and wire compatibility”, “facade”, “rollback”, “maintenance”,
+“release”, “security”, “protocol/draft currency”, “reconsideration trigger”,
+“command” and “unrun”. This proves minimum shape only; links, revisions and
+commands remain the semantic evidence.
+
 Mark `Research status: ready` and `Research blockers: none` only after a fresh
 semantic review clears every load-bearing uncertainty. Then run:
 

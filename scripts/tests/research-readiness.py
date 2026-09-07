@@ -22,11 +22,12 @@ Research blockers: none
 
 ## Problem and existing implementation
 
-The current parser is inspected.
+The current implementation and two consumer call shapes are inspected.
 
 ## Normative sources
 
 Primary source: https://example.com/spec at revision 1234567. License: MIT.
+Provenance is recorded from the authoritative repository.
 
 ## Candidate decisions
 
@@ -36,11 +37,14 @@ Primary source: https://example.com/spec at revision 1234567. License: MIT.
 
 ## Compatibility and dependency evidence
 
-MSRV, target matrix, dependency cone, public API and rollback were checked.
+Exact version and minimal feature selection, MSRV, target matrix, direct and
+resolved dependency cone, public API, wire compatibility, facade boundary and
+rollback were checked.
 
 ## Security, privacy and maintenance evidence
 
-Unsafe, native code, advisories and maintenance were inspected.
+Unsafe and native code, supply-chain advisories, maintenance, release and
+security posture, and protocol/draft currency were inspected.
 
 ## Rejected or deferred candidates
 
@@ -52,7 +56,7 @@ None.
 
 ## Evidence commands
 
-The exact target check passed.
+The exact command passed. No unrun checks remain.
 """
 
 
@@ -103,6 +107,23 @@ class ResearchReadinessTests(unittest.TestCase):
         result = self.run_checker(incomplete)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("dependency cone", result.stderr)
+
+    def test_full_record_requires_security_and_compatibility_evidence(self) -> None:
+        incomplete = VALID.replace("Unsafe and native code", "Implementation code")
+        incomplete = incomplete.replace("wire compatibility", "serialization")
+        result = self.run_checker(incomplete)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("unsafe and native-code evidence", result.stderr)
+        self.assertIn("public and wire compatibility", result.stderr)
+
+    def test_full_record_rejects_empty_section(self) -> None:
+        incomplete = VALID.replace(
+            "The current implementation and two consumer call shapes are inspected.",
+            "...",
+        )
+        result = self.run_checker(incomplete)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("section is empty", result.stderr)
 
     def test_routine_record_may_use_not_applicable(self) -> None:
         routine = VALID.replace("Research class: protocol", "Research class: routine")

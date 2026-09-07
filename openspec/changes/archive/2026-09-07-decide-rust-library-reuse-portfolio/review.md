@@ -76,6 +76,14 @@
    diagram.
 4. Corrected the prompt to name `Research status: ready` and include blocker
    B9 in its reviewer guidance.
+5. Hosted review identified three actionable gaps: incomplete machine evidence
+   categories, noncanonical negative-ledger reason spelling and two archived
+   relative links. The checker/tests, ledger and links were corrected before
+   merge.
+6. The hosted signature finding was disproved against both the local object and
+   GitHub Git API: commit `da50c9d5ec00e663371ef62c14fbf85ae3d9c8fd`
+   has a valid `gpgsig` and DCO trailer. The correction commit is subject to the
+   same gates.
 
 ## Post-archive validation note
 

@@ -36,10 +36,45 @@ REQUIRED_HEADINGS = (
     "Open questions and blockers",
     "Evidence commands",
 )
+FULL_EVIDENCE_TERMS = {
+    "current implementation": ("current implementation",),
+    "consumer evidence": ("consumer",),
+    "primary source URL": ("https://",),
+    "pinned source revision": ("revision",),
+    "exact version and features": ("version", "feature"),
+    "license and provenance": ("license", "provenance"),
+    "MSRV": ("msrv",),
+    "target evidence": ("target",),
+    "direct and resolved dependency cone": (
+        "direct",
+        "resolved",
+        "dependency cone",
+    ),
+    "unsafe and native-code evidence": ("unsafe", "native"),
+    "supply-chain evidence": ("supply-chain",),
+    "public and wire compatibility": ("public", "wire"),
+    "facade boundary": ("facade",),
+    "rollback": ("rollback",),
+    "maintenance, release and security posture": (
+        "maintenance",
+        "release",
+        "security",
+    ),
+    "protocol or draft currency": ("protocol", "draft"),
+    "reconsideration trigger": ("reconsideration trigger",),
+    "exact commands and unrun checks": ("command", "unrun"),
+}
 
 
 def field(text: str, name: str) -> str | None:
     match = re.search(rf"(?m)^{re.escape(name)}:\s*(\S.*)$", text)
+    return match.group(1).strip() if match else None
+
+
+def section_body(text: str, heading: str) -> str | None:
+    match = re.search(
+        rf"(?ms)^## {re.escape(heading)}\s*$\n(.*?)(?=^## |\Z)", text
+    )
     return match.group(1).strip() if match else None
 
 
@@ -81,9 +116,13 @@ def validate_record(path: Path, require_ready: bool) -> list[str]:
             f"{context} cannot be ready while Research blockers is {blockers!r}"
         )
 
+    sections: dict[str, str] = {}
     for heading in REQUIRED_HEADINGS:
-        if re.search(rf"(?m)^## {re.escape(heading)}\s*$", text) is None:
+        body = section_body(text, heading)
+        if body is None:
             failures.append(f"{context} is missing heading: {heading}")
+        else:
+            sections[heading] = body
 
     decisions = {
         decision
@@ -94,18 +133,16 @@ def validate_record(path: Path, require_ready: bool) -> list[str]:
         failures.append(f"{context} has no allowed candidate decision")
 
     if research_class in FULL_CLASSES:
-        evidence_terms = {
-            "primary source URL": "https://",
-            "MSRV": "msrv",
-            "dependency cone": "dependency cone",
-            "license": "license",
-            "target evidence": "target",
-            "rollback": "rollback",
-            "reconsideration trigger": "reconsideration trigger",
-        }
+        for heading, body in sections.items():
+            normalized = body.strip().lower().rstrip(".")
+            if normalized in {"", "...", "not applicable", "n/a"}:
+                failures.append(
+                    f"{context} full research section is empty: {heading}"
+                )
+
         lowered = text.lower()
-        for label, token in evidence_terms.items():
-            if token not in lowered:
+        for label, tokens in FULL_EVIDENCE_TERMS.items():
+            if any(token not in lowered for token in tokens):
                 failures.append(f"{context} full research is missing {label}")
         if decisions == {"not-applicable"}:
             failures.append(

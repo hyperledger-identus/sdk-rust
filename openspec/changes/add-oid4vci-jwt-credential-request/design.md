@@ -110,8 +110,7 @@ the serialized body is rejected if it exceeds the final body budget.
 
 Fieldless errors distinguish invalid limits, selection, incompatible Token
 Response route/type or Bearer token syntax, empty/excessive/oversized proofs,
-oversized authorization, serialization failure and oversized body. No variant
-carries caller data.
+oversized authorization and oversized body. No variant carries caller data.
 
 ## Risks / Trade-offs
 

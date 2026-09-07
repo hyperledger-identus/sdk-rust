@@ -18,6 +18,12 @@ impl CredentialEndpoint {
     pub fn as_str(&self) -> &str {
         &self.value
     }
+
+    pub(crate) fn duplicate(&self) -> Self {
+        Self {
+            value: Zeroizing::new(self.value.to_string()),
+        }
+    }
 }
 
 impl fmt::Debug for CredentialEndpoint {

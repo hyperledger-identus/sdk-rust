@@ -422,6 +422,17 @@ execution, network/trust policy, generic header collection, DPoP, actual
 response provenance, nonce lifecycle, proof construction, and Credential
 Requests/Responses remain later slices.
 
+The fifteenth bounded delivery, issue #139, constructs the unencrypted Final
+Credential Request for the configuration-ID/JWT-proof path. It selects one ID
+from the matched offer, requires a successful Bearer Token Response without
+opaque Authorization Details, accepts non-empty holder-produced
+`Oid4vciProofJwt` values through the architecture-approved JOSE dependency,
+validates RFC 6750 Bearer syntax, and owns bounded deterministic JSON and
+Authorization values in zeroizing storage. HTTP execution, DPoP, token/proof
+trust and freshness, Authorization Details/Credential identifiers, encryption,
+format or chain extensions, and Credential Response processing remain later
+slices.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

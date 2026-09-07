@@ -567,6 +567,70 @@ impl Default for CredentialNonceHttpResponseLimits {
     }
 }
 
+/// Resource limits for a constructed Final JWT Credential Request.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct JwtCredentialRequestLimits {
+    max_proofs: usize,
+    max_proof_bytes: usize,
+    max_json_body_bytes: usize,
+    max_authorization_bytes: usize,
+}
+
+impl JwtCredentialRequestLimits {
+    /// Construct a positive Credential Request resource policy.
+    pub const fn new(
+        max_proofs: usize,
+        max_proof_bytes: usize,
+        max_json_body_bytes: usize,
+        max_authorization_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_proofs == 0
+            || max_proof_bytes == 0
+            || max_json_body_bytes == 0
+            || max_authorization_bytes == 0
+        {
+            return Err(CredentialOfferError::InvalidJwtCredentialRequestLimits);
+        }
+        Ok(Self {
+            max_proofs,
+            max_proof_bytes,
+            max_json_body_bytes,
+            max_authorization_bytes,
+        })
+    }
+
+    /// Maximum JWT proof count in one request.
+    pub const fn max_proofs(self) -> usize {
+        self.max_proofs
+    }
+
+    /// Maximum bytes in one compact JWT proof.
+    pub const fn max_proof_bytes(self) -> usize {
+        self.max_proof_bytes
+    }
+
+    /// Maximum bytes in the complete JSON request body.
+    pub const fn max_json_body_bytes(self) -> usize {
+        self.max_json_body_bytes
+    }
+
+    /// Maximum bytes in the complete Authorization field value.
+    pub const fn max_authorization_bytes(self) -> usize {
+        self.max_authorization_bytes
+    }
+}
+
+impl Default for JwtCredentialRequestLimits {
+    fn default() -> Self {
+        Self {
+            max_proofs: 16,
+            max_proof_bytes: 16_384,
+            max_json_body_bytes: 262_144,
+            max_authorization_bytes: 16_384,
+        }
+    }
+}
+
 /// Resource limits for unsigned Credential Issuer Metadata.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialIssuerMetadataLimits {

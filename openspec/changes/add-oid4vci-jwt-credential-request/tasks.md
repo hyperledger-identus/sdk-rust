@@ -8,16 +8,16 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add positive request limits, the local JOSE dependency and a bounded
+- [x] 2.1 Add positive request limits, the local JOSE dependency and a bounded
   matched-state constructor for one offered configuration and ordered proofs.
-- [ ] 2.2 Add the zeroizing request value, deterministic JSON/Bearer transport
+- [x] 2.2 Add the zeroizing request value, deterministic JSON/Bearer transport
   surface and fieldless error bridges.
-- [ ] 2.3 Update ADR, blueprint and canonical IDR-023 ledger pointer without
+- [x] 2.3 Update ADR, blueprint and canonical IDR-023 ledger pointer without
   changing features, target policy or consumers.
 
 ## 3. Verification and integration
 
-- [ ] 3.1 Add state, selection, token type, count/size/escaping, deterministic
+- [x] 3.1 Add state, selection, token type, count/size/escaping, deterministic
   wire, boundary, secret ownership and diagnostic-canary tests.
 - [ ] 3.2 Run focused feature modes, strict Clippy/docs, workspace/factory,
   dependency/target/MSRV/supply-chain and full Nix gates; record exact evidence

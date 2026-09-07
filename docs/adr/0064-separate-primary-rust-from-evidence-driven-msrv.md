@@ -68,6 +68,9 @@ are insufficient on their own.
   ordinary compiler.
 - Fuzz campaigns keep deterministic sanitizer instrumentation through a
   dedicated pinned-nightly shell rather than inheriting the stable devshell.
+- Hosted Linux CI reclaims preinstalled Android, .NET and Haskell toolchains
+  that this Rust/Nix job does not use. This preserves all three compiler
+  evidence classes within the runner's finite disk budget.
 - Two rust-overlay pins add explicit maintenance cost and must be updated only
   through focused, lock-reviewed changes.
 - Rust 1.89 ecosystem candidates can be evaluated without pre-committing every

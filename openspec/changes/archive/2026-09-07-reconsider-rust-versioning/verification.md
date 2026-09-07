@@ -42,6 +42,13 @@
 - The named fuzz shell reports the pinned nightly compiler and the local JWS
   sanitizer smoke completed all 4,096 deterministic runs without a finding.
 - The full local flake check passed again after the fuzz-shell correction.
+- The first refreshed x86_64-Linux flake run exhausted the hosted runner disk
+  during the last MSRV test links after all other reported derivations passed.
+  The CI-only correction removes unused preinstalled Android, .NET and Haskell
+  toolchains before building and retains the complete gate graph. A refreshed
+  green Linux run remains mandatory before merge.
+- Post-correction `actionlint`, factory validation, 154 support-policy tests
+  and 12 constraint-governance tests passed locally.
 
 ## Review result
 

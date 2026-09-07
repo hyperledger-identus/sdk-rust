@@ -62,6 +62,11 @@
   default shell and rejected `-Zsanitizer`. A dedicated etalon-backed fuzz
   shell, explicit workflow selection and two negative policy tests resolve the
   branch-owned integration finding without weakening the stable default.
+- The refreshed hosted Linux flake run completed every reported derivation
+  except the final MSRV build, where LLVM reported `No space left on device`.
+  The workflow now reclaims unused preinstalled Android, .NET and Haskell
+  toolchains before Nix installation; no compatibility gate was removed or
+  weakened.
 - `nix develop .#fuzz -c ./scripts/fuzz-jws.sh smoke`: passed all 4,096
   deterministic runs locally, and the complete flake check passed again.
 

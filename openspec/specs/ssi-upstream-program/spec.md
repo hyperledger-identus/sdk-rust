@@ -155,31 +155,30 @@ storage SHALL remain downstream.
 ### Requirement: IDR-023 begins with a focused Credential Offer transport slice
 
 The canonical backlog SHALL keep `IDR-023` at `in_progress` and advance its
-issue reference from completed child #141 to active child #143. Issue #143
-SHALL deliver only bounded, request-bound validation of the unencrypted
-OID4VCI Final immediate Credential Response. It SHALL require exact HTTP 200,
-an RFC-shaped case-insensitive `application/json` media type, the existing
-bounded body-core parser, and a response credential count no greater than the
-JWT Credential Request proof count. It SHALL return an owned request-bound
-state with fieldless redaction-safe errors while explicitly disclaiming proof
-key uniqueness and credential-key correlation.
+issue reference from completed child #143 to active child #145. Issue #145
+SHALL deliver only bounded parsing of the OID4VCI Final Credential Error
+Response body. It SHALL require a strict top-level object, required exact
+extension-compatible error code, optional explicitly untrusted description,
+positive aggregate/structural/value limits, duplicate-safe traversal,
+zeroizing retention, and fieldless redaction-safe diagnostics. It SHALL
+classify the seven Final values without assigning recovery policy to them.
 
-The slice SHALL NOT claim the full OID4VCI engine, HTTP execution or generic
-headers, Cache-Control, TLS/network/endpoint provenance, DPoP, Credential Error
-Response parsing, deferred issuance/polling, response encryption,
-Authorization Details/Credential identifiers, proof/token trust/freshness,
-credential format decoding/verification/trust/status/storage/disclosure,
-Notification Endpoint execution, retries/replay, format/chain extensions,
-consumer adoption, publication or release.
+The slice SHALL NOT claim the full OID4VCI engine, HTTP status/media/header or
+transport validation, RFC 6750 Authorization errors, authentication
+challenges, request correlation, issuer truth, retries/remediation/blame/UI
+policy, legacy `c_nonce` semantics, error URI, deferred issuance/polling,
+response encryption, proof/token/credential verification or trust,
+credential storage/disclosure, Notification Endpoint execution, format/chain
+extensions, consumer adoption, publication or release.
 
 #### Scenario: ledger points at the active bounded child
 
-- **WHEN** issue #143 is implemented
-- **THEN** `IDR-023` references #143 with `delivery_status=in_progress`
+- **WHEN** issue #145 is implemented
+- **THEN** `IDR-023` references #145 with `delivery_status=in_progress`
 - **AND** #7 and #20 remain the open component/program parents
 
-#### Scenario: request-bound immediate response is not protocol-engine completion
+#### Scenario: parsed Credential Error body is not protocol-engine completion
 
-- **WHEN** immediate response HTTP metadata, bounded body and necessary proof
-  count upper bound are validated through a JWT Credential Request
+- **WHEN** the bounded error code and optional description are parsed and
+  classified without transport or recovery semantics
 - **THEN** the backlog keeps `IDR-023` in progress rather than delivered

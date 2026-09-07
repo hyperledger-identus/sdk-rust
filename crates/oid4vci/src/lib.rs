@@ -7,7 +7,8 @@
 //! Pre-Authorized Code server and Transaction Code input binding, and bounded
 //! construction of the mandatory Pre-Authorized Token Request form plus a
 //! partial successful Token Response, Token Error Response, and Credential
-//! Nonce Response core, plus a transport-neutral Final Credential Nonce
+//! Error Response core, plus a Credential Nonce Response core and a
+//! transport-neutral Final Credential Nonce
 //! Request description and bounded validation of its mandatory HTTP response
 //! metadata, and bounded construction of the unencrypted Final
 //! configuration-ID/JWT-proof Credential Request, and bounded parsing of the
@@ -19,6 +20,7 @@
 #![forbid(unsafe_code)]
 
 mod authorization_metadata;
+mod credential_error_response;
 mod credential_nonce_http_response;
 mod credential_nonce_request;
 mod credential_nonce_response;
@@ -43,6 +45,9 @@ pub use authorization_metadata::{
     AUTHORIZATION_CODE_GRANT_TYPE, AuthorizationEndpoint, AuthorizationServerMetadataCore,
     GrantTypeIdentifier, IMPLICIT_GRANT_TYPE, PRE_AUTHORIZED_CODE_GRANT_TYPE, TokenEndpoint,
 };
+pub use credential_error_response::{
+    CredentialEndpointErrorCode, CredentialEndpointErrorKind, CredentialErrorResponseCore,
+};
 pub use credential_nonce_request::{
     CredentialNonceRequest, NONCE_REQUEST_BODY, NONCE_REQUEST_HTTP_METHOD,
 };
@@ -61,9 +66,10 @@ pub use jwt_credential_request::{
     CREDENTIAL_REQUEST_HTTP_METHOD, CREDENTIAL_REQUEST_MEDIA_TYPE, JwtCredentialRequest,
 };
 pub use limits::{
-    AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits,
-    CredentialNonceHttpResponseLimits, CredentialNonceResponseLimits, CredentialOfferGrantLimits,
-    CredentialOfferLimits, CredentialOfferSemanticLimits, ImmediateCredentialHttpResponseLimits,
+    AuthorizationServerMetadataLimits, CredentialErrorResponseLimits,
+    CredentialIssuerMetadataLimits, CredentialNonceHttpResponseLimits,
+    CredentialNonceResponseLimits, CredentialOfferGrantLimits, CredentialOfferLimits,
+    CredentialOfferSemanticLimits, ImmediateCredentialHttpResponseLimits,
     ImmediateCredentialResponseLimits, JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH,
     PreAuthorizedTokenRequestLimits, TokenErrorResponseLimits, TokenResponseLimits,
     TransactionCodeInputLimits,

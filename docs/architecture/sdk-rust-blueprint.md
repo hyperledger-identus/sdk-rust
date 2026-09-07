@@ -456,6 +456,16 @@ credential-to-key binding, format verification, trust, notification execution,
 storage or replay safety; error/deferred/encrypted responses remain later
 slices.
 
+The eighteenth bounded delivery, issue #145, parses the Final Credential
+Endpoint payload-error body. It requires one bounded duplicate-safe JSON
+object with an exact non-empty error code and optional explicitly untrusted
+description, recognizes the seven Final values while preserving valid
+extensions, discards bounded unknown and legacy fields, zeroizes retained
+strings, and keeps diagnostics data-free. HTTP status/media/authentication,
+RFC 6750 Authorization errors, request correlation, issuer truth,
+retry/remediation/UI policy, deferred or encrypted responses, credential
+verification, storage and product policy remain later layers.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

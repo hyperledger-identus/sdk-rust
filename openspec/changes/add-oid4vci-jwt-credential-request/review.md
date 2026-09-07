@@ -4,7 +4,8 @@
 
 - Issue #139 and exact base
   `74d264867a1ceb5f464ef452c99991863d3a1795`.
-- OpenID4VCI 1.0 Final section 8.2 at the recorded immutable hash.
+- OpenID4VCI 1.0 Final section 8.2 and RFC 6750 section 2.1 at their
+  recorded immutable hashes.
 - Read-only Oxid and Lace ID Portal evidence at the recorded revisions.
 - Existing matched offer/metadata, Token Response, holder proof, static error,
   crate-ring, support-policy and consumer-isolation contracts.
@@ -28,8 +29,10 @@
    generation or verification into the protocol crate.
 5. **Resolved — Bearer is explicit rather than assumed.** Token types are
    extensible and may require different presentation rules. The constructor
-   accepts case-insensitive Bearer only and emits a canonical scheme, leaving
-   other token types to a future capability.
+   accepts case-insensitive Bearer only, validates the exact token against the
+   RFC 6750 `b64token` grammar and emits a canonical scheme, leaving other
+   token types to a future capability. The broader Token Response core remains
+   correct for OAuth parsing and cannot substitute for this usage boundary.
 6. **Resolved — resource and secret behavior is bounded.** Independent positive
    count/per-proof/body/authorization limits precede or follow the relevant
    allocation, while authorization and JSON body use zeroizing ownership and

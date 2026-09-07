@@ -34,8 +34,9 @@ fixture is copied.
   proofs;
 - reject the configuration-ID route when unvalidated Authorization Details are
   present;
-- accept only the currently supported Bearer token use and own the complete
-  Authorization value and JSON body in zeroizing storage;
+- accept only the currently supported Bearer token use, validate its token
+  syntax, and own the complete Authorization value and JSON body in zeroizing
+  storage;
 - expose a validated endpoint and exact static transport guidance without an
   HTTP runtime;
 - preserve static diagnostics, Rust 1.85 and native/mobile/browser targets.
@@ -85,8 +86,13 @@ normalized or logged in the protocol crate.
 
 `JwtCredentialRequest` duplicates the validated HTTPS Credential Endpoint and
 stores only an Authorization field value, JSON body and proof count. The Token
-Response must advertise `Bearer` case-insensitively. The emitted field uses the
-canonical `Bearer ` prefix followed by the exact validated Access Token.
+Response must advertise `Bearer` case-insensitively. The access token must also
+match RFC 6750 `b64token`: one or more ASCII letters, digits, `-`, `.`, `_`,
+`~`, `+` or `/`, followed only by optional `=` padding. The emitted field uses
+the canonical `Bearer ` prefix followed by the exact validated Access Token.
+This stricter request boundary is required because `TokenResponseCore`
+correctly accepts the broader OAuth access-token syntax and therefore cannot by
+itself prove safe Bearer Authorization syntax.
 
 The value exposes `POST`, `application/json`, endpoint, byte counts and proof
 count through ordinary accessors. Authorization and body are available only
@@ -103,8 +109,9 @@ proof before allocation. Checked arithmetic bounds the Authorization value;
 the serialized body is rejected if it exceeds the final body budget.
 
 Fieldless errors distinguish invalid limits, selection, incompatible Token
-Response route/type, empty/excessive/oversized proofs, oversized authorization,
-serialization failure and oversized body. No variant carries caller data.
+Response route/type or Bearer token syntax, empty/excessive/oversized proofs,
+oversized authorization, serialization failure and oversized body. No variant
+carries caller data.
 
 ## Risks / Trade-offs
 
@@ -138,6 +145,8 @@ None. Unsupported Final alternatives remain explicit issue-first work.
 
 - OpenID4VCI 1.0 Final section 8.2, HTML SHA-256
   `f123c3178cacd27688b15b762098a045e9eb35eccfe2f5f18a357c3815e06ba7`.
+- RFC 6750 section 2.1, HTML SHA-256
+  `c458bb43ff32efb811466120efdec411010cdde537e59948342240a32dcd5a1c`.
 - Oxid conformance-only source:
   `MediaNoxLabs/oxid@5ba38b9bbc9326c294b353daaf2a074eca18c22f`,
   `crates/adapters/openid4vci/src/portal.rs` and

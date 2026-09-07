@@ -14,8 +14,9 @@ Configuration index, a non-empty ordered slice of
 `identus_jose::Oid4vciProofJwt`, and the limits. It SHALL succeed only when the
 index selects an ID from the matched offer, the Token Response has no
 unvalidated Authorization Details, its token type is case-insensitively
-`Bearer`, the proof list and every compact proof are within bounds, and the
-resulting authorization/body values are within bounds.
+`Bearer`, its exact access token matches RFC 6750 `b64token`, the proof list and
+every compact proof are within bounds, and the resulting authorization/body
+values are within bounds.
 
 #### Scenario: validated states produce one request
 
@@ -31,10 +32,11 @@ resulting authorization/body values are within bounds.
 - **THEN** construction fails before copying token or proof material and cannot
   emit a request for an unoffered configuration
 
-#### Scenario: incompatible token route fails closed
+#### Scenario: incompatible token route or syntax fails closed
 
-- **WHEN** the Token Response contains Authorization Details or advertises a
-  non-Bearer token type
+- **WHEN** the Token Response contains Authorization Details, advertises a
+  non-Bearer token type, or contains an access token outside the RFC 6750
+  Bearer grammar
 - **THEN** construction fails with the corresponding static state/type error
   and does not guess Credential identifiers or token presentation syntax
 

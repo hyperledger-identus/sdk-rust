@@ -17,6 +17,8 @@ the protected Credential Endpoint request by hand.
 - Construct a transport-neutral request from matched offer/metadata, a bounded
   successful Bearer Token Response without unvalidated Authorization Details,
   one offered configuration index, and a non-empty ordered proof list.
+- Validate the exact access token against the RFC 6750 `b64token` grammar before
+  constructing a canonical Bearer Authorization field value.
 - Emit deterministic JSON containing exactly `credential_configuration_id`
   and `proofs.jwt`, plus static POST/media guidance and zeroizing sensitive
   authorization/body accessors.

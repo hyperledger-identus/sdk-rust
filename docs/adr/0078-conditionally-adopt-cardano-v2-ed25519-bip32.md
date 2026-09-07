@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-09-08
 - **Issue:** [#177](https://github.com/hyperledger-identus/sdk-rust/issues/177)
-- **Research:** [OpenSpec research](../../openspec/changes/add-cardano-v2-ed25519-bip32/research.md)
+- **Research:** [OpenSpec research](../../openspec/changes/archive/2026-09-07-add-cardano-v2-ed25519-bip32/research.md)
 - **Hardening follow-up:** [#179](https://github.com/hyperledger-identus/sdk-rust/issues/179)
 - **Supersedes:** the unresolved Cardano/KMP derivation part of ADR 0022; the
   SLIP-0010 `EdHDKey` decision remains unchanged

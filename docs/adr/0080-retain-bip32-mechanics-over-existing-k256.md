@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-09-08
 - **Issue:** [#153](https://github.com/hyperledger-identus/sdk-rust/issues/153)
-- **Research:** [OpenSpec research](../../openspec/changes/correct-bip32-scalar-validation/research.md)
+- **Research:** [OpenSpec research](../../openspec/changes/archive/2026-09-07-correct-bip32-scalar-validation/research.md)
 - **Supersedes:** ADR 0061's approved `bip32 0.5.3` candidate disposition
 
 ## Context

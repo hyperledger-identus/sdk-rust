@@ -241,6 +241,24 @@ pub mod error_code {
         ErrorCode::new("oid4vci.credential_request_authorization_too_large");
     pub const CREDENTIAL_REQUEST_BODY_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.credential_request_body_too_large");
+    pub const INVALID_DEFERRED_CREDENTIAL_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_deferred_credential_response_limits");
+    pub const DEFERRED_CREDENTIAL_RESPONSE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.deferred_credential_response_too_large");
+    pub const INVALID_DEFERRED_CREDENTIAL_RESPONSE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_deferred_credential_response");
+    pub const TOO_MANY_DEFERRED_CREDENTIAL_RESPONSE_MEMBERS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_deferred_credential_response_members");
+    pub const INVALID_DEFERRED_TRANSACTION_ID: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_deferred_transaction_id");
+    pub const DEFERRED_TRANSACTION_ID_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.deferred_transaction_id_too_large");
+    pub const INVALID_DEFERRED_CREDENTIAL_INTERVAL: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_deferred_credential_interval");
+    pub const DEFERRED_CREDENTIAL_INTERVAL_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.deferred_credential_interval_too_large");
+    pub const DEFERRED_CREDENTIAL_RESPONSE_BRANCH_CONFLICT: ErrorCode =
+        ErrorCode::new("oid4vci.deferred_credential_response_branch_conflict");
     pub const INVALID_IMMEDIATE_CREDENTIAL_RESPONSE_LIMITS: ErrorCode =
         ErrorCode::new("oid4vci.invalid_immediate_credential_response_limits");
     pub const IMMEDIATE_CREDENTIAL_RESPONSE_TOO_LARGE: ErrorCode =
@@ -414,6 +432,15 @@ pub enum CredentialOfferError {
     CredentialRequestProofTooLarge,
     CredentialRequestAuthorizationTooLarge,
     CredentialRequestBodyTooLarge,
+    InvalidDeferredCredentialResponseLimits,
+    DeferredCredentialResponseTooLarge,
+    InvalidDeferredCredentialResponse,
+    TooManyDeferredCredentialResponseMembers,
+    InvalidDeferredTransactionId,
+    DeferredTransactionIdTooLarge,
+    InvalidDeferredCredentialInterval,
+    DeferredCredentialIntervalTooLarge,
+    DeferredCredentialResponseBranchConflict,
     InvalidImmediateCredentialResponseLimits,
     ImmediateCredentialResponseTooLarge,
     InvalidImmediateCredentialResponse,
@@ -1091,6 +1118,51 @@ impl CredentialOfferError {
                 error_code::CREDENTIAL_REQUEST_BODY_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI Credential Request body is too large",
+            ),
+            Self::InvalidDeferredCredentialResponseLimits => (
+                error_code::INVALID_DEFERRED_CREDENTIAL_RESPONSE_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI deferred Credential Response limits are invalid",
+            ),
+            Self::DeferredCredentialResponseTooLarge => (
+                error_code::DEFERRED_CREDENTIAL_RESPONSE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI deferred Credential Response is too large",
+            ),
+            Self::InvalidDeferredCredentialResponse => (
+                error_code::INVALID_DEFERRED_CREDENTIAL_RESPONSE,
+                ErrorKind::InvalidInput,
+                "OID4VCI deferred Credential Response core is invalid",
+            ),
+            Self::TooManyDeferredCredentialResponseMembers => (
+                error_code::TOO_MANY_DEFERRED_CREDENTIAL_RESPONSE_MEMBERS,
+                ErrorKind::InvalidInput,
+                "OID4VCI deferred Credential Response has too many members",
+            ),
+            Self::InvalidDeferredTransactionId => (
+                error_code::INVALID_DEFERRED_TRANSACTION_ID,
+                ErrorKind::InvalidInput,
+                "OID4VCI deferred transaction identifier is invalid",
+            ),
+            Self::DeferredTransactionIdTooLarge => (
+                error_code::DEFERRED_TRANSACTION_ID_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI deferred transaction identifier is too large",
+            ),
+            Self::InvalidDeferredCredentialInterval => (
+                error_code::INVALID_DEFERRED_CREDENTIAL_INTERVAL,
+                ErrorKind::InvalidInput,
+                "OID4VCI deferred Credential interval is invalid",
+            ),
+            Self::DeferredCredentialIntervalTooLarge => (
+                error_code::DEFERRED_CREDENTIAL_INTERVAL_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI deferred Credential interval is too large",
+            ),
+            Self::DeferredCredentialResponseBranchConflict => (
+                error_code::DEFERRED_CREDENTIAL_RESPONSE_BRANCH_CONFLICT,
+                ErrorKind::InvalidInput,
+                "OID4VCI deferred Credential Response branch is ambiguous",
             ),
             Self::InvalidImmediateCredentialResponseLimits => (
                 error_code::INVALID_IMMEDIATE_CREDENTIAL_RESPONSE_LIMITS,

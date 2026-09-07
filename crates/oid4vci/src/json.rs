@@ -6,7 +6,8 @@ use crate::{
     AuthorizationServerMetadataLimits, CredentialErrorResponseLimits,
     CredentialIssuerMetadataLimits, CredentialNonceResponseLimits, CredentialOfferError,
     CredentialOfferGrantLimits, CredentialOfferLimits, CredentialOfferSemanticLimits,
-    ImmediateCredentialResponseLimits, TokenErrorResponseLimits, TokenResponseLimits,
+    DeferredCredentialResponseLimits, ImmediateCredentialResponseLimits, TokenErrorResponseLimits,
+    TokenResponseLimits,
 };
 
 const AUTHORIZATION_CODE_GRANT: &str = "authorization_code";
@@ -89,6 +90,11 @@ pub(crate) struct CredentialNonceResponseFields {
 pub(crate) struct ImmediateCredentialResponseFields {
     pub(crate) credentials: Vec<IssuedCredentialFields>,
     pub(crate) notification_id: Option<Zeroizing<String>>,
+}
+
+pub(crate) struct DeferredCredentialResponseFields {
+    pub(crate) transaction_id: Zeroizing<String>,
+    pub(crate) interval: Zeroizing<String>,
 }
 
 pub(crate) struct IssuedCredentialFields {
@@ -343,6 +349,31 @@ pub(crate) fn parse_immediate_credential_response_fields(
     scanner.skip_whitespace();
     if scanner.cursor != input.len() {
         return Err(CredentialOfferError::InvalidImmediateCredentialResponse);
+    }
+    Ok(fields)
+}
+
+pub(crate) fn parse_deferred_credential_response_fields(
+    input: &[u8],
+    limits: DeferredCredentialResponseLimits,
+) -> Result<DeferredCredentialResponseFields, CredentialOfferError> {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
+        max_depth: limits.max_json_depth(),
+        max_nodes: limits.max_json_nodes(),
+        nodes: 0,
+    };
+    scanner.skip_whitespace();
+    scanner.visit_node()?;
+    let depth = scanner.enter_container(0)?;
+    if !scanner.consume_if(b'{') {
+        return Err(CredentialOfferError::InvalidDeferredCredentialResponse);
+    }
+    let fields = scanner.parse_deferred_credential_response_object(depth, limits)?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(CredentialOfferError::InvalidDeferredCredentialResponse);
     }
     Ok(fields)
 }
@@ -916,6 +947,59 @@ impl Scanner<'_> {
             credentials: credentials
                 .ok_or(CredentialOfferError::InvalidImmediateCredentialResponse)?,
             notification_id,
+        })
+    }
+
+    fn parse_deferred_credential_response_object(
+        &mut self,
+        depth: usize,
+        limits: DeferredCredentialResponseLimits,
+    ) -> Result<DeferredCredentialResponseFields, CredentialOfferError> {
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidDeferredCredentialResponse);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut transaction_id = None;
+        let mut interval = None;
+        let mut branch_conflict = false;
+        loop {
+            if names.len() == limits.max_response_members() {
+                return Err(CredentialOfferError::TooManyDeferredCredentialResponseMembers);
+            }
+            let name = self.parse_unique_member_name(&mut names)?;
+            self.require_member_separator()?;
+            match name.as_str() {
+                "transaction_id" => {
+                    transaction_id = Some(self.parse_nonempty_bounded_string(
+                        limits.max_transaction_id_bytes(),
+                        CredentialOfferError::InvalidDeferredTransactionId,
+                        CredentialOfferError::DeferredTransactionIdTooLarge,
+                    )?);
+                }
+                "interval" => {
+                    interval =
+                        Some(self.parse_positive_bounded_json_number(limits.max_interval_bytes())?);
+                }
+                "credentials" | "notification_id" => {
+                    branch_conflict = true;
+                    self.parse_value(depth)?;
+                }
+                _ => self.parse_value(depth)?,
+            }
+            if self.finish_or_continue_object()? {
+                break;
+            }
+        }
+
+        if branch_conflict {
+            return Err(CredentialOfferError::DeferredCredentialResponseBranchConflict);
+        }
+        Ok(DeferredCredentialResponseFields {
+            transaction_id: transaction_id
+                .ok_or(CredentialOfferError::InvalidDeferredCredentialResponse)?,
+            interval: interval.ok_or(CredentialOfferError::InvalidDeferredCredentialResponse)?,
         })
     }
 
@@ -1558,6 +1642,42 @@ impl Scanner<'_> {
             .ok()
             .and_then(|value| value.parse::<u64>().ok())
             .ok_or(invalid)
+    }
+
+    fn parse_positive_bounded_json_number(
+        &mut self,
+        max_bytes: usize,
+    ) -> Result<Zeroizing<String>, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        let start = self.cursor;
+        if self.peek() == Some(b'-') {
+            return Err(CredentialOfferError::InvalidDeferredCredentialInterval);
+        }
+        self.scan_number()
+            .map_err(|_| CredentialOfferError::InvalidDeferredCredentialInterval)?;
+        if !self.input[self.cursor..]
+            .iter()
+            .copied()
+            .find(|byte| !matches!(byte, b' ' | b'\n' | b'\r' | b'\t'))
+            .is_some_and(|byte| matches!(byte, b',' | b'}'))
+        {
+            return Err(CredentialOfferError::InvalidDeferredCredentialInterval);
+        }
+        let value = &self.input[start..self.cursor];
+        if value.len() > max_bytes {
+            return Err(CredentialOfferError::DeferredCredentialIntervalTooLarge);
+        }
+        let mantissa = value
+            .split(|byte| matches!(byte, b'e' | b'E'))
+            .next()
+            .unwrap_or(value);
+        if !mantissa.iter().any(|byte| matches!(byte, b'1'..=b'9')) {
+            return Err(CredentialOfferError::InvalidDeferredCredentialInterval);
+        }
+        let value = std::str::from_utf8(value)
+            .map_err(|_| CredentialOfferError::InvalidDeferredCredentialInterval)?;
+        Ok(Zeroizing::new(value.to_owned()))
     }
 
     fn parse_configuration_ids(

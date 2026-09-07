@@ -478,6 +478,17 @@ request correlation, retry/remediation/UI policy, deferred or encrypted
 responses, credential verification, storage, and product policy remain later
 layers.
 
+The twentieth bounded delivery, issue #149, parses the Final deferred
+Credential Response body. It requires one decoded non-empty `transaction_id`
+and a mathematically positive JSON-number `interval`, retains the identifier
+and exact interval lexeme in zeroizing ownership without numeric conversion,
+rejects immediate-branch fields, and traverses unique extensions under
+independent byte, depth, node, member and retained-value limits. It establishes
+only bounded body syntax: HTTP 202/media binding, request correlation,
+transaction validity, Deferred Credential Requests, polling, scheduling,
+retry/UI policy, encrypted responses, verification, storage and consumer
+adoption remain later issue-first layers.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

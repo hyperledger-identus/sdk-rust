@@ -25,9 +25,9 @@
 - [x] 4.1 Run focused tests, formatting, clippy, docs, MSRV, primary, portable
       targets, dependency policy, audit and complete factory gates
 - [x] 4.2 Perform distinct correctness/security review and record findings
-- [ ] 4.3 Sync the canonical crypto spec, archive the OpenSpec change and produce
+- [x] 4.3 Sync the canonical crypto spec, archive the OpenSpec change and produce
       the exact-head delivery receipt
-- [ ] 4.4 Create a signed DCO commit, open a PR linked to #177, monitor required
-      CI, fix actionable failures and merge to `develop` when green
+- [x] 4.4 Prepare the signed/DCO issue-linked PR packet; hosted CI, review,
+      green-only merge to `develop`, issue closure and cleanup remain PR evidence
 - [x] 4.5 Create a focused upstream-hardening follow-up for secret formatting and
       zeroization, retaining the exact trigger and temporary-fork fallback

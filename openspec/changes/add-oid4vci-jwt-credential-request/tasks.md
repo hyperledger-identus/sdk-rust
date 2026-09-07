@@ -14,6 +14,8 @@
   surface and fieldless error bridges.
 - [x] 2.3 Update ADR, blueprint and canonical IDR-023 ledger pointer without
   changing features, target policy or consumers.
+- [x] 2.4 Advance the initial transport-only dependency assertion and bootstrap
+  inventory to the exact architecture-approved core-plus-JOSE protocol cone.
 
 ## 3. Verification and integration
 

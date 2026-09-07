@@ -3,3 +3,9 @@ capability       = "ssi-upstream-program"
 requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
 canonical_sha256 = "fa801d879f3bd27bba67691219fc9d0914bdd5b1d6d9acf59543a89bb0f920fb"
 reason           = "Advance the in-progress IDR-023 child pointer and replace the completed nonce HTTP response slice contract with the next bounded JWT Credential Request contract."
+
+[[modified_requirement]]
+capability       = "crate-ring-layout"
+requirement      = "Focused OID4VCI protocol semantics are independently activated"
+canonical_sha256 = "4d2ceb79a17d761cf60cf616e9b7fec86d4c694c65ed190eff4e4f95ee1ff4fc"
+reason           = "Advance the initial transport-only exact dependency cone to the blueprint-approved core-plus-JOSE protocol cone required by the bounded typed-proof request capability."

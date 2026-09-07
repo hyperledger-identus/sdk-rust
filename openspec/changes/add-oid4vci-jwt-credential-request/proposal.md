@@ -41,6 +41,8 @@ chain extensions, or modify a consumer.
 
 ### Modified Capabilities
 
+- `crate-ring-layout`: advance the initial transport-only exact dependency cone
+  to the blueprint-approved `identus-core` plus `identus-jose` protocol cone.
 - `ssi-upstream-program`: keep IDR-023 in progress while its active child
   advances from #137 to #139.
 

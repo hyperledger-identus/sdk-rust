@@ -47,6 +47,11 @@
 9. **Resolved — compatibility and provenance remain bounded.** The API and one
    local dependency edge are additive and unpublished; consumers are evidence
    only, and no source, fixture, feature, target or external dependency changes.
+10. **Resolved — the initial exact-cone guard must advance with the accepted
+    capability.** The crate-ring canonical contract deliberately reserved a
+    focused later contract for a narrow inward dependency. This issue supplies
+    that contract, updates the exact guard from core-only to core-plus-JOSE, and
+    leaves the layer rule and every unrelated dependency prohibition intact.
 
 ## Decision
 

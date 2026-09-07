@@ -8,16 +8,16 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add positive HTTP response limits and request-bound validation without
+- [x] 2.1 Add positive HTTP response limits and request-bound validation without
   an executor, generic headers or retained transport input.
-- [ ] 2.2 Implement bounded RFC-shaped media-type and Cache-Control parsing plus
+- [x] 2.2 Implement bounded RFC-shaped media-type and Cache-Control parsing plus
   static fieldless error bridges.
-- [ ] 2.3 Update ADR, blueprint and canonical IDR-023 ledger pointer without
+- [x] 2.3 Update ADR, blueprint and canonical IDR-023 ledger pointer without
   changing dependencies, manifests, lockfile, features or consumers.
 
 ## 3. Verification and integration
 
-- [ ] 3.1 Add status, boundary, casing, parameter, quoted delimiter, malformed,
+- [x] 3.1 Add status, boundary, casing, parameter, quoted delimiter, malformed,
   injection, no-store, body-order, consumer-shaped and canary tests for every
   contract branch.
 - [ ] 3.2 Run focused all-feature/no-default tests, strict Clippy/docs,

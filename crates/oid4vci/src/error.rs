@@ -185,6 +185,18 @@ pub mod error_code {
         ErrorCode::new("oid4vci.invalid_credential_nonce");
     pub const CREDENTIAL_NONCE_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.credential_nonce_too_large");
+    pub const INVALID_CREDENTIAL_NONCE_HTTP_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_nonce_http_response_limits");
+    pub const INVALID_CREDENTIAL_NONCE_HTTP_STATUS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_nonce_http_status");
+    pub const CREDENTIAL_NONCE_CONTENT_TYPE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_nonce_content_type_too_large");
+    pub const INVALID_CREDENTIAL_NONCE_CONTENT_TYPE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_nonce_content_type");
+    pub const CREDENTIAL_NONCE_CACHE_CONTROL_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_nonce_cache_control_too_large");
+    pub const INVALID_CREDENTIAL_NONCE_CACHE_CONTROL: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_nonce_cache_control");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -296,6 +308,12 @@ pub enum CredentialOfferError {
     InvalidCredentialNonceResponse,
     InvalidCredentialNonce,
     CredentialNonceTooLarge,
+    InvalidCredentialNonceHttpResponseLimits,
+    InvalidCredentialNonceHttpStatus,
+    CredentialNonceContentTypeTooLarge,
+    InvalidCredentialNonceContentType,
+    CredentialNonceCacheControlTooLarge,
+    InvalidCredentialNonceCacheControl,
 }
 
 impl CredentialOfferError {
@@ -816,6 +834,36 @@ impl CredentialOfferError {
                 error_code::CREDENTIAL_NONCE_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI Credential Nonce is too large",
+            ),
+            Self::InvalidCredentialNonceHttpResponseLimits => (
+                error_code::INVALID_CREDENTIAL_NONCE_HTTP_RESPONSE_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Nonce HTTP response limits are invalid",
+            ),
+            Self::InvalidCredentialNonceHttpStatus => (
+                error_code::INVALID_CREDENTIAL_NONCE_HTTP_STATUS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Nonce HTTP status is invalid",
+            ),
+            Self::CredentialNonceContentTypeTooLarge => (
+                error_code::CREDENTIAL_NONCE_CONTENT_TYPE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Nonce Content-Type is too large",
+            ),
+            Self::InvalidCredentialNonceContentType => (
+                error_code::INVALID_CREDENTIAL_NONCE_CONTENT_TYPE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Nonce Content-Type is invalid",
+            ),
+            Self::CredentialNonceCacheControlTooLarge => (
+                error_code::CREDENTIAL_NONCE_CACHE_CONTROL_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Nonce Cache-Control is too large",
+            ),
+            Self::InvalidCredentialNonceCacheControl => (
+                error_code::INVALID_CREDENTIAL_NONCE_CACHE_CONTROL,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Nonce Cache-Control is invalid",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

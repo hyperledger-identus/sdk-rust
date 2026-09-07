@@ -631,6 +631,122 @@ impl Default for JwtCredentialRequestLimits {
     }
 }
 
+/// Resource limits for an immediate OID4VCI Credential Response body.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ImmediateCredentialResponseLimits {
+    max_json_bytes: usize,
+    max_json_depth: usize,
+    max_json_nodes: usize,
+    max_response_members: usize,
+    max_credentials: usize,
+    max_credential_members: usize,
+    max_credential_bytes: usize,
+    max_total_credential_bytes: usize,
+    max_notification_id_bytes: usize,
+}
+
+impl ImmediateCredentialResponseLimits {
+    /// Construct a positive response policy with a supported JSON depth.
+    #[allow(clippy::too_many_arguments)]
+    pub const fn new(
+        max_json_bytes: usize,
+        max_json_depth: usize,
+        max_json_nodes: usize,
+        max_response_members: usize,
+        max_credentials: usize,
+        max_credential_members: usize,
+        max_credential_bytes: usize,
+        max_total_credential_bytes: usize,
+        max_notification_id_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_json_bytes == 0
+            || max_json_depth == 0
+            || max_json_depth > MAX_CONFIGURABLE_JSON_DEPTH
+            || max_json_nodes == 0
+            || max_response_members == 0
+            || max_credentials == 0
+            || max_credential_members == 0
+            || max_credential_bytes == 0
+            || max_total_credential_bytes == 0
+            || max_notification_id_bytes == 0
+        {
+            return Err(CredentialOfferError::InvalidImmediateCredentialResponseLimits);
+        }
+        Ok(Self {
+            max_json_bytes,
+            max_json_depth,
+            max_json_nodes,
+            max_response_members,
+            max_credentials,
+            max_credential_members,
+            max_credential_bytes,
+            max_total_credential_bytes,
+            max_notification_id_bytes,
+        })
+    }
+
+    /// Maximum bytes in the complete JSON response body.
+    pub const fn max_json_bytes(self) -> usize {
+        self.max_json_bytes
+    }
+
+    /// Maximum JSON container depth.
+    pub const fn max_json_depth(self) -> usize {
+        self.max_json_depth
+    }
+
+    /// Maximum aggregate JSON value nodes.
+    pub const fn max_json_nodes(self) -> usize {
+        self.max_json_nodes
+    }
+
+    /// Maximum members in the top-level response object.
+    pub const fn max_response_members(self) -> usize {
+        self.max_response_members
+    }
+
+    /// Maximum credential entries in one immediate response.
+    pub const fn max_credentials(self) -> usize {
+        self.max_credentials
+    }
+
+    /// Maximum members in one credential entry object.
+    pub const fn max_credential_members(self) -> usize {
+        self.max_credential_members
+    }
+
+    /// Maximum exact JSON bytes retained for one credential value.
+    pub const fn max_credential_bytes(self) -> usize {
+        self.max_credential_bytes
+    }
+
+    /// Maximum aggregate exact JSON bytes retained for all credential values.
+    pub const fn max_total_credential_bytes(self) -> usize {
+        self.max_total_credential_bytes
+    }
+
+    /// Maximum decoded UTF-8 bytes in the optional notification identifier.
+    pub const fn max_notification_id_bytes(self) -> usize {
+        self.max_notification_id_bytes
+    }
+}
+
+impl Default for ImmediateCredentialResponseLimits {
+    fn default() -> Self {
+        Self {
+            max_json_bytes: 1_048_576,
+            max_json_depth: 32,
+            max_json_nodes: 16_384,
+            max_response_members: 32,
+            max_credentials: 64,
+            max_credential_members: 32,
+            max_credential_bytes: 262_144,
+            max_total_credential_bytes: 786_432,
+            max_notification_id_bytes: 4_096,
+        }
+    }
+}
+
 /// Resource limits for unsigned Credential Issuer Metadata.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialIssuerMetadataLimits {

@@ -10,7 +10,8 @@
 //! Nonce Response core, plus a transport-neutral Final Credential Nonce
 //! Request description and bounded validation of its mandatory HTTP response
 //! metadata, and bounded construction of the unencrypted Final
-//! configuration-ID/JWT-proof Credential Request. It performs no network
+//! configuration-ID/JWT-proof Credential Request, and bounded parsing of the
+//! unencrypted immediate Final Credential Response core. It performs no network
 //! access, does not validate complete RFC 8414 metadata or Token Response
 //! Authorization Details, and establishes no issuer, server, token, proof, or
 //! nonce trust.
@@ -23,6 +24,7 @@ mod credential_nonce_request;
 mod credential_nonce_response;
 mod error;
 mod grants;
+mod immediate_credential_response;
 mod json;
 mod jwt_credential_request;
 mod limits;
@@ -49,15 +51,18 @@ pub use grants::{
     PreAuthorizedCode, PreAuthorizedCodeGrant, TransactionCodeDescription,
     TransactionCodeInputMode, TransactionCodeRequirements,
 };
+pub use immediate_credential_response::{
+    CredentialValueKind, ImmediateCredentialResponseCore, IssuedCredential,
+};
 pub use jwt_credential_request::{
     CREDENTIAL_REQUEST_HTTP_METHOD, CREDENTIAL_REQUEST_MEDIA_TYPE, JwtCredentialRequest,
 };
 pub use limits::{
     AuthorizationServerMetadataLimits, CredentialIssuerMetadataLimits,
     CredentialNonceHttpResponseLimits, CredentialNonceResponseLimits, CredentialOfferGrantLimits,
-    CredentialOfferLimits, CredentialOfferSemanticLimits, JwtCredentialRequestLimits,
-    MAX_CONFIGURABLE_JSON_DEPTH, PreAuthorizedTokenRequestLimits, TokenErrorResponseLimits,
-    TokenResponseLimits, TransactionCodeInputLimits,
+    CredentialOfferLimits, CredentialOfferSemanticLimits, ImmediateCredentialResponseLimits,
+    JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH, PreAuthorizedTokenRequestLimits,
+    TokenErrorResponseLimits, TokenResponseLimits, TransactionCodeInputLimits,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,

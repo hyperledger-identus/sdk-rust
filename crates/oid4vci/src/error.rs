@@ -217,6 +217,30 @@ pub mod error_code {
         ErrorCode::new("oid4vci.credential_request_authorization_too_large");
     pub const CREDENTIAL_REQUEST_BODY_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.credential_request_body_too_large");
+    pub const INVALID_IMMEDIATE_CREDENTIAL_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_immediate_credential_response_limits");
+    pub const IMMEDIATE_CREDENTIAL_RESPONSE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.immediate_credential_response_too_large");
+    pub const INVALID_IMMEDIATE_CREDENTIAL_RESPONSE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_immediate_credential_response");
+    pub const DEFERRED_CREDENTIAL_RESPONSE_UNSUPPORTED: ErrorCode =
+        ErrorCode::new("oid4vci.deferred_credential_response_unsupported");
+    pub const TOO_MANY_CREDENTIAL_RESPONSE_MEMBERS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_credential_response_members");
+    pub const TOO_MANY_ISSUED_CREDENTIALS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_issued_credentials");
+    pub const TOO_MANY_ISSUED_CREDENTIAL_MEMBERS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_issued_credential_members");
+    pub const INVALID_ISSUED_CREDENTIAL: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_issued_credential");
+    pub const ISSUED_CREDENTIAL_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.issued_credential_too_large");
+    pub const ISSUED_CREDENTIALS_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.issued_credentials_too_large");
+    pub const INVALID_CREDENTIAL_NOTIFICATION_ID: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_notification_id");
+    pub const CREDENTIAL_NOTIFICATION_ID_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.credential_notification_id_too_large");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -344,6 +368,18 @@ pub enum CredentialOfferError {
     CredentialRequestProofTooLarge,
     CredentialRequestAuthorizationTooLarge,
     CredentialRequestBodyTooLarge,
+    InvalidImmediateCredentialResponseLimits,
+    ImmediateCredentialResponseTooLarge,
+    InvalidImmediateCredentialResponse,
+    DeferredCredentialResponseUnsupported,
+    TooManyCredentialResponseMembers,
+    TooManyIssuedCredentials,
+    TooManyIssuedCredentialMembers,
+    InvalidIssuedCredential,
+    IssuedCredentialTooLarge,
+    IssuedCredentialsTooLarge,
+    InvalidCredentialNotificationId,
+    CredentialNotificationIdTooLarge,
 }
 
 impl CredentialOfferError {
@@ -944,6 +980,66 @@ impl CredentialOfferError {
                 error_code::CREDENTIAL_REQUEST_BODY_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI Credential Request body is too large",
+            ),
+            Self::InvalidImmediateCredentialResponseLimits => (
+                error_code::INVALID_IMMEDIATE_CREDENTIAL_RESPONSE_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI immediate Credential Response limits are invalid",
+            ),
+            Self::ImmediateCredentialResponseTooLarge => (
+                error_code::IMMEDIATE_CREDENTIAL_RESPONSE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI immediate Credential Response is too large",
+            ),
+            Self::InvalidImmediateCredentialResponse => (
+                error_code::INVALID_IMMEDIATE_CREDENTIAL_RESPONSE,
+                ErrorKind::InvalidInput,
+                "OID4VCI immediate Credential Response core is invalid",
+            ),
+            Self::DeferredCredentialResponseUnsupported => (
+                error_code::DEFERRED_CREDENTIAL_RESPONSE_UNSUPPORTED,
+                ErrorKind::Unsupported,
+                "OID4VCI deferred Credential Response is unsupported",
+            ),
+            Self::TooManyCredentialResponseMembers => (
+                error_code::TOO_MANY_CREDENTIAL_RESPONSE_MEMBERS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Response has too many members",
+            ),
+            Self::TooManyIssuedCredentials => (
+                error_code::TOO_MANY_ISSUED_CREDENTIALS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Response has too many credentials",
+            ),
+            Self::TooManyIssuedCredentialMembers => (
+                error_code::TOO_MANY_ISSUED_CREDENTIAL_MEMBERS,
+                ErrorKind::InvalidInput,
+                "OID4VCI issued credential has too many members",
+            ),
+            Self::InvalidIssuedCredential => (
+                error_code::INVALID_ISSUED_CREDENTIAL,
+                ErrorKind::InvalidInput,
+                "OID4VCI issued credential is invalid",
+            ),
+            Self::IssuedCredentialTooLarge => (
+                error_code::ISSUED_CREDENTIAL_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI issued credential is too large",
+            ),
+            Self::IssuedCredentialsTooLarge => (
+                error_code::ISSUED_CREDENTIALS_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI issued credentials are too large",
+            ),
+            Self::InvalidCredentialNotificationId => (
+                error_code::INVALID_CREDENTIAL_NOTIFICATION_ID,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Response notification identifier is invalid",
+            ),
+            Self::CredentialNotificationIdTooLarge => (
+                error_code::CREDENTIAL_NOTIFICATION_ID_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Response notification identifier is too large",
             ),
         };
         IdentusError::public(code, kind, CAPABILITY, message)

@@ -41,6 +41,22 @@ check_factory() {
   validate_all
 }
 
+research_ready_change() {
+  local change_name=${1:-}
+  [[ -n "$change_name" ]] || fail "research-ready requires an active OpenSpec change name"
+
+  local change_root="$factory_root/openspec/changes/$change_name"
+  [[ -d "$change_root" ]] || fail "active change not found: $change_name"
+
+  check_factory
+  run_openspec status --change "$change_name"
+  run_openspec validate "$change_name" --type change --strict --no-interactive
+  "$factory_root/scripts/check-research-readiness.py" "$factory_root" \
+    --change "$change_name" --require-ready
+
+  printf 'factory: research is ready: %s\n' "$change_name"
+}
+
 ready_change() {
   local change_name=${1:-}
   [[ -n "$change_name" ]] || fail "ready requires an active OpenSpec change name"
@@ -140,6 +156,8 @@ Commands:
   status              Show Git and active OpenSpec state
   validate [change]   Strictly validate one change or every change and spec
   check               Run the CI-safe factory and OpenSpec structural gates
+  research-ready <change>
+                      Require reviewed research with zero declared blockers
   ready <change>      Require valid artifacts and every task to be complete
   receipt <change>    Run readiness and print immutable handoff identifiers
   archive <change>    Preflight, archive and validate a completed change
@@ -166,6 +184,9 @@ case "$command_name" in
     ;;
   check)
     check_factory
+    ;;
+  research-ready)
+    research_ready_change "${1:-}"
     ;;
   ready)
     ready_change "${1:-}"

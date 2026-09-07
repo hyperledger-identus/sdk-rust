@@ -13,6 +13,7 @@ Propose a new change - create the change and generate all artifacts in one step.
 
 I'll create a change with artifacts:
 - proposal.md (what & why)
+- research.md (sources, reuse decisions, compatibility evidence and blockers)
 - design.md (how)
 - tasks.md (implementation steps)
 
@@ -86,6 +87,11 @@ When ready to implement, run /opsx-apply
    ```bash
    openspec status --change "<name>"
    ```
+
+   Create `research.md` using `docs/factory/research-readiness.md`, perform the
+   proportionate source and candidate review, then run
+   `scripts/factory research-ready "<name>"`. Do not describe the change as
+   ready for implementation until this gate passes.
 
 **Output**
 

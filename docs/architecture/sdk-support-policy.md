@@ -37,6 +37,12 @@ The consumer floor and maintainer ceiling are deliberately separate:
 Passing nightly does not prove MSRV compatibility. Raising either value
 requires a reviewed policy change and matching Cargo/Nix evidence.
 
+[ADR 0062](../adr/0062-use-a-rolling-near-current-msrv.md) accepts a future
+stable-minus-three policy and Rust 1.95 as the first transition. Issue
+[#154](https://github.com/hyperledger-identus/sdk-rust/issues/154) must update
+this prose, the normative TOML, Cargo and Nix gates atomically. Until that PR
+merges, Rust 1.85.0 above remains the effective and tested promise.
+
 ## Feature surfaces
 
 Workspace defaults, crypto without default features, KMP compatibility and the

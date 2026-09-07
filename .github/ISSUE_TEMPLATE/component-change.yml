@@ -57,6 +57,14 @@ body:
       required: true
 
   - type: textarea
+    id: research
+    attributes:
+      label: Build-versus-adopt research
+      description: Name candidate crates/implementations, initial dispositions, dependency/MSRV/target concerns and reconsideration triggers. The OpenSpec research record is completed before implementation.
+    validations:
+      required: true
+
+  - type: textarea
     id: compatibility
     attributes:
       label: Public, wire and downstream compatibility

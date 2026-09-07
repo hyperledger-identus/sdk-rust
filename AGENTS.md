@@ -69,7 +69,13 @@ Before changing files, read:
 
 - Create or select an OpenSpec change before qualifying implementation work.
 - Run `scripts/factory doctor` before editing and record the exact base SHA.
-- Read proposal, specs, design and tasks; clear semantic blockers first.
+- Read proposal, research, specs, design and tasks; clear semantic blockers
+  first.
+- Complete proportionate build-versus-adopt research and run
+  `scripts/factory research-ready <change>` before implementation. New
+  foundational, protocol, cryptography/security, storage or FFI work requires
+  the full evidence matrix; routine work may record a justified
+  `not-applicable` decision.
 - Implement one task at a time and check it immediately after verification.
 - Run `scripts/factory check` throughout draft work.
 - Run `scripts/factory ready <change>` and `receipt <change>` before final

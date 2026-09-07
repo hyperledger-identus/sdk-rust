@@ -21,6 +21,7 @@ required_files=(
   RELEASING.md
   SECURITY.md
   docs/factory/README.md
+  docs/factory/research-readiness.md
   docs/architecture/sdk-bootstrap-inventory.md
   docs/architecture/sdk-bootstrap-inventory.toml
   docs/architecture/sdk-support-policy.md
@@ -41,10 +42,12 @@ required_files=(
   scripts/check-support-policy.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-pr-policy.sh
+  scripts/check-research-readiness.py
   scripts/tests/factory-contract.sh
   scripts/tests/bootstrap-inventory.py
   scripts/tests/openspec-archive.py
   scripts/tests/pr-policy.sh
+  scripts/tests/research-readiness.py
   scripts/tests/support-policy.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
@@ -60,7 +63,7 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in scripts/factory scripts/benchmark-support-policy.py scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-support-policy.py scripts/check-ssi-upstream-backlog.py scripts/tests/bootstrap-inventory.py scripts/tests/factory-contract.sh scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/support-policy.py; do
+for executable_path in scripts/factory scripts/benchmark-support-policy.py scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-support-policy.py scripts/check-ssi-upstream-backlog.py scripts/tests/bootstrap-inventory.py scripts/tests/factory-contract.sh scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/support-policy.py; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi
@@ -69,6 +72,12 @@ done
 if [[ -x "$factory_root/scripts/check-bootstrap-inventory.py" && -f "$factory_root/docs/architecture/sdk-bootstrap-inventory.toml" ]]; then
   if ! "$factory_root/scripts/check-bootstrap-inventory.py" "$factory_root"; then
     report_failure "SDK bootstrap-inventory validation failed"
+  fi
+fi
+
+if [[ -x "$factory_root/scripts/check-research-readiness.py" ]]; then
+  if ! "$factory_root/scripts/check-research-readiness.py" "$factory_root"; then
+    report_failure "research-readiness validation failed"
   fi
 fi
 
@@ -90,7 +99,7 @@ if [[ ! -d "$changes_root" ]]; then
 else
   while IFS= read -r -d '' change_dir; do
     change_name=$(basename "$change_dir")
-    for artifact in .openspec.yaml proposal.md design.md tasks.md; do
+    for artifact in .openspec.yaml proposal.md research.md design.md tasks.md; do
       if [[ ! -f "$change_dir/$artifact" ]]; then
         report_failure "active change $change_name is missing $artifact"
       fi

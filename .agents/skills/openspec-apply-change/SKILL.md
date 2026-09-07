@@ -35,6 +35,10 @@ Implement tasks from an OpenSpec change.
    - `planningHome`, `changeRoot`, and `actionContext`: planning scope and edit constraints
    - Which artifact contains the tasks (typically "tasks" for spec-driven, check status for others)
 
+   Before continuing, run `scripts/factory research-ready "<name>"`. Stop
+   before implementation if the command fails; update and review
+   `research.md` rather than bypassing the gate.
+
 3. **Get apply instructions**
 
    ```bash

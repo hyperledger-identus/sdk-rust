@@ -18,6 +18,7 @@
 - Mandate/roadmap source:
 - Agent roles used:
 - `scripts/factory ready <change>`: passed/not applicable
+- `scripts/factory research-ready <change>`: passed/not applicable
 - Factory receipt attached: yes/no/not applicable
 
 ## Local review
@@ -74,6 +75,7 @@ factory receipt:
 - [ ] corresponding issue exists and is linked above
 - [ ] distinct local review completed with no unresolved blocker
 - [ ] OpenSpec contract complete or exemption recorded
+- [ ] pre-implementation research readiness recorded when applicable
 - [ ] factory readiness and receipt recorded when applicable
 - [ ] DCO and verified signatures
 - [ ] tests, negative cases and docs updated

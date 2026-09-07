@@ -135,3 +135,15 @@ An expired or scope-less exception is a blocker, not tacit permission.
 
 This distinction preserves useful research without converting it into a
 surprise compatibility promise.
+
+## Bounded-input example
+
+- `SDK-SEC-003` is an effective forward guardrail: every new or materially
+  changed untrusted-input boundary must ship with explicit resource limits.
+- `SDK-LIM-007` is an effective current limitation: inherited surfaces have
+  not completed a repository-wide resource-bound audit. In particular,
+  `identus-core::Url` currently has no intrinsic byte limit, so consumers must
+  apply an outer limit when accepting hostile URL input.
+
+This pairing keeps the intended security direction enforceable without
+misrepresenting incomplete inherited coverage as a proven SDK guarantee.

@@ -163,16 +163,16 @@ id               = "SDK-SEC-003"
 kind             = "guardrail"
 category         = "security"
 state            = "effective"
-summary          = "Every untrusted input boundary has explicit resource limits and redaction-safe errors."
-scope            = "Parsers, decoders, collections, redirects, decompression, recursion and protocol state inputs."
+summary          = "Every new or materially changed untrusted input boundary has explicit resource limits and redaction-safe errors."
+scope            = "New or materially changed parsers, decoders, collections, redirects, decompression, recursion and protocol state inputs."
 canonical_source = "docs/architecture/sdk-rust-blueprint.md#3-bootstrap-principles"
 authority        = "Accepted SDK assurance model."
-rationale        = "Headless and agentic consumers need deterministic denial-of-service boundaries."
-consumer_impact  = "Inputs outside declared limits fail safely instead of consuming unbounded resources."
+rationale        = "New headless and agentic surfaces need deterministic denial-of-service boundaries while inherited gaps are audited explicitly."
+consumer_impact  = "New or changed boundaries fail outside declared limits; inherited surfaces without bound evidence remain covered by SDK-LIM-007."
 enforcement      = [ "boundary tests", "negative tests", "fuzz/property tests for eligible parsers" ]
 owner            = "Component steward and security reviewer"
 review_triggers  = [ "new untrusted input", "limit change", "new parser or decoder" ]
-activation       = "Already effective for implemented boundaries."
+activation       = "Already effective for new and materially changed boundaries."
 rollback         = "Restore the previous safe limit or ship an explicitly reviewed replacement budget."
 
 [[entries]]
@@ -293,3 +293,20 @@ owner            = "SDK and downstream product maintainers"
 review_triggers  = [ "downstream adoption authorized", "consumer conformance harness proposed" ]
 activation       = "Already effective as a limitation."
 rollback         = "Revert the upstream change independently; downstream changes remain separately owned."
+
+[[entries]]
+id               = "SDK-LIM-007"
+kind             = "limitation"
+category         = "security"
+state            = "effective"
+summary          = "A repository-wide resource-bound audit of inherited input types is incomplete."
+scope            = "Existing parser and value-construction surfaces that have not recorded explicit byte, element, nesting or work bounds."
+canonical_source = "docs/architecture/sdk-rust-blueprint.md#3-bootstrap-principles"
+authority        = "Current bootstrap evidence and accepted SDK assurance model."
+rationale        = "The forward design rule cannot honestly imply that every inherited surface is already bounded."
+consumer_impact  = "Consumers must apply outer input limits where a type lacks explicit bound evidence; identus-core Url currently has no intrinsic byte limit."
+enforcement      = [ "constraint index disclosure", "new/change boundary review", "focused remediation issues and tests" ]
+owner            = "SDK maintainers and security reviewers"
+review_triggers  = [ "inherited parser is touched", "resource-bound audit runs", "consumer handles hostile input directly" ]
+activation       = "Already effective as a disclosed limitation; remove only after an exhaustive audit and enforced negative tests close every recorded gap."
+rollback         = "Restore the limitation if a supposedly bounded inherited surface is found to accept unbounded work or allocation."

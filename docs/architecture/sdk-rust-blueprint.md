@@ -100,8 +100,10 @@ offline and does not build a donor or consumer repository.
    error or FFI surface when an opaque provider/handle can be used.
 10. **Parsed is not verified.** Public types preserve construction state where
    confusing untrusted syntax with verified semantics would be unsafe.
-11. **Bound every input.** Parsers and decoders have byte, element, nesting,
-   decompression, redirect and time limits with privacy-safe errors.
+11. **Bound every new or changed input.** New and materially changed parsers
+   and decoders have byte, element, nesting, decompression, redirect and time
+   limits with privacy-safe errors. Inherited surfaces remain unsupported for
+   unbounded hostile input until their limits are audited and enforced.
 12. **Evidence travels with code.** Vectors record source, source revision,
     license, retrieval date, transformation and expected result.
 

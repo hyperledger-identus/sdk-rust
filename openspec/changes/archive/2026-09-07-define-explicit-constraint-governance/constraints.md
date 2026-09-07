@@ -20,9 +20,11 @@ by the sponsor in issue #166.
 
 ## Introduced or changed limitations
 
-No SDK product limitation is introduced. The checker limitation is explicit:
-it validates schema, references and declared state but semantic sufficiency
-still requires review.
+No new runtime limitation is introduced. The index makes one inherited gap
+explicit as `SDK-LIM-007`: a repository-wide resource-bound audit is incomplete
+and `identus-core::Url` has no intrinsic byte limit. The checker limitation is
+also explicit: it validates schema, references and declared state but semantic
+sufficiency still requires review.
 
 ## Consumer and product impact
 

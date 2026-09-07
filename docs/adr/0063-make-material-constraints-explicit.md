@@ -84,6 +84,9 @@ review does not supply that decision.
 - Machine checks prove declared structure and selected projections. They do not
   prove the author classified impact honestly; semantic review remains
   accountable for that judgment.
+- When current implementation does not yet satisfy a forward guardrail, the
+  gap is indexed as an effective limitation rather than weakening the forward
+  rule or claiming unearned coverage.
 
 ## Alternatives rejected
 

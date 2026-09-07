@@ -34,6 +34,11 @@
   inconsistent with the intentionally event-driven review and activation
   model. The durable issue now matches the implementation and explicitly
   forbids wall-clock activation.
+- Hosted review found that the initial `SDK-SEC-003` wording overstated current
+  resource-bound coverage because `identus-core::Url` has no intrinsic byte
+  limit. The forward guardrail was narrowed to new or materially changed
+  boundaries and the inherited audit gap was added explicitly as
+  `SDK-LIM-007`; no runtime claim or implementation was invented.
 - Confirmed repository base and `origin/develop` were identical at
   `84ec5408ea9423d7d3965f3088e80ec78456efcb`.
 
@@ -57,6 +62,10 @@
   requirements and no destructive rewrite.
 - Post-archive `./scripts/factory check` and `nix flake check`: passed with 46
   canonical capabilities and zero active changes.
+- After resolving the hosted-review bounded-input finding,
+  `scripts/tests/constraints.py`, `scripts/tests/factory-contract.sh` and
+  `./scripts/factory check` passed again; the final Nix result is recorded in
+  the follow-up commit and PR checks.
 
 The local Nix invocation reported `x86_64-linux` as incompatible with the
 Darwin host and therefore did not run that system locally. Required GitHub CI

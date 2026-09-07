@@ -39,7 +39,10 @@ Conditionally adopt exact `bip39 2.2.2` with default features disabled and only
 6. Keep the infallible entropy API source-compatible: invalid lengths return an
    empty vector, while exact standard lengths map to their required word counts.
 7. Remove the duplicated SDK English wordlist and standard PBKDF2 mechanics
-   after all existing and new conformance tests pass.
+   after all existing and new conformance tests pass. The supported word-list
+   accessor remains `derivation::mnemonic::wordlist()`; remove the duplicate
+   `derivation::wordlist::ENGLISH_WORDLIST` constant under the documented
+   `0.0.x` no-stability policy.
 8. Pin tag/artifact provenance, exact features, dependency cone, Rust
    1.85/1.98, target, advisory, license, unsafe and public-API evidence.
 
@@ -48,6 +51,9 @@ Conditionally adopt exact `bip39 2.2.2` with default features disabled and only
 - Every consumer receives correct checksum, size and NFKD behavior.
 - Invalid inputs previously accepted become the existing redacted mnemonic
   error; this is an intentional correctness migration without an API break.
+- Direct callers of the duplicate public constant must migrate to
+  `derivation::mnemonic::wordlist()`; public mnemonic method signatures and
+  persisted results remain unchanged.
 - Seven packages enter the current workspace lock, all private to the feature;
   transitive pure-Rust unsafe is accepted as recorded evidence.
 - Injected SDK randomness remains the only entropy source and multilingual,

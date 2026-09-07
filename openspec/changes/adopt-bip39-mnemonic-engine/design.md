@@ -51,6 +51,12 @@ strings. `to_mnemonic_code` remains infallible for compatibility: exact
 length returns an empty vector. The fallible random APIs continue to request
 exactly 32 bytes through `SecureRandom` and therefore always produce 24 words.
 
+The duplicate `derivation::wordlist::ENGLISH_WORDLIST` implementation-data
+constant is removed under the workspace's explicit `0.0.x` no-stability
+policy. Its supported replacement is the already-public
+`derivation::mnemonic::wordlist()` function; no mnemonic method signature or
+wire/persisted representation changes.
+
 Validation joins the caller's words into a zeroizing string, NFKD-normalizes
 that string, and parses it in the explicit English language. Unsupported word
 counts, unknown words and invalid checksums all collapse to the existing

@@ -44,10 +44,14 @@ storage and erasure.
 
 ## Consumer and product impact
 
-Consumers retain source-compatible method signatures and official ASCII vector
-results. They gain correct NFKD behavior and fail-closed invalid input handling.
-No UI, recovery ceremony, persistence, custody, binding, downstream repository
-or release behavior changes.
+Consumers retain source-compatible `MnemonicHelper` and
+`derivation::mnemonic::wordlist()` signatures and official ASCII vector
+results. The implementation-only but publicly reachable
+`derivation::wordlist::ENGLISH_WORDLIST` constant is removed under the explicit
+`0.0.x` no-stability policy; callers use `derivation::mnemonic::wordlist()`.
+Consumers gain correct NFKD behavior and fail-closed invalid input handling. No
+UI, recovery ceremony, persistence, custody, binding, downstream repository or
+release behavior changes.
 
 ## Activation and rollback
 

@@ -231,6 +231,7 @@ fn content_type_is_strict_bounded_and_checked_before_body() {
         "application/json, text/plain",
         "application/json; charset=\"unterminated",
         "application/json; charset",
+        "application/json;charset=utf-8;CHARSET=iso-8859-1",
     ] {
         assert_eq!(
             request

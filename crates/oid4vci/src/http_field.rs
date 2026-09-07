@@ -1,5 +1,6 @@
 pub(crate) fn is_application_json(bytes: &[u8]) -> bool {
     let mut cursor = Cursor::new(bytes);
+    let mut parameter_names: Vec<&[u8]> = Vec::new();
     cursor.ows();
     let Some(kind) = cursor.token() else {
         return false;
@@ -26,7 +27,17 @@ pub(crate) fn is_application_json(bytes: &[u8]) -> bool {
         if cursor.done() || cursor.peek() == Some(b';') {
             continue;
         }
-        if cursor.token().is_none() || !cursor.take(b'=') || !cursor.token_or_quoted() {
+        let Some(parameter_name) = cursor.token() else {
+            return false;
+        };
+        if parameter_names
+            .iter()
+            .any(|name| name.eq_ignore_ascii_case(parameter_name))
+        {
+            return false;
+        }
+        parameter_names.push(parameter_name);
+        if !cursor.take(b'=') || !cursor.token_or_quoted() {
             return false;
         }
     }

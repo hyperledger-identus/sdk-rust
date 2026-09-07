@@ -17,18 +17,23 @@ keep Identus-owned public facades for policy, lifecycle, bounded parsing,
 redacted errors, secret ownership, verification states and injected ports.
 Whole SSI frameworks are not suitable as the SDK's domain model.
 
-Five near-term dependency changes have a positive evidence balance:
+Four near-term dependency changes have a positive evidence balance:
 
 1. replace the mnemonic implementation with `bip39 2.2.2` behind the existing
    `MnemonicHelper` facade;
-2. replace the BIP-32 scalar mechanics with `bip32 0.5.3` behind `HDKey`;
-3. validate multihash structures with `multihash 0.19.5` and add
+2. validate multihash structures with `multihash 0.19.5` and add
    `multibase 0.9.3` only after the MSRV transition or an upstream transitive
    MSRV fix;
-4. use `fluent-uri 0.4.1` as the RFC 3986 grammar engine without re-exporting
+3. use `fluent-uri 0.4.1` as the RFC 3986 grammar engine without re-exporting
    its types or normalizing caller input; and
-5. replace hand-written form encoding/decoding with
+4. replace hand-written form encoding/decoding with
    `form_urlencoded 1.2.2` behind the OID4VCI wire facade.
+
+Focused issue-level research supersedes the preliminary BIP-32 disposition:
+retain the narrow HMAC orchestration and reuse the existing `k256` scalar
+primitive. `bip32 0.5.3` rejects a standards-valid zero `IL` and brings unused
+extended-key serialization dependencies; [ADR 0080](../../adr/0080-retain-bip32-mechanics-over-existing-k256.md)
+and issue #153 record the correction.
 
 `did_url_parser`, `isomdl`, `oauth2`, Askar and UniFFI justify bounded
 integration spikes. `identity.rs`, Spruce SSI and current OpenID4VC Rust
@@ -91,10 +96,12 @@ zeroizing ownership contracts.
 `crates/crypto/src/derivation/hdkey.rs` reduces the left HMAC half modulo the
 secp256k1 order. BIP-32 instead declares a child invalid when `IL >= n` or the
 resulting key is zero. Master-key construction also accepts the HMAC output
-without validating it as a non-zero scalar. `bip32 0.5.3` validates scalar
-construction through `k256` and returns an error for the negligible invalid
-case. The crate supports more public behavior than the SDK currently promises,
-so the existing hardened-only facade must remain the boundary.
+without validating it as a non-zero scalar. Focused source review found that
+`bip32 0.5.3` parses `IL` as a `NonZeroScalar`, incorrectly rejecting zero
+before adding the parent, while BIP-32 permits zero if the resulting child is
+nonzero. The candidate also retains Base58Check/RIPEMD extended-key coupling.
+The SDK will therefore reuse its existing `k256` exact scalar parser and
+arithmetic behind the hardened-only facade without adding the candidate.
 
 ### URI and multiformat syntax is intentionally under-validated
 
@@ -134,7 +141,7 @@ SDK cone smaller for some candidates.
 | Candidate | Version | Declared MSRV | Standalone cone | Decision | Cohesion and coupling result |
 | --- | --- | ---: | ---: | --- | --- |
 | `bip39` | 2.2.2 | not declared | 13 | `adopt` | Closed mnemonic/checksum/normalization mechanics; keep randomness, errors and zeroization at facade. |
-| `bip32` | 0.5.3 | 1.65 | 33 with `secp256k1` | `adopt` | Correct scalar rejection and vectors; do not expose xprv/xpub or broaden hardened-only API. |
+| `bip32` | 0.5.3 | 1.65 | 29 with `secp256k1`; 3 incremental names | `not-adopt` | Its k256 backend rejects standards-valid zero `IL`; xprv/xpub dependencies are mandatory even though the facade does not use them. Reuse existing `k256`. |
 | `slip10` | 0.4.3 | not declared | 25 | `retain-local` | Existing Ed25519 SLIP-0010 core is small and vector-tested; candidate maintenance and cone do not reduce risk. |
 | `multihash` | 0.19.5 | 1.81 | 2 | `adopt` | Bare structural codec with no hash policy is a high-cohesion fit. |
 | `multibase` | 0.9.3 | not declared | 14 | `conditional-adopt` | Correct domain, but current `base45 3.2.0` resolution actually needs Rust 1.88 while declaring no compatible floor. |
@@ -240,7 +247,7 @@ separate from the final `ready` gate.
 | Order | Issue | Decision |
 | ---: | --- | --- |
 | 1 | [#152 — BIP-39 mechanics](https://github.com/hyperledger-identus/sdk-rust/issues/152) | `adopt`; correctness first |
-| 2 | [#153 — BIP-32 mechanics](https://github.com/hyperledger-identus/sdk-rust/issues/153) | `adopt`; correctness first |
+| 2 | [#153 — BIP-32 mechanics](https://github.com/hyperledger-identus/sdk-rust/issues/153) | `retain-local`; correct with existing `k256` per ADR 0080 |
 | 3 | [#170 — evidence-driven Rust policy](https://github.com/hyperledger-identus/sdk-rust/issues/170) | implement ADR 0064; retain 1.85 and evaluate 1.89 |
 | 4 | [#155 — multihash](https://github.com/hyperledger-identus/sdk-rust/issues/155) | `adopt` |
 | 5 | [#156 — multibase](https://github.com/hyperledger-identus/sdk-rust/issues/156) | `conditional-adopt` after its Rust 1.89/MSRV evidence passes |
@@ -260,7 +267,7 @@ separate from the final `ready` gate.
 | BIP-39 requires 128–256-bit entropy, checksum validation and NFKD inputs. | [Bitcoin BIP-39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) |
 | `bip39 2.2.2` validates entropy/checksum and normalizes UTF-8. | [`bip39` 2.2.2 source](https://docs.rs/crate/bip39/2.2.2/source/) and [`rust-bip39` assessed revision](https://github.com/rust-bitcoin/rust-bip39/tree/1a63bd457cf0643f7eee9b8768ce6ced13d01c18) |
 | BIP-32 declares `IL >= n` or a zero child invalid. | [Bitcoin BIP-32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) |
-| `bip32 0.5.3` is generic, `no_std`-friendly and declares Rust 1.65. | [`bip32` 0.5.3 documentation](https://docs.rs/bip32/0.5.3/bip32/) and [assessed source](https://github.com/iqlusioninc/crates/tree/fe053be6040e4515dd3d099b2ddae656124cf703/bip32) |
+| `bip32 0.5.3` is `no_std`-friendly and declares Rust 1.65, but its k256 backend rejects zero `IL` and its feature graph retains extended-key serialization packages. | [`bip32` 0.5.3 documentation](https://docs.rs/bip32/0.5.3/bip32/) and [exact release source](https://github.com/iqlusioninc/crates/tree/240679a2454945783acc4f9e7d3bae839359b0b7/bip32) |
 | `multihash` is a bare structural codec and does not select hash algorithms. | [`multihash` 0.19.5 documentation](https://docs.rs/multihash/0.19.5/multihash/) and [assessed source](https://github.com/multiformats/rust-multihash/tree/3c136390abb25b0f5dd8fdf6e0f771a68cb34b16) |
 | `fluent-uri` targets RFC 3986 and RFC 3987. | [`fluent-uri` 0.4.1 documentation](https://docs.rs/fluent-uri/0.4.1/fluent_uri/) and [assessed source](https://github.com/yescallop/fluent-uri-rs/tree/76e10ae842a11539c27b107f5e71269ddb7fcb46) |
 | `slice::as_chunks`, used by resolved `base45 3.2.0`, stabilized in Rust 1.88. | [Rust standard library documentation](https://doc.rust-lang.org/stable/core/primitive.slice.html#method.as_chunks) |

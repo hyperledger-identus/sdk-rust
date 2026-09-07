@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "crypto"
+requirement      = "BIP32 secp256k1 hierarchical derivation"
+canonical_sha256 = "a9fc4f80fd62e88fcb217759e7a42edd1951f44ff4c2fe3a7824bdffe47bd64f"
+reason           = "Issue #153 intentionally replaces the vector-only BIP-32 contract with exact seed, scalar, zero-tweak, depth, redaction and dependency-boundary requirements while retaining the existing hardened-only HDKey facade."

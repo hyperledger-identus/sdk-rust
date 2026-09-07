@@ -118,7 +118,7 @@ class ConstraintGovernanceTests(unittest.TestCase):
             kind="budget",
             state=target_state,
             activation=target_activation,
-            value="1.95.0",
+            value="1.89.0",
             value_source="",
         )
         (self.root / "docs/governance/sdk-constraints.toml").write_text(

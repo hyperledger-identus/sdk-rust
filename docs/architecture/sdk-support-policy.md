@@ -25,32 +25,33 @@ promise.
 
 ## Rust versions
 
-The consumer floor and maintainer ceiling are deliberately separate:
+Edition, consumer floor, primary validation compiler and integration etalon
+are deliberately separate:
 
 - Rust `1.85.0` is the MSRV; every declared feature surface is compiled by an
   independent stable-toolchain gate, and structural validation proves the MSRV
   Crane library wraps that stable toolchain.
-- Nightly `2026-03-18` is the reproducible development and primary CI
-  toolchain inherited from the immutable NeoPRISM etalon revision recorded in
-  ADR 0002.
+- Stable Rust `1.98.1` is the reproducible development and primary CI
+  toolchain. Full quality and compile-target gates use the corrected stable
+  point release.
+- Nightly `2026-03-18` remains an independent workspace build against the
+  immutable NeoPRISM etalon revision recorded in ADR 0002.
 
-Passing nightly does not prove MSRV compatibility. Raising either value
-requires a reviewed policy change and matching Cargo/Nix evidence.
+Passing primary stable or nightly does not prove MSRV compatibility. Changing
+any value requires a reviewed policy change and matching Cargo/Nix evidence.
 
-[ADR 0062](../adr/0062-use-a-rolling-near-current-msrv.md) accepts a future
-stable-minus-three policy and Rust 1.95 as the first transition. Issue
-[#154](https://github.com/hyperledger-identus/sdk-rust/issues/154) must update
-this prose, the normative TOML, Cargo and Nix gates atomically. Until that PR
-merges, Rust 1.85.0 above remains the effective and tested promise.
-[ADR 0063](../adr/0063-make-material-constraints-explicit.md) additionally
-requires an exact activation decision with consumer impact before that target
-can become effective; research or a quarterly review alone is insufficient.
+[ADR 0064](../adr/0064-separate-primary-rust-from-evidence-driven-msrv.md)
+supersedes ADR 0062's release-distance formula. Rust 1.89 is the next candidate,
+not a promise; Rust 1.85 remains effective until a focused activation issue
+proves dependency, supported-target and downstream value. ADR 0063 requires an
+exact activation decision with consumer impact before that target can become
+effective; research or a periodic review alone is insufficient.
 
 ## Feature surfaces
 
 Workspace defaults, crypto without default features, KMP compatibility and the
 entropy adapter empty/deterministic/system-random combinations are isolated
-build or test surfaces on both the MSRV and etalon toolchains. Minimal crypto
+build or test surfaces on both the MSRV and primary stable toolchains. Minimal crypto
 has independent Clippy, test and MSRV build evidence, so optional integration
 targets cannot rely on unrelated workspace feature unification. The structural
 validator compares each gate's manifest operation, toolchain, effective package
@@ -59,6 +60,8 @@ default-feature mode and complete feature set with the machine policy.
 `all_features` supplements these checks; it cannot replace them because Cargo
 feature unification can hide incorrect gates. Duplicate host, target, feature
 or gate keys are rejected as ambiguous policy.
+The etalon supplies a separate locked all-feature workspace build rather than
+duplicating the primary quality matrix.
 
 `identus-did` declares no Cargo features: its default and no-default surfaces
 are intentionally identical and its exact internal dependency cone is guarded

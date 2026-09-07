@@ -3,7 +3,7 @@ schema_version = 1
 [[gates]]
 name                = "rust-fmt"
 operation           = "cargoFmt"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
 artifacts           = "none"
 locked              = false
@@ -21,9 +21,9 @@ extra_args          = [  ]
 [[gates]]
 name                = "rust-clippy"
 operation           = "cargoClippy"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = false
 workspace           = true
 packages            = [  ]
@@ -39,9 +39,9 @@ extra_args          = [ "--", "-D", "warnings" ]
 [[gates]]
 name                = "rust-clippy-crypto-minimal"
 operation           = "cargoClippy"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = false
 workspace           = false
 packages            = [ "identus-crypto" ]
@@ -57,9 +57,9 @@ extra_args          = [ "--", "-D", "warnings" ]
 [[gates]]
 name                = "rust-clippy-entropy-minimal"
 operation           = "cargoClippy"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = false
 workspace           = false
 packages            = [ "identus-adapters-entropy" ]
@@ -75,9 +75,9 @@ extra_args          = [ "--", "-D", "warnings" ]
 [[gates]]
 name                = "rust-clippy-kmp-compat"
 operation           = "cargoClippy"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = false
 workspace           = false
 packages            = [ "identus-crypto" ]
@@ -93,9 +93,9 @@ extra_args          = [ "--", "-D", "warnings" ]
 [[gates]]
 name                = "rust-test"
 operation           = "cargoNextest"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = false
 workspace           = true
 packages            = [  ]
@@ -111,9 +111,9 @@ extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
 [[gates]]
 name                = "rust-test-crypto-minimal"
 operation           = "cargoNextest"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = false
 workspace           = false
 packages            = [ "identus-crypto" ]
@@ -129,9 +129,9 @@ extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
 [[gates]]
 name                = "rust-test-kmp-compat"
 operation           = "cargoNextest"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = false
 workspace           = false
 packages            = [ "identus-crypto" ]
@@ -147,9 +147,9 @@ extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
 [[gates]]
 name                = "rust-test-entropy-deterministic"
 operation           = "cargoNextest"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = false
 workspace           = false
 packages            = [ "identus-adapters-entropy" ]
@@ -165,9 +165,9 @@ extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
 [[gates]]
 name                = "rust-test-entropy-getrandom"
 operation           = "cargoNextest"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = false
 workspace           = false
 packages            = [ "identus-adapters-entropy" ]
@@ -183,9 +183,9 @@ extra_args          = [ "--no-fail-fast", "--no-tests=pass" ]
 [[gates]]
 name                = "rust-test-entropy-all"
 operation           = "cargoNextest"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = false
 workspace           = false
 packages            = [ "identus-adapters-entropy" ]
@@ -327,9 +327,9 @@ extra_args          = [  ]
 [[gates]]
 name                = "rust-build-wasm32"
 operation           = "cargoBuild"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = true
 workspace           = false
 packages            = [ "identus-core", "identus-crypto", "identus-did", "identus-jose", "identus-oid4vci", "identus-adapters-entropy" ]
@@ -345,9 +345,9 @@ extra_args          = [  ]
 [[gates]]
 name                = "rust-build-android-aarch64"
 operation           = "cargoBuild"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = true
 workspace           = false
 packages            = [ "identus-core", "identus-crypto", "identus-did", "identus-jose", "identus-oid4vci", "identus-adapters-entropy" ]
@@ -363,9 +363,9 @@ extra_args          = [  ]
 [[gates]]
 name                = "rust-build-ios-aarch64"
 operation           = "cargoBuild"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "rust"
-artifacts           = "etalon"
+artifacts           = "primary"
 locked              = true
 workspace           = false
 packages            = [ "identus-core", "identus-crypto", "identus-did", "identus-jose", "identus-oid4vci", "identus-adapters-entropy" ]
@@ -379,11 +379,29 @@ target              = "aarch64-apple-ios"
 extra_args          = [  ]
 
 [[gates]]
-name                = "rust-doc"
-operation           = "cargoDoc"
+name                = "rust-etalon"
+operation           = "cargoBuild"
 toolchain           = "etalon"
 source              = "rust"
 artifacts           = "etalon"
+locked              = true
+workspace           = true
+packages            = [  ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = true
+no_default_features = false
+all_features        = true
+features            = [  ]
+target              = ""
+extra_args          = [  ]
+
+[[gates]]
+name                = "rust-doc"
+operation           = "cargoDoc"
+toolchain           = "primary"
+source              = "rust"
+artifacts           = "primary"
 locked              = false
 workspace           = true
 packages            = [  ]
@@ -399,7 +417,7 @@ extra_args          = [ "--no-deps" ]
 [[gates]]
 name                = "rust-deny"
 operation           = "cargoDeny"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "repository"
 artifacts           = "none"
 locked              = false
@@ -417,7 +435,7 @@ extra_args          = [  ]
 [[gates]]
 name                = "rust-audit"
 operation           = "cargoAudit"
-toolchain           = "etalon"
+toolchain           = "primary"
 source              = "repository"
 artifacts           = "none"
 locked              = false

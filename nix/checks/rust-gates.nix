@@ -4,8 +4,10 @@
     {
       pkgs,
       craneLib,
+      etalonCraneLib,
       msrvCraneLib,
       cargoArtifacts,
+      etalonCargoArtifacts,
       msrvCargoArtifacts,
       rustSrc,
       ...
@@ -58,10 +60,22 @@
       makeGate =
         gate:
         let
-          selectedCrane = if gate.toolchain == "msrv" then msrvCraneLib else craneLib;
+          selectedCrane =
+            if gate.toolchain == "primary" then
+              craneLib
+            else if gate.toolchain == "etalon" then
+              etalonCraneLib
+            else
+              msrvCraneLib;
           operation = getAttr gate.operation selectedCrane;
           argumentAttribute = cargoArgumentAttribute.${gate.operation} or null;
-          selectedArtifacts = if gate.artifacts == "msrv" then msrvCargoArtifacts else cargoArtifacts;
+          selectedArtifacts =
+            if gate.artifacts == "primary" then
+              cargoArtifacts
+            else if gate.artifacts == "etalon" then
+              etalonCargoArtifacts
+            else
+              msrvCargoArtifacts;
         in
         operation (
           {

@@ -7,6 +7,7 @@
     {
       pkgs,
       craneLib,
+      etalonCraneLib,
       msrvCraneLib,
       inputs',
       ...
@@ -26,6 +27,10 @@
       cargoArtifacts = craneLib.buildDepsOnly {
         src = cleanedSrc;
       };
+      etalonCargoArtifacts = etalonCraneLib.buildDepsOnly {
+        src = cleanedSrc;
+        cargoExtraArgs = "--locked --workspace --all-features";
+      };
       msrvCargoArtifacts = msrvCraneLib.buildDepsOnly {
         src = cleanedSrc;
         cargoExtraArgs = "--locked --workspace --all-features";
@@ -33,7 +38,7 @@
     in
     {
       _module.args = {
-        inherit cargoArtifacts msrvCargoArtifacts;
+        inherit cargoArtifacts etalonCargoArtifacts msrvCargoArtifacts;
         rustSrc = cleanedSrc;
       };
 

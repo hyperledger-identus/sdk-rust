@@ -79,8 +79,9 @@ Implementation issues must state:
 
 ## Development rules
 
-- Use the repository's Nix-pinned, NeoPRISM-aligned Rust toolchain for the full
-  gate. Preserve the declared MSRV and do not introduce nightly-only features.
+- Use the repository's Nix-pinned primary stable toolchain for ordinary work,
+  preserve the independent NeoPRISM etalon and declared MSRV gates, and do not
+  introduce nightly-only features.
 - Do not make a target MSRV, platform, feature, public contract, certification
   or release intent effective without the material constraint activation path.
 - Keep default features minimal and list every meaningful feature combination.

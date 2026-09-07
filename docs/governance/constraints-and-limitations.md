@@ -128,10 +128,15 @@ An expired or scope-less exception is a blocker, not tacit permission.
 
 - `SDK-COMPAT-002` is effective: Rust 1.85.0, enforced by Cargo, Nix and the
   support-policy gates.
-- `SDK-COMPAT-003` is a target: Rust 1.95.0, researched in ADR 0062.
-- Issue #154 cannot turn the target into the effective floor merely by updating
-  files. It must disclose affected consumers and receive an exact activation
-  decision first.
+- `SDK-COMPAT-003` is a target: Rust 1.89.0, selected in ADR 0064 as the next
+  candidate through measured dependency and consumer evidence.
+- `SDK-COMPAT-004` is effective: Rust 1.98.1 is the primary stable validation
+  compiler, but it does not change the consumer floor.
+- `SDK-COMPAT-005` is effective: NeoPRISM's pinned nightly remains a separate
+  integration etalon.
+- A future issue cannot turn the 1.89 target into the effective floor merely by
+  updating files. It must prove product value, supported targets and affected
+  consumers and receive an exact activation decision first.
 
 This distinction preserves useful research without converting it into a
 surprise compatibility promise.

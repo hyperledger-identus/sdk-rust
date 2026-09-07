@@ -1,8 +1,8 @@
-error[E0599]: no function or associated item named `create_seed_kmp` found for struct `MnemonicHelper` in the current scope
+error[E0599]: no associated function or constant named `create_seed_kmp` found for struct `MnemonicHelper` in the current scope
  --> tests/ui/kmp_create_seed_absent.rs:8:29
   |
 8 |     let _ = MnemonicHelper::create_seed_kmp(words, passphrase);
-  |                             ^^^^^^^^^^^^^^^ function or associated item not found in `MnemonicHelper`
+  |                             ^^^^^^^^^^^^^^^ associated function or constant not found in `MnemonicHelper`
   |
 help: there is an associated function `create_seed` with a similar name
   |

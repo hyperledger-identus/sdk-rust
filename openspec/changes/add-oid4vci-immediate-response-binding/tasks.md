@@ -20,12 +20,12 @@
 - [x] 3.1 Add status, media, boundary, validation-order, equal/fewer/excess
   cardinality, state, consumer-shaped and diagnostic-canary tests plus Nonce
   HTTP regression evidence.
-- [ ] 3.2 Run focused feature modes, strict Clippy/docs, workspace/factory,
+- [x] 3.2 Run focused feature modes, strict Clippy/docs, workspace/factory,
   target/MSRV/supply-chain and full Nix gates; record exact evidence and
   consumer-isolation receipts.
-- [ ] 3.3 Complete and record a distinct exact-diff local review with no
+- [x] 3.3 Complete and record a distinct exact-diff local review with no
   unresolved finding, mark tasks complete, run ready/receipt, guarded archive
   and final exact-head verification.
-- [ ] 3.4 Prepare the signed/DCO, issue-linked PR delivery packet for
+- [x] 3.4 Prepare the signed/DCO, issue-linked PR delivery packet for
   `develop`, then require exact-head hosted review, all CI gates, protected
   merge, issue/parent updates, `develop` sync and cleanup.

@@ -7,6 +7,7 @@ and update the ADR before integration.
 
 | Candidate | Assessed version/revision | Reason codes | Current alternative | Reconsider when |
 | --- | --- | --- | --- | --- |
+| `bip32` | 0.5.3 / `240679a2` | `semantic-mismatch`, `dependency-cone`, `coupling`, `low-payoff` | Keep narrow BIP-32 HMAC orchestration and reuse existing `k256` exact scalar parsing/arithmetic behind `HDKey` ([ADR 0080](../../adr/0080-retain-bip32-mechanics-over-existing-k256.md)). | A stable narrow API accepts zero `IL`, supports every 16..=64-byte seed and feature-slices xprv/xpub serialization dependencies. |
 | `slip10` | 0.4.3 / `08faabf3` | `maintenance`, `dependency-cone`, `low-payoff` | Keep the small vector-tested Ed25519 SLIP-0010 implementation. | A maintained, target-tested release materially reduces code or proves broader curve demand. |
 | `identity_did` | 1.5.1 / `7dd52708` | `dependency-cone`, `coupling` | Identus DID facade; use `identity.rs` for differential tests. | A narrow subcrate fits the cone budget without leaking framework types, or the SDK explicitly chooses model convergence. |
 | `identity_document` | 1.5.1 / `7dd52708` | `dependency-cone`, `coupling` | Identus document types and staged validation. | Its validator can be isolated behind Identus types with bounded input and compatible error semantics. |

@@ -1,5 +1,9 @@
 # ADR 0061: adopt narrow crates behind Identus facades
 
+> **BIP-32 disposition superseded:** ADR 0080 records the issue-level finding
+> that `bip32 0.5.3` is not suitable for `HDKey`; the SDK instead reuses its
+> existing `k256` scalar primitive. Other decisions in this ADR remain active.
+
 - **Status:** Accepted
 - **Date:** 2026-09-07
 - **Issue:** [#151](https://github.com/hyperledger-identus/sdk-rust/issues/151)

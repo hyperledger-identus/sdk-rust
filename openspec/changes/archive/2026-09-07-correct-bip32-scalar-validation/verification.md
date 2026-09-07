@@ -5,7 +5,7 @@
 - Delivery issue: `#153`; parent dependency decision: `#151`.
 - Exact base: `f94028b1a09c80c55e64647c20ed2bac95f72819`
   (`origin/develop` after issue #152 merged).
-- Reviewed implementation head: `8a0fc39729283d6be0fa0bc27beb2521d07a083a`.
+- Reviewed implementation head: `b4b64b3c520e17020bdbdefe2db4694886774432`.
 - Rejected `bip32 0.5.3` release source:
   `240679a2454945783acc4f9e7d3bae839359b0b7`; crates.io artifact checksum:
   `db40d3dfbeab4e031d78c844642fa0caa0b0db11ce1607ac9d2986dff1405c69`.
@@ -18,8 +18,9 @@
   The latter retain official BIP-32 vectors 1–4, Apollo master and
   `m/0'/0'/0'`, BIP-39 and SLIP-0010 behavior.
 - `nix flake check --print-build-logs` passed all 28 aarch64-Darwin-compatible
-  checks for implementation head `8a0fc39`. The workspace suite passed
-  607/607 with 22 skipped diagnostics; the KMP crypto lane passed 113/113.
+  checks for content-identical implementation head `b4b64b3`. The workspace
+  suite passed 607/607 with 22 skipped diagnostics; the KMP crypto lane passed
+  113/113.
   Rust 1.85, Rust 1.98, nightly etalon, WASM, Android, iOS, docs, formatting,
   Clippy, audit, deny, factory and all feature-specific lanes passed.
 - A current online `cargo audit` through devshell auditor 0.22.2 loaded 1,242

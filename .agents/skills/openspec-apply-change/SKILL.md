@@ -38,6 +38,9 @@ Implement tasks from an OpenSpec change.
    Before continuing, run `scripts/factory research-ready "<name>"`. Stop
    before implementation if the command fails; update and review
    `research.md` rather than bypassing the gate.
+   Also run `scripts/factory constraints-ready "<name>"`. Stop before
+   implementation if it fails; a proposed material outcome may continue
+   through research but cannot be activated without its exact decision record.
 
 3. **Get apply instructions**
 
@@ -62,6 +65,9 @@ Implement tasks from an OpenSpec change.
    The files depend on the schema being used:
    - **spec-driven**: proposal, specs, design, tasks
    - Other schemas: follow the contextFiles from CLI output
+
+   Also read `changeRoot/constraints.md`; it is a factory artifact even when
+   the OpenSpec schema does not list it in `contextFiles`.
 
 5. **Show current progress**
 

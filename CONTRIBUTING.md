@@ -20,6 +20,9 @@ and the repository-specific rules below.
 5. Record source revisions and licenses before porting code or fixtures.
 6. Run `scripts/factory doctor` and create or select the OpenSpec change for
    qualifying work before editing implementation files.
+7. Read the [constraint index](docs/governance/sdk-constraints.toml), complete
+   `constraints.md`, and run `scripts/factory constraints-ready <change>`.
+   Keep future targets and known limitations separate from effective promises.
 
 Small typo or administrative fixes may use a lightweight delivery issue and an
 OpenSpec exemption. Security reports must use [SECURITY.md](SECURITY.md), never
@@ -36,6 +39,7 @@ objectively testable.
 openspec new change <change>
 openspec validate <change> --strict --no-interactive
 ./scripts/factory check
+./scripts/factory constraints-ready <change>
 ./scripts/factory ready <change>
 ./scripts/factory receipt <change>
 ./scripts/factory archive <change>
@@ -70,11 +74,15 @@ Implementation issues must state:
 - docs, security and migration impact;
 - release candidate and rollback plan;
 - separate downstream adoption work.
+- introduced, changed or removed material constraints and limitations;
+- decision authority and activation path for any material outcome.
 
 ## Development rules
 
 - Use the repository's Nix-pinned, NeoPRISM-aligned Rust toolchain for the full
   gate. Preserve the declared MSRV and do not introduce nightly-only features.
+- Do not make a target MSRV, platform, feature, public contract, certification
+  or release intent effective without the material constraint activation path.
 - Keep default features minimal and list every meaningful feature combination.
 - Put dependency versions in the workspace manifest and keep member manifests
   on workspace dependencies.

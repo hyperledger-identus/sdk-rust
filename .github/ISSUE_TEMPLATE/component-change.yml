@@ -73,6 +73,22 @@ body:
       required: true
 
   - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and limitations
+      description: Classify impact as none, routine or material; name affected constraint IDs, effective versus target state, introduced limitations, decision authority, activation and rollback.
+      placeholder: |
+        Impact: material
+        Affected IDs: SDK-COMPAT-002, SDK-COMPAT-003
+        Effective state:
+        Target state:
+        Limitations:
+        Decision reference:
+        Activation/rollback:
+    validations:
+      required: true
+
+  - type: textarea
     id: threats
     attributes:
       label: Threats, privacy and resource bounds

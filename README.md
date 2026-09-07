@@ -20,6 +20,7 @@ Wallet products keep custody, storage, consent, trust and UI policy.
 - [NeoPRISM toolchain alignment](docs/adr/0002-neoprism-toolchain-alignment.md)
 - [Roadmap](ROADMAP.md)
 - [Governance](GOVERNANCE.md)
+- [Constraints and limitations](docs/governance/constraints-and-limitations.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)
 - [Release policy](RELEASING.md)
@@ -78,6 +79,9 @@ between human intent and agent implementation.
    /opsx:propose <idea> ──► openspec/changes/<idea>/
         │
         ▼
+ research-ready + constraint-ready
+        │
+        ▼
    /openspec-review
         │
         ▼
@@ -93,6 +97,8 @@ the current governance documents take precedence.
 ```bash
 ./scripts/factory doctor
 ./scripts/factory check
+./scripts/factory research-ready <change>
+./scripts/factory constraints-ready <change>
 ./scripts/factory ready <change>
 ./scripts/factory receipt <change>
 ```

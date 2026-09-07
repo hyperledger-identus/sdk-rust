@@ -20,7 +20,10 @@ standing mandate / backlog / issue
     research-ready decision
                │
                ▼
-  OpenSpec proposal + specs + design + tasks
+   constraint-ready decision
+               │
+               ▼
+ OpenSpec proposal + specs + design + tasks
                │
                ▼
  structural validation + semantic review
@@ -62,6 +65,8 @@ Before implementation, the change must contain:
 - `proposal.md` explaining intent, scope and capabilities;
 - `research.md` recording the current implementation, normative sources,
   adopt/build/reject decisions, compatibility evidence and zero blockers;
+- `constraints.md` classifying constraint/limitation impact, effective versus
+  target state, decision authority, consumer impact, activation and rollback;
 - `specs/<capability>/spec.md` with testable normative scenarios;
 - `design.md` recording implementation decisions and trade-offs;
 - `tasks.md` with ordered, parseable checkboxes;
@@ -71,6 +76,9 @@ Run `scripts/factory research-ready <change>` before the first implementation
 edit. The [research readiness contract](research-readiness.md) is lightweight
 for routine changes and requires a full candidate/evidence matrix for new
 protocol, foundational, cryptography/security, storage or FFI work.
+Run `scripts/factory constraints-ready <change>` at the same boundary. A
+material proposal remains researchable but cannot become implementation-ready
+until its exact durable decision reference resolves the product outcome.
 
 ## Factory commands
 
@@ -82,6 +90,7 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/factory validate <change>
 ./scripts/factory check
 ./scripts/factory research-ready <change>
+./scripts/factory constraints-ready <change>
 ./scripts/factory ready <change>
 ./scripts/factory receipt <change>
 ./scripts/factory archive <change>
@@ -101,6 +110,7 @@ nix run .#factory -- check
 | `validate` | runs strict structural validation for one change or the whole store |
 | `check` | runs the CI-safe structural and OpenSpec gates; incomplete draft tasks are allowed |
 | `research-ready` | requires reviewed research, an explicit candidate disposition and zero declared research blockers before implementation |
+| `constraints-ready` | requires explicit constraint/limitation impact and exact authority for material outcomes before implementation |
 | `ready` | requires the named active change and every task to be complete |
 | `receipt` | runs readiness, then prints immutable branch/head/base identifiers |
 | `archive` | runs readiness and preservation preflight, archives through pinned OpenSpec, then validates the resulting store |
@@ -170,6 +180,12 @@ An agent stops for human direction only before:
   downstream without a separate authorization; or
 - accessing a secret or identity not explicitly supplied for the task.
 
+The [constraint guide](../governance/constraints-and-limitations.md) makes this
+boundary explicit. A future target may be researched without stopping the
+factory, but it cannot become an effective consumer promise until the exact
+material outcome has a durable decision reference. Routine reversible choices
+remain autonomous.
+
 Pending or failing gates, a draft state, merge conflicts and unresolved
 blocking reviews stop integration until the agent resolves them; they do not
 automatically require a human. No agent may bypass branch protection. The pull
@@ -179,8 +195,9 @@ request records the mandate or roadmap source and local or specialist reviews.
 
 A change is ready for final review when:
 
-1. `scripts/factory research-ready <change>` passed before implementation and
-   remains consistent with the result;
+1. `scripts/factory research-ready <change>` and `scripts/factory
+   constraints-ready <change>` passed before implementation and remain
+   consistent with the result;
 2. its OpenSpec artifacts pass structural and semantic review;
 3. every implementation task is checked and maps to a requirement;
 4. `scripts/factory ready <change>` passes;

@@ -15,6 +15,8 @@ Before changing files, read:
 - `docs/adr/0003-delegate-develop-integration.md`;
 - `docs/adr/0004-establish-standing-agent-authority.md`;
 - `docs/governance/agentic-sdlc.md`;
+- `docs/governance/constraints-and-limitations.md` and the indexed constraints
+  relevant to the change;
 - `docs/factory/README.md`;
 - the issue or OpenSpec change and any crate-local `AGENTS.md` in scope.
 
@@ -69,13 +71,18 @@ Before changing files, read:
 
 - Create or select an OpenSpec change before qualifying implementation work.
 - Run `scripts/factory doctor` before editing and record the exact base SHA.
-- Read proposal, research, specs, design and tasks; clear semantic blockers
-  first.
+- Read proposal, research, constraints, specs, design and tasks; clear semantic
+  blockers first.
 - Complete proportionate build-versus-adopt research and run
   `scripts/factory research-ready <change>` before implementation. New
   foundational, protocol, cryptography/security, storage or FFI work requires
   the full evidence matrix; routine work may record a justified
   `not-applicable` decision.
+- Run `scripts/factory constraints-ready <change>` before implementation. A
+  material consumer, product, compatibility, security, license,
+  certification, budget or release outcome requires an exact durable decision
+  reference. Research and reversible non-activating preparation may continue
+  while it is proposed; activation may not.
 - Implement one task at a time and check it immediately after verification.
 - Run `scripts/factory check` throughout draft work.
 - Run `scripts/factory ready <change>` and `receipt <change>` before final

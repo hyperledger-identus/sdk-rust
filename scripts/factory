@@ -53,8 +53,26 @@ research_ready_change() {
   run_openspec validate "$change_name" --type change --strict --no-interactive
   "$factory_root/scripts/check-research-readiness.py" "$factory_root" \
     --change "$change_name" --require-ready
+  "$factory_root/scripts/check-constraints.py" "$factory_root" \
+    --change "$change_name" --require-ready
 
   printf 'factory: research is ready: %s\n' "$change_name"
+}
+
+constraints_ready_change() {
+  local change_name=${1:-}
+  [[ -n "$change_name" ]] || fail "constraints-ready requires an active OpenSpec change name"
+
+  local change_root="$factory_root/openspec/changes/$change_name"
+  [[ -d "$change_root" ]] || fail "active change not found: $change_name"
+
+  check_factory
+  run_openspec status --change "$change_name"
+  run_openspec validate "$change_name" --type change --strict --no-interactive
+  "$factory_root/scripts/check-constraints.py" "$factory_root" \
+    --change "$change_name" --require-ready
+
+  printf 'factory: constraints are ready: %s\n' "$change_name"
 }
 
 ready_change() {
@@ -67,6 +85,10 @@ ready_change() {
   check_factory
   run_openspec status --change "$change_name"
   run_openspec validate "$change_name" --type change --strict --no-interactive
+  "$factory_root/scripts/check-research-readiness.py" "$factory_root" \
+    --change "$change_name" --require-ready
+  "$factory_root/scripts/check-constraints.py" "$factory_root" \
+    --change "$change_name" --require-ready
 
   if grep -n '^- \[ \]' "$change_root/tasks.md"; then
     fail "change has incomplete tasks: $change_name"
@@ -158,6 +180,8 @@ Commands:
   check               Run the CI-safe factory and OpenSpec structural gates
   research-ready <change>
                       Require reviewed research with zero declared blockers
+  constraints-ready <change>
+                      Require explicit constraint impact and material authority
   ready <change>      Require valid artifacts and every task to be complete
   receipt <change>    Run readiness and print immutable handoff identifiers
   archive <change>    Preflight, archive and validate a completed change
@@ -187,6 +211,9 @@ case "$command_name" in
     ;;
   research-ready)
     research_ready_change "${1:-}"
+    ;;
+  constraints-ready)
+    constraints_ready_change "${1:-}"
     ;;
   ready)
     ready_change "${1:-}"

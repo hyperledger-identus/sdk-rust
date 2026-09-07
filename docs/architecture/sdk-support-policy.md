@@ -42,6 +42,9 @@ stable-minus-three policy and Rust 1.95 as the first transition. Issue
 [#154](https://github.com/hyperledger-identus/sdk-rust/issues/154) must update
 this prose, the normative TOML, Cargo and Nix gates atomically. Until that PR
 merges, Rust 1.85.0 above remains the effective and tested promise.
+[ADR 0063](../adr/0063-make-material-constraints-explicit.md) additionally
+requires an exact activation decision with consumer impact before that target
+can become effective; research or a quarterly review alone is insufficient.
 
 ## Feature surfaces
 

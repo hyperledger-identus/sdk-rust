@@ -34,6 +34,16 @@ if ! printf '%s\n' "$pr_body" | grep -Eiq "$review_pattern"; then
   report_failure "body must record completed local review"
 fi
 
+constraint_pattern='^[[:space:]]*-[[:space:]]*Constraint impact:[[:space:]]*(none|routine|material)([[:space:][:punct:]]|$)'
+if ! printf '%s\n' "$pr_body" | grep -Eiq "$constraint_pattern"; then
+  report_failure "body must classify constraint impact as none, routine or material"
+fi
+
+limitation_pattern='^[[:space:]]*-[[:space:]]*Limitations:[[:space:]]*[^[:space:]<].*$'
+if ! printf '%s\n' "$pr_body" | grep -Eiq "$limitation_pattern"; then
+  report_failure "body must state none or describe the introduced limitation"
+fi
+
 if ((failures > 0)); then
   printf 'pull-request-policy: %d failure(s)\n' "$failures" >&2
   exit 1

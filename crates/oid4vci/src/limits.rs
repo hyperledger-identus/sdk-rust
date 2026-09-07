@@ -526,6 +526,48 @@ impl Default for CredentialErrorResponseLimits {
     }
 }
 
+/// Resource limits for a caller-supplied Credential payload-error HTTP response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CredentialErrorHttpResponseLimits {
+    response_limits: CredentialErrorResponseLimits,
+    max_content_type_bytes: usize,
+}
+
+impl CredentialErrorHttpResponseLimits {
+    /// Combine body limits with a positive Content-Type field-value bound.
+    pub const fn new(
+        response_limits: CredentialErrorResponseLimits,
+        max_content_type_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_content_type_bytes == 0 {
+            return Err(CredentialOfferError::InvalidCredentialErrorHttpResponseLimits);
+        }
+        Ok(Self {
+            response_limits,
+            max_content_type_bytes,
+        })
+    }
+
+    /// Return the bounded Credential Error Response body policy.
+    pub const fn response_limits(self) -> CredentialErrorResponseLimits {
+        self.response_limits
+    }
+
+    /// Maximum bytes in the effective Content-Type field value.
+    pub const fn max_content_type_bytes(self) -> usize {
+        self.max_content_type_bytes
+    }
+}
+
+impl Default for CredentialErrorHttpResponseLimits {
+    fn default() -> Self {
+        Self {
+            response_limits: CredentialErrorResponseLimits::default(),
+            max_content_type_bytes: 1_024,
+        }
+    }
+}
+
 /// Resource limits for an OID4VCI Credential Nonce Response core.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialNonceResponseLimits {

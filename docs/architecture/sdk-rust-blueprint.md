@@ -466,6 +466,18 @@ RFC 6750 Authorization errors, request correlation, issuer truth,
 retry/remediation/UI policy, deferred or encrypted responses, credential
 verification, storage and product policy remain later layers.
 
+The nineteenth bounded delivery, issue #147, validates that body through the
+Final Credential Request payload-error HTTP envelope. It requires exact status
+400 and one bounded RFC-shaped case-insensitive `application/json` effective
+media value before body parsing, rejects the exact generic `invalid_request`
+code displaced by the Final payload-error vocabulary, and preserves all other
+valid extension codes. It deliberately ignores the non-normative example-only
+Cache-Control header and returns only the existing redaction-safe body core.
+HTTP execution/provenance, RFC 6750 Authorization Errors and challenges,
+request correlation, retry/remediation/UI policy, deferred or encrypted
+responses, credential verification, storage, and product policy remain later
+layers.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

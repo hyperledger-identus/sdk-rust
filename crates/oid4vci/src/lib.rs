@@ -7,7 +7,8 @@
 //! Pre-Authorized Code server and Transaction Code input binding, and bounded
 //! construction of the mandatory Pre-Authorized Token Request form plus a
 //! partial successful Token Response, Token Error Response, and Credential
-//! Error Response core, plus a Credential Nonce Response core and a
+//! Error Response core with its payload-error HTTP envelope, plus a Credential
+//! Nonce Response core and a
 //! transport-neutral Final Credential Nonce
 //! Request description and bounded validation of its mandatory HTTP response
 //! metadata, and bounded construction of the unencrypted Final
@@ -20,6 +21,7 @@
 #![forbid(unsafe_code)]
 
 mod authorization_metadata;
+mod credential_error_http_response;
 mod credential_error_response;
 mod credential_nonce_http_response;
 mod credential_nonce_request;
@@ -66,10 +68,10 @@ pub use jwt_credential_request::{
     CREDENTIAL_REQUEST_HTTP_METHOD, CREDENTIAL_REQUEST_MEDIA_TYPE, JwtCredentialRequest,
 };
 pub use limits::{
-    AuthorizationServerMetadataLimits, CredentialErrorResponseLimits,
-    CredentialIssuerMetadataLimits, CredentialNonceHttpResponseLimits,
-    CredentialNonceResponseLimits, CredentialOfferGrantLimits, CredentialOfferLimits,
-    CredentialOfferSemanticLimits, ImmediateCredentialHttpResponseLimits,
+    AuthorizationServerMetadataLimits, CredentialErrorHttpResponseLimits,
+    CredentialErrorResponseLimits, CredentialIssuerMetadataLimits,
+    CredentialNonceHttpResponseLimits, CredentialNonceResponseLimits, CredentialOfferGrantLimits,
+    CredentialOfferLimits, CredentialOfferSemanticLimits, ImmediateCredentialHttpResponseLimits,
     ImmediateCredentialResponseLimits, JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH,
     PreAuthorizedTokenRequestLimits, TokenErrorResponseLimits, TokenResponseLimits,
     TransactionCodeInputLimits,

@@ -574,6 +574,71 @@ fn bip39_invalid_mnemonic_is_rejected() {
 }
 
 #[test]
+fn bip39_accepts_only_standard_entropy_and_word_counts() {
+    for (entropy_len, expected_words) in [(16, 12), (20, 15), (24, 18), (28, 21), (32, 24)] {
+        let words = MnemonicHelper::to_mnemonic_code(&vec![0u8; entropy_len]);
+        assert_eq!(words.len(), expected_words, "entropy length {entropy_len}");
+        assert!(MnemonicHelper::is_valid_mnemonic_code(&words));
+    }
+
+    for entropy_len in [0, 1, 4, 12, 17, 33, 36] {
+        assert!(
+            MnemonicHelper::to_mnemonic_code(&vec![0u8; entropy_len]).is_empty(),
+            "entropy length {entropy_len} must be rejected"
+        );
+    }
+
+    for word_count in [0, 1, 11, 13, 14, 16, 17, 19, 20, 22, 23, 25] {
+        let words = vec!["abandon".to_owned(); word_count];
+        assert!(
+            !MnemonicHelper::is_valid_mnemonic_code(&words),
+            "word count {word_count} must be rejected"
+        );
+        assert!(matches!(
+            MnemonicHelper::create_seed(&words, "passphrase"),
+            Err(Error::MnemonicInvalid)
+        ));
+    }
+}
+
+#[test]
+fn bip39_rejects_valid_words_with_an_invalid_checksum() {
+    let words = vec!["abandon".to_owned(); 12];
+    assert!(!MnemonicHelper::is_valid_mnemonic_code(&words));
+    assert!(matches!(
+        MnemonicHelper::create_seed(&words, "passphrase"),
+        Err(Error::MnemonicInvalid)
+    ));
+}
+
+#[test]
+fn bip39_nfkd_normalizes_equivalent_passphrases() {
+    let words: Vec<String> = [
+        "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon",
+        "abandon", "abandon", "abandon", "about",
+    ]
+    .iter()
+    .map(|word| (*word).to_owned())
+    .collect();
+
+    let composed = MnemonicHelper::create_seed(&words, "é").unwrap();
+    let decomposed = MnemonicHelper::create_seed(&words, "e\u{301}").unwrap();
+    assert_eq!(composed, decomposed);
+    assert_eq!(
+        hex::encode(composed),
+        "f37f8652bf7004d4bd4ba7702e70e647f54965758656423dde58d64fa725c1e8be1b0416864e10f714c0730e46f9676079b4fd4f72fcf0c09a120ae65589c091"
+    );
+}
+
+#[test]
+fn bip39_english_wordlist_is_complete_and_ordered() {
+    let words = identus_crypto::derivation::mnemonic::wordlist();
+    assert_eq!(words.len(), 2048);
+    assert_eq!(words.first(), Some(&"abandon"));
+    assert_eq!(words.last(), Some(&"zoo"));
+}
+
+#[test]
 fn bip39_create_random_mnemonics_is_valid_and_deterministic() {
     use common::DetRandom;
     let mut rng = DetRandom::new();
@@ -678,6 +743,22 @@ mod kmp_compat {
             err.to_identus_error().code().as_str(),
             "crypto.mnemonic_invalid"
         );
+    }
+
+    #[test]
+    fn kmp_create_seed_rejects_invalid_checksum() {
+        let invalid_checksum = vec!["abandon".to_owned(); 12];
+        assert!(matches!(
+            MnemonicHelper::create_seed_kmp(&invalid_checksum, ""),
+            Err(Error::MnemonicInvalid)
+        ));
+    }
+
+    #[test]
+    fn kmp_passphrase_bytes_remain_legacy_exact() {
+        let composed = MnemonicHelper::create_seed_kmp(&words(), "é").unwrap();
+        let decomposed = MnemonicHelper::create_seed_kmp(&words(), "e\u{301}").unwrap();
+        assert_ne!(composed, decomposed);
     }
 }
 

@@ -1,35 +1,41 @@
-//! BIP39 mnemonic helper (ported from the KMP `MnemonicHelper`), with an
-//! English wordlist. `create_seed` uses standard BIP39 PBKDF2-HMAC-SHA512
-//! (salt = `"mnemonic" + passphrase`) so it matches the published BIP39 test
-//! vectors; `create_random_mnemonics` takes an injected [`SecureRandom`].
+//! Standards-correct BIP-39 mnemonic support behind the Identus facade.
+//!
+//! The dependency mnemonic is transient and never crosses this module. Its
+//! word-revealing formatting surfaces are deliberately not exposed.
 
+use std::borrow::Cow;
+
+use bip39::{Language, Mnemonic};
+#[cfg(feature = "kmp-compat")]
 use pbkdf2::pbkdf2_hmac;
+#[cfg(feature = "kmp-compat")]
 use sha2::Sha512;
 use zeroize::Zeroizing;
 
 use crate::error::Error;
 use crate::securerandom::SecureRandom;
 
+#[cfg(feature = "kmp-compat")]
 const PBKDF2_ITERATIONS: u32 = 2048;
+#[cfg(feature = "kmp-compat")]
 const PBKDF2_DK_LEN: usize = 64;
 const DEFAULT_PASSPHRASE: &str = "";
-const SALT_PREFIX: &str = "mnemonic";
 const ENTROPY_BYTES_24_WORDS: usize = 32;
 
-/// The BIP39 English wordlist as a slice of words (2048 entries).
+/// The standard BIP-39 English wordlist.
+#[must_use]
 pub fn wordlist() -> Vec<&'static str> {
-    super::wordlist::ENGLISH_WORDLIST.to_vec()
+    Language::English.word_list().to_vec()
 }
 
-/// BIP39 mnemonic helper.
+/// BIP-39 mnemonic helper.
 pub struct MnemonicHelper;
 
 impl MnemonicHelper {
-    /// Validate that every word in `mnemonics` is in the English wordlist.
+    /// Validate the BIP-39 English word count, word membership and checksum.
     #[must_use]
     pub fn is_valid_mnemonic_code(mnemonics: &[String]) -> bool {
-        let words = super::wordlist::ENGLISH_WORDLIST;
-        mnemonics.iter().all(|w| words.contains(&w.as_str()))
+        Self::parse_mnemonic(mnemonics).is_ok()
     }
 
     /// Create a random 24-word mnemonic using the injected [`SecureRandom`].
@@ -39,93 +45,71 @@ impl MnemonicHelper {
         Ok(Self::to_mnemonic_code(entropy.as_ref()))
     }
 
-    /// Convert raw entropy into a mnemonic word list (BIP39).
+    /// Convert BIP-39 entropy into English mnemonic words.
+    ///
+    /// This signature remains infallible for compatibility. Entropy lengths
+    /// other than 16, 20, 24, 28 or 32 bytes return an empty vector.
+    #[must_use]
     pub fn to_mnemonic_code(entropy: &[u8]) -> Vec<String> {
-        if entropy.is_empty() || entropy.len() % 4 != 0 {
-            // Mirrors the KMP `Exception` on bad entropy length.
-            return Vec::new();
-        }
-        let words = super::wordlist::ENGLISH_WORDLIST;
-        let hash = crate::hash::sha256(entropy);
-        let checksum_bits = entropy.len() / 4;
-        let total_bits = entropy.len() * 8 + checksum_bits;
-
-        let bit = |i: usize| -> bool {
-            if i < entropy.len() * 8 {
-                let byte = entropy[i / 8];
-                (byte >> (7 - (i % 8))) & 1 == 1
-            } else {
-                let ci = i - entropy.len() * 8;
-                let check = hash.as_array()[0] >> (8 - checksum_bits);
-                (check >> (checksum_bits - 1 - ci)) & 1 == 1
-            }
-        };
-
-        let nwords = total_bits / 11;
-        let mut result = Vec::with_capacity(nwords);
-        for w in 0..nwords {
-            let mut index: usize = 0;
-            for j in 0..11 {
-                index <<= 1;
-                if bit(w * 11 + j) {
-                    index |= 1;
-                }
-            }
-            result.push(words[index].to_string());
-        }
-        result
+        Mnemonic::from_entropy(entropy)
+            .map(|mnemonic| mnemonic.words().map(str::to_owned).collect())
+            .unwrap_or_default()
     }
 
-    /// Derive a 64-byte BIP39 seed from `mnemonics` and `passphrase`
-    /// (PBKDF2-HMAC-SHA512, salt = `"mnemonic" + passphrase`, 2048 iterations).
-    /// Errors with [`Error::MnemonicInvalid`] if any word is not in the
-    /// wordlist.
+    /// Derive a 64-byte standard BIP-39 seed.
+    ///
+    /// The mnemonic and passphrase are NFKD-normalized. Dependency errors are
+    /// collapsed to the stable, redacted [`Error::MnemonicInvalid`] contract.
     pub fn create_seed(mnemonics: &[String], passphrase: &str) -> Result<Vec<u8>, Error> {
-        let mut salt = Zeroizing::new(String::with_capacity(SALT_PREFIX.len() + passphrase.len()));
-        salt.push_str(SALT_PREFIX);
-        salt.push_str(passphrase);
-        Self::derive_seed(mnemonics, &salt)
+        let mnemonic = Self::parse_mnemonic(mnemonics)?;
+        let seed = Self::with_normalized(passphrase, |normalized_passphrase| {
+            Zeroizing::new(mnemonic.to_seed_normalized(normalized_passphrase))
+        });
+        Ok(seed.to_vec())
     }
 
-    /// Derive a 64-byte seed from `mnemonics` and `passphrase` using the
-    /// **KMP salt** (`passphrase` with no `"mnemonic"` prefix), for one-way
-    /// legacy PRISM wallet import.
+    /// Derive a 64-byte seed using Apollo's legacy KMP salt.
     ///
-    /// This is an opt-in KMP-interop escape hatch gated behind the
-    /// `kmp-compat` Cargo feature. The `passphrase` is **required** (no
-    /// default) — state the source wallet's passphrase explicitly
-    /// (`""` for `cloud-agent`, `"AtalaPrism"` for KMP-default, or the
-    /// user's value). Use [`create_seed`](Self::create_seed) for new wallets.
-    ///
-    /// Errors with [`Error::MnemonicInvalid`] if any word is not in the
-    /// wordlist.
+    /// This opt-in import path deliberately uses the exact passphrase bytes as
+    /// salt, with no `"mnemonic"` prefix and no passphrase normalization. Use
+    /// [`create_seed`](Self::create_seed) for standards-compliant wallets.
     #[cfg(feature = "kmp-compat")]
     pub fn create_seed_kmp(mnemonics: &[String], passphrase: &str) -> Result<Vec<u8>, Error> {
-        Self::derive_seed(mnemonics, passphrase)
+        let mnemonic = Self::parse_mnemonic(mnemonics)?;
+        let phrase = Zeroizing::new(mnemonic.words().collect::<Vec<_>>().join(" "));
+        let mut seed = Zeroizing::new([0u8; PBKDF2_DK_LEN]);
+        pbkdf2_hmac::<Sha512>(
+            phrase.as_bytes(),
+            passphrase.as_bytes(),
+            PBKDF2_ITERATIONS,
+            seed.as_mut(),
+        );
+        Ok(seed.to_vec())
     }
 
-    /// Convenience: create a random mnemonic and derive its seed with the
-    /// standard default passphrase (`""`, i.e. salt `"mnemonic"`).
+    /// Create a random mnemonic and derive its standard empty-passphrase seed.
     pub fn create_random_seed(rng: &mut impl SecureRandom) -> Result<Vec<u8>, Error> {
         let mnemonics = Zeroizing::new(Self::create_random_mnemonics(rng)?);
         Self::create_seed(&mnemonics, DEFAULT_PASSPHRASE)
     }
 
-    /// Shared validation + PBKDF2-HMAC-SHA512 core. The only per-variant input
-    /// is the pre-built `salt` string; the mnemonic is validated and the seed
-    /// is derived identically for both the standard and KMP salt variants.
-    fn derive_seed(mnemonics: &[String], salt: &str) -> Result<Vec<u8>, Error> {
-        if !Self::is_valid_mnemonic_code(mnemonics) {
-            return Err(Error::MnemonicInvalid);
+    fn parse_mnemonic(mnemonics: &[String]) -> Result<Mnemonic, Error> {
+        let phrase = Zeroizing::new(mnemonics.join(" "));
+        Self::with_normalized(&phrase, |normalized| {
+            Mnemonic::parse_in_normalized(Language::English, normalized)
+        })
+        .map_err(|_| Error::MnemonicInvalid)
+    }
+
+    fn with_normalized<T>(input: &str, operation: impl FnOnce(&str) -> T) -> T {
+        let mut normalized = Cow::Borrowed(input);
+        Mnemonic::normalize_utf8_cow(&mut normalized);
+        match normalized {
+            Cow::Borrowed(value) => operation(value),
+            Cow::Owned(value) => {
+                let value = Zeroizing::new(value);
+                operation(value.as_str())
+            }
         }
-        let mnemonic_string = Zeroizing::new(mnemonics.join(" "));
-        let mut dk = Zeroizing::new([0u8; PBKDF2_DK_LEN]);
-        pbkdf2_hmac::<Sha512>(
-            mnemonic_string.as_bytes(),
-            salt.as_bytes(),
-            PBKDF2_ITERATIONS,
-            dk.as_mut(),
-        );
-        Ok(dk.to_vec())
     }
 }

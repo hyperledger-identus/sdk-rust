@@ -147,3 +147,16 @@ surprise compatibility promise.
 
 This pairing keeps the intended security direction enforceable without
 misrepresenting incomplete inherited coverage as a proven SDK guarantee.
+
+## Unsafe-code example
+
+- `SDK-SEC-001` is effective project policy: unsafe Rust is prohibited unless
+  a dedicated safety ADR grants a bounded exception.
+- `SDK-LIM-008` is an effective enforcement limitation: that prohibition is
+  not yet backed by a uniform machine `forbid` across every workspace crate
+  and feature surface. Source review remains required until issue #169 closes
+  the negative-gate gap.
+
+A policy can be effective while its assurance evidence is incomplete, but the
+index must disclose both facts instead of describing manual review as a
+machine guarantee.

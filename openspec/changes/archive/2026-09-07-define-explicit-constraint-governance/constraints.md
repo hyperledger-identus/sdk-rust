@@ -26,6 +26,11 @@ and `identus-core::Url` has no intrinsic byte limit. The checker limitation is
 also explicit: it validates schema, references and declared state but semantic
 sufficiency still requires review.
 
+Hosted review also established `SDK-LIM-008`: unsafe Rust is prohibited by
+policy, but the prohibition is not yet uniformly machine-enforced across every
+workspace crate and feature surface. Issues #168 and #169 own remediation of
+the input-bound and unsafe-enforcement gaps, respectively.
+
 ## Consumer and product impact
 
 Consumers receive clearer visibility into effective constraints, future

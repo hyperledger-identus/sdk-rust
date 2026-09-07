@@ -39,6 +39,12 @@
   limit. The forward guardrail was narrowed to new or materially changed
   boundaries and the inherited audit gap was added explicitly as
   `SDK-LIM-007`; no runtime claim or implementation was invented.
+- Re-review found that `SDK-SEC-001` overstated machine enforcement: 11 of 17
+  crate roots lack a uniform unsafe-code `forbid`. The effective policy now
+  cites its real manual enforcement, `SDK-LIM-008` discloses the CI gap, and
+  issue #169 owns the focused negative-gate work.
+- Issues #168 and #169 make both discovered limitations actionable without
+  expanding this governance PR into compatibility-affecting implementation.
 - Confirmed repository base and `origin/develop` were identical at
   `84ec5408ea9423d7d3965f3088e80ec78456efcb`.
 

@@ -135,10 +135,10 @@ canonical_source = "CONTRIBUTING.md#development-rules"
 authority        = "Repository security and contribution policy."
 rationale        = "Identity and cryptographic code needs auditable memory-safety boundaries."
 consumer_impact  = "Consumers do not inherit undocumented unsafe SDK implementation."
-enforcement      = [ "crate-level unsafe policy", "Clippy and source review" ]
+enforcement      = [ "contribution policy", "semantic and source review" ]
 owner            = "SDK maintainers and security reviewers"
 review_triggers  = [ "unsafe block proposed", "native dependency introduced" ]
-activation       = "Already effective; an exception requires a dedicated ADR, invariants and specialist review."
+activation       = "The policy is effective; issue #169 tracks uniform machine enforcement, and any exception requires a dedicated ADR, invariants and specialist review."
 rollback         = "Remove the unsafe code or revoke the bounded exception."
 
 [[entries]]
@@ -308,5 +308,22 @@ consumer_impact  = "Consumers must apply outer input limits where a type lacks e
 enforcement      = [ "constraint index disclosure", "new/change boundary review", "focused remediation issues and tests" ]
 owner            = "SDK maintainers and security reviewers"
 review_triggers  = [ "inherited parser is touched", "resource-bound audit runs", "consumer handles hostile input directly" ]
-activation       = "Already effective as a disclosed limitation; remove only after an exhaustive audit and enforced negative tests close every recorded gap."
+activation       = "Already effective as a disclosed limitation; issue #168 must provide an exhaustive audit and enforced negative tests before removing it."
 rollback         = "Restore the limitation if a supposedly bounded inherited surface is found to accept unbounded work or allocation."
+
+[[entries]]
+id               = "SDK-LIM-008"
+kind             = "limitation"
+category         = "security"
+state            = "effective"
+summary          = "The unsafe-code prohibition is not uniformly machine-enforced across all workspace crates."
+scope            = "Supported crate roots, tests, examples, build surfaces and feature combinations lacking a workspace or crate-level unsafe_code forbid gate."
+canonical_source = "CONTRIBUTING.md#development-rules"
+authority        = "Current repository policy and reviewed enforcement evidence."
+rationale        = "A human policy and source review do not prove the full workspace rejects every unauthorized unsafe block."
+consumer_impact  = "Consumers may rely on the prohibition as project policy, but CI does not yet supply complete machine evidence for every crate surface."
+enforcement      = [ "constraint index disclosure", "semantic and source review", "issue #169 remediation tracking" ]
+owner            = "SDK maintainers and security reviewers"
+review_triggers  = [ "unsafe code is proposed", "crate or feature surface is added", "issue #169 enforcement lands" ]
+activation       = "Already effective as a disclosed limitation; issue #169 must prove uniform negative enforcement before removing it."
+rollback         = "Restore the limitation if any supported crate or feature surface can compile unauthorized unsafe Rust."

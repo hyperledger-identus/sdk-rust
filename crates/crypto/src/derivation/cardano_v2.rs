@@ -95,8 +95,9 @@ impl CardanoV2ExtendedPrivateKey {
         ))
     }
 
-    /// Derive an extended private key along `path`.
+    /// Derive an extended private key along a path of at most 255 axes.
     pub fn derive_path(&self, path: &DerivationPath) -> Result<Self, Error> {
+        path.ensure_work_bound()?;
         let mut current = self.clone();
         for axis in path.axes() {
             current = current.derive_child(*axis)?;
@@ -193,8 +194,9 @@ impl CardanoV2ExtendedPublicKey {
             .map_err(|_| Error::DerivationFailed)
     }
 
-    /// Derive an extended public key along an all-soft `path`.
+    /// Derive an extended public key along an all-soft path of at most 255 axes.
     pub fn derive_path(&self, path: &DerivationPath) -> Result<Self, Error> {
+        path.ensure_work_bound()?;
         let mut current = *self;
         for axis in path.axes() {
             current = current.derive_child(*axis)?;

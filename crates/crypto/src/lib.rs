@@ -103,6 +103,10 @@ pub use derivation::path;
 pub use derivation::{CardanoV2ExtendedPrivateKey, CardanoV2ExtendedPublicKey};
 #[cfg(feature = "derivation")]
 pub use derivation::{EdHDKey, HDKey, MnemonicHelper};
+#[cfg(any(feature = "derivation", feature = "cardano-bip32"))]
+pub use derivation::{
+    MAX_DERIVATION_PATH_AXES, MAX_DERIVATION_PATH_BYTES, MAX_HD_SEED_BYTES, MIN_HD_SEED_BYTES,
+};
 
 /// Metadata for the `identus-crypto` crate.
 pub const COMPONENT: Component = Component {

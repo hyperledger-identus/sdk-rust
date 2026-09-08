@@ -147,10 +147,15 @@ surprise compatibility promise.
   changed untrusted-input boundary must ship with explicit resource limits.
 - `SDK-LIM-007` is an effective current limitation: inherited surfaces have
   not completed a repository-wide resource-bound audit. `identus-core::Url`
-  now rejects values above 8,192 UTF-8 bytes, but callers must still apply an
-  outer limit before a transport, decompressor, or deserializer allocates
-  hostile input. Other inherited surfaces remain limited by their explicit
-  evidence rather than by a repository-wide completion claim.
+  now rejects values above 8,192 UTF-8 bytes; generic crypto text rejects
+  values above 4,096 bytes; and hierarchical derivation is limited to 4,096
+  path bytes, 255 axes/depth, and 16–64-byte BIP-32/SLIP-0010 seeds. Callers
+  must still apply an outer limit before a transport, decompressor, or
+  deserializer allocates hostile input. Programmatic path construction remains
+  caller-budgeted, while every current cryptographic path consumer rejects
+  more than 255 axes before child work. Other inherited surfaces remain
+  limited by their explicit evidence rather than by a repository-wide
+  completion claim.
 
 This pairing keeps the intended security direction enforceable without
 misrepresenting incomplete inherited coverage as a proven SDK guarantee.

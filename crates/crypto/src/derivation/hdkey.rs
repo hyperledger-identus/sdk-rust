@@ -9,12 +9,11 @@ use k256::{FieldBytes, Scalar};
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
 use crate::derivation::path::{DerivationAxis, DerivationPath};
+use crate::derivation::{MAX_DERIVATION_PATH_AXES, MAX_HD_SEED_BYTES, MIN_HD_SEED_BYTES};
 use crate::error::Error;
 use crate::hash::hmac_sha512;
 
 const KEY_SIZE: usize = 32;
-const MIN_SEED_SIZE: usize = 16;
-const MAX_SEED_SIZE: usize = 64;
 const MASTER_KEY: &[u8] = b"Bitcoin seed";
 
 /// A BIP32 HD key for secp256k1.
@@ -28,7 +27,7 @@ pub struct HDKey {
     pub private_key: [u8; KEY_SIZE],
     /// The 32-byte chain code. Any copied value becomes caller-owned secret material.
     pub chain_code: [u8; KEY_SIZE],
-    /// The depth in the derivation tree.
+    /// The depth in the derivation tree (at most 255 for derivation methods).
     pub depth: u32,
     /// The child index that produced this key.
     pub child_index: u32,
@@ -47,7 +46,7 @@ impl HDKey {
     /// Derive the master HD key from a 16–64-byte seed via HMAC-SHA512 keyed
     /// with `"Bitcoin seed"`.
     pub fn init_from_seed(seed: &[u8]) -> Result<Self, Error> {
-        if !(MIN_SEED_SIZE..=MAX_SEED_SIZE).contains(&seed.len()) {
+        if !(MIN_HD_SEED_BYTES..=MAX_HD_SEED_BYTES).contains(&seed.len()) {
             return Err(Error::DerivationFailed);
         }
 
@@ -80,26 +79,40 @@ impl HDKey {
     }
 
     /// Derive a child key at the given hardened [`DerivationAxis`].
+    ///
+    /// A parent at depth 255 is rejected before HMAC work.
     pub fn derive_child(&self, axis: DerivationAxis) -> Result<Self, Error> {
         // Only hardened derivation is supported (matching the KMP port).
         if !axis.is_hardened() {
             return Err(Error::DerivationFailed);
         }
+        let depth = self.checked_child_depth()?;
         // data = 0x00 || ser256(k_par) || ser32(i)
         let mut data = Zeroizing::new(Vec::with_capacity(1 + KEY_SIZE + 4));
         data.push(0x00);
         data.extend_from_slice(&self.private_key);
         data.extend_from_slice(&axis.raw().to_be_bytes());
 
-        self.derive_child_from_hmac(axis, Zeroizing::new(hmac_sha512(&self.chain_code, &data)))
+        self.derive_child_from_hmac(
+            axis,
+            depth,
+            Zeroizing::new(hmac_sha512(&self.chain_code, &data)),
+        )
+    }
+
+    fn checked_child_depth(&self) -> Result<u32, Error> {
+        self.depth
+            .checked_add(1)
+            .filter(|depth| *depth <= MAX_DERIVATION_PATH_AXES as u32)
+            .ok_or(Error::DerivationFailed)
     }
 
     fn derive_child_from_hmac(
         &self,
         axis: DerivationAxis,
+        depth: u32,
         i: Zeroizing<[u8; KEY_SIZE * 2]>,
     ) -> Result<Self, Error> {
-        let depth = self.depth.checked_add(1).ok_or(Error::DerivationFailed)?;
         let parent_scalar = Zeroizing::new(
             Option::<Scalar>::from(Scalar::from_repr(self.private_key.into()))
                 .ok_or(Error::DerivationFailed)?,
@@ -137,6 +150,7 @@ impl HDKey {
     /// Derive a key along a BIP-32 path string (e.g. `m/0'/0'/0'`).
     pub fn derive(&self, path: &str) -> Result<Self, Error> {
         let parsed = DerivationPath::from_path(path)?;
+        parsed.ensure_depth_capacity(self.depth)?;
         let mut current = self.clone();
         for axis in parsed.axes() {
             current = current.derive_child(*axis)?;
@@ -180,7 +194,7 @@ mod tests {
 
     #[test]
     fn every_normative_seed_length_is_accepted() {
-        for length in MIN_SEED_SIZE..=MAX_SEED_SIZE {
+        for length in MIN_HD_SEED_BYTES..=MAX_HD_SEED_BYTES {
             assert!(HDKey::init_from_seed(&vec![0x42; length]).is_ok());
         }
     }
@@ -188,11 +202,11 @@ mod tests {
     #[test]
     fn seed_lengths_outside_the_normative_range_are_rejected() {
         assert!(matches!(
-            HDKey::init_from_seed(&[0x42; MIN_SEED_SIZE - 1]),
+            HDKey::init_from_seed(&[0x42; MIN_HD_SEED_BYTES - 1]),
             Err(Error::DerivationFailed)
         ));
         assert!(matches!(
-            HDKey::init_from_seed(&[0x42; MAX_SEED_SIZE + 1]),
+            HDKey::init_from_seed(&[0x42; MAX_HD_SEED_BYTES + 1]),
             Err(Error::DerivationFailed)
         ));
     }
@@ -213,6 +227,7 @@ mod tests {
     fn child_tweak_at_the_curve_order_is_rejected_without_reduction() {
         let result = one_key(0).derive_child_from_hmac(
             DerivationAxis::hardened(0),
+            1,
             hmac_halves(ORDER, [0x33; KEY_SIZE]),
         );
         assert!(matches!(result, Err(Error::DerivationFailed)));
@@ -220,17 +235,18 @@ mod tests {
 
     #[test]
     fn zero_child_tweak_is_valid_and_updates_metadata() {
-        let parent = one_key(7);
+        let parent = one_key((MAX_DERIVATION_PATH_AXES - 1) as u32);
         let child = parent
             .derive_child_from_hmac(
                 DerivationAxis::hardened(9),
+                MAX_DERIVATION_PATH_AXES as u32,
                 hmac_halves([0; KEY_SIZE], [0x44; KEY_SIZE]),
             )
             .unwrap();
 
         assert_eq!(child.private_key, parent.private_key);
         assert_eq!(child.chain_code, [0x44; KEY_SIZE]);
-        assert_eq!(child.depth, 8);
+        assert_eq!(child.depth, MAX_DERIVATION_PATH_AXES as u32);
         assert_eq!(child.child_index, DerivationAxis::hardened(9).raw());
     }
 
@@ -238,17 +254,16 @@ mod tests {
     fn zero_resulting_child_is_rejected() {
         let result = one_key(0).derive_child_from_hmac(
             DerivationAxis::hardened(0),
+            1,
             hmac_halves(ORDER_MINUS_ONE, [0x55; KEY_SIZE]),
         );
         assert!(matches!(result, Err(Error::DerivationFailed)));
     }
 
     #[test]
-    fn depth_overflow_is_rejected() {
-        let result = one_key(u32::MAX).derive_child_from_hmac(
-            DerivationAxis::hardened(0),
-            hmac_halves([0; KEY_SIZE], [0x66; KEY_SIZE]),
-        );
+    fn child_beyond_interoperable_depth_is_rejected() {
+        let result =
+            one_key(MAX_DERIVATION_PATH_AXES as u32).derive_child(DerivationAxis::hardened(0));
         assert!(matches!(result, Err(Error::DerivationFailed)));
     }
 }

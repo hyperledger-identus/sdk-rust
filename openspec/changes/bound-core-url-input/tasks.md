@@ -5,11 +5,11 @@
       SDK byte limits and authoritative RFC guidance.
 - [x] 1.3 Record material constraint, compatibility, activation and rollback
       decisions before implementation.
-- [ ] 2.1 Add and export `MAX_URL_BYTES = 8_192`.
-- [ ] 2.2 Add `UrlError::TooLong`, perform the byte check before syntax work,
+- [x] 2.1 Add and export `MAX_URL_BYTES = 8_192`.
+- [x] 2.2 Add `UrlError::TooLong`, perform the byte check before syntax work,
       and preserve the stable redaction-safe core mapping.
-- [ ] 2.3 Add exact-boundary, all-constructor, serde and multibyte tests.
-- [ ] 2.4 Update canonical spec, public docs and `SDK-LIM-007` atomically.
+- [x] 2.3 Add exact-boundary, all-constructor, serde and multibyte tests.
+- [x] 2.4 Update canonical spec, public docs and `SDK-LIM-007` atomically.
 - [ ] 3.1 Run focused tests, formatting, Clippy, feature/dependency checks and
       complete Nix validation.
 - [ ] 3.2 Perform distinct exact-diff/security review and resolve findings.

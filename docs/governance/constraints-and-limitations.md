@@ -146,9 +146,11 @@ surprise compatibility promise.
 - `SDK-SEC-003` is an effective forward guardrail: every new or materially
   changed untrusted-input boundary must ship with explicit resource limits.
 - `SDK-LIM-007` is an effective current limitation: inherited surfaces have
-  not completed a repository-wide resource-bound audit. In particular,
-  `identus-core::Url` currently has no intrinsic byte limit, so consumers must
-  apply an outer limit when accepting hostile URL input.
+  not completed a repository-wide resource-bound audit. `identus-core::Url`
+  now rejects values above 8,192 UTF-8 bytes, but callers must still apply an
+  outer limit before a transport, decompressor, or deserializer allocates
+  hostile input. Other inherited surfaces remain limited by their explicit
+  evidence rather than by a repository-wide completion claim.
 
 This pairing keeps the intended security direction enforceable without
 misrepresenting incomplete inherited coverage as a proven SDK guarantee.

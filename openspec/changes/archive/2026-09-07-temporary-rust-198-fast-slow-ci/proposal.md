@@ -32,6 +32,8 @@ signal, and exhaustive weekly/manual evidence.
 - `dependency-research-readiness`: keeps compiler-floor evidence mandatory but
   removes the release-phase requirement for an independently lower MSRV during
   the temporary pre-release phase.
+- `nix-tooling`: aligns the canonical workspace compiler-floor scenario with
+  the Rust 1.98.1 policy applied to Cargo and Nix.
 
 ## Impact
 

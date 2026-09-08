@@ -15,3 +15,9 @@ capability       = "sdk-support-policy"
 requirement      = "Supported feature surfaces are isolated"
 canonical_sha256 = "35e5a45a4bb87ce95d7881d219de3bcfa812f01d126993f1da883e0ffa2ff7b7"
 reason           = "Feature isolation remains mandatory, but its exhaustive evidence intentionally moves from an independent lower-MSRV lane to weekly/manual slow validation on Rust 1.98.1."
+
+[[modified_requirement]]
+capability       = "nix-tooling"
+requirement      = "Stub Cargo workspace"
+canonical_sha256 = "bce002f6af41bd0f8d36c8e5f960702cf2200bd746ec907d61ecf0de1532fc24"
+reason           = "The canonical bootstrap scenario must reflect the sponsor-directed temporary Rust 1.98.1 workspace floor instead of contradicting Cargo and the support policy."

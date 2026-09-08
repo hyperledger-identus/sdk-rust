@@ -70,35 +70,38 @@ evidence.
 - **WHEN** a future release claims the SDK's pinned final standard and passes the recorded trigger
 - **THEN** an agent may open a new research issue that updates the negative decision before proposing production integration
 
-### Requirement: MSRV selection is measurable and independently gated
+### Requirement: Compiler-floor selection is phase-appropriate and measurable
 
-The SDK SHALL select its public MSRV from measured dependency value, supported
-consumer constraints and target evidence rather than an arithmetic average,
-calendar, current-stable value or fixed release-distance formula. Edition,
-primary validation compiler and forward-compatibility compiler SHALL remain
-independent from the MSRV. An MSRV change SHALL occur only in a focused PR that
-updates Cargo, Nix, machine policy, migration guidance and target evidence
-together; an accepted candidate without that implementation SHALL NOT change
-the effective compiler promise. A boundary adapter MAY declare a higher
-crate-local MSRV only through a separate material decision and SHALL NOT raise
-the generic core automatically.
+The SDK SHALL select its compiler floor from measured dependency value,
+supported consumer constraints, target evidence and delivery phase rather than
+an arithmetic average or release-distance formula. During the temporary
+unpublished active-development phase authorized by discussion #172, the
+workspace floor, primary compiler and compatibility etalon SHALL all be exact
+Rust 1.98.1 and no lower-version compatibility SHALL be claimed. Dependency
+research SHALL still record each candidate's declared and observed compiler
+requirements so a later release decision has evidence.
 
-#### Scenario: Candidate MSRV precedes activation
+A release candidate SHALL require a focused compatibility decision that uses
+named consumer and target evidence, updates Cargo, Nix, machine policy,
+migration guidance and CI together, and resolves all weekly slow-lane failures.
+A boundary adapter MAY declare a different crate-local floor only through a
+separate material decision and SHALL NOT change generic core automatically.
 
-- **WHEN** research identifies Rust 1.89 as the next useful candidate while the
-  repository still declares and gates Rust 1.85
-- **THEN** repository policy continues to advertise Rust 1.85 until a focused
-  activation issue proves dependency, consumer and supported-target value
+#### Scenario: Dependency requires a recent compiler during active development
 
-#### Scenario: Primary stable compiler advances
+- **WHEN** a cohesive dependency requires Rust no newer than the exact 1.98.1
+  workspace floor and passes all other adoption gates
+- **THEN** no artificial lower-MSRV lane blocks research or implementation
 
-- **WHEN** the pinned primary validation compiler advances independently
-- **THEN** the public MSRV remains unchanged and every MSRV feature gate still
-  runs on the declared floor
+#### Scenario: Release candidate preparation begins
 
-#### Scenario: Boundary adapter needs a newer compiler
+- **WHEN** the project proposes a release candidate or reaches 2026-12-08
+- **THEN** a focused decision selects and enforces a consumer-driven compiler
+  matrix before any artifact can be published
 
-- **WHEN** an accepted FFI or platform adapter cannot support the workspace
-  MSRV for a measured reason
-- **THEN** its focused ADR may define a higher crate-local floor without
-  changing the core-crate promise
+#### Scenario: Boundary adapter needs a distinct compiler constraint
+
+- **WHEN** an accepted FFI or platform adapter cannot share the workspace floor
+  for a measured reason
+- **THEN** its focused ADR may define a crate-local constraint without silently
+  changing the generic core promise

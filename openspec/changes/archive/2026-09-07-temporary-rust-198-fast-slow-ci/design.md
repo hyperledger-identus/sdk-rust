@@ -47,6 +47,14 @@ feature/build evidence on the same 1.98.1 compiler; policy explicitly states
 that they are not independent compiler lanes. A release-phase redesign may
 rename or replace them with consumer-driven gates.
 
+### Keep bootstrap tooling specifications aligned
+
+The canonical Nix-tooling requirement also names the workspace
+`rust-version`. Update that scenario in the same archived change so it cannot
+contradict Cargo or the dedicated support-policy capability. This is a
+specification reconciliation only; the current monorepo topology remains
+governed by its later crate-layout specifications.
+
 ## Risks and mitigations
 
 - Fast can omit an essential check: machine policy enumerates its exact gates,

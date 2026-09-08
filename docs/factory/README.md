@@ -118,6 +118,15 @@ nix run .#factory -- check
 The receipt proves only the factory contract. Rust, target, conformance,
 security and release gates must be attached separately and truthfully.
 
+During the temporary active-development policy, an issue-linked PR receives
+one Ubuntu `fast` status containing the factory contract, repository lint,
+formatting, workspace build, strict Clippy and normal tests on Rust 1.98.1.
+The exhaustive Linux/macOS flake and sanitizer campaigns remain weekly and
+manually dispatchable `slow` evidence. Agents may merge on green required
+`fast` evidence, but must treat any slow failure as visible debt; release or
+publication is prohibited until that debt and the release-phase compiler
+matrix are resolved.
+
 OpenSpec `MODIFIED` operations replace a complete canonical requirement. The
 repository checker permits the default additive path only when every existing
 nonblank canonical line survives in order. An intentional rewrite or deletion

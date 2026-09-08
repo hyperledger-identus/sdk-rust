@@ -19,6 +19,24 @@ target              = ""
 extra_args          = [  ]
 
 [[gates]]
+name                = "rust-build"
+operation           = "cargoBuild"
+toolchain           = "primary"
+source              = "rust"
+artifacts           = "primary"
+locked              = true
+workspace           = true
+packages            = [  ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = true
+no_default_features = false
+all_features        = false
+features            = [  ]
+target              = ""
+extra_args          = [  ]
+
+[[gates]]
 name                = "rust-clippy"
 operation           = "cargoClippy"
 toolchain           = "primary"

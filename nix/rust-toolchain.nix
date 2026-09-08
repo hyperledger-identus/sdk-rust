@@ -20,24 +20,21 @@
           "wasm32-unknown-unknown"
         ];
       };
-      # Preserve NeoPRISM's compiler as an independent integration etalon.
-      etalonToolchain = pkgs.rust-bin.nightly."2026-03-18".default.override {
+      # During the temporary active-development phase, compatibility and MSRV
+      # labels intentionally resolve to the same exact stable compiler. This
+      # keeps existing gate identities without paying for three compilers.
+      etalonToolchain = toolchain;
+      msrvToolchain = toolchain;
+      # libFuzzer sanitizer instrumentation remains a tooling-only nightly
+      # exception and is never an ordinary SDK compatibility provider.
+      fuzzToolchain = pkgs.rust-bin.nightly."2026-03-18".default.override {
         extensions = [
           "rust-src"
-          "rust-analyzer"
-        ];
-        targets = [
-          "aarch64-apple-ios"
-          "aarch64-linux-android"
-          "wasm32-unknown-unknown"
         ];
       };
       craneLib = (inputs.crane.mkLib pkgs).overrideToolchain toolchain;
-      etalonCraneLib = (inputs.crane.mkLib pkgs).overrideToolchain etalonToolchain;
-      # The stable consumer floor is intentionally independent from the
-      # NeoPRISM-etalon nightly. A newer compiler passing cannot prove MSRV.
-      msrvToolchain = pkgs.rust-bin.stable."1.85.0".minimal;
-      msrvCraneLib = (inputs.crane.mkLib pkgs).overrideToolchain msrvToolchain;
+      etalonCraneLib = craneLib;
+      msrvCraneLib = craneLib;
     in
     {
       _module.args = {
@@ -45,6 +42,7 @@
           craneLib
           etalonCraneLib
           etalonToolchain
+          fuzzToolchain
           msrvCraneLib
           msrvToolchain
           toolchain

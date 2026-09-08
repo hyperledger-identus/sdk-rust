@@ -2,7 +2,7 @@
   perSystem =
     {
       pkgs,
-      etalonToolchain,
+      fuzzToolchain,
       toolchain,
       inputs',
       ...
@@ -84,12 +84,12 @@
 
       # libFuzzer's sanitizer instrumentation uses nightly-only compiler
       # options. Keep that operational exception explicit and pinned to the
-      # NeoPRISM etalon instead of weakening the stable default shell.
+      # tooling exception instead of weakening the stable default shell.
       devshells.fuzz = {
         devshell.name = "sdk-rust-fuzz";
 
         packages = with pkgs; [
-          etalonToolchain
+          fuzzToolchain
           stdenv.cc
           pkg-config
           openssl

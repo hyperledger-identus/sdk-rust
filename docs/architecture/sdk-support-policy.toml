@@ -1,20 +1,32 @@
 schema_version  = 1
-policy_revision = "2026-09-07"
+policy_revision = "2026-09-08"
 
 [toolchains]
-msrv                         = "1.85.0"
+msrv                         = "1.98.1"
 primary                      = "1.98.1"
-etalon                       = "nightly-2026-03-18"
-fuzz                         = "etalon"
-msrv_candidate               = "1.89.0"
+etalon                       = "1.98.1"
+fuzz                         = "nightly-2026-03-18"
 neoprism_revision            = "8becb225132efb1d9302b2c5f6ed4d87b84e8685"
 nixpkgs_revision             = "c27cdad491a991b11ed731760aa2ef8db0cb0410"
 rust_overlay_revision        = "f17186f52e82ec5cf40920b58eac63b78692ac7c"
 stable_rust_overlay_revision = "ca7f624be3935a5bc46d2c240515491ab8675503"
 nix_version                  = "2.34.8"
 
+[ci]
+fast_workflow              = ".github/workflows/factory-contract.yml"
+fast_status                = "fast"
+fast_system                = "x86_64-linux"
+fast_gates                 = [ "factory-contract", "lint-nix", "lint-text", "lint-toml", "rust-fmt", "rust-build", "rust-clippy", "rust-test" ]
+slow_workflow              = ".github/workflows/nix-checks.yml"
+slow_status                = "slow"
+slow_cadence               = "weekly-and-manual"
+slow_scope                 = "all-flake-checks"
+review_by                  = "2026-12-08"
+release_candidate_eligible = false
+
 [gate_operations]
 rust-audit                      = "cargoAudit"
+rust-build                      = "cargoBuild"
 rust-build-android-aarch64      = "cargoBuild"
 rust-build-ios-aarch64          = "cargoBuild"
 rust-build-wasm32               = "cargoBuild"

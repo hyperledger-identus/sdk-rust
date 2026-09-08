@@ -137,10 +137,10 @@ fn validate_uri(bytes: &[u8]) -> Result<(), UriSyntaxError> {
 
     let remainder = &bytes[colon + 1..];
     let fragment = remainder.iter().position(|byte| *byte == b'#');
-    if let Some(fragment) = fragment {
-        if remainder[fragment + 1..].contains(&b'#') {
-            return Err(UriSyntaxError::MultipleFragments);
-        }
+    if let Some(fragment) = fragment
+        && remainder[fragment + 1..].contains(&b'#')
+    {
+        return Err(UriSyntaxError::MultipleFragments);
     }
 
     let before_fragment = fragment.map_or(remainder, |index| &remainder[..index]);

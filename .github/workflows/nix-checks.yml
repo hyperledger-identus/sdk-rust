@@ -1,17 +1,16 @@
-name: nix-checks
+name: slow
 
 on:
-  pull_request:
-  push:
-    branches:
-      - develop
+  schedule:
+    - cron: "23 2 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   checks:
-    name: nix flake check (${{ matrix.os }})
+    name: slow (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -30,21 +29,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Benchmark support-policy validator
-        shell: bash
-        run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            baseline="$RUNNER_TEMP/sdk-rust-support-policy-baseline"
-            git worktree add --detach "$baseline" "${{ github.event.pull_request.base.sha }}"
-            ./scripts/benchmark-support-policy.py --samples 20 --baseline-root "$baseline"
-          else
-            ./scripts/benchmark-support-policy.py --samples 20
-          fi
-
       # The hosted Ubuntu image has substantially less free space than the
-      # combined primary, MSRV and etalon derivations need. These SDKs are not
-      # used by this Rust/Nix job; reclaim them before populating the Nix store.
-      - name: Reclaim Linux runner disk for multi-toolchain checks
+      # full feature/target matrix needs. These SDKs are not used by this
+      # Rust/Nix job; reclaim them before populating the Nix store.
+      - name: Reclaim Linux runner disk for the full matrix
         if: runner.os == 'Linux'
         shell: bash
         run: |

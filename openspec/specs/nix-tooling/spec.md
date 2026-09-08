@@ -118,10 +118,12 @@ The submodule SHALL contain a Cargo workspace rooted at `Cargo.toml` (with `[wor
 - **WHEN** `cargo test` is run in the submodule root
 - **THEN** the test suite SHALL pass (the placeholder crate MAY have no tests)
 
-#### Scenario: Workspace targets edition 2024 with a pinned MSRV
+#### Scenario: Workspace targets edition 2024 with a pinned compiler floor
 
 - **WHEN** the root `Cargo.toml` and member crate manifest are inspected
-- **THEN** the workspace SHALL declare `edition = "2024"` and `rust-version = "1.85.0"` (the edition 2024 floor), and `resolver = "3"` SHALL be set explicitly at the workspace level
+- **THEN** the workspace SHALL declare `edition = "2024"` and temporary
+  `rust-version = "1.98.1"`, and `resolver = "3"` SHALL be set explicitly at
+  the workspace level
 
 ### Requirement: Nix hygiene check
 

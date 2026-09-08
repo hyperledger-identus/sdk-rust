@@ -46,8 +46,8 @@ Feature branches and pull requests target `develop`.
 
 - [Nix](https://nixos.org/) with flakes enabled for the reproducible toolchain;
   the flake pins primary stable Rust separately while retaining NeoPRISM's Nix
-  baseline and nightly etalon. A toolchain that satisfies the declared MSRV
-  remains suitable for plain-Cargo development.
+  baseline and exact stable Rust 1.98.1. The pinned nightly is available only
+  in the explicit sanitizer-fuzz shell.
 
 ```bash
 # Enter the devshell
@@ -67,8 +67,9 @@ nix develop .#fuzz -c ./scripts/fuzz-jws.sh smoke
 nix flake check
 ```
 
-The flake supports `x86_64-linux` and `aarch64-darwin`. CI runs the flake gate
-on both platforms for pull requests and pushes to `develop`.
+The flake supports `x86_64-linux` and `aarch64-darwin`. Pull requests and
+`develop` pushes run one Ubuntu `fast` factory/build/lint/test status. The full
+Linux/macOS flake matrix runs weekly and through manual `slow` dispatch.
 
 ## Development workflow
 

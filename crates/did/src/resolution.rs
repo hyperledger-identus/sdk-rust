@@ -629,13 +629,12 @@ impl DidDocumentMetadata {
     }
 
     fn validate_methods_for(&self, did: &Did) -> Result<(), Error> {
-        if let Some(equivalent_ids) = &self.equivalent_id {
-            if equivalent_ids
+        if let Some(equivalent_ids) = &self.equivalent_id
+            && equivalent_ids
                 .iter()
                 .any(|equivalent| equivalent.method() != did.method())
-            {
-                return Err(invalid(ResolutionError::DifferentDidMethod));
-            }
+        {
+            return Err(invalid(ResolutionError::DifferentDidMethod));
         }
         if self
             .canonical_id

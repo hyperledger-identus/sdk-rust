@@ -1,5 +1,10 @@
 # ADR 0064: separate primary Rust validation from evidence-driven MSRV
 
+> **Temporarily superseded:** ADR 0081 sets Rust 1.98.1 as the single SDK
+> compiler and moves exhaustive evidence to weekly/manual workflows through
+> 2026-12-08 or release-candidate preparation. This ADR remains the rollback
+> reference for a future consumer-driven compatibility matrix.
+
 - **Status:** Accepted by project-sponsor direction
 - **Date:** 2026-09-07
 - **Issue:** [#170](https://github.com/hyperledger-identus/sdk-rust/issues/170)

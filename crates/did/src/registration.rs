@@ -1115,10 +1115,10 @@ fn validate_result(
         }
         _ => return Err(invalid(RegistrationError::InvalidState)),
     }
-    if let Some(did) = state.did() {
-        if document_metadata.validate_for(did).is_err() {
-            return Err(invalid(RegistrationError::MethodOrDidMismatch));
-        }
+    if let Some(did) = state.did()
+        && document_metadata.validate_for(did).is_err()
+    {
+        return Err(invalid(RegistrationError::MethodOrDidMismatch));
     }
     RegistrationPublicData::new(document_metadata.extensions().clone())?;
     Ok(())

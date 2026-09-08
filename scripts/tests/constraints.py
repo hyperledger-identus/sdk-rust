@@ -162,7 +162,9 @@ class ConstraintGovernanceTests(unittest.TestCase):
 
     def test_target_cannot_be_marked_effective(self) -> None:
         self.write_index(target_state="effective")
-        self.assertTrue(any("must remain a target" in item for item in self.failures()))
+        self.assertTrue(
+            any("must remain target or deferred" in item for item in self.failures())
+        )
 
     def test_target_cannot_claim_existing_activation(self) -> None:
         self.write_index(target_activation="Already effective through an ADR.")

@@ -36,65 +36,6 @@ contracts.
   contradictory workspace, package, target or feature modes
 - **THEN** offline validation fails closed before Nix evidence is accepted
 
-### Requirement: MSRV and etalon toolchain are independent gates
-
-The SDK SHALL compile every machine-declared default, minimal and opt-in
-feature surface using Rust `1.85.0`. It SHALL run full build, test, Clippy,
-formatting, documentation and supported compile-target checks using pinned
-stable Rust `1.98.1`. It SHALL separately compile the workspace using the
-pinned NeoPRISM-etalon nightly `2026-03-18`. Passing on primary stable or the
-etalon SHALL NOT substitute for the corresponding MSRV gate. Each Crane
-builder and dependency-artifact provider SHALL be wired to its
-machine-declared toolchain and SHALL fail structural validation when classes
-are cross-wired. Sanitizer fuzz campaigns that require nightly compiler
-instrumentation SHALL use an explicitly named devshell backed by the pinned
-etalon and SHALL NOT change the primary default shell.
-
-#### Scenario: Nightly-only language use enters the SDK
-
-- **WHEN** source builds on the etalon nightly but not Rust `1.85.0` or the
-  primary stable compiler
-- **THEN** the independent stable or MSRV gate fails
-
-#### Scenario: Opt-in feature raises its Rust floor
-
-- **WHEN** an isolated minimal or opt-in feature surface requires a Rust
-  version newer than `1.85.0`
-- **THEN** that surface's independent MSRV gate fails even when its primary
-  stable and etalon gates pass
-
-#### Scenario: Primary stable pin drifts from policy
-
-- **WHEN** Nix selects a stable compiler other than machine-declared Rust
-  `1.98.1`
-- **THEN** policy validation fails even if compilation succeeds
-
-#### Scenario: Etalon pin drifts from policy
-
-- **WHEN** Nix selects a nightly other than the machine-declared etalon
-- **THEN** policy validation fails even if compilation succeeds
-
-#### Scenario: MSRV builder is rewired to another compiler
-
-- **WHEN** the MSRV-named Crane library wraps primary stable or the etalon
-  toolchain instead of the declared MSRV toolchain
-- **THEN** structural validation fails before newer-compiler results can be
-  accepted as MSRV evidence
-
-#### Scenario: Etalon evidence disappears
-
-- **WHEN** full quality gates use primary stable but no manifest-derived
-  workspace gate uses the NeoPRISM etalon provider
-- **THEN** structural validation fails because the integration evidence is
-  incomplete
-
-#### Scenario: Sanitizer fuzzing runs after primary becomes stable
-
-- **WHEN** a deterministic or soak fuzz campaign invokes nightly-only
-  sanitizer instrumentation
-- **THEN** its workflow enters the dedicated etalon-backed fuzz shell while
-  ordinary development and quality gates remain on primary stable
-
 ### Requirement: Evidence tiers do not overstate support
 
 Host-tested systems SHALL run the repository quality gates. Compile-checked
@@ -120,8 +61,10 @@ not-supported surface SHALL not be inferred from a placeholder package.
 The target policy SHALL enumerate the default, minimal and opt-in feature
 surfaces that are required to compile or test. Checks SHALL exercise compatible
 surfaces independently rather than relying only on Cargo feature unification.
-The `crypto-minimal` surface SHALL include both strict Clippy and test gates
-with no default features, plus an independent MSRV build gate.
+The `crypto-minimal` surface SHALL include both strict Clippy and tests with no
+default features. During the temporary active-development phase, exhaustive
+feature permutations SHALL run in weekly/manual `slow` on Rust 1.98.1 rather
+than through an independently lower compiler lane.
 
 #### Scenario: Minimal crypto surface regresses
 
@@ -762,3 +705,64 @@ network, deep-link registration, FFI, packaging, or certification support.
 - **THEN** it states that URI parsing is compile-checked and leaves application
   deep-link registration, QR ingress, HTTP retrieval, and device certification
   downstream
+
+### Requirement: Temporary active-development compiler and CI lanes
+
+Until the earlier of 2026-12-08 or release-candidate preparation, the SDK SHALL
+use exact stable Rust `1.98.1` as its workspace compiler floor, primary
+development compiler and compatibility etalon. All ordinary Crane providers
+and dependency artifacts SHALL resolve to that same compiler rather than
+duplicating primary, lower-MSRV and NeoPRISM-nightly compiler builds. The SDK
+SHALL make no compatibility claim below Rust 1.98.1 during this phase.
+
+Pull requests targeting `develop` and pushes to `develop` SHALL receive one
+Linux job named `fast` that runs the manifest-derived repository/factory,
+formatting, workspace build, strict Clippy and normal workspace test gates.
+The full Linux/macOS Nix matrix SHALL remain available as a weekly and manually
+dispatchable job named `slow`, using the same Rust 1.98.1 compiler for all SDK
+compatibility checks. Slow failures SHALL be visible pre-release debt and SHALL
+block release-candidate preparation, but SHALL NOT be represented as required
+per-PR evidence during this temporary phase.
+
+Sanitizer fuzz campaigns MAY use a separately named, exactly pinned nightly
+tooling shell because libFuzzer instrumentation requires nightly. Those
+workflows SHALL run only weekly or manually, SHALL remain outside ordinary SDK
+compiler providers, and SHALL NOT be represented as Rust 1.98.1 compatibility
+evidence. The policy SHALL carry the 2026-12-08 review date and SHALL prohibit
+release-candidate use until a separate consumer-driven compatibility decision.
+
+#### Scenario: Pull request receives rapid deterministic evidence
+
+- **WHEN** a pull request targets `develop`
+- **THEN** one Ubuntu `fast` status runs factory structure, format, workspace
+  build, strict Clippy and the normal workspace test suite on Rust 1.98.1
+
+#### Scenario: Exhaustive evidence runs outside the pull-request critical path
+
+- **WHEN** the weekly schedule fires or a maintainer manually dispatches it
+- **THEN** `slow` runs the complete flake on Linux and macOS, including target,
+  feature, documentation and supply-chain checks, on Rust 1.98.1
+
+#### Scenario: Lower compiler is presented as supported
+
+- **WHEN** Cargo, Nix or documentation claims compatibility below Rust 1.98.1
+  during the temporary phase
+- **THEN** structural policy validation fails
+
+#### Scenario: Nightly leaks into ordinary SDK validation
+
+- **WHEN** a non-fuzz devshell or ordinary Crane gate selects the pinned
+  sanitizer nightly
+- **THEN** structural policy validation fails even if compilation succeeds
+
+#### Scenario: Release candidate is proposed under temporary evidence
+
+- **WHEN** a release candidate is proposed before a new compatibility decision
+- **THEN** release policy blocks it until slow/sanitizer debt and actual
+  consumer compiler requirements are resolved
+
+#### Scenario: Temporary policy reaches its review date
+
+- **WHEN** the date reaches 2026-12-08 without a superseding decision
+- **THEN** the policy is expired for further release planning and a focused
+  review issue must choose the next compiler and CI matrix

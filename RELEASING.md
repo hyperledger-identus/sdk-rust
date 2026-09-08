@@ -24,10 +24,16 @@ of crate versions tested together and their standards/profile capabilities.
 
 ## Candidate gate
 
+The temporary Rust 1.98.1 fast/slow policy in ADR 0081 is explicitly
+insufficient release-candidate evidence. Before this gate begins, a focused
+compatibility decision must select the consumer-driven compiler matrix, every
+weekly/manual slow and sanitizer failure must be resolved, and required
+repository settings must be verified.
+
 Before tagging, the release manager verifies:
 
 - the component issue and required reviews are complete;
-- fmt, clippy, tests, docs, MSRV/stable and supported targets pass from a clean
+- fmt, clippy, tests, docs, the accepted compiler matrix and supported targets pass from a clean
   clone and locked dependencies;
 - feature/default/minimal combinations and eligible WASM/mobile targets pass;
 - conformance, negative, fuzz/property and resource-limit evidence is current;

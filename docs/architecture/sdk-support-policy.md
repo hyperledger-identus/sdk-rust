@@ -16,7 +16,9 @@ fails; neither source may silently make a stronger claim.
 | `planned` | The target is visible in the roadmap but has no required check. | No compatibility commitment. |
 | `not-supported` | No accepted public surface exists. | A placeholder crate or experiment cannot be presented as support. |
 
-The host-tested systems are `x86_64-linux` and `aarch64-darwin`. Browser WASM,
+The host-tested systems are `x86_64-linux` and `aarch64-darwin`. Linux fast
+evidence runs for every pull request and `develop` push; the complete Linux and
+macOS evidence runs weekly and on manual dispatch. Browser WASM,
 Android ARM64 and iOS ARM64 are compile-checked for `identus-core`,
 `identus-crypto`, `identus-did`, `identus-jose` and
 `identus-oid4vci` and `identus-adapters-entropy`, with the entropy adapter's `getrandom` backend
@@ -25,33 +27,26 @@ promise.
 
 ## Rust versions
 
-Edition, consumer floor, primary validation compiler and integration etalon
-are deliberately separate:
+Rust `1.98.1` is temporarily the single workspace floor, reproducible
+development compiler, CI compiler and compatibility etalon. The repository
+makes no compatibility claim below it. Ordinary primary, MSRV-labelled and
+etalon-labelled Nix providers resolve to the same exact stable compiler;
+existing gate names retain feature/history meaning but do not represent three
+compiler builds.
 
-- Rust `1.85.0` is the MSRV; every declared feature surface is compiled by an
-  independent stable-toolchain gate, and structural validation proves the MSRV
-  Crane library wraps that stable toolchain.
-- Stable Rust `1.98.1` is the reproducible development and primary CI
-  toolchain. Full quality and compile-target gates use the corrected stable
-  point release.
-- Nightly `2026-03-18` remains an independent workspace build against the
-  immutable NeoPRISM etalon revision recorded in ADR 0002.
+Nightly `2026-03-18` is retained only as the explicitly named sanitizer fuzz
+toolchain. It is not a supported SDK compiler or compatibility etalon.
 
-Passing primary stable or nightly does not prove MSRV compatibility. Changing
-any value requires a reviewed policy change and matching Cargo/Nix evidence.
-
-[ADR 0064](../adr/0064-separate-primary-rust-from-evidence-driven-msrv.md)
-supersedes ADR 0062's release-distance formula. Rust 1.89 is the next candidate,
-not a promise; Rust 1.85 remains effective until a focused activation issue
-proves dependency, supported-target and downstream value. ADR 0063 requires an
-exact activation decision with consumer impact before that target can become
-effective; research or a periodic review alone is insufficient.
+[ADR 0081](../adr/0081-use-temporary-rust-198-fast-slow-ci.md) temporarily
+supersedes ADR 0064 through 2026-12-08 or release-candidate preparation. A
+release candidate requires a new consumer-driven compiler-floor and evidence
+decision; the temporary policy cannot authorize publication.
 
 ## Feature surfaces
 
 Workspace defaults, crypto without default features, KMP compatibility and the
 entropy adapter empty/deterministic/system-random combinations are isolated
-build or test surfaces on both the MSRV and primary stable toolchains. Minimal crypto
+build or test surfaces on stable Rust 1.98.1. Minimal crypto
 has independent Clippy, test and MSRV build evidence, so optional integration
 targets cannot rely on unrelated workspace feature unification. The structural
 validator compares each gate's manifest operation, toolchain, effective package
@@ -60,12 +55,12 @@ default-feature mode and complete feature set with the machine policy.
 `all_features` supplements these checks; it cannot replace them because Cargo
 feature unification can hide incorrect gates. Duplicate host, target, feature
 or gate keys are rejected as ambiguous policy.
-The etalon supplies a separate locked all-feature workspace build rather than
-duplicating the primary quality matrix.
+Exhaustive feature permutations run in weekly/manual slow evidence instead of
+blocking every pull request.
 
 Sanitizer-backed fuzzing is the bounded operational exception: libFuzzer uses
 nightly-only compiler instrumentation, so fuzz workflows explicitly enter the
-named `fuzz` devshell backed by the pinned etalon toolchain. The default
+named `fuzz` devshell backed by the pinned fuzz toolchain. The default
 devshell and all ordinary quality gates remain on primary stable, and fuzz
 success is not MSRV evidence.
 
@@ -88,13 +83,21 @@ cross-compilation does not change this state. A future FFI issue must specify
 value and opaque-handle boundaries, secret handling, ownership, memory,
 concurrency, errors, target runtime tests and compatibility before promotion.
 
-## Binary size and build time
+## CI cadence, binary size and build time
+
+The machine policy defines `fast` as the single Linux Rust/factory integration
+status on pull requests and `develop`. It runs factory structure, Nix/TOML/text
+lint, formatting, workspace build, strict Clippy and normal workspace tests.
+The `slow` workflow runs the complete flake on Linux and macOS weekly and on
+manual dispatch. A slow failure blocks release-candidate preparation but is
+not a required active-development merge signal.
 
 Both dimensions are `measurement-only`. CI duration, validator p50/p95 and
 intermediate Rust artifacts are diagnostics, not budgets. The validator
 benchmark uses at least 20 in-process-warm and fresh-process samples on Linux
-and macOS; it compares PR heads with their base only to catch pathological
-tooling regressions. Quantitative product gates require a future candidate with
+and macOS. The pre-change 20-run GitHub sample is recorded in ADR 0081; the
+post-change distribution requires 20 successful fast PR runs. Quantitative
+product gates require a future candidate with
 reproducible release artifacts, pinned runners, cold/warm build protocols,
 thresholds, variance handling and regression policy.
 

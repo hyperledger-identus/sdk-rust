@@ -53,7 +53,7 @@ fn document(did: &str) -> DidDocument {
                 "id":"{did}#key-2",
                 "type":"X25519KeyAgreementKey2020",
                 "controller":"{did}",
-                "publicKeyMultibase":"z6LSexample"
+                "publicKeyMultibase":"z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu"
             }}],
             "service":[
                 {{

@@ -47,6 +47,7 @@ sha2          = "0.10"
 hmac          = "0.12"
 pbkdf2        = { version = "0.12", default-features = false, features = [ "simple" ] }
 base64        = "0.22"
+bs58          = { version = "=0.5.1", default-features = false, features = [ "alloc" ] }
 hex           = "0.4"
 zeroize       = { version = "1.9", default-features = false, features = [ "alloc", "derive" ] }
 

@@ -13,6 +13,7 @@ mod did;
 mod document;
 pub mod error;
 pub mod method;
+mod multibase;
 pub mod multihash;
 mod query;
 mod registration;

@@ -722,7 +722,7 @@ fn dereferencing_preserves_open_content_and_known_projections() {
         "id": "did:example:123#key-1",
         "type": "Multikey",
         "controller": "did:example:123",
-        "publicKeyMultibase": "z6Mexample"
+        "publicKeyMultibase": "z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu"
     }))
     .unwrap();
     assert_eq!(

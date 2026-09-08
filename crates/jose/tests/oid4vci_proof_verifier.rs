@@ -573,7 +573,10 @@ fn did_provider_cannot_substitute_method_or_unsupported_key_material() {
 
     let multibase = StaticDereferencer(dereferenced_method(
         &format!("{did}#auth-1"),
-        json!({ "publicKeyMultibase": "z6Mexample" }),
+        json!({
+            "publicKeyMultibase":
+                "z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu"
+        }),
     ));
     let verifier = Oid4vciProofJwtVerifier::new(
         Oid4vciProofJwtLimits::default(),

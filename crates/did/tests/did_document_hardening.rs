@@ -233,7 +233,7 @@ fn generated_method(did: &Did, seed: usize) -> VerificationMethod {
         did.clone(),
         BTreeMap::from([(
             "publicKeyMultibase".to_owned(),
-            json!(format!("z6Mk{seed:04}")),
+            json!("z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu"),
         )]),
     )
     .unwrap()

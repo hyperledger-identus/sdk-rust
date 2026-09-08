@@ -5,7 +5,9 @@
 > current consumer and is conditional rather than adopted; ADR 0083 records
 > that `form_urlencoded 1.2.2` is too permissive for the SDK's strict parser
 > and has insufficient serializer-only payoff; ADR 0084 records the bounded
-> `fluent-uri 0.4.1` adoption and its transitive license/unsafe exception.
+> `fluent-uri 0.4.1` adoption and its transitive license/unsafe exception;
+> ADR 0085 rejects the broad `multibase 0.9.3` cone for the current consumer
+> and composes exact `bs58 0.5.1` with the existing Base64 engine.
 > Other decisions remain active.
 
 - **Status:** Accepted
@@ -57,10 +59,16 @@ The approved production candidates are:
 - `bip39 2.2.2` behind `MnemonicHelper` ([#152](https://github.com/hyperledger-identus/sdk-rust/issues/152));
 - `fluent-uri 0.4.1` behind exact-preserving Identus URI types under
   [ADR 0084](0084-adopt-fluent-uri-as-private-grammar-engine.md) and
-  [#157](https://github.com/hyperledger-identus/sdk-rust/issues/157).
+  [#157](https://github.com/hyperledger-identus/sdk-rust/issues/157);
+- `bs58 0.5.1` plus the existing `base64 0.22` engine behind the private
+  two-prefix DID carrier policy in
+  [ADR 0085](0085-compose-narrow-multibase-codecs.md) and
+  [#156](https://github.com/hyperledger-identus/sdk-rust/issues/156).
 
-`multibase 0.9.3` is approved only after the effective MSRV is at least Rust
-1.88 or upstream publishes a genuinely compatible transitive resolution.
+`multibase 0.9.3` is not adopted for the current DID carrier boundary. Rust
+1.98.1 removes its historical compiler blocker, but the candidate still adds
+nine package names for unused draft/experimental encodings; ADR 0085 records
+the narrower composition and reconsideration trigger.
 `multihash 0.19.5` is a technically suitable conditional candidate, but ADR
 0082 and [#155](https://github.com/hyperledger-identus/sdk-rust/issues/155)
 prohibit production adoption until a named DID-method consumer proves that it
@@ -69,9 +77,8 @@ uses multihash and defines the method-specific policy and migration boundary.
 ADR 0083 and [#158](https://github.com/hyperledger-identus/sdk-rust/issues/158)
 retain the bounded local codec until strict non-lossy parser parity or measured
 multi-consumer serializer payoff exists.
-`multibase`, `did_url_parser`, `oauth2`, `isomdl`, Askar and UniFFI require the
-bounded work in [#156](https://github.com/hyperledger-identus/sdk-rust/issues/156),
-[#159](https://github.com/hyperledger-identus/sdk-rust/issues/159),
+`did_url_parser`, `oauth2`, `isomdl`, Askar and UniFFI require the
+bounded work in [#159](https://github.com/hyperledger-identus/sdk-rust/issues/159),
 [#160](https://github.com/hyperledger-identus/sdk-rust/issues/160),
 [#161](https://github.com/hyperledger-identus/sdk-rust/issues/161),
 [#162](https://github.com/hyperledger-identus/sdk-rust/issues/162) and

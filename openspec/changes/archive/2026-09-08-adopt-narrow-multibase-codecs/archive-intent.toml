@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "did-core"
+requirement      = "Open public verification method boundary"
+canonical_sha256 = "fa64f5e134e253294511baddec7f83aa2635f28dab1d07a7dc64a73051189348"
+reason           = "Issue #156 deliberately tightens recognized publicKeyMultibase material from a 16 KiB printable string to a 4 KiB canonical non-empty z/base58-btc or u/base64url-no-pad value using private narrow codecs, while preserving the open property model, exact accepted wire spelling, public accessor, ambiguity/private-key rejection and explicit exclusion of key semantics."

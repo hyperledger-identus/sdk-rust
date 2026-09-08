@@ -2,8 +2,9 @@
 
 > **Focused dispositions superseded:** ADR 0080 records that `bip32 0.5.3` is
 > not suitable for `HDKey`; ADR 0082 records that `multihash 0.19.5` has no
-> current consumer and is conditional rather than adopted. Other decisions in
-> this ADR remain active.
+> current consumer and is conditional rather than adopted; ADR 0083 records
+> that `form_urlencoded 1.2.2` is too permissive for the SDK's strict parser
+> and has insufficient serializer-only payoff. Other decisions remain active.
 
 - **Status:** Accepted
 - **Date:** 2026-09-07
@@ -53,8 +54,7 @@ The approved production candidates are:
 
 - `bip39 2.2.2` behind `MnemonicHelper` ([#152](https://github.com/hyperledger-identus/sdk-rust/issues/152));
 - `bip32 0.5.3` behind the hardened-only `HDKey` facade ([#153](https://github.com/hyperledger-identus/sdk-rust/issues/153));
-- `fluent-uri 0.4.1` behind exact-preserving Identus URI/URL types ([#157](https://github.com/hyperledger-identus/sdk-rust/issues/157)); and
-- `form_urlencoded 1.2.2` behind OID4VCI request/response types ([#158](https://github.com/hyperledger-identus/sdk-rust/issues/158)).
+- `fluent-uri 0.4.1` behind exact-preserving Identus URI/URL types ([#157](https://github.com/hyperledger-identus/sdk-rust/issues/157)).
 
 `multibase 0.9.3` is approved only after the effective MSRV is at least Rust
 1.88 or upstream publishes a genuinely compatible transitive resolution.
@@ -62,6 +62,10 @@ The approved production candidates are:
 0082 and [#155](https://github.com/hyperledger-identus/sdk-rust/issues/155)
 prohibit production adoption until a named DID-method consumer proves that it
 uses multihash and defines the method-specific policy and migration boundary.
+`form_urlencoded 1.2.2` is not adopted for the current strict OID4VCI boundary:
+ADR 0083 and [#158](https://github.com/hyperledger-identus/sdk-rust/issues/158)
+retain the bounded local codec until strict non-lossy parser parity or measured
+multi-consumer serializer payoff exists.
 `multibase`, `did_url_parser`, `oauth2`, `isomdl`, Askar and UniFFI require the
 bounded work in [#156](https://github.com/hyperledger-identus/sdk-rust/issues/156),
 [#159](https://github.com/hyperledger-identus/sdk-rust/issues/159),

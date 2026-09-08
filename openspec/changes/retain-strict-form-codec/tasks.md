@@ -6,9 +6,9 @@
 
 ## 2. Decision correction
 
-- [ ] 2.1 Add ADR 0083 and supersede ADR 0061's form-url-encoded adoption entry.
-- [ ] 2.2 Correct the dependency report and not-adopted ledger with exact artifact evidence and triggers.
-- [ ] 2.3 Confirm Cargo, lockfile, public API, wire behavior and current strict codec remain unchanged.
+- [x] 2.1 Add ADR 0083 and supersede ADR 0061's form-url-encoded adoption entry.
+- [x] 2.2 Correct the dependency report and not-adopted ledger with exact artifact evidence and triggers.
+- [x] 2.3 Confirm Cargo, lockfile, public API, wire behavior and current strict codec remain unchanged.
 
 ## 3. Verification and delivery
 

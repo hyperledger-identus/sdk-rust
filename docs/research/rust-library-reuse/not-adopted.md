@@ -36,6 +36,7 @@ dependencies until their named prerequisite is satisfied:
 
 | Candidate | Condition |
 | --- | --- |
+| `multihash 0.19.5` | [ADR 0082](../../adr/0082-defer-multihash-until-a-method-consumes-it.md) and [#155](https://github.com/hyperledger-identus/sdk-rust/issues/155): a named DID-method consumer pins a normative multihash profile and defines code/digest allow-lists, resource limits, canonical representation and migration behavior. Technical fit alone is insufficient. |
 | `multibase 0.9.3` | [#156](https://github.com/hyperledger-identus/sdk-rust/issues/156): the SDK MSRV is at least Rust 1.88, or upstream publishes accurate MSRV-compatible transitive resolution. No indefinite transitive pin. |
 | `did_url_parser 0.3.0` | [#159](https://github.com/hyperledger-identus/sdk-rust/issues/159): a differential DID/DID-URL corpus proves accepted/rejected syntax, exact serialization, error mapping and target parity before ADR 0008 is superseded. |
 | `isomdl 0.2.0` | [#161](https://github.com/hyperledger-identus/sdk-rust/issues/161): a spike isolates holder/verifier core from CLI, RNG, X.509 and transport choices and measures all target/cone costs. |

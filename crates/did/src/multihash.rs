@@ -1,22 +1,24 @@
-//! `Multihash` — a method-agnostic multihash bytes domain primitive.
+//! `Multihash` — a historical opaque-byte placeholder.
 //!
 //! Dogfoods the bytes category of `#[derive(Newtype)]`: `Multihash(Vec<u8>)`
 //! gets `as_bytes`, `into_bytes`, `AsRef<[u8]>`, `From<Vec<u8>>`/`From<&[u8]>`,
 //! a hex `Display`, and transparent serde (emitting/accepting a hex JSON
-//! string, matching `Display`). This is the canonical method-agnostic bytes
-//! identifier underlying `did:key` (and the wider multihash/multibase
-//! ecosystem); it is not PRISM-specific. No `parse`/`FromStr` is generated in
-//! this adoption (a validated multihash code/length/digest structure check is a
-//! follow-on, not a v1 dogfood requirement).
+//! string, matching `Display`). This existing placeholder owns opaque bytes
+//! and does not currently validate multihash code/length/digest structure or
+//! promise a DID-method wire format. In particular, `did:key` uses
+//! multicodec-prefixed public-key bytes rather than multihash. ADR 0082 defers
+//! structural semantics until a named method consumer defines its policy and
+//! migration boundary.
 
 use identus_derive::Newtype;
 
-/// A multihash as raw bytes.
+/// An opaque byte value retained under the historical `Multihash` API name.
 ///
 /// Construct infallibly with [`Multihash::new`] or [`Multihash::from`]; access
 /// the bytes with [`Multihash::as_bytes`] / [`AsRef<[u8]>`] / take them with
 /// [`Multihash::into_bytes`]. `Display` and serde render the bytes as
-/// lowercase hex.
+/// lowercase hex. This representation is existing SDK behavior, not a
+/// standards-defined multihash or DID-method wire-format guarantee.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Newtype)]
 #[newtype(display = "hex", serde)]
 pub struct Multihash(Vec<u8>);
@@ -25,9 +27,7 @@ pub struct Multihash(Vec<u8>);
 mod tests {
     use super::*;
 
-    // A did:key-style multihash for the identity Ed25519 public key
-    // `did:key:z6Mk...`: the multihash here is the raw bytes form (varint code
-    // + varint length + digest), exercised method-agnostically.
+    // Opaque placeholder bytes. No structural multihash meaning is asserted.
     const SAMPLE: &[u8] = &[0x00, 0x20];
 
     #[test]

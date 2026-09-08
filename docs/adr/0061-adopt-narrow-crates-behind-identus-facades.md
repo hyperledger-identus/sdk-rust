@@ -1,8 +1,9 @@
 # ADR 0061: adopt narrow crates behind Identus facades
 
-> **BIP-32 disposition superseded:** ADR 0080 records the issue-level finding
-> that `bip32 0.5.3` is not suitable for `HDKey`; the SDK instead reuses its
-> existing `k256` scalar primitive. Other decisions in this ADR remain active.
+> **Focused dispositions superseded:** ADR 0080 records that `bip32 0.5.3` is
+> not suitable for `HDKey`; ADR 0082 records that `multihash 0.19.5` has no
+> current consumer and is conditional rather than adopted. Other decisions in
+> this ADR remain active.
 
 - **Status:** Accepted
 - **Date:** 2026-09-07
@@ -52,12 +53,15 @@ The approved production candidates are:
 
 - `bip39 2.2.2` behind `MnemonicHelper` ([#152](https://github.com/hyperledger-identus/sdk-rust/issues/152));
 - `bip32 0.5.3` behind the hardened-only `HDKey` facade ([#153](https://github.com/hyperledger-identus/sdk-rust/issues/153));
-- `multihash 0.19.5` behind the DID multihash value ([#155](https://github.com/hyperledger-identus/sdk-rust/issues/155));
 - `fluent-uri 0.4.1` behind exact-preserving Identus URI/URL types ([#157](https://github.com/hyperledger-identus/sdk-rust/issues/157)); and
 - `form_urlencoded 1.2.2` behind OID4VCI request/response types ([#158](https://github.com/hyperledger-identus/sdk-rust/issues/158)).
 
 `multibase 0.9.3` is approved only after the effective MSRV is at least Rust
 1.88 or upstream publishes a genuinely compatible transitive resolution.
+`multihash 0.19.5` is a technically suitable conditional candidate, but ADR
+0082 and [#155](https://github.com/hyperledger-identus/sdk-rust/issues/155)
+prohibit production adoption until a named DID-method consumer proves that it
+uses multihash and defines the method-specific policy and migration boundary.
 `multibase`, `did_url_parser`, `oauth2`, `isomdl`, Askar and UniFFI require the
 bounded work in [#156](https://github.com/hyperledger-identus/sdk-rust/issues/156),
 [#159](https://github.com/hyperledger-identus/sdk-rust/issues/159),

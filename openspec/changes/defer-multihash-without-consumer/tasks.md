@@ -6,9 +6,9 @@
 
 ## 2. Decision correction
 
-- [ ] 2.1 Add ADR 0082 and supersede ADR 0061's multihash adoption entry.
-- [ ] 2.2 Reclassify multihash in the research report and conditional-decision ledger with corrected provenance.
-- [ ] 2.3 Replace misleading did:key source documentation with neutral placeholder semantics without changing behavior.
+- [x] 2.1 Add ADR 0082 and supersede ADR 0061's multihash adoption entry.
+- [x] 2.2 Reclassify multihash in the research report and conditional-decision ledger with corrected provenance.
+- [x] 2.3 Replace misleading did:key source documentation with neutral placeholder semantics without changing behavior.
 
 ## 3. Verification and delivery
 

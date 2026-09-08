@@ -20,6 +20,13 @@ use identus_derive::Newtype;
 const CAPABILITY: CapabilityId = CapabilityId::new("core");
 const URL_ERROR_CODE: ErrorCode = ErrorCode::new("core.invalid_url");
 
+/// Maximum UTF-8 byte length accepted by [`Url`].
+///
+/// This bounds accepted/retained values and URL syntax-validation work. It
+/// does not prevent a caller, transport, decompressor, or deserializer from
+/// allocating the source string before validation.
+pub const MAX_URL_BYTES: usize = 8_192;
+
 /// A validated URL.
 ///
 /// Construct fallibly with [`Url::try_new`] / [`Url::parse`] /
@@ -38,6 +45,8 @@ pub struct Url(String);
 /// redaction-safe [`IdentusError`], whose `Display` carries no runtime detail.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UrlError {
+    /// The input exceeded [`MAX_URL_BYTES`] UTF-8 bytes.
+    TooLong,
     /// The input had no `://` separator or an empty scheme.
     MissingScheme,
     /// The scheme contained characters outside the RFC 3986 scheme grammar.
@@ -54,6 +63,7 @@ impl UrlError {
     /// structured reason above never leaks through `IdentusError`'s `Display`.
     pub fn to_identus_error(&self) -> IdentusError {
         let public_message = match self {
+            UrlError::TooLong => "URL exceeds the SDK byte limit",
             UrlError::MissingScheme => "URL is missing a scheme",
             UrlError::InvalidScheme => "URL has an invalid scheme",
             UrlError::MissingAuthority => "URL is missing an authority",
@@ -70,6 +80,7 @@ impl UrlError {
 impl fmt::Display for UrlError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
+            UrlError::TooLong => "URL exceeds the SDK byte limit",
             UrlError::MissingScheme => "missing scheme",
             UrlError::InvalidScheme => "invalid scheme",
             UrlError::MissingAuthority => "missing authority",
@@ -82,12 +93,18 @@ impl std::error::Error for UrlError {}
 
 /// Hand-rolled URL validation (no external dependency).
 ///
+/// Rejects input above [`MAX_URL_BYTES`] before syntax traversal, then accepts
+/// the bounded forms described below.
+///
 /// Accepts inputs of the form `scheme://authority[/path][?query][#fragment]`
 /// where `scheme` matches the RFC 3986 scheme grammar
 /// (`ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )`) and `authority` is non-empty.
 /// Invoked by the derive as `validate_url(&inner)` where `inner: String`;
 /// `&String` deref-coerces to `&str`.
 fn validate_url(s: &str) -> Result<(), UrlError> {
+    if s.len() > MAX_URL_BYTES {
+        return Err(UrlError::TooLong);
+    }
     let Some((scheme, rest)) = s.split_once("://") else {
         return Err(UrlError::MissingScheme);
     };
@@ -112,6 +129,20 @@ fn validate_url(s: &str) -> Result<(), UrlError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const URL_PREFIX: &str = "https://example.com/";
+
+    fn ascii_url_with_len(len: usize) -> String {
+        assert!(len >= URL_PREFIX.len());
+        format!("{URL_PREFIX}{}", "a".repeat(len - URL_PREFIX.len()))
+    }
+
+    fn two_byte_url_with_len(len: usize) -> String {
+        assert!(len >= URL_PREFIX.len());
+        let suffix_len = len - URL_PREFIX.len();
+        assert_eq!(suffix_len % 2, 0);
+        format!("{URL_PREFIX}{}", "é".repeat(suffix_len / 2))
+    }
 
     #[test]
     fn url_new_unchecked_bypasses_validation() {
@@ -167,6 +198,62 @@ mod tests {
     }
 
     #[test]
+    fn url_accepts_every_validated_path_at_exact_byte_limit() {
+        let input = ascii_url_with_len(MAX_URL_BYTES);
+        assert_eq!(input.len(), MAX_URL_BYTES);
+
+        assert_eq!(Url::parse(&input).unwrap().as_str(), input);
+        assert_eq!(input.parse::<Url>().unwrap().as_str(), input);
+        assert_eq!(Url::try_new(input.clone()).unwrap().as_str(), input);
+        assert_eq!(Url::try_from(input.clone()).unwrap().as_str(), input);
+
+        let json = serde_json::to_string(&input).unwrap();
+        assert_eq!(serde_json::from_str::<Url>(&json).unwrap().as_str(), input);
+    }
+
+    #[test]
+    fn url_rejects_every_validated_path_above_byte_limit() {
+        let input = ascii_url_with_len(MAX_URL_BYTES + 1);
+        assert_eq!(input.len(), MAX_URL_BYTES + 1);
+
+        assert_eq!(Url::parse(&input), Err(UrlError::TooLong));
+        assert_eq!(input.parse::<Url>(), Err(UrlError::TooLong));
+        assert_eq!(Url::try_new(input.clone()), Err(UrlError::TooLong));
+        assert_eq!(Url::try_from(input.clone()), Err(UrlError::TooLong));
+
+        let json = serde_json::to_string(&input).unwrap();
+        let error = serde_json::from_str::<Url>(&json).unwrap_err();
+        assert!(error.to_string().contains("URL exceeds the SDK byte limit"));
+
+        let bridged = UrlError::TooLong.to_identus_error();
+        assert_eq!(
+            bridged.to_string(),
+            "core.invalid_url: URL exceeds the SDK byte limit"
+        );
+        assert!(!bridged.to_string().contains("8193"));
+        assert!(!bridged.to_string().contains("example.com"));
+    }
+
+    #[test]
+    fn url_length_limit_precedes_syntax_validation() {
+        let malformed = "x".repeat(MAX_URL_BYTES + 1);
+        assert_eq!(Url::parse(&malformed), Err(UrlError::TooLong));
+    }
+
+    #[test]
+    fn url_limit_counts_utf8_bytes_not_characters() {
+        let at_limit = two_byte_url_with_len(MAX_URL_BYTES);
+        assert_eq!(at_limit.len(), MAX_URL_BYTES);
+        assert!(at_limit.chars().count() < MAX_URL_BYTES);
+        assert!(Url::parse(&at_limit).is_ok());
+
+        let over_limit = two_byte_url_with_len(MAX_URL_BYTES + 2);
+        assert_eq!(over_limit.len(), MAX_URL_BYTES + 2);
+        assert!(over_limit.chars().count() < MAX_URL_BYTES);
+        assert_eq!(Url::parse(&over_limit), Err(UrlError::TooLong));
+    }
+
+    #[test]
     fn url_serde_roundtrips_as_plain_string() {
         let u = Url::try_new("https://example.com".to_owned()).unwrap();
         let json = serde_json::to_string(&u).unwrap();
@@ -186,6 +273,7 @@ mod tests {
     #[test]
     fn url_error_bridges_to_redaction_safe_identus_error() {
         for err in [
+            UrlError::TooLong,
             UrlError::MissingScheme,
             UrlError::InvalidScheme,
             UrlError::MissingAuthority,

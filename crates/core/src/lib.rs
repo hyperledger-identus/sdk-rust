@@ -12,7 +12,7 @@ pub use time::{
     ClockError, DurationMillis, MonotonicClock, MonotonicTimestampMillis, UnixTimestampMillis,
     WallClock,
 };
-pub use url::{Url, UrlError};
+pub use url::{MAX_URL_BYTES, Url, UrlError};
 
 use std::fmt;
 

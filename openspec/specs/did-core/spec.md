@@ -78,6 +78,12 @@ method-specific identifier, DID, path, query and fragment reads return borrowed
 slices without allocation. `TryFrom<String>` SHALL reuse the supplied string
 allocation; converting `Did` into the equivalent `DidUrl` SHALL move it.
 
+An external grammar engine SHALL replace this implementation only when pinned,
+attributable differential evidence proves the same accepted language, exact
+serialization, pre-allocation limits, immutable facade, allocation reuse,
+borrowed views, redacted errors and supported-target behavior without adding
+unused protocol semantics or unresolved unsafe reach.
+
 #### Scenario: oversized input is rejected before semantic parsing
 
 - **WHEN** a bare DID or DID URL exceeds its public SDK byte limit
@@ -88,6 +94,14 @@ allocation; converting `Did` into the equivalent `DidUrl` SHALL move it.
 
 - **WHEN** any component accessor is called repeatedly on a valid value
 - **THEN** it SHALL return a borrowed slice from the one owned representation
+
+#### Scenario: candidate mismatch retains the local boundary
+
+- **WHEN** a proposed parser differs on grammar, exact storage, resource work,
+  facade invariants, allocation reuse, errors, targets, dependency cohesion or
+  safety reach
+- **THEN** the local parser SHALL remain and the candidate SHALL be recorded
+  with a bounded reconsideration trigger rather than wrapped into production
 
 ### Requirement: Equivalent native and wire validation
 

@@ -14,5 +14,7 @@
 ## 3. Verification and delivery
 
 - [x] 3.1 Pass research and constraint readiness with no declared blocker.
-- [ ] 3.2 Perform a distinct exact-diff architecture/security review and record full factory/Nix evidence.
-- [ ] 3.3 Safely archive the change, produce the immutable receipt and open a signed/DCO issue-linked PR to `develop`.
+- [x] 3.2 Perform a distinct exact-diff architecture/security review and record full factory/Nix evidence.
+- [x] 3.3 Prepare canonical synchronization, safe archive and the immutable
+  receipt for a signed/DCO issue-linked PR to `develop`; hosted CI, merge and
+  issue/program receipts remain GitHub evidence.

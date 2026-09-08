@@ -12,6 +12,7 @@ use serde_json::Value;
 use crate::{
     Did, Error, Uri,
     error::DocumentError,
+    multibase::is_canonical_public_key_carrier,
     wire_json::{JsonWireError, JsonWireLimits, validate_unique_object_names},
 };
 
@@ -36,7 +37,7 @@ pub(crate) const MAX_EXTENSION_PROPERTIES: usize = 64;
 pub(crate) const MAX_PROPERTY_NAME_BYTES: usize = 256;
 pub(crate) const MAX_EXTENSION_STRING_BYTES: usize = 64 * 1_024;
 const MAX_OPEN_TYPE_BYTES: usize = 256;
-const MAX_MULTIBASE_BYTES: usize = 16 * 1_024;
+const MAX_PUBLIC_KEY_MULTIBASE_BYTES: usize = 4 * 1_024;
 
 const DOCUMENT_RESERVED: &[&str] = &[
     "@context",
@@ -297,6 +298,10 @@ impl VerificationMethod {
     }
 
     /// Borrow the recognized multibase public key string, when present.
+    ///
+    /// Construction accepts canonical `z` base58-btc and `u`
+    /// base64url-no-pad carriers. This accessor does not imply that the
+    /// decoded bytes contain a supported multicodec or cryptographic key.
     #[must_use]
     pub fn public_key_multibase(&self) -> Option<&str> {
         self.properties
@@ -324,8 +329,8 @@ impl VerificationMethod {
                 return Err(invalid(DocumentError::InvalidPropertyShape));
             };
             if multibase.is_empty()
-                || multibase.len() > MAX_MULTIBASE_BYTES
-                || !multibase.bytes().all(|byte| byte.is_ascii_graphic())
+                || multibase.len() > MAX_PUBLIC_KEY_MULTIBASE_BYTES
+                || !is_canonical_public_key_carrier(multibase)
             {
                 return Err(invalid(DocumentError::InvalidString));
             }

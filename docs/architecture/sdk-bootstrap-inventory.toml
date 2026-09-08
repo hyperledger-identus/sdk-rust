@@ -94,7 +94,7 @@ layer          = "domain-primitives"
 classification = "implemented"
 public_api     = "experimental"
 owner_issue    = "#5"
-summary        = "Bounded generic DID values, documents, resolution, dereferencing, registration and caching with a crypto-free runtime cone."
+summary        = "Bounded generic DID values, documents with narrow canonical public-key carriers, resolution, dereferencing, registration and caching without key or chain semantics."
 
 [[packages]]
 name           = "identus-trust"

@@ -290,6 +290,86 @@ fn verification_methods_reject_private_or_multiple_known_material() {
 }
 
 #[test]
+fn verification_methods_validate_canonical_multibase_carriers() {
+    for value in ["z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu", "uAQID"] {
+        let method = VerificationMethod::new(
+            Uri::parse("did:example:123#key").unwrap(),
+            "Multikey".to_owned(),
+            Did::parse("did:example:123").unwrap(),
+            BTreeMap::from([("publicKeyMultibase".to_owned(), json!(value))]),
+        )
+        .unwrap();
+        assert_eq!(method.public_key_multibase(), Some(value));
+        assert_eq!(
+            serde_json::to_value(&method).unwrap()["publicKeyMultibase"],
+            value
+        );
+    }
+
+    for value in [
+        "",
+        "z",
+        "u",
+        "z0",
+        "uAQ==",
+        "uAR",
+        "f010203",
+        "R%69 VD92EX0",
+        "🚀🚀",
+    ] {
+        assert_eq!(
+            VerificationMethod::new(
+                Uri::parse("did:example:123#key").unwrap(),
+                "Multikey".to_owned(),
+                Did::parse("did:example:123").unwrap(),
+                BTreeMap::from([("publicKeyMultibase".to_owned(), json!(value))]),
+            ),
+            Err(Error::InvalidDocument(DocumentError::InvalidString)),
+            "{value}"
+        );
+
+        let wire = json!({
+            "id": "did:example:123",
+            "verificationMethod": [{
+                "id": "did:example:123#key",
+                "type": "Multikey",
+                "controller": "did:example:123",
+                "publicKeyMultibase": value
+            }]
+        });
+        assert!(
+            matches!(
+                DidDocument::from_json_str(&wire.to_string()),
+                Err(Error::InvalidDocument(_))
+            ),
+            "{value}"
+        );
+    }
+
+    let at_limit = format!("z{}", "1".repeat(4 * 1_024 - 1));
+    assert!(
+        VerificationMethod::new(
+            Uri::parse("did:example:123#key").unwrap(),
+            "Multikey".to_owned(),
+            Did::parse("did:example:123").unwrap(),
+            BTreeMap::from([("publicKeyMultibase".to_owned(), json!(at_limit))]),
+        )
+        .is_ok()
+    );
+
+    let oversized = format!("z{}", "1".repeat(4 * 1_024));
+    assert_eq!(
+        VerificationMethod::new(
+            Uri::parse("did:example:123#key").unwrap(),
+            "Multikey".to_owned(),
+            Did::parse("did:example:123").unwrap(),
+            BTreeMap::from([("publicKeyMultibase".to_owned(), json!(oversized))]),
+        ),
+        Err(Error::InvalidDocument(DocumentError::InvalidString))
+    );
+}
+
+#[test]
 fn malformed_wire_cardinalities_and_service_shapes_are_rejected() {
     for document in [
         json!({"id": "did:example:123", "controller": []}),

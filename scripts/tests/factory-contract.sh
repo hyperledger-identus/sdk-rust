@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+export PYTHONDONTWRITEBYTECODE=1
 
 if repository_root=$(git rev-parse --show-toplevel 2>/dev/null); then
   :
@@ -241,6 +242,7 @@ if "$checker" "$fixture_root" >/dev/null 2>&1; then
   printf 'factory-contract test: nested tracked local state was accepted\n' >&2
   exit 1
 fi
+git -C "$fixture_root" rm -q -f nested/.env
 
 mkdir -p "$fixture_root/openspec/specs/example-capability" "$fixture_root/fake-bin"
 cat >"$fixture_root/openspec/specs/example-capability/spec.md" <<'EOF'
@@ -275,16 +277,17 @@ The system SHALL preserve only one behavior.
 - **THEN** the first result remains
 EOF
 printf '%s\n' '- [x] 1.1 Example task' >"$change_root/tasks.md"
-cat >"$fixture_root/fake-bin/openspec" <<'EOF'
-#!/usr/bin/env bash
+printf '#!%s\n' "$BASH" >"$fixture_root/fake-bin/openspec"
+cat >>"$fixture_root/fake-bin/openspec" <<'EOF'
 printf '%s\n' "$*" >>"$OPENSPEC_CALL_LOG"
 EOF
 chmod +x "$fixture_root/fake-bin/openspec"
 : >"$fixture_root/openspec-calls.log"
 canonical_before=$(git -C "$fixture_root" hash-object openspec/specs/example-capability/spec.md)
-if PATH="$fixture_root/fake-bin:$PATH" \
+if (cd "$fixture_root" && \
+  PATH="$fixture_root/fake-bin:$PATH" \
   OPENSPEC_CALL_LOG="$fixture_root/openspec-calls.log" \
-  "$fixture_root/scripts/factory" archive example-change >/dev/null 2>&1; then
+  ./scripts/factory archive example-change >/dev/null 2>&1); then
   printf 'factory-contract test: lossy archive wrapper request was accepted\n' >&2
   exit 1
 fi
@@ -295,6 +298,125 @@ if [[ "$canonical_before" != "$canonical_after" || ! -d "$change_root" ]]; then
 fi
 if grep -Eq '^archive( |$)' "$fixture_root/openspec-calls.log"; then
   printf 'factory-contract test: OpenSpec archive ran before preservation failure\n' >&2
+  exit 1
+fi
+
+cat >"$change_root/specs/example-capability/spec.md" <<'EOF'
+## ADDED Requirements
+
+### Requirement: New behavior
+
+The system SHALL add one behavior.
+
+#### Scenario: Added behavior
+
+- **WHEN** the new path runs
+- **THEN** the new result appears
+EOF
+: >"$fixture_root/openspec-calls.log"
+expected_archive="$fixture_root/openspec/changes/archive/$(LC_ALL=C date +%F)-example-change"
+
+mkdir -p "$expected_archive"
+if collision_output=$(cd "$fixture_root" && \
+  PATH="$fixture_root/fake-bin:$PATH" \
+  OPENSPEC_CALL_LOG="$fixture_root/openspec-calls.log" \
+  ./scripts/factory archive example-change 2>&1); then
+  printf 'factory-contract test: archive destination collision was accepted\n' >&2
+  exit 1
+fi
+if [[ -s "$fixture_root/openspec-calls.log" ]]; then
+  printf 'factory-contract test: OpenSpec ran before destination collision failure\n' >&2
+  exit 1
+fi
+if grep -Fq 'archived safely' <<<"$collision_output"; then
+  printf 'factory-contract test: destination collision printed archive success\n' >&2
+  exit 1
+fi
+rmdir "$expected_archive"
+
+if no_op_output=$(cd "$fixture_root" && \
+  PATH="$fixture_root/fake-bin:$PATH" \
+  OPENSPEC_CALL_LOG="$fixture_root/openspec-calls.log" \
+  ./scripts/factory archive example-change 2>&1); then
+  printf 'factory-contract test: zero-exit no-op archive was accepted\n' >&2
+  exit 1
+fi
+if [[ ! -d "$change_root" || -e "$expected_archive" ]]; then
+  printf 'factory-contract test: zero-exit no-op changed archive state\n' >&2
+  exit 1
+fi
+if ! grep -Eq '^archive example-change --yes$' "$fixture_root/openspec-calls.log"; then
+  printf 'factory-contract test: no-op fixture did not reach OpenSpec archive\n' >&2
+  printf 'factory-contract test: captured OpenSpec calls:\n' >&2
+  cat "$fixture_root/openspec-calls.log" >&2
+  printf 'factory-contract test: captured facade output:\n' >&2
+  printf '%s\n' "$no_op_output" >&2
+  exit 1
+fi
+if grep -Fq 'archived safely' <<<"$no_op_output"; then
+  printf 'factory-contract test: zero-exit no-op printed archive success\n' >&2
+  exit 1
+fi
+
+printf '#!%s\n' "$BASH" >"$fixture_root/fake-bin/openspec"
+cat >>"$fixture_root/fake-bin/openspec" <<'EOF'
+printf '%s\n' "$*" >>"$OPENSPEC_CALL_LOG"
+if [[ "$*" == 'archive example-change --yes' ]]; then
+  archive_date=$(LC_ALL=C date +%F)
+  mkdir -p "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive"
+  mv "$OPENSPEC_FIXTURE_ROOT/openspec/changes/example-change" \
+    "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive/$archive_date-example-change"
+  if [[ "${OPENSPEC_ARCHIVE_MODE:-complete}" == 'incomplete' ]]; then
+    mv "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive/$archive_date-example-change/research.md" \
+      "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive/$archive_date-example-change/research.md.hidden"
+  fi
+fi
+EOF
+chmod +x "$fixture_root/fake-bin/openspec"
+: >"$fixture_root/openspec-calls.log"
+
+if incomplete_output=$(cd "$fixture_root" && \
+  PATH="$fixture_root/fake-bin:$PATH" \
+  OPENSPEC_CALL_LOG="$fixture_root/openspec-calls.log" \
+  OPENSPEC_FIXTURE_ROOT="$fixture_root" \
+  OPENSPEC_ARCHIVE_MODE=incomplete \
+  ./scripts/factory archive example-change 2>&1); then
+  printf 'factory-contract test: incomplete archive was accepted\n' >&2
+  exit 1
+fi
+if [[ -e "$change_root" || ! -d "$expected_archive" || -e "$expected_archive/research.md" ]]; then
+  printf 'factory-contract test: incomplete archive fixture did not reach its postcondition\n' >&2
+  exit 1
+fi
+if grep -Fq 'archived safely' <<<"$incomplete_output"; then
+  printf 'factory-contract test: incomplete archive printed archive success\n' >&2
+  exit 1
+fi
+mv "$expected_archive/research.md.hidden" "$expected_archive/research.md"
+mv "$expected_archive" "$change_root"
+: >"$fixture_root/openspec-calls.log"
+
+success_output=$(cd "$fixture_root" && \
+  PATH="$fixture_root/fake-bin:$PATH" \
+  OPENSPEC_CALL_LOG="$fixture_root/openspec-calls.log" \
+  OPENSPEC_FIXTURE_ROOT="$fixture_root" \
+  ./scripts/factory archive example-change 2>&1)
+if [[ -e "$change_root" || ! -d "$expected_archive" ]]; then
+  printf 'factory-contract test: successful archive state transition is incomplete\n' >&2
+  exit 1
+fi
+for artifact in .openspec.yaml proposal.md research.md constraints.md design.md tasks.md; do
+  if [[ ! -f "$expected_archive/$artifact" ]]; then
+    printf 'factory-contract test: successful archive lost %s\n' "$artifact" >&2
+    exit 1
+  fi
+done
+if [[ ! -d "$expected_archive/specs" ]]; then
+  printf 'factory-contract test: successful archive lost capability deltas\n' >&2
+  exit 1
+fi
+if ! grep -Fq 'factory: change archived safely: example-change' <<<"$success_output"; then
+  printf 'factory-contract test: successful archive omitted success marker\n' >&2
   exit 1
 fi
 

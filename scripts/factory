@@ -127,9 +127,37 @@ archive_change() {
   local change_name=${1:-}
   [[ -n "$change_name" ]] || fail "archive requires an active OpenSpec change name"
 
+  local change_root="$factory_root/openspec/changes/$change_name"
+  [[ -d "$change_root" ]] || fail "active change not found: $change_name"
+
+  local archive_date expected_archive
+  archive_date=$(LC_ALL=C date +%F) || fail "cannot determine archive date"
+  expected_archive="$factory_root/openspec/changes/archive/$archive_date-$change_name"
+  if [[ -e "$expected_archive" || -L "$expected_archive" ]]; then
+    fail "archive destination already exists: ${expected_archive#"$factory_root/"}"
+  fi
+
   ready_change "$change_name"
   "$factory_root/scripts/check-openspec-archive.py" "$factory_root" --change "$change_name"
   run_openspec archive "$change_name" --yes
+
+  if [[ -e "$change_root" || -L "$change_root" ]]; then
+    fail "OpenSpec returned without removing active change: $change_name"
+  fi
+  if [[ ! -d "$expected_archive" || -L "$expected_archive" ]]; then
+    fail "OpenSpec returned without creating expected archive: ${expected_archive#"$factory_root/"}"
+  fi
+
+  local required_artifact
+  for required_artifact in .openspec.yaml proposal.md research.md constraints.md design.md tasks.md; do
+    if [[ ! -f "$expected_archive/$required_artifact" || -L "$expected_archive/$required_artifact" ]]; then
+      fail "archived change is missing regular artifact: $required_artifact"
+    fi
+  done
+  if [[ ! -d "$expected_archive/specs" || -L "$expected_archive/specs" ]]; then
+    fail "archived change is missing regular capability directory: specs"
+  fi
+
   check_factory
   printf 'factory: change archived safely: %s\n' "$change_name"
 }

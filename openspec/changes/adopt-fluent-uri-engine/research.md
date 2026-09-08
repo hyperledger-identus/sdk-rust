@@ -53,9 +53,12 @@ features disabled and no optional features for borrowed parsing. It declares
 MSRV Rust 1.68, below the effective Rust 1.98.1 etalon. The preliminary
 standalone direct and resolved dependency cone counted eight normal/build
 packages: `fluent-uri`, `borrow-or-share`, `ref-cast`, `ref-cast-impl`,
-`proc-macro2`, `quote`, `syn` and `unicode-ident`. Integration must record the
-exact locked graph and incremental removal of runtime `uriparse`, `fnv` and
-`lazy_static` from OID4VCI.
+`proc-macro2`, `quote`, `syn` and `unicode-ident`. The integrated lockfile adds
+five package names: `fluent-uri 0.4.1`, `borrow-or-share 0.2.4`, `ref-cast
+1.0.27`, `ref-cast-impl 1.0.27` and `syn 3.0.5`; the three proc-macro support
+packages already existed. `uriparse`, `fnv` and `lazy_static` are absent from
+OID4VCI's normal graph and remain in the workspace lock only through DID's
+development oracle.
 
 Target evidence before integration is limited to the parent portfolio probes,
 which compiled the candidate on host, WASM, iOS and Android. Those probes are
@@ -82,11 +85,14 @@ retrieval date; the repository has later commits, so floating source is not
 used.
 
 Unsafe and native-code evidence: the candidate and `borrow-or-share` forbid
-unsafe code and no native code or FFI is expected. `ref-cast` and generated
-derive implementations contain unsafe reference casts. Integration must
-attribute exact reachable sites under immutable borrowed parsing and run the
-repository dependency/security tools; the upstream `forbid` declaration alone
-is not a transitive safety proof.
+unsafe code and no native code or FFI is present. `ref-cast` declares sealed
+unsafe traits/implementations and its derive emits checked casts for
+`#[repr(transparent)]` wrappers. `fluent-uri` uses those derives for component
+and percent-encoded string views; this integration reaches only immutable
+borrowed parser views. The SDK adds no unsafe block and never exposes those
+views. `borrow-or-share` is MIT-0, while the other new packages are MIT or
+MIT/Apache-2.0; MIT-0 is explicitly allowed rather than bypassed. The fresh
+lockfile audit reports no vulnerability.
 
 Supply-chain evidence currently includes exact artifact/source comparison,
 release metadata and manual source inspection. A fresh lockfile-based advisory
@@ -127,6 +133,11 @@ Exact commands and unrun checks are separated:
 - `shasum -a 256` compared the cached crates.io archive/package source with
   the exact release source; direct unsafe searches inspected the candidate and
   transitive packages;
-- Cargo integration, differential tests, `cargo deny`, supported targets,
-  factory and Nix checks are unrun implementation tasks and are not represented
-  as passed by this research record.
+- Cargo integration, focused differential tests and `cargo audit --deny
+  warnings` passed. The initial license gate rejected unlisted MIT-0 as
+  designed; the documented allowlist update then passed `cargo deny --locked
+  check`. Host minimal, WASM, Android and iOS compile checks passed. Factory
+  validation passed 48/48, workspace nextest passed 607/607 with 22 skipped,
+  and the complete host `nix flake check` passed every compatible derivation;
+  its x86_64 Linux set is intentionally exercised by hosted CI rather than the
+  aarch64-Darwin local evaluator.

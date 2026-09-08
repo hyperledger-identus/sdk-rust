@@ -90,12 +90,16 @@ explicitly before merge.
 ## Dependency and security shape
 
 The direct dependency is one MIT crate declaring Rust 1.68 and
-`#![forbid(unsafe_code)]`. Its minimal normal cone currently resolves through
-`borrow-or-share` and `ref-cast`; the latter and its derive implementation use
-unsafe reference casts. Reachability is restricted to immutable parsed views,
-but the exact resolved cone, licenses, advisories and unsafe sites require
-review after lockfile integration. No native code, FFI, network, clock or
-runtime is expected.
+`#![forbid(unsafe_code)]`. Its resolved normal cone adds five package names to
+this workspace: `fluent-uri 0.4.1`, MIT-0 `borrow-or-share 0.2.4`, MIT OR
+Apache-2.0 `ref-cast 1.0.27` and `ref-cast-impl 1.0.27`, and `syn 3.0.5`;
+existing `proc-macro2`, `quote` and `unicode-ident` packages are reused.
+`ref-cast` and its derive implementation use unsafe reference casts to create
+transparent immutable component views over validated input. The derives check
+the transparent representation and generated type relationship; SDK code
+receives only borrowed parser views and adds no unsafe block. No native code,
+FFI, network, clock or runtime enters the graph. MIT-0 is OSI-approved and is
+added explicitly to the repository license allowlist.
 
 ## Rollback
 

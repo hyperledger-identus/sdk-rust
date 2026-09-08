@@ -23,6 +23,7 @@ identus-wallet-conformance = { path = "crates/wallet-conformance" }
 proc-macro2                = "1"
 quote                      = "1"
 getrandom                  = "0.2"
+fluent-uri                 = { version = "=0.4.1", default-features = false }
 serde                      = "1"
 serde_json                 = "1"
 coset                      = { version = "0.4", default-features = false }

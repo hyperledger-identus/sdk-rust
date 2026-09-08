@@ -130,6 +130,7 @@ fn required_fields_and_visible_token_grammar_fail_closed() {
         r#"{"access_token":7,"token_type":"Bearer"}"#,
         r#"{"access_token":"token","token_type":""}"#,
         r#"{"access_token":"token","token_type":"bad type"}"#,
+        r#"{"access_token":"token","token_type":"urn:bad%escape"}"#,
         r#"{"access_token":"token","token_type":false}"#,
         r#"{"access_token":"token","token_type":"Bearer","refresh_token":""}"#,
         r#"{"access_token":"token","token_type":"Bearer","refresh_token":"bad\u0000value"}"#,

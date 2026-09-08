@@ -24,6 +24,12 @@ Two near-term dependency changes have a positive evidence balance:
 2. use `fluent-uri 0.4.1` as the RFC 3986 grammar engine without re-exporting
    its types or normalizing caller input.
 
+Focused integration research confirms the second change for `identus-did::Uri`
+and four OID4VCI seams. [ADR 0084](../../adr/0084-adopt-fluent-uri-as-private-grammar-engine.md)
+records the exact package, five-name incremental cone, MIT-0 allowlist addition,
+transitive `ref-cast` unsafe boundary and exclusion of unused
+`identus-core::Url`.
+
 Focused issue-level research supersedes the preliminary form-codec
 disposition. `form_urlencoded 1.2.2` preserves malformed percent escapes and
 decodes invalid UTF-8 lossily, while the SDK parser rejects both. Its compatible
@@ -167,7 +173,7 @@ SDK cone smaller for some candidates.
 | `identity_document` | 1.5.1 | not declared | 140 | `oracle` | Useful document and validation differential source; too coupled for the core domain facade. |
 | `identity_credential` | 1.5.1 | not declared | 146 | `oracle` | Useful VC evidence, but current SD-JWT code references old drafts and imports framework policy. |
 | `identity_jose` | 1.5.1 | not declared | 136 | `oracle` | Useful JOSE comparison; would bypass bounded parsed/verified states and duplicate checks. |
-| `fluent-uri` | 0.4.1 | 1.68 | 8 | `adopt` | Exact RFC 3986/3987 grammar behind owned string types; no normalization or public re-export. |
+| `fluent-uri` | 0.4.1 | 1.68 | 8 standalone; 5 incremental | `adopt` | Exact RFC 3986 grammar behind owned string types in DID/OID4VCI; no IRI mode, normalization or public re-export. |
 | `url` | 2.5.8 | 1.63 | 13 minimal | `not-adopt` | WHATWG URL semantics and canonicalization are not the generic DID/URI contract; reconsider only in a concrete HTTP adapter. |
 | `http` | 1.5.0 | 1.57 | 3 | `not-adopt` | Good ecosystem type, but no current need outweighs transport-port coupling. |
 | `mime` | 0.3.17 | not declared | 1 | `retain-local` | Does not enforce the SDK's complete duplicate/strictness policy; local bounded parser is small. |
@@ -287,7 +293,7 @@ separate from the final `ready` gate.
 | `bip32 0.5.3` is `no_std`-friendly and declares Rust 1.65, but its k256 backend rejects zero `IL` and its feature graph retains extended-key serialization packages. | [`bip32` 0.5.3 documentation](https://docs.rs/bip32/0.5.3/bip32/) and [exact release source](https://github.com/iqlusioninc/crates/tree/240679a2454945783acc4f9e7d3bae839359b0b7/bip32) |
 | did:key fingerprints are multibase-encoded multicodec key types plus raw public-key bytes, not multihash. | [did:key Method v0.9 identifier syntax](https://w3c-ccg.github.io/did-key-spec/#did-key-identifier-syntax) |
 | `multihash` is a bare structural codec and does not select hash algorithms. | [`multihash` 0.19.5 documentation](https://docs.rs/multihash/0.19.5/multihash/) and [exact release source](https://github.com/multiformats/rust-multihash/tree/e2044a2e3aa27c2a08d3bad492fccd4babf10310) |
-| `fluent-uri` targets RFC 3986 and RFC 3987. | [`fluent-uri` 0.4.1 documentation](https://docs.rs/fluent-uri/0.4.1/fluent_uri/) and [assessed source](https://github.com/yescallop/fluent-uri-rs/tree/76e10ae842a11539c27b107f5e71269ddb7fcb46) |
+| `fluent-uri` targets RFC 3986 and RFC 3987; this integration enables only the RFC 3986 URI/URI-reference parser. | [`fluent-uri` 0.4.1 documentation](https://docs.rs/fluent-uri/0.4.1/fluent_uri/) and [exact release source](https://github.com/yescallop/fluent-uri-rs/tree/d9a6a20614f34b00476837eb8904fb01ca3e54df) |
 | `form_urlencoded 1.2.2` preserves malformed percent escapes and decodes invalid UTF-8 lossily; its serializer matches the assessed valid-output mechanics. | [`form_urlencoded` 1.2.2 packaged source](https://docs.rs/crate/form_urlencoded/1.2.2/source/src/lib.rs) and [recorded VCS revision](https://github.com/servo/rust-url/tree/91377f48bf35011d042aa5abef9e7f2a0a625aaa/form_urlencoded) |
 | `slice::as_chunks`, used by resolved `base45 3.2.0`, stabilized in Rust 1.88. | [Rust standard library documentation](https://doc.rust-lang.org/stable/core/primitive.slice.html#method.as_chunks) |
 | Rust releases stable trains every six weeks and supports only current stable upstream. | [The Rust release-channel model](https://doc.rust-lang.org/book/appendix-07-nightly-rust.html) |

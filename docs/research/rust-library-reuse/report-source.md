@@ -17,17 +17,22 @@ keep Identus-owned public facades for policy, lifecycle, bounded parsing,
 redacted errors, secret ownership, verification states and injected ports.
 Whole SSI frameworks are not suitable as the SDK's domain model.
 
-Four near-term dependency changes have a positive evidence balance:
+Three near-term dependency changes have a positive evidence balance:
 
 1. replace the mnemonic implementation with `bip39 2.2.2` behind the existing
    `MnemonicHelper` facade;
-2. validate multihash structures with `multihash 0.19.5` and add
-   `multibase 0.9.3` only after the MSRV transition or an upstream transitive
-   MSRV fix;
-3. use `fluent-uri 0.4.1` as the RFC 3986 grammar engine without re-exporting
+2. use `fluent-uri 0.4.1` as the RFC 3986 grammar engine without re-exporting
    its types or normalizing caller input; and
-4. replace hand-written form encoding/decoding with
+3. replace hand-written form encoding/decoding with
    `form_urlencoded 1.2.2` behind the OID4VCI wire facade.
+
+Focused issue-level research also supersedes the preliminary multihash
+disposition. `multihash 0.19.5` is technically cohesive, but no current SDK
+capability consumes multihash semantics; did:key uses multicodec-prefixed key
+bytes instead. [ADR 0082](../../adr/0082-defer-multihash-until-a-method-consumes-it.md)
+and issue #155 retain it as `conditional-adopt` until a named DID method
+defines the consumer, policy and migration boundary. `multibase 0.9.3` remains
+a separate conditional candidate under #156.
 
 Focused issue-level research supersedes the preliminary BIP-32 disposition:
 retain the narrow HMAC orchestration and reuse the existing `k256` scalar
@@ -112,10 +117,12 @@ has an allocation-only feature surface and can be used only as an internal
 grammar validator so exact caller bytes and Identus errors remain stable.
 
 `identus-did::Multihash` currently accepts arbitrary bytes and serializes them
-as hex. `multihash` provides the small, `no_std` structural codec but no hash
-policy, which matches the SDK boundary. `multibase` supplies required DID-key
-encodings, but its current transitive resolution is incompatible with Rust
-1.85; it is therefore conditional rather than immediate.
+as hex. `multihash` provides a small, `no_std` structural codec but no hash
+policy. That is strong technical fit, but no current method consumes the
+structure, so adopting it would create policy without replacing reachable
+behavior. `did:key` is not such a consumer: it uses multibase around a
+multicodec key type and raw public-key bytes. `multibase` is evaluated
+separately under #156.
 
 ### The existing HTTP grammar is small and deliberately stricter
 
@@ -143,7 +150,7 @@ SDK cone smaller for some candidates.
 | `bip39` | 2.2.2 | not declared | 13 | `adopt` | Closed mnemonic/checksum/normalization mechanics; keep randomness, errors and zeroization at facade. |
 | `bip32` | 0.5.3 | 1.65 | 29 with `secp256k1`; 3 incremental names | `not-adopt` | Its k256 backend rejects standards-valid zero `IL`; xprv/xpub dependencies are mandatory even though the facade does not use them. Reuse existing `k256`. |
 | `slip10` | 0.4.3 | not declared | 25 | `retain-local` | Existing Ed25519 SLIP-0010 core is small and vector-tested; candidate maintenance and cone do not reduce risk. |
-| `multihash` | 0.19.5 | 1.81 | 2 | `adopt` | Bare structural codec with no hash policy is a high-cohesion fit. |
+| `multihash` | 0.19.5 | 1.81 | 2 | `conditional-adopt` | Bare structural codec with high cohesion, but no current method consumes multihash; require a named normative consumer before production adoption. |
 | `multibase` | 0.9.3 | not declared | 14 | `conditional-adopt` | Correct domain, but current `base45 3.2.0` resolution actually needs Rust 1.88 while declaring no compatible floor. |
 | `did_url_parser` | 0.3.0 | not declared | 3 | `spike` | Narrow and `no_std`; parity must be proven before superseding ADR 0008 and changing accepted syntax/errors. |
 | `identity_did` | 1.5.1 | not declared | 138 | `oracle` | Mature generic API and used by NeoPRISM, but broad model/cone would replace Identus ownership. |
@@ -249,7 +256,7 @@ separate from the final `ready` gate.
 | 1 | [#152 — BIP-39 mechanics](https://github.com/hyperledger-identus/sdk-rust/issues/152) | `adopt`; correctness first |
 | 2 | [#153 — BIP-32 mechanics](https://github.com/hyperledger-identus/sdk-rust/issues/153) | `retain-local`; correct with existing `k256` per ADR 0080 |
 | 3 | [#170 — evidence-driven Rust policy](https://github.com/hyperledger-identus/sdk-rust/issues/170) | implement ADR 0064; retain 1.85 and evaluate 1.89 |
-| 4 | [#155 — multihash](https://github.com/hyperledger-identus/sdk-rust/issues/155) | `adopt` |
+| 4 | [#155 — multihash](https://github.com/hyperledger-identus/sdk-rust/issues/155) | `conditional-adopt`; named DID-method consumer required |
 | 5 | [#156 — multibase](https://github.com/hyperledger-identus/sdk-rust/issues/156) | `conditional-adopt` after its Rust 1.89/MSRV evidence passes |
 | 6 | [#157 — RFC 3986 engine](https://github.com/hyperledger-identus/sdk-rust/issues/157) | `adopt` with parser parity |
 | 7 | [#158 — form encoding](https://github.com/hyperledger-identus/sdk-rust/issues/158) | `adopt` |
@@ -268,7 +275,8 @@ separate from the final `ready` gate.
 | `bip39 2.2.2` validates entropy/checksum and normalizes UTF-8. | [`bip39` 2.2.2 source](https://docs.rs/crate/bip39/2.2.2/source/) and [`rust-bip39` assessed revision](https://github.com/rust-bitcoin/rust-bip39/tree/1a63bd457cf0643f7eee9b8768ce6ced13d01c18) |
 | BIP-32 declares `IL >= n` or a zero child invalid. | [Bitcoin BIP-32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) |
 | `bip32 0.5.3` is `no_std`-friendly and declares Rust 1.65, but its k256 backend rejects zero `IL` and its feature graph retains extended-key serialization packages. | [`bip32` 0.5.3 documentation](https://docs.rs/bip32/0.5.3/bip32/) and [exact release source](https://github.com/iqlusioninc/crates/tree/240679a2454945783acc4f9e7d3bae839359b0b7/bip32) |
-| `multihash` is a bare structural codec and does not select hash algorithms. | [`multihash` 0.19.5 documentation](https://docs.rs/multihash/0.19.5/multihash/) and [assessed source](https://github.com/multiformats/rust-multihash/tree/3c136390abb25b0f5dd8fdf6e0f771a68cb34b16) |
+| did:key fingerprints are multibase-encoded multicodec key types plus raw public-key bytes, not multihash. | [did:key Method v0.9 identifier syntax](https://w3c-ccg.github.io/did-key-spec/#did-key-identifier-syntax) |
+| `multihash` is a bare structural codec and does not select hash algorithms. | [`multihash` 0.19.5 documentation](https://docs.rs/multihash/0.19.5/multihash/) and [exact release source](https://github.com/multiformats/rust-multihash/tree/e2044a2e3aa27c2a08d3bad492fccd4babf10310) |
 | `fluent-uri` targets RFC 3986 and RFC 3987. | [`fluent-uri` 0.4.1 documentation](https://docs.rs/fluent-uri/0.4.1/fluent_uri/) and [assessed source](https://github.com/yescallop/fluent-uri-rs/tree/76e10ae842a11539c27b107f5e71269ddb7fcb46) |
 | `slice::as_chunks`, used by resolved `base45 3.2.0`, stabilized in Rust 1.88. | [Rust standard library documentation](https://doc.rust-lang.org/stable/core/primitive.slice.html#method.as_chunks) |
 | Rust releases stable trains every six weeks and supports only current stable upstream. | [The Rust release-channel model](https://doc.rust-lang.org/book/appendix-07-nightly-rust.html) |

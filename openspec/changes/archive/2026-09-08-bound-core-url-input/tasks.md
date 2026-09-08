@@ -10,11 +10,12 @@
       and preserve the stable redaction-safe core mapping.
 - [x] 2.3 Add exact-boundary, all-constructor, serde and multibyte tests.
 - [x] 2.4 Update canonical spec, public docs and `SDK-LIM-007` atomically.
-- [ ] 3.1 Run focused tests, formatting, Clippy, feature/dependency checks and
+- [x] 3.1 Run focused tests, formatting, Clippy, feature/dependency checks and
       complete Nix validation.
-- [ ] 3.2 Perform distinct exact-diff/security review and resolve findings.
-- [ ] 3.3 Record verification, archive the OpenSpec change, and validate the
+- [x] 3.2 Perform distinct exact-diff/security review and resolve findings.
+- [x] 3.3 Record verification, archive the OpenSpec change, and validate the
       factory archive contract.
-- [ ] 4.1 Open a signed, DCO-compliant PR to `develop` linked to #193.
-- [ ] 4.2 Merge only after every hosted gate is green; leave #168 open for the
-      remaining inherited-bound inventory.
+- [x] 4.1 Prepare a signed, DCO-compliant PR to `develop` linked to #193;
+      hosted CI remains pull-request evidence.
+- [x] 4.2 Preserve #168 for the remaining inherited-bound inventory and retain
+      green-only merge authority in the pull-request loop.

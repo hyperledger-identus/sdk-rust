@@ -93,6 +93,9 @@ impl std::error::Error for UrlError {}
 
 /// Hand-rolled URL validation (no external dependency).
 ///
+/// Rejects input above [`MAX_URL_BYTES`] before syntax traversal, then accepts
+/// the bounded forms described below.
+///
 /// Accepts inputs of the form `scheme://authority[/path][?query][#fragment]`
 /// where `scheme` matches the RFC 3986 scheme grammar
 /// (`ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )`) and `authority` is non-empty.
@@ -229,6 +232,12 @@ mod tests {
         );
         assert!(!bridged.to_string().contains("8193"));
         assert!(!bridged.to_string().contains("example.com"));
+    }
+
+    #[test]
+    fn url_length_limit_precedes_syntax_validation() {
+        let malformed = "x".repeat(MAX_URL_BYTES + 1);
+        assert_eq!(Url::parse(&malformed), Err(UrlError::TooLong));
     }
 
     #[test]

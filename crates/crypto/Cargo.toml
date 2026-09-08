@@ -96,6 +96,11 @@ path              = "tests/jwk.rs"
 required-features = [ "jwk-thumbprint" ]
 
 [[test]]
+name              = "hash"
+path              = "tests/hash.rs"
+required-features = [ "hash" ]
+
+[[test]]
 name              = "secp256k1_compat"
 path              = "tests/secp256k1_compat.rs"
 required-features = [ "hex", "secp256k1" ]

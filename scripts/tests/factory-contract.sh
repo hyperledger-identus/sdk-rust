@@ -14,6 +14,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 
 "$repository_root/scripts/tests/ssi-upstream-backlog.py"
 "$repository_root/scripts/tests/support-policy.py"
+"$repository_root/scripts/tests/apollo-parity.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
 "$repository_root/scripts/tests/constraints.py"
 "$repository_root/scripts/tests/openspec-archive.py"
@@ -36,6 +37,7 @@ required_files=(
   docs/architecture/sdk-bootstrap-inventory.toml
   docs/architecture/sdk-support-policy.md
   docs/architecture/sdk-support-policy.toml
+  docs/architecture/apollo-crypto-parity.toml
   docs/architecture/ssi-upstream-source-matrix.md
   docs/roadmap/ssi-upstream-dependency-backlog.csv
   docs/governance/agentic-sdlc.md
@@ -61,6 +63,7 @@ required_files=(
   scripts/check-constraints.py
   scripts/check-openspec-archive.py
   scripts/check-support-policy.py
+  scripts/check-apollo-parity.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-pr-policy.sh
   scripts/check-research-readiness.py
@@ -71,6 +74,7 @@ required_files=(
   scripts/tests/pr-policy.sh
   scripts/tests/research-readiness.py
   scripts/tests/support-policy.py
+  scripts/tests/apollo-parity.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
   .github/ISSUE_TEMPLATE/delivery-task.yml
@@ -83,7 +87,7 @@ required_files=(
 for relative_path in "${required_files[@]}"; do
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
   case "$relative_path" in
-    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-rust-blueprint.md | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/factory/research-readiness.md | docs/governance/constraints-and-limitations.md | docs/governance/repository-settings.md | docs/governance/sdk-constraints.toml | docs/adr/0001-bootstrap-branch-selection.md | docs/adr/0003-delegate-develop-integration.md | docs/adr/0062-use-a-rolling-near-current-msrv.md | docs/adr/0063-make-material-constraints-explicit.md | docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md | docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md | docs/adr/0087-enforce-first-party-unsafe-forbid.md | docs/adr/0088-reject-unsafe-first-party-macro-output.md | docs/adr/0089-require-upstream-first-dependency-remediation.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | nix/checks/gates.toml | nix/checks/rust-gates.nix | scripts/benchmark-support-policy.py | scripts/check-bootstrap-inventory.py | scripts/check-constraints.py | scripts/check-openspec-archive.py | scripts/check-research-readiness.py | scripts/factory | scripts/check-support-policy.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/constraints.py | scripts/tests/openspec-archive.py | scripts/tests/research-readiness.py | scripts/tests/support-policy.py)
+    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-rust-blueprint.md | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/apollo-crypto-parity.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/factory/research-readiness.md | docs/governance/constraints-and-limitations.md | docs/governance/repository-settings.md | docs/governance/sdk-constraints.toml | docs/adr/0001-bootstrap-branch-selection.md | docs/adr/0003-delegate-develop-integration.md | docs/adr/0062-use-a-rolling-near-current-msrv.md | docs/adr/0063-make-material-constraints-explicit.md | docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md | docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md | docs/adr/0087-enforce-first-party-unsafe-forbid.md | docs/adr/0088-reject-unsafe-first-party-macro-output.md | docs/adr/0089-require-upstream-first-dependency-remediation.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | nix/checks/gates.toml | nix/checks/rust-gates.nix | scripts/benchmark-support-policy.py | scripts/check-bootstrap-inventory.py | scripts/check-constraints.py | scripts/check-openspec-archive.py | scripts/check-research-readiness.py | scripts/factory | scripts/check-support-policy.py | scripts/check-apollo-parity.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/constraints.py | scripts/tests/openspec-archive.py | scripts/tests/research-readiness.py | scripts/tests/support-policy.py | scripts/tests/apollo-parity.py)
       cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
       ;;
     *)
@@ -99,6 +103,7 @@ chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh
   "$fixture_root/scripts/check-pr-policy.sh" \
   "$fixture_root/scripts/check-research-readiness.py" \
   "$fixture_root/scripts/check-support-policy.py" \
+  "$fixture_root/scripts/check-apollo-parity.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/tests/bootstrap-inventory.py" \
   "$fixture_root/scripts/tests/constraints.py" \
@@ -107,6 +112,7 @@ chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh
   "$fixture_root/scripts/tests/pr-policy.sh" \
   "$fixture_root/scripts/tests/research-readiness.py" \
   "$fixture_root/scripts/tests/support-policy.py"
+chmod +x "$fixture_root/scripts/tests/apollo-parity.py"
 
 for relative_path in Cargo.toml flake.nix flake.lock \
   docs/adr/0002-neoprism-toolchain-alignment.md nix/rust-toolchain.nix; do

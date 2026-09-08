@@ -35,6 +35,9 @@ No blocking finding remains.
 - Upstream GitHub Actions has not attached checks to the fork pull request at
   review time. The contribution's merge remains upstream-owned; the SDK
   evidence PR does not claim upstream merge or release.
+- The full SDK Nix gate passed after the factory fixture was brought into line
+  with the new required ADR. Hosted x86_64-Linux CI is still required before
+  merging the SDK evidence pull request.
 - User-installed cargo-audit 0.20.1 is too old for a current CVSS 4.0 advisory;
   the Nix-pinned 0.22.2 audit is the recorded successful gate.
 

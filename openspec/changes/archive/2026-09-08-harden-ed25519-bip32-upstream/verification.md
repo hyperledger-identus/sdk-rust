@@ -29,6 +29,19 @@
 - `rg -n "unsafe" src Cargo.toml`: no authored unsafe match after the patch.
 - `git diff --check 6539dc9..b9e5c78` and exact-diff inspection passed.
 
+## SDK factory verification
+
+- The first `nix flake check --print-build-logs` correctly failed because the
+  factory-contract fixture did not yet copy newly required ADR 0089.
+- Commit `a9c2cf2` added ADR 0089 to both the factory required-file list and its
+  isolated fixture. The complete factory-contract test then passed.
+- The final `nix flake check --print-build-logs` passed every compatible
+  aarch64-Darwin check, including formatting, Clippy, feature combinations,
+  documentation, target builds, dependency policy, audit, factory, text and
+  TOML gates. Nextest passed 617/617 executed tests with 22 configured skips.
+- The x86_64-Linux checks were not run locally because Nix correctly omitted
+  the incompatible system. Hosted CI remains authoritative for that lane.
+
 ## Known non-blocking baseline finding
 
 `cargo clippy --all-targets -- -D warnings` reports eleven findings on both the

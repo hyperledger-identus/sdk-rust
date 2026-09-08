@@ -34,6 +34,7 @@ required_files=(
   docs/governance/repository-settings.md
   docs/adr/0003-delegate-develop-integration.md
   docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md
+  docs/adr/0087-enforce-first-party-unsafe-forbid.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   openspec/config.yaml

@@ -33,6 +33,22 @@ artifact_receipt    = "https://github.com/hyperledger-identus/sdk-rust/actions/r
 tracking_issue      = "https://github.com/hyperledger-identus/sdk-rust/issues/214"
 limitations         = "Apollo publishes no comparable harness at the pinned revision; timings are comparable only across matching revision, compiler, platform, CPU, environment and feature metadata."
 
+[target_evidence]
+status              = "complete"
+sdk_revision        = "244ded689a29a5e6606eeb36aede14149d585071"
+toolchain           = "1.98.1"
+support_policy_path = "docs/architecture/sdk-support-policy.toml"
+workflow_path       = ".github/workflows/nix-checks.yml"
+ci_run_uri          = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34286965807"
+ci_conclusion       = "success"
+targets             = [ "wasm32-unknown-unknown", "aarch64-apple-ios", "aarch64-linux-android" ]
+packages            = [ "identus-core", "identus-crypto", "identus-did", "identus-jose", "identus-oid4vci", "identus-adapters-entropy" ]
+features            = [ "identus-adapters-entropy/getrandom" ]
+no_default_features = false
+limitations         = "Compile-only evidence; no browser or device runtime, linking, bundling, FFI, native package, platform storage/key service, performance, certification, or release claim."
+tracking_issue      = "https://github.com/hyperledger-identus/sdk-rust/issues/213"
+discussion_receipt  = "https://github.com/hyperledger-identus/sdk-rust/discussions/178#discussioncomment-18358071"
+
 [summary]
 total               = 27
 parity              = 14
@@ -959,29 +975,29 @@ id                = "wasm32-unknown-unknown"
 apollo_surface    = "Kotlin/JS browser and Node artifacts"
 sdk_tier          = "compile-checked"
 sdk_gate          = "rust-build-wasm32"
-evidence_revision = "b5cfc8f30ab9137e3c71b94a73f162aff3d1b48c"
-evidence_uri      = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34168703691"
-limitation        = "Compile-only; no browser runtime, package or binding claim."
+evidence_revision = "244ded689a29a5e6606eeb36aede14149d585071"
+evidence_uri      = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34286965807"
+limitation        = "Compile-only with the getrandom browser backend; no browser runtime, bundler, CSP, storage, FFI, performance, or certification claim."
 closing_issue     = "https://github.com/hyperledger-identus/sdk-rust/issues/213"
 
 [[targets]]
 id                = "aarch64-apple-ios"
 apollo_surface    = "KMP Apple frameworks and Swift package"
 sdk_tier          = "compile-checked"
-sdk_gate          = "rust-build-ios-arm64"
-evidence_revision = "b5cfc8f30ab9137e3c71b94a73f162aff3d1b48c"
-evidence_uri      = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34168703691"
-limitation        = "Compile-only; no link, runtime, XCFramework or Swift binding claim."
+sdk_gate          = "rust-build-ios-aarch64"
+evidence_revision = "244ded689a29a5e6606eeb36aede14149d585071"
+evidence_uri      = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34286965807"
+limitation        = "Compile-only; no linking, simulator/device runtime, Swift/UniFFI, keychain, packaging, App Store, or certification claim."
 closing_issue     = "https://github.com/hyperledger-identus/sdk-rust/issues/213"
 
 [[targets]]
 id                = "aarch64-linux-android"
 apollo_surface    = "KMP Android library"
 sdk_tier          = "compile-checked"
-sdk_gate          = "rust-build-android-arm64"
-evidence_revision = "b5cfc8f30ab9137e3c71b94a73f162aff3d1b48c"
-evidence_uri      = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34168703691"
-limitation        = "Compile-only; no link, runtime, AAR or Kotlin binding claim."
+sdk_gate          = "rust-build-android-aarch64"
+evidence_revision = "244ded689a29a5e6606eeb36aede14149d585071"
+evidence_uri      = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34286965807"
+limitation        = "Compile-only; no NDK linking, emulator/device runtime, JNI/UniFFI, keystore, packaging, or certification claim."
 closing_issue     = "https://github.com/hyperledger-identus/sdk-rust/issues/213"
 
 [[targets]]

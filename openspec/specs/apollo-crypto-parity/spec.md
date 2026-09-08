@@ -114,4 +114,3 @@ stable runner history.
 - **WHEN** a later diagnostic produces different timing values
 - **THEN** correctness and CI SHALL remain green unless a separately approved
   threshold policy is active
-

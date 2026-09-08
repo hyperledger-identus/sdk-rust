@@ -1,5 +1,5 @@
 use identus_crypto::{
-    CardanoV2ExtendedPrivateKey, CardanoV2ExtendedPublicKey,
+    CardanoV2ExtendedPrivateKey, CardanoV2ExtendedPublicKey, MAX_DERIVATION_PATH_AXES,
     error::{Error, error_code},
     path::{DerivationAxis, DerivationPath},
 };
@@ -147,4 +147,34 @@ fn apollo_seed_representation_constructs_a_valid_extended_key() {
 
     assert!(private.to_public_key().is_ok());
     assert!(private.derive_child(DerivationAxis::normal(0)).is_ok());
+}
+
+#[test]
+fn typed_paths_above_the_work_limit_are_rejected() {
+    let private = CardanoV2ExtendedPrivateKey::from_bytes(bytes(D1)).unwrap();
+    let public = private.to_public_key().unwrap();
+    let mut path = DerivationPath::empty();
+    for _ in 0..=MAX_DERIVATION_PATH_AXES {
+        path = path.derive(DerivationAxis::normal(0));
+    }
+
+    assert!(matches!(
+        private.derive_path(&path),
+        Err(Error::DerivationFailed)
+    ));
+    assert!(matches!(
+        public.derive_path(&path),
+        Err(Error::DerivationFailed)
+    ));
+}
+
+#[test]
+fn typed_path_at_the_work_limit_is_accepted() {
+    let private = CardanoV2ExtendedPrivateKey::from_bytes(bytes(D1)).unwrap();
+    let mut path = DerivationPath::empty();
+    for _ in 0..MAX_DERIVATION_PATH_AXES {
+        path = path.derive(DerivationAxis::normal(0));
+    }
+
+    assert!(private.derive_path(&path).is_ok());
 }

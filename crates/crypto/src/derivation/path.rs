@@ -3,6 +3,9 @@
 //! Ported from the KMP `derivation.DerivationAxis` / `derivation.DerivationPath`.
 //! Indices between 0 and 2^31-1 are normal; the hardened flag sets bit 31.
 
+use crate::derivation::{MAX_DERIVATION_PATH_AXES, MAX_DERIVATION_PATH_BYTES};
+use crate::error::Error;
+
 /// The hardened-index offset (2^31), per BIP-32.
 pub const HARDENED_OFFSET: u32 = 0x8000_0000;
 
@@ -71,7 +74,21 @@ impl DerivationPath {
         &self.axes
     }
 
+    /// The number of child axes in this path.
+    pub fn len(&self) -> usize {
+        self.axes.len()
+    }
+
+    /// Whether this path represents the root without child axes.
+    pub fn is_empty(&self) -> bool {
+        self.axes.is_empty()
+    }
+
     /// Append `axis`, returning a new child path.
+    ///
+    /// This source-compatible builder is caller-budgeted and can construct a
+    /// path above [`MAX_DERIVATION_PATH_AXES`]. Cryptographic path consumers
+    /// reject such values before performing child-derivation work.
     pub fn derive(&self, axis: DerivationAxis) -> Self {
         let mut axes = self.axes.clone();
         axes.push(axis);
@@ -80,14 +97,30 @@ impl DerivationPath {
 
     /// Parse a path string of the form `m/axis1/.../axisn` (each axis is a
     /// number optionally followed by `'` for hardened).
-    pub fn from_path(path: &str) -> Result<Self, crate::error::Error> {
-        use crate::error::Error;
-        let parts: Vec<&str> = path.split('/').collect();
-        if parts.first().map(|s| s.trim().eq_ignore_ascii_case("m")) != Some(true) {
+    ///
+    /// Input is limited to [`MAX_DERIVATION_PATH_BYTES`] UTF-8 bytes and
+    /// [`MAX_DERIVATION_PATH_AXES`] axes. Both excess cases fail before work
+    /// on the rejected portion.
+    pub fn from_path(path: &str) -> Result<Self, Error> {
+        if path.len() > MAX_DERIVATION_PATH_BYTES {
             return Err(Error::DerivationFailed);
         }
-        let mut axes = Vec::new();
-        for part in parts.into_iter().skip(1) {
+
+        let mut parts = path.split('/');
+        if parts
+            .next()
+            .map(str::trim)
+            .map(|root| root.eq_ignore_ascii_case("m"))
+            != Some(true)
+        {
+            return Err(Error::DerivationFailed);
+        }
+
+        let mut axes = Vec::with_capacity(parts.size_hint().0.min(MAX_DERIVATION_PATH_AXES));
+        for part in parts {
+            if axes.len() == MAX_DERIVATION_PATH_AXES {
+                return Err(Error::DerivationFailed);
+            }
             let (num_str, hardened) = if let Some(stripped) = part.strip_suffix('\'') {
                 (stripped, true)
             } else {
@@ -105,6 +138,26 @@ impl DerivationPath {
         }
         Ok(Self { axes })
     }
+
+    pub(crate) fn ensure_work_bound(&self) -> Result<(), Error> {
+        if self.axes.len() > MAX_DERIVATION_PATH_AXES {
+            return Err(Error::DerivationFailed);
+        }
+        Ok(())
+    }
+
+    pub(crate) fn ensure_depth_capacity(&self, current_depth: u32) -> Result<(), Error> {
+        let remaining_depth = u32::try_from(MAX_DERIVATION_PATH_AXES)
+            .expect("the derivation-axis maximum fits in u32")
+            .checked_sub(current_depth)
+            .ok_or(Error::DerivationFailed)?;
+        let additional_depth =
+            u32::try_from(self.axes.len()).map_err(|_| Error::DerivationFailed)?;
+        if additional_depth > remaining_depth {
+            return Err(Error::DerivationFailed);
+        }
+        Ok(())
+    }
 }
 
 impl std::fmt::Display for DerivationPath {
@@ -114,5 +167,68 @@ impl std::fmt::Display for DerivationPath {
             write!(f, "/{axis}")?;
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn repeated_path(axis: &str, count: usize) -> String {
+        let mut path = String::from("m");
+        for _ in 0..count {
+            path.push('/');
+            path.push_str(axis);
+        }
+        path
+    }
+
+    #[test]
+    fn text_byte_limit_is_checked_before_path_syntax() {
+        let exact = format!("{}m", " ".repeat(MAX_DERIVATION_PATH_BYTES - 1));
+        assert!(DerivationPath::from_path(&exact).unwrap().is_empty());
+
+        let oversized_invalid = "x".repeat(MAX_DERIVATION_PATH_BYTES + 1);
+        assert!(matches!(
+            DerivationPath::from_path(&oversized_invalid),
+            Err(Error::DerivationFailed)
+        ));
+    }
+
+    #[test]
+    fn parser_accepts_255_axes_and_rejects_the_256th() {
+        let maximum =
+            DerivationPath::from_path(&repeated_path("0", MAX_DERIVATION_PATH_AXES)).unwrap();
+        assert_eq!(maximum.len(), MAX_DERIVATION_PATH_AXES);
+        assert!(!maximum.is_empty());
+
+        assert!(matches!(
+            DerivationPath::from_path(&repeated_path("0", MAX_DERIVATION_PATH_AXES + 1)),
+            Err(Error::DerivationFailed)
+        ));
+    }
+
+    #[test]
+    fn programmatic_oversized_path_is_rejected_by_work_preflight() {
+        let mut path = DerivationPath::empty();
+        for _ in 0..=MAX_DERIVATION_PATH_AXES {
+            path = path.derive(DerivationAxis::normal(0));
+        }
+
+        assert_eq!(path.len(), MAX_DERIVATION_PATH_AXES + 1);
+        assert!(matches!(
+            path.ensure_work_bound(),
+            Err(Error::DerivationFailed)
+        ));
+    }
+
+    #[test]
+    fn depth_capacity_uses_the_same_interoperable_ceiling() {
+        let one = DerivationPath::from_path("m/0").unwrap();
+        assert!(one.ensure_depth_capacity(254).is_ok());
+        assert!(matches!(
+            one.ensure_depth_capacity(255),
+            Err(Error::DerivationFailed)
+        ));
     }
 }

@@ -10,6 +10,7 @@
 //! Questions.
 
 use crate::derivation::path::{DerivationAxis, DerivationPath};
+use crate::derivation::{MAX_DERIVATION_PATH_AXES, MAX_HD_SEED_BYTES, MIN_HD_SEED_BYTES};
 use crate::error::Error;
 use crate::hash::hmac_sha512;
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
@@ -28,7 +29,7 @@ pub struct EdHDKey {
     pub private_key: [u8; KEY_SIZE],
     /// The 32-byte chain code. Any copied value becomes caller-owned secret material.
     pub chain_code: [u8; KEY_SIZE],
-    /// The depth in the derivation tree.
+    /// The depth in the derivation tree (at most 255 for derivation methods).
     pub depth: u32,
     /// The child index that produced this key.
     pub index: u32,
@@ -44,9 +45,13 @@ impl std::fmt::Debug for EdHDKey {
 }
 
 impl EdHDKey {
-    /// Derive the master ed25519 HD key from a seed via SLIP-0010's master step
-    /// (HMAC-SHA512 keyed with `"ed25519 seed"`).
+    /// Derive the master ed25519 HD key from a 16–64-byte seed via SLIP-0010's
+    /// master step (HMAC-SHA512 keyed with `"ed25519 seed"`).
     pub fn init_from_seed(seed: &[u8]) -> Result<Self, Error> {
+        if !(MIN_HD_SEED_BYTES..=MAX_HD_SEED_BYTES).contains(&seed.len()) {
+            return Err(Error::DerivationFailed);
+        }
+
         let i = Zeroizing::new(hmac_sha512(MASTER_KEY, seed));
         let mut private_key = [0u8; KEY_SIZE];
         let mut chain_code = [0u8; KEY_SIZE];
@@ -62,11 +67,17 @@ impl EdHDKey {
 
     /// Derive a hardened child key. SLIP-0010 ed25519 supports hardened
     /// derivation only; for ed25519 the child private key IS the IL half of the
-    /// HMAC output (no scalar addition).
+    /// HMAC output (no scalar addition). A parent at depth 255 is rejected
+    /// before HMAC work.
     pub fn derive_child(&self, axis: DerivationAxis) -> Result<Self, Error> {
         if !axis.is_hardened() {
             return Err(Error::DerivationFailed);
         }
+        let depth = self
+            .depth
+            .checked_add(1)
+            .filter(|depth| *depth <= MAX_DERIVATION_PATH_AXES as u32)
+            .ok_or(Error::DerivationFailed)?;
         // data = 0x00 || ser256(k_par) || ser32(i)
         let mut data = Zeroizing::new(Vec::with_capacity(1 + KEY_SIZE + 4));
         data.push(0x00);
@@ -80,7 +91,7 @@ impl EdHDKey {
         Ok(Self {
             private_key,
             chain_code,
-            depth: self.depth + 1,
+            depth,
             index: axis.raw(),
         })
     }
@@ -89,6 +100,7 @@ impl EdHDKey {
     /// are permitted for ed25519.
     pub fn derive(&self, path: &str) -> Result<Self, Error> {
         let parsed = DerivationPath::from_path(path)?;
+        parsed.ensure_depth_capacity(self.depth)?;
         let mut current = self.clone();
         for axis in parsed.axes() {
             current = current.derive_child(*axis)?;

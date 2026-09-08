@@ -9,6 +9,7 @@ use identus_crypto::convert::ConvertEd25519;
 use identus_crypto::derivation::{EdHDKey, HDKey, MnemonicHelper};
 use identus_crypto::ed25519::Ed25519PrivateKey;
 use identus_crypto::{Base64UrlStrNoPad, Error, SecureRandom};
+use identus_crypto::{MAX_DERIVATION_PATH_AXES, MAX_HD_SEED_BYTES, MIN_HD_SEED_BYTES};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
 const SAMPLE_32: [u8; 32] = [
@@ -58,6 +59,42 @@ fn explicit_hd_key_zeroization_clears_owned_state() {
 const BIP32_SEED: [u8; 16] = [
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
 ];
+
+#[test]
+fn slip0010_accepts_every_normative_seed_length() {
+    for length in MIN_HD_SEED_BYTES..=MAX_HD_SEED_BYTES {
+        assert!(EdHDKey::init_from_seed(&vec![0x42; length]).is_ok());
+    }
+}
+
+#[test]
+fn slip0010_rejects_seed_lengths_outside_the_normative_range() {
+    assert!(matches!(
+        EdHDKey::init_from_seed(&[0x42; MIN_HD_SEED_BYTES - 1]),
+        Err(Error::DerivationFailed)
+    ));
+    assert!(matches!(
+        EdHDKey::init_from_seed(&[0x42; MAX_HD_SEED_BYTES + 1]),
+        Err(Error::DerivationFailed)
+    ));
+}
+
+#[test]
+fn stateful_hd_keys_reject_children_beyond_depth_255() {
+    let mut hd = HDKey::init_from_seed(&BIP32_SEED).unwrap();
+    hd.depth = MAX_DERIVATION_PATH_AXES as u32;
+    assert!(matches!(
+        hd.derive_child(identus_crypto::path::DerivationAxis::hardened(0)),
+        Err(Error::DerivationFailed)
+    ));
+
+    let mut ed = EdHDKey::init_from_seed(&BIP32_SEED).unwrap();
+    ed.depth = MAX_DERIVATION_PATH_AXES as u32;
+    assert!(matches!(
+        ed.derive_child(identus_crypto::path::DerivationAxis::hardened(0)),
+        Err(Error::DerivationFailed)
+    ));
+}
 
 // Vector 2 seed (64 bytes).
 const BIP32_V2_SEED: [u8; 64] = [

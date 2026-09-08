@@ -4,6 +4,21 @@
 //! `derivation`. Cardano/IOG Ed25519-BIP32 V2 support is independently gated
 //! by `cardano-bip32`.
 
+/// Maximum UTF-8 byte length accepted by a textual derivation path.
+pub const MAX_DERIVATION_PATH_BYTES: usize = 4_096;
+
+/// Maximum number of child axes accepted by a derivation operation.
+///
+/// BIP-32 serializes depth in one byte, so 255 is the deepest interoperable
+/// non-master node.
+pub const MAX_DERIVATION_PATH_AXES: usize = u8::MAX as usize;
+
+/// Minimum seed length accepted by BIP-32 and SLIP-0010 master derivation.
+pub const MIN_HD_SEED_BYTES: usize = 16;
+
+/// Maximum seed length accepted by BIP-32 and SLIP-0010 master derivation.
+pub const MAX_HD_SEED_BYTES: usize = 64;
+
 #[cfg(feature = "cardano-bip32")]
 pub mod cardano_v2;
 #[cfg(feature = "derivation")]

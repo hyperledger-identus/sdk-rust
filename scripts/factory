@@ -130,11 +130,25 @@ archive_change() {
   local change_root="$factory_root/openspec/changes/$change_name"
   [[ -d "$change_root" ]] || fail "active change not found: $change_name"
 
-  local archive_date expected_archive
-  archive_date=$(LC_ALL=C date +%F) || fail "cannot determine archive date"
-  expected_archive="$factory_root/openspec/changes/archive/$archive_date-$change_name"
-  if [[ -e "$expected_archive" || -L "$expected_archive" ]]; then
-    fail "archive destination already exists: ${expected_archive#"$factory_root/"}"
+  local archive_root="$factory_root/openspec/changes/archive"
+  [[ -d "$archive_root" && ! -L "$archive_root" ]] \
+    || fail "archive root is not a regular directory: ${archive_root#"$factory_root/"}"
+
+  local archive_candidate
+  local -a archive_before=()
+  for archive_candidate in "$archive_root"/????-??-??-"$change_name"; do
+    if [[ -e "$archive_candidate" || -L "$archive_candidate" ]]; then
+      archive_before+=("$archive_candidate")
+    fi
+  done
+
+  # Preserve the early collision guard for the pinned OpenSpec version's UTC
+  # destination, but do not use this prediction as the completion receipt.
+  local current_utc_date current_utc_archive
+  current_utc_date=$(LC_ALL=C date -u +%F) || fail "cannot determine current UTC date"
+  current_utc_archive="$archive_root/$current_utc_date-$change_name"
+  if [[ -e "$current_utc_archive" || -L "$current_utc_archive" ]]; then
+    fail "archive destination already exists: ${current_utc_archive#"$factory_root/"}"
   fi
 
   ready_change "$change_name"
@@ -144,8 +158,36 @@ archive_change() {
   if [[ -e "$change_root" || -L "$change_root" ]]; then
     fail "OpenSpec returned without removing active change: $change_name"
   fi
+
+  local archive_was_present
+  local -a archive_new=()
+  for archive_candidate in "$archive_root"/????-??-??-"$change_name"; do
+    if [[ ! -e "$archive_candidate" && ! -L "$archive_candidate" ]]; then
+      continue
+    fi
+
+    archive_was_present=false
+    local previous_archive
+    if [[ ${archive_before[0]+set} == set ]]; then
+      for previous_archive in "${archive_before[@]}"; do
+        if [[ "$archive_candidate" == "$previous_archive" ]]; then
+          archive_was_present=true
+          break
+        fi
+      done
+    fi
+    if [[ "$archive_was_present" == false ]]; then
+      archive_new+=("$archive_candidate")
+    fi
+  done
+
+  if (( ${#archive_new[@]} != 1 )); then
+    fail "OpenSpec returned with ${#archive_new[@]} new matching archives for $change_name; expected exactly one"
+  fi
+
+  local expected_archive=${archive_new[0]}
   if [[ ! -d "$expected_archive" || -L "$expected_archive" ]]; then
-    fail "OpenSpec returned without creating expected archive: ${expected_archive#"$factory_root/"}"
+    fail "new archive is not a regular directory: ${expected_archive#"$factory_root/"}"
   fi
 
   local required_artifact

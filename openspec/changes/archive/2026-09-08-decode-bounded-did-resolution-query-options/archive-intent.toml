@@ -1,0 +1,11 @@
+[[modified_requirement]]
+capability       = "did-resolution-http"
+requirement      = "Bounded composable DID resolution route"
+canonical_sha256 = "e5973d41eac95004b3b0c762a41d273489db7b029b2f57b9e2a4256a5ee39f35"
+reason           = "Replace the deliberate temporary blanket query rejection with the separately specified bounded GET resolution-option contract."
+
+[[modified_requirement]]
+capability       = "did-resolution-http"
+requirement      = "Resolution projection preserves W3C state"
+canonical_sha256 = "5893ade748495199d9724713a1c0f36ac8708258485c1f13029e8452c4ff38c7"
+reason           = "Preserve decoded non-accept query options in both complete-result and document projection modes."

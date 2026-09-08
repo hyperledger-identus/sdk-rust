@@ -1,11 +1,16 @@
 //! Bounded Axum binding for the W3C DID Resolution HTTP interface.
 //!
 //! This outer-boundary crate maps one fixed `GET /{did}` route to an injected
-//! [`identus_did::DidResolver`]. It owns HTTP content negotiation, status and
-//! response projection only. DID method behavior, server execution, TLS,
+//! [`identus_did::DidResolver`]. It owns HTTP content negotiation, bounded
+//! resolution-option decoding, status and response projection only. DID method
+//! behavior, server execution, TLS,
 //! middleware and deployment policy remain with the consumer.
 
-use std::{collections::BTreeMap, str::FromStr, sync::Arc};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    str::FromStr,
+    sync::Arc,
+};
 
 use axum::{
     Router,
@@ -17,8 +22,8 @@ use axum::{
 use headers_accept::Accept;
 use identus_core::Component;
 use identus_did::{
-    Did, DidResolutionError, DidResolutionErrorKind, DidResolutionMetadata, DidResolutionResult,
-    DidResolver, MediaType as DidMediaType, ResolutionOptions,
+    Did, DidResolutionDateTime, DidResolutionError, DidResolutionErrorKind, DidResolutionMetadata,
+    DidResolutionResult, DidResolver, MediaType as DidMediaType, ResolutionOptions, VersionId,
 };
 use mediatype::{MediaType, Name, ReadParams, names};
 
@@ -32,6 +37,14 @@ pub const APPLICATION_JSON: &str = "application/json";
 pub const MAX_ACCEPT_HEADER_BYTES: usize = 8 * 1_024;
 /// Maximum media ranges accepted across all `Accept` field values.
 pub const MAX_ACCEPT_MEDIA_RANGES: usize = 32;
+/// Maximum raw bytes accepted in the resolution-options query.
+pub const MAX_RESOLUTION_QUERY_BYTES: usize = 8 * 1_024;
+/// Maximum parameters accepted in the resolution-options query.
+pub const MAX_RESOLUTION_QUERY_PARAMETERS: usize = 32;
+/// Maximum bytes accepted in one decoded resolution-option name.
+pub const MAX_RESOLUTION_QUERY_NAME_BYTES: usize = 256;
+/// Maximum bytes accepted in one decoded resolution-option value.
+pub const MAX_RESOLUTION_QUERY_VALUE_BYTES: usize = 4 * 1_024;
 
 const APPLICATION: Name<'static> = names::APPLICATION;
 const DID: Name<'static> = Name::new_unchecked("did");
@@ -94,14 +107,6 @@ async fn resolve_did(
     path: Result<Path<String>, PathRejection>,
     headers: HeaderMap,
 ) -> Response {
-    if raw_query
-        .0
-        .as_deref()
-        .is_some_and(|query| !query.is_empty())
-    {
-        return standard_error_response(DidResolutionErrorKind::InvalidOptions);
-    }
-
     let Ok(Path(value)) = path else {
         return standard_error_response(DidResolutionErrorKind::InvalidDid);
     };
@@ -112,18 +117,9 @@ async fn resolve_did(
         Ok(value) => value,
         Err(kind) => return standard_error_response(kind),
     };
-
-    let options = match representation {
-        Representation::ResolutionResult => ResolutionOptions::empty(),
-        Representation::Document(media_type) => {
-            let Ok(media_type) = DidMediaType::parse(media_type) else {
-                return static_internal_error_response();
-            };
-            let Ok(options) = ResolutionOptions::builder().accept(media_type).build() else {
-                return static_internal_error_response();
-            };
-            options
-        }
+    let options = match decode_resolution_options(raw_query.0.as_deref(), representation) {
+        Ok(value) => value,
+        Err(kind) => return standard_error_response(kind),
     };
 
     let result = state.resolver.resolve(&did, &options).await;
@@ -131,6 +127,134 @@ async fn resolve_did(
         return standard_error_response(DidResolutionErrorKind::InternalError);
     }
     project_result(&result, representation)
+}
+
+fn decode_resolution_options(
+    raw_query: Option<&str>,
+    representation: Representation,
+) -> Result<ResolutionOptions, DidResolutionErrorKind> {
+    let accept = match representation {
+        Representation::ResolutionResult => None,
+        Representation::Document(media_type) => Some(
+            DidMediaType::parse(media_type).map_err(|_| DidResolutionErrorKind::InternalError)?,
+        ),
+    };
+
+    let Some(query) = raw_query.filter(|query| !query.is_empty()) else {
+        return ResolutionOptions::new(accept, None, None, None, None, BTreeMap::new())
+            .map_err(|_| DidResolutionErrorKind::InternalError);
+    };
+    if query.len() > MAX_RESOLUTION_QUERY_BYTES {
+        return Err(DidResolutionErrorKind::InvalidOptions);
+    }
+
+    let mut names = BTreeSet::new();
+    let mut expand_relative_urls = None;
+    let mut no_cache = None;
+    let mut version_id = None;
+    let mut version_time = None;
+    let mut extensions = BTreeMap::new();
+
+    for (index, parameter) in query.split('&').enumerate() {
+        if index >= MAX_RESOLUTION_QUERY_PARAMETERS {
+            return Err(DidResolutionErrorKind::InvalidOptions);
+        }
+        let (raw_name, raw_value) = parameter
+            .split_once('=')
+            .ok_or(DidResolutionErrorKind::InvalidOptions)?;
+        let name = percent_decode_query_component(raw_name, MAX_RESOLUTION_QUERY_NAME_BYTES)?;
+        let value = percent_decode_query_component(raw_value, MAX_RESOLUTION_QUERY_VALUE_BYTES)?;
+        if name.is_empty()
+            || name.chars().any(char::is_control)
+            || value.chars().any(char::is_control)
+            || !names.insert(name.clone())
+        {
+            return Err(DidResolutionErrorKind::InvalidOptions);
+        }
+
+        match name.as_str() {
+            "accept" => return Err(DidResolutionErrorKind::InvalidOptions),
+            "expandRelativeUrls" => expand_relative_urls = Some(parse_query_bool(&value)?),
+            "noCache" => no_cache = Some(parse_query_bool(&value)?),
+            "versionId" => {
+                version_id = Some(
+                    VersionId::try_new(value)
+                        .map_err(|_| DidResolutionErrorKind::InvalidOptions)?,
+                );
+            }
+            "versionTime" => {
+                version_time = Some(
+                    DidResolutionDateTime::try_new(value)
+                        .map_err(|_| DidResolutionErrorKind::InvalidOptions)?,
+                );
+            }
+            _ => {
+                extensions.insert(name, serde_json::Value::String(value));
+            }
+        }
+    }
+
+    if version_id.is_some() && version_time.is_some() {
+        return Err(DidResolutionErrorKind::InvalidOptions);
+    }
+    ResolutionOptions::new(
+        accept,
+        expand_relative_urls,
+        no_cache,
+        version_id,
+        version_time,
+        extensions,
+    )
+    .map_err(|_| DidResolutionErrorKind::InvalidOptions)
+}
+
+fn percent_decode_query_component(
+    value: &str,
+    max_decoded_bytes: usize,
+) -> Result<String, DidResolutionErrorKind> {
+    let bytes = value.as_bytes();
+    let mut decoded = Vec::with_capacity(bytes.len().min(max_decoded_bytes));
+    let mut index = 0;
+    while index < bytes.len() {
+        let byte = if bytes[index] == b'%' {
+            let high = bytes
+                .get(index + 1)
+                .and_then(|byte| hex_value(*byte))
+                .ok_or(DidResolutionErrorKind::InvalidOptions)?;
+            let low = bytes
+                .get(index + 2)
+                .and_then(|byte| hex_value(*byte))
+                .ok_or(DidResolutionErrorKind::InvalidOptions)?;
+            index += 3;
+            (high << 4) | low
+        } else {
+            let byte = bytes[index];
+            index += 1;
+            byte
+        };
+        if decoded.len() >= max_decoded_bytes {
+            return Err(DidResolutionErrorKind::InvalidOptions);
+        }
+        decoded.push(byte);
+    }
+    String::from_utf8(decoded).map_err(|_| DidResolutionErrorKind::InvalidOptions)
+}
+
+const fn hex_value(byte: u8) -> Option<u8> {
+    match byte {
+        b'0'..=b'9' => Some(byte - b'0'),
+        b'a'..=b'f' => Some(byte - b'a' + 10),
+        b'A'..=b'F' => Some(byte - b'A' + 10),
+        _ => None,
+    }
+}
+
+fn parse_query_bool(value: &str) -> Result<bool, DidResolutionErrorKind> {
+    match value {
+        "true" => Ok(true),
+        "false" => Ok(false),
+        _ => Err(DidResolutionErrorKind::InvalidOptions),
+    }
 }
 
 fn negotiate(headers: &HeaderMap) -> Result<Representation, DidResolutionErrorKind> {

@@ -1,8 +1,7 @@
-# did-resolution-http Specification
+# DID Resolution HTTP delta
 
-## Purpose
-TBD - created by archiving change add-bounded-did-resolution-http. Update Purpose after archive.
-## Requirements
+## MODIFIED Requirements
+
 ### Requirement: Bounded composable DID resolution route
 
 The SDK SHALL provide an unpublished outer-boundary Axum router with fixed
@@ -18,42 +17,13 @@ NOT appear in errors.
 
 #### Scenario: Consumer nests the state-closed router
 
-- **WHEN** a consumer nests the returned router at an arbitrary prefix and requests a valid encoded DID
+- **WHEN** a consumer nests the router and requests a valid encoded DID
 - **THEN** the injected resolver receives the validated DID without additional state wiring or dynamic route parsing
 
 #### Scenario: Invalid path input fails as a W3C result
 
 - **WHEN** path decoding or DID validation fails
 - **THEN** the response is HTTP 400 with a bounded `application/did-resolution` error result and no echoed input
-
-### Requirement: Bounded RFC-shaped content negotiation
-
-The adapter SHALL support exactly `application/did-resolution`,
-`application/did` and `application/json`. A missing `Accept` SHALL select
-`application/did`; wildcards, media-range specificity, quality and client
-ordering SHALL follow RFC 9110. Repeated fields SHALL be treated as one list.
-
-Aggregate `Accept` bytes SHALL NOT exceed 8 KiB and media ranges SHALL NOT
-exceed 32 before negotiation. Empty ranges, malformed quoting or parameters,
-duplicate `q`, and a quality outside RFC 9110's zero-to-one three-decimal form
-SHALL return `invalidOptions`/400. A syntactically valid list with no supported
-representation SHALL return `representationNotSupported`/406. Negotiation
-dependencies SHALL remain private.
-
-#### Scenario: Quality and specificity select one supported representation
-
-- **WHEN** repeated or single `Accept` fields contain supported media ranges with valid quality, specificity and wildcard relationships
-- **THEN** the highest-precedence acceptable representation is selected deterministically and the resolver is called once
-
-#### Scenario: Malformed negotiation fails closed
-
-- **WHEN** the aggregate header is oversized, has too many ranges, invalid text, malformed quoting, an invalid quality or duplicate `q`
-- **THEN** the resolver is not called and an `invalidOptions` HTTP 400 result is returned
-
-#### Scenario: Valid unsupported negotiation returns 406
-
-- **WHEN** every valid acceptable range excludes all three supported representations
-- **THEN** the resolver is not called and a `representationNotSupported` HTTP 406 result is returned
 
 ### Requirement: Resolution projection preserves W3C state
 
@@ -65,27 +35,10 @@ that result metadata contains the same content type. Every other decoded query
 option SHALL be preserved in both projection modes. Missing or mismatched
 success fields SHALL become a standard internal-error HTTP 500 result.
 
-Standard result errors SHALL map to the pinned W3C status table: invalid DID,
-invalid DID URL and invalid options to 400; not found to 404; representation
-not supported to 406; invalid DID document and internal/extension errors to
-500; method and feature not supported to 501. Deactivated metadata SHALL map
-to 410. Error/deactivated bodies SHALL always be complete results with
-`application/did-resolution`. Every response SHALL carry `Vary: Accept`.
-
-#### Scenario: Full result is requested without query options
-
-- **WHEN** `application/did-resolution` is selected, no query options are supplied and the resolver succeeds
-- **THEN** the resolver receives empty options and HTTP 200 returns the entire bounded result with the resolution media type
-
-#### Scenario: Document representation is requested
-
-- **WHEN** `application/did` or `application/json` is selected and resolver success metadata matches it
-- **THEN** the resolver receives that exact accept option and HTTP 200 returns only the DID document with the matching content type
-
-#### Scenario: Resolver state controls the HTTP status
-
-- **WHEN** the resolver returns a standard failure, extension failure or deactivated result
-- **THEN** the adapter returns the specified HTTP status and complete resolution result without replacing or leaking its bounded public data
+Standard result errors SHALL retain the pinned W3C status mapping. Deactivated
+metadata SHALL map to 410. Error/deactivated bodies SHALL always be complete
+results with `application/did-resolution`. Every response SHALL carry
+`Vary: Accept`.
 
 #### Scenario: Full result preserves non-accept options
 
@@ -101,6 +54,8 @@ to 410. Error/deactivated bodies SHALL always be complete results with
 
 - **WHEN** a document response lacks a document or matching metadata content type, or bounded serialization unexpectedly fails
 - **THEN** the adapter does not emit a mislabeled success and returns a static/redacted internal failure
+
+## ADDED Requirements
 
 ### Requirement: Strict bounded GET resolution options
 

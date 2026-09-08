@@ -17,7 +17,13 @@ const TEST_DID: &str = "did:example:123";
 #[derive(Debug)]
 struct RecordingResolver {
     result: DidResolutionResult,
-    calls: Mutex<Vec<(String, Option<String>)>>,
+    calls: Mutex<Vec<RecordedCall>>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct RecordedCall {
+    did: String,
+    options: ResolutionOptions,
 }
 
 impl RecordingResolver {
@@ -28,7 +34,7 @@ impl RecordingResolver {
         }
     }
 
-    fn calls(&self) -> Vec<(String, Option<String>)> {
+    fn calls(&self) -> Vec<RecordedCall> {
         self.calls.lock().unwrap().clone()
     }
 }
@@ -39,10 +45,10 @@ impl DidResolver for RecordingResolver {
         did: &'a Did,
         options: &'a ResolutionOptions,
     ) -> DidResolutionFuture<'a> {
-        self.calls.lock().unwrap().push((
-            did.as_str().to_owned(),
-            options.accept().map(|value| value.as_str().to_owned()),
-        ));
+        self.calls.lock().unwrap().push(RecordedCall {
+            did: did.as_str().to_owned(),
+            options: options.clone(),
+        });
         let result = self.result.clone();
         Box::pin(async move { result })
     }
@@ -136,7 +142,13 @@ async fn missing_accept_defaults_to_did_document() {
     assert!(body.get("didResolutionMetadata").is_none());
     assert_eq!(
         resolver.calls(),
-        vec![(TEST_DID.to_owned(), Some(APPLICATION_DID.to_owned()))]
+        vec![RecordedCall {
+            did: TEST_DID.to_owned(),
+            options: ResolutionOptions::builder()
+                .accept(DidMediaType::parse(APPLICATION_DID).unwrap())
+                .build()
+                .unwrap(),
+        }]
     );
 }
 
@@ -161,7 +173,7 @@ async fn router_nests_and_decodes_exactly_one_http_path_layer() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(resolver.calls()[0].0, TEST_DID);
+    assert_eq!(resolver.calls()[0].did, TEST_DID);
 
     let escaped_did = "did:example:abc%2Fdef";
     let resolver = Arc::new(RecordingResolver::new(success_result(
@@ -171,7 +183,7 @@ async fn router_nests_and_decodes_exactly_one_http_path_layer() {
     let (status, _, body) = send(resolver.clone(), "/did%3Aexample%3Aabc%252Fdef", &[]).await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["id"], escaped_did);
-    assert_eq!(resolver.calls()[0].0, escaped_did);
+    assert_eq!(resolver.calls()[0].did, escaped_did);
 }
 
 #[tokio::test]
@@ -221,7 +233,8 @@ async fn full_result_uses_empty_resolution_options() {
     assert_eq!(status, StatusCode::OK);
     assert_resolution_headers(&headers, APPLICATION_DID_RESOLUTION);
     assert_eq!(body["didDocument"]["id"], TEST_DID);
-    assert_eq!(resolver.calls(), vec![(TEST_DID.to_owned(), None)]);
+    assert_eq!(resolver.calls()[0].did, TEST_DID);
+    assert_eq!(resolver.calls()[0].options, ResolutionOptions::empty());
 }
 
 #[tokio::test]
@@ -238,7 +251,13 @@ async fn json_document_passes_exact_accept_option() {
     assert_eq!(body["id"], TEST_DID);
     assert_eq!(
         resolver.calls(),
-        vec![(TEST_DID.to_owned(), Some(APPLICATION_JSON.to_owned()))]
+        vec![RecordedCall {
+            did: TEST_DID.to_owned(),
+            options: ResolutionOptions::builder()
+                .accept(DidMediaType::parse(APPLICATION_JSON).unwrap())
+                .build()
+                .unwrap(),
+        }]
     );
 }
 
@@ -266,7 +285,13 @@ async fn wildcard_quality_specificity_and_repeated_fields_are_honored() {
     assert_resolution_headers(&headers, APPLICATION_JSON);
     assert_eq!(
         quality.calls(),
-        vec![(TEST_DID.to_owned(), Some(APPLICATION_JSON.to_owned()))]
+        vec![RecordedCall {
+            did: TEST_DID.to_owned(),
+            options: ResolutionOptions::builder()
+                .accept(DidMediaType::parse(APPLICATION_JSON).unwrap())
+                .build()
+                .unwrap(),
+        }]
     );
 
     let client_order = Arc::new(RecordingResolver::new(success_result(
@@ -342,11 +367,11 @@ async fn accept_resource_limits_fail_before_resolution() {
 }
 
 #[tokio::test]
-async fn invalid_did_path_and_nonempty_query_fail_without_resolution() {
+async fn invalid_did_path_and_malformed_query_fail_without_resolution() {
     for (uri, suffix) in [
         ("/not-a-did", "#INVALID_DID"),
         ("/%FF", "#INVALID_DID"),
-        ("/did:example:123?versionId=1", "#INVALID_OPTIONS"),
+        ("/did:example:123?versionId", "#INVALID_OPTIONS"),
     ] {
         let resolver = Arc::new(RecordingResolver::new(success_result(
             TEST_DID,
@@ -356,6 +381,165 @@ async fn invalid_did_path_and_nonempty_query_fail_without_resolution() {
         assert_eq!(status, StatusCode::BAD_REQUEST);
         assert_resolution_headers(&headers, APPLICATION_DID_RESOLUTION);
         assert!(error_type(&body).ends_with(suffix));
+        assert!(resolver.calls().is_empty());
+    }
+}
+
+#[tokio::test]
+async fn query_options_are_typed_and_preserve_uri_query_semantics() {
+    let resolver = Arc::new(RecordingResolver::new(success_result(
+        TEST_DID,
+        Some(APPLICATION_DID),
+    )));
+    let uri = concat!(
+        "/did:example:123?expandRelativeUrls=false&noCache=true&",
+        "versionTime=2020-12-20T19:17:47Z&network=preprod+lane%26x%3Dy"
+    );
+    let (status, headers, body) = send(resolver.clone(), uri, &[APPLICATION_DID_RESOLUTION]).await;
+
+    assert_eq!(status, StatusCode::OK);
+    assert_resolution_headers(&headers, APPLICATION_DID_RESOLUTION);
+    assert_eq!(body["didDocument"]["id"], TEST_DID);
+
+    let calls = resolver.calls();
+    assert_eq!(calls.len(), 1);
+    let options = &calls[0].options;
+    assert!(options.accept().is_none());
+    assert_eq!(options.expand_relative_urls(), Some(false));
+    assert_eq!(options.no_cache(), Some(true));
+    assert!(options.version_id().is_none());
+    assert_eq!(
+        options.version_time().unwrap().as_str(),
+        "2020-12-20T19:17:47Z"
+    );
+    assert_eq!(
+        options.extensions().get("network"),
+        Some(&Value::String("preprod+lane&x=y".to_owned()))
+    );
+}
+
+#[tokio::test]
+async fn query_options_merge_with_document_representation() {
+    let resolver = Arc::new(RecordingResolver::new(success_result(
+        TEST_DID,
+        Some(APPLICATION_JSON),
+    )));
+    let (status, headers, body) = send(
+        resolver.clone(),
+        "/did:example:123?versionId=ledger-42&methodOption=",
+        &[APPLICATION_JSON],
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK);
+    assert_resolution_headers(&headers, APPLICATION_JSON);
+    assert_eq!(body["id"], TEST_DID);
+
+    let calls = resolver.calls();
+    assert_eq!(calls.len(), 1);
+    let options = &calls[0].options;
+    assert_eq!(options.accept().unwrap().as_str(), APPLICATION_JSON);
+    assert_eq!(options.version_id().unwrap().as_str(), "ledger-42");
+    assert_eq!(
+        options.extensions().get("methodOption"),
+        Some(&Value::String(String::new()))
+    );
+}
+
+#[tokio::test]
+async fn malformed_query_options_fail_closed_without_resolution() {
+    let cases = [
+        "accept=application%2Fdid",
+        "noCache=TRUE",
+        "expandRelativeUrls=1",
+        "versionId=",
+        "versionTime=not-a-datetime",
+        "versionId=1&versionTime=2020-12-20T19:17:47Z",
+        "x=1&x=2",
+        "x=1&%78=2",
+        "=value",
+        "missing-equals",
+        "x=%",
+        "x=%GG",
+        "x=%FF",
+        "x=%00",
+        "%00=value",
+        "x=1&&y=2",
+    ];
+
+    for query in cases {
+        let resolver = Arc::new(RecordingResolver::new(success_result(
+            TEST_DID,
+            Some(APPLICATION_DID),
+        )));
+        let (status, headers, body) =
+            send(resolver.clone(), &format!("/did:example:123?{query}"), &[]).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "query={query}");
+        assert_resolution_headers(&headers, APPLICATION_DID_RESOLUTION);
+        assert!(error_type(&body).ends_with("#INVALID_OPTIONS"));
+        assert!(resolver.calls().is_empty(), "query={query}");
+        assert!(!body.to_string().contains(query));
+    }
+}
+
+#[test]
+fn exact_query_resource_ceilings_are_accepted() {
+    let exact_name = format!("{}=", "n".repeat(MAX_RESOLUTION_QUERY_NAME_BYTES));
+    assert!(decode_resolution_options(Some(&exact_name), Representation::ResolutionResult).is_ok());
+
+    let exact_value = format!("value={}", "v".repeat(MAX_RESOLUTION_QUERY_VALUE_BYTES));
+    assert!(
+        decode_resolution_options(Some(&exact_value), Representation::ResolutionResult).is_ok()
+    );
+
+    let exact_parameters = (0..MAX_RESOLUTION_QUERY_PARAMETERS)
+        .map(|index| format!("p{index}="))
+        .collect::<Vec<_>>()
+        .join("&");
+    assert!(
+        decode_resolution_options(Some(&exact_parameters), Representation::ResolutionResult)
+            .is_ok()
+    );
+
+    let exact_raw = format!("a={}&b={}", "a".repeat(4_095), "b".repeat(4_092));
+    assert_eq!(exact_raw.len(), MAX_RESOLUTION_QUERY_BYTES);
+    assert!(decode_resolution_options(Some(&exact_raw), Representation::ResolutionResult).is_ok());
+}
+
+#[tokio::test]
+async fn exceeded_query_resource_ceilings_fail_before_resolution() {
+    let too_long_name = format!(
+        "{}=",
+        "n".repeat(MAX_RESOLUTION_QUERY_NAME_BYTES.saturating_add(1))
+    );
+    let too_long_value = format!(
+        "value={}",
+        "v".repeat(MAX_RESOLUTION_QUERY_VALUE_BYTES.saturating_add(1))
+    );
+    let too_many_parameters = (0..MAX_RESOLUTION_QUERY_PARAMETERS.saturating_add(1))
+        .map(|index| format!("p{index}="))
+        .collect::<Vec<_>>()
+        .join("&");
+    let too_many_raw_bytes = format!("a={}&b={}", "a".repeat(4_095), "b".repeat(4_093));
+    assert_eq!(
+        too_many_raw_bytes.len(),
+        MAX_RESOLUTION_QUERY_BYTES.saturating_add(1)
+    );
+
+    for query in [
+        too_long_name,
+        too_long_value,
+        too_many_parameters,
+        too_many_raw_bytes,
+    ] {
+        let resolver = Arc::new(RecordingResolver::new(success_result(
+            TEST_DID,
+            Some(APPLICATION_DID),
+        )));
+        let (status, _, body) =
+            send(resolver.clone(), &format!("/did:example:123?{query}"), &[]).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert!(error_type(&body).ends_with("#INVALID_OPTIONS"));
         assert!(resolver.calls().is_empty());
     }
 }

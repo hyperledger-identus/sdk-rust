@@ -31,8 +31,8 @@ Implementation head: 2af77774aa34532bf1d5f0f8e5517953e28a6dba
 ## Compiler, target and repository evidence
 
 - Exact toolchain: Rust/Cargo 1.98.1.
-- Complete local `nix flake check --print-build-logs`: all 27 compatible
-  aarch64-Darwin derivations passed, including configured strict Clippy,
+- Complete local `nix flake check --print-build-logs`: all compatible
+  aarch64-Darwin checks passed, including configured strict Clippy,
   workspace/feature tests, builds, docs, formatting, dependency/advisory,
   factory and wasm32/Android/iOS target gates.
 - `scripts/factory check`: 50/50 active change/spec items passed.

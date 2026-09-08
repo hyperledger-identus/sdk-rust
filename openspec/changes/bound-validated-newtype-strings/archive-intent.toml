@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "domain-newtype-macro"
+requirement      = "Fallible `parse` via caller-supplied validation function and error type (string category only)"
+canonical_sha256 = "aece5efa2c9c67e48fff9e3cbfddaba9b7a7e9556687ac4e1b9154fee5dd221d"
+reason           = "Issue #207 intentionally changes validated String borrowed parsing from allocate-then-validate through &String/deref coercion to validate the original &str before ownership, accepting the explicit unpublished source break for validators that accept only &String while preserving owned, serde, numeric, bytes and caller-owned error behavior."

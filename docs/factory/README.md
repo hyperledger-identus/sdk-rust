@@ -113,7 +113,7 @@ nix run .#factory -- check
 | `constraints-ready` | requires explicit constraint/limitation impact and exact authority for material outcomes before implementation |
 | `ready` | requires the named active change and every task to be complete |
 | `receipt` | runs readiness, then prints immutable branch/head/base identifiers |
-| `archive` | runs readiness and preservation preflight, archives through pinned OpenSpec, then validates the resulting store |
+| `archive` | rejects a dated-destination collision, runs readiness and preservation preflight, archives through pinned OpenSpec, then proves the requested move, mandatory artifacts and resulting store before reporting success |
 
 The receipt proves only the factory contract. Rust, target, conformance,
 security and release gates must be attached separately and truthfully.
@@ -146,7 +146,9 @@ or unused entries fail. A missing-intent diagnostic prints the required
 canonical hash without printing the requirement body. Use
 `scripts/factory archive <change>` rather than raw `openspec archive`; the
 facade checks readiness and preservation before any canonical or active-change
-mutation.
+mutation. A zero exit from OpenSpec is not sufficient: the facade reports
+success only when the active change is absent, its exact dated archive exists,
+all mandatory artifacts remain and the resulting store validates.
 
 The SSI backlog checker validates the canonical SDK component ledger offline.
 It rejects missing or duplicate rows, schema and enum drift, non-SDK ownership,

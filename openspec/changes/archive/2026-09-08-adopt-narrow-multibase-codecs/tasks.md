@@ -15,6 +15,6 @@
 ## 3. Verification and delivery
 
 - [x] 3.1 Add official and negative tests for z/u vectors, alphabets, padding, unknown prefixes, empty payloads, canonicality, encoded bounds, serde and native parity.
-- [ ] 3.2 Pass format, factory, Rust 1.98, minimal/default, WASM, Android, iOS, dependency/security and complete compatible Nix gates; record exact counts and intentionally unrun checks.
-- [ ] 3.3 Perform a distinct exact-diff architecture/security review with no unresolved blocker and produce the immutable receipt.
-- [ ] 3.4 Synchronize the canonical spec, archive safely and prepare the signed/DCO issue-linked PR; hosted CI, merge and issue/program receipts remain GitHub evidence.
+- [x] 3.2 Pass format, factory, Rust 1.98, minimal/default, WASM, Android, iOS, dependency/security and complete compatible Nix gates; record exact counts and intentionally unrun checks.
+- [x] 3.3 Perform a distinct exact-diff architecture/security review with no unresolved blocker and produce the immutable receipt.
+- [x] 3.4 Prepare canonical synchronization, safe archive and the signed/DCO issue-linked PR; hosted CI, merge and issue/program receipts remain GitHub evidence.

@@ -13,5 +13,5 @@
 ## 3. Verification and delivery
 
 - [x] 3.1 Add hermetic no-op, collision and successful-transition contract tests.
-- [ ] 3.2 Run focused shell/factory checks and complete local Nix validation.
-- [ ] 3.3 Perform a distinct exact-diff review, record immutable evidence and archive the change safely.
+- [x] 3.2 Run focused shell/factory checks and complete local Nix validation.
+- [x] 3.3 Perform a distinct exact-diff review, record immutable evidence and archive the change safely.

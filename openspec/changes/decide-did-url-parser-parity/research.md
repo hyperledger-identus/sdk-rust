@@ -1,10 +1,10 @@
 # DID URL parser dependency decision
 
 Research class: foundational
-Research status: draft
+Research status: ready
 Decision date: 2026-09-08
 Source retrieval date: 2026-09-08
-Research blockers: corpus and final target evidence pending
+Research blockers: none
 
 ## Problem and existing implementation
 
@@ -30,11 +30,10 @@ allocation rules are explicit product resource constraints, not W3C claims.
 
 ## Candidate decisions
 
-`did_url_parser 0.3.0` is currently a `spike`. Preliminary evidence favors
-`retain-local`: common valid examples match, but grammar, exact serialization,
-resource, allocation, mutability and unsafe stop conditions are already
-present. The disposition becomes ready only after the committed corpus and
-target evidence are reconciled.
+`did_url_parser 0.3.0` completed its `spike` with a `retain-local` decision.
+Common valid examples match, but grammar, exact serialization, resource,
+allocation, mutability and unsafe stop conditions fail. The 30-case curated
+corpus has 7 mismatches; 17,284 generated comparisons have 95 mismatches.
 
 ## Compatibility and dependency evidence
 
@@ -69,8 +68,12 @@ limits, stores untrimmed input after parsing a trimmed view, exposes unchecked
 setters, and includes reachable `unsafe { from_utf8_unchecked(...) }` in its
 public join path. It has no native-code dependency. Its own 19 tests pass on
 Rust 1.98.1, but only 1,024 positive generated DID cases exist and path/query/
-fragment property tests are TODO. Supply-chain advisory evidence and final
-strict-lint/target results remain pending.
+fragment property tests are TODO. WASM, Android and iOS `no_std + alloc` checks
+pass. Strict candidate Clippy fails three Rust 1.98 lifetime-syntax warnings.
+The minimal normal cone passes current advisory scanning; the published
+development lock fails because old `proptest` reaches vulnerable `rand 0.7.3`.
+This supply-chain evidence separates the clean consumer graph from upstream's
+warning-failing development lock rather than implying a runtime advisory.
 
 ## Rejected or deferred candidates
 
@@ -85,20 +88,19 @@ RFC 3986 are Recommendations/standards rather than an evolving protocol draft.
 
 ## Open questions and blockers
 
-The committed differential corpus, aggregate exhaustive results, exact target
-checks, strict Clippy outcome and advisory result must be recorded before this
-research can become ready. No production implementation may begin while these
-blockers remain.
+No research blocker remains. Upstream changes could repair individual issues,
+but opening or contributing them is outside this issue's authority. Adoption
+is stopped independently by multiple current-release incompatibilities.
 
 ## Evidence commands
 
-Commands executed or planned include `cargo test --locked`, `cargo check
+Commands executed include `cargo test --locked`, `cargo check
 --locked --no-default-features --features alloc`, target-specific variants for
 WASM/Android/iOS, `cargo clippy ... -- -D warnings`, `cargo tree --edges normal`,
 source `shasum -a 256`, repository API metadata, the deterministic comparison
-corpus and full SDK `nix flake check`. Intentionally unrun checks at this stage:
-candidate sanitizers, Miri, Windows and a historical MSRV matrix; the repository
-uses Rust 1.98.1 as its active etalon.
+corpus and full SDK `nix flake check`. Intentionally unrun checks are candidate
+sanitizers, Miri, Windows and a historical MSRV matrix: production adoption
+already fails semantic stop conditions, and Rust 1.98.1 is the active etalon.
 
 Reconsideration trigger: a new pinned candidate release must reject surrounding
 controls/whitespace, trailing-colon and non-HEXDIG percent inputs; provide

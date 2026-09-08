@@ -1,0 +1,11 @@
+[package]
+name    = "did-url-parser-parity"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+did_url_parser = { version = "=0.3.0", default-features = false, features = [ "alloc" ] }
+identus-did    = { path = "../../../../crates/did" }

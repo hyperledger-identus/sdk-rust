@@ -173,7 +173,7 @@ SDK cone smaller for some candidates.
 | `multihash` | 0.19.5 | 1.81 | 2 | `conditional-adopt` | Bare structural codec with high cohesion, but no current method consumes multihash; require a named normative consumer before production adoption. |
 | `multibase` | 0.9.3 | not declared | 14; 9 incremental names | `not-adopt` for current boundary | Compiler-compatible under Rust 1.98.1, but unused Base45/Base256Emoji and build macros make the cone disproportionate; reconsider when features are sliced or named consumers need more bases. |
 | `bs58` plus existing `base64` | 0.5.1 plus 0.22.1 | not declared; 1.48 | 1 new package | `adopt` | Reuses the two required base algorithms; Identus owns only the private `z`/`u` dispatch, canonicality, bounds and errors. |
-| `did_url_parser` | 0.3.0 | not declared | 3 | `spike` | Narrow and `no_std`; parity must be proven before superseding ADR 0008 and changing accepted syntax/errors. |
+| `did_url_parser` | 0.3.0 | not declared | 3 | `retain-local` | Portable and narrow, but fails exact grammar/storage, pre-allocation limits, owned reuse, immutable facade and unsafe-reach gates; ADR 0086 preserves the corpus. |
 | `identity_did` | 1.5.1 | not declared | 138 | `oracle` | Mature generic API and used by NeoPRISM, but broad model/cone would replace Identus ownership. |
 | `identity_document` | 1.5.1 | not declared | 140 | `oracle` | Useful document and validation differential source; too coupled for the core domain facade. |
 | `identity_credential` | 1.5.1 | not declared | 146 | `oracle` | Useful VC evidence, but current SD-JWT code references old drafts and imports framework policy. |
@@ -281,7 +281,7 @@ separate from the final `ready` gate.
 | 5 | [#156 — multibase carriers](https://github.com/hyperledger-identus/sdk-rust/issues/156) | adopt narrow `bs58` plus existing Base64; reject broad `multibase` cone per ADR 0085 |
 | 6 | [#157 — RFC 3986 engine](https://github.com/hyperledger-identus/sdk-rust/issues/157) | `adopt` with parser parity |
 | 7 | [#158 — form encoding](https://github.com/hyperledger-identus/sdk-rust/issues/158) | `not-adopt`; retain the strict bounded local codec per ADR 0083 |
-| 8 | [#159 — DID parser parity](https://github.com/hyperledger-identus/sdk-rust/issues/159) | `spike` |
+| 8 | [#159 — DID parser parity](https://github.com/hyperledger-identus/sdk-rust/issues/159) | `retain-local` per ADR 0086 |
 | 9 | [#160 — OAuth mechanics](https://github.com/hyperledger-identus/sdk-rust/issues/160) | `spike` |
 | 10 | [#161 — isomdl](https://github.com/hyperledger-identus/sdk-rust/issues/161) | `spike` |
 | 11 | [#162 — Askar](https://github.com/hyperledger-identus/sdk-rust/issues/162) | `spike` |

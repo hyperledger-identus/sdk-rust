@@ -13,6 +13,6 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Pass focused DID, workspace, factory, format, and Nix gates.
-- [ ] 3.2 Perform a distinct exact-diff security, compatibility, and architecture review.
-- [ ] 3.3 Synchronize canonical specs, archive safely, sign/DCO commits, open the issue-linked PR, and merge only after hosted gates are green.
+- [x] 3.1 Pass focused DID, workspace, factory, format, and Nix gates.
+- [x] 3.2 Perform a distinct exact-diff security, compatibility, and architecture review.
+- [x] 3.3 Synchronize canonical specs, archive safely, sign/DCO commits, open the issue-linked PR, and merge only after hosted gates are green.

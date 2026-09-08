@@ -183,6 +183,13 @@ fn oid4vci_protocol_retains_an_exact_inward_internal_cone() {
 }
 
 #[test]
+fn did_http_adapter_is_an_outer_boundary_over_did_core() {
+    assert!(check_dep_edge("identus-did-resolver-http", "identus-core").is_ok());
+    assert!(check_dep_edge("identus-did-resolver-http", "identus-did").is_ok());
+    assert!(check_dep_edge("identus-did", "identus-did-resolver-http").is_err());
+}
+
+#[test]
 fn target_specific_runtime_dependencies_are_inward_edges() {
     let manifest: toml::Value = toml::from_str(
         r#"

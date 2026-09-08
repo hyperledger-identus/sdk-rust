@@ -170,6 +170,10 @@ pub(crate) const LAYER_RULES: &[LayerRule] = &[
                 proc_macro: false,
             },
             Member {
+                name: "identus-did-resolver-http",
+                proc_macro: false,
+            },
+            Member {
                 name: "identus-bindings",
                 proc_macro: false,
             },

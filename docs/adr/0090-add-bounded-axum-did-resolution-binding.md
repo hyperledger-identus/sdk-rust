@@ -57,8 +57,12 @@ locally assessed snapshot hashes recorded in the OpenSpec research.
 `mediatype 0.21`, forbids unsafe, and correctly handles quoted commas,
 specificity, order and wildcards. Its quality parser is intentionally
 permissive for malformed values, so it is accepted only behind the strict SDK
-preflight. Integrated checksums, cone, advisories, licenses and source reach
-remain required before merge.
+preflight. The integrated normal cone adds 17 package names and no server
+runtime, Hyper, socket, TLS or native code; Tokio and its macro are test-only.
+Scoped unsafe is reachable in Axum's established `matchit` route-tree and
+`sync_wrapper` pin/exclusive-access internals, while Axum, `headers-accept`,
+`mediatype` and SDK code add none. Exact lockfile advisory, license and source
+gates pass; full repository gates remain required before merge.
 
 ## Consequences
 

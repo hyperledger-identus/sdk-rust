@@ -71,8 +71,18 @@ at source revision `36bda0995513b025312fed75d7947b66865ff149` on the retrieval
 date. It forbids unsafe code. `mediatype 0.21` is MIT, has no required
 transitive dependency and contains no authored unsafe code.
 
-The direct and resolved dependency cone will be recorded from the integrated
-lockfile. Neither dependency type crosses the public SDK facade boundary. The
+The integrated lockfile adds 19 external package names: 17 in the normal
+host-adapter cone plus development-only `tokio` and `tokio-macros`. The normal
+cone has no Hyper, Tokio, Reqwest, listener, socket, TLS or native dependency;
+Tower's service abstraction is pulled by Axum without its test-only `util`
+feature. Direct release checksums are
+`31b698c5f9a010f6573133b09e0de5408834d0c82f8d7475a89fc1867a71cd90`
+for Axum, `78beb98ea9a8f76b4a38c5ca651db6aa84701f307b63b4e0d78342ad4219c7e4`
+for `headers-accept`, and
+`120fa187be19d9962f0926633453784691731018a2bf936ddb4e29101b79c4a7`
+for `mediatype`.
+
+Neither dependency type crosses the public SDK facade boundary. The
 crate accepts and returns Axum's `Router`, which is its deliberate optional
 framework boundary; all DID values, resolver behavior and wire bodies remain
 Identus-owned. Public and wire compatibility therefore preserves every core
@@ -82,12 +92,21 @@ is host-tested and excluded from portable target matrices in this slice.
 ## Security, privacy and maintenance evidence
 
 Both direct crates are MIT licensed and exact release provenance is pinned
-above; the NeoPRISM oracle is Apache-2.0. `headers-accept` forbids unsafe code,
-and inspection found no authored unsafe in `mediatype`. Axum is a maintained,
-widely used Rust HTTP framework. No native code is intended in the selected
-normal feature cone. A lockfile-based advisory/license pass, exact package
-checksums and reachable unsafe/native inspection provide the required
-supply-chain evidence before merge.
+above; the NeoPRISM oracle is Apache-2.0. Axum, `headers-accept` and
+`mediatype` contain no authored unsafe. Axum's normal cone does reach scoped
+unsafe in `matchit 0.8.4` for route-tree value references/`Send`/`Sync`
+invariants and `sync_wrapper 1.0.2` for pin projection and its exclusive-access
+`Sync` contract. These established framework internals are not exposed by the
+SDK facade; the SDK adds no unsafe and the fixed route removes caller control
+from tree construction. No native code is present in the selected normal
+feature cone.
+
+Fresh lockfile-based `cargo deny --locked check` reports advisories, bans,
+licenses and sources all okay; only existing unmatched-allowance/duplicate-Syn
+warnings remain. Current Nix `cargo audit --deny warnings` loads 1,242
+advisories and reports no vulnerability across 161 locked crate dependencies.
+These checks, exact checksums and reachable unsafe/native inspection provide
+the supply-chain evidence before merge.
 
 Maintenance, release and security posture is acceptable for an experimental,
 unpublished adapter: Axum is current and declares an MSRV below the etalon;
@@ -146,5 +165,6 @@ Exact commands and unrun checks are separated. Repository and donor `rg`,
 contracts and divergences. Official W3C/RFC sources were retrieved on the
 recorded date. `cargo info --verbose` confirmed current candidate versions,
 features, licenses and declared MSRV. Cargo integration, source checksums,
-resolved cone, advisory/license gates, deterministic tests and full Nix gates
-remain deliberately unrun until the specification commit is accepted.
+resolved-cone inspection, advisory/license gates and 14 deterministic focused
+tests now pass. The complete workspace and Nix gates remain deliberately unrun
+until the implementation review checkpoint.

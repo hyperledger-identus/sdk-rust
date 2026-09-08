@@ -8,6 +8,7 @@ identus-core               = { path = "crates/core" }
 identus-crypto             = { path = "crates/crypto", default-features = false }
 identus-derive             = { path = "crates/derive" }
 identus-did                = { path = "crates/did" }
+identus-did-resolver-http  = { path = "crates/did-resolver-http" }
 identus-trust              = { path = "crates/trust" }
 identus-credentials        = { path = "crates/credentials" }
 identus-presentations      = { path = "crates/presentations" }
@@ -31,6 +32,14 @@ syn                        = { version = "2", features = [ "full", "visit" ] }
 toml                       = "0.8"
 trybuild                   = "1"
 uriparse                   = "=0.6.4"
+
+# identus-did-resolver-http external dependencies. Axum is deliberately built
+# without listener/runtime defaults; Tokio and Tower `util` are test-only.
+axum           = { version = "=0.8.9", default-features = false, features = [ "json" ] }
+headers-accept = "=0.3.0"
+mediatype      = "=0.21.0"
+tokio          = "1"
+tower          = "0.5"
 
 # identus-crypto external dependencies (declared at workspace level per
 # `workspace-dependency-conventions`). The `ring`-backed entropy adapter

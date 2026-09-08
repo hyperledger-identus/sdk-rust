@@ -71,8 +71,8 @@ k256     = { workspace = true }
 trybuild = { workspace = true }
 
 [[example]]
-name              = "crypto_baseline"
-path              = "examples/crypto_baseline.rs"
+name = "crypto_baseline"
+path = "examples/crypto_baseline.rs"
 required-features = [
   "hash",
   "ed25519",

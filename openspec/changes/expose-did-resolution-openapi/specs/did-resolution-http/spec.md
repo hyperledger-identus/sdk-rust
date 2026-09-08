@@ -11,11 +11,12 @@ options, method-specific string option extensibility, implemented input bounds,
 the three supported success representations, standard error status mapping and
 `Vary: Accept` response behavior.
 
-The feature SHALL use a typed OpenAPI model without enabling generator macros,
-and SHALL NOT add an OpenAPI dependency or annotation to `identus-did`. It SHALL
-NOT describe POST, DID URL dereferencing, a dynamic mount path, a server runtime,
-middleware, authorization, deployment policy or any other behavior absent from
-the router.
+The feature SHALL use a typed OpenAPI model without invoking generator macros,
+and SHALL NOT add an OpenAPI dependency or annotation to `identus-did`. The
+upstream-required macro compile feature MAY be enabled only while the published
+model fails to compile without it. The document SHALL NOT describe POST, DID
+URL dereferencing, a dynamic mount path, a server runtime, middleware,
+authorization, deployment policy or any other behavior absent from the router.
 
 #### Scenario: Feature user obtains a composable document
 

@@ -10,17 +10,17 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add exact optional Utoipa workspace/member dependency with only the
+- [x] 2.1 Add exact optional Utoipa workspace/member dependency with only the
       upstream-required macro compile feature and no macro use.
-- [ ] 2.2 Build a fixed mount-relative OpenAPI document for implemented GET
+- [x] 2.2 Build a fixed mount-relative OpenAPI document for implemented GET
       parameters, representations, statuses, bounds and response headers.
-- [ ] 2.3 Keep `identus-did`, default features and router/wire behavior unchanged.
+- [x] 2.3 Keep `identus-did`, default features and router/wire behavior unchanged.
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Add deterministic structural tests and default/feature graph checks.
-- [ ] 3.2 Pass focused, workspace, factory and available Rust 1.98 gates; record
+- [x] 3.1 Add deterministic structural tests and default/feature graph checks.
+- [x] 3.2 Pass focused, workspace, factory and available Rust 1.98 gates; record
       unavailable Nix/security wrapper gates exactly.
-- [ ] 3.3 Perform distinct exact-diff protocol/architecture/dependency review.
+- [x] 3.3 Perform distinct exact-diff protocol/architecture/dependency review.
 - [ ] 3.4 Synchronize the canonical spec, archive safely, sign/DCO commits, open
       the issue-linked PR and merge only after every hosted gate is green.

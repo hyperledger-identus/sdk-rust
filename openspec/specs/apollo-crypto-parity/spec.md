@@ -79,4 +79,3 @@ the Discussion SHALL NOT replace the versioned manifest as source of truth.
   changing the manifest
 - **THEN** both outputs SHALL be byte-identical and contain every capability
   and vector exactly once
-

@@ -14,6 +14,6 @@
       all findings.
 - [x] 3.3 Render and publish the manifest-derived update to Discussion #178.
 - [x] 3.4 Record the receipt and safely archive the OpenSpec change.
-- [ ] 4.1 Create a signed/DCO commit and ready PR to `develop` linked to #211.
+- [x] 4.1 Create signed/DCO commits and PR #216 to `develop`, linked to #211.
 - [ ] 4.2 Repair branch-owned CI failures and merge only after all required
       hosted gates are green.

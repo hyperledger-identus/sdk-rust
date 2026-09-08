@@ -77,9 +77,11 @@ uses multihash and defines the method-specific policy and migration boundary.
 ADR 0083 and [#158](https://github.com/hyperledger-identus/sdk-rust/issues/158)
 retain the bounded local codec until strict non-lossy parser parity or measured
 multi-consumer serializer payoff exists.
-`did_url_parser`, `oauth2`, `isomdl`, Askar and UniFFI require the
-bounded work in [#159](https://github.com/hyperledger-identus/sdk-rust/issues/159),
-[#160](https://github.com/hyperledger-identus/sdk-rust/issues/160),
+`did_url_parser 0.3.0` is not adopted. ADR 0086 and
+[#159](https://github.com/hyperledger-identus/sdk-rust/issues/159) retain the
+current parser after reproducible grammar, exact-storage, resource, allocation,
+mutation and unsafe-reach mismatches. `oauth2`, `isomdl`, Askar and UniFFI
+require the bounded work in [#160](https://github.com/hyperledger-identus/sdk-rust/issues/160),
 [#161](https://github.com/hyperledger-identus/sdk-rust/issues/161),
 [#162](https://github.com/hyperledger-identus/sdk-rust/issues/162) and
 [#163](https://github.com/hyperledger-identus/sdk-rust/issues/163) before
@@ -100,9 +102,10 @@ repository-level `conditional-adopt` permits evaluation of one narrow crate or
 optional adapter; it does not approve an umbrella framework or supersede the
 evidence requirements in this ADR.
 
-ADR 0008 remains in force. A `did_url_parser` spike may propose superseding its
-self-contained parser decision only after full syntax/error/target parity is
-demonstrated. This ADR does not silently change already published behavior.
+ADR 0008 remains in force and ADR 0086 records the completed
+`did_url_parser 0.3.0` decision. A corrected future release must pass the
+preserved corpus and facade/resource gates in a new issue before supersession
+can be proposed. This ADR does not silently change already published behavior.
 
 ## Consequences
 

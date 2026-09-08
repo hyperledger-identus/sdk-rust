@@ -3,7 +3,8 @@
 - **Status:** Accepted
 - **Date:** 2026-09-03
 - **Decision authority:** IDR-005 roadmap mandate and sdk-rust issue #34
-- **Related work:** issues #5, #3 and OpenSpec `add-did-syntax`
+- **Related work:** issues #5, #3, #159; OpenSpec `add-did-syntax` and
+  `decide-did-url-parser-parity`
 
 ## Context
 
@@ -62,6 +63,15 @@ redacted errors and portable behavior across native, wasm and mobile targets.
 
 Normative behavior is derived from W3C DID Core 1.0 and RFC 3986. No donor
 source is copied.
+
+## 2026-09-08 dependency reassessment
+
+[ADR 0086](0086-retain-self-contained-did-parser.md) tested exact
+`did_url_parser 0.3.0` against an attributable corpus and the complete facade,
+resource and target boundary. The candidate failed grammar, exact-storage,
+pre-allocation limit, owned-allocation, immutable-invariant and unsafe-reach
+conditions. ADR 0008 therefore remains in force; the new evidence does not
+change accepted behavior.
 
 ## Rollback
 

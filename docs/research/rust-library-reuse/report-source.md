@@ -43,8 +43,12 @@ disposition. `multihash 0.19.5` is technically cohesive, but no current SDK
 capability consumes multihash semantics; did:key uses multicodec-prefixed key
 bytes instead. [ADR 0082](../../adr/0082-defer-multihash-until-a-method-consumes-it.md)
 and issue #155 retain it as `conditional-adopt` until a named DID method
-defines the consumer, policy and migration boundary. `multibase 0.9.3` remains
-a separate conditional candidate under #156.
+defines the consumer, policy and migration boundary. Focused issue #156 also
+supersedes the preliminary multibase disposition: Rust 1.98.1 removes the old
+compiler blocker, but `multibase 0.9.3` still imports unused encodings and
+build machinery. [ADR 0085](../../adr/0085-compose-narrow-multibase-codecs.md)
+instead composes exact `bs58 0.5.1` with the already-locked Base64 engine for
+the current `z`/`u` verification-material boundary.
 
 Focused issue-level research supersedes the preliminary BIP-32 disposition:
 retain the narrow HMAC orchestration and reuse the existing `k256` scalar
@@ -167,7 +171,8 @@ SDK cone smaller for some candidates.
 | `bip32` | 0.5.3 | 1.65 | 29 with `secp256k1`; 3 incremental names | `not-adopt` | Its k256 backend rejects standards-valid zero `IL`; xprv/xpub dependencies are mandatory even though the facade does not use them. Reuse existing `k256`. |
 | `slip10` | 0.4.3 | not declared | 25 | `retain-local` | Existing Ed25519 SLIP-0010 core is small and vector-tested; candidate maintenance and cone do not reduce risk. |
 | `multihash` | 0.19.5 | 1.81 | 2 | `conditional-adopt` | Bare structural codec with high cohesion, but no current method consumes multihash; require a named normative consumer before production adoption. |
-| `multibase` | 0.9.3 | not declared | 14 | `conditional-adopt` | Correct domain, but current `base45 3.2.0` resolution actually needs Rust 1.88 while declaring no compatible floor. |
+| `multibase` | 0.9.3 | not declared | 14; 9 incremental names | `not-adopt` for current boundary | Compiler-compatible under Rust 1.98.1, but unused Base45/Base256Emoji and build macros make the cone disproportionate; reconsider when features are sliced or named consumers need more bases. |
+| `bs58` plus existing `base64` | 0.5.1 plus 0.22.1 | not declared; 1.48 | 1 new package | `adopt` | Reuses the two required base algorithms; Identus owns only the private `z`/`u` dispatch, canonicality, bounds and errors. |
 | `did_url_parser` | 0.3.0 | not declared | 3 | `spike` | Narrow and `no_std`; parity must be proven before superseding ADR 0008 and changing accepted syntax/errors. |
 | `identity_did` | 1.5.1 | not declared | 138 | `oracle` | Mature generic API and used by NeoPRISM, but broad model/cone would replace Identus ownership. |
 | `identity_document` | 1.5.1 | not declared | 140 | `oracle` | Useful document and validation differential source; too coupled for the core domain facade. |
@@ -273,7 +278,7 @@ separate from the final `ready` gate.
 | 2 | [#153 — BIP-32 mechanics](https://github.com/hyperledger-identus/sdk-rust/issues/153) | `retain-local`; correct with existing `k256` per ADR 0080 |
 | 3 | [#170 — evidence-driven Rust policy](https://github.com/hyperledger-identus/sdk-rust/issues/170) | implement ADR 0064; retain 1.85 and evaluate 1.89 |
 | 4 | [#155 — multihash](https://github.com/hyperledger-identus/sdk-rust/issues/155) | `conditional-adopt`; named DID-method consumer required |
-| 5 | [#156 — multibase](https://github.com/hyperledger-identus/sdk-rust/issues/156) | `conditional-adopt` after its Rust 1.89/MSRV evidence passes |
+| 5 | [#156 — multibase carriers](https://github.com/hyperledger-identus/sdk-rust/issues/156) | adopt narrow `bs58` plus existing Base64; reject broad `multibase` cone per ADR 0085 |
 | 6 | [#157 — RFC 3986 engine](https://github.com/hyperledger-identus/sdk-rust/issues/157) | `adopt` with parser parity |
 | 7 | [#158 — form encoding](https://github.com/hyperledger-identus/sdk-rust/issues/158) | `not-adopt`; retain the strict bounded local codec per ADR 0083 |
 | 8 | [#159 — DID parser parity](https://github.com/hyperledger-identus/sdk-rust/issues/159) | `spike` |

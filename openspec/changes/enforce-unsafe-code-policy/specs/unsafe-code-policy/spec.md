@@ -4,7 +4,7 @@
 
 The root workspace SHALL set Rust lint `unsafe_code` to exact `forbid`, and
 every supported workspace package SHALL explicitly inherit the workspace lint
-table. The setting SHALL apply to every first-party library, binary,
+table. The setting SHALL apply to every authored first-party library, binary,
 integration-test, example, benchmark, build-script and proc-macro target built
 by the repository's Cargo gates. Existing crate-root forbids MAY remain as
 defense in depth but SHALL NOT be the uniform enforcement mechanism.
@@ -28,9 +28,9 @@ manifests and SHALL fail if the root policy is absent/not exact `forbid` or any
 package omits workspace lint inheritance. A dependency-free, offline,
 process-isolated compile-fail fixture SHALL independently prove Rust 1.98.1
 propagation across library, binary, integration-test, example, benchmark,
-build-script and proc-macro implementation targets and unsafe proc-macro output
-compiled in a consumer. The fixture SHALL require both non-zero compilation and
-the unsafe-code lint identifier without snapshotting full diagnostics.
+build-script and proc-macro implementation targets. The fixture SHALL require
+both non-zero compilation and the unsafe-code lint identifier without
+snapshotting full diagnostics.
 
 #### Scenario: New package omits lint inheritance
 
@@ -77,14 +77,26 @@ visible base `SDK-SEC-001` prohibition.
 
 ### Requirement: The assurance claim remains first-party and evidence-bounded
 
-The unsafe-code prohibition SHALL apply to first-party SDK source. It SHALL NOT
-be represented as linting external dependency internals, proving logical or
-side-channel safety, or exercising unsupported feature/target combinations.
+The unsafe-code prohibition SHALL apply to authored first-party SDK source. It
+SHALL NOT be represented as linting external dependency internals, uniformly
+rejecting procedural-macro generated output, proving logical or side-channel
+safety, or exercising unsupported feature/target combinations.
 Dependency unsafe/native code SHALL continue to be evaluated in dependency
 research and integration ADRs.
+
+Rustc's `span.allows_unsafe()` procedural-macro expansion exception SHALL
+remain an explicit limitation linked to issue #189 until a stable,
+proportionate expansion gate is selected and evidenced.
 
 #### Scenario: Adopted dependency contains reviewed unsafe code
 
 - **WHEN** Cargo compiles an external dependency under dependency cap-lints
 - **THEN** the first-party gate does not claim to reject that source, and its
   unsafe/native posture remains explicit dependency-decision evidence
+
+#### Scenario: Procedural macro emits unsafe tokens
+
+- **WHEN** an external procedural-macro expansion carries a span for which
+  rustc intentionally allows internal unsafe
+- **THEN** the repository does not claim the workspace forbid catches it,
+  retains the indexed limitation and requires #189 before stronger assurance

@@ -8,18 +8,19 @@ Constraint blockers: none
 ## Existing entries affected
 
 `SDK-SEC-001` remains prohibited policy but gains uniform compiler,
-conformance and negative-test enforcement for first-party source.
-`SDK-LIM-008` is removed only when that evidence passes locally and in hosted
-CI. `SDK-COMPAT-004`/`SDK-COMPAT-005` remain exact Rust 1.98.1; Cargo/rustc from
-that etalon implement the mechanism. `SDK-DELIVERY-001` is satisfied by issue
-#169 and this specification-first change.
+conformance and negative-test enforcement for authored first-party source.
+`SDK-LIM-008` is narrowed, not removed: exact Rust 1.98.1 intentionally skips
+some procedural-macro expansion spans, tracked by #189.
+`SDK-COMPAT-004`/`SDK-COMPAT-005` remain exact Rust 1.98.1; Cargo/rustc from that
+etalon implement the mechanism. `SDK-DELIVERY-001` is satisfied by issue #169
+and this specification-first change.
 
 ## Introduced or changed constraints
 
 No new prohibition is introduced: unsafe first-party Rust was already
 prohibited. The material change makes the assurance machine-enforced across
-every opted-in workspace package and compiled source target. `forbid` cannot be
-lowered in source. Any future exception remains a separate material change with
+every opted-in workspace package and authored source target. `forbid` cannot
+be lowered in source. Any future exception remains a separate material change with
 a dedicated issue, safety ADR, indexed record, exact scope/invariants/owner,
 specialist review, security cost, activation and rollback.
 
@@ -27,8 +28,10 @@ specialist review, security cost, activation and rollback.
 
 The first-party compiler gate does not inspect dependencies, prove semantic
 safety, add a new doctest execution promise, or replace feature/target coverage
-accounting. The current exception set is empty. Local aarch64-Darwin cannot
-prove hosted x86_64-linux execution; hosted `fast` remains merge authority.
+accounting. Rustc skips unsafe procedural-macro expansion spans that allow
+internal unsafe, so `SDK-LIM-008` retains that narrow gap under #189. The
+current policy-exception set is empty. Local aarch64-Darwin cannot prove hosted
+x86_64-linux execution; hosted `fast` remains merge authority.
 
 ## Consumer and product impact
 
@@ -39,10 +42,10 @@ dependency decision rather than being misrepresented as forbidden.
 
 ## Activation and rollback
 
-Enforcement and limitation retirement activate together only when issue #169's
+Enforcement and limitation narrowing activate together only when issue #169's
 PR passes full local and hosted gates and merges to `develop`. Reverting that PR
-restores the prior root lint configuration and `SDK-LIM-008`; no data migration
-or downstream mutation is involved.
+restores the prior root lint configuration and broader `SDK-LIM-008`; no data
+migration or downstream mutation is involved.
 
 ## Evidence
 

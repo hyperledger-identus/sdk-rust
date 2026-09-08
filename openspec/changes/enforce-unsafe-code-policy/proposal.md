@@ -11,12 +11,12 @@ The effective policy needs one inherited compiler gate and drift evidence.
 - Set `unsafe_code = "forbid"` once in the inherited workspace Rust lints.
 - Add a conformance guard that proves the root setting and every current/future
   workspace package's explicit lint inheritance.
-- Add deterministic compile-fail probes for every supported first-party Cargo
-  target class and proc-macro generated output.
+- Add deterministic compile-fail probes for every supported authored
+  first-party Cargo target class, including proc-macro implementations.
 - Record ADR 0087, including a deliberately high-ceremony exception path that
   cannot silently weaken unrelated crates.
-- Strengthen `SDK-SEC-001` enforcement and retire `SDK-LIM-008` only with the
-  final passing evidence.
+- Strengthen `SDK-SEC-001` enforcement and narrow `SDK-LIM-008` to rustc's
+  attributed procedural-macro expansion exception, tracked by #189.
 
 ## Capabilities
 
@@ -37,4 +37,6 @@ changes compiler lint configuration, verification-only conformance code,
 governance records and tests. It does not add unsafe code, approve an
 exception, lint dependencies, change dependencies/MSRV/targets/features, or
 change any public API, wire value, secret, runtime, product or downstream
-repository. Issue #169 under #166 is the decision authority.
+repository. Rustc does not apply the lint to every external procedural-macro
+expansion, so generated-output enforcement remains explicitly limited. Issue
+#169 under #166 is the decision authority; #189 owns that focused follow-up.

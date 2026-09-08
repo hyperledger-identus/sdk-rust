@@ -3,8 +3,8 @@
 - **Status:** Accepted
 - **Date:** 2026-09-08
 - **Decision authority:** sdk-rust issue #169 under governance issue #166
-- **Constraint impact:** material enforcement of existing `SDK-SEC-001`; retires
-  `SDK-LIM-008` only after merge evidence
+- **Constraint impact:** material enforcement of existing `SDK-SEC-001`;
+  narrows `SDK-LIM-008` to the procedural-macro expansion gap under #189
 
 ## Context
 
@@ -25,12 +25,14 @@ evidence are both required.
    package on exact workspace lint inheritance.
 2. Retain existing crate-root forbids as harmless defense in depth.
 3. Add one conformance guard for root/member configuration plus dependency-free
-   offline compile-fail probes across supported target classes and generated
-   proc-macro output.
-4. Limit the assurance claim to first-party SDK source. External dependencies
+   offline compile-fail probes across supported authored target classes,
+   including proc-macro implementations.
+4. Limit the assurance claim to authored first-party SDK source. External dependencies
    retain cap-lints behavior and their unsafe/native posture is governed by
    dependency ADRs and research.
-5. Retire `SDK-LIM-008` only when full local and hosted evidence passes.
+5. Narrow `SDK-LIM-008` when full local and hosted evidence passes. Exact Rust
+   1.98.1 skips procedural-macro expansion spans that allow internal unsafe;
+   issue #189 owns the stronger expansion-evidence decision.
 
 ## Exception contract
 
@@ -48,16 +50,17 @@ exception record changed atomically. Other packages remain on `forbid`.
 
 ## Consequences
 
-- Ordinary local Cargo and Nix/CI builds reject unauthorized first-party unsafe
-  code without a separate scanner or dependency.
+- Ordinary local Cargo and Nix/CI builds reject unauthorized authored
+  first-party unsafe code without a separate scanner or dependency.
 - New packages cannot silently omit enforcement.
 - Exceptions are possible but intentionally expensive and visible.
-- The lint does not certify dependency internals, logical correctness,
-  side-channel resistance or unsupported build combinations.
+- The lint does not certify dependency internals, procedural-macro generated
+  output, logical correctness, side-channel resistance or unsupported builds.
 - Verification code runs nested dependency-free Cargo probes, adding a small
   test cost without network or release-artifact impact.
 
 ## Rollback
 
-Revert the issue #169 PR and restore `SDK-LIM-008`. No runtime, public API,
-wire, dependency, persisted-data or downstream migration is involved.
+Revert the issue #169 PR and restore the broader `SDK-LIM-008`. No runtime,
+public API, wire, dependency, persisted-data or downstream migration is
+involved.

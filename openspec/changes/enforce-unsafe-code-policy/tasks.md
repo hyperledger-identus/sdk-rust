@@ -7,10 +7,10 @@
 
 ## 2. Enforcement
 
-- [ ] 2.1 Add exact `unsafe_code = "forbid"` to the inherited workspace Rust lint table without removing crate-local defense in depth.
-- [ ] 2.2 Add an isolated conformance guard that derives every workspace member and rejects a missing/changed root forbid or missing member lint inheritance.
-- [ ] 2.3 Add dependency-free offline compile-fail probes for every supported first-party Cargo target class and proc-macro generated output.
-- [ ] 2.4 Strengthen `SDK-SEC-001` enforcement and retire `SDK-LIM-008` atomically after focused evidence passes.
+- [x] 2.1 Add exact `unsafe_code = "forbid"` to the inherited workspace Rust lint table without removing crate-local defense in depth.
+- [x] 2.2 Add an isolated conformance guard that derives every workspace member and rejects a missing/changed root forbid or missing member lint inheritance.
+- [x] 2.3 Add dependency-free offline compile-fail probes for every supported authored first-party Cargo target class, including proc-macro implementations.
+- [x] 2.4 Strengthen `SDK-SEC-001` enforcement and narrow `SDK-LIM-008` atomically after reproducing the proc-macro expansion exception under #189.
 
 ## 3. Verification and delivery
 

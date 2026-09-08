@@ -14,11 +14,12 @@ integration-test, example, benchmark, build-script and proc-macro targets.
 
 ## Goals and non-goals
 
-Goals are one fail-closed policy source, complete member inheritance, target
-class negative evidence, future-member drift detection, explicit exception
-governance and honest retirement of `SDK-LIM-008`. Non-goals are scanning
-dependency internals, approving unsafe code, refactoring dependencies that use
-unsafe, changing CI cadence, or claiming that a lint proves semantic safety.
+Goals are one fail-closed policy source, complete member inheritance, authored
+target-class negative evidence, future-member drift detection, explicit
+exception governance and an honestly narrowed `SDK-LIM-008`. Non-goals are
+scanning dependency internals or arbitrary procedural-macro expansions,
+approving unsafe code, refactoring dependencies that use unsafe, changing CI
+cadence, or claiming that a lint proves semantic safety.
 
 ## Decisions
 
@@ -42,9 +43,8 @@ The current exception set is empty.
 A verification-only conformance test creates isolated dependency-free Cargo
 workspaces under the process temporary directory, runs the repository Cargo in
 offline mode and requires each selected build to fail specifically with the
-unsafe-code lint. It covers library, binary, integration-test, example,
-benchmark, build-script and proc-macro implementation targets, plus a safe
-proc macro whose expansion emits an unsafe block in a consumer.
+unsafe-code lint. It covers authored library, binary, integration-test,
+example, benchmark, build-script and proc-macro implementation targets.
 
 The fixture source exists only as string data in test code, so the SDK itself
 contains no compiled unsafe block. Every temporary path is process-scoped and
@@ -76,8 +76,11 @@ future change is reviewable rather than silently pre-authorized here.
 The root `rust-build --workspace --all-targets`, feature builds, Clippy and
 nextest lanes compile supported first-party targets with inherited lints.
 Dependencies are passed with Cargo's cap-lints behavior and remain governed by
-dependency research, audits and facade review. The policy claim is therefore
-limited to first-party SDK source.
+dependency research, audits and facade review. A separate probe found that
+rustc also skips unsafe code emitted by an external procedural macro when its
+span allows internal unsafe. ADR 0087 therefore limits the claim to authored
+first-party source and retains that exact generated-output gap in
+`SDK-LIM-008`; #189 owns alternatives.
 
 ## Risks and mitigations
 
@@ -85,6 +88,9 @@ limited to first-party SDK source.
   workspace crate and fails closed.
 - A Cargo behavior regression can make configuration inspection misleading:
   behavioral compile-fail probes run in the normal test/Nix path.
+- Procedural-macro expansion can bypass this lint by intentional rustc span
+  behavior: the limitation stays indexed and linked to #189 rather than being
+  hidden by successful authored-target probes.
 - Recursive Cargo tests can become flaky: fixtures are dependency-free,
   offline, process-scoped, separately targeted and share no build directory.
 - Compiler output text can drift: assertions require non-zero status and the
@@ -96,6 +102,6 @@ limited to first-party SDK source.
 
 Commit this specification and ADR first. Then add the root lint and guard,
 prove positive and negative cases on Rust 1.98.1, run full compatible Nix and
-hosted Linux gates, and retire `SDK-LIM-008` in the same PR. Reverting the PR
-restores the disclosed limitation and prior manual-review posture; it changes
-no runtime data or consumer API.
+hosted Linux gates, and narrow `SDK-LIM-008` in the same PR. Reverting the PR
+restores the broader disclosed limitation and prior manual-review posture; it
+changes no runtime data or consumer API.

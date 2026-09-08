@@ -43,8 +43,9 @@ workspace-specific compiler enforcement.
 3. CI-only `RUSTFLAGS=-Funsafe-code` is `not-adopt`: ordinary local Cargo would
    differ from CI and workflow configuration would hide the policy.
 4. Inherited workspace `forbid` plus member/configuration guards and behavioral
-   probes is `adopt`: it is the narrowest stable, local/CI-consistent,
-   fail-closed mechanism.
+   probes is `conditional-adopt`: it is the narrowest stable,
+   local/CI-consistent, fail-closed mechanism for authored first-party source,
+   but it does not cover every procedural-macro expansion.
 
 No third-party crate is a useful candidate. Cargo/rustc already owns compiler
 lint propagation and macro expansion; another scanner would add a dependency
@@ -71,11 +72,19 @@ A disposable dependency-free workspace with root
 `[workspace.lints.rust] unsafe_code = "forbid"` and member
 `[lints] workspace = true` was compiled offline with Cargo 1.98.1. Targeted
 commands rejected unsafe blocks in library, binary, integration-test, example,
-benchmark, build-script and proc-macro targets with
+benchmark, build-script and proc-macro implementation targets with
 `requested on the command line with -F unsafe-code`.
 
-The change adds no unsafe or native code, FFI, secret material, public
-diagnostic or serialization. The committed fixture will bound synthetic
+A second probe used a safe proc-macro implementation whose returned tokens
+contained an unsafe block. The opted-in consumer compiled successfully. Exact
+Rust 1.98.1 tag revision `48a229ceaefd4985c50990b14116b6d856af0985`
+implements `UnsafeCode::report_unsafe` by returning when
+`span.allows_unsafe()`; rust-lang/rust#53975 records this as intentional
+external-expansion lint behavior. This evidence stops complete limitation
+retirement and is tracked by #189.
+
+The SDK change adds no compiled unsafe or native code, FFI, secret material,
+public diagnostic or serialization. The committed fixture will bound synthetic
 compiler stderr before test diagnostics. The supply-chain and maintenance
 posture is smaller than a scanner dependency because Cargo/rustc are existing
 pinned release inputs. Security evidence remains bounded: safe Rust does not
@@ -88,15 +97,19 @@ are rejected as described above. Automated doctest execution is deferred
 because current release gates do not promise a doctest lane and issue #169 does
 not authorize CI-cost expansion. Dependency-internal unsafe rejection is also
 deferred permanently from this first-party lint; dependency ADRs own that
-evidence.
+evidence. Expansion scanning, `cargo-expand`, nightly expanded output and
+current-macro-specific expansion assertions are deferred to #189 because the
+naive compiler-negative premise failed and the replacement needs its own
+stability/cost/false-negative research.
 
 ## Open questions and blockers
 
-No blocker remains. A safe proc macro that emits unsafe tokens in an opted-in
-consumer will be included in committed negative evidence. The current
-exception set is empty. A reconsideration trigger is an evidenced need for
-first-party unsafe, a Cargo lint-inheritance change, a newly supported source
-target, or failure of any compile-negative fixture.
+No blocker remains for authored-source enforcement. Full generated-output
+enforcement is blocked by the reproduced compiler behavior and remains a named
+limitation under #189. The current exception set is empty. A reconsideration trigger
+is an evidenced need for first-party unsafe, a Cargo lint-inheritance or
+macro-span change, a newly supported source target, or failure of any
+compile-negative fixture.
 
 Any future exception requires a new issue, dedicated safety ADR and indexed
 record with exact scope, rejected safe alternatives, invariants/evidence,
@@ -117,9 +130,11 @@ cargo check --offline -p unsafe-policy-probe --bench unsafe
 ```
 
 Separate variants selected an unsafe build script and proc-macro library; all
-failed on `-F unsafe-code`. Repository inventory used `rg` over crate roots,
-manifests and unsafe constructs. Implementation evidence will add focused
-conformance tests, strict Clippy, format, factory and complete Nix checks.
+authored targets failed on `-F unsafe-code`. The generated proc-macro variant
+unexpectedly passed, and exact Rust source plus rust-lang/rust#53975 reconciled
+that result. Repository inventory used `rg` over crate roots, manifests and
+unsafe constructs. Implementation evidence will add focused conformance tests,
+strict Clippy, format, factory and complete Nix checks.
 
 Intentionally unrun checks at research stage are full Nix/hosted CI (reserved
 for immutable implementation), dependency audit (no cone delta), Miri and

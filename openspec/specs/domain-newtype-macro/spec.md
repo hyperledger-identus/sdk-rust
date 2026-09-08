@@ -1,9 +1,7 @@
 ## Purpose
 
 The `identus-derive` crate (a foundation-layer `proc-macro = true` build-time crate) provides a single `#[derive(Newtype)]` proc-macro that packages the boilerplate for domain newtypes — the `DidMethod`, `DidSuffix`, and similar wrapper types used across the Identus Rust SDK. A domain newtype is a tuple struct with exactly one unnamed field; the derive inspects the inner field's type and generates category-appropriate constructors, accessors, conversions, and `Display`, with optional `serde` transparency and fallible `parse` wired to a caller-supplied validation function.
-
 ## Requirements
-
 ### Requirement: Single `#[derive(Newtype)]` packages the newtype boilerplate
 
 The `identus-derive` crate (a foundation-layer `proc-macro = true` crate) SHALL expose a single `#[derive(Newtype)]` proc-macro derive applicable to a tuple struct with exactly one unnamed field. The derive SHALL inspect the field's type and dispatch to one of three categories — string, bytes, numeric — generating the category-appropriate constructors, accessors, conversions, and `Display`. The derive SHALL compose with standard `#[derive(...)]` (e.g. `Debug`, `Clone`, `PartialEq`, `Eq`, `Hash`, `Copy`) on the same struct and SHALL NOT itself emit those derives.
@@ -119,20 +117,23 @@ The `Deserialize` implementation's validation behavior depends on `validate_fn`:
 
 ### Requirement: Fallible `parse` via caller-supplied validation function and error type (string category only)
 
-The derive SHALL accept `#[newtype(validate_fn = <path>, validate_err = <type>)]`. `validate_fn` names a function the macro invokes as `<path>(&inner)` where `inner: Inner` (the validation function, operating on the inner type by reference). The function's first parameter SHALL be `&Inner` or any type `&Inner` derefs to (e.g. `&str` for `String`, `&[u8]` for `Vec<u8>`, `&u8` for numeric); the macro SHALL NOT prescribe or restrict the parameter type beyond what the call `<path>(&inner)` type-checks against (proc-macros work on tokens and cannot resolve types; deref coercion at the call site handles `&Inner → &Target`). `validate_fn` and `validate_err` SHALL be specified together, and `validate_err` SHALL match `validate_fn`'s return type. The derive SHALL NOT generate the error type itself; the owning crate SHALL define `<type>` and its `to_identus_error()` mapping by hand.
+The derive SHALL accept `#[newtype(validate_fn = <path>, validate_err = <type>)]`. `validate_fn` names a function the macro invokes as `<path>(&inner)` where `inner: Inner` (the validation function, operating on the inner type by reference). For the string category, the function's first parameter SHALL accept `&str`; for bytes and numeric categories, it SHALL be `&Inner` or any type `&Inner` derefs to (e.g. `&[u8]` for `Vec<u8>` or `&u8` for numeric). `validate_fn` and `validate_err` SHALL be specified together, and `validate_err` SHALL match `validate_fn`'s return type. The derive SHALL NOT generate the error type itself; the owning crate SHALL define `<type>` and its `to_identus_error()` mapping by hand.
 
-For the **string category only**, when `validate_fn` is configured the derive SHALL implement `FromStr` with `Err = <type>` and an inherent `parse(s: &str) -> Result<Self, <type>>`. Both SHALL convert the `&str` to an owned `String`, call `<path>(&owned)`, return `Err(<type>)` on validation failure, and construct `Self(owned)` on success. The numeric and bytes categories SHALL NOT generate `parse` or `FromStr` under any configuration.
+For the **string category only**, when `validate_fn` is configured the derive SHALL implement `FromStr` with `Err = <type>` and an inherent `parse(s: &str) -> Result<Self, <type>>`. Both SHALL call `<path>(s)` before allocating, return `Err(<type>)` on validation failure without constructing an owned copy, and construct `Self(s.to_owned())` on success. The numeric and bytes categories SHALL NOT generate `parse` or `FromStr` under any configuration. Owned `TryFrom<String>` and validating serde SHALL continue to invoke the validator against their already-owned inner value.
 
-#### Scenario: `parse` wires FromStr to a validation function (string category)
+#### Scenario: `parse` validates borrowed input before allocation (string category)
 
 - **WHEN** `#[derive(Newtype)]` with `#[newtype(validate_fn = validate_did_method, validate_err = did::Error)]` is applied to a `String`-backed struct
-- **THEN** `<Type as FromStr>::from_str` SHALL construct an owned `String` from `s`, call `validate_did_method(&owned)`, return `Err(did::Error)` on validation failure, and construct `Self(owned)` on success
+- **THEN** inherent `parse` and `<Type as FromStr>::from_str` SHALL call `validate_did_method(s)` before constructing an owned `String`
+- **AND** validation failure SHALL return `did::Error` without cloning the rejected input
+- **AND** validation success SHALL construct `Self(s.to_owned())`
 
-#### Scenario: Validation function is invoked with a reference to the inner value
+#### Scenario: Validation function is invoked with the category-appropriate reference
 
-- **WHEN** `validate_fn = <path>` is configured for any category
-- **THEN** the validation function SHALL be invoked as `<path>(&inner)` where `inner: Inner` (so the argument is `&String`, `&Vec<u8>`, or `&u8`)
-- **AND** the function's first parameter SHALL be `&Inner` or any type `&Inner` derefs to (e.g. `&str` for `String`, `&[u8]` for `Vec<u8>`, `&u8` for numeric); the macro SHALL NOT prescribe or restrict the parameter type beyond what the call `<path>(&inner)` type-checks against
+- **WHEN** `validate_fn = <path>` is configured for a validated `String` newtype
+- **THEN** its validator SHALL accept `&str` so borrowed parsing can validate before allocation and owned paths can use deref coercion
+- **AND WHEN** `validate_fn = <path>` is configured for a bytes or numeric newtype
+- **THEN** the validation function SHALL be invoked as `<path>(&inner)` where `inner: Inner`
 - **AND** the validator SHALL NOT be invoked with a by-value `Inner` or with extra parameters
 
 #### Scenario: Numeric and bytes categories do not generate parse or FromStr

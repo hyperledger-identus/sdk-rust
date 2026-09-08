@@ -11,7 +11,15 @@
 
 use identus_derive::Newtype;
 
-use crate::error::Error;
+use crate::{MAX_DID_BYTES, error::Error};
+
+/// Maximum accepted byte length of a standalone [`DidMethod`].
+///
+/// This is the largest method that can fit in a maximum-size bare DID after
+/// accounting for `did:`, the method separator and a one-byte method-specific
+/// identifier. W3C DID Core does not impose this value; it is an SDK resource
+/// policy aligned with [`MAX_DID_BYTES`].
+pub const MAX_DID_METHOD_BYTES: usize = MAX_DID_BYTES - 6;
 
 /// A validated DID method name (e.g. `"key"`, `"web"`, `"prism"`).
 ///
@@ -26,21 +34,28 @@ pub struct DidMethod(String);
 
 /// Hand-rolled DID method-name validation (no external dependency).
 ///
-/// Accepts non-empty strings of lowercase ASCII letters and digits only, per
-/// the W3C DID Core `method-name = 1*method-char` / `method-char = %x61-7A /
-/// DIGIT` grammar. Invoked by the derive as `validate_did_method(&inner)`
-/// where `inner: String`; `&String` deref-coerces to `&str`.
+/// Accepts non-empty strings no larger than [`MAX_DID_METHOD_BYTES`] containing
+/// lowercase ASCII letters and digits only, per the W3C DID Core
+/// `method-name = 1*method-char` / `method-char = %x61-7A / DIGIT` grammar.
+/// Borrowed macro paths invoke this validator before allocating the owned
+/// success value; owned and serde paths invoke it against their existing
+/// allocation.
 fn validate_did_method(s: &str) -> Result<(), Error> {
     if s.is_empty() {
         return Err(Error::InvalidMethod("method name is empty".to_owned()));
     }
+    if s.len() > MAX_DID_METHOD_BYTES {
+        return Err(Error::InvalidMethod(
+            "method name exceeds the SDK byte limit".to_owned(),
+        ));
+    }
     if !s
-        .chars()
-        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+        .bytes()
+        .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
     {
-        return Err(Error::InvalidMethod(format!(
-            "method name `{s}` has invalid characters"
-        )));
+        return Err(Error::InvalidMethod(
+            "method name contains an invalid character".to_owned(),
+        ));
     }
     Ok(())
 }
@@ -48,6 +63,10 @@ fn validate_did_method(s: &str) -> Result<(), Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{
+        DeactivateRegistrationRequest, Did, RegistrationIdempotencyKey, RegistrationPublicData,
+        RegistrationSecretMode,
+    };
     use identus_core::ErrorKind;
 
     #[test]
@@ -89,9 +108,68 @@ mod tests {
 
     #[test]
     fn method_parse_rejects_uppercase_and_symbols() {
-        assert!(DidMethod::parse("Key").is_err());
-        assert!(DidMethod::parse("web-2").is_err());
-        assert!(DidMethod::parse("web.example").is_err());
+        for input in ["Key", "web-2", "web.example"] {
+            let error = DidMethod::parse(input).unwrap_err();
+            assert!(!error.to_string().contains(input));
+            assert!(!format!("{error:?}").contains(input));
+        }
+    }
+
+    #[test]
+    fn method_exact_limit_is_accepted_by_every_construction_path() {
+        let input = "a".repeat(MAX_DID_METHOD_BYTES);
+
+        assert_eq!(DidMethod::parse(&input).unwrap().as_str(), input);
+        assert_eq!(DidMethod::try_new(input.clone()).unwrap().as_str(), input);
+        assert_eq!(DidMethod::try_from(input.clone()).unwrap().as_str(), input);
+
+        let json = serde_json::to_string(&input).unwrap();
+        assert_eq!(
+            serde_json::from_str::<DidMethod>(&json).unwrap().as_str(),
+            input
+        );
+    }
+
+    #[test]
+    fn method_one_over_limit_precedes_grammar_and_redacts_input() {
+        let input = format!("{}CANARY", "a".repeat(MAX_DID_METHOD_BYTES));
+        let expected_detail = "method name exceeds the SDK byte limit";
+
+        let local_errors = [
+            DidMethod::parse(&input).unwrap_err(),
+            DidMethod::try_new(input.clone()).unwrap_err(),
+            DidMethod::try_from(input.clone()).unwrap_err(),
+        ];
+        for error in local_errors {
+            assert!(!error.to_string().contains("CANARY"));
+            assert!(!format!("{error:?}").contains("CANARY"));
+        }
+
+        let serde_error =
+            serde_json::from_str::<DidMethod>(&serde_json::to_string(&input).unwrap()).unwrap_err();
+        assert!(!serde_error.to_string().contains("CANARY"));
+        assert!(!format!("{serde_error:?}").contains("CANARY"));
+        assert_eq!(
+            DidMethod::parse(&input),
+            Err(Error::InvalidMethod(expected_detail.to_owned()))
+        );
+    }
+
+    #[test]
+    fn maximum_method_remains_compatible_with_did_registration() {
+        let method = "a".repeat(MAX_DID_METHOD_BYTES);
+        let did = Did::parse(&format!("did:{method}:x")).unwrap();
+        assert_eq!(did.as_str().len(), MAX_DID_BYTES);
+        assert_eq!(DidMethod::parse(did.method()).unwrap().as_str(), method);
+
+        let request = DeactivateRegistrationRequest::new(
+            did,
+            RegistrationPublicData::empty(),
+            RegistrationSecretMode::ClientManaged,
+            RegistrationIdempotencyKey::parse("request-1").unwrap(),
+        )
+        .unwrap();
+        assert_eq!(request.method().as_str(), method);
     }
 
     #[test]

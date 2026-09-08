@@ -7,7 +7,7 @@
 //! entry under `validate_fn`.
 
 use identus_derive::Newtype;
-use std::str::FromStr;
+use std::{cell::Cell, str::FromStr};
 
 // --- string category (no validate_fn: infallible construction) -----------
 
@@ -69,6 +69,39 @@ fn str_newtype_parse_and_fromstr() {
     assert_eq!(Tag::parse("ok").unwrap().as_str(), "ok");
     assert!(Tag::from_str("").is_err());
     assert!(Tag::parse("").is_err());
+}
+
+thread_local! {
+    static EXPECTED_BORROWED_PTR: Cell<usize> = const { Cell::new(0) };
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Newtype)]
+#[newtype(validate_fn = validate_borrowed, validate_err = BorrowedError)]
+struct BorrowedTag(String);
+
+#[derive(Debug)]
+struct BorrowedError;
+
+fn validate_borrowed(value: &str) -> Result<(), BorrowedError> {
+    EXPECTED_BORROWED_PTR.with(|expected| {
+        (expected.get() == value.as_ptr() as usize)
+            .then_some(())
+            .ok_or(BorrowedError)
+    })
+}
+
+#[test]
+fn str_newtype_borrowed_paths_validate_before_allocation() {
+    let input = "borrowed-input".to_owned();
+    EXPECTED_BORROWED_PTR.with(|expected| expected.set(input.as_ptr() as usize));
+
+    let parsed = BorrowedTag::parse(input.as_str()).unwrap();
+    assert_eq!(parsed.as_str(), input);
+
+    let from_str = BorrowedTag::from_str(input.as_str()).unwrap();
+    assert_eq!(from_str.as_str(), input);
+
+    EXPECTED_BORROWED_PTR.with(|expected| expected.set(0));
 }
 
 #[test]

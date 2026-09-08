@@ -17,14 +17,20 @@ keep Identus-owned public facades for policy, lifecycle, bounded parsing,
 redacted errors, secret ownership, verification states and injected ports.
 Whole SSI frameworks are not suitable as the SDK's domain model.
 
-Three near-term dependency changes have a positive evidence balance:
+Two near-term dependency changes have a positive evidence balance:
 
 1. replace the mnemonic implementation with `bip39 2.2.2` behind the existing
    `MnemonicHelper` facade;
 2. use `fluent-uri 0.4.1` as the RFC 3986 grammar engine without re-exporting
-   its types or normalizing caller input; and
-3. replace hand-written form encoding/decoding with
-   `form_urlencoded 1.2.2` behind the OID4VCI wire facade.
+   its types or normalizing caller input.
+
+Focused issue-level research supersedes the preliminary form-codec
+disposition. `form_urlencoded 1.2.2` preserves malformed percent escapes and
+decodes invalid UTF-8 lossily, while the SDK parser rejects both. Its compatible
+serializer alone would replace too little code to justify a new production
+dependency. [ADR 0083](../../adr/0083-retain-strict-form-codec.md) and GitHub
+issue #158 therefore retain the bounded local codec and classify the candidate
+as `not-adopt` for this boundary.
 
 Focused issue-level research also supersedes the preliminary multihash
 disposition. `multihash 0.19.5` is technically cohesive, but no current SDK
@@ -133,10 +139,14 @@ replacement for the SDK's fail-closed check. `mime` does not by itself preserve
 the SDK's duplicate-parameter rejection. `http` types would also couple the
 transport-neutral port surface to an HTTP ecosystem type.
 
-The form URL encoding algorithm is different: it is a closed wire algorithm
-and `form_urlencoded` provides a two-package, allocation-capable implementation.
-It should replace the local mechanics while duplicate fields, length limits and
-redacted errors remain Identus-owned.
+The form URL encoding algorithm is closed, but the candidate and SDK acceptance
+boundaries differ. `form_urlencoded 1.2.2` preserves malformed percent escapes
+and uses lossy UTF-8 decoding. The SDK rejects malformed escapes, raw non-ASCII,
+decoded invalid UTF-8, decoded NUL and resource-limit overflow. The candidate
+serializer matches valid output, but serializer-only adoption would retain the
+checked-size pass, deterministic ordering, zeroizing allocation and strict
+decoder. The local bounded codec therefore remains the lower-risk, higher-
+cohesion choice.
 
 ## Candidate matrix
 
@@ -162,7 +172,7 @@ SDK cone smaller for some candidates.
 | `http` | 1.5.0 | 1.57 | 3 | `not-adopt` | Good ecosystem type, but no current need outweighs transport-port coupling. |
 | `mime` | 0.3.17 | not declared | 1 | `retain-local` | Does not enforce the SDK's complete duplicate/strictness policy; local bounded parser is small. |
 | `headers` | 0.4.1 | 1.56 | 18 | `not-adopt` | `std`-coupled and permissive unknown-directive behavior conflicts with fail-closed protocol checks. |
-| `form_urlencoded` | 1.2.2 | 1.51 | 2 | `adopt` | Closed WHATWG form algorithm, small cone and allocation-only support. |
+| `form_urlencoded` | 1.2.2 | 1.51 | 2 | `not-adopt` | Browser-tolerant malformed-percent and lossy UTF-8 behavior conflicts with the strict SDK parser; serializer-only reuse has low payoff. |
 | Spruce `ssi` umbrella | 0.16.0 | 1.89 | broad; selected modules 163–263 | `not-adopt` | MSRV can be solved, but domain, JSON-LD, crypto and protocol coupling cannot. Use selected modules as oracles. |
 | Spruce `openid4vp` | upstream at assessed SHA | inherits 1.89+ | broad | `oracle` | OID4VP 1.0 reference, but carries transport/runtime dependencies and a git-pinned JOSE fork. |
 | Spruce `isomdl` | 0.2.0 | not declared | 251 | `spike` | Strong behavior and state-machine evidence; monolithic library/CLI dependencies and target cost need isolation first. |
@@ -259,7 +269,7 @@ separate from the final `ready` gate.
 | 4 | [#155 — multihash](https://github.com/hyperledger-identus/sdk-rust/issues/155) | `conditional-adopt`; named DID-method consumer required |
 | 5 | [#156 — multibase](https://github.com/hyperledger-identus/sdk-rust/issues/156) | `conditional-adopt` after its Rust 1.89/MSRV evidence passes |
 | 6 | [#157 — RFC 3986 engine](https://github.com/hyperledger-identus/sdk-rust/issues/157) | `adopt` with parser parity |
-| 7 | [#158 — form encoding](https://github.com/hyperledger-identus/sdk-rust/issues/158) | `adopt` |
+| 7 | [#158 — form encoding](https://github.com/hyperledger-identus/sdk-rust/issues/158) | `not-adopt`; retain the strict bounded local codec per ADR 0083 |
 | 8 | [#159 — DID parser parity](https://github.com/hyperledger-identus/sdk-rust/issues/159) | `spike` |
 | 9 | [#160 — OAuth mechanics](https://github.com/hyperledger-identus/sdk-rust/issues/160) | `spike` |
 | 10 | [#161 — isomdl](https://github.com/hyperledger-identus/sdk-rust/issues/161) | `spike` |
@@ -278,6 +288,7 @@ separate from the final `ready` gate.
 | did:key fingerprints are multibase-encoded multicodec key types plus raw public-key bytes, not multihash. | [did:key Method v0.9 identifier syntax](https://w3c-ccg.github.io/did-key-spec/#did-key-identifier-syntax) |
 | `multihash` is a bare structural codec and does not select hash algorithms. | [`multihash` 0.19.5 documentation](https://docs.rs/multihash/0.19.5/multihash/) and [exact release source](https://github.com/multiformats/rust-multihash/tree/e2044a2e3aa27c2a08d3bad492fccd4babf10310) |
 | `fluent-uri` targets RFC 3986 and RFC 3987. | [`fluent-uri` 0.4.1 documentation](https://docs.rs/fluent-uri/0.4.1/fluent_uri/) and [assessed source](https://github.com/yescallop/fluent-uri-rs/tree/76e10ae842a11539c27b107f5e71269ddb7fcb46) |
+| `form_urlencoded 1.2.2` preserves malformed percent escapes and decodes invalid UTF-8 lossily; its serializer matches the assessed valid-output mechanics. | [`form_urlencoded` 1.2.2 packaged source](https://docs.rs/crate/form_urlencoded/1.2.2/source/src/lib.rs) and [recorded VCS revision](https://github.com/servo/rust-url/tree/91377f48bf35011d042aa5abef9e7f2a0a625aaa/form_urlencoded) |
 | `slice::as_chunks`, used by resolved `base45 3.2.0`, stabilized in Rust 1.88. | [Rust standard library documentation](https://doc.rust-lang.org/stable/core/primitive.slice.html#method.as_chunks) |
 | Rust releases stable trains every six weeks and supports only current stable upstream. | [The Rust release-channel model](https://doc.rust-lang.org/book/appendix-07-nightly-rust.html) |
 | Current Rust stable was 1.98.1 on the decision date. | [Rust 1.98.1 announcement](https://blog.rust-lang.org/2026/09/03/Rust-1.98.1/) |

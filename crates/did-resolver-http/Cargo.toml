@@ -1,0 +1,26 @@
+[package]
+name                   = "identus-did-resolver-http"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+publish.workspace      = true
+
+[dependencies]
+axum.workspace           = true
+headers-accept.workspace = true
+identus-core.workspace   = true
+identus-did.workspace    = true
+mediatype.workspace      = true
+serde.workspace          = true
+serde_json.workspace     = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = [ "macros", "rt" ] }
+tower = { workspace = true, features = [ "util" ] }
+
+[features]
+default = [  ]
+
+[lints]
+workspace = true

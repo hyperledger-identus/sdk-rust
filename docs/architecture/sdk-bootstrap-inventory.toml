@@ -187,6 +187,15 @@ owner_issue    = "#25"
 summary        = "System and deterministic adapters for the SecureRandom port."
 
 [[packages]]
+name           = "identus-did-resolver-http"
+path           = "crates/did-resolver-http"
+layer          = "outer-boundary"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#201"
+summary        = "Bounded Axum GET binding over the generic W3C DID resolver port."
+
+[[packages]]
 name           = "identus-bindings"
 path           = "crates/bindings"
 layer          = "outer-boundary"

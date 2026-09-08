@@ -19,8 +19,9 @@ unpublished, host-only, consumer-owned and temporary fast/slow status.
 
 - The additive `openapi` feature is disabled by default and exists only on
   `identus-did-resolver-http`.
-- Exact `utoipa 5.5.0` is used without default/macro features; its type may
-  cross only this explicit outer-adapter feature surface.
+- Exact `utoipa 5.5.0` is used without defaults and with only the `macros`
+  compile feature required by the published crate; macros are not invoked and
+  its type may cross only this explicit outer-adapter feature surface.
 - The document describes only fixed `GET /{did}` behavior implemented by the
   same crate and is deterministic under serialization.
 - DID Core remains independent of Utoipa and OpenAPI annotations.

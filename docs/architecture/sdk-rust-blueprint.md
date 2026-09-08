@@ -292,14 +292,15 @@ code to a DID-only dependency cone.
 Port the chain-neutral Axum binding after B05. Keep content negotiation and
 error/status behavior byte-compatible with its source fixtures.
 
-Issue #201 delivers the first bounded host adapter: an unpublished,
+Issues #202 and #204 deliver the bounded host adapter: an unpublished,
 state-closed `identus-did-resolver-http` router over any `DidResolver`, with a
 fixed `GET /{did}` route, 8 KiB/32-range `Accept` boundary and W3C status/body
-projection. NeoPRISM remains the extraction oracle, while its permissive
-quality handling, ignored query options and dynamic route are deliberately not
-copied. The production cone contains no listener or async runtime. Parent #10
-remains open for bounded query options, OpenAPI, publication and downstream
-adoption evidence.
+projection plus bounded common and extension query options. Issue #205 adds an
+opt-in typed OpenAPI 3.1 document for exactly that fixed route. NeoPRISM remains
+the extraction oracle, while its permissive quality handling, ignored query
+options, DID Core annotations and dynamic route are deliberately not copied.
+The production cone contains no listener or async runtime. Parent #10 remains
+open for publication and downstream adoption evidence.
 
 ### B07 — VC core convergence (`#6`)
 

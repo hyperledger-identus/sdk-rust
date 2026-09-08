@@ -4,7 +4,8 @@
 - **Date:** 2026-09-08
 - **Decision authority:** sdk-rust issue #205 under #10
 - **Normative profile:** OpenAPI 3.1.0 and the pinned W3C DID Resolution GET binding
-- **Dependency:** `utoipa 5.5.0`, default features disabled
+- **Dependency:** `utoipa 5.5.0`, defaults disabled with only `macros` enabled
+  as an upstream compile prerequisite
 
 ## Context
 
@@ -13,17 +14,21 @@ options and W3C response projection. NeoPRISM demonstrates demand for an
 optional OpenAPI artifact, but its older macro-derived document couples DID
 Core to Utoipa and describes behavior that predates the SDK's strict adapter.
 
-A handwritten JSON document would avoid one package while replacing a typed
+A handwritten JSON document would avoid packages while replacing a typed
 standard model with unchecked string-key construction. Utoipa's current model
-can be used without its generator macros and adds only its own package to the
-existing resolved serde/serde_json/indexmap cone.
+can be used through typed builders. Registry-source verification found that
+5.5.0 does not compile with `default-features = false` alone because internal
+references are gated with `macros`. Enabling only that feature adds
+`utoipa-gen`; its `syn`, `quote` and `proc-macro2` dependencies are already in
+the workspace graph. SDK code does not invoke Utoipa macros.
 
 ## Decision
 
 1. Add exact `utoipa 5.5.0` as an optional dependency of
-   `identus-did-resolver-http`, with default features disabled.
+   `identus-did-resolver-http`, with defaults disabled and only `macros`
+   enabled as an upstream compile prerequisite.
 2. Construct the document through Utoipa's typed public OpenAPI model; do not
-   enable `utoipa-gen` or annotate `identus-did`.
+   invoke its macros or annotate `identus-did`.
 3. Expose one feature-gated function returning `utoipa::openapi::OpenApi`.
    Third-party type exposure is limited to this already framework-specific
    outer adapter and permits direct host-document composition.
@@ -48,8 +53,9 @@ existing resolved serde/serde_json/indexmap cone.
 
 ### Copy NeoPRISM's macro and derive pattern
 
-This would add a proc-macro cone, spread OpenAPI annotations into DID Core and
-carry an outdated query contract.
+The compile prerequisite already adds the proc-macro package, but invoking its
+derives would spread OpenAPI annotations into DID Core and carry an outdated
+query contract.
 
 ### Return handwritten JSON
 

@@ -6,6 +6,12 @@
 //! behavior, server execution, TLS,
 //! middleware and deployment policy remain with the consumer.
 
+#[cfg(feature = "openapi")]
+mod openapi;
+
+#[cfg(feature = "openapi")]
+pub use openapi::did_resolver_http_openapi;
+
 use std::{
     collections::{BTreeMap, BTreeSet},
     str::FromStr,

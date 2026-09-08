@@ -15,10 +15,12 @@ documentation framework.
 
 ## Construct the document with Utoipa's model only
 
-Use exact `utoipa 5.5.0` with default features disabled. Build `OpenApi`, path,
-operation, parameters, responses, content and small component schemas through
-the public model builders. Do not use `utoipa-gen` macros or add derives to DID
-Core. One public feature-gated function returns the Utoipa document so an
+Use exact `utoipa 5.5.0` with defaults disabled and only `macros` enabled
+because the published crate fails to compile without its internal macro-gated
+alias. Build `OpenApi`, path, operation, parameters, responses, content and
+small component schemas through the public model builders. Do not invoke
+`utoipa-gen` macros or add derives to DID Core. One public feature-gated
+function returns the Utoipa document so an
 already framework-coupled host can merge it directly.
 
 ## Describe the fixed mount-relative route

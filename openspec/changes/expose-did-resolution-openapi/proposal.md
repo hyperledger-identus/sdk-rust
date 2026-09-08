@@ -13,8 +13,9 @@ metadata for behavior already implemented by the adapter, without coupling
 # What changes
 
 - Add an opt-in `openapi` feature to `identus-did-resolver-http`.
-- Adopt exact `utoipa 5.5.0` without default macro features and construct the
-  document through its typed model.
+- Adopt exact `utoipa 5.5.0` with defaults disabled and only its
+  upstream-required `macros` compile feature; construct the document through
+  its typed model without invoking macros.
 - Describe the fixed `GET /{did}` operation, common query options, supported
   media types, status outcomes, bounds and `Vary: Accept` behavior.
 - Keep the returned document composable by a host and deterministic under

@@ -39,10 +39,10 @@ It does not create a new protocol, transport or compatibility promise.
 
 | Candidate | Version/revision | Decision | Reason | Reconsideration trigger |
 | --- | --- | --- | --- | --- |
-| `utoipa` typed OpenAPI model without macros | 5.5.0 / tag `2492086d40ad2b488b00db39724d45a92cb7863a` | `adopt` | Current stable release, OpenAPI 3.1 model, Rust 1.75 floor, dual MIT/Apache-2.0 license and only one new resolved package when defaults are disabled. | A breaking 5.x defect, advisory, maintenance loss, unsupported target or smaller maintained typed model with better evidence. |
+| `utoipa` typed OpenAPI model | 5.5.0 / tag `2492086d40ad2b488b00db39724d45a92cb7863a` | `adopt` | Current stable release, OpenAPI 3.1 model, Rust 1.75 floor and dual MIT/Apache-2.0 license. Defaults stay disabled; `macros` is enabled only because the published crate does not compile without its internal macro-gated alias. | A breaking 5.x defect, advisory, maintenance loss, unsupported target or smaller maintained typed model with better evidence. |
 | NeoPRISM Utoipa pattern | 5.4.0 / `d4608fe` | `oracle` | Proves consumer demand and composition, but default macros and DID Core annotations would widen coupling and its contract omits current query behavior. | NeoPRISM adopts the SDK document and exposes an additional generic composition requirement. |
 | Handwritten `serde_json::Value` document | repository-local | `not-adopt` | Avoids one package but gives up typed OpenAPI construction and shifts schema-shape maintenance into unchecked string keys. | Utoipa becomes unavailable or materially broadens its runtime/dependency surface. |
-| Utoipa derive/path macros | 5.5.0 default feature | `not-adopt` | Adds `utoipa-gen`, `syn`, `quote` and macro expansion although the workspace needs one fixed operation. | The adapter grows enough operations that handwritten typed builders become less auditable than generated definitions. |
+| Utoipa derive/path macro use | 5.5.0 `macros` feature | `not-adopt` | The feature is an unavoidable compile prerequisite in the published crate, but invoking derives would add expansion and source coupling although the workspace needs one fixed operation. | The adapter grows enough operations that typed builders become less auditable than generated definitions. |
 
 ## Compatibility and dependency evidence
 
@@ -55,11 +55,15 @@ limited to the optional outer adapter. The fixed router
 signature and wire responses do not change. Rollback removes the feature,
 function and dependency with no data or transport migration.
 
-`utoipa 5.5.0` declares Rust 1.75, below the SDK's Rust 1.98.1 MSRV/etalon. With
-`default-features = false`, its direct dependencies are `serde`, `serde_json`
-and `indexmap`; all are already in the resolved workspace lock. The resulting
-direct and resolved dependency cone adds only `utoipa` itself and excludes
-`utoipa-gen`. No native code, build script or network runtime is introduced.
+`utoipa 5.5.0` declares Rust 1.75, below the SDK's Rust 1.98.1 MSRV/etalon.
+`cargo test -p identus-did-resolver-http --features openapi` proved that the
+published crate fails to compile with `default-features = false` alone: its
+schema model references `crate::utoipa::Number`, while that alias is gated by
+`macros`. Enabling only `macros` adds `utoipa-gen`; its `syn`, `quote` and
+`proc-macro2` dependencies are already present in the workspace graph. No
+Utoipa macro is invoked, and no native code, build script or network runtime is
+introduced. The direct and resolved dependency cone adds `utoipa` and
+`utoipa-gen`; all other resolved packages already existed in the lockfile.
 The feature stays host-only with the existing adapter; it makes no WASM/mobile
 support claim.
 
@@ -71,8 +75,9 @@ path interpolation. Deterministic structural tests prevent the document from
 claiming unimplemented methods, representations, options or status outcomes.
 
 Source inspection of registry releases 5.4.0 and 5.5.0 found no `unsafe`, FFI
-or native-linking use in Utoipa Rust sources. Default macros are disabled. The
-5.5.0 tag points to a GitHub-verified commit, was released 2026-05-04, and its
+or native-linking use in Utoipa Rust sources. Defaults are disabled and the
+required macro feature is not invoked by SDK code. The 5.5.0 tag points to a
+GitHub-verified commit, was released 2026-05-04, and its
 license and provenance are recorded as MIT OR Apache-2.0 and tag `2492086d`.
 Supply-chain policy and the lockfile checksum
 remain authoritative. Security posture is limited to documentation integrity;
@@ -80,7 +85,7 @@ the adapter's existing request bounds and redacted errors are unchanged.
 
 ## Rejected or deferred candidates
 
-Handwritten JSON and Utoipa macros are `not-adopt` for the reasons above.
+Handwritten JSON and Utoipa macro use are `not-adopt` for the reasons above.
 OpenAPI annotations in `identus-did`, a generated UI, dynamic path rewriting,
 POST and dereferencing descriptions are deferred because those would add
 coupling or advertise behavior not implemented by this slice.
@@ -96,7 +101,7 @@ described but cannot be enumerated. Hosts that nest the fixed router own any
 path-prefix rewrite when merging this document; the SDK does not accept an
 unbounded dynamic path.
 
-Stop rather than merge if default/no-default graphs gain Utoipa, macro/native
+Stop rather than merge if default/no-default graphs gain Utoipa, native
 code becomes reachable, the document advertises unimplemented behavior, DID
 Core gains an OpenAPI edge, serialization is nondeterministic or any request
 data can enter the document.

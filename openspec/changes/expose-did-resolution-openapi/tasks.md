@@ -10,7 +10,8 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add exact optional Utoipa workspace/member dependency with macros off.
+- [ ] 2.1 Add exact optional Utoipa workspace/member dependency with only the
+      upstream-required macro compile feature and no macro use.
 - [ ] 2.2 Build a fixed mount-relative OpenAPI document for implemented GET
       parameters, representations, statuses, bounds and response headers.
 - [ ] 2.3 Keep `identus-did`, default features and router/wire behavior unchanged.

@@ -351,8 +351,8 @@ impl fmt::Display for RegistrationError {
 /// A DID-domain validation failure.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
-    /// A DID method name was empty or contained characters outside the
-    /// `method-name = 1*( lowercase-alpha / digit )` grammar.
+    /// A DID method name was empty, oversized or contained characters outside
+    /// the `method-name = 1*( lowercase-alpha / digit )` grammar.
     InvalidMethod(String),
     /// A DID version did not parse to a supported, non-zero value.
     InvalidVersion(String),

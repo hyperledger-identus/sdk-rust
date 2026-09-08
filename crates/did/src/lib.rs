@@ -44,7 +44,7 @@ pub use error::{
     CacheError, DidSyntaxError, DocumentError, Error, RegistrationError, RegistryError,
     ResolutionError, UriSyntaxError,
 };
-pub use method::DidMethod;
+pub use method::{DidMethod, MAX_DID_METHOD_BYTES};
 pub use multihash::Multihash;
 pub use query::{
     DereferencingOptions, DereferencingOptionsBuilder, DidResolutionFuture, DidResolver,

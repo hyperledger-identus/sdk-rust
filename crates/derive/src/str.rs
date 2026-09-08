@@ -50,18 +50,16 @@ pub(crate) fn expand(ctx: &Ctx) -> TokenStream2 {
             #[automatically_derived]
             impl #name {
                 pub fn parse(s: &str) -> ::core::result::Result<Self, #validate_err> {
-                    let owned = s.to_owned();
-                    #validate_fn(&owned)?;
-                    ::core::result::Result::Ok(Self(owned))
+                    #validate_fn(s)?;
+                    ::core::result::Result::Ok(Self(s.to_owned()))
                 }
             }
             #[automatically_derived]
             impl ::core::str::FromStr for #name {
                 type Err = #validate_err;
                 fn from_str(s: &str) -> ::core::result::Result<Self, #validate_err> {
-                    let owned = s.to_owned();
-                    #validate_fn(&owned)?;
-                    ::core::result::Result::Ok(Self(owned))
+                    #validate_fn(s)?;
+                    ::core::result::Result::Ok(Self(s.to_owned()))
                 }
             }
         });

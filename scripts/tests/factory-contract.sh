@@ -328,7 +328,7 @@ The system SHALL add one behavior.
 - **THEN** the new result appears
 EOF
 : >"$fixture_root/openspec-calls.log"
-expected_archive="$fixture_root/openspec/changes/archive/$(LC_ALL=C date +%F)-example-change"
+expected_archive="$fixture_root/openspec/changes/archive/$(LC_ALL=C date -u +%F)-example-change"
 
 mkdir -p "$expected_archive"
 if collision_output=$(cd "$fixture_root" && \
@@ -376,14 +376,27 @@ printf '#!%s\n' "$BASH" >"$fixture_root/fake-bin/openspec"
 cat >>"$fixture_root/fake-bin/openspec" <<'EOF'
 printf '%s\n' "$*" >>"$OPENSPEC_CALL_LOG"
 if [[ "$*" == 'archive example-change --yes' ]]; then
-  archive_date=$(LC_ALL=C date +%F)
+  archive_date=${OPENSPEC_ARCHIVE_DATE:-$(LC_ALL=C date -u +%F)}
   mkdir -p "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive"
-  mv "$OPENSPEC_FIXTURE_ROOT/openspec/changes/example-change" \
-    "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive/$archive_date-example-change"
-  if [[ "${OPENSPEC_ARCHIVE_MODE:-complete}" == 'incomplete' ]]; then
-    mv "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive/$archive_date-example-change/research.md" \
-      "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive/$archive_date-example-change/research.md.hidden"
-  fi
+  archive_path="$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive/$archive_date-example-change"
+  case "${OPENSPEC_ARCHIVE_MODE:-complete}" in
+    symlink)
+      mv "$OPENSPEC_FIXTURE_ROOT/openspec/changes/example-change" \
+        "$OPENSPEC_FIXTURE_ROOT/symlink-archive-target"
+      ln -s "$OPENSPEC_FIXTURE_ROOT/symlink-archive-target" "$archive_path"
+      ;;
+    ambiguous)
+      mv "$OPENSPEC_FIXTURE_ROOT/openspec/changes/example-change" "$archive_path"
+      cp -R "$archive_path" \
+        "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive/2000-01-03-example-change"
+      ;;
+    *)
+      mv "$OPENSPEC_FIXTURE_ROOT/openspec/changes/example-change" "$archive_path"
+      if [[ "${OPENSPEC_ARCHIVE_MODE:-complete}" == 'incomplete' ]]; then
+        mv "$archive_path/research.md" "$archive_path/research.md.hidden"
+      fi
+      ;;
+  esac
 fi
 EOF
 chmod +x "$fixture_root/fake-bin/openspec"
@@ -410,22 +423,71 @@ mv "$expected_archive/research.md.hidden" "$expected_archive/research.md"
 mv "$expected_archive" "$change_root"
 : >"$fixture_root/openspec-calls.log"
 
+symlink_archive="$fixture_root/openspec/changes/archive/2000-01-01-example-change"
+if symlink_output=$(cd "$fixture_root" && \
+  PATH="$fixture_root/fake-bin:$PATH" \
+  OPENSPEC_CALL_LOG="$fixture_root/openspec-calls.log" \
+  OPENSPEC_FIXTURE_ROOT="$fixture_root" \
+  OPENSPEC_ARCHIVE_DATE=2000-01-01 \
+  OPENSPEC_ARCHIVE_MODE=symlink \
+  ./scripts/factory archive example-change 2>&1); then
+  printf 'factory-contract test: symlink archive was accepted\n' >&2
+  exit 1
+fi
+if [[ -e "$change_root" || ! -L "$symlink_archive" ]]; then
+  printf 'factory-contract test: symlink archive fixture did not reach its postcondition\n' >&2
+  exit 1
+fi
+if grep -Fq 'archived safely' <<<"$symlink_output"; then
+  printf 'factory-contract test: symlink archive printed archive success\n' >&2
+  exit 1
+fi
+rm "$symlink_archive"
+mv "$fixture_root/symlink-archive-target" "$change_root"
+: >"$fixture_root/openspec-calls.log"
+
+ambiguous_archive_one="$fixture_root/openspec/changes/archive/2000-01-02-example-change"
+ambiguous_archive_two="$fixture_root/openspec/changes/archive/2000-01-03-example-change"
+if ambiguous_output=$(cd "$fixture_root" && \
+  PATH="$fixture_root/fake-bin:$PATH" \
+  OPENSPEC_CALL_LOG="$fixture_root/openspec-calls.log" \
+  OPENSPEC_FIXTURE_ROOT="$fixture_root" \
+  OPENSPEC_ARCHIVE_DATE=2000-01-02 \
+  OPENSPEC_ARCHIVE_MODE=ambiguous \
+  ./scripts/factory archive example-change 2>&1); then
+  printf 'factory-contract test: ambiguous archive result was accepted\n' >&2
+  exit 1
+fi
+if [[ -e "$change_root" || ! -d "$ambiguous_archive_one" || ! -d "$ambiguous_archive_two" ]]; then
+  printf 'factory-contract test: ambiguous archive fixture did not reach its postcondition\n' >&2
+  exit 1
+fi
+if grep -Fq 'archived safely' <<<"$ambiguous_output"; then
+  printf 'factory-contract test: ambiguous archive printed archive success\n' >&2
+  exit 1
+fi
+rm -r "$ambiguous_archive_two"
+mv "$ambiguous_archive_one" "$change_root"
+: >"$fixture_root/openspec-calls.log"
+
+mismatched_archive="$fixture_root/openspec/changes/archive/2000-01-04-example-change"
 success_output=$(cd "$fixture_root" && \
   PATH="$fixture_root/fake-bin:$PATH" \
   OPENSPEC_CALL_LOG="$fixture_root/openspec-calls.log" \
   OPENSPEC_FIXTURE_ROOT="$fixture_root" \
+  OPENSPEC_ARCHIVE_DATE=2000-01-04 \
   ./scripts/factory archive example-change 2>&1)
-if [[ -e "$change_root" || ! -d "$expected_archive" ]]; then
-  printf 'factory-contract test: successful archive state transition is incomplete\n' >&2
+if [[ -e "$change_root" || ! -d "$mismatched_archive" ]]; then
+  printf 'factory-contract test: mismatched-date archive state transition is incomplete\n' >&2
   exit 1
 fi
 for artifact in .openspec.yaml proposal.md research.md constraints.md design.md tasks.md; do
-  if [[ ! -f "$expected_archive/$artifact" ]]; then
+  if [[ ! -f "$mismatched_archive/$artifact" ]]; then
     printf 'factory-contract test: successful archive lost %s\n' "$artifact" >&2
     exit 1
   fi
 done
-if [[ ! -d "$expected_archive/specs" ]]; then
+if [[ ! -d "$mismatched_archive/specs" ]]; then
   printf 'factory-contract test: successful archive lost capability deltas\n' >&2
   exit 1
 fi

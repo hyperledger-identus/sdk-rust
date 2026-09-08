@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "ai-software-factory"
+requirement      = "Archive success proves the requested state transition"
+canonical_sha256 = "438eeeff08614d73a1002b551af7e6d0f997bf75dc9d57104f424f41794891ab"
+reason           = "Issue #218 intentionally replaces the host-local deterministic-path receipt with exact before/after discovery of one new regular archive directory while preserving fail-closed state and content validation."

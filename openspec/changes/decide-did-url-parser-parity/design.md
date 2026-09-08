@@ -30,7 +30,7 @@ resource work or facade behavior is incompatible.
 
 ## Corpus contract
 
-The committed CSV records a stable case id, source and pinned revision,
+The committed tab-separated corpus records a stable case id, source and pinned revision,
 profile, escaped input, expected normative/SDK result, current result,
 candidate result and mismatch class. Generated families record their generator
 and aggregate count in the report; representative rows remain in the CSV so

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use uriparse::URIReference;
+use fluent_uri::UriRef;
 use zeroize::Zeroizing;
 
 use crate::{
@@ -106,9 +106,11 @@ impl TokenErrorResponseCore {
         {
             return Err(CredentialOfferError::InvalidTokenErrorDescription);
         }
-        if fields.error_uri.as_ref().is_some_and(|uri| {
-            !is_uri_reference_chars(uri) || URIReference::try_from(uri.as_str()).is_err()
-        }) {
+        if fields
+            .error_uri
+            .as_ref()
+            .is_some_and(|uri| !is_uri_reference_chars(uri) || UriRef::parse(uri.as_str()).is_err())
+        {
             return Err(CredentialOfferError::InvalidTokenErrorUri);
         }
         Ok(Self {

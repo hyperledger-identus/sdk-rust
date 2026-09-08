@@ -56,6 +56,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "borrow-or-share"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc0b364ead1874514c8c2855ab558056ebfeb775653e7ae45ff72f28f8f3166c"
+
+[[package]]
 name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -177,7 +183,7 @@ checksum = "f46882e17999c6cc590af592290432be3bce0428cb0d5f8b6715e4dc7b383eb3"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -285,6 +291,16 @@ name = "fiat-crypto"
 version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28dea519a9695b9977216879a3ebfddf92f1c08c05d984f8996aecd6ecdc811d"
+
+[[package]]
+name = "fluent-uri"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc74ac4d8359ae70623506d512209619e5cf8f347124910440dbc221714b328e"
+dependencies = [
+ "borrow-or-share",
+ "ref-cast",
+]
 
 [[package]]
 name = "fnv"
@@ -426,7 +442,7 @@ name = "identus-conformance"
 version = "0.0.0"
 dependencies = [
  "identus-core",
- "syn",
+ "syn 2.0.118",
  "toml 0.8.23",
 ]
 
@@ -480,7 +496,7 @@ dependencies = [
  "quote",
  "serde",
  "serde_json",
- "syn",
+ "syn 2.0.118",
  "trybuild",
 ]
 
@@ -488,6 +504,7 @@ dependencies = [
 name = "identus-did"
 version = "0.0.0"
 dependencies = [
+ "fluent-uri",
  "identus-core",
  "identus-derive",
  "serde",
@@ -518,10 +535,10 @@ dependencies = [
 name = "identus-oid4vci"
 version = "0.0.0"
 dependencies = [
+ "fluent-uri",
  "identus-core",
  "identus-jose",
  "serde_json",
- "uriparse",
  "zeroize",
 ]
 
@@ -700,6 +717,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 
 [[package]]
+name = "ref-cast"
+version = "1.0.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e440fb4e4b4147295338efb76001ab9e4efc0e5839df2c47fc5ac2381d365c3"
+dependencies = [
+ "ref-cast-impl",
+]
+
+[[package]]
+name = "ref-cast-impl"
+version = "1.0.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92ecd8964f8453721699a1ed72037b0db49ce2f5a5138486ee89bed6f67cdf3a"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.5",
+]
+
+[[package]]
 name = "rfc6979"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -770,7 +807,7 @@ checksum = "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -842,6 +879,17 @@ name = "syn"
 version = "2.0.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b9ae57f904213ebb649ce6895b8a66c66f0203b9319718f69a5612a065b1422"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
+
+[[package]]
+name = "syn"
+version = "3.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12df2e0110f65b775f769bb17ef989067a1d931b2eb822bd4346631eeada89f9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1048,7 +1096,7 @@ dependencies = [
  "bumpalo",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
  "wasm-bindgen-shared",
 ]
 
@@ -1187,7 +1235,7 @@ checksum = "f2ab42fc20575779bd240faa45f94a74256f755c0fa9e89f0ede20d91d0cdfc1"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -1207,7 +1255,7 @@ checksum = "3c50655cbb0fe3fc43170059e702f1ce5e19b84cec58dc87b037a09935c2f328"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]

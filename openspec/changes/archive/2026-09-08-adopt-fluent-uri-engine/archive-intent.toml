@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "did-core"
+requirement      = "Independently evidenced URI recognition"
+canonical_sha256 = "7b9231c70b139dd70d7c115c62b449ed56eb1e62628e5e22bfd0873c2380c229"
+reason           = "Issue #157 deliberately replaces the dependency-free generic RFC 3986 implementation requirement with a pinned private grammar engine while preserving the owned value, exact spelling, byte ceiling, error facade, independent oracle evidence and DID/DID-URL parser boundaries."

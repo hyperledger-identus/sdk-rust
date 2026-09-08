@@ -1,6 +1,6 @@
 use std::fmt;
 
-use uriparse::URIReference;
+use fluent_uri::UriRef;
 use zeroize::Zeroizing;
 
 use crate::{CredentialOfferError, TokenResponseLimits, json::parse_token_response_fields};
@@ -164,7 +164,7 @@ fn is_valid_token_type(value: &str) -> bool {
     let is_type_name = value
         .bytes()
         .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_'));
-    is_type_name || URIReference::try_from(value).is_ok()
+    is_type_name || UriRef::parse(value).is_ok()
 }
 
 fn is_valid_scope(value: &str) -> bool {

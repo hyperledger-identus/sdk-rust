@@ -4,7 +4,9 @@
 > not suitable for `HDKey`; ADR 0082 records that `multihash 0.19.5` has no
 > current consumer and is conditional rather than adopted; ADR 0083 records
 > that `form_urlencoded 1.2.2` is too permissive for the SDK's strict parser
-> and has insufficient serializer-only payoff. Other decisions remain active.
+> and has insufficient serializer-only payoff; ADR 0084 records the bounded
+> `fluent-uri 0.4.1` adoption and its transitive license/unsafe exception.
+> Other decisions remain active.
 
 - **Status:** Accepted
 - **Date:** 2026-09-07
@@ -53,8 +55,9 @@ The SDK follows a **narrow engine, owned facade** rule:
 The approved production candidates are:
 
 - `bip39 2.2.2` behind `MnemonicHelper` ([#152](https://github.com/hyperledger-identus/sdk-rust/issues/152));
-- `bip32 0.5.3` behind the hardened-only `HDKey` facade ([#153](https://github.com/hyperledger-identus/sdk-rust/issues/153));
-- `fluent-uri 0.4.1` behind exact-preserving Identus URI/URL types ([#157](https://github.com/hyperledger-identus/sdk-rust/issues/157)).
+- `fluent-uri 0.4.1` behind exact-preserving Identus URI types under
+  [ADR 0084](0084-adopt-fluent-uri-as-private-grammar-engine.md) and
+  [#157](https://github.com/hyperledger-identus/sdk-rust/issues/157).
 
 `multibase 0.9.3` is approved only after the effective MSRV is at least Rust
 1.88 or upstream publishes a genuinely compatible transitive resolution.

@@ -1,6 +1,6 @@
 use std::{fmt, str};
 
-use uriparse::URI;
+use fluent_uri::Uri as ParsedUri;
 use zeroize::Zeroizing;
 
 use crate::{CredentialOfferError, CredentialOfferLimits, json::validate_json};
@@ -134,11 +134,13 @@ impl CredentialOfferReference {
         if authority.is_empty() || authority.first() == Some(&b':') {
             return Err(CredentialOfferError::UnsafeReferenceUri);
         }
-        let parsed = URI::try_from(uri).map_err(|_| CredentialOfferError::UnsafeReferenceUri)?;
+        let parsed = ParsedUri::parse(uri).map_err(|_| CredentialOfferError::UnsafeReferenceUri)?;
+        let authority = parsed
+            .authority()
+            .ok_or(CredentialOfferError::UnsafeReferenceUri)?;
         if !parsed.scheme().as_str().eq_ignore_ascii_case("https")
-            || parsed.host().is_none()
-            || parsed.has_username()
-            || parsed.has_password()
+            || authority.host().is_empty()
+            || authority.userinfo().is_some()
             || parsed.fragment().is_some()
         {
             return Err(CredentialOfferError::UnsafeReferenceUri);

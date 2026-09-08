@@ -1,6 +1,6 @@
 use std::fmt;
 
-use uriparse::URI;
+use fluent_uri::Uri as ParsedUri;
 use zeroize::Zeroizing;
 
 use crate::{
@@ -51,85 +51,18 @@ fn is_valid_https_uri(value: &str, allow_query: bool) -> bool {
     if authority.is_empty() || authority.first() == Some(&b':') {
         return false;
     }
-    URI::try_from(value).is_ok_and(|parsed| has_safe_https_components(&parsed, allow_query))
-        || is_valid_ipvfuture_https_uri(value, allow_query)
+    ParsedUri::parse(value).is_ok_and(|parsed| has_safe_https_components(&parsed, allow_query))
 }
 
-fn has_safe_https_components(parsed: &URI<'_>, allow_query: bool) -> bool {
+fn has_safe_https_components(parsed: &ParsedUri<&str>, allow_query: bool) -> bool {
+    let Some(authority) = parsed.authority() else {
+        return false;
+    };
     parsed.scheme().as_str().eq_ignore_ascii_case("https")
-        && parsed.host().is_some()
-        && !parsed.has_username()
-        && !parsed.has_password()
+        && !authority.host().is_empty()
+        && authority.userinfo().is_none()
         && (allow_query || parsed.query().is_none())
         && parsed.fragment().is_none()
-}
-
-// `uriparse` 0.6.4 does not recognize RFC 3986 IPvFuture literals. Validate
-// that host production locally, then replace only the literal with a known
-// IPv6 host so `uriparse` still validates every other URI component.
-fn is_valid_ipvfuture_https_uri(value: &str, allow_query: bool) -> bool {
-    let bytes = value.as_bytes();
-    let authority_end = bytes[8..]
-        .iter()
-        .position(|byte| matches!(byte, b'/' | b'?' | b'#'))
-        .map_or(bytes.len(), |offset| 8 + offset);
-    let authority = &bytes[8..authority_end];
-    if authority.first() != Some(&b'[') {
-        return false;
-    }
-    let Some(close) = authority.iter().position(|byte| *byte == b']') else {
-        return false;
-    };
-    if !is_valid_ipvfuture_literal(&authority[1..close]) {
-        return false;
-    }
-    let port = &authority[close + 1..];
-    if !port.is_empty() && (port[0] != b':' || !port[1..].iter().all(u8::is_ascii_digit)) {
-        return false;
-    }
-
-    let mut normalized = Zeroizing::new(String::with_capacity(value.len()));
-    normalized.push_str(&value[..8]);
-    normalized.push_str("[::1]");
-    normalized.push_str(&value[8 + close + 1..]);
-    URI::try_from(normalized.as_str())
-        .is_ok_and(|parsed| has_safe_https_components(&parsed, allow_query))
-}
-
-fn is_valid_ipvfuture_literal(value: &[u8]) -> bool {
-    if !value
-        .first()
-        .is_some_and(|byte| matches!(byte, b'v' | b'V'))
-    {
-        return false;
-    }
-    let Some(dot) = value.iter().position(|byte| *byte == b'.') else {
-        return false;
-    };
-    dot > 1
-        && dot + 1 < value.len()
-        && value[1..dot].iter().all(u8::is_ascii_hexdigit)
-        && value[dot + 1..].iter().all(|byte| {
-            byte.is_ascii_alphanumeric()
-                || matches!(
-                    byte,
-                    b'-' | b'.'
-                        | b'_'
-                        | b'~'
-                        | b'!'
-                        | b'$'
-                        | b'&'
-                        | b'\''
-                        | b'('
-                        | b')'
-                        | b'*'
-                        | b'+'
-                        | b','
-                        | b';'
-                        | b'='
-                        | b':'
-                )
-        })
 }
 
 impl fmt::Debug for CredentialIssuerIdentifier {

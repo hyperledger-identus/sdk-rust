@@ -1,7 +1,8 @@
 //! Bounded absolute RFC 3986 URI value used by DID documents.
 
-use std::{fmt, net::Ipv6Addr, str::FromStr};
+use std::{fmt, str::FromStr};
 
+use fluent_uri::{ParseErrorKind, Uri as ParsedUri};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
 use crate::{
@@ -135,26 +136,27 @@ fn validate_uri(bytes: &[u8]) -> Result<(), UriSyntaxError> {
         .ok_or(UriSyntaxError::MissingScheme)?;
     validate_scheme(&bytes[..colon])?;
 
-    let remainder = &bytes[colon + 1..];
-    let fragment = remainder.iter().position(|byte| *byte == b'#');
-    if let Some(fragment) = fragment
-        && remainder[fragment + 1..].contains(&b'#')
+    if bytes[colon + 1..]
+        .iter()
+        .filter(|byte| **byte == b'#')
+        .count()
+        > 1
     {
         return Err(UriSyntaxError::MultipleFragments);
     }
 
-    let before_fragment = fragment.map_or(remainder, |index| &remainder[..index]);
-    let query = before_fragment.iter().position(|byte| *byte == b'?');
-    let hier_part = query.map_or(before_fragment, |index| &before_fragment[..index]);
-    validate_hier_part(hier_part)?;
-
-    if let Some(query) = query {
-        validate_query_or_fragment(&before_fragment[query + 1..])?;
-    }
-    if let Some(fragment) = fragment {
-        validate_query_or_fragment(&remainder[fragment + 1..])?;
-    }
-    Ok(())
+    ParsedUri::parse(std::str::from_utf8(bytes).expect("URI input originated as UTF-8"))
+        .map(|_| ())
+        .map_err(|error| match error.kind() {
+            ParseErrorKind::InvalidPctEncodedOctet => UriSyntaxError::InvalidPercentEncoding,
+            ParseErrorKind::InvalidIpv6Addr => UriSyntaxError::InvalidAuthority,
+            ParseErrorKind::UnexpectedChar
+                if index_is_in_authority(bytes, colon, error.index()) =>
+            {
+                UriSyntaxError::InvalidAuthority
+            }
+            ParseErrorKind::UnexpectedChar => UriSyntaxError::InvalidCharacter,
+        })
 }
 
 fn validate_scheme(scheme: &[u8]) -> Result<(), UriSyntaxError> {
@@ -171,156 +173,15 @@ fn validate_scheme(scheme: &[u8]) -> Result<(), UriSyntaxError> {
     Ok(())
 }
 
-fn validate_hier_part(value: &[u8]) -> Result<(), UriSyntaxError> {
-    if let Some(after_prefix) = value.strip_prefix(b"//") {
-        let path_start = after_prefix
-            .iter()
-            .position(|byte| *byte == b'/')
-            .unwrap_or(after_prefix.len());
-        validate_authority(&after_prefix[..path_start])?;
-        validate_path(&after_prefix[path_start..])
-    } else {
-        validate_path(value)
-    }
-}
-
-fn validate_authority(authority: &[u8]) -> Result<(), UriSyntaxError> {
-    let mut at = None;
-    let mut index = 0;
-    while index < authority.len() {
-        if authority[index] == b'%' {
-            index = consume_percent(authority, index)?;
-            continue;
-        }
-        if authority[index] == b'@' {
-            if at.replace(index).is_some() {
-                return Err(UriSyntaxError::InvalidAuthority);
-            }
-        } else if !is_authority_byte(authority[index]) {
-            return Err(UriSyntaxError::InvalidAuthority);
-        }
-        index += 1;
-    }
-
-    let host_port = if let Some(at) = at {
-        validate_userinfo(&authority[..at])?;
-        &authority[at + 1..]
-    } else {
-        authority
+fn index_is_in_authority(bytes: &[u8], colon: usize, index: usize) -> bool {
+    let Some(authority) = bytes[colon + 1..].strip_prefix(b"//") else {
+        return false;
     };
-    if host_port.starts_with(b"[") {
-        let Some(close) = host_port.iter().position(|byte| *byte == b']') else {
-            return Err(UriSyntaxError::InvalidAuthority);
-        };
-        if close == 1 || !valid_ip_literal(&host_port[1..close]) {
-            return Err(UriSyntaxError::InvalidAuthority);
-        }
-        let suffix = &host_port[close + 1..];
-        if !suffix.is_empty() && (suffix[0] != b':' || !suffix[1..].iter().all(u8::is_ascii_digit))
-        {
-            return Err(UriSyntaxError::InvalidAuthority);
-        }
-        return Ok(());
-    }
-
-    let mut parts = host_port.split(|byte| *byte == b':');
-    let host = parts.next().unwrap_or_default();
-    let port = parts.next();
-    if parts.next().is_some() || port.is_some_and(|value| !value.iter().all(u8::is_ascii_digit)) {
-        return Err(UriSyntaxError::InvalidAuthority);
-    }
-    validate_reg_name(host)
-}
-
-fn valid_ip_literal(value: &[u8]) -> bool {
-    if value
-        .first()
-        .is_some_and(|byte| matches!(byte, b'v' | b'V'))
-    {
-        let Some(dot) = value.iter().position(|byte| *byte == b'.') else {
-            return false;
-        };
-        return dot > 1
-            && dot + 1 < value.len()
-            && value[1..dot].iter().all(u8::is_ascii_hexdigit)
-            && value[dot + 1..]
-                .iter()
-                .all(|byte| is_unreserved(*byte) || is_sub_delim(*byte) || *byte == b':');
-    }
-    std::str::from_utf8(value)
-        .ok()
-        .and_then(|value| value.parse::<Ipv6Addr>().ok())
-        .is_some()
-}
-
-fn validate_userinfo(value: &[u8]) -> Result<(), UriSyntaxError> {
-    validate_component(value, |byte| {
-        is_unreserved(byte) || is_sub_delim(byte) || byte == b':'
-    })
-    .map_err(|_| UriSyntaxError::InvalidAuthority)
-}
-
-fn validate_reg_name(value: &[u8]) -> Result<(), UriSyntaxError> {
-    let mut index = 0;
-    while index < value.len() {
-        if value[index] == b'%' {
-            index = consume_percent(value, index)?;
-        } else if is_unreserved(value[index]) || is_sub_delim(value[index]) {
-            index += 1;
-        } else {
-            return Err(UriSyntaxError::InvalidAuthority);
-        }
-    }
-    Ok(())
-}
-
-fn validate_path(value: &[u8]) -> Result<(), UriSyntaxError> {
-    validate_component(value, |byte| is_pchar(byte) || byte == b'/')
-}
-
-fn validate_query_or_fragment(value: &[u8]) -> Result<(), UriSyntaxError> {
-    validate_component(value, |byte| is_pchar(byte) || matches!(byte, b'/' | b'?'))
-}
-
-fn validate_component(value: &[u8], allowed: impl Fn(u8) -> bool) -> Result<(), UriSyntaxError> {
-    let mut index = 0;
-    while index < value.len() {
-        if value[index] == b'%' {
-            index = consume_percent(value, index)?;
-        } else if allowed(value[index]) {
-            index += 1;
-        } else {
-            return Err(UriSyntaxError::InvalidCharacter);
-        }
-    }
-    Ok(())
-}
-
-fn consume_percent(value: &[u8], index: usize) -> Result<usize, UriSyntaxError> {
-    if index + 2 >= value.len()
-        || !value[index + 1].is_ascii_hexdigit()
-        || !value[index + 2].is_ascii_hexdigit()
-    {
-        return Err(UriSyntaxError::InvalidPercentEncoding);
-    }
-    Ok(index + 3)
-}
-
-const fn is_unreserved(byte: u8) -> bool {
-    byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~')
-}
-
-const fn is_sub_delim(byte: u8) -> bool {
-    matches!(
-        byte,
-        b'!' | b'$' | b'&' | b'\'' | b'(' | b')' | b'*' | b'+' | b',' | b';' | b'='
-    )
-}
-
-const fn is_pchar(byte: u8) -> bool {
-    is_unreserved(byte) || is_sub_delim(byte) || matches!(byte, b':' | b'@')
-}
-
-const fn is_authority_byte(byte: u8) -> bool {
-    is_unreserved(byte) || is_sub_delim(byte) || matches!(byte, b':' | b'@' | b'[' | b']')
+    let start = colon + 3;
+    let end = start
+        + authority
+            .iter()
+            .position(|byte| matches!(byte, b'/' | b'?' | b'#'))
+            .unwrap_or(authority.len());
+    (start..end).contains(&index)
 }

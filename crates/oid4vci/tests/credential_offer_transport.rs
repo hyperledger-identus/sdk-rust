@@ -288,6 +288,7 @@ fn constructor_and_transport_parser_apply_equivalent_json_validation() {
 fn reference_validation_is_https_only_and_least_authority() {
     let limits = CredentialOfferLimits::default();
     assert!(CredentialOfferReference::try_from_uri("HTTPS://example.com/offer", limits).is_ok());
+    assert!(CredentialOfferReference::try_from_uri("https://[v1.fe80]/offer", limits).is_ok());
     for uri in [
         "/relative",
         "http://example.com/offer",
@@ -298,6 +299,7 @@ fn reference_validation_is_https_only_and_least_authority() {
         "https://user@example.com/offer",
         "https://user:password@example.com/offer",
         "https://example.com/offer#fragment",
+        "https://example.com/bad%escape",
         "not a uri",
     ] {
         let result = CredentialOfferReference::try_from_uri(uri, limits);

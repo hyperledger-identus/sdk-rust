@@ -172,3 +172,19 @@ misrepresenting incomplete inherited coverage as a proven SDK guarantee.
 Any exception must be indexed separately with exact scope, invariants, owner,
 specialist review, cost, exit trigger and rollback; it cannot silently weaken
 the visible base rule.
+
+## Dependency-remediation example
+
+- `SDK-DEP-001` is effective: a focused defect in a conditionally adopted
+  dependency is offered upstream before the SDK activates a maintained fork.
+- An upstream issue or pull request is evidence of coordination, not an
+  immutable dependency or completed remediation. The SDK remains on its
+  reviewed release behind an Identus facade until a separate update issue
+  validates a new released artifact.
+- If upstream declines or misses an already accepted release trigger, a fork
+  remains possible through a bounded decision with an exact base, owner,
+  rollback and sunset condition back to upstream.
+
+This keeps reusable fixes in the ecosystem without making upstream response
+time a permanent delivery blocker or turning unpublished branches into SDK
+dependencies.

@@ -6,20 +6,20 @@
 
 ## 2. Upstream implementation
 
-- [ ] 2.1 Fork the upstream repository and create a focused branch from `6539dc9`
-- [ ] 2.2 Redact `XPrv` `Debug` and `Display` with regression tests
-- [ ] 2.3 Replace manual unsafe zeroing with default-disabled zeroize 1.8.2
-- [ ] 2.4 Disable cryptoxide defaults and enable only `ed25519`, `sha2`, and `hmac`
+- [x] 2.1 Fork the upstream repository and create a focused branch from `6539dc9`
+- [x] 2.2 Redact `XPrv` `Debug` and `Display` with regression tests
+- [x] 2.3 Replace manual unsafe zeroing with default-disabled zeroize 1.8.2
+- [x] 2.4 Disable cryptoxide defaults and enable only `ed25519`, `sha2`, and `hmac`
 
 ## 3. Verification and contribution
 
-- [ ] 3.1 Run formatting, tests, Rust 1.81, `no_std`, target and feature-tree gates
-- [ ] 3.2 Run dependency audit, unsafe scan and exact-diff security review
-- [ ] 3.3 Push the fork branch and open a focused upstream pull request
+- [x] 3.1 Run formatting, tests, Rust 1.81, `no_std`, target and feature-tree gates
+- [x] 3.2 Run dependency audit, unsafe scan and exact-diff security review
+- [x] 3.3 Push the fork branch and open a focused upstream pull request
 
 ## 4. SDK evidence delivery
 
-- [ ] 4.1 Record immutable upstream links and exact verification outcomes
-- [ ] 4.2 Update issue #179 and ADR 0078 with the upstream contribution state
+- [x] 4.1 Record immutable upstream links and exact verification outcomes
+- [x] 4.2 Update issue #179 and add ADR 0089 without mutating accepted ADR 0078
 - [ ] 4.3 Sync the dependency-readiness spec and archive this OpenSpec change
 - [ ] 4.4 Open the signed/DCO SDK evidence PR; merge only on green required CI

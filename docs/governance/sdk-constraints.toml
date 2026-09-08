@@ -1,5 +1,5 @@
 schema_version  = 1
-policy_revision = "2026-09-07"
+policy_revision = "2026-09-08"
 governing_adr   = "docs/adr/0063-make-material-constraints-explicit.md"
 
 [[entries]]
@@ -228,6 +228,23 @@ owner            = "SDK maintainers"
 review_triggers  = [ "factory lifecycle changes", "integration policy changes" ]
 activation       = "Already effective."
 rollback         = "A governance ADR is required to weaken or replace the evidence path."
+
+[[entries]]
+id               = "SDK-DEP-001"
+kind             = "guardrail"
+category         = "architecture"
+state            = "effective"
+summary          = "Focused defects in conditionally adopted dependencies use an upstream-first remediation path before an SDK-maintained fork."
+scope            = "Conditionally adopted production dependencies with independently fixable security, compatibility or dependency-cone defects."
+canonical_source = "docs/adr/0089-require-upstream-first-dependency-remediation.md"
+authority        = "Accepted ADR 0089 under issue #179 and the standing dependency-research mandate."
+rationale        = "A minimal upstream fix reduces ecosystem risk without transferring fork maintenance and supply-chain ownership prematurely."
+consumer_impact  = "Consumers continue using immutable released dependencies behind Identus facades; an open upstream contribution is not represented as remediation."
+enforcement      = [ "dependency research readiness", "issue and upstream contribution evidence", "separate immutable-release update" ]
+owner            = "SDK maintainers and component security reviewers"
+review_triggers  = [ "upstream declines", "accepted release trigger expires", "unpublished Git dependency proposed", "SDK-maintained fork proposed" ]
+activation       = "Effective through ADR 0089; issue #179 is the first application."
+rollback         = "A superseding dependency-policy ADR must justify a different fork threshold and preserve immutable dependency evidence."
 
 [[entries]]
 id               = "SDK-LIM-009"

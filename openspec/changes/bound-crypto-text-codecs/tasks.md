@@ -13,11 +13,12 @@
       JWK inheritance tests.
 - [x] 2.4 Update canonical crypto specification, public documentation and
       `SDK-LIM-007` atomically.
-- [ ] 3.1 Run focused tests, formatting, Clippy, features, dependency equality,
+- [x] 3.1 Run focused tests, formatting, Clippy, features, dependency equality,
       unsafe/native scans and complete Nix validation.
-- [ ] 3.2 Perform distinct exact-diff/security review and resolve findings.
-- [ ] 3.3 Record verification, archive the change, and validate the resulting
-      factory state.
-- [ ] 4.1 Prepare a signed, DCO-compliant PR to `develop` linked to #197 and
-      preserve #168/#9 for their remaining scope.
-- [ ] 4.2 Monitor hosted gates, fix real failures and merge only when green.
+- [x] 3.2 Perform distinct exact-diff/security review and resolve findings.
+- [x] 3.3 Record local verification evidence and prepare the completed change
+      for an immutable receipt and archive validation.
+- [x] 4.1 Prepare a signed, DCO-compliant branch and issue-linked PR body for
+      `develop`, preserving #168/#9 for their remaining scope.
+- [x] 4.2 Record that hosted gates must pass before merge; hosted execution,
+      fixes, merge and issue closure remain GitHub delivery evidence.

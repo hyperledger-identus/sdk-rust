@@ -156,13 +156,34 @@ inventory, and #9 stays open for its broader Apollo/downstream acceptance.
 ## Evidence commands
 
 - `git rev-parse HEAD` pinned the starting revision to `92069a1`.
-- `rg` searches over sdk-rust, Apollo and NeoPRISM located every wrapper/JWK
-  consumer and measured codec-shaped literal maxima of 192, 144 and 144
-  characters respectively.
-- `cargo tree`/manifest inspection established that no dependency change is
-  required and that the wrappers remain SDK-owned facades.
+- `rg -n 'HexStr|Base64UrlStrNoPad|base64|hex' crates docs openspec` plus
+  equivalent read-only searches in Apollo and NeoPRISM located every
+  wrapper/JWK consumer and measured codec-shaped literal maxima of 192, 144
+  and 144 characters respectively.
+- `cargo tree --locked -p identus-crypto --all-features` and manifest
+  inspection established that no dependency change is required and that the
+  wrappers remain SDK-owned facades.
 - RFC Editor sources were retrieved on 2026-09-08.
-- Unrun implementation evidence is exact/one-over focused tests, valid and
-  malformed oversize precedence, canonicalization, JWK inheritance, error
-  redaction, dependency/feature equality, unsafe/native scans, full Nix gates,
-  exact-diff review and hosted Linux CI.
+- `nix develop --command cargo test -p identus-crypto --all-features --lib`,
+  `nix develop --command cargo test -p identus-crypto --all-features --test
+  jwk`, and isolated `--no-default-features --features hex` / `base64` commands
+  passed under Rust 1.98. These focused tests cover the all-feature crypto
+  library and JWK integration suite, plus isolated codec and no-feature
+  profiles. The cases cover exact/one-over bounds, valid and malformed
+  oversize precedence, canonicalization, JWK inheritance and error redaction.
+- The first `nix flake check --print-build-logs` found that the private length
+  helper needed the same codec-feature condition as its callers. After that
+  review finding was fixed, `nix develop --command cargo build --release
+  --locked --package identus-adapters-entropy --all-targets
+  --no-default-features` and the matching crypto Clippy command passed.
+- A final `nix flake check --print-build-logs` passed the complete compatible
+  matrix, including 628 workspace tests, the 120-test crypto compatibility
+  profile, formatting, Clippy, docs, factory, dependency policy, etalon/MSRV,
+  wasm32, Android and iOS checks.
+- `git diff --exit-code origin/develop...HEAD -- Cargo.toml Cargo.lock` and an
+  exact diff scan found no manifest, lockfile, dependency, feature,
+  authored-unsafe, native, FFI or build-script change.
+
+Unrun checks at local readiness are hosted Linux CI, DCO/policy checks, and
+GitHub mergeability because they require the issue-linked PR. They remain
+mandatory delivery evidence and must pass before merge.

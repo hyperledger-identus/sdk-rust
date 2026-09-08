@@ -277,8 +277,8 @@ The system SHALL preserve only one behavior.
 - **THEN** the first result remains
 EOF
 printf '%s\n' '- [x] 1.1 Example task' >"$change_root/tasks.md"
-cat >"$fixture_root/fake-bin/openspec" <<'EOF'
-#!/usr/bin/env bash
+printf '#!%s\n' "$BASH" >"$fixture_root/fake-bin/openspec"
+cat >>"$fixture_root/fake-bin/openspec" <<'EOF'
 printf '%s\n' "$*" >>"$OPENSPEC_CALL_LOG"
 EOF
 chmod +x "$fixture_root/fake-bin/openspec"
@@ -358,8 +358,8 @@ if grep -Fq 'archived safely' <<<"$no_op_output"; then
   exit 1
 fi
 
-cat >"$fixture_root/fake-bin/openspec" <<'EOF'
-#!/usr/bin/env bash
+printf '#!%s\n' "$BASH" >"$fixture_root/fake-bin/openspec"
+cat >>"$fixture_root/fake-bin/openspec" <<'EOF'
 printf '%s\n' "$*" >>"$OPENSPEC_CALL_LOG"
 if [[ "$*" == 'archive example-change --yes' ]]; then
   archive_date=$(LC_ALL=C date +%F)

@@ -7,9 +7,9 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Validate borrowed registration identifier input before allocation in the private macro.
-- [ ] 2.2 Add exact/one-over coverage for all six types plus precedence, owned-path, and redaction evidence.
-- [ ] 2.3 Narrow the narrative `SDK-LIM-007` evidence without removing its outer-allocation limitation.
+- [x] 2.1 Validate borrowed registration identifier input before allocation in the private macro.
+- [x] 2.2 Add exact/one-over coverage for all six types plus precedence, owned-path, and redaction evidence.
+- [x] 2.3 Narrow the narrative `SDK-LIM-007` evidence without removing its outer-allocation limitation.
 
 ## 3. Verification and delivery
 

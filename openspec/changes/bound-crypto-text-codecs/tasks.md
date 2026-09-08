@@ -5,13 +5,13 @@
       fixtures, standards and existing resource budgets.
 - [x] 1.3 Decide the 4,096-byte parser ceiling, trusted-encoding asymmetry,
       error compatibility, JWK behavior, activation and rollback.
-- [ ] 2.1 Export `MAX_CRYPTO_TEXT_BYTES = 4_096` and reject oversized hex and
+- [x] 2.1 Export `MAX_CRYPTO_TEXT_BYTES = 4_096` and reject oversized hex and
       base64url parser input before decoder work.
-- [ ] 2.2 Preserve the public error category/bridge and add redaction-safe local
+- [x] 2.2 Preserve the public error category/bridge and add redaction-safe local
       length diagnostics without retaining input.
-- [ ] 2.3 Add exact, one-over, valid-oversize, canonicalization, precedence and
+- [x] 2.3 Add exact, one-over, valid-oversize, canonicalization, precedence and
       JWK inheritance tests.
-- [ ] 2.4 Update canonical crypto specification, public documentation and
+- [x] 2.4 Update canonical crypto specification, public documentation and
       `SDK-LIM-007` atomically.
 - [ ] 3.1 Run focused tests, formatting, Clippy, features, dependency equality,
       unsafe/native scans and complete Nix validation.

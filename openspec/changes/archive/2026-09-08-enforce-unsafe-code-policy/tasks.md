@@ -14,6 +14,6 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Pass focused positive/negative guard tests, format, strict Clippy, all feature/target/compiler gates and complete compatible Nix checks.
-- [ ] 3.2 Perform a distinct exact-diff security/architecture review and record intentionally unrun surfaces plus residual limitations.
-- [ ] 3.3 Prepare canonical synchronization, safe archive and immutable receipt for a signed/DCO issue-linked PR to `develop`; hosted CI, merge and issue/program receipts remain GitHub evidence.
+- [x] 3.1 Pass focused positive/negative guard tests, format, strict Clippy, all feature/target/compiler gates and complete compatible Nix checks.
+- [x] 3.2 Perform a distinct exact-diff security/architecture review and record intentionally unrun surfaces plus residual limitations.
+- [x] 3.3 Prepare canonical synchronization, safe archive and immutable receipt for a signed/DCO issue-linked PR to `develop`; hosted CI, merge and issue/program receipts remain GitHub evidence.

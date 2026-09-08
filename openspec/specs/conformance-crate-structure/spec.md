@@ -1,9 +1,7 @@
 ## Purpose
 
 `identus-conformance` is the workspace's self-policing test crate. It encodes the workspace's structural invariants (the layer/dependency-direction rules and the port/adapter naming rules) as a static rulebook plus a set of `#[cfg(test)]` guards that parse manifests and source and assert conformance. This capability governs how the conformance crate itself is structured: the separation of invariant data (the rulebook) from enforcement logic (the guards), the one-module-per-guard layout under `guard/`, the shared helpers, and the dev-only placement of source-scanning dependencies such as `syn`.
-
 ## Requirements
-
 ### Requirement: Rulebook data is separated from guard logic
 
 `identus-conformance` SHALL separate its invariant *data* (the rulebook — the static `const` structures encoding workspace invariants, e.g. `Layer`, `Member`, `LayerRule`, and `LAYER_RULES`) from its enforcement *logic* (the guards — `#[cfg(test)]` modules that read manifests/source and assert conformance). The rulebook data SHALL live in `crates/conformance/src/rulebook.rs` (a single file until a second rulebook justifies a `rulebook/` directory), SHALL be `pub(crate)`, and SHALL be runtime-available (NOT gated by `#[cfg(test)]`), so it is the referenceable source of truth for guards. The guard logic SHALL live under `crates/conformance/src/guard/` and SHALL be `#[cfg(test)]`. `crates/conformance/src/lib.rs` SHALL be a thin root containing only the crate doc-comment, the `pub const COMPONENT`, `mod` declarations, and re-exports of rulebook items needed by guards; it SHALL NOT contain invariant data or guard logic.
@@ -42,6 +40,12 @@ Each invariant family SHALL be enforced by exactly one guard module under `crate
 - **WHEN** `crates/conformance/src/lib.rs` is inspected for the guard declaration
 - **THEN** it SHALL declare `#[cfg(test)] mod guard;` so that no guard logic compiles into a production build
 
+#### Scenario: the unsafe-policy guard is its own module
+
+- **WHEN** `crates/conformance/src/guard/` is inspected
+- **THEN** it SHALL contain `unsafe_policy.rs` holding root/member lint and
+  behavioral compile-fail enforcement as a sibling of existing guards
+
 ### Requirement: Shared helpers live in the guard module root
 
 File-walking (enumerating `crates/*/src/**/*.rs` and `crates/**/Cargo.toml` files), root-manifest parsing, and `syn` source parsing SHALL be provided as shared helpers in `crates/conformance/src/guard/mod.rs` and SHALL be reused by every guard. A guard SHALL NOT duplicate file-walking, manifest-parsing, or `syn::parse_file` logic that already exists in the shared helpers.
@@ -60,6 +64,12 @@ File-walking (enumerating `crates/*/src/**/*.rs` and `crates/**/Cargo.toml` file
 
 - **WHEN** any guard module under `crates/conformance/src/guard/` is inspected
 - **THEN** it SHALL obtain file paths and parsed syntax trees via the shared helpers in `guard/mod.rs`, not via its own walker or `syn::parse_file` call
+
+#### Scenario: unsafe-policy guard enumerates manifests
+
+- **WHEN** the unsafe-policy guard checks root and member lint configuration
+- **THEN** it uses shared workspace-root, manifest-reading and crate-manifest
+  enumeration helpers rather than maintaining a second member list or walker
 
 ### Requirement: syn is a dev-dependency of the conformance crate
 

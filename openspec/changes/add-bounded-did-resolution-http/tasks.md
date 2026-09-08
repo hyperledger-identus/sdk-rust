@@ -21,6 +21,6 @@
 ## 4. Verification and delivery
 
 - [x] 4.1 Add deterministic in-memory router tests for all three representations, default/wildcard/quality/specificity/repeated headers, every standard status, malformed/duplicate/oversized negotiation, invalid path/DID/query, metadata mismatch and redaction.
-- [ ] 4.2 Pass formatting, focused tests, factory, Rust 1.98, dependency/security and complete Nix gates; record exact counts and intentionally unrun portable checks.
-- [ ] 4.3 Perform a distinct exact-diff architecture/security/protocol review with no unresolved blocker and prepare review and verification receipts.
-- [ ] 4.4 Synchronize canonical capability and architecture records, archive the change safely and prepare the signed/DCO issue-linked PR; hosted review/CI, merge and issue receipts remain GitHub evidence.
+- [x] 4.2 Pass formatting, focused tests, factory, Rust 1.98, dependency/security and complete Nix gates; record exact counts and intentionally unrun portable checks.
+- [x] 4.3 Perform a distinct exact-diff architecture/security/protocol review with no unresolved blocker and prepare review and verification receipts.
+- [x] 4.4 Synchronize canonical capability and architecture records, archive the change safely and prepare the signed/DCO issue-linked PR; hosted review/CI, merge and issue receipts remain GitHub evidence.

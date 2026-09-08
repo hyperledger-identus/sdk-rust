@@ -71,7 +71,8 @@ at source revision `36bda0995513b025312fed75d7947b66865ff149` on the retrieval
 date. It forbids unsafe code. `mediatype 0.21` is MIT, has no required
 transitive dependency and contains no authored unsafe code.
 
-The integrated lockfile adds 19 external package names: 17 in the normal
+The direct and resolved dependency cone in the integrated lockfile adds 19
+external package names: 17 in the normal
 host-adapter cone plus development-only `tokio` and `tokio-macros`. The normal
 cone has no Hyper, Tokio, Reqwest, listener, socket, TLS or native dependency;
 Tower's service abstraction is pulled by Axum without its test-only `util`
@@ -126,8 +127,9 @@ ranges yield 406; malformed or oversized input yields 400.
 
 The route is fixed at `/{did}`. Invalid path extraction or DID grammar returns
 a redacted standard `invalidDid` envelope. Non-empty queries return
-`invalidOptions`; no option is silently discarded. Every response varies on
-`Accept`. Failure and deactivated responses use the full result media type.
+`invalidOptions`; no option is silently discarded. Handler and router fallback
+responses vary on `Accept`. Failure and deactivated responses use the full
+result media type.
 Document responses require the resolver's metadata `contentType` to be
 present and equal to the negotiated representation; absence or mismatch is a
 500 internal-error envelope rather than mislabeled bytes.
@@ -165,6 +167,10 @@ Exact commands and unrun checks are separated. Repository and donor `rg`,
 contracts and divergences. Official W3C/RFC sources were retrieved on the
 recorded date. `cargo info --verbose` confirmed current candidate versions,
 features, licenses and declared MSRV. Cargo integration, source checksums,
-resolved-cone inspection, advisory/license gates and 14 deterministic focused
-tests now pass. The complete workspace and Nix gates remain deliberately unrun
-until the implementation review checkpoint.
+resolved-cone inspection, advisory/license gates and 15 deterministic focused
+tests pass. The complete local Nix matrix passes at reviewed implementation
+head `d31e8c395f10f9e90c1b46c9a9f0bca3e88cdb30`: 653 workspace tests pass
+with 22 configured skips and 129 KMP-compat tests pass with one configured
+skip. The host-only HTTP crate is intentionally outside the WASM, Android and
+iOS package selectors; their existing portable core package set passes. Local
+Nix omits incompatible x86_64-Linux, which remains hosted-CI evidence.

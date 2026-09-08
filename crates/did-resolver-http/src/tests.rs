@@ -2,7 +2,7 @@ use std::sync::Mutex;
 
 use axum::{
     body::{Body, to_bytes},
-    http::{Request, header},
+    http::{Method, Request, header},
 };
 use identus_did::{
     DidDocument, DidDocumentMetadata, DidResolutionFuture, DidResolutionMetadata, Uri,
@@ -172,6 +172,37 @@ async fn router_nests_and_decodes_exactly_one_http_path_layer() {
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["id"], escaped_did);
     assert_eq!(resolver.calls()[0].0, escaped_did);
+}
+
+#[tokio::test]
+async fn router_fallbacks_preserve_accept_variance() {
+    for (method, uri, expected) in [
+        (Method::GET, "/", StatusCode::NOT_FOUND),
+        (
+            Method::POST,
+            "/did:example:123",
+            StatusCode::METHOD_NOT_ALLOWED,
+        ),
+    ] {
+        let resolver = Arc::new(RecordingResolver::new(success_result(
+            TEST_DID,
+            Some(APPLICATION_DID),
+        )));
+        let response = did_resolver_http_router(resolver.clone())
+            .oneshot(
+                Request::builder()
+                    .method(method)
+                    .uri(uri)
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), expected);
+        assert_eq!(response.headers()[header::VARY], "accept");
+        assert!(resolver.calls().is_empty());
+    }
 }
 
 #[tokio::test]

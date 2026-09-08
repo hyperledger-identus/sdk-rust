@@ -72,8 +72,20 @@ enum Representation {
 /// middleware.
 pub fn did_resolver_http_router(resolver: Arc<dyn DidResolver>) -> Router {
     Router::new()
-        .route("/{did}", get(resolve_did))
+        .route(
+            "/{did}",
+            get(resolve_did).fallback(method_not_allowed_response),
+        )
+        .fallback(route_not_found_response)
         .with_state(ResolverState { resolver })
+}
+
+async fn method_not_allowed_response() -> Response {
+    empty_response(StatusCode::METHOD_NOT_ALLOWED)
+}
+
+async fn route_not_found_response() -> Response {
+    empty_response(StatusCode::NOT_FOUND)
 }
 
 async fn resolve_did(
@@ -334,6 +346,10 @@ fn static_internal_error_response() -> Response {
         INTERNAL_ERROR_BODY,
     )
         .into_response()
+}
+
+fn empty_response(status: StatusCode) -> Response {
+    (status, [(header::VARY, header::ACCEPT.as_str())]).into_response()
 }
 
 #[cfg(test)]

@@ -188,6 +188,12 @@ mod tests {
         let exact = format!("{}m", " ".repeat(MAX_DERIVATION_PATH_BYTES - 1));
         assert!(DerivationPath::from_path(&exact).unwrap().is_empty());
 
+        let oversized_valid = format!("{}m", " ".repeat(MAX_DERIVATION_PATH_BYTES));
+        assert!(matches!(
+            DerivationPath::from_path(&oversized_valid),
+            Err(Error::DerivationFailed)
+        ));
+
         let oversized_invalid = "x".repeat(MAX_DERIVATION_PATH_BYTES + 1);
         assert!(matches!(
             DerivationPath::from_path(&oversized_invalid),
@@ -204,6 +210,15 @@ mod tests {
 
         assert!(matches!(
             DerivationPath::from_path(&repeated_path("0", MAX_DERIVATION_PATH_AXES + 1)),
+            Err(Error::DerivationFailed)
+        ));
+
+        let invalid_excess = format!(
+            "{}/not-an-axis",
+            repeated_path("0", MAX_DERIVATION_PATH_AXES)
+        );
+        assert!(matches!(
+            DerivationPath::from_path(&invalid_excess),
             Err(Error::DerivationFailed)
         ));
     }

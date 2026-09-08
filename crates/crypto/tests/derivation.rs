@@ -82,6 +82,12 @@ fn slip0010_rejects_seed_lengths_outside_the_normative_range() {
 #[test]
 fn stateful_hd_keys_reject_children_beyond_depth_255() {
     let mut hd = HDKey::init_from_seed(&BIP32_SEED).unwrap();
+    hd.depth = (MAX_DERIVATION_PATH_AXES - 1) as u32;
+    let child = hd
+        .derive_child(identus_crypto::path::DerivationAxis::hardened(0))
+        .unwrap();
+    assert_eq!(child.depth, MAX_DERIVATION_PATH_AXES as u32);
+
     hd.depth = MAX_DERIVATION_PATH_AXES as u32;
     assert!(matches!(
         hd.derive_child(identus_crypto::path::DerivationAxis::hardened(0)),
@@ -89,6 +95,12 @@ fn stateful_hd_keys_reject_children_beyond_depth_255() {
     ));
 
     let mut ed = EdHDKey::init_from_seed(&BIP32_SEED).unwrap();
+    ed.depth = (MAX_DERIVATION_PATH_AXES - 1) as u32;
+    let child = ed
+        .derive_child(identus_crypto::path::DerivationAxis::hardened(0))
+        .unwrap();
+    assert_eq!(child.depth, MAX_DERIVATION_PATH_AXES as u32);
+
     ed.depth = MAX_DERIVATION_PATH_AXES as u32;
     assert!(matches!(
         ed.derive_child(identus_crypto::path::DerivationAxis::hardened(0)),

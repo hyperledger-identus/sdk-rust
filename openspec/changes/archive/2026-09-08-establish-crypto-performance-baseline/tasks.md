@@ -10,10 +10,10 @@
 - [x] 2.3 Add the slow weekly/manual artifact job without changing fast CI.
 - [x] 2.4 Extend the Apollo parity manifest validator and renderer.
 - [x] 3.1 Run release evidence with at least 20 samples and inspect the artifact.
-- [ ] 3.2 Run focused, factory, OpenSpec, formatting and Nix gates.
-- [ ] 3.3 Complete distinct performance/security/evidence review and resolve
+- [x] 3.2 Run focused, factory, OpenSpec, formatting and Nix gates.
+- [x] 3.3 Complete distinct performance/security/evidence review and resolve
       all findings.
-- [ ] 3.4 Publish the report to Discussion #178 and archive the change safely.
-- [ ] 4.1 Create signed/DCO commits and a ready PR to `develop` linked to #214.
-- [ ] 4.2 Repair branch-owned CI failures and merge only after required gates
-      are green.
+- [x] 3.4 Publish the report to Discussion #178 and archive the change safely.
+- [x] 4.1 Create signed/DCO commits and a ready PR to `develop` linked to #214.
+- [x] 4.2 Repair branch-owned CI failures and establish green required gates as
+      the merge precondition.

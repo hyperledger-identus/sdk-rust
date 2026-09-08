@@ -22,5 +22,5 @@
 - [x] 3.2 Pass focused, workspace, factory and available Rust 1.98 gates; record
       unavailable Nix/security wrapper gates exactly.
 - [x] 3.3 Perform distinct exact-diff protocol/architecture/dependency review.
-- [ ] 3.4 Synchronize the canonical spec, archive safely, sign/DCO commits, open
+- [x] 3.4 Synchronize the canonical spec, archive safely, sign/DCO commits, open
       the issue-linked PR and merge only after every hosted gate is green.

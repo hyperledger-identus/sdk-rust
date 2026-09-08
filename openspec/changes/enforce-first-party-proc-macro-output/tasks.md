@@ -7,8 +7,8 @@
 
 ## 2. Enforcement
 
-- [ ] 2.1 Parse and recursively reject unsafe constructs/attributes in completed direct `Newtype` output.
-- [ ] 2.2 Add unit evidence for every prohibited construct, nesting and safe output.
+- [x] 2.1 Parse and recursively reject unsafe constructs/attributes in completed direct `Newtype` output.
+- [x] 2.2 Add unit evidence for every prohibited construct, nesting and safe output.
 - [ ] 2.3 Narrow `SDK-LIM-008` and strengthen the canonical unsafe-policy specification after focused evidence passes.
 
 ## 3. Verification and delivery

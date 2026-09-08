@@ -26,8 +26,10 @@ The visitor mirrors exact Rust 1.98.1 `UnsafeCode` early-lint cases: unsafe
 blocks, signatures, traits, trait implementations and extern blocks;
 `global_asm!`; and `allow_internal_unsafe`. It additionally rejects all four
 unsafe attributes listed by the current Rust Reference: `export_name`,
-`link_section`, `naked` and `no_mangle`, wrapped or legacy. This is structured
-syntax validation, not rendered-source matching.
+`link_section`, `naked` and `no_mangle`, wrapped or legacy. Prohibited
+attributes latent in nested `cfg_attr` branches are rejected independent of
+the active configuration. This is structured syntax validation, not
+rendered-source matching.
 
 The successful `port` attribute returns caller-authored input unchanged and
 does not pass through the generated-item guard. Authored unsafe port syntax is

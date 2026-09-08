@@ -34,6 +34,8 @@ solve the regression.
    `allow_internal_unsafe`.
 2. Also reject the Rust Reference unsafe attributes `export_name`,
    `link_section`, `naked` and `no_mangle`, including legacy unwrapped forms.
+   Reject those attributes and `allow_internal_unsafe` when they are latent in
+   any nested `cfg_attr` branch, independent of the active configuration.
 3. Return a compile error at the rejected construct instead of emitting the
    expansion. The check runs after helper token streams are composed and
    recursively visits nested item/expression syntax.

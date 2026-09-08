@@ -73,7 +73,8 @@ trait implementations and extern blocks; `global_asm!`; and
 `allow_internal_unsafe`, returning early when a span allows unsafe. The Rust
 Reference lists four unsafe attributes: `export_name`, `link_section`, `naked`
 and `no_mangle`. The selected structured visitor rejects both inventories,
-including nested direct syntax and legacy unwrapped unsafe attributes.
+including nested direct syntax, legacy unwrapped unsafe attributes and latent
+unsafe attributes in nested `cfg_attr` branches.
 
 The failed caller-span production experiment is retained as negative decision
 evidence: 21 errors arose from generated inherent-impl attributes and unused

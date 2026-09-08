@@ -1,8 +1,10 @@
 //! Fail-closed validation for direct Rust syntax emitted by this crate.
 
 use proc_macro2::{Span, TokenStream as TokenStream2};
+use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::visit::{self, Visit};
+use syn::{Meta, Token};
 
 const UNSAFE_ATTRIBUTES: [&str; 4] = ["export_name", "link_section", "naked", "no_mangle"];
 
@@ -40,6 +42,31 @@ impl UnsafeSyntax {
             self.first = Some(Found { kind, span });
         }
     }
+}
+
+fn prohibited_attribute(meta: &Meta) -> Option<(&'static str, Span)> {
+    let path = meta.path();
+    if path.is_ident("allow_internal_unsafe") {
+        return Some(("allow_internal_unsafe attribute", meta.span()));
+    }
+    if path.is_ident("unsafe") || UNSAFE_ATTRIBUTES.iter().any(|name| path.is_ident(name)) {
+        return Some(("unsafe attribute", meta.span()));
+    }
+
+    // `cfg_attr` expands after this direct-output check. Reject a prohibited
+    // attribute in any branch rather than letting the active configuration
+    // determine whether unsafe syntax escapes validation.
+    if path.is_ident("cfg_attr") {
+        let Meta::List(list) = meta else {
+            return None;
+        };
+        let nested = list
+            .parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
+            .ok()?;
+        return nested.iter().skip(1).find_map(prohibited_attribute);
+    }
+
+    None
 }
 
 impl<'ast> Visit<'ast> for UnsafeSyntax {
@@ -89,13 +116,8 @@ impl<'ast> Visit<'ast> for UnsafeSyntax {
     }
 
     fn visit_attribute(&mut self, node: &'ast syn::Attribute) {
-        let path = node.path();
-        if path.is_ident("allow_internal_unsafe") {
-            self.record("allow_internal_unsafe attribute", node.span());
-        } else if path.is_ident("unsafe")
-            || UNSAFE_ATTRIBUTES.iter().any(|name| path.is_ident(name))
-        {
-            self.record("unsafe attribute", node.span());
+        if let Some((kind, span)) = prohibited_attribute(&node.meta) {
+            self.record(kind, span);
         }
         visit::visit_attribute(self, node);
     }
@@ -143,7 +165,26 @@ mod tests {
                 &format!("#[unsafe({attribute})] fn f() {{}}"),
                 "unsafe attribute",
             );
+            assert_rejected(
+                &format!("#[cfg_attr(any(), {attribute})] fn f() {{}}"),
+                "unsafe attribute",
+            );
         }
+
+        assert_rejected(
+            "#[cfg_attr(any(), allow_internal_unsafe)] macro_rules! m { () => {} }",
+            "allow_internal_unsafe attribute",
+        );
+        assert_rejected(
+            "#[cfg_attr(any(), cfg_attr(any(), unsafe(no_mangle)))] fn f() {}",
+            "unsafe attribute",
+        );
+
+        let safe_condition = TokenStream2::from_str(
+            "#[cfg_attr(no_mangle, inline)] fn condition_name_is_not_an_attribute() {}",
+        )
+        .unwrap();
+        assert!(validate(safe_condition).is_ok());
     }
 
     #[test]

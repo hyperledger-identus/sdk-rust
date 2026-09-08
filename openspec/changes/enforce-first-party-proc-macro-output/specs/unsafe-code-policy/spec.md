@@ -9,8 +9,9 @@ emission if it contains an unsafe block, unsafe signature, unsafe trait, unsafe
 trait implementation, unsafe extern block, `global_asm!`,
 `allow_internal_unsafe`, or a Rust unsafe attribute (`export_name`,
 `link_section`, `naked`, or `no_mangle`). Focused machine tests SHALL cover
-every rejected category, nested syntax and safe output; existing finite-shape
-runtime and trybuild suites SHALL remain compatible.
+every rejected category, nested syntax, unsafe attributes latent in nested
+`cfg_attr` branches and safe output; existing finite-shape runtime and trybuild
+suites SHALL remain compatible.
 
 The prohibition SHALL NOT be represented as linting external dependency
 internals, executing or uniformly rejecting nested procedural-macro output,

@@ -9,10 +9,10 @@
 
 - [x] 2.1 Parse and recursively reject unsafe constructs/attributes in completed direct `Newtype` output.
 - [x] 2.2 Add unit evidence for every prohibited construct, nesting and safe output.
-- [ ] 2.3 Narrow `SDK-LIM-008` and strengthen the canonical unsafe-policy specification after focused evidence passes.
+- [x] 2.3 Narrow `SDK-LIM-008` and strengthen the canonical unsafe-policy specification after focused evidence passes.
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Pass focused derive/conformance suites, formatting, strict Clippy, feature/target gates and complete compatible Nix checks.
-- [ ] 3.2 Perform and record a distinct exact-diff security/architecture review, including residual limitations and intentionally unrun surfaces.
-- [ ] 3.3 Synchronize canonical specs, archive the change, create an immutable receipt and deliver a signed/DCO issue-linked PR to `develop` through hosted gates.
+- [x] 3.1 Pass focused derive/conformance suites, formatting, strict Clippy, feature/target gates and complete compatible Nix checks.
+- [x] 3.2 Perform and record a distinct exact-diff security/architecture review, including residual limitations and intentionally unrun surfaces.
+- [x] 3.3 Synchronize canonical specs, archive the change, create an immutable receipt and prepare a signed/DCO issue-linked PR to `develop`; hosted gates remain merge authority.

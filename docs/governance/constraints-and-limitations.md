@@ -156,12 +156,16 @@ misrepresenting incomplete inherited coverage as a proven SDK guarantee.
 ## Unsafe-code example
 
 - `SDK-SEC-001` is effective project policy: unsafe Rust is prohibited unless
-  a dedicated safety ADR grants a bounded exception.
-- `SDK-LIM-008` is an effective enforcement limitation: that prohibition is
-  not yet backed by a uniform machine `forbid` across every workspace crate
-  and feature surface. Source review remains required until issue #169 closes
-  the negative-gate gap.
+  a dedicated safety ADR grants a bounded exception. ADR 0087 backs that policy
+  with an inherited workspace `forbid`, a member-inheritance guard and
+  compile-fail probes across supported authored first-party Cargo targets.
+- `SDK-LIM-008` remains as a narrow compiler limitation: Rust 1.98.1 skips the
+  `unsafe_code` lint for procedural-macro expansion spans that allow internal
+  unsafe. Issue #189 owns the expansion-evidence decision.
+- The assurance is deliberately first-party: external dependency unsafe/native
+  posture remains dependency-decision evidence, and the lint does not claim to
+  prove logical or side-channel safety.
 
-A policy can be effective while its assurance evidence is incomplete, but the
-index must disclose both facts instead of describing manual review as a
-machine guarantee.
+Any exception must be indexed separately with exact scope, invariants, owner,
+specialist review, cost, exit trigger and rollback; it cannot silently weaken
+the visible base rule.

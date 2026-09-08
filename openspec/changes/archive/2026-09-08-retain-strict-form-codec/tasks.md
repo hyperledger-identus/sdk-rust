@@ -12,6 +12,6 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run factory/OpenSpec, text, format and proportional OID4VCI/workspace gates.
-- [ ] 3.2 Perform and record a distinct exact-diff architecture/security review with no unresolved blocker.
-- [ ] 3.3 Produce the immutable receipt and pass guarded archive preflight; issue-linked PR delivery remains governed by #158.
+- [x] 3.1 Run factory/OpenSpec, text, format and proportional OID4VCI/workspace gates.
+- [x] 3.2 Perform and record a distinct exact-diff architecture/security review with no unresolved blocker.
+- [x] 3.3 Produce the immutable receipt and pass guarded archive preflight; issue-linked PR delivery remains governed by #158.

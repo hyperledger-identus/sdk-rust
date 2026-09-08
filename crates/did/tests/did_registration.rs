@@ -17,7 +17,8 @@ use identus_did::{
     DeactivateRegistrationRequest, Did, DidDocument, DidDocumentMetadata, DidDocumentOperation,
     DidMethod, DidMethodBinding, DidMethodRegistry, DidRegistrar, DidRegistrationErrorKind,
     DidRegistrationFuture, DidRegistrationResult, DidRegistrationState, DidResolutionFuture,
-    DidResolver, Error, InternalSecretPolicy, MAX_DID_REGISTRATION_BYTES, MAX_REGISTRATION_ITEMS,
+    DidResolver, Error, InternalSecretPolicy, MAX_DID_REGISTRATION_BYTES,
+    MAX_REGISTRATION_ID_BYTES, MAX_REGISTRATION_ITEMS, MAX_REGISTRATION_OPAQUE_ID_BYTES,
     MAX_REGISTRATION_WAIT_MILLIS, RegistrationAction, RegistrationActionId,
     RegistrationActionResponse, RegistrationContinuation, RegistrationError,
     RegistrationFailureCode, RegistrationIdempotencyKey, RegistrationJob, RegistrationJobId,
@@ -94,6 +95,44 @@ fn opaque_identifiers_are_bounded_and_redacted() {
     let code = RegistrationFailureCode::standard(DidRegistrationErrorKind::Conflict);
     assert_eq!(code.kind(), Some(DidRegistrationErrorKind::Conflict));
     assert_eq!(code.as_str(), "conflict");
+}
+
+#[test]
+fn every_opaque_identifier_enforces_its_exact_borrowed_and_owned_limit() {
+    macro_rules! assert_bound {
+        ($type:ty, $limit:expr) => {{
+            let exact = "x".repeat($limit);
+            assert_eq!(<$type>::parse(&exact).unwrap().as_str(), exact);
+            assert_eq!(<$type>::try_new(exact.clone()).unwrap().as_str(), exact);
+
+            let over = "x".repeat($limit + 1);
+            assert!(<$type>::parse(&over).is_err());
+            assert!(<$type>::try_new(over).is_err());
+        }};
+    }
+
+    assert_bound!(RegistrationIdempotencyKey, MAX_REGISTRATION_ID_BYTES);
+    assert_bound!(RegistrationJobId, MAX_REGISTRATION_OPAQUE_ID_BYTES);
+    assert_bound!(RegistrationActionId, MAX_REGISTRATION_ID_BYTES);
+    assert_bound!(RegistrationSecretHandle, MAX_REGISTRATION_OPAQUE_ID_BYTES);
+    assert_bound!(RegistrationOperationName, MAX_REGISTRATION_ID_BYTES);
+    assert_bound!(RegistrationFailureCode, MAX_REGISTRATION_ID_BYTES);
+}
+
+#[test]
+fn oversized_opaque_identifier_errors_are_precedence_stable_and_redacted() {
+    let canary = format!(
+        "{}\nregistration-rejection-canary",
+        "x".repeat(MAX_REGISTRATION_ID_BYTES)
+    );
+    let error = RegistrationActionId::parse(&canary).unwrap_err();
+
+    assert!(matches!(
+        error,
+        Error::InvalidRegistration(RegistrationError::InvalidString)
+    ));
+    assert!(!format!("{error}").contains("registration-rejection-canary"));
+    assert!(!format!("{error:?}").contains("registration-rejection-canary"));
 }
 
 #[test]

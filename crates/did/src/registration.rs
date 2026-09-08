@@ -64,7 +64,8 @@ macro_rules! opaque_identifier {
 
             /// Parse and retain a borrowed identifier.
             pub fn parse(value: &str) -> Result<Self, Error> {
-                Self::try_new(value.to_owned())
+                validate_identifier(value, $limit)?;
+                Ok(Self(value.to_owned()))
             }
 
             /// Borrow the validated identifier.

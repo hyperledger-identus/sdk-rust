@@ -156,9 +156,11 @@ surprise compatibility promise.
   more than 255 axes before child work. Validated `String` borrowed parsing now
   validates before cloning, and standalone DID method names reject more than
   2,042 bytes before grammar traversal with caller-independent errors. Serde
-  and outer transports may still allocate those strings first. Other inherited
-  surfaces remain limited by their explicit evidence rather than by a
-  repository-wide completion claim.
+  and outer transports may still allocate those strings first. DID Registration
+  opaque identifier borrowed parsing enforces its existing 256-byte or
+  1,024-byte ceiling before retaining an owned copy. Other inherited surfaces
+  remain limited by their explicit evidence rather than by a repository-wide
+  completion claim.
 
 This pairing keeps the intended security direction enforceable without
 misrepresenting incomplete inherited coverage as a proven SDK guarantee.

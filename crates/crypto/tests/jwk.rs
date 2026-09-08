@@ -1,7 +1,9 @@
 use std::collections::BTreeMap;
 
 use identus_core::{CapabilityId, ErrorKind};
-use identus_crypto::{JwkCoordinate, JwkCurve, JwkError, JwkKeyType, PublicKeyJwk};
+use identus_crypto::{
+    JwkCoordinate, JwkCurve, JwkError, JwkKeyType, MAX_CRYPTO_TEXT_BYTES, PublicKeyJwk,
+};
 use serde_json::{Value, json};
 
 const RFC_8037_ED25519_X: &str = "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo";
@@ -262,6 +264,23 @@ fn constructor_rejects_noncanonical_and_wrong_width_coordinates() {
             value.len()
         );
     }
+}
+
+#[test]
+fn coordinate_rejects_above_codec_limit_before_decode() {
+    let oversized = "A".repeat(MAX_CRYPTO_TEXT_BYTES + 1);
+    assert_eq!(
+        PublicKeyJwk::from_parts(
+            JwkKeyType::Okp,
+            JwkCurve::Ed25519,
+            &oversized,
+            None,
+            BTreeMap::new(),
+        ),
+        Err(JwkError::InvalidCoordinateEncoding {
+            coordinate: JwkCoordinate::X,
+        })
+    );
 }
 
 #[test]

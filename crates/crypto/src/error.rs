@@ -12,6 +12,28 @@
 use identus_core::{CapabilityId, ErrorKind, IdentusError};
 use std::fmt;
 
+#[cfg(any(feature = "base64", feature = "hex"))]
+#[derive(Debug)]
+struct EncodedTextTooLarge {
+    encoding: &'static str,
+    max: usize,
+    actual: usize,
+}
+
+#[cfg(any(feature = "base64", feature = "hex"))]
+impl fmt::Display for EncodedTextTooLarge {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            formatter,
+            "{} input exceeds the {}-byte limit (got {} bytes)",
+            self.encoding, self.max, self.actual
+        )
+    }
+}
+
+#[cfg(any(feature = "base64", feature = "hex"))]
+impl std::error::Error for EncodedTextTooLarge {}
+
 /// Owning capability for every bridged crypto error.
 pub const CAPABILITY: CapabilityId = CapabilityId::new("crypto");
 
@@ -89,6 +111,21 @@ impl std::error::Error for Error {
 }
 
 impl Error {
+    #[cfg(any(feature = "base64", feature = "hex"))]
+    pub(crate) fn encoded_text_too_large(
+        encoding: &'static str,
+        max: usize,
+        actual: usize,
+    ) -> Self {
+        Self::KeyParsing {
+            source: Box::new(EncodedTextTooLarge {
+                encoding,
+                max,
+                actual,
+            }),
+        }
+    }
+
     /// Bridge to the redaction-safe [`IdentusError`] with a stable code and
     /// `CapabilityId("crypto")`. The public message is a `&'static str`
     /// carrying no runtime detail.

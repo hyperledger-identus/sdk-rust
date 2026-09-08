@@ -35,6 +35,7 @@ required_files=(
   docs/adr/0003-delegate-develop-integration.md
   docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md
   docs/adr/0087-enforce-first-party-unsafe-forbid.md
+  docs/adr/0089-require-upstream-first-dependency-remediation.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   openspec/config.yaml

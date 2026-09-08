@@ -347,6 +347,10 @@ if [[ ! -d "$change_root" || -e "$expected_archive" ]]; then
 fi
 if ! grep -Eq '^archive example-change --yes$' "$fixture_root/openspec-calls.log"; then
   printf 'factory-contract test: no-op fixture did not reach OpenSpec archive\n' >&2
+  printf 'factory-contract test: captured OpenSpec calls:\n' >&2
+  cat "$fixture_root/openspec-calls.log" >&2
+  printf 'factory-contract test: captured facade output:\n' >&2
+  printf '%s\n' "$no_op_output" >&2
   exit 1
 fi
 if grep -Fq 'archived safely' <<<"$no_op_output"; then

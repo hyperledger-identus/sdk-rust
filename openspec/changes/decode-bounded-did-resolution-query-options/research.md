@@ -120,9 +120,13 @@ change local callers beyond this HTTP transport issue.
 
 ## Evidence commands
 
-Exact commands already run are `scripts/factory doctor`, repository `rg` and
-`sed` inspection, Git revision/status inspection, and retrieval of the official
-W3C source. Implementation checks remain intentionally unrun until code exists:
-focused tests, full workspace tests, Rust 1.98/Nix, `cargo deny`, `cargo audit`
-and hosted CI. Verification will record exact counts and distinguish every
-unrun or host-incompatible check.
+Exact commands run include `scripts/factory doctor`, repository `rg`/`sed` and
+Git diff inspection, official W3C retrieval,
+`cargo test -p identus-did-resolver-http --no-default-features`,
+`cargo test --workspace --all-features`, changed-crate strict Clippy,
+workspace docs, locked metadata and format/diff checks. The installed Rust is
+1.98.1. Verification records counts and all exceptions: Nix, `cargo deny` and
+nextest are unavailable in this shell; installed `cargo-audit 0.20.1` cannot
+parse a current CVSS 4.0 advisory; broad workspace Clippy exposes one unchanged
+test-only `manual_noop_waker` finding. Hosted fast/weekly tooling remains unrun
+until push/schedule.

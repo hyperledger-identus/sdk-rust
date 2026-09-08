@@ -17,4 +17,4 @@
 - [x] 3.1 Add macro ordering, exact/one-over, precedence, constructor, redaction, DID and Registration compatibility tests.
 - [x] 3.2 Pass focused, workspace, factory and available Rust 1.98/Nix gates.
 - [x] 3.3 Perform a distinct exact-diff security, compatibility and architecture review.
-- [ ] 3.4 Synchronize canonical specs, archive safely, sign/DCO commits, open the issue-linked PR and merge only after every hosted gate is green.
+- [x] 3.4 Synchronize canonical specs, archive safely, sign/DCO commits, open the issue-linked PR and merge only after every hosted gate is green.

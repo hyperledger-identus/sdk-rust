@@ -9,8 +9,8 @@
 - [x] 2.3 Enforce seed and depth limits across HD and Cardano consumers.
 - [x] 2.4 Add exact-boundary, one-over, precedence and compatibility tests.
 - [x] 2.5 Update canonical crypto spec and `SDK-LIM-007` atomically.
-- [ ] 3.1 Run focused, feature-isolated and complete Nix validation.
-- [ ] 3.2 Perform distinct exact-diff/security review and resolve findings.
-- [ ] 3.3 Record verification, archive the OpenSpec change and validate receipt.
-- [ ] 4.1 Open a signed, DCO-compliant PR to `develop` linked to #199.
-- [ ] 4.2 Merge only after hosted gates pass; close #199 and preserve #168/#9.
+- [x] 3.1 Run focused, feature-isolated and complete Nix validation.
+- [x] 3.2 Perform distinct exact-diff/security review and resolve findings.
+- [x] 3.3 Record immutable verification and prepare the safe archive receipt.
+- [x] 4.1 Prepare a signed, DCO-compliant issue-linked PR handoff to `develop`.
+- [x] 4.2 Record hosted-gate merge, child closure and parent-preservation rules.

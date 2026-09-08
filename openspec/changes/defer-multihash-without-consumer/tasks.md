@@ -14,4 +14,4 @@
 
 - [ ] 3.1 Run factory/OpenSpec, text, format and proportional Rust documentation/test gates.
 - [ ] 3.2 Perform and record a distinct exact-diff architecture review with no unresolved blocker.
-- [ ] 3.3 Produce the immutable receipt, archive safely, open the issue-linked PR and merge only after every hosted gate is green.
+- [ ] 3.3 Produce the immutable receipt and pass the guarded archive preflight; issue-linked PR delivery remains governed by #155.

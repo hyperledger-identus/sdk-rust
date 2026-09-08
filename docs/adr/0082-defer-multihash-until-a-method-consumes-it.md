@@ -101,5 +101,5 @@ considered with real usage evidence or an explicit pre-release cleanup issue.
 This decision changes documentation and dependency governance only. Existing
 constructors, formatting, serde, tests and Cargo resolution remain unchanged.
 Revert this focused PR to restore the former wording; no data or runtime
-migration is involved. A future implementation must update this ADR and issue
-#155's conditional disposition before adding the crate.
+migration is involved. A future implementation must update this ADR and the
+conditional disposition in issue #155 before adding the crate.

@@ -41,7 +41,7 @@ this decision.
 | Candidate | Version/revision | Decision | Reason | Reconsideration trigger |
 | --- | --- | --- | --- | --- |
 | `multihash` | 0.19.5 / `e2044a2e` | `conditional-adopt` | Strong structural-codec fit, but no current SDK consumer or local implementation is replaced. | A focused DID-method issue pins a profile that carries multihash and defines all code, size, canonical and wire policies. |
-| Existing `identus-did::Multihash` | `develop@61210a86` | `retain-placeholder` | Removing it would create unrelated API churn; expanding it would silently reinterpret existing arbitrary-byte/hex behavior. | A named consumer decides validation, migration and compatibility explicitly. |
+| Existing `identus-did::Multihash` | `develop@61210a86` | `retain-local` | Removing it would create unrelated API churn; expanding it would silently reinterpret existing arbitrary-byte/hex behavior. | A named consumer decides validation, migration and compatibility explicitly. |
 | Implement a local codec now | none | `not-adopt` | Recreates a standard parser without a consumer and without method policy. | Same named-consumer trigger; compare against the crate then. |
 
 ## Compatibility and dependency evidence

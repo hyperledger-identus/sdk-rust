@@ -8,8 +8,9 @@ Research blockers: none
 
 ## Problem and existing implementation
 
-The current implementation in the SDK pins `ed25519-bip32 0.4.3` privately for Cardano/IOG V2 behavior at
-upstream signed-tag revision `6539dc9f792174fa5c2290c9e0a23710a1e1ecef`.
+The current implementation in the SDK pins `ed25519-bip32 0.4.3` privately for
+Cardano/IOG V2 behavior at upstream signed-tag revision
+`6539dc9f792174fa5c2290c9e0a23710a1e1ecef`.
 The SDK facade owns redacted, zeroizing bytes, but every internal conversion
 creates a short-lived upstream `XPrv`. That type implements `Debug` and
 `Display` as full hexadecimal secret output and calls a local unsafe
@@ -58,11 +59,11 @@ resolver-dependent. Disabling zeroize defaults avoids `alloc`. The proposed
 `cryptoxide` edge uses `default-features = false` with `ed25519`, `sha2`, and
 `hmac`; `ed25519` implies the required `curve25519` module.
 
-The direct and resolved dependency cone grows from two packages to three while its compiled
-cryptoxide feature surface shrinks from every default algorithm to the four
-named capability modules plus unconditional constant-time support. No native
-source, build script, FFI, network, storage, chain policy or serialization is
-introduced.
+The direct and resolved dependency cone grows from two packages to three while
+its compiled cryptoxide feature surface shrinks from every default algorithm to
+the four named capability modules plus unconditional constant-time support. No
+native source, build script, FFI, network, storage, chain policy or
+serialization is introduced.
 
 ## Security, privacy and maintenance evidence
 

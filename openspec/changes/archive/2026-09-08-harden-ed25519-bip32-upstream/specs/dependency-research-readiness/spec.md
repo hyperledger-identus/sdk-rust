@@ -2,13 +2,14 @@
 
 ### Requirement: Conditional dependency remediation is upstream-first
 
-The SDK project SHALL use an upstream-first remediation path when a conditionally adopted dependency has a focused defect that can be fixed
-without changing the SDK's required semantics, the SDK project SHALL prepare a
-minimal upstream contribution and record its disposition before activating an
-SDK-maintained fork. The contribution SHALL preserve relevant compiler, target,
-license, feature and conformance contracts and SHALL NOT make an unpublished
-branch an SDK dependency. An upstream contribution SHALL NOT be represented as
-an effective remediation until a reviewed immutable release is integrated.
+The SDK project SHALL prefer a minimal upstream contribution before activating an SDK-maintained dependency fork.
+
+This applies when a conditionally adopted dependency has a focused defect that
+can be fixed without changing the SDK's required semantics. The project SHALL
+record the contribution's disposition and preserve relevant compiler, target,
+license, feature and conformance contracts. It SHALL NOT make an unpublished
+branch an SDK dependency or represent an upstream contribution as an effective
+remediation until a reviewed immutable release is integrated.
 
 #### Scenario: Focused upstream hardening is viable
 

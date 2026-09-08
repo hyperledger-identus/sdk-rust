@@ -21,5 +21,6 @@
 
 - [x] 4.1 Record immutable upstream links and exact verification outcomes
 - [x] 4.2 Update issue #179 and add ADR 0089 without mutating accepted ADR 0078
-- [ ] 4.3 Sync the dependency-readiness spec and archive this OpenSpec change
-- [ ] 4.4 Open the signed/DCO SDK evidence PR; merge only on green required CI
+- [x] 4.3 Sync the dependency-readiness spec and archive this OpenSpec change
+- [x] 4.4 Prepare the signed/DCO SDK evidence PR; hosted CI and green-only merge
+      remain pull-request evidence

@@ -12,6 +12,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 MANIFEST = Path("docs/architecture/apollo-crypto-parity.toml")
+SUPPORT_POLICY = Path("docs/architecture/sdk-support-policy.toml")
 SHA = re.compile(r"^[0-9a-f]{40}$")
 ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 DISPOSITIONS = {"parity", "sdk-exceeds", "accepted-difference", "gap"}
@@ -51,6 +52,10 @@ DEPENDENCY_IDS = {
 TARGET_IDS = {
     "linux-host", "wasm32-unknown-unknown", "aarch64-apple-ios",
     "aarch64-linux-android", "language-bindings",
+}
+PORTABLE_TARGET_IDS = {
+    "wasm32-unknown-unknown", "aarch64-apple-ios",
+    "aarch64-linux-android",
 }
 CAPABILITY_KEYS = {
     "id", "category", "name", "disposition", "apollo_surface",
@@ -131,7 +136,8 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
     check.exact_keys(data, {
         "schema_version", "title", "assessment_date", "parent_issue",
         "delivery_issue", "report_discussion", "baselines", "summary",
-        "performance", "capabilities", "vectors", "dependencies", "targets",
+        "performance", "target_evidence", "capabilities", "vectors",
+        "dependencies", "targets",
     }, "manifest")
     if data.get("schema_version") != 1:
         check.fail("manifest: schema_version must be 1")
@@ -220,6 +226,110 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
         harness_revision = harness_uri[len(expected_prefix):].split("/", 1)[0]
         if not SHA.fullmatch(harness_revision):
             check.fail("performance: harness URI is not commit-pinned")
+
+    target_evidence = data.get("target_evidence", {})
+    target_evidence_keys = {
+        "status", "sdk_revision", "toolchain", "support_policy_path",
+        "workflow_path", "ci_run_uri", "ci_conclusion", "targets",
+        "packages", "features", "no_default_features", "limitations",
+        "tracking_issue", "discussion_receipt",
+    }
+    if not isinstance(target_evidence, dict):
+        check.fail("target_evidence: expected table")
+        target_evidence = {}
+    check.exact_keys(target_evidence, target_evidence_keys, "target_evidence")
+    check.text_fields(
+        target_evidence,
+        target_evidence_keys
+        - {"targets", "packages", "features", "no_default_features"},
+        "target_evidence",
+    )
+    if target_evidence.get("status") != "complete":
+        check.fail("target_evidence: status must be complete")
+    if not SHA.fullmatch(str(target_evidence.get("sdk_revision", ""))):
+        check.fail("target_evidence: sdk_revision must be a full lowercase Git SHA")
+    if target_evidence.get("ci_conclusion") != "success":
+        check.fail("target_evidence: CI conclusion must be success")
+    if not re.fullmatch(
+        r"https://github\.com/hyperledger-identus/sdk-rust/actions/runs/[0-9]+",
+        str(target_evidence.get("ci_run_uri", "")),
+    ):
+        check.fail("target_evidence: CI receipt must be a GitHub Actions run")
+    if target_evidence.get("workflow_path") != ".github/workflows/nix-checks.yml":
+        check.fail("target_evidence: workflow must be the slow workflow")
+    if target_evidence.get("tracking_issue") != "https://github.com/hyperledger-identus/sdk-rust/issues/213":
+        check.fail("target_evidence: tracking issue must be #213")
+    if not re.fullmatch(
+        r"https://github\.com/hyperledger-identus/sdk-rust/discussions/178#discussioncomment-[0-9]+",
+        str(target_evidence.get("discussion_receipt", "")),
+    ):
+        check.fail("target_evidence: discussion receipt must be a Discussion #178 comment")
+    evidence_arrays: dict[str, list[str]] = {}
+    for field in ("targets", "packages", "features"):
+        values = target_evidence.get(field)
+        if not isinstance(values, list) or not all(isinstance(item, str) and item for item in values):
+            check.fail(f"target_evidence: {field} must be a non-empty string array")
+            evidence_arrays[field] = []
+        else:
+            evidence_arrays[field] = values
+    if len(evidence_arrays["targets"]) != len(PORTABLE_TARGET_IDS) or set(evidence_arrays["targets"]) != PORTABLE_TARGET_IDS:
+        check.fail("target_evidence: targets must be exactly the portable compile targets")
+    if target_evidence.get("no_default_features") is not False:
+        check.fail("target_evidence: no_default_features must be false")
+
+    policy_path = check.safe_path(
+        target_evidence.get("support_policy_path"),
+        "target_evidence support_policy_path",
+    )
+    if target_evidence.get("support_policy_path") != str(SUPPORT_POLICY):
+        check.fail("target_evidence: support policy path must name the canonical policy")
+    workflow_path = check.safe_path(
+        target_evidence.get("workflow_path"),
+        "target_evidence workflow_path",
+    )
+    if workflow_path is not None and not workflow_path.is_file():
+        check.fail("target_evidence: workflow file does not exist")
+    policy: dict[str, Any] = {}
+    if policy_path is not None:
+        if not policy_path.is_file():
+            check.fail("target_evidence: support policy file does not exist")
+        else:
+            try:
+                policy = tomllib.loads(policy_path.read_text(encoding="utf-8"))
+            except (OSError, tomllib.TOMLDecodeError) as error:
+                check.fail(f"target_evidence: cannot load support policy: {error}")
+    raw_policy_targets = policy.get("targets", [])
+    if not isinstance(raw_policy_targets, list):
+        check.fail("target_evidence: support policy targets must be an array")
+        raw_policy_targets = []
+    policy_targets = {
+        row.get("triple"): row
+        for row in raw_policy_targets
+        if isinstance(row, dict) and row.get("triple") in PORTABLE_TARGET_IDS
+    }
+    if set(policy_targets) != PORTABLE_TARGET_IDS:
+        check.fail("target_evidence: support policy lacks the exact portable targets")
+    toolchains = policy.get("toolchains", {})
+    if not isinstance(toolchains, dict) or target_evidence.get("toolchain") != toolchains.get("primary"):
+        check.fail("target_evidence: toolchain differs from support-policy primary")
+    portable_shapes = {
+        (
+            tuple(row.get("packages", [])),
+            tuple(row.get("features", [])),
+            row.get("no_default_features"),
+        )
+        for row in policy_targets.values()
+    }
+    if len(portable_shapes) != 1:
+        check.fail("target_evidence: portable support-policy package/feature shapes differ")
+    elif portable_shapes:
+        packages, features, no_default_features = next(iter(portable_shapes))
+        if target_evidence.get("packages") != list(packages):
+            check.fail("target_evidence: packages differ from support policy")
+        if target_evidence.get("features") != list(features):
+            check.fail("target_evidence: features differ from support policy")
+        if target_evidence.get("no_default_features") != no_default_features:
+            check.fail("target_evidence: default-feature mode differs from support policy")
 
     capabilities = data.get("capabilities", [])
     vectors = data.get("vectors", [])
@@ -355,6 +465,26 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
             check.fail(f"{label}: evidence_revision must be a full lowercase Git SHA")
         if row.get("sdk_tier") not in {"host-tested", "compile-checked", "not-supported"}:
             check.fail(f"{label}: unsupported sdk_tier: {row.get('sdk_tier')}")
+        target_id = row.get("id")
+        if target_id in PORTABLE_TARGET_IDS:
+            policy_target = policy_targets.get(target_id, {})
+            if row.get("sdk_tier") != policy_target.get("tier"):
+                check.fail(f"{label}: tier differs from support policy")
+            if row.get("sdk_gate") != policy_target.get("gate"):
+                check.fail(f"{label}: gate differs from support policy")
+            if row.get("limitation") != policy_target.get("limitation"):
+                check.fail(f"{label}: limitation differs from support policy")
+            if row.get("evidence_revision") != target_evidence.get("sdk_revision"):
+                check.fail(f"{label}: evidence revision differs from the closing receipt")
+            if row.get("evidence_uri") != target_evidence.get("ci_run_uri"):
+                check.fail(f"{label}: evidence URI differs from the closing receipt")
+        elif target_id == "linux-host":
+            if row.get("sdk_gate") != "fast":
+                check.fail(f"{label}: host gate must be fast")
+            if row.get("evidence_revision") != baselines.get("sdk_fast_ci_revision"):
+                check.fail(f"{label}: host revision differs from the fast baseline")
+            if row.get("evidence_uri") != baselines.get("sdk_fast_ci_uri"):
+                check.fail(f"{label}: host evidence differs from the fast baseline")
     return check.errors
 
 
@@ -404,9 +534,28 @@ def render(data: dict[str, Any]) -> str:
     lines += ["", "## Dependency decisions", "", "| Concern | Apollo | SDK-Rust | Disposition |", "| --- | --- | --- | --- |"]
     for row in data["dependencies"]:
         lines.append(f"| {cell(row['concern'])} | {cell(row['apollo'])} | {cell(row['sdk'])} | {cell(row['disposition'])} |")
-    lines += ["", "## Target evidence", "", "| Target | Tier | Gate | Limitation |", "| --- | --- | --- | --- |"]
+    target_evidence = data["target_evidence"]
+    packages = ", ".join(f"`{cell(item)}`" for item in target_evidence["packages"])
+    features = ", ".join(f"`{cell(item)}`" for item in target_evidence["features"])
+    lines += [
+        "", "## Portable-target closing receipt", "",
+        f"Revision: `{target_evidence['sdk_revision']}`  ",
+        f"Rust toolchain: `{target_evidence['toolchain']}`  ",
+        f"Packages: {packages}  ",
+        f"Features: {features}  ",
+        f"Slow CI: [{target_evidence['ci_conclusion']}]({target_evidence['ci_run_uri']})  ",
+        f"Discussion receipt: [comment]({target_evidence['discussion_receipt']})  ",
+        f"Limitations: {cell(target_evidence['limitations'])}", "",
+        "## Target evidence", "",
+        "| Target | Tier | Gate | Revision | Evidence | Limitation |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
     for row in data["targets"]:
-        lines.append(f"| `{cell(row['id'])}` | {cell(row['sdk_tier'])} | `{cell(row['sdk_gate'])}` | {cell(row['limitation'])} |")
+        lines.append(
+            f"| `{cell(row['id'])}` | {cell(row['sdk_tier'])} | "
+            f"`{cell(row['sdk_gate'])}` | `{cell(row['evidence_revision'])}` | "
+            f"[receipt]({row['evidence_uri']}) | {cell(row['limitation'])} |"
+        )
     return "\n".join(lines) + "\n"
 
 

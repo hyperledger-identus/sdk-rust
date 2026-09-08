@@ -1,0 +1,381 @@
+#!/usr/bin/env python3
+"""Validate and render the executable Apollo cryptography parity manifest."""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+import tomllib
+from collections import Counter
+from pathlib import Path, PurePosixPath
+from typing import Any
+
+MANIFEST = Path("docs/architecture/apollo-crypto-parity.toml")
+SHA = re.compile(r"^[0-9a-f]{40}$")
+ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+DISPOSITIONS = {"parity", "sdk-exceeds", "accepted-difference", "gap"}
+APOLLO_REPOSITORY = "hyperledger-identus/apollo"
+APOLLO_REVISION = "ccee22bcd693e618b9b8ff3e15ed6f9c9156c27c"
+SDK_REPOSITORY = "hyperledger-identus/sdk-rust"
+CAPABILITY_IDS = {
+    "entropy-csprng", "encoding-hex", "encoding-base64url-nopad",
+    "encoding-base64-other-profiles", "sha2-digests", "hmac-sha512",
+    "pbkdf2-generic", "bip39-english", "bip39-alternate-wordlists",
+    "derivation-path", "secp256k1-bip32-hardened",
+    "secp256k1-bip32-non-hardened", "cardano-v2-private",
+    "cardano-v2-public", "slip0010-ed25519", "secp256k1-lifecycle",
+    "secp256k1-private-tweak", "ed25519-lifecycle",
+    "ed25519-x25519-conversion", "x25519-key-generation",
+    "x25519-diffie-hellman", "p256-lifecycle", "public-jwk",
+    "public-cose-key", "platform-distribution", "platform-scaffolding",
+    "bip340-schnorr-comment",
+}
+VECTOR_IDS = {
+    "apollo-secure-random", "apollo-rfc4648-base16", "apollo-base64url",
+    "apollo-bip39-kmp", "sdk-bip39-published", "sdk-derivation-path",
+    "apollo-secp256k1-hd", "sdk-bip32-published",
+    "apollo-cardano-v2-private", "apollo-cardano-v2-public",
+    "sdk-slip0010-published", "apollo-secp256k1-lifecycle",
+    "apollo-secp256k1-prism-50", "apollo-ed25519-lifecycle",
+    "sdk-ed25519-x25519-conversion", "apollo-x25519-lifecycle",
+    "sdk-x25519-dh", "sdk-p256-lifecycle", "sdk-rfc8037-jwk",
+    "sdk-cose-key", "sdk-sha2-known-vectors",
+    "sdk-hmac-sha512-rfc4231",
+}
+DEPENDENCY_IDS = {
+    "secp256k1", "ed25519", "x25519", "cardano-v2", "bip39",
+    "sha-hmac", "p256", "encodings", "public-serialization",
+    "secret-handling", "platform-plumbing",
+}
+TARGET_IDS = {
+    "linux-host", "wasm32-unknown-unknown", "aarch64-apple-ios",
+    "aarch64-linux-android", "language-bindings",
+}
+CAPABILITY_KEYS = {
+    "id", "category", "name", "disposition", "apollo_surface",
+    "apollo_source_uri", "sdk_surface", "sdk_test_uri", "feature",
+    "vector_ids", "decision_receipt", "ci_receipt", "rationale",
+    "consumer_impact", "reopen_trigger", "tracking_issue",
+}
+VECTOR_KEYS = {
+    "id", "family", "kind", "origin_repository", "origin_revision",
+    "origin_path", "origin_uri", "license", "transformation",
+    "expected_result", "sdk_test_path", "sdk_test_selectors",
+    "sdk_test_uri",
+}
+
+
+class Validation:
+    def __init__(self, root: Path) -> None:
+        self.root = root
+        self.errors: list[str] = []
+
+    def fail(self, message: str) -> None:
+        self.errors.append(message)
+
+    def exact_keys(self, value: dict[str, Any], expected: set[str], label: str) -> None:
+        missing = expected - value.keys()
+        extra = value.keys() - expected
+        if missing:
+            self.fail(f"{label}: missing fields: {', '.join(sorted(missing))}")
+        if extra:
+            self.fail(f"{label}: unknown fields: {', '.join(sorted(extra))}")
+
+    def identifiers(self, rows: list[dict[str, Any]], label: str) -> list[str]:
+        ids: list[str] = []
+        for index, row in enumerate(rows):
+            value = row.get("id")
+            if not isinstance(value, str) or not ID.fullmatch(value):
+                self.fail(f"{label}[{index}]: invalid id")
+                continue
+            ids.append(value)
+        duplicates = sorted(key for key, count in Counter(ids).items() if count > 1)
+        if duplicates:
+            self.fail(f"{label}: duplicate ids: {', '.join(duplicates)}")
+        return ids
+
+    def text_fields(self, row: dict[str, Any], fields: set[str], label: str) -> None:
+        for field in fields:
+            if not isinstance(row.get(field), str) or not row[field].strip():
+                self.fail(f"{label}: {field} must be a non-empty string")
+
+    def safe_path(self, value: Any, label: str) -> Path | None:
+        if not isinstance(value, str) or not value:
+            self.fail(f"{label}: path must be a non-empty string")
+            return None
+        path = PurePosixPath(value)
+        if path.is_absolute() or ".." in path.parts or str(path) != value:
+            self.fail(f"{label}: unsafe repository-relative path: {value}")
+            return None
+        candidate = self.root / value
+        try:
+            candidate.resolve(strict=False).relative_to(self.root.resolve())
+        except ValueError:
+            self.fail(f"{label}: path resolves outside the repository: {value}")
+            return None
+        return candidate
+
+
+def load(root: Path) -> dict[str, Any]:
+    return tomllib.loads((root / MANIFEST).read_text(encoding="utf-8"))
+
+
+def immutable_blob(uri: str, repository: str, revision: str, path: str) -> bool:
+    expected = f"https://github.com/{repository}/blob/{revision}/{path}"
+    return uri == expected
+
+
+def validate(root: Path, data: dict[str, Any]) -> list[str]:
+    check = Validation(root)
+    check.exact_keys(data, {
+        "schema_version", "title", "assessment_date", "parent_issue",
+        "delivery_issue", "report_discussion", "baselines", "summary",
+        "capabilities", "vectors", "dependencies", "targets",
+    }, "manifest")
+    if data.get("schema_version") != 1:
+        check.fail("manifest: schema_version must be 1")
+    check.text_fields(data, {
+        "title", "assessment_date", "parent_issue", "delivery_issue",
+        "report_discussion",
+    }, "manifest")
+
+    baselines = data.get("baselines", {})
+    if not isinstance(baselines, dict):
+        check.fail("baselines: expected table")
+        baselines = {}
+    baseline_keys = {
+        "apollo_repository", "apollo_revision", "apollo_license",
+        "apollo_tree_uri", "sdk_repository", "sdk_revision", "sdk_license",
+        "sdk_tree_uri", "sdk_fast_ci_uri", "sdk_fast_ci_revision",
+        "sdk_fast_ci_conclusion",
+    }
+    check.exact_keys(baselines, baseline_keys, "baselines")
+    check.text_fields(baselines, baseline_keys, "baselines")
+    for key in ("apollo_revision", "sdk_revision", "sdk_fast_ci_revision"):
+        if not SHA.fullmatch(str(baselines.get(key, ""))):
+            check.fail(f"baselines: {key} must be a full lowercase Git SHA")
+    if baselines.get("apollo_repository") != APOLLO_REPOSITORY:
+        check.fail("baselines: Apollo repository differs from the audited source")
+    if baselines.get("apollo_revision") != APOLLO_REVISION:
+        check.fail("baselines: Apollo revision differs from the audited source")
+    if baselines.get("sdk_repository") != SDK_REPOSITORY:
+        check.fail("baselines: SDK repository differs from this project")
+    for project in ("apollo", "sdk"):
+        repository = baselines.get(f"{project}_repository", "")
+        revision = baselines.get(f"{project}_revision", "")
+        expected = f"https://github.com/{repository}/tree/{revision}"
+        if baselines.get(f"{project}_tree_uri") != expected:
+            check.fail(f"baselines: {project}_tree_uri does not bind the baseline")
+    if baselines.get("sdk_fast_ci_revision") != baselines.get("sdk_revision"):
+        check.fail("baselines: fast CI revision must equal SDK baseline")
+    if baselines.get("sdk_fast_ci_conclusion") != "success":
+        check.fail("baselines: fast CI conclusion must be success")
+
+    capabilities = data.get("capabilities", [])
+    vectors = data.get("vectors", [])
+    dependencies = data.get("dependencies", [])
+    targets = data.get("targets", [])
+    for name, rows in (
+        ("capabilities", capabilities),
+        ("vectors", vectors),
+        ("dependencies", dependencies),
+        ("targets", targets),
+    ):
+        if not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
+            check.fail(f"{name}: expected array of tables")
+    if check.errors:
+        return check.errors
+
+    capability_ids = check.identifiers(capabilities, "capabilities")
+    vector_ids = check.identifiers(vectors, "vectors")
+    dependency_ids = check.identifiers(dependencies, "dependencies")
+    target_ids = check.identifiers(targets, "targets")
+    for actual, expected, label in (
+        (set(capability_ids), CAPABILITY_IDS, "capabilities"),
+        (set(vector_ids), VECTOR_IDS, "vectors"),
+        (set(dependency_ids), DEPENDENCY_IDS, "dependencies"),
+        (set(target_ids), TARGET_IDS, "targets"),
+    ):
+        if actual != expected:
+            check.fail(f"{label}: inventory differs; missing={sorted(expected-actual)}, extra={sorted(actual-expected)}")
+
+    known_vectors = set(vector_ids)
+    referenced_vectors: set[str] = set()
+    counts = Counter()
+    for row in capabilities:
+        label = f"capability {row.get('id', '?')}"
+        check.exact_keys(row, CAPABILITY_KEYS, label)
+        check.text_fields(row, CAPABILITY_KEYS - {"vector_ids"}, label)
+        disposition = row.get("disposition")
+        if disposition not in DISPOSITIONS:
+            check.fail(f"{label}: unsupported disposition: {disposition}")
+        else:
+            counts[disposition] += 1
+        refs = row.get("vector_ids")
+        if not isinstance(refs, list) or not all(isinstance(item, str) for item in refs):
+            check.fail(f"{label}: vector_ids must be a string array")
+            refs = []
+        missing = set(refs) - known_vectors
+        if missing:
+            check.fail(f"{label}: unknown vector ids: {', '.join(sorted(missing))}")
+        referenced_vectors.update(refs)
+        if disposition in {"parity", "sdk-exceeds"} and not refs:
+            check.fail(f"{label}: parity claims require vector evidence")
+        apollo_uri = str(row.get("apollo_source_uri", ""))
+        if apollo_uri == "not-applicable":
+            if disposition != "sdk-exceeds":
+                check.fail(f"{label}: Apollo evidence may be absent only for sdk-exceeds")
+        elif baselines.get("apollo_revision", "") not in apollo_uri:
+            check.fail(f"{label}: Apollo evidence is not baseline-pinned")
+        sdk_uri = str(row.get("sdk_test_uri", ""))
+        if disposition in {"parity", "sdk-exceeds"}:
+            pattern = rf"^https://github.com/{re.escape(str(baselines.get('sdk_repository', '')))}/blob/[0-9a-f]{{40}}/"
+            if not re.match(pattern, sdk_uri):
+                check.fail(f"{label}: SDK evidence is not commit-pinned")
+            if row.get("ci_receipt") != baselines.get("sdk_fast_ci_uri"):
+                check.fail(f"{label}: CI receipt differs from the green baseline")
+
+    summary = data.get("summary", {})
+    expected_summary = {
+        "total": len(capabilities), "parity": counts["parity"],
+        "sdk_exceeds": counts["sdk-exceeds"],
+        "accepted_difference": counts["accepted-difference"],
+        "gap": counts["gap"],
+    }
+    if summary != expected_summary:
+        check.fail(f"summary: expected {expected_summary}, got {summary}")
+    unused = known_vectors - referenced_vectors
+    if unused:
+        check.fail(f"vectors: unreferenced evidence: {', '.join(sorted(unused))}")
+
+    allowed_kinds = {
+        "apollo-owned", "normative-capture", "sdk-negative",
+        "sdk-known-answer", "sdk-behavior",
+    }
+    for row in vectors:
+        label = f"vector {row.get('id', '?')}"
+        check.exact_keys(row, VECTOR_KEYS, label)
+        check.text_fields(row, VECTOR_KEYS - {"sdk_test_selectors"}, label)
+        revision = str(row.get("origin_revision", ""))
+        if not SHA.fullmatch(revision):
+            check.fail(f"{label}: origin_revision must be a full lowercase Git SHA")
+        if row.get("kind") not in allowed_kinds:
+            check.fail(f"{label}: unsupported kind: {row.get('kind')}")
+        if row.get("license") != "Apache-2.0":
+            check.fail(f"{label}: license must be Apache-2.0")
+        origin_path = str(row.get("origin_path", ""))
+        check.safe_path(origin_path, f"{label} origin")
+        if not immutable_blob(str(row.get("origin_uri", "")), str(row.get("origin_repository", "")), revision, origin_path):
+            check.fail(f"{label}: origin_uri does not bind repository, revision and path")
+        test_path_value = row.get("sdk_test_path")
+        test_path = check.safe_path(test_path_value, f"{label} SDK test")
+        selectors = row.get("sdk_test_selectors")
+        if not isinstance(selectors, list) or not selectors or not all(isinstance(item, str) and item for item in selectors):
+            check.fail(f"{label}: sdk_test_selectors must be a non-empty string array")
+            selectors = []
+        if test_path is not None:
+            if not test_path.is_file():
+                check.fail(f"{label}: SDK test file does not exist: {test_path_value}")
+            else:
+                content = test_path.read_text(encoding="utf-8")
+                for selector in selectors:
+                    if selector not in content:
+                        check.fail(f"{label}: selector not found in {test_path_value}: {selector}")
+        sdk_uri = str(row.get("sdk_test_uri", ""))
+        expected_prefix = f"https://github.com/{baselines.get('sdk_repository', '')}/blob/"
+        expected_suffix = f"/{test_path_value}"
+        if not sdk_uri.startswith(expected_prefix) or not sdk_uri.endswith(expected_suffix):
+            check.fail(f"{label}: sdk_test_uri does not bind the SDK test path")
+        else:
+            linked_revision = sdk_uri[len(expected_prefix):].split("/", 1)[0]
+            if not SHA.fullmatch(linked_revision):
+                check.fail(f"{label}: sdk_test_uri is not commit-pinned")
+
+    dependency_keys = {"id", "concern", "apollo", "sdk", "disposition", "evidence_uri"}
+    target_keys = {"id", "apollo_surface", "sdk_tier", "sdk_gate", "evidence_revision", "evidence_uri", "limitation", "closing_issue"}
+    for row in dependencies:
+        label = f"dependency {row.get('id', '?')}"
+        check.exact_keys(row, dependency_keys, label)
+        check.text_fields(row, dependency_keys, label)
+    for row in targets:
+        label = f"target {row.get('id', '?')}"
+        check.exact_keys(row, target_keys, label)
+        check.text_fields(row, target_keys, label)
+        if not SHA.fullmatch(str(row.get("evidence_revision", ""))):
+            check.fail(f"{label}: evidence_revision must be a full lowercase Git SHA")
+        if row.get("sdk_tier") not in {"host-tested", "compile-checked", "not-supported"}:
+            check.fail(f"{label}: unsupported sdk_tier: {row.get('sdk_tier')}")
+    return check.errors
+
+
+def cell(value: Any) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ")
+
+
+def render(data: dict[str, Any]) -> str:
+    baselines = data["baselines"]
+    summary = data["summary"]
+    lines = [
+        "# Apollo cryptography parity report", "",
+        "> Generated from `docs/architecture/apollo-crypto-parity.toml`; do not edit by hand.", "",
+        f"Apollo baseline: `{baselines['apollo_revision']}`  ",
+        f"SDK-Rust baseline: `{baselines['sdk_revision']}`  ",
+        f"Fast CI: [{baselines['sdk_fast_ci_conclusion']}]({baselines['sdk_fast_ci_uri']})  ",
+        f"Mapped vector/evidence suites: **{len(data['vectors'])}**", "",
+        "## Summary", "", "| Total | Parity | SDK exceeds | Accepted difference | Gap |",
+        "| ---: | ---: | ---: | ---: | ---: |",
+        f"| {summary['total']} | {summary['parity']} | {summary['sdk_exceeds']} | {summary['accepted_difference']} | {summary['gap']} |", "",
+        "## Capabilities", "",
+        "| ID | Capability | Disposition | Apollo | SDK evidence | Vectors | Decision | Rationale |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in data["capabilities"]:
+        sdk_evidence = "n/a" if row["sdk_test_uri"] == "not-applicable" else f"[test]({row['sdk_test_uri']})"
+        apollo_evidence = "n/a" if row["apollo_source_uri"] == "not-applicable" else f"[source]({row['apollo_source_uri']})"
+        vectors = ", ".join(f"`{cell(item)}`" for item in row["vector_ids"]) or "n/a"
+        lines.append(
+            f"| `{cell(row['id'])}` | {cell(row['name'])} | "
+            f"{cell(row['disposition'])} | {apollo_evidence} | "
+            f"{sdk_evidence} | {vectors} | "
+            f"[receipt]({row['decision_receipt']}) | "
+            f"{cell(row['rationale'])} |"
+        )
+    lines += ["", "## Vector evidence", "", "| ID | Family | Kind | Test selectors |", "| --- | --- | --- | --- |"]
+    for row in data["vectors"]:
+        selectors = ", ".join(f"`{cell(item)}`" for item in row["sdk_test_selectors"])
+        lines.append(f"| `{cell(row['id'])}` | {cell(row['family'])} | {cell(row['kind'])} | {selectors} |")
+    lines += ["", "## Dependency decisions", "", "| Concern | Apollo | SDK-Rust | Disposition |", "| --- | --- | --- | --- |"]
+    for row in data["dependencies"]:
+        lines.append(f"| {cell(row['concern'])} | {cell(row['apollo'])} | {cell(row['sdk'])} | {cell(row['disposition'])} |")
+    lines += ["", "## Target evidence", "", "| Target | Tier | Gate | Limitation |", "| --- | --- | --- | --- |"]
+    for row in data["targets"]:
+        lines.append(f"| `{cell(row['id'])}` | {cell(row['sdk_tier'])} | `{cell(row['sdk_gate'])}` | {cell(row['limitation'])} |")
+    return "\n".join(lines) + "\n"
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("root", nargs="?", type=Path, default=Path.cwd())
+    parser.add_argument("--render-markdown", action="store_true")
+    args = parser.parse_args()
+    try:
+        data = load(args.root.resolve())
+    except (OSError, tomllib.TOMLDecodeError) as error:
+        print(f"apollo-parity: cannot load manifest: {error}", file=sys.stderr)
+        return 1
+    errors = validate(args.root.resolve(), data)
+    if errors:
+        for error in errors:
+            print(f"apollo-parity: {error}", file=sys.stderr)
+        print(f"apollo-parity: {len(errors)} failure(s)", file=sys.stderr)
+        return 1
+    if args.render_markdown:
+        print(render(data), end="")
+    else:
+        print(f"apollo-parity: {len(data['capabilities'])} capabilities and {len(data['vectors'])} vectors passed")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

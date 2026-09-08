@@ -102,6 +102,7 @@ first-party source and retains that exact generated-output gap in
 
 Commit this specification and ADR first. Then add the root lint and guard,
 prove positive and negative cases on Rust 1.98.1, run full compatible Nix and
-hosted Linux gates, and narrow `SDK-LIM-008` in the same PR. Reverting the PR
-restores the broader disclosed limitation and prior manual-review posture; it
-changes no runtime data or consumer API.
+hosted Linux gates, narrow `SDK-LIM-008`, and keep the factory's isolated
+repository fixture synchronized with the ADR that becomes a canonical
+constraint source. Reverting the PR restores the broader disclosed limitation
+and prior manual-review posture; it changes no runtime data or consumer API.

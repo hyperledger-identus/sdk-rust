@@ -16,5 +16,5 @@
 
 - [x] 3.1 Add and pass deterministic accepted/rejected differentials for absolute URI, URI reference, IPvFuture, malformed percent, authority, userinfo, query/fragment, non-ASCII/IRI and exact spelling.
 - [x] 3.2 Pass format, factory, Rust 1.98, no-default-feature, WASM, Android, iOS, dependency/security and complete Nix gates; record exact counts and intentionally unrun checks.
-- [ ] 3.3 Perform a distinct exact-diff core/DID/protocol/security review with no unresolved blocker, produce the immutable receipt and archive the change safely.
-- [ ] 3.4 Publish an issue-linked PR to `develop`, require all hosted fast/policy/hygiene/DCO/review gates, merge only when green and post issue/parent receipts.
+- [x] 3.3 Perform a distinct exact-diff core/DID/protocol/security review with no unresolved blocker and produce the immutable receipt.
+- [x] 3.4 Synchronize canonical specifications, archive the change safely and prepare the signed/DCO issue-linked PR; hosted review/CI, merge and issue/parent receipts remain GitHub evidence.

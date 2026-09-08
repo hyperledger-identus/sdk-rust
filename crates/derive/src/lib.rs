@@ -10,6 +10,7 @@ mod attr;
 mod bytes;
 mod category;
 mod num;
+mod output_safety;
 mod str;
 
 use proc_macro::TokenStream;
@@ -111,5 +112,5 @@ fn expand(input: syn::DeriveInput) -> syn::Result<TokenStream2> {
         Category::Bytes => bytes::expand(&ctx),
         Category::Num => num::expand(&ctx),
     };
-    Ok(ts)
+    output_safety::validate(ts)
 }

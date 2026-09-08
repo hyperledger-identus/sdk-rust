@@ -158,10 +158,13 @@ misrepresenting incomplete inherited coverage as a proven SDK guarantee.
 - `SDK-SEC-001` is effective project policy: unsafe Rust is prohibited unless
   a dedicated safety ADR grants a bounded exception. ADR 0087 backs that policy
   with an inherited workspace `forbid`, a member-inheritance guard and
-  compile-fail probes across supported authored first-party Cargo targets.
+  compile-fail probes across supported authored first-party Cargo targets. ADR
+  0088 additionally makes `identus-derive` reject enumerated unsafe constructs
+  and attributes in its completed direct item output before emission.
 - `SDK-LIM-008` remains as a narrow compiler limitation: Rust 1.98.1 skips the
   `unsafe_code` lint for procedural-macro expansion spans that allow internal
-  unsafe. Issue #189 owns the expansion-evidence decision.
+  unsafe. Direct `identus-derive` item syntax is guarded, but external macros
+  and syntax created later by nested macro expansion remain outside that check.
 - The assurance is deliberately first-party: external dependency unsafe/native
   posture remains dependency-decision evidence, and the lint does not claim to
   prove logical or side-channel safety.

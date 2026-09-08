@@ -37,6 +37,7 @@ required_files=(
   docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md
   docs/adr/0087-enforce-first-party-unsafe-forbid.md
   docs/adr/0089-require-upstream-first-dependency-remediation.md
+  docs/adr/0095-use-dependency-free-crypto-benchmark-harness.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   openspec/config.yaml
@@ -48,6 +49,8 @@ required_files=(
   scripts/check-openspec-archive.py
   scripts/check-support-policy.py
   scripts/check-apollo-parity.py
+  scripts/benchmark-crypto.sh
+  scripts/check-crypto-benchmark.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-pr-policy.sh
   scripts/check-research-readiness.py
@@ -59,6 +62,7 @@ required_files=(
   scripts/tests/research-readiness.py
   scripts/tests/support-policy.py
   scripts/tests/apollo-parity.py
+  scripts/tests/crypto-benchmark.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
   .github/ISSUE_TEMPLATE/delivery-task.yml
@@ -74,7 +78,7 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in scripts/factory scripts/benchmark-support-policy.py scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-constraints.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-ssi-upstream-backlog.py scripts/tests/bootstrap-inventory.py scripts/tests/constraints.py scripts/tests/factory-contract.sh scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py; do
+for executable_path in scripts/factory scripts/benchmark-support-policy.py scripts/benchmark-crypto.sh scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-constraints.py scripts/check-crypto-benchmark.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-ssi-upstream-backlog.py scripts/tests/bootstrap-inventory.py scripts/tests/constraints.py scripts/tests/crypto-benchmark.py scripts/tests/factory-contract.sh scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi

@@ -24,6 +24,11 @@ class ApolloParityContract(unittest.TestCase):
         target.parent.mkdir(parents=True)
         shutil.copy2(source, target)
         data = tomllib.loads(source.read_text(encoding="utf-8"))
+        for field in ("sdk_harness_path", "sdk_runner_path", "workflow_path"):
+            relative = Path(data["performance"][field])
+            destination = self.root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / relative, destination)
         for vector in data["vectors"]:
             relative = Path(vector["sdk_test_path"])
             destination = self.root / relative
@@ -75,6 +80,17 @@ class ApolloParityContract(unittest.TestCase):
     def test_summary_drift_fails(self) -> None:
         self.replace("total               = 27", "total               = 26")
         self.assertIn("summary: expected", self.run_checker().stderr)
+
+    def test_performance_comparison_claim_fails(self) -> None:
+        self.replace('apollo_comparison   = "unavailable"', 'apollo_comparison   = "faster"')
+        self.assertIn("comparison must be unavailable", self.run_checker().stderr)
+
+    def test_performance_harness_must_be_commit_pinned(self) -> None:
+        self.replace(
+            "blob/0f1074b766f3cbf1ffc905b4388220b27b1c4556/crates/crypto/examples/crypto_baseline.rs",
+            "blob/develop/crates/crypto/examples/crypto_baseline.rs",
+        )
+        self.assertIn("not commit-pinned", self.run_checker().stderr)
 
     def test_stale_apollo_link_fails(self) -> None:
         self.replace("ccee22bcd693e618b9b8ff3e15ed6f9c9156c27c/apollo/src", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/apollo/src")

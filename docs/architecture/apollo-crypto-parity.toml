@@ -18,6 +18,21 @@ sdk_fast_ci_uri        = "https://github.com/hyperledger-identus/sdk-rust/action
 sdk_fast_ci_revision   = "9ff2fa87337d3f25d67f38486c3a4d0a656bd9d6"
 sdk_fast_ci_conclusion = "success"
 
+[performance]
+status              = "sdk-baseline-only"
+apollo_comparison   = "unavailable"
+apollo_evidence_uri = "https://github.com/hyperledger-identus/apollo/tree/ccee22bcd693e618b9b8ff3e15ed6f9c9156c27c"
+sdk_harness_path    = "crates/crypto/examples/crypto_baseline.rs"
+sdk_runner_path     = "scripts/benchmark-crypto.sh"
+sdk_harness_uri     = "https://github.com/hyperledger-identus/sdk-rust/blob/0f1074b766f3cbf1ffc905b4388220b27b1c4556/crates/crypto/examples/crypto_baseline.rs"
+sample_minimum      = 20
+statistics          = [ "p50", "p95", "min", "max" ]
+threshold_policy    = "measurement-only"
+workflow_path       = ".github/workflows/nix-checks.yml"
+artifact_receipt    = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34276598277"
+tracking_issue      = "https://github.com/hyperledger-identus/sdk-rust/issues/214"
+limitations         = "Apollo publishes no comparable harness at the pinned revision; timings are comparable only across matching revision, compiler, platform, CPU, environment and feature metadata."
+
 [summary]
 total               = 27
 parity              = 14

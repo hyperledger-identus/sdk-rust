@@ -131,7 +131,7 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
     check.exact_keys(data, {
         "schema_version", "title", "assessment_date", "parent_issue",
         "delivery_issue", "report_discussion", "baselines", "summary",
-        "capabilities", "vectors", "dependencies", "targets",
+        "performance", "capabilities", "vectors", "dependencies", "targets",
     }, "manifest")
     if data.get("schema_version") != 1:
         check.fail("manifest: schema_version must be 1")
@@ -171,6 +171,55 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
         check.fail("baselines: fast CI revision must equal SDK baseline")
     if baselines.get("sdk_fast_ci_conclusion") != "success":
         check.fail("baselines: fast CI conclusion must be success")
+
+    performance = data.get("performance", {})
+    performance_keys = {
+        "status", "apollo_comparison", "apollo_evidence_uri",
+        "sdk_harness_path", "sdk_runner_path", "sdk_harness_uri",
+        "sample_minimum", "statistics", "threshold_policy", "workflow_path",
+        "artifact_receipt", "tracking_issue", "limitations",
+    }
+    if not isinstance(performance, dict):
+        check.fail("performance: expected table")
+        performance = {}
+    check.exact_keys(performance, performance_keys, "performance")
+    check.text_fields(
+        performance,
+        performance_keys - {"sample_minimum", "statistics"},
+        "performance",
+    )
+    if performance.get("status") != "sdk-baseline-only":
+        check.fail("performance: status must be sdk-baseline-only")
+    if performance.get("apollo_comparison") != "unavailable":
+        check.fail("performance: Apollo comparison must be unavailable")
+    if performance.get("apollo_evidence_uri") != baselines.get("apollo_tree_uri"):
+        check.fail("performance: Apollo evidence must bind the audited tree")
+    if performance.get("sample_minimum") != 20:
+        check.fail("performance: sample_minimum must be 20")
+    if performance.get("statistics") != ["p50", "p95", "min", "max"]:
+        check.fail("performance: statistics must be p50, p95, min and max")
+    if performance.get("threshold_policy") != "measurement-only":
+        check.fail("performance: threshold policy must remain measurement-only")
+    if performance.get("tracking_issue") != "https://github.com/hyperledger-identus/sdk-rust/issues/214":
+        check.fail("performance: tracking issue must be #214")
+    if not re.fullmatch(
+        r"https://github\.com/hyperledger-identus/sdk-rust/actions/runs/[0-9]+",
+        str(performance.get("artifact_receipt", "")),
+    ):
+        check.fail("performance: artifact receipt must be a GitHub Actions run")
+    for field in ("sdk_harness_path", "sdk_runner_path", "workflow_path"):
+        path = check.safe_path(performance.get(field), f"performance {field}")
+        if path is not None and not path.is_file():
+            check.fail(f"performance: file does not exist: {performance.get(field)}")
+    harness_path = str(performance.get("sdk_harness_path", ""))
+    harness_uri = str(performance.get("sdk_harness_uri", ""))
+    expected_prefix = f"https://github.com/{SDK_REPOSITORY}/blob/"
+    if not harness_uri.startswith(expected_prefix) or not harness_uri.endswith(f"/{harness_path}"):
+        check.fail("performance: harness URI does not bind its repository path")
+    else:
+        harness_revision = harness_uri[len(expected_prefix):].split("/", 1)[0]
+        if not SHA.fullmatch(harness_revision):
+            check.fail("performance: harness URI is not commit-pinned")
 
     capabilities = data.get("capabilities", [])
     vectors = data.get("vectors", [])
@@ -326,6 +375,13 @@ def render(data: dict[str, Any]) -> str:
         "## Summary", "", "| Total | Parity | SDK exceeds | Accepted difference | Gap |",
         "| ---: | ---: | ---: | ---: | ---: |",
         f"| {summary['total']} | {summary['parity']} | {summary['sdk_exceeds']} | {summary['accepted_difference']} | {summary['gap']} |", "",
+        "## Performance evidence", "",
+        f"Status: **{cell(data['performance']['status'])}**  ",
+        f"Apollo comparison: **{cell(data['performance']['apollo_comparison'])}**  ",
+        f"Sample minimum: **{data['performance']['sample_minimum']}**  ",
+        f"Statistics: **{', '.join(data['performance']['statistics'])}**  ",
+        f"Artifact receipt: [slow workflow run]({data['performance']['artifact_receipt']})  ",
+        f"Limitations: {cell(data['performance']['limitations'])}", "",
         "## Capabilities", "",
         "| ID | Capability | Disposition | Apollo | SDK evidence | Vectors | Decision | Rationale |",
         "| --- | --- | --- | --- | --- | --- | --- | --- |",

@@ -70,6 +70,20 @@ hex      = { workspace = true }
 k256     = { workspace = true }
 trybuild = { workspace = true }
 
+[[example]]
+name = "crypto_baseline"
+path = "examples/crypto_baseline.rs"
+required-features = [
+  "hash",
+  "ed25519",
+  "x25519",
+  "secp256k1",
+  "secp256r1",
+  "derivation",
+  "cardano-bip32",
+  "jwk",
+]
+
 [[test]]
 name              = "cose"
 path              = "tests/cose.rs"

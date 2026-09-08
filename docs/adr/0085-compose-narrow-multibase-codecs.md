@@ -31,7 +31,7 @@ Do not adopt `multibase 0.9.3` for this boundary. Compose:
    base58-btc;
 2. the existing workspace `base64 0.22` engine for `u`
    base64url-no-pad; and
-3. a small private Identus dispatcher that owns the prefix allow-list, 16 KiB
+3. a small private Identus dispatcher that owns the prefix allow-list, 4 KiB
    encoded precheck, non-empty decoded rule, canonical re-encoding comparison
    and stable redacted error mapping.
 
@@ -60,6 +60,13 @@ The crate denies unsafe code except for one scoped implementation that encodes
 directly into a caller's mutable `str`. The SDK uses only the owned
 `String` and `Vec<u8>` paths, which do not dispatch through that target,
 adds no unsafe block and exposes no upstream trait.
+
+A release-mode local resource probe measured Base58 decode plus canonical
+re-encode at approximately 1 ms for 1,024 encoded bytes, 27 ms for 4,096 and
+332 ms for 16,383. The prior 16 KiB ceiling could therefore multiply
+attacker-controlled work inside a 256 KiB document. The new 4 KiB precheck is
+part of the decision; larger key profiles require separate size and latency
+evidence.
 
 `multibase 0.9.3` remains a standards implementation and potential future
 candidate, but its current nine-name incremental cone is disproportionate.

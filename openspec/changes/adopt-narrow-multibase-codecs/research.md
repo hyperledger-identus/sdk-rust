@@ -58,8 +58,9 @@ under Rust 1.98.1, but passing the compiler gate does not make unused
 algorithms cohesive.
 
 This change intentionally narrows accepted known material to canonical `z`
-and `u` values. Existing valid examples remain exact; placeholder fixtures
-that are not valid Base58 must be replaced with real encoded bytes. The public
+and `u` values no larger than 4 KiB. Existing valid examples remain exact;
+placeholder fixtures that are not valid Base58 must be replaced with real
+encoded bytes. The public
 type, accessor and JSON member remain unchanged. Rollback is one dependency
 and validator revert.
 
@@ -104,6 +105,13 @@ string accessor and JSON spelling are unchanged for accepted values. The
 facade boundary discards decoded bytes and upstream errors after validation;
 no dependency type becomes part of the SDK API.
 
+A release-mode local resource probe measured Base58 decode plus canonical
+re-encode at approximately 1 ms for 1,024 encoded bytes, 27 ms for 4,096 and
+332 ms for 16,383. The original 16 KiB property ceiling therefore permits
+disproportionate work when repeated inside the 256 KiB document envelope.
+The implementation ceiling is 4 KiB and executes before codec allocation.
+This diagnostic is machine-specific evidence, not a portable latency promise.
+
 ## Rejected or deferred candidates
 
 `multibase 0.9.3` and a local Base58 implementation are rejected for this
@@ -116,7 +124,7 @@ method-specific specification.
 
 No research blocker prevents the bounded implementation. Implementation must
 prove canonical behavior for both prefixes, non-empty decoded material, the
-16 KiB precheck, unchanged valid serialization, stable redacted errors, exact
+4 KiB precheck, unchanged valid serialization, stable redacted errors, exact
 locked cone and all supported targets. Any dependency-feature drift, public
 upstream type leak, unbounded allocation, acceptance of padding/unknown
 prefixes, or key-semantic claim is a stop condition.
@@ -132,6 +140,8 @@ prefixes, or key-semantic claim is a stop condition.
   current lock comparison identified one versus nine incremental names.
 - Source inspection located the only candidate unsafe block and proved the
   planned owned paths do not dispatch through the mutable-string target.
+- A release-mode `std::time::Instant` probe measured worst-case non-zero
+  Base58 decode/re-encode at 1 KiB, 4 KiB and the former 16 KiB ceiling.
 - A Rust 1.98.1 no-std host/WASM probe and pinned Nix RustSec scan passed.
 - Integrated host/mobile/WASM, focused/full, dependency, documentation and Nix
   evidence remains an implementation gate and is not pre-claimed here. Those

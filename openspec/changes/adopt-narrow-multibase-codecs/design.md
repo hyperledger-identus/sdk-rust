@@ -32,7 +32,8 @@ dependency with allocation support. A private DID module dispatches:
 - `u...` to URL-safe Base64 without padding;
 - all other prefixes to the existing invalid-document error.
 
-The dispatcher decodes to owned bounded bytes, rejects an empty payload,
+The dispatcher rejects an encoded value larger than 4 KiB before calling a
+codec, decodes to owned bounded bytes, rejects an empty payload,
 re-encodes with the same selected engine and compares the complete input.
 Upstream types and detailed errors are discarded.
 
@@ -58,10 +59,14 @@ suite-property model. Invalid known material continues to map to
 `DocumentError::InvalidString`, so no attacker-controlled value or upstream
 diagnostic enters errors.
 
-The existing 16 KiB encoded limit runs before decoding. Because Base58 and
-Base64 decoding allocate no more bytes than their bounded input length, the
-decoded allocation remains bounded. Empty decoded bytes are rejected because
-the property claims public key material.
+The recognized-carrier ceiling is tightened from 16 KiB to 4 KiB before
+decoding. A release-mode probe on the local aarch64-Darwin host measured
+decode-plus-re-encode of repeated non-zero Base58 payloads at approximately
+1 ms for 1,024 bytes, 27 ms for 4,096 bytes and 332 ms for 16,383 bytes. The
+smaller limit bounds the quadratic codec cost while remaining above currently
+named W3C key encodings and common post-quantum public-key sizes. The existing
+256 KiB whole-document and item-count budgets still apply. Empty decoded bytes
+are rejected because the property claims public key material.
 
 ### Keep key semantics out
 
@@ -90,4 +95,3 @@ Revert the focused PR, restore the printable-string check and remove `bs58`
 from the DID/workspace manifests and lock. Previously accepted malformed
 values could become valid again after rollback, but no accepted value changes
 representation and no storage migration is required.
-

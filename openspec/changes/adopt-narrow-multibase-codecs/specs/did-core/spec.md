@@ -9,7 +9,7 @@ downstream method adapters. The capability SHALL recognize and expose
 `publicKeyJwk` maps and `publicKeyMultibase` strings while preserving other
 properties without cryptosuite interpretation.
 
-Recognized `publicKeyMultibase` SHALL be no larger than 16 KiB before
+Recognized `publicKeyMultibase` SHALL be no larger than 4 KiB before
 decoding, use only the `z` base58-btc or `u` unpadded-base64url prefix,
 decode to non-empty bytes and be the canonical re-encoding of those bytes.
 Exact `bs58 0.5.1` with defaults disabled and alloc only plus the existing
@@ -35,7 +35,7 @@ references.
 
 #### Scenario: interoperable canonical multibase carriers are retained
 
-- **WHEN** recognized verification material contains a canonical non-empty `z` base58-btc or `u` unpadded-base64url value within the encoded limit
+- **WHEN** recognized verification material contains a canonical non-empty `z` base58-btc or `u` unpadded-base64url value within the 4 KiB encoded limit
 - **THEN** native and JSON construction SHALL retain its exact string and expose it through the existing accessor
 
 #### Scenario: malformed or unsupported multibase fails closed
@@ -47,4 +47,3 @@ references.
 
 - **WHEN** a canonical allowed multibase value decodes successfully
 - **THEN** the DID Core boundary SHALL NOT claim that its bytes contain a supported multicodec, curve, key length or cryptographically valid public key
-

@@ -1,5 +1,5 @@
 [[modified_requirement]]
-capability = "unsafe-code-policy"
-requirement = "The assurance claim remains first-party and evidence-bounded"
+capability       = "unsafe-code-policy"
+requirement      = "The assurance claim remains first-party and evidence-bounded"
 canonical_sha256 = "f47962781db9191c32b6862949e4e4773e7461d38ba55b5b226c9067c33391e6"
-reason = "Replace the broad procedural-macro gap with a direct first-party syntax prohibition while retaining external and nested expansion limitations."
+reason           = "Replace the broad procedural-macro gap with a direct first-party syntax prohibition while retaining external and nested expansion limitations."

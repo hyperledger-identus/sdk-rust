@@ -68,7 +68,17 @@ class CryptoBenchmarkContract(unittest.TestCase):
     def test_sample_floor_fails(self) -> None:
         data = canonical()
         data["samples"] = 19
-        self.assertIn("at least 20", self.run_checker(data).stderr)
+        self.assertIn("from 20 through 10000", self.run_checker(data).stderr)
+
+    def test_sample_ceiling_fails(self) -> None:
+        data = canonical()
+        data["samples"] = 10_001
+        self.assertIn("from 20 through 10000", self.run_checker(data).stderr)
+
+    def test_zero_batch_size_fails(self) -> None:
+        data = canonical()
+        data["operations"][0]["iterations_per_sample"] = 0
+        self.assertIn("at least 1", self.run_checker(data).stderr)
 
     def test_operation_inventory_drift_fails(self) -> None:
         data = canonical()

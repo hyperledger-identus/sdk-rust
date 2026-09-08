@@ -6,6 +6,8 @@
 `black_box`. Keys, messages, mnemonics, signatures and derivation parents are
 created once before measurement. Each named operation warms one batch, then
 records at least 20 batch samples as integer nanoseconds per operation.
+The CLI caps a run at 10,000 samples to bound memory and repeated cryptographic
+work from malformed or accidental invocations.
 
 The fixed matrix covers SHA-256/SHA-512, Ed25519 sign/verify, X25519 agreement,
 secp256k1 sign/verify, P-256 sign/verify, BIP-39 seed derivation, secp256k1

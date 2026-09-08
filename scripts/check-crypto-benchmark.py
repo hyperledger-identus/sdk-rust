@@ -49,8 +49,8 @@ def validate(data: Any) -> list[str]:
     if data.get("feature_profile") != "default":
         errors.append("feature_profile must be default")
     samples = data.get("samples")
-    if not isinstance(samples, int) or isinstance(samples, bool) or samples < 20:
-        errors.append("samples must be an integer of at least 20")
+    if not isinstance(samples, int) or isinstance(samples, bool) or not 20 <= samples <= 10_000:
+        errors.append("samples must be an integer from 20 through 10000")
     if data.get("warmup_batches") != 1:
         errors.append("warmup_batches must be 1")
 
@@ -70,8 +70,9 @@ def validate(data: Any) -> list[str]:
             names.append(name)
         for field in ("iterations_per_sample", "p50_ns", "p95_ns", "min_ns", "max_ns"):
             value = operation.get(field)
-            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
-                errors.append(f"{label}.{field} must be a non-negative integer")
+            minimum = 1 if field == "iterations_per_sample" else 0
+            if not isinstance(value, int) or isinstance(value, bool) or value < minimum:
+                errors.append(f"{label}.{field} must be an integer of at least {minimum}")
         minimum = operation.get("min_ns")
         p50 = operation.get("p50_ns")
         p95 = operation.get("p95_ns")

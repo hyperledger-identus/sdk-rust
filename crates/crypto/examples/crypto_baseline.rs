@@ -14,6 +14,7 @@ use identus_crypto::{
 use serde::Serialize;
 
 const MIN_SAMPLES: usize = 20;
+const MAX_SAMPLES: usize = 10_000;
 const WARMUP_BATCHES: usize = 1;
 const MESSAGE: &[u8] = b"identus-sdk-rust crypto performance baseline";
 
@@ -73,8 +74,10 @@ where
             _ => return Err(format!("unknown argument: {argument}")),
         }
     }
-    if samples < MIN_SAMPLES {
-        return Err(format!("--samples must be at least {MIN_SAMPLES}"));
+    if !(MIN_SAMPLES..=MAX_SAMPLES).contains(&samples) {
+        return Err(format!(
+            "--samples must be between {MIN_SAMPLES} and {MAX_SAMPLES}"
+        ));
     }
     Ok(samples)
 }
@@ -234,6 +237,7 @@ mod tests {
     fn sample_floor_is_enforced() {
         assert_eq!(parse_samples(Vec::<String>::new()).unwrap(), MIN_SAMPLES);
         assert!(parse_samples(["--samples".to_owned(), "19".to_owned()]).is_err());
+        assert!(parse_samples(["--samples".to_owned(), "10001".to_owned()]).is_err());
         assert!(parse_samples(["--unknown".to_owned()]).is_err());
     }
 }

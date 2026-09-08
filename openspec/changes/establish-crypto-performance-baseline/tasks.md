@@ -5,11 +5,11 @@
 - [x] 1.2 Research stable custom harness, Criterion 0.8.2, Divan 0.1.21 and
       Gungraun 0.19.4 with MSRV, license and dependency evidence.
 - [x] 1.3 Record the routine constraint decision and ADR 0095.
-- [ ] 2.1 Implement the deterministic-input crypto benchmark and JSON schema.
-- [ ] 2.2 Add the bounded release runner and negative schema tests.
-- [ ] 2.3 Add the slow weekly/manual artifact job without changing fast CI.
-- [ ] 2.4 Extend the Apollo parity manifest validator and renderer.
-- [ ] 3.1 Run release evidence with at least 20 samples and inspect the artifact.
+- [x] 2.1 Implement the deterministic-input crypto benchmark and JSON schema.
+- [x] 2.2 Add the bounded release runner and negative schema tests.
+- [x] 2.3 Add the slow weekly/manual artifact job without changing fast CI.
+- [x] 2.4 Extend the Apollo parity manifest validator and renderer.
+- [x] 3.1 Run release evidence with at least 20 samples and inspect the artifact.
 - [ ] 3.2 Run focused, factory, OpenSpec, formatting and Nix gates.
 - [ ] 3.3 Complete distinct performance/security/evidence review and resolve
       all findings.

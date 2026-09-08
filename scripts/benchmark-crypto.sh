@@ -24,10 +24,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ "$samples" =~ ^[0-9]+$ ]] && (( samples >= 20 )) || {
-  printf 'crypto-baseline: --samples must be an integer of at least 20\n' >&2
+if ! [[ "$samples" =~ ^[0-9]+$ ]] || (( samples < 20 || samples > 10000 )); then
+  printf 'crypto-baseline: --samples must be an integer from 20 through 10000\n' >&2
   exit 2
-}
+fi
 
 revision="${GITHUB_SHA:-$(git -C "$repository_root" rev-parse HEAD)}"
 compiler="$(rustc --version --verbose | tr '\n' ' ' | sed 's/[[:space:]]*$//')"

@@ -14,6 +14,7 @@ identus-did.workspace    = true
 mediatype.workspace      = true
 serde.workspace          = true
 serde_json.workspace     = true
+utoipa                   = { workspace = true, optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = [ "macros", "rt" ] }
@@ -21,6 +22,7 @@ tower = { workspace = true, features = [ "util" ] }
 
 [features]
 default = [  ]
+openapi = [ "dep:utoipa" ]
 
 [lints]
 workspace = true

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+export PYTHONDONTWRITEBYTECODE=1
 
 if repository_root=$(git rev-parse --show-toplevel 2>/dev/null); then
   :
@@ -361,10 +362,36 @@ if [[ "$*" == 'archive example-change --yes' ]]; then
   mkdir -p "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive"
   mv "$OPENSPEC_FIXTURE_ROOT/openspec/changes/example-change" \
     "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive/$archive_date-example-change"
+  if [[ "${OPENSPEC_ARCHIVE_MODE:-complete}" == 'incomplete' ]]; then
+    mv "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive/$archive_date-example-change/research.md" \
+      "$OPENSPEC_FIXTURE_ROOT/openspec/changes/archive/$archive_date-example-change/research.md.hidden"
+  fi
 fi
 EOF
 chmod +x "$fixture_root/fake-bin/openspec"
 : >"$fixture_root/openspec-calls.log"
+
+if incomplete_output=$(cd "$fixture_root" && \
+  PATH="$fixture_root/fake-bin:$PATH" \
+  OPENSPEC_CALL_LOG="$fixture_root/openspec-calls.log" \
+  OPENSPEC_FIXTURE_ROOT="$fixture_root" \
+  OPENSPEC_ARCHIVE_MODE=incomplete \
+  ./scripts/factory archive example-change 2>&1); then
+  printf 'factory-contract test: incomplete archive was accepted\n' >&2
+  exit 1
+fi
+if [[ -e "$change_root" || ! -d "$expected_archive" || -e "$expected_archive/research.md" ]]; then
+  printf 'factory-contract test: incomplete archive fixture did not reach its postcondition\n' >&2
+  exit 1
+fi
+if grep -Fq 'archived safely' <<<"$incomplete_output"; then
+  printf 'factory-contract test: incomplete archive printed archive success\n' >&2
+  exit 1
+fi
+mv "$expected_archive/research.md.hidden" "$expected_archive/research.md"
+mv "$expected_archive" "$change_root"
+: >"$fixture_root/openspec-calls.log"
+
 success_output=$(cd "$fixture_root" && \
   PATH="$fixture_root/fake-bin:$PATH" \
   OPENSPEC_CALL_LOG="$fixture_root/openspec-calls.log" \

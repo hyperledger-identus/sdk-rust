@@ -89,6 +89,12 @@ change this status: production adoption, mobile runtime and packaging remain
 issue #163 and its platform-specific children. React Native and browser WASM
 remain separate adapter decisions.
 
+Issue #226 and ADR 0098 add an unpublished `identus-uniffi-did` production-shaped
+foundation with ABI version 1, deterministic generation and macOS Swift plus
+Kotlin/JVM host execution. It remains experimental verification evidence:
+without XCFramework/SwiftPM and AAR/NDK artifacts plus iOS/Android runtime
+receipts, `[ffi].status` and `SDK-LIM-002` remain `not-supported`.
+
 ## CI cadence, binary size and build time
 
 The machine policy defines `fast` as the single Linux Rust/factory integration

@@ -1,4 +1,6 @@
 {
+  imports = [ ./bindings.nix ];
+
   perSystem =
     {
       pkgs,

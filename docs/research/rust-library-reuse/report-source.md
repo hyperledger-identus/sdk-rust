@@ -191,7 +191,7 @@ SDK cone smaller for some candidates.
 | OWF `sd-jwt-rs` | 0.7.1 | 1.67 | 54 | `not-adopt` | Explicitly implements draft version 7, not RFC 9901. |
 | `didcomm` | 0.4.1 | not declared | about 84 | `not-adopt` | Last release is from 2023 and dependencies/API predate the roadmap's DIDComm 2.1 target. |
 | `aries-askar` | 0.4.6 | 1.81 | 136 minimal | `spike` | Viable optional storage adapter, but even minimal mode brings crypto/storage policy and substantial unsafe/FFI-adjacent code. |
-| `uniffi` | 0.32.0 | not declared; passed Rust 1.98.1 spike | 54-package fixture normal/build graph including `identus-did`; 79 with bindgen CLI | `conditional-adopt` | ADR 0097 accepts bounded DID/DID URL for an isolated native implementation after Swift/Kotlin host runtime proof; FFI support remains inactive. |
+| `uniffi` | 0.32.0 | not declared; passes Rust 1.98.1 | 54 rendered runtime/build nodes including `identus-did`; 68 in the separately locked bindgen tool | `adopt` for experimental DID host boundary | ADRs 0097/0098 accept the isolated value-only crate after executable Swift/Kotlin host proof. Weekly slow CI checks host execution and the tool lock; public/mobile FFI support remains inactive. |
 | RustCrypto `jose-jwk` | 0.1.2 | 1.65 | 13 | `oracle` | Narrow and pure Rust, but 0.1 API maturity does not justify replacing the existing constrained JWK facade. |
 | `oauth2` | 5.0.0 | 1.65 | 43 minimal | `spike` | Strong OAuth mechanics and PKCE, but `url`/clock/model assumptions must remain outside OID4VC domain types. |
 

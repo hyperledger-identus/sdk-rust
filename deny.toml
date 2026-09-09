@@ -38,6 +38,40 @@ ignore = false
 allow = [ "NCSA" ]
 crate = "libfuzzer-sys@0.4.13"
 
+[[licenses.exceptions]]
+# The experimental native DID boundary is pinned to UniFFI 0.32.0 by ADR 0098.
+# Keep MPL acceptance restricted to that reviewed dependency family.
+allow = [ "MPL-2.0" ]
+crate = "uniffi@0.32.0"
+
+[[licenses.exceptions]]
+allow = [ "MPL-2.0" ]
+crate = "uniffi_core@0.32.0"
+
+[[licenses.exceptions]]
+allow = [ "MPL-2.0" ]
+crate = "uniffi_internal_macros@0.32.0"
+
+[[licenses.exceptions]]
+allow = [ "MPL-2.0" ]
+crate = "uniffi_macros@0.32.0"
+
+[[licenses.exceptions]]
+allow = [ "MPL-2.0" ]
+crate = "uniffi_meta@0.32.0"
+
+[[licenses.exceptions]]
+allow = [ "MPL-2.0" ]
+crate = "uniffi_pipeline@0.32.0"
+
+[[licenses.exceptions]]
+allow = [ "MPL-2.0" ]
+crate = "uniffi_bindgen@0.32.0"
+
+[[licenses.exceptions]]
+allow = [ "MPL-2.0" ]
+crate = "uniffi_udl@0.32.0"
+
 [bans]
 # Start permissive: warn on duplicate versions, allow wildcards.
 multiple-versions          = "warn"

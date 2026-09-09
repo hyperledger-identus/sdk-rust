@@ -1,0 +1,7 @@
+[bindings.kotlin]
+package_name = "org.hyperledger.identus.did"
+cdylib_name  = "identus_uniffi_did"
+
+[bindings.swift]
+module_name = "IdentusDid"
+cdylib_name = "identus_uniffi_did"

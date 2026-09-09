@@ -117,3 +117,12 @@ jobs:
 
       - name: Run `nix flake check`
         run: nix flake check
+
+      - name: Verify native DID host bindings and generator supply chain
+        if: runner.os == 'macOS'
+        run: |
+          nix develop .#bindings --command cargo deny \
+            --manifest-path tools/uniffi-bindgen/Cargo.toml --locked check
+          nix develop .#bindings --command cargo audit \
+            --file tools/uniffi-bindgen/Cargo.lock --deny warnings
+          nix develop .#bindings --command ./scripts/check-uniffi-did-host.sh

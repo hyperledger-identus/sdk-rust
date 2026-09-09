@@ -11,6 +11,7 @@
       bindingsToolchain = stablePkgs.rust-bin.stable."1.98.1".default.override {
         extensions = [ "llvm-tools-preview" ];
         targets = [
+          "aarch64-linux-android"
           "aarch64-apple-ios"
           "aarch64-apple-ios-sim"
         ];

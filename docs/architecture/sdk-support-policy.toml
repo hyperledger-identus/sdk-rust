@@ -118,7 +118,7 @@ packages = [
 ]
 no_default_features = false
 features = [ "identus-adapters-entropy/getrandom" ]
-limitation = "Compile-only; no NDK linking, emulator/device runtime, JNI/UniFFI, keystore, packaging, or certification claim."
+limitation = "The listed generic packages are compile-only. A separate experimental DID UniFFI leaf has local arm64-v8a NDK/AAR and one API-35 emulator receipt, but no other ABI, physical-device, keystore, publication, support, or certification claim."
 
 [[targets]]
 triple = "aarch64-apple-ios"
@@ -221,7 +221,7 @@ evidence_token      = "--all-features"
 [ffi]
 status  = "not-supported"
 package = "identus-bindings"
-reason  = "The inherited umbrella package is a placeholder. The separate experimental UniFFI DID facade has host and local iOS Simulator evidence only; it is unpublished, unsigned, lacks physical-device and Android runtime proof, and does not activate a supported FFI contract."
+reason  = "The inherited umbrella package is a placeholder. The separate experimental UniFFI DID facade has host, local iOS Simulator, and local arm64-v8a Android AAR/emulator evidence only; it is unpublished, unsigned, lacks physical-device and compatibility-matrix proof, and does not activate a supported FFI contract."
 
 [binary_size]
 status            = "measurement-only"

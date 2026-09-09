@@ -8,16 +8,16 @@
 
 ## 2. Android package proof
 
-- [ ] 2.1 Add Android std only to the dedicated bindings toolchain.
-- [ ] 2.2 Add deterministic ephemeral AAR assembly and tracked consumer
+- [x] 2.1 Add Android std only to the dedicated bindings toolchain.
+- [x] 2.2 Add deterministic ephemeral AAR assembly and tracked consumer
   template with exact Gradle dependencies.
-- [ ] 2.3 Prove ELF, ABI/API, symbols, complete-tree equality and path hygiene.
-- [ ] 2.4 Execute the behavior contract in an isolated arm64 emulator.
-- [ ] 2.5 Add the proof only to the weekly/manual slow macOS lane.
+- [x] 2.3 Prove ELF, ABI/API, symbols, complete-tree equality and path hygiene.
+- [x] 2.4 Execute the behavior contract in an isolated arm64 emulator.
+- [x] 2.5 Add the proof only to the weekly/manual slow macOS lane.
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Update architecture/support evidence while retaining limitations.
+- [x] 3.1 Update architecture/support evidence while retaining limitations.
 - [ ] 3.2 Run focused, factory, Cargo, dependency and compatible Nix gates plus
   distinct exact-diff review.
 - [ ] 3.3 Complete receipts, archive the delta and prepare a signed/DCO

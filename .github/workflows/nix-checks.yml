@@ -118,6 +118,14 @@ jobs:
       - name: Run `nix flake check`
         run: nix flake check
 
+      - name: Install exact Android slow-lane inputs
+        if: runner.os == 'macOS'
+        run: |
+          sdkmanager --install \
+            "ndk;27.0.12077973" \
+            "platforms;android-35" \
+            "system-images;android-35;google_apis_playstore;arm64-v8a"
+
       - name: Verify native DID host bindings and generator supply chain
         if: runner.os == 'macOS'
         run: |
@@ -127,3 +135,4 @@ jobs:
             --file tools/uniffi-bindgen/Cargo.lock --deny warnings
           nix develop .#bindings --command ./scripts/check-uniffi-did-host.sh
           nix develop .#bindings --command ./scripts/check-uniffi-did-apple.sh
+          nix develop .#bindings --command ./scripts/check-uniffi-did-android.sh

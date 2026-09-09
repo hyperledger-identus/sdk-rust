@@ -10,6 +10,7 @@
 - [ ] 2.2 Add stable version/value/error exports plus Rust success, bound, redaction and panic-containment tests.
 - [ ] 2.3 Add the separately locked exact-version bindgen tool, deterministic generation and reviewed Swift/Kotlin API snapshots.
 - [ ] 2.4 Compile and execute Swift and Kotlin/JVM host smoke tests against the built library.
+- [ ] 2.5 Wire host execution and nested bindgen deny/audit checks into the existing weekly slow macOS lane without changing fast PR CI.
 
 ## 3. Review and delivery
 

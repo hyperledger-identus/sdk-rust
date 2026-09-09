@@ -58,13 +58,22 @@ function, record property, error case/code and ABI-version value.
 
 The facade SHALL expose binding API version `1`. Swift and Kotlin/JVM host tests
 SHALL compile, link and execute valid, invalid, oversized, redacted-error and
-version checks against the built dynamic library.
+version checks against the built dynamic library. The host execution and
+separately locked generator supply-chain checks SHALL run in the existing
+weekly slow macOS lane, not the Linux-only fast pull-request lane.
 
 #### Scenario: host language consumes API version one
 
 - **WHEN** the Swift and Kotlin/JVM smoke programs load the generated binding
 - **THEN** each SHALL observe API version `1` and pass the same success and
   failure behavior families
+
+#### Scenario: fast and slow CI remain deliberately separated
+
+- **WHEN** ordinary pull-request CI runs during the active-development phase
+- **THEN** the Linux fast line SHALL retain factory, build, lint and test gates,
+  while macOS host execution and generator deny/audit evidence run weekly or by
+  manual dispatch in the slow workflow
 
 ### Requirement: Host proof does not activate mobile or public FFI support
 

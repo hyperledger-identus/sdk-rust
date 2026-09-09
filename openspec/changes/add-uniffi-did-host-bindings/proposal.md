@@ -22,6 +22,8 @@ this change's support claim.
 - Add an exact-version bindgen tool outside the runtime workspace dependency
   cone, reproducible complete-tree/API drift checks, and executable Swift and
   Kotlin/JVM host smoke tests.
+- Put the platform/toolchain-heavy host and bindgen supply-chain checks in the
+  existing weekly slow workflow, preserving the Linux-only fast PR line.
 - Record the new experimental component in the bootstrap inventory and clarify
   that `SDK-LIM-002` remains effective until #222 supplies mobile package/runtime
   evidence.

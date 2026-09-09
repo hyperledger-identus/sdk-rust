@@ -53,6 +53,11 @@ snapshots and exact runtime/tool locks are committed. The support policy and
 bootstrap inventory classify the component as experimental and retain the
 global no-FFI support limitation.
 
+The host script and the nested bindgen lock's deny/audit checks run on the
+macOS leg of the existing scheduled/manual slow workflow. They do not enter the
+Linux-only fast pull-request line during the current active-development phase.
+Missing Swift, Java or Gradle tooling remains a hard failure in that slow lane.
+
 ## Compatibility and rollback
 
 ABI version `1` covers exported functions, record fields and error cases/codes.

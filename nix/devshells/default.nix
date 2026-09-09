@@ -8,155 +8,157 @@
       ...
     }:
     {
-      devshells.default = {
-        devshell.name = "sdk-rust";
+      devshells = {
+        default = {
+          devshell.name = "sdk-rust";
 
-        packages =
-          with pkgs;
-          [
-            # rust toolchain (stable, from oxalica/rust-overlay) incl. wasm target
-            toolchain
+          packages =
+            with pkgs;
+            [
+              # rust toolchain (stable, from oxalica/rust-overlay) incl. wasm target
+              toolchain
 
-            # C toolchain + crypto build prerequisites (transitive crypto deps)
+              # C toolchain + crypto build prerequisites (transitive crypto deps)
+              stdenv.cc
+              pkg-config
+              openssl
+
+              # cargo quality tooling
+              cargo-nextest
+              cargo-deny
+              cargo-audit
+              cargo-fuzz
+              cargo-llvm-cov
+
+              # protobuf (for codegen of identus protos)
+              protobuf
+              python3
+
+              # workspace-consistency tooling
+              just
+              git
+              jq
+              curl
+              which
+              gh
+              cacert
+
+              # nix hygiene tooling
+              nix
+              nixfmt
+              deadnix
+              statix
+
+              # toml and file-hygiene tooling
+              taplo
+              markdownlint-cli2
+              yamllint
+              editorconfig-checker
+              shellcheck
+              actionlint
+
+              # spec-driven development tooling
+              inputs'.openspec.packages.default
+            ]
+            ++ lib.optionals stdenv.isDarwin [ libiconv ];
+
+          env = [
+            {
+              name = "SSL_CERT_FILE";
+              value = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+            }
+            {
+              name = "LANG";
+              value = "C.utf8";
+            }
+            {
+              name = "OPENSPEC_TELEMETRY";
+              value = "0";
+            }
+          ]
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+            {
+              name = "LIBRARY_PATH";
+              value = "${pkgs.libiconv}/lib";
+            }
+          ];
+        };
+
+        # Native binding generation is intentionally isolated from the default
+        # shell because Gradle/JDK are slow-lane tooling, not Rust prerequisites.
+        bindings = {
+          devshell.name = "sdk-rust-bindings";
+
+          packages =
+            with pkgs;
+            [
+              toolchain
+              stdenv.cc
+              pkg-config
+              openssl
+              cargo-deny
+              cargo-audit
+              gradle
+              jdk17
+              git
+              cacert
+            ]
+            ++ lib.optionals stdenv.isDarwin [ libiconv ];
+
+          env = [
+            {
+              name = "SSL_CERT_FILE";
+              value = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+            }
+            {
+              name = "LANG";
+              value = "C.utf8";
+            }
+            {
+              name = "IDENTUS_JAVA_HOME";
+              value = "${pkgs.jdk17}";
+            }
+          ]
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+            {
+              name = "LIBRARY_PATH";
+              value = "${pkgs.libiconv}/lib";
+            }
+          ];
+        };
+
+        # libFuzzer's sanitizer instrumentation uses nightly-only compiler
+        # options. Keep that operational exception explicit and pinned to the
+        # tooling exception instead of weakening the stable default shell.
+        fuzz = {
+          devshell.name = "sdk-rust-fuzz";
+
+          packages = with pkgs; [
+            fuzzToolchain
             stdenv.cc
             pkg-config
             openssl
-
-            # cargo quality tooling
-            cargo-nextest
-            cargo-deny
-            cargo-audit
             cargo-fuzz
-            cargo-llvm-cov
-
-            # protobuf (for codegen of identus protos)
-            protobuf
-            python3
-
-            # workspace-consistency tooling
-            just
-            git
-            jq
-            curl
-            which
-            gh
             cacert
+          ];
 
-            # nix hygiene tooling
-            nix
-            nixfmt
-            deadnix
-            statix
-
-            # toml and file-hygiene tooling
-            taplo
-            markdownlint-cli2
-            yamllint
-            editorconfig-checker
-            shellcheck
-            actionlint
-
-            # spec-driven development tooling
-            inputs'.openspec.packages.default
+          env = [
+            {
+              name = "SSL_CERT_FILE";
+              value = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+            }
+            {
+              name = "LANG";
+              value = "C.utf8";
+            }
           ]
-          ++ lib.optionals stdenv.isDarwin [ libiconv ];
-
-        env = [
-          {
-            name = "SSL_CERT_FILE";
-            value = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
-          }
-          {
-            name = "LANG";
-            value = "C.utf8";
-          }
-          {
-            name = "OPENSPEC_TELEMETRY";
-            value = "0";
-          }
-        ]
-        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-          {
-            name = "LIBRARY_PATH";
-            value = "${pkgs.libiconv}/lib";
-          }
-        ];
-      };
-
-      # Native binding generation is intentionally isolated from the default
-      # shell because Gradle/JDK are slow-lane tooling, not Rust prerequisites.
-      devshells.bindings = {
-        devshell.name = "sdk-rust-bindings";
-
-        packages =
-          with pkgs;
-          [
-            toolchain
-            stdenv.cc
-            pkg-config
-            openssl
-            cargo-deny
-            cargo-audit
-            gradle
-            jdk17
-            git
-            cacert
-          ]
-          ++ lib.optionals stdenv.isDarwin [ libiconv ];
-
-        env = [
-          {
-            name = "SSL_CERT_FILE";
-            value = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
-          }
-          {
-            name = "LANG";
-            value = "C.utf8";
-          }
-          {
-            name = "IDENTUS_JAVA_HOME";
-            value = "${pkgs.jdk17}";
-          }
-        ]
-        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-          {
-            name = "LIBRARY_PATH";
-            value = "${pkgs.libiconv}/lib";
-          }
-        ];
-      };
-
-      # libFuzzer's sanitizer instrumentation uses nightly-only compiler
-      # options. Keep that operational exception explicit and pinned to the
-      # tooling exception instead of weakening the stable default shell.
-      devshells.fuzz = {
-        devshell.name = "sdk-rust-fuzz";
-
-        packages = with pkgs; [
-          fuzzToolchain
-          stdenv.cc
-          pkg-config
-          openssl
-          cargo-fuzz
-          cacert
-        ];
-
-        env = [
-          {
-            name = "SSL_CERT_FILE";
-            value = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
-          }
-          {
-            name = "LANG";
-            value = "C.utf8";
-          }
-        ]
-        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-          {
-            name = "LIBRARY_PATH";
-            value = "${pkgs.libiconv}/lib";
-          }
-        ];
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+            {
+              name = "LIBRARY_PATH";
+              value = "${pkgs.libiconv}/lib";
+            }
+          ];
+        };
       };
     };
 }

@@ -162,35 +162,35 @@ capability_ids = [ "entropy-csprng" ]
 vector_ids     = [ "apollo-secure-random" ]
 
 [[coverage.critical_tests]]
-path = "crates/crypto/src/base64.rs"
+path      = "crates/crypto/src/base64.rs"
 selectors = [ "one_over_limit_wins_before_malformed_base64url_and_is_redacted", "valid_oversized_text_is_rejected_but_trusted_encoding_remains_infallible" ]
 
 [[coverage.critical_tests]]
-path = "crates/crypto/src/hex.rs"
+path      = "crates/crypto/src/hex.rs"
 selectors = [ "one_over_limit_wins_before_malformed_hex_and_is_redacted", "valid_oversized_text_is_rejected_but_trusted_encoding_remains_infallible" ]
 
 [[coverage.critical_tests]]
-path = "crates/crypto/tests/curves.rs"
+path      = "crates/crypto/tests/curves.rs"
 selectors = [ "key_generation_propagates_entropy_failure", "ec_key_generation_bounds_invalid_scalar_retries", "ed25519_from_slice_invalid_size", "x25519_from_slice_rejects_wrong_length", "p256_fixed_signature_preserves_der_api_and_rejects_tampering" ]
 
 [[coverage.critical_tests]]
-path = "crates/crypto/tests/derivation.rs"
+path      = "crates/crypto/tests/derivation.rs"
 selectors = [ "bip32_invalid_path_is_rejected", "bip39_invalid_mnemonic_is_rejected", "bip39_rejects_valid_words_with_an_invalid_checksum", "bip39_random_creation_propagates_entropy_failure", "hd_keys_are_zeroizing_and_debug_redacted", "explicit_hd_key_zeroization_clears_owned_state", "slip0010_rejects_seed_lengths_outside_the_normative_range", "stateful_hd_keys_reject_children_beyond_depth_255", "kmp_create_seed_rejects_invalid_checksum", "kmp_create_seed_rejects_invalid_mnemonic" ]
 
 [[coverage.critical_tests]]
-path = "crates/crypto/tests/cardano_bip32.rs"
+path      = "crates/crypto/tests/cardano_bip32.rs"
 selectors = [ "invalid_extended_private_keys_and_seed_lengths_are_rejected", "hardened_public_derivation_is_rejected_with_stable_redacted_error", "private_material_is_redacted_and_zeroizable", "typed_paths_above_the_work_limit_are_rejected" ]
 
 [[coverage.critical_tests]]
-path = "crates/crypto/tests/jwk.rs"
+path      = "crates/crypto/tests/jwk.rs"
 selectors = [ "coordinate_parse_error_never_echoes_the_rejected_value", "coordinate_rejects_above_codec_limit_before_decode", "duplicate_structural_wire_members_are_rejected", "private_and_reserved_members_are_rejected_without_value_leaks", "serde_rejects_incompatible_profiles_and_shapes", "serde_rejects_noncanonical_and_wrong_width_coordinates" ]
 
 [[coverage.critical_tests]]
-path = "crates/crypto/tests/cose.rs"
+path      = "crates/crypto/tests/cose.rs"
 selectors = [ "private_material_is_rejected_and_redacted", "parser_rejects_duplicate_top_level_and_nested_map_keys", "parser_rejects_tags_trailing_data_and_oversized_inputs", "parser_rejects_parameter_and_nesting_exhaustion" ]
 
 [[coverage.critical_tests]]
-path = "crates/crypto/tests/error_bridging.rs"
+path      = "crates/crypto/tests/error_bridging.rs"
 selectors = [ "every_variant_carries_crypto_capability", "invalid_key_size_bridges_to_stable_code", "key_parsing_bridges_to_stable_code", "mnemonic_invalid_bridges_to_stable_code", "secure_random_failure_bridges_to_stable_code", "signature_invalid_bridges_to_verification_failed", "unsupported_curve_bridges_to_stable_code", "derivation_failed_bridges_to_stable_code" ]
 
 [target_evidence]

@@ -2,8 +2,8 @@
 
 - [x] 1.1 Link issue #160 and record the exact develop base and non-scope.
 - [x] 1.2 Create protocol OpenSpec, draft research and material constraints before the fixture.
-- [ ] 1.3 Pin final standards, exact release source/license/MSRV/features/cone and maintenance evidence.
-- [ ] 1.4 Pass research and constraint readiness before implementation.
+- [x] 1.3 Pin final standards, exact release source/license/MSRV/features/cone and maintenance evidence.
+- [x] 1.4 Pass research and constraint readiness before implementation.
 
 ## 2. Executable spike
 

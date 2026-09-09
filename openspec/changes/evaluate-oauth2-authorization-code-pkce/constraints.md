@@ -3,7 +3,7 @@
 Impact class: material
 Decision status: directed
 Decision reference: https://github.com/hyperledger-identus/sdk-rust/issues/160
-Constraint blockers: research evidence pending
+Constraint blockers: none
 
 ## Existing entries affected
 

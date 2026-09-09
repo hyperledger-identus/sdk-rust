@@ -9,14 +9,15 @@
 //! partial successful Token Response, Token Error Response, and Credential
 //! Error Response core with an explicit typed credential Authorization Details
 //! transition and the Credential Error payload-error HTTP envelope, plus bounded
-//! parsing of the deferred Credential Response body, plus a Credential
-//! Nonce Response core and a
+//! parsing of the deferred Credential Response body and bounded construction
+//! of the unencrypted Deferred Credential Request, plus a Credential Nonce
+//! Response core and a
 //! transport-neutral Final Credential Nonce
 //! Request description and bounded validation of its mandatory HTTP response
 //! metadata, and bounded construction of the unencrypted Final
 //! configuration-ID/JWT-proof Credential Request, and bounded parsing of the
 //! unencrypted immediate Final Credential Response core. It performs no
-//! network access or deferred polling, does not validate complete RFC 8414
+//! network access or deferred polling policy, does not validate complete RFC 8414
 //! metadata or Token Response Authorization Details, and establishes no issuer,
 //! server, token, authorization, proof, transaction, or nonce trust.
 
@@ -28,6 +29,7 @@ mod credential_error_response;
 mod credential_nonce_http_response;
 mod credential_nonce_request;
 mod credential_nonce_response;
+mod deferred_credential_request;
 mod deferred_credential_response;
 mod error;
 mod grants;
@@ -57,6 +59,10 @@ pub use credential_nonce_request::{
     CredentialNonceRequest, NONCE_REQUEST_BODY, NONCE_REQUEST_HTTP_METHOD,
 };
 pub use credential_nonce_response::{CredentialNonce, CredentialNonceResponseCore};
+pub use deferred_credential_request::{
+    DEFERRED_CREDENTIAL_REQUEST_HTTP_METHOD, DEFERRED_CREDENTIAL_REQUEST_MEDIA_TYPE,
+    DeferredCredentialRequest,
+};
 pub use deferred_credential_response::{
     DeferredCredentialInterval, DeferredCredentialResponseCore, DeferredTransactionId,
 };
@@ -77,11 +83,11 @@ pub use limits::{
     AuthorizationServerMetadataLimits, CredentialErrorHttpResponseLimits,
     CredentialErrorResponseLimits, CredentialIssuerMetadataLimits,
     CredentialNonceHttpResponseLimits, CredentialNonceResponseLimits, CredentialOfferGrantLimits,
-    CredentialOfferLimits, CredentialOfferSemanticLimits, DeferredCredentialResponseLimits,
-    ImmediateCredentialHttpResponseLimits, ImmediateCredentialResponseLimits,
-    JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH, PreAuthorizedTokenRequestLimits,
-    TokenAuthorizationDetailsLimits, TokenErrorResponseLimits, TokenResponseLimits,
-    TransactionCodeInputLimits,
+    CredentialOfferLimits, CredentialOfferSemanticLimits, DeferredCredentialRequestLimits,
+    DeferredCredentialResponseLimits, ImmediateCredentialHttpResponseLimits,
+    ImmediateCredentialResponseLimits, JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH,
+    PreAuthorizedTokenRequestLimits, TokenAuthorizationDetailsLimits, TokenErrorResponseLimits,
+    TokenResponseLimits, TransactionCodeInputLimits,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,

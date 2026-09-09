@@ -822,6 +822,37 @@ impl Default for JwtCredentialRequestLimits {
     }
 }
 
+/// Resource limits for a constructed Final Deferred Credential Request.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DeferredCredentialRequestLimits {
+    max_json_body_bytes: usize,
+}
+
+impl DeferredCredentialRequestLimits {
+    /// Construct a positive complete JSON request-body policy.
+    pub const fn new(max_json_body_bytes: usize) -> Result<Self, CredentialOfferError> {
+        if max_json_body_bytes == 0 {
+            return Err(CredentialOfferError::InvalidDeferredCredentialRequestLimits);
+        }
+        Ok(Self {
+            max_json_body_bytes,
+        })
+    }
+
+    /// Maximum bytes in the complete JSON request body.
+    pub const fn max_json_body_bytes(self) -> usize {
+        self.max_json_body_bytes
+    }
+}
+
+impl Default for DeferredCredentialRequestLimits {
+    fn default() -> Self {
+        Self {
+            max_json_body_bytes: 16_384,
+        }
+    }
+}
+
 /// Resource limits for a deferred OID4VCI Credential Response body.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DeferredCredentialResponseLimits {

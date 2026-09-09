@@ -109,8 +109,11 @@ make breaking drift reviewable.
 Two release package trees were byte-identical. Uncompressed measurements were
 14,896-byte JavaScript, 4,360-byte public TypeScript declarations, 33,833-byte
 WASM, 1,594-byte WASM declarations and a 319-byte package manifest. Local Chrome
-152.0.7977.83 with ChromeDriver 152.0.7977.65 passed both browser test families;
-the slow Ubuntu gate owns the independent Firefox receipt.
+152.0.7977.83 with ChromeDriver 152.0.7977.65 passed both browser test families.
+Hosted slow workflow job
+`https://github.com/hyperledger-identus/sdk-rust/actions/runs/34326555322/job/102385054845`
+passed both families independently in pinned Chromium 152.0.7977.64 and Firefox
+154.0.1 with ChromeDriver 152.0.7977.64 and GeckoDriver 0.37.1.
 
 Authored Rust remains `unsafe_code = "forbid"`; wasm-bindgen and browser
 runtimes contain dependency-owned unsafe and native code whose boundary is

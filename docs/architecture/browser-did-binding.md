@@ -86,8 +86,10 @@ Measurements are uncompressed and are evidence, not budgets:
 | `package.json` | 319 | `d1c441370dc33e7febe04290a4a4e06951dd5f58e7cff9dfb43c8b492240cca3` |
 
 Local Chrome 152.0.7977.83 with ChromeDriver 152.0.7977.65 passed the two
-browser behavior families. The weekly/manual Ubuntu gate supplies pinned Nix
-Chromium/ChromeDriver and Firefox/GeckoDriver and requires both independently.
+browser behavior families. Hosted slow workflow job
+[102385054845](https://github.com/hyperledger-identus/sdk-rust/actions/runs/34326555322/job/102385054845)
+independently passed both families in pinned Chromium 152.0.7977.64 and Firefox
+154.0.1 with ChromeDriver 152.0.7977.64 and GeckoDriver 0.37.1.
 
 ## Integration and limitation contract
 

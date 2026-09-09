@@ -190,6 +190,28 @@ mod tests {
     }
 
     #[test]
+    fn serialized_time_values_enforce_u64_json_range() {
+        let maximum = u64::MAX.to_string();
+        assert_eq!(
+            serde_json::from_str::<UnixTimestampMillis>(&maximum)
+                .unwrap()
+                .get(),
+            u64::MAX
+        );
+        assert_eq!(
+            serde_json::from_str::<DurationMillis>(&maximum)
+                .unwrap()
+                .get(),
+            u64::MAX
+        );
+
+        for invalid in ["-1", "1.5", "18446744073709551616"] {
+            assert!(serde_json::from_str::<UnixTimestampMillis>(invalid).is_err());
+            assert!(serde_json::from_str::<DurationMillis>(invalid).is_err());
+        }
+    }
+
+    #[test]
     fn clock_errors_bridge_without_runtime_detail() {
         let unavailable = ClockError::Unavailable.to_identus_error();
         assert_eq!(unavailable.code().as_str(), "core.clock_unavailable");

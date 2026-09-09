@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 246,
+  "change": "audit-core-input-boundaries",
+  "branch": "codex/chore/issue-246",
+  "baseRef": "origin/develop",
+  "baseSha": "b5d1a4c52d31f3d37564eee9c6edc890fc7b1295",
+  "contractHeadSha": "de5c613c47bda5afc4aff39dbd2e477b5a33c0bf",
+  "createdAt": "2026-09-09T15:55:42.578Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

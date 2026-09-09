@@ -146,21 +146,24 @@ surprise compatibility promise.
 - `SDK-SEC-003` is an effective forward guardrail: every new or materially
   changed untrusted-input boundary must ship with explicit resource limits.
 - `SDK-LIM-007` is an effective current limitation: inherited surfaces have
-  not completed a repository-wide resource-bound audit. `identus-core::Url`
-  now rejects values above 8,192 UTF-8 bytes; generic crypto text rejects
-  values above 4,096 bytes; and hierarchical derivation is limited to 4,096
-  path bytes, 255 axes/depth, and 16–64-byte BIP-32/SLIP-0010 seeds. Callers
-  must still apply an outer limit before a transport, decompressor, or
-  deserializer allocates hostile input. Programmatic path construction remains
-  caller-budgeted, while every current cryptographic path consumer rejects
-  more than 255 axes before child work. Validated `String` borrowed parsing now
-  validates before cloning, and standalone DID method names reject more than
-  2,042 bytes before grammar traversal with caller-independent errors. Serde
-  and outer transports may still allocate those strings first. DID Registration
-  opaque identifier borrowed parsing enforces its existing 256-byte or
-  1,024-byte ceiling before retaining an owned copy. Other inherited surfaces
-  remain limited by their explicit evidence rather than by a repository-wide
-  completion claim.
+  not completed a repository-wide resource-bound audit. `identus-core` is now
+  crate-audited in its [public input-boundary inventory](../architecture/identus-core-input-boundaries.md):
+  `Url` rejects values above 8,192 UTF-8 bytes, serialized time values retain
+  only the `u64` range, monotonic time has no serde surface, and remaining
+  public surfaces are static-only, fixed enums, aliases, or no-input ports.
+  This does not bound allocation or lexical parsing performed by a transport,
+  decompressor, or deserializer before SDK validation. Generic crypto text
+  rejects values above 4,096 bytes; hierarchical derivation is limited to
+  4,096 path bytes, 255 axes/depth, and 16–64-byte BIP-32/SLIP-0010 seeds.
+  Programmatic path construction remains caller-budgeted, while every current
+  cryptographic path consumer rejects more than 255 axes before child work.
+  Validated `String` borrowed parsing now validates before cloning, and
+  standalone DID method names reject more than 2,042 bytes before grammar
+  traversal with caller-independent errors. Serde and outer transports may
+  still allocate those strings first. DID Registration opaque identifier
+  borrowed parsing enforces its existing 256-byte or 1,024-byte ceiling before
+  retaining an owned copy. Other unaudited SDK crates and inherited surfaces
+  remain covered by the limitation until they record explicit evidence.
 
 This pairing keeps the intended security direction enforceable without
 misrepresenting incomplete inherited coverage as a proven SDK guarantee.

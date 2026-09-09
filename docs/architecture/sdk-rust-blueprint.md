@@ -534,6 +534,18 @@ Authorization Request/Code execution, metadata correlation, request-by-
 identifier construction, token/issuer trust, HTTP, storage and consumer
 adoption remain later issue-first layers.
 
+The twenty-second bounded delivery, issue #239, consumes that typed state to
+construct a Final Credential Request with exactly one authorized
+`credential_identifier`. It selects a recognized authorization detail and
+dataset identifier by checked source-order indices, requires the detail's
+configuration to match the already matched offer, and shares the existing
+Bearer, JWT-proof, complete-body-bound, deterministic-encoding and redaction
+path. The existing configuration-ID route remains unchanged and the two wire
+selectors are mutually exclusive. This proves only local state correlation:
+HTTP execution, authorization-code flow, request/response correlation,
+selection policy, token/issuer/dataset/credential trust, storage and consumer
+adoption remain later issue-first layers.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

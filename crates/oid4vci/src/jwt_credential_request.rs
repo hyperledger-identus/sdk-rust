@@ -9,7 +9,7 @@ use zeroize::Zeroizing;
 
 use crate::{
     CredentialEndpoint, CredentialOfferError, CredentialOfferWithMetadata,
-    JwtCredentialRequestLimits, TokenResponseCore,
+    JwtCredentialRequestLimits, TokenResponseCore, TokenResponseWithAuthorizationDetails,
 };
 
 /// HTTP method required for a Credential Endpoint request.
@@ -109,6 +109,61 @@ impl CredentialOfferWithMetadata {
         if token_response.authorization_details_present() {
             return Err(CredentialOfferError::CredentialRequestAuthorizationDetailsUnsupported);
         }
+
+        self.try_create_jwt_credential_request_with_selector(
+            token_response,
+            CredentialSelector::Configuration(configuration.as_str()),
+            proofs,
+            limits,
+        )
+    }
+
+    /// Construct a bounded request for an authorized Credential Dataset identifier.
+    ///
+    /// Both indices address validated, source-ordered Token Response state. The
+    /// selected Authorization Detail must reference a configuration from this
+    /// matched Credential Offer.
+    pub fn try_create_authorized_jwt_credential_request(
+        &self,
+        token_response: &TokenResponseWithAuthorizationDetails,
+        authorization_detail_index: usize,
+        credential_identifier_index: usize,
+        proofs: &[Oid4vciProofJwt],
+        limits: JwtCredentialRequestLimits,
+    ) -> Result<JwtCredentialRequest, CredentialOfferError> {
+        let detail = token_response
+            .credential_authorization_details()
+            .get(authorization_detail_index)
+            .ok_or(CredentialOfferError::CredentialRequestAuthorizationDetailMissing)?;
+        let identifier = detail
+            .credential_identifiers()
+            .nth(credential_identifier_index)
+            .ok_or(CredentialOfferError::CredentialRequestIdentifierMissing)?;
+        let configuration_is_offered = self
+            .credential_offer()
+            .credential_offer()
+            .credential_configuration_ids()
+            .iter()
+            .any(|configuration| configuration.as_str() == detail.credential_configuration_id());
+        if !configuration_is_offered {
+            return Err(CredentialOfferError::CredentialRequestAuthorizationConfigurationMismatch);
+        }
+
+        self.try_create_jwt_credential_request_with_selector(
+            token_response.token_response_core(),
+            CredentialSelector::AuthorizedDataset(identifier),
+            proofs,
+            limits,
+        )
+    }
+
+    fn try_create_jwt_credential_request_with_selector(
+        &self,
+        token_response: &TokenResponseCore,
+        selector: CredentialSelector<'_>,
+        proofs: &[Oid4vciProofJwt],
+        limits: JwtCredentialRequestLimits,
+    ) -> Result<JwtCredentialRequest, CredentialOfferError> {
         if !token_response.token_type().eq_ignore_ascii_case("Bearer") {
             return Err(CredentialOfferError::CredentialRequestTokenTypeUnsupported);
         }
@@ -141,8 +196,16 @@ impl CredentialOfferWithMetadata {
         authorization.push_str(access_token);
 
         let mut body = BoundedJsonBody::new(limits.max_json_body_bytes());
-        body.push_static(b"{\"credential_configuration_id\":")?;
-        body.push_json_string(configuration.as_str())?;
+        match selector {
+            CredentialSelector::Configuration(configuration) => {
+                body.push_static(b"{\"credential_configuration_id\":")?;
+                body.push_json_string(configuration)?;
+            }
+            CredentialSelector::AuthorizedDataset(identifier) => {
+                body.push_static(b"{\"credential_identifier\":")?;
+                body.push_json_string(identifier)?;
+            }
+        }
         body.push_static(b",\"proofs\":{\"jwt\":[")?;
         for (index, proof) in proofs.iter().enumerate() {
             if index != 0 {
@@ -162,6 +225,11 @@ impl CredentialOfferWithMetadata {
             proof_count: proofs.len(),
         })
     }
+}
+
+enum CredentialSelector<'a> {
+    Configuration(&'a str),
+    AuthorizedDataset(&'a str),
 }
 
 fn is_rfc6750_b64token(value: &str) -> bool {

@@ -1,8 +1,5 @@
-# oid4vci-jwt-credential-request Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change add-oid4vci-jwt-credential-request. Update Purpose after archive.
-## Requirements
 ### Requirement: Final JWT Credential Request construction is state-bound and bounded
 
 The SDK SHALL expose positive `JwtCredentialRequestLimits` with independent

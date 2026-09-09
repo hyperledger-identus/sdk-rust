@@ -26,16 +26,15 @@ cargo llvm-cov report --lcov --output-path "$temporary_directory/lcov.info"
 "$repository_root/scripts/report-crypto-coverage.py" \
   "$temporary_directory/llvm-summary.json" \
   "$temporary_directory/normalized" \
+  --lcov-input "$temporary_directory/lcov.info" \
   --repository-root "$repository_root" \
   --revision "$revision" \
   --rust-version "$rust_version" \
   --tool-version "$tool_version"
 
 mkdir -p "$output_directory"
-for artifact in summary.json summary.md; do
+for artifact in summary.json summary.md lcov.info; do
   cp "$temporary_directory/normalized/$artifact" "$output_directory/.$artifact.tmp.$$"
   mv "$output_directory/.$artifact.tmp.$$" "$output_directory/$artifact"
 done
-cp "$temporary_directory/lcov.info" "$output_directory/.lcov.info.tmp.$$"
-mv "$output_directory/.lcov.info.tmp.$$" "$output_directory/lcov.info"
 printf 'crypto-coverage: wrote %s\n' "$output_directory"

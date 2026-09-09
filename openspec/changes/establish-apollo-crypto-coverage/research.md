@@ -53,7 +53,8 @@ set on 2026-09-09.
 The current implementation has no coverage dependency. The selected tool is
 Nix-only maintainer/CI tooling. It does not enter `Cargo.toml`,
 `Cargo.lock`, crate metadata, public features, target artifacts or consumer
-dependency cones. Its direct dependency cone contains 17 Rust crates; the
+dependency cones. Its direct dependency cone contains 19 Rust crates and the
+normal resolved host-tool graph contains 48 packages including the root. That
 resolved dependency cone is owned by the pinned Nix derivation rather than the
 SDK lockfile. Rust 1.98.1 gains the matching `llvm-tools-preview`
 component. The four feature commands write to one clean profile directory;

@@ -32,6 +32,29 @@ class ApolloParityContract(unittest.TestCase):
             destination = self.root / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / relative, destination)
+        for field in ("runner_path", "normalizer_path", "workflow_path"):
+            relative = Path(data["coverage"][field])
+            destination = self.root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if not destination.exists():
+                shutil.copy2(ROOT / relative, destination)
+        for relative in (
+            Path(".github/workflows/factory-contract.yml"),
+            Path("nix/rust-toolchain.nix"),
+            Path("nix/devshells/default.nix"),
+        ):
+            destination = self.root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / relative, destination)
+        evidence_paths = {
+            Path(row["path"]) for row in data["coverage"]["source_mappings"]
+        } | {
+            Path(row["path"]) for row in data["coverage"]["critical_tests"]
+        }
+        for relative in evidence_paths:
+            destination = self.root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / relative, destination)
         for vector in data["vectors"]:
             relative = Path(vector["sdk_test_path"])
             destination = self.root / relative
@@ -94,6 +117,60 @@ class ApolloParityContract(unittest.TestCase):
             "blob/develop/crates/crypto/examples/crypto_baseline.rs",
         )
         self.assertIn("not commit-pinned", self.run_checker().stderr)
+
+    def test_coverage_threshold_reduction_fails(self) -> None:
+        self.replace("threshold_basis_points = 7482", "threshold_basis_points = 7000")
+        self.assertIn("threshold must remain 74.82 percent", self.run_checker().stderr)
+
+    def test_coverage_denominator_drift_fails(self) -> None:
+        self.replace("sdk_lines              = 1722", "sdk_lines              = 2000")
+        self.assertIn("percentage differs from covered/line counts", self.run_checker().stderr)
+
+    def test_coverage_below_threshold_evidence_fails(self) -> None:
+        self.replace("sdk_covered            = 1481", "sdk_covered            = 1")
+        result = self.run_checker()
+        self.assertIn("falls below the Apollo threshold", result.stderr)
+
+    def test_coverage_profile_omission_fails(self) -> None:
+        self.replace(
+            'profiles               = [ "default", "all-features", "no-default-features", "kmp-compat" ]',
+            'profiles               = [ "all-features" ]',
+        )
+        self.assertIn("four isolated surfaces", self.run_checker().stderr)
+
+    def test_coverage_unknown_capability_mapping_fails(self) -> None:
+        self.replace(
+            'capability_ids = [ "encoding-base64url-nopad", "public-jwk" ]',
+            'capability_ids = [ "unknown-capability" ]',
+        )
+        self.assertIn("unknown capability ids", self.run_checker().stderr)
+
+    def test_coverage_unknown_vector_mapping_fails(self) -> None:
+        self.replace(
+            'vector_ids     = [ "apollo-base64url", "sdk-rfc8037-jwk" ]',
+            'vector_ids     = [ "unknown-vector" ]',
+        )
+        self.assertIn("unknown vector ids", self.run_checker().stderr)
+
+    def test_coverage_source_inventory_drift_fails(self) -> None:
+        source = self.root / "crates/crypto/src/new.rs"
+        source.write_text("pub fn new_source() {}\n", encoding="utf-8")
+        self.assertIn("source mapping inventory differs", self.run_checker().stderr)
+
+    def test_coverage_missing_critical_selector_fails(self) -> None:
+        self.replace(
+            '"one_over_limit_wins_before_malformed_base64url_and_is_redacted"',
+            '"missing_critical_selector"',
+        )
+        self.assertIn("selector not found", self.run_checker().stderr)
+
+    def test_coverage_fast_lane_contamination_fails(self) -> None:
+        fast = self.root / ".github/workflows/factory-contract.yml"
+        fast.write_text(
+            fast.read_text(encoding="utf-8") + "\n# coverage-crypto\n",
+            encoding="utf-8",
+        )
+        self.assertIn("fast workflow must not execute coverage", self.run_checker().stderr)
 
     def test_stale_apollo_link_fails(self) -> None:
         self.replace("ccee22bcd693e618b9b8ff3e15ed6f9c9156c27c/apollo/src", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/apollo/src")
@@ -177,6 +254,8 @@ class ApolloParityContract(unittest.TestCase):
         self.assertIn("`244ded689a29a5e6606eeb36aede14149d585071`", first.stdout)
         self.assertIn("actions/runs/34286965807", first.stdout)
         self.assertIn("rust-build-ios-aarch64", first.stdout)
+        self.assertIn("## Line coverage evidence", first.stdout)
+        self.assertIn("74.82%", first.stdout)
 
 
 if __name__ == "__main__":

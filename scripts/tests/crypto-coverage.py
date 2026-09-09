@@ -44,11 +44,18 @@ class CryptoCoverageContract(unittest.TestCase):
     def run_checker(self, data: dict, **overrides: str) -> subprocess.CompletedProcess[str]:
         raw = self.root / "raw.json"
         raw.write_text(json.dumps(data), encoding="utf-8")
+        lcov = self.root / "raw.lcov"
+        lcov.write_text(
+            f"SF:{self.source}\nDA:1,1\nend_of_record\n",
+            encoding="utf-8",
+        )
         output = self.root / "output"
         command = [
             str(CHECKER),
             str(raw),
             str(output),
+            "--lcov-input",
+            str(lcov),
             "--repository-root",
             str(self.root),
             "--revision",
@@ -69,6 +76,9 @@ class CryptoCoverageContract(unittest.TestCase):
         self.assertEqual(second.returncode, 0, second.stderr)
         self.assertEqual(json_first, (self.root / "output/summary.json").read_bytes())
         self.assertEqual(markdown_first, (self.root / "output/summary.md").read_bytes())
+        lcov_first = (self.root / "output/lcov.info").read_text(encoding="utf-8")
+        self.assertIn("SF:crates/crypto/src/lib.rs", lcov_first)
+        self.assertNotIn(str(self.root), lcov_first)
 
     def test_exact_threshold_passes(self) -> None:
         self.assertEqual(self.run_checker(self.raw(count=10_000, covered=7_482)).returncode, 0)
@@ -145,6 +155,15 @@ class CryptoCoverageContract(unittest.TestCase):
         data = self.raw()
         data["type"] = "other"
         self.assertIn("not an LLVM coverage JSON export", self.run_checker(data).stderr)
+
+    def test_lcov_inventory_mismatch_fails(self) -> None:
+        data = self.raw()
+        second = self.source.with_name("second.rs")
+        second.write_text("pub fn second() {}\n", encoding="utf-8")
+        data["data"][0]["files"].append(
+            {"filename": str(second), "summary": {"lines": {"count": 1, "covered": 1}}}
+        )
+        self.assertIn("LCOV source inventory differs", self.run_checker(data).stderr)
 
 
 if __name__ == "__main__":

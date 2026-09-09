@@ -207,6 +207,51 @@ def markdown(summary: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def normalized_lcov(
+    lcov_path: Path, repository_root: Path, expected_paths: set[str]
+) -> str:
+    try:
+        content = lcov_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as error:
+        raise CoverageError(f"cannot load LCOV evidence: {error}") from error
+    source_root = (repository_root / "crates/crypto/src").resolve(strict=True)
+    selected: dict[str, str] = {}
+    for raw_record in content.split("end_of_record"):
+        record = raw_record.strip()
+        if not record:
+            continue
+        lines = record.splitlines()
+        source_lines = [line[3:] for line in lines if line.startswith("SF:")]
+        if len(source_lines) != 1:
+            raise CoverageError("each LCOV record must contain exactly one source path")
+        candidate = Path(source_lines[0])
+        if not candidate.is_absolute():
+            candidate = repository_root / PurePosixPath(source_lines[0])
+        lexical_source_root = Path(os.path.abspath(repository_root / "crates/crypto/src"))
+        lexical = Path(os.path.abspath(candidate))
+        try:
+            lexical.relative_to(lexical_source_root)
+        except ValueError:
+            continue
+        try:
+            resolved = candidate.resolve(strict=True)
+            relative = resolved.relative_to(source_root)
+        except (OSError, ValueError) as error:
+            raise CoverageError(f"LCOV crypto source path escapes or is missing: {source_lines[0]}") from error
+        path = (PurePosixPath("crates/crypto/src") / PurePosixPath(relative)).as_posix()
+        if path in selected:
+            raise CoverageError(f"duplicate LCOV crypto source path: {path}")
+        lines[lines.index(f"SF:{source_lines[0]}")] = f"SF:{path}"
+        selected[path] = "\n".join(lines) + "\nend_of_record\n"
+    if set(selected) != expected_paths:
+        raise CoverageError(
+            "LCOV source inventory differs from the JSON denominator: "
+            f"missing={sorted(expected_paths-set(selected))}, "
+            f"extra={sorted(set(selected)-expected_paths)}"
+        )
+    return "".join(selected[path] for path in sorted(selected))
+
+
 def write_atomic(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.tmp-{os.getpid()}")
@@ -218,6 +263,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("raw_json", type=Path)
     parser.add_argument("output_directory", type=Path)
+    parser.add_argument("--lcov-input", type=Path, required=True)
     parser.add_argument("--repository-root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--revision", required=True)
     parser.add_argument("--rust-version", required=True)
@@ -231,11 +277,17 @@ def main() -> int:
             args.rust_version,
             args.tool_version,
         )
+        lcov = normalized_lcov(
+            args.lcov_input,
+            Path(os.path.abspath(args.repository_root)),
+            {row["path"] for row in summary["files"]},
+        )
         write_atomic(
             args.output_directory / "summary.json",
             json.dumps(summary, indent=2, sort_keys=True) + "\n",
         )
         write_atomic(args.output_directory / "summary.md", markdown(summary))
+        write_atomic(args.output_directory / "lcov.info", lcov)
     except CoverageError as error:
         print(f"crypto-coverage: {error}", file=sys.stderr)
         return 1

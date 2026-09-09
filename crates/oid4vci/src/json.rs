@@ -842,8 +842,7 @@ impl Scanner<'_> {
 
         let mut total = 0usize;
         let mut unknown_type_count = 0usize;
-        let mut credential_details = Vec::new();
-        let mut credential_identifiers: Vec<Zeroizing<String>> = Vec::new();
+        let mut credential_details: Vec<CredentialAuthorizationDetailFields> = Vec::new();
         loop {
             if total == limits.max_authorization_details() {
                 return Err(CredentialOfferError::TooManyTokenAuthorizationDetails);
@@ -852,13 +851,13 @@ impl Scanner<'_> {
             match self.parse_token_authorization_detail(depth, limits)? {
                 Some(detail) => {
                     for identifier in &detail.credential_identifiers {
-                        if credential_identifiers
+                        if credential_details
                             .iter()
+                            .flat_map(|existing| existing.credential_identifiers.iter())
                             .any(|existing| existing.as_str() == identifier.as_str())
                         {
                             return Err(CredentialOfferError::DuplicateCredentialIdentifier);
                         }
-                        credential_identifiers.push(Zeroizing::new(identifier.to_string()));
                     }
                     credential_details.push(detail);
                 }

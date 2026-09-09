@@ -16,14 +16,16 @@ project resource discovery unchanged.
 ### Address caches by effective inputs
 
 The cache identity is a schema-versioned digest of the exact ordered package
-sources plus pinned Pi, Node and npm versions. A package or runtime change
-selects a new directory; it never mutates a cache for a different identity.
+sources, the tracked npm lock digest and pinned Pi, Node and npm versions. A
+package, resolved cone or runtime change selects a new directory; it never
+mutates a cache for a different identity.
 
 ### Publish complete caches, not mutable staging state
 
-An initializer installs the exact npm sources into its own staging directory
-with lifecycle scripts disabled, verifies the requested top-level versions,
-writes a closed metadata marker and atomically promotes the directory. Two
+An initializer runs `npm ci` from the tracked exact manifest and lock in its
+own staging directory with lifecycle scripts disabled, verifies the requested
+top-level versions, writes a closed metadata marker and atomically promotes
+the directory. Two
 initializers may do duplicate first-time download work, but only a verified
 complete directory becomes canonical. Later launches are read-mostly and
 reuse it directly.

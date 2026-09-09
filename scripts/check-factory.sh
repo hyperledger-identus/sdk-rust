@@ -53,6 +53,8 @@ required_files=(
   .factory-policy.json
   .devloops
   .pi/settings.json
+  .pi/package-runtime/package.json
+  .pi/package-runtime/package-lock.json
   .pi/delivery-profiles.json
   .pi/subagent-policy.json
   .pi/agents/dev-loop.agent.md
@@ -69,6 +71,7 @@ required_files=(
   scripts/ci/target-plan.mjs
   scripts/factory-tools/audit-pi.mjs
   scripts/factory-tools/metrics.mjs
+  scripts/factory-tools/pi-package-cache.mjs
   scripts/factory-tools/pi-policy.mjs
   scripts/factory-tools/preflight.mjs
   scripts/git-hooks/configure.mjs
@@ -113,7 +116,7 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in bootstrap.sh scripts/factory scripts/benchmark-support-policy.py scripts/benchmark-crypto.sh scripts/coverage-crypto.sh scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-constraints.py scripts/check-crypto-benchmark.py scripts/report-crypto-coverage.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-ssi-upstream-backlog.py scripts/ci/contribution-policy.mjs scripts/ci/target-plan.mjs scripts/factory-tools/audit-pi.mjs scripts/factory-tools/metrics.mjs scripts/factory-tools/pi-policy.mjs scripts/factory-tools/preflight.mjs scripts/git-hooks/configure.mjs scripts/git-hooks/local-policy.mjs scripts/worktree-lifecycle.mjs scripts/tests/bootstrap-inventory.py scripts/tests/constraints.py scripts/tests/crypto-benchmark.py scripts/tests/crypto-coverage.py scripts/tests/factory-contract.sh scripts/tests/factory-operations.mjs scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py .githooks/commit-msg .githooks/pre-commit .githooks/pre-push; do
+for executable_path in bootstrap.sh scripts/factory scripts/benchmark-support-policy.py scripts/benchmark-crypto.sh scripts/coverage-crypto.sh scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-constraints.py scripts/check-crypto-benchmark.py scripts/report-crypto-coverage.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-ssi-upstream-backlog.py scripts/ci/contribution-policy.mjs scripts/ci/target-plan.mjs scripts/factory-tools/audit-pi.mjs scripts/factory-tools/metrics.mjs scripts/factory-tools/pi-package-cache.mjs scripts/factory-tools/pi-policy.mjs scripts/factory-tools/preflight.mjs scripts/git-hooks/configure.mjs scripts/git-hooks/local-policy.mjs scripts/worktree-lifecycle.mjs scripts/tests/bootstrap-inventory.py scripts/tests/constraints.py scripts/tests/crypto-benchmark.py scripts/tests/crypto-coverage.py scripts/tests/factory-contract.sh scripts/tests/factory-operations.mjs scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py .githooks/commit-msg .githooks/pre-commit .githooks/pre-push; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi

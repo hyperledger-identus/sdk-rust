@@ -100,6 +100,8 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/check-ssi-upstream-backlog.py
 ./scripts/check-support-policy.py
 ./scripts/benchmark-support-policy.py --samples 20
+./bootstrap.sh --prepare-pi-cache
+./bootstrap.sh --pi
 
 just factory-check
 nix run .#factory -- check
@@ -121,6 +123,15 @@ nix run .#factory -- check
 | `ready` | requires the named active change and every task to be complete |
 | `receipt` | runs readiness, then prints immutable branch/head/base identifiers |
 | `archive` | snapshots matching archives, rejects a known dated-destination collision, runs readiness and preservation preflight, archives through pinned OpenSpec, then proves exactly one new regular requested archive, mandatory artifacts and the resulting store before reporting success |
+
+`./bootstrap.sh --pi` additionally prepares a verified, content-addressed Pi
+project-package cache outside all registered working trees. Exact harness
+inputs and the resolved lock share one cache; changed inputs select a new
+identity. The tracked
+`.pi/npm` location is only an ignored link, lifecycle scripts remain disabled,
+and recovery or retention deletion is explicit. See the operations handbook
+for the layout and the recovery runbook before changing operator-owned cache
+state.
 
 The receipt proves only the factory contract. Rust, target, conformance,
 security and release gates must be attached separately and truthfully.

@@ -10,3 +10,7 @@ __pycache__/
 /result
 /result-*
 /tmp/
+
+# Pi creates project package state here when bootstrap is bypassed. The
+# canonical bootstrap path is an ignored symlink to an external exact cache.
+/.pi/npm

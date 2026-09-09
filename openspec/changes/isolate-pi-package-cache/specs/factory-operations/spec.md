@@ -4,7 +4,8 @@
 
 The bootstrap SHALL keep Pi project-package state out of every registered Git
 working tree. It SHALL select a repository-private cache from the exact pinned
-runtime and project package declarations, verify completeness before use and
+runtime, project package declarations and resolved package lock, verify
+completeness before use and
 preserve Pi's expected project path without reading or moving authentication,
 session, prompt, transcript, provider or model state.
 

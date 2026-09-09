@@ -43,6 +43,7 @@ invalidates provisional evidence.
 
 ```bash
 ./bootstrap.sh --audit-pi
+./bootstrap.sh --prepare-pi-cache
 ./bootstrap.sh --configure-pi
 ./bootstrap.sh --configure-git
 ./bootstrap.sh --check
@@ -52,6 +53,22 @@ invalidates provisional evidence.
 The two configure commands are explicit. Pi configuration preserves unknown
 keys and only updates the bounded subagent file. Git configuration refuses to
 invent identity or signing material. Neither path reads or writes Pi auth.
+
+Before `--pi` starts the agent, bootstrap prepares the exact project packages
+in a content-addressed cache under a hidden sibling of the primary checkout.
+For a primary checkout named `sdk-rust`, the root is
+`../.sdk-rust-factory/pi-packages/v1/<sha256>`. Each worktree keeps Pi's
+expected `.pi/npm` path as an ignored symlink to that complete store. The key
+binds Pi, Node, npm, the ordered exact package declarations and the tracked
+resolved npm lock, so identical worktrees share one installation and changed
+inputs select another. First population uses `npm ci` against that lock.
+
+Package lifecycle scripts are disabled during population. The store contains
+packages and a closed identity marker only; Pi authentication, sessions,
+prompts, transcripts, providers and models are not moved or inspected. Initial
+concurrent workers populate private staging directories and atomically converge
+on one verified store. No automatic pruning runs. Use `--prepare-pi-cache` to
+prepare or inspect the reported exact path before a Pi launch.
 
 ## Worktrees and targets
 

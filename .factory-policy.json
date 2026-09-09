@@ -23,7 +23,16 @@
   "cache": {
     "sccacheLocal": "10G",
     "sccacheHosted": "2G",
-    "targetsAreWorktreeLocal": true
+    "targetsAreWorktreeLocal": true,
+    "piPackages": {
+      "schemaVersion": 1,
+      "rootKind": "repository-sibling",
+      "projectLink": ".pi/npm",
+      "manifest": ".pi/package-runtime/package.json",
+      "lock": ".pi/package-runtime/package-lock.json",
+      "lifecycleScripts": "disabled",
+      "automaticPruning": false
+    }
   },
   "metrics": {
     "schema": "docs/factory/work-item-metrics-v1.schema.json",

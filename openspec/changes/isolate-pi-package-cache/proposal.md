@@ -13,8 +13,9 @@ model or provider upgrade.
 
 - Prepare one repository-private, content-addressed Pi package store outside
   the repository and linked worktrees before bootstrap launches Pi.
-- Key each store by the effective pinned Pi/Node/npm runtime and ordered exact
-  project package declarations so different package sets cannot share state.
+- Key each store by the effective pinned Pi/Node/npm runtime, ordered exact
+  project package declarations and tracked resolved lock so different package
+  sets or dependency cones cannot share state.
 - Preserve Pi's expected `.pi/npm` path as an ignored symlink to that store.
 - Fail closed on an existing directory, wrong symlink, unsafe store path,
   malformed package declaration or incomplete cache instead of deleting or

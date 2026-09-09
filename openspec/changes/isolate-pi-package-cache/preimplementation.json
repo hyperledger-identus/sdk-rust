@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 247,
+  "change": "isolate-pi-package-cache",
+  "branch": "codex/fix/issue-247",
+  "baseRef": "origin/develop",
+  "baseSha": "39fd55666faf54fe237e35cb611c462df064cd38",
+  "contractHeadSha": "8c06a6798fc6f9f229b055c64d46928a956a8786",
+  "createdAt": "2026-09-09T16:45:16.132Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

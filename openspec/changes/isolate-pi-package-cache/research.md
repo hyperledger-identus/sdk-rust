@@ -47,8 +47,10 @@ this use. Pi installs npm packages with exact project scope and
 
 The runtime versions remain Pi 0.84.2, Node 24.19.0, npm 11.17.0,
 `dev-loops@0.9.0`, `pi-subagents@0.66.0` and `typebox@1.3.9`. The cache key
-binds all of them and a cache schema version. No Cargo manifest, Rust artifact,
-feature, MSRV, target or public API changes.
+binds all of them, the tracked npm lock digest and a cache schema version. The
+lock fixes the resolved transitive package cone and `npm ci` verifies published
+integrities without executing lifecycle scripts. No Cargo manifest, Rust
+artifact, feature, MSRV, target or public API changes.
 
 The cache lives in a hidden repository-specific sibling directory derived
 from the primary checkout identity, not under any registered Git working tree.
@@ -60,8 +62,9 @@ locations and are neither inspected nor copied.
 
 Paths are derived from Git and validated through canonical containment and
 non-symlink checks. Bootstrap refuses an existing non-symlink `.pi/npm` or a
-symlink to any unexpected target. Initial population uses exact package specs,
-does not approve package lifecycle scripts, verifies top-level identities and
+symlink to any unexpected target. Initial population uses the tracked exact
+manifest and lock through `npm ci`, does not approve package lifecycle scripts,
+verifies top-level identities and
 versions, and publishes a complete store atomically. Concurrent initializers
 use separate staging directories and converge on the same immutable target.
 

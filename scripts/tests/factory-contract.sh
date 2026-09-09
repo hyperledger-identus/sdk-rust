@@ -71,6 +71,8 @@ required_files=(
   .factory-policy.json
   .devloops
   .pi/settings.json
+  .pi/package-runtime/package.json
+  .pi/package-runtime/package-lock.json
   .pi/delivery-profiles.json
   .pi/subagent-policy.json
   .pi/agents/dev-loop.agent.md
@@ -87,6 +89,7 @@ required_files=(
   scripts/ci/target-plan.mjs
   scripts/factory-tools/audit-pi.mjs
   scripts/factory-tools/metrics.mjs
+  scripts/factory-tools/pi-package-cache.mjs
   scripts/factory-tools/pi-policy.mjs
   scripts/factory-tools/preflight.mjs
   scripts/git-hooks/configure.mjs

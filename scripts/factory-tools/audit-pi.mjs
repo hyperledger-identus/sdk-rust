@@ -6,6 +6,7 @@ import { readFileSync, realpathSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkUserPolicy } from "./pi-policy.mjs";
+import { inspectPiPackageCache, readPackageRuntime } from "./pi-package-cache.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -21,9 +22,22 @@ export async function auditPi({ configOnly = false, enforceConfig = false } = {}
   const devloops = readFileSync(path.join(root, ".devloops"), "utf8");
   const findings = [];
   check(factory.runtime.configurationIsGuidance === true, "vault configuration must remain guidance", findings);
+  check(factory.cache?.piPackages?.schemaVersion === 1, "Pi package cache schema must remain explicit", findings);
+  check(factory.cache?.piPackages?.rootKind === "repository-sibling", "Pi package cache must remain outside worktrees", findings);
+  check(factory.cache?.piPackages?.projectLink === ".pi/npm", "Pi project package link is inconsistent", findings);
+  check(factory.cache?.piPackages?.manifest === ".pi/package-runtime/package.json", "Pi package manifest path is inconsistent", findings);
+  check(factory.cache?.piPackages?.lock === ".pi/package-runtime/package-lock.json", "Pi package lock path is inconsistent", findings);
+  check(factory.cache?.piPackages?.lifecycleScripts === "disabled", "Pi package lifecycle scripts must remain disabled", findings);
+  check(factory.cache?.piPackages?.automaticPruning === false, "Pi package cache pruning must remain explicit", findings);
   check(factory.integrationBranch === "develop" && factory.reservedBranches.includes("main"), "branch authority is inconsistent", findings);
   check(!Object.hasOwn(settings, "provider") && !Object.hasOwn(settings, "model"), "tracked Pi settings must not choose a personal provider/model", findings);
   check(Array.isArray(settings.packages) && settings.packages.length > 0 && settings.packages.every((entry) => /^npm:[a-z0-9-]+@[0-9]+\.[0-9]+\.[0-9]+$/u.test(entry)), "Pi packages must be exact npm versions", findings);
+  let packageRuntime = null;
+  try {
+    packageRuntime = readPackageRuntime(root, settings.packages);
+  } catch (error) {
+    check(false, error.message, findings);
+  }
   check(profiles.defaultProfile === factory.delivery.defaultProfile, "delivery profile defaults disagree", findings);
   check(profiles.profiles?.[profiles.defaultProfile]?.qualityBudget?.targetPercent === factory.delivery.qualityTargetPercent, "quality target disagrees", findings);
   check(profiles.profiles?.[profiles.defaultProfile]?.qualityBudget?.mandatoryInvariantsPercent === factory.delivery.mandatoryInvariantPercent, "mandatory invariant target disagrees", findings);
@@ -43,7 +57,8 @@ export async function auditPi({ configOnly = false, enforceConfig = false } = {}
     const nodeVersion = command("node", ["--version"]);
     const piPath = command("which", ["pi"]);
     const piVersionOutput = command("pi", ["--version"]);
-    runtime = { nodeVersion, piPath: realpathSync(piPath), piVersionOutput };
+    const npmVersion = command("npm", ["--version"]);
+    runtime = { nodeVersion, npmVersion, piPath: realpathSync(piPath), piVersionOutput };
     check(Number(nodeVersion.match(/^v([0-9]+)/u)?.[1]) === factory.runtime.nodeMajor, `Node ${factory.runtime.nodeMajor} is required`, findings);
     check(runtime.piPath.startsWith("/nix/store/"), "Pi must resolve from the pinned Nix store", findings);
     check(piVersionOutput.includes(factory.runtime.piVersion), `Pi ${factory.runtime.piVersion} is required`, findings);
@@ -61,6 +76,21 @@ export async function auditPi({ configOnly = false, enforceConfig = false } = {}
     check(activeManaged <= factory.delivery.managedWorktrees, "managed worktree capacity is exceeded", findings);
     runtime.hooksPath = hooksPath;
     runtime.managedWorktrees = activeManaged;
+    try {
+      const cache = inspectPiPackageCache({
+        repositoryRoot: root,
+        inputs: {
+          piVersion: piVersionOutput,
+          nodeVersion,
+          npmVersion,
+          packageLockSha256: packageRuntime?.packageLockSha256 ?? "invalid",
+          packages: settings.packages,
+        },
+      });
+      runtime.piPackageCache = { state: cache.state, path: cache.layout.cachePath };
+    } catch (error) {
+      check(false, `Pi package cache is unsafe: ${error.message}`, findings);
+    }
   }
 
   return { ok: findings.length === 0, findings, runtime, userPolicy };

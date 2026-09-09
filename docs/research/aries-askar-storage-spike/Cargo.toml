@@ -10,7 +10,7 @@ license      = "Apache-2.0"
 publish      = false
 
 [dependencies]
-aries-askar               = { version = "=0.4.6", default-features = false, features = [ "sqlite" ] }
+aries-askar    = { version = "=0.4.6", default-features = false, features = [ "sqlite" ] }
 identus-wallet = { path = "../../../crates/wallet" }
 
 [dev-dependencies]

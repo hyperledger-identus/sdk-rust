@@ -1,6 +1,7 @@
 # Rust build artifacts
 /target
 /tools/uniffi-bindgen/target
+__pycache__/
 /fuzz/artifacts
 /fuzz/target
 

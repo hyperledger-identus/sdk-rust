@@ -1,5 +1,8 @@
 {
-  imports = [ ./bindings.nix ];
+  imports = [
+    ./bindings.nix
+    ./wasm.nix
+  ];
 
   perSystem =
     {

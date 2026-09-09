@@ -263,6 +263,12 @@ pub mod error_code {
         ErrorCode::new("oid4vci.credential_request_authorization_too_large");
     pub const CREDENTIAL_REQUEST_BODY_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.credential_request_body_too_large");
+    pub const INVALID_DEFERRED_CREDENTIAL_REQUEST_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_deferred_credential_request_limits");
+    pub const DEFERRED_CREDENTIAL_ENDPOINT_REQUIRED: ErrorCode =
+        ErrorCode::new("oid4vci.deferred_credential_endpoint_required");
+    pub const DEFERRED_CREDENTIAL_REQUEST_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.deferred_credential_request_too_large");
     pub const INVALID_DEFERRED_CREDENTIAL_RESPONSE_LIMITS: ErrorCode =
         ErrorCode::new("oid4vci.invalid_deferred_credential_response_limits");
     pub const DEFERRED_CREDENTIAL_RESPONSE_TOO_LARGE: ErrorCode =
@@ -465,6 +471,9 @@ pub enum CredentialOfferError {
     CredentialRequestProofTooLarge,
     CredentialRequestAuthorizationTooLarge,
     CredentialRequestBodyTooLarge,
+    InvalidDeferredCredentialRequestLimits,
+    DeferredCredentialEndpointRequired,
+    DeferredCredentialRequestTooLarge,
     InvalidDeferredCredentialResponseLimits,
     DeferredCredentialResponseTooLarge,
     InvalidDeferredCredentialResponse,
@@ -1206,6 +1215,21 @@ impl CredentialOfferError {
                 error_code::CREDENTIAL_REQUEST_BODY_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI Credential Request body is too large",
+            ),
+            Self::InvalidDeferredCredentialRequestLimits => (
+                error_code::INVALID_DEFERRED_CREDENTIAL_REQUEST_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Deferred Credential Request limits are invalid",
+            ),
+            Self::DeferredCredentialEndpointRequired => (
+                error_code::DEFERRED_CREDENTIAL_ENDPOINT_REQUIRED,
+                ErrorKind::InvalidInput,
+                "OID4VCI Deferred Credential Endpoint is required",
+            ),
+            Self::DeferredCredentialRequestTooLarge => (
+                error_code::DEFERRED_CREDENTIAL_REQUEST_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Deferred Credential Request is too large",
             ),
             Self::InvalidDeferredCredentialResponseLimits => (
                 error_code::INVALID_DEFERRED_CREDENTIAL_RESPONSE_LIMITS,

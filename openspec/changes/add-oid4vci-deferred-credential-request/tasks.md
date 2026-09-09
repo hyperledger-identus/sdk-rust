@@ -9,10 +9,10 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add positive request-body limits and bounded JSON serialization.
-- [ ] 2.2 Add the redacted request type, endpoint binding and stable errors.
-- [ ] 2.3 Add exact, escaping, boundary, repeated-use and redaction tests.
-- [ ] 2.4 Add ADR and update IDR-023 roadmap/inventory evidence.
+- [x] 2.1 Add positive request-body limits and bounded JSON serialization.
+- [x] 2.2 Add the redacted request type, endpoint binding and stable errors.
+- [x] 2.3 Add exact, escaping, boundary, repeated-use and redaction tests.
+- [x] 2.4 Add ADR and update IDR-023 roadmap/inventory evidence.
 
 ## 3. Review and delivery
 

@@ -555,6 +555,15 @@ Request construction, HTTP, interval scheduling, transaction correlation and
 invalidation, access-token validity, encryption, trust, storage and product
 policy remain later issue-first layers.
 
+The twenty-fourth bounded delivery, issue #250, combines that advertised
+endpoint with the existing bounded deferred transaction handle to construct the
+unencrypted Final Deferred Credential Request. The request owns a zeroizing,
+independently bounded deterministic JSON body and reports POST,
+`application/json` and the access-token requirement without retaining a token.
+HTTP/TLS execution, interval scheduling, retry/replay/invalidation, encryption,
+response correlation, trust, storage and product policy remain later
+issue-first layers.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

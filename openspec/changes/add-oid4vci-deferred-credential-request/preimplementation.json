@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 250,
+  "change": "add-oid4vci-deferred-credential-request",
+  "branch": "codex/feat/issue-250",
+  "baseRef": "origin/develop",
+  "baseSha": "49c5288713f9979747c56f0307cf6ed12c785422",
+  "contractHeadSha": "6930bba9a32a6b4da85ad05f3d0166e580793013",
+  "createdAt": "2026-09-09T17:40:38.862Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -88,7 +88,7 @@ Required mismatches to adjudicate:
 - Exact deletion of a missing row and transaction/cancellation behavior need
   explicit evidence rather than inference from method names.
 
-## Security, privacy, supply-chain and maintenance evidence
+## Security, privacy and maintenance evidence
 
 The store encrypts category, name and value data using profile keys, but that
 does not establish OS key protection, backup, recovery, side-channel safety or
@@ -101,7 +101,8 @@ enabled `askar-storage` source contains three. `libsqlite3-sys` compiles and
 links native SQLite C. Dependency-owned unsafe/native code remains material
 audit scope, not a vulnerability claim.
 
-`cargo deny` passes advisories, bans, licenses and sources for the selected
+The supply-chain evidence is deliberately feature-aware. `cargo deny` passes
+advisories, bans, licenses and sources for the selected
 feature graph with duplicate/unmatched-policy warnings. `cargo audit --deny
 warnings` reports RUSTSEC-2023-0071 for `rsa 0.9.10` present in the lock;
 `cargo tree --target all -i rsa` returns no path, proving it is not reachable

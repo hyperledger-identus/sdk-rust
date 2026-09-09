@@ -126,3 +126,4 @@ jobs:
           nix develop .#bindings --command cargo audit \
             --file tools/uniffi-bindgen/Cargo.lock --deny warnings
           nix develop .#bindings --command ./scripts/check-uniffi-did-host.sh
+          nix develop .#bindings --command ./scripts/check-uniffi-did-apple.sh

@@ -144,7 +144,7 @@ reserve the final namespace automatically.
 | `identus-apollo` | validated encodings, public-key/JWK conversion, curve utilities and HD derivation required by SSI formats | custody, JOSE protocol, Midnight Jubjub suite |
 | `identus-did-core` | DID/DID URL, document, verification relationships, services, resolution/dereference/registration contracts and metadata | DID method ledger behavior, HTTP server/client |
 | `identus-did-resolver-http` | optional Axum binding for the W3C DID Resolution HTTP interface over any resolver | chain resolver implementation |
-| `identus-uniffi-did` | experimental versioned UniFFI value facade for bounded DID and DID URL parsing | mobile package/runtime or general binding umbrella |
+| `identus-uniffi-did` | experimental versioned UniFFI value facade for bounded DID and DID URL parsing, including a local Apple package proof | published/signed mobile distribution, physical-device support or general binding umbrella |
 | `identus-vc-core` | format-neutral credential/presentation envelopes, disclosure descriptors, staged verification evidence and status vocabulary | format codecs, trust policy, inventory/storage IDs |
 | `identus-jose` | bounded JWS compact codec and narrowly profiled builder/verifier APIs | general-purpose JOSE, JWE, custody |
 | `identus-oid4vci` | OID4VCI Final wire types, validation and resumable holder/issuer state contracts | wallet UI, browser launching, issuer policy |

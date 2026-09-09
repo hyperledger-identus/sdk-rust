@@ -30,7 +30,8 @@ cargo build --locked --package identus-uniffi-did --release
 rm -rf "$generated_a" "$generated_b"
 for output in "$generated_a" "$generated_b"; do
     CARGO_TARGET_DIR="$repository_root/target/uniffi-bindgen-tool" \
-        cargo run --locked --manifest-path "$tool_manifest" -- \
+        cargo run --locked --manifest-path "$tool_manifest" \
+        --bin identus-uniffi-bindgen -- \
         generate --library "$library" --config "$crate_root/uniffi-global.toml" \
         --language swift --language kotlin --out-dir "$output" --no-format
 done

@@ -1,5 +1,6 @@
 # Rust build artifacts
 /target
+/tools/uniffi-bindgen/target
 /fuzz/artifacts
 /fuzz/target
 

@@ -221,7 +221,7 @@ evidence_token      = "--all-features"
 [ffi]
 status  = "not-supported"
 package = "identus-bindings"
-reason  = "The inherited package is a placeholder and has no accepted FFI value, handle, memory, concurrency, or compatibility contract."
+reason  = "The inherited umbrella package is a placeholder. The separate experimental UniFFI DID facade has host and local iOS Simulator evidence only; it is unpublished, unsigned, lacks physical-device and Android runtime proof, and does not activate a supported FFI contract."
 
 [binary_size]
 status            = "measurement-only"

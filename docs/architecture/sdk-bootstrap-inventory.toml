@@ -210,8 +210,8 @@ path           = "crates/uniffi-did"
 layer          = "outer-boundary"
 classification = "implemented"
 public_api     = "experimental"
-owner_issue    = "#226"
-summary        = "Experimental versioned UniFFI facade for bounded DID and DID URL values; host evidence only."
+owner_issue    = "#228"
+summary        = "Experimental versioned UniFFI facade with deterministic host generation and local Apple XCFramework/Simulator evidence; unpublished and unsupported."
 
 [[packages]]
 name           = "identus-conformance"

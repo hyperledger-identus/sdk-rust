@@ -7,7 +7,8 @@
 //! Pre-Authorized Code server and Transaction Code input binding, and bounded
 //! construction of the mandatory Pre-Authorized Token Request form plus a
 //! partial successful Token Response, Token Error Response, and Credential
-//! Error Response core with its payload-error HTTP envelope, plus bounded
+//! Error Response core with an explicit typed credential Authorization Details
+//! transition and the Credential Error payload-error HTTP envelope, plus bounded
 //! parsing of the deferred Credential Response body, plus a Credential
 //! Nonce Response core and a
 //! transport-neutral Final Credential Nonce
@@ -17,7 +18,7 @@
 //! unencrypted immediate Final Credential Response core. It performs no
 //! network access or deferred polling, does not validate complete RFC 8414
 //! metadata or Token Response Authorization Details, and establishes no issuer,
-//! server, token, proof, transaction, or nonce trust.
+//! server, token, authorization, proof, transaction, or nonce trust.
 
 #![forbid(unsafe_code)]
 
@@ -79,7 +80,8 @@ pub use limits::{
     CredentialOfferLimits, CredentialOfferSemanticLimits, DeferredCredentialResponseLimits,
     ImmediateCredentialHttpResponseLimits, ImmediateCredentialResponseLimits,
     JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH, PreAuthorizedTokenRequestLimits,
-    TokenErrorResponseLimits, TokenResponseLimits, TransactionCodeInputLimits,
+    TokenAuthorizationDetailsLimits, TokenErrorResponseLimits, TokenResponseLimits,
+    TransactionCodeInputLimits,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,
@@ -93,7 +95,10 @@ pub use semantic::{CredentialConfigurationId, CredentialIssuerIdentifier, Creden
 pub use token_error_response::{
     TokenEndpointErrorCode, TokenEndpointErrorKind, TokenErrorResponseCore, TokenErrorUri,
 };
-pub use token_response::{TokenResponseCore, TokenType};
+pub use token_response::{
+    CredentialAuthorizationDetail, TokenResponseCore, TokenResponseWithAuthorizationDetails,
+    TokenType,
+};
 pub use transaction_code_input::CredentialOfferWithPreAuthorizedTokenInput;
 pub use transport::{CredentialOfferReference, CredentialOfferRequest, EmbeddedCredentialOffer};
 

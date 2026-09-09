@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
+canonical_sha256 = "472c18c805f4ccbf1a86141ee3d453f7383325f6325816724cd2e5c0b2904338"
+reason           = "Advance the in-progress IDR-023 pointer from completed deferred Credential Response issue #149 to explicit bounded Token Response credential Authorization Details validation issue #237."

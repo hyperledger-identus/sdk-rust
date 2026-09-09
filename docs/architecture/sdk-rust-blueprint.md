@@ -524,6 +524,16 @@ transaction validity, Deferred Credential Requests, polling, scheduling,
 retry/UI policy, encrypted responses, verification, storage and consumer
 adoption remain later issue-first layers.
 
+The twenty-first bounded delivery, issue #237, adds an explicit consuming
+validation transition for successful Token Response `authorization_details`.
+It preserves the presence-only OAuth core, then recognizes bounded
+`openid_credential` entries with one configuration ID and non-empty unique
+Credential Dataset identifiers while discarding bounded unknown fields and
+types. It proves syntax, resource bounds and unambiguous identifiers only:
+Authorization Request/Code execution, metadata correlation, request-by-
+identifier construction, token/issuer trust, HTTP, storage and consumer
+adoption remain later issue-first layers.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

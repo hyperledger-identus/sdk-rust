@@ -366,6 +366,80 @@ impl Default for TokenResponseLimits {
     }
 }
 
+/// Resource limits for validating Token Response Authorization Details.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TokenAuthorizationDetailsLimits {
+    max_authorization_details: usize,
+    max_type_bytes: usize,
+    max_credential_configuration_id_bytes: usize,
+    max_credential_identifiers_per_detail: usize,
+    max_credential_identifier_bytes: usize,
+}
+
+impl TokenAuthorizationDetailsLimits {
+    /// Construct a positive Authorization Details resource policy.
+    pub const fn new(
+        max_authorization_details: usize,
+        max_type_bytes: usize,
+        max_credential_configuration_id_bytes: usize,
+        max_credential_identifiers_per_detail: usize,
+        max_credential_identifier_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_authorization_details == 0
+            || max_type_bytes == 0
+            || max_credential_configuration_id_bytes == 0
+            || max_credential_identifiers_per_detail == 0
+            || max_credential_identifier_bytes == 0
+        {
+            return Err(CredentialOfferError::InvalidTokenAuthorizationDetailsLimits);
+        }
+        Ok(Self {
+            max_authorization_details,
+            max_type_bytes,
+            max_credential_configuration_id_bytes,
+            max_credential_identifiers_per_detail,
+            max_credential_identifier_bytes,
+        })
+    }
+
+    /// Maximum number of entries in the Authorization Details array.
+    pub const fn max_authorization_details(self) -> usize {
+        self.max_authorization_details
+    }
+
+    /// Maximum decoded bytes in one authorization-detail type.
+    pub const fn max_type_bytes(self) -> usize {
+        self.max_type_bytes
+    }
+
+    /// Maximum decoded bytes in one Credential Configuration ID.
+    pub const fn max_credential_configuration_id_bytes(self) -> usize {
+        self.max_credential_configuration_id_bytes
+    }
+
+    /// Maximum Credential Dataset identifiers in one recognized entry.
+    pub const fn max_credential_identifiers_per_detail(self) -> usize {
+        self.max_credential_identifiers_per_detail
+    }
+
+    /// Maximum decoded bytes in one Credential Dataset identifier.
+    pub const fn max_credential_identifier_bytes(self) -> usize {
+        self.max_credential_identifier_bytes
+    }
+}
+
+impl Default for TokenAuthorizationDetailsLimits {
+    fn default() -> Self {
+        Self {
+            max_authorization_details: 32,
+            max_type_bytes: 128,
+            max_credential_configuration_id_bytes: 256,
+            max_credential_identifiers_per_detail: 64,
+            max_credential_identifier_bytes: 2_048,
+        }
+    }
+}
+
 /// Resource limits for an OAuth Token Error Response core.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TokenErrorResponseLimits {

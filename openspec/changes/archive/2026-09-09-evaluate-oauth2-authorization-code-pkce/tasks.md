@@ -14,6 +14,6 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Run fixture supply-chain, target, factory and full repository gates.
-- [ ] 3.2 Complete a distinct exact-diff protocol/security/dependency review and resolve findings.
-- [ ] 3.3 Archive the reviewed change and prepare a signed/DCO issue-linked PR.
+- [x] 3.1 Run fixture supply-chain, target, factory and full repository gates.
+- [x] 3.2 Complete a distinct exact-diff protocol/security/dependency review and resolve findings.
+- [x] 3.3 Archive the reviewed change and prepare a signed/DCO issue-linked PR.

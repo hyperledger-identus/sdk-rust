@@ -9,6 +9,40 @@ permissions:
   contents: read
 
 jobs:
+  crypto-coverage:
+    name: crypto line coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
+
+      - name: Measure first-party crypto line coverage
+        run: nix develop -c ./scripts/coverage-crypto.sh artifacts/crypto-coverage
+
+      - name: Publish coverage summary
+        run: cat artifacts/crypto-coverage/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: crypto-coverage-${{ github.sha }}
+          path: artifacts/crypto-coverage
+          if-no-files-found: error
+          retention-days: 30
+
   crypto-baseline:
     name: crypto performance baseline
     runs-on: ubuntu-latest

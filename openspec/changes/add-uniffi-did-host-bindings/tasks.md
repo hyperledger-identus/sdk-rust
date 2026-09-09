@@ -15,5 +15,5 @@
 ## 3. Review and delivery
 
 - [x] 3.1 Record the production host-foundation ADR and update architecture/support/reuse evidence while retaining `SDK-LIM-002`.
-- [ ] 3.2 Run focused dependency/security checks, full factory/Cargo/Nix gates and distinct exact-diff architecture/security review.
+- [x] 3.2 Run focused dependency/security checks, full factory/Cargo/Nix gates and distinct exact-diff architecture/security review.
 - [ ] 3.3 Sync canonical specs, complete the receipt, archive the change, open the signed/DCO issue-linked PR and integrate only after green required CI.

@@ -156,8 +156,8 @@ path           = "crates/oid4vci"
 layer          = "protocol-semantics"
 classification = "implemented"
 public_api     = "experimental"
-owner_issue    = "#239"
-summary        = "Bounded OID4VCI Final offer, metadata, token and credential Authorization Details, nonce, configuration-ID and authorized-dataset JWT Credential Requests, immediate and deferred Credential Response bodies, request-bound immediate response, and Credential payload-error HTTP semantics."
+owner_issue    = "#241"
+summary        = "Bounded OID4VCI Final offer, issuer metadata including nonce and deferred endpoints, token and credential Authorization Details, configuration-ID and authorized-dataset JWT Credential Requests, immediate and deferred Credential Response bodies, request-bound immediate response, and Credential payload-error HTTP semantics."
 
 [[packages]]
 name           = "identus-wallet"

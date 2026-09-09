@@ -60,6 +60,26 @@ impl fmt::Debug for NonceEndpoint {
     }
 }
 
+/// A syntactically validated HTTPS Deferred Credential Endpoint URL.
+pub struct DeferredCredentialEndpoint {
+    value: Zeroizing<String>,
+}
+
+impl DeferredCredentialEndpoint {
+    /// Borrow the exact Deferred Credential Endpoint URL.
+    pub fn as_str(&self) -> &str {
+        &self.value
+    }
+}
+
+impl fmt::Debug for DeferredCredentialEndpoint {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("DeferredCredentialEndpoint")
+            .finish_non_exhaustive()
+    }
+}
+
 /// An opaque Credential Format identifier from issuer metadata.
 pub struct CredentialFormatIdentifier {
     value: Zeroizing<String>,
@@ -117,6 +137,7 @@ pub struct CredentialIssuerMetadata {
     authorization_servers: Option<Vec<AuthorizationServerIdentifier>>,
     credential_endpoint: CredentialEndpoint,
     nonce_endpoint: Option<NonceEndpoint>,
+    deferred_credential_endpoint: Option<DeferredCredentialEndpoint>,
     credential_configurations: Vec<CredentialConfigurationSummary>,
 }
 
@@ -165,6 +186,16 @@ impl CredentialIssuerMetadata {
                 }
             })
             .transpose()?;
+        let deferred_credential_endpoint = fields
+            .deferred_credential_endpoint
+            .map(|value| {
+                if is_valid_https_endpoint(value.as_str()) {
+                    Ok(DeferredCredentialEndpoint { value })
+                } else {
+                    Err(CredentialOfferError::UnsafeDeferredCredentialEndpoint)
+                }
+            })
+            .transpose()?;
         let credential_configurations = fields
             .credential_configurations
             .into_iter()
@@ -183,6 +214,7 @@ impl CredentialIssuerMetadata {
                 value: fields.credential_endpoint,
             },
             nonce_endpoint,
+            deferred_credential_endpoint,
             credential_configurations,
         })
     }
@@ -223,6 +255,11 @@ impl CredentialIssuerMetadata {
     /// Borrow the advertised Nonce Endpoint, or `None` when `c_nonce` is not required.
     pub const fn nonce_endpoint(&self) -> Option<&NonceEndpoint> {
         self.nonce_endpoint.as_ref()
+    }
+
+    /// Borrow the advertised Deferred Credential Endpoint, or `None` when unsupported.
+    pub const fn deferred_credential_endpoint(&self) -> Option<&DeferredCredentialEndpoint> {
+        self.deferred_credential_endpoint.as_ref()
     }
 
     /// Borrow ordered Credential Configuration summaries.
@@ -272,6 +309,10 @@ impl fmt::Debug for CredentialIssuerMetadata {
                 &self.effective_authorization_server_count(),
             )
             .field("nonce_endpoint_advertised", &self.nonce_endpoint.is_some())
+            .field(
+                "deferred_credential_endpoint_advertised",
+                &self.deferred_credential_endpoint.is_some(),
+            )
             .field(
                 "credential_configuration_count",
                 &self.credential_configurations.len(),

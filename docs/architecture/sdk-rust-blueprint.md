@@ -546,6 +546,15 @@ HTTP execution, authorization-code flow, request/response correlation,
 selection policy, token/issuer/dataset/credential trust, storage and consumer
 adoption remain later issue-first layers.
 
+The twenty-third bounded delivery, issue #241, exposes the optional Final
+`deferred_credential_endpoint` from bounded Credential Issuer Metadata. A
+distinct redaction-safe value retains the exact advertised HTTPS URL, applies
+the existing endpoint budget independently and treats omission as unsupported
+without inventing a fallback. This is metadata syntax only: Deferred Credential
+Request construction, HTTP, interval scheduling, transaction correlation and
+invalidation, access-token validity, encryption, trust, storage and product
+policy remain later issue-first layers.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

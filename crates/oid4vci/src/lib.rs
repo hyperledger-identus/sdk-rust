@@ -85,7 +85,8 @@ pub use limits::{
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,
-    CredentialIssuerMetadata, CredentialOfferWithMetadata, NonceEndpoint,
+    CredentialIssuerMetadata, CredentialOfferWithMetadata, DeferredCredentialEndpoint,
+    NonceEndpoint,
 };
 pub use pre_authorized_server::CredentialOfferWithPreAuthorizedServer;
 pub use pre_authorized_token_request::{

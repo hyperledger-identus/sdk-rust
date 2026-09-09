@@ -12,6 +12,9 @@ esac
 
 command -v wasm-pack >/dev/null
 test "$(wasm-pack --version)" = "wasm-pack 0.15.0"
+test "$(wasm-bindgen --version)" = "wasm-bindgen 0.2.121"
+cargo deny --manifest-path tests/wasm-did-browser/Cargo.toml check
+cargo audit --file tests/wasm-did-browser/Cargo.lock --deny warnings
 
 evidence_root="$(mktemp -d "${TMPDIR:-/tmp}/identus-wasm-did.XXXXXX")"
 trap 'rm -rf "$evidence_root"' EXIT
@@ -44,7 +47,7 @@ done
 
 run_browser() {
   local browser="$1"
-  wasm-pack test --headless "--$browser" crates/wasm-did --locked
+  wasm-pack test --headless "--$browser" tests/wasm-did-browser --locked
 }
 
 case "$mode" in

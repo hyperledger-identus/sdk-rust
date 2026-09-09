@@ -65,8 +65,9 @@ TypeScript contract. Root `cargo deny`, pinned-advisory `cargo audit`, exact
 locks and tag SHAs provide supply-chain evidence.
 
 The measured normal/build tree contains 35 unique rendered lines including the
-SDK/DID graph; enabling dev edges contains 56. Direct dependencies are
-`identus-did` and wasm-bindgen, with wasm-bindgen-test dev-only.
+SDK/DID graph; the separately locked browser consumer fixture contains 58.
+Direct runtime dependencies are `identus-did` and wasm-bindgen, with
+wasm-bindgen-test isolated to the slow fixture so fast CI does not compile it.
 
 The package target is `web`: native browser ESM with an explicit asynchronous
 default initializer and no mandatory Node/npm/bundler runtime. TypeScript

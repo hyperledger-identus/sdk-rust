@@ -22,8 +22,9 @@ slice.
 ## Decision
 
 1. Add unpublished `identus-wasm-did` over unchanged `identus-did` and pin
-   `wasm-bindgen` 0.2.121 plus dev-only `wasm-bindgen-test` 0.3.71 exactly. Use
-   the matching 0.2.121 CLI from the repository-pinned Nix input.
+   `wasm-bindgen` 0.2.121. Put exact `wasm-bindgen-test` 0.3.71 in a separately
+   locked browser consumer fixture, and use the matching 0.2.121 CLI from the
+   repository-pinned Nix input so the fast workspace line avoids the test cone.
 2. Export API version 1, camelCase parse functions, WASM-owned public-value
    classes and a closed error class carrying only stable redacted codes.
 3. Preserve the domain parser's input ceilings. No secret, storage, network,

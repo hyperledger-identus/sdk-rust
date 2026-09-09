@@ -1,0 +1,23 @@
+[workspace]
+resolver = "3"
+
+[package]
+name         = "identus-wasm-did-browser-tests"
+version      = "0.0.0"
+edition      = "2024"
+rust-version = "1.98.1"
+license      = "Apache-2.0"
+publish      = false
+
+[dependencies]
+identus-did       = { path = "../../crates/did" }
+identus-wasm-did  = { path = "../../crates/wasm-did" }
+wasm-bindgen      = "=0.2.121"
+wasm-bindgen-test = "=0.3.71"
+
+[lints.rust]
+unsafe_code = "forbid"
+warnings    = "deny"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }

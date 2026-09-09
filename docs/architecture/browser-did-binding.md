@@ -64,10 +64,11 @@ durable shape; direct positional input is currently marked deprecated upstream.
 | target | `wasm32-unknown-unknown` / wasm-pack `web` | browser-native ESM with explicit initialization |
 
 The resolved normal/build cone contains 35 unique rendered tree lines including
-the SDK/DID graph. Including the browser test harness contains 56. Direct
-dependencies are `identus-did` and wasm-bindgen; wasm-bindgen-test is dev-only.
-No direct `web-sys`, `js-sys`, serde-to-JS or JavaScript framework dependency is
-introduced.
+the SDK/DID graph. The separately locked browser consumer fixture contains 58.
+Direct runtime dependencies are `identus-did` and wasm-bindgen;
+wasm-bindgen-test exists only in the slow fixture and does not expand fast CI.
+No direct runtime `web-sys`, `js-sys`, serde-to-JS or JavaScript framework
+dependency is introduced.
 
 ## Reproducibility and measurements
 

@@ -3,7 +3,9 @@
 Create `crates/wasm-did` as unpublished package `identus-wasm-did`, built as
 `cdylib` and `rlib`. Its direct runtime dependencies are `identus-did` and exact
 wasm-bindgen 0.2.121. Generic DID source remains unchanged. Exact
-wasm-bindgen-test 0.3.71 is dev-only, and the matching CLI comes from Nix.
+wasm-bindgen-test 0.3.71 lives in a separately locked browser consumer fixture,
+and the matching CLI comes from Nix. The root workspace and fast line therefore
+do not compile the browser harness.
 
 ## JavaScript contract
 
@@ -26,10 +28,11 @@ separate directories, compares the complete trees and the committed declaration
 snapshot, and emits hashes and byte measurements. Generated package files stay
 untracked.
 
-The same script runs official wasm-bindgen tests in headless Chromium and
-Firefox. Linux-only browser packages and WebDrivers live in the slow Nix shell;
-the manual/scheduled slow Ubuntu workflow runs both engines. Ordinary host unit
-tests cover the facade without adding browser execution to fast CI.
+The same script runs the separately locked official wasm-bindgen consumer tests
+in headless Chromium and Firefox. Linux-only browser packages and WebDrivers
+live in the slow Nix shell; the manual/scheduled slow Ubuntu workflow runs both
+engines. Ordinary host unit tests cover the facade without adding browser
+execution to fast CI.
 
 The generated default export must be awaited before calls. A React application
 does that once in its bootstrap/provider layer. Consumers host/hash the paired

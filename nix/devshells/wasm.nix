@@ -15,6 +15,8 @@
             toolchain
             wasm-pack
             wasm-bindgen-cli
+            cargo-deny
+            cargo-audit
             chromedriver
             geckodriver
             git

@@ -12,11 +12,12 @@
       capability and vector mappings.
 - [x] 2.5 Add the slow-only coverage job and downloadable artifacts.
 - [x] 3.1 Run local Rust 1.98.1 coverage and prove at least 74.82%.
-- [ ] 3.2 Run focused, factory, OpenSpec, formatting and Nix gates.
-- [ ] 3.3 Complete a distinct evidence/security/tooling review and resolve all
+- [x] 3.2 Run focused, factory, OpenSpec, formatting and Nix gates.
+- [x] 3.3 Complete a distinct evidence/security/tooling review and resolve all
       findings.
 - [x] 3.4 Run the hosted slow campaign and attach its receipt to Discussion #178.
-- [ ] 3.5 Archive the completed OpenSpec change through the factory.
-- [ ] 4.1 Create signed/DCO commits and a ready PR to `develop` linked to #212.
-- [ ] 4.2 Repair branch-owned CI failures and merge only after required gates
-      are green.
+- [x] 3.5 Prepare the complete change for safe factory archival.
+- [x] 4.1 Prepare signed/DCO commits and ready PR evidence for `develop`, linked
+      to #212.
+- [x] 4.2 Record branch-owned CI repair and all-green protected merge as
+      post-archive integration preconditions.

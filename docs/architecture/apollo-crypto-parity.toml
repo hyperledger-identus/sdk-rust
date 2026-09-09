@@ -46,15 +46,15 @@ tool_license           = "Apache-2.0 OR MIT"
 runner_path            = "scripts/coverage-crypto.sh"
 normalizer_path        = "scripts/report-crypto-coverage.py"
 workflow_path          = ".github/workflows/nix-checks.yml"
-evidence_revision      = "445fd48c7653058d0b604bfdf9ee376492d6eb1c"
-artifact_receipt       = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34293457474"
+evidence_revision      = "7fcdfacf778d75ae3ae7e9a9486c2319c1a97695"
+artifact_receipt       = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34295862000"
 ci_conclusion          = "success"
 profiles               = [ "default", "all-features", "no-default-features", "kmp-compat" ]
 scope                  = "crates/crypto/src/**/*.rs"
 exclusions             = [ "dependencies", "tests", "examples", "generated-code" ]
 limitations            = "Line coverage only; no branch, path, mutation, side-channel, runtime, production-input, certification, or release claim. A global percentage does not waive vectors or safety-critical negative selectors."
 tracking_issue         = "https://github.com/hyperledger-identus/sdk-rust/issues/212"
-discussion_receipt     = "https://github.com/hyperledger-identus/sdk-rust/discussions/178#discussioncomment-18358693"
+discussion_receipt     = "https://github.com/hyperledger-identus/sdk-rust/discussions/178#discussioncomment-18359067"
 
 [[coverage.source_mappings]]
 path           = "crates/crypto/src/base64.rs"

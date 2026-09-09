@@ -16,5 +16,5 @@
 ## 3. Review and delivery
 
 - [x] 3.1 Record the Apple packaging ADR and update architecture/support evidence while retaining `SDK-LIM-002`.
-- [ ] 3.2 Run focused, factory, Cargo, dependency and compatible Nix gates plus distinct exact-diff review.
-- [ ] 3.3 Complete the receipt inputs and prepare canonical-spec archival plus a signed/DCO issue-linked PR for green-only integration.
+- [x] 3.2 Run focused, factory, Cargo, dependency and compatible Nix gates plus distinct exact-diff review.
+- [x] 3.3 Complete the receipt inputs and prepare canonical-spec archival plus a signed/DCO issue-linked PR for green-only integration.

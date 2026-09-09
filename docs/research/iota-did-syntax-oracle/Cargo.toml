@@ -1,0 +1,21 @@
+[workspace]
+resolver = "3"
+
+[package]
+name         = "identus-iota-did-syntax-oracle"
+version      = "0.0.0"
+edition      = "2024"
+rust-version = "1.98.1"
+license      = "Apache-2.0"
+publish      = false
+
+[dependencies]
+identus-did  = { path = "../../../crates/did" }
+identity_did = { version = "=1.5.1" }
+
+[lints.rust]
+unsafe_code = "forbid"
+warnings    = "deny"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }

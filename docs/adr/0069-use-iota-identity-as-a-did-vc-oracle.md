@@ -29,6 +29,8 @@ errors, limits, targets, and chain-neutral dependency direction.
 
 The SDK gains a strong independent implementation without importing IOTA chain
 or framework assumptions. ADR 0008 continues to govern the current DID parser.
+ADR 0104 narrows the published `identity_did 1.5.1` syntax fixture to manual
+reference evidence after its executable supply-chain and target assessment.
 
 ## Reconsideration and rollback
 

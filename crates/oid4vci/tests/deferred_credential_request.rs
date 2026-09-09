@@ -116,6 +116,46 @@ fn complete_body_limit_accepts_exact_and_rejects_one_under() {
 }
 
 #[test]
+fn default_request_limit_covers_the_default_worst_case_escaped_transaction() {
+    let response_limits = DeferredCredentialResponseLimits::default();
+    let transaction = "\0".repeat(response_limits.max_transaction_id_bytes());
+    let response = response(&transaction);
+    let request = response
+        .try_deferred_credential_request(
+            &metadata(Some(DEFERRED_ENDPOINT)),
+            DeferredCredentialRequestLimits::default(),
+        )
+        .expect("default maximum escaped transaction");
+    let value: serde_json::Value =
+        serde_json::from_slice(request.expose_sensitive_json_body()).expect("request JSON");
+
+    assert_eq!(value["transaction_id"].as_str(), Some(transaction.as_str()));
+    assert!(request.json_body_len() <= 16_384);
+}
+
+#[test]
+fn larger_response_policy_cannot_bypass_the_request_body_policy() {
+    let transaction = "\0".repeat(3_000);
+    let transaction_json = serde_json::to_string(&transaction).expect("string JSON");
+    let response_json = format!(r#"{{"transaction_id":{transaction_json},"interval":5}}"#);
+    let response_limits =
+        DeferredCredentialResponseLimits::new(response_json.len(), 1, 3, 2, transaction.len(), 1)
+            .expect("expanded response limits");
+    let response = DeferredCredentialResponseCore::parse(&response_json, response_limits)
+        .expect("expanded deferred response");
+
+    assert_eq!(
+        response
+            .try_deferred_credential_request(
+                &metadata(Some(DEFERRED_ENDPOINT)),
+                DeferredCredentialRequestLimits::default(),
+            )
+            .expect_err("request body remains independently bounded"),
+        CredentialOfferError::DeferredCredentialRequestTooLarge
+    );
+}
+
+#[test]
 fn absent_endpoint_fails_statically_without_exposing_the_transaction() {
     let transaction_canary = "MISSING_ENDPOINT_TX_CANARY_52a9";
     let response = response(transaction_canary);

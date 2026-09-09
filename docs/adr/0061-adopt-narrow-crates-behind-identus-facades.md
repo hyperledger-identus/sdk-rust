@@ -80,10 +80,10 @@ multi-consumer serializer payoff exists.
 `did_url_parser 0.3.0` is not adopted. ADR 0086 and
 [#159](https://github.com/hyperledger-identus/sdk-rust/issues/159) retain the
 current parser after reproducible grammar, exact-storage, resource, allocation,
-mutation and unsafe-reach mismatches. `oauth2`, `isomdl`, Askar and UniFFI
-require the bounded work in [#160](https://github.com/hyperledger-identus/sdk-rust/issues/160),
-[#161](https://github.com/hyperledger-identus/sdk-rust/issues/161),
-[#162](https://github.com/hyperledger-identus/sdk-rust/issues/162) and
+mutation and unsafe-reach mismatches. `oauth2` is oracle-only under ADR 0102,
+and `aries-askar 0.4.6` is not adopted under ADR 0103 after its executable
+storage spike. `isomdl` and further UniFFI work require the bounded work in
+[#161](https://github.com/hyperledger-identus/sdk-rust/issues/161) and
 [#163](https://github.com/hyperledger-identus/sdk-rust/issues/163) before
 production adoption.
 

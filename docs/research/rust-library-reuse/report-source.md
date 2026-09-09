@@ -190,7 +190,7 @@ SDK cone smaller for some candidates.
 | impierce `openid4vc` | upstream at assessed SHA | not declared | broad | `oracle` | Tracks OID4VCI/OID4VP finals, but published `oid4vci`/`openid4vp` 0.1 crates are empty placeholders and upstream uses git patches. |
 | OWF `sd-jwt-rs` | 0.7.1 | 1.67 | 54 | `not-adopt` | Explicitly implements draft version 7, not RFC 9901. |
 | `didcomm` | 0.4.1 | not declared | about 84 | `not-adopt` | Last release is from 2023 and dependencies/API predate the roadmap's DIDComm 2.1 target. |
-| `aries-askar` | 0.4.6 | 1.81 | 136 minimal | `spike` | Viable optional storage adapter, but even minimal mode brings crypto/storage policy and substantial unsafe/FFI-adjacent code. |
+| `aries-askar` | 0.4.6 | 1.81 | 192 host normal/build lines; 256 lock packages | `not-adopt` | The exact-record fixture passes 16/16 shared operations, but storage cannot be sliced from broad KMS crypto, SQLite/Tokio/SQLx, native toolchains or SDK-owned revision/CAS mechanics; ADR 0103 retains reference evidence only. |
 | `uniffi` | 0.32.0 | not declared; passes Rust 1.98.1 | 54 rendered runtime/build nodes including `identus-did`; 68 in the separately locked bindgen tool | `adopt` for experimental DID host boundary | ADRs 0097/0098 accept the isolated value-only crate after executable Swift/Kotlin host proof. Weekly slow CI checks host execution and the tool lock; public/mobile FFI support remains inactive. |
 | RustCrypto `jose-jwk` | 0.1.2 | 1.65 | 13 | `oracle` | Narrow and pure Rust, but 0.1 API maturity does not justify replacing the existing constrained JWK facade. |
 | `oauth2` | 5.0.0 | 1.65 | 68 normalized host/iOS/Android normal/build lines; 77 on WASM | `oracle` | PKCE and request bytes match normative evidence, but unconditional URL/clock/RNG/HTTP/JSON coupling, panicking/under-validated PKCE inputs and unbounded raw-body parse errors prohibit production use under ADR 0102. |
@@ -284,7 +284,7 @@ separate from the final `ready` gate.
 | 8 | [#159 — DID parser parity](https://github.com/hyperledger-identus/sdk-rust/issues/159) | `retain-local` per ADR 0086 |
 | 9 | [#160 — OAuth mechanics](https://github.com/hyperledger-identus/sdk-rust/issues/160) | `oracle`; no production dependency per ADR 0102 |
 | 10 | [#161 — isomdl](https://github.com/hyperledger-identus/sdk-rust/issues/161) | `spike` |
-| 11 | [#162 — Askar](https://github.com/hyperledger-identus/sdk-rust/issues/162) | `spike` |
+| 11 | [#162 — Askar](https://github.com/hyperledger-identus/sdk-rust/issues/162) | `not-adopt`; reference fixture only per ADR 0103 |
 | 12 | [#163 — UniFFI](https://github.com/hyperledger-identus/sdk-rust/issues/163) | `conditional-adopt` |
 | 13 | [#164 — differential oracles](https://github.com/hyperledger-identus/sdk-rust/issues/164) | `oracle` |
 

@@ -1,6 +1,6 @@
 # ADR 0070: evaluate Askar as a storage adapter
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR 0103
 - **Date:** 2026-09-08
 - **Issue:** [#175](https://github.com/hyperledger-identus/sdk-rust/issues/175)
 - **Implementation spike:** [#162](https://github.com/hyperledger-identus/sdk-rust/issues/162)
@@ -35,5 +35,5 @@ Askar the custody policy. Production adoption remains undecided.
 
 ## Reconsideration and rollback
 
-Promote to `conditional-adopt` only after #162 passes and records a measured
-dependency/security receipt. Rollback is documentation-only.
+ADR 0103 records the completed #162 result. The assessed published package is
+not adopted; reconsideration now requires the narrower triggers in that ADR.

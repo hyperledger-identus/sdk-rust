@@ -1,0 +1,7 @@
+/generated/
+/generated2/
+/generated3/
+/target/
+/.gradle/
+/kotlin/.gradle/
+/kotlin/build/

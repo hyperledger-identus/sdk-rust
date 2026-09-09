@@ -191,7 +191,7 @@ SDK cone smaller for some candidates.
 | OWF `sd-jwt-rs` | 0.7.1 | 1.67 | 54 | `not-adopt` | Explicitly implements draft version 7, not RFC 9901. |
 | `didcomm` | 0.4.1 | not declared | about 84 | `not-adopt` | Last release is from 2023 and dependencies/API predate the roadmap's DIDComm 2.1 target. |
 | `aries-askar` | 0.4.6 | 1.81 | 136 minimal | `spike` | Viable optional storage adapter, but even minimal mode brings crypto/storage policy and substantial unsafe/FFI-adjacent code. |
-| `uniffi` | 0.32.0 | not declared | 37 core package | `conditional-adopt` | Correct native binding tool once value/handle/error contracts stabilize; keep it in binding crates only. |
+| `uniffi` | 0.32.0 | not declared; passed Rust 1.98.1 spike | 54-package fixture normal/build graph including `identus-did`; 79 with bindgen CLI | `conditional-adopt` | ADR 0097 accepts bounded DID/DID URL for an isolated native implementation after Swift/Kotlin host runtime proof; FFI support remains inactive. |
 | RustCrypto `jose-jwk` | 0.1.2 | 1.65 | 13 | `oracle` | Narrow and pure Rust, but 0.1 API maturity does not justify replacing the existing constrained JWK facade. |
 | `oauth2` | 5.0.0 | 1.65 | 43 minimal | `spike` | Strong OAuth mechanics and PKCE, but `url`/clock/model assumptions must remain outside OID4VC domain types. |
 
@@ -313,7 +313,7 @@ separate from the final `ready` gate.
 | Spruce `isomdl` implements ISO 18013-5 device and reader flows. | [Spruce isomdl assessed revision](https://github.com/spruceid/isomdl/tree/fcb49d15ad9d54afa028a12183ee7fab1e46a5dc) |
 | `didcomm 0.4.1` was last released in 2023. | [didcomm-rust releases and limitations](https://github.com/sicpa-dlab/didcomm-rust/tree/4388350def84b6d7f6b65cf4a451607200035d8d) |
 | Askar combines cryptographic primitives, storage, optional databases and FFI. | [OWF Askar assessed revision](https://github.com/openwallet-foundation/askar/tree/48a495920e2166771c6be1aca2fd057a8b0c8831) |
-| UniFFI is a multi-language Rust binding generator. | [Mozilla UniFFI assessed revision](https://github.com/mozilla/uniffi-rs/tree/3a2d44a7786d0cb364e446bd96711a0d31dd9904) |
+| UniFFI is a multi-language Rust binding generator; issue #215 pins the released 0.32.0 source. | [Mozilla UniFFI 0.32.0](https://github.com/mozilla/uniffi-rs/tree/5c7b73906358e1a7acdc1bdc7bf5cd86fb27e44c) |
 | Cargo can use declared MSRV during dependency resolution, but undeclared or inaccurate metadata remains possible. | [Rust RFC 3537](https://rust-lang.github.io/rfcs/3537-msrv-resolver.html) |
 | Exact-version advisory queries returned zero entries on the assessment date. | [OSV API](https://google.github.io/osv.dev/api/) |
 

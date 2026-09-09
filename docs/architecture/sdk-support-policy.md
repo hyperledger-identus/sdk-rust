@@ -83,6 +83,12 @@ cross-compilation does not change this state. A future FFI issue must specify
 value and opaque-handle boundaries, secret handling, ownership, memory,
 concurrency, errors, target runtime tests and compatibility before promotion.
 
+Issue #215 and ADR 0097 select bounded DID/DID URL parsing as the first future
+native slice after an isolated Swift/Kotlin host proof. That research does not
+change this status: production adoption, mobile runtime and packaging remain
+issue #163 and its platform-specific children. React Native and browser WASM
+remain separate adapter decisions.
+
 ## CI cadence, binary size and build time
 
 The machine policy defines `fast` as the single Linux Rust/factory integration

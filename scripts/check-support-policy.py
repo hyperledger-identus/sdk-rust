@@ -2119,7 +2119,7 @@ def validate_toolchains(
     expected_toolchain_statements = {
         compact(
             f"""toolchain = stablePkgs.rust-bin.stable."{primary}".default.override {{
-              extensions = [ "rust-src" "rust-analyzer" ];
+              extensions = [ "llvm-tools-preview" "rust-src" "rust-analyzer" ];
               targets = [
                 "aarch64-apple-ios"
                 "aarch64-linux-android"

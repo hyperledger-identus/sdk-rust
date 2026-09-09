@@ -33,6 +33,166 @@ artifact_receipt    = "https://github.com/hyperledger-identus/sdk-rust/actions/r
 tracking_issue      = "https://github.com/hyperledger-identus/sdk-rust/issues/214"
 limitations         = "Apollo publishes no comparable harness at the pinned revision; timings are comparable only across matching revision, compiler, platform, CPU, environment and feature metadata."
 
+[coverage]
+status                 = "threshold-met"
+apollo_line_percent    = "74.81865284974093"
+threshold_basis_points = 7482
+sdk_lines              = 1722
+sdk_covered            = 1481
+sdk_percent            = "86.004646"
+tool                   = "cargo-llvm-cov 0.9.0"
+tool_revision          = "be59056988acd54c7f984b7c85643daea3711b29"
+tool_license           = "Apache-2.0 OR MIT"
+runner_path            = "scripts/coverage-crypto.sh"
+normalizer_path        = "scripts/report-crypto-coverage.py"
+workflow_path          = ".github/workflows/nix-checks.yml"
+evidence_revision      = "7fcdfacf778d75ae3ae7e9a9486c2319c1a97695"
+artifact_receipt       = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34295862000"
+ci_conclusion          = "success"
+profiles               = [ "default", "all-features", "no-default-features", "kmp-compat" ]
+scope                  = "crates/crypto/src/**/*.rs"
+exclusions             = [ "dependencies", "tests", "examples", "generated-code" ]
+limitations            = "Line coverage only; no branch, path, mutation, side-channel, runtime, production-input, certification, or release claim. A global percentage does not waive vectors or safety-critical negative selectors."
+tracking_issue         = "https://github.com/hyperledger-identus/sdk-rust/issues/212"
+discussion_receipt     = "https://github.com/hyperledger-identus/sdk-rust/discussions/178#discussioncomment-18359067"
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/base64.rs"
+capability_ids = [ "encoding-base64url-nopad", "public-jwk" ]
+vector_ids     = [ "apollo-base64url", "sdk-rfc8037-jwk" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/convert.rs"
+capability_ids = [ "ed25519-x25519-conversion" ]
+vector_ids     = [ "sdk-ed25519-x25519-conversion" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/cose.rs"
+capability_ids = [ "public-cose-key" ]
+vector_ids     = [ "sdk-cose-key" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/crypto/ed25519.rs"
+capability_ids = [ "ed25519-lifecycle", "public-jwk", "public-cose-key" ]
+vector_ids     = [ "apollo-ed25519-lifecycle", "sdk-rfc8037-jwk", "sdk-cose-key" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/crypto/mod.rs"
+capability_ids = [ "ed25519-lifecycle", "secp256k1-lifecycle", "p256-lifecycle", "x25519-key-generation" ]
+vector_ids     = [  ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/crypto/secp256k1.rs"
+capability_ids = [ "secp256k1-lifecycle", "secp256k1-private-tweak", "public-jwk", "public-cose-key" ]
+vector_ids     = [ "apollo-secp256k1-lifecycle", "apollo-secp256k1-prism-50", "sdk-cose-key" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/crypto/secp256r1.rs"
+capability_ids = [ "p256-lifecycle", "public-jwk", "public-cose-key" ]
+vector_ids     = [ "sdk-p256-lifecycle", "sdk-cose-key" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/crypto/x25519.rs"
+capability_ids = [ "x25519-key-generation", "x25519-diffie-hellman", "public-jwk", "public-cose-key" ]
+vector_ids     = [ "apollo-x25519-lifecycle", "sdk-x25519-dh", "sdk-cose-key" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/derivation/cardano_v2.rs"
+capability_ids = [ "cardano-v2-private", "cardano-v2-public" ]
+vector_ids     = [ "apollo-cardano-v2-private", "apollo-cardano-v2-public" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/derivation/edhdkey.rs"
+capability_ids = [ "slip0010-ed25519" ]
+vector_ids     = [ "sdk-slip0010-published" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/derivation/hdkey.rs"
+capability_ids = [ "secp256k1-bip32-hardened", "secp256k1-bip32-non-hardened" ]
+vector_ids     = [ "apollo-secp256k1-hd", "sdk-bip32-published" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/derivation/mnemonic.rs"
+capability_ids = [ "bip39-english", "pbkdf2-generic" ]
+vector_ids     = [ "apollo-bip39-kmp", "sdk-bip39-published" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/derivation/mod.rs"
+capability_ids = [ "bip39-english", "derivation-path", "secp256k1-bip32-hardened", "cardano-v2-private", "slip0010-ed25519" ]
+vector_ids     = [  ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/derivation/path.rs"
+capability_ids = [ "derivation-path" ]
+vector_ids     = [ "sdk-derivation-path" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/enc.rs"
+capability_ids = [ "encoding-hex", "encoding-base64url-nopad" ]
+vector_ids     = [ "apollo-rfc4648-base16", "apollo-base64url" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/error.rs"
+capability_ids = [ "ed25519-lifecycle", "secp256k1-lifecycle", "p256-lifecycle", "x25519-key-generation", "bip39-english", "public-jwk", "public-cose-key" ]
+vector_ids     = [  ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/hash.rs"
+capability_ids = [ "sha2-digests", "hmac-sha512" ]
+vector_ids     = [ "sdk-sha2-known-vectors", "sdk-hmac-sha512-rfc4231" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/hex.rs"
+capability_ids = [ "encoding-hex" ]
+vector_ids     = [ "apollo-rfc4648-base16" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/jwk.rs"
+capability_ids = [ "public-jwk" ]
+vector_ids     = [ "sdk-rfc8037-jwk" ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/lib.rs"
+capability_ids = [ "platform-distribution" ]
+vector_ids     = [  ]
+
+[[coverage.source_mappings]]
+path           = "crates/crypto/src/securerandom.rs"
+capability_ids = [ "entropy-csprng" ]
+vector_ids     = [ "apollo-secure-random" ]
+
+[[coverage.critical_tests]]
+path      = "crates/crypto/src/base64.rs"
+selectors = [ "one_over_limit_wins_before_malformed_base64url_and_is_redacted", "valid_oversized_text_is_rejected_but_trusted_encoding_remains_infallible" ]
+
+[[coverage.critical_tests]]
+path      = "crates/crypto/src/hex.rs"
+selectors = [ "one_over_limit_wins_before_malformed_hex_and_is_redacted", "valid_oversized_text_is_rejected_but_trusted_encoding_remains_infallible" ]
+
+[[coverage.critical_tests]]
+path      = "crates/crypto/tests/curves.rs"
+selectors = [ "key_generation_propagates_entropy_failure", "ec_key_generation_bounds_invalid_scalar_retries", "ed25519_from_slice_invalid_size", "x25519_from_slice_rejects_wrong_length", "p256_fixed_signature_preserves_der_api_and_rejects_tampering" ]
+
+[[coverage.critical_tests]]
+path      = "crates/crypto/tests/derivation.rs"
+selectors = [ "bip32_invalid_path_is_rejected", "bip39_invalid_mnemonic_is_rejected", "bip39_rejects_valid_words_with_an_invalid_checksum", "bip39_random_creation_propagates_entropy_failure", "hd_keys_are_zeroizing_and_debug_redacted", "explicit_hd_key_zeroization_clears_owned_state", "slip0010_rejects_seed_lengths_outside_the_normative_range", "stateful_hd_keys_reject_children_beyond_depth_255", "kmp_create_seed_rejects_invalid_checksum", "kmp_create_seed_rejects_invalid_mnemonic" ]
+
+[[coverage.critical_tests]]
+path      = "crates/crypto/tests/cardano_bip32.rs"
+selectors = [ "invalid_extended_private_keys_and_seed_lengths_are_rejected", "hardened_public_derivation_is_rejected_with_stable_redacted_error", "private_material_is_redacted_and_zeroizable", "typed_paths_above_the_work_limit_are_rejected" ]
+
+[[coverage.critical_tests]]
+path      = "crates/crypto/tests/jwk.rs"
+selectors = [ "coordinate_parse_error_never_echoes_the_rejected_value", "coordinate_rejects_above_codec_limit_before_decode", "duplicate_structural_wire_members_are_rejected", "private_and_reserved_members_are_rejected_without_value_leaks", "serde_rejects_incompatible_profiles_and_shapes", "serde_rejects_noncanonical_and_wrong_width_coordinates" ]
+
+[[coverage.critical_tests]]
+path      = "crates/crypto/tests/cose.rs"
+selectors = [ "private_material_is_rejected_and_redacted", "parser_rejects_duplicate_top_level_and_nested_map_keys", "parser_rejects_tags_trailing_data_and_oversized_inputs", "parser_rejects_parameter_and_nesting_exhaustion" ]
+
+[[coverage.critical_tests]]
+path      = "crates/crypto/tests/error_bridging.rs"
+selectors = [ "every_variant_carries_crypto_capability", "invalid_key_size_bridges_to_stable_code", "key_parsing_bridges_to_stable_code", "mnemonic_invalid_bridges_to_stable_code", "secure_random_failure_bridges_to_stable_code", "signature_invalid_bridges_to_verification_failed", "unsupported_curve_bridges_to_stable_code", "derivation_failed_bridges_to_stable_code" ]
+
 [target_evidence]
 status              = "complete"
 sdk_revision        = "244ded689a29a5e6606eeb36aede14149d585071"

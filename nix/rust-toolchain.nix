@@ -11,6 +11,7 @@
       # release rather than the affected Rust 1.98.0 compiler.
       toolchain = stablePkgs.rust-bin.stable."1.98.1".default.override {
         extensions = [
+          "llvm-tools-preview"
           "rust-src"
           "rust-analyzer"
         ];

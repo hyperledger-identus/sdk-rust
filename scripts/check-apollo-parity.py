@@ -57,6 +57,14 @@ PORTABLE_TARGET_IDS = {
     "wasm32-unknown-unknown", "aarch64-apple-ios",
     "aarch64-linux-android",
 }
+COVERAGE_PROFILES = [
+    "default", "all-features", "no-default-features", "kmp-compat",
+]
+COVERAGE_EXCLUSIONS = [
+    "dependencies", "tests", "examples", "generated-code",
+]
+COVERAGE_MAPPING_KEYS = {"path", "capability_ids", "vector_ids"}
+COVERAGE_CRITICAL_TEST_KEYS = {"path", "selectors"}
 CAPABILITY_KEYS = {
     "id", "category", "name", "disposition", "apollo_surface",
     "apollo_source_uri", "sdk_surface", "sdk_test_uri", "feature",
@@ -136,7 +144,7 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
     check.exact_keys(data, {
         "schema_version", "title", "assessment_date", "parent_issue",
         "delivery_issue", "report_discussion", "baselines", "summary",
-        "performance", "target_evidence", "capabilities", "vectors",
+        "performance", "coverage", "target_evidence", "capabilities", "vectors",
         "dependencies", "targets",
     }, "manifest")
     if data.get("schema_version") != 1:
@@ -226,6 +234,105 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
         harness_revision = harness_uri[len(expected_prefix):].split("/", 1)[0]
         if not SHA.fullmatch(harness_revision):
             check.fail("performance: harness URI is not commit-pinned")
+
+    coverage = data.get("coverage", {})
+    coverage_keys = {
+        "status", "apollo_line_percent", "threshold_basis_points",
+        "sdk_lines", "sdk_covered", "sdk_percent", "tool",
+        "tool_revision", "tool_license", "runner_path", "normalizer_path",
+        "workflow_path", "evidence_revision", "artifact_receipt",
+        "ci_conclusion", "profiles", "scope", "exclusions", "limitations",
+        "tracking_issue", "discussion_receipt", "source_mappings",
+        "critical_tests",
+    }
+    if not isinstance(coverage, dict):
+        check.fail("coverage: expected table")
+        coverage = {}
+    check.exact_keys(coverage, coverage_keys, "coverage")
+    check.text_fields(
+        coverage,
+        coverage_keys
+        - {
+            "apollo_line_percent", "threshold_basis_points", "sdk_lines",
+            "sdk_covered", "sdk_percent", "profiles",
+            "exclusions", "source_mappings", "critical_tests",
+        },
+        "coverage",
+    )
+    if coverage.get("status") != "threshold-met":
+        check.fail("coverage: status must be threshold-met")
+    if coverage.get("apollo_line_percent") != "74.81865284974093":
+        check.fail("coverage: Apollo line percentage differs from the pinned baseline")
+    if coverage.get("threshold_basis_points") != 7482:
+        check.fail("coverage: threshold must remain 74.82 percent")
+    sdk_lines = coverage.get("sdk_lines")
+    sdk_covered = coverage.get("sdk_covered")
+    if (
+        not isinstance(sdk_lines, int)
+        or isinstance(sdk_lines, bool)
+        or sdk_lines <= 0
+        or not isinstance(sdk_covered, int)
+        or isinstance(sdk_covered, bool)
+        or sdk_covered < 0
+        or sdk_covered > sdk_lines
+    ):
+        check.fail("coverage: SDK line denominator is invalid")
+    else:
+        expected_percent = f"{sdk_covered * 100 / sdk_lines:.6f}"
+        if coverage.get("sdk_percent") != expected_percent:
+            check.fail("coverage: SDK percentage differs from covered/line counts")
+        if sdk_covered * 10_000 < sdk_lines * 7482:
+            check.fail("coverage: SDK evidence falls below the Apollo threshold")
+    if coverage.get("tool") != "cargo-llvm-cov 0.9.0":
+        check.fail("coverage: tool must be cargo-llvm-cov 0.9.0")
+    if coverage.get("tool_revision") != "be59056988acd54c7f984b7c85643daea3711b29":
+        check.fail("coverage: tool revision differs from the accepted source")
+    if coverage.get("tool_license") != "Apache-2.0 OR MIT":
+        check.fail("coverage: tool license differs from the accepted source")
+    if coverage.get("profiles") != COVERAGE_PROFILES:
+        check.fail("coverage: profiles must preserve the four isolated surfaces")
+    if coverage.get("exclusions") != COVERAGE_EXCLUSIONS:
+        check.fail("coverage: exclusions differ from the accepted boundary")
+    if coverage.get("scope") != "crates/crypto/src/**/*.rs":
+        check.fail("coverage: scope must remain first-party identus-crypto source")
+    if coverage.get("tracking_issue") != "https://github.com/hyperledger-identus/sdk-rust/issues/212":
+        check.fail("coverage: tracking issue must be #212")
+    if not SHA.fullmatch(str(coverage.get("evidence_revision", ""))):
+        check.fail("coverage: evidence_revision must be a full lowercase Git SHA")
+    if coverage.get("ci_conclusion") != "success":
+        check.fail("coverage: CI conclusion must be success")
+    if not re.fullmatch(
+        r"https://github\.com/hyperledger-identus/sdk-rust/actions/runs/[0-9]+",
+        str(coverage.get("artifact_receipt", "")),
+    ):
+        check.fail("coverage: artifact receipt must be a GitHub Actions run")
+    if not re.fullmatch(
+        r"https://github\.com/hyperledger-identus/sdk-rust/discussions/178#discussioncomment-[0-9]+",
+        str(coverage.get("discussion_receipt", "")),
+    ):
+        check.fail("coverage: discussion receipt must be a Discussion #178 comment")
+    for field in ("runner_path", "normalizer_path", "workflow_path"):
+        path = check.safe_path(coverage.get(field), f"coverage {field}")
+        if path is not None and not path.is_file():
+            check.fail(f"coverage: file does not exist: {coverage.get(field)}")
+    if coverage.get("workflow_path") != ".github/workflows/nix-checks.yml":
+        check.fail("coverage: workflow must be the weekly/manual slow workflow")
+    try:
+        slow_workflow = (root / ".github/workflows/nix-checks.yml").read_text(encoding="utf-8")
+        fast_workflow = (root / ".github/workflows/factory-contract.yml").read_text(encoding="utf-8")
+        rust_toolchain = (root / "nix/rust-toolchain.nix").read_text(encoding="utf-8")
+        devshell = (root / "nix/devshells/default.nix").read_text(encoding="utf-8")
+    except OSError as error:
+        check.fail(f"coverage: cannot read workflow/Nix contract: {error}")
+    else:
+        if "./scripts/coverage-crypto.sh" not in slow_workflow:
+            check.fail("coverage: slow workflow does not execute the coverage runner")
+        if "coverage-crypto" in fast_workflow or "cargo llvm-cov" in fast_workflow:
+            check.fail("coverage: fast workflow must not execute coverage")
+        if '"llvm-tools-preview"' not in rust_toolchain:
+            check.fail("coverage: Rust toolchain lacks llvm-tools-preview")
+        if "cargo-llvm-cov" not in devshell:
+            check.fail("coverage: default Nix shell lacks cargo-llvm-cov")
 
     target_evidence = data.get("target_evidence", {})
     target_evidence_keys = {
@@ -360,6 +467,93 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
             check.fail(f"{label}: inventory differs; missing={sorted(expected-actual)}, extra={sorted(actual-expected)}")
 
     known_vectors = set(vector_ids)
+    known_capabilities = set(capability_ids)
+
+    mappings = coverage.get("source_mappings", [])
+    if not isinstance(mappings, list) or not all(isinstance(row, dict) for row in mappings):
+        check.fail("coverage: source_mappings must be an array of tables")
+        mappings = []
+    mapped_paths: list[str] = []
+    for index, row in enumerate(mappings):
+        label = f"coverage source mapping[{index}]"
+        check.exact_keys(row, COVERAGE_MAPPING_KEYS, label)
+        path_value = row.get("path")
+        source_path = check.safe_path(path_value, label)
+        if source_path is not None:
+            expected_prefix = PurePosixPath("crates/crypto/src")
+            value_path = PurePosixPath(str(path_value))
+            if expected_prefix not in (value_path, *value_path.parents):
+                check.fail(f"{label}: path must remain below crates/crypto/src")
+            elif source_path.suffix != ".rs" or not source_path.is_file():
+                check.fail(f"{label}: mapped source must be an existing Rust file")
+            else:
+                mapped_paths.append(str(path_value))
+        capability_refs = row.get("capability_ids")
+        vector_refs = row.get("vector_ids")
+        if not isinstance(capability_refs, list) or not capability_refs or not all(
+            isinstance(item, str) and item for item in capability_refs
+        ):
+            check.fail(f"{label}: capability_ids must be a non-empty string array")
+            capability_refs = []
+        if not isinstance(vector_refs, list) or not all(
+            isinstance(item, str) and item for item in vector_refs
+        ):
+            check.fail(f"{label}: vector_ids must be a string array")
+            vector_refs = []
+        unknown_capabilities = set(capability_refs) - known_capabilities
+        unknown_vectors = set(vector_refs) - known_vectors
+        if unknown_capabilities:
+            check.fail(f"{label}: unknown capability ids: {', '.join(sorted(unknown_capabilities))}")
+        if unknown_vectors:
+            check.fail(f"{label}: unknown vector ids: {', '.join(sorted(unknown_vectors))}")
+    duplicate_mappings = sorted(
+        path for path, count in Counter(mapped_paths).items() if count > 1
+    )
+    if duplicate_mappings:
+        check.fail(f"coverage: duplicate source mappings: {', '.join(duplicate_mappings)}")
+    source_root = root / "crates/crypto/src"
+    expected_source_paths = {
+        path.relative_to(root).as_posix()
+        for path in source_root.rglob("*.rs")
+        if path.is_file()
+    }
+    if set(mapped_paths) != expected_source_paths:
+        check.fail(
+            "coverage: source mapping inventory differs; "
+            f"missing={sorted(expected_source_paths-set(mapped_paths))}, "
+            f"extra={sorted(set(mapped_paths)-expected_source_paths)}"
+        )
+
+    critical_tests = coverage.get("critical_tests", [])
+    if not isinstance(critical_tests, list) or not critical_tests or not all(
+        isinstance(row, dict) for row in critical_tests
+    ):
+        check.fail("coverage: critical_tests must be a non-empty array of tables")
+        critical_tests = []
+    critical_paths: list[str] = []
+    for index, row in enumerate(critical_tests):
+        label = f"coverage critical test[{index}]"
+        check.exact_keys(row, COVERAGE_CRITICAL_TEST_KEYS, label)
+        path_value = row.get("path")
+        test_path = check.safe_path(path_value, label)
+        selectors = row.get("selectors")
+        if not isinstance(selectors, list) or not selectors or not all(
+            isinstance(item, str) and item for item in selectors
+        ):
+            check.fail(f"{label}: selectors must be a non-empty string array")
+            selectors = []
+        if test_path is not None:
+            critical_paths.append(str(path_value))
+            if not test_path.is_file():
+                check.fail(f"{label}: test file does not exist")
+            else:
+                content = test_path.read_text(encoding="utf-8")
+                for selector in selectors:
+                    if selector not in content:
+                        check.fail(f"{label}: selector not found in {path_value}: {selector}")
+    if len(critical_paths) != len(set(critical_paths)):
+        check.fail("coverage: critical test paths must be unique")
+
     referenced_vectors: set[str] = set()
     counts = Counter()
     for row in capabilities:
@@ -512,6 +706,18 @@ def render(data: dict[str, Any]) -> str:
         f"Statistics: **{', '.join(data['performance']['statistics'])}**  ",
         f"Artifact receipt: [slow workflow run]({data['performance']['artifact_receipt']})  ",
         f"Limitations: {cell(data['performance']['limitations'])}", "",
+        "## Line coverage evidence", "",
+        f"Status: **{cell(data['coverage']['status'])}**  ",
+        f"Apollo baseline: **{data['coverage']['apollo_line_percent']}%**  ",
+        f"SDK threshold: **{data['coverage']['threshold_basis_points'] / 100:.2f}%**  ",
+        f"SDK result: **{data['coverage']['sdk_percent']}%** "
+        f"({data['coverage']['sdk_covered']} / {data['coverage']['sdk_lines']})  ",
+        f"Tool: `{cell(data['coverage']['tool'])}`  ",
+        f"Profiles: **{', '.join(data['coverage']['profiles'])}**  ",
+        f"Artifact receipt: [slow workflow run]({data['coverage']['artifact_receipt']})  ",
+        f"Discussion receipt: [comment]({data['coverage']['discussion_receipt']})  ",
+        f"Mapped first-party sources: **{len(data['coverage']['source_mappings'])}**  ",
+        f"Limitations: {cell(data['coverage']['limitations'])}", "",
         "## Capabilities", "",
         "| ID | Capability | Disposition | Apollo | SDK evidence | Vectors | Decision | Rationale |",
         "| --- | --- | --- | --- | --- | --- | --- | --- |",

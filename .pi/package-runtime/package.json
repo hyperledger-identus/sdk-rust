@@ -1,0 +1,9 @@
+{
+  "name": "sdk-rust-pi-packages",
+  "private": true,
+  "dependencies": {
+    "dev-loops": "0.9.0",
+    "pi-subagents": "0.66.0",
+    "typebox": "1.3.9"
+  }
+}

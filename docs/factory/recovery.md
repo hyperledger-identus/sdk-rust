@@ -26,3 +26,25 @@ not.
 
 Never remove the primary checkout, the current worktree, a dirty or locked
 worktree, an unknown path, or a worktree whose head differs from the merged PR.
+
+## Pi package cache
+
+If bootstrap reports that `.pi/npm` is operator-owned or points to an
+unexpected location, stop and inspect it. Bootstrap will not move, replace or
+delete that path. A directory created by a raw Pi run is ignored by Git; after
+confirming no Pi process uses it, move it to a named recovery location or
+remove that exact directory manually, then rerun
+`./bootstrap.sh --prepare-pi-cache`.
+
+Complete shared caches are reported under the hidden repository sibling
+`.sdk-rust-factory/pi-packages/v1`. They contain public tooling packages, not
+credentials or sessions, but remain operator-owned state. There is no automatic
+retention deletion. To reclaim space, first confirm that no active worktree or
+Pi process resolves `.pi/npm` to the exact cache, preserve it elsewhere if
+recovery is desired, and remove only that reported digest directory. Never
+delete the sibling root broadly.
+
+An error during first population retains its uniquely named `.staging-*`
+directory for inspection. It is never selected for a Pi launch. Once the cause
+is understood and no process owns it, that exact staging directory may be
+removed manually.

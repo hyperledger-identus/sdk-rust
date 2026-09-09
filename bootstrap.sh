@@ -32,7 +32,12 @@ case "${1:-shell}" in
   --pi)
     shift
     run_in_shell node scripts/factory-tools/audit-pi.mjs --enforce-config
+    run_in_shell node scripts/factory-tools/pi-package-cache.mjs
     exec "$(nix_binary)" develop "$repository_root" --command pi "$@"
+    ;;
+  --prepare-pi-cache)
+    shift
+    run_in_shell node scripts/factory-tools/pi-package-cache.mjs "$@"
     ;;
   --audit-pi)
     shift
@@ -57,7 +62,7 @@ case "${1:-shell}" in
     ;;
   --help | -h)
     printf '%s\n' \
-      'Usage: ./bootstrap.sh [shell|--pi|--audit-pi|--configure-pi|--configure-git|--check|-- COMMAND]' \
+      'Usage: ./bootstrap.sh [shell|--pi|--prepare-pi-cache|--audit-pi|--configure-pi|--configure-git|--check|-- COMMAND]' \
       '' \
       'Configuration mutations are explicit. The default only enters the pinned Nix shell.'
     ;;

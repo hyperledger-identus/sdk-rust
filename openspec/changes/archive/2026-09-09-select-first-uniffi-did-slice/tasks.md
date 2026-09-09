@@ -14,4 +14,4 @@
 
 - [x] 3.1 Accept the native slice in ADR 0097 and update support/reuse research records; Discussion #178 receives the immutable delivery receipt.
 - [x] 3.2 Update #163 and create separately scoped native #222, React Native #223 and browser #224 issues.
-- [ ] 3.3 Complete exact-diff architecture/security review, full local gates, canonical sync, safe archive and immutable receipt.
+- [x] 3.3 Complete exact-diff architecture/security review, full local gates, canonical sync, safe archive and immutable receipt.

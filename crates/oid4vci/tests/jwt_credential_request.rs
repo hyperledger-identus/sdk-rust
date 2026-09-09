@@ -8,8 +8,8 @@ use identus_oid4vci::{
     CredentialIssuerMetadata, CredentialIssuerMetadataLimits, CredentialOffer,
     CredentialOfferError, CredentialOfferGrantLimits, CredentialOfferLimits,
     CredentialOfferSemanticLimits, EmbeddedCredentialOffer, JwtCredentialRequest,
-    JwtCredentialRequestLimits, PRE_AUTHORIZED_CODE_GRANT_TYPE, TokenResponseCore,
-    TokenResponseLimits, error_code,
+    JwtCredentialRequestLimits, PRE_AUTHORIZED_CODE_GRANT_TYPE, TokenAuthorizationDetailsLimits,
+    TokenResponseCore, TokenResponseLimits, TokenResponseWithAuthorizationDetails, error_code,
 };
 use serde_json::{Map, Value, json};
 
@@ -106,6 +106,25 @@ fn token(access_token: &str, token_type: &str, authorization_details: bool) -> T
         .expect("Token Response core")
 }
 
+fn authorized_token(
+    access_token: &str,
+    token_type: &str,
+    details: Value,
+) -> TokenResponseWithAuthorizationDetails {
+    TokenResponseCore::parse(
+        &json!({
+            "access_token": access_token,
+            "token_type": token_type,
+            "authorization_details": details
+        })
+        .to_string(),
+        TokenResponseLimits::default(),
+    )
+    .expect("Token Response core")
+    .try_validate_authorization_details(TokenAuthorizationDetailsLimits::default())
+    .expect("validated Authorization Details")
+}
+
 fn request(
     state: &identus_oid4vci::CredentialOfferWithMetadata,
     token: &TokenResponseCore,
@@ -184,6 +203,174 @@ fn constructs_owned_consumer_shaped_request_with_exact_wire_values() {
     drop(proofs);
     assert_eq!(request.credential_endpoint().as_str(), ENDPOINT);
     assert_eq!(request.expose_sensitive_json_body(), expected);
+}
+
+#[test]
+fn constructs_authorized_dataset_request_with_exact_exclusive_selector() {
+    let state = matched(&["degree", "passport"], ENDPOINT);
+    let response = authorized_token(
+        "authorized-token",
+        "Bearer",
+        json!([
+            {
+                "type": "example_extension"
+            },
+            {
+                "type": "openid_credential",
+                "credential_configuration_id": "passport",
+                "credential_identifiers": ["dataset-one", "dataset\"\\two"]
+            }
+        ]),
+    );
+    let proofs = [proof("nonce-one"), proof("nonce-two")];
+    let request = state
+        .try_create_authorized_jwt_credential_request(
+            &response,
+            0,
+            1,
+            &proofs,
+            JwtCredentialRequestLimits::default(),
+        )
+        .expect("authorized Credential Request");
+
+    assert_eq!(
+        request.expose_sensitive_authorization(),
+        "Bearer authorized-token"
+    );
+    let body: Value =
+        serde_json::from_str(request.expose_sensitive_json_body()).expect("JSON body");
+    assert_eq!(body["credential_identifier"], "dataset\"\\two");
+    assert!(body.get("credential_configuration_id").is_none());
+    assert_eq!(body["proofs"]["jwt"][0], proofs[0].compact());
+    assert_eq!(body["proofs"]["jwt"][1], proofs[1].compact());
+    assert_eq!(body.as_object().map(Map::len), Some(2));
+}
+
+#[test]
+fn authorized_dataset_selection_and_offer_binding_fail_closed() {
+    let state = matched(&["degree"], ENDPOINT);
+    let proof = [proof("nonce")];
+    let response = authorized_token(
+        "authorized-token",
+        "Bearer",
+        json!([{
+            "type": "openid_credential",
+            "credential_configuration_id": "degree",
+            "credential_identifiers": ["dataset-one"]
+        }]),
+    );
+
+    assert_eq!(
+        state
+            .try_create_authorized_jwt_credential_request(
+                &response,
+                1,
+                0,
+                &proof,
+                JwtCredentialRequestLimits::default(),
+            )
+            .expect_err("Authorization Detail index"),
+        CredentialOfferError::CredentialRequestAuthorizationDetailMissing
+    );
+    assert_eq!(
+        state
+            .try_create_authorized_jwt_credential_request(
+                &response,
+                0,
+                1,
+                &proof,
+                JwtCredentialRequestLimits::default(),
+            )
+            .expect_err("Credential Dataset index"),
+        CredentialOfferError::CredentialRequestIdentifierMissing
+    );
+
+    let mismatched = authorized_token(
+        "authorized-token",
+        "Bearer",
+        json!([{
+            "type": "openid_credential",
+            "credential_configuration_id": "passport",
+            "credential_identifiers": ["dataset-one"]
+        }]),
+    );
+    assert_eq!(
+        state
+            .try_create_authorized_jwt_credential_request(
+                &mismatched,
+                0,
+                0,
+                &proof,
+                JwtCredentialRequestLimits::default(),
+            )
+            .expect_err("configuration not offered"),
+        CredentialOfferError::CredentialRequestAuthorizationConfigurationMismatch
+    );
+}
+
+#[test]
+fn authorized_dataset_route_reuses_token_proof_and_complete_body_bounds() {
+    let state = matched(&["degree"], ENDPOINT);
+    let proof = [proof("nonce")];
+    let response = authorized_token(
+        "authorized-token",
+        "Bearer",
+        json!([{
+            "type": "openid_credential",
+            "credential_configuration_id": "degree",
+            "credential_identifiers": ["dataset-one"]
+        }]),
+    );
+    let complete = state
+        .try_create_authorized_jwt_credential_request(
+            &response,
+            0,
+            0,
+            &proof,
+            JwtCredentialRequestLimits::default(),
+        )
+        .expect("complete request");
+
+    assert_eq!(
+        state
+            .try_create_authorized_jwt_credential_request(
+                &response,
+                0,
+                0,
+                &proof,
+                JwtCredentialRequestLimits::new(
+                    1,
+                    proof[0].compact().len(),
+                    complete.json_body_len() - 1,
+                    complete.authorization_len(),
+                )
+                .expect("limits"),
+            )
+            .expect_err("body one byte over"),
+        CredentialOfferError::CredentialRequestBodyTooLarge
+    );
+
+    let unsupported = authorized_token(
+        "authorized-token",
+        "DPoP",
+        json!([{
+            "type": "openid_credential",
+            "credential_configuration_id": "degree",
+            "credential_identifiers": ["dataset-one"]
+        }]),
+    );
+    assert_eq!(
+        state
+            .try_create_authorized_jwt_credential_request(
+                &unsupported,
+                0,
+                0,
+                &proof,
+                JwtCredentialRequestLimits::default(),
+            )
+            .expect_err("unsupported token type"),
+        CredentialOfferError::CredentialRequestTokenTypeUnsupported
+    );
 }
 
 #[test]
@@ -434,6 +621,9 @@ fn request_and_all_new_errors_have_static_redacted_diagnostics() {
     let errors = [
         CredentialOfferError::InvalidJwtCredentialRequestLimits,
         CredentialOfferError::CredentialRequestConfigurationMissing,
+        CredentialOfferError::CredentialRequestAuthorizationDetailMissing,
+        CredentialOfferError::CredentialRequestIdentifierMissing,
+        CredentialOfferError::CredentialRequestAuthorizationConfigurationMismatch,
         CredentialOfferError::CredentialRequestAuthorizationDetailsUnsupported,
         CredentialOfferError::CredentialRequestTokenTypeUnsupported,
         CredentialOfferError::InvalidCredentialRequestBearerToken,

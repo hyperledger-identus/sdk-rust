@@ -237,6 +237,12 @@ pub mod error_code {
         ErrorCode::new("oid4vci.invalid_jwt_credential_request_limits");
     pub const CREDENTIAL_REQUEST_CONFIGURATION_MISSING: ErrorCode =
         ErrorCode::new("oid4vci.credential_request_configuration_missing");
+    pub const CREDENTIAL_REQUEST_AUTHORIZATION_DETAIL_MISSING: ErrorCode =
+        ErrorCode::new("oid4vci.credential_request_authorization_detail_missing");
+    pub const CREDENTIAL_REQUEST_IDENTIFIER_MISSING: ErrorCode =
+        ErrorCode::new("oid4vci.credential_request_identifier_missing");
+    pub const CREDENTIAL_REQUEST_AUTHORIZATION_CONFIGURATION_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vci.credential_request_authorization_configuration_mismatch");
     pub const CREDENTIAL_REQUEST_AUTHORIZATION_DETAILS_UNSUPPORTED: ErrorCode =
         ErrorCode::new("oid4vci.credential_request_authorization_details_unsupported");
     pub const CREDENTIAL_REQUEST_TOKEN_TYPE_UNSUPPORTED: ErrorCode =
@@ -442,6 +448,9 @@ pub enum CredentialOfferError {
     InvalidCredentialNonceCacheControl,
     InvalidJwtCredentialRequestLimits,
     CredentialRequestConfigurationMissing,
+    CredentialRequestAuthorizationDetailMissing,
+    CredentialRequestIdentifierMissing,
+    CredentialRequestAuthorizationConfigurationMismatch,
     CredentialRequestAuthorizationDetailsUnsupported,
     CredentialRequestTokenTypeUnsupported,
     InvalidCredentialRequestBearerToken,
@@ -1126,6 +1135,21 @@ impl CredentialOfferError {
                 error_code::CREDENTIAL_REQUEST_CONFIGURATION_MISSING,
                 ErrorKind::InvalidInput,
                 "OID4VCI Credential Request configuration is not offered",
+            ),
+            Self::CredentialRequestAuthorizationDetailMissing => (
+                error_code::CREDENTIAL_REQUEST_AUTHORIZATION_DETAIL_MISSING,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Request Authorization Detail is missing",
+            ),
+            Self::CredentialRequestIdentifierMissing => (
+                error_code::CREDENTIAL_REQUEST_IDENTIFIER_MISSING,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Request identifier is missing",
+            ),
+            Self::CredentialRequestAuthorizationConfigurationMismatch => (
+                error_code::CREDENTIAL_REQUEST_AUTHORIZATION_CONFIGURATION_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VCI Credential Request authorization configuration is not offered",
             ),
             Self::CredentialRequestAuthorizationDetailsUnsupported => (
                 error_code::CREDENTIAL_REQUEST_AUTHORIZATION_DETAILS_UNSUPPORTED,

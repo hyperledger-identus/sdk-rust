@@ -190,6 +190,12 @@ fn did_http_adapter_is_an_outer_boundary_over_did_core() {
 }
 
 #[test]
+fn uniffi_did_adapter_is_an_outer_boundary_over_did_core() {
+    assert!(check_dep_edge("identus-uniffi-did", "identus-did").is_ok());
+    assert!(check_dep_edge("identus-did", "identus-uniffi-did").is_err());
+}
+
+#[test]
 fn target_specific_runtime_dependencies_are_inward_edges() {
     let manifest: toml::Value = toml::from_str(
         r#"

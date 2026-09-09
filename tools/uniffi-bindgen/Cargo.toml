@@ -1,0 +1,19 @@
+[package]
+name         = "identus-uniffi-bindgen"
+version      = "0.0.0"
+edition      = "2024"
+rust-version = "1.98.1"
+license      = "Apache-2.0"
+publish      = false
+
+[workspace]
+
+[dependencies]
+uniffi = { version = "=0.32.0", default-features = false, features = [ "cli" ] }
+
+[lints.rust]
+unsafe_code = "forbid"
+warnings    = "deny"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }

@@ -59,7 +59,11 @@
             # spec-driven development tooling
             inputs'.openspec.packages.default
           ]
-          ++ lib.optionals stdenv.isDarwin [ libiconv ];
+          ++ lib.optionals stdenv.isDarwin [
+            libiconv
+            gradle
+            jdk17
+          ];
 
         env = [
           {

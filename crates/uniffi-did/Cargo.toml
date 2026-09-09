@@ -1,0 +1,17 @@
+[package]
+name                   = "identus-uniffi-did"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+publish.workspace      = true
+
+[lib]
+crate-type = [ "cdylib", "rlib" ]
+
+[dependencies]
+identus-did.workspace = true
+uniffi.workspace      = true
+
+[lints]
+workspace = true

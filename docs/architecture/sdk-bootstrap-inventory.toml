@@ -205,6 +205,15 @@ owner_issue    = "#20"
 summary        = "Quarantined seed marker; FFI is explicitly unsupported."
 
 [[packages]]
+name           = "identus-uniffi-did"
+path           = "crates/uniffi-did"
+layer          = "outer-boundary"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#226"
+summary        = "Experimental versioned UniFFI facade for bounded DID and DID URL values; host evidence only."
+
+[[packages]]
 name           = "identus-conformance"
 path           = "crates/conformance"
 layer          = "verification"

@@ -6,14 +6,14 @@
 
 ## 2. Production foundation
 
-- [ ] 2.1 Add the isolated `identus-uniffi-did` runtime crate and root dependency/inventory records without changing domain crates or the placeholder.
-- [ ] 2.2 Add stable version/value/error exports plus Rust success, bound, redaction and panic-containment tests.
-- [ ] 2.3 Add the separately locked exact-version bindgen tool, deterministic generation and reviewed Swift/Kotlin API snapshots.
-- [ ] 2.4 Compile and execute Swift and Kotlin/JVM host smoke tests against the built library.
-- [ ] 2.5 Wire host execution and nested bindgen deny/audit checks into the existing weekly slow macOS lane without changing fast PR CI.
+- [x] 2.1 Add the isolated `identus-uniffi-did` runtime crate and root dependency/inventory records without changing domain crates or the placeholder.
+- [x] 2.2 Add stable version/value/error exports plus Rust success, bound, redaction and panic-containment tests.
+- [x] 2.3 Add the separately locked exact-version bindgen tool, deterministic generation and reviewed Swift/Kotlin API snapshots.
+- [x] 2.4 Compile and execute Swift and Kotlin/JVM host smoke tests against the built library.
+- [x] 2.5 Wire host execution and nested bindgen deny/audit checks into the existing weekly slow macOS lane without changing fast PR CI.
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Record the production host-foundation ADR and update architecture/support/reuse evidence while retaining `SDK-LIM-002`.
+- [x] 3.1 Record the production host-foundation ADR and update architecture/support/reuse evidence while retaining `SDK-LIM-002`.
 - [ ] 3.2 Run focused dependency/security checks, full factory/Cargo/Nix gates and distinct exact-diff architecture/security review.
 - [ ] 3.3 Sync canonical specs, complete the receipt, archive the change, open the signed/DCO issue-linked PR and integrate only after green required CI.

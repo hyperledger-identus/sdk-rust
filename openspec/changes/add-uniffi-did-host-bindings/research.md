@@ -53,9 +53,10 @@ mutated.
 
 The runtime crate adds only `identus-did` and `uniffi = =0.32.0` with default
 features disabled. The separate tool enables only UniFFI's CLI feature under its
-own nested workspace and lock. This records the direct and resolved dependency cone: #215 measured 54 unique package/version
-renderings in the combined default runtime/build graph and 79 with CLI tooling;
-the new layout prevents the CLI-only graph from entering the root runtime lock.
+own nested workspace and lock. The direct and resolved dependency cone contains
+54 distinct rendered runtime/build nodes including `identus-did`, and 68 in the
+separate bindgen tool graph. The new layout prevents CLI-only template/parser
+packages from entering the root runtime lock.
 
 UniFFI is MPL-2.0, pre-1.0, edition 2021 and declares no package MSRV. The exact
 release passed the SDK Rust 1.98.1 etalon in #215. Target evidence currently
@@ -84,6 +85,11 @@ callbacks, futures or thread-affine values. Every return is an owned value.
 `binding_api_version()` returns `1`; breaking DTO, function or error changes
 require a versioned ADR and snapshot update. Pre-1.0 Rust crate version `0.0.0`
 is not the cross-language ABI version.
+
+The root license policy grants MPL-2.0 exceptions only to the exact UniFFI
+0.32.0 runtime and generator family. The separately locked generator is checked
+with `cargo deny` and `cargo audit` in the weekly slow macOS lane alongside host
+execution; it does not enlarge the fast Linux pull-request line.
 
 Maintenance, release and security posture remains deliberately pre-release:
 the component is experimental repository code, not a published support claim.

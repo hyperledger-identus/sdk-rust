@@ -6,8 +6,8 @@ use crate::{
     AuthorizationServerMetadataLimits, CredentialErrorResponseLimits,
     CredentialIssuerMetadataLimits, CredentialNonceResponseLimits, CredentialOfferError,
     CredentialOfferGrantLimits, CredentialOfferLimits, CredentialOfferSemanticLimits,
-    DeferredCredentialResponseLimits, ImmediateCredentialResponseLimits, TokenErrorResponseLimits,
-    TokenResponseLimits,
+    DeferredCredentialResponseLimits, ImmediateCredentialResponseLimits,
+    TokenAuthorizationDetailsLimits, TokenErrorResponseLimits, TokenResponseLimits,
 };
 
 const AUTHORIZATION_CODE_GRANT: &str = "authorization_code";
@@ -70,6 +70,16 @@ pub(crate) struct TokenResponseFields {
     pub(crate) refresh_token: Option<Zeroizing<String>>,
     pub(crate) scope: Option<Zeroizing<String>>,
     pub(crate) authorization_details_present: bool,
+}
+
+pub(crate) struct TokenAuthorizationDetailsFields {
+    pub(crate) credential_details: Vec<CredentialAuthorizationDetailFields>,
+    pub(crate) unknown_type_count: usize,
+}
+
+pub(crate) struct CredentialAuthorizationDetailFields {
+    pub(crate) credential_configuration_id: Zeroizing<String>,
+    pub(crate) credential_identifiers: Vec<Zeroizing<String>>,
 }
 
 pub(crate) struct TokenErrorResponseFields {
@@ -249,6 +259,32 @@ pub(crate) fn parse_token_response_fields(
     scanner.skip_whitespace();
     if scanner.cursor != input.len() {
         return Err(CredentialOfferError::InvalidTokenResponse);
+    }
+    Ok(fields)
+}
+
+pub(crate) fn parse_token_authorization_details_fields(
+    input: &[u8],
+    token_limits: TokenResponseLimits,
+    limits: TokenAuthorizationDetailsLimits,
+) -> Result<TokenAuthorizationDetailsFields, CredentialOfferError> {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
+        max_depth: token_limits.max_json_depth(),
+        max_nodes: token_limits.max_json_nodes(),
+        nodes: 0,
+    };
+    scanner.skip_whitespace();
+    scanner.visit_node()?;
+    let depth = scanner.enter_container(0)?;
+    if !scanner.consume_if(b'{') {
+        return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
+    }
+    let fields = scanner.parse_token_authorization_details_object(depth, limits)?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
     }
     Ok(fields)
 }
@@ -757,6 +793,160 @@ impl Scanner<'_> {
             scope,
             authorization_details_present,
         })
+    }
+
+    fn parse_token_authorization_details_object(
+        &mut self,
+        depth: usize,
+        limits: TokenAuthorizationDetailsLimits,
+    ) -> Result<TokenAuthorizationDetailsFields, CredentialOfferError> {
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut authorization_details = None;
+        loop {
+            let name = self.parse_unique_member_name(&mut names)?;
+            self.require_member_separator()?;
+            if name.as_str() == "authorization_details" {
+                authorization_details =
+                    Some(self.parse_token_authorization_details_array(depth, limits)?);
+            } else {
+                self.parse_value(depth)?;
+            }
+            if self.finish_or_continue_object()? {
+                break;
+            }
+        }
+
+        authorization_details.ok_or(CredentialOfferError::InvalidTokenAuthorizationDetails)
+    }
+
+    fn parse_token_authorization_details_array(
+        &mut self,
+        depth: usize,
+        limits: TokenAuthorizationDetailsLimits,
+    ) -> Result<TokenAuthorizationDetailsFields, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        if !self.consume_if(b'[') {
+            return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
+        }
+        let depth = self.enter_container(depth)?;
+        self.skip_whitespace();
+        if self.consume_if(b']') {
+            return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
+        }
+
+        let mut total = 0usize;
+        let mut unknown_type_count = 0usize;
+        let mut credential_details = Vec::new();
+        let mut credential_identifiers: Vec<Zeroizing<String>> = Vec::new();
+        loop {
+            if total == limits.max_authorization_details() {
+                return Err(CredentialOfferError::TooManyTokenAuthorizationDetails);
+            }
+            total += 1;
+            match self.parse_token_authorization_detail(depth, limits)? {
+                Some(detail) => {
+                    for identifier in &detail.credential_identifiers {
+                        if credential_identifiers
+                            .iter()
+                            .any(|existing| existing.as_str() == identifier.as_str())
+                        {
+                            return Err(CredentialOfferError::DuplicateCredentialIdentifier);
+                        }
+                        credential_identifiers.push(Zeroizing::new(identifier.to_string()));
+                    }
+                    credential_details.push(detail);
+                }
+                None => unknown_type_count += 1,
+            }
+            self.skip_whitespace();
+            match self.peek() {
+                Some(b',') => self.cursor += 1,
+                Some(b']') => {
+                    self.cursor += 1;
+                    break;
+                }
+                _ => return Err(CredentialOfferError::InvalidTokenAuthorizationDetails),
+            }
+        }
+
+        if credential_details.is_empty() {
+            return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
+        }
+        Ok(TokenAuthorizationDetailsFields {
+            credential_details,
+            unknown_type_count,
+        })
+    }
+
+    fn parse_token_authorization_detail(
+        &mut self,
+        depth: usize,
+        limits: TokenAuthorizationDetailsLimits,
+    ) -> Result<Option<CredentialAuthorizationDetailFields>, CredentialOfferError> {
+        self.visit_node()?;
+        self.skip_whitespace();
+        if !self.consume_if(b'{') {
+            return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
+        }
+        let depth = self.enter_container(depth)?;
+        self.skip_whitespace();
+        if self.consume_if(b'}') {
+            return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
+        }
+
+        let mut names: Vec<Zeroizing<String>> = Vec::new();
+        let mut detail_type = None;
+        let mut configuration_range = None;
+        let mut identifiers_range = None;
+        loop {
+            let name = self.parse_unique_member_name(&mut names)?;
+            self.require_member_separator()?;
+            match name.as_str() {
+                "type" => {
+                    detail_type = Some(self.parse_nonempty_bounded_string(
+                        limits.max_type_bytes(),
+                        CredentialOfferError::InvalidTokenAuthorizationDetails,
+                        CredentialOfferError::TokenAuthorizationDetailValueTooLarge,
+                    )?);
+                }
+                "credential_configuration_id" => {
+                    configuration_range = Some(self.capture_value_range(depth)?);
+                }
+                "credential_identifiers" => {
+                    identifiers_range = Some(self.capture_value_range(depth)?);
+                }
+                _ => self.parse_value(depth)?,
+            }
+            if self.finish_or_continue_object()? {
+                break;
+            }
+        }
+
+        let detail_type =
+            detail_type.ok_or(CredentialOfferError::InvalidTokenAuthorizationDetails)?;
+        if detail_type.as_str() != "openid_credential" {
+            return Ok(None);
+        }
+        let configuration_range =
+            configuration_range.ok_or(CredentialOfferError::InvalidTokenAuthorizationDetails)?;
+        let identifiers_range =
+            identifiers_range.ok_or(CredentialOfferError::InvalidTokenAuthorizationDetails)?;
+        let credential_configuration_id = parse_authorization_detail_string(
+            &self.input[configuration_range],
+            limits.max_credential_configuration_id_bytes(),
+        )?;
+        let credential_identifiers =
+            parse_credential_identifiers(&self.input[identifiers_range], limits)?;
+        Ok(Some(CredentialAuthorizationDetailFields {
+            credential_configuration_id,
+            credential_identifiers,
+        }))
     }
 
     fn parse_token_error_response_object(
@@ -1535,6 +1725,13 @@ impl Scanner<'_> {
         Ok(name)
     }
 
+    fn capture_value_range(&mut self, depth: usize) -> Result<Range<usize>, CredentialOfferError> {
+        self.skip_whitespace();
+        let start = self.cursor;
+        self.parse_value(depth)?;
+        Ok(start..self.cursor)
+    }
+
     fn require_member_separator(&mut self) -> Result<(), CredentialOfferError> {
         self.skip_whitespace();
         if self.consume_if(b':') {
@@ -1917,4 +2114,85 @@ impl Scanner<'_> {
     fn peek(&self) -> Option<u8> {
         self.input.get(self.cursor).copied()
     }
+}
+
+fn parse_authorization_detail_string(
+    input: &[u8],
+    max_bytes: usize,
+) -> Result<Zeroizing<String>, CredentialOfferError> {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
+        max_depth: 1,
+        max_nodes: 1,
+        nodes: 0,
+    };
+    let value = scanner.parse_nonempty_bounded_string(
+        max_bytes,
+        CredentialOfferError::InvalidTokenAuthorizationDetails,
+        CredentialOfferError::TokenAuthorizationDetailValueTooLarge,
+    )?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
+    }
+    Ok(value)
+}
+
+fn parse_credential_identifiers(
+    input: &[u8],
+    limits: TokenAuthorizationDetailsLimits,
+) -> Result<Vec<Zeroizing<String>>, CredentialOfferError> {
+    let mut scanner = Scanner {
+        input,
+        cursor: 0,
+        max_depth: 1,
+        max_nodes: limits
+            .max_credential_identifiers_per_detail()
+            .saturating_add(1),
+        nodes: 0,
+    };
+    scanner.visit_node()?;
+    scanner.skip_whitespace();
+    if !scanner.consume_if(b'[') {
+        return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
+    }
+    scanner.enter_container(0)?;
+    scanner.skip_whitespace();
+    if scanner.consume_if(b']') {
+        return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
+    }
+
+    let mut identifiers = Vec::new();
+    loop {
+        if identifiers.len() == limits.max_credential_identifiers_per_detail() {
+            return Err(CredentialOfferError::TooManyCredentialIdentifiers);
+        }
+        let identifier = scanner.parse_nonempty_bounded_string(
+            limits.max_credential_identifier_bytes(),
+            CredentialOfferError::InvalidTokenAuthorizationDetails,
+            CredentialOfferError::TokenAuthorizationDetailValueTooLarge,
+        )?;
+        if identifiers
+            .iter()
+            .any(|existing: &Zeroizing<String>| existing.as_str() == identifier.as_str())
+        {
+            return Err(CredentialOfferError::DuplicateCredentialIdentifier);
+        }
+        identifiers.push(identifier);
+        scanner.skip_whitespace();
+        match scanner.peek() {
+            Some(b',') => scanner.cursor += 1,
+            Some(b']') => {
+                scanner.cursor += 1;
+                break;
+            }
+            _ => return Err(CredentialOfferError::InvalidTokenAuthorizationDetails),
+        }
+    }
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
+    }
+    Ok(identifiers)
 }

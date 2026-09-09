@@ -3,7 +3,10 @@ use std::fmt;
 use fluent_uri::UriRef;
 use zeroize::Zeroizing;
 
-use crate::{CredentialOfferError, TokenResponseLimits, json::parse_token_response_fields};
+use crate::{
+    CredentialOfferError, TokenAuthorizationDetailsLimits, TokenResponseLimits,
+    json::{parse_token_authorization_details_fields, parse_token_response_fields},
+};
 
 /// A validated OAuth access-token type.
 pub struct TokenType {
@@ -40,6 +43,7 @@ pub struct TokenResponseCore {
     refresh_token: Option<Zeroizing<String>>,
     scope: Option<Zeroizing<String>>,
     authorization_details_present: bool,
+    parse_limits: TokenResponseLimits,
 }
 
 impl TokenResponseCore {
@@ -82,6 +86,7 @@ impl TokenResponseCore {
             refresh_token: fields.refresh_token,
             scope: fields.scope,
             authorization_details_present: fields.authorization_details_present,
+            parse_limits: limits,
         })
     }
 
@@ -115,6 +120,34 @@ impl TokenResponseCore {
         self.authorization_details_present
     }
 
+    /// Validate credential Authorization Details through an explicit state transition.
+    ///
+    /// This consumes the presence-only core so a caller cannot confuse partial
+    /// OAuth parsing with validated OpenID4VCI credential dataset identifiers.
+    pub fn try_validate_authorization_details(
+        self,
+        limits: TokenAuthorizationDetailsLimits,
+    ) -> Result<TokenResponseWithAuthorizationDetails, CredentialOfferError> {
+        let fields = parse_token_authorization_details_fields(
+            self.json.as_bytes(),
+            self.parse_limits,
+            limits,
+        )?;
+        let credential_details = fields
+            .credential_details
+            .into_iter()
+            .map(|fields| CredentialAuthorizationDetail {
+                credential_configuration_id: fields.credential_configuration_id,
+                credential_identifiers: fields.credential_identifiers,
+            })
+            .collect();
+        Ok(TokenResponseWithAuthorizationDetails {
+            core: self,
+            credential_details,
+            unknown_type_count: fields.unknown_type_count,
+        })
+    }
+
     /// Borrow the access token for immediate protected-resource use.
     ///
     /// Keep the value out of logs, URLs, telemetry, caches, generic
@@ -137,6 +170,80 @@ impl TokenResponseCore {
     /// telemetry, URLs, caches, and unrelated storage.
     pub fn expose_sensitive_scope(&self) -> Option<&str> {
         self.scope.as_ref().map(|value| value.as_str())
+    }
+}
+
+/// One validated `openid_credential` authorization-detail entry.
+pub struct CredentialAuthorizationDetail {
+    credential_configuration_id: Zeroizing<String>,
+    credential_identifiers: Vec<Zeroizing<String>>,
+}
+
+impl CredentialAuthorizationDetail {
+    /// Borrow the Credential Configuration ID referenced by this entry.
+    pub fn credential_configuration_id(&self) -> &str {
+        &self.credential_configuration_id
+    }
+
+    /// Return the number of authorized Credential Dataset identifiers.
+    pub fn credential_identifier_count(&self) -> usize {
+        self.credential_identifiers.len()
+    }
+
+    /// Iterate over the authorized Credential Dataset identifiers.
+    pub fn credential_identifiers(&self) -> impl ExactSizeIterator<Item = &str> {
+        self.credential_identifiers
+            .iter()
+            .map(|value| value.as_str())
+    }
+}
+
+impl fmt::Debug for CredentialAuthorizationDetail {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("CredentialAuthorizationDetail")
+            .field(
+                "credential_identifier_count",
+                &self.credential_identifiers.len(),
+            )
+            .finish_non_exhaustive()
+    }
+}
+
+/// A successful Token Response with validated credential Authorization Details.
+///
+/// This state proves syntax, bounds and identifier uniqueness only. It does
+/// not establish token, issuer, metadata, dataset or Credential trust.
+pub struct TokenResponseWithAuthorizationDetails {
+    core: TokenResponseCore,
+    credential_details: Vec<CredentialAuthorizationDetail>,
+    unknown_type_count: usize,
+}
+
+impl TokenResponseWithAuthorizationDetails {
+    /// Borrow the validated OAuth Token Response core.
+    pub const fn token_response_core(&self) -> &TokenResponseCore {
+        &self.core
+    }
+
+    /// Borrow recognized credential Authorization Details in source order.
+    pub fn credential_authorization_details(&self) -> &[CredentialAuthorizationDetail] {
+        &self.credential_details
+    }
+
+    /// Return the number of bounded unsupported authorization-detail types.
+    pub const fn unknown_authorization_detail_count(&self) -> usize {
+        self.unknown_type_count
+    }
+}
+
+impl fmt::Debug for TokenResponseWithAuthorizationDetails {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("TokenResponseWithAuthorizationDetails")
+            .field("credential_detail_count", &self.credential_details.len())
+            .field("unknown_type_count", &self.unknown_type_count)
+            .finish_non_exhaustive()
     }
 }
 

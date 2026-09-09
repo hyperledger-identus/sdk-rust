@@ -157,6 +157,18 @@ pub mod error_code {
         ErrorCode::new("oid4vci.refresh_token_too_large");
     pub const INVALID_TOKEN_SCOPE: ErrorCode = ErrorCode::new("oid4vci.invalid_token_scope");
     pub const TOKEN_SCOPE_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vci.token_scope_too_large");
+    pub const INVALID_TOKEN_AUTHORIZATION_DETAILS_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_token_authorization_details_limits");
+    pub const INVALID_TOKEN_AUTHORIZATION_DETAILS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_token_authorization_details");
+    pub const TOO_MANY_TOKEN_AUTHORIZATION_DETAILS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_token_authorization_details");
+    pub const TOKEN_AUTHORIZATION_DETAIL_VALUE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.token_authorization_detail_value_too_large");
+    pub const TOO_MANY_CREDENTIAL_IDENTIFIERS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_credential_identifiers");
+    pub const DUPLICATE_CREDENTIAL_IDENTIFIER: ErrorCode =
+        ErrorCode::new("oid4vci.duplicate_credential_identifier");
     pub const INVALID_TOKEN_ERROR_RESPONSE_LIMITS: ErrorCode =
         ErrorCode::new("oid4vci.invalid_token_error_response_limits");
     pub const TOKEN_ERROR_RESPONSE_TOO_LARGE: ErrorCode =
@@ -390,6 +402,12 @@ pub enum CredentialOfferError {
     RefreshTokenTooLarge,
     InvalidTokenScope,
     TokenScopeTooLarge,
+    InvalidTokenAuthorizationDetailsLimits,
+    InvalidTokenAuthorizationDetails,
+    TooManyTokenAuthorizationDetails,
+    TokenAuthorizationDetailValueTooLarge,
+    TooManyCredentialIdentifiers,
+    DuplicateCredentialIdentifier,
     InvalidTokenErrorResponseLimits,
     TokenErrorResponseTooLarge,
     InvalidTokenErrorResponse,
@@ -908,6 +926,36 @@ impl CredentialOfferError {
                 error_code::TOKEN_SCOPE_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VCI token scope is too large",
+            ),
+            Self::InvalidTokenAuthorizationDetailsLimits => (
+                error_code::INVALID_TOKEN_AUTHORIZATION_DETAILS_LIMITS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Response Authorization Details limits are invalid",
+            ),
+            Self::InvalidTokenAuthorizationDetails => (
+                error_code::INVALID_TOKEN_AUTHORIZATION_DETAILS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Response Authorization Details are invalid",
+            ),
+            Self::TooManyTokenAuthorizationDetails => (
+                error_code::TOO_MANY_TOKEN_AUTHORIZATION_DETAILS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Response has too many Authorization Details",
+            ),
+            Self::TokenAuthorizationDetailValueTooLarge => (
+                error_code::TOKEN_AUTHORIZATION_DETAIL_VALUE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Response Authorization Details value is too large",
+            ),
+            Self::TooManyCredentialIdentifiers => (
+                error_code::TOO_MANY_CREDENTIAL_IDENTIFIERS,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Response has too many Credential identifiers",
+            ),
+            Self::DuplicateCredentialIdentifier => (
+                error_code::DUPLICATE_CREDENTIAL_IDENTIFIER,
+                ErrorKind::InvalidInput,
+                "OID4VCI Token Response has a duplicate Credential identifier",
             ),
             Self::InvalidTokenErrorResponseLimits => (
                 error_code::INVALID_TOKEN_ERROR_RESPONSE_LIMITS,

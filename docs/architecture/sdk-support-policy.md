@@ -93,10 +93,12 @@ Issue #226 and ADR 0098 add an unpublished `identus-uniffi-did` production-shape
 foundation with ABI version 1, deterministic generation and macOS Swift plus
 Kotlin/JVM host execution. Issue #228 and ADR 0099 add deterministic local arm64
 iOS-device/iOS-Simulator static archives, an XCFramework/SwiftPM wrapper and an
-iOS Simulator behavior receipt. These remain experimental verification
-evidence: the package is unsigned and unpublished, physical-device and
-multi-Rust-static-library composition are unproven, and Android AAR/NDK runtime
-evidence is absent. `[ffi].status` and `SDK-LIM-002` therefore remain
+iOS Simulator behavior receipt. Issue #230 and ADR 0100 add a deterministic
+local arm64-v8a AAR, explicit JNA dependency and API-35 arm64 emulator receipt.
+These remain experimental verification evidence: packages are unsigned and
+unpublished, physical-device, wider ABI/runtime compatibility and
+multi-Rust-static-library composition are unproven. `[ffi].status`,
+`SDK-LIM-002` and `SDK-LIM-003` therefore remain
 `not-supported`.
 
 ## CI cadence, binary size and build time

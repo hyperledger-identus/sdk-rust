@@ -15,4 +15,4 @@
 ## 3. Review and delivery
 
 - [x] 3.1 Complete exact-diff review and verification receipt.
-- [ ] 3.2 Prepare archive and merge only after green hosted gates.
+- [x] 3.2 Prepare archive and merge only after green hosted gates.

@@ -1,0 +1,17 @@
+record DidUrlView
+property value:String
+property did:String
+property method:String
+property methodSpecificId:String
+property path:String
+property query:String?
+property fragment:String?
+record DidView
+property value:String
+property method:String
+property methodSpecificId:String
+error DidBindingException
+case InvalidDid
+case InvalidDidUrl
+function parseDid(value:String):DidView throws DidBindingException
+function parseDidUrl(value:String):DidUrlView throws DidBindingException

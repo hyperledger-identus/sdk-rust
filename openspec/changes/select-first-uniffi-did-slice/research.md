@@ -43,7 +43,7 @@ native UniFFI.
 
 | Candidate | Version/revision | Decision | Reason | Reconsideration trigger |
 | --- | --- | --- | --- | --- |
-| UniFFI proc macros plus library-mode generation | 0.32.0 / `5c7b7390` | `spike` | One Rust definition, direct Swift/Kotlin support, metadata extracted from the built library | Reject if exact SDK DTO/error mapping, reproducible generation, Rust 1.98.1 or native runtime checks fail |
+| UniFFI proc macros plus library-mode generation | 0.32.0 / `5c7b7390` | `conditional-adopt` | One Rust definition; exact double-generation plus Swift/Kotlin host runtime passed | Reconsider if production mobile/package, security or versioned-ABI gates fail |
 | UDL-first generation | UniFFI 0.32.0 | `not-adopt` | Duplicates the Rust interface, and upstream deprecates single-UDL generation in favor of library mode | Reconsider for a consumer-owned ABI whose independent schema is intentionally authoritative |
 | Hybrid UDL plus proc macros | UniFFI 0.32.0 | `not-adopt` | Adds two definition mechanisms without a need in the value-only slice | Reconsider when a required type or external ABI cannot be expressed with proc macros |
 | SDK-owned value/error wrapper records | repository fixture | `retain-local` | Keeps `identus-did` UniFFI-free and prevents Rust/domain/dependency types crossing the ABI | Reconsider only through a versioned binding contract |
@@ -60,11 +60,15 @@ crosses the ABI. A production facade can therefore version independently and
 roll back by removing its isolated binding crate.
 
 UniFFI 0.32.0 declares Rust edition 2021 and no package `rust-version`; the
-spike must prove the SDK's Rust 1.98.1 etalon rather than infer an MSRV. Exact
-direct and resolved dependency cones, features, duplicate packages and target
-artifacts will be captured from the isolated lock and `cargo tree`. Generator
-features belong to the fixture tool path and must not leak into a future
-runtime-only crate. The root `Cargo.toml` and `Cargo.lock` remain unchanged.
+spike passes the SDK's Rust 1.98.1 etalon rather than inferring an MSRV. Its
+isolated lock contains 85 packages and hashes to
+`248c8414b01e937dfcce98f23bca85887a1775634e30639adbed972ab1a3d8b4`.
+The direct and resolved dependency cone in the default normal/build graph has 54 unique package/version
+renderings including the SDK/DID graph; the bindgen CLI feature has 79. No
+package declares Cargo `links`. Generator features belong to the fixture tool
+path and must not leak into a future runtime-only crate. The root
+`Cargo.toml` and `Cargo.lock` remain unchanged. Kotlin/JNA 5.18.1 and Kotlin
+plugin 2.2.20 are recorded by the fixture's Gradle lock.
 
 ## Security, privacy and maintenance evidence
 
@@ -95,30 +99,43 @@ deferred to separate issues so platform-specific coupling cannot reshape the
 generic domain crate.
 
 Supply-chain evidence is bounded to immutable upstream tags, crates.io package
-metadata, the isolated lockfile and the resolved normal/build graphs. Advisory,
-license and source inspection results will be recorded after the fixture lock
-exists; no package is admitted to the production workspace by this decision.
+metadata, the isolated lockfile and the resolved normal/build graphs. Every
+Cargo package has a declared license expression. Source inspection found 47
+explicit `unsafe {}` lines across UniFFI runtime/macro source; these are
+dependency-owned and no authored fixture unsafe is permitted. Native dynamic
+loading and JNA remain runtime boundaries even though no Cargo package declares
+`links`. The installed `cargo-audit` failed to parse a current advisory-database
+CVSS 4.0 record, so no clean advisory assertion is made; production #222 must
+use the repository-pinned supply-chain gate. No package is admitted to the
+production workspace by this decision.
 
 ## Open questions and blockers
 
-No blocker prevents the isolated spike. The spike must still settle generated
-Swift/Kotlin call shapes, error enum ergonomics, output normalization, exact
-dependency cones and whether the generated consumers can link and execute on
-this macOS host. Failure is a valid no-go result and does not authorize a
-production dependency.
+No research blocker remains. The generated native call shapes are useful and
+value-oriented. Stable enum cases are redacted, although production #222
+should add machine-readable code access because Kotlin's generated message is
+empty and Swift's default description is the enum identity. Exact output is
+byte-reproducible on the host. Mobile packaging/runtime, panic containment for
+arbitrary exports, object ownership, async/callback behavior and supported ABI
+versioning deliberately remain #222 rather than being inferred from this
+value-only proof.
 
 ## Evidence commands
 
-Commands already run: `git ls-remote` for both pinned tags, GitHub commit API
+Commands run: `git ls-remote` for both pinned tags, GitHub commit API
 lookups, `cargo info uniffi@0.32.0`, direct manifest/license inspection,
-`rustc --version`, `swiftc --version`, `java -version`, and base
-`scripts/factory doctor`. Planned commands are isolated `cargo build/test`,
-`cargo tree`, `cargo metadata`, library-mode Swift/Kotlin generation, repeat
-generation plus normalized diff, `swiftc` runtime execution, Gradle Kotlin/JNA
-runtime execution, workspace factory/full gates and exact-diff review.
+`rustc --version`, `swiftc --version`, `java -version`, base
+`scripts/factory doctor`, isolated locked Rust test/Clippy/release build,
+`cargo tree`, `cargo metadata`, two library-mode Swift/Kotlin generations,
+complete generated-tree and normalized API diffs, `swiftc` runtime execution,
+Gradle Kotlin/JNA runtime execution and root manifest/lock diff. The committed
+`scripts/verify.sh` reproduces the executable proof.
 
-Intentionally unrun at research readiness: iOS/Android device packaging,
+Intentionally unrun: iOS/Android device packaging,
 React Native Metro/JSI/TurboModule execution, browser execution, Windows,
 Python/Ruby, async/callback/object handles, fuzzing and release publication.
-Those are outside this research-only value slice. Rollback is documentation
-and fixture removal; no production dependency or consumer state exists.
+Those are outside this research-only value slice. Local `cargo-audit` was run
+but failed on unsupported CVSS 4.0 advisory syntax before evaluating this lock;
+it is an unpassed tool gate, not vulnerability evidence. Rollback is
+documentation and fixture removal; no production dependency or consumer state
+exists.

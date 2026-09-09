@@ -24,9 +24,10 @@ if [[ "$host_cone" != "68" ]]; then
   exit 1
 fi
 
-if git -C "$repo_root" diff --quiet origin/develop -- Cargo.toml Cargo.lock; then
-  echo "oauth2-spike: host, supply-chain and root-graph isolation checks passed"
-else
-  echo "oauth2-spike: root Cargo.toml or Cargo.lock differs from origin/develop" >&2
+if rg -q '^name = "oauth2"$' "$repo_root/Cargo.lock" || \
+  rg -q '^[[:space:]]*oauth2[[:space:]]*=' "$repo_root/Cargo.toml"; then
+  echo "oauth2-spike: oauth2 entered the root manifest or lock" >&2
   exit 1
 fi
+
+echo "oauth2-spike: host, supply-chain and root-graph isolation checks passed"

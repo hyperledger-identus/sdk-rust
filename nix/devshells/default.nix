@@ -84,6 +84,10 @@
             name = "LIBRARY_PATH";
             value = "${pkgs.libiconv}/lib";
           }
+          {
+            name = "IDENTUS_JAVA_HOME";
+            value = "${pkgs.jdk17}";
+          }
         ];
       };
 

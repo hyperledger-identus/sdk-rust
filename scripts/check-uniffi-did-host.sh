@@ -48,7 +48,10 @@ swiftc "$generated_a/IdentusDid.swift" "$repository_root/tests/uniffi-did-host/s
     -o "$generated_root/swift-smoke"
 DYLD_LIBRARY_PATH="$library_dir" "$generated_root/swift-smoke"
 
-java_home=$(/usr/libexec/java_home -v 17)
+java_home=${IDENTUS_JAVA_HOME:-${JAVA_HOME:-}}
+if [[ -z $java_home ]]; then
+    java_home=$(/usr/libexec/java_home -v 17)
+fi
 IDENTUS_UNIFFI_GENERATED_DIR="$generated_a" \
 IDENTUS_UNIFFI_LIBRARY_DIR="$library_dir" \
 JAVA_HOME="$java_home" \

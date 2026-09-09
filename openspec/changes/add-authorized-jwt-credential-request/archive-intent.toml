@@ -1,0 +1,23 @@
+[[modified_requirement]]
+capability       = "oid4vci-jwt-credential-request"
+requirement      = "Final JWT Credential Request construction is state-bound and bounded"
+canonical_sha256 = "68cdaad9446090bc0b802fc51b5c9c6f8d9269f701001a7188f057901bcf7aa7"
+reason           = "Add a sibling state-bound authorized-dataset selector while preserving the existing configuration selector and all shared bounds."
+
+[[modified_requirement]]
+capability       = "oid4vci-jwt-credential-request"
+requirement      = "Final JWT Credential Request wire output is minimal and deterministic"
+canonical_sha256 = "66420c025a3acad77d48a22af3d60e58035be92007790c17ca6ff8fc4f804728"
+reason           = "Generalize the one-selector wire contract to the Final mutually exclusive credential_configuration_id and credential_identifier branches."
+
+[[modified_requirement]]
+capability       = "oid4vci-jwt-credential-request"
+requirement      = "Credential Request construction remains policy-neutral and portable"
+canonical_sha256 = "9635f428c3a47d7b713f6d3bcbb6266c14e6271aca2fabc1f881cb3496aefc03"
+reason           = "Acknowledge bounded authorized-dataset encoding while retaining explicit exclusions for trust, product selection, replay, transport and execution."
+
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
+canonical_sha256 = "355c8bfca705369828aa3f5db2c8281bb9f2a22933ad965114a3c012b8b4a227"
+reason           = "Advance in-progress IDR-023 from completed typed Token Response authorization details issue #237 to its bounded Credential Request-by-identifier consumer #239."

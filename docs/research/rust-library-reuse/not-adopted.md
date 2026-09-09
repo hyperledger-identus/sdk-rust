@@ -31,6 +31,7 @@ and update the ADR before integration.
 | Spruce DIDKit | `57a3b451` | `maintenance`, `coupling` | Evaluate maintained underlying Spruce SSI crates directly. | The repository is maintained and unarchived with unique value absent from its underlying libraries. |
 | RustCrypto `jose-jwk` | 0.1.2 / `0a9a98a9` | `publication-readiness`, `coupling`, `low-payoff` | Identus JWK facade; use as a differential oracle. | API maturity and operation coverage remove local risky mechanics without exporting crate types. |
 | `did_url_parser` | 0.3.0 / `cdde0daf` | `semantic-mismatch`, `strictness-mismatch`, `native-unsafe`, `low-payoff` | Retain ADR 0008's bounded local parser; preserve only the isolated parity harness. | A new release passes the 30-case and 17,284-case corpora, pre-allocation bounds, allocation reuse, immutable facade, strict lint, unsafe and target gates in #159's successor. |
+| `oauth2` | 5.0.0 / `f3424b4b`; crates.io checksum `51e219e79014df21a225b1860a479e2dcd7cbd9130f4defd4bd0e191ea31d67d` | `dependency-cone`, `coupling`, `semantic-mismatch`, `strictness-mismatch`, `low-payoff` | Keep bounded Identus OID4VCI states and use the exact fixture only as an authorization URL/PKCE/token-request oracle ([ADR 0102](../../adr/0102-use-oauth2-500-as-an-authorization-oracle.md)). | A release feature-slices the needed mechanics from clock/RNG/HTTP/response models, validates PKCE without panic, offers bounded redacted errors, and a named engine proves multi-mechanic payoff. |
 
 ## Conditional rather than rejected
 
@@ -41,7 +42,6 @@ dependencies until their named prerequisite is satisfied:
 | --- | --- |
 | `multihash 0.19.5` | [ADR 0082](../../adr/0082-defer-multihash-until-a-method-consumes-it.md) and [#155](https://github.com/hyperledger-identus/sdk-rust/issues/155): a named DID-method consumer pins a normative multihash profile and defines code/digest allow-lists, resource limits, canonical representation and migration behavior. Technical fit alone is insufficient. |
 | `isomdl 0.2.0` | [#161](https://github.com/hyperledger-identus/sdk-rust/issues/161): a spike isolates holder/verifier core from CLI, RNG, X.509 and transport choices and measures all target/cone costs. |
-| `oauth2 5.0.0` | [#160](https://github.com/hyperledger-identus/sdk-rust/issues/160): a spike proves authorization-code/PKCE reuse without importing HTTP clients, clock, URL or token policy into protocol domain crates. |
 | `aries-askar` | [#162](https://github.com/hyperledger-identus/sdk-rust/issues/162): an optional adapter proves storage-port fit, cancellation/concurrency, migrations, secret redaction, platform linking and a no-database core boundary. |
 | selected Spruce SSI crates | [ADR 0066](../../adr/0066-conditionally-adopt-narrow-spruce-ssi-crates.md): a named crate passes exact-profile, effective Rust/toolchain, dependency-cone, target, security and facade-isolation gates; the umbrella remains prohibited. |
 | `anoncreds-rs` | [ADR 0073](../../adr/0073-conditionally-adopt-anoncreds-rs.md): IDR-050 is activated and a focused optional adapter proves native/mobile, OpenSSL, unsafe, secret, VDR and conformance boundaries. |

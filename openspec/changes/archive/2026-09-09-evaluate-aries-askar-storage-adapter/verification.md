@@ -4,7 +4,7 @@ Verification status: passed locally with documented negative candidate evidence
 Verification date: 2026-09-09
 Base: develop@c04e495da719e1fa09beb77a5a05e744d75395fe
 Implementation head: 36f7f864a04d47a9a6505a36148543acc2d7f769
-Pull request: pending
+Pull request: [#234](https://github.com/hyperledger-identus/sdk-rust/pull/234)
 
 ## Candidate fixture receipt
 

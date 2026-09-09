@@ -27,6 +27,22 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Record immutable target plan
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node scripts/ci/target-plan.mjs \
+            --base "$BASE_SHA" \
+            --head "$HEAD_SHA" \
+            --profile production-ready \
+            --output "$RUNNER_TEMP/target-plan.json"
+          sed -n '/"areas"/,/]/p; /"slowRecommended"/,/]/p' \
+            "$RUNNER_TEMP/target-plan.json" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22

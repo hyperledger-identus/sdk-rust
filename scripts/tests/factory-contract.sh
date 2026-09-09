@@ -33,6 +33,10 @@ required_files=(
   RELEASING.md
   SECURITY.md
   docs/factory/README.md
+  docs/factory/operations.md
+  docs/factory/recovery.md
+  docs/factory/metrics.md
+  docs/factory/work-item-metrics-v1.schema.json
   docs/factory/research-readiness.md
   docs/architecture/sdk-rust-blueprint.md
   docs/architecture/sdk-bootstrap-inventory.md
@@ -57,11 +61,37 @@ required_files=(
   docs/adr/0089-require-upstream-first-dependency-remediation.md
   docs/adr/0095-use-dependency-free-crypto-benchmark-harness.md
   docs/adr/0096-adopt-cargo-llvm-cov-for-apollo-evidence.md
+  docs/adr/0108-operationalize-guidance-based-ai-factory.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   openspec/config.yaml
   scripts/benchmark-support-policy.py
   scripts/factory
+  bootstrap.sh
+  .factory-policy.json
+  .devloops
+  .pi/settings.json
+  .pi/delivery-profiles.json
+  .pi/subagent-policy.json
+  .pi/agents/dev-loop.agent.md
+  .pi/agents/planner.agent.md
+  .pi/agents/developer.agent.md
+  .pi/agents/reviewer.agent.md
+  .pi/agents/quality.agent.md
+  .github/contribution-policy.json
+  .github/ISSUE_TEMPLATE/factory-work-item.yml
+  .githooks/commit-msg
+  .githooks/pre-commit
+  .githooks/pre-push
+  scripts/ci/contribution-policy.mjs
+  scripts/ci/target-plan.mjs
+  scripts/factory-tools/audit-pi.mjs
+  scripts/factory-tools/metrics.mjs
+  scripts/factory-tools/pi-policy.mjs
+  scripts/factory-tools/preflight.mjs
+  scripts/git-hooks/configure.mjs
+  scripts/git-hooks/local-policy.mjs
+  scripts/worktree-lifecycle.mjs
   scripts/check-factory.sh
   scripts/check-bootstrap-inventory.py
   scripts/check-constraints.py
@@ -76,6 +106,7 @@ required_files=(
   scripts/check-pr-policy.sh
   scripts/check-research-readiness.py
   scripts/tests/factory-contract.sh
+  scripts/tests/factory-operations.mjs
   scripts/tests/bootstrap-inventory.py
   scripts/tests/constraints.py
   scripts/tests/openspec-archive.py
@@ -97,15 +128,12 @@ required_files=(
 for relative_path in "${required_files[@]}"; do
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
   case "$relative_path" in
-    .github/CODEOWNERS | .github/ISSUE_TEMPLATE/component-change.yml | .github/ISSUE_TEMPLATE/delivery-task.yml | .github/pull_request_template.md | CODE_OF_CONDUCT.md | CONTRIBUTING.md | DCO.md | GOVERNANCE.md | LICENSE | MAINTAINERS.md | RELEASING.md | SECURITY.md | docs/architecture/sdk-bootstrap-inventory.md | docs/architecture/sdk-bootstrap-inventory.toml | docs/architecture/sdk-rust-blueprint.md | docs/architecture/sdk-support-policy.md | docs/architecture/sdk-support-policy.toml | docs/architecture/apollo-crypto-parity.toml | docs/architecture/ssi-upstream-source-matrix.md | docs/factory/research-readiness.md | docs/governance/constraints-and-limitations.md | docs/governance/repository-settings.md | docs/governance/sdk-constraints.toml | docs/adr/0001-bootstrap-branch-selection.md | docs/adr/0003-delegate-develop-integration.md | docs/adr/0062-use-a-rolling-near-current-msrv.md | docs/adr/0063-make-material-constraints-explicit.md | docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md | docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md | docs/adr/0087-enforce-first-party-unsafe-forbid.md | docs/adr/0088-reject-unsafe-first-party-macro-output.md | docs/adr/0089-require-upstream-first-dependency-remediation.md | docs/adr/0095-use-dependency-free-crypto-benchmark-harness.md | docs/adr/0096-adopt-cargo-llvm-cov-for-apollo-evidence.md | docs/roadmap/ssi-upstream-dependency-backlog.csv | nix/checks/gates.toml | nix/checks/rust-gates.nix | scripts/benchmark-support-policy.py | scripts/benchmark-crypto.sh | scripts/coverage-crypto.sh | scripts/check-bootstrap-inventory.py | scripts/check-constraints.py | scripts/check-crypto-benchmark.py | scripts/report-crypto-coverage.py | scripts/check-openspec-archive.py | scripts/check-research-readiness.py | scripts/factory | scripts/check-support-policy.py | scripts/check-apollo-parity.py | scripts/check-ssi-upstream-backlog.py | scripts/tests/bootstrap-inventory.py | scripts/tests/constraints.py | scripts/tests/crypto-benchmark.py | scripts/tests/crypto-coverage.py | scripts/tests/openspec-archive.py | scripts/tests/research-readiness.py | scripts/tests/support-policy.py | scripts/tests/apollo-parity.py)
-      cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
-      ;;
     *)
-      : >"$fixture_root/$relative_path"
+      cp "$repository_root/$relative_path" "$fixture_root/$relative_path"
       ;;
   esac
 done
-chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" \
+chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" \
   "$fixture_root/scripts/benchmark-support-policy.py" \
   "$fixture_root/scripts/benchmark-crypto.sh" \
   "$fixture_root/scripts/coverage-crypto.sh" \
@@ -124,11 +152,16 @@ chmod +x "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh
   "$fixture_root/scripts/tests/crypto-benchmark.py" \
   "$fixture_root/scripts/tests/crypto-coverage.py" \
   "$fixture_root/scripts/tests/factory-contract.sh" \
+  "$fixture_root/scripts/tests/factory-operations.mjs" \
   "$fixture_root/scripts/tests/openspec-archive.py" \
   "$fixture_root/scripts/tests/pr-policy.sh" \
   "$fixture_root/scripts/tests/research-readiness.py" \
   "$fixture_root/scripts/tests/support-policy.py"
 chmod +x "$fixture_root/scripts/tests/apollo-parity.py"
+chmod +x "$fixture_root/scripts/ci/"*.mjs "$fixture_root/scripts/factory-tools/"*.mjs \
+  "$fixture_root/scripts/git-hooks/"*.mjs "$fixture_root/scripts/worktree-lifecycle.mjs" \
+  "$fixture_root/.githooks/commit-msg" "$fixture_root/.githooks/pre-commit" \
+  "$fixture_root/.githooks/pre-push"
 
 for relative_path in Cargo.toml flake.nix flake.lock \
   docs/adr/0002-neoprism-toolchain-alignment.md nix/rust-toolchain.nix; do
@@ -299,6 +332,35 @@ The system SHALL preserve only one behavior.
 - **THEN** the first result remains
 EOF
 printf '%s\n' '- [x] 1.1 Example task' >"$change_root/tasks.md"
+
+# Build the same planning-only history required by the production preflight.
+git -C "$fixture_root" rm -q -f --cached -r .
+git -C "$fixture_root" branch -m codex/feat/issue-1
+git -C "$fixture_root" config user.name 'Factory Fixture'
+git -C "$fixture_root" config user.email 'factory-fixture@example.com'
+git -C "$fixture_root" add . ':(exclude)openspec/changes/example-change/**'
+git -C "$fixture_root" commit -q --no-gpg-sign -m 'test(factory): establish fixture base'
+fixture_base_sha=$(git -C "$fixture_root" rev-parse HEAD)
+git -C "$fixture_root" update-ref refs/remotes/origin/develop "$fixture_base_sha"
+git -C "$fixture_root" add openspec/changes/example-change
+git -C "$fixture_root" commit -q --no-gpg-sign -m 'spec(factory): define fixture contract'
+fixture_contract_sha=$(git -C "$fixture_root" rev-parse HEAD)
+cat >"$change_root/preimplementation.json" <<EOF
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 1,
+  "change": "example-change",
+  "branch": "codex/feat/issue-1",
+  "baseRef": "origin/develop",
+  "baseSha": "$fixture_base_sha",
+  "contractHeadSha": "$fixture_contract_sha",
+  "createdAt": "2026-09-09T00:00:00.000Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}
+EOF
 printf '#!%s\n' "$BASH" >"$fixture_root/fake-bin/openspec"
 cat >>"$fixture_root/fake-bin/openspec" <<'EOF'
 printf '%s\n' "$*" >>"$OPENSPEC_CALL_LOG"

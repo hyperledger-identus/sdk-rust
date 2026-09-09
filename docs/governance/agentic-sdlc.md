@@ -92,17 +92,20 @@ The agent then:
    stops activation until its exact direction is recorded;
 5. establishes and semantically reviews the public contract and negative cases
    before porting;
-6. records provenance for every adapted file or fixture;
-7. implements only the bounded slice;
-8. runs proportional gates and reports unrun gates exactly;
-9. produces a standalone consumer-shaped proof when needed;
-10. verifies consumer HEAD/status did not change;
-11. completes and records a distinct local review pass;
-12. pushes the focused branch and opens a ready, issue-linked pull request
+6. commits the planning-only contract and creates the durable
+   `scripts/factory preflight <change> --issue N --write` receipt before any
+   implementation edit;
+7. records provenance for every adapted file or fixture;
+8. implements only the bounded slice;
+9. runs proportional gates and reports unrun gates exactly;
+10. produces a standalone consumer-shaped proof when needed;
+11. verifies consumer HEAD/status did not change;
+12. completes and records a distinct local review pass;
+13. pushes the focused branch and opens a ready, issue-linked pull request
     targeting `develop`;
-13. monitors required CI and merges the eligible pull request into `develop`
+14. monitors required CI and merges the eligible pull request into `develop`
     when every gate is green and no blocking review remains;
-14. continues to the next eligible slice without waiting for ceremonial
+15. continues to the next eligible slice without waiting for ceremonial
     approval, but stops before release, publication, `main` promotion,
     repository administration, security disclosure or consumer adoption unless
     explicitly authorized by the responsible human.

@@ -15,6 +15,7 @@ on:
 permissions:
   contents: read
   issues: read
+  pull-requests: read
 
 concurrency:
   group: pull-request-policy-${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -31,6 +32,8 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
 
       - name: Validate pull request delivery policy
         id: policy
@@ -51,3 +54,30 @@ jobs:
             printf 'pull-request-policy: #%s is not a repository issue\n' "$ISSUE_NUMBER" >&2
             exit 1
           fi
+
+      - name: Validate contribution metadata
+        env:
+          PR_ACTOR: ${{ github.event.pull_request.user.login }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: node scripts/ci/contribution-policy.mjs pr
+
+      - name: Validate exact hosted commit evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh api --paginate \
+            "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/commits" \
+            | jq -s '[.[][] | {
+                sha: .sha,
+                message: .commit.message,
+                authorName: .commit.author.name,
+                authorEmail: .commit.author.email,
+                verification: .commit.verification,
+                actor: (.author.login // "")
+              }]' > "$RUNNER_TEMP/pull-commits.json"
+          COMMITS_FILE="$RUNNER_TEMP/pull-commits.json" \
+            node scripts/ci/contribution-policy.mjs hosted-commits

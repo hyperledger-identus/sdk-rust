@@ -17,16 +17,10 @@ standing mandate / backlog / issue
       explore and source audit
                │
                ▼
-    research-ready decision
+    OpenSpec contract + research/constraint readiness
                │
                ▼
-   constraint-ready decision
-               │
-               ▼
- OpenSpec proposal + specs + design + tasks
-               │
-               ▼
- structural validation + semantic review
+ planning-only commit + durable preflight receipt
                │
                ▼
  focused branch/worktree from develop
@@ -72,8 +66,11 @@ Before implementation, the change must contain:
 - `tasks.md` with ordered, parseable checkboxes;
 - a semantic review with zero uncleared blockers.
 
-Run `scripts/factory research-ready <change>` before the first implementation
-edit. The [research readiness contract](research-readiness.md) is lightweight
+Run `scripts/factory research-ready <change>` and `scripts/factory
+constraints-ready <change>`, commit the planning-only change, then run
+`scripts/factory preflight <change> --issue N --write` before the first
+implementation edit. Final readiness validates this durable exact-head receipt.
+The [research readiness contract](research-readiness.md) is lightweight
 for routine changes and requires a full candidate/evidence matrix for new
 protocol, foundational, cryptography/security, storage or FFI work.
 Run `scripts/factory constraints-ready <change>` at the same boundary. A
@@ -91,6 +88,11 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/factory check
 ./scripts/factory research-ready <change>
 ./scripts/factory constraints-ready <change>
+./scripts/factory preflight <change> --issue N --write
+./scripts/factory audit
+./scripts/factory plan --base <sha> --head <sha>
+./scripts/factory worktrees audit
+./scripts/factory metrics validate --file <record>
 ./scripts/factory ready <change>
 ./scripts/factory receipt <change>
 ./scripts/factory archive <change>
@@ -111,12 +113,23 @@ nix run .#factory -- check
 | `check` | runs the CI-safe structural and OpenSpec gates; incomplete draft tasks are allowed |
 | `research-ready` | requires reviewed research, an explicit candidate disposition and zero declared research blockers before implementation |
 | `constraints-ready` | requires explicit constraint/limitation impact and exact authority for material outcomes before implementation |
+| `preflight` | persists and later validates the issue, branch, exact base and planning-only OpenSpec head |
+| `audit` | validates bounded tracked Pi policy and, in the Nix shell, the pinned runtime |
+| `plan` | derives one immutable required fast lane plus risk-routed weekly/manual slow evidence |
+| `worktrees` | audits or explicitly mutates only canonical bounded issue worktrees |
+| `metrics` | validates, stores, renders or explicitly publishes privacy-bounded exact-head metrics |
 | `ready` | requires the named active change and every task to be complete |
 | `receipt` | runs readiness, then prints immutable branch/head/base identifiers |
 | `archive` | snapshots matching archives, rejects a known dated-destination collision, runs readiness and preservation preflight, archives through pinned OpenSpec, then proves exactly one new regular requested archive, mandatory artifacts and the resulting store before reporting success |
 
 The receipt proves only the factory contract. Rust, target, conformance,
 security and release gates must be attached separately and truthfully.
+
+The Obsidian factory notes and the pinned Oxid snapshot are guidance. They do
+not override this repository's ADRs, constraints, OpenSpec contract or Nix
+lock, and they do not force dependency or runtime upgrades. See the
+[operations handbook](operations.md), [recovery runbook](recovery.md),
+[metrics policy](metrics.md) and [ADR 0108](../adr/0108-operationalize-guidance-based-ai-factory.md).
 
 During the temporary active-development policy, an issue-linked PR receives
 one Ubuntu `fast` status containing the factory contract, repository lint,

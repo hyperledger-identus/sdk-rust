@@ -9,6 +9,7 @@
   gnugrep,
   openspec,
   python3,
+  nodejs_24,
 }:
 
 stdenvNoCC.mkDerivation {
@@ -24,6 +25,7 @@ stdenvNoCC.mkDerivation {
     gnugrep
     openspec
     python3
+    nodejs_24
   ];
 
   buildPhase = "true";
@@ -33,6 +35,7 @@ stdenvNoCC.mkDerivation {
     export OPENSPEC_TELEMETRY=0
     patchShebangs scripts
     scripts/tests/factory-contract.sh
+    node --test scripts/tests/factory-operations.mjs
     scripts/check-factory.sh .
     actionlint .github/workflows/*.yml
     openspec doctor

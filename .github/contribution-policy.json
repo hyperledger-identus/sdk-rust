@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "types": [
+    "build",
+    "chore",
+    "ci",
+    "docs",
+    "feat",
+    "fix",
+    "perf",
+    "refactor",
+    "revert",
+    "spec",
+    "style",
+    "test"
+  ],
+  "scopes": [
+    "architecture",
+    "bindings",
+    "ci",
+    "conformance",
+    "core",
+    "credentials",
+    "crypto",
+    "deps",
+    "did",
+    "docs",
+    "factory",
+    "governance",
+    "jose",
+    "messaging",
+    "nix",
+    "oid4vci",
+    "openid4vc",
+    "presentations",
+    "release",
+    "repo",
+    "security",
+    "storage",
+    "trust",
+    "wallet",
+    "wasm"
+  ],
+  "branch": {
+    "formats": [
+      "{type}/issue-{positive-integer}",
+      "codex/{type}/issue-{positive-integer}"
+    ],
+    "protected": ["develop", "main"]
+  },
+  "commit": {
+    "maxSubjectLength": 100,
+    "requireScope": true,
+    "requireDco": true,
+    "requireOpenPgp": true,
+    "requireBreakingChangeFooter": true,
+    "maximumRange": 250
+  },
+  "bots": {
+    "dependabot[bot]": {
+      "branchExempt": true,
+      "dcoAuthorNames": ["dependabot[bot]"]
+    },
+    "renovate[bot]": {
+      "branchExempt": true,
+      "dcoAuthorNames": ["renovate[bot]"]
+    }
+  }
+}

@@ -1,0 +1,54 @@
+name: Factory work item
+description: Define one issue-bound OpenSpec-first agent delivery slice
+title: "[Factory] "
+labels: ["factory"]
+body:
+  - type: markdown
+    attributes:
+      value: Repository policy is authoritative; external factory notes are guidance, not automatic upgrades.
+  - type: dropdown
+    id: profile
+    attributes:
+      label: Delivery profile
+      options:
+        - production-ready
+        - prototype
+    validations:
+      required: true
+  - type: input
+    id: openspec
+    attributes:
+      label: OpenSpec change
+      placeholder: kebab-case-change-name
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome and acceptance
+      description: State the bounded consumer or maintainer outcome and testable completion criteria.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Constraints and non-scope
+      description: Record protected decisions, affected constraints, source provenance and explicit non-goals.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Expected evidence
+      description: List focused gates, exact-head evidence, target routing and required review.
+    validations:
+      required: true
+  - type: checkboxes
+    id: contract
+    attributes:
+      label: Factory contract
+      options:
+        - label: I will commit and preflight the OpenSpec contract before implementation.
+          required: true
+        - label: This work targets develop and does not activate main, release, or publication.
+          required: true

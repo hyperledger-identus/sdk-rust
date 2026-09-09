@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 243,
+  "change": "operationalize-ai-software-factory",
+  "branch": "codex/feat/issue-243",
+  "baseRef": "origin/develop",
+  "baseSha": "f68ace2b83e344d26b9b5b4fa1f616cb560393b0",
+  "contractHeadSha": "91d7619e3a84da0461a489e9d002a2a361a8a51c",
+  "createdAt": "2026-09-09T14:39:55Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -1,0 +1,61 @@
+# sdk-rust dev-loop policy. OpenSpec is the executable source of delivery intent.
+version: 1
+
+strategy:
+  default: local-first
+
+refinement:
+  fanOut: 1
+  mode: parallel
+  maxCopilotRounds: 0
+  stopOnLowSignal: true
+  lowSignalRoundThreshold: 1
+  lowSignalMaxComments: 1
+  roles:
+    - correctness
+
+gates:
+  draft:
+    angles:
+      - correctness
+    mandatoryAngles: []
+    blockCleanOnFindingSeverities:
+      - must-fix
+    required: true
+    requireCi: false
+  preApproval:
+    angles:
+      - security
+    mandatoryAngles: []
+    blockCleanOnFindingSeverities:
+      - must-fix
+    required: true
+    requireCi: true
+  requireFanoutEvidence: false
+  requireFanoutProvenance: false
+  maxFanoutReviewers: 1
+  postFindingsComments: true
+  rejectForeignAngles: true
+
+autonomy:
+  # ADRs 0003 and 0004 permit exact-head green integration into develop.
+  stopAt: []
+  humanMergeOnly: false
+
+workflow:
+  asyncStartMode: allowed
+  requireDraftFirst: false
+  requireRetrospective: false
+  devModeDefault: false
+
+localImplementation:
+  lightMode:
+    enabled: true
+    maxFiles: 5
+    maxLines: 400
+    maxCopilotRounds: 0
+
+queue:
+  maxParallel: 1
+  maxAutoFiledIssues: 0
+  reDispatchMaxRetries: 0

@@ -61,6 +61,17 @@ export function packageCacheIdentity(inputs) {
     packageLockSha256: String(inputs.packageLockSha256),
     packages: inputs.packages.map((source) => parseExactNpmSource(source).source),
   };
+  if (!/^v[0-9]+\.[0-9]+\.[0-9]+$/u.test(normalized.nodeVersion)) {
+    throw new Error("Pi package cache requires an exact Node version");
+  }
+  for (const [name, version] of [["Pi", normalized.piVersion], ["npm", normalized.npmVersion]]) {
+    if (!/^[0-9]+\.[0-9]+\.[0-9]+$/u.test(version)) {
+      throw new Error(`Pi package cache requires an exact ${name} version`);
+    }
+  }
+  if (new Set(normalized.packages).size !== normalized.packages.length) {
+    throw new Error("Pi package cache does not permit duplicate package sources");
+  }
   if (!/^[a-f0-9]{64}$/u.test(normalized.packageLockSha256)) {
     throw new Error("Pi package cache requires an exact package-lock SHA-256");
   }
@@ -306,6 +317,21 @@ export function readPackageRuntime(repositoryRoot, packageSources) {
   }
   if (lock.lockfileVersion !== 3 || !sameJson(lock.packages?.[""]?.dependencies, expectedDependencies)) {
     throw new Error("Pi package lock does not match the exact runtime manifest");
+  }
+  for (const entry of Object.values(lock.packages ?? {})) {
+    if (entry.resolved === undefined) continue;
+    let resolved;
+    try {
+      resolved = new URL(entry.resolved);
+    } catch {
+      throw new Error(`Pi package lock contains an invalid resolved URL: ${entry.resolved}`);
+    }
+    if (resolved.protocol !== "https:" || resolved.hostname !== "registry.npmjs.org") {
+      throw new Error(`Pi package lock contains a non-registry dependency: ${entry.resolved}`);
+    }
+    if (typeof entry.integrity !== "string" || !entry.integrity.startsWith("sha512-")) {
+      throw new Error(`Pi package lock dependency lacks SHA-512 integrity: ${entry.resolved}`);
+    }
   }
   const lockBytes = readFileSync(lockPath);
   return {

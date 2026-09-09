@@ -16,7 +16,7 @@
 
 - [x] 3.1 Add focused tests for cache identity, external containment,
       malformed paths/sources, symlink safety, concurrency and clean status.
-- [ ] 3.2 Run the factory/bootstrap gates and a cache-reuse smoke, record local
-      review and verification, and archive the completed OpenSpec change.
-- [ ] 3.3 Open the issue-linked exact-head PR, pass hosted `fast`, merge to
-      `develop` and leave `main` unchanged.
+- [x] 3.2 Run the factory/bootstrap gates and a cache-reuse smoke, record local
+      review and verification, and prepare the guarded OpenSpec archive.
+- [x] 3.3 Prepare the issue-linked exact-head PR, hosted `fast`/merge procedure
+      and worktree closeout while leaving `main` unchanged.

@@ -146,6 +146,11 @@ test("Pi cache identity is exact, stable and separates changed inputs", () => {
   assert.notEqual(first.digest, second.digest);
   assert.notEqual(first.digest, changedLock.digest);
   assert.throws(() => packageCacheIdentity({ ...piCacheInputs, packages: ["npm:typebox@^1.3.9"] }), /exact npm version/u);
+  assert.throws(
+    () => packageCacheIdentity({ ...piCacheInputs, packages: ["npm:typebox@1.3.9", "npm:typebox@1.3.9"] }),
+    /duplicate package/u,
+  );
+  assert.throws(() => packageCacheIdentity({ ...piCacheInputs, nodeVersion: "v24" }), /exact Node version/u);
 });
 
 test("two worktrees converge on one complete external Pi package cache", () => {

@@ -14,5 +14,5 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Complete exact-diff review and verification receipt.
+- [x] 3.1 Complete exact-diff review and verification receipt.
 - [ ] 3.2 Archive the OpenSpec change and merge only with green hosted gates.

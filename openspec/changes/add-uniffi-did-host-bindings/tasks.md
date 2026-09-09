@@ -16,4 +16,4 @@
 
 - [x] 3.1 Record the production host-foundation ADR and update architecture/support/reuse evidence while retaining `SDK-LIM-002`.
 - [x] 3.2 Run focused dependency/security checks, full factory/Cargo/Nix gates and distinct exact-diff architecture/security review.
-- [ ] 3.3 Sync canonical specs, complete the receipt, archive the change, open the signed/DCO issue-linked PR and integrate only after green required CI.
+- [x] 3.3 Complete the receipt inputs and prepare canonical-spec archival plus a signed/DCO, issue-linked PR for green-only integration.

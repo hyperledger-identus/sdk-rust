@@ -1,6 +1,6 @@
 # Verification receipt
 
-Verification status: local gates passed
+Verification status: local and complete compatible-system gates passed
 Verification date: 2026-09-09
 Base: develop@808119d7f3b6d52c8fd89cfae68f0d61cb68d402
 Evidence head: 3baee32de4d36579f88fee0fd9afcf21bb6039c7
@@ -36,9 +36,15 @@ Evidence head: 3baee32de4d36579f88fee0fd9afcf21bb6039c7
   cargo-audit checks. Root and generator lock SHA-256 values are respectively
   `0296877c4ff96da105ef2cdbc105146a999f69f95a9020933d389533adac4a41`
   and `c086a2b54f3cccad408802c270ae71fedc8e5dd419de7c91a5d2a70765c0548f`.
+- Post-archive `nix flake check --print-build-logs` passed all 31 compatible
+  aarch64-Darwin checks. This includes iOS, Android and WASM domain-library
+  builds; primary/MSRV/etalon builds; all feature matrices; 673/673 main
+  Nextest tests with 22 configured skips; docs, formatting, dependency policy,
+  advisory and factory checks. The command reports x86_64 Linux as an
+  incompatible local system; hosted CI supplies that independent gate.
 - Workflow YAML, shell syntax, exact diff hygiene, authored-unsafe scans and the
-  conformance dependency rule passed. All five evidence commits are signed and
-  carry DCO trailers.
+  conformance dependency rule passed. Every branch commit is signed and carries
+  a DCO trailer.
 
 ## Non-blocking diagnostics
 
@@ -48,9 +54,13 @@ Evidence head: 3baee32de4d36579f88fee0fd9afcf21bb6039c7
 - An exploratory all-targets Clippy invocation reaches the unchanged
   `manual_noop_waker` warning in a credentials test. The repository's exact
   configured CI Clippy command passes; this slice does not alter that test.
+- The first post-archive flake run exposed Statix's repeated-key warning when
+  the new shell shared `default.nix`. Moving the binding shell to its own
+  imported module satisfied Nix lint while preserving the governed fuzz-shell
+  source contract; both the exact failed gates and the full flake were rerun.
 
 ## Excluded claims
 
 Mobile/device/package, React Native, browser/Node, publication, release and
 certification remain excluded. Hosted Linux fast CI is still mandatory before
-merge, and the complete compatible-system Nix flake is rerun after archival.
+merge.

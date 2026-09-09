@@ -32,6 +32,7 @@
             openssl
             cargo-deny
             cargo-audit
+            curl
             gradle
             jdk17
             python3

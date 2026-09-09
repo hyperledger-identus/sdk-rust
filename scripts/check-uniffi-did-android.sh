@@ -40,7 +40,7 @@ adb="$android_sdk/platform-tools/adb"
 for executable in "$linker" "$llvm_nm" "$llvm_readelf" "$avdmanager" "$emulator" "$adb"; do
     [[ -x $executable ]] || fail "required Android executable is unavailable: $executable"
 done
-for command in awk cargo cmp cp diff du find gradle grep java mkdir python3 rm rustc sed seq sleep sort stat tr unzip xargs; do
+for command in awk cargo cmp cp curl diff du find gradle grep java mkdir python3 rm rustc sed seq shasum sleep sort stat tr unzip xargs; do
     command -v "$command" >/dev/null || fail "required command is unavailable: $command"
 done
 
@@ -54,13 +54,20 @@ fi
 rm -rf "$evidence_root"
 mkdir -p "$evidence_root" "$gradle_home"
 
+jna_aar="$evidence_root/jna-5.18.1.aar"
+curl --fail --location --silent --show-error \
+    https://repo1.maven.org/maven2/net/java/dev/jna/jna/5.18.1/jna-5.18.1.aar \
+    --output "$jna_aar"
+expected_jna_sha=7f053e3ec99e14dd71259c82c1c8a02738d64a13c31226b2acc170f3060951e0
+actual_jna_sha=$(shasum -a 256 "$jna_aar" | awk '{ print $1 }')
+[[ $actual_jna_sha == "$expected_jna_sha" ]] || fail "JNA 5.18.1 AAR checksum drifted"
+
 normalize_archive() {
     local source_archive=$1
     local normalized_archive=$2
     local normalized_tree=$3
     python3 - "$source_archive" "$normalized_archive" "$normalized_tree" <<'PY'
 import pathlib
-import shutil
 import sys
 import tempfile
 import zipfile

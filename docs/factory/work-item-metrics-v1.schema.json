@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/factory/work-item-metrics-v1.schema.json",
+  "title": "sdk-rust factory work-item metrics v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "repository",
+    "issue",
+    "pullRequest",
+    "headSha",
+    "profile",
+    "startedAt",
+    "completedAt",
+    "durationSeconds",
+    "retryCount",
+    "toolCalls",
+    "inputTokens",
+    "outputTokens",
+    "coveragePercent",
+    "diskBytes",
+    "outcome"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "repository": { "const": "hyperledger-identus/sdk-rust" },
+    "issue": { "type": "integer", "minimum": 1 },
+    "pullRequest": { "type": ["integer", "null"], "minimum": 1 },
+    "headSha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "profile": { "enum": ["prototype", "production-ready", "integration"] },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "completedAt": { "type": "string", "format": "date-time" },
+    "durationSeconds": { "type": ["integer", "null"], "minimum": 0 },
+    "retryCount": { "type": ["integer", "null"], "minimum": 0 },
+    "toolCalls": { "type": ["integer", "null"], "minimum": 0 },
+    "inputTokens": { "type": ["integer", "null"], "minimum": 0 },
+    "outputTokens": { "type": ["integer", "null"], "minimum": 0 },
+    "coveragePercent": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "diskBytes": { "type": ["integer", "null"], "minimum": 0 },
+    "outcome": { "enum": ["merged", "closed", "blocked", "in-progress"] }
+  }
+}

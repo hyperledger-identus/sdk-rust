@@ -20,7 +20,9 @@
 - `scripts/factory ready <change>`: passed/not applicable
 - `scripts/factory research-ready <change>`: passed/not applicable
 - `scripts/factory constraints-ready <change>`: passed/not applicable
+- `scripts/factory preflight <change> --validate-receipt`: passed/not applicable
 - Factory receipt attached: yes/no/not applicable
+- Target plan base/head and slow recommendations:
 
 ## Local review
 
@@ -84,6 +86,7 @@ factory receipt:
 - [ ] corresponding issue exists and is linked above
 - [ ] distinct local review completed with no unresolved blocker
 - [ ] OpenSpec contract complete or exemption recorded
+- [ ] planning-only OpenSpec preflight receipt predates implementation
 - [ ] pre-implementation research readiness recorded when applicable
 - [ ] constraint readiness and material decision authority recorded when applicable
 - [ ] factory readiness and receipt recorded when applicable
@@ -95,3 +98,4 @@ factory receipt:
 - [ ] no chain or product dependency in generic crates
 - [ ] no raw secret material in logs/errors/serialization/FFI
 - [ ] release notes/migration updated when applicable
+- [ ] bounded exact-head metrics recorded privately or unavailable fields set to null

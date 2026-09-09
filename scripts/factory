@@ -89,6 +89,8 @@ ready_change() {
     --change "$change_name" --require-ready
   "$factory_root/scripts/check-constraints.py" "$factory_root" \
     --change "$change_name" --require-ready
+  node "$factory_root/scripts/factory-tools/preflight.mjs" \
+    "$change_name" --validate-receipt
 
   if grep -n '^- \[ \]' "$change_root/tasks.md"; then
     fail "change has incomplete tasks: $change_name"
@@ -252,6 +254,12 @@ Commands:
                       Require reviewed research with zero declared blockers
   constraints-ready <change>
                       Require explicit constraint impact and material authority
+  preflight <change> --issue N [--write|--validate-receipt]
+                      Prove OpenSpec was ready before implementation began
+  audit [options]     Audit pinned Pi runtime and bounded repository policy
+  plan [options]      Derive immutable fast/slow target routing from exact SHAs
+  metrics [options]   Validate, store, render or publish bounded work metrics
+  worktrees [options] Audit or mutate only managed issue worktrees
   ready <change>      Require valid artifacts and every task to be complete
   receipt <change>    Run readiness and print immutable handoff identifiers
   archive <change>    Preflight, archive and validate a completed change
@@ -284,6 +292,21 @@ case "$command_name" in
     ;;
   constraints-ready)
     constraints_ready_change "${1:-}"
+    ;;
+  preflight)
+    node "$factory_root/scripts/factory-tools/preflight.mjs" "$@"
+    ;;
+  audit)
+    node "$factory_root/scripts/factory-tools/audit-pi.mjs" "$@"
+    ;;
+  plan)
+    node "$factory_root/scripts/ci/target-plan.mjs" "$@"
+    ;;
+  metrics)
+    node "$factory_root/scripts/factory-tools/metrics.mjs" "$@"
+    ;;
+  worktrees)
+    node "$factory_root/scripts/worktree-lifecycle.mjs" "$@"
     ;;
   ready)
     ready_change "${1:-}"

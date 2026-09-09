@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "defaultProfile": "production-ready",
+  "profiles": {
+    "prototype": {
+      "remoteMutation": false,
+      "mergeEligible": false,
+      "evidenceClass": "provisional",
+      "maximumReviewers": 1,
+      "targets": {
+        "required": ["factory-basic"],
+        "maximumFocusedQualifications": 1,
+        "neverImplied": [
+          "hosted-ci",
+          "full-nix",
+          "coverage",
+          "wasm",
+          "ios",
+          "android",
+          "physical-device",
+          "release"
+        ]
+      },
+      "sloSeconds": {
+        "firstFeedback": 180,
+        "focusedIteration": 600,
+        "workItem": 3600
+      }
+    },
+    "production-ready": {
+      "remoteMutation": "authority-gated",
+      "mergeEligible": "after-required-gates",
+      "evidenceClass": "production",
+      "maximumReviewers": 1,
+      "qualityBudget": {
+        "targetPercent": 70,
+        "mandatoryInvariantsPercent": 100,
+        "maximumAutomaticReviewRounds": 1,
+        "advisoryDisposition": "follow-up"
+      },
+      "targets": {
+        "strategy": "path-and-risk",
+        "requiredPullRequestGate": "fast",
+        "slowEvidence": "weekly-or-manual"
+      }
+    }
+  },
+  "promotion": {
+    "explicit": true,
+    "refreshBase": "origin/develop",
+    "auditPrototypeGaps": true,
+    "invalidateProvisionalEvidence": true,
+    "recomputeTargets": true
+  },
+  "deliveryTarget": {
+    "required": true,
+    "allowed": ["origin/develop"],
+    "inferNewest": false,
+    "sessionLocal": true
+  },
+  "alwaysEnforced": [
+    "issue-backed-worktree",
+    "openspec-before-implementation",
+    "branch-grammar",
+    "conventional-commits",
+    "dco-signoff",
+    "gpg-signing",
+    "secret-and-custody-boundaries",
+    "process-ownership",
+    "disk-bounds"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "integrationBranch": "develop",
+  "reservedBranches": ["main"],
+  "runtime": {
+    "piVersion": "0.84.2",
+    "nodeMajor": 24,
+    "configurationIsGuidance": true
+  },
+  "delivery": {
+    "defaultProfile": "production-ready",
+    "qualityTargetPercent": 70,
+    "mandatoryInvariantPercent": 100,
+    "maximumAutomaticReviewRounds": 1,
+    "parentCandidates": 1,
+    "managedWorktrees": 2
+  },
+  "worktrees": {
+    "rootRelativeToCommonCheckout": "tmp/worktrees/factory",
+    "retentionDays": 7
+  },
+  "cache": {
+    "sccacheLocal": "10G",
+    "sccacheHosted": "2G",
+    "targetsAreWorktreeLocal": true
+  },
+  "metrics": {
+    "schema": "docs/factory/work-item-metrics-v1.schema.json",
+    "privateStore": "sdk-rust-factory/metrics-v1",
+    "retentionDays": 90,
+    "publicMarker": "sdk-rust-factory-metrics:v1",
+    "maximumPublicBytes": 8192
+  },
+  "ci": {
+    "requiredPullRequestGate": "fast",
+    "slowSchedule": "weekly-or-manual",
+    "unknownDiff": "recommend-complete-slow"
+  }
+}

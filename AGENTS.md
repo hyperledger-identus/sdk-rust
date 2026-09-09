@@ -83,6 +83,9 @@ Before changing files, read:
   certification, budget or release outcome requires an exact durable decision
   reference. Research and reversible non-activating preparation may continue
   while it is proposed; activation may not.
+- Commit the planning-only OpenSpec contract, then run `scripts/factory
+  preflight <change> --issue N --write`. Do not begin implementation until the
+  durable exact-base/exact-head receipt passes.
 - Implement one task at a time and check it immediately after verification.
 - Run `scripts/factory check` throughout draft work.
 - Run `scripts/factory ready <change>` and `receipt <change>` before final
@@ -121,7 +124,7 @@ exactly; never infer one gate from another.
 All repository-facing commits require both DCO and a verified signature:
 
 ```bash
-git commit -S -s -m "type: concise summary"
+git commit -S -s -m "type(scope): concise summary"
 ```
 
 ## Code comments

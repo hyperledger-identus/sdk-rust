@@ -1,0 +1,29 @@
+{
+  "asyncByDefault": false,
+  "forceTopLevelAsync": false,
+  "maxSubagentDepth": 2,
+  "maxSubagentSpawnsPerSession": 1,
+  "maxSubagentSpawnsPerRun": 1,
+  "globalConcurrencyLimit": 2,
+  "toolBudget": {
+    "soft": 40,
+    "hard": 60,
+    "block": "*"
+  },
+  "usageBudget": {
+    "tokens": {
+      "soft": 80000,
+      "hard": 120000
+    }
+  },
+  "parallel": {
+    "maxTasks": 2,
+    "concurrency": 2
+  },
+  "chain": {
+    "dynamicFanout": {
+      "maxItems": 2
+    }
+  },
+  "artifactDir": "session"
+}

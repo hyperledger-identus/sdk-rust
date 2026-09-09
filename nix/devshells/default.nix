@@ -37,6 +37,12 @@
             # protobuf (for codegen of identus protos)
             protobuf
             python3
+            nodejs_24
+
+            # bounded AI factory runtime (exact version comes from flake.lock)
+            pi-coding-agent
+            sccache
+            ripgrep
 
             # workspace-consistency tooling
             just
@@ -78,6 +84,14 @@
           {
             name = "OPENSPEC_TELEMETRY";
             value = "0";
+          }
+          {
+            name = "RUSTC_WRAPPER";
+            value = "sccache";
+          }
+          {
+            name = "SCCACHE_CACHE_SIZE";
+            value = "10G";
           }
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [

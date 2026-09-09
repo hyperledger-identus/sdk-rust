@@ -1,11 +1,14 @@
 # First language-binding slice report
 
-**Issue:** [#215](https://github.com/hyperledger-identus/sdk-rust/issues/215)  
-**Parent implementation:** [#163](https://github.com/hyperledger-identus/sdk-rust/issues/163)  
-**Decision:** [ADR 0097](../adr/0097-use-proc-macro-uniffi-for-the-first-native-did-slice.md)  
+**Issue:** [#215](https://github.com/hyperledger-identus/sdk-rust/issues/215)
+
+**Parent implementation:** [#163](https://github.com/hyperledger-identus/sdk-rust/issues/163)
+
+**Decision:** [ADR 0097](../adr/0097-use-proc-macro-uniffi-for-the-first-native-did-slice.md)
+
 **Follow-ups:** [native #222](https://github.com/hyperledger-identus/sdk-rust/issues/222),
-[React Native #223](https://github.com/hyperledger-identus/sdk-rust/issues/223),
-[browser #224](https://github.com/hyperledger-identus/sdk-rust/issues/224)  
+[React Native #223](https://github.com/hyperledger-identus/sdk-rust/issues/223), and
+[browser #224](https://github.com/hyperledger-identus/sdk-rust/issues/224)
 **Assessment date:** 2026-09-09
 
 ## Outcome

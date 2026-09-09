@@ -3,5 +3,5 @@ package_name = "org.hyperledger.identus.spike"
 cdylib_name  = "identus_uniffi_did_spike"
 
 [bindings.swift]
-module_name   = "IdentusDidSpike"
-cdylib_name   = "identus_uniffi_did_spike"
+module_name = "IdentusDidSpike"
+cdylib_name = "identus_uniffi_did_spike"

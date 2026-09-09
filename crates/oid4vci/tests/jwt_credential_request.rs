@@ -232,11 +232,17 @@ fn constructs_authorized_dataset_request_with_exact_exclusive_selector() {
             JwtCredentialRequestLimits::default(),
         )
         .expect("authorized Credential Request");
+    let expected = format!(
+        r#"{{"credential_identifier":"dataset\"\\two","proofs":{{"jwt":["{}","{}"]}}}}"#,
+        proofs[0].compact(),
+        proofs[1].compact()
+    );
 
     assert_eq!(
         request.expose_sensitive_authorization(),
         "Bearer authorized-token"
     );
+    assert_eq!(request.expose_sensitive_json_body(), expected);
     let body: Value =
         serde_json::from_str(request.expose_sensitive_json_body()).expect("JSON body");
     assert_eq!(body["credential_identifier"], "dataset\"\\two");
@@ -607,12 +613,32 @@ fn request_and_all_new_errors_have_static_redacted_diagnostics() {
         JwtCredentialRequestLimits::default(),
     )
     .expect("request");
+    let authorized = authorized_token(
+        "AUTHORIZED_TOKEN_CANARY_397c",
+        "Bearer",
+        json!([{
+            "type": "openid_credential",
+            "credential_configuration_id": "CONFIG_CANARY_50fa",
+            "credential_identifiers": ["DATASET_CANARY_d7cb"]
+        }]),
+    );
+    let authorized_request = state
+        .try_create_authorized_jwt_credential_request(
+            &authorized,
+            0,
+            0,
+            &proofs,
+            JwtCredentialRequestLimits::default(),
+        )
+        .expect("authorized request");
 
-    let debug = format!("{request:?}");
+    let debug = format!("{request:?} {authorized_request:?}");
     for canary in [
         endpoint_canary,
         "CONFIG_CANARY_50fa",
         "TOKEN_CANARY_3d77",
+        "AUTHORIZED_TOKEN_CANARY_397c",
+        "DATASET_CANARY_d7cb",
         proof_compact.as_str(),
     ] {
         assert!(!debug.contains(canary));
@@ -676,5 +702,23 @@ fn request_and_all_new_errors_have_static_redacted_diagnostics() {
             .to_identus_error()
             .code(),
         error_code::CREDENTIAL_REQUEST_BODY_TOO_LARGE
+    );
+    assert_eq!(
+        CredentialOfferError::CredentialRequestAuthorizationDetailMissing
+            .to_identus_error()
+            .code(),
+        error_code::CREDENTIAL_REQUEST_AUTHORIZATION_DETAIL_MISSING
+    );
+    assert_eq!(
+        CredentialOfferError::CredentialRequestIdentifierMissing
+            .to_identus_error()
+            .code(),
+        error_code::CREDENTIAL_REQUEST_IDENTIFIER_MISSING
+    );
+    assert_eq!(
+        CredentialOfferError::CredentialRequestAuthorizationConfigurationMismatch
+            .to_identus_error()
+            .code(),
+        error_code::CREDENTIAL_REQUEST_AUTHORIZATION_CONFIGURATION_MISMATCH
     );
 }

@@ -174,7 +174,7 @@ SDK cone smaller for some candidates.
 | `multibase` | 0.9.3 | not declared | 14; 9 incremental names | `not-adopt` for current boundary | Compiler-compatible under Rust 1.98.1, but unused Base45/Base256Emoji and build macros make the cone disproportionate; reconsider when features are sliced or named consumers need more bases. |
 | `bs58` plus existing `base64` | 0.5.1 plus 0.22.1 | not declared; 1.48 | 1 new package | `adopt` | Reuses the two required base algorithms; Identus owns only the private `z`/`u` dispatch, canonicality, bounds and errors. |
 | `did_url_parser` | 0.3.0 | not declared | 3 | `retain-local` | Portable and narrow, but fails exact grammar/storage, pre-allocation limits, owned reuse, immutable facade and unsafe-reach gates; ADR 0086 preserves the corpus. |
-| `identity_did` | 1.5.1 | not declared | 138 | `oracle` | Mature generic API and used by NeoPRISM, but broad model/cone would replace Identus ownership. |
+| `identity_did` | 1.5.1 | not declared | 188 lock / 159 host normal+build | `reference-only` | Seven classified differences in 30 cases, but it wraps the existing parser oracle and fails cone, advisory, unsafe-reach and WASM gates; see ADR 0104. |
 | `identity_document` | 1.5.1 | not declared | 140 | `oracle` | Useful document and validation differential source; too coupled for the core domain facade. |
 | `identity_credential` | 1.5.1 | not declared | 146 | `oracle` | Useful VC evidence, but current SD-JWT code references old drafts and imports framework policy. |
 | `identity_jose` | 1.5.1 | not declared | 136 | `oracle` | Useful JOSE comparison; would bypass bounded parsed/verified states and duplicate checks. |

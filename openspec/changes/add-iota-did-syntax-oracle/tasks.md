@@ -7,10 +7,10 @@
 
 ## 2. Executable oracle
 
-- [ ] 2.1 Add the separately locked exact candidate fixture and bounded corpus.
-- [ ] 2.2 Classify intersections, shared rejections and divergences.
-- [ ] 2.3 Measure dependency, supply-chain, unsafe/native and target evidence.
-- [ ] 2.4 Record final ADR disposition and repository ledgers.
+- [x] 2.1 Add the separately locked exact candidate fixture and bounded corpus.
+- [x] 2.2 Classify intersections, shared rejections and divergences.
+- [x] 2.3 Measure dependency, supply-chain, unsafe/native and target evidence.
+- [x] 2.4 Record final ADR disposition and repository ledgers.
 
 ## 3. Review and delivery
 

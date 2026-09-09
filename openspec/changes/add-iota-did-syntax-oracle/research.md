@@ -39,44 +39,61 @@ No candidate type, error, normalization, method policy or serialization enters
 the SDK API.
 
 `identity_did 1.5.1` directly depends on `did_url_parser`, `form_urlencoded`,
-`identity_core`, `identity_jose`, Serde, Strum and thiserror. Prior standalone
-research measured about 138 normal packages; the final exact fixture lock and
-normal/build cone will replace that estimate and distinguish candidate-only
-cost from root packages.
+`identity_core`, `identity_jose`, Serde, Strum and thiserror. The exact fixture
+resolves 188 packages across all targets (184 registry packages plus the
+fixture and three Identus path packages); the host normal/build tree contains
+159 distinct package/version pairs. This is disproportionate for a syntax
+oracle and materially larger than the existing direct `did_url_parser` oracle.
 
 Public and wire compatibility are unchanged because the oracle is an isolated
 test executable. Root support remains Rust 1.98.1. Host, WASM, iOS and Android
 compile observations will be recorded separately and will not activate target
 support. Rollback removes the fixture and report only.
 
-The bounded corpus will cover plain DIDs, method-specific colons, parameters,
+The bounded corpus covers plain DIDs, method-specific colons, parameters,
 path/query/fragment, valid percent encoding, malformed delimiters/escapes,
 Unicode/control input and Identus's 2,048-byte DID / 4,096-byte DID URL ceilings.
-Exact cases and any divergences remain unimplemented until readiness passes.
+Thirty attributed cases pass. Twenty-three have identical acceptance and
+representation outcomes. Seven classified divergences remain: IOTA accepts two
+non-conforming grammar cases and two inputs beyond Identus resource ceilings,
+and normalizes away empty query and/or fragment delimiters in three accepted
+DID URLs. IOTA rejects the three surrounding-whitespace cases that the lower
+level `did_url_parser` comparison accepted, demonstrating wrapper policy but
+not an independent parser implementation.
 
 ## Security, privacy and maintenance evidence
 
 The candidate parses public identifiers; there is no secret or PII custody.
 Caller input and candidate diagnostic strings must not enter fixture output.
-First-party fixture code forbids unsafe. The final graph will inventory
-dependency-owned unsafe, build scripts and native links rather than inferring
-safety from Rust source alone.
+First-party fixture code forbids unsafe. Candidate-owned source contains unsafe
+in `identity_core 1.5.1` and `did_url_parser 0.3.0`. The all-target lock has 27
+packages with custom-build targets. `wasm-bindgen-shared` is the only package
+declaring a native `links` value; no C/C++ native library is linked by the host
+fixture.
 
 The supply-chain evidence pins registry checksum, signed release tag, license,
 exact lock and advisory policy. Version 1.5.1 was released in April 2025;
 upstream main remained active at the retrieval revision. Maintenance is credible,
 but current beta development and broad model coupling reinforce oracle-only use.
 
-The published crate declares no MSRV. Rust 1.98.1 compile evidence is required;
-no historical compiler-floor promise will be inferred. `cargo deny` and
-`cargo audit` will run against the exact fixture lock.
+The published crate declares no MSRV. Rust 1.98.1 host tests and strict Clippy
+pass. Compile-only checks pass for `aarch64-apple-ios` and
+`aarch64-linux-android`. `wasm32-unknown-unknown` fails because transitive
+`getrandom 0.2.17` lacks its required `js` feature. These observations do not
+establish supported targets.
+
+`cargo deny` and `cargo audit --deny warnings` both reject the exact fixture
+lock. The graph contains unmaintained `ansi_term 0.12.1`, `atty 0.2.14`,
+`dotenv 0.15.0` and `proc-macro-error 1.0.4`; RustSec also reports the
+`atty 0.2.14` unaligned-read unsoundness advisory. No safe upgrade is available
+inside the pinned candidate graph.
 
 ## Candidate decisions
 
 | Candidate | Initial disposition | Evidence needed |
 | --- | --- | --- |
 | `identity_did 1.5.1` production dependency | `not-adopt` | Already prohibited by ADR 0069's model/cone boundary. |
-| Isolated DID syntax executable oracle | `oracle` | Reproducible meaningful differential value, acceptable maintenance cost and clean isolation. |
+| Isolated DID syntax executable oracle | `reference-only` | Frozen manual evidence retained; not admitted to CI because of cone, advisories, unsafe reach and WASM failure. |
 | DID document/VC/IOTA method behavior | `defer` | Separate capability issue, models and normative corpus. |
 | Upstream main or beta source | `reference` | Never an executable dependency for this bounded change. |
 
@@ -95,8 +112,10 @@ must receive a separate issue and capability-specific provenance.
 
 ## Open questions and blockers
 
-There is no pre-implementation blocker. The final retain/remove decision depends
-on observed divergences, exact graph cost, advisories and target results. Any
+There is no unresolved blocker. The executable fixture is retained as frozen,
+manual reference evidence, but it is not a CI oracle. Refresh or removal
+requires a new issue when IOTA publishes a materially narrower syntax package,
+eliminates the denied advisories and compiles for the SDK WASM target. Any
 unresolved normative ambiguity must remain a named case rather than be silently
 classified from majority agreement.
 
@@ -114,5 +133,6 @@ scripts/factory research-ready add-iota-did-syntax-oracle
 scripts/factory constraints-ready add-iota-did-syntax-oracle
 ```
 
-Unrun before implementation: executable corpus, final dependency count,
-unsafe/native scan, audit/deny, target checks, full Nix and hosted CI.
+The first seven commands were executed with the outcomes recorded above. Full
+Nix and hosted CI remain delivery gates; target-specific commands are compile
+observations only.

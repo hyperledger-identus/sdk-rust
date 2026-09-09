@@ -7,10 +7,10 @@
 
 ## 2. Executable spike
 
-- [ ] 2.1 Implement the separately locked exact-record SQLite fixture.
-- [ ] 2.2 Run shared storage conformance plus focused mismatch/redaction tests.
-- [ ] 2.3 Measure dependency, supply-chain, unsafe/native and target evidence.
-- [ ] 2.4 Record the final ADR disposition and dependency ledgers.
+- [x] 2.1 Implement the separately locked exact-record SQLite fixture.
+- [x] 2.2 Run shared storage conformance plus focused mismatch/redaction tests.
+- [x] 2.3 Measure dependency, supply-chain, unsafe/native and target evidence.
+- [x] 2.4 Record the final ADR disposition and dependency ledgers.
 
 ## 3. Review and delivery
 

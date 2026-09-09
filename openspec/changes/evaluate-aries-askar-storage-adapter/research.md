@@ -41,14 +41,39 @@ contract directly.
 
 The consumer shape is an SDK-owned `SecretStore` implementation tested through
 `identus-wallet-conformance`. Candidate `Store`/`Session`/`Entry`/`Error` values
-remain private. The proof will use only public store provisioning, transaction,
+remain private. The proof uses only public store provisioning, transaction,
 fetch, insert, replace, remove, commit/rollback and close behavior.
 
-The final record will report the direct and resolved dependency cone. Public
-and wire compatibility remains unchanged because the candidate stays behind an
-SDK-owned facade boundary in a nested fixture. Rollback removes only research
-artifacts. Named target checks and all unrun checks are listed with exact
-commands rather than inferred.
+The adapter passes all 16 shared exact-record operations against encrypted
+in-memory SQLite, including insert-only conflict, replacement revision
+invalidation, stale-write/stale-delete preservation, scope isolation and exact
+deletion. It owns an eight-byte revision envelope and validates conditional
+mutations inside Askar transactions. Three fixture tests additionally prove
+collision-free scope/key names, malformed-row integrity failure, input bounds
+and redacted SDK errors.
+
+The direct and resolved host normal/build dependency cone has 192 unique
+rendered package/version lines; the target-complete lock has 256 packages. The
+top-level package has eight direct dependencies and unconditionally selects
+`askar-crypto 0.3.7` with every key family even for the storage-only fixture.
+SQLite brings SQLx, Tokio and `libsqlite3-sys` with a C build script/native
+`sqlite3` link.
+
+Host behavior passes on Rust 1.98.1. The exact graph compiles for
+`aarch64-apple-ios` with the Xcode clang and for `aarch64-linux-android` with
+NDK 27/API 21 clang and llvm-ar. `wasm32-unknown-unknown` fails in
+`getrandom 0.2.17` before SQLite compilation. Compile receipts do not establish
+mobile runtime or support.
+
+Public and wire compatibility is unchanged because the candidate stays behind
+an SDK-owned facade boundary in a nested fixture. Root Cargo manifests and
+locks contain no Askar package. Rollback removes only research artifacts. Unrun
+checks include persistent files, process concurrency, crash recovery,
+migration, runtime mobile behavior, performance and downstream integration.
+The fixture revision counter is unique only within one process lifetime and its
+generic conformance value is a Rust `String`; restart-safe revision allocation,
+transaction cancellation/drop behavior and durable secret zeroization remain
+unproved production responsibilities.
 
 Required mismatches to adjudicate:
 
@@ -63,7 +88,7 @@ Required mismatches to adjudicate:
 - Exact deletion of a missing row and transaction/cancellation behavior need
   explicit evidence rather than inference from method names.
 
-## Security, privacy and maintenance evidence
+## Security, privacy, supply-chain and maintenance evidence
 
 The store encrypts category, name and value data using profile keys, but that
 does not establish OS key protection, backup, recovery, side-channel safety or
@@ -71,20 +96,33 @@ custody. A fixed ephemeral test key proves behavior only. Caller values and
 candidate diagnostics must not appear in errors or Debug output.
 
 The license and provenance are pinned to the immutable tag and crate checksum
-above. The published source search reaches substantial authored and dependency-owned
-unsafe/native code, including SQLite and cryptographic implementations. This is
-expected audit scope, not a vulnerability claim. The final report must record
-the locked normal/build cone, licenses, advisories, duplicate versions, build
-scripts, native links and target results with exact commands.
+above. The enabled top-level Askar modules contain no authored unsafe block;
+enabled `askar-storage` source contains three. `libsqlite3-sys` compiles and
+links native SQLite C. Dependency-owned unsafe/native code remains material
+audit scope, not a vulnerability claim.
+
+`cargo deny` passes advisories, bans, licenses and sources for the selected
+feature graph with duplicate/unmatched-policy warnings. `cargo audit --deny
+warnings` reports RUSTSEC-2023-0071 for `rsa 0.9.10` present in the lock;
+`cargo tree --target all -i rsa` returns no path, proving it is not reachable
+under selected features. The raw audit gate therefore does not pass, and a
+future production decision must make an explicit feature-aware policy rather
+than suppress the finding silently.
+
+Version 0.4.6 was published on 2025-10-31. Upstream 0.5.0 was tagged on
+2025-12-11 and main remained active at `48a49592` through 2026-06-25. The newer
+source still unconditionally couples the top-level package to broad KMS crypto,
+and its constituent 0.5-era crates are not published. Maintenance is credible;
+publication and component-boundary posture are not sufficient for adoption.
 
 ## Candidate decisions
 
 | Candidate | Initial disposition | Evidence needed |
 | --- | --- | --- |
 | `aries-askar 0.4.6` in generic/core crates | `not-adopt` | Architecture already prohibits backend/KMS types in generic crates. |
-| Exact Askar SQLite leaf adapter | `spike` | Shared exact-store conformance, atomic revision proof, redaction and cone/target evidence. |
+| Exact Askar SQLite leaf adapter | `not-adopt` | Behavior passes, but 192 host lines, unsliceable KMS crypto, native-only SQLite and SDK-owned revision/CAS work make production reuse disproportionate. |
 | PostgreSQL, FFI, logger and migration features | `not-adopt` for this spike | Named consumer and separate backend/FFI/recovery decisions. |
-| Unpublished 0.5.0 source | `oracle` | A published immutable crate and migration/API evidence. |
+| Unpublished 0.5.0 source | `oracle` | Maintenance/reference evidence only until an immutable crate and migration/API contract are published. |
 
 ## Additional policy sources
 
@@ -104,15 +142,17 @@ Production adoption, KMS key storage, key generation, list ports, pagination,
 PostgreSQL, migrations, FFI, logging, hardware keys, file persistence,
 multi-process behavior, crash recovery, performance claims and downstream
 integration are deferred. Each requires a separate bounded decision. The
-reconsideration trigger for 0.5.0 is a published immutable crate with migration
-and API evidence.
+reconsideration trigger is a published release that feature-slices encrypted
+storage from unrelated KMS/FFI, exposes atomic revision/CAS semantics, passes a
+feature-aware advisory and native-target policy, and proves migration/recovery
+payoff for a named consumer.
 
 ## Open questions and blockers
 
-There is no research-readiness blocker. The fixture must determine whether the
-public transaction API provides sufficient atomicity for SDK-owned revisions
-and whether the minimized published graph passes current target and supply-chain
-gates. A negative answer is a valid final result.
+There is no unresolved research blocker. The technical proof is positive, but
+the production decision is negative for the assessed release. Any consumer may
+use the fixture as a reference outside the SDK; a future SDK adapter requires a
+new issue after the reconsideration trigger rather than reopening this result.
 
 ## Evidence commands
 
@@ -123,9 +163,12 @@ cargo +1.98.1 clippy --locked --all-targets -- -D warnings
 cargo +1.98.1 tree --locked --edges normal,build
 cargo deny --manifest-path <fixture>/Cargo.toml --config deny.toml check
 cargo audit --file <fixture>/Cargo.lock --deny warnings
-nix develop .#bindings --command cargo check --locked --target aarch64-apple-ios
-nix develop .#bindings --command cargo check --locked --target aarch64-linux-android
+nix develop .#bindings --command env CC_aarch64_apple_ios=<xcode-clang> cargo check --locked --target aarch64-apple-ios
+nix develop .#bindings --command env CC_aarch64_linux_android=<ndk-clang> AR_aarch64_linux_android=<ndk-llvm-ar> cargo check --locked --target aarch64-linux-android
+nix develop .#wasm --command cargo check --locked --target wasm32-unknown-unknown
+cargo tree --locked --target all -i rsa
 ```
 
-WASM is expected to be incompatible with SQLite and will be recorded as a
-designed backend boundary, not silently omitted.
+The audit command intentionally reports RUSTSEC-2023-0071 for an unreachable
+lock entry, and the WASM command intentionally fails at `getrandom 0.2.17`.
+Those negative commands are evidence, not passing gates.

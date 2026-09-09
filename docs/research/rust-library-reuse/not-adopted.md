@@ -47,7 +47,6 @@ dependencies until their named prerequisite is satisfied:
 | `anoncreds-rs` | [ADR 0073](../../adr/0073-conditionally-adopt-anoncreds-rs.md): IDR-050 is activated and a focused optional adapter proves native/mobile, OpenSSL, unsafe, secret, VDR and conformance boundaries. |
 | `uniffi 0.32.0` | [#163](https://github.com/hyperledger-identus/sdk-rust/issues/163): binding value/opaque-handle/error contracts stabilize and native runtime tests exist; UniFFI stays out of generic core crates. |
 | `uniffi-bindgen-react-native 0.31.0-5` | Current release is pinned to UniFFI 0.31; reconsider through [#223](https://github.com/hyperledger-identus/sdk-rust/issues/223) after an exact 0.32-compatible release proves iOS/Android TurboModule runtime and packaging. |
-| `wasm-bindgen` browser adapter | Evaluate through [#224](https://github.com/hyperledger-identus/sdk-rust/issues/224) with a named React consumer, exact version, browser runtime, bundler/module/CSP/worker contract and package evidence; native UniFFI success is not browser evidence. |
 
 Reason codes are deliberately finite: `MSRV`, `dependency-cone`,
 `draft-version`, `coupling`, `maintenance`, `publication-readiness`,

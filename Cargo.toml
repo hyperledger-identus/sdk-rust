@@ -22,6 +22,7 @@ identus-bindings           = { path = "crates/bindings" }
 identus-conformance        = { path = "crates/conformance" }
 identus-wallet-conformance = { path = "crates/wallet-conformance" }
 identus-uniffi-did         = { path = "crates/uniffi-did" }
+identus-wasm-did           = { path = "crates/wasm-did" }
 proc-macro2                = "1"
 quote                      = "1"
 getrandom                  = "0.2"
@@ -34,6 +35,7 @@ toml                       = "0.8"
 trybuild                   = "1"
 uriparse                   = "=0.6.4"
 uniffi                     = { version = "=0.32.0", default-features = false }
+wasm-bindgen               = "=0.2.121"
 
 # identus-did-resolver-http external dependencies. Axum is deliberately built
 # without listener/runtime defaults; Tokio and Tower `util` are test-only.

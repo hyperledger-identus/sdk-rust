@@ -214,6 +214,15 @@ owner_issue    = "#230"
 summary        = "Experimental versioned UniFFI facade with deterministic host generation, local Apple XCFramework/Simulator evidence and local arm64-v8a Android AAR/emulator evidence; unpublished and unsupported."
 
 [[packages]]
+name           = "identus-wasm-did"
+path           = "crates/wasm-did"
+layer          = "outer-boundary"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#224"
+summary        = "Experimental browser-native WASM facade for bounded DID values with deterministic ESM/TypeScript packaging and Chromium/Firefox evidence; unpublished and unsupported."
+
+[[packages]]
 name           = "identus-conformance"
 path           = "crates/conformance"
 layer          = "verification"

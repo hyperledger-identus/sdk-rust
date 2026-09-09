@@ -1,6 +1,8 @@
 # Rust build artifacts
 /target
+/tests/wasm-did-browser/target
 /tools/uniffi-bindgen/target
+__pycache__/
 /fuzz/artifacts
 /fuzz/target
 

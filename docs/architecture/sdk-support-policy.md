@@ -101,6 +101,13 @@ multi-Rust-static-library composition are unproven. `[ffi].status`,
 `SDK-LIM-002` and `SDK-LIM-003` therefore remain
 `not-supported`.
 
+Issue #224 and ADR 0101 add a separate unpublished `identus-wasm-did` leaf with
+API version 1, exact wasm-bindgen runtime/CLI 0.2.121, byte-reproducible browser-native
+ESM/TypeScript output and matching scheduled Chromium/Firefox behavior gates.
+It introduces no DOM, network, storage, secret, worker or framework authority.
+This evidence does not select a downstream bundler or browser support matrix,
+publish a package, or change `[ffi].status` and `SDK-LIM-002`.
+
 ## CI cadence, binary size and build time
 
 The machine policy defines `fast` as the single Linux Rust/factory integration

@@ -27,7 +27,7 @@ do not share the native Swift/Kotlin compatibility contract.
 | Swift | Go for production slice | Swift 6.3 host program linked the generated wrapper and passed valid, invalid and oversized cases | iOS simulator/device, XCFramework/SwiftPM, API/ABI versioning |
 | Kotlin | Go for production slice | Kotlin 2.2.20/JVM 17 host proof plus a deterministic arm64-v8a AAR and API-35 arm64 emulator receipt using explicit JNA 5.18.1 | physical device, other ABI/runtime matrix, Maven publication and supported JVM/Android API contract |
 | React Native | No-go on current dependency | `uniffi-bindgen-react-native` 0.31.0-5 uses UniFFI 0.31 and adds JSI/TurboModule/runtime coupling | Exact 0.32-compatible release, New Architecture iOS/Android runtime and packaging proof |
-| Browser React | Separate adapter research | `wasm-bindgen` matches the WASM/JavaScript package boundary; native UniFFI is not browser evidence | Browser runtime, bundler/module/CSP/worker/error/package contract |
+| Browser React | Experimental adapter implemented | exact wasm-bindgen runtime/CLI 0.2.121 browser-native ESM/TypeScript package is byte-reproducible and executes bounded DID behavior in Chrome; the weekly gate requires Chromium and Firefox | Named downstream/bundler adoption, browser support matrix and publication contract |
 | Node | Deferred | Neither native host proof nor browser WASM defines a Node package/loading contract | Named consumer and N-API or WASM runtime decision |
 
 ## Interface comparison
@@ -100,6 +100,11 @@ docs/research/uniffi-did-spike/scripts/verify.sh
 Subsequent issues #228 and #230 now provide local arm64 iOS Simulator plus
 arm64-v8a Android emulator package/runtime evidence. Still unrun by design:
 physical-device and wider runtime/ABI tests, React
-Native Metro/JSI/TurboModule runtime, browser/Node execution, callbacks, async,
+Native Metro/JSI/TurboModule runtime, Node execution, callbacks, async,
 objects, cancellation, secrets, signing, storage, networking, publication and
 certification.
+
+Browser issue #224 is now implemented separately through `identus-wasm-did` and
+[ADR 0101](../adr/0101-adopt-wasm-bindgen-for-browser-did-values.md). Its
+browser-native ESM package and two-engine slow gate do not change native UniFFI
+or activate supported FFI.

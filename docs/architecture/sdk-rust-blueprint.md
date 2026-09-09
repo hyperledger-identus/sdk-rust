@@ -145,6 +145,7 @@ reserve the final namespace automatically.
 | `identus-did-core` | DID/DID URL, document, verification relationships, services, resolution/dereference/registration contracts and metadata | DID method ledger behavior, HTTP server/client |
 | `identus-did-resolver-http` | optional Axum binding for the W3C DID Resolution HTTP interface over any resolver | chain resolver implementation |
 | `identus-uniffi-did` | experimental versioned UniFFI value facade for bounded DID and DID URL parsing, including local Apple and arm64 Android package/runtime proofs | published/signed mobile distribution, physical-device or compatibility-matrix support, or general binding umbrella |
+| `identus-wasm-did` | experimental versioned browser-native ESM/TypeScript value facade for bounded DID and DID URL parsing with Chromium/Firefox behavior evidence | publication, Node, React Native, bundler-specific policy, browser-version matrix, secrets or browser authority |
 | `identus-vc-core` | format-neutral credential/presentation envelopes, disclosure descriptors, staged verification evidence and status vocabulary | format codecs, trust policy, inventory/storage IDs |
 | `identus-jose` | bounded JWS compact codec and narrowly profiled builder/verifier APIs | general-purpose JOSE, JWE, custody |
 | `identus-oid4vci` | OID4VCI Final wire types, validation and resumable holder/issuer state contracts | wallet UI, browser launching, issuer policy |

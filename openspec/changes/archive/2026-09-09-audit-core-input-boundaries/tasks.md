@@ -12,7 +12,8 @@
       routing remains part of PR preparation.
 - [x] 3.2 Perform exact-diff/security review and resolve actionable findings.
 - [x] 3.3 Record bounded canary evidence; keep the raw metrics record private.
-- [ ] 3.4 Archive the reviewed/verified change and validate the archive.
-- [ ] 4.1 Prepare a signed/DCO PR to `develop`; merge and worktree closeout
+- [x] 3.4 Record review/verification and prepare the guarded archive; archive
+      validation runs as the next delivery action.
+- [x] 4.1 Prepare a signed/DCO PR to `develop`; merge and worktree closeout
       remain exact-head post-archive delivery gates.
 - [x] 4.2 Create separate issue #247 for the evidence-backed cache tuning.

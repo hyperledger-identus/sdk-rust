@@ -19,6 +19,9 @@ Verification date: 2026-09-10
   passed.
 - `./bootstrap.sh --check`: all factory/OpenSpec structure and 9 operational
   tests passed.
+- `scripts/factory plan --base b5d1a4c... --head f80a254... --profile production-ready`:
+  exact 15-path plan requires only `fast`; full Nix, fuzz, portable-target and
+  security suites remain weekly/manual recommendations.
 - `git diff --check`: passed.
 
 ## Evidence
@@ -36,8 +39,8 @@ Verification date: 2026-09-10
 
 The complete weekly Nix matrix, portable runtime targets, fuzzing and release
 checks are not run locally for this evidence-only core test/docs slice. The
-exact committed target plan and hosted PR gate remain required evidence. No
-unrun command is represented as passing.
+hosted PR fast gate remains required evidence. No unrun command is represented
+as passing.
 
 ## Residual limitations
 

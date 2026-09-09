@@ -74,6 +74,10 @@ pub mod error_code {
     pub const NONCE_ENDPOINT_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.nonce_endpoint_too_large");
     pub const UNSAFE_NONCE_ENDPOINT: ErrorCode = ErrorCode::new("oid4vci.unsafe_nonce_endpoint");
+    pub const DEFERRED_CREDENTIAL_ENDPOINT_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.deferred_credential_endpoint_too_large");
+    pub const UNSAFE_DEFERRED_CREDENTIAL_ENDPOINT: ErrorCode =
+        ErrorCode::new("oid4vci.unsafe_deferred_credential_endpoint");
     pub const NONCE_ENDPOINT_REQUIRED: ErrorCode =
         ErrorCode::new("oid4vci.nonce_endpoint_required");
     pub const INVALID_AUTHORIZATION_SERVERS: ErrorCode =
@@ -360,6 +364,8 @@ pub enum CredentialOfferError {
     UnsafeCredentialEndpoint,
     NonceEndpointTooLarge,
     UnsafeNonceEndpoint,
+    DeferredCredentialEndpointTooLarge,
+    UnsafeDeferredCredentialEndpoint,
     NonceEndpointRequired,
     InvalidAuthorizationServers,
     TooManyAuthorizationServers,
@@ -695,6 +701,16 @@ impl CredentialOfferError {
                 error_code::UNSAFE_NONCE_ENDPOINT,
                 ErrorKind::InvalidInput,
                 "OID4VCI Nonce Endpoint is unsafe",
+            ),
+            Self::DeferredCredentialEndpointTooLarge => (
+                error_code::DEFERRED_CREDENTIAL_ENDPOINT_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VCI Deferred Credential Endpoint is too large",
+            ),
+            Self::UnsafeDeferredCredentialEndpoint => (
+                error_code::UNSAFE_DEFERRED_CREDENTIAL_ENDPOINT,
+                ErrorKind::InvalidInput,
+                "OID4VCI Deferred Credential Endpoint is unsafe",
             ),
             Self::NonceEndpointRequired => (
                 error_code::NONCE_ENDPOINT_REQUIRED,

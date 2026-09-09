@@ -47,6 +47,7 @@ pub(crate) struct CredentialIssuerMetadataFields {
     pub(crate) authorization_servers: Option<Vec<Zeroizing<String>>>,
     pub(crate) credential_endpoint: Zeroizing<String>,
     pub(crate) nonce_endpoint: Option<Zeroizing<String>>,
+    pub(crate) deferred_credential_endpoint: Option<Zeroizing<String>>,
     pub(crate) credential_configurations: Vec<CredentialConfigurationFields>,
 }
 
@@ -593,6 +594,7 @@ impl Scanner<'_> {
         let mut authorization_servers_present = false;
         let mut credential_endpoint = None;
         let mut nonce_endpoint = None;
+        let mut deferred_credential_endpoint = None;
         let mut credential_configurations = None;
         loop {
             let name = self.parse_unique_member_name(&mut names)?;
@@ -623,6 +625,13 @@ impl Scanner<'_> {
                         CredentialOfferError::NonceEndpointTooLarge,
                     )?);
                 }
+                "deferred_credential_endpoint" => {
+                    deferred_credential_endpoint = Some(self.parse_nonempty_bounded_string(
+                        limits.max_credential_endpoint_bytes(),
+                        CredentialOfferError::InvalidMetadata,
+                        CredentialOfferError::DeferredCredentialEndpointTooLarge,
+                    )?);
+                }
                 "credential_configurations_supported" => {
                     credential_configurations =
                         Some(self.parse_credential_configurations(depth, limits)?);
@@ -644,6 +653,7 @@ impl Scanner<'_> {
             credential_endpoint: credential_endpoint
                 .ok_or(CredentialOfferError::InvalidMetadata)?,
             nonce_endpoint,
+            deferred_credential_endpoint,
             credential_configurations: credential_configurations
                 .ok_or(CredentialOfferError::InvalidCredentialConfigurations)?,
         })

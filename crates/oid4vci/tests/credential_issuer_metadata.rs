@@ -60,6 +60,7 @@ fn accepts_final_and_consumer_shaped_metadata_without_format_policy() {
         "https://credential-issuer.example.com:8443/tenant/credential?version=1"
     );
     assert!(parsed.nonce_endpoint().is_none());
+    assert!(parsed.deferred_credential_endpoint().is_none());
     assert_eq!(parsed.effective_authorization_server_count(), 1);
     assert_eq!(
         parsed.effective_authorization_server(0),
@@ -98,6 +99,23 @@ fn exposes_the_exact_optional_final_nonce_endpoint() {
     assert_eq!(
         parsed.nonce_endpoint().map(|endpoint| endpoint.as_str()),
         Some(nonce_endpoint)
+    );
+    assert_eq!(parsed.as_json(), json);
+}
+
+#[test]
+fn exposes_the_exact_optional_final_deferred_credential_endpoint() {
+    let endpoint = "https://credential-issuer.example.com:8443/deferred?tenant=wallet";
+    let json = core_metadata(
+        &format!(r#", "deferred_credential_endpoint":"{endpoint}""#),
+        r#"{"degree":{"format":"dc+sd-jwt"}}"#,
+    );
+    let parsed = metadata(&json).expect("metadata");
+    assert_eq!(
+        parsed
+            .deferred_credential_endpoint()
+            .map(|value| value.as_str()),
+        Some(endpoint)
     );
     assert_eq!(parsed.as_json(), json);
 }
@@ -229,6 +247,38 @@ fn rejects_invalid_nonce_endpoint_shapes_with_static_errors() {
 }
 
 #[test]
+fn rejects_invalid_deferred_credential_endpoint_shapes_with_static_errors() {
+    for value in ["\"\"", "7", "null", "[]"] {
+        let json = core_metadata(
+            &format!(r#", "deferred_credential_endpoint":{value}"#),
+            r#"{"degree":{"format":"dc+sd-jwt"}}"#,
+        );
+        let result = metadata(&json);
+        assert!(
+            matches!(result, Err(CredentialOfferError::InvalidMetadata)),
+            "unexpected result for {value}: {result:?}"
+        );
+    }
+
+    for endpoint in [
+        "http://issuer.example/deferred",
+        "https://user:secret@issuer.example/deferred",
+        "https://issuer.example/deferred#fragment",
+        "https://",
+        "not-a-uri",
+    ] {
+        let json = core_metadata(
+            &format!(r#", "deferred_credential_endpoint":"{endpoint}""#),
+            r#"{"degree":{"format":"dc+sd-jwt"}}"#,
+        );
+        assert!(matches!(
+            metadata(&json),
+            Err(CredentialOfferError::UnsafeDeferredCredentialEndpoint)
+        ));
+    }
+}
+
+#[test]
 fn rejects_invalid_duplicate_and_excessive_authorization_servers() {
     for authorization_servers in [
         r#", "authorization_servers":[]"#,
@@ -271,8 +321,16 @@ fn duplicate_members_at_any_depth_and_trailing_json_fail_closed() {
         r#", "nonce_endpoint":"https://nonce.example/a", "nonce_endpoint":"https://nonce.example/b""#,
         r#"{"x":{"format":"f"}}"#,
     );
+    let duplicate_deferred_endpoint = core_metadata(
+        r#", "deferred_credential_endpoint":"https://issuer.example/a", "deferred_credential_endpoint":"https://issuer.example/b""#,
+        r#"{"x":{"format":"f"}}"#,
+    );
     assert!(matches!(
         metadata(&duplicate_nonce_endpoint),
+        Err(CredentialOfferError::DuplicateJsonProperty)
+    ));
+    assert!(matches!(
+        metadata(&duplicate_deferred_endpoint),
         Err(CredentialOfferError::DuplicateJsonProperty)
     ));
     for json in [
@@ -431,6 +489,53 @@ fn shared_endpoint_limit_applies_independently_and_exactly() {
 }
 
 #[test]
+fn shared_endpoint_limit_applies_to_deferred_endpoint_independently_and_exactly() {
+    let endpoint = format!("https://issuer.example/deferred/{}", "d".repeat(64));
+    let json = core_metadata(
+        &format!(r#", "deferred_credential_endpoint":"{endpoint}""#),
+        r#"{"degree":{"format":"fmt"}}"#,
+    );
+    let exact = CredentialIssuerMetadataLimits::new(
+        json.len(),
+        3,
+        8,
+        ISSUER.len(),
+        endpoint.len(),
+        17,
+        1,
+        6,
+        3,
+        1,
+    )
+    .expect("limits");
+    let parsed = CredentialIssuerMetadata::parse(&json, ISSUER, exact).expect("exact endpoint");
+    assert_eq!(
+        parsed
+            .deferred_credential_endpoint()
+            .map(|value| value.as_str()),
+        Some(endpoint.as_str())
+    );
+
+    let one_less = CredentialIssuerMetadataLimits::new(
+        json.len(),
+        3,
+        8,
+        ISSUER.len(),
+        endpoint.len() - 1,
+        17,
+        1,
+        6,
+        3,
+        1,
+    )
+    .expect("limits");
+    assert!(matches!(
+        CredentialIssuerMetadata::parse(&json, ISSUER, one_less),
+        Err(CredentialOfferError::DeferredCredentialEndpointTooLarge)
+    ));
+}
+
+#[test]
 fn metadata_and_errors_do_not_disclose_caller_content() {
     let canary = "METADATA_SECRET_CANARY_41b4";
     let json = core_metadata(
@@ -476,6 +581,34 @@ fn metadata_and_errors_do_not_disclose_caller_content() {
     assert!(!format!("{unsafe_error:?} {unsafe_error}").contains(canary));
     assert!(!format!("{:?}", unsafe_error.to_identus_error()).contains(canary));
 
+    let deferred_url = format!("https://issuer.example/deferred?canary={canary}");
+    let deferred_json = core_metadata(
+        &format!(r#", "deferred_credential_endpoint":"{deferred_url}""#),
+        r#"{"degree":{"format":"dc+sd-jwt"}}"#,
+    );
+    let deferred_metadata = metadata(&deferred_json).expect("metadata with deferred endpoint");
+    assert!(!format!("{deferred_metadata:?}").contains(canary));
+    assert!(
+        !format!(
+            "{:?}",
+            deferred_metadata
+                .deferred_credential_endpoint()
+                .expect("deferred endpoint")
+        )
+        .contains(canary)
+    );
+
+    let unsafe_deferred_json = core_metadata(
+        &format!(r#", "deferred_credential_endpoint":"http://issuer.example/{canary}""#),
+        r#"{"degree":{"format":"dc+sd-jwt"}}"#,
+    );
+    let unsafe_deferred = metadata(&unsafe_deferred_json).expect_err("unsafe deferred endpoint");
+    assert_eq!(
+        unsafe_deferred,
+        CredentialOfferError::UnsafeDeferredCredentialEndpoint
+    );
+    assert!(!format!("{unsafe_deferred:?} {unsafe_deferred}").contains(canary));
+
     for (error, code) in [
         (
             CredentialOfferError::NonceEndpointTooLarge,
@@ -484,6 +617,14 @@ fn metadata_and_errors_do_not_disclose_caller_content() {
         (
             CredentialOfferError::UnsafeNonceEndpoint,
             error_code::UNSAFE_NONCE_ENDPOINT,
+        ),
+        (
+            CredentialOfferError::DeferredCredentialEndpointTooLarge,
+            error_code::DEFERRED_CREDENTIAL_ENDPOINT_TOO_LARGE,
+        ),
+        (
+            CredentialOfferError::UnsafeDeferredCredentialEndpoint,
+            error_code::UNSAFE_DEFERRED_CREDENTIAL_ENDPOINT,
         ),
     ] {
         let core: IdentusError = error.into();
@@ -498,6 +639,7 @@ fn metadata_and_errors_do_not_disclose_caller_content() {
         ] {
             assert!(!value.contains(canary));
             assert!(!value.contains(&nonce_url));
+            assert!(!value.contains(&deferred_url));
         }
     }
 }

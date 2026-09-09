@@ -23,9 +23,13 @@ platforms with `lipo`.
 ### Generated SwiftPM wrapper
 
 Use UniFFI's Swift-specific library-mode generator to produce Swift source, the
-C header and an XCFramework-compatible `module.modulemap`. A Swift source target
-depends on the local binary target. Only the package template and behavioral
-test source are tracked; generated sources and binaries live under `target/`.
+C header and its XCFramework module map. Normalize only the exact UniFFI 0.32.0
+module-map template into the plain module form required by a static-library
+SwiftPM binary target under Xcode 26.4. The normalizer removes the `framework`
+qualifier and the three incompatible explicit builtin `use` declarations; it
+fails on every other input shape. A Swift source target depends on the local
+binary target. Only the package template and behavioral test source are
+tracked; generated sources and binaries live under `target/`.
 
 ### Reproducibility contract
 
@@ -50,8 +54,9 @@ proven.
 
 ## Risks and mitigations
 
-- Xcode 26 module import drift: execute the exact local binary-target package;
-  do not rely on host `swiftc` evidence or unchecked flags.
+- Xcode 26 module import drift: verify exact generator input before the bounded
+  static-module normalization and execute the local binary-target package; do
+  not rely on host `swiftc` evidence or unchecked flags.
 - Stale generated API: reuse normalized snapshot checks and generate from the
   same library metadata/version.
 - Platform confusion: inspect XCFramework `Info.plist` and archive load

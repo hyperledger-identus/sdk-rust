@@ -20,7 +20,12 @@ The local Swift package SHALL expose generated `IdentusDid` Swift source in a
 source target that depends on one `IdentusDidFFI` local binary target. The
 binary target SHALL contain an XCFramework-compatible `module.modulemap`, the
 generated C header and one Rust static library per declared variant. Generation
-SHALL use the exact separately locked UniFFI 0.32.0 tool.
+SHALL use the exact separately locked UniFFI 0.32.0 tool. A static-library
+module-map adapter MAY remove the generated `framework` qualifier and explicit
+Darwin/builtin `use` declarations only after matching the complete expected
+generator output; unexpected generator drift SHALL fail closed. The generated
+C header and Swift source SHALL remain unmodified, and unchecked or unsafe
+Swift compiler flags SHALL NOT be used.
 
 #### Scenario: package imports the public module
 

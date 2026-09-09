@@ -24,9 +24,10 @@ Constraint blockers: none
 The leaf binding crate may emit a static library in addition to its current
 artifacts. Device and Simulator variants must remain distinct and must be built
 from the same source, Cargo lock, Rust 1.98.1 and API version. The package must
-use the exact generated Swift/header/module-map contract, set an explicit
-minimum iOS version, expose no absolute build path, and contain no generated
-cache or build directory in Git.
+use the exact generated Swift/header contract and the reviewed fail-closed
+static-library module-map normalization, set an explicit minimum iOS version,
+expose no absolute build path, and contain no generated cache or build directory
+in Git. No unchecked or unsafe Swift compiler flag is permitted.
 
 The default development shell and Linux fast line remain unchanged. Apple
 construction and execution run in the dedicated binding environment and the

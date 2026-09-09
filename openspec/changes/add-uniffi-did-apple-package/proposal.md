@@ -14,8 +14,9 @@ removing `SDK-LIM-002`.
 
 - Add `staticlib` to the isolated `identus-uniffi-did` crate while retaining its
   existing `rlib` and host `cdylib` products.
-- Add an exact UniFFI 0.32 Swift generator entry point for XCFramework-compatible
-  `module.modulemap` output, without adding a dependency.
+- Add an exact UniFFI 0.32 Swift generator entry point and a fail-closed
+  static-library module-map normalization for Xcode 26 compatibility, without
+  adding a dependency or compiler flag.
 - Build arm64 iOS-device and arm64 iOS-Simulator archives with Rust 1.98.1 and an
   explicit iOS 15.0 minimum.
 - Assemble the two distinct archives and generated header into a local

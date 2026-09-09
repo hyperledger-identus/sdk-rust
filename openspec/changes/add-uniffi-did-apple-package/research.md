@@ -57,8 +57,9 @@ scope.
 | Candidate | Version/revision | Decision | Reason | Reconsideration trigger |
 | --- | --- | --- | --- | --- |
 | Rust `staticlib` plus Apple XCFramework | Rust 1.98.1 / Xcode 26.4 | `conditional-adopt` | It is the native Apple packaging shape and can prove separate device/Simulator slices without a new Rust dependency. | Reconsider if exact local linking fails, archive output is nondeterministic, or a supported distribution shape requires a different ABI. |
-| Generated Swift source target over a local binary target | UniFFI 0.32.0 / `5c7b7390` | `conditional-adopt` | Keeps UniFFI's generated API while SwiftPM owns selection and linking of the XCFramework. | Reconsider if the exact generated module map cannot compile without unsupported flags. |
-| Hand-authored C header, module map or Swift bridge | repository-local | `not-adopt` | It would create a second ABI definition and conceal generator compatibility defects. | Reconsider only if an approved versioned ABI intentionally becomes independent of UniFFI. |
+| Generated Swift source target over a local binary target | UniFFI 0.32.0 / `5c7b7390` | `conditional-adopt` | Keeps UniFFI's generated API while SwiftPM owns selection and linking of the XCFramework. | Reconsider if normalized static module import or runtime evidence regresses. |
+| Strict static-library module-map normalizer | repository-local | `conditional-adopt` | Xcode 26.4 proves UniFFI's generated framework declaration and builtin `use` lines do not import from a static-library binary target; an exact-input adapter can fail on generator drift and emit Apple's plain module shape. | UniFFI emits an Xcode-compatible static-library module map or SwiftPM/Xcode changes the required form. |
+| Free-form hand-authored C header, module map or Swift bridge | repository-local | `not-adopt` | It would create a second ABI definition and conceal generator compatibility defects. | Reconsider only if an approved versioned ABI intentionally becomes independent of UniFFI. |
 | `lipo` device and Simulator archives together | Apple toolchain | `not-adopt` | Apple requires distinct platform variants in an XCFramework. | Never for device/Simulator composition. |
 | Multiple leaf Rust static XCFrameworks | current upstream evidence | `defer` | Duplicate Rust runtime symbols are a known integration risk and this slice has only one library. | An aggregate native SDK design or exact multi-library composition proof is approved. |
 | Remote SwiftPM binary target/publication | not applicable | `defer` | Signing, archive checksum, hosting, release ownership and compatibility are outside this evidence slice. | A named consumer and distribution/support ADR approve publication. |
@@ -146,11 +147,18 @@ SwiftPM binary target fail under Xcode 26/27. The issue is open and its only
 maintainer response reports successful Xcode 26.5 use, so it is evidence of a
 configuration-sensitive risk rather than proof that 0.32 is unusable.
 
-Decision: do not patch generated output speculatively. Build the exact local
-binary-target package under Xcode 26.4. If it fails, capture the underlying
-Clang module diagnostic and either use a reviewed generator configuration or
-stop the implementation; do not hide the problem with unchecked unsafe Swift
-compiler flags.
+The pre-code experiment built the exact local binary-target package under Xcode
+26.4. `canImport(IdentusDidFFI)` evaluated false with UniFFI's generated
+`framework module` map, leaving every generated FFI type unresolved. Removing
+only the three `use` lines was insufficient. Changing that declaration to a
+plain `module` and removing the three lines made the same package compile, link
+and pass on the iOS 17.5 arm64 Simulator without compiler flags.
+
+Decision: adopt a narrow fail-closed normalizer after UniFFI generation. It
+accepts only the exact expected 0.32.0 module-map lines and emits a plain module
+containing the generated header plus `export *`; any upstream drift stops the
+gate. The header and Swift source stay unmodified and generated. Do not use
+unchecked or unsafe Swift compiler flags.
 
 ### Multiple Rust static libraries
 
@@ -198,9 +206,9 @@ React Native are outside this bounded proof and remain separate decisions.
 
 ## Open questions and blockers
 
-No research blocker remains. Exact Xcode 26.4 module-map behavior is deliberately
-an implementation gate: a failure must produce a diagnostic and stop the slice,
-not be converted into a passing result. A future public native SDK still needs
+No research blocker remains. Exact Xcode 26.4 module-map behavior has been
+reproduced and the bounded static-module adapter has passed the same package
+test without compiler flags. A future public native SDK still needs
 an aggregate-library/composition decision, supported platform matrix,
 physical-device evidence, signing and release ownership.
 
@@ -216,6 +224,9 @@ physical-device evidence, signing and release ownership.
   weekly macOS workflow.
 - Apple and UniFFI primary documentation plus upstream issues #2917 and #1710
   were retrieved on 2026-09-09.
+- Exact `xcodebuild test` experiments proved the generated map fails, removing
+  only builtin `use` lines still fails, and a plain static-library module with
+  those lines removed compiles, links and executes on iOS Simulator 17.5.
 - `scripts/factory research-ready`, constraint readiness, full factory
   validation, focused Apple construction/execution, Cargo/Nix checks and exact-
   diff review remain mandatory. Implementation-dependent commands are not

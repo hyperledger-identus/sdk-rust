@@ -4,6 +4,7 @@ Verification status: passed locally
 Verification date: 2026-09-09
 Base: develop@4c22c1ac059be5c5113301b205f1b7553c89e4b9
 Implementation head: 2acb814d6c3a2c44473595e39d9174f3fb573a06
+Pull request: [#233](https://github.com/hyperledger-identus/sdk-rust/pull/233)
 
 ## Candidate fixture receipt
 

@@ -7,10 +7,10 @@
 
 ## 2. Executable spike
 
-- [ ] 2.1 Add a separately locked exact no-default oauth2 consumer fixture and explicit script.
-- [ ] 2.2 Prove deterministic PKCE, authorization URL and recording-transport token request behavior.
-- [ ] 2.3 Record endpoint/scope/extension/error/secret/resource mismatches and target results.
-- [ ] 2.4 Decide each mechanic in ADR 0102 and update the dependency ledger.
+- [x] 2.1 Add a separately locked exact no-default oauth2 consumer fixture and explicit script.
+- [x] 2.2 Prove deterministic PKCE, authorization URL and recording-transport token request behavior.
+- [x] 2.3 Record endpoint/scope/extension/error/secret/resource mismatches and target results.
+- [x] 2.4 Decide each mechanic in ADR 0102 and update the dependency ledger.
 
 ## 3. Review and delivery
 

@@ -18,7 +18,7 @@
 ## 3. Review and delivery
 
 - [x] 3.1 Update architecture/support evidence while retaining limitations.
-- [ ] 3.2 Run focused, factory, Cargo, dependency and compatible Nix gates plus
+- [x] 3.2 Run focused, factory, Cargo, dependency and compatible Nix gates plus
   distinct exact-diff review.
-- [ ] 3.3 Complete receipts, archive the delta and prepare a signed/DCO
+- [x] 3.3 Complete receipts, archive the delta and prepare a signed/DCO
   issue-linked PR for green-only integration.

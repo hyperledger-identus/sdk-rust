@@ -21,6 +21,13 @@ unvalidated Authorization Details, its token type is case-insensitively
 every compact proof are within bounds, and the resulting authorization/body
 values are within bounds.
 
+`CredentialOfferWithMetadata::try_create_authorized_jwt_credential_request`
+SHALL instead borrow one `TokenResponseWithAuthorizationDetails`, checked
+zero-based authorization-detail and Credential Dataset identifier indices, the
+proofs and limits. It SHALL require the selected detail's configuration ID to
+equal an offered configuration ID before applying the same token, proof and
+allocation checks.
+
 #### Scenario: validated states produce one request
 
 - **WHEN** matched offer/metadata, a Bearer Token Response without Authorization
@@ -35,11 +42,19 @@ values are within bounds.
 - **THEN** construction fails before copying token or proof material and cannot
   emit a request for an unoffered configuration
 
+#### Scenario: authorized dataset selection is state-bound
+
+- **WHEN** checked indices select a dataset identifier from a recognized detail
+  whose configuration was offered
+- **THEN** construction returns one owned request for that authorized dataset
+- **AND WHEN** either index is invalid or its configuration was not offered
+- **THEN** construction fails before copying token or proof material
+
 #### Scenario: incompatible token route or syntax fails closed
 
-- **WHEN** the Token Response contains Authorization Details, advertises a
-  non-Bearer token type, or contains an access token outside the RFC 6750
-  Bearer grammar
+- **WHEN** the presence-only Token Response contains Authorization Details,
+  either route advertises a non-Bearer token type, or the access token is
+  outside the RFC 6750 Bearer grammar
 - **THEN** construction fails with the corresponding static state/type error
   and does not guess Credential identifiers or token presentation syntax
 
@@ -61,20 +76,29 @@ sensitive accessors with storage/logging guidance.
 
 The Authorization value SHALL be the canonical ASCII prefix `Bearer ` followed
 by the exact access token. The body SHALL be deterministic compact JSON with
-exactly `credential_configuration_id` followed by `proofs`, whose only member
-is `jwt`, a non-empty array of exact compact proof strings in caller order.
+exactly one selector followed by `proofs`, whose only member is `jwt`, a
+non-empty array of exact compact proof strings in caller order. The existing
+route SHALL use `credential_configuration_id`; the authorized route SHALL use
+`credential_identifier` and SHALL NOT emit `credential_configuration_id`.
 Serde JSON escaping SHALL prevent member/value injection without normalizing
-the selected configuration ID or compact proofs.
+the selected identifier or compact proofs.
 
-#### Scenario: consumer-shaped request has exact transport metadata
+#### Scenario: consumer-shaped configuration request has exact transport metadata
 
 - **WHEN** one offered configuration and one or more proofs are constructed
 - **THEN** endpoint, method, media type, Authorization value and compact JSON
   exactly match the Final configuration-ID/JWT-proof request shape
 
+#### Scenario: authorized request has exactly one selector
+
+- **WHEN** one authorized Credential Dataset identifier is selected
+- **THEN** the compact body contains `credential_identifier` followed by
+  `proofs.jwt`
+- **AND** contains no `credential_configuration_id`
+
 #### Scenario: proof order and JSON escaping are stable
 
-- **WHEN** several proofs and a configuration ID requiring JSON escaping are
+- **WHEN** several proofs and a selected identifier requiring JSON escaping are
   encoded within limits
 - **THEN** parsing the body yields the exact values in order and repeated
   construction yields byte-identical JSON
@@ -82,25 +106,26 @@ the selected configuration ID or compact proofs.
 #### Scenario: request diagnostics remain redacted
 
 - **WHEN** request `Debug` and every direct/bridged error are formatted with
-  unique token, proof, configuration and endpoint canaries
+  unique token, proof, selector and endpoint canaries
 - **THEN** no canary, body, Authorization value or parser/serializer cause is
   present in diagnostics
 
 ### Requirement: Credential Request construction remains policy-neutral and portable
 
 Success SHALL prove only that already-validated local states were combined into
-the bounded unencrypted Final configuration-ID/JWT-proof wire shape. It SHALL
-NOT prove actual request execution, endpoint provenance/reachability/trust,
-DNS/TLS/redirect/private-network safety, token validity/freshness/scope, DPoP,
-proof audience/nonce/time/signature/trust/replay correctness, metadata proof
-requirements, Credential identifier or Authorization Details semantics,
-format/chain extensions, response validity, consent or retry policy.
+a bounded unencrypted Final configuration-ID or authorized-dataset/JWT-proof
+wire shape. It SHALL NOT prove actual request execution, endpoint
+provenance/reachability/trust, DNS/TLS/redirect/private-network safety, token
+validity/freshness/scope, DPoP, Authorization Server legitimacy, product
+dataset selection, replay/invalidation, proof audience/nonce/time/signature/
+trust correctness, metadata proof requirements, format/chain extensions,
+response validity, consent or retry policy.
 
 The request SHALL expose no `Clone`, `Display`, Serde, FFI, generic header map,
-HTTP executor or raw mutable secret bytes. The only new dependency SHALL be the
-existing local `identus-jose` crate in the architecture-approved direction.
-No feature, external dependency, unsafe code, consumer, chain or product
-mutation SHALL occur, and Rust 1.85, browser-WASM, Android ARM64 and iOS ARM64
+HTTP executor or raw mutable secret bytes. The only dependency SHALL remain the
+existing local `identus-jose` crate in the architecture-approved direction. No
+feature, external dependency, unsafe code, consumer, chain or product mutation
+SHALL occur, and Rust 1.98.1, browser-WASM, Android ARM64 and iOS ARM64
 portability SHALL remain green.
 
 #### Scenario: holder proof capability remains separate
@@ -118,7 +143,7 @@ portability SHALL remain green.
 
 #### Scenario: portable dependency gates remain green
 
-- **WHEN** focused, workspace, factory, target/MSRV, supply-chain and full Nix
-  gates run
+- **WHEN** focused, workspace, factory, target, supply-chain and full Nix gates
+  run
 - **THEN** the request passes with only the declared local JOSE dependency edge
   and no feature, target or downstream drift

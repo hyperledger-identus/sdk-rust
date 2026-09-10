@@ -51,3 +51,17 @@ the existing NeoPRISM beta has passed CI or completed adoption.
   protected or explicitly out of scope.
 
 No unrun command is represented as passing.
+
+## Hosted CI triage
+
+The first hosted `fast` run at head
+`4036a01b8f8e00f9227b1965b407b06970ef640f` exposed an isolated-fixture
+failure: `SDK-ARCH-003` pointed directly to ADR 0110, while the factory fixture
+copies the canonical SDK blueprint rather than every later ADR. The constraint
+now names the blueprint section containing the effective rule; ADR 0110 remains
+its decision authority and detailed rationale.
+
+`nix build .#checks.aarch64-darwin.factory-contract --print-build-logs` then
+passed locally against the corrected tree. The failed hosted run is retained as
+evidence and is not represented as passing; the new exact head requires its own
+green hosted checks before merge.

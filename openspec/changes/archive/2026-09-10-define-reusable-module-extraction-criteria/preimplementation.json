@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 253,
+  "change": "define-reusable-module-extraction-criteria",
+  "branch": "codex/docs/issue-253",
+  "baseRef": "origin/develop",
+  "baseSha": "78e0656f860c0e569df2edb25d087c42561c51a5",
+  "contractHeadSha": "85bc3c247d904b775133030b87711882bf22afad",
+  "createdAt": "2026-09-10T06:50:37.297Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

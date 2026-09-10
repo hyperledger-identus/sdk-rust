@@ -28,6 +28,9 @@ The [Rust reuse research](../research/rust-library-reuse/report-source.md),
 [ADR 0081](../adr/0081-use-temporary-rust-198-fast-slow-ci.md) govern
 third-party crate selection and the temporary Rust/CI policy. ADR 0064 remains
 the rollback reference for a later consumer-driven compatibility matrix.
+[ADR 0110](../adr/0110-define-reusable-module-extraction-criteria.md) defines
+the mandatory reusable-module and downstream-adoption gates for extracting
+generic behavior from NeoPRISM and other consumers.
 [ADR 0063](../adr/0063-make-material-constraints-explicit.md) and the
 [constraint index](../governance/sdk-constraints.toml) distinguish effective
 cross-cutting promises, future targets, prohibitions and known limitations.
@@ -107,6 +110,13 @@ offline and does not build a donor or consumer repository.
    unbounded hostile input until their limits are audited and enforced.
 12. **Evidence travels with code.** Vectors record source, source revision,
     license, retrieval date, transformation and expected result.
+
+A reusable module must pass every ownership, cohesion, orthogonality,
+dependency-direction, public-boundary, effect-isolation, safety, portability,
+provenance, consumer-evidence and release-independence gate in ADR 0110. Donor
+package boundaries and generic-looking helpers are not sufficient evidence.
+Every candidate uses the
+[reusable-module assessment template](reusable-module-assessment-template.md).
 
 ## 4. Baseline and target crate portfolio
 

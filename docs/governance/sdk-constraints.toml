@@ -1,5 +1,5 @@
 schema_version  = 1
-policy_revision = "2026-09-08"
+policy_revision = "2026-09-10"
 governing_adr   = "docs/adr/0063-make-material-constraints-explicit.md"
 
 [[entries]]
@@ -69,6 +69,23 @@ owner            = "SDK maintainers"
 review_triggers  = [ "new crate", "new upward or sideways dependency edge" ]
 activation       = "Already effective; a new exceptional edge requires a focused ADR."
 rollback         = "Remove the edge or supersede the layer decision with dependency-cone evidence."
+
+[[entries]]
+id               = "SDK-ARCH-003"
+kind             = "guardrail"
+category         = "architecture"
+state            = "effective"
+summary          = "A reusable module passes every mandatory ownership, cohesion, orthogonality, boundary, safety, evidence and release-independence gate."
+scope            = "All source or behavior extracted from consumer and donor repositories into sdk-rust, including NeoPRISM."
+canonical_source = "docs/architecture/sdk-rust-blueprint.md#3-bootstrap-principles"
+authority        = "Sponsor-directed issue #253 and accepted ADR 0110."
+rationale        = "Generic syntax, file size or donor package structure cannot establish a low-coupling reusable SDK capability."
+consumer_impact  = "Consumers adopt cohesive public SDK capabilities through immutable revisions and keep chain/product compatibility in downstream adapters."
+enforcement      = [ "candidate issue and OpenSpec assessment", "architecture and dependency review", "consumer-shaped proof", "separate downstream adoption issue" ]
+owner            = "SDK maintainers and downstream component maintainers"
+review_triggers  = [ "consumer source extraction proposed", "new SDK crate or broad module proposed", "downstream duplicate implementation proposed for deletion" ]
+activation       = "Effective after ADR 0110 merges; each candidate still requires its own focused implementation and adoption evidence."
+rollback         = "Revert the architecture decision; preserve every independently merged component and downstream facade until its own rollback is reviewed."
 
 [[entries]]
 id               = "SDK-COMPAT-001"

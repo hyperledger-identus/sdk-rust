@@ -50,6 +50,13 @@ invalidates provisional evidence.
 ./bootstrap.sh --pi
 ```
 
+Use `./bootstrap.sh --check` as the single local health verdict. It runs the
+structural/OpenSpec contract, effective pinned-runtime audit and operational
+tests in that order inside one devshell, and propagates the first failure.
+For a runtime-only diagnostic, `scripts/factory audit` enters the repository
+devshell once when called from the host and runs directly when already inside
+Nix. Its arguments and exit status are preserved across that boundary.
+
 The two configure commands are explicit. Pi configuration preserves unknown
 keys and only updates the bounded subagent file. Git configuration refuses to
 invent identity or signing material. Neither path reads or writes Pi auth.

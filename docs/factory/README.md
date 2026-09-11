@@ -116,7 +116,7 @@ nix run .#factory -- check
 | `research-ready` | requires reviewed research, an explicit candidate disposition and zero declared research blockers before implementation |
 | `constraints-ready` | requires explicit constraint/limitation impact and exact authority for material outcomes before implementation |
 | `preflight` | persists and later validates the issue, branch, exact base and planning-only OpenSpec head |
-| `audit` | validates bounded tracked Pi policy and, in the Nix shell, the pinned runtime |
+| `audit` | enters the pinned Nix shell once when needed, then validates bounded tracked Pi policy and the effective pinned runtime |
 | `plan` | derives one immutable required fast lane plus risk-routed weekly/manual slow evidence |
 | `worktrees` | audits or explicitly mutates only canonical bounded issue worktrees |
 | `metrics` | validates, stores, renders or explicitly publishes privacy-bounded exact-head metrics |
@@ -132,6 +132,13 @@ identity. The tracked
 and recovery or retention deletion is explicit. See the operations handbook
 for the layout and the recovery runbook before changing operator-owned cache
 state.
+
+`./bootstrap.sh --check` is the complete local factory health check. In one
+pinned shell it runs the structural/OpenSpec contract, the effective runtime
+audit and the operational test suite in order, failing on the first unhealthy
+stage. The narrower `scripts/factory audit` command is also portable: outside
+Nix it enters the repository devshell once; inside Nix it runs directly so it
+cannot recurse.
 
 The receipt proves only the factory contract. Rust, target, conformance,
 security and release gates must be attached separately and truthfully.

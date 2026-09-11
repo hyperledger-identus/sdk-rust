@@ -569,4 +569,136 @@ if ! grep -Fq 'factory: change archived safely: example-change' <<<"$success_out
   exit 1
 fi
 
+routing_root="$fixture_root/routing-repository"
+mkdir -p "$routing_root/scripts/factory-tools" "$routing_root/fake-bin"
+cp "$repository_root/scripts/factory" "$routing_root/scripts/factory"
+cp "$repository_root/scripts/factory-tools/audit-pi.mjs" \
+  "$routing_root/scripts/factory-tools/audit-pi.mjs"
+chmod +x "$routing_root/scripts/factory"
+git -C "$routing_root" init -q
+routing_git_root=$(git -C "$routing_root" rev-parse --show-toplevel)
+
+cat >"$routing_root/fake-bin/nix" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >>"$FACTORY_NIX_LOG"
+[[ "$1" == develop && "$3" == --command ]]
+shift 3
+IN_NIX_SHELL=1 exec "$@"
+EOF
+cat >"$routing_root/fake-bin/node" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf 'argc=%s\n' "$#" >>"$FACTORY_NODE_LOG"
+printf '<%s>\n' "$@" >>"$FACTORY_NODE_LOG"
+exit "${FACTORY_NODE_EXIT:-0}"
+EOF
+chmod +x "$routing_root/fake-bin/nix" "$routing_root/fake-bin/node"
+: >"$routing_root/nix.log"
+: >"$routing_root/node.log"
+
+(cd "$routing_root" && env -u IN_NIX_SHELL \
+  PATH="$routing_root/fake-bin:$PATH" \
+  FACTORY_NIX_LOG="$routing_root/nix.log" \
+  FACTORY_NODE_LOG="$routing_root/node.log" \
+  ./scripts/factory audit --json 'argument with spaces')
+if [[ $(wc -l <"$routing_root/nix.log") -ne 1 ]] || \
+  ! grep -Fq "develop $routing_git_root --command $routing_git_root/scripts/factory audit --json argument with spaces" \
+    "$routing_root/nix.log" || \
+  ! grep -Fq 'argc=3' "$routing_root/node.log" || \
+  ! grep -Fxq '<argument with spaces>' "$routing_root/node.log"; then
+  printf 'factory-contract test: outside audit did not preserve one Nix re-entry and argv\n' >&2
+  printf 'factory-contract test: captured Nix calls:\n' >&2
+  cat "$routing_root/nix.log" >&2
+  printf 'factory-contract test: captured Node calls:\n' >&2
+  cat "$routing_root/node.log" >&2
+  exit 1
+fi
+
+: >"$routing_root/nix.log"
+: >"$routing_root/node.log"
+(cd "$routing_root" && \
+  PATH="$routing_root/fake-bin:$PATH" \
+  FACTORY_NIX_LOG="$routing_root/nix.log" \
+  FACTORY_NODE_LOG="$routing_root/node.log" \
+  IN_NIX_SHELL=1 ./scripts/factory audit --json)
+if [[ -s "$routing_root/nix.log" ]] || ! grep -Fq 'argc=2' "$routing_root/node.log"; then
+  printf 'factory-contract test: in-shell audit re-entered Nix or skipped direct execution\n' >&2
+  exit 1
+fi
+
+if (cd "$routing_root" && env -u IN_NIX_SHELL \
+  PATH="$routing_root/fake-bin:$PATH" \
+  FACTORY_NIX_LOG="$routing_root/nix.log" \
+  FACTORY_NODE_LOG="$routing_root/node.log" \
+  FACTORY_NODE_EXIT=23 ./scripts/factory audit >/dev/null 2>&1); then
+  printf 'factory-contract test: audit failure was not propagated across Nix\n' >&2
+  exit 1
+else
+  audit_status=$?
+fi
+if [[ "$audit_status" -ne 23 ]]; then
+  printf 'factory-contract test: audit failure changed exit status: %s\n' "$audit_status" >&2
+  exit 1
+fi
+
+bootstrap_root="$fixture_root/bootstrap-repository"
+mkdir -p "$bootstrap_root/scripts/tests" "$bootstrap_root/fake-bin"
+cp "$repository_root/bootstrap.sh" "$bootstrap_root/bootstrap.sh"
+chmod +x "$bootstrap_root/bootstrap.sh"
+git -C "$bootstrap_root" init -q
+cat >"$bootstrap_root/scripts/factory" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$1" >>"$BOOTSTRAP_FACTORY_LOG"
+if [[ "$1" == audit ]]; then
+  exit "${BOOTSTRAP_AUDIT_EXIT:-0}"
+fi
+EOF
+cat >"$bootstrap_root/fake-bin/nix" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+[[ "$1" == develop && "$3" == --command ]]
+shift 3
+IN_NIX_SHELL=1 exec "$@"
+EOF
+cat >"$bootstrap_root/fake-bin/node" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >>"$BOOTSTRAP_NODE_LOG"
+EOF
+chmod +x "$bootstrap_root/scripts/factory" "$bootstrap_root/fake-bin/nix" \
+  "$bootstrap_root/fake-bin/node"
+: >"$bootstrap_root/factory.log"
+: >"$bootstrap_root/node.log"
+
+if (cd "$bootstrap_root" && \
+  PATH="$bootstrap_root/fake-bin:$PATH" \
+  BOOTSTRAP_FACTORY_LOG="$bootstrap_root/factory.log" \
+  BOOTSTRAP_NODE_LOG="$bootstrap_root/node.log" \
+  BOOTSTRAP_AUDIT_EXIT=29 ./bootstrap.sh --check >/dev/null 2>&1); then
+  printf 'factory-contract test: bootstrap accepted a failed runtime audit\n' >&2
+  exit 1
+else
+  bootstrap_status=$?
+fi
+if [[ "$bootstrap_status" -ne 29 ]] || \
+  [[ $(paste -sd, "$bootstrap_root/factory.log") != check,audit ]] || \
+  [[ -s "$bootstrap_root/node.log" ]]; then
+  printf 'factory-contract test: bootstrap did not fail fast after runtime audit\n' >&2
+  exit 1
+fi
+
+: >"$bootstrap_root/factory.log"
+(cd "$bootstrap_root" && \
+  PATH="$bootstrap_root/fake-bin:$PATH" \
+  BOOTSTRAP_FACTORY_LOG="$bootstrap_root/factory.log" \
+  BOOTSTRAP_NODE_LOG="$bootstrap_root/node.log" \
+  ./bootstrap.sh --check)
+if [[ $(paste -sd, "$bootstrap_root/factory.log") != check,audit ]] || \
+  ! grep -Fxq -- '--test scripts/tests/factory-operations.mjs' "$bootstrap_root/node.log"; then
+  printf 'factory-contract test: bootstrap health stages were incomplete or unordered\n' >&2
+  exit 1
+fi
+
 printf 'factory-contract tests: passed\n'

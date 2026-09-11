@@ -31,6 +31,18 @@ run_openspec() {
   "$nix_cmd" develop "$factory_root" --command openspec "$@"
 }
 
+run_audit() {
+  if [[ -n ${IN_NIX_SHELL:-} ]]; then
+    node "$factory_root/scripts/factory-tools/audit-pi.mjs" "$@"
+    return
+  fi
+
+  local nix_cmd
+  nix_cmd=$(nix_binary) || fail "runtime audit requires Nix or an active devshell"
+  "$nix_cmd" develop "$factory_root" --command \
+    "$factory_root/scripts/factory" audit "$@"
+}
+
 validate_all() {
   run_openspec validate --all --strict --no-interactive
 }
@@ -297,7 +309,7 @@ case "$command_name" in
     node "$factory_root/scripts/factory-tools/preflight.mjs" "$@"
     ;;
   audit)
-    node "$factory_root/scripts/factory-tools/audit-pi.mjs" "$@"
+    run_audit "$@"
     ;;
   plan)
     node "$factory_root/scripts/ci/target-plan.mjs" "$@"

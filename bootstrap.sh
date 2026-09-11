@@ -53,7 +53,7 @@ case "${1:-shell}" in
     ;;
   --check)
     shift
-    run_in_shell bash -c 'scripts/factory check && node --test scripts/tests/factory-operations.mjs' bash "$@"
+    run_in_shell bash -c 'scripts/factory check && scripts/factory audit && node --test scripts/tests/factory-operations.mjs' bash "$@"
     ;;
   --)
     shift

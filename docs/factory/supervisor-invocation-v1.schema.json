@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/factory/supervisor-invocation-v1.schema.json",
+  "title": "sdk-rust supervisor invocation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "repository",
+    "issue",
+    "profile",
+    "baseRef",
+    "baseSha",
+    "branch",
+    "headSha",
+    "change",
+    "contractHeadSha",
+    "receiptSha256",
+    "role",
+    "task",
+    "allowedPaths",
+    "tools",
+    "deadlineSeconds",
+    "postArtifactGraceSeconds",
+    "preparedAt"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "repository": { "const": "hyperledger-identus/sdk-rust" },
+    "issue": { "type": "integer", "minimum": 1 },
+    "profile": { "enum": ["prototype", "production-ready", "integration"] },
+    "baseRef": { "const": "origin/develop" },
+    "baseSha": { "$ref": "#/$defs/sha" },
+    "branch": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$" },
+    "headSha": { "$ref": "#/$defs/sha" },
+    "change": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 128 },
+    "contractHeadSha": { "$ref": "#/$defs/sha" },
+    "receiptSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "role": { "enum": ["planner", "developer", "reviewer", "quality"] },
+    "task": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+(?:\\.[0-9]+)?$", "maxLength": 32 },
+    "allowedPaths": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/relativePath" }
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": { "enum": ["read", "grep", "find", "ls", "bash", "edit", "write"] }
+    },
+    "deadlineSeconds": { "type": "integer", "minimum": 1, "maximum": 7200 },
+    "postArtifactGraceSeconds": { "type": "integer", "minimum": 1, "maximum": 60 },
+    "preparedAt": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^(?!/)(?!.*//)(?!.*\\/$)(?!\\.{1,2}(?:/|$))(?!.*\\/\\.{1,2}(?:/|$))[A-Za-z0-9._/-]+$"
+    }
+  }
+}

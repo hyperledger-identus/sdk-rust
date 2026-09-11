@@ -39,7 +39,36 @@
     "privateStore": "sdk-rust-factory/metrics-v1",
     "retentionDays": 90,
     "publicMarker": "sdk-rust-factory-metrics:v1",
+    "defaultSchemaVersion": 2,
+    "versions": {
+      "1": {
+        "schema": "docs/factory/work-item-metrics-v1.schema.json",
+        "privateStore": "sdk-rust-factory/metrics-v1",
+        "publicMarker": "sdk-rust-factory-metrics:v1"
+      },
+      "2": {
+        "schema": "docs/factory/work-item-metrics-v2.schema.json",
+        "privateStore": "sdk-rust-factory/metrics-v2",
+        "publicMarker": "sdk-rust-factory-metrics:v2"
+      }
+    },
     "maximumPublicBytes": 8192
+  },
+  "supervisor": {
+    "privateStore": "sdk-rust-factory/supervisor-v1",
+    "maximumEnvelopeBytes": 16384,
+    "maximumHandoffBytes": 32768,
+    "maximumPromptBytes": 65536,
+    "maximumSessionBytes": 33554432,
+    "maximumEventBytes": 33554432,
+    "heartbeatIntervalSeconds": 5,
+    "terminationGraceSeconds": 5,
+    "roleTools": {
+      "planner": ["read", "grep", "find", "ls", "bash", "edit", "write"],
+      "developer": ["read", "grep", "find", "ls", "bash", "edit", "write"],
+      "reviewer": ["read", "grep", "find", "ls"],
+      "quality": ["read", "grep", "find", "ls", "bash", "edit", "write"]
+    }
   },
   "ci": {
     "requiredPullRequestGate": "fast",

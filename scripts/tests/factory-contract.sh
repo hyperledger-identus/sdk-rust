@@ -644,7 +644,8 @@ fi
 
 bootstrap_root="$fixture_root/bootstrap-repository"
 mkdir -p "$bootstrap_root/scripts/tests" "$bootstrap_root/fake-bin"
-cp "$repository_root/bootstrap.sh" "$bootstrap_root/bootstrap.sh"
+printf '#!%s\n' "$BASH" >"$bootstrap_root/bootstrap.sh"
+tail -n +2 "$repository_root/bootstrap.sh" >>"$bootstrap_root/bootstrap.sh"
 chmod +x "$bootstrap_root/bootstrap.sh"
 git -C "$bootstrap_root" init -q
 printf '#!%s\n' "$BASH" >"$bootstrap_root/scripts/factory"

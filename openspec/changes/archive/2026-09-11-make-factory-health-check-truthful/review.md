@@ -14,9 +14,10 @@
    now derives its expected repository root through Git, matching the production
    facade without weakening argument-boundary assertions.
 2. Hosted Linux ran the fixture in an isolated Nix builder without
-   `/usr/bin/env`; its generated fake executables therefore failed before the
-   assertions. They now use the already-pinned `$BASH` interpreter path, matching
-   the repository's established hermetic fixture pattern.
+   `/usr/bin/env`; its generated fake executables and copied bootstrap fixture
+   therefore failed before the assertions. They now use the already-pinned
+   `$BASH` interpreter path, matching the repository's established hermetic
+   fixture pattern.
 
 ## Verification evidence
 

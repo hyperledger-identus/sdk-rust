@@ -578,16 +578,16 @@ chmod +x "$routing_root/scripts/factory"
 git -C "$routing_root" init -q
 routing_git_root=$(git -C "$routing_root" rev-parse --show-toplevel)
 
-cat >"$routing_root/fake-bin/nix" <<'EOF'
-#!/usr/bin/env bash
+printf '#!%s\n' "$BASH" >"$routing_root/fake-bin/nix"
+cat >>"$routing_root/fake-bin/nix" <<'EOF'
 set -euo pipefail
 printf '%s\n' "$*" >>"$FACTORY_NIX_LOG"
 [[ "$1" == develop && "$3" == --command ]]
 shift 3
 IN_NIX_SHELL=1 exec "$@"
 EOF
-cat >"$routing_root/fake-bin/node" <<'EOF'
-#!/usr/bin/env bash
+printf '#!%s\n' "$BASH" >"$routing_root/fake-bin/node"
+cat >>"$routing_root/fake-bin/node" <<'EOF'
 set -euo pipefail
 printf 'argc=%s\n' "$#" >>"$FACTORY_NODE_LOG"
 printf '<%s>\n' "$@" >>"$FACTORY_NODE_LOG"
@@ -647,23 +647,23 @@ mkdir -p "$bootstrap_root/scripts/tests" "$bootstrap_root/fake-bin"
 cp "$repository_root/bootstrap.sh" "$bootstrap_root/bootstrap.sh"
 chmod +x "$bootstrap_root/bootstrap.sh"
 git -C "$bootstrap_root" init -q
-cat >"$bootstrap_root/scripts/factory" <<'EOF'
-#!/usr/bin/env bash
+printf '#!%s\n' "$BASH" >"$bootstrap_root/scripts/factory"
+cat >>"$bootstrap_root/scripts/factory" <<'EOF'
 set -euo pipefail
 printf '%s\n' "$1" >>"$BOOTSTRAP_FACTORY_LOG"
 if [[ "$1" == audit ]]; then
   exit "${BOOTSTRAP_AUDIT_EXIT:-0}"
 fi
 EOF
-cat >"$bootstrap_root/fake-bin/nix" <<'EOF'
-#!/usr/bin/env bash
+printf '#!%s\n' "$BASH" >"$bootstrap_root/fake-bin/nix"
+cat >>"$bootstrap_root/fake-bin/nix" <<'EOF'
 set -euo pipefail
 [[ "$1" == develop && "$3" == --command ]]
 shift 3
 IN_NIX_SHELL=1 exec "$@"
 EOF
-cat >"$bootstrap_root/fake-bin/node" <<'EOF'
-#!/usr/bin/env bash
+printf '#!%s\n' "$BASH" >"$bootstrap_root/fake-bin/node"
+cat >>"$bootstrap_root/fake-bin/node" <<'EOF'
 set -euo pipefail
 printf '%s\n' "$*" >>"$BOOTSTRAP_NODE_LOG"
 EOF

@@ -20,6 +20,8 @@ jobs:
   fast:
     name: fast
     runs-on: ubuntu-latest
+    cache-mode: read
+    timeout-minutes: 20
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -47,8 +49,13 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
 
-      - name: Magic Nix Cache
+      - name: Restore Nix cache (read-only, best effort)
+        continue-on-error: true
         uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
+        with:
+          use-gha-cache: enabled
+          use-flakehub: disabled
+          diagnostic-endpoint: ""
 
       - name: Run fast factory and Rust gates
         run: |

@@ -724,6 +724,13 @@ compatibility checks. Slow failures SHALL be visible pre-release debt and SHALL
 block release-candidate preparation, but SHALL NOT be represented as required
 per-PR evidence during this temporary phase.
 
+The `fast` job SHALL have read-only GitHub Actions cache authority and a bounded
+complete-job timeout. Cache restoration MAY accelerate the gate, but cache
+publication, FlakeHub authentication and optional cache diagnostics SHALL
+remain outside the pull-request critical path. Cache miss or service failure
+SHALL degrade visibly to the same Nix realization without skipping, weakening
+or fabricating any substantive gate.
+
 Sanitizer fuzz campaigns MAY use a separately named, exactly pinned nightly
 tooling shell because libFuzzer instrumentation requires nightly. Those
 workflows SHALL run only weekly or manually, SHALL remain outside ordinary SDK
@@ -742,6 +749,24 @@ release-candidate use until a separate consumer-driven compatibility decision.
 - **WHEN** the weekly schedule fires or a maintainer manually dispatches it
 - **THEN** `slow` runs the complete flake on Linux and macOS, including target,
   feature, documentation and supply-chain checks, on Rust 1.98.1
+
+#### Scenario: Fast cache contains a reusable path
+
+- **WHEN** the required pull-request job can restore an accessible GitHub
+  Actions cache entry
+- **THEN** it may consume the entry but cannot publish new cache state
+
+#### Scenario: Fast cache is missing or unavailable
+
+- **WHEN** cache lookup misses, is denied, rate-limited or fails
+- **THEN** the cache condition remains visible and the unchanged Nix gates run
+  without treating cache availability as correctness evidence
+
+#### Scenario: Cache finalizer does not terminate
+
+- **WHEN** any cache or action finalizer outlives the bounded job deadline
+- **THEN** the required check fails and cannot merge rather than remaining
+  indefinitely pending or being reported as successful
 
 #### Scenario: Lower compiler is presented as supported
 

@@ -2369,6 +2369,20 @@ def validate_ci_lanes(
             failures.append(f"ci.{field} must be {expected_value}, found {actual}")
     if ci.get("release_candidate_eligible") is not False:
         failures.append("ci.release_candidate_eligible must remain false")
+    expected_fast_cache = {
+        "fast_cache_mode": "read",
+        "fast_cache_backend": "github-actions",
+        "fast_cache_writes": False,
+        "fast_cache_flakehub": False,
+        "fast_cache_diagnostics": False,
+        "fast_cache_failure": "best-effort",
+        "fast_timeout_minutes": 20,
+    }
+    for field, expected_value in expected_fast_cache.items():
+        if ci.get(field) != expected_value:
+            failures.append(
+                f"ci.{field} must be {expected_value!r}, found {ci.get(field)!r}"
+            )
 
     expected_fast_gates = {
         "factory-contract",
@@ -2455,6 +2469,47 @@ def validate_ci_lanes(
                 failures.append(f"{fast_path} is missing fast gate selector {selector}")
         if re.search(r"^\s*run:\s*nix flake check\s*$", fast, re.MULTILINE):
             failures.append(f"{fast_path} must not run the exhaustive flake check")
+        cache_contract = {
+            r"^    cache-mode: read\s*$": "must grant the fast job read-only cache authority",
+            r"^    timeout-minutes: 20\s*$": "must bound the fast job to 20 minutes",
+            r"^      - name: Restore Nix cache \(read-only, best effort\)\s*$": "must identify the best-effort cache step",
+            r"^        continue-on-error: true\s*$": "must make cache failure best effort",
+            r"^        uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d(?:\s+#.*)?$": "must retain the pinned cache action",
+            r"^          use-gha-cache: enabled\s*$": "must select GitHub Actions cache explicitly",
+            r"^          use-flakehub: disabled\s*$": "must disable FlakeHub on the fast path",
+            r'^          diagnostic-endpoint: ""\s*$': "must disable cache diagnostics on the fast path",
+        }
+        for pattern, message in cache_contract.items():
+            if len(re.findall(pattern, fast, re.MULTILINE)) != 1:
+                failures.append(f"{fast_path} {message}")
+        if re.search(r"^\s+id-token:\s*write\s*$", fast, re.MULTILINE):
+            failures.append(f"{fast_path} must not grant an ID token to the fast job")
+
+    workflow_dir = root / ".github" / "workflows"
+    cache_mode_locations: list[str] = []
+    try:
+        workflow_paths = sorted(workflow_dir.glob("*.yml"))
+    except OSError as error:
+        failures.append(f"cannot enumerate workflows in {workflow_dir}: {error}")
+        workflow_paths = []
+    for workflow_path in workflow_paths:
+        try:
+            workflow = workflow_path.read_text(encoding="utf-8")
+        except OSError as error:
+            failures.append(f"cannot read workflow {workflow_path}: {error}")
+            continue
+        for line_number, line in enumerate(workflow.splitlines(), start=1):
+            if re.match(r"^\s+cache-mode:\s*", line):
+                cache_mode_locations.append(
+                    f"{workflow_path.relative_to(root)}:{line_number}"
+                )
+    if len(cache_mode_locations) != 1 or not cache_mode_locations[0].startswith(
+        f"{fast_path}:"
+    ):
+        failures.append(
+            "job cache-mode must occur exactly once in the fast workflow; found "
+            f"{cache_mode_locations}"
+        )
 
     slow, slow_path = workflow_text("slow_workflow")
     if slow:

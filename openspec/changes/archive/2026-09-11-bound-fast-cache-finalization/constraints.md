@@ -27,6 +27,10 @@ scope and rate-limit policy. A cache miss can increase substantive build time.
 The 480-second median is an active-development throughput target, not a public
 compatibility, release or service-level commitment. A 20-minute timeout bounds
 the check but does not prove every upstream network failure resolves earlier.
+The pinned `actionlint` release predates GitHub's job-level `cache-mode`; a
+narrow diagnostic exception is therefore required until the parser catches up.
+Repository validation separately constrains that key to the one intended
+read-only fast-job placement.
 
 ## Consumer and product impact
 

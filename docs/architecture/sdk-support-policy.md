@@ -117,6 +117,16 @@ The `slow` workflow runs the complete flake on Linux and macOS weekly and on
 manual dispatch. A slow failure blocks release-candidate preparation but is
 not a required active-development merge signal.
 
+The required `fast` job has GitHub-enforced read-only cache authority. Its
+pinned cache action may restore GitHub Actions entries but cannot publish from
+the critical path; FlakeHub and optional diagnostics are disabled. A cache
+miss or service error is visible but best-effort, so the unchanged Nix checks
+remain the only correctness signal. A 20-minute complete-job timeout bounds
+third-party finalization while leaving any timeout as a failing merge gate.
+The short-term throughput target is a median job at or below 480 seconds over
+the first three comparable successful runs, with no cache post phase over 30
+seconds, reviewed no later than 2026-12-08.
+
 Both dimensions are `measurement-only`. CI duration, validator p50/p95 and
 intermediate Rust artifacts are diagnostics, not budgets. The validator
 benchmark uses at least 20 in-process-warm and fresh-process samples on Linux

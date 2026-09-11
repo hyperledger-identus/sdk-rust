@@ -38,6 +38,12 @@ Nix attributes. Rust/Nix pins and the flake lock do not change. The support
 policy checker parses the workflow and enforces both this set and the cache
 contract so a formatting-only edit cannot silently restore cache writes.
 
+The latest released `actionlint` predates this GitHub syntax and reports the
+job-level key as unknown. Its invocation ignores only that exact diagnostic.
+The support-policy checker compensates by requiring exactly one occurrence,
+with value `read`, under the fast workflow; any second workflow occurrence is
+rejected. All other `actionlint` diagnostics remain active.
+
 ## Failure behavior
 
 - Hit: restore accelerates Nix; save is denied and skipped.

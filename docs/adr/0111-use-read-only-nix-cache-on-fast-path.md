@@ -34,6 +34,10 @@ dominate the required status undermines ADR 0081's feedback objective.
 8. Target a median complete job at or below 480 seconds over the first three
    successful comparable post-change PR runs. Review with ADR 0081 by
    2026-12-08.
+9. Until an `actionlint` release recognizes GitHub's job-level `cache-mode`,
+   ignore only that exact unknown-key diagnostic. The repository policy checker
+   independently requires one `cache-mode: read` occurrence in the fast
+   workflow and rejects it in every other workflow.
 
 ## Consequences
 
@@ -59,6 +63,8 @@ the appropriate place to revisit trusted cache publication separately.
 
 The offline support-policy checker binds read-only cache authority, explicit
 backend selection, disabled FlakeHub/diagnostics, best-effort handling, timeout
-and the unchanged Nix gate list. Hosted job timestamps supply canary evidence.
+and the unchanged Nix gate list. This also bounds the temporary `actionlint`
+compatibility exception to one validated placement. Hosted job timestamps
+supply canary evidence.
 Rollback reverts this workflow/policy change; the cache-free fallback removes
 only the action while preserving all substantive commands.

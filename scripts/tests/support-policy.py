@@ -1846,6 +1846,46 @@ in
         )
         self.assert_fails("is missing fast gate selector .#checks.x86_64-linux.rust-build")
 
+    def test_fast_lane_cache_cannot_regain_write_authority(self) -> None:
+        self.replace(
+            ".github/workflows/factory-contract.yml",
+            "    cache-mode: read",
+            "    cache-mode: write",
+        )
+        self.assert_fails("must grant the fast job read-only cache authority")
+
+    def test_job_cache_mode_is_scoped_to_fast_workflow(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "  checks:\n",
+            "  checks:\n    cache-mode: read\n",
+        )
+        self.assert_fails("job cache-mode must occur exactly once in the fast workflow")
+
+    def test_fast_lane_cache_cannot_enable_flakehub(self) -> None:
+        self.replace(
+            ".github/workflows/factory-contract.yml",
+            "          use-flakehub: disabled",
+            "          use-flakehub: enabled",
+        )
+        self.assert_fails("must disable FlakeHub on the fast path")
+
+    def test_fast_lane_cache_failure_must_remain_best_effort(self) -> None:
+        self.replace(
+            ".github/workflows/factory-contract.yml",
+            "        continue-on-error: true",
+            "        continue-on-error: false",
+        )
+        self.assert_fails("must make cache failure best effort")
+
+    def test_fast_lane_must_keep_complete_job_timeout(self) -> None:
+        self.replace(
+            ".github/workflows/factory-contract.yml",
+            "    timeout-minutes: 20",
+            "    timeout-minutes: 120",
+        )
+        self.assert_fails("must bound the fast job to 20 minutes")
+
     def test_slow_lane_cannot_return_to_pull_requests(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",

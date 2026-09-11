@@ -51,6 +51,14 @@ The current action revision is verified commit
 under MIT. The executed backend remains an action-owned runtime download; this
 change neither upgrades nor widens that existing supply-chain boundary.
 
+The flake currently resolves `actionlint` v1.7.12. That release predates the
+documented job-level `cache-mode` key and emits one unknown-key diagnostic for
+otherwise valid current GitHub syntax. No newer released parser is available.
+The implementation therefore suppresses that exact diagnostic only and adds a
+repository-specific negative check that rejects missing, duplicated, misplaced
+or non-read-only cache authority. This compatibility shim must be removed once
+the pinned parser recognizes the key.
+
 ## Candidate decisions
 
 | Candidate | Version/revision | Decision | Reason | Reconsideration trigger |

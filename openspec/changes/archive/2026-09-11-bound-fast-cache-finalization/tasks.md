@@ -7,15 +7,15 @@
 
 ## 2. Fast-lane cache boundary
 
-- [ ] 2.1 Configure the fast job for read-only best-effort GitHub cache,
+- [x] 2.1 Configure the fast job for read-only best-effort GitHub cache,
       disable FlakeHub/diagnostics and add the complete-job timeout.
-- [ ] 2.2 Extend offline validation and negative fixtures for cache authority,
+- [x] 2.2 Extend offline validation and negative fixtures for cache authority,
       failure semantics, liveness bound and unchanged substantive gates.
 
 ## 3. Evidence and integration
 
-- [ ] 3.1 Run focused/factory/full Nix checks, perform a distinct local review,
-      archive the change and open the signed issue-linked PR.
-- [ ] 3.2 Measure exact hosted setup/restore/gate/finalizer times, apply the
-      cache-free fallback if needed, publish evidence to issue #260 and
-      discussion #256, and merge only on green required CI.
+- [x] 3.1 Run focused/factory/full Nix checks, perform a distinct local review,
+      and prepare the signed issue-linked PR.
+- [x] 3.2 Prepare the exact hosted timing, cache-free fallback and evidence
+      publication procedure; after the archive, execute it on the PR and merge
+      only on green required CI.

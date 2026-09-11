@@ -63,6 +63,10 @@ readiness and the scoped modified-requirement preservation preflight before
 invoking the pinned non-interactive OpenSpec archive, then validates the
 post-archive factory state.
 
+The `audit` command SHALL enter the repository-pinned Nix environment when
+invoked outside a Nix shell and SHALL execute directly exactly once when
+already inside a Nix shell.
+
 #### Scenario: Contributor is inside the Nix devshell
 
 - **WHEN** the contributor invokes `scripts/factory check` with `openspec` on
@@ -91,6 +95,19 @@ post-archive factory state.
 - **WHEN** a modified requirement would silently discard canonical content
 - **THEN** `scripts/factory archive <change>` exits non-zero before OpenSpec
   changes either the canonical spec or active change directory
+
+#### Scenario: Runtime audit is invoked outside Nix
+
+- **WHEN** a contributor invokes `scripts/factory audit` without an active Nix
+  shell and the repository Nix closure is available
+- **THEN** the factory enters that pinned environment once and returns the
+  effective runtime audit result with all arguments preserved
+
+#### Scenario: Runtime audit is invoked inside Nix
+
+- **WHEN** a contributor invokes `scripts/factory audit` inside a Nix shell
+- **THEN** the factory executes the audit implementation directly without
+  recursively entering another shell
 
 ### Requirement: Factory work is isolated from integration and consumer trees
 Implementation agents SHALL use focused branches and dedicated worktrees based

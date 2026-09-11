@@ -32,6 +32,10 @@ Git hooks, apply the bounded user sub-agent policy only with an explicit
 execute action, and launch Pi after its configuration audit passes. It SHALL
 not read or replace provider authentication.
 
+The bootstrap health check SHALL fail unless structural factory checks, the
+effective pinned runtime audit and the operational test suite all pass in the
+same pinned environment.
+
 #### Scenario: Operator launches Pi
 
 - **WHEN** the tracked runtime, package declarations, policies and local user
@@ -43,6 +47,12 @@ not read or replace provider authentication.
 - **WHEN** a required contract, version, budget, hook or capacity invariant is
   missing or inconsistent
 - **THEN** audit exits non-zero with a remediation and Pi is not launched
+
+#### Scenario: Operator runs the bootstrap health check
+
+- **WHEN** the operator invokes `./bootstrap.sh --check`
+- **THEN** structural factory checks, effective pinned runtime audit and
+  operational tests run in order, and any failed stage makes the command fail
 
 ### Requirement: Factory policy is machine-readable and repository-specific
 

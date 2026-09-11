@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/factory/supervisor-heartbeat-v1.schema.json",
+  "title": "sdk-rust supervisor heartbeat v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "state",
+    "observedAt",
+    "elapsedSeconds",
+    "processActive",
+    "workerExitCode",
+    "terminationReason"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "state": { "enum": ["prepared", "running", "terminating", "exited", "timed-out"] },
+    "observedAt": { "type": "string", "format": "date-time" },
+    "elapsedSeconds": { "type": "integer", "minimum": 0 },
+    "processActive": { "type": "boolean" },
+    "workerExitCode": { "type": ["integer", "null"], "minimum": 0, "maximum": 255 },
+    "terminationReason": { "enum": [null, "deadline", "post-artifact-grace"] }
+  }
+}

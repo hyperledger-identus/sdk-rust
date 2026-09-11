@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 259,
+  "change": "define-supervisor-pi-run-contract",
+  "branch": "codex/feat/issue-259",
+  "baseRef": "origin/develop",
+  "baseSha": "d619fb2e092a2f53014aeb3cee738e6d200ac482",
+  "contractHeadSha": "d43ee1f2f291b3cc24e08c2e76fd4640fb2888f0",
+  "createdAt": "2026-09-11T08:23:44.876Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

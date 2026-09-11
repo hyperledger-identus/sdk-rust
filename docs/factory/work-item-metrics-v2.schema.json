@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/factory/work-item-metrics-v2.schema.json",
+  "title": "sdk-rust factory work-item metrics v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "repository",
+    "issue",
+    "pullRequest",
+    "headSha",
+    "profile",
+    "startedAt",
+    "completedAt",
+    "durationSeconds",
+    "phaseDurationsSeconds",
+    "ci",
+    "runtime",
+    "coveragePercent",
+    "resources",
+    "outcome"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "repository": { "const": "hyperledger-identus/sdk-rust" },
+    "issue": { "type": "integer", "minimum": 1 },
+    "pullRequest": { "type": ["integer", "null"], "minimum": 1 },
+    "headSha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "profile": { "enum": ["prototype", "production-ready", "integration"] },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "completedAt": { "type": "string", "format": "date-time" },
+    "durationSeconds": { "$ref": "#/$defs/integerMeasurement" },
+    "phaseDurationsSeconds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["planning", "implementation", "review", "validation", "hostedCi", "blocked"],
+      "properties": {
+        "planning": { "$ref": "#/$defs/integerMeasurement" },
+        "implementation": { "$ref": "#/$defs/integerMeasurement" },
+        "review": { "$ref": "#/$defs/integerMeasurement" },
+        "validation": { "$ref": "#/$defs/integerMeasurement" },
+        "hostedCi": { "$ref": "#/$defs/integerMeasurement" },
+        "blocked": { "$ref": "#/$defs/integerMeasurement" }
+      }
+    },
+    "ci": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "queueSeconds",
+        "executionSeconds",
+        "failedAttempts",
+        "canceledAttempts",
+        "retryCount",
+        "postCiPushCount",
+        "checks"
+      ],
+      "properties": {
+        "queueSeconds": { "$ref": "#/$defs/integerMeasurement" },
+        "executionSeconds": { "$ref": "#/$defs/integerMeasurement" },
+        "failedAttempts": { "$ref": "#/$defs/integerMeasurement" },
+        "canceledAttempts": { "$ref": "#/$defs/integerMeasurement" },
+        "retryCount": { "$ref": "#/$defs/integerMeasurement" },
+        "postCiPushCount": { "$ref": "#/$defs/integerMeasurement" },
+        "checks": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "attempt", "outcome", "queueSeconds", "executionSeconds"],
+            "properties": {
+              "name": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$", "maxLength": 64 },
+              "attempt": { "type": "integer", "minimum": 1, "maximum": 64 },
+              "outcome": { "enum": ["passed", "failed", "canceled"] },
+              "queueSeconds": { "$ref": "#/$defs/integerMeasurement" },
+              "executionSeconds": { "$ref": "#/$defs/integerMeasurement" }
+            }
+          }
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessions",
+        "turns",
+        "toolCalls",
+        "inputTokens",
+        "outputTokens",
+        "cacheReadTokens",
+        "cacheWriteTokens"
+      ],
+      "properties": {
+        "sessions": { "$ref": "#/$defs/integerMeasurement" },
+        "turns": { "$ref": "#/$defs/integerMeasurement" },
+        "toolCalls": { "$ref": "#/$defs/integerMeasurement" },
+        "inputTokens": { "$ref": "#/$defs/integerMeasurement" },
+        "outputTokens": { "$ref": "#/$defs/integerMeasurement" },
+        "cacheReadTokens": { "$ref": "#/$defs/integerMeasurement" },
+        "cacheWriteTokens": { "$ref": "#/$defs/integerMeasurement" }
+      }
+    },
+    "coveragePercent": { "$ref": "#/$defs/percentageMeasurement" },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["worktreePeakBytes", "targetPeakBytes", "cachePeakBytes", "processPeakRssBytes"],
+      "properties": {
+        "worktreePeakBytes": { "$ref": "#/$defs/integerMeasurement" },
+        "targetPeakBytes": { "$ref": "#/$defs/integerMeasurement" },
+        "cachePeakBytes": { "$ref": "#/$defs/integerMeasurement" },
+        "processPeakRssBytes": { "$ref": "#/$defs/integerMeasurement" }
+      }
+    },
+    "outcome": { "enum": ["merged", "closed", "blocked", "in-progress"] }
+  },
+  "$defs": {
+    "reason": {
+      "enum": [
+        "not-measured",
+        "source-missing",
+        "source-malformed",
+        "source-unsafe",
+        "unsupported-version",
+        "incomplete-usage",
+        "incomplete-events",
+        "not-applicable"
+      ]
+    },
+    "integerMeasurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unavailableReason"],
+      "properties": {
+        "value": { "type": ["integer", "null"], "minimum": 0 },
+        "unavailableReason": {
+          "anyOf": [
+            { "const": null },
+            { "$ref": "#/$defs/reason" }
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "value": { "type": "integer", "minimum": 0 },
+            "unavailableReason": { "const": null }
+          }
+        },
+        {
+          "properties": {
+            "value": { "const": null },
+            "unavailableReason": { "$ref": "#/$defs/reason" }
+          }
+        }
+      ]
+    },
+    "percentageMeasurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unavailableReason"],
+      "properties": {
+        "value": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+        "unavailableReason": {
+          "anyOf": [
+            { "const": null },
+            { "$ref": "#/$defs/reason" }
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "value": { "type": "number", "minimum": 0, "maximum": 100 },
+            "unavailableReason": { "const": null }
+          }
+        },
+        {
+          "properties": {
+            "value": { "const": null },
+            "unavailableReason": { "$ref": "#/$defs/reason" }
+          }
+        }
+      ]
+    }
+  }
+}

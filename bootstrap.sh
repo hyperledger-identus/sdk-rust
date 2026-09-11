@@ -31,8 +31,13 @@ case "${1:-shell}" in
     ;;
   --pi)
     shift
-    run_in_shell node scripts/factory-tools/audit-pi.mjs --enforce-config
-    run_in_shell node scripts/factory-tools/pi-package-cache.mjs
+    if [[ ${SDK_FACTORY_EVENT_STREAM:-0} == 1 ]]; then
+      run_in_shell node scripts/factory-tools/audit-pi.mjs --enforce-config >&2
+      run_in_shell node scripts/factory-tools/pi-package-cache.mjs >&2
+    else
+      run_in_shell node scripts/factory-tools/audit-pi.mjs --enforce-config
+      run_in_shell node scripts/factory-tools/pi-package-cache.mjs
+    fi
     exec "$(nix_binary)" develop "$repository_root" --command pi "$@"
     ;;
   --prepare-pi-cache)

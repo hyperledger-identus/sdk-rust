@@ -35,8 +35,14 @@ required_files=(
   docs/factory/README.md
   docs/factory/operations.md
   docs/factory/recovery.md
+  docs/factory/supervisor.md
   docs/factory/metrics.md
   docs/factory/work-item-metrics-v1.schema.json
+  docs/factory/work-item-metrics-v2.schema.json
+  docs/factory/pi-usage-v1.schema.json
+  docs/factory/supervisor-invocation-v1.schema.json
+  docs/factory/supervisor-heartbeat-v1.schema.json
+  docs/factory/worker-handoff-v1.schema.json
   docs/factory/research-readiness.md
   docs/architecture/sdk-rust-blueprint.md
   docs/architecture/sdk-bootstrap-inventory.md
@@ -89,6 +95,9 @@ required_files=(
   scripts/ci/target-plan.mjs
   scripts/factory-tools/audit-pi.mjs
   scripts/factory-tools/metrics.mjs
+  scripts/factory-tools/pi-session-harvest.mjs
+  scripts/factory-tools/strict-json.mjs
+  scripts/factory-tools/supervisor.mjs
   scripts/factory-tools/pi-package-cache.mjs
   scripts/factory-tools/pi-policy.mjs
   scripts/factory-tools/preflight.mjs

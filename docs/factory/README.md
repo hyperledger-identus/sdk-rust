@@ -93,6 +93,8 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/factory plan --base <sha> --head <sha>
 ./scripts/factory worktrees audit
 ./scripts/factory metrics validate --file <record>
+./scripts/factory supervisor prepare --change <change> --issue N <bounded-options>
+./scripts/factory supervisor run --envelope <absolute-private-path>
 ./scripts/factory ready <change>
 ./scripts/factory receipt <change>
 ./scripts/factory archive <change>
@@ -119,7 +121,8 @@ nix run .#factory -- check
 | `audit` | enters the pinned Nix shell once when needed, then validates bounded tracked Pi policy and the effective pinned runtime |
 | `plan` | derives one immutable required fast lane plus risk-routed weekly/manual slow evidence |
 | `worktrees` | audits or explicitly mutates only canonical bounded issue worktrees |
-| `metrics` | validates, stores, renders or explicitly publishes privacy-bounded exact-head metrics |
+| `metrics` | validates, stores, renders or explicitly publishes privacy-bounded exact-head v1/v2 metrics |
+| `supervisor` | prepares, runs, harvests and effect-checks one exact bootstrap-launched Pi worker |
 | `ready` | requires the named active change and every task to be complete |
 | `receipt` | runs readiness, then prints immutable branch/head/base identifiers |
 | `archive` | snapshots matching archives, rejects a known dated-destination collision, runs readiness and preservation preflight, archives through pinned OpenSpec, then proves exactly one new regular requested archive, mandatory artifacts and the resulting store before reporting success |
@@ -131,7 +134,10 @@ identity. The tracked
 `.pi/npm` location is only an ignored link, lifecycle scripts remain disabled,
 and recovery or retention deletion is explicit. See the operations handbook
 for the layout and the recovery runbook before changing operator-owned cache
-state.
+state. The [supervisor contract](supervisor.md) defines typed Pi admission,
+heartbeat, handoff and content-free usage harvesting without changing that
+cache or inspecting authentication. The first measured SDK exercise is the
+[issue #259 canary](canary-259-supervisor-contract.md).
 
 `./bootstrap.sh --check` is the complete local factory health check. In one
 pinned shell it runs the structural/OpenSpec contract, the effective runtime

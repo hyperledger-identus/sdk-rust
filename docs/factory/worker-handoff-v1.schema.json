@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/factory/worker-handoff-v1.schema.json",
+  "title": "sdk-rust worker handoff v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "repository",
+    "issue",
+    "change",
+    "baseSha",
+    "branch",
+    "headSha",
+    "contractHeadSha",
+    "receiptSha256",
+    "role",
+    "task",
+    "status",
+    "changedPaths",
+    "acceptance",
+    "checks",
+    "findings",
+    "processOwnership",
+    "nextAction",
+    "completedAt"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "repository": { "const": "hyperledger-identus/sdk-rust" },
+    "issue": { "type": "integer", "minimum": 1 },
+    "change": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 128 },
+    "baseSha": { "$ref": "#/$defs/sha" },
+    "branch": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$" },
+    "headSha": { "$ref": "#/$defs/sha" },
+    "contractHeadSha": { "$ref": "#/$defs/sha" },
+    "receiptSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "role": { "enum": ["planner", "developer", "reviewer", "quality"] },
+    "task": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+(?:\\.[0-9]+)?$", "maxLength": 32 },
+    "status": { "enum": ["completed", "checkpoint", "blocked", "failed"] },
+    "changedPaths": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/relativePath" }
+    },
+    "acceptance": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "checks": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "processOwnership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workerOwnedRemaining"],
+      "properties": {
+        "workerOwnedRemaining": { "type": "integer", "minimum": 0, "maximum": 1024 }
+      }
+    },
+    "nextAction": {
+      "enum": ["supervisor-verify", "supervisor-review", "supervisor-resume", "stop-blocked", "none"]
+    },
+    "completedAt": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^(?!/)(?!.*//)(?!.*\\/$)(?!\\.{1,2}(?:/|$))(?!.*\\/\\.{1,2}(?:/|$))[A-Za-z0-9._/-]+$"
+    },
+    "evidenceId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]{0,63}$" },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcome"],
+      "properties": {
+        "id": { "$ref": "#/$defs/evidenceId" },
+        "outcome": { "enum": ["passed", "failed", "not-run"] }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcome", "durationSeconds"],
+      "properties": {
+        "id": { "$ref": "#/$defs/evidenceId" },
+        "outcome": { "enum": ["passed", "failed", "not-run"] },
+        "durationSeconds": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "disposition"],
+      "properties": {
+        "class": { "enum": ["must-fix", "worth-fixing-now", "defer"] },
+        "disposition": { "enum": ["resolved", "unresolved", "deferred"] }
+      }
+    }
+  }
+}

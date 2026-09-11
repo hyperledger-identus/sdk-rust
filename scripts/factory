@@ -271,6 +271,8 @@ Commands:
   audit [options]     Audit pinned Pi runtime and bounded repository policy
   plan [options]      Derive immutable fast/slow target routing from exact SHAs
   metrics [options]   Validate, store, render or publish bounded work metrics
+  supervisor [options]
+                      Prepare, run and validate a bounded Pi worker
   worktrees [options] Audit or mutate only managed issue worktrees
   ready <change>      Require valid artifacts and every task to be complete
   receipt <change>    Run readiness and print immutable handoff identifiers
@@ -316,6 +318,9 @@ case "$command_name" in
     ;;
   metrics)
     node "$factory_root/scripts/factory-tools/metrics.mjs" "$@"
+    ;;
+  supervisor)
+    node "$factory_root/scripts/factory-tools/supervisor.mjs" "$@"
     ;;
   worktrees)
     node "$factory_root/scripts/worktree-lifecycle.mjs" "$@"

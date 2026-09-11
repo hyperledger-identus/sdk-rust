@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/factory/pi-usage-v1.schema.json",
+  "title": "sdk-rust privacy-bounded Pi usage v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sessions",
+    "turns",
+    "toolCalls",
+    "inputTokens",
+    "outputTokens",
+    "cacheReadTokens",
+    "cacheWriteTokens"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "sessions": { "$ref": "#/$defs/measurement" },
+    "turns": { "$ref": "#/$defs/measurement" },
+    "toolCalls": { "$ref": "#/$defs/measurement" },
+    "inputTokens": { "$ref": "#/$defs/measurement" },
+    "outputTokens": { "$ref": "#/$defs/measurement" },
+    "cacheReadTokens": { "$ref": "#/$defs/measurement" },
+    "cacheWriteTokens": { "$ref": "#/$defs/measurement" }
+  },
+  "$defs": {
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unavailableReason"],
+      "properties": {
+        "value": { "type": ["integer", "null"], "minimum": 0 },
+        "unavailableReason": {
+          "enum": [
+            null,
+            "not-measured",
+            "source-missing",
+            "source-malformed",
+            "source-unsafe",
+            "unsupported-version",
+            "incomplete-usage",
+            "incomplete-events",
+            "not-applicable"
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "value": { "type": "integer", "minimum": 0 },
+            "unavailableReason": { "const": null }
+          }
+        },
+        {
+          "properties": {
+            "value": { "const": null },
+            "unavailableReason": { "type": "string" }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -61,6 +61,25 @@ The two configure commands are explicit. Pi configuration preserves unknown
 keys and only updates the bounded subagent file. Git configuration refuses to
 invent identity or signing material. Neither path reads or writes Pi auth.
 
+## Supervisor-to-Pi boundary
+
+Use the [closed supervisor contract](supervisor.md) when a persistent supervisor
+launches a bounded worker. `scripts/factory supervisor prepare` validates the
+current branch, exact `origin/develop` base, head and active preflight receipt,
+then records only a task identity plus path/tool/deadline bounds in a private
+Git-common-dir run. `supervisor run` accepts worker input on standard input and
+launches only through `./bootstrap.sh --pi`; worker output, the persisted Pi
+session and stderr remain private.
+
+Liveness comes from the supervisor heartbeat, not model text. Worker exit,
+timeout and handoff acceptance are separate states. Acceptance requires exact
+identity, an unchanged head, declared Git effects equal to the current changed
+paths, allowlisted path prefixes, closed acceptance/check/finding outcomes, no
+remaining worker-owned process and a safe supervisor-owned next action.
+`supervisor harvest` reduces a supported Pi v3 session/event pair to counters
+without emitting content or runtime identifiers. See the supervisor document
+for commands and schemas.
+
 Before `--pi` starts the agent, bootstrap prepares the exact project packages
 in a content-addressed cache under a hidden sibling of the primary checkout.
 For a primary checkout named `sdk-rust`, the root is

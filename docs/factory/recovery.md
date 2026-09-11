@@ -27,6 +27,24 @@ not.
 Never remove the primary checkout, the current worktree, a dirty or locked
 worktree, an unknown path, or a worktree whose head differs from the merged PR.
 
+## Supervisor runs
+
+Private supervisor runs are below the Git common directory. Inspect the closed
+invocation and heartbeat first. A `running` heartbeat is only a recent
+supervisor observation; confirm process ownership before starting another
+worker. A terminal heartbeat does not imply that a handoff was accepted.
+Revalidate the invocation against the current receipt/head and run
+`supervisor handoff-validate` before resuming closeout.
+
+Do not print, copy or attach the private Pi session, JSON event stream or worker
+stderr during recovery. Run `supervisor harvest` only when the source is the
+bounded regular session/event pair in that run. Unsupported, absent or
+incomplete sources remain explicit unavailable reasons. Symlinked, out-of-run,
+oversized, duplicate or malformed artifacts are not repaired in place; retain
+them for inspection and start a new exact invocation when safe. Private-run
+retention and deletion remain explicit future maintenance, never automatic
+recovery behavior.
+
 ## Pi package cache
 
 If bootstrap reports that `.pi/npm` is operator-owned or points to an

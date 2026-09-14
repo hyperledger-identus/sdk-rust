@@ -17,7 +17,7 @@ catalogue and does not reserve future crate names. The normative local data is
 | Release authority | assigned human release manager plus a second maintainer |
 | Security response | Identus security response team through private reporting |
 | Namespace/publishing | not activated; governed separately by issue #3 |
-| Live repository controls | external action required under issue #26 |
+| Live repository controls | protected `develop` active; enterprise scanning deviation recorded under issue #26 |
 
 The repository-local governance packet includes the Apache-2.0 license,
 maintainer inheritance, governance, contribution, DCO, security, release,
@@ -25,12 +25,12 @@ conduct, ownership, issue/PR and desired repository-settings records. The
 machine inventory pins the canonical Identus policy blob SHAs observed for this
 iteration so provenance does not depend on a moving branch name alone.
 
-Read-only GitHub API evidence observed on 2026-09-03 showed a private
-repository, protected reserved `main`, unprotected `develop`, no GitHub
-environments and disabled repository security features. This file does not
-turn those observations into approval or claim they are fixed. Human
-maintainers own the public-readiness and settings work in issue #26; `IDR-001`
-therefore remains `in_progress` after this local slice.
+The [2026-09-14 live receipt](../governance/repository-settings-receipt-2026-09-14.md)
+records a public repository, protected reserved `main`, protected `develop`,
+private vulnerability reporting, dependency alerts and Dependabot security
+updates. Secret-scanning controls remain disabled under enterprise policy and
+cannot be activated by repository administrators. Namespace/publishing work
+remains separately governed by issue #3.
 
 ## Maturity vocabulary
 
@@ -91,5 +91,5 @@ explicit workspace coverage, in-tree path-dependency membership, layer
 classification and placeholder shape, including Cargo targets and executable
 documentation. Generated
 rustdoc item inventories, API-diff baselines, signed canonical-policy
-snapshots, remote GitHub polling and live control mutation are deferred. These
-would add cost without improving the next component's core architecture today.
+snapshots and continuous remote GitHub polling remain deferred. A dated live
+settings receipt complements rather than replaces this offline evidence.

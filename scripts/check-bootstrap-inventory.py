@@ -32,6 +32,7 @@ REQUIRED_GOVERNANCE_DOCUMENTS = {
     "MAINTAINERS.md",
     "RELEASING.md",
     "SECURITY.md",
+    "docs/governance/repository-settings-receipt-2026-09-14.md",
     "docs/governance/repository-settings.md",
 }
 REPOSITORY_CONTRACT = {
@@ -44,7 +45,7 @@ REPOSITORY_CONTRACT = {
     "parent_issue": "#4",
     "delivery_issue": "#25",
     "namespace_issue": "#3",
-    "live_controls_state": "external-action-required",
+    "live_controls_state": "active-with-enterprise-deviation",
     "live_controls_issue": "#26",
 }
 AUTHORITY_CONTRACT = {

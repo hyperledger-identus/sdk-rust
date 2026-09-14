@@ -6,7 +6,7 @@ mod common;
 use std::str::FromStr;
 
 use identus_crypto::convert::ConvertEd25519;
-use identus_crypto::derivation::{EdHDKey, HDKey, MnemonicHelper};
+use identus_crypto::derivation::{EdHDKey, HDKey, HdKeySecretBytes, MnemonicHelper};
 use identus_crypto::ed25519::Ed25519PrivateKey;
 use identus_crypto::{Base64UrlStrNoPad, Error, SecureRandom};
 use identus_crypto::{MAX_DERIVATION_PATH_AXES, MAX_HD_SEED_BYTES, MIN_HD_SEED_BYTES};
@@ -23,12 +23,28 @@ fn assert_zeroize_contract<T: Zeroize + ZeroizeOnDrop>() {}
 fn hd_keys_are_zeroizing_and_debug_redacted() {
     assert_zeroize_contract::<HDKey>();
     assert_zeroize_contract::<EdHDKey>();
+    assert_zeroize_contract::<HdKeySecretBytes>();
 
     let hd = HDKey::init_from_seed(&BIP32_SEED).unwrap();
     let ed = EdHDKey::init_from_seed(&BIP32_SEED).unwrap();
 
     assert_eq!(format!("{hd:?}"), "HDKey { depth: 0, child_index: 0, .. }");
     assert_eq!(format!("{ed:?}"), "EdHDKey { depth: 0, index: 0, .. }");
+}
+
+#[test]
+fn explicit_hd_secret_exposure_is_redacted_and_zeroizing() {
+    let hd = HDKey::init_from_seed(&BIP32_SEED).unwrap();
+    let mut exposed = hd.expose_private_key();
+
+    assert_eq!(format!("{exposed:?}"), "HdKeySecretBytes { .. }");
+    assert_eq!(
+        hex::encode(exposed.expose_secret_bytes()),
+        "e8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35"
+    );
+
+    exposed.zeroize();
+    assert_eq!(exposed.expose_secret_bytes(), &[0; 32]);
 }
 
 #[test]
@@ -45,12 +61,12 @@ fn explicit_hd_key_zeroization_clears_owned_state() {
     hd.zeroize();
     ed.zeroize();
 
-    assert_eq!(hd.private_key, [0; 32]);
-    assert_eq!(hd.chain_code, [0; 32]);
+    assert_eq!(hd.expose_private_key().expose_secret_bytes(), &[0; 32]);
+    assert_eq!(hd.expose_chain_code().expose_secret_bytes(), &[0; 32]);
     assert_eq!(hd.depth, 0);
     assert_eq!(hd.child_index, 0);
-    assert_eq!(ed.private_key, [0; 32]);
-    assert_eq!(ed.chain_code, [0; 32]);
+    assert_eq!(ed.expose_private_key().expose_secret_bytes(), &[0; 32]);
+    assert_eq!(ed.expose_chain_code().expose_secret_bytes(), &[0; 32]);
     assert_eq!(ed.depth, 0);
     assert_eq!(ed.index, 0);
 }
@@ -153,11 +169,11 @@ const BIP32_V4_SEED: [u8; 32] = [
 fn bip32_master_matches_published_vector() {
     let master = HDKey::init_from_seed(&BIP32_SEED).unwrap();
     assert_eq!(
-        hex::encode(master.private_key),
+        hex::encode(master.expose_private_key().expose_secret_bytes()),
         "e8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35"
     );
     assert_eq!(
-        hex::encode(master.chain_code),
+        hex::encode(master.expose_chain_code().expose_secret_bytes()),
         "873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d508"
     );
 }
@@ -167,11 +183,11 @@ fn bip32_derive_m0h_matches_published_vector() {
     let master = HDKey::init_from_seed(&BIP32_SEED).unwrap();
     let child = master.derive("m/0'").unwrap();
     assert_eq!(
-        hex::encode(child.private_key),
+        hex::encode(child.expose_private_key().expose_secret_bytes()),
         "edb2e14f9ee77d26dd93b4ecede8d16ed408ce149b6cd80b0715a2d911a0afea"
     );
     assert_eq!(
-        hex::encode(child.chain_code),
+        hex::encode(child.expose_chain_code().expose_secret_bytes()),
         "47fdacbd0f1097043b78c63c20c34ef4ed9a111d980047ad16282c7ae6236141"
     );
 }
@@ -193,11 +209,11 @@ fn bip32_invalid_path_is_rejected() {
 fn bip32_v2_master_matches_published_vector() {
     let master = HDKey::init_from_seed(&BIP32_V2_SEED).unwrap();
     assert_eq!(
-        hex::encode(master.private_key),
+        hex::encode(master.expose_private_key().expose_secret_bytes()),
         "4b03d6fc340455b363f51020ad3ecca4f0850280cf436c70c727923f6db46c3e"
     );
     assert_eq!(
-        hex::encode(master.chain_code),
+        hex::encode(master.expose_chain_code().expose_secret_bytes()),
         "60499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689"
     );
 }
@@ -207,20 +223,20 @@ fn bip32_v3_master_and_m0h_match_published_vector() {
     let master = HDKey::init_from_seed(&BIP32_V3_SEED).unwrap();
     // Vector 3 master private key starts with 0x00 — checks leading-zero retention.
     assert_eq!(
-        hex::encode(master.private_key),
+        hex::encode(master.expose_private_key().expose_secret_bytes()),
         "00ddb80b067e0d4993197fe10f2657a844a384589847602d56f0c629c81aae32"
     );
     assert_eq!(
-        hex::encode(master.chain_code),
+        hex::encode(master.expose_chain_code().expose_secret_bytes()),
         "01d28a3e53cffa419ec122c968b3259e16b65076495494d97cae10bbfec3c36f"
     );
     let child = master.derive("m/0'").unwrap();
     assert_eq!(
-        hex::encode(child.private_key),
+        hex::encode(child.expose_private_key().expose_secret_bytes()),
         "491f7a2eebc7b57028e0d3faa0acda02e75c33b03c48fb288c41e2ea44e1daef"
     );
     assert_eq!(
-        hex::encode(child.chain_code),
+        hex::encode(child.expose_chain_code().expose_secret_bytes()),
         "e5fea12a97b927fc9dc3d2cb0d1ea1cf50aa5a1fdc1f933e8906bb38df3377bd"
     );
 }
@@ -231,21 +247,21 @@ fn bip32_v4_master_m0h_m0h1h_match_published_vector() {
     // independent check that hardened child derivation is correct across seeds.
     let master = HDKey::init_from_seed(&BIP32_V4_SEED).unwrap();
     assert_eq!(
-        hex::encode(master.private_key),
+        hex::encode(master.expose_private_key().expose_secret_bytes()),
         "12c0d59c7aa3a10973dbd3f478b65f2516627e3fe61e00c345be9a477ad2e215"
     );
     assert_eq!(
-        hex::encode(master.chain_code),
+        hex::encode(master.expose_chain_code().expose_secret_bytes()),
         "d0c8a1f6edf2500798c3e0b54f1b56e45f6d03e6076abd36e5e2f54101e44ce6"
     );
     let m0h = master.derive("m/0'").unwrap();
     // m/0' private key starts with 0x00 — checks leading-zero retention in a child.
     assert_eq!(
-        hex::encode(m0h.private_key),
+        hex::encode(m0h.expose_private_key().expose_secret_bytes()),
         "00d948e9261e41362a688b916f297121ba6bfb2274a3575ac0e456551dfd7f7e"
     );
     assert_eq!(
-        hex::encode(m0h.chain_code),
+        hex::encode(m0h.expose_chain_code().expose_secret_bytes()),
         "cdc0f06456a14876c898790e0b3b1a41c531170aec69da44ff7b7265bfe7743b"
     );
     // Derive the full path from the master (not from `m0h`): `derive` re-applies
@@ -253,11 +269,11 @@ fn bip32_v4_master_m0h_m0h1h_match_published_vector() {
     // m/0'/0'/1'. Use the master as the anchor for multi-level paths.
     let m0h1h = master.derive("m/0'/1'").unwrap();
     assert_eq!(
-        hex::encode(m0h1h.private_key),
+        hex::encode(m0h1h.expose_private_key().expose_secret_bytes()),
         "3a2086edd7d9df86c3487a5905a1712a9aa664bce8cc268141e07549eaa8661d"
     );
     assert_eq!(
-        hex::encode(m0h1h.chain_code),
+        hex::encode(m0h1h.expose_chain_code().expose_secret_bytes()),
         "a48ee6674c5264a237703fd383bccd9fad4d9378ac98ab05e6e7029b06360c0d"
     );
 }
@@ -285,7 +301,7 @@ fn kmp_apollo_prism_master_matches() {
         .to_bytes();
     let master = HDKey::init_from_seed(&seed).unwrap();
     assert_eq!(
-        master.private_key.to_vec(),
+        master.expose_private_key().expose_secret_bytes().to_vec(),
         Base64UrlStrNoPad::from_str(KMP_PRISM_MASTER_PRIV_B64URL)
             .unwrap()
             .to_bytes(),
@@ -301,7 +317,7 @@ fn kmp_apollo_prism_derive_m_0h_0h_0h_matches() {
     let master = HDKey::init_from_seed(&seed).unwrap();
     let derived = master.derive("m/0'/0'/0'").unwrap();
     assert_eq!(
-        derived.private_key.to_vec(),
+        derived.expose_private_key().expose_secret_bytes().to_vec(),
         Base64UrlStrNoPad::from_str(KMP_PRISM_M_0_0_0_PRIV_B64URL)
             .unwrap()
             .to_bytes(),
@@ -321,12 +337,12 @@ fn kmp_apollo_prism_derive_m_0h_0h_0h_matches() {
 fn assert_edhd_node(master: &EdHDKey, path: &str, priv_hex: &str, chain_hex: &str) {
     let node = master.derive(path).unwrap();
     assert_eq!(
-        hex::encode(node.private_key),
+        hex::encode(node.expose_private_key().expose_secret_bytes()),
         priv_hex,
         "SLIP-0010 {path} private key must match the published vector"
     );
     assert_eq!(
-        hex::encode(node.chain_code),
+        hex::encode(node.expose_chain_code().expose_secret_bytes()),
         chain_hex,
         "SLIP-0010 {path} chain code must match the published vector"
     );
@@ -336,11 +352,11 @@ fn assert_edhd_node(master: &EdHDKey, path: &str, priv_hex: &str, chain_hex: &st
 fn slip0010_master_matches_published_vector() {
     let master = EdHDKey::init_from_seed(&BIP32_SEED).unwrap();
     assert_eq!(
-        hex::encode(master.private_key),
+        hex::encode(master.expose_private_key().expose_secret_bytes()),
         "2b4be7f19ee27bbf30c667b642d5f4aa69fd169872f8fc3059c08ebae2eb19e7"
     );
     assert_eq!(
-        hex::encode(master.chain_code),
+        hex::encode(master.expose_chain_code().expose_secret_bytes()),
         "90046a93de5380a72b5e45010748567d5ea02bbf6522f979e05c0d8d8ca9fffb"
     );
 }
@@ -350,11 +366,11 @@ fn slip0010_derive_m0h_matches_published_vector() {
     let master = EdHDKey::init_from_seed(&BIP32_SEED).unwrap();
     let child = master.derive("m/0'").unwrap();
     assert_eq!(
-        hex::encode(child.private_key),
+        hex::encode(child.expose_private_key().expose_secret_bytes()),
         "68e0fe46dfb67e368c75379acec591dad19df3cde26e63b93a8e704f1dade7a3"
     );
     assert_eq!(
-        hex::encode(child.chain_code),
+        hex::encode(child.expose_chain_code().expose_secret_bytes()),
         "8b59aa11380b624e81507a27fedda59fea6d0b779a778918a2fd3590e16e9c69"
     );
 }
@@ -402,11 +418,11 @@ fn slip0010_v1_full_chain_matches_published_vector_at_every_depth() {
 fn slip0010_v2_full_chain_matches_published_vector_at_every_depth() {
     let master = EdHDKey::init_from_seed(&BIP32_V2_SEED).unwrap();
     assert_eq!(
-        hex::encode(master.private_key),
+        hex::encode(master.expose_private_key().expose_secret_bytes()),
         "171cb88b1b3c1db25add599712e36245d75bc65a1a5c9e18d76f9f2b1eab4012"
     );
     assert_eq!(
-        hex::encode(master.chain_code),
+        hex::encode(master.expose_chain_code().expose_secret_bytes()),
         "ef70a74db9c3a5af931b5fe73ed8e1a53464133654fd55e7a66f8570b8e33c3b"
     );
     assert_edhd_node(
@@ -823,6 +839,14 @@ mod kmp_compat {
 fn kmp_create_seed_is_absent_without_feature() {
     let t = trybuild::TestCases::new();
     t.compile_fail("tests/ui/kmp_create_seed_absent.rs");
+}
+
+#[test]
+fn hd_secret_state_has_no_ambient_public_surface() {
+    let t = trybuild::TestCases::new();
+    t.compile_fail("tests/ui/hd_key_fields_private.rs");
+    t.compile_fail("tests/ui/hd_key_secret_not_clone.rs");
+    t.compile_fail("tests/ui/hd_key_secret_not_display.rs");
 }
 
 // ---------------------------------------------------------------------------

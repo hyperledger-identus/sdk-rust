@@ -368,6 +368,17 @@ The factory contract test is the evidence.
 EOF
 : >"$fixture_root/.pi/chains/afk.yaml"
 
+hosted_workflow="$fixture_root/.github/workflows/factory-contract.yml"
+hosted_workflow_backup="$fixture_root/factory-contract.yml.saved"
+cp "$hosted_workflow" "$hosted_workflow_backup"
+sed '/^          python3 scripts\/check-error-golden.py \.$/d' \
+  "$hosted_workflow_backup" >"$hosted_workflow"
+if "$checker" "$fixture_root" >/dev/null 2>&1; then
+  printf 'factory-contract test: missing hosted Git-bound golden command was accepted\n' >&2
+  exit 1
+fi
+mv "$hosted_workflow_backup" "$hosted_workflow"
+
 "$checker" "$fixture_root" >/dev/null
 
 rm "$change_root/design.md"

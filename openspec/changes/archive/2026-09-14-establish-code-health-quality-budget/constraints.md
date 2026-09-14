@@ -35,6 +35,8 @@ reversible and changes no protected setting or release promise.
 - Test-only module reachability supports ordinary Rust module layout and fails
   closed on `#[path]` overrides; it does not emulate rustc's complete module
   loader.
+- Mixed module reachability is conservative: any active or unknown production
+  path keeps the target tree in production evidence.
 - Macro-expanded code is not attributed as authored production. Generated code
   is excluded only through an exact reviewed path-and-marker allowlist.
 - Fast source binding requires the policy-pinned Git object; source-only Nix

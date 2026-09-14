@@ -371,12 +371,17 @@ def out_of_line_modules(
     regions = spans if spans is not None else [Span(0, len(clean))]
     references: list[ModuleReference] = []
 
+    def included(position: int) -> bool:
+        return any(region.start <= position < region.end for region in regions)
+
     def scan(start: int, end: int, context: tuple[str, ...]) -> None:
         cursor = start
         while cursor < end:
             if clean.startswith("#[", cursor):
                 closing = matching_delimiter(clean, cursor + 1, "[", "]")
-                if re.search(r"\bpath\s*=", clean[cursor + 2:closing]):
+                if included(cursor) and re.search(
+                    r"\bpath\s*=", clean[cursor + 2:closing]
+                ):
                     raise AuditError(
                         "path-attributed modules are unsupported in test-only reachability"
                     )
@@ -386,7 +391,8 @@ def out_of_line_modules(
             if match:
                 name, delimiter = match.groups()
                 if delimiter == ";":
-                    references.append(ModuleReference(context, name))
+                    if included(match.start()):
+                        references.append(ModuleReference(context, name))
                     cursor = match.end()
                     continue
                 opening = match.end() - 1
@@ -400,9 +406,20 @@ def out_of_line_modules(
                 continue
             cursor += 1
 
-    for region in regions:
-        scan(region.start, region.end, ())
+    scan(0, len(clean), ())
     return references
+
+
+def complement_spans(length: int, spans: list[Span]) -> list[Span]:
+    regions: list[Span] = []
+    cursor = 0
+    for span in merge_spans(spans):
+        if cursor < span.start:
+            regions.append(Span(cursor, span.start))
+        cursor = max(cursor, span.end)
+    if cursor < length:
+        regions.append(Span(cursor, length))
+    return regions
 
 
 def resolve_module_path(
@@ -449,6 +466,20 @@ def inherited_test_files(
             inherited.add(path)
         for reference in out_of_line_modules(sources[path]):
             queued.append(resolve_module_path(path, reference, sources))
+
+    changed = True
+    while changed:
+        changed = False
+        for parent in production_paths:
+            if parent in inherited:
+                continue
+            test_spans = test_only_spans(sources[parent])
+            production_spans = complement_spans(len(sources[parent]), test_spans)
+            for reference in out_of_line_modules(sources[parent], production_spans):
+                path = resolve_module_path(parent, reference, sources)
+                if path in inherited:
+                    inherited.remove(path)
+                    changed = True
     return inherited
 
 

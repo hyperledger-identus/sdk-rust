@@ -31,7 +31,9 @@ only through proven test-only module reachability. Nested inline-module names
 remain part of ordinary module resolution, preventing a same-named source file
 in the parent directory from being hidden. Unsupported `#[path]` overrides fail
 closed. Rust outer doc comments immediately before a test-only item belong to
-that item rather than the production population.
+that item rather than the production population. When both a test-only and an
+active or unknown production edge reach the same file, production reachability
+wins and propagates through that file's ordinary module descendants.
 
 The policy pins the baseline Git revision, authored-source fingerprint and
 whole canonical report digest. Fast validation reloads that Git tree and
@@ -82,7 +84,7 @@ metadata, standard error kind, wire JSON, features, and dependencies.
 Focused scanner tests cover comments, literals, balanced attributes, fields,
 variants, outer doc comments, macro-token isolation, rejected path overrides,
 nested module-context resolution, source-test filename collisions, out-of-line
-module inheritance and cfg logic. Report mutation tests
+module inheritance, mixed production/test reachability and cfg logic. Report mutation tests
 and fast/slow regeneration cover the complete schema, engine pin, policy/tree
 binding, population separation, exclusions and dispositions. DID tests cover registry and
 failed-closed cache results. Full factory, formatting, strict Clippy, tests,

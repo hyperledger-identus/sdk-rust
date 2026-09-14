@@ -178,6 +178,20 @@ class ModulePopulationTests(unittest.TestCase):
         self.assertEqual(inherited, {nested})
         self.assertNotIn(shipping, inherited)
 
+    def test_nested_test_attribute_retains_production_inline_module_context(self) -> None:
+        nested = Path("crates/demo/src/outer/helper.rs")
+        shipping = Path("crates/demo/src/helper.rs")
+        sources = {
+            Path("crates/demo/src/lib.rs"): (
+                "mod outer { #[cfg(test)] mod helper; }\n"
+            ),
+            nested: "fn nested_test_helper() {}\n",
+            shipping: "pub fn shipping_helper() {}\n",
+        }
+        inherited = audit.inherited_test_files(sources, sorted(sources))
+        self.assertEqual(inherited, {nested})
+        self.assertNotIn(shipping, inherited)
+
     def test_nested_inline_module_never_falls_back_to_parent_directory(self) -> None:
         sources = {
             Path("crates/demo/src/lib.rs"): "#[cfg(test)]\nmod tests { mod helper; }\n",
@@ -204,6 +218,18 @@ class ModulePopulationTests(unittest.TestCase):
         }
         with self.assertRaises(audit.AuditError):
             audit.inherited_test_files(sources, sorted(sources))
+
+    def test_production_reachability_wins_over_test_only_reachability(self) -> None:
+        helper = Path("crates/demo/src/helper.rs")
+        child = Path("crates/demo/src/helper/child.rs")
+        sources = {
+            Path("crates/demo/src/lib.rs"): (
+                "#[cfg(test)] mod helper;\n#[cfg(not(test))] mod helper;\n"
+            ),
+            helper: "mod child;\nfn shared_helper() {}\n",
+            child: "fn shipping_child() {}\n",
+        }
+        self.assertEqual(audit.inherited_test_files(sources, sorted(sources)), set())
 
     def test_generated_marker_requires_exact_path_allowlist(self) -> None:
         marked = Path("crates/demo/src/marked.rs")

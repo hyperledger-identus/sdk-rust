@@ -31,7 +31,9 @@ reachability. Nested inline module names remain part of ordinary out-of-line
 resolution. This prevents a regex, directory name, or same-named sibling module
 from silently discarding shipping code. V1 rejects `#[path]` overrides in
 test-only reachability rather than guessing custom path semantics, and treats
-outer doc comments as part of the attributed item.
+outer doc comments as part of the attributed item. Production-active or unknown
+module reachability takes precedence over a test-only edge to the same file and
+propagates through its descendants.
 
 Review of the first implementation found that canonical structure alone could
 not bind a report to source and that generic generated-marker text was

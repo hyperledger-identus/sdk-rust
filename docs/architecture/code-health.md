@@ -53,6 +53,9 @@ worktree; unrelated documentation changes do not invalidate source evidence.
   `cfg(any(test, feature = "diagnostics"))` remains production.
   A `#[path = "..."]` override in test-only reachability fails closed because
   v1 deliberately implements only ordinary Rust module resolution.
+  Test-only reachability is only a candidate: a fixed-point pass keeps a file
+  and its descendants production whenever an active or unknown production edge
+  also reaches it.
 - **Generated** Rust is excluded only when `code-health.toml` names its exact
   path and an exact marker present in the first ten lines. Generic phrases in
   comments never cause exclusion.

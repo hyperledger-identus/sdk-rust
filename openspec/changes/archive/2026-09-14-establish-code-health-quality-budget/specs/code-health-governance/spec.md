@@ -16,6 +16,8 @@ reachability to leave production. Generated exclusion SHALL require an exact
 policy path and exact header marker. Outer doc comments immediately preceding a
 test-only item SHALL share that item's population. Test-only reachability SHALL
 fail closed rather than guess `#[path]` module overrides.
+An active or unknown production module edge SHALL override test-only
+reachability to the same file and its ordinary module descendants.
 
 #### Scenario: Test-only inline module
 
@@ -58,6 +60,12 @@ fail closed rather than guess `#[path]` module overrides.
 
 - **WHEN** a definitively test-only module uses `#[path = "..."]`
 - **THEN** v1 audit fails closed rather than resolving a default same-named file
+
+#### Scenario: Module is reachable in test and production configurations
+
+- **WHEN** `cfg(test)` and an active or unknown production predicate declare an
+  out-of-line module that resolves to the same file
+- **THEN** that file and its ordinary descendants remain production evidence
 
 #### Scenario: Ordinary prose resembles a generated marker
 

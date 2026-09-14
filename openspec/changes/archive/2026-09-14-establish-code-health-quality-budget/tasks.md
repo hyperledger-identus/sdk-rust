@@ -46,3 +46,5 @@
 - [x] 5.5 Exclude macro token trees from module reachability, reject custom
   `#[path]` module loading, include outer doc attributes, and close primitive
   report/config schema types with focused negative fixtures.
+- [x] 5.6 Make active or unknown production module reachability override a
+  test-only candidate edge and propagate that result to descendants.

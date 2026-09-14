@@ -38,7 +38,9 @@ adjacent attributes,
 comma-terminated fields and variants, inline and out-of-line module trees,
 same-named module collisions, macro token trees, rejected `#[path]` overrides,
 source test files with and without proven test-only reachability, and unknown
-predicates.
+predicates. Test reachability first produces a candidate tree. A fixed-point
+pass over active or unknown edges from parents that remain production removes
+mixed-reachable files and their descendants from inline-test classification.
 
 The policy pins baseline revision, source fingerprint and canonical report
 digest. Fast validation reloads the Git tree and recomputes authored source

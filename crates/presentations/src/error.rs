@@ -2,7 +2,12 @@
 
 use std::fmt;
 
-use identus_core::{CapabilityId, ErrorCode, ErrorKind, IdentusError};
+use identus_core::{CapabilityId, IdentusError};
+
+use crate::error_contract::{
+    ErrorContract, artifact_assembly, candidate_matching, disclosure_selection, lifecycle,
+    request_query,
+};
 
 /// Owning capability for presentation construction errors.
 pub const CAPABILITY: CapabilityId = CapabilityId::new("presentation");
@@ -203,202 +208,78 @@ pub enum PresentationError {
     InvalidProtocolTransition,
 }
 
+macro_rules! define_presentation_error_contracts {
+    ($($variant:ident => $contract:path),+ $(,)?) => {
+        impl PresentationError {
+            const fn contract(self) -> ErrorContract {
+                match self {
+                    $(Self::$variant => $contract),+
+                }
+            }
+
+            #[cfg(test)]
+            pub(crate) const CONTRACT_VARIANTS: &'static [Self] = &[
+                $(Self::$variant),+
+            ];
+        }
+    };
+}
+
+define_presentation_error_contracts! {
+    InvalidQueryId => request_query::INVALID_QUERY_ID,
+    InvalidPurpose => request_query::INVALID_PURPOSE,
+    InvalidChallenge => request_query::INVALID_CHALLENGE,
+    InvalidCredentialHandle => request_query::INVALID_CREDENTIAL_HANDLE,
+    InvalidClaimIntent => request_query::INVALID_CLAIM_INTENT,
+    InvalidQueryFilters => request_query::INVALID_QUERY_FILTERS,
+    DuplicateIssuerFilter => request_query::DUPLICATE_ISSUER_FILTER,
+    DuplicateTypeFilter => request_query::DUPLICATE_TYPE_FILTER,
+    DuplicateSchemaFilter => request_query::DUPLICATE_SCHEMA_FILTER,
+    InvalidQueryClaims => request_query::INVALID_QUERY_CLAIMS,
+    DuplicateQueryClaim => request_query::DUPLICATE_QUERY_CLAIM,
+    InvalidRequestQueries => request_query::INVALID_REQUEST_QUERIES,
+    DuplicateQueryId => request_query::DUPLICATE_QUERY_ID,
+    InvalidCandidateClaims => candidate_matching::INVALID_CANDIDATE_CLAIMS,
+    DuplicateCandidateClaim => candidate_matching::DUPLICATE_CANDIDATE_CLAIM,
+    InvalidCandidates => candidate_matching::INVALID_CANDIDATES,
+    DuplicateCandidate => candidate_matching::DUPLICATE_CANDIDATE,
+    UnknownCandidateQuery => candidate_matching::UNKNOWN_CANDIDATE_QUERY,
+    CandidateFormatMismatch => candidate_matching::CANDIDATE_FORMAT_MISMATCH,
+    CandidateUnrequestedClaim => candidate_matching::CANDIDATE_UNREQUESTED_CLAIM,
+    CandidateMissingRequiredClaim => candidate_matching::CANDIDATE_MISSING_REQUIRED_CLAIM,
+    CandidateRequestMismatch => candidate_matching::CANDIDATE_REQUEST_MISMATCH,
+    InvalidSelectionClaims => disclosure_selection::INVALID_SELECTION_CLAIMS,
+    DuplicateSelectionClaim => disclosure_selection::DUPLICATE_SELECTION_CLAIM,
+    InvalidDisclosureSelections => disclosure_selection::INVALID_DISCLOSURE_SELECTIONS,
+    DuplicateDisclosureSelection => disclosure_selection::DUPLICATE_DISCLOSURE_SELECTION,
+    UnknownSelectionQuery => disclosure_selection::UNKNOWN_SELECTION_QUERY,
+    UnknownSelectionCandidate => disclosure_selection::UNKNOWN_SELECTION_CANDIDATE,
+    SelectionUnrequestedClaim => disclosure_selection::SELECTION_UNREQUESTED_CLAIM,
+    SelectionClaimIntentMismatch => disclosure_selection::SELECTION_CLAIM_INTENT_MISMATCH,
+    SelectionUnavailableClaim => disclosure_selection::SELECTION_UNAVAILABLE_CLAIM,
+    SelectionMissingRequiredClaim => disclosure_selection::SELECTION_MISSING_REQUIRED_CLAIM,
+    MissingQuerySelection => disclosure_selection::MISSING_QUERY_SELECTION,
+    QueryMultiplicityExceeded => disclosure_selection::QUERY_MULTIPLICITY_EXCEEDED,
+    DisclosureRequestMismatch => disclosure_selection::DISCLOSURE_REQUEST_MISMATCH,
+    InvalidArtifactBindings => artifact_assembly::INVALID_ARTIFACT_BINDINGS,
+    DuplicateArtifactBinding => artifact_assembly::DUPLICATE_ARTIFACT_BINDING,
+    InvalidArtifactPayload => artifact_assembly::INVALID_ARTIFACT_PAYLOAD,
+    InvalidGeneratedArtifacts => artifact_assembly::INVALID_GENERATED_ARTIFACTS,
+    ArtifactPayloadBudgetExceeded => artifact_assembly::ARTIFACT_PAYLOAD_BUDGET_EXCEEDED,
+    UnknownArtifactSelection => artifact_assembly::UNKNOWN_ARTIFACT_SELECTION,
+    ArtifactFormatMismatch => artifact_assembly::ARTIFACT_FORMAT_MISMATCH,
+    DuplicateGeneratedArtifactBinding => artifact_assembly::DUPLICATE_GENERATED_ARTIFACT_BINDING,
+    MissingArtifactSelection => artifact_assembly::MISSING_ARTIFACT_SELECTION,
+    InvalidLifecyclePhase => lifecycle::INVALID_LIFECYCLE_PHASE,
+    InvalidTerminalOutcome => lifecycle::INVALID_TERMINAL_OUTCOME,
+    InvalidProtocolState => lifecycle::INVALID_PROTOCOL_STATE,
+    InvalidProtocolTransition => lifecycle::INVALID_PROTOCOL_TRANSITION,
+}
+
 impl PresentationError {
     /// Convert into the shared stable SDK error boundary.
     pub const fn to_identus_error(self) -> IdentusError {
-        let (code, message) = self.contract();
-        IdentusError::public(code, ErrorKind::InvalidInput, CAPABILITY, message)
-    }
-
-    const fn contract(self) -> (ErrorCode, &'static str) {
-        use error_code as code;
-        match self {
-            Self::InvalidQueryId => (code::INVALID_QUERY_ID, "presentation query id is invalid"),
-            Self::InvalidPurpose => (code::INVALID_PURPOSE, "presentation purpose is invalid"),
-            Self::InvalidChallenge => {
-                (code::INVALID_CHALLENGE, "presentation challenge is invalid")
-            }
-            Self::InvalidCredentialHandle => (
-                code::INVALID_CREDENTIAL_HANDLE,
-                "presentation credential handle is invalid",
-            ),
-            Self::InvalidClaimIntent => (
-                code::INVALID_CLAIM_INTENT,
-                "presentation claim intent is invalid",
-            ),
-            Self::InvalidQueryFilters => (
-                code::INVALID_QUERY_FILTERS,
-                "presentation query filters are invalid",
-            ),
-            Self::DuplicateIssuerFilter => (
-                code::DUPLICATE_ISSUER_FILTER,
-                "presentation query repeats an issuer filter",
-            ),
-            Self::DuplicateTypeFilter => (
-                code::DUPLICATE_TYPE_FILTER,
-                "presentation query repeats a credential type filter",
-            ),
-            Self::DuplicateSchemaFilter => (
-                code::DUPLICATE_SCHEMA_FILTER,
-                "presentation query repeats a schema filter",
-            ),
-            Self::InvalidQueryClaims => (
-                code::INVALID_QUERY_CLAIMS,
-                "presentation query claim collection is invalid",
-            ),
-            Self::DuplicateQueryClaim => (
-                code::DUPLICATE_QUERY_CLAIM,
-                "presentation query repeats a claim path",
-            ),
-            Self::InvalidRequestQueries => (
-                code::INVALID_REQUEST_QUERIES,
-                "presentation request query collection is invalid",
-            ),
-            Self::DuplicateQueryId => (
-                code::DUPLICATE_QUERY_ID,
-                "presentation request repeats a query id",
-            ),
-            Self::InvalidCandidateClaims => (
-                code::INVALID_CANDIDATE_CLAIMS,
-                "presentation candidate claim collection is invalid",
-            ),
-            Self::DuplicateCandidateClaim => (
-                code::DUPLICATE_CANDIDATE_CLAIM,
-                "presentation candidate repeats a claim path",
-            ),
-            Self::InvalidCandidates => (
-                code::INVALID_CANDIDATES,
-                "presentation candidate collection is invalid",
-            ),
-            Self::DuplicateCandidate => (
-                code::DUPLICATE_CANDIDATE,
-                "presentation candidate is repeated",
-            ),
-            Self::UnknownCandidateQuery => (
-                code::UNKNOWN_CANDIDATE_QUERY,
-                "presentation candidate references an unknown query",
-            ),
-            Self::CandidateFormatMismatch => (
-                code::CANDIDATE_FORMAT_MISMATCH,
-                "presentation candidate format does not match its query",
-            ),
-            Self::CandidateUnrequestedClaim => (
-                code::CANDIDATE_UNREQUESTED_CLAIM,
-                "presentation candidate contains an unrequested claim",
-            ),
-            Self::CandidateMissingRequiredClaim => (
-                code::CANDIDATE_MISSING_REQUIRED_CLAIM,
-                "presentation candidate omits a required claim",
-            ),
-            Self::CandidateRequestMismatch => (
-                code::CANDIDATE_REQUEST_MISMATCH,
-                "presentation candidate set belongs to a different request",
-            ),
-            Self::InvalidSelectionClaims => (
-                code::INVALID_SELECTION_CLAIMS,
-                "presentation selection claim collection is invalid",
-            ),
-            Self::DuplicateSelectionClaim => (
-                code::DUPLICATE_SELECTION_CLAIM,
-                "presentation selection repeats a claim path",
-            ),
-            Self::InvalidDisclosureSelections => (
-                code::INVALID_DISCLOSURE_SELECTIONS,
-                "presentation disclosure selection collection is invalid",
-            ),
-            Self::DuplicateDisclosureSelection => (
-                code::DUPLICATE_DISCLOSURE_SELECTION,
-                "presentation disclosure repeats a credential selection",
-            ),
-            Self::UnknownSelectionQuery => (
-                code::UNKNOWN_SELECTION_QUERY,
-                "presentation selection references an unknown query",
-            ),
-            Self::UnknownSelectionCandidate => (
-                code::UNKNOWN_SELECTION_CANDIDATE,
-                "presentation selection references an unknown candidate",
-            ),
-            Self::SelectionUnrequestedClaim => (
-                code::SELECTION_UNREQUESTED_CLAIM,
-                "presentation selection contains an unrequested claim",
-            ),
-            Self::SelectionClaimIntentMismatch => (
-                code::SELECTION_CLAIM_INTENT_MISMATCH,
-                "presentation selection claim intent does not match its query",
-            ),
-            Self::SelectionUnavailableClaim => (
-                code::SELECTION_UNAVAILABLE_CLAIM,
-                "presentation selection contains an unavailable claim",
-            ),
-            Self::SelectionMissingRequiredClaim => (
-                code::SELECTION_MISSING_REQUIRED_CLAIM,
-                "presentation selection omits a required claim",
-            ),
-            Self::MissingQuerySelection => (
-                code::MISSING_QUERY_SELECTION,
-                "presentation disclosure omits a query selection",
-            ),
-            Self::QueryMultiplicityExceeded => (
-                code::QUERY_MULTIPLICITY_EXCEEDED,
-                "presentation disclosure exceeds query multiplicity",
-            ),
-            Self::DisclosureRequestMismatch => (
-                code::DISCLOSURE_REQUEST_MISMATCH,
-                "presentation disclosure plan belongs to a different request",
-            ),
-            Self::InvalidArtifactBindings => (
-                code::INVALID_ARTIFACT_BINDINGS,
-                "presentation artifact binding collection is invalid",
-            ),
-            Self::DuplicateArtifactBinding => (
-                code::DUPLICATE_ARTIFACT_BINDING,
-                "presentation artifact repeats a selection binding",
-            ),
-            Self::InvalidArtifactPayload => (
-                code::INVALID_ARTIFACT_PAYLOAD,
-                "presentation artifact payload is invalid",
-            ),
-            Self::InvalidGeneratedArtifacts => (
-                code::INVALID_GENERATED_ARTIFACTS,
-                "generated presentation artifact collection is invalid",
-            ),
-            Self::ArtifactPayloadBudgetExceeded => (
-                code::ARTIFACT_PAYLOAD_BUDGET_EXCEEDED,
-                "generated presentation artifact bytes exceed the budget",
-            ),
-            Self::UnknownArtifactSelection => (
-                code::UNKNOWN_ARTIFACT_SELECTION,
-                "presentation artifact references an unknown selection",
-            ),
-            Self::ArtifactFormatMismatch => (
-                code::ARTIFACT_FORMAT_MISMATCH,
-                "presentation artifact format does not match its selection",
-            ),
-            Self::DuplicateGeneratedArtifactBinding => (
-                code::DUPLICATE_GENERATED_ARTIFACT_BINDING,
-                "generated presentation repeats a selection binding",
-            ),
-            Self::MissingArtifactSelection => (
-                code::MISSING_ARTIFACT_SELECTION,
-                "generated presentation omits a selection binding",
-            ),
-            Self::InvalidLifecyclePhase => (
-                code::INVALID_LIFECYCLE_PHASE,
-                "presentation lifecycle phase is invalid",
-            ),
-            Self::InvalidTerminalOutcome => (
-                code::INVALID_TERMINAL_OUTCOME,
-                "presentation terminal outcome is invalid",
-            ),
-            Self::InvalidProtocolState => (
-                code::INVALID_PROTOCOL_STATE,
-                "presentation protocol state is invalid",
-            ),
-            Self::InvalidProtocolTransition => (
-                code::INVALID_PROTOCOL_TRANSITION,
-                "presentation protocol transition is invalid",
-            ),
-        }
+        self.contract().to_identus_error()
     }
 }
 
@@ -410,7 +291,7 @@ impl From<PresentationError> for IdentusError {
 
 impl fmt::Display for PresentationError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(self.contract().1)
+        formatter.write_str(self.contract().message())
     }
 }
 

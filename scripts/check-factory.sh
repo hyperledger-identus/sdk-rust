@@ -207,6 +207,19 @@ if [[ -x "$factory_root/scripts/check-error-golden.py" ]]; then
   fi
 fi
 
+factory_workflow="$factory_root/.github/workflows/factory-contract.yml"
+if [[ -f "$factory_workflow" ]]; then
+  hosted_error_block=$(sed -n \
+    '/^      - name: Verify preflight-bound error goldens$/,/^      - name: Install Nix$/p' \
+    "$factory_workflow")
+  if ! grep -Fxq '          env -u SDK_ERROR_GOLDEN_SOURCE_SNAPSHOT' \
+      <<<"$hosted_error_block" ||
+    ! grep -Fxq '          python3 scripts/check-error-golden.py .' \
+      <<<"$hosted_error_block"; then
+    report_failure "fast hosted CI must run Git-backed error-golden validation before Nix"
+  fi
+fi
+
 if [[ -x "$factory_root/scripts/code-health-audit.py" && -f "$factory_root/docs/architecture/code-health-baseline.json" ]]; then
   if ! python3 "$factory_root/scripts/code-health-audit.py" --root "$factory_root" --check-report "$factory_root/docs/architecture/code-health-baseline.json" --policy-only; then
     report_failure "code-health report validation failed"

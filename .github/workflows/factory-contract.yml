@@ -46,6 +46,11 @@ jobs:
           sed -n '/"areas"/,/]/p; /"slowRecommended"/,/]/p' \
             "$RUNNER_TEMP/target-plan.json" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Verify preflight-bound error goldens
+        run: >-
+          env -u SDK_ERROR_GOLDEN_SOURCE_SNAPSHOT
+          python3 scripts/check-error-golden.py .
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
 

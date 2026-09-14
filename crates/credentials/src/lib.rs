@@ -12,6 +12,7 @@ mod artifact;
 mod descriptor;
 mod envelope;
 pub mod error;
+mod error_contract;
 mod format;
 mod metadata;
 mod schema;

@@ -14,14 +14,14 @@
 
 ## 2. Credentials pilot
 
-- [ ] 2.1 Copy the planning golden byte-for-byte to the stable credentials
+- [x] 2.1 Copy the planning golden byte-for-byte to the stable credentials
   test-fixture path and verify the recorded SHA-256 before changing production
   error code.
-- [ ] 2.2 Add the private crate-local `ErrorContract` and the five cohesive
+- [x] 2.2 Add the private crate-local `ErrorContract` and the five cohesive
   envelope, metadata, status, verification, and verifier catalogue modules.
-- [ ] 2.3 Route both existing credentials error enums exhaustively through the
+- [x] 2.3 Route both existing credentials error enums exhaustively through the
   private records while preserving every public declaration and behavior.
-- [ ] 2.4 Add the independent golden regression, source/redaction and const-use
+- [x] 2.4 Add the independent golden regression, source/redaction and const-use
   checks, plus a temporary local compile mutation proving incomplete routing
   fails; commit no mutation.
 

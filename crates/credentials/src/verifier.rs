@@ -7,21 +7,17 @@
 
 use std::{collections::BTreeMap, error::Error, fmt, future::Future, pin::Pin, sync::Arc};
 
-use identus_core::{ErrorCode, ErrorKind, IdentusError};
+use identus_core::IdentusError;
 use identus_derive as identus;
 
 use crate::{
     CredentialDetachedProof, CredentialEnvelope, CredentialError, CredentialFormat,
-    CredentialPayload, VerificationReport, error::CAPABILITY,
+    CredentialPayload, VerificationReport,
+    error_contract::{ErrorContract, verifier as error_contract},
 };
 
 /// Maximum number of exact format bindings in one immutable verifier registry.
 pub const MAX_CREDENTIAL_VERIFIER_REGISTRY_ENTRIES: usize = 64;
-
-const VERIFICATION_UNSUPPORTED_FORMAT: ErrorCode =
-    ErrorCode::new("credential.verification_unsupported_format");
-const VERIFICATION_UNAVAILABLE: ErrorCode = ErrorCode::new("credential.verification_unavailable");
-const VERIFICATION_INTERNAL: ErrorCode = ErrorCode::new("credential.verification_internal");
 
 /// A borrowed, least-authority view of credential verification inputs.
 ///
@@ -99,38 +95,23 @@ pub enum CredentialVerificationError {
 }
 
 impl CredentialVerificationError {
+    const fn contract(self) -> ErrorContract {
+        match self {
+            Self::UnsupportedFormat => error_contract::VERIFICATION_UNSUPPORTED_FORMAT,
+            Self::Unavailable => error_contract::VERIFICATION_UNAVAILABLE,
+            Self::Internal => error_contract::VERIFICATION_INTERNAL,
+        }
+    }
+
     /// Bridge to the shared redaction-safe SDK error surface.
     pub const fn to_identus_error(self) -> IdentusError {
-        match self {
-            Self::UnsupportedFormat => IdentusError::public(
-                VERIFICATION_UNSUPPORTED_FORMAT,
-                ErrorKind::Unsupported,
-                CAPABILITY,
-                "credential verification format is unsupported",
-            ),
-            Self::Unavailable => IdentusError::public(
-                VERIFICATION_UNAVAILABLE,
-                ErrorKind::Internal,
-                CAPABILITY,
-                "credential verification is unavailable",
-            ),
-            Self::Internal => IdentusError::public(
-                VERIFICATION_INTERNAL,
-                ErrorKind::Internal,
-                CAPABILITY,
-                "credential verification failed internally",
-            ),
-        }
+        self.contract().to_identus_error()
     }
 }
 
 impl fmt::Display for CredentialVerificationError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(match self {
-            Self::UnsupportedFormat => "credential verification format is unsupported",
-            Self::Unavailable => "credential verification is unavailable",
-            Self::Internal => "credential verification failed internally",
-        })
+        formatter.write_str(self.contract().local_display())
     }
 }
 

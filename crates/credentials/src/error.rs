@@ -2,7 +2,9 @@
 
 use std::fmt;
 
-use identus_core::{CapabilityId, ErrorKind, IdentusError};
+use identus_core::{CapabilityId, IdentusError};
+
+use crate::error_contract::{ErrorContract, envelope, metadata, status, verification};
 
 /// Owning capability for credential construction errors.
 pub const CAPABILITY: CapabilityId = CapabilityId::new("credential");
@@ -186,239 +188,68 @@ pub enum CredentialError {
 }
 
 impl CredentialError {
+    const fn contract(self) -> ErrorContract {
+        match self {
+            Self::InvalidFormat => envelope::INVALID_FORMAT,
+            Self::EmptyPayload => envelope::EMPTY_PAYLOAD,
+            Self::PayloadTooLarge => envelope::PAYLOAD_TOO_LARGE,
+            Self::EmptyDetachedProof => envelope::EMPTY_DETACHED_PROOF,
+            Self::DetachedProofTooLarge => envelope::DETACHED_PROOF_TOO_LARGE,
+            Self::EmptyPrivateMaterial => envelope::EMPTY_PRIVATE_MATERIAL,
+            Self::PrivateMaterialTooLarge => envelope::PRIVATE_MATERIAL_TOO_LARGE,
+            Self::InvalidVerificationStageName => verification::INVALID_VERIFICATION_STAGE_NAME,
+            Self::InvalidVerificationReasonCode => verification::INVALID_VERIFICATION_REASON_CODE,
+            Self::MissingVerificationReason => verification::MISSING_VERIFICATION_REASON,
+            Self::UnexpectedVerificationReason => verification::UNEXPECTED_VERIFICATION_REASON,
+            Self::NonCanonicalVerificationReport => verification::NON_CANONICAL_VERIFICATION_REPORT,
+            Self::DuplicateCredentialVerifierFormat => {
+                verification::DUPLICATE_CREDENTIAL_VERIFIER_FORMAT
+            }
+            Self::TooManyCredentialVerifierFormats => {
+                verification::TOO_MANY_CREDENTIAL_VERIFIER_FORMATS
+            }
+            Self::InvalidEntityIdentifier => metadata::INVALID_ENTITY_IDENTIFIER,
+            Self::InvalidCredentialType => metadata::INVALID_CREDENTIAL_TYPE,
+            Self::InvalidSchemaIdentifier => metadata::INVALID_SCHEMA_IDENTIFIER,
+            Self::InvalidSchemaVersion => metadata::INVALID_SCHEMA_VERSION,
+            Self::InvalidClaimIdentifier => metadata::INVALID_CLAIM_IDENTIFIER,
+            Self::InvalidClaimValueType => metadata::INVALID_CLAIM_VALUE_TYPE,
+            Self::InvalidClaimPathSegment => metadata::INVALID_CLAIM_PATH_SEGMENT,
+            Self::InvalidClaimPath => metadata::INVALID_CLAIM_PATH,
+            Self::InvalidClaimDisclosure => metadata::INVALID_CLAIM_DISCLOSURE,
+            Self::InvalidDescriptorCollection => metadata::INVALID_DESCRIPTOR_COLLECTION,
+            Self::DuplicateCredentialSubject => metadata::DUPLICATE_CREDENTIAL_SUBJECT,
+            Self::DuplicateCredentialType => metadata::DUPLICATE_CREDENTIAL_TYPE,
+            Self::DuplicateSchemaIdentifier => metadata::DUPLICATE_SCHEMA_IDENTIFIER,
+            Self::DuplicateClaimIdentifier => metadata::DUPLICATE_CLAIM_IDENTIFIER,
+            Self::DuplicateClaimPath => metadata::DUPLICATE_CLAIM_PATH,
+            Self::InvalidValidityRange => metadata::INVALID_VALIDITY_RANGE,
+            Self::InvalidStatusMethod => status::INVALID_STATUS_METHOD,
+            Self::InvalidStatusPurpose => status::INVALID_STATUS_PURPOSE,
+            Self::InvalidStatusReference => status::INVALID_STATUS_REFERENCE,
+            Self::InvalidStatusHandle => status::INVALID_STATUS_HANDLE,
+            Self::InvalidStatusRevision => status::INVALID_STATUS_REVISION,
+            Self::InvalidStatusValue => status::INVALID_STATUS_VALUE,
+            Self::InvalidStatusBindingCollection => status::INVALID_STATUS_BINDING_COLLECTION,
+            Self::DuplicateStatusBinding => status::DUPLICATE_STATUS_BINDING,
+            Self::InvalidStatusFreshness => status::INVALID_STATUS_FRESHNESS,
+            Self::InvalidStatusRequirements => status::INVALID_STATUS_REQUIREMENTS,
+            Self::DuplicateStatusMethod => status::DUPLICATE_STATUS_METHOD,
+            Self::DuplicateStatusPurpose => status::DUPLICATE_STATUS_PURPOSE,
+            Self::InvalidStatusEvidenceRange => status::INVALID_STATUS_EVIDENCE_RANGE,
+            Self::StatusQueryMismatch => status::STATUS_QUERY_MISMATCH,
+        }
+    }
+
     /// Convert to the stable, redaction-safe shared SDK error.
     pub fn to_identus_error(self) -> IdentusError {
-        let (code, public_message) = match self {
-            Self::InvalidFormat => (error_code::INVALID_FORMAT, "invalid credential format"),
-            Self::EmptyPayload => (error_code::EMPTY_PAYLOAD, "credential payload is empty"),
-            Self::PayloadTooLarge => (
-                error_code::PAYLOAD_TOO_LARGE,
-                "credential payload exceeds the size limit",
-            ),
-            Self::EmptyDetachedProof => (
-                error_code::EMPTY_DETACHED_PROOF,
-                "credential detached proof is empty",
-            ),
-            Self::DetachedProofTooLarge => (
-                error_code::DETACHED_PROOF_TOO_LARGE,
-                "credential detached proof exceeds the size limit",
-            ),
-            Self::EmptyPrivateMaterial => (
-                error_code::EMPTY_PRIVATE_MATERIAL,
-                "credential private material is empty",
-            ),
-            Self::PrivateMaterialTooLarge => (
-                error_code::PRIVATE_MATERIAL_TOO_LARGE,
-                "credential private material exceeds the size limit",
-            ),
-            Self::InvalidVerificationStageName => (
-                error_code::INVALID_VERIFICATION_STAGE_NAME,
-                "invalid credential verification stage name",
-            ),
-            Self::InvalidVerificationReasonCode => (
-                error_code::INVALID_VERIFICATION_REASON_CODE,
-                "invalid credential verification reason code",
-            ),
-            Self::MissingVerificationReason => (
-                error_code::MISSING_VERIFICATION_REASON,
-                "credential verification reason is required",
-            ),
-            Self::UnexpectedVerificationReason => (
-                error_code::UNEXPECTED_VERIFICATION_REASON,
-                "credential verification reason is not allowed",
-            ),
-            Self::NonCanonicalVerificationReport => (
-                error_code::NON_CANONICAL_VERIFICATION_REPORT,
-                "credential verification report is not canonical",
-            ),
-            Self::DuplicateCredentialVerifierFormat => (
-                error_code::DUPLICATE_CREDENTIAL_VERIFIER_FORMAT,
-                "credential verifier format is duplicated",
-            ),
-            Self::TooManyCredentialVerifierFormats => (
-                error_code::TOO_MANY_CREDENTIAL_VERIFIER_FORMATS,
-                "credential verifier registry exceeds the format limit",
-            ),
-            Self::InvalidEntityIdentifier => (
-                error_code::INVALID_ENTITY_IDENTIFIER,
-                "invalid credential entity identifier",
-            ),
-            Self::InvalidCredentialType => (
-                error_code::INVALID_CREDENTIAL_TYPE,
-                "invalid credential type",
-            ),
-            Self::InvalidSchemaIdentifier => (
-                error_code::INVALID_SCHEMA_IDENTIFIER,
-                "invalid credential schema identifier",
-            ),
-            Self::InvalidSchemaVersion => (
-                error_code::INVALID_SCHEMA_VERSION,
-                "invalid credential schema version",
-            ),
-            Self::InvalidClaimIdentifier => (
-                error_code::INVALID_CLAIM_IDENTIFIER,
-                "invalid credential claim identifier",
-            ),
-            Self::InvalidClaimValueType => (
-                error_code::INVALID_CLAIM_VALUE_TYPE,
-                "invalid credential claim value type",
-            ),
-            Self::InvalidClaimPathSegment => (
-                error_code::INVALID_CLAIM_PATH_SEGMENT,
-                "invalid credential claim path segment",
-            ),
-            Self::InvalidClaimPath => (
-                error_code::INVALID_CLAIM_PATH,
-                "invalid credential claim path",
-            ),
-            Self::InvalidClaimDisclosure => (
-                error_code::INVALID_CLAIM_DISCLOSURE,
-                "invalid credential claim disclosure",
-            ),
-            Self::InvalidDescriptorCollection => (
-                error_code::INVALID_DESCRIPTOR_COLLECTION,
-                "invalid credential descriptor collection",
-            ),
-            Self::DuplicateCredentialSubject => (
-                error_code::DUPLICATE_CREDENTIAL_SUBJECT,
-                "credential subject identifier is duplicated",
-            ),
-            Self::DuplicateCredentialType => (
-                error_code::DUPLICATE_CREDENTIAL_TYPE,
-                "credential type is duplicated",
-            ),
-            Self::DuplicateSchemaIdentifier => (
-                error_code::DUPLICATE_SCHEMA_IDENTIFIER,
-                "credential schema identifier is duplicated",
-            ),
-            Self::DuplicateClaimIdentifier => (
-                error_code::DUPLICATE_CLAIM_IDENTIFIER,
-                "credential claim identifier is duplicated",
-            ),
-            Self::DuplicateClaimPath => (
-                error_code::DUPLICATE_CLAIM_PATH,
-                "credential claim path is duplicated",
-            ),
-            Self::InvalidValidityRange => (
-                error_code::INVALID_VALIDITY_RANGE,
-                "credential validity range is invalid",
-            ),
-            Self::InvalidStatusMethod => (
-                error_code::INVALID_STATUS_METHOD,
-                "invalid credential status method",
-            ),
-            Self::InvalidStatusPurpose => (
-                error_code::INVALID_STATUS_PURPOSE,
-                "invalid credential status purpose",
-            ),
-            Self::InvalidStatusReference => (
-                error_code::INVALID_STATUS_REFERENCE,
-                "invalid credential status reference",
-            ),
-            Self::InvalidStatusHandle => (
-                error_code::INVALID_STATUS_HANDLE,
-                "invalid credential status handle",
-            ),
-            Self::InvalidStatusRevision => (
-                error_code::INVALID_STATUS_REVISION,
-                "invalid credential status revision",
-            ),
-            Self::InvalidStatusValue => (
-                error_code::INVALID_STATUS_VALUE,
-                "invalid credential status value",
-            ),
-            Self::InvalidStatusBindingCollection => (
-                error_code::INVALID_STATUS_BINDING_COLLECTION,
-                "invalid credential status binding collection",
-            ),
-            Self::DuplicateStatusBinding => (
-                error_code::DUPLICATE_STATUS_BINDING,
-                "credential status binding is duplicated",
-            ),
-            Self::InvalidStatusFreshness => (
-                error_code::INVALID_STATUS_FRESHNESS,
-                "invalid credential status freshness",
-            ),
-            Self::InvalidStatusRequirements => (
-                error_code::INVALID_STATUS_REQUIREMENTS,
-                "invalid credential status requirements",
-            ),
-            Self::DuplicateStatusMethod => (
-                error_code::DUPLICATE_STATUS_METHOD,
-                "credential status method is duplicated",
-            ),
-            Self::DuplicateStatusPurpose => (
-                error_code::DUPLICATE_STATUS_PURPOSE,
-                "credential status purpose is duplicated",
-            ),
-            Self::InvalidStatusEvidenceRange => (
-                error_code::INVALID_STATUS_EVIDENCE_RANGE,
-                "credential status evidence range is invalid",
-            ),
-            Self::StatusQueryMismatch => (
-                error_code::STATUS_QUERY_MISMATCH,
-                "credential status query binding is not accepted",
-            ),
-        };
-
-        IdentusError::public(code, ErrorKind::InvalidInput, CAPABILITY, public_message)
+        self.contract().to_identus_error()
     }
 }
 
 impl fmt::Display for CredentialError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(match self {
-            Self::InvalidFormat => "credential format is invalid",
-            Self::EmptyPayload => "credential payload is empty",
-            Self::PayloadTooLarge => "credential payload exceeds the size limit",
-            Self::EmptyDetachedProof => "credential detached proof is empty",
-            Self::DetachedProofTooLarge => "credential detached proof exceeds the size limit",
-            Self::EmptyPrivateMaterial => "credential private material is empty",
-            Self::PrivateMaterialTooLarge => "credential private material exceeds the size limit",
-            Self::InvalidVerificationStageName => "credential verification stage name is invalid",
-            Self::InvalidVerificationReasonCode => "credential verification reason code is invalid",
-            Self::MissingVerificationReason => "credential verification reason is required",
-            Self::UnexpectedVerificationReason => "credential verification reason is not allowed",
-            Self::NonCanonicalVerificationReport => {
-                "credential verification report is not canonical"
-            }
-            Self::DuplicateCredentialVerifierFormat => "credential verifier format is duplicated",
-            Self::TooManyCredentialVerifierFormats => {
-                "credential verifier registry exceeds the format limit"
-            }
-            Self::InvalidEntityIdentifier => "credential entity identifier is invalid",
-            Self::InvalidCredentialType => "credential type is invalid",
-            Self::InvalidSchemaIdentifier => "credential schema identifier is invalid",
-            Self::InvalidSchemaVersion => "credential schema version is invalid",
-            Self::InvalidClaimIdentifier => "credential claim identifier is invalid",
-            Self::InvalidClaimValueType => "credential claim value type is invalid",
-            Self::InvalidClaimPathSegment => "credential claim path segment is invalid",
-            Self::InvalidClaimPath => "credential claim path is invalid",
-            Self::InvalidClaimDisclosure => "credential claim disclosure is invalid",
-            Self::InvalidDescriptorCollection => "credential descriptor collection is invalid",
-            Self::DuplicateCredentialSubject => "credential subject identifier is duplicated",
-            Self::DuplicateCredentialType => "credential type is duplicated",
-            Self::DuplicateSchemaIdentifier => "credential schema identifier is duplicated",
-            Self::DuplicateClaimIdentifier => "credential claim identifier is duplicated",
-            Self::DuplicateClaimPath => "credential claim path is duplicated",
-            Self::InvalidValidityRange => "credential validity range is invalid",
-            Self::InvalidStatusMethod => "credential status method is invalid",
-            Self::InvalidStatusPurpose => "credential status purpose is invalid",
-            Self::InvalidStatusReference => "credential status reference is invalid",
-            Self::InvalidStatusHandle => "credential status handle is invalid",
-            Self::InvalidStatusRevision => "credential status revision is invalid",
-            Self::InvalidStatusValue => "credential status value is invalid",
-            Self::InvalidStatusBindingCollection => {
-                "credential status binding collection is invalid"
-            }
-            Self::DuplicateStatusBinding => "credential status binding is duplicated",
-            Self::InvalidStatusFreshness => "credential status freshness is invalid",
-            Self::InvalidStatusRequirements => "credential status requirements are invalid",
-            Self::DuplicateStatusMethod => "credential status method is duplicated",
-            Self::DuplicateStatusPurpose => "credential status purpose is duplicated",
-            Self::InvalidStatusEvidenceRange => "credential status evidence range is invalid",
-            Self::StatusQueryMismatch => "credential status query binding is not accepted",
-        })
+        formatter.write_str(self.contract().local_display())
     }
 }
 

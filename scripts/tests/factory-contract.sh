@@ -66,6 +66,7 @@ required_files=(
   crates/core/README.md
   crates/crypto/README.md
   crates/credentials/tests/fixtures/credentials-error-contract-v1.csv
+  crates/presentations/tests/fixtures/presentations-error-contract-v1.csv
   docs/architecture/ssi-upstream-source-matrix.md
   docs/roadmap/ssi-upstream-dependency-backlog.csv
   docs/governance/agentic-sdlc.md
@@ -184,24 +185,36 @@ for relative_path in "${required_files[@]}"; do
   esac
 done
 
-planning_golden_source="$repository_root/openspec/changes/decompose-public-error-contracts/golden/credentials-error-contract-v1.csv"
-if [[ ! -f "$planning_golden_source" ]]; then
-  planning_golden_source=''
-  planning_golden_count=0
-  while IFS= read -r candidate; do
-    planning_golden_source=$candidate
-    planning_golden_count=$((planning_golden_count + 1))
-  done < <(find "$repository_root/openspec/changes/archive" -type f \
-    -path '*-decompose-public-error-contracts/golden/credentials-error-contract-v1.csv' | sort)
-  if [[ $planning_golden_count -ne 1 ]]; then
-    printf 'factory-contract test: expected one archived error planning golden; found %s\n' \
-      "$planning_golden_count" >&2
-    exit 1
+copy_error_planning_golden() {
+  local change_name=$1
+  local file_name=$2
+  local archive_date=$3
+  local source="$repository_root/openspec/changes/$change_name/golden/$file_name"
+  local count=0
+
+  if [[ ! -f "$source" ]]; then
+    source=''
+    while IFS= read -r candidate; do
+      source=$candidate
+      count=$((count + 1))
+    done < <(find "$repository_root/openspec/changes/archive" -type f \
+      -path "*-$change_name/golden/$file_name" | sort)
+    if [[ $count -ne 1 ]]; then
+      printf 'factory-contract test: expected one archived %s planning golden; found %s\n' \
+        "$change_name" "$count" >&2
+      exit 1
+    fi
   fi
-fi
-planning_golden_target="$fixture_root/openspec/changes/archive/2026-09-15-decompose-public-error-contracts/golden/credentials-error-contract-v1.csv"
-mkdir -p "$(dirname "$planning_golden_target")"
-cp "$planning_golden_source" "$planning_golden_target"
+
+  local target="$fixture_root/openspec/changes/archive/$archive_date-$change_name/golden/$file_name"
+  mkdir -p "$(dirname "$target")"
+  cp "$source" "$target"
+}
+
+copy_error_planning_golden \
+  decompose-public-error-contracts credentials-error-contract-v1.csv 2026-09-15
+copy_error_planning_golden \
+  decompose-presentation-error-contracts presentations-error-contract-v1.csv 2026-09-16
 
 chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" \
   "$fixture_root/scripts/benchmark-support-policy.py" \

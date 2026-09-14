@@ -8,6 +8,7 @@
 #![forbid(unsafe_code)]
 
 pub mod error;
+mod error_contract;
 mod lifecycle;
 mod model;
 

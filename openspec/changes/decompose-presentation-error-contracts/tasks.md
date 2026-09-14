@@ -13,11 +13,11 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Copy the golden byte-for-byte to the stable test fixture before
+- [x] 2.1 Copy the golden byte-for-byte to the stable test fixture before
   production edits and verify its hash.
-- [ ] 2.2 Add the private lean record and five catalogue modules, then route all
+- [x] 2.2 Add the private lean record and five catalogue modules, then route all
   variants exhaustively without changing public declarations or behavior.
-- [ ] 2.3 Add exact golden/source/const/redaction tests and extend the existing
+- [x] 2.3 Add exact golden/source/const/redaction tests and extend the existing
   immutable checker, mutation suite, factory and Nix source-filter contracts.
 
 ## 3. Evidence and delivery

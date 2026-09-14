@@ -8,7 +8,7 @@
   immutable exact-base 48-row golden with recorded SHA-256.
 - [x] 1.3 Independently review the planning semantics/API/security and
   cross-check every golden row against source.
-- [ ] 1.4 Commit planning-only evidence with signed+DCO provenance and write
+- [x] 1.4 Commit planning-only evidence with signed+DCO provenance and write
   and validate the durable preimplementation receipt.
 
 ## 2. Implementation

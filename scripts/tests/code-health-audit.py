@@ -235,6 +235,14 @@ pub const AFTER_UNICODE_MACRO: usize = 3;
         )
         self.assertEqual(audit.test_only_spans(source), [])
 
+    def test_unicode_label_cannot_blank_following_shipping_lifetime(self) -> None:
+        source = '''
+#[cfg(test)]
+'λ: loop {}
+pub const SHIPPING: &'static str = "ok";
+'''
+        self.assertEqual(audit.test_only_spans(source), [])
+
     def test_mixed_source_line_is_production(self) -> None:
         source = "#[cfg(test)] fn hidden() {} pub fn shipping() {}\n"
         self.assertEqual(

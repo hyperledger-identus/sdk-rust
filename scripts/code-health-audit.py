@@ -114,7 +114,7 @@ def sanitize_rust(source: str) -> str:
             index += 1
         if source[index:index + 1] == "'":
             # A lifetime has no closing quote immediately after one token.
-            match = re.match(r"'[A-Za-z_][A-Za-z0-9_]*", source[index:])
+            match = re.match(r"'(?:[^\W\d]|_)[\w]*", source[index:])
             if match and source[index + len(match.group(0)):index + len(match.group(0)) + 1] != "'":
                 index += len(match.group(0))
                 continue

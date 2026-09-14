@@ -126,11 +126,12 @@ pub fn shipping() {}
         self.assertNotIn(4, lines)
         self.assertNotIn(5, lines)
 
-    def test_lifetime_does_not_hide_item_boundary(self) -> None:
-        source = "#[cfg(test)]\nfn borrowed<'a>(value: &'a str) -> &'a str { value }\n"
-        spans = audit.test_only_spans(source)
-        self.assertEqual(len(spans), 1)
-        self.assertEqual(spans[0].end, len(source) - 1)
+    def test_generic_function_remains_production(self) -> None:
+        source = (
+            "#[cfg(test)]\nfn borrowed<'a>(value: &'a str) -> &'a str { value }\n"
+            "pub fn shipping() {}\n"
+        )
+        self.assertEqual(audit.test_only_spans(source), [])
 
     def test_comma_terminated_fields_and_variants_do_not_consume_shipping_code(self) -> None:
         source = '''
@@ -150,15 +151,15 @@ enum Choice {
 }
 '''
         lines = audit.span_lines(source, audit.test_only_spans(source))
-        self.assertIn(4, lines)
+        self.assertNotIn(4, lines)
         self.assertNotIn(5, lines)
-        self.assertIn(8, lines)
+        self.assertNotIn(8, lines)
         self.assertNotIn(9, lines)
-        self.assertIn(12, lines)
+        self.assertNotIn(12, lines)
         self.assertIn(13, lines)
         self.assertNotIn(14, lines)
 
-    def test_container_closers_end_comma_less_attributed_members(self) -> None:
+    def test_comma_less_attributed_members_remain_production(self) -> None:
         source = '''
 struct Named {
     #[cfg(test)]
@@ -179,12 +180,9 @@ fn parameters(
 pub const AFTER_PARAMETER: u8 = 4;
 '''
         lines = audit.span_lines(source, audit.test_only_spans(source))
-        for hidden in (4, 8, 12, 16):
-            self.assertIn(hidden, lines)
-        for shipping in (5, 6, 9, 10, 13, 14, 17, 18):
-            self.assertNotIn(shipping, lines)
+        self.assertEqual(lines, set())
 
-    def test_block_expressions_do_not_consume_following_shipping_nodes(self) -> None:
+    def test_unsupported_block_expressions_remain_production(self) -> None:
         source = '''
 fn statements(value: u8) {
     #[cfg(test)]
@@ -199,11 +197,49 @@ fn statements(value: u8) {
 pub const AFTER_FUNCTION: u8 = 1;
 '''
         lines = audit.span_lines(source, audit.test_only_spans(source))
-        self.assertIn(4, lines)
-        self.assertNotIn(5, lines)
-        self.assertIn(8, lines)
-        self.assertNotIn(9, lines)
-        self.assertNotIn(12, lines)
+        self.assertEqual(lines, set())
+
+    def test_adversarial_nested_syntax_cannot_hide_following_shipping(self) -> None:
+        source = '''
+struct Generic<
+    #[cfg(test)] T
+> { value: Option<T> }
+pub const AFTER_GENERIC: usize = 1;
+fn labeled() {
+    #[cfg(test)]
+    'test: loop { break 'test; }
+    shipping();
+}
+fn arms(value: u8) {
+    match value {
+        #[cfg(test)]
+        1 => if test_only() { one() } else { two() }
+        _ => shipping(),
+    }
+}
+#[cfg(test)]
+const SHIFT: usize = 1 << 2;
+pub const AFTER_SHIFT: usize = 2;
+#[cfg(test)]
+δοκιμή! { test_tokens }
+pub const AFTER_UNICODE_MACRO: usize = 3;
+'''
+        lines = audit.span_lines(source, audit.test_only_spans(source))
+        for shipping in (5, 9, 15, 20, 23):
+            self.assertNotIn(shipping, lines)
+
+    def test_comparison_angle_cannot_balance_in_following_shipping_item(self) -> None:
+        source = (
+            "#[cfg(test)] const HIDDEN: bool = 1 < 2; "
+            "pub const SHIPPING: bool = 2 > 1;\n"
+        )
+        self.assertEqual(audit.test_only_spans(source), [])
+
+    def test_mixed_source_line_is_production(self) -> None:
+        source = "#[cfg(test)] fn hidden() {} pub fn shipping() {}\n"
+        self.assertEqual(
+            audit.span_lines(source, audit.test_only_spans(source)), set()
+        )
 
     def test_cfg_inherits_preceding_outer_attributes_and_nested_items(self) -> None:
         source = '''
@@ -354,6 +390,16 @@ class ModulePopulationTests(unittest.TestCase):
             child: "fn shipping_child() {}\n",
         }
         self.assertEqual(audit.inherited_test_files(sources, sorted(sources)), set())
+
+    def test_raw_module_identifier_resolves_the_ordinary_source_name(self) -> None:
+        helper = Path("crates/demo/src/helper.rs")
+        sources = {
+            Path("crates/demo/src/lib.rs"): "#[cfg(test)] mod r#helper;\n",
+            helper: "fn test_helper() {}\n",
+        }
+        self.assertEqual(
+            audit.inherited_test_files(sources, sorted(sources)), {helper}
+        )
 
     def test_generated_marker_requires_exact_path_allowlist(self) -> None:
         marked = Path("crates/demo/src/marked.rs")

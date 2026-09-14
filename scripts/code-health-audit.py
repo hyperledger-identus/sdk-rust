@@ -438,53 +438,14 @@ def outer_doc_group_start(source: str, item_attribute_start: int) -> int:
         return cursor
 
 
-def enclosing_closer(clean: str, index: int) -> str | None:
-    """Return the delimiter closing the Rust container around `index`."""
-    pairs = {"(": ")", "[": "]", "{": "}"}
-    opening_for = {closing: opening for opening, closing in pairs.items()}
-    stack: list[str] = []
-    for char in clean[:index]:
-        if char in pairs:
-            stack.append(char)
-        elif char in opening_for:
-            if not stack or stack[-1] != opening_for[char]:
-                raise AuditError(f"unbalanced delimiter before byte {index}")
-            stack.pop()
-    return pairs[stack[-1]] if stack else None
-
-
-def optional_item_terminator(clean: str, end: int) -> int:
-    after = skip_space(clean, end)
-    return after + 1 if after < len(clean) and clean[after] in ",;" else end
-
-
-def trim_trailing_space(text: str, end: int) -> int:
-    while end > 0 and text[end - 1].isspace():
-        end -= 1
-    return end
-
-
-def is_block_expression_header(header: str) -> bool:
-    """Recognize block-bodied expressions whose closing brace ends an item."""
-    stripped = header.strip()
-    if not stripped or re.search(r"=>\s*$", stripped):
-        return True
-    return bool(
-        re.match(r"^(?:if|while|for|loop|match|unsafe)\b", stripped)
-        or re.match(r"^async(?:\s+move)?\s*$", stripped)
-        or re.match(r"^const\s*$", stripped)
-    )
-
-
-def item_end(clean: str, index: int) -> int:
-    """Find the end of an attributed Rust item in sanitized source."""
+def item_end(clean: str, index: int) -> int | None:
+    """Return an exact supported attributed-node end, otherwise no span."""
     index = skip_space(clean, index)
     while clean.startswith("#[", index):
         close = matching_delimiter(clean, index + 1, "[", "]")
         index = skip_space(clean, close + 1)
 
-    container_closer = enclosing_closer(clean, index)
-    parens = brackets = braces = angles = 0
+    parens = brackets = braces = 0
     cursor = index
     while cursor < len(clean):
         char = clean[cursor]
@@ -493,20 +454,22 @@ def item_end(clean: str, index: int) -> int:
         elif char == ")":
             if parens:
                 parens -= 1
-            elif brackets == 0 and braces == 0 and container_closer == ")":
-                return trim_trailing_space(clean, cursor)
+            else:
+                return None
         elif char == "[":
             brackets += 1
         elif char == "]":
             if brackets:
                 brackets -= 1
-            elif parens == 0 and braces == 0 and container_closer == "]":
-                return trim_trailing_space(clean, cursor)
+            else:
+                return None
         elif char == "<" and parens == 0 and brackets == 0 and braces == 0:
-            angles += 1
-        elif char == ">" and angles:
-            angles -= 1
-        elif char == "{" and parens == 0 and brackets == 0 and angles == 0:
+            return None
+        elif char == ">" and cursor > index and clean[cursor - 1] == "-":
+            pass
+        elif char == ">":
+            return None
+        elif char == "{" and parens == 0 and brackets == 0:
             header = clean[index:cursor]
             if ITEM_BLOCK_HEADER.search(header) or EXTERN_BLOCK_HEADER.fullmatch(header):
                 return matching_delimiter(clean, cursor, "{", "}") + 1
@@ -514,21 +477,23 @@ def item_end(clean: str, index: int) -> int:
                 end = matching_delimiter(clean, cursor, "{", "}") + 1
                 after = skip_space(clean, end)
                 return after + 1 if clean.startswith(";", after) else end
-            if is_block_expression_header(header):
-                end = matching_delimiter(clean, cursor, "{", "}") + 1
-                return optional_item_terminator(clean, end)
-            braces += 1
+            return None
         elif char == "}":
             if braces:
                 braces -= 1
-            elif parens == 0 and brackets == 0 and container_closer == "}":
-                return trim_trailing_space(clean, cursor)
-        elif char == ";" and parens == 0 and brackets == 0 and braces == 0:
+            else:
+                return None
+        elif (
+            char == ";"
+            and parens == 0
+            and brackets == 0
+            and braces == 0
+        ):
             return cursor + 1
-        elif char == "," and parens == 0 and brackets == 0 and braces == 0 and angles == 0:
+        elif char == "," and parens == 0 and brackets == 0 and braces == 0:
             return cursor + 1
         cursor += 1
-    raise AuditError(f"could not find attributed item after byte {index}")
+    return None
 
 
 def merge_spans(spans: list[Span]) -> list[Span]:
@@ -557,23 +522,35 @@ def test_only_spans(source: str) -> list[Span]:
             bodies.append(source[after + 2:close])
             after = skip_space(clean, close + 1)
         if and_values([attribute_inclusion(body) for body in bodies]) is False:
-            spans.append(
-                Span(outer_doc_group_start(source, group_start), item_end(clean, after))
-            )
+            end = item_end(clean, after)
+            if end is not None:
+                spans.append(Span(outer_doc_group_start(source, group_start), end))
         cursor = after
     return merge_spans(spans)
 
 
 def span_lines(source: str, spans: list[Span]) -> set[int]:
+    """Project spans to lines, retaining every mixed-content line as production."""
+    merged = merge_spans(spans)
     lines: set[int] = set()
-    for span in spans:
-        start = source.count("\n", 0, span.start) + 1
-        end = source.count("\n", 0, max(span.start, span.end - 1)) + 1
-        lines.update(range(start, end + 1))
+    offset = 0
+    span_index = 0
+    for number, line in enumerate(source.splitlines(keepends=True), 1):
+        content = [offset + index for index, char in enumerate(line) if not char.isspace()]
+        while span_index < len(merged) and merged[span_index].end <= offset:
+            span_index += 1
+        if content and all(
+            any(span.start <= position < span.end for span in merged[span_index:])
+            for position in content
+        ):
+            lines.add(number)
+        offset += len(line)
     return lines
 
 
-MODULE_ITEM = re.compile(r"\bmod\s+([A-Za-z_][A-Za-z0-9_]*)\s*([;{])")
+MODULE_ITEM = re.compile(
+    r"\bmod\s+((?:r#)?(?:[^\W\d]|_)[\w]*)\s*([;{])"
+)
 
 
 def out_of_line_modules(
@@ -602,6 +579,8 @@ def out_of_line_modules(
             match = MODULE_ITEM.match(clean, cursor)
             if match:
                 name, delimiter = match.groups()
+                if name.startswith("r#"):
+                    name = name[2:]
                 if delimiter == ";":
                     if included(match.start()):
                         references.append(ModuleReference(context, name))

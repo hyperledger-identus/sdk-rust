@@ -1,10 +1,13 @@
-use std::{collections::BTreeMap, error::Error as _};
+use std::{collections::BTreeMap, error::Error as _, fs, path::Path};
 
 use identus_core::{ErrorCode, ErrorKind, IdentusError};
 use identus_credentials::{CredentialError, CredentialVerificationError, error::error_code};
 
 const GOLDEN: &str = include_str!("fixtures/credentials-error-contract-v1.csv");
 const GOLDEN_HEADER: &str = "error_type,variant,code_constant,constant_visibility,code,kind,capability,local_display,public_message,identus_display,source";
+const SOURCE_REPOSITORY: &str = "# source_repository=hyperledger-identus/sdk-rust";
+const SOURCE_REVISION: &str = "# source_revision=353030a7f263b9a1fba9deac0312ed228e61d761";
+const GENERATED_AT: &str = "# generated_at=2026-09-14";
 
 const CONST_VERIFICATION_ERRORS: [IdentusError; 3] = [
     CredentialVerificationError::UnsupportedFormat.to_identus_error(),
@@ -178,6 +181,67 @@ fn kind_name(kind: ErrorKind) -> &'static str {
         ErrorKind::Trust => "Trust",
         ErrorKind::Internal => "Internal",
     }
+}
+
+fn fixture_bytes() -> (Vec<u8>, Vec<u8>) {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let stable = fs::read(manifest_dir.join("tests/fixtures/credentials-error-contract-v1.csv"))
+        .expect("read stable credentials error fixture");
+    let planning = fs::read(manifest_dir.join(
+        "../../openspec/changes/decompose-public-error-contracts/golden/credentials-error-contract-v1.csv",
+    ))
+    .expect("read planning credentials error golden");
+    (stable, planning)
+}
+
+fn validate_fixture_binding(stable: &[u8], planning: &[u8]) -> Result<(), &'static str> {
+    if stable != planning {
+        return Err("stable fixture differs from planning golden");
+    }
+    let text = std::str::from_utf8(stable).map_err(|_| "fixture is not UTF-8")?;
+    let mut lines = text.lines();
+    if lines.next() != Some(SOURCE_REPOSITORY) {
+        return Err("unexpected source repository provenance");
+    }
+    if lines.next() != Some(SOURCE_REVISION) {
+        return Err("unexpected source revision provenance");
+    }
+    if lines.next() != Some(GENERATED_AT) {
+        return Err("unexpected generation date provenance");
+    }
+    if lines.next() != Some(GOLDEN_HEADER) {
+        return Err("unexpected fixture schema");
+    }
+    Ok(())
+}
+
+#[test]
+fn stable_fixture_is_byte_identical_to_planning_golden_with_exact_provenance() {
+    let (stable, planning) = fixture_bytes();
+    validate_fixture_binding(&stable, &planning).expect("valid fixture binding");
+}
+
+#[test]
+fn fixture_binding_rejects_byte_and_provenance_drift() {
+    let (stable, planning) = fixture_bytes();
+
+    let mut drifted_stable = stable.clone();
+    drifted_stable.push(b'\n');
+    assert_eq!(
+        validate_fixture_binding(&drifted_stable, &planning),
+        Err("stable fixture differs from planning golden")
+    );
+
+    let drifted_provenance = std::str::from_utf8(&stable)
+        .expect("fixture UTF-8")
+        .replace(
+            SOURCE_REVISION,
+            "# source_revision=0000000000000000000000000000000000000000",
+        );
+    assert_eq!(
+        validate_fixture_binding(drifted_provenance.as_bytes(), drifted_provenance.as_bytes()),
+        Err("unexpected source revision provenance")
+    );
 }
 
 #[test]

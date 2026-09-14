@@ -94,15 +94,30 @@ pub enum CredentialVerificationError {
     Internal,
 }
 
-impl CredentialVerificationError {
-    const fn contract(self) -> ErrorContract {
-        match self {
-            Self::UnsupportedFormat => error_contract::VERIFICATION_UNSUPPORTED_FORMAT,
-            Self::Unavailable => error_contract::VERIFICATION_UNAVAILABLE,
-            Self::Internal => error_contract::VERIFICATION_INTERNAL,
-        }
-    }
+macro_rules! define_credential_verification_error_contracts {
+    ($($variant:ident => $contract:path),+ $(,)?) => {
+        impl CredentialVerificationError {
+            const fn contract(self) -> ErrorContract {
+                match self {
+                    $(Self::$variant => $contract),+
+                }
+            }
 
+            #[cfg(test)]
+            pub(crate) const CONTRACT_VARIANTS: &'static [Self] = &[
+                $(Self::$variant),+
+            ];
+        }
+    };
+}
+
+define_credential_verification_error_contracts! {
+    UnsupportedFormat => error_contract::VERIFICATION_UNSUPPORTED_FORMAT,
+    Unavailable => error_contract::VERIFICATION_UNAVAILABLE,
+    Internal => error_contract::VERIFICATION_INTERNAL,
+}
+
+impl CredentialVerificationError {
     /// Bridge to the shared redaction-safe SDK error surface.
     pub const fn to_identus_error(self) -> IdentusError {
         self.contract().to_identus_error()

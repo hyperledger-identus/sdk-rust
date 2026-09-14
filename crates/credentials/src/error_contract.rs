@@ -75,3 +75,48 @@ const fn invalid_input(
         public_message,
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeSet;
+
+    use crate::{CredentialError, CredentialVerificationError};
+
+    const GOLDEN: &str = include_str!("../tests/fixtures/credentials-error-contract-v1.csv");
+
+    fn fixture_variants(error_type: &str) -> BTreeSet<String> {
+        let mut lines = GOLDEN.lines().filter(|line| !line.starts_with('#'));
+        let header = lines.next().expect("golden header");
+        assert_eq!(header.split(',').count(), 11);
+
+        let mut variants = BTreeSet::new();
+        for line in lines {
+            let columns: Vec<_> = line.split(',').collect();
+            assert_eq!(columns.len(), 11);
+            if columns[0] == error_type {
+                assert!(variants.insert(columns[1].to_owned()));
+            }
+        }
+        variants
+    }
+
+    #[test]
+    fn compile_exhaustive_variant_inventories_equal_fixture_keys() {
+        let credentials: BTreeSet<_> = CredentialError::CONTRACT_VARIANTS
+            .iter()
+            .map(|error| format!("{error:?}"))
+            .collect();
+        let verification: BTreeSet<_> = CredentialVerificationError::CONTRACT_VARIANTS
+            .iter()
+            .map(|error| format!("{error:?}"))
+            .collect();
+
+        assert_eq!(CredentialError::CONTRACT_VARIANTS.len(), 44);
+        assert_eq!(CredentialVerificationError::CONTRACT_VARIANTS.len(), 3);
+        assert_eq!(credentials, fixture_variants("CredentialError"));
+        assert_eq!(
+            verification,
+            fixture_variants("CredentialVerificationError")
+        );
+    }
+}

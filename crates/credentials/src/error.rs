@@ -187,60 +187,71 @@ pub enum CredentialError {
     StatusQueryMismatch,
 }
 
-impl CredentialError {
-    const fn contract(self) -> ErrorContract {
-        match self {
-            Self::InvalidFormat => envelope::INVALID_FORMAT,
-            Self::EmptyPayload => envelope::EMPTY_PAYLOAD,
-            Self::PayloadTooLarge => envelope::PAYLOAD_TOO_LARGE,
-            Self::EmptyDetachedProof => envelope::EMPTY_DETACHED_PROOF,
-            Self::DetachedProofTooLarge => envelope::DETACHED_PROOF_TOO_LARGE,
-            Self::EmptyPrivateMaterial => envelope::EMPTY_PRIVATE_MATERIAL,
-            Self::PrivateMaterialTooLarge => envelope::PRIVATE_MATERIAL_TOO_LARGE,
-            Self::InvalidVerificationStageName => verification::INVALID_VERIFICATION_STAGE_NAME,
-            Self::InvalidVerificationReasonCode => verification::INVALID_VERIFICATION_REASON_CODE,
-            Self::MissingVerificationReason => verification::MISSING_VERIFICATION_REASON,
-            Self::UnexpectedVerificationReason => verification::UNEXPECTED_VERIFICATION_REASON,
-            Self::NonCanonicalVerificationReport => verification::NON_CANONICAL_VERIFICATION_REPORT,
-            Self::DuplicateCredentialVerifierFormat => {
-                verification::DUPLICATE_CREDENTIAL_VERIFIER_FORMAT
+macro_rules! define_credential_error_contracts {
+    ($($variant:ident => $contract:path),+ $(,)?) => {
+        impl CredentialError {
+            const fn contract(self) -> ErrorContract {
+                match self {
+                    $(Self::$variant => $contract),+
+                }
             }
-            Self::TooManyCredentialVerifierFormats => {
-                verification::TOO_MANY_CREDENTIAL_VERIFIER_FORMATS
-            }
-            Self::InvalidEntityIdentifier => metadata::INVALID_ENTITY_IDENTIFIER,
-            Self::InvalidCredentialType => metadata::INVALID_CREDENTIAL_TYPE,
-            Self::InvalidSchemaIdentifier => metadata::INVALID_SCHEMA_IDENTIFIER,
-            Self::InvalidSchemaVersion => metadata::INVALID_SCHEMA_VERSION,
-            Self::InvalidClaimIdentifier => metadata::INVALID_CLAIM_IDENTIFIER,
-            Self::InvalidClaimValueType => metadata::INVALID_CLAIM_VALUE_TYPE,
-            Self::InvalidClaimPathSegment => metadata::INVALID_CLAIM_PATH_SEGMENT,
-            Self::InvalidClaimPath => metadata::INVALID_CLAIM_PATH,
-            Self::InvalidClaimDisclosure => metadata::INVALID_CLAIM_DISCLOSURE,
-            Self::InvalidDescriptorCollection => metadata::INVALID_DESCRIPTOR_COLLECTION,
-            Self::DuplicateCredentialSubject => metadata::DUPLICATE_CREDENTIAL_SUBJECT,
-            Self::DuplicateCredentialType => metadata::DUPLICATE_CREDENTIAL_TYPE,
-            Self::DuplicateSchemaIdentifier => metadata::DUPLICATE_SCHEMA_IDENTIFIER,
-            Self::DuplicateClaimIdentifier => metadata::DUPLICATE_CLAIM_IDENTIFIER,
-            Self::DuplicateClaimPath => metadata::DUPLICATE_CLAIM_PATH,
-            Self::InvalidValidityRange => metadata::INVALID_VALIDITY_RANGE,
-            Self::InvalidStatusMethod => status::INVALID_STATUS_METHOD,
-            Self::InvalidStatusPurpose => status::INVALID_STATUS_PURPOSE,
-            Self::InvalidStatusReference => status::INVALID_STATUS_REFERENCE,
-            Self::InvalidStatusHandle => status::INVALID_STATUS_HANDLE,
-            Self::InvalidStatusRevision => status::INVALID_STATUS_REVISION,
-            Self::InvalidStatusValue => status::INVALID_STATUS_VALUE,
-            Self::InvalidStatusBindingCollection => status::INVALID_STATUS_BINDING_COLLECTION,
-            Self::DuplicateStatusBinding => status::DUPLICATE_STATUS_BINDING,
-            Self::InvalidStatusFreshness => status::INVALID_STATUS_FRESHNESS,
-            Self::InvalidStatusRequirements => status::INVALID_STATUS_REQUIREMENTS,
-            Self::DuplicateStatusMethod => status::DUPLICATE_STATUS_METHOD,
-            Self::DuplicateStatusPurpose => status::DUPLICATE_STATUS_PURPOSE,
-            Self::InvalidStatusEvidenceRange => status::INVALID_STATUS_EVIDENCE_RANGE,
-            Self::StatusQueryMismatch => status::STATUS_QUERY_MISMATCH,
-        }
-    }
 
+            #[cfg(test)]
+            pub(crate) const CONTRACT_VARIANTS: &'static [Self] = &[
+                $(Self::$variant),+
+            ];
+        }
+    };
+}
+
+define_credential_error_contracts! {
+    InvalidFormat => envelope::INVALID_FORMAT,
+    EmptyPayload => envelope::EMPTY_PAYLOAD,
+    PayloadTooLarge => envelope::PAYLOAD_TOO_LARGE,
+    EmptyDetachedProof => envelope::EMPTY_DETACHED_PROOF,
+    DetachedProofTooLarge => envelope::DETACHED_PROOF_TOO_LARGE,
+    EmptyPrivateMaterial => envelope::EMPTY_PRIVATE_MATERIAL,
+    PrivateMaterialTooLarge => envelope::PRIVATE_MATERIAL_TOO_LARGE,
+    InvalidVerificationStageName => verification::INVALID_VERIFICATION_STAGE_NAME,
+    InvalidVerificationReasonCode => verification::INVALID_VERIFICATION_REASON_CODE,
+    MissingVerificationReason => verification::MISSING_VERIFICATION_REASON,
+    UnexpectedVerificationReason => verification::UNEXPECTED_VERIFICATION_REASON,
+    NonCanonicalVerificationReport => verification::NON_CANONICAL_VERIFICATION_REPORT,
+    DuplicateCredentialVerifierFormat => verification::DUPLICATE_CREDENTIAL_VERIFIER_FORMAT,
+    TooManyCredentialVerifierFormats => verification::TOO_MANY_CREDENTIAL_VERIFIER_FORMATS,
+    InvalidEntityIdentifier => metadata::INVALID_ENTITY_IDENTIFIER,
+    InvalidCredentialType => metadata::INVALID_CREDENTIAL_TYPE,
+    InvalidSchemaIdentifier => metadata::INVALID_SCHEMA_IDENTIFIER,
+    InvalidSchemaVersion => metadata::INVALID_SCHEMA_VERSION,
+    InvalidClaimIdentifier => metadata::INVALID_CLAIM_IDENTIFIER,
+    InvalidClaimValueType => metadata::INVALID_CLAIM_VALUE_TYPE,
+    InvalidClaimPathSegment => metadata::INVALID_CLAIM_PATH_SEGMENT,
+    InvalidClaimPath => metadata::INVALID_CLAIM_PATH,
+    InvalidClaimDisclosure => metadata::INVALID_CLAIM_DISCLOSURE,
+    InvalidDescriptorCollection => metadata::INVALID_DESCRIPTOR_COLLECTION,
+    DuplicateCredentialSubject => metadata::DUPLICATE_CREDENTIAL_SUBJECT,
+    DuplicateCredentialType => metadata::DUPLICATE_CREDENTIAL_TYPE,
+    DuplicateSchemaIdentifier => metadata::DUPLICATE_SCHEMA_IDENTIFIER,
+    DuplicateClaimIdentifier => metadata::DUPLICATE_CLAIM_IDENTIFIER,
+    DuplicateClaimPath => metadata::DUPLICATE_CLAIM_PATH,
+    InvalidValidityRange => metadata::INVALID_VALIDITY_RANGE,
+    InvalidStatusMethod => status::INVALID_STATUS_METHOD,
+    InvalidStatusPurpose => status::INVALID_STATUS_PURPOSE,
+    InvalidStatusReference => status::INVALID_STATUS_REFERENCE,
+    InvalidStatusHandle => status::INVALID_STATUS_HANDLE,
+    InvalidStatusRevision => status::INVALID_STATUS_REVISION,
+    InvalidStatusValue => status::INVALID_STATUS_VALUE,
+    InvalidStatusBindingCollection => status::INVALID_STATUS_BINDING_COLLECTION,
+    DuplicateStatusBinding => status::DUPLICATE_STATUS_BINDING,
+    InvalidStatusFreshness => status::INVALID_STATUS_FRESHNESS,
+    InvalidStatusRequirements => status::INVALID_STATUS_REQUIREMENTS,
+    DuplicateStatusMethod => status::DUPLICATE_STATUS_METHOD,
+    DuplicateStatusPurpose => status::DUPLICATE_STATUS_PURPOSE,
+    InvalidStatusEvidenceRange => status::INVALID_STATUS_EVIDENCE_RANGE,
+    StatusQueryMismatch => status::STATUS_QUERY_MISMATCH,
+}
+
+impl CredentialError {
     /// Convert to the stable, redaction-safe shared SDK error.
     pub fn to_identus_error(self) -> IdentusError {
         self.contract().to_identus_error()

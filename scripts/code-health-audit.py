@@ -168,6 +168,13 @@ ITEM_MACRO_HEADER = re.compile(
     r"(?:(?:[A-Za-z_][A-Za-z0-9_]*|r#[A-Za-z_][A-Za-z0-9_]*|\$crate)::)*"
     r"(?:[A-Za-z_][A-Za-z0-9_]*|r#[A-Za-z_][A-Za-z0-9_]*)\s*!\s*$"
 )
+RUST_IDENT_PATTERN = r"(?:r#)?(?:[^\W\d]|_)[\w]*"
+MACRO_INVOCATION = re.compile(
+    rf"(?:::)?(?:{RUST_IDENT_PATTERN}::)*{RUST_IDENT_PATTERN}\s*!\s*([({{\[])"
+)
+MACRO_RULES_DEFINITION = re.compile(
+    rf"\bmacro_rules\s*!\s*{RUST_IDENT_PATTERN}\s*([({{\[])"
+)
 
 
 class CfgParser:
@@ -508,12 +515,28 @@ def merge_spans(spans: list[Span]) -> list[Span]:
 
 def test_only_spans(source: str) -> list[Span]:
     clean = sanitize_rust(source)
+    macro_tokens: list[Span] = []
+    closing_for = {"(": ")", "[": "]", "{": "}"}
+    for pattern in (MACRO_INVOCATION, MACRO_RULES_DEFINITION):
+        for match in pattern.finditer(clean):
+            opening = match.end() - 1
+            closing = matching_delimiter(
+                clean, opening, clean[opening], closing_for[clean[opening]]
+            )
+            macro_tokens.append(Span(opening + 1, closing))
+    macro_tokens = merge_spans(macro_tokens)
     spans: list[Span] = []
     cursor = 0
     while cursor < len(clean):
         found = clean.find("#[", cursor)
         if found < 0:
             break
+        containing_macro = next(
+            (span for span in macro_tokens if span.start <= found < span.end), None
+        )
+        if containing_macro is not None:
+            cursor = containing_macro.end
+            continue
         group_start = found
         bodies: list[str] = []
         after = found

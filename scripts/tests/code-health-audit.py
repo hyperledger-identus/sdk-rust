@@ -249,6 +249,18 @@ pub const SHIPPING: &'static str = "ok";
             audit.span_lines(source, audit.test_only_spans(source)), set()
         )
 
+    def test_macro_token_attributes_cannot_hide_emitted_shipping_code(self) -> None:
+        source = '''
+macro_rules! strip {
+    (#[cfg(test)] $item:item) => { $item }
+}
+strip! {
+    #[cfg(test)]
+    pub fn shipping() {}
+}
+'''
+        self.assertEqual(audit.test_only_spans(source), [])
+
     def test_cfg_inherits_preceding_outer_attributes_and_nested_items(self) -> None:
         source = '''
 #[allow(dead_code)]

@@ -2,7 +2,7 @@
 
 - **Date:** 2026-09-14
 - **Issue:** #269
-- **Develop base:** `dbef9923e65d1a8332c4ba38f42532c8a12811f7`
+- **Develop base:** `21cdbde6b9c5650d073a4a61f443640363585b38`
 - **Decision record:** ADR 0114
 - **Result:** contract is implementable with no unresolved blocker
 
@@ -43,8 +43,8 @@ implementation.
 # Post-implementation exact-diff review
 
 - **Date:** 2026-09-14
-- **Review head:** `b60ec9ef5d9fa06b22614eb216a1655f519002e0`
-- **Diff base:** `dbef9923e65d1a8332c4ba38f42532c8a12811f7`
+- **Review head:** `85660b0628a351a77cec83a1c459deac477bb539`
+- **Diff base:** `21cdbde6b9c5650d073a4a61f443640363585b38`
 - **Result:** PASS with no unresolved finding
 
 ## Review evidence

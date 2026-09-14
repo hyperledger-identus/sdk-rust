@@ -1,9 +1,11 @@
 # Verification evidence
 
 - **Issue:** #269
-- **Develop base:** `dbef9923e65d1a8332c4ba38f42532c8a12811f7`
-- **Planning commit:** `d96f4781475441059726d9da1d78a5ecdaa40b54`
-- **Implementation commit:** `b60ec9ef5d9fa06b22614eb216a1655f519002e0`
+- **Develop base:** `21cdbde6b9c5650d073a4a61f443640363585b38`
+- **Planning commit:** `a4416b080f3cae21c6adaaf7c037a2b8d0603b9b`
+- **Implementation commit:** `a045a212bb63ebf75a273f541cc0f476fec151d2`
+- **Rebased correction evidence head:**
+  `85660b0628a351a77cec83a1c459deac477bb539`
 - **Environment:** aarch64-darwin, repository-pinned Rust 1.98.1 and Nix
 
 ## Focused crypto evidence
@@ -37,13 +39,13 @@ parts remains unsupported and deferred.
 
 ## Reproducible target and repository matrix
 
-`nix flake check --print-build-logs` passed all 22 compatible aarch64-darwin
-checks. This included native and all-feature builds, minimal and KMP crypto,
-Rust policy lanes, WASM, iOS and Android builds, strict Clippy, rustdoc,
+`nix flake check --print-build-logs` passed every compatible aarch64-darwin
+check at the rebased correction evidence head. This included native and
+all-feature builds, minimal and KMP crypto, Rust policy lanes, WASM, iOS and
+Android builds, default and all-target/all-feature strict Clippy, rustdoc,
 formatting, factory/policy, TOML/text/Nix lint, dependency/license/advisory
-checks and release Nextest profiles. The workspace suite ran 703 tests: 703
-passed and 22 configured diagnostics were skipped. KMP crypto ran 133/133
-tests with one configured diagnostic skipped.
+checks and release Nextest profiles. The exact suite counts are recorded in
+the command output rather than inferred here.
 
 `./bootstrap.sh --check` passed the 20-package inventory, all factory and
 OpenSpec structure checks, dependency/parity/candidate contracts and 21 Node
@@ -54,8 +56,8 @@ fail a derivation.
 
 ## Unpublished candidate receipt
 
-The exact clean implementation head produced a passing candidate receipt in
-80.393 seconds with profiles `default`, `all-features`,
+The exact clean rebased correction evidence head produced a passing candidate
+receipt in 58.178 seconds with profiles `default`, `all-features`,
 `no-default-features` and `kmp-compat`. Package evidence:
 
 - `identus-derive-0.1.0-rc.1.crate`: 18,526 bytes, SHA-256
@@ -69,6 +71,12 @@ Package, API, SemVer and CycloneDX SBOM stages passed with
 `cargo-public-api 0.52.0`, `cargo-semver-checks 0.50.0` and
 `cargo-cyclonedx 0.5.9`. The candidate remains unpublished and no release
 artifact was promoted.
+
+The preimplementation receipt retains its original creation timestamp while
+its Git identities are rebound to the GPG-signed, content-equivalent planning
+commit and current `develop` base created by the requested rebase. The rebased
+planning diff still contains only the named OpenSpec change and ADR 0114 and
+remains an ancestor of the implementation and evidence commits.
 
 ## Review and exclusions
 

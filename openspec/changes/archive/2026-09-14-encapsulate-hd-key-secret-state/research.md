@@ -9,7 +9,7 @@ Research blockers: none
 ## Problem and existing implementation
 
 The current implementation at
-`develop@dbef9923e65d1a8332c4ba38f42532c8a12811f7` has `HDKey` and
+`develop@21cdbde6b9c5650d073a4a61f443640363585b38` has `HDKey` and
 `EdHDKey` each derive `Zeroize + ZeroizeOnDrop` and redact `Debug`, but each
 still exposes its private-key and chain-code `[u8; 32]` as public fields. The
 published-vector integration tests consume those fields directly. The

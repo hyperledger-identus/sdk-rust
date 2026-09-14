@@ -53,6 +53,6 @@ a separate security and API decision.
 ## Delivery
 
 Issue #269 owns the change from protected
-`develop@dbef9923e65d1a8332c4ba38f42532c8a12811f7`. The PR targets `develop`,
+`develop@21cdbde6b9c5650d073a4a61f443640363585b38`. The PR targets `develop`,
 preserves the planning commit, and requires focused crypto/vector/API/target
 evidence plus the existing protected checks.

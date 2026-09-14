@@ -139,6 +139,7 @@ impl DerivationPath {
         Ok(Self { axes })
     }
 
+    #[cfg(any(test, feature = "cardano-bip32"))]
     pub(crate) fn ensure_work_bound(&self) -> Result<(), Error> {
         if self.axes.len() > MAX_DERIVATION_PATH_AXES {
             return Err(Error::DerivationFailed);

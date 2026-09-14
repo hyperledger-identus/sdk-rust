@@ -33,6 +33,19 @@
           )}";
           meta.description = "Run the repository AI Software Factory";
         };
+
+        crypto-candidate = {
+          type = "app";
+          program = "${pkgs.lib.getExe (
+            pkgs.callPackage ./crypto-candidate.nix {
+              cargoCyclonedx = pkgs.cargo-cyclonedx;
+              cargoPublicApi = pkgs.cargo-public-api;
+              cargoSemverChecks = pkgs.cargo-semver-checks;
+              inherit toolchain;
+            }
+          )}";
+          meta.description = "Prepare and verify the unpublished crypto candidate";
+        };
       };
     };
 }

@@ -27,6 +27,9 @@ release-phase compiler decision before publication.
 - `cargo-semver-checks` 0.50.0 documents baselines from Git revisions, source
   roots, or rustdoc JSON and exit codes 0/100/101. It uses unstable rustdoc JSON
   internally and supports the stable compiler current at its release.
+- `cargo-public-api` 0.52.0 produces the reviewable API rendering. Its rustdoc
+  JSON operation requires a narrowly scoped, documented `RUSTC_BOOTSTRAP=1`;
+  it does not change the candidate compiler or package builds.
 - `cargo-cyclonedx` 0.5.9 is the OWASP CycloneDX Cargo plugin and generates
   aggregate dependency SBOMs by invoking Cargo metadata/build-system logic.
 - Both tools are available from the repository's already locked nixpkgs input;
@@ -62,10 +65,11 @@ the target registry. Because `identus-core` and `identus-derive` are deliberatel
 unpublished, the closure cannot truthfully pass crates.io resolution. The
 candidate gate therefore runs Cargo archive assembly, checks the normalized
 manifest, extracts all three archives into a clean directory, patches those
-exact local archive contents only for resolution, and builds/tests the consumer
-offline. The receipt calls this archive-closure verification, not crates.io
-publication verification. A future publication gate must run unmodified
-`cargo publish --dry-run` against the protected registry workflow.
+exact local archive contents only for internal resolution, and builds/tests the
+consumer under the generated lockfile. The receipt calls this archive-closure
+verification, not crates.io publication verification. A future publication
+gate must run unmodified `cargo publish --dry-run` against the protected
+registry workflow.
 
 ## Compatibility and dependency evidence
 
@@ -76,12 +80,12 @@ come from the canonical locked workspace. Canonical workspace manifests remain
 `0.0.0`, `publish = false`, so no other crate receives a version or release
 promise. `identus-apollo` is not generated.
 
-The MSRV stays Rust 1.98.1 for candidate preparation. Linux is the candidate
-archive target; existing WASM, iOS, and Android compile receipts remain target
-evidence rather than archive runtime claims. The direct and resolved dependency cone
-is unchanged because staging rewrites only local package identity and
-metadata. Public and wire compatibility are unchanged; the SDK-owned
-`identus-crypto` facade remains the public facade boundary.
+The MSRV stays Rust 1.98.1 for candidate preparation. Cargo archives are
+host-neutral source packages; existing WASM, iOS, and Android compile receipts
+remain target evidence rather than archive runtime claims. The direct and
+resolved dependency cone is unchanged because staging rewrites only local
+package identity and metadata. Public and wire compatibility are unchanged;
+the SDK-owned `identus-crypto` facade remains the public facade boundary.
 
 The first candidate establishes the API baseline. `cargo-semver-checks` compares
 the candidate surface with the exact pre-candidate protected revision to detect
@@ -122,10 +126,9 @@ state changes.
 
 ## Open questions and blockers
 
-There is no implementation blocker. The first run must measure candidate gate
-duration and artifact sizes. Publication remains blocked on issue #3, the
-consumer-driven compiler matrix, assigned release manager/second reviewer, and
-protected trusted publishing.
+There is no candidate-preparation blocker. Publication remains blocked on issue
+#3, the consumer-driven compiler matrix, assigned release manager/second
+reviewer, and protected trusted publishing.
 
 ## Evidence commands
 
@@ -134,10 +137,15 @@ protected trusted publishing.
   `cargo-cyclonedx` 0.5.9, and `cargo-public-api` 0.52.0.
 - upstream release/README metadata was retrieved from the two official GitHub
   repositories on 2026-09-14.
-- `cargo test --workspace --all-features` and existing parity checks are green
-  at the protected base through PR #265.
-- Unrun checks before implementation: candidate assembly, archive verification,
-  SBOM generation, public API rendering, SemVer comparison, and exact-head CI.
+- `cargo test --workspace --all-features` passed locally after implementation.
+- The exact local fast Nix derivations passed: factory contract, Nix/text/TOML
+  lint, Rust formatting, all-target build, Clippy, and 701 nextest cases.
+- The full candidate gate completed in 44.766 seconds on the development host.
+  Archive sizes were 18,526 bytes (`identus-derive`), 12,908 bytes
+  (`identus-core`), and 77,913 bytes (`identus-crypto`).
+- Double assembly, four feature profiles, API rendering, SemVer comparison, and
+  three CycloneDX 1.5 documents passed. Exact-head hosted CI remains delivery
+  evidence rather than pre-implementation research.
 
 ## Reconsideration triggers
 

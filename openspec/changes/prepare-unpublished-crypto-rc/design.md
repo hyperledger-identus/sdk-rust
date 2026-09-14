@@ -14,15 +14,15 @@ workspace. Generated directories and artifacts are never committed.
 3. Render explicit package metadata and exact internal
    `=0.1.0-rc.1` path-plus-version dependencies; retain canonical external
    versions and features.
-4. Run Cargo package listing and archive assembly with `--no-verify` only
-   because the dependent candidates are not on crates.io.
+4. Run one Cargo workspace archive assembly with `--no-verify` only because
+   the dependent candidates are not on crates.io.
 5. Compare archive bytes from both stages, inspect normalized manifests and
    bounded contents, and extract the exact archives.
 6. Build/test the three-package closure and a minimal crypto consumer against
    the extracted archives with only local `[patch.crates-io]` entries.
-7. Generate a CycloneDX SBOM from the staged exact closure, a public-API
-   baseline/check, and a deterministic JSON receipt containing source, tool,
-   package, checksum, size, feature, and limitation data.
+7. Generate one CycloneDX SBOM per staged package, a public-API baseline/check,
+   and a structured JSON receipt containing source, tool, package, checksum,
+   size, feature, measured duration, and limitation data.
 
 ## Tool routing
 
@@ -48,10 +48,10 @@ loss in the first candidate; later candidates must compare to the committed
 
 ## Failure and cleanup
 
-Every stage fails closed. Output is created under an explicit caller directory
-or a new temporary directory, never the repository root. Partial output is
-removed unless `--keep-work` is requested for diagnosis. No publisher command,
-registry credential, tag, or remote mutation is present.
+Every stage fails closed. Work is created in a temporary sibling of the
+explicit output path and atomically renamed only after success. Partial work is
+always removed. No publisher command, registry credential, tag, or remote
+mutation is present.
 
 ## Alternatives
 

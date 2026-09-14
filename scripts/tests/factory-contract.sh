@@ -87,6 +87,7 @@ required_files=(
   nix/checks/rust-gates.nix
   nix/apps/crypto-candidate.nix
   openspec/config.yaml
+  openspec/specs/sdk-support-policy/spec.md
   scripts/benchmark-support-policy.py
   scripts/factory
   bootstrap.sh

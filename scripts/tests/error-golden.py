@@ -357,6 +357,15 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
             )
         receipt["schemaVersion"] = 1
         write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+        receipt["issue"] = float(test_binding.issue)
+        write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+        errors = checker.validate_binding(reauthorized, test_binding)
+        if not any("receipt identity is invalid" in error for error in errors):
+            raise AssertionError(
+                f"non-integer issue was accepted for {prefix}: {errors!r}"
+            )
+        receipt["issue"] = test_binding.issue
+        write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
     finally:
         if source_snapshot is not None:
             os.environ[checker.SOURCE_SNAPSHOT_ENV] = source_snapshot
@@ -428,6 +437,12 @@ def main() -> int:
             checker.JOSE,
             (b"JWS limits are invalid", b"JWS limits were invalid"),
         )
+        run_binding_cases(
+            checker,
+            test_root,
+            checker.OID4VCI,
+            (b"OID4VCI limits are invalid", b"OID4VCI limits were invalid"),
+        )
 
         combined = test_root / "combined-active-bindings"
         for binding in checker.BINDINGS:
@@ -439,7 +454,10 @@ def main() -> int:
         if errors := checker.validate(combined, trusted_contracts):
             raise AssertionError(f"combined binding validation failed: {errors!r}")
 
-    print("error-golden test: 76 credentials/presentations/JOSE binding cases passed")
+    print(
+        "error-golden test: 101 credentials/presentations/JOSE/OID4VCI "
+        "binding cases passed"
+    )
     return 0
 
 

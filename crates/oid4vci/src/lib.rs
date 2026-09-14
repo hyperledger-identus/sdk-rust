@@ -32,6 +32,7 @@ mod credential_nonce_response;
 mod deferred_credential_request;
 mod deferred_credential_response;
 mod error;
+mod error_contract;
 mod grants;
 mod http_field;
 mod immediate_credential_http_response;

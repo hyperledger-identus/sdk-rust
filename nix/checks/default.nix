@@ -14,7 +14,7 @@
     }:
     let
       # Like `craneLib.cleanCargoSource ./../..` but also keeps trybuild
-      # `.stderr` fixtures and the three immutable error goldens, which the
+      # `.stderr` fixtures and the four immutable error goldens, which the
       # default cargo source filter strips. Keep the CSV suffixes exact so no
       # planning golden or unrelated CSV enters Rust build sources.
       cleanedSrc = pkgs.lib.cleanSourceWith {
@@ -28,7 +28,8 @@
           || pkgs.lib.hasSuffix ".stderr" (baseNameOf sourcePath)
           || pkgs.lib.hasSuffix "/crates/credentials/tests/fixtures/credentials-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/crates/presentations/tests/fixtures/presentations-error-contract-v1.csv" sourcePath
-          || pkgs.lib.hasSuffix "/crates/jose/tests/fixtures/jose-error-contract-v1.csv" sourcePath;
+          || pkgs.lib.hasSuffix "/crates/jose/tests/fixtures/jose-error-contract-v1.csv" sourcePath
+          || pkgs.lib.hasSuffix "/crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv" sourcePath;
       };
       cargoArtifacts = craneLib.buildDepsOnly {
         src = cleanedSrc;
@@ -59,10 +60,12 @@
           test -f "$src/crates/credentials/tests/fixtures/credentials-error-contract-v1.csv"
           test -f "$src/crates/presentations/tests/fixtures/presentations-error-contract-v1.csv"
           test -f "$src/crates/jose/tests/fixtures/jose-error-contract-v1.csv"
+          test -f "$src/crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv"
           if find "$src/openspec/changes" -type f \
             \( -name credentials-error-contract-v1.csv \
               -o -name presentations-error-contract-v1.csv \
-              -o -name jose-error-contract-v1.csv \) \
+              -o -name jose-error-contract-v1.csv \
+              -o -name oid4vci-error-contract-v1.csv \) \
             -print -quit | grep -q .; then
             echo "planning error golden entered cleaned Rust sources" >&2
             exit 1

@@ -99,7 +99,18 @@ JOSE = GoldenBinding(
     issue=280,
     branch="codex/refactor/issue-280",
 )
-BINDINGS = (CREDENTIALS, PRESENTATIONS, JOSE)
+OID4VCI = GoldenBinding(
+    label="oid4vci",
+    change_name="decompose-oid4vci-error-contracts",
+    file_name="oid4vci-error-contract-v1.csv",
+    stable=Path("crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv"),
+    expected_sha256="2c9e03381744b11902eb8b8bbc08934374781fad99d6561573cfcd62490bcd39",
+    source_revision="6217384f85ff72003a7b94482bf7879f4587be02",
+    generated_at="2026-09-15",
+    issue=277,
+    branch="codex/refactor/issue-277",
+)
+BINDINGS = (CREDENTIALS, PRESENTATIONS, JOSE, OID4VCI)
 SOURCE_SNAPSHOT_ENV = "SDK_ERROR_GOLDEN_SOURCE_SNAPSHOT"
 
 
@@ -235,6 +246,7 @@ def read_contract_head_bytes(
         or type(receipt.get("schemaVersion")) is not int
         or receipt.get("schemaVersion") != 1
         or receipt.get("repository") != "hyperledger-identus/sdk-rust"
+        or type(receipt.get("issue")) is not int
         or receipt.get("issue") != binding.issue
         or receipt.get("change") != binding.change_name
         or receipt.get("branch") != binding.branch

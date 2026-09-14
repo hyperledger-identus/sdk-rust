@@ -72,6 +72,7 @@ required_files=(
   crates/credentials/tests/fixtures/credentials-error-contract-v1.csv
   crates/presentations/tests/fixtures/presentations-error-contract-v1.csv
   crates/jose/tests/fixtures/jose-error-contract-v1.csv
+  crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv
   docs/architecture/ssi-upstream-source-matrix.md
   docs/roadmap/ssi-upstream-dependency-backlog.csv
   docs/governance/agentic-sdlc.md
@@ -222,6 +223,8 @@ copy_error_planning_golden \
   decompose-presentation-error-contracts presentations-error-contract-v1.csv 2026-09-16
 copy_error_planning_golden \
   decompose-jose-error-contracts jose-error-contract-v1.csv 2026-09-17
+copy_error_planning_golden \
+  decompose-oid4vci-error-contracts oid4vci-error-contract-v1.csv 2026-09-18
 
 chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" \
   "$fixture_root/scripts/benchmark-support-policy.py" \

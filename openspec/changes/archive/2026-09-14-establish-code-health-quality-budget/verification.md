@@ -16,6 +16,7 @@
 - **Scheduler-authority consistency head:** `dfa531735f4cf19248b9a3c45217bdff3d4c4236`
 - **Historical-authority clarification head:** `19f9927bac6d77196b0d4452c85b6bd8e79230f0`
 - **Supersession-notice clarification head:** `afb417143f6501dd270ce25d1376f6506d1bcdc9`
+- **Spaced-attribute characterization head:** `64f9d4eae32c62ed2eed45e14458b1f394c2a064`
 - **Host:** aarch64-darwin
 - **Result:** passed with no unresolved blocker
 
@@ -41,7 +42,7 @@ reduction.
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --output /tmp/sdk-rust-code-health-head-rebased.json
 python3 scripts/code-health-audit.py --check-report docs/architecture/code-health-baseline.json
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --verify-baseline
-python3 scripts/tests/code-health-audit.py (37/37)
+python3 scripts/tests/code-health-audit.py (39/39)
 python3 -m unittest scripts/tests/support-policy.py (173/173)
 python3 scripts/check-support-policy.py
 node --test scripts/tests/factory-operations.mjs (21/21)
@@ -103,6 +104,9 @@ GitHub schedule/dispatch, local/external execution, and #276 ownership. The
 checker requires that exact inactive statement across the bounded authority set.
 ADR 0064's current supersession notice uses the same clarification and is bound
 into that authority set.
+The final conservative-v1 characterization proves that Rust-valid
+`# [cfg(test)]` items receive no test span and such an out-of-line module cannot
+move its source tree from production. Full support remains owned by issue #275.
 A direct `cargo nextest` invocation was
 unavailable outside the pinned shell; the recorded bootstrap invocation is the
 successful replacement. The Nix install fixup emitted a Darwin

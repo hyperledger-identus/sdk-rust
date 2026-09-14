@@ -38,8 +38,9 @@ reversible and changes no protected setting or release promise.
 - V1 excludes only nodes with a proven semicolon, zero-depth comma, recognized
   block-item, or recognized item-macro end. Ambiguous angles, enclosing
   delimiters, unsupported nested forms, unrecognized macros and mixed source
-  lines remain production. Inner cfg scopes also remain production. Full syntax
-  precision is deferred to issue #275.
+  lines remain production. Inner cfg scopes and whitespace-separated attribute
+  openers such as `# [cfg(test)]` also remain production. Full syntax precision
+  is deferred to issue #275.
 - Test-only module reachability supports ordinary Rust module layout and fails
   closed on `#[path]` overrides; it does not emulate rustc's complete module
   loader.

@@ -49,7 +49,9 @@ spans, with production winning on a mixed line. Ambiguous angles, closing
 containers and nested block forms remain production. Issue #275 tracks a
 future non-published `syn` classifier rather than extending this heuristic.
 Inner `#![cfg(...)]` scopes likewise remain production until that classifier
-can model their exact AST scope.
+can model their exact AST scope. V1 likewise recognizes only byte-contiguous
+`#[` attributes; whitespace-separated openers remain production and cannot
+seed module inheritance.
 
 Review of the first implementation found that canonical structure alone could
 not bind a report to source and that generic generated-marker text was

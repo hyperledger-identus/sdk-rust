@@ -74,6 +74,9 @@ worktree; unrelated documentation changes do not invalidate source evidence.
   are always production; only a cfg attribute outside and applying to a
   recognized macro invocation may subtract the invocation.
   Inner `#![cfg(...)]` scopes are unsupported in v1 and remain production.
+  Only byte-contiguous `#[` attributes are classified. Rust-valid whitespace-
+  separated forms such as `# [cfg(test)]` remain production and cannot seed
+  test-only out-of-line module inheritance. Issue #275 owns full Rust syntax.
   A test-only out-of-line `mod name;` recursively classifies the ordinary
   `name.rs` or `name/mod.rs` module tree. Nested inline-module context is part
   of resolution, so `mod tests { mod helper; }` resolves only under `tests/`

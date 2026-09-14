@@ -37,6 +37,15 @@ following production node. Attribute-like tokens inside a macro definition or
 invocation token tree SHALL remain production; only an outer cfg applying to a
 recognized macro invocation may classify that invocation inline-test.
 Inner `#![cfg(...)]` scopes SHALL remain production in v1.
+Only byte-contiguous `#[` attributes SHALL enter the v1 classifier. Rust-valid
+whitespace-separated forms such as `# [cfg(test)]` SHALL remain production and
+SHALL NOT seed test-only out-of-line module inheritance. Issue #275 owns exact
+classification of those forms.
+
+#### Scenario: Attribute opener contains whitespace
+
+- **WHEN** a test cfg attribute is written with whitespace between `#` and `[`
+- **THEN** its item and any out-of-line module tree remain production evidence
 
 #### Scenario: Test-only inline module
 

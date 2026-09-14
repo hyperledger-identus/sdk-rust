@@ -45,6 +45,9 @@ comma, recognized block item, or recognized item macro. Angle ambiguity,
 unmatched container delimiters, comma-less members, nested block expressions,
 unrecognized macros, macro token-tree contents, and mixed test/shipping lines
 remain production. Inner `#![cfg(...)]` scopes likewise remain production.
+Only a byte-contiguous `#[` starts a v1 attribute. Rust-valid whitespace-
+separated forms such as `# [cfg(test)]` remain production and cannot seed
+test-only module inheritance.
 Issue
 [#275](https://github.com/hyperledger-identus/sdk-rust/issues/275) owns a future
 non-published `syn` classifier; this issue does not grow a partial Rust parser.

@@ -17,6 +17,7 @@ Scheduler-truth remediation head: `8086d4a162a630eba61071b10bd8b01a90608cdf`
 Scheduler-authority consistency head: `dfa531735f4cf19248b9a3c45217bdff3d4c4236`
 Historical-authority clarification head: `19f9927bac6d77196b0d4452c85b6bd8e79230f0`
 Supersession-notice clarification head: `afb417143f6501dd270ce25d1376f6506d1bcdc9`
+Spaced-attribute characterization head: `64f9d4eae32c62ed2eed45e14458b1f394c2a064`
 Planning head: `0a7ded352110474150e409aabcb3a2c4edfed661`
 Unresolved blockers: none
 
@@ -38,7 +39,9 @@ not changed.
    consuming the next item. Ambiguous angles, unmatched container delimiters,
    comma-less members, nested block expressions and unrecognized macro forms
    receive no test span; macro definition/invocation token contents and mixed
-   source lines remain production. Ordinary
+   source lines remain production. Only byte-contiguous `#[` attributes enter
+   v1; whitespace-separated openers remain production and cannot seed module
+   inheritance. Ordinary
    out-of-line modules inherit a test-only
    declaration recursively with correct nested inline-module context. Only
    Cargo `tests/` and `benches/` targets are intrinsically external tests;
@@ -143,8 +146,10 @@ banner to every accepted ADR/research source that retains historical cadence
 wording and binds that bounded authority set in the checker. It also binds the
 corrected browser, crypto and DID evidence prose. Review found no remaining
 blocker except ADR 0064's top current supersession notice. Head `afb4171`
-aligns and validator-binds that last notice. No remaining blocker exists in the
-final remediated diff.
+aligns and validator-binds that last notice. Head `64f9d4e` adds exact item and
+out-of-line module characterization for whitespace-separated attribute openers;
+both remain production under v1 and issue #275 owns exact support. No remaining
+blocker exists in the final remediated diff.
 
 ## Review decision
 

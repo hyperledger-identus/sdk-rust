@@ -6,6 +6,11 @@
 - **Parent:** [#9](https://github.com/hyperledger-identus/sdk-rust/issues/9)
 - **Decision authority:** M2 measurement-only performance evidence
 
+> **Operational status (2026-09-14):** This ADR records desired cadence only.
+> GitHub schedule and `workflow_dispatch` execution are inactive while reserved
+> empty `main` remains default. Run evidence locally or through explicit external
+> orchestration; issue #276 owns hosted activation.
+
 ## Context
 
 Apollo's pinned source has no comparable benchmark. SDK-Rust needs a portable

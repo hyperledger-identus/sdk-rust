@@ -6,6 +6,11 @@
 - **Builds on:** ADR 0098 and ADR 0099
 - **Related work:** issue #230
 
+> **Operational status (2026-09-14):** This ADR records desired cadence only.
+> GitHub schedule and `workflow_dispatch` execution are inactive while reserved
+> empty `main` remains default. Run evidence locally or through explicit external
+> orchestration; issue #276 owns hosted activation.
+
 ## Context
 
 The host foundation proves generated Kotlin on a macOS JVM, and the Apple

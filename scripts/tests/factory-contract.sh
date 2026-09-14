@@ -52,6 +52,7 @@ required_files=(
   docs/architecture/sdk-bootstrap-inventory.md
   docs/architecture/sdk-bootstrap-inventory.toml
   docs/architecture/sdk-support-policy.md
+  docs/architecture/first-language-binding-slice.md
   docs/architecture/sdk-support-policy.toml
   docs/architecture/apollo-crypto-parity.toml
   docs/architecture/code-health.md
@@ -72,6 +73,7 @@ required_files=(
   docs/governance/sdk-constraints.toml
   docs/adr/0001-bootstrap-branch-selection.md
   docs/adr/0003-delegate-develop-integration.md
+  docs/adr/0018-reproducible-did-lexical-fuzzing.md
   docs/adr/0062-use-a-rolling-near-current-msrv.md
   docs/adr/0063-make-material-constraints-explicit.md
   docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md
@@ -81,13 +83,21 @@ required_files=(
   docs/adr/0089-require-upstream-first-dependency-remediation.md
   docs/adr/0095-use-dependency-free-crypto-benchmark-harness.md
   docs/adr/0096-adopt-cargo-llvm-cov-for-apollo-evidence.md
+  docs/adr/0098-establish-experimental-uniffi-did-host-foundation.md
+  docs/adr/0099-prove-local-uniffi-did-apple-package.md
+  docs/adr/0100-prove-local-uniffi-did-android-package.md
+  docs/adr/0101-adopt-wasm-bindgen-for-browser-did-values.md
   docs/adr/0108-operationalize-guidance-based-ai-factory.md
+  docs/adr/0111-use-read-only-nix-cache-on-fast-path.md
   docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md
+  docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   nix/apps/crypto-candidate.nix
   openspec/config.yaml
   openspec/specs/sdk-support-policy/spec.md
+  openspec/specs/crypto/spec.md
+  openspec/specs/did-core/spec.md
   scripts/benchmark-support-policy.py
   scripts/factory
   bootstrap.sh

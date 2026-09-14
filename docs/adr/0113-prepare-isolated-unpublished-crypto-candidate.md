@@ -7,6 +7,11 @@
 - **Depends on:** ADR 0081 and ADR 0112
 - **Review no later than:** before any registry upload or release tag
 
+> **Operational status (2026-09-14):** This ADR records desired cadence only.
+> GitHub schedule and `workflow_dispatch` execution are inactive while reserved
+> empty `main` remains default. Run evidence locally or through explicit external
+> orchestration; issue #276 owns hosted activation.
+
 ## Context
 
 `identus-crypto` has Apollo behavioral parity but is not a reviewable package

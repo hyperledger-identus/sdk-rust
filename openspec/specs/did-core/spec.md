@@ -1115,8 +1115,9 @@ The repository SHALL pin its sanitizer-capable compiler, fuzz runner and runtime
 binding and SHALL expose one documented command interface for committed-corpus
 replay, deterministic fixed-run smoke, and time-boxed soak modes. Pull-request
 and integration smoke SHALL use a fixed seed, run count, input ceiling, timeout,
-memory ceiling and one worker. Scheduled/manual soak SHALL be bounded separately
-so ordinary delivery latency does not depend on a long random campaign.
+memory ceiling and one worker. Local or externally orchestrated soak SHALL be
+bounded separately pending hosted activation in issue #276 so ordinary delivery
+latency does not depend on a long random campaign.
 
 Original seed corpora and dictionaries SHALL cover generic W3C and consumer-
 shaped lexical boundaries without asserting method semantics. Failing artifacts

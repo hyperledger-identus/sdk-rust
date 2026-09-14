@@ -6,6 +6,11 @@
 - **Related work:** ADRs 0003, 0004 and 0081
 - **Reference snapshot:** `MediaNoxLabs/oxid@6b2320d7456cef439779a006740c561c8a4bf6d7`
 
+> **Operational status (2026-09-14):** This ADR records desired cadence only.
+> GitHub schedule and `workflow_dispatch` execution are inactive while reserved
+> empty `main` remains default. Run evidence locally or through explicit external
+> orchestration; issue #276 owns hosted activation.
+
 ## Context
 
 The repository already uses issues, OpenSpec, Nix, local review and gated pull

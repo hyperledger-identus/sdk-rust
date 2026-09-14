@@ -67,10 +67,25 @@ class SupportPolicyTests(unittest.TestCase):
             "docs/architecture/sdk-support-policy.toml",
             "README.md",
             "docs/architecture/sdk-support-policy.md",
+            "docs/architecture/first-language-binding-slice.md",
             "docs/governance/sdk-constraints.toml",
             "openspec/specs/sdk-support-policy/spec.md",
+            "openspec/specs/crypto/spec.md",
+            "openspec/specs/did-core/spec.md",
             "docs/factory/README.md",
             "docs/governance/agentic-sdlc.md",
+            "docs/adr/0018-reproducible-did-lexical-fuzzing.md",
+            "docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md",
+            "docs/adr/0095-use-dependency-free-crypto-benchmark-harness.md",
+            "docs/adr/0096-adopt-cargo-llvm-cov-for-apollo-evidence.md",
+            "docs/adr/0098-establish-experimental-uniffi-did-host-foundation.md",
+            "docs/adr/0099-prove-local-uniffi-did-apple-package.md",
+            "docs/adr/0100-prove-local-uniffi-did-android-package.md",
+            "docs/adr/0101-adopt-wasm-bindgen-for-browser-did-values.md",
+            "docs/adr/0108-operationalize-guidance-based-ai-factory.md",
+            "docs/adr/0111-use-read-only-nix-cache-on-fast-path.md",
+            "docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md",
+            "docs/research/rust-library-reuse/report-source.md",
             "docs/adr/0002-neoprism-toolchain-alignment.md",
             ".github/workflows/factory-contract.yml",
             ".github/workflows/nix-checks.yml",
@@ -1941,6 +1956,14 @@ in
             'slowPolicy: "weekly-or-manual"',
         )
         self.assert_fails("must record local/external slow execution pending #276")
+
+    def test_accepted_adr_must_disclose_inactive_hosted_schedule(self) -> None:
+        self.replace(
+            "docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md",
+            "`workflow_dispatch` execution are inactive",
+            "`workflow_dispatch` execution are active",
+        )
+        self.assert_fails("inactive hosted status pending #276")
 
     def test_complete_clippy_gate_must_select_all_targets(self) -> None:
         self.replace_gate(

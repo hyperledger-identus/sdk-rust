@@ -7,6 +7,8 @@
 - Planning-contract head: `f078fabe041b1fd6a3da000f37da96b37e5ffab9`.
 - Reviewed implementation head:
   `2918cbcf3d66b531c60d34f81b90cac15aacb7aa`.
+- Final adversarial-hardening head:
+  `557a157d25f97f4efe968b0bfe698b83b49bb15c`.
 - Compiler: repository-pinned Rust `1.98.1`.
 - Planning/stable golden: 48 rows, 15,892 bytes, SHA-256
   `3941cbdb1b3eedb26243b5caf1b8a11c4646c3789a3cab1415834c48d3a8ba49`.
@@ -98,6 +100,10 @@ order-insensitive test comparison, missing `From` bridge coverage, and a
 vacuous post-archive Nix assertion. Hardening binds the oracle to the receipt's
 Git blob, rejects the coordinated mutation, checks enum order and both public
 bridges, and excludes matching planning goldens from all active/archive paths.
+Review also challenged the hosted recurrence guard until it required both
+executable command lines inside the named pre-Nix step and a mutation proved
+that deleting the checker fails. Both independent final reviews are clear at
+the final hardening head.
 
 This slice does not add a presentation-exchange feature, format, protocol,
 error, dependency, wire schema, structured metadata, localization, binding,

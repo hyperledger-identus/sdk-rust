@@ -26,6 +26,6 @@
   public API/dependency diffs and maintainability measurements.
 - [x] 3.2 Run direct WASM/Android/iOS checks plus applicable workspace Nix and
   factory gates; preserve #7/#168 behavior and state target limits exactly.
-- [ ] 3.3 Resolve independent architecture/API/security and adversarial review,
+- [x] 3.3 Resolve independent architecture/API/security and adversarial review,
   complete verification, ready/receipt/archive, and open one signed+DCO
   issue-linked PR to protected `develop`.

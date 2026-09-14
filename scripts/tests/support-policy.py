@@ -1894,13 +1894,30 @@ in
         )
         self.assert_fails("must not declare the pull_request trigger")
 
-    def test_slow_lane_cannot_be_scheduled_daily(self) -> None:
+    def test_slow_lane_cannot_change_desired_weekly_cadence(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
             '    - cron: "23 2 * * 1"',
             '    - cron: "23 2 * * *"',
         )
-        self.assert_fails("must retain the pinned weekly schedule")
+        self.assert_fails("must retain the desired weekly trigger pending #276")
+
+    def test_slow_lane_cannot_claim_its_github_schedule_is_active(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "# Desired cadence only: GitHub schedules workflows from the default branch,\n"
+            "# while reserved empty main remains default. Activation is tracked by #276.\n",
+            "",
+        )
+        self.assert_fails("GitHub schedule is inactive pending #276")
+
+    def test_slow_lane_policy_cannot_claim_active_github_scheduling(self) -> None:
+        self.replace(
+            "docs/architecture/sdk-support-policy.toml",
+            'slow_schedule_status       = "inactive-pending-276"',
+            'slow_schedule_status       = "active"',
+        )
+        self.assert_fails("ci.slow_schedule_status must be inactive-pending-276")
 
     def test_complete_clippy_gate_must_select_all_targets(self) -> None:
         self.replace_gate(

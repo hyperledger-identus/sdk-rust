@@ -2381,7 +2381,9 @@ def validate_ci_lanes(
         "fast_system": "x86_64-linux",
         "slow_workflow": ".github/workflows/nix-checks.yml",
         "slow_status": "slow",
-        "slow_cadence": "weekly-and-manual",
+        "slow_cadence": "desired-weekly-pending-276",
+        "slow_execution": "local-or-external",
+        "slow_schedule_status": "inactive-pending-276",
         "slow_scope": "all-flake-checks",
         "review_by": "2026-12-08",
     }
@@ -2542,6 +2544,14 @@ def validate_ci_lanes(
 
     slow, slow_path = workflow_text("slow_workflow")
     if slow:
+        scheduling_disclaimer = (
+            "# Desired cadence only: GitHub schedules workflows from the default branch,\n"
+            "# while reserved empty main remains default. Activation is tracked by #276."
+        )
+        if scheduling_disclaimer not in slow:
+            failures.append(
+                f"{slow_path} must disclose that its GitHub schedule is inactive pending #276"
+            )
         for trigger in ("schedule", "workflow_dispatch"):
             if re.search(rf"^  {trigger}:\s*$", slow, re.MULTILINE) is None:
                 failures.append(f"{slow_path} must declare the {trigger} trigger")
@@ -2553,7 +2563,9 @@ def validate_ci_lanes(
         if re.search(r"^\s*run:\s*nix flake check\s*$", slow, re.MULTILINE) is None:
             failures.append(f"{slow_path} must run the exhaustive nix flake check")
         if '    - cron: "23 2 * * 1"' not in trigger_block(slow, "schedule"):
-            failures.append(f"{slow_path} must retain the pinned weekly schedule")
+            failures.append(
+                f"{slow_path} must retain the desired weekly trigger pending #276"
+            )
         for runner in ("ubuntu-latest", "macos-latest"):
             if runner not in slow:
                 failures.append(f"{slow_path} matrix is missing {runner}")

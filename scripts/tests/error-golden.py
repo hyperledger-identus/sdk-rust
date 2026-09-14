@@ -122,7 +122,11 @@ def main() -> int:
         active_path = active_symlink / ACTIVE
         active_path.parent.mkdir(parents=True, exist_ok=True)
         active_path.symlink_to(active_symlink / STABLE)
-        require_error(checker, active_symlink, "active planning golden must be a regular file")
+        require_error(
+            checker,
+            active_symlink,
+            "active planning golden must not contain symlinked path components",
+        )
 
         active_and_archive = test_root / "active-plus-archive"
         shutil.copytree(archived, active_and_archive)
@@ -158,10 +162,46 @@ def main() -> int:
         require_error(
             checker,
             archive_file_symlink,
-            "archived planning golden must be a regular file",
+            "archived planning golden must not contain symlinked path components",
         )
 
-    print("error-golden test: 12 active/archive and mutation cases passed")
+        active_parent_symlink = test_root / "active-golden-parent-symlink"
+        shutil.copytree(active, active_parent_symlink)
+        active_golden_dir = (active_parent_symlink / ACTIVE).parent
+        active_golden_target = active_parent_symlink / "active-golden-target"
+        active_golden_dir.rename(active_golden_target)
+        active_golden_dir.symlink_to(active_golden_target, target_is_directory=True)
+        require_error(
+            checker,
+            active_parent_symlink,
+            "active planning golden must not contain symlinked path components",
+        )
+
+        archive_parent_symlink = test_root / "archive-golden-parent-symlink"
+        shutil.copytree(archived, archive_parent_symlink)
+        archive_golden_dir = (archive_parent_symlink / ARCHIVE_FILE).parent
+        archive_golden_target = archive_parent_symlink / "archive-golden-target"
+        archive_golden_dir.rename(archive_golden_target)
+        archive_golden_dir.symlink_to(archive_golden_target, target_is_directory=True)
+        require_error(
+            checker,
+            archive_parent_symlink,
+            "archived planning golden must not contain symlinked path components",
+        )
+
+        stable_parent_symlink = test_root / "stable-parent-symlink"
+        shutil.copytree(active, stable_parent_symlink)
+        stable_fixture_dir = (stable_parent_symlink / STABLE).parent
+        stable_fixture_target = stable_parent_symlink / "stable-fixture-target"
+        stable_fixture_dir.rename(stable_fixture_target)
+        stable_fixture_dir.symlink_to(stable_fixture_target, target_is_directory=True)
+        require_error(
+            checker,
+            stable_parent_symlink,
+            "stable error fixture must not contain symlinked path components",
+        )
+
+    print("error-golden test: 15 active/archive and mutation cases passed")
     return 0
 
 

@@ -22,18 +22,41 @@ EXPECTED_PREFIX = (
 )
 
 
+def has_symlink_component(path: Path, root: Path) -> bool:
+    try:
+        relative = path.relative_to(root)
+    except ValueError:
+        return True
+    current = root
+    for component in relative.parts:
+        current /= component
+        if current.is_symlink():
+            return True
+    return False
+
+
+def is_regular_without_symlinks(
+    path: Path, root: Path, label: str, errors: list[str]
+) -> bool:
+    if has_symlink_component(path, root):
+        errors.append(f"{label} must not contain symlinked path components: {path}")
+        return False
+    if not path.is_file():
+        errors.append(f"{label} must be a regular file: {path}")
+        return False
+    return True
+
+
 def resolve_planning_golden(root: Path, errors: list[str]) -> Path | None:
     active = root / ACTIVE
     candidates: list[Path] = []
     if os.path.lexists(active):
-        if active.is_symlink() or not active.is_file():
-            errors.append(f"active planning golden must be a regular file: {active}")
-        else:
+        if is_regular_without_symlinks(active, root, "active planning golden", errors):
             candidates.append(active)
 
     archive_root = root / ARCHIVE
     if os.path.lexists(archive_root):
-        if archive_root.is_symlink() or not archive_root.is_dir():
+        if has_symlink_component(archive_root, root) or not archive_root.is_dir():
             errors.append(f"OpenSpec archive root must be a regular directory: {archive_root}")
         else:
             for directory in sorted(archive_root.iterdir()):
@@ -50,11 +73,9 @@ def resolve_planning_golden(root: Path, errors: list[str]) -> Path | None:
                     errors.append(
                         f"matching archived change is missing its planning golden: {candidate}"
                     )
-                elif candidate.is_symlink() or not candidate.is_file():
-                    errors.append(
-                        f"archived planning golden must be a regular file: {candidate}"
-                    )
-                else:
+                elif is_regular_without_symlinks(
+                    candidate, root, "archived planning golden", errors
+                ):
                     candidates.append(candidate)
 
     if len(candidates) != 1:
@@ -66,9 +87,10 @@ def resolve_planning_golden(root: Path, errors: list[str]) -> Path | None:
     return candidates[0]
 
 
-def read_bytes(path: Path, label: str, errors: list[str]) -> bytes | None:
-    if path.is_symlink() or not path.is_file():
-        errors.append(f"{label} must be a regular file: {path}")
+def read_rooted_bytes(
+    path: Path, root: Path, label: str, errors: list[str]
+) -> bytes | None:
+    if not is_regular_without_symlinks(path, root, label, errors):
         return None
     try:
         return path.read_bytes()
@@ -79,10 +101,10 @@ def read_bytes(path: Path, label: str, errors: list[str]) -> bytes | None:
 
 def validate(root: Path) -> list[str]:
     errors: list[str] = []
-    stable = read_bytes(root / STABLE, "stable error fixture", errors)
+    stable = read_rooted_bytes(root / STABLE, root, "stable error fixture", errors)
     planning_path = resolve_planning_golden(root, errors)
     planning = (
-        read_bytes(planning_path, "planning error golden", errors)
+        read_rooted_bytes(planning_path, root, "planning error golden", errors)
         if planning_path is not None
         else None
     )

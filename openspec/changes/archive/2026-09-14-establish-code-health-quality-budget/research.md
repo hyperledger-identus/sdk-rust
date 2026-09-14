@@ -21,11 +21,19 @@ The current implementation has no repository audit wrapper.
 cyclomatic, and cognitive metrics. The exact locked nixpkgs revision resolves
 version 0.0.25 on the assessed host. It does not evaluate conditional
 compilation itself, so the repository wrapper must recognize Rust comments,
-literals, attributes, item boundaries, and three-valued `cfg` expressions.
+literals, contiguous attributes, item/field/variant boundaries, ordinary
+out-of-line module resolution, and three-valued `cfg` expressions.
 An item is excluded from production only when its `cfg` expression is
 definitively false with `test = false`; unknown features and targets remain in
 production. This prevents a regex or directory name from silently discarding
 shipping code.
+
+Review of the first implementation found that canonical structure alone could
+not bind a report to source and that generic generated-marker text was
+ambiguous. The final contract pins revision, source fingerprint and full report
+digest; fast validation recomputes source evidence from the Git tree, and a
+weekly exact-engine gate regenerates the entire report. Generated exclusion is
+an exact path-and-header-marker policy entry only.
 
 ## Normative sources
 

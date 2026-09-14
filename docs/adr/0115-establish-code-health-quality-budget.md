@@ -23,7 +23,15 @@ shell supplies `rust-code-analysis-cli` 0.0.25; a repository wrapper owns
 population semantics and canonical reporting. Production, external-test,
 inline-test, and generated populations stay separate. Conditional compilation
 uses conservative three-valued evaluation with `test = false` rather than a
-path or regex heuristic.
+path or regex heuristic, and a test-only out-of-line module declaration passes
+that classification through its ordinary Rust module tree.
+
+The policy pins the baseline Git revision, authored-source fingerprint and
+whole canonical report digest. Fast validation reloads that Git tree and
+recomputes its source fingerprint, generated allowlist and line/file
+populations. The weekly slow gate regenerates analyzer-derived function and
+signal evidence with the exact engine and compares the entire report. Generated
+Rust is excluded only by an exact policy path plus an exact header marker.
 
 Attention prompts are cognitive or cyclomatic complexity above 15, a function
 above 100 SLOC, or a module above 1,000 authored nonblank production lines.
@@ -64,9 +72,10 @@ metadata, standard error kind, wire JSON, features, and dependencies.
 
 ## Verification and rollback
 
-Focused scanner tests cover comments, literals, balanced attributes and cfg
-logic. Report validation covers deterministic schema, engine pin, population
-separation, and dispositions. DID characterization tests cover registry and
+Focused scanner tests cover comments, literals, balanced attributes, fields,
+variants, out-of-line module inheritance and cfg logic. Report mutation tests
+and fast/slow regeneration cover the complete schema, engine pin, policy/tree
+binding, population separation, exclusions and dispositions. DID tests cover registry and
 failed-closed cache results. Full factory, formatting, strict Clippy, tests,
 builds, and relevant Nix gates prove the refactor preserves repository health.
 

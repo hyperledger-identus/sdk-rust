@@ -7,7 +7,10 @@ canonical report format. It SHALL report authored production, external-test,
 and inline-test populations separately and SHALL identify generated exclusions.
 Inline code SHALL leave production only when syntax-aware evaluation proves its
 conditional-compilation predicate false with `test = false`; unknown feature
-and target predicates SHALL remain production.
+and target predicates SHALL remain production. A test-only out-of-line module
+declaration SHALL recursively classify its ordinary Rust module tree as test
+code. Generated exclusion SHALL require an exact policy path and exact header
+marker.
 
 #### Scenario: Test-only inline module
 
@@ -20,6 +23,33 @@ and target predicates SHALL remain production.
 
 - **WHEN** an item uses `cfg(any(test, feature = "diagnostics"))`
 - **THEN** the unknown non-test predicate keeps the item in production evidence
+
+#### Scenario: Test-only out-of-line module
+
+- **WHEN** `cfg(test)` guards `mod guard;` and `guard` declares nested ordinary
+  out-of-line modules
+- **THEN** the resolved module tree is inline-test evidence and not production
+
+#### Scenario: Ordinary prose resembles a generated marker
+
+- **WHEN** a Rust comment contains "do not edit" outside an exact policy
+  path-and-marker entry
+- **THEN** the file remains authored evidence
+
+### Requirement: Baseline evidence is bound to policy and Git content
+
+The policy SHALL pin the baseline revision, authored-source fingerprint and
+canonical report digest. Fast validation SHALL resolve the revision and
+recompute source fingerprint, generated exclusions, and line/file populations.
+Weekly slow validation SHALL use the pinned analyzer version to regenerate and
+compare the entire report, including function counts and signals. Report schema
+keys SHALL be closed recursively.
+
+#### Scenario: Canonical report field is forged
+
+- **WHEN** revision, fingerprint, population, signal or generated-exclusion
+  content is changed while retaining canonical JSON
+- **THEN** policy, Git-tree, or full regeneration validation fails closed
 
 ### Requirement: Metrics prompt review rather than dictate architecture
 

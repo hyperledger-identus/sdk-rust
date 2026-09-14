@@ -141,50 +141,20 @@
       "functions": 1052
     },
     "inline_test": {
-      "authored_nonblank_lines": 1158,
-      "files": 21,
-      "functions": 95
+      "authored_nonblank_lines": 2876,
+      "files": 26,
+      "functions": 242
     },
     "production": {
-      "authored_nonblank_lines": 30092,
-      "files": 116,
-      "functions": 2341
+      "authored_nonblank_lines": 28374,
+      "files": 111,
+      "functions": 2194
     }
   },
   "revision": "707a5a22c3fad18724d5c5cac953e7387f7e49d8",
   "schema_version": 1,
   "signals": {
     "functions": [
-      {
-        "cognitive": 9,
-        "cyclomatic": 18,
-        "end_line": 68,
-        "name": "denied_identity",
-        "path": "crates/conformance/src/guard/boundary.rs",
-        "population": "production",
-        "sloc": 33,
-        "start_line": 36
-      },
-      {
-        "cognitive": 16,
-        "cyclomatic": 13,
-        "end_line": 298,
-        "name": "direct_dependency_violations",
-        "path": "crates/conformance/src/guard/boundary.rs",
-        "population": "production",
-        "sloc": 75,
-        "start_line": 224
-      },
-      {
-        "cognitive": 1,
-        "cyclomatic": 2,
-        "end_line": 296,
-        "name": "workspace_forbid_reaches_every_supported_target_class",
-        "path": "crates/conformance/src/guard/unsafe_policy.rs",
-        "population": "production",
-        "sloc": 106,
-        "start_line": 191
-      },
       {
         "cognitive": 1,
         "cyclomatic": 45,

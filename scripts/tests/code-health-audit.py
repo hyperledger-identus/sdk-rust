@@ -4,9 +4,13 @@
 from __future__ import annotations
 
 import importlib.util
+import copy
+import hashlib
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "code-health-audit.py"
@@ -65,6 +69,242 @@ fn maybe_shipping() {}
         spans = audit.test_only_spans(source)
         self.assertEqual(len(spans), 1)
         self.assertEqual(spans[0].end, len(source) - 1)
+
+    def test_comma_terminated_fields_and_variants_do_not_consume_shipping_code(self) -> None:
+        source = '''
+struct Named {
+    #[cfg(test)]
+    hidden: Vec<(u8, u8)>,
+    visible: u8,
+}
+struct Tuple(
+    #[cfg(test)] Vec<(u8, u8)>,
+    u8,
+);
+enum Choice {
+    #[cfg(test)] Hidden { value: u8 },
+    #[cfg(test)] Unit,
+    Visible,
+}
+'''
+        lines = audit.span_lines(source, audit.test_only_spans(source))
+        self.assertIn(4, lines)
+        self.assertNotIn(5, lines)
+        self.assertIn(8, lines)
+        self.assertNotIn(9, lines)
+        self.assertIn(12, lines)
+        self.assertIn(13, lines)
+        self.assertNotIn(14, lines)
+
+    def test_cfg_inherits_preceding_outer_attributes_and_nested_items(self) -> None:
+        source = '''
+#[allow(dead_code)]
+#[cfg(test)]
+enum Hidden {
+    #[allow(dead_code)]
+    Variant,
+}
+pub fn shipping() {}
+'''
+        spans = audit.test_only_spans(source)
+        self.assertEqual(spans[0].start, source.index("#[allow"))
+        lines = audit.span_lines(source, spans)
+        self.assertIn(2, lines)
+        self.assertIn(6, lines)
+        self.assertNotIn(8, lines)
+
+
+class ModulePopulationTests(unittest.TestCase):
+    def test_test_only_out_of_line_module_tree_is_inherited(self) -> None:
+        sources = {
+            Path("crates/demo/src/lib.rs"): "#[cfg(test)]\nmod guard;\nmod shipping;\n",
+            Path("crates/demo/src/guard/mod.rs"): "mod nested;\nfn guarded() {}\n",
+            Path("crates/demo/src/guard/nested.rs"): "fn nested() {}\n",
+            Path("crates/demo/src/shipping.rs"): "pub fn shipping() {}\n",
+        }
+        inherited = audit.inherited_test_files(sources, sorted(sources))
+        self.assertEqual(
+            inherited,
+            {
+                Path("crates/demo/src/guard/mod.rs"),
+                Path("crates/demo/src/guard/nested.rs"),
+            },
+        )
+
+    def test_preclassified_tests_module_is_a_valid_terminal_tree(self) -> None:
+        lib = Path("crates/demo/src/lib.rs")
+        tests = Path("crates/demo/src/tests.rs")
+        child = Path("crates/demo/src/tests/helper.rs")
+        sources = {
+            lib: "#[cfg(test)]\nmod tests;\n",
+            tests: "mod helper;\nfn test_root() {}\n",
+            child: "fn helper() {}\n",
+        }
+        inherited = audit.inherited_test_files(sources, [lib], [tests, child])
+        self.assertEqual(inherited, set())
+
+    def test_generated_marker_requires_exact_path_allowlist(self) -> None:
+        marked = Path("crates/demo/src/marked.rs")
+        ordinary = Path("crates/demo/src/ordinary.rs")
+        sources = {
+            marked: "// do not edit\npub fn generated() {}\n",
+            ordinary: "// do not edit this example\npub fn ordinary() {}\n",
+        }
+        production, _, generated = audit.classify_sources(
+            sources, {"generated_exclusions": []}
+        )
+        self.assertEqual(production, [marked, ordinary])
+        self.assertEqual(generated, [])
+
+        production, _, generated = audit.classify_sources(
+            sources,
+            {
+                "generated_exclusions": [
+                    {"path": marked.as_posix(), "marker": "// do not edit"}
+                ]
+            },
+        )
+        self.assertEqual(production, [ordinary])
+        self.assertEqual(generated, [marked])
+
+
+class ReportBindingTests(unittest.TestCase):
+    revision = "a" * 40
+    fingerprint = "b" * 64
+
+    def report(self) -> dict[str, object]:
+        return {
+            "analyzer": {
+                "contract_version": "code-health-v1",
+                "engine": "rust-code-analysis-cli",
+                "engine_version": "0.0.25",
+            },
+            "attention": {
+                "cognitive": 15,
+                "cyclomatic": 15,
+                "function_sloc": 100,
+                "module_authored_nonblank_lines": 1000,
+            },
+            "generated_exclusions": [],
+            "hotspots": [
+                {
+                    "id": "fixture",
+                    "locations": ["crates/demo/src/lib.rs"],
+                    "disposition": "document-exception",
+                    "owner": "test",
+                    "evidence": "test",
+                }
+            ],
+            "populations": {
+                "production": {
+                    "authored_nonblank_lines": 1,
+                    "files": 1,
+                    "functions": 1,
+                },
+                "external_test": {
+                    "authored_nonblank_lines": 0,
+                    "files": 0,
+                    "functions": 0,
+                },
+                "inline_test": {
+                    "authored_nonblank_lines": 0,
+                    "files": 0,
+                    "functions": 0,
+                },
+            },
+            "revision": self.revision,
+            "schema_version": 1,
+            "signals": {"functions": [], "modules": []},
+            "source_fingerprint_sha256": self.fingerprint,
+        }
+
+    def write_fixture(self, root: Path, report: dict[str, object]) -> Path:
+        rendered = audit.canonical_json(report)
+        digest = hashlib.sha256(rendered.encode()).hexdigest()
+        config = f'''\
+schema_version = 1
+contract_version = "code-health-v1"
+engine = "rust-code-analysis-cli"
+engine_version = "0.0.25"
+baseline_revision = "{self.revision}"
+baseline_source_fingerprint_sha256 = "{self.fingerprint}"
+baseline_report_sha256 = "{digest}"
+generated_exclusions = []
+
+[attention]
+function_sloc = 100
+cognitive = 15
+cyclomatic = 15
+module_authored_nonblank_lines = 1000
+
+[[hotspots]]
+id = "fixture"
+locations = ["crates/demo/src/lib.rs"]
+disposition = "document-exception"
+owner = "test"
+evidence = "test"
+'''
+        architecture = root / "docs/architecture"
+        architecture.mkdir(parents=True)
+        (architecture / "code-health.toml").write_text(config, encoding="utf-8")
+        path = architecture / "report.json"
+        path.write_text(rendered, encoding="utf-8")
+        return path
+
+    def test_canonical_report_mutations_fail_closed(self) -> None:
+        mutations = {
+            "revision": lambda value: value.update(revision="c" * 40),
+            "fingerprint": lambda value: value.update(source_fingerprint_sha256="d" * 64),
+            "counts": lambda value: value["populations"]["production"].update(files=0),
+            "signals": lambda value: value["signals"]["modules"].append(
+                {"path": "crates/demo/src/lib.rs", "authored_nonblank_lines": 1001}
+            ),
+            "exclusions": lambda value: value["generated_exclusions"].append(
+                "crates/demo/src/lib.rs"
+            ),
+            "missing_attention": lambda value: value.pop("attention"),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                path = self.write_fixture(root, self.report())
+                report = copy.deepcopy(self.report())
+                mutate(report)
+                path.write_text(audit.canonical_json(report), encoding="utf-8")
+                with self.assertRaises(audit.AuditError):
+                    audit.validate_report(root, path, policy_only=True)
+
+    def test_fast_source_binding_rejects_coordinated_count_tampering(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            changed = self.report()
+            changed["populations"]["production"]["files"] = 0
+            root = Path(directory)
+            path = self.write_fixture(root, changed)
+            sources = {Path("crates/demo/src/lib.rs"): "pub fn shipping() {}\n"}
+            with (
+                mock.patch.object(audit, "git_tree_sources", return_value=sources),
+                mock.patch.object(
+                    audit, "source_fingerprint", return_value=self.fingerprint
+                ),
+            ):
+                with self.assertRaises(audit.AuditError):
+                    audit.validate_report(root, path)
+
+    def test_slow_verification_compares_the_complete_report(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            expected = self.report()
+            changed = copy.deepcopy(expected)
+            changed["signals"]["modules"].append(
+                {"path": "crates/demo/src/lib.rs", "authored_nonblank_lines": 1001}
+            )
+            root = Path(directory)
+            path = self.write_fixture(root, changed)
+            with (
+                mock.patch.object(audit, "validate_report", return_value=changed),
+                mock.patch.object(audit, "regenerate_baseline", return_value=expected),
+            ):
+                with self.assertRaises(audit.AuditError):
+                    audit.verify_baseline(root, path)
 
 
 if __name__ == "__main__":

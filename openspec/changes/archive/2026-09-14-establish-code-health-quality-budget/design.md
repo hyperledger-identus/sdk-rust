@@ -24,11 +24,22 @@ checked baseline. JSON uses sorted keys and deterministic path ordering.
 
 ### Classify cfg(test) by syntax and conservative evaluation
 
-The wrapper lexes comments and Rust literals before finding outer attributes
-and balanced item boundaries. It parses `cfg` combinators using three-valued
-logic with `test = false`; only a definitively false expression marks an item
-test-only. Exact tests cover comments/strings, `all`, `any`, `not`, adjacent
-attributes, inline modules, and unknown predicates.
+The wrapper lexes comments and Rust literals before finding contiguous outer
+attribute groups and context-aware item, field, and variant boundaries. It
+parses `cfg` combinators using three-valued logic with `test = false`; only a
+definitively false expression marks an item test-only. A test-only out-of-line
+module declaration recursively transfers that classification through ordinary
+Rust module resolution. Exact tests cover comments/strings, `all`, `any`,
+`not`, preceding/adjacent attributes, comma-terminated fields and variants,
+inline and out-of-line module trees, preclassified test modules, and unknown
+predicates.
+
+The policy pins baseline revision, source fingerprint and canonical report
+digest. Fast validation reloads the Git tree and recomputes authored source
+evidence; source-only Nix fixtures enforce the complete schema and digest. A
+weekly fetch-depth-zero gate invokes the pinned analyzer and compares the
+entire regenerated report. Generated exclusion requires an exact allowlisted
+path and exact header marker.
 
 ### Separate observation from policy
 

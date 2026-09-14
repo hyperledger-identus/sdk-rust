@@ -15,7 +15,10 @@ easy to game and would confuse test evidence with shipped code.
 - Pin `rust-code-analysis-cli` 0.0.25 through the locked Nix development shell
   and add a deterministic repository audit/report command.
 - Separate authored production, external-test, and syntax-recognized inline
-  test populations; generated inputs are reported but excluded.
+  test populations, including inherited out-of-line test modules; generated
+  inputs require an exact path-and-marker allowlist.
+- Bind the baseline to a policy-pinned revision, source fingerprint and report
+  digest with cheap Git-tree verification and pinned weekly regeneration.
 - Check in the exact-head baseline and classify every named issue #270 hotspot
   as `decompose`, `deduplicate`, `document-exception`, or `defer-with-owner`.
 - Apply one low-risk production refactor: make DID cache and registry reuse one

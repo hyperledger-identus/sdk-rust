@@ -32,3 +32,12 @@
   the exact diff with zero unresolved blockers.
 - [x] 4.3 Complete verification artifacts, pass factory ready/receipt/archive,
   push a signed+DCO branch, and open a ready issue-linked PR to `develop`.
+
+## 5. Independent review remediation
+
+- [x] 5.1 Bind the closed report schema and cheap populations to the
+  policy-pinned Git tree; add exact generated exclusions and mutation tests.
+- [x] 5.2 Handle contiguous outer attributes, comma-terminated fields/variants,
+  and inherited out-of-line test module trees with focused fixtures.
+- [x] 5.3 Add pinned full-report regeneration to weekly CI and rerun all
+  affected factory, analyzer, DID, Cargo and Nix gates before pushing.

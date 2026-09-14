@@ -32,7 +32,11 @@ reversible and changes no protected setting or release promise.
 - Conditional compilation is classified conservatively: unknown feature or
   target predicates remain production unless `test = false` makes the whole
   expression false.
-- Macro-expanded and generated code is not attributed as authored production.
+- Macro-expanded code is not attributed as authored production. Generated code
+  is excluded only through an exact reviewed path-and-marker allowlist.
+- Fast source binding requires the policy-pinned Git object; source-only Nix
+  archives enforce schema/digest while weekly full-history CI regenerates the
+  analyzer evidence.
 - Baselines describe one immutable revision and are not a quality score or a
   requirement that every later PR update a global snapshot.
 

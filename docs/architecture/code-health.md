@@ -10,13 +10,27 @@ inside the pinned shell:
 The command requires `rust-code-analysis-cli 0.0.25`, reads the policy and
 hotspot dispositions in [`code-health.toml`](code-health.toml), and emits
 canonical JSON. `docs/architecture/code-health-baseline.json` records the
-immutable issue #270 starting revision. Validate the checked report without
-running the metric engine with:
+immutable issue #270 starting revision. Its revision, source fingerprint and
+whole canonical-report digest are policy-pinned. Fast validation reloads that
+Git tree and recomputes the authored fingerprint, exact generated exclusions,
+and line/file populations without running the metric engine:
 
 ```bash
 python3 scripts/code-health-audit.py \
   --check-report docs/architecture/code-health-baseline.json
 ```
+
+Weekly slow validation uses the Nix-pinned analyzer to regenerate and compare
+the complete report, including function counts and attention signals:
+
+```bash
+./bootstrap.sh -- python3 scripts/code-health-audit.py --verify-baseline
+```
+
+Source-only Nix archives lack Git history. Their factory structural check uses
+`--policy-only`, which still enforces the exact schema and policy-pinned report
+digest; the fast Git checkout and weekly regeneration gates provide the tree
+bindings.
 
 A live audit rejects tracked or untracked Rust that differs from the recorded
 revision. Commit the intended source first or run the command from a clean
@@ -29,10 +43,13 @@ worktree; unrelated documentation changes do not invalidate source evidence.
 - **External test** is authored Rust in `crates/*/tests` plus dedicated source
   test files.
 - **Inline test** is an item whose `cfg` predicate is definitively false when
-  `test = false`. Other predicates are unknown, so
+  `test = false`. Its complete contiguous outer-attribute group is included.
+  A test-only out-of-line `mod name;` recursively classifies the ordinary
+  `name.rs` or `name/mod.rs` module tree. Other predicates are unknown, so
   `cfg(any(test, feature = "diagnostics"))` remains production.
-- **Generated** Rust is reported and excluded when its header carries a known
-  generated/do-not-edit marker.
+- **Generated** Rust is excluded only when `code-health.toml` names its exact
+  path and an exact marker present in the first ten lines. Generic phrases in
+  comments never cause exclusion.
 
 `authored_nonblank_lines` includes comments and documentation deliberately: it
 measures review surface, not executable SLOC. Function `sloc`, cognitive, and

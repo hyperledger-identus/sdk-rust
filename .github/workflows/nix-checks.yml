@@ -171,6 +171,11 @@ jobs:
       - name: Magic Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
 
+      - name: Regenerate pinned code-health baseline
+        run: >-
+          nix develop --command
+          python3 scripts/code-health-audit.py --verify-baseline
+
       - name: Run complete Clippy surface
         run: >-
           nix build --print-build-logs

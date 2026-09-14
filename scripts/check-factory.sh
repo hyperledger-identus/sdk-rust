@@ -199,7 +199,7 @@ if [[ -x "$factory_root/scripts/check-crypto-candidate.py" && -f "$factory_root/
 fi
 
 if [[ -x "$factory_root/scripts/code-health-audit.py" && -f "$factory_root/docs/architecture/code-health-baseline.json" ]]; then
-  if ! python3 "$factory_root/scripts/code-health-audit.py" --root "$factory_root" --check-report "$factory_root/docs/architecture/code-health-baseline.json"; then
+  if ! python3 "$factory_root/scripts/code-health-audit.py" --root "$factory_root" --check-report "$factory_root/docs/architecture/code-health-baseline.json" --policy-only; then
     report_failure "code-health report validation failed"
   fi
 fi

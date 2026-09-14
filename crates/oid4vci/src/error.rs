@@ -2,7 +2,13 @@
 
 use std::fmt;
 
-use identus_core::{CapabilityId, ErrorKind, IdentusError};
+use identus_core::{CapabilityId, IdentusError};
+
+use crate::error_contract::{
+    ErrorContract, credential_nonce_http, deferred_immediate_issuance,
+    issuer_authorization_server_metadata, offer_semantics_grants, offer_transport_json,
+    token_request_response_errors,
+};
 
 /// Owning capability for OID4VCI errors.
 pub const CAPABILITY: CapabilityId = CapabilityId::new("oid4vci");
@@ -502,867 +508,201 @@ pub enum CredentialOfferError {
     CredentialResponseExceedsProofCount,
 }
 
+macro_rules! define_credential_offer_error_contracts {
+    ($($variant:ident => $contract:path),+ $(,)?) => {
+        impl CredentialOfferError {
+            const fn contract(self) -> ErrorContract {
+                match self {
+                    $(Self::$variant => $contract),+
+                }
+            }
+
+            #[cfg(test)]
+            pub(crate) const CONTRACT_VARIANTS: &'static [Self] = &[
+                $(Self::$variant),+
+            ];
+        }
+    };
+}
+
+define_credential_offer_error_contracts! {
+    InvalidLimits => offer_transport_json::INVALID_LIMITS,
+    InvocationTooLarge => offer_transport_json::INVOCATION_TOO_LARGE,
+    InvalidInvocation => offer_transport_json::INVALID_INVOCATION,
+    UnsupportedTransport => offer_transport_json::UNSUPPORTED_TRANSPORT,
+    InvalidFormEncoding => offer_transport_json::INVALID_FORM_ENCODING,
+    EmbeddedTooLarge => offer_transport_json::EMBEDDED_TOO_LARGE,
+    InvalidEmbeddedJson => offer_transport_json::INVALID_EMBEDDED_JSON,
+    DuplicateJsonProperty => offer_transport_json::DUPLICATE_JSON_PROPERTY,
+    JsonTooDeep => offer_transport_json::JSON_TOO_DEEP,
+    JsonTooManyNodes => offer_transport_json::JSON_TOO_MANY_NODES,
+    ReferenceTooLarge => offer_transport_json::REFERENCE_TOO_LARGE,
+    UnsafeReferenceUri => offer_transport_json::UNSAFE_REFERENCE_URI,
+    InvalidSemanticLimits => offer_semantics_grants::INVALID_SEMANTIC_LIMITS,
+    InvalidOfferFields => offer_semantics_grants::INVALID_OFFER_FIELDS,
+    IssuerTooLarge => offer_semantics_grants::ISSUER_TOO_LARGE,
+    UnsafeCredentialIssuer => offer_semantics_grants::UNSAFE_CREDENTIAL_ISSUER,
+    InvalidConfigurationIds => offer_semantics_grants::INVALID_CONFIGURATION_IDS,
+    ConfigurationIdTooLarge => offer_semantics_grants::CONFIGURATION_ID_TOO_LARGE,
+    TooManyConfigurationIds => offer_semantics_grants::TOO_MANY_CONFIGURATION_IDS,
+    DuplicateConfigurationId => offer_semantics_grants::DUPLICATE_CONFIGURATION_ID,
+    InvalidGrants => offer_semantics_grants::INVALID_GRANTS,
+    InvalidGrantLimits => offer_semantics_grants::INVALID_GRANT_LIMITS,
+    InvalidAuthorizationCodeGrant => offer_semantics_grants::INVALID_AUTHORIZATION_CODE_GRANT,
+    InvalidPreAuthorizedCodeGrant => offer_semantics_grants::INVALID_PRE_AUTHORIZED_CODE_GRANT,
+    IssuerStateTooLarge => offer_semantics_grants::ISSUER_STATE_TOO_LARGE,
+    PreAuthorizedCodeTooLarge => offer_semantics_grants::PRE_AUTHORIZED_CODE_TOO_LARGE,
+    AuthorizationServerTooLarge => offer_semantics_grants::AUTHORIZATION_SERVER_TOO_LARGE,
+    UnsafeAuthorizationServer => offer_semantics_grants::UNSAFE_AUTHORIZATION_SERVER,
+    InvalidTransactionCode => offer_semantics_grants::INVALID_TRANSACTION_CODE,
+    InvalidTransactionCodeMode => offer_semantics_grants::INVALID_TRANSACTION_CODE_MODE,
+    InvalidTransactionCodeLength => offer_semantics_grants::INVALID_TRANSACTION_CODE_LENGTH,
+    TransactionCodeLengthTooLarge => offer_semantics_grants::TRANSACTION_CODE_LENGTH_TOO_LARGE,
+    TransactionCodeDescriptionTooLarge => offer_semantics_grants::TRANSACTION_CODE_DESCRIPTION_TOO_LARGE,
+    InvalidMetadataLimits => issuer_authorization_server_metadata::INVALID_METADATA_LIMITS,
+    MetadataTooLarge => issuer_authorization_server_metadata::METADATA_TOO_LARGE,
+    InvalidMetadata => issuer_authorization_server_metadata::INVALID_METADATA,
+    MetadataIssuerMismatch => issuer_authorization_server_metadata::METADATA_ISSUER_MISMATCH,
+    CredentialEndpointTooLarge => issuer_authorization_server_metadata::CREDENTIAL_ENDPOINT_TOO_LARGE,
+    UnsafeCredentialEndpoint => issuer_authorization_server_metadata::UNSAFE_CREDENTIAL_ENDPOINT,
+    NonceEndpointTooLarge => issuer_authorization_server_metadata::NONCE_ENDPOINT_TOO_LARGE,
+    UnsafeNonceEndpoint => issuer_authorization_server_metadata::UNSAFE_NONCE_ENDPOINT,
+    DeferredCredentialEndpointTooLarge => issuer_authorization_server_metadata::DEFERRED_CREDENTIAL_ENDPOINT_TOO_LARGE,
+    UnsafeDeferredCredentialEndpoint => issuer_authorization_server_metadata::UNSAFE_DEFERRED_CREDENTIAL_ENDPOINT,
+    NonceEndpointRequired => issuer_authorization_server_metadata::NONCE_ENDPOINT_REQUIRED,
+    InvalidAuthorizationServers => issuer_authorization_server_metadata::INVALID_AUTHORIZATION_SERVERS,
+    TooManyAuthorizationServers => issuer_authorization_server_metadata::TOO_MANY_AUTHORIZATION_SERVERS,
+    DuplicateAuthorizationServer => issuer_authorization_server_metadata::DUPLICATE_AUTHORIZATION_SERVER,
+    InvalidCredentialConfigurations => issuer_authorization_server_metadata::INVALID_CREDENTIAL_CONFIGURATIONS,
+    TooManyCredentialConfigurations => issuer_authorization_server_metadata::TOO_MANY_CREDENTIAL_CONFIGURATIONS,
+    InvalidCredentialFormat => issuer_authorization_server_metadata::INVALID_CREDENTIAL_FORMAT,
+    CredentialFormatTooLarge => issuer_authorization_server_metadata::CREDENTIAL_FORMAT_TOO_LARGE,
+    OfferMetadataIssuerMismatch => issuer_authorization_server_metadata::OFFER_METADATA_ISSUER_MISMATCH,
+    OfferedConfigurationMissing => issuer_authorization_server_metadata::OFFERED_CONFIGURATION_MISSING,
+    InvalidAuthorizationServerHint => issuer_authorization_server_metadata::INVALID_AUTHORIZATION_SERVER_HINT,
+    InvalidAuthorizationServerMetadataLimits => issuer_authorization_server_metadata::INVALID_AUTHORIZATION_SERVER_METADATA_LIMITS,
+    AuthorizationServerMetadataTooLarge => issuer_authorization_server_metadata::AUTHORIZATION_SERVER_METADATA_TOO_LARGE,
+    InvalidAuthorizationServerMetadata => issuer_authorization_server_metadata::INVALID_AUTHORIZATION_SERVER_METADATA,
+    AuthorizationServerMetadataIssuerMismatch => issuer_authorization_server_metadata::AUTHORIZATION_SERVER_METADATA_ISSUER_MISMATCH,
+    AuthorizationEndpointTooLarge => issuer_authorization_server_metadata::AUTHORIZATION_ENDPOINT_TOO_LARGE,
+    UnsafeAuthorizationEndpoint => issuer_authorization_server_metadata::UNSAFE_AUTHORIZATION_ENDPOINT,
+    TokenEndpointTooLarge => issuer_authorization_server_metadata::TOKEN_ENDPOINT_TOO_LARGE,
+    UnsafeTokenEndpoint => issuer_authorization_server_metadata::UNSAFE_TOKEN_ENDPOINT,
+    InvalidGrantTypes => issuer_authorization_server_metadata::INVALID_GRANT_TYPES,
+    GrantTypeTooLarge => issuer_authorization_server_metadata::GRANT_TYPE_TOO_LARGE,
+    TooManyGrantTypes => issuer_authorization_server_metadata::TOO_MANY_GRANT_TYPES,
+    DuplicateGrantType => issuer_authorization_server_metadata::DUPLICATE_GRANT_TYPE,
+    InvalidAnonymousPreAuthorizedAccess => issuer_authorization_server_metadata::INVALID_ANONYMOUS_PRE_AUTHORIZED_ACCESS,
+    PreAuthorizedCodeGrantMissing => issuer_authorization_server_metadata::PRE_AUTHORIZED_CODE_GRANT_MISSING,
+    AuthorizationServerNotAdvertised => issuer_authorization_server_metadata::AUTHORIZATION_SERVER_NOT_ADVERTISED,
+    PreAuthorizedServerHintMismatch => issuer_authorization_server_metadata::PRE_AUTHORIZED_SERVER_HINT_MISMATCH,
+    PreAuthorizedGrantNotSupported => issuer_authorization_server_metadata::PRE_AUTHORIZED_GRANT_NOT_SUPPORTED,
+    TokenEndpointRequired => issuer_authorization_server_metadata::TOKEN_ENDPOINT_REQUIRED,
+    InvalidTransactionCodeInputLimits => token_request_response_errors::INVALID_TRANSACTION_CODE_INPUT_LIMITS,
+    TransactionCodeInputRequired => token_request_response_errors::TRANSACTION_CODE_INPUT_REQUIRED,
+    TransactionCodeInputUnexpected => token_request_response_errors::TRANSACTION_CODE_INPUT_UNEXPECTED,
+    TransactionCodeInputEmpty => token_request_response_errors::TRANSACTION_CODE_INPUT_EMPTY,
+    TransactionCodeInputTooLarge => token_request_response_errors::TRANSACTION_CODE_INPUT_TOO_LARGE,
+    InvalidPreAuthorizedTokenRequestLimits => token_request_response_errors::INVALID_PRE_AUTHORIZED_TOKEN_REQUEST_LIMITS,
+    PreAuthorizedTokenRequestTooLarge => token_request_response_errors::PRE_AUTHORIZED_TOKEN_REQUEST_TOO_LARGE,
+    InvalidTokenResponseLimits => token_request_response_errors::INVALID_TOKEN_RESPONSE_LIMITS,
+    TokenResponseTooLarge => token_request_response_errors::TOKEN_RESPONSE_TOO_LARGE,
+    InvalidTokenResponse => token_request_response_errors::INVALID_TOKEN_RESPONSE,
+    InvalidAccessToken => token_request_response_errors::INVALID_ACCESS_TOKEN,
+    AccessTokenTooLarge => token_request_response_errors::ACCESS_TOKEN_TOO_LARGE,
+    InvalidTokenType => token_request_response_errors::INVALID_TOKEN_TYPE,
+    TokenTypeTooLarge => token_request_response_errors::TOKEN_TYPE_TOO_LARGE,
+    InvalidTokenExpiresIn => token_request_response_errors::INVALID_TOKEN_EXPIRES_IN,
+    InvalidRefreshToken => token_request_response_errors::INVALID_REFRESH_TOKEN,
+    RefreshTokenTooLarge => token_request_response_errors::REFRESH_TOKEN_TOO_LARGE,
+    InvalidTokenScope => token_request_response_errors::INVALID_TOKEN_SCOPE,
+    TokenScopeTooLarge => token_request_response_errors::TOKEN_SCOPE_TOO_LARGE,
+    InvalidTokenAuthorizationDetailsLimits => token_request_response_errors::INVALID_TOKEN_AUTHORIZATION_DETAILS_LIMITS,
+    InvalidTokenAuthorizationDetails => token_request_response_errors::INVALID_TOKEN_AUTHORIZATION_DETAILS,
+    TooManyTokenAuthorizationDetails => token_request_response_errors::TOO_MANY_TOKEN_AUTHORIZATION_DETAILS,
+    TokenAuthorizationDetailValueTooLarge => token_request_response_errors::TOKEN_AUTHORIZATION_DETAIL_VALUE_TOO_LARGE,
+    TooManyCredentialIdentifiers => token_request_response_errors::TOO_MANY_CREDENTIAL_IDENTIFIERS,
+    DuplicateCredentialIdentifier => token_request_response_errors::DUPLICATE_CREDENTIAL_IDENTIFIER,
+    InvalidTokenErrorResponseLimits => token_request_response_errors::INVALID_TOKEN_ERROR_RESPONSE_LIMITS,
+    TokenErrorResponseTooLarge => token_request_response_errors::TOKEN_ERROR_RESPONSE_TOO_LARGE,
+    InvalidTokenErrorResponse => token_request_response_errors::INVALID_TOKEN_ERROR_RESPONSE,
+    InvalidTokenEndpointErrorCode => token_request_response_errors::INVALID_TOKEN_ENDPOINT_ERROR_CODE,
+    TokenEndpointErrorCodeTooLarge => token_request_response_errors::TOKEN_ENDPOINT_ERROR_CODE_TOO_LARGE,
+    InvalidTokenErrorDescription => token_request_response_errors::INVALID_TOKEN_ERROR_DESCRIPTION,
+    TokenErrorDescriptionTooLarge => token_request_response_errors::TOKEN_ERROR_DESCRIPTION_TOO_LARGE,
+    InvalidTokenErrorUri => token_request_response_errors::INVALID_TOKEN_ERROR_URI,
+    TokenErrorUriTooLarge => token_request_response_errors::TOKEN_ERROR_URI_TOO_LARGE,
+    InvalidCredentialErrorResponseLimits => credential_nonce_http::INVALID_CREDENTIAL_ERROR_RESPONSE_LIMITS,
+    CredentialErrorResponseTooLarge => credential_nonce_http::CREDENTIAL_ERROR_RESPONSE_TOO_LARGE,
+    InvalidCredentialErrorResponse => credential_nonce_http::INVALID_CREDENTIAL_ERROR_RESPONSE,
+    InvalidCredentialEndpointErrorCode => credential_nonce_http::INVALID_CREDENTIAL_ENDPOINT_ERROR_CODE,
+    CredentialEndpointErrorCodeTooLarge => credential_nonce_http::CREDENTIAL_ENDPOINT_ERROR_CODE_TOO_LARGE,
+    InvalidCredentialErrorDescription => credential_nonce_http::INVALID_CREDENTIAL_ERROR_DESCRIPTION,
+    CredentialErrorDescriptionTooLarge => credential_nonce_http::CREDENTIAL_ERROR_DESCRIPTION_TOO_LARGE,
+    InvalidCredentialErrorHttpResponseLimits => credential_nonce_http::INVALID_CREDENTIAL_ERROR_HTTP_RESPONSE_LIMITS,
+    InvalidCredentialErrorHttpStatus => credential_nonce_http::INVALID_CREDENTIAL_ERROR_HTTP_STATUS,
+    CredentialErrorContentTypeTooLarge => credential_nonce_http::CREDENTIAL_ERROR_CONTENT_TYPE_TOO_LARGE,
+    InvalidCredentialErrorContentType => credential_nonce_http::INVALID_CREDENTIAL_ERROR_CONTENT_TYPE,
+    GenericCredentialErrorCodeForbidden => credential_nonce_http::GENERIC_CREDENTIAL_ERROR_CODE_FORBIDDEN,
+    InvalidCredentialNonceResponseLimits => credential_nonce_http::INVALID_CREDENTIAL_NONCE_RESPONSE_LIMITS,
+    CredentialNonceResponseTooLarge => credential_nonce_http::CREDENTIAL_NONCE_RESPONSE_TOO_LARGE,
+    InvalidCredentialNonceResponse => credential_nonce_http::INVALID_CREDENTIAL_NONCE_RESPONSE,
+    InvalidCredentialNonce => credential_nonce_http::INVALID_CREDENTIAL_NONCE,
+    CredentialNonceTooLarge => credential_nonce_http::CREDENTIAL_NONCE_TOO_LARGE,
+    InvalidCredentialNonceHttpResponseLimits => credential_nonce_http::INVALID_CREDENTIAL_NONCE_HTTP_RESPONSE_LIMITS,
+    InvalidCredentialNonceHttpStatus => credential_nonce_http::INVALID_CREDENTIAL_NONCE_HTTP_STATUS,
+    CredentialNonceContentTypeTooLarge => credential_nonce_http::CREDENTIAL_NONCE_CONTENT_TYPE_TOO_LARGE,
+    InvalidCredentialNonceContentType => credential_nonce_http::INVALID_CREDENTIAL_NONCE_CONTENT_TYPE,
+    CredentialNonceCacheControlTooLarge => credential_nonce_http::CREDENTIAL_NONCE_CACHE_CONTROL_TOO_LARGE,
+    InvalidCredentialNonceCacheControl => credential_nonce_http::INVALID_CREDENTIAL_NONCE_CACHE_CONTROL,
+    InvalidJwtCredentialRequestLimits => credential_nonce_http::INVALID_JWT_CREDENTIAL_REQUEST_LIMITS,
+    CredentialRequestConfigurationMissing => credential_nonce_http::CREDENTIAL_REQUEST_CONFIGURATION_MISSING,
+    CredentialRequestAuthorizationDetailMissing => credential_nonce_http::CREDENTIAL_REQUEST_AUTHORIZATION_DETAIL_MISSING,
+    CredentialRequestIdentifierMissing => credential_nonce_http::CREDENTIAL_REQUEST_IDENTIFIER_MISSING,
+    CredentialRequestAuthorizationConfigurationMismatch => credential_nonce_http::CREDENTIAL_REQUEST_AUTHORIZATION_CONFIGURATION_MISMATCH,
+    CredentialRequestAuthorizationDetailsUnsupported => credential_nonce_http::CREDENTIAL_REQUEST_AUTHORIZATION_DETAILS_UNSUPPORTED,
+    CredentialRequestTokenTypeUnsupported => credential_nonce_http::CREDENTIAL_REQUEST_TOKEN_TYPE_UNSUPPORTED,
+    InvalidCredentialRequestBearerToken => credential_nonce_http::INVALID_CREDENTIAL_REQUEST_BEARER_TOKEN,
+    CredentialRequestProofsRequired => credential_nonce_http::CREDENTIAL_REQUEST_PROOFS_REQUIRED,
+    TooManyCredentialRequestProofs => credential_nonce_http::TOO_MANY_CREDENTIAL_REQUEST_PROOFS,
+    CredentialRequestProofTooLarge => credential_nonce_http::CREDENTIAL_REQUEST_PROOF_TOO_LARGE,
+    CredentialRequestAuthorizationTooLarge => credential_nonce_http::CREDENTIAL_REQUEST_AUTHORIZATION_TOO_LARGE,
+    CredentialRequestBodyTooLarge => credential_nonce_http::CREDENTIAL_REQUEST_BODY_TOO_LARGE,
+    InvalidDeferredCredentialRequestLimits => deferred_immediate_issuance::INVALID_DEFERRED_CREDENTIAL_REQUEST_LIMITS,
+    DeferredCredentialEndpointRequired => deferred_immediate_issuance::DEFERRED_CREDENTIAL_ENDPOINT_REQUIRED,
+    DeferredCredentialRequestTooLarge => deferred_immediate_issuance::DEFERRED_CREDENTIAL_REQUEST_TOO_LARGE,
+    InvalidDeferredCredentialResponseLimits => deferred_immediate_issuance::INVALID_DEFERRED_CREDENTIAL_RESPONSE_LIMITS,
+    DeferredCredentialResponseTooLarge => deferred_immediate_issuance::DEFERRED_CREDENTIAL_RESPONSE_TOO_LARGE,
+    InvalidDeferredCredentialResponse => deferred_immediate_issuance::INVALID_DEFERRED_CREDENTIAL_RESPONSE,
+    TooManyDeferredCredentialResponseMembers => deferred_immediate_issuance::TOO_MANY_DEFERRED_CREDENTIAL_RESPONSE_MEMBERS,
+    InvalidDeferredTransactionId => deferred_immediate_issuance::INVALID_DEFERRED_TRANSACTION_ID,
+    DeferredTransactionIdTooLarge => deferred_immediate_issuance::DEFERRED_TRANSACTION_ID_TOO_LARGE,
+    InvalidDeferredCredentialInterval => deferred_immediate_issuance::INVALID_DEFERRED_CREDENTIAL_INTERVAL,
+    DeferredCredentialIntervalTooLarge => deferred_immediate_issuance::DEFERRED_CREDENTIAL_INTERVAL_TOO_LARGE,
+    DeferredCredentialResponseBranchConflict => deferred_immediate_issuance::DEFERRED_CREDENTIAL_RESPONSE_BRANCH_CONFLICT,
+    InvalidImmediateCredentialResponseLimits => deferred_immediate_issuance::INVALID_IMMEDIATE_CREDENTIAL_RESPONSE_LIMITS,
+    ImmediateCredentialResponseTooLarge => deferred_immediate_issuance::IMMEDIATE_CREDENTIAL_RESPONSE_TOO_LARGE,
+    InvalidImmediateCredentialResponse => deferred_immediate_issuance::INVALID_IMMEDIATE_CREDENTIAL_RESPONSE,
+    DeferredCredentialResponseUnsupported => deferred_immediate_issuance::DEFERRED_CREDENTIAL_RESPONSE_UNSUPPORTED,
+    TooManyCredentialResponseMembers => deferred_immediate_issuance::TOO_MANY_CREDENTIAL_RESPONSE_MEMBERS,
+    TooManyIssuedCredentials => deferred_immediate_issuance::TOO_MANY_ISSUED_CREDENTIALS,
+    TooManyIssuedCredentialMembers => deferred_immediate_issuance::TOO_MANY_ISSUED_CREDENTIAL_MEMBERS,
+    InvalidIssuedCredential => deferred_immediate_issuance::INVALID_ISSUED_CREDENTIAL,
+    IssuedCredentialTooLarge => deferred_immediate_issuance::ISSUED_CREDENTIAL_TOO_LARGE,
+    IssuedCredentialsTooLarge => deferred_immediate_issuance::ISSUED_CREDENTIALS_TOO_LARGE,
+    InvalidCredentialNotificationId => deferred_immediate_issuance::INVALID_CREDENTIAL_NOTIFICATION_ID,
+    CredentialNotificationIdTooLarge => deferred_immediate_issuance::CREDENTIAL_NOTIFICATION_ID_TOO_LARGE,
+    InvalidImmediateCredentialHttpResponseLimits => deferred_immediate_issuance::INVALID_IMMEDIATE_CREDENTIAL_HTTP_RESPONSE_LIMITS,
+    InvalidImmediateCredentialHttpStatus => deferred_immediate_issuance::INVALID_IMMEDIATE_CREDENTIAL_HTTP_STATUS,
+    ImmediateCredentialContentTypeTooLarge => deferred_immediate_issuance::IMMEDIATE_CREDENTIAL_CONTENT_TYPE_TOO_LARGE,
+    InvalidImmediateCredentialContentType => deferred_immediate_issuance::INVALID_IMMEDIATE_CREDENTIAL_CONTENT_TYPE,
+    CredentialResponseExceedsProofCount => deferred_immediate_issuance::CREDENTIAL_RESPONSE_EXCEEDS_PROOF_COUNT,
+}
+
 impl CredentialOfferError {
     /// Convert to the workspace-wide redaction-safe error contract.
     pub const fn to_identus_error(self) -> IdentusError {
-        let (code, kind, message) = match self {
-            Self::InvalidLimits => (
-                error_code::INVALID_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI limits are invalid",
-            ),
-            Self::InvocationTooLarge => (
-                error_code::INVOCATION_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer invocation is too large",
-            ),
-            Self::InvalidInvocation => (
-                error_code::INVALID_INVOCATION,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer invocation is invalid",
-            ),
-            Self::UnsupportedTransport => (
-                error_code::UNSUPPORTED_TRANSPORT,
-                ErrorKind::Unsupported,
-                "OID4VCI Credential Offer transport is unsupported",
-            ),
-            Self::InvalidFormEncoding => (
-                error_code::INVALID_FORM_ENCODING,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer encoding is invalid",
-            ),
-            Self::EmbeddedTooLarge => (
-                error_code::EMBEDDED_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI embedded Credential Offer is too large",
-            ),
-            Self::InvalidEmbeddedJson => (
-                error_code::INVALID_EMBEDDED_JSON,
-                ErrorKind::InvalidInput,
-                "OID4VCI JSON object is invalid",
-            ),
-            Self::DuplicateJsonProperty => (
-                error_code::DUPLICATE_JSON_PROPERTY,
-                ErrorKind::InvalidInput,
-                "OID4VCI JSON object repeats a member",
-            ),
-            Self::JsonTooDeep => (
-                error_code::JSON_TOO_DEEP,
-                ErrorKind::InvalidInput,
-                "OID4VCI JSON object is too deep",
-            ),
-            Self::JsonTooManyNodes => (
-                error_code::JSON_TOO_MANY_NODES,
-                ErrorKind::InvalidInput,
-                "OID4VCI JSON object has too many nodes",
-            ),
-            Self::ReferenceTooLarge => (
-                error_code::REFERENCE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer reference is too large",
-            ),
-            Self::UnsafeReferenceUri => (
-                error_code::UNSAFE_REFERENCE_URI,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer reference URI is unsafe",
-            ),
-            Self::InvalidSemanticLimits => (
-                error_code::INVALID_SEMANTIC_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer semantic limits are invalid",
-            ),
-            Self::InvalidOfferFields => (
-                error_code::INVALID_OFFER_FIELDS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer required fields are invalid",
-            ),
-            Self::IssuerTooLarge => (
-                error_code::ISSUER_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Issuer Identifier is too large",
-            ),
-            Self::UnsafeCredentialIssuer => (
-                error_code::UNSAFE_CREDENTIAL_ISSUER,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Issuer Identifier is unsafe",
-            ),
-            Self::InvalidConfigurationIds => (
-                error_code::INVALID_CONFIGURATION_IDS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Configuration IDs are invalid",
-            ),
-            Self::ConfigurationIdTooLarge => (
-                error_code::CONFIGURATION_ID_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Configuration ID is too large",
-            ),
-            Self::TooManyConfigurationIds => (
-                error_code::TOO_MANY_CONFIGURATION_IDS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer has too many configuration IDs",
-            ),
-            Self::DuplicateConfigurationId => (
-                error_code::DUPLICATE_CONFIGURATION_ID,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer repeats a configuration ID",
-            ),
-            Self::InvalidGrants => (
-                error_code::INVALID_GRANTS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer grants are invalid",
-            ),
-            Self::InvalidGrantLimits => (
-                error_code::INVALID_GRANT_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer grant limits are invalid",
-            ),
-            Self::InvalidAuthorizationCodeGrant => (
-                error_code::INVALID_AUTHORIZATION_CODE_GRANT,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Code grant is invalid",
-            ),
-            Self::InvalidPreAuthorizedCodeGrant => (
-                error_code::INVALID_PRE_AUTHORIZED_CODE_GRANT,
-                ErrorKind::InvalidInput,
-                "OID4VCI Pre-Authorized Code grant is invalid",
-            ),
-            Self::IssuerStateTooLarge => (
-                error_code::ISSUER_STATE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI issuer state is too large",
-            ),
-            Self::PreAuthorizedCodeTooLarge => (
-                error_code::PRE_AUTHORIZED_CODE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Pre-Authorized Code is too large",
-            ),
-            Self::AuthorizationServerTooLarge => (
-                error_code::AUTHORIZATION_SERVER_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Server identifier is too large",
-            ),
-            Self::UnsafeAuthorizationServer => (
-                error_code::UNSAFE_AUTHORIZATION_SERVER,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Server identifier is unsafe",
-            ),
-            Self::InvalidTransactionCode => (
-                error_code::INVALID_TRANSACTION_CODE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Transaction Code requirements are invalid",
-            ),
-            Self::InvalidTransactionCodeMode => (
-                error_code::INVALID_TRANSACTION_CODE_MODE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Transaction Code input mode is invalid",
-            ),
-            Self::InvalidTransactionCodeLength => (
-                error_code::INVALID_TRANSACTION_CODE_LENGTH,
-                ErrorKind::InvalidInput,
-                "OID4VCI Transaction Code length is invalid",
-            ),
-            Self::TransactionCodeLengthTooLarge => (
-                error_code::TRANSACTION_CODE_LENGTH_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Transaction Code length is too large",
-            ),
-            Self::TransactionCodeDescriptionTooLarge => (
-                error_code::TRANSACTION_CODE_DESCRIPTION_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Transaction Code description is too large",
-            ),
-            Self::InvalidMetadataLimits => (
-                error_code::INVALID_METADATA_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Issuer Metadata limits are invalid",
-            ),
-            Self::MetadataTooLarge => (
-                error_code::METADATA_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Issuer Metadata is too large",
-            ),
-            Self::InvalidMetadata => (
-                error_code::INVALID_METADATA,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Issuer Metadata is invalid",
-            ),
-            Self::MetadataIssuerMismatch => (
-                error_code::METADATA_ISSUER_MISMATCH,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Issuer Metadata identifier does not match",
-            ),
-            Self::CredentialEndpointTooLarge => (
-                error_code::CREDENTIAL_ENDPOINT_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Endpoint is too large",
-            ),
-            Self::UnsafeCredentialEndpoint => (
-                error_code::UNSAFE_CREDENTIAL_ENDPOINT,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Endpoint is unsafe",
-            ),
-            Self::NonceEndpointTooLarge => (
-                error_code::NONCE_ENDPOINT_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Nonce Endpoint is too large",
-            ),
-            Self::UnsafeNonceEndpoint => (
-                error_code::UNSAFE_NONCE_ENDPOINT,
-                ErrorKind::InvalidInput,
-                "OID4VCI Nonce Endpoint is unsafe",
-            ),
-            Self::DeferredCredentialEndpointTooLarge => (
-                error_code::DEFERRED_CREDENTIAL_ENDPOINT_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Deferred Credential Endpoint is too large",
-            ),
-            Self::UnsafeDeferredCredentialEndpoint => (
-                error_code::UNSAFE_DEFERRED_CREDENTIAL_ENDPOINT,
-                ErrorKind::InvalidInput,
-                "OID4VCI Deferred Credential Endpoint is unsafe",
-            ),
-            Self::NonceEndpointRequired => (
-                error_code::NONCE_ENDPOINT_REQUIRED,
-                ErrorKind::InvalidInput,
-                "OID4VCI Nonce Endpoint is required",
-            ),
-            Self::InvalidAuthorizationServers => (
-                error_code::INVALID_AUTHORIZATION_SERVERS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Server metadata is invalid",
-            ),
-            Self::TooManyAuthorizationServers => (
-                error_code::TOO_MANY_AUTHORIZATION_SERVERS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Issuer Metadata has too many Authorization Servers",
-            ),
-            Self::DuplicateAuthorizationServer => (
-                error_code::DUPLICATE_AUTHORIZATION_SERVER,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Issuer Metadata repeats an Authorization Server",
-            ),
-            Self::InvalidCredentialConfigurations => (
-                error_code::INVALID_CREDENTIAL_CONFIGURATIONS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Configurations are invalid",
-            ),
-            Self::TooManyCredentialConfigurations => (
-                error_code::TOO_MANY_CREDENTIAL_CONFIGURATIONS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Issuer Metadata has too many configurations",
-            ),
-            Self::InvalidCredentialFormat => (
-                error_code::INVALID_CREDENTIAL_FORMAT,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Format identifier is invalid",
-            ),
-            Self::CredentialFormatTooLarge => (
-                error_code::CREDENTIAL_FORMAT_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Format identifier is too large",
-            ),
-            Self::OfferMetadataIssuerMismatch => (
-                error_code::OFFER_METADATA_ISSUER_MISMATCH,
-                ErrorKind::InvalidInput,
-                "OID4VCI offer and metadata issuer identifiers do not match",
-            ),
-            Self::OfferedConfigurationMissing => (
-                error_code::OFFERED_CONFIGURATION_MISSING,
-                ErrorKind::InvalidInput,
-                "OID4VCI offered Credential Configuration is missing from metadata",
-            ),
-            Self::InvalidAuthorizationServerHint => (
-                error_code::INVALID_AUTHORIZATION_SERVER_HINT,
-                ErrorKind::InvalidInput,
-                "OID4VCI offered Authorization Server hint is invalid for metadata",
-            ),
-            Self::InvalidAuthorizationServerMetadataLimits => (
-                error_code::INVALID_AUTHORIZATION_SERVER_METADATA_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Server Metadata limits are invalid",
-            ),
-            Self::AuthorizationServerMetadataTooLarge => (
-                error_code::AUTHORIZATION_SERVER_METADATA_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Server Metadata is too large",
-            ),
-            Self::InvalidAuthorizationServerMetadata => (
-                error_code::INVALID_AUTHORIZATION_SERVER_METADATA,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Server Metadata core is invalid",
-            ),
-            Self::AuthorizationServerMetadataIssuerMismatch => (
-                error_code::AUTHORIZATION_SERVER_METADATA_ISSUER_MISMATCH,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Server Metadata issuer does not match",
-            ),
-            Self::AuthorizationEndpointTooLarge => (
-                error_code::AUTHORIZATION_ENDPOINT_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Endpoint is too large",
-            ),
-            Self::UnsafeAuthorizationEndpoint => (
-                error_code::UNSAFE_AUTHORIZATION_ENDPOINT,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Endpoint is unsafe",
-            ),
-            Self::TokenEndpointTooLarge => (
-                error_code::TOKEN_ENDPOINT_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Endpoint is too large",
-            ),
-            Self::UnsafeTokenEndpoint => (
-                error_code::UNSAFE_TOKEN_ENDPOINT,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Endpoint is unsafe",
-            ),
-            Self::InvalidGrantTypes => (
-                error_code::INVALID_GRANT_TYPES,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Server grant types are invalid",
-            ),
-            Self::GrantTypeTooLarge => (
-                error_code::GRANT_TYPE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Server grant type is too large",
-            ),
-            Self::TooManyGrantTypes => (
-                error_code::TOO_MANY_GRANT_TYPES,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Server Metadata has too many grant types",
-            ),
-            Self::DuplicateGrantType => (
-                error_code::DUPLICATE_GRANT_TYPE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Authorization Server Metadata repeats a grant type",
-            ),
-            Self::InvalidAnonymousPreAuthorizedAccess => (
-                error_code::INVALID_ANONYMOUS_PRE_AUTHORIZED_ACCESS,
-                ErrorKind::InvalidInput,
-                "OID4VCI anonymous Pre-Authorized Code metadata is invalid",
-            ),
-            Self::PreAuthorizedCodeGrantMissing => (
-                error_code::PRE_AUTHORIZED_CODE_GRANT_MISSING,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Offer has no Pre-Authorized Code grant",
-            ),
-            Self::AuthorizationServerNotAdvertised => (
-                error_code::AUTHORIZATION_SERVER_NOT_ADVERTISED,
-                ErrorKind::InvalidInput,
-                "OID4VCI selected Authorization Server is not advertised",
-            ),
-            Self::PreAuthorizedServerHintMismatch => (
-                error_code::PRE_AUTHORIZED_SERVER_HINT_MISMATCH,
-                ErrorKind::InvalidInput,
-                "OID4VCI selected Authorization Server does not match the offered hint",
-            ),
-            Self::PreAuthorizedGrantNotSupported => (
-                error_code::PRE_AUTHORIZED_GRANT_NOT_SUPPORTED,
-                ErrorKind::InvalidInput,
-                "OID4VCI selected Authorization Server does not support the Pre-Authorized Code grant",
-            ),
-            Self::TokenEndpointRequired => (
-                error_code::TOKEN_ENDPOINT_REQUIRED,
-                ErrorKind::InvalidInput,
-                "OID4VCI selected Authorization Server has no Token Endpoint",
-            ),
-            Self::InvalidTransactionCodeInputLimits => (
-                error_code::INVALID_TRANSACTION_CODE_INPUT_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Transaction Code input limits are invalid",
-            ),
-            Self::TransactionCodeInputRequired => (
-                error_code::TRANSACTION_CODE_INPUT_REQUIRED,
-                ErrorKind::InvalidInput,
-                "OID4VCI Transaction Code input is required",
-            ),
-            Self::TransactionCodeInputUnexpected => (
-                error_code::TRANSACTION_CODE_INPUT_UNEXPECTED,
-                ErrorKind::InvalidInput,
-                "OID4VCI Transaction Code input is unexpected",
-            ),
-            Self::TransactionCodeInputEmpty => (
-                error_code::TRANSACTION_CODE_INPUT_EMPTY,
-                ErrorKind::InvalidInput,
-                "OID4VCI Transaction Code input is empty",
-            ),
-            Self::TransactionCodeInputTooLarge => (
-                error_code::TRANSACTION_CODE_INPUT_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Transaction Code input is too large",
-            ),
-            Self::InvalidPreAuthorizedTokenRequestLimits => (
-                error_code::INVALID_PRE_AUTHORIZED_TOKEN_REQUEST_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Pre-Authorized Token Request limits are invalid",
-            ),
-            Self::PreAuthorizedTokenRequestTooLarge => (
-                error_code::PRE_AUTHORIZED_TOKEN_REQUEST_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Pre-Authorized Token Request is too large",
-            ),
-            Self::InvalidTokenResponseLimits => (
-                error_code::INVALID_TOKEN_RESPONSE_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Response limits are invalid",
-            ),
-            Self::TokenResponseTooLarge => (
-                error_code::TOKEN_RESPONSE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Response is too large",
-            ),
-            Self::InvalidTokenResponse => (
-                error_code::INVALID_TOKEN_RESPONSE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Response core is invalid",
-            ),
-            Self::InvalidAccessToken => (
-                error_code::INVALID_ACCESS_TOKEN,
-                ErrorKind::InvalidInput,
-                "OID4VCI access token is invalid",
-            ),
-            Self::AccessTokenTooLarge => (
-                error_code::ACCESS_TOKEN_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI access token is too large",
-            ),
-            Self::InvalidTokenType => (
-                error_code::INVALID_TOKEN_TYPE,
-                ErrorKind::InvalidInput,
-                "OID4VCI token type is invalid",
-            ),
-            Self::TokenTypeTooLarge => (
-                error_code::TOKEN_TYPE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI token type is too large",
-            ),
-            Self::InvalidTokenExpiresIn => (
-                error_code::INVALID_TOKEN_EXPIRES_IN,
-                ErrorKind::InvalidInput,
-                "OID4VCI token expiry is invalid",
-            ),
-            Self::InvalidRefreshToken => (
-                error_code::INVALID_REFRESH_TOKEN,
-                ErrorKind::InvalidInput,
-                "OID4VCI refresh token is invalid",
-            ),
-            Self::RefreshTokenTooLarge => (
-                error_code::REFRESH_TOKEN_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI refresh token is too large",
-            ),
-            Self::InvalidTokenScope => (
-                error_code::INVALID_TOKEN_SCOPE,
-                ErrorKind::InvalidInput,
-                "OID4VCI token scope is invalid",
-            ),
-            Self::TokenScopeTooLarge => (
-                error_code::TOKEN_SCOPE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI token scope is too large",
-            ),
-            Self::InvalidTokenAuthorizationDetailsLimits => (
-                error_code::INVALID_TOKEN_AUTHORIZATION_DETAILS_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Response Authorization Details limits are invalid",
-            ),
-            Self::InvalidTokenAuthorizationDetails => (
-                error_code::INVALID_TOKEN_AUTHORIZATION_DETAILS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Response Authorization Details are invalid",
-            ),
-            Self::TooManyTokenAuthorizationDetails => (
-                error_code::TOO_MANY_TOKEN_AUTHORIZATION_DETAILS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Response has too many Authorization Details",
-            ),
-            Self::TokenAuthorizationDetailValueTooLarge => (
-                error_code::TOKEN_AUTHORIZATION_DETAIL_VALUE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Response Authorization Details value is too large",
-            ),
-            Self::TooManyCredentialIdentifiers => (
-                error_code::TOO_MANY_CREDENTIAL_IDENTIFIERS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Response has too many Credential identifiers",
-            ),
-            Self::DuplicateCredentialIdentifier => (
-                error_code::DUPLICATE_CREDENTIAL_IDENTIFIER,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Response has a duplicate Credential identifier",
-            ),
-            Self::InvalidTokenErrorResponseLimits => (
-                error_code::INVALID_TOKEN_ERROR_RESPONSE_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Error Response limits are invalid",
-            ),
-            Self::TokenErrorResponseTooLarge => (
-                error_code::TOKEN_ERROR_RESPONSE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Error Response is too large",
-            ),
-            Self::InvalidTokenErrorResponse => (
-                error_code::INVALID_TOKEN_ERROR_RESPONSE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Error Response core is invalid",
-            ),
-            Self::InvalidTokenEndpointErrorCode => (
-                error_code::INVALID_TOKEN_ENDPOINT_ERROR_CODE,
-                ErrorKind::InvalidInput,
-                "OID4VCI token endpoint error code is invalid",
-            ),
-            Self::TokenEndpointErrorCodeTooLarge => (
-                error_code::TOKEN_ENDPOINT_ERROR_CODE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI token endpoint error code is too large",
-            ),
-            Self::InvalidTokenErrorDescription => (
-                error_code::INVALID_TOKEN_ERROR_DESCRIPTION,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Error Response description is invalid",
-            ),
-            Self::TokenErrorDescriptionTooLarge => (
-                error_code::TOKEN_ERROR_DESCRIPTION_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Error Response description is too large",
-            ),
-            Self::InvalidTokenErrorUri => (
-                error_code::INVALID_TOKEN_ERROR_URI,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Error Response URI is invalid",
-            ),
-            Self::TokenErrorUriTooLarge => (
-                error_code::TOKEN_ERROR_URI_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Token Error Response URI is too large",
-            ),
-            Self::InvalidCredentialErrorResponseLimits => (
-                error_code::INVALID_CREDENTIAL_ERROR_RESPONSE_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Error Response limits are invalid",
-            ),
-            Self::CredentialErrorResponseTooLarge => (
-                error_code::CREDENTIAL_ERROR_RESPONSE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Error Response is too large",
-            ),
-            Self::InvalidCredentialErrorResponse => (
-                error_code::INVALID_CREDENTIAL_ERROR_RESPONSE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Error Response core is invalid",
-            ),
-            Self::InvalidCredentialEndpointErrorCode => (
-                error_code::INVALID_CREDENTIAL_ENDPOINT_ERROR_CODE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Endpoint error code is invalid",
-            ),
-            Self::CredentialEndpointErrorCodeTooLarge => (
-                error_code::CREDENTIAL_ENDPOINT_ERROR_CODE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Endpoint error code is too large",
-            ),
-            Self::InvalidCredentialErrorDescription => (
-                error_code::INVALID_CREDENTIAL_ERROR_DESCRIPTION,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Error Response description is invalid",
-            ),
-            Self::CredentialErrorDescriptionTooLarge => (
-                error_code::CREDENTIAL_ERROR_DESCRIPTION_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Error Response description is too large",
-            ),
-            Self::InvalidCredentialErrorHttpResponseLimits => (
-                error_code::INVALID_CREDENTIAL_ERROR_HTTP_RESPONSE_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Error HTTP response limits are invalid",
-            ),
-            Self::InvalidCredentialErrorHttpStatus => (
-                error_code::INVALID_CREDENTIAL_ERROR_HTTP_STATUS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Error HTTP status is invalid",
-            ),
-            Self::CredentialErrorContentTypeTooLarge => (
-                error_code::CREDENTIAL_ERROR_CONTENT_TYPE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Error Content-Type is too large",
-            ),
-            Self::InvalidCredentialErrorContentType => (
-                error_code::INVALID_CREDENTIAL_ERROR_CONTENT_TYPE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Error Content-Type is invalid",
-            ),
-            Self::GenericCredentialErrorCodeForbidden => (
-                error_code::GENERIC_CREDENTIAL_ERROR_CODE_FORBIDDEN,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential payload error uses a forbidden generic code",
-            ),
-            Self::InvalidCredentialNonceResponseLimits => (
-                error_code::INVALID_CREDENTIAL_NONCE_RESPONSE_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Nonce Response limits are invalid",
-            ),
-            Self::CredentialNonceResponseTooLarge => (
-                error_code::CREDENTIAL_NONCE_RESPONSE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Nonce Response is too large",
-            ),
-            Self::InvalidCredentialNonceResponse => (
-                error_code::INVALID_CREDENTIAL_NONCE_RESPONSE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Nonce Response core is invalid",
-            ),
-            Self::InvalidCredentialNonce => (
-                error_code::INVALID_CREDENTIAL_NONCE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Nonce is invalid",
-            ),
-            Self::CredentialNonceTooLarge => (
-                error_code::CREDENTIAL_NONCE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Nonce is too large",
-            ),
-            Self::InvalidCredentialNonceHttpResponseLimits => (
-                error_code::INVALID_CREDENTIAL_NONCE_HTTP_RESPONSE_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Nonce HTTP response limits are invalid",
-            ),
-            Self::InvalidCredentialNonceHttpStatus => (
-                error_code::INVALID_CREDENTIAL_NONCE_HTTP_STATUS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Nonce HTTP status is invalid",
-            ),
-            Self::CredentialNonceContentTypeTooLarge => (
-                error_code::CREDENTIAL_NONCE_CONTENT_TYPE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Nonce Content-Type is too large",
-            ),
-            Self::InvalidCredentialNonceContentType => (
-                error_code::INVALID_CREDENTIAL_NONCE_CONTENT_TYPE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Nonce Content-Type is invalid",
-            ),
-            Self::CredentialNonceCacheControlTooLarge => (
-                error_code::CREDENTIAL_NONCE_CACHE_CONTROL_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Nonce Cache-Control is too large",
-            ),
-            Self::InvalidCredentialNonceCacheControl => (
-                error_code::INVALID_CREDENTIAL_NONCE_CACHE_CONTROL,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Nonce Cache-Control is invalid",
-            ),
-            Self::InvalidJwtCredentialRequestLimits => (
-                error_code::INVALID_JWT_CREDENTIAL_REQUEST_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI JWT Credential Request limits are invalid",
-            ),
-            Self::CredentialRequestConfigurationMissing => (
-                error_code::CREDENTIAL_REQUEST_CONFIGURATION_MISSING,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Request configuration is not offered",
-            ),
-            Self::CredentialRequestAuthorizationDetailMissing => (
-                error_code::CREDENTIAL_REQUEST_AUTHORIZATION_DETAIL_MISSING,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Request Authorization Detail is missing",
-            ),
-            Self::CredentialRequestIdentifierMissing => (
-                error_code::CREDENTIAL_REQUEST_IDENTIFIER_MISSING,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Request identifier is missing",
-            ),
-            Self::CredentialRequestAuthorizationConfigurationMismatch => (
-                error_code::CREDENTIAL_REQUEST_AUTHORIZATION_CONFIGURATION_MISMATCH,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Request authorization configuration is not offered",
-            ),
-            Self::CredentialRequestAuthorizationDetailsUnsupported => (
-                error_code::CREDENTIAL_REQUEST_AUTHORIZATION_DETAILS_UNSUPPORTED,
-                ErrorKind::Unsupported,
-                "OID4VCI Credential Request Authorization Details are unsupported",
-            ),
-            Self::CredentialRequestTokenTypeUnsupported => (
-                error_code::CREDENTIAL_REQUEST_TOKEN_TYPE_UNSUPPORTED,
-                ErrorKind::Unsupported,
-                "OID4VCI Credential Request token type is unsupported",
-            ),
-            Self::InvalidCredentialRequestBearerToken => (
-                error_code::INVALID_CREDENTIAL_REQUEST_BEARER_TOKEN,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Request Bearer token is invalid",
-            ),
-            Self::CredentialRequestProofsRequired => (
-                error_code::CREDENTIAL_REQUEST_PROOFS_REQUIRED,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Request requires JWT proofs",
-            ),
-            Self::TooManyCredentialRequestProofs => (
-                error_code::TOO_MANY_CREDENTIAL_REQUEST_PROOFS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Request has too many JWT proofs",
-            ),
-            Self::CredentialRequestProofTooLarge => (
-                error_code::CREDENTIAL_REQUEST_PROOF_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Request JWT proof is too large",
-            ),
-            Self::CredentialRequestAuthorizationTooLarge => (
-                error_code::CREDENTIAL_REQUEST_AUTHORIZATION_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Request Authorization value is too large",
-            ),
-            Self::CredentialRequestBodyTooLarge => (
-                error_code::CREDENTIAL_REQUEST_BODY_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Request body is too large",
-            ),
-            Self::InvalidDeferredCredentialRequestLimits => (
-                error_code::INVALID_DEFERRED_CREDENTIAL_REQUEST_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Deferred Credential Request limits are invalid",
-            ),
-            Self::DeferredCredentialEndpointRequired => (
-                error_code::DEFERRED_CREDENTIAL_ENDPOINT_REQUIRED,
-                ErrorKind::InvalidInput,
-                "OID4VCI Deferred Credential Endpoint is required",
-            ),
-            Self::DeferredCredentialRequestTooLarge => (
-                error_code::DEFERRED_CREDENTIAL_REQUEST_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Deferred Credential Request is too large",
-            ),
-            Self::InvalidDeferredCredentialResponseLimits => (
-                error_code::INVALID_DEFERRED_CREDENTIAL_RESPONSE_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI deferred Credential Response limits are invalid",
-            ),
-            Self::DeferredCredentialResponseTooLarge => (
-                error_code::DEFERRED_CREDENTIAL_RESPONSE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI deferred Credential Response is too large",
-            ),
-            Self::InvalidDeferredCredentialResponse => (
-                error_code::INVALID_DEFERRED_CREDENTIAL_RESPONSE,
-                ErrorKind::InvalidInput,
-                "OID4VCI deferred Credential Response core is invalid",
-            ),
-            Self::TooManyDeferredCredentialResponseMembers => (
-                error_code::TOO_MANY_DEFERRED_CREDENTIAL_RESPONSE_MEMBERS,
-                ErrorKind::InvalidInput,
-                "OID4VCI deferred Credential Response has too many members",
-            ),
-            Self::InvalidDeferredTransactionId => (
-                error_code::INVALID_DEFERRED_TRANSACTION_ID,
-                ErrorKind::InvalidInput,
-                "OID4VCI deferred transaction identifier is invalid",
-            ),
-            Self::DeferredTransactionIdTooLarge => (
-                error_code::DEFERRED_TRANSACTION_ID_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI deferred transaction identifier is too large",
-            ),
-            Self::InvalidDeferredCredentialInterval => (
-                error_code::INVALID_DEFERRED_CREDENTIAL_INTERVAL,
-                ErrorKind::InvalidInput,
-                "OID4VCI deferred Credential interval is invalid",
-            ),
-            Self::DeferredCredentialIntervalTooLarge => (
-                error_code::DEFERRED_CREDENTIAL_INTERVAL_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI deferred Credential interval is too large",
-            ),
-            Self::DeferredCredentialResponseBranchConflict => (
-                error_code::DEFERRED_CREDENTIAL_RESPONSE_BRANCH_CONFLICT,
-                ErrorKind::InvalidInput,
-                "OID4VCI deferred Credential Response branch is ambiguous",
-            ),
-            Self::InvalidImmediateCredentialResponseLimits => (
-                error_code::INVALID_IMMEDIATE_CREDENTIAL_RESPONSE_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI immediate Credential Response limits are invalid",
-            ),
-            Self::ImmediateCredentialResponseTooLarge => (
-                error_code::IMMEDIATE_CREDENTIAL_RESPONSE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI immediate Credential Response is too large",
-            ),
-            Self::InvalidImmediateCredentialResponse => (
-                error_code::INVALID_IMMEDIATE_CREDENTIAL_RESPONSE,
-                ErrorKind::InvalidInput,
-                "OID4VCI immediate Credential Response core is invalid",
-            ),
-            Self::DeferredCredentialResponseUnsupported => (
-                error_code::DEFERRED_CREDENTIAL_RESPONSE_UNSUPPORTED,
-                ErrorKind::Unsupported,
-                "OID4VCI deferred Credential Response is unsupported",
-            ),
-            Self::TooManyCredentialResponseMembers => (
-                error_code::TOO_MANY_CREDENTIAL_RESPONSE_MEMBERS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Response has too many members",
-            ),
-            Self::TooManyIssuedCredentials => (
-                error_code::TOO_MANY_ISSUED_CREDENTIALS,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Response has too many credentials",
-            ),
-            Self::TooManyIssuedCredentialMembers => (
-                error_code::TOO_MANY_ISSUED_CREDENTIAL_MEMBERS,
-                ErrorKind::InvalidInput,
-                "OID4VCI issued credential has too many members",
-            ),
-            Self::InvalidIssuedCredential => (
-                error_code::INVALID_ISSUED_CREDENTIAL,
-                ErrorKind::InvalidInput,
-                "OID4VCI issued credential is invalid",
-            ),
-            Self::IssuedCredentialTooLarge => (
-                error_code::ISSUED_CREDENTIAL_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI issued credential is too large",
-            ),
-            Self::IssuedCredentialsTooLarge => (
-                error_code::ISSUED_CREDENTIALS_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI issued credentials are too large",
-            ),
-            Self::InvalidCredentialNotificationId => (
-                error_code::INVALID_CREDENTIAL_NOTIFICATION_ID,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Response notification identifier is invalid",
-            ),
-            Self::CredentialNotificationIdTooLarge => (
-                error_code::CREDENTIAL_NOTIFICATION_ID_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Response notification identifier is too large",
-            ),
-            Self::InvalidImmediateCredentialHttpResponseLimits => (
-                error_code::INVALID_IMMEDIATE_CREDENTIAL_HTTP_RESPONSE_LIMITS,
-                ErrorKind::InvalidInput,
-                "OID4VCI immediate Credential HTTP response limits are invalid",
-            ),
-            Self::InvalidImmediateCredentialHttpStatus => (
-                error_code::INVALID_IMMEDIATE_CREDENTIAL_HTTP_STATUS,
-                ErrorKind::InvalidInput,
-                "OID4VCI immediate Credential HTTP status is invalid",
-            ),
-            Self::ImmediateCredentialContentTypeTooLarge => (
-                error_code::IMMEDIATE_CREDENTIAL_CONTENT_TYPE_TOO_LARGE,
-                ErrorKind::InvalidInput,
-                "OID4VCI immediate Credential Content-Type is too large",
-            ),
-            Self::InvalidImmediateCredentialContentType => (
-                error_code::INVALID_IMMEDIATE_CREDENTIAL_CONTENT_TYPE,
-                ErrorKind::InvalidInput,
-                "OID4VCI immediate Credential Content-Type is invalid",
-            ),
-            Self::CredentialResponseExceedsProofCount => (
-                error_code::CREDENTIAL_RESPONSE_EXCEEDS_PROOF_COUNT,
-                ErrorKind::InvalidInput,
-                "OID4VCI Credential Response exceeds request proof count",
-            ),
-        };
-        IdentusError::public(code, kind, CAPABILITY, message)
+        self.contract().to_identus_error()
     }
 }
 
@@ -1374,7 +714,7 @@ impl From<CredentialOfferError> for IdentusError {
 
 impl fmt::Display for CredentialOfferError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(self.to_identus_error().public_message())
+        formatter.write_str(self.contract().message())
     }
 }
 

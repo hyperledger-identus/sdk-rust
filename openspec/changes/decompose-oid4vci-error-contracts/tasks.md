@@ -14,12 +14,12 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Copy the golden byte-for-byte to the stable fixture before source
+- [x] 2.1 Copy the golden byte-for-byte to the stable fixture before source
   edits and verify its hash.
-- [ ] 2.2 Add the three-field record and six protocol catalogue modules, then
+- [x] 2.2 Add the three-field record and six protocol catalogue modules, then
   route all 171 variants exhaustively without changing public declarations,
   typed wire models, or behavior.
-- [ ] 2.3 Add exact golden/order/const/source/redaction tests, explicitly cover
+- [x] 2.3 Add exact golden/order/const/source/redaction tests, explicitly cover
   the 21 named gaps, and extend the existing checker, mutation suite, factory
   fixture, and Nix source contract with one bounded binding.
 

@@ -27,7 +27,7 @@ Repository ruleset `23274352` (`develop integration`) is active for exactly
 - blocks deletion and non-fast-forward updates;
 - requires signed commits and pull requests;
 - requires all review conversations to be resolved while requiring zero
-  blanket human approvals;
+  blanket human approvals and no extra approval for unattributed changes;
 - requires branches to be current with `develop`;
 - requires `DCO`, `pull-request-policy`, `fast`, `File Hygiene (editorconfig)`,
   `Shell Scripts`, `Markdown`, and `YAML` from their observed GitHub Apps; and

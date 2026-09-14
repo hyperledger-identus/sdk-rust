@@ -8,7 +8,7 @@
   exact-base 51-row golden with recorded SHA-256.
 - [x] 1.3 Independently review planning semantics/API/security and cross-check
   every golden row against source.
-- [ ] 1.4 Commit planning-only signed+DCO evidence; write, validate, and commit
+- [x] 1.4 Commit planning-only signed+DCO evidence; write, validate, and commit
   the durable preimplementation receipt before production edits.
 
 ## 2. Implementation

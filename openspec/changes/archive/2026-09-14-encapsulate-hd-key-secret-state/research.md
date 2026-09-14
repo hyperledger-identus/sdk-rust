@@ -67,6 +67,14 @@ existing `derivation` feature. The SDK-owned facade exposes no donor or
 backend type. Public derivation metadata, algorithm results and error codes are
 unchanged. Rollback is a source revert before publication.
 
+The named exposure methods replace reads, not construction. There is no public
+`from_parts` or import surface for private-key, chain-code and metadata state.
+A caller retaining the original seed and supported path can reconstruct with
+the existing derivation API; callers retaining only raw extended state cannot
+rehydrate it in this candidate. That pre-release breaking limitation is
+accepted here and any raw-state import requires separate threat analysis and
+API authority.
+
 ## Security, privacy and maintenance evidence
 
 The threat is accidental copying, logging or serialization of secret arrays by
@@ -96,7 +104,8 @@ container requires its own evidence; this issue does not establish one.
 ## Open questions and blockers
 
 No implementation blocker remains. The known source break is intentional,
-pre-release, reversible, and directed by issue #269. Publication and consumer
+pre-release, reversible, and directed by issue #269. Raw extended-state
+rehydration remains unsupported. Publication, an import API, and consumer
 migration remain separate protected work.
 
 ## Evidence commands

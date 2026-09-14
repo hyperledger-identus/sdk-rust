@@ -36,6 +36,11 @@ literals from external crates stop compiling. The candidate has never been
 published, canonical packages remain `0.0.0` with `publish = false`, and no
 downstream adoption is activated, so the safer API replaces the unpublished
 `0.1.0-rc.1` baseline rather than carrying a deprecated leak-prone facade.
+Field readers can move to the named exposure methods. Struct-literal callers
+have no raw-state import replacement: they can reconstruct from the original
+seed and supported derivation path, while private-key/chain-code/metadata
+rehydration remains an explicit unsupported pre-release limitation deferred to
+a separate security and API decision.
 
 ## Non-goals
 

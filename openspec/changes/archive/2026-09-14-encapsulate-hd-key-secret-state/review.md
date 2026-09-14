@@ -24,12 +24,18 @@
    replacing the candidate baseline is safer than a compatibility shim and
    remains reversible.
 6. Compile-fail tests should cover both key types in an external-crate context
-   and separately prove absence of `Display` and Serde. Runtime tests should
-   cover wrapper redaction and explicit erasure without reading freed memory.
+   and separately prove absence of `Clone` and `Display`. Exact source and
+   public-API review should prove absence of Serde and implicit raw-access
+   traits. Runtime tests should cover wrapper redaction and explicit erasure
+   without reading freed memory.
 7. Existing published BIP-32/SLIP-0010 and Apollo-overlap vectors must migrate
    through the new boundary without changing expected values. No arithmetic,
    feature, target, dependency, FFI, custody, consumer, release, #7 or #168
    behavior is authorized.
+8. Exposure methods cannot replace struct-literal construction. The contract
+   must identify seed-plus-path reconstruction as the available path and raw
+   extended-state rehydration as unsupported/deferred, without opportunistically
+   adding an import constructor.
 
 Verdict: READY for a planning-only commit and durable preflight receipt before
 implementation.
@@ -52,10 +58,10 @@ implementation.
 3. The two named owner methods return independently owned zeroizing copies.
    The one raw borrow is lifetime-bound to that owner. Deliberate copies made
    by callers remain the documented residual boundary.
-4. External compile-fail coverage rejects all four raw field accesses and
-   rejects ambient cloning and formatting of the exposure value. Exact public
-   API and source review confirm that serialization and implicit raw-access
-   traits are absent.
+4. External trybuild coverage rejects all four raw field accesses and rejects
+   `Clone` and `Display` on the exposure value. Exact source and public-API
+   inventory review confirm that Serde, `Deref`, `AsRef`, a public constructor,
+   and binding annotations are absent.
 5. Every existing BIP-32, SLIP-0010 and Apollo-overlap vector was migrated
    through the explicit boundary and remains byte-identical in default,
    minimal, all-feature and KMP profiles.
@@ -64,8 +70,14 @@ implementation.
    intentional and confined to the unpublished `0.1.0-rc.1` candidate.
 7. A compiler-output portability failure in an additional Serde trybuild case
    was found during Nix verification: Cargo registry and Nix vendor paths were
-   rendered differently. The wording-dependent case was removed; the
-   security property and required private-field compile regression remain.
+   rendered differently. The wording-dependent case was removed; absence of
+   Serde is instead evidenced by the exact source and public-API inventory,
+   while the required portable trybuild regressions remain.
+8. The API inventory confirms that no public `from_parts`, raw-state import, or
+   struct-literal construction surface exists. Field readers can migrate to
+   exposure methods; raw-state holders must retain the original seed and path
+   for reconstruction or treat rehydration as unsupported pending a separate
+   security/API decision.
 
 Verdict: implementation matches ADR 0114 and the OpenSpec delta; archive and
 ready pull-request delivery are authorized.

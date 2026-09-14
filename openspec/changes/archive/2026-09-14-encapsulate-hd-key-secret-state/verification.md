@@ -23,9 +23,17 @@
 
 The compile-fail suite rejects public access to the private-key and chain-code
 fields of both HD types, and rejects `Clone` and `Display` on exposed secret
-values. Runtime coverage verifies redacted formatting, explicit erasure and
+values. Exact source and public-API inventory review confirms that the exposure
+value has no Serde, `Deref`, `AsRef`, public constructor, or binding annotation
+surface. Runtime coverage verifies redacted formatting, explicit erasure and
 both HD owners' erasure. Existing BIP-32, SLIP-0010 and Apollo-overlap vectors
 remain byte-identical.
+
+The same inventory confirms there is no public struct-literal, `from_parts`,
+or raw extended-state import surface. Existing `init_from_seed` plus supported
+derivation reconstructs state only when the original seed and path are
+available; rehydration from persisted private-key, chain-code and metadata
+parts remains unsupported and deferred.
 
 ## Reproducible target and repository matrix
 

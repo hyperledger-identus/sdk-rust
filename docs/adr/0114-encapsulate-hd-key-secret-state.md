@@ -29,8 +29,10 @@ public commitment.
    only as a borrow explicitly requested from that owner.
 4. Preserve public metadata, derivation algorithms, vector bytes, errors,
    features, target policy and dependency cone.
-5. Prove opacity and excluded ambient surfaces with compile-fail tests. Prove
-   redaction, explicit erasure and exact outputs with runtime tests.
+5. Prove field opacity and excluded `Clone`/`Display` surfaces with compile-fail
+   tests. Prove absent Serde and implicit raw-access surfaces through exact
+   source and public-API inventory. Prove redaction, explicit erasure and exact
+   outputs with runtime tests.
 6. Replace the unpublished `0.1.0-rc.1` API rendering intentionally. Classify
    field removal as a Rust source-breaking change, accepted before publication
    under issue #269; it creates no wire, persisted-data or released SemVer
@@ -38,6 +40,11 @@ public commitment.
 7. Do not add a compatibility shim returning ordinary arrays. If a future
    downstream needs legacy field-shaped access, it belongs in a separately
    authorized consumer compatibility facade, not the canonical crypto type.
+8. Do not add a raw extended-state constructor in this slice. Field readers can
+   migrate to the named exposure methods. Struct-literal callers may reconstruct
+   only when they retain the original seed and supported derivation path;
+   private-key/chain-code/metadata rehydration is an unsupported pre-release
+   limitation pending a separate security and API decision.
 
 ## Copy and threat boundary
 
@@ -56,8 +63,11 @@ Those limits are part of the API contract rather than implied custody claims.
 - Accidental field reads no longer create untracked secret copies.
 - Raw access is visible in code review and its first copy has a defined erasure
   owner.
-- Existing field-based source does not compile and must migrate to the named
-  exposure methods.
+- Existing field reads do not compile and must migrate to the named exposure
+  methods.
+- Existing struct-literal construction does not compile and has no raw-state
+  import replacement. Seed-plus-path reconstruction remains available; raw
+  extended-state rehydration is unsupported and deferred.
 - The facade remains small and backend-independent, with no new package,
   algorithm, unsafe/native code or feature.
 - Tests and documentation become more verbose around vectors because secret
@@ -78,7 +88,8 @@ Those limits are part of the API contract rather than implied custody claims.
 
 ## Verification and rollback
 
-Focused vector, redaction, zeroization and compile-fail tests; public-API and
-candidate checks; supported feature/target builds; factory/Nix gates; and a
-distinct security/API review verify the decision. Rollback is a source revert;
-there is no released artifact or consumer migration to unwind.
+Focused vector, redaction, zeroization and compile-fail tests; exact source and
+public-API inventory; candidate checks; supported feature/target builds;
+factory/Nix gates; and a distinct security/API review verify the decision.
+Rollback is a source revert; there is no released artifact or consumer
+migration to unwind.

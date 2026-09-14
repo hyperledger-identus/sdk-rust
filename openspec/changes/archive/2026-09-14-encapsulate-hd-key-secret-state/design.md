@@ -39,7 +39,7 @@ the arrays in place. Public metadata fields remain unchanged in this slice.
 Add `HdKeySecretBytes`, a fixed 32-byte value with a private array, derived
 `Zeroize` and `ZeroizeOnDrop`, manual redacted `Debug`, and no `Clone`,
 `Copy`, `Display`, Serde, `Deref`, `AsRef`, or binding annotation. Its only raw
-view is `expose_secret(&self) -> &[u8; 32]`.
+view is `expose_secret_bytes(&self) -> &[u8; 32]`.
 
 `HDKey` and `EdHDKey` each expose `expose_private_key()` and
 `expose_chain_code()`, returning a fresh `HdKeySecretBytes`. The method call is
@@ -57,12 +57,21 @@ removed directly and the candidate API baseline is regenerated. This is
 source-breaking relative to the internal `0.1.0-rc.1` review baseline, but it
 does not break a released package or wire/persisted representation.
 
+Named exposure methods replace field reads only. They are intentionally not a
+construction API. This slice adds no `from_parts` or raw extended-state import;
+a caller with the original seed and supported path can reconstruct through
+`init_from_seed` plus derivation. Rehydrating an HD key from persisted private
+key, chain code, depth, and child metadata is unsupported and deferred to a
+separate security/API decision.
+
 ### D4 — Compile-time negative contracts
 
-Trybuild cases prove external field access, `Display`, and Serde serialization
-do not compile. Runtime tests prove the exposure wrapper's redaction and
-explicit zeroization, the HD types' existing erasure contract, and byte-exact
-published and Apollo-overlap vectors through the new explicit boundary.
+Trybuild cases prove that external field access, `Clone`, and `Display` do not
+compile. Exact source and public-API inventory review proves that the exposure
+value has no Serde, `Deref`, `AsRef`, constructor, or binding surface. Runtime
+tests prove the exposure wrapper's redaction and explicit zeroization, the HD
+types' existing erasure contract, and byte-exact published and Apollo-overlap
+vectors through the new explicit boundary.
 
 ## Threat and copy-boundary analysis
 
@@ -74,6 +83,7 @@ published and Apollo-overlap vectors through the new explicit boundary.
 | Serialization | HD types do not serialize; public arrays can be serialized directly. | No field access and neither HD nor exposure type implements Serde. | A caller can explicitly serialize a deliberate copy. |
 | FFI/bindings | Public Rust fields are visible to Rust consumers but are not exported by SDK binding definitions. | Opaque state and exposure owner have no binding annotation. | A later FFI export requires a separate security/FFI decision. |
 | Drop | HD-owned arrays zeroize. | HD-owned arrays and SDK-created exposure copies zeroize. | Allocator, registers, swap, crash dumps, hostile hardware and caller copies are excluded. |
+| Rehydration | Public struct literals accept raw extended state. | No public struct literal or raw-state constructor exists. | Callers without the original seed and path cannot import persisted raw extended state. |
 
 ## Alternatives
 

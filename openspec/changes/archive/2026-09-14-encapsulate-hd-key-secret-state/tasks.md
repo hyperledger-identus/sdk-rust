@@ -17,13 +17,15 @@
   plus named private-key/chain-code exposure methods.
 - [x] 2.3 Migrate repository vectors and internal tests through the explicit
   boundary while retaining byte-identical results.
-- [x] 2.4 Add compile-fail field, Clone and Display regressions, verify the
-  absence of a Serde surface, and add runtime redaction and erasure tests.
+- [x] 2.4 Add compile-fail field, Clone and Display regressions; verify the
+  absent Serde and implicit raw-access surfaces through exact source and
+  public-API inventory; and add runtime redaction and erasure tests.
 
 ## 3. Candidate and target evidence
 
 - [x] 3.1 Update the unpublished `0.1.0-rc.1` public API baseline and record the
-  intentional pre-release SemVer assessment.
+  intentional pre-release SemVer assessment, including unsupported raw
+  extended-state rehydration.
 - [x] 3.2 Pass focused default, minimal, all-feature and KMP crypto gates.
 - [x] 3.3 Pass relevant native, WASM, iOS, Android, Nix, factory and candidate
   gates, reporting every unrun command exactly.

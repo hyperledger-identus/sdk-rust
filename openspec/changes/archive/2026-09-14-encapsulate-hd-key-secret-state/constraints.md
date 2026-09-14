@@ -32,8 +32,12 @@ memory locking or a generic secret-management framework.
 ## Consumer and product impact
 
 External Rust code that reads HD secret fields or constructs the structs with
-literals will stop compiling and must use the named exposure methods or SDK
-constructors. No released crate or authorized downstream currently has that
+literals will stop compiling. Field readers can use the named exposure methods.
+Struct-literal callers have no raw extended-state import replacement; only
+reconstruction from the original seed and supported derivation path is
+available. Rehydration from private-key, chain-code and metadata parts is an
+unsupported pre-release limitation deferred to a separate security/API
+decision. No released crate or authorized downstream currently has that
 commitment. Algorithms, byte outputs, errors, feature names, targets and wire
 forms remain unchanged.
 

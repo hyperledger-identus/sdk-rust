@@ -18,6 +18,13 @@ zeroize the exported copy, redact `Debug`, implement neither `Clone`, `Copy`,
 borrow tied to the exposure owner's lifetime. Neither the HD key types nor the
 exposure value SHALL enter generated binding surfaces.
 
+This capability SHALL NOT provide public struct-literal construction or a
+`from_parts`/raw-import constructor for private-key, chain-code and derivation
+metadata. Callers that retain the original seed and supported derivation path
+MAY reconstruct through `init_from_seed` and derivation. Raw extended-state
+rehydration without those inputs SHALL remain unsupported until a separate
+security and API decision authorizes it.
+
 This is a best-effort owned-buffer contract. It SHALL NOT claim to erase
 caller-created or compiler-created copies, registers, allocator state, swap,
 crash dumps, or hardware state. A caller that deliberately copies bytes from
@@ -35,6 +42,13 @@ the named borrowed view owns and must erase that further copy.
 - **WHEN** an external crate tries to read `private_key` or `chain_code`
   directly from `HDKey` or `EdHDKey`
 - **THEN** compilation SHALL fail because all four fields are private
+
+#### Scenario: raw extended-state rehydration remains unsupported
+
+- **WHEN** external code attempts to recreate an HD key from private-key,
+  chain-code, depth, and child metadata without the original seed and path
+- **THEN** no public struct literal or `from_parts`/raw-import constructor SHALL
+  exist, and this use case SHALL remain deferred
 
 #### Scenario: explicit exposure owns and erases one copy
 

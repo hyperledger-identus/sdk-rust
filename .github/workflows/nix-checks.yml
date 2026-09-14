@@ -1,5 +1,7 @@
 name: slow
 
+# Desired cadence only: GitHub schedules workflows from the default branch,
+# while reserved empty main remains default. Activation is tracked by #276.
 on:
   schedule:
     - cron: "23 2 * * 1"
@@ -170,6 +172,13 @@ jobs:
 
       - name: Magic Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
+
+      - name: Regenerate pinned code-health baseline
+        # Ready to run locally or through external orchestration until #276
+        # establishes an executable hosted scheduling authority.
+        run: >-
+          nix develop --command
+          python3 scripts/code-health-audit.py --verify-baseline
 
       - name: Run complete Clippy surface
         run: >-

@@ -31,6 +31,10 @@ the rollback reference for a later consumer-driven compatibility matrix.
 [ADR 0110](../adr/0110-define-reusable-module-extraction-criteria.md) defines
 the mandatory reusable-module and downstream-adoption gates for extracting
 generic behavior from NeoPRISM and other consumers.
+[ADR 0115](../adr/0115-establish-code-health-quality-budget.md) and the
+[code-health evidence contract](code-health.md) govern granularity and
+duplication work inside sdk-rust without turning static metrics into design
+limits.
 [ADR 0063](../adr/0063-make-material-constraints-explicit.md) and the
 [constraint index](../governance/sdk-constraints.toml) distinguish effective
 cross-cutting promises, future targets, prohibitions and known limitations.
@@ -117,6 +121,9 @@ provenance, consumer-evidence and release-independence gate in ADR 0110. Donor
 package boundaries and generic-looking helpers are not sufficient evidence.
 Every candidate uses the
 [reusable-module assessment template](reusable-module-assessment-template.md).
+Existing code-health refactors additionally ratchet the touched semantic
+responsibility and call cluster under ADR 0115. Moves, wrappers, arbitrary file
+splits, macro hiding, or test reclassification do not prove improvement.
 
 ## 4. Baseline and target crate portfolio
 
@@ -199,9 +206,10 @@ an ADR and dependency-cone evidence.
 The support matrix deliberately separates host-tested Rust behavior from
 compile-only browser/mobile evidence and planned targets. During unpublished
 active development, Rust `1.98.1` is the single workspace floor, development
-compiler and compatibility etalon. The complete target and feature matrix runs
-weekly or manually; a pinned nightly is used only for sanitizer tooling. There
-is no supported FFI during bootstrap, and binary size/build time remain
+compiler and compatibility etalon. The complete target and feature matrix is
+available locally or through explicit external orchestration pending hosted
+activation in issue #276; a pinned nightly is used only for sanitizer tooling.
+There is no supported FFI during bootstrap, and binary size/build time remain
 measurement-only until a candidate release defines reproducible artifacts and
 budgets.
 
@@ -622,7 +630,7 @@ it is never part of the upstream implementation issue.
 - factory/repository structure and Nix/TOML/text lint;
 - workspace formatting, build, strict Clippy and normal tests.
 
-### Weekly/manual slow lane
+### Local/external slow command
 
 - full workspace and target matrix;
 - existing compatibility-labelled gates on the same Rust 1.98.1 compiler;

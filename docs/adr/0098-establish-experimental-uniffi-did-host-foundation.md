@@ -6,6 +6,11 @@
 - **Builds on:** ADR 0097
 - **Related work:** issue #226
 
+> **Operational status (2026-09-14):** This ADR records desired cadence only.
+> GitHub schedule and `workflow_dispatch` execution are inactive while reserved
+> empty `main` remains default. Run evidence locally or through explicit external
+> orchestration; issue #276 owns hosted activation.
+
 ## Context
 
 ADR 0097 selected a bounded DID/DID URL value slice and UniFFI 0.32 proc macros

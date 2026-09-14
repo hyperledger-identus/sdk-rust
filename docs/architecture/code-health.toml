@@ -1,0 +1,105 @@
+schema_version                     = 1
+contract_version                   = "code-health-v1"
+engine                             = "rust-code-analysis-cli"
+engine_version                     = "0.0.25"
+baseline_revision                  = "707a5a22c3fad18724d5c5cac953e7387f7e49d8"
+baseline_source_fingerprint_sha256 = "e116bfb7afe3105cd8210b71b4c12a6721123c6fd2adc9a442dbd30aa415d6e4"
+baseline_report_sha256             = "6177a91537433a846863af91bdade5a7de230e69b147f3402e0c55dc5d3cc01a"
+generated_exclusions               = [  ]
+
+[attention]
+function_sloc                  = 100
+cognitive                      = 15
+cyclomatic                     = 15
+module_authored_nonblank_lines = 1000
+
+[[hotspots]]
+id          = "did-cache-resolution-orchestration"
+locations   = [ "crates/did/src/cache.rs::resolve_inner" ]
+disposition = "defer-with-owner"
+owner       = "identus-did maintainers"
+evidence    = "Cohesive cache orchestration; issue #50 owns characterization before decomposition."
+
+[[hotspots]]
+id          = "did-url-parser"
+locations   = [ "crates/did/src/did.rs::parse_did_url" ]
+disposition = "document-exception"
+owner       = "identus-did maintainers"
+evidence    = "One grammar, cursor-state, and error-projection invariant; a mechanical split would hide the state machine."
+
+[[hotspots]]
+id          = "derive-attribute-parser"
+locations   = [ "crates/derive/src/attr.rs::from_attributes" ]
+disposition = "document-exception"
+owner       = "identus-derive maintainers"
+evidence    = "One compile-time attribute grammar and diagnostic contract."
+
+[[hotspots]]
+id          = "presentation-model-validation"
+locations   = [ "crates/presentations/src/model.rs" ]
+disposition = "decompose"
+owner       = "identus-presentations maintainers"
+evidence    = "Request, submission, candidate, and verification invariants have independent change axes; characterize before private decomposition."
+
+[[hotspots]]
+id          = "did-document-validation"
+locations   = [ "crates/did/src/document.rs" ]
+disposition = "decompose"
+owner       = "identus-did maintainers"
+evidence    = "Document model and validation traversal are private-module candidates after characterization."
+
+[[hotspots]]
+id          = "did-resolution-model-and-wire"
+locations   = [ "crates/did/src/resolution.rs" ]
+disposition = "decompose"
+owner       = "identus-did maintainers"
+evidence    = "Value types, result models, validation, and wire preflight have independent internal change axes."
+
+[[hotspots]]
+id          = "did-registration-model-and-validation"
+locations   = [ "crates/did/src/registration.rs" ]
+disposition = "decompose"
+owner       = "identus-did maintainers"
+evidence    = "Lifecycle modeling and recursive extension validation should become characterized private boundaries."
+
+[[hotspots]]
+id          = "oid4vci-json-and-limits"
+locations   = [ "crates/oid4vci/src/json.rs", "crates/oid4vci/src/limits.rs" ]
+disposition = "defer-with-owner"
+owner       = "issue #168 / identus-oid4vci maintainers"
+evidence    = "Issue #168 owns resource-bound semantics; code-health work must not modify them."
+
+[[hotspots]]
+id          = "oid4vci-error-projection"
+locations   = [ "crates/oid4vci/src/error.rs" ]
+disposition = "defer-with-owner"
+owner       = "issue #271 / ADR 0116"
+evidence    = "Error architecture needs an independently characterized representative pilot."
+
+[[hotspots]]
+id          = "wallet-conformance-run-exact"
+locations   = [ "crates/wallet-conformance/src/lib.rs::run_exact" ]
+disposition = "decompose"
+owner       = "identus-wallet-conformance maintainers"
+evidence    = "Scenario orchestration and evidence projection have separate change axes; excluded from issue #270 implementation."
+
+[[hotspots]]
+id          = "did-oid-http-token-grammar"
+locations   = [ "crates/did-resolver-http/src", "crates/oid4vci/src" ]
+disposition = "document-exception"
+owner       = "DID HTTP and OID4VCI maintainers"
+evidence    = "Similar tokens retain different normative ownership, bounds, error types, and change cadence."
+
+[[hotspots]]
+id          = "did-standard-resolution-failure"
+locations   = [ "crates/did/src/cache.rs", "crates/did/src/registry.rs" ]
+disposition = "deduplicate"
+owner       = "identus-did resolution model"
+evidence    = "Identical standard W3C failure construction belongs in resolution.rs and is the sole production refactor in issue #270."
+
+[[hotspots]]
+id          = "derive-serde-token-generation"
+locations   = [ "crates/derive/src/num.rs", "crates/derive/src/str.rs" ]
+disposition = "deduplicate"
+owner       = "identus-derive maintainers"
+evidence    = "Shared token-generation shape needs a later focused slice with trybuild snapshots; excluded from issue #270 implementation."

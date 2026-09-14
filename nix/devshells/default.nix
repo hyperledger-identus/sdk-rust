@@ -33,6 +33,7 @@
             cargo-audit
             cargo-fuzz
             cargo-llvm-cov
+            rust-code-analysis
 
             # protobuf (for codegen of identus protos)
             protobuf

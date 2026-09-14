@@ -373,8 +373,9 @@ nightly-only Rust features or change the workspace's declared MSRV.
 The checks module SHALL provide a generated
 `rust-clippy-all-targets-all-features` check on primary Rust 1.98.1 which runs
 Clippy with workspace, all-target, all-feature, and warnings-denied selection.
-Both host-tested systems SHALL execute that named check through the
-weekly/manual slow workflow. The required fast workflow SHALL retain its
+Both host-tested systems SHALL execute that named check through the local or
+explicitly externally orchestrated slow command; hosted activation remains
+pending issue #276. The required fast workflow SHALL retain its
 existing default-surface `rust-clippy` selector and SHALL NOT select the
 complete check.
 

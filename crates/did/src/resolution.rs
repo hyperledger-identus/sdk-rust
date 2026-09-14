@@ -914,6 +914,18 @@ impl DidResolutionResult {
     }
 }
 
+/// Construct a standard, content-free DID resolution failure for crate-owned
+/// resolver orchestration.
+pub(crate) fn standard_resolution_failure(kind: DidResolutionErrorKind) -> DidResolutionResult {
+    let metadata = DidResolutionMetadata::new(
+        None,
+        Some(DidResolutionError::standard(kind)),
+        BTreeMap::new(),
+    )
+    .expect("standard error metadata is valid");
+    DidResolutionResult::failure(metadata).expect("standard resolution failure is valid")
+}
+
 impl<'de> Deserialize<'de> for DidResolutionResult {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

@@ -12,8 +12,8 @@ use serde::Serialize;
 use serde_json::Value;
 
 use crate::{
-    Did, DidResolutionError, DidResolutionErrorKind, DidResolutionFuture, DidResolutionMetadata,
-    DidResolutionResult, DidResolver, Error, ResolutionOptions, error::CacheError,
+    Did, DidResolutionErrorKind, DidResolutionFuture, DidResolutionResult, DidResolver, Error,
+    ResolutionOptions, error::CacheError, resolution::standard_resolution_failure,
 };
 
 /// Maximum normalized bytes in one resolution cache key.
@@ -557,19 +557,9 @@ fn ttl_for(
 
 fn failed_closed() -> CachedDidResolution {
     CachedDidResolution::new(
-        resolution_failure(DidResolutionErrorKind::InternalError),
+        standard_resolution_failure(DidResolutionErrorKind::InternalError),
         DidResolutionCacheStatus::FailedClosed,
     )
-}
-
-fn resolution_failure(kind: DidResolutionErrorKind) -> DidResolutionResult {
-    let metadata = DidResolutionMetadata::new(
-        None,
-        Some(DidResolutionError::standard(kind)),
-        BTreeMap::new(),
-    )
-    .expect("standard error metadata is valid");
-    DidResolutionResult::failure(metadata).expect("standard resolution failure is valid")
 }
 
 fn canonical_json(value: &Value) -> Value {

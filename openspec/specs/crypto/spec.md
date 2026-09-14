@@ -783,8 +783,9 @@ The repository SHALL expose one documented crypto command interface for
 committed-corpus replay, deterministic fixed-run smoke, and time-boxed soak
 modes through its pinned sanitizer compiler, runner, and runtime binding.
 Pull-request and integration smoke SHALL fix seed, run count, input ceiling,
-execution timeout, memory ceiling, mutation reload, and worker count. Scheduled
-and manual soak SHALL remain separately bounded.
+execution timeout, memory ceiling, mutation reload, and worker count. Local or
+externally orchestrated soak SHALL remain separately bounded pending hosted
+activation in issue #276.
 
 Original corpora and dictionaries SHALL cover standards-shaped public-key and
 consumer-shaped representation boundaries without containing production key
@@ -802,7 +803,7 @@ recorded without a hardware-specific pass threshold.
 
 #### Scenario: longer search remains bounded and diagnosable
 
-- **WHEN** scheduled or manually dispatched crypto soak finds a sanitizer or
+- **WHEN** a locally or externally orchestrated crypto soak finds a sanitizer or
   invariant failure
 - **THEN** the target SHALL stop inside the documented envelope and preserve
   its untrusted artifact for minimization without custom logging of its bytes

@@ -19,6 +19,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/crypto-coverage.py"
 "$repository_root/scripts/tests/source-distribution.py"
 "$repository_root/scripts/tests/crypto-candidate.py"
+"$repository_root/scripts/tests/code-health-audit.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
 "$repository_root/scripts/tests/constraints.py"
 "$repository_root/scripts/tests/openspec-archive.py"
@@ -51,8 +52,12 @@ required_files=(
   docs/architecture/sdk-bootstrap-inventory.md
   docs/architecture/sdk-bootstrap-inventory.toml
   docs/architecture/sdk-support-policy.md
+  docs/architecture/first-language-binding-slice.md
   docs/architecture/sdk-support-policy.toml
   docs/architecture/apollo-crypto-parity.toml
+  docs/architecture/code-health.md
+  docs/architecture/code-health.toml
+  docs/architecture/code-health-baseline.json
   docs/architecture/source-distribution.md
   docs/release/crypto-candidate.toml
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
@@ -68,6 +73,7 @@ required_files=(
   docs/governance/sdk-constraints.toml
   docs/adr/0001-bootstrap-branch-selection.md
   docs/adr/0003-delegate-develop-integration.md
+  docs/adr/0018-reproducible-did-lexical-fuzzing.md
   docs/adr/0062-use-a-rolling-near-current-msrv.md
   docs/adr/0063-make-material-constraints-explicit.md
   docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md
@@ -77,12 +83,21 @@ required_files=(
   docs/adr/0089-require-upstream-first-dependency-remediation.md
   docs/adr/0095-use-dependency-free-crypto-benchmark-harness.md
   docs/adr/0096-adopt-cargo-llvm-cov-for-apollo-evidence.md
+  docs/adr/0098-establish-experimental-uniffi-did-host-foundation.md
+  docs/adr/0099-prove-local-uniffi-did-apple-package.md
+  docs/adr/0100-prove-local-uniffi-did-android-package.md
+  docs/adr/0101-adopt-wasm-bindgen-for-browser-did-values.md
   docs/adr/0108-operationalize-guidance-based-ai-factory.md
+  docs/adr/0111-use-read-only-nix-cache-on-fast-path.md
   docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md
+  docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   nix/apps/crypto-candidate.nix
   openspec/config.yaml
+  openspec/specs/sdk-support-policy/spec.md
+  openspec/specs/crypto/spec.md
+  openspec/specs/did-core/spec.md
   scripts/benchmark-support-policy.py
   scripts/factory
   bootstrap.sh
@@ -129,6 +144,7 @@ required_files=(
   scripts/check-ssi-upstream-backlog.py
   scripts/check-source-distribution.py
   scripts/check-crypto-candidate.py
+  scripts/code-health-audit.py
   scripts/prepare-crypto-candidate.py
   scripts/check-pr-policy.sh
   scripts/check-research-readiness.py
@@ -145,6 +161,7 @@ required_files=(
   scripts/tests/crypto-coverage.py
   scripts/tests/source-distribution.py
   scripts/tests/crypto-candidate.py
+  scripts/tests/code-health-audit.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
   .github/ISSUE_TEMPLATE/delivery-task.yml
@@ -178,6 +195,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/check-source-distribution.py" \
   "$fixture_root/scripts/check-crypto-candidate.py" \
+  "$fixture_root/scripts/code-health-audit.py" \
   "$fixture_root/scripts/prepare-crypto-candidate.py" \
   "$fixture_root/scripts/tests/bootstrap-inventory.py" \
   "$fixture_root/scripts/tests/constraints.py" \
@@ -185,6 +203,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/crypto-coverage.py" \
   "$fixture_root/scripts/tests/source-distribution.py" \
   "$fixture_root/scripts/tests/crypto-candidate.py" \
+  "$fixture_root/scripts/tests/code-health-audit.py" \
   "$fixture_root/scripts/tests/factory-contract.sh" \
   "$fixture_root/scripts/tests/factory-operations.mjs" \
   "$fixture_root/scripts/tests/openspec-archive.py" \

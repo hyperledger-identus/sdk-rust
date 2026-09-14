@@ -63,8 +63,9 @@ surfaces that are required to compile or test. Checks SHALL exercise compatible
 surfaces independently rather than relying only on Cargo feature unification.
 The `crypto-minimal` surface SHALL include both strict Clippy and tests with no
 default features. During the temporary active-development phase, exhaustive
-feature permutations SHALL run in weekly/manual `slow` on Rust 1.98.1 rather
-than through an independently lower compiler lane.
+feature permutations SHALL remain available in the local or explicitly
+externally orchestrated `slow` command on Rust 1.98.1 rather than through an
+independently lower compiler lane. Hosted activation is pending issue #276.
 
 #### Scenario: Minimal crypto surface regresses
 
@@ -718,11 +719,14 @@ SHALL make no compatibility claim below Rust 1.98.1 during this phase.
 Pull requests targeting `develop` and pushes to `develop` SHALL receive one
 Linux job named `fast` that runs the manifest-derived repository/factory,
 formatting, workspace build, strict Clippy and normal workspace test gates.
-The full Linux/macOS Nix matrix SHALL remain available as a weekly and manually
-dispatchable job named `slow`, using the same Rust 1.98.1 compiler for all SDK
-compatibility checks. Slow failures SHALL be visible pre-release debt and SHALL
-block release-candidate preparation, but SHALL NOT be represented as required
-per-PR evidence during this temporary phase.
+The full Linux/macOS Nix matrix SHALL remain available as a local or explicitly
+externally orchestrated command named `slow`, using the same Rust 1.98.1
+compiler for all SDK compatibility checks. Its declared desired weekly trigger
+and `workflow_dispatch` SHALL NOT be represented as active while reserved empty
+`main` remains GitHub's default branch; issue #276 owns activation. Slow
+failures SHALL be visible pre-release debt and SHALL block release-candidate
+preparation, but SHALL NOT be represented as required per-PR evidence during
+this temporary phase.
 
 The `fast` job SHALL have read-only GitHub Actions cache authority and a bounded
 complete-job timeout. Cache restoration MAY accelerate the gate, but cache
@@ -733,10 +737,12 @@ or fabricating any substantive gate.
 
 Sanitizer fuzz campaigns MAY use a separately named, exactly pinned nightly
 tooling shell because libFuzzer instrumentation requires nightly. Those
-workflows SHALL run only weekly or manually, SHALL remain outside ordinary SDK
-compiler providers, and SHALL NOT be represented as Rust 1.98.1 compatibility
-evidence. The policy SHALL carry the 2026-12-08 review date and SHALL prohibit
-release-candidate use until a separate consumer-driven compatibility decision.
+commands SHALL run only locally or through explicit external orchestration,
+SHALL remain outside ordinary SDK compiler providers, and SHALL NOT be
+represented as Rust 1.98.1 compatibility evidence. Their desired hosted cadence
+is inactive pending issue #276. The policy SHALL carry the 2026-12-08 review
+date and SHALL prohibit release-candidate use until a separate consumer-driven
+compatibility decision.
 
 #### Scenario: Pull request receives rapid deterministic evidence
 
@@ -744,9 +750,10 @@ release-candidate use until a separate consumer-driven compatibility decision.
 - **THEN** one Ubuntu `fast` status runs factory structure, format, workspace
   build, strict Clippy and the normal workspace test suite on Rust 1.98.1
 
-#### Scenario: Exhaustive evidence runs outside the pull-request critical path
+#### Scenario: Exhaustive evidence is invoked outside the pull-request critical path
 
-- **WHEN** the weekly schedule fires or a maintainer manually dispatches it
+- **WHEN** a maintainer runs the slow command locally or an explicit external
+  scheduler invokes it
 - **THEN** `slow` runs the complete flake on Linux and macOS, including target,
   feature, documentation and supply-chain checks, on Rust 1.98.1
 

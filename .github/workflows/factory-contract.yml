@@ -57,6 +57,11 @@ jobs:
           use-flakehub: disabled
           diagnostic-endpoint: ""
 
+      - name: Verify pinned code-health source evidence
+        run: >-
+          python3 scripts/code-health-audit.py
+          --check-report docs/architecture/code-health-baseline.json
+
       - name: Run fast factory and Rust gates
         run: |
           nix build --print-build-logs \

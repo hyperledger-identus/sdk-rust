@@ -62,8 +62,9 @@ function, record property, error case/code and ABI-version value.
 The facade SHALL expose binding API version `1`. Swift and Kotlin/JVM host tests
 SHALL compile, link and execute valid, invalid, oversized, redacted-error and
 version checks against the built dynamic library. The host execution and
-separately locked generator supply-chain checks SHALL run in the existing
-weekly slow macOS lane, not the Linux-only fast pull-request lane.
+separately locked generator supply-chain checks SHALL run in the local or
+externally orchestrated slow macOS command, not the Linux-only fast pull-request
+lane. Hosted activation remains pending issue #276.
 
 #### Scenario: host language consumes API version one
 
@@ -75,8 +76,8 @@ weekly slow macOS lane, not the Linux-only fast pull-request lane.
 
 - **WHEN** ordinary pull-request CI runs during the active-development phase
 - **THEN** the Linux fast line SHALL retain factory, build, lint and test gates,
-  while macOS host execution and generator deny/audit evidence run weekly or by
-  manual dispatch in the slow workflow
+  while macOS host execution and generator deny/audit evidence run locally or
+  through explicit external orchestration pending hosted activation in issue #276
 
 ### Requirement: Host proof does not activate mobile or public FFI support
 
@@ -143,7 +144,8 @@ and keep generated package contents under ignored `target/` paths.
 
 An Xcode-driven iOS Simulator test SHALL observe binding API version `1` and
 the existing valid, invalid, oversized and redacted-error behavior families.
-This evidence SHALL run in the weekly/manual slow macOS lane. `SDK-LIM-002`
+This evidence SHALL run in the local or externally orchestrated slow macOS
+command; hosted activation remains pending issue #276. `SDK-LIM-002`
 SHALL remain effective because the package is unsigned, unpublished and not
 executed on a physical device, and because multi-Rust-static-library composition
 is unproven.
@@ -201,7 +203,8 @@ outputs, Gradle state and AVD state SHALL remain under ignored `target/` paths.
 
 An isolated arm64 API-35 emulator consumer SHALL observe binding API version
 `1` and the existing valid, invalid, oversized and redacted-error behavior
-families. The evidence SHALL run only in the weekly/manual slow macOS lane and
+families. The evidence SHALL run only in the local or externally orchestrated
+slow macOS command pending hosted activation in issue #276 and
 SHALL NOT mutate a user AVD. `SDK-LIM-002` and `SDK-LIM-003` SHALL remain
 effective.
 

@@ -27,7 +27,7 @@ of crate versions tested together and their standards/profile capabilities.
 The temporary Rust 1.98.1 fast/slow policy in ADR 0081 is explicitly
 insufficient release-candidate evidence. Before this gate begins, a focused
 compatibility decision must select the consumer-driven compiler matrix, every
-weekly/manual slow and sanitizer failure must be resolved, and required
+recorded slow and sanitizer failure must be resolved, and required
 repository settings must be verified.
 
 Before tagging, the release manager verifies:

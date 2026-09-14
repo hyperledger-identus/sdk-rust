@@ -51,12 +51,13 @@ getters, errors and lifecycle methods.
 
 The package SHALL expose binding API version `1`. Headless Chromium and Firefox
 SHALL execute matching valid, invalid, oversized, redaction, component and
-version tests in the weekly/manual slow Ubuntu line. Ordinary Linux pull
+version tests in the local or externally orchestrated slow Ubuntu command.
+Hosted activation remains pending issue #276. Ordinary Linux pull
 requests SHALL retain the existing fast factory/build/lint/test line.
 
 #### Scenario: slow browser evidence runs
 
-- **WHEN** the scheduled or manually dispatched browser job runs
+- **WHEN** the browser job is invoked locally or by explicit external orchestration
 - **THEN** both engines SHALL pass the same behavior families or the job SHALL
   fail without converting one engine's evidence into the other's
 

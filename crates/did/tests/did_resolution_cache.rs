@@ -558,6 +558,20 @@ fn backend_and_clock_failures_follow_explicit_policy() {
         observed.result().metadata().error().unwrap().kind(),
         Some(DidResolutionErrorKind::InternalError)
     );
+    assert!(observed.result().document().is_none());
+    assert!(observed.result().document_metadata().is_empty());
+    assert_eq!(
+        serde_json::to_value(observed.result()).unwrap(),
+        serde_json::json!({
+            "didResolutionMetadata": {
+                "error": {
+                    "type": "https://www.w3.org/ns/did#INTERNAL_ERROR"
+                }
+            },
+            "didDocument": null,
+            "didDocumentMetadata": {}
+        })
+    );
     assert_eq!(closed_resolver.calls.load(Ordering::SeqCst), 0);
 
     let failed_clock = Arc::new(FakeClock::at(1));

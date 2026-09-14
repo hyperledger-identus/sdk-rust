@@ -111,8 +111,10 @@ The agent then:
     explicitly authorized by the responsible human.
 
 Under ADR 0081, “required CI” means the exact Ubuntu `fast` status for normal
-active-development integration. Weekly/manual `slow` and sanitizer results are
-retained evidence and visible pre-release debt, not per-PR merge gates. Agents
+active-development integration. Locally or externally orchestrated `slow` and
+sanitizer results are retained evidence and visible pre-release debt, not per-PR
+merge gates. Their desired hosted cadence and dispatch are inactive pending
+issue #276 while empty `main` remains default. Agents
 must triage failures they encounter and may not prepare a release candidate or
 publish while that debt or the release-phase compiler decision is unresolved.
 

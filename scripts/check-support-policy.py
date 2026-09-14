@@ -2381,7 +2381,9 @@ def validate_ci_lanes(
         "fast_system": "x86_64-linux",
         "slow_workflow": ".github/workflows/nix-checks.yml",
         "slow_status": "slow",
-        "slow_cadence": "weekly-and-manual",
+        "slow_cadence": "desired-weekly-pending-276",
+        "slow_execution": "local-or-external",
+        "slow_schedule_status": "inactive-pending-276",
         "slow_scope": "all-flake-checks",
         "review_by": "2026-12-08",
     }
@@ -2542,6 +2544,14 @@ def validate_ci_lanes(
 
     slow, slow_path = workflow_text("slow_workflow")
     if slow:
+        scheduling_disclaimer = (
+            "# Desired cadence only: GitHub schedules workflows from the default branch,\n"
+            "# while reserved empty main remains default. Activation is tracked by #276."
+        )
+        if scheduling_disclaimer not in slow:
+            failures.append(
+                f"{slow_path} must disclose that its GitHub schedule is inactive pending #276"
+            )
         for trigger in ("schedule", "workflow_dispatch"):
             if re.search(rf"^  {trigger}:\s*$", slow, re.MULTILINE) is None:
                 failures.append(f"{slow_path} must declare the {trigger} trigger")
@@ -2553,7 +2563,9 @@ def validate_ci_lanes(
         if re.search(r"^\s*run:\s*nix flake check\s*$", slow, re.MULTILINE) is None:
             failures.append(f"{slow_path} must run the exhaustive nix flake check")
         if '    - cron: "23 2 * * 1"' not in trigger_block(slow, "schedule"):
-            failures.append(f"{slow_path} must retain the pinned weekly schedule")
+            failures.append(
+                f"{slow_path} must retain the desired weekly trigger pending #276"
+            )
         for runner in ("ubuntu-latest", "macos-latest"):
             if runner not in slow:
                 failures.append(f"{slow_path} matrix is missing {runner}")
@@ -2564,6 +2576,102 @@ def validate_ci_lanes(
         if slow.count(selector) != 1:
             failures.append(
                 f"{slow_path} must invoke the complete Clippy selector exactly once"
+            )
+
+    truthful_slow_sources = {
+        "README.md": "`workflow_dispatch` are inactive",
+        "docs/architecture/sdk-support-policy.md": (
+            "`workflow_dispatch` are not active GitHub execution evidence"
+        ),
+        "docs/governance/sdk-constraints.toml": (
+            "inactive hosted scheduling recorded pending issue #276"
+        ),
+        "openspec/specs/sdk-support-policy/spec.md": (
+            "`workflow_dispatch` SHALL NOT be represented as active"
+        ),
+        "docs/factory/README.md": "hosted cadence and dispatch are inactive",
+        "docs/governance/agentic-sdlc.md": (
+            "hosted cadence and dispatch are inactive pending"
+        ),
+        "docs/architecture/first-language-binding-slice.md": (
+            "local/external slow command requires Chromium and Firefox pending "
+            "hosted activation in issue #276"
+        ),
+        "openspec/specs/crypto/spec.md": (
+            "externally orchestrated soak SHALL remain separately bounded pending hosted"
+        ),
+        "openspec/specs/did-core/spec.md": (
+            "externally orchestrated soak SHALL be\nbounded separately pending hosted "
+            "activation in issue #276"
+        ),
+    }
+    stale_active_claims = (
+        r"\bruns weekly\b",
+        r"\bweekly/manual\b",
+        r"\bweekly (?:and|or) (?:on )?manual(?:ly)?\b",
+        r"\bweekly schedule fires\b",
+        r"\bmanually dispatch(?:ed|es)\b",
+    )
+    for relative_path, truthful_marker in truthful_slow_sources.items():
+        try:
+            prose = (root / relative_path).read_text(encoding="utf-8")
+        except OSError as error:
+            failures.append(f"cannot read slow-lane authority {relative_path}: {error}")
+            continue
+        if truthful_marker not in prose:
+            failures.append(
+                f"{relative_path} must record inactive hosted slow execution pending #276"
+            )
+        for stale_pattern in stale_active_claims:
+            if re.search(stale_pattern, prose, re.IGNORECASE):
+                failures.append(
+                    f"{relative_path} must not claim active weekly/manual GitHub slow execution"
+                )
+                break
+
+    accepted_schedule_sources = (
+        "docs/adr/0018-reproducible-did-lexical-fuzzing.md",
+        "docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md",
+        "docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md",
+        "docs/adr/0095-use-dependency-free-crypto-benchmark-harness.md",
+        "docs/adr/0096-adopt-cargo-llvm-cov-for-apollo-evidence.md",
+        "docs/adr/0098-establish-experimental-uniffi-did-host-foundation.md",
+        "docs/adr/0099-prove-local-uniffi-did-apple-package.md",
+        "docs/adr/0100-prove-local-uniffi-did-android-package.md",
+        "docs/adr/0101-adopt-wasm-bindgen-for-browser-did-values.md",
+        "docs/adr/0108-operationalize-guidance-based-ai-factory.md",
+        "docs/adr/0111-use-read-only-nix-cache-on-fast-path.md",
+        "docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md",
+        "docs/research/rust-library-reuse/report-source.md",
+    )
+    schedule_status_marker = (
+        "GitHub schedule and `workflow_dispatch` execution are inactive"
+    )
+    for relative_path in accepted_schedule_sources:
+        try:
+            authority = (root / relative_path).read_text(encoding="utf-8")
+        except OSError as error:
+            failures.append(f"cannot read schedule authority {relative_path}: {error}")
+            continue
+        if (
+            "Operational status (2026-09-14)" not in authority
+            or schedule_status_marker not in authority
+            or "issue #276" not in authority
+        ):
+            failures.append(
+                f"{relative_path} must supersede historical cadence prose with the "
+                "inactive hosted status pending #276"
+            )
+
+    target_plan_path = "scripts/ci/target-plan.mjs"
+    try:
+        target_plan = (root / target_plan_path).read_text(encoding="utf-8")
+    except OSError as error:
+        failures.append(f"cannot read {target_plan_path}: {error}")
+    else:
+        if 'slowPolicy: "local-or-external-pending-276"' not in target_plan:
+            failures.append(
+                f"{target_plan_path} must record local/external slow execution pending #276"
             )
 
     fuzz_workflows = {

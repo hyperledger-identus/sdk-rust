@@ -65,6 +65,28 @@ class SupportPolicyTests(unittest.TestCase):
             "flake.nix",
             "flake.lock",
             "docs/architecture/sdk-support-policy.toml",
+            "README.md",
+            "docs/architecture/sdk-support-policy.md",
+            "docs/architecture/first-language-binding-slice.md",
+            "docs/governance/sdk-constraints.toml",
+            "openspec/specs/sdk-support-policy/spec.md",
+            "openspec/specs/crypto/spec.md",
+            "openspec/specs/did-core/spec.md",
+            "docs/factory/README.md",
+            "docs/governance/agentic-sdlc.md",
+            "docs/adr/0018-reproducible-did-lexical-fuzzing.md",
+            "docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md",
+            "docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md",
+            "docs/adr/0095-use-dependency-free-crypto-benchmark-harness.md",
+            "docs/adr/0096-adopt-cargo-llvm-cov-for-apollo-evidence.md",
+            "docs/adr/0098-establish-experimental-uniffi-did-host-foundation.md",
+            "docs/adr/0099-prove-local-uniffi-did-apple-package.md",
+            "docs/adr/0100-prove-local-uniffi-did-android-package.md",
+            "docs/adr/0101-adopt-wasm-bindgen-for-browser-did-values.md",
+            "docs/adr/0108-operationalize-guidance-based-ai-factory.md",
+            "docs/adr/0111-use-read-only-nix-cache-on-fast-path.md",
+            "docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md",
+            "docs/research/rust-library-reuse/report-source.md",
             "docs/adr/0002-neoprism-toolchain-alignment.md",
             ".github/workflows/factory-contract.yml",
             ".github/workflows/nix-checks.yml",
@@ -73,6 +95,7 @@ class SupportPolicyTests(unittest.TestCase):
             ".github/workflows/jws-fuzz.yml",
             "nix/devshells/default.nix",
             "nix/rust-toolchain.nix",
+            "scripts/ci/target-plan.mjs",
         ]:
             destination = self.fixture / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
@@ -1894,13 +1917,54 @@ in
         )
         self.assert_fails("must not declare the pull_request trigger")
 
-    def test_slow_lane_cannot_be_scheduled_daily(self) -> None:
+    def test_slow_lane_cannot_change_desired_weekly_cadence(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
             '    - cron: "23 2 * * 1"',
             '    - cron: "23 2 * * *"',
         )
-        self.assert_fails("must retain the pinned weekly schedule")
+        self.assert_fails("must retain the desired weekly trigger pending #276")
+
+    def test_slow_lane_cannot_claim_its_github_schedule_is_active(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "# Desired cadence only: GitHub schedules workflows from the default branch,\n"
+            "# while reserved empty main remains default. Activation is tracked by #276.\n",
+            "",
+        )
+        self.assert_fails("GitHub schedule is inactive pending #276")
+
+    def test_slow_lane_policy_cannot_claim_active_github_scheduling(self) -> None:
+        self.replace(
+            "docs/architecture/sdk-support-policy.toml",
+            'slow_schedule_status       = "inactive-pending-276"',
+            'slow_schedule_status       = "active"',
+        )
+        self.assert_fails("ci.slow_schedule_status must be inactive-pending-276")
+
+    def test_slow_lane_prose_cannot_claim_active_weekly_dispatch(self) -> None:
+        self.replace(
+            "README.md",
+            "`workflow_dispatch` are inactive while reserved empty",
+            "runs weekly and through manual dispatch while reserved empty",
+        )
+        self.assert_fails("must not claim active weekly/manual GitHub slow execution")
+
+    def test_target_plan_cannot_claim_weekly_or_manual_slow_execution(self) -> None:
+        self.replace(
+            "scripts/ci/target-plan.mjs",
+            'slowPolicy: "local-or-external-pending-276"',
+            'slowPolicy: "weekly-or-manual"',
+        )
+        self.assert_fails("must record local/external slow execution pending #276")
+
+    def test_accepted_adr_must_disclose_inactive_hosted_schedule(self) -> None:
+        self.replace(
+            "docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md",
+            "`workflow_dispatch` execution are inactive",
+            "`workflow_dispatch` execution are active",
+        )
+        self.assert_fails("inactive hosted status pending #276")
 
     def test_complete_clippy_gate_must_select_all_targets(self) -> None:
         self.replace_gate(

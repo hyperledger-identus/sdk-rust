@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 
-//! Measurement-only cryptography baseline for the weekly/manual slow lane.
+//! Measurement-only cryptography baseline for local/external slow execution.
 
 use std::env;
 use std::hint::black_box;

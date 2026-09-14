@@ -6,6 +6,11 @@
   limitations `SDK-LIM-002` and `SDK-LIM-003`
 - **Related work:** #163; ADRs 0097–0100
 
+> **Operational status (2026-09-14):** This ADR records desired cadence only.
+> GitHub schedule and `workflow_dispatch` execution are inactive while reserved
+> empty `main` remains default. Run evidence locally or through explicit external
+> orchestration; issue #276 owns hosted activation.
+
 ## Context
 
 The SDK compile-checks generic Rust crates for browser WASM and has native

@@ -104,7 +104,8 @@ ambiguously delivered targets.
 
 The factory SHALL derive one target plan from an exact base/head diff and
 delivery profile. The active-development PR requirement SHALL remain the
-single Linux `fast` gate; weekly/manual slow evidence SHALL be recommended for
+single Linux `fast` gate; locally or externally invoked slow evidence SHALL be
+recommended for
 toolchain, Nix, security, FFI and release-sensitive paths. Unknown diff state
 SHALL fail closed to the complete public evidence recommendation.
 

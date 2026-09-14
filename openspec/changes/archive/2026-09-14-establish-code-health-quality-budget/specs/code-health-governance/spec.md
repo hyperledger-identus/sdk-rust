@@ -33,6 +33,7 @@ test/shipping source line SHALL be production. No test span SHALL consume a
 following production node. Attribute-like tokens inside a macro definition or
 invocation token tree SHALL remain production; only an outer cfg applying to a
 recognized macro invocation may classify that invocation inline-test.
+Inner `#![cfg(...)]` scopes SHALL remain production in v1.
 
 #### Scenario: Test-only inline module
 
@@ -95,6 +96,12 @@ recognized macro invocation may classify that invocation inline-test.
   resemble a cfg attribute on a shipping item
 - **THEN** v1 keeps the token-tree source in production rather than treating it
   as an active source attribute
+
+#### Scenario: Inner cfg scopes a nested source region
+
+- **WHEN** a module or block contains an inner `#![cfg(test)]` attribute
+- **THEN** v1 conservatively retains that scope in production and issue #275
+  owns broader syntax classification
 
 #### Scenario: Test-only out-of-line module
 

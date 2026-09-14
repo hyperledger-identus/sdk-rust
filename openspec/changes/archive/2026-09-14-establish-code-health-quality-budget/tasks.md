@@ -55,3 +55,5 @@
 - [x] 5.9 Make the v1 item boundary a no-hiding whitelist, retain unsupported
   nested/generic/macro shapes and mixed source lines as production, and track
   full `syn` classification separately in issue #275.
+- [x] 5.10 Record inner cfg scopes as unsupported/production and cover the
+  limitation with an exact regression owned by issue #275.

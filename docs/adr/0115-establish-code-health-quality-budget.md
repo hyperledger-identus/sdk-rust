@@ -44,7 +44,8 @@ strict v1 whitelist proves its local terminator: semicolon, zero-relative-depth
 comma, recognized block item, or recognized item macro. Angle ambiguity,
 unmatched container delimiters, comma-less members, nested block expressions,
 unrecognized macros, macro token-tree contents, and mixed test/shipping lines
-remain production. Issue
+remain production. Inner `#![cfg(...)]` scopes likewise remain production.
+Issue
 [#275](https://github.com/hyperledger-identus/sdk-rust/issues/275) owns a future
 non-published `syn` classifier; this issue does not grow a partial Rust parser.
 
@@ -102,7 +103,8 @@ module inheritance, mixed production/test reachability, comment/raw/Unicode cfg
 tokens, boolean literals, unsupported-syntax conservatism, and short-circuiting
 nested `cfg_attr` logic. Adversarial generic parameters, comparisons/shifts,
 comma-less members, labels, block expressions, match arms, Unicode macros, and
-mixed source lines prove that unsupported shapes remain production. Report mutation tests
+mixed source lines and inner cfg scopes prove that unsupported shapes remain
+production. Report mutation tests
 and fast/slow regeneration cover the complete schema, engine pin, policy/tree
 binding, population separation, exclusions and dispositions. DID tests cover registry and
 failed-closed cache results. Full factory, formatting, strict Clippy, tests,

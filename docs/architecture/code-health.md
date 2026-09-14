@@ -64,6 +64,7 @@ worktree; unrelated documentation changes do not invalidate source evidence.
   shipping node. Attribute-like tokens inside macro definitions or invocations
   are always production; only a cfg attribute outside and applying to a
   recognized macro invocation may subtract the invocation.
+  Inner `#![cfg(...)]` scopes are unsupported in v1 and remain production.
   A test-only out-of-line `mod name;` recursively classifies the ordinary
   `name.rs` or `name/mod.rs` module tree. Nested inline-module context is part
   of resolution, so `mod tests { mod helper; }` resolves only under `tests/`
@@ -76,7 +77,7 @@ worktree; unrelated documentation changes do not invalidate source evidence.
   also reaches it.
 - Issue [#275](https://github.com/hyperledger-identus/sdk-rust/issues/275)
   tracks a non-published `syn` helper for broader full-syntax classification;
-  v1 does not claim that precision.
+  v1 does not claim nested or inner-scope precision.
 - **Generated** Rust is excluded only when `code-health.toml` names its exact
   path and an exact marker present in the first ten lines. Generic phrases in
   comments never cause exclusion.

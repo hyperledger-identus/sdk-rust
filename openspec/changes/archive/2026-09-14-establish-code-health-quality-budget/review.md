@@ -11,7 +11,8 @@ Fourth review-remediation head: `2b948ebe47eb03fbf2207d6ba8b7ca2ca859c785`
 Fifth review-remediation head: `f1826db71de8f370bfb5cf3dd49f0725be2602bb`
 Sixth review-remediation head: `2acf13f4ccb18450b7ebc21294330ac095fd2c9e`
 Seventh review-remediation head: `3bafdbb7ebc3392e381316b28c3ec3afd627c32e`
-Final review-remediation head: `1521c242ffac901f37dea0766b1510ae2f5180dc`
+Eighth review-remediation head: `1521c242ffac901f37dea0766b1510ae2f5180dc`
+Final review-remediation head: `8ef23489d4cded5cb635b970de9c4e1da360d711`
 Planning head: `0a7ded352110474150e409aabcb3a2c4edfed661`
 Unresolved blockers: none
 
@@ -117,8 +118,9 @@ recognize Unicode Rust lifetimes. Head `1521c24` additionally prevents
 attribute-like macro token-tree contents from being interpreted as source
 attributes, including the demonstrated macro that consumes a literal
 `#[cfg(test)]` token and emits its captured item without the attribute. Issue
-#275 tracks a future non-published `syn` classifier. Review found no remaining
-blocker in the final remediated diff.
+#275 tracks a future non-published `syn` classifier and owns exact inner
+`#![cfg(...)]` scope classification; v1 retains those scopes as production.
+Review found no remaining blocker in the final remediated diff.
 
 ## Review decision
 

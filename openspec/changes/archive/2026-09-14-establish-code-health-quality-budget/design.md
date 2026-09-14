@@ -51,6 +51,7 @@ remove an item from production. Stable cfg booleans are exact and inactive
 retains ambiguous angles, comma-less container members, block expressions,
 unrecognized macros and mixed test/shipping lines as production. Broader syntax
 coverage belongs to the non-published `syn` helper tracked by issue #275.
+Inner cfg scopes are also retained as production until that helper exists.
 
 The policy pins baseline revision, source fingerprint and canonical report
 digest. Fast validation reloads the Git tree and recomputes authored source

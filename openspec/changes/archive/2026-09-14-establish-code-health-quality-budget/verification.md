@@ -10,7 +10,8 @@
 - **Fifth review-remediation head:** `f1826db71de8f370bfb5cf3dd49f0725be2602bb`
 - **Sixth review-remediation head:** `2acf13f4ccb18450b7ebc21294330ac095fd2c9e`
 - **Seventh review-remediation head:** `3bafdbb7ebc3392e381316b28c3ec3afd627c32e`
-- **Final review-remediation head:** `1521c242ffac901f37dea0766b1510ae2f5180dc`
+- **Eighth review-remediation head:** `1521c242ffac901f37dea0766b1510ae2f5180dc`
+- **Final review-remediation head:** `8ef23489d4cded5cb635b970de9c4e1da360d711`
 - **Host:** aarch64-darwin
 - **Result:** passed with no unresolved blocker
 
@@ -22,7 +23,7 @@ external-test lines in 69 files and 982 functions; and 3,865 inline-test lines
 in 28 files and 312 functions. It contains 50 function and six module
 attention signals plus 13 explicit hotspot dispositions.
 
-The clean exact implementation audit at `1521c24` reports 28,368 production
+The clean exact implementation audit at `8ef2348` reports 28,368 production
 lines and 2,193 production functions: a delta of -6 lines and -1 function.
 External characterization grows by 27 lines to 22,627; inline-test counts,
 production/external file counts, and function/module attention-signal counts
@@ -36,7 +37,7 @@ reduction.
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --output /tmp/sdk-rust-code-health-head-rebased.json
 python3 scripts/code-health-audit.py --check-report docs/architecture/code-health-baseline.json
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --verify-baseline
-python3 scripts/tests/code-health-audit.py (36/36)
+python3 scripts/tests/code-health-audit.py (37/37)
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test -p identus-did --test did_method_registry --test did_resolution_cache (16 passed, 2 ignored)
@@ -78,6 +79,8 @@ identifiers and Unicode Rust lifetimes have exact regressions. Full syntax
 classification is tracked separately in issue #275. Macro definition and
 invocation token-tree contents remain production even when a macro consumes a
 literal `#[cfg(test)]` token and emits the captured item without that attribute.
+Inner `#![cfg(...)]` scopes are explicitly retained as production and delegated
+to issue #275.
 A direct `cargo nextest` invocation was
 unavailable outside the pinned shell; the recorded bootstrap invocation is the
 successful replacement. The Nix install fixup emitted a Darwin

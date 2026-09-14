@@ -49,6 +49,7 @@ required_files=(
   crates/derive/README.md
   crates/core/README.md
   crates/crypto/README.md
+  crates/credentials/tests/fixtures/credentials-error-contract-v1.csv
   docs/architecture/ssi-upstream-source-matrix.md
   docs/roadmap/ssi-upstream-dependency-backlog.csv
   docs/governance/agentic-sdlc.md
@@ -99,6 +100,7 @@ required_files=(
   scripts/git-hooks/local-policy.mjs
   scripts/worktree-lifecycle.mjs
   scripts/check-factory.sh
+  scripts/check-error-golden.py
   scripts/check-bootstrap-inventory.py
   scripts/check-constraints.py
   scripts/check-openspec-archive.py
@@ -116,6 +118,7 @@ required_files=(
   scripts/check-pr-policy.sh
   scripts/check-research-readiness.py
   scripts/tests/factory-contract.sh
+  scripts/tests/error-golden.py
   scripts/tests/factory-operations.mjs
   scripts/tests/bootstrap-inventory.py
   scripts/tests/constraints.py
@@ -144,7 +147,7 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in bootstrap.sh scripts/factory scripts/benchmark-support-policy.py scripts/benchmark-crypto.sh scripts/coverage-crypto.sh scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-constraints.py scripts/check-crypto-benchmark.py scripts/report-crypto-coverage.py scripts/code-health-audit.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-ssi-upstream-backlog.py scripts/check-source-distribution.py scripts/check-crypto-candidate.py scripts/prepare-crypto-candidate.py scripts/ci/contribution-policy.mjs scripts/ci/target-plan.mjs scripts/factory-tools/audit-pi.mjs scripts/factory-tools/metrics.mjs scripts/factory-tools/pi-session-harvest.mjs scripts/factory-tools/strict-json.mjs scripts/factory-tools/supervisor.mjs scripts/factory-tools/pi-package-cache.mjs scripts/factory-tools/pi-policy.mjs scripts/factory-tools/preflight.mjs scripts/git-hooks/configure.mjs scripts/git-hooks/local-policy.mjs scripts/worktree-lifecycle.mjs scripts/tests/bootstrap-inventory.py scripts/tests/constraints.py scripts/tests/crypto-benchmark.py scripts/tests/crypto-coverage.py scripts/tests/code-health-audit.py scripts/tests/source-distribution.py scripts/tests/crypto-candidate.py scripts/tests/factory-contract.sh scripts/tests/factory-operations.mjs scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py .githooks/commit-msg .githooks/pre-commit .githooks/pre-push; do
+for executable_path in bootstrap.sh scripts/factory scripts/benchmark-support-policy.py scripts/benchmark-crypto.sh scripts/coverage-crypto.sh scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-constraints.py scripts/check-error-golden.py scripts/check-crypto-benchmark.py scripts/report-crypto-coverage.py scripts/code-health-audit.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-ssi-upstream-backlog.py scripts/check-source-distribution.py scripts/check-crypto-candidate.py scripts/prepare-crypto-candidate.py scripts/ci/contribution-policy.mjs scripts/ci/target-plan.mjs scripts/factory-tools/audit-pi.mjs scripts/factory-tools/metrics.mjs scripts/factory-tools/pi-session-harvest.mjs scripts/factory-tools/strict-json.mjs scripts/factory-tools/supervisor.mjs scripts/factory-tools/pi-package-cache.mjs scripts/factory-tools/pi-policy.mjs scripts/factory-tools/preflight.mjs scripts/git-hooks/configure.mjs scripts/git-hooks/local-policy.mjs scripts/worktree-lifecycle.mjs scripts/tests/bootstrap-inventory.py scripts/tests/constraints.py scripts/tests/error-golden.py scripts/tests/crypto-benchmark.py scripts/tests/crypto-coverage.py scripts/tests/code-health-audit.py scripts/tests/source-distribution.py scripts/tests/crypto-candidate.py scripts/tests/factory-contract.sh scripts/tests/factory-operations.mjs scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py .githooks/commit-msg .githooks/pre-commit .githooks/pre-push; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi
@@ -195,6 +198,12 @@ fi
 if [[ -x "$factory_root/scripts/check-crypto-candidate.py" && -f "$factory_root/docs/release/crypto-candidate.toml" ]]; then
   if ! "$factory_root/scripts/check-crypto-candidate.py" "$factory_root"; then
     report_failure "unpublished crypto-candidate validation failed"
+  fi
+fi
+
+if [[ -x "$factory_root/scripts/check-error-golden.py" ]]; then
+  if ! "$factory_root/scripts/check-error-golden.py" "$factory_root"; then
+    report_failure "immutable error-golden validation failed"
   fi
 fi
 

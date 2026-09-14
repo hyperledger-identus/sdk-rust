@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""Mutation tests for the immutable credentials error-golden binding."""
+
+from __future__ import annotations
+
+import importlib.util
+import shutil
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+CHECKER = ROOT / "scripts/check-error-golden.py"
+STABLE = Path("crates/credentials/tests/fixtures/credentials-error-contract-v1.csv")
+ACTIVE = Path(
+    "openspec/changes/decompose-public-error-contracts/golden/credentials-error-contract-v1.csv"
+)
+ARCHIVE_FILE = Path(
+    "openspec/changes/archive/2026-09-15-decompose-public-error-contracts/golden/credentials-error-contract-v1.csv"
+)
+
+
+def load_checker():
+    spec = importlib.util.spec_from_file_location("error_golden_checker", CHECKER)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("cannot load error-golden checker")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def write(path: Path, payload: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(payload)
+
+
+def active_fixture(root: Path) -> None:
+    payload = (ROOT / STABLE).read_bytes()
+    write(root / STABLE, payload)
+    write(root / ACTIVE, payload)
+
+
+def archive_fixture(root: Path) -> None:
+    (root / ACTIVE).unlink()
+    write(root / ARCHIVE_FILE, (root / STABLE).read_bytes())
+
+
+def require_error(checker, root: Path, expected: str) -> None:
+    errors = checker.validate(root)
+    if not any(expected in error for error in errors):
+        raise AssertionError(f"mutation was accepted; expected {expected!r}, got {errors!r}")
+
+
+def replace_both(root: Path, old: bytes, new: bytes) -> None:
+    for relative in (STABLE, ACTIVE):
+        path = root / relative
+        payload = path.read_bytes()
+        if old not in payload:
+            raise AssertionError(f"fixture bytes not found: {old!r}")
+        path.write_bytes(payload.replace(old, new, 1))
+
+
+def main() -> int:
+    checker = load_checker()
+    with tempfile.TemporaryDirectory(prefix="error-golden-") as temporary:
+        test_root = Path(temporary)
+
+        active = test_root / "active"
+        active_fixture(active)
+        if errors := checker.validate(active):
+            raise AssertionError(f"active fixture failed: {errors!r}")
+
+        archived = test_root / "archived"
+        shutil.copytree(active, archived)
+        archive_fixture(archived)
+        if errors := checker.validate(archived):
+            raise AssertionError(f"archive fixture failed: {errors!r}")
+
+        coordinated = test_root / "coordinated-row-drift"
+        shutil.copytree(active, coordinated)
+        replace_both(
+            coordinated,
+            b"credential format is invalid",
+            b"credential format was invalid",
+        )
+        require_error(checker, coordinated, "SHA-256")
+
+        single = test_root / "single-copy-drift"
+        shutil.copytree(active, single)
+        with (single / STABLE).open("ab") as destination:
+            destination.write(b"\n")
+        require_error(checker, single, "byte-for-byte")
+
+        provenance = test_root / "provenance-drift"
+        shutil.copytree(active, provenance)
+        replace_both(
+            provenance,
+            b"# generated_at=2026-09-14",
+            b"# generated_at=2026-09-15",
+        )
+        require_error(checker, provenance, "generated_at provenance")
+
+        header = test_root / "header-drift"
+        shutil.copytree(active, header)
+        replace_both(header, b"error_type,variant", b"error_type,variant_name")
+        require_error(checker, header, "CSV header")
+
+        missing = test_root / "missing-archive"
+        shutil.copytree(active, missing)
+        (missing / ACTIVE).unlink()
+        require_error(checker, missing, "found 0")
+
+        ambiguous = test_root / "ambiguous-archive"
+        shutil.copytree(archived, ambiguous)
+        second = Path(
+            "openspec/changes/archive/2026-09-16-decompose-public-error-contracts/golden/credentials-error-contract-v1.csv"
+        )
+        write(ambiguous / second, (ambiguous / STABLE).read_bytes())
+        require_error(checker, ambiguous, "found 2")
+
+    print("error-golden test: 8 active/archive and mutation cases passed")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -19,6 +19,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/crypto-coverage.py"
 "$repository_root/scripts/tests/source-distribution.py"
 "$repository_root/scripts/tests/crypto-candidate.py"
+"$repository_root/scripts/tests/error-golden.py"
 "$repository_root/scripts/tests/code-health-audit.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
 "$repository_root/scripts/tests/constraints.py"
@@ -64,6 +65,7 @@ required_files=(
   crates/derive/README.md
   crates/core/README.md
   crates/crypto/README.md
+  crates/credentials/tests/fixtures/credentials-error-contract-v1.csv
   docs/architecture/ssi-upstream-source-matrix.md
   docs/roadmap/ssi-upstream-dependency-backlog.csv
   docs/governance/agentic-sdlc.md
@@ -132,6 +134,7 @@ required_files=(
   scripts/git-hooks/local-policy.mjs
   scripts/worktree-lifecycle.mjs
   scripts/check-factory.sh
+  scripts/check-error-golden.py
   scripts/check-bootstrap-inventory.py
   scripts/check-constraints.py
   scripts/check-openspec-archive.py
@@ -149,6 +152,7 @@ required_files=(
   scripts/check-pr-policy.sh
   scripts/check-research-readiness.py
   scripts/tests/factory-contract.sh
+  scripts/tests/error-golden.py
   scripts/tests/factory-operations.mjs
   scripts/tests/bootstrap-inventory.py
   scripts/tests/constraints.py
@@ -179,12 +183,33 @@ for relative_path in "${required_files[@]}"; do
       ;;
   esac
 done
+
+planning_golden_source="$repository_root/openspec/changes/decompose-public-error-contracts/golden/credentials-error-contract-v1.csv"
+if [[ ! -f "$planning_golden_source" ]]; then
+  planning_golden_source=''
+  planning_golden_count=0
+  while IFS= read -r candidate; do
+    planning_golden_source=$candidate
+    planning_golden_count=$((planning_golden_count + 1))
+  done < <(find "$repository_root/openspec/changes/archive" -type f \
+    -path '*-decompose-public-error-contracts/golden/credentials-error-contract-v1.csv' | sort)
+  if [[ $planning_golden_count -ne 1 ]]; then
+    printf 'factory-contract test: expected one archived error planning golden; found %s\n' \
+      "$planning_golden_count" >&2
+    exit 1
+  fi
+fi
+planning_golden_target="$fixture_root/openspec/changes/archive/2026-09-15-decompose-public-error-contracts/golden/credentials-error-contract-v1.csv"
+mkdir -p "$(dirname "$planning_golden_target")"
+cp "$planning_golden_source" "$planning_golden_target"
+
 chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" \
   "$fixture_root/scripts/benchmark-support-policy.py" \
   "$fixture_root/scripts/benchmark-crypto.sh" \
   "$fixture_root/scripts/coverage-crypto.sh" \
   "$fixture_root/scripts/check-bootstrap-inventory.py" \
   "$fixture_root/scripts/check-constraints.py" \
+  "$fixture_root/scripts/check-error-golden.py" \
   "$fixture_root/scripts/check-crypto-benchmark.py" \
   "$fixture_root/scripts/report-crypto-coverage.py" \
   "$fixture_root/scripts/check-openspec-archive.py" \
@@ -199,6 +224,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/prepare-crypto-candidate.py" \
   "$fixture_root/scripts/tests/bootstrap-inventory.py" \
   "$fixture_root/scripts/tests/constraints.py" \
+  "$fixture_root/scripts/tests/error-golden.py" \
   "$fixture_root/scripts/tests/crypto-benchmark.py" \
   "$fixture_root/scripts/tests/crypto-coverage.py" \
   "$fixture_root/scripts/tests/source-distribution.py" \

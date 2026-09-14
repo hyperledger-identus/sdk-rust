@@ -8,7 +8,7 @@
   the immutable 47-row pre-refactor credentials golden.
 - [x] 1.3 Complete the pre-implementation semantic/architecture/API/security
   review and cross-check the golden against the exact base sources.
-- [ ] 1.4 Commit the planning-only contract with signed+DCO provenance and
+- [x] 1.4 Commit the planning-only contract with signed+DCO provenance and
   write and validate its durable preimplementation receipt.
 
 ## 2. Credentials pilot

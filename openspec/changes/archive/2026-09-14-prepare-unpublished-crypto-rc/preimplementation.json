@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 266,
+  "change": "prepare-unpublished-crypto-rc",
+  "branch": "codex/chore/issue-266",
+  "baseRef": "origin/develop",
+  "baseSha": "8110277c24714206436ae4a3fe678bdc58a84736",
+  "contractHeadSha": "dee0d35ea083aea14610f91386ac0d466be4d3e2",
+  "createdAt": "2026-09-14T09:53:13.499Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

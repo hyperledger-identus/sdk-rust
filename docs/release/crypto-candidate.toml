@@ -1,0 +1,63 @@
+schema_version    = 1
+candidate         = "identus-crypto-0.1.0-rc.1"
+version           = "0.1.0-rc.1"
+rust_version      = "1.98.1"
+baseline_revision = "8110277c24714206436ae4a3fe678bdc58a84736"
+repository        = "https://github.com/hyperledger-identus/sdk-rust"
+homepage          = "https://hyperledger-identus.github.io/"
+license           = "Apache-2.0"
+max_archive_bytes = 1048576
+publication       = "prohibited"
+
+[tools]
+cargo_public_api    = "0.52.0"
+cargo_semver_checks = "0.50.0"
+cargo_cyclonedx     = "0.5.9"
+cyclonedx_spec      = "1.5"
+
+[[profiles]]
+name             = "default"
+default_features = true
+features         = [  ]
+
+[[profiles]]
+name             = "all-features"
+default_features = true
+features         = [ "all" ]
+
+[[profiles]]
+name             = "no-default-features"
+default_features = false
+features         = [  ]
+
+[[profiles]]
+name             = "kmp-compat"
+default_features = false
+features         = [ "kmp-compat" ]
+
+[[packages]]
+name          = "identus-derive"
+path          = "crates/derive"
+description   = "Derive macros for validated Hyperledger Identus Rust SDK domain types."
+documentation = "https://docs.rs/identus-derive/0.1.0-rc.1"
+readme        = "README.md"
+keywords      = [ "identity", "ssi", "derive" ]
+categories    = [ "development-tools::procedural-macro-helpers" ]
+
+[[packages]]
+name          = "identus-core"
+path          = "crates/core"
+description   = "Chain-neutral core types and ports for the Hyperledger Identus Rust SDK."
+documentation = "https://docs.rs/identus-core/0.1.0-rc.1"
+readme        = "README.md"
+keywords      = [ "identity", "ssi", "did" ]
+categories    = [ "data-structures" ]
+
+[[packages]]
+name          = "identus-crypto"
+path          = "crates/crypto"
+description   = "Reusable cryptographic primitives for Hyperledger Identus Rust SDK consumers."
+documentation = "https://docs.rs/identus-crypto/0.1.0-rc.1"
+readme        = "README.md"
+keywords      = [ "cryptography", "identity", "ssi", "did" ]
+categories    = [ "cryptography" ]

@@ -1,0 +1,1164 @@
+pub mod identus_crypto
+pub mod identus_crypto::base64
+pub struct identus_crypto::base64::Base64UrlStrNoPad(_)
+impl identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::base64::Base64UrlStrNoPad::as_str(&self) -> &str
+pub fn identus_crypto::base64::Base64UrlStrNoPad::to_bytes(&self) -> alloc::vec::Vec<u8>
+impl core::convert::AsRef<str> for identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::base64::Base64UrlStrNoPad::as_ref(&self) -> &str
+impl core::fmt::Display for identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::base64::Base64UrlStrNoPad::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::str::traits::FromStr for identus_crypto::base64::Base64UrlStrNoPad
+pub type identus_crypto::base64::Base64UrlStrNoPad::Err = identus_crypto::error::Error
+pub fn identus_crypto::base64::Base64UrlStrNoPad::from_str(&str) -> core::result::Result<Self, Self::Err>
+impl serde_core::ser::Serialize for identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::base64::Base64UrlStrNoPad::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
+impl<B: core::convert::AsRef<[u8]>> core::convert::From<B> for identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::base64::Base64UrlStrNoPad::from(B) -> Self
+pub mod identus_crypto::convert
+pub struct identus_crypto::convert::ConvertEd25519
+impl identus_crypto::convert::ConvertEd25519
+pub fn identus_crypto::convert::ConvertEd25519::convert_secret_key_to_x25519(&[u8]) -> core::result::Result<identus_crypto::crypto::x25519::X25519PrivateKey, identus_crypto::error::Error>
+pub mod identus_crypto::cose
+pub enum identus_crypto::cose::CoseCoordinate
+pub identus_crypto::cose::CoseCoordinate::X
+pub identus_crypto::cose::CoseCoordinate::Y
+impl core::fmt::Display for identus_crypto::cose::CoseCoordinate
+pub fn identus_crypto::cose::CoseCoordinate::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::cose::CoseCurve
+pub identus_crypto::cose::CoseCurve::Ed25519
+pub identus_crypto::cose::CoseCurve::P256
+pub identus_crypto::cose::CoseCurve::Secp256k1
+pub identus_crypto::cose::CoseCurve::X25519
+impl identus_crypto::cose::CoseCurve
+pub const fn identus_crypto::cose::CoseCurve::as_str(self) -> &'static str
+pub const fn identus_crypto::cose::CoseCurve::assigned(self) -> i64
+pub const fn identus_crypto::cose::CoseCurve::key_type(self) -> identus_crypto::cose::CoseKeyType
+impl core::fmt::Display for identus_crypto::cose::CoseCurve
+pub fn identus_crypto::cose::CoseCurve::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::cose::CoseEcY
+pub identus_crypto::cose::CoseEcY::Coordinate([u8; 32])
+pub identus_crypto::cose::CoseEcY::Sign(bool)
+pub enum identus_crypto::cose::CoseKeyError
+pub identus_crypto::cose::CoseKeyError::CompressedCoordinate
+pub identus_crypto::cose::CoseKeyError::DuplicateMapKey
+pub identus_crypto::cose::CoseKeyError::EncodingFailed
+pub identus_crypto::cose::CoseKeyError::ExpectedMap
+pub identus_crypto::cose::CoseKeyError::FloatingPointValue
+pub identus_crypto::cose::CoseKeyError::IncompatibleProfile
+pub identus_crypto::cose::CoseKeyError::IncompatibleProfile::curve: identus_crypto::cose::CoseCurve
+pub identus_crypto::cose::CoseKeyError::IncompatibleProfile::key_type: identus_crypto::cose::CoseKeyType
+pub identus_crypto::cose::CoseKeyError::InputTooLarge
+pub identus_crypto::cose::CoseKeyError::InputTooLarge::actual: usize
+pub identus_crypto::cose::CoseKeyError::InputTooLarge::max: usize
+pub identus_crypto::cose::CoseKeyError::InvalidCbor
+pub identus_crypto::cose::CoseKeyError::InvalidCoordinateLength
+pub identus_crypto::cose::CoseKeyError::InvalidCoordinateLength::actual: usize
+pub identus_crypto::cose::CoseKeyError::InvalidCoordinateLength::coordinate: identus_crypto::cose::CoseCoordinate
+pub identus_crypto::cose::CoseKeyError::InvalidCoordinateLength::expected: usize
+pub identus_crypto::cose::CoseKeyError::InvalidCoordinateType
+pub identus_crypto::cose::CoseKeyError::InvalidCoordinateType::coordinate: identus_crypto::cose::CoseCoordinate
+pub identus_crypto::cose::CoseKeyError::MissingCurve
+pub identus_crypto::cose::CoseKeyError::MissingXCoordinate
+pub identus_crypto::cose::CoseKeyError::MissingYCoordinate
+pub identus_crypto::cose::CoseKeyError::PrivateKeyMaterial
+pub identus_crypto::cose::CoseKeyError::TooManyParameters
+pub identus_crypto::cose::CoseKeyError::TooManyParameters::actual: usize
+pub identus_crypto::cose::CoseKeyError::TooManyParameters::max: usize
+pub identus_crypto::cose::CoseKeyError::TrailingData
+pub identus_crypto::cose::CoseKeyError::UnexpectedYCoordinate
+pub identus_crypto::cose::CoseKeyError::UnsupportedCurve
+pub identus_crypto::cose::CoseKeyError::UnsupportedKeyType
+impl identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::cose::CoseKeyError::to_identus_error(&self) -> identus_core::IdentusError
+impl core::error::Error for identus_crypto::cose::CoseKeyError
+impl core::fmt::Display for identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::cose::CoseKeyError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::cose::CoseKeyType
+pub identus_crypto::cose::CoseKeyType::Ec2
+pub identus_crypto::cose::CoseKeyType::Okp
+impl identus_crypto::cose::CoseKeyType
+pub const fn identus_crypto::cose::CoseKeyType::as_str(self) -> &'static str
+pub const fn identus_crypto::cose::CoseKeyType::assigned(self) -> i64
+impl core::fmt::Display for identus_crypto::cose::CoseKeyType
+pub fn identus_crypto::cose::CoseKeyType::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_crypto::cose::PublicKeyCose
+impl identus_crypto::cose::PublicKeyCose
+pub const fn identus_crypto::cose::PublicKeyCose::additional_parameter_count(&self) -> usize
+pub const fn identus_crypto::cose::PublicKeyCose::curve(&self) -> identus_crypto::cose::CoseCurve
+pub fn identus_crypto::cose::PublicKeyCose::from_cbor(&[u8]) -> core::result::Result<Self, identus_crypto::cose::CoseKeyError>
+pub const fn identus_crypto::cose::PublicKeyCose::key_type(&self) -> identus_crypto::cose::CoseKeyType
+pub fn identus_crypto::cose::PublicKeyCose::new_ec(identus_crypto::cose::CoseCurve, [u8; 32], [u8; 32]) -> core::result::Result<Self, identus_crypto::cose::CoseKeyError>
+pub fn identus_crypto::cose::PublicKeyCose::new_ec_compressed(identus_crypto::cose::CoseCurve, [u8; 32], bool) -> core::result::Result<Self, identus_crypto::cose::CoseKeyError>
+pub fn identus_crypto::cose::PublicKeyCose::new_okp(identus_crypto::cose::CoseCurve, [u8; 32]) -> core::result::Result<Self, identus_crypto::cose::CoseKeyError>
+pub fn identus_crypto::cose::PublicKeyCose::to_cbor(&self) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::cose::CoseKeyError>
+pub const fn identus_crypto::cose::PublicKeyCose::x(&self) -> &[u8; 32]
+pub const fn identus_crypto::cose::PublicKeyCose::y(&self) -> core::option::Option<identus_crypto::cose::CoseEcY>
+impl core::convert::TryFrom<&identus_crypto::cose::PublicKeyCose> for identus_crypto::jwk::PublicKeyJwk
+pub type identus_crypto::jwk::PublicKeyJwk::Error = identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::jwk::PublicKeyJwk::try_from(&identus_crypto::cose::PublicKeyCose) -> core::result::Result<Self, Self::Error>
+impl core::convert::TryFrom<&identus_crypto::jwk::PublicKeyJwk> for identus_crypto::cose::PublicKeyCose
+pub type identus_crypto::cose::PublicKeyCose::Error = identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::cose::PublicKeyCose::try_from(&identus_crypto::jwk::PublicKeyJwk) -> core::result::Result<Self, Self::Error>
+impl core::fmt::Debug for identus_crypto::cose::PublicKeyCose
+pub fn identus_crypto::cose::PublicKeyCose::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub const identus_crypto::cose::MAX_COSE_ADDITIONAL_PARAMETERS: usize
+pub const identus_crypto::cose::MAX_COSE_KEY_BYTES: usize
+pub const identus_crypto::cose::MAX_COSE_NESTING_DEPTH: usize
+pub trait identus_crypto::cose::EncodeCose
+pub fn identus_crypto::cose::EncodeCose::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+pub mod identus_crypto::crypto
+pub mod identus_crypto::crypto::ed25519
+pub struct identus_crypto::crypto::ed25519::Ed25519KeyPair
+impl identus_crypto::crypto::ed25519::Ed25519KeyPair
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::private(&self) -> &identus_crypto::crypto::ed25519::Ed25519PrivateKey
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::public(&self) -> &identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::crypto::ed25519::Ed25519PrivateKey(pub ed25519_dalek::signing::SigningKey)
+impl identus_crypto::crypto::ed25519::Ed25519PrivateKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::to_bytes(&self) -> [u8; 32]
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::to_public_key(&self) -> identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub struct identus_crypto::crypto::ed25519::Ed25519PublicKey(pub ed25519_dalek::verifying::VerifyingKey)
+impl identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::as_verifying_key(&self) -> &ed25519_dalek::verifying::VerifyingKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<32> for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_array(&self) -> [u8; 32]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub mod identus_crypto::crypto::secp256k1
+pub struct identus_crypto::crypto::secp256k1::CurvePoint
+pub identus_crypto::crypto::secp256k1::CurvePoint::x: [u8; 32]
+pub identus_crypto::crypto::secp256k1::CurvePoint::y: [u8; 32]
+pub struct identus_crypto::crypto::secp256k1::Secp256k1KeyPair
+impl identus_crypto::crypto::secp256k1::Secp256k1KeyPair
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::private(&self) -> &identus_crypto::crypto::secp256k1::Secp256k1PrivateKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::public(&self) -> &identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::crypto::secp256k1::Secp256k1PrivateKey(pub k256::SecretKey)
+impl identus_crypto::crypto::secp256k1::Secp256k1PrivateKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PrivateKey::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PrivateKey::to_public_key(&self) -> identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub struct identus_crypto::crypto::secp256k1::Secp256k1PublicKey(pub k256::PublicKey)
+impl identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::curve_point(&self) -> identus_crypto::crypto::secp256k1::CurvePoint
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_compressed(&self) -> [u8; 33]
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_uncompressed(&self) -> [u8; 65]
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<33> for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_array(&self) -> [u8; 33]
+impl identus_crypto::enc::EncodeArray<65> for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_array(&self) -> [u8; 65]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub mod identus_crypto::crypto::secp256r1
+pub struct identus_crypto::crypto::secp256r1::P256KeyPair
+impl identus_crypto::crypto::secp256r1::P256KeyPair
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::private(&self) -> &identus_crypto::crypto::secp256r1::P256PrivateKey
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::public(&self) -> &identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::crypto::secp256r1::P256PrivateKey(pub p256::SecretKey)
+impl identus_crypto::crypto::secp256r1::P256PrivateKey
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::sign_fixed(&self, &[u8]) -> [u8; 64]
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::to_public_key(&self) -> identus_crypto::crypto::secp256r1::P256PublicKey
+pub struct identus_crypto::crypto::secp256r1::P256PublicKey(pub p256::PublicKey)
+impl identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::curve_point(&self) -> ([u8; 32], [u8; 32])
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_compressed(&self) -> [u8; 33]
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_uncompressed(&self) -> [u8; 65]
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::verify_fixed(&self, &[u8], &[u8; 64]) -> bool
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<33> for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_array(&self) -> [u8; 33]
+impl identus_crypto::enc::EncodeArray<65> for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_array(&self) -> [u8; 65]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub mod identus_crypto::crypto::x25519
+pub struct identus_crypto::crypto::x25519::X25519KeyPair
+impl identus_crypto::crypto::x25519::X25519KeyPair
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::derive_shared(&self, &identus_crypto::crypto::x25519::X25519PublicKey) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::private(&self) -> &identus_crypto::crypto::x25519::X25519PrivateKey
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::public(&self) -> &identus_crypto::crypto::x25519::X25519PublicKey
+pub struct identus_crypto::crypto::x25519::X25519PrivateKey(pub x25519_dalek::x25519::StaticSecret)
+impl identus_crypto::crypto::x25519::X25519PrivateKey
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::derive_shared(&self, &identus_crypto::crypto::x25519::X25519PublicKey) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::to_bytes(&self) -> [u8; 32]
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::to_public_key(&self) -> identus_crypto::crypto::x25519::X25519PublicKey
+pub struct identus_crypto::crypto::x25519::X25519PublicKey(pub x25519_dalek::x25519::PublicKey)
+impl identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<32> for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_array(&self) -> [u8; 32]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub mod identus_crypto::derivation
+pub mod identus_crypto::derivation::cardano_v2
+pub struct identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+impl identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::derive_path(&self, &identus_crypto::derivation::path::DerivationPath) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::expose_secret_bytes(&self) -> [u8; 96]
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::from_bytes([u8; 96]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::from_nonextended(&[u8; 32], &[u8; 32]) -> Self
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::to_public_key(&self) -> core::result::Result<identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey, identus_crypto::error::Error>
+impl core::fmt::Debug for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::ops::drop::Drop for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::drop(&mut self)
+impl zeroize::Zeroize for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::zeroize(&mut self)
+pub struct identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey
+impl identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::chain_code(&self) -> [u8; 32]
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::derive_path(&self, &identus_crypto::derivation::path::DerivationPath) -> core::result::Result<Self, identus_crypto::error::Error>
+pub const fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::from_bytes([u8; 64]) -> Self
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::from_public_key_and_chain_code(&[u8; 32], &[u8; 32]) -> Self
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::public_key_bytes(&self) -> [u8; 32]
+pub const fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::to_bytes(&self) -> [u8; 64]
+impl core::fmt::Debug for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub mod identus_crypto::derivation::edhdkey
+pub struct identus_crypto::derivation::edhdkey::EdHDKey
+pub identus_crypto::derivation::edhdkey::EdHDKey::chain_code: [u8; 32]
+pub identus_crypto::derivation::edhdkey::EdHDKey::depth: u32
+pub identus_crypto::derivation::edhdkey::EdHDKey::index: u32
+pub identus_crypto::derivation::edhdkey::EdHDKey::private_key: [u8; 32]
+impl identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl core::fmt::Debug for identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::ops::drop::Drop for identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::drop(&mut self)
+impl zeroize::Zeroize for identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::zeroize(&mut self)
+pub mod identus_crypto::derivation::hdkey
+pub struct identus_crypto::derivation::hdkey::HDKey
+pub identus_crypto::derivation::hdkey::HDKey::chain_code: [u8; 32]
+pub identus_crypto::derivation::hdkey::HDKey::child_index: u32
+pub identus_crypto::derivation::hdkey::HDKey::depth: u32
+pub identus_crypto::derivation::hdkey::HDKey::private_key: [u8; 32]
+impl identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::hdkey::HDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::hdkey::HDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl core::fmt::Debug for identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::ops::drop::Drop for identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::drop(&mut self)
+impl zeroize::Zeroize for identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::zeroize(&mut self)
+pub mod identus_crypto::derivation::mnemonic
+pub struct identus_crypto::derivation::mnemonic::MnemonicHelper
+impl identus_crypto::derivation::mnemonic::MnemonicHelper
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_random_mnemonics(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<alloc::vec::Vec<alloc::string::String>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_random_seed(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_seed(&[alloc::string::String], &str) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_seed_kmp(&[alloc::string::String], &str) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::is_valid_mnemonic_code(&[alloc::string::String]) -> bool
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::to_mnemonic_code(&[u8]) -> alloc::vec::Vec<alloc::string::String>
+pub fn identus_crypto::derivation::mnemonic::wordlist() -> alloc::vec::Vec<&'static str>
+pub mod identus_crypto::derivation::path
+pub struct identus_crypto::derivation::path::DerivationAxis(_)
+impl identus_crypto::derivation::path::DerivationAxis
+pub fn identus_crypto::derivation::path::DerivationAxis::hardened(u32) -> Self
+pub const fn identus_crypto::derivation::path::DerivationAxis::is_hardened(&self) -> bool
+pub fn identus_crypto::derivation::path::DerivationAxis::normal(u32) -> Self
+pub const fn identus_crypto::derivation::path::DerivationAxis::number(&self) -> u32
+pub const fn identus_crypto::derivation::path::DerivationAxis::raw(&self) -> u32
+impl core::fmt::Display for identus_crypto::derivation::path::DerivationAxis
+pub fn identus_crypto::derivation::path::DerivationAxis::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_crypto::derivation::path::DerivationPath
+impl identus_crypto::derivation::path::DerivationPath
+pub fn identus_crypto::derivation::path::DerivationPath::axes(&self) -> &[identus_crypto::derivation::path::DerivationAxis]
+pub fn identus_crypto::derivation::path::DerivationPath::derive(&self, identus_crypto::derivation::path::DerivationAxis) -> Self
+pub fn identus_crypto::derivation::path::DerivationPath::empty() -> Self
+pub fn identus_crypto::derivation::path::DerivationPath::from_path(&str) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::path::DerivationPath::is_empty(&self) -> bool
+pub fn identus_crypto::derivation::path::DerivationPath::len(&self) -> usize
+impl core::fmt::Display for identus_crypto::derivation::path::DerivationPath
+pub fn identus_crypto::derivation::path::DerivationPath::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub const identus_crypto::derivation::path::HARDENED_OFFSET: u32
+pub struct identus_crypto::derivation::CardanoV2ExtendedPrivateKey
+impl identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::derive_path(&self, &identus_crypto::derivation::path::DerivationPath) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::expose_secret_bytes(&self) -> [u8; 96]
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::from_bytes([u8; 96]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::from_nonextended(&[u8; 32], &[u8; 32]) -> Self
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::to_public_key(&self) -> core::result::Result<identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey, identus_crypto::error::Error>
+impl core::fmt::Debug for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::ops::drop::Drop for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::drop(&mut self)
+impl zeroize::Zeroize for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::zeroize(&mut self)
+pub struct identus_crypto::derivation::CardanoV2ExtendedPublicKey
+impl identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::chain_code(&self) -> [u8; 32]
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::derive_path(&self, &identus_crypto::derivation::path::DerivationPath) -> core::result::Result<Self, identus_crypto::error::Error>
+pub const fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::from_bytes([u8; 64]) -> Self
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::from_public_key_and_chain_code(&[u8; 32], &[u8; 32]) -> Self
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::public_key_bytes(&self) -> [u8; 32]
+pub const fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::to_bytes(&self) -> [u8; 64]
+impl core::fmt::Debug for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_crypto::derivation::EdHDKey
+pub identus_crypto::derivation::EdHDKey::chain_code: [u8; 32]
+pub identus_crypto::derivation::EdHDKey::depth: u32
+pub identus_crypto::derivation::EdHDKey::index: u32
+pub identus_crypto::derivation::EdHDKey::private_key: [u8; 32]
+impl identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl core::fmt::Debug for identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::ops::drop::Drop for identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::drop(&mut self)
+impl zeroize::Zeroize for identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::zeroize(&mut self)
+pub struct identus_crypto::derivation::HDKey
+pub identus_crypto::derivation::HDKey::chain_code: [u8; 32]
+pub identus_crypto::derivation::HDKey::child_index: u32
+pub identus_crypto::derivation::HDKey::depth: u32
+pub identus_crypto::derivation::HDKey::private_key: [u8; 32]
+impl identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::hdkey::HDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::hdkey::HDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl core::fmt::Debug for identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::ops::drop::Drop for identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::drop(&mut self)
+impl zeroize::Zeroize for identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::zeroize(&mut self)
+pub struct identus_crypto::derivation::MnemonicHelper
+impl identus_crypto::derivation::mnemonic::MnemonicHelper
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_random_mnemonics(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<alloc::vec::Vec<alloc::string::String>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_random_seed(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_seed(&[alloc::string::String], &str) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_seed_kmp(&[alloc::string::String], &str) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::is_valid_mnemonic_code(&[alloc::string::String]) -> bool
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::to_mnemonic_code(&[u8]) -> alloc::vec::Vec<alloc::string::String>
+pub const identus_crypto::derivation::MAX_DERIVATION_PATH_AXES: usize
+pub const identus_crypto::derivation::MAX_DERIVATION_PATH_BYTES: usize
+pub const identus_crypto::derivation::MAX_HD_SEED_BYTES: usize
+pub const identus_crypto::derivation::MIN_HD_SEED_BYTES: usize
+pub mod identus_crypto::ed25519
+pub struct identus_crypto::ed25519::Ed25519KeyPair
+impl identus_crypto::crypto::ed25519::Ed25519KeyPair
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::private(&self) -> &identus_crypto::crypto::ed25519::Ed25519PrivateKey
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::public(&self) -> &identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::ed25519::Ed25519PrivateKey(pub ed25519_dalek::signing::SigningKey)
+impl identus_crypto::crypto::ed25519::Ed25519PrivateKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::to_bytes(&self) -> [u8; 32]
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::to_public_key(&self) -> identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub struct identus_crypto::ed25519::Ed25519PublicKey(pub ed25519_dalek::verifying::VerifyingKey)
+impl identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::as_verifying_key(&self) -> &ed25519_dalek::verifying::VerifyingKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<32> for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_array(&self) -> [u8; 32]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub mod identus_crypto::enc
+pub trait identus_crypto::enc::EncodeArray<const N: usize>
+pub fn identus_crypto::enc::EncodeArray::encode_array(&self) -> [u8; N]
+impl identus_crypto::enc::EncodeArray<32> for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_array(&self) -> [u8; 32]
+impl identus_crypto::enc::EncodeArray<32> for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_array(&self) -> [u8; 32]
+impl identus_crypto::enc::EncodeArray<33> for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_array(&self) -> [u8; 33]
+impl identus_crypto::enc::EncodeArray<33> for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_array(&self) -> [u8; 33]
+impl identus_crypto::enc::EncodeArray<65> for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_array(&self) -> [u8; 65]
+impl identus_crypto::enc::EncodeArray<65> for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_array(&self) -> [u8; 65]
+pub trait identus_crypto::enc::EncodeVec
+pub fn identus_crypto::enc::EncodeVec::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+pub trait identus_crypto::enc::Verifiable
+pub fn identus_crypto::enc::Verifiable::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::verify(&self, &[u8], &[u8]) -> bool
+pub mod identus_crypto::error
+pub mod identus_crypto::error::error_code
+pub const identus_crypto::error::error_code::DERIVATION_FAILED: identus_core::ErrorCode
+pub const identus_crypto::error::error_code::INVALID_COSE_KEY: identus_core::ErrorCode
+pub const identus_crypto::error::error_code::INVALID_JWK: identus_core::ErrorCode
+pub const identus_crypto::error::error_code::INVALID_KEY_SIZE: identus_core::ErrorCode
+pub const identus_crypto::error::error_code::KEY_PARSING: identus_core::ErrorCode
+pub const identus_crypto::error::error_code::MNEMONIC_INVALID: identus_core::ErrorCode
+pub const identus_crypto::error::error_code::SECURE_RANDOM_FAILURE: identus_core::ErrorCode
+pub const identus_crypto::error::error_code::SIGNATURE_INVALID: identus_core::ErrorCode
+pub const identus_crypto::error::error_code::UNSUPPORTED_CURVE: identus_core::ErrorCode
+pub enum identus_crypto::error::Error
+pub identus_crypto::error::Error::DerivationFailed
+pub identus_crypto::error::Error::InvalidKeySize
+pub identus_crypto::error::Error::InvalidKeySize::actual: usize
+pub identus_crypto::error::Error::InvalidKeySize::expected: usize
+pub identus_crypto::error::Error::InvalidKeySize::key_type: &'static str
+pub identus_crypto::error::Error::KeyParsing
+pub identus_crypto::error::Error::KeyParsing::source: alloc::boxed::Box<(dyn core::error::Error + core::marker::Send + core::marker::Sync + 'static)>
+pub identus_crypto::error::Error::MnemonicInvalid
+pub identus_crypto::error::Error::SecureRandomFailure
+pub identus_crypto::error::Error::SignatureInvalid
+pub identus_crypto::error::Error::UnsupportedCurve
+impl identus_crypto::error::Error
+pub fn identus_crypto::error::Error::to_identus_error(&self) -> identus_core::IdentusError
+impl core::convert::From<elliptic_curve::error::Error> for identus_crypto::error::Error
+pub fn identus_crypto::error::Error::from(elliptic_curve::error::Error) -> Self
+impl core::convert::From<signature::error::Error> for identus_crypto::error::Error
+pub fn identus_crypto::error::Error::from(ed25519_dalek::errors::SignatureError) -> Self
+impl core::error::Error for identus_crypto::error::Error
+pub fn identus_crypto::error::Error::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
+impl core::fmt::Display for identus_crypto::error::Error
+pub fn identus_crypto::error::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub const identus_crypto::error::CAPABILITY: identus_core::CapabilityId
+pub mod identus_crypto::hash
+pub struct identus_crypto::hash::Sha256Digest(_)
+impl identus_crypto::hash::Sha256Digest
+pub fn identus_crypto::hash::Sha256Digest::as_array(&self) -> &[u8; 32]
+pub fn identus_crypto::hash::Sha256Digest::as_bytes(&self) -> &[u8]
+pub fn identus_crypto::hash::Sha256Digest::from_bytes(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::hash::Sha256Digest::to_vec(&self) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::hash::Sha512Digest(_)
+impl identus_crypto::hash::Sha512Digest
+pub fn identus_crypto::hash::Sha512Digest::as_array(&self) -> &[u8; 64]
+pub fn identus_crypto::hash::Sha512Digest::as_bytes(&self) -> &[u8]
+pub fn identus_crypto::hash::Sha512Digest::from_bytes(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::hash::Sha512Digest::to_vec(&self) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::hash::hmac_sha512(&[u8], &[u8]) -> [u8; 64]
+pub fn identus_crypto::hash::sha256<B: core::convert::AsRef<[u8]>>(B) -> identus_crypto::hash::Sha256Digest
+pub fn identus_crypto::hash::sha512<B: core::convert::AsRef<[u8]>>(B) -> identus_crypto::hash::Sha512Digest
+pub mod identus_crypto::hex
+pub struct identus_crypto::hex::HexStr(_)
+impl identus_crypto::hex::HexStr
+pub fn identus_crypto::hex::HexStr::as_str(&self) -> &str
+pub fn identus_crypto::hex::HexStr::to_bytes(&self) -> alloc::vec::Vec<u8>
+impl core::convert::AsRef<str> for identus_crypto::hex::HexStr
+pub fn identus_crypto::hex::HexStr::as_ref(&self) -> &str
+impl core::fmt::Display for identus_crypto::hex::HexStr
+pub fn identus_crypto::hex::HexStr::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::str::traits::FromStr for identus_crypto::hex::HexStr
+pub type identus_crypto::hex::HexStr::Err = identus_crypto::error::Error
+pub fn identus_crypto::hex::HexStr::from_str(&str) -> core::result::Result<Self, Self::Err>
+impl<B: core::convert::AsRef<[u8]>> core::convert::From<B> for identus_crypto::hex::HexStr
+pub fn identus_crypto::hex::HexStr::from(B) -> Self
+pub mod identus_crypto::jwk
+pub enum identus_crypto::jwk::JwkCoordinate
+pub identus_crypto::jwk::JwkCoordinate::X
+pub identus_crypto::jwk::JwkCoordinate::Y
+impl core::fmt::Display for identus_crypto::jwk::JwkCoordinate
+pub fn identus_crypto::jwk::JwkCoordinate::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::jwk::JwkCurve
+pub identus_crypto::jwk::JwkCurve::Ed25519
+pub identus_crypto::jwk::JwkCurve::P256
+pub identus_crypto::jwk::JwkCurve::Secp256k1
+pub identus_crypto::jwk::JwkCurve::X25519
+impl identus_crypto::jwk::JwkCurve
+pub const fn identus_crypto::jwk::JwkCurve::as_str(self) -> &'static str
+pub const fn identus_crypto::jwk::JwkCurve::key_type(self) -> identus_crypto::jwk::JwkKeyType
+impl core::fmt::Display for identus_crypto::jwk::JwkCurve
+pub fn identus_crypto::jwk::JwkCurve::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::jwk::JwkError
+pub identus_crypto::jwk::JwkError::IncompatibleProfile
+pub identus_crypto::jwk::JwkError::IncompatibleProfile::curve: identus_crypto::jwk::JwkCurve
+pub identus_crypto::jwk::JwkError::IncompatibleProfile::key_type: identus_crypto::jwk::JwkKeyType
+pub identus_crypto::jwk::JwkError::InvalidCoordinateEncoding
+pub identus_crypto::jwk::JwkError::InvalidCoordinateEncoding::coordinate: identus_crypto::jwk::JwkCoordinate
+pub identus_crypto::jwk::JwkError::InvalidCoordinateLength
+pub identus_crypto::jwk::JwkError::InvalidCoordinateLength::actual: usize
+pub identus_crypto::jwk::JwkError::InvalidCoordinateLength::coordinate: identus_crypto::jwk::JwkCoordinate
+pub identus_crypto::jwk::JwkError::InvalidCoordinateLength::expected: usize
+pub identus_crypto::jwk::JwkError::MissingYCoordinate
+pub identus_crypto::jwk::JwkError::PrivateKeyMaterial
+pub identus_crypto::jwk::JwkError::ReservedExtension
+pub identus_crypto::jwk::JwkError::UnexpectedYCoordinate
+impl identus_crypto::jwk::JwkError
+pub fn identus_crypto::jwk::JwkError::to_identus_error(&self) -> identus_core::IdentusError
+impl core::error::Error for identus_crypto::jwk::JwkError
+impl core::fmt::Display for identus_crypto::jwk::JwkError
+pub fn identus_crypto::jwk::JwkError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::jwk::JwkKeyType
+pub identus_crypto::jwk::JwkKeyType::Ec
+pub identus_crypto::jwk::JwkKeyType::Okp
+impl identus_crypto::jwk::JwkKeyType
+pub const fn identus_crypto::jwk::JwkKeyType::as_str(self) -> &'static str
+impl core::fmt::Display for identus_crypto::jwk::JwkKeyType
+pub fn identus_crypto::jwk::JwkKeyType::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_crypto::jwk::JwkThumbprint(_)
+impl identus_crypto::jwk::JwkThumbprint
+pub const fn identus_crypto::jwk::JwkThumbprint::as_bytes(&self) -> &[u8; 32]
+pub fn identus_crypto::jwk::JwkThumbprint::to_base64url(&self) -> identus_crypto::base64::Base64UrlStrNoPad
+impl core::fmt::Display for identus_crypto::jwk::JwkThumbprint
+pub fn identus_crypto::jwk::JwkThumbprint::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_crypto::jwk::PublicKeyJwk
+impl identus_crypto::jwk::PublicKeyJwk
+pub const fn identus_crypto::jwk::PublicKeyJwk::crv(&self) -> identus_crypto::jwk::JwkCurve
+pub const fn identus_crypto::jwk::PublicKeyJwk::extensions(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_crypto::jwk::PublicKeyJwk::from_parts(identus_crypto::jwk::JwkKeyType, identus_crypto::jwk::JwkCurve, &str, core::option::Option<&str>, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_crypto::jwk::JwkError>
+pub const fn identus_crypto::jwk::PublicKeyJwk::kty(&self) -> identus_crypto::jwk::JwkKeyType
+pub fn identus_crypto::jwk::PublicKeyJwk::new_ec(identus_crypto::jwk::JwkCurve, [u8; 32], [u8; 32]) -> core::result::Result<Self, identus_crypto::jwk::JwkError>
+pub fn identus_crypto::jwk::PublicKeyJwk::new_okp(identus_crypto::jwk::JwkCurve, [u8; 32]) -> core::result::Result<Self, identus_crypto::jwk::JwkError>
+pub fn identus_crypto::jwk::PublicKeyJwk::thumbprint_sha256(&self) -> identus_crypto::jwk::JwkThumbprint
+pub const fn identus_crypto::jwk::PublicKeyJwk::x(&self) -> &identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::jwk::PublicKeyJwk::y(&self) -> core::option::Option<&identus_crypto::base64::Base64UrlStrNoPad>
+impl core::convert::TryFrom<&identus_crypto::cose::PublicKeyCose> for identus_crypto::jwk::PublicKeyJwk
+pub type identus_crypto::jwk::PublicKeyJwk::Error = identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::jwk::PublicKeyJwk::try_from(&identus_crypto::cose::PublicKeyCose) -> core::result::Result<Self, Self::Error>
+impl core::convert::TryFrom<&identus_crypto::jwk::PublicKeyJwk> for identus_crypto::cose::PublicKeyCose
+pub type identus_crypto::cose::PublicKeyCose::Error = identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::cose::PublicKeyCose::try_from(&identus_crypto::jwk::PublicKeyJwk) -> core::result::Result<Self, Self::Error>
+impl<'de> serde_core::de::Deserialize<'de> for identus_crypto::jwk::PublicKeyJwk
+pub fn identus_crypto::jwk::PublicKeyJwk::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub trait identus_crypto::jwk::EncodeJwk
+pub fn identus_crypto::jwk::EncodeJwk::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub mod identus_crypto::path
+pub struct identus_crypto::path::DerivationAxis(_)
+impl identus_crypto::derivation::path::DerivationAxis
+pub fn identus_crypto::derivation::path::DerivationAxis::hardened(u32) -> Self
+pub const fn identus_crypto::derivation::path::DerivationAxis::is_hardened(&self) -> bool
+pub fn identus_crypto::derivation::path::DerivationAxis::normal(u32) -> Self
+pub const fn identus_crypto::derivation::path::DerivationAxis::number(&self) -> u32
+pub const fn identus_crypto::derivation::path::DerivationAxis::raw(&self) -> u32
+impl core::fmt::Display for identus_crypto::derivation::path::DerivationAxis
+pub fn identus_crypto::derivation::path::DerivationAxis::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_crypto::path::DerivationPath
+impl identus_crypto::derivation::path::DerivationPath
+pub fn identus_crypto::derivation::path::DerivationPath::axes(&self) -> &[identus_crypto::derivation::path::DerivationAxis]
+pub fn identus_crypto::derivation::path::DerivationPath::derive(&self, identus_crypto::derivation::path::DerivationAxis) -> Self
+pub fn identus_crypto::derivation::path::DerivationPath::empty() -> Self
+pub fn identus_crypto::derivation::path::DerivationPath::from_path(&str) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::path::DerivationPath::is_empty(&self) -> bool
+pub fn identus_crypto::derivation::path::DerivationPath::len(&self) -> usize
+impl core::fmt::Display for identus_crypto::derivation::path::DerivationPath
+pub fn identus_crypto::derivation::path::DerivationPath::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub const identus_crypto::path::HARDENED_OFFSET: u32
+pub mod identus_crypto::secp256k1
+pub struct identus_crypto::secp256k1::CurvePoint
+pub identus_crypto::secp256k1::CurvePoint::x: [u8; 32]
+pub identus_crypto::secp256k1::CurvePoint::y: [u8; 32]
+pub struct identus_crypto::secp256k1::Secp256k1KeyPair
+impl identus_crypto::crypto::secp256k1::Secp256k1KeyPair
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::private(&self) -> &identus_crypto::crypto::secp256k1::Secp256k1PrivateKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::public(&self) -> &identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::secp256k1::Secp256k1PrivateKey(pub k256::SecretKey)
+impl identus_crypto::crypto::secp256k1::Secp256k1PrivateKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PrivateKey::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PrivateKey::to_public_key(&self) -> identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub struct identus_crypto::secp256k1::Secp256k1PublicKey(pub k256::PublicKey)
+impl identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::curve_point(&self) -> identus_crypto::crypto::secp256k1::CurvePoint
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_compressed(&self) -> [u8; 33]
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_uncompressed(&self) -> [u8; 65]
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<33> for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_array(&self) -> [u8; 33]
+impl identus_crypto::enc::EncodeArray<65> for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_array(&self) -> [u8; 65]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub mod identus_crypto::secp256r1
+pub struct identus_crypto::secp256r1::P256KeyPair
+impl identus_crypto::crypto::secp256r1::P256KeyPair
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::private(&self) -> &identus_crypto::crypto::secp256r1::P256PrivateKey
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::public(&self) -> &identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::secp256r1::P256PrivateKey(pub p256::SecretKey)
+impl identus_crypto::crypto::secp256r1::P256PrivateKey
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::sign_fixed(&self, &[u8]) -> [u8; 64]
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::to_public_key(&self) -> identus_crypto::crypto::secp256r1::P256PublicKey
+pub struct identus_crypto::secp256r1::P256PublicKey(pub p256::PublicKey)
+impl identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::curve_point(&self) -> ([u8; 32], [u8; 32])
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_compressed(&self) -> [u8; 33]
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_uncompressed(&self) -> [u8; 65]
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::verify_fixed(&self, &[u8], &[u8; 64]) -> bool
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<33> for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_array(&self) -> [u8; 33]
+impl identus_crypto::enc::EncodeArray<65> for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_array(&self) -> [u8; 65]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub mod identus_crypto::securerandom
+pub trait identus_crypto::securerandom::SecureRandom
+pub fn identus_crypto::securerandom::SecureRandom::fill_bytes(&mut self, &mut [u8]) -> core::result::Result<(), identus_crypto::error::Error>
+pub mod identus_crypto::x25519
+pub struct identus_crypto::x25519::X25519KeyPair
+impl identus_crypto::crypto::x25519::X25519KeyPair
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::derive_shared(&self, &identus_crypto::crypto::x25519::X25519PublicKey) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::private(&self) -> &identus_crypto::crypto::x25519::X25519PrivateKey
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::public(&self) -> &identus_crypto::crypto::x25519::X25519PublicKey
+pub struct identus_crypto::x25519::X25519PrivateKey(pub x25519_dalek::x25519::StaticSecret)
+impl identus_crypto::crypto::x25519::X25519PrivateKey
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::derive_shared(&self, &identus_crypto::crypto::x25519::X25519PublicKey) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::to_bytes(&self) -> [u8; 32]
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::to_public_key(&self) -> identus_crypto::crypto::x25519::X25519PublicKey
+pub struct identus_crypto::x25519::X25519PublicKey(pub x25519_dalek::x25519::PublicKey)
+impl identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<32> for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_array(&self) -> [u8; 32]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub enum identus_crypto::CoseCoordinate
+pub identus_crypto::CoseCoordinate::X
+pub identus_crypto::CoseCoordinate::Y
+impl core::fmt::Display for identus_crypto::cose::CoseCoordinate
+pub fn identus_crypto::cose::CoseCoordinate::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::CoseCurve
+pub identus_crypto::CoseCurve::Ed25519
+pub identus_crypto::CoseCurve::P256
+pub identus_crypto::CoseCurve::Secp256k1
+pub identus_crypto::CoseCurve::X25519
+impl identus_crypto::cose::CoseCurve
+pub const fn identus_crypto::cose::CoseCurve::as_str(self) -> &'static str
+pub const fn identus_crypto::cose::CoseCurve::assigned(self) -> i64
+pub const fn identus_crypto::cose::CoseCurve::key_type(self) -> identus_crypto::cose::CoseKeyType
+impl core::fmt::Display for identus_crypto::cose::CoseCurve
+pub fn identus_crypto::cose::CoseCurve::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::CoseEcY
+pub identus_crypto::CoseEcY::Coordinate([u8; 32])
+pub identus_crypto::CoseEcY::Sign(bool)
+pub enum identus_crypto::CoseKeyError
+pub identus_crypto::CoseKeyError::CompressedCoordinate
+pub identus_crypto::CoseKeyError::DuplicateMapKey
+pub identus_crypto::CoseKeyError::EncodingFailed
+pub identus_crypto::CoseKeyError::ExpectedMap
+pub identus_crypto::CoseKeyError::FloatingPointValue
+pub identus_crypto::CoseKeyError::IncompatibleProfile
+pub identus_crypto::CoseKeyError::IncompatibleProfile::curve: identus_crypto::cose::CoseCurve
+pub identus_crypto::CoseKeyError::IncompatibleProfile::key_type: identus_crypto::cose::CoseKeyType
+pub identus_crypto::CoseKeyError::InputTooLarge
+pub identus_crypto::CoseKeyError::InputTooLarge::actual: usize
+pub identus_crypto::CoseKeyError::InputTooLarge::max: usize
+pub identus_crypto::CoseKeyError::InvalidCbor
+pub identus_crypto::CoseKeyError::InvalidCoordinateLength
+pub identus_crypto::CoseKeyError::InvalidCoordinateLength::actual: usize
+pub identus_crypto::CoseKeyError::InvalidCoordinateLength::coordinate: identus_crypto::cose::CoseCoordinate
+pub identus_crypto::CoseKeyError::InvalidCoordinateLength::expected: usize
+pub identus_crypto::CoseKeyError::InvalidCoordinateType
+pub identus_crypto::CoseKeyError::InvalidCoordinateType::coordinate: identus_crypto::cose::CoseCoordinate
+pub identus_crypto::CoseKeyError::MissingCurve
+pub identus_crypto::CoseKeyError::MissingXCoordinate
+pub identus_crypto::CoseKeyError::MissingYCoordinate
+pub identus_crypto::CoseKeyError::PrivateKeyMaterial
+pub identus_crypto::CoseKeyError::TooManyParameters
+pub identus_crypto::CoseKeyError::TooManyParameters::actual: usize
+pub identus_crypto::CoseKeyError::TooManyParameters::max: usize
+pub identus_crypto::CoseKeyError::TrailingData
+pub identus_crypto::CoseKeyError::UnexpectedYCoordinate
+pub identus_crypto::CoseKeyError::UnsupportedCurve
+pub identus_crypto::CoseKeyError::UnsupportedKeyType
+impl identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::cose::CoseKeyError::to_identus_error(&self) -> identus_core::IdentusError
+impl core::error::Error for identus_crypto::cose::CoseKeyError
+impl core::fmt::Display for identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::cose::CoseKeyError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::CoseKeyType
+pub identus_crypto::CoseKeyType::Ec2
+pub identus_crypto::CoseKeyType::Okp
+impl identus_crypto::cose::CoseKeyType
+pub const fn identus_crypto::cose::CoseKeyType::as_str(self) -> &'static str
+pub const fn identus_crypto::cose::CoseKeyType::assigned(self) -> i64
+impl core::fmt::Display for identus_crypto::cose::CoseKeyType
+pub fn identus_crypto::cose::CoseKeyType::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::Error
+pub identus_crypto::Error::DerivationFailed
+pub identus_crypto::Error::InvalidKeySize
+pub identus_crypto::Error::InvalidKeySize::actual: usize
+pub identus_crypto::Error::InvalidKeySize::expected: usize
+pub identus_crypto::Error::InvalidKeySize::key_type: &'static str
+pub identus_crypto::Error::KeyParsing
+pub identus_crypto::Error::KeyParsing::source: alloc::boxed::Box<(dyn core::error::Error + core::marker::Send + core::marker::Sync + 'static)>
+pub identus_crypto::Error::MnemonicInvalid
+pub identus_crypto::Error::SecureRandomFailure
+pub identus_crypto::Error::SignatureInvalid
+pub identus_crypto::Error::UnsupportedCurve
+impl identus_crypto::error::Error
+pub fn identus_crypto::error::Error::to_identus_error(&self) -> identus_core::IdentusError
+impl core::convert::From<elliptic_curve::error::Error> for identus_crypto::error::Error
+pub fn identus_crypto::error::Error::from(elliptic_curve::error::Error) -> Self
+impl core::convert::From<signature::error::Error> for identus_crypto::error::Error
+pub fn identus_crypto::error::Error::from(ed25519_dalek::errors::SignatureError) -> Self
+impl core::error::Error for identus_crypto::error::Error
+pub fn identus_crypto::error::Error::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
+impl core::fmt::Display for identus_crypto::error::Error
+pub fn identus_crypto::error::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::JwkCoordinate
+pub identus_crypto::JwkCoordinate::X
+pub identus_crypto::JwkCoordinate::Y
+impl core::fmt::Display for identus_crypto::jwk::JwkCoordinate
+pub fn identus_crypto::jwk::JwkCoordinate::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::JwkCurve
+pub identus_crypto::JwkCurve::Ed25519
+pub identus_crypto::JwkCurve::P256
+pub identus_crypto::JwkCurve::Secp256k1
+pub identus_crypto::JwkCurve::X25519
+impl identus_crypto::jwk::JwkCurve
+pub const fn identus_crypto::jwk::JwkCurve::as_str(self) -> &'static str
+pub const fn identus_crypto::jwk::JwkCurve::key_type(self) -> identus_crypto::jwk::JwkKeyType
+impl core::fmt::Display for identus_crypto::jwk::JwkCurve
+pub fn identus_crypto::jwk::JwkCurve::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::JwkError
+pub identus_crypto::JwkError::IncompatibleProfile
+pub identus_crypto::JwkError::IncompatibleProfile::curve: identus_crypto::jwk::JwkCurve
+pub identus_crypto::JwkError::IncompatibleProfile::key_type: identus_crypto::jwk::JwkKeyType
+pub identus_crypto::JwkError::InvalidCoordinateEncoding
+pub identus_crypto::JwkError::InvalidCoordinateEncoding::coordinate: identus_crypto::jwk::JwkCoordinate
+pub identus_crypto::JwkError::InvalidCoordinateLength
+pub identus_crypto::JwkError::InvalidCoordinateLength::actual: usize
+pub identus_crypto::JwkError::InvalidCoordinateLength::coordinate: identus_crypto::jwk::JwkCoordinate
+pub identus_crypto::JwkError::InvalidCoordinateLength::expected: usize
+pub identus_crypto::JwkError::MissingYCoordinate
+pub identus_crypto::JwkError::PrivateKeyMaterial
+pub identus_crypto::JwkError::ReservedExtension
+pub identus_crypto::JwkError::UnexpectedYCoordinate
+impl identus_crypto::jwk::JwkError
+pub fn identus_crypto::jwk::JwkError::to_identus_error(&self) -> identus_core::IdentusError
+impl core::error::Error for identus_crypto::jwk::JwkError
+impl core::fmt::Display for identus_crypto::jwk::JwkError
+pub fn identus_crypto::jwk::JwkError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_crypto::JwkKeyType
+pub identus_crypto::JwkKeyType::Ec
+pub identus_crypto::JwkKeyType::Okp
+impl identus_crypto::jwk::JwkKeyType
+pub const fn identus_crypto::jwk::JwkKeyType::as_str(self) -> &'static str
+impl core::fmt::Display for identus_crypto::jwk::JwkKeyType
+pub fn identus_crypto::jwk::JwkKeyType::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_crypto::Base64UrlStrNoPad(_)
+impl identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::base64::Base64UrlStrNoPad::as_str(&self) -> &str
+pub fn identus_crypto::base64::Base64UrlStrNoPad::to_bytes(&self) -> alloc::vec::Vec<u8>
+impl core::convert::AsRef<str> for identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::base64::Base64UrlStrNoPad::as_ref(&self) -> &str
+impl core::fmt::Display for identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::base64::Base64UrlStrNoPad::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::str::traits::FromStr for identus_crypto::base64::Base64UrlStrNoPad
+pub type identus_crypto::base64::Base64UrlStrNoPad::Err = identus_crypto::error::Error
+pub fn identus_crypto::base64::Base64UrlStrNoPad::from_str(&str) -> core::result::Result<Self, Self::Err>
+impl serde_core::ser::Serialize for identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::base64::Base64UrlStrNoPad::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
+impl<B: core::convert::AsRef<[u8]>> core::convert::From<B> for identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::base64::Base64UrlStrNoPad::from(B) -> Self
+pub struct identus_crypto::CardanoV2ExtendedPrivateKey
+impl identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::derive_path(&self, &identus_crypto::derivation::path::DerivationPath) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::expose_secret_bytes(&self) -> [u8; 96]
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::from_bytes([u8; 96]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::from_nonextended(&[u8; 32], &[u8; 32]) -> Self
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::to_public_key(&self) -> core::result::Result<identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey, identus_crypto::error::Error>
+impl core::fmt::Debug for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::ops::drop::Drop for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::drop(&mut self)
+impl zeroize::Zeroize for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::zeroize(&mut self)
+pub struct identus_crypto::CardanoV2ExtendedPublicKey
+impl identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::chain_code(&self) -> [u8; 32]
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::derive_path(&self, &identus_crypto::derivation::path::DerivationPath) -> core::result::Result<Self, identus_crypto::error::Error>
+pub const fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::from_bytes([u8; 64]) -> Self
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::from_public_key_and_chain_code(&[u8; 32], &[u8; 32]) -> Self
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::public_key_bytes(&self) -> [u8; 32]
+pub const fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::to_bytes(&self) -> [u8; 64]
+impl core::fmt::Debug for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey
+pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_crypto::ConvertEd25519
+impl identus_crypto::convert::ConvertEd25519
+pub fn identus_crypto::convert::ConvertEd25519::convert_secret_key_to_x25519(&[u8]) -> core::result::Result<identus_crypto::crypto::x25519::X25519PrivateKey, identus_crypto::error::Error>
+pub struct identus_crypto::CurvePoint
+pub identus_crypto::CurvePoint::x: [u8; 32]
+pub identus_crypto::CurvePoint::y: [u8; 32]
+pub struct identus_crypto::Ed25519KeyPair
+impl identus_crypto::crypto::ed25519::Ed25519KeyPair
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::private(&self) -> &identus_crypto::crypto::ed25519::Ed25519PrivateKey
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::public(&self) -> &identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519KeyPair::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::Ed25519PrivateKey(pub ed25519_dalek::signing::SigningKey)
+impl identus_crypto::crypto::ed25519::Ed25519PrivateKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::to_bytes(&self) -> [u8; 32]
+pub fn identus_crypto::crypto::ed25519::Ed25519PrivateKey::to_public_key(&self) -> identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub struct identus_crypto::Ed25519PublicKey(pub ed25519_dalek::verifying::VerifyingKey)
+impl identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::as_verifying_key(&self) -> &ed25519_dalek::verifying::VerifyingKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<32> for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_array(&self) -> [u8; 32]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub struct identus_crypto::EdHDKey
+pub identus_crypto::EdHDKey::chain_code: [u8; 32]
+pub identus_crypto::EdHDKey::depth: u32
+pub identus_crypto::EdHDKey::index: u32
+pub identus_crypto::EdHDKey::private_key: [u8; 32]
+impl identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl core::fmt::Debug for identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::ops::drop::Drop for identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::drop(&mut self)
+impl zeroize::Zeroize for identus_crypto::derivation::edhdkey::EdHDKey
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::zeroize(&mut self)
+pub struct identus_crypto::HDKey
+pub identus_crypto::HDKey::chain_code: [u8; 32]
+pub identus_crypto::HDKey::child_index: u32
+pub identus_crypto::HDKey::depth: u32
+pub identus_crypto::HDKey::private_key: [u8; 32]
+impl identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::hdkey::HDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::hdkey::HDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl core::fmt::Debug for identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::ops::drop::Drop for identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::drop(&mut self)
+impl zeroize::Zeroize for identus_crypto::derivation::hdkey::HDKey
+pub fn identus_crypto::derivation::hdkey::HDKey::zeroize(&mut self)
+pub struct identus_crypto::HexStr(_)
+impl identus_crypto::hex::HexStr
+pub fn identus_crypto::hex::HexStr::as_str(&self) -> &str
+pub fn identus_crypto::hex::HexStr::to_bytes(&self) -> alloc::vec::Vec<u8>
+impl core::convert::AsRef<str> for identus_crypto::hex::HexStr
+pub fn identus_crypto::hex::HexStr::as_ref(&self) -> &str
+impl core::fmt::Display for identus_crypto::hex::HexStr
+pub fn identus_crypto::hex::HexStr::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::str::traits::FromStr for identus_crypto::hex::HexStr
+pub type identus_crypto::hex::HexStr::Err = identus_crypto::error::Error
+pub fn identus_crypto::hex::HexStr::from_str(&str) -> core::result::Result<Self, Self::Err>
+impl<B: core::convert::AsRef<[u8]>> core::convert::From<B> for identus_crypto::hex::HexStr
+pub fn identus_crypto::hex::HexStr::from(B) -> Self
+pub struct identus_crypto::JwkThumbprint(_)
+impl identus_crypto::jwk::JwkThumbprint
+pub const fn identus_crypto::jwk::JwkThumbprint::as_bytes(&self) -> &[u8; 32]
+pub fn identus_crypto::jwk::JwkThumbprint::to_base64url(&self) -> identus_crypto::base64::Base64UrlStrNoPad
+impl core::fmt::Display for identus_crypto::jwk::JwkThumbprint
+pub fn identus_crypto::jwk::JwkThumbprint::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_crypto::MnemonicHelper
+impl identus_crypto::derivation::mnemonic::MnemonicHelper
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_random_mnemonics(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<alloc::vec::Vec<alloc::string::String>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_random_seed(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_seed(&[alloc::string::String], &str) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_seed_kmp(&[alloc::string::String], &str) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::is_valid_mnemonic_code(&[alloc::string::String]) -> bool
+pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::to_mnemonic_code(&[u8]) -> alloc::vec::Vec<alloc::string::String>
+pub struct identus_crypto::P256KeyPair
+impl identus_crypto::crypto::secp256r1::P256KeyPair
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::private(&self) -> &identus_crypto::crypto::secp256r1::P256PrivateKey
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::public(&self) -> &identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256KeyPair::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::P256PrivateKey(pub p256::SecretKey)
+impl identus_crypto::crypto::secp256r1::P256PrivateKey
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::sign_fixed(&self, &[u8]) -> [u8; 64]
+pub fn identus_crypto::crypto::secp256r1::P256PrivateKey::to_public_key(&self) -> identus_crypto::crypto::secp256r1::P256PublicKey
+pub struct identus_crypto::P256PublicKey(pub p256::PublicKey)
+impl identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::curve_point(&self) -> ([u8; 32], [u8; 32])
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_compressed(&self) -> [u8; 33]
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_uncompressed(&self) -> [u8; 65]
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::verify_fixed(&self, &[u8], &[u8; 64]) -> bool
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<33> for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_array(&self) -> [u8; 33]
+impl identus_crypto::enc::EncodeArray<65> for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_array(&self) -> [u8; 65]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub struct identus_crypto::PublicKeyCose
+impl identus_crypto::cose::PublicKeyCose
+pub const fn identus_crypto::cose::PublicKeyCose::additional_parameter_count(&self) -> usize
+pub const fn identus_crypto::cose::PublicKeyCose::curve(&self) -> identus_crypto::cose::CoseCurve
+pub fn identus_crypto::cose::PublicKeyCose::from_cbor(&[u8]) -> core::result::Result<Self, identus_crypto::cose::CoseKeyError>
+pub const fn identus_crypto::cose::PublicKeyCose::key_type(&self) -> identus_crypto::cose::CoseKeyType
+pub fn identus_crypto::cose::PublicKeyCose::new_ec(identus_crypto::cose::CoseCurve, [u8; 32], [u8; 32]) -> core::result::Result<Self, identus_crypto::cose::CoseKeyError>
+pub fn identus_crypto::cose::PublicKeyCose::new_ec_compressed(identus_crypto::cose::CoseCurve, [u8; 32], bool) -> core::result::Result<Self, identus_crypto::cose::CoseKeyError>
+pub fn identus_crypto::cose::PublicKeyCose::new_okp(identus_crypto::cose::CoseCurve, [u8; 32]) -> core::result::Result<Self, identus_crypto::cose::CoseKeyError>
+pub fn identus_crypto::cose::PublicKeyCose::to_cbor(&self) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::cose::CoseKeyError>
+pub const fn identus_crypto::cose::PublicKeyCose::x(&self) -> &[u8; 32]
+pub const fn identus_crypto::cose::PublicKeyCose::y(&self) -> core::option::Option<identus_crypto::cose::CoseEcY>
+impl core::convert::TryFrom<&identus_crypto::cose::PublicKeyCose> for identus_crypto::jwk::PublicKeyJwk
+pub type identus_crypto::jwk::PublicKeyJwk::Error = identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::jwk::PublicKeyJwk::try_from(&identus_crypto::cose::PublicKeyCose) -> core::result::Result<Self, Self::Error>
+impl core::convert::TryFrom<&identus_crypto::jwk::PublicKeyJwk> for identus_crypto::cose::PublicKeyCose
+pub type identus_crypto::cose::PublicKeyCose::Error = identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::cose::PublicKeyCose::try_from(&identus_crypto::jwk::PublicKeyJwk) -> core::result::Result<Self, Self::Error>
+impl core::fmt::Debug for identus_crypto::cose::PublicKeyCose
+pub fn identus_crypto::cose::PublicKeyCose::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_crypto::PublicKeyJwk
+impl identus_crypto::jwk::PublicKeyJwk
+pub const fn identus_crypto::jwk::PublicKeyJwk::crv(&self) -> identus_crypto::jwk::JwkCurve
+pub const fn identus_crypto::jwk::PublicKeyJwk::extensions(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_crypto::jwk::PublicKeyJwk::from_parts(identus_crypto::jwk::JwkKeyType, identus_crypto::jwk::JwkCurve, &str, core::option::Option<&str>, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_crypto::jwk::JwkError>
+pub const fn identus_crypto::jwk::PublicKeyJwk::kty(&self) -> identus_crypto::jwk::JwkKeyType
+pub fn identus_crypto::jwk::PublicKeyJwk::new_ec(identus_crypto::jwk::JwkCurve, [u8; 32], [u8; 32]) -> core::result::Result<Self, identus_crypto::jwk::JwkError>
+pub fn identus_crypto::jwk::PublicKeyJwk::new_okp(identus_crypto::jwk::JwkCurve, [u8; 32]) -> core::result::Result<Self, identus_crypto::jwk::JwkError>
+pub fn identus_crypto::jwk::PublicKeyJwk::thumbprint_sha256(&self) -> identus_crypto::jwk::JwkThumbprint
+pub const fn identus_crypto::jwk::PublicKeyJwk::x(&self) -> &identus_crypto::base64::Base64UrlStrNoPad
+pub fn identus_crypto::jwk::PublicKeyJwk::y(&self) -> core::option::Option<&identus_crypto::base64::Base64UrlStrNoPad>
+impl core::convert::TryFrom<&identus_crypto::cose::PublicKeyCose> for identus_crypto::jwk::PublicKeyJwk
+pub type identus_crypto::jwk::PublicKeyJwk::Error = identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::jwk::PublicKeyJwk::try_from(&identus_crypto::cose::PublicKeyCose) -> core::result::Result<Self, Self::Error>
+impl core::convert::TryFrom<&identus_crypto::jwk::PublicKeyJwk> for identus_crypto::cose::PublicKeyCose
+pub type identus_crypto::cose::PublicKeyCose::Error = identus_crypto::cose::CoseKeyError
+pub fn identus_crypto::cose::PublicKeyCose::try_from(&identus_crypto::jwk::PublicKeyJwk) -> core::result::Result<Self, Self::Error>
+impl<'de> serde_core::de::Deserialize<'de> for identus_crypto::jwk::PublicKeyJwk
+pub fn identus_crypto::jwk::PublicKeyJwk::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_crypto::Secp256k1KeyPair
+impl identus_crypto::crypto::secp256k1::Secp256k1KeyPair
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::private(&self) -> &identus_crypto::crypto::secp256k1::Secp256k1PrivateKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::public(&self) -> &identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1KeyPair::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::Secp256k1PrivateKey(pub k256::SecretKey)
+impl identus_crypto::crypto::secp256k1::Secp256k1PrivateKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PrivateKey::sign(&self, &[u8]) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PrivateKey::to_public_key(&self) -> identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub struct identus_crypto::Secp256k1PublicKey(pub k256::PublicKey)
+impl identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::curve_point(&self) -> identus_crypto::crypto::secp256k1::CurvePoint
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_compressed(&self) -> [u8; 33]
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_uncompressed(&self) -> [u8; 65]
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<33> for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_array(&self) -> [u8; 33]
+impl identus_crypto::enc::EncodeArray<65> for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_array(&self) -> [u8; 65]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub struct identus_crypto::Sha256Digest(_)
+impl identus_crypto::hash::Sha256Digest
+pub fn identus_crypto::hash::Sha256Digest::as_array(&self) -> &[u8; 32]
+pub fn identus_crypto::hash::Sha256Digest::as_bytes(&self) -> &[u8]
+pub fn identus_crypto::hash::Sha256Digest::from_bytes(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::hash::Sha256Digest::to_vec(&self) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::Sha512Digest(_)
+impl identus_crypto::hash::Sha512Digest
+pub fn identus_crypto::hash::Sha512Digest::as_array(&self) -> &[u8; 64]
+pub fn identus_crypto::hash::Sha512Digest::as_bytes(&self) -> &[u8]
+pub fn identus_crypto::hash::Sha512Digest::from_bytes(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::hash::Sha512Digest::to_vec(&self) -> alloc::vec::Vec<u8>
+pub struct identus_crypto::X25519KeyPair
+impl identus_crypto::crypto::x25519::X25519KeyPair
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::derive_shared(&self, &identus_crypto::crypto::x25519::X25519PublicKey) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::generate(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::private(&self) -> &identus_crypto::crypto::x25519::X25519PrivateKey
+pub fn identus_crypto::crypto::x25519::X25519KeyPair::public(&self) -> &identus_crypto::crypto::x25519::X25519PublicKey
+pub struct identus_crypto::X25519PrivateKey(pub x25519_dalek::x25519::StaticSecret)
+impl identus_crypto::crypto::x25519::X25519PrivateKey
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::derive_shared(&self, &identus_crypto::crypto::x25519::X25519PublicKey) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::to_bytes(&self) -> [u8; 32]
+pub fn identus_crypto::crypto::x25519::X25519PrivateKey::to_public_key(&self) -> identus_crypto::crypto::x25519::X25519PublicKey
+pub struct identus_crypto::X25519PublicKey(pub x25519_dalek::x25519::PublicKey)
+impl identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::from_slice(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::enc::EncodeArray<32> for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_array(&self) -> [u8; 32]
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub const identus_crypto::COMPONENT: identus_core::Component
+pub const identus_crypto::MAX_COSE_ADDITIONAL_PARAMETERS: usize
+pub const identus_crypto::MAX_COSE_KEY_BYTES: usize
+pub const identus_crypto::MAX_COSE_NESTING_DEPTH: usize
+pub const identus_crypto::MAX_CRYPTO_TEXT_BYTES: usize
+pub const identus_crypto::MAX_DERIVATION_PATH_AXES: usize
+pub const identus_crypto::MAX_DERIVATION_PATH_BYTES: usize
+pub const identus_crypto::MAX_HD_SEED_BYTES: usize
+pub const identus_crypto::MIN_HD_SEED_BYTES: usize
+pub trait identus_crypto::EncodeArray<const N: usize>
+pub fn identus_crypto::EncodeArray::encode_array(&self) -> [u8; N]
+impl identus_crypto::enc::EncodeArray<32> for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_array(&self) -> [u8; 32]
+impl identus_crypto::enc::EncodeArray<32> for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_array(&self) -> [u8; 32]
+impl identus_crypto::enc::EncodeArray<33> for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_array(&self) -> [u8; 33]
+impl identus_crypto::enc::EncodeArray<33> for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_array(&self) -> [u8; 33]
+impl identus_crypto::enc::EncodeArray<65> for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_array(&self) -> [u8; 65]
+impl identus_crypto::enc::EncodeArray<65> for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_array(&self) -> [u8; 65]
+pub trait identus_crypto::EncodeCose
+pub fn identus_crypto::EncodeCose::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+impl identus_crypto::cose::EncodeCose for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_cose(&self) -> identus_crypto::cose::PublicKeyCose
+pub trait identus_crypto::EncodeJwk
+pub fn identus_crypto::EncodeJwk::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
+pub trait identus_crypto::EncodeVec
+pub fn identus_crypto::EncodeVec::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+impl identus_crypto::enc::EncodeVec for identus_crypto::crypto::x25519::X25519PublicKey
+pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_vec(&self) -> alloc::vec::Vec<u8>
+pub trait identus_crypto::SecureRandom
+pub fn identus_crypto::SecureRandom::fill_bytes(&mut self, &mut [u8]) -> core::result::Result<(), identus_crypto::error::Error>
+pub trait identus_crypto::Verifiable
+pub fn identus_crypto::Verifiable::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::ed25519::Ed25519PublicKey
+pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::secp256k1::Secp256k1PublicKey
+pub fn identus_crypto::crypto::secp256k1::Secp256k1PublicKey::verify(&self, &[u8], &[u8]) -> bool
+impl identus_crypto::enc::Verifiable for identus_crypto::crypto::secp256r1::P256PublicKey
+pub fn identus_crypto::crypto::secp256r1::P256PublicKey::verify(&self, &[u8], &[u8]) -> bool
+pub fn identus_crypto::sha256<B: core::convert::AsRef<[u8]>>(B) -> identus_crypto::hash::Sha256Digest
+pub fn identus_crypto::sha512<B: core::convert::AsRef<[u8]>>(B) -> identus_crypto::hash::Sha512Digest

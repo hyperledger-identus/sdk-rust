@@ -89,7 +89,7 @@ platform, CPU description, feature profile, per-operation batch sizes, median
 and p95. Inputs SHALL be deterministic and setup SHALL remain outside timed
 regions so entropy is not included accidentally.
 
-#### Scenario: Weekly or manual baseline is published
+#### Scenario: Local or externally orchestrated baseline is published
 
 - **WHEN** the slow benchmark job completes
 - **THEN** it SHALL upload a machine-readable artifact tied to the exact commit
@@ -219,9 +219,10 @@ resource-bound test or explicit safety-critical negative test.
 
 ### Requirement: Coverage stays outside the fast pull-request lane
 
-Coverage instrumentation and reporting SHALL run only in the weekly/manual
-slow workflow during the ADR 0081 temporary phase. The pull-request and
-`develop` fast job SHALL remain unchanged.
+Coverage instrumentation and reporting SHALL run only in the local or
+externally orchestrated slow command during the ADR 0081 temporary phase.
+Hosted activation remains pending issue #276. The pull-request and `develop`
+fast job SHALL remain unchanged.
 
 #### Scenario: Coverage is added to fast CI
 

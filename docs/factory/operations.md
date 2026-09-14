@@ -23,7 +23,8 @@ constraints and the normal dependency gates.
    begin only after this receipt exists.
 5. Implement one bounded task at a time. Use `scripts/factory plan --base
    <sha> --head <sha>` to record the exact target plan. The only required hosted
-   PR lane remains `fast`; slow evidence is weekly or manually requested.
+   PR lane remains `fast`; slow evidence is run locally or requested through
+   explicit external orchestration pending hosted activation in issue #276.
 6. Run focused tests, `./bootstrap.sh --check`, and any risk-routed gates. Record
    commands not run as limitations, not implied successes.
 7. Complete a fresh local review. Mark tasks complete, run `factory ready` and

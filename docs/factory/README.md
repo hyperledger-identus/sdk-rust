@@ -119,7 +119,7 @@ nix run .#factory -- check
 | `constraints-ready` | requires explicit constraint/limitation impact and exact authority for material outcomes before implementation |
 | `preflight` | persists and later validates the issue, branch, exact base and planning-only OpenSpec head |
 | `audit` | enters the pinned Nix shell once when needed, then validates bounded tracked Pi policy and the effective pinned runtime |
-| `plan` | derives one immutable required fast lane plus risk-routed weekly/manual slow evidence |
+| `plan` | derives one immutable required fast lane plus risk-routed slow evidence available locally or through external orchestration |
 | `worktrees` | audits or explicitly mutates only canonical bounded issue worktrees |
 | `metrics` | validates, stores, renders or explicitly publishes privacy-bounded exact-head v1/v2 metrics |
 | `supervisor` | prepares, runs, harvests and effect-checks one exact bootstrap-launched Pi worker |
@@ -158,8 +158,10 @@ lock, and they do not force dependency or runtime upgrades. See the
 During the temporary active-development policy, an issue-linked PR receives
 one Ubuntu `fast` status containing the factory contract, repository lint,
 formatting, workspace build, strict Clippy and normal tests on Rust 1.98.1.
-The exhaustive Linux/macOS flake and sanitizer campaigns remain weekly and
-manually dispatchable `slow` evidence. Agents may merge on green required
+The exhaustive Linux/macOS flake and sanitizer campaigns remain available as
+local or explicitly externally orchestrated `slow` evidence. Their desired
+hosted cadence and dispatch are inactive while empty `main` remains default;
+issue #276 owns activation. Agents may merge on green required
 `fast` evidence, but must treat any slow failure as visible debt; release or
 publication is prohibited until that debt and the release-phase compiler
 matrix are resolved.

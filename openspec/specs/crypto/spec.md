@@ -802,7 +802,7 @@ recorded without a hardware-specific pass threshold.
 
 #### Scenario: longer search remains bounded and diagnosable
 
-- **WHEN** scheduled or manually dispatched crypto soak finds a sanitizer or
+- **WHEN** a locally or externally orchestrated crypto soak finds a sanitizer or
   invariant failure
 - **THEN** the target SHALL stop inside the documented envelope and preserve
   its untrusted artifact for minimization without custom logging of its bytes

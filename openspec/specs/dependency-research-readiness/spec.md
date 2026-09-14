@@ -83,7 +83,8 @@ requirements so a later release decision has evidence.
 
 A release candidate SHALL require a focused compatibility decision that uses
 named consumer and target evidence, updates Cargo, Nix, machine policy,
-migration guidance and CI together, and resolves all weekly slow-lane failures.
+migration guidance and CI together, and resolves all recorded slow-command
+failures.
 A boundary adapter MAY declare a different crate-local floor only through a
 separate material decision and SHALL NOT change generic core automatically.
 

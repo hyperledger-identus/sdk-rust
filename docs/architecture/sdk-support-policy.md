@@ -17,8 +17,10 @@ fails; neither source may silently make a stronger claim.
 | `not-supported` | No accepted public surface exists. | A placeholder crate or experiment cannot be presented as support. |
 
 The host-tested systems are `x86_64-linux` and `aarch64-darwin`. Linux fast
-evidence runs for every pull request and `develop` push; the complete Linux and
-macOS evidence runs weekly and on manual dispatch. Browser WASM,
+evidence runs for every pull request and `develop` push. The complete Linux and
+macOS evidence is available locally or through explicit external orchestration;
+its desired weekly GitHub trigger and `workflow_dispatch` are inactive while
+reserved empty `main` remains default. Issue #276 owns activation. Browser WASM,
 Android ARM64 and iOS ARM64 are compile-checked for `identus-core`,
 `identus-crypto`, `identus-did`, `identus-jose` and
 `identus-oid4vci` and `identus-adapters-entropy`, with the entropy adapter's `getrandom` backend
@@ -55,8 +57,9 @@ default-feature mode and complete feature set with the machine policy.
 `all_features` supplements these checks; it cannot replace them because Cargo
 feature unification can hide incorrect gates. Duplicate host, target, feature
 or gate keys are rejected as ambiguous policy.
-Exhaustive feature permutations run in weekly/manual slow evidence instead of
-blocking every pull request.
+Exhaustive feature permutations remain in the local or externally orchestrated
+slow command instead of blocking every pull request. Hosted activation is
+pending issue #276.
 
 Sanitizer-backed fuzzing is the bounded operational exception: libFuzzer uses
 nightly-only compiler instrumentation, so fuzz workflows explicitly enter the
@@ -103,7 +106,7 @@ multi-Rust-static-library composition are unproven. `[ffi].status`,
 
 Issue #224 and ADR 0101 add a separate unpublished `identus-wasm-did` leaf with
 API version 1, exact wasm-bindgen runtime/CLI 0.2.121, byte-reproducible browser-native
-ESM/TypeScript output and matching scheduled Chromium/Firefox behavior gates.
+ESM/TypeScript output and matching slow Chromium/Firefox behavior commands.
 It introduces no DOM, network, storage, secret, worker or framework authority.
 This evidence does not select a downstream bundler or browser support matrix,
 publish a package, or change `[ffi].status` and `SDK-LIM-002`.
@@ -113,8 +116,11 @@ publish a package, or change `[ffi].status` and `SDK-LIM-002`.
 The machine policy defines `fast` as the single Linux Rust/factory integration
 status on pull requests and `develop`. It runs factory structure, Nix/TOML/text
 lint, formatting, workspace build, strict Clippy and normal workspace tests.
-The `slow` workflow runs the complete flake on Linux and macOS weekly and on
-manual dispatch. Its explicit `rust-clippy-all-targets-all-features` check
+The `slow` workflow defines the complete flake on Linux and macOS as a
+ready-to-run local or externally orchestrated command. Its declared desired
+weekly trigger and `workflow_dispatch` are not active GitHub execution evidence
+until issue #276 resolves the empty-default-`main` limitation. Its explicit
+`rust-clippy-all-targets-all-features` check
 evaluates every workspace Cargo target with every feature enabled and warnings
 denied; it remains outside the fast selector set. A slow failure blocks
 release-candidate preparation but is not a required active-development merge

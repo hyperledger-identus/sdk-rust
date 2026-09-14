@@ -316,7 +316,7 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
         if path is not None and not path.is_file():
             check.fail(f"coverage: file does not exist: {coverage.get(field)}")
     if coverage.get("workflow_path") != ".github/workflows/nix-checks.yml":
-        check.fail("coverage: workflow must be the weekly/manual slow workflow")
+        check.fail("coverage: workflow must be the configured slow workflow")
     try:
         slow_workflow = (root / ".github/workflows/nix-checks.yml").read_text(encoding="utf-8")
         fast_workflow = (root / ".github/workflows/factory-contract.yml").read_text(encoding="utf-8")

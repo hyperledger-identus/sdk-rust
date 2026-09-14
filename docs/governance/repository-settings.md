@@ -46,9 +46,11 @@ statuses:
 
 `fast` is the single Rust/factory merge signal and includes factory structure,
 formatting, workspace build, strict Clippy and normal tests. The `slow` and
-nightly sanitizer statuses are weekly/manual evidence and are deliberately not
-required for active-development pull requests. Before any release candidate,
-ADR 0081 requires a new compatibility decision and current green slow evidence.
+nightly sanitizer commands provide local or externally orchestrated evidence
+and are deliberately not required for active-development pull requests. Their
+hosted schedule and dispatch activation is pending issue #276. Before any
+release candidate, ADR 0081 requires a new compatibility decision and current
+green slow evidence.
 
 The active `develop` ruleset requires these exact statuses and an up-to-date
 head. Each subsequent issue-linked pull request is continuing canary evidence

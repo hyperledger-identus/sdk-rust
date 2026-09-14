@@ -1133,7 +1133,7 @@ threshold.
 
 #### Scenario: longer search remains bounded and diagnosable
 
-- **WHEN** a scheduled or manually dispatched soak finds a sanitizer or
+- **WHEN** a locally or externally orchestrated soak finds a sanitizer or
   invariant failure
 - **THEN** the target SHALL stop within its documented resource/time envelope
   and preserve the failing artifact for minimization without printing its bytes

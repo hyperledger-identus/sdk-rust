@@ -2578,6 +2578,57 @@ def validate_ci_lanes(
                 f"{slow_path} must invoke the complete Clippy selector exactly once"
             )
 
+    truthful_slow_sources = {
+        "README.md": "`workflow_dispatch` are inactive",
+        "docs/architecture/sdk-support-policy.md": (
+            "`workflow_dispatch` are not active GitHub execution evidence"
+        ),
+        "docs/governance/sdk-constraints.toml": (
+            "inactive hosted scheduling recorded pending issue #276"
+        ),
+        "openspec/specs/sdk-support-policy/spec.md": (
+            "`workflow_dispatch` SHALL NOT be represented as active"
+        ),
+        "docs/factory/README.md": "hosted cadence and dispatch are inactive",
+        "docs/governance/agentic-sdlc.md": (
+            "hosted cadence and dispatch are inactive pending"
+        ),
+    }
+    stale_active_claims = (
+        r"\bruns weekly\b",
+        r"\bweekly/manual\b",
+        r"\bweekly (?:and|or) (?:on )?manual(?:ly)?\b",
+        r"\bweekly schedule fires\b",
+        r"\bmanually dispatch(?:ed|es)\b",
+    )
+    for relative_path, truthful_marker in truthful_slow_sources.items():
+        try:
+            prose = (root / relative_path).read_text(encoding="utf-8")
+        except OSError as error:
+            failures.append(f"cannot read slow-lane authority {relative_path}: {error}")
+            continue
+        if truthful_marker not in prose:
+            failures.append(
+                f"{relative_path} must record inactive hosted slow execution pending #276"
+            )
+        for stale_pattern in stale_active_claims:
+            if re.search(stale_pattern, prose, re.IGNORECASE):
+                failures.append(
+                    f"{relative_path} must not claim active weekly/manual GitHub slow execution"
+                )
+                break
+
+    target_plan_path = "scripts/ci/target-plan.mjs"
+    try:
+        target_plan = (root / target_plan_path).read_text(encoding="utf-8")
+    except OSError as error:
+        failures.append(f"cannot read {target_plan_path}: {error}")
+    else:
+        if 'slowPolicy: "local-or-external-pending-276"' not in target_plan:
+            failures.append(
+                f"{target_plan_path} must record local/external slow execution pending #276"
+            )
+
     fuzz_workflows = {
         ".github/workflows/crypto-fuzz.yml": '    - cron: "41 3 * * 1"',
         ".github/workflows/did-fuzz.yml": '    - cron: "17 3 * * 2"',

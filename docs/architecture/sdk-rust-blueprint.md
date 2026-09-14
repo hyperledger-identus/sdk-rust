@@ -206,9 +206,10 @@ an ADR and dependency-cone evidence.
 The support matrix deliberately separates host-tested Rust behavior from
 compile-only browser/mobile evidence and planned targets. During unpublished
 active development, Rust `1.98.1` is the single workspace floor, development
-compiler and compatibility etalon. The complete target and feature matrix runs
-weekly or manually; a pinned nightly is used only for sanitizer tooling. There
-is no supported FFI during bootstrap, and binary size/build time remain
+compiler and compatibility etalon. The complete target and feature matrix is
+available locally or through explicit external orchestration pending hosted
+activation in issue #276; a pinned nightly is used only for sanitizer tooling.
+There is no supported FFI during bootstrap, and binary size/build time remain
 measurement-only until a candidate release defines reproducible artifacts and
 budgets.
 
@@ -629,7 +630,7 @@ it is never part of the upstream implementation issue.
 - factory/repository structure and Nix/TOML/text lint;
 - workspace formatting, build, strict Clippy and normal tests.
 
-### Weekly/manual slow lane
+### Local/external slow command
 
 - full workspace and target matrix;
 - existing compatibility-labelled gates on the same Rust 1.98.1 compiler;

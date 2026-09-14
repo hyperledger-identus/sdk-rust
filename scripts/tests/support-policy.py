@@ -65,6 +65,12 @@ class SupportPolicyTests(unittest.TestCase):
             "flake.nix",
             "flake.lock",
             "docs/architecture/sdk-support-policy.toml",
+            "README.md",
+            "docs/architecture/sdk-support-policy.md",
+            "docs/governance/sdk-constraints.toml",
+            "openspec/specs/sdk-support-policy/spec.md",
+            "docs/factory/README.md",
+            "docs/governance/agentic-sdlc.md",
             "docs/adr/0002-neoprism-toolchain-alignment.md",
             ".github/workflows/factory-contract.yml",
             ".github/workflows/nix-checks.yml",
@@ -73,6 +79,7 @@ class SupportPolicyTests(unittest.TestCase):
             ".github/workflows/jws-fuzz.yml",
             "nix/devshells/default.nix",
             "nix/rust-toolchain.nix",
+            "scripts/ci/target-plan.mjs",
         ]:
             destination = self.fixture / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
@@ -1918,6 +1925,22 @@ in
             'slow_schedule_status       = "active"',
         )
         self.assert_fails("ci.slow_schedule_status must be inactive-pending-276")
+
+    def test_slow_lane_prose_cannot_claim_active_weekly_dispatch(self) -> None:
+        self.replace(
+            "README.md",
+            "`workflow_dispatch` are inactive while reserved empty",
+            "runs weekly and through manual dispatch while reserved empty",
+        )
+        self.assert_fails("must not claim active weekly/manual GitHub slow execution")
+
+    def test_target_plan_cannot_claim_weekly_or_manual_slow_execution(self) -> None:
+        self.replace(
+            "scripts/ci/target-plan.mjs",
+            'slowPolicy: "local-or-external-pending-276"',
+            'slowPolicy: "weekly-or-manual"',
+        )
+        self.assert_fails("must record local/external slow execution pending #276")
 
     def test_complete_clippy_gate_must_select_all_targets(self) -> None:
         self.replace_gate(

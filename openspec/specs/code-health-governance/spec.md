@@ -12,8 +12,13 @@ Inline code SHALL leave production only when syntax-aware evaluation proves its
 conditional-compilation predicate false with `test = false`; unknown feature
 and target predicates SHALL remain production. A test-only out-of-line module
 declaration SHALL recursively classify its ordinary Rust module tree as test
-code. Generated exclusion SHALL require an exact policy path and exact header
-marker.
+code while preserving nested inline-module context. Only Cargo `tests/` and
+`benches/` target trees SHALL be intrinsically external-test code; a file under
+`src`, including `src/tests.rs`, SHALL require syntax-proven test-only module
+reachability to leave production. Generated exclusion SHALL require an exact
+policy path and exact header marker. Outer doc comments immediately preceding a
+test-only item SHALL share that item's population. Test-only reachability SHALL
+fail closed rather than guess `#[path]` module overrides.
 
 #### Scenario: Test-only inline module
 
@@ -32,6 +37,30 @@ marker.
 - **WHEN** `cfg(test)` guards `mod guard;` and `guard` declares nested ordinary
   out-of-line modules
 - **THEN** the resolved module tree is inline-test evidence and not production
+
+#### Scenario: Test-shaped source filename lacks a test-only declaration
+
+- **WHEN** `src/tests.rs` exists but no definitively test-only module declaration
+  reaches it
+- **THEN** it remains production evidence
+
+#### Scenario: Nested test helper collides with shipping source
+
+- **WHEN** `cfg(test)` guards `mod tests { mod helper; }` and both
+  `src/tests/helper.rs` and `src/helper.rs` exist
+- **THEN** only `src/tests/helper.rs` becomes inline-test evidence and the
+  shipping `src/helper.rs` remains production
+
+#### Scenario: Test item has outer documentation
+
+- **WHEN** `///` or `/** */` outer documentation immediately precedes a
+  definitively test-only item
+- **THEN** the documentation is inline-test evidence rather than production
+
+#### Scenario: Test-only module overrides its source path
+
+- **WHEN** a definitively test-only module uses `#[path = "..."]`
+- **THEN** v1 audit fails closed rather than resolving a default same-named file
 
 #### Scenario: Ordinary prose resembles a generated marker
 

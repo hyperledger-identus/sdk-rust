@@ -24,7 +24,14 @@ population semantics and canonical reporting. Production, external-test,
 inline-test, and generated populations stay separate. Conditional compilation
 uses conservative three-valued evaluation with `test = false` rather than a
 path or regex heuristic, and a test-only out-of-line module declaration passes
-that classification through its ordinary Rust module tree.
+that classification through its ordinary Rust module tree. Only Cargo
+`tests/` and `benches/` trees are intrinsically external tests. Every `src`
+file, including `src/tests.rs`, starts as production and moves to inline-test
+only through proven test-only module reachability. Nested inline-module names
+remain part of ordinary module resolution, preventing a same-named source file
+in the parent directory from being hidden. Unsupported `#[path]` overrides fail
+closed. Rust outer doc comments immediately before a test-only item belong to
+that item rather than the production population.
 
 The policy pins the baseline Git revision, authored-source fingerprint and
 whole canonical report digest. Fast validation reloads that Git tree and
@@ -73,7 +80,9 @@ metadata, standard error kind, wire JSON, features, and dependencies.
 ## Verification and rollback
 
 Focused scanner tests cover comments, literals, balanced attributes, fields,
-variants, out-of-line module inheritance and cfg logic. Report mutation tests
+variants, outer doc comments, macro-token isolation, rejected path overrides,
+nested module-context resolution, source-test filename collisions, out-of-line
+module inheritance and cfg logic. Report mutation tests
 and fast/slow regeneration cover the complete schema, engine pin, policy/tree
 binding, population separation, exclusions and dispositions. DID tests cover registry and
 failed-closed cache results. Full factory, formatting, strict Clippy, tests,

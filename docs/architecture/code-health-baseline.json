@@ -136,14 +136,14 @@
   ],
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 23589,
-      "files": 71,
-      "functions": 1052
+      "authored_nonblank_lines": 22600,
+      "files": 69,
+      "functions": 982
     },
     "inline_test": {
-      "authored_nonblank_lines": 2876,
-      "files": 26,
-      "functions": 242
+      "authored_nonblank_lines": 3865,
+      "files": 28,
+      "functions": 312
     },
     "production": {
       "authored_nonblank_lines": 28374,

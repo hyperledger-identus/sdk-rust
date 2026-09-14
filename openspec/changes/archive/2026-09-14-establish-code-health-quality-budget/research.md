@@ -25,8 +25,13 @@ literals, contiguous attributes, item/field/variant boundaries, ordinary
 out-of-line module resolution, and three-valued `cfg` expressions.
 An item is excluded from production only when its `cfg` expression is
 definitively false with `test = false`; unknown features and targets remain in
-production. This prevents a regex or directory name from silently discarding
-shipping code.
+production. Only Cargo `tests/` and `benches/` trees are intrinsic test targets;
+`src/tests.rs` and similarly named source trees require proven test-only module
+reachability. Nested inline module names remain part of ordinary out-of-line
+resolution. This prevents a regex, directory name, or same-named sibling module
+from silently discarding shipping code. V1 rejects `#[path]` overrides in
+test-only reachability rather than guessing custom path semantics, and treats
+outer doc comments as part of the attributed item.
 
 Review of the first implementation found that canonical structure alone could
 not bind a report to source and that generic generated-marker text was

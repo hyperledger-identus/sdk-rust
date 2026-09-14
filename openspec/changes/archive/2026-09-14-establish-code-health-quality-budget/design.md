@@ -29,9 +29,15 @@ attribute groups and context-aware item, field, and variant boundaries. It
 parses `cfg` combinators using three-valued logic with `test = false`; only a
 definitively false expression marks an item test-only. A test-only out-of-line
 module declaration recursively transfers that classification through ordinary
-Rust module resolution. Exact tests cover comments/strings, `all`, `any`,
-`not`, preceding/adjacent attributes, comma-terminated fields and variants,
-inline and out-of-line module trees, preclassified test modules, and unknown
+Rust module resolution. Only Cargo `tests/` and `benches/` trees are intrinsically
+external tests; all `src` files begin as production candidates. Nested inline
+module names remain resolution context, so a test-only nested `helper` cannot
+hide a shipping `helper.rs` in its parent directory. Exact tests cover
+comments/strings, `all`, `any`, `not`, preceding outer doc comments and
+adjacent attributes,
+comma-terminated fields and variants, inline and out-of-line module trees,
+same-named module collisions, macro token trees, rejected `#[path]` overrides,
+source test files with and without proven test-only reachability, and unknown
 predicates.
 
 The policy pins baseline revision, source fingerprint and canonical report

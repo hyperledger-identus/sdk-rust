@@ -32,6 +32,9 @@ reversible and changes no protected setting or release promise.
 - Conditional compilation is classified conservatively: unknown feature or
   target predicates remain production unless `test = false` makes the whole
   expression false.
+- Test-only module reachability supports ordinary Rust module layout and fails
+  closed on `#[path]` overrides; it does not emulate rustc's complete module
+  loader.
 - Macro-expanded code is not attributed as authored production. Generated code
   is excluded only through an exact reviewed path-and-marker allowlist.
 - Fast source binding requires the policy-pinned Git object; source-only Nix

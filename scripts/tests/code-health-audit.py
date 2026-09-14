@@ -113,6 +113,22 @@ pub fn shipping() {}
         self.assertIn(6, lines)
         self.assertNotIn(8, lines)
 
+    def test_outer_doc_comments_are_part_of_test_only_item(self) -> None:
+        source = '''
+/// line documentation
+/** block
+ * documentation
+ */
+#[cfg(test)]
+fn helper() {}
+//! inner module documentation
+pub fn shipping() {}
+'''
+        lines = audit.span_lines(source, audit.test_only_spans(source))
+        self.assertTrue(set(range(2, 8)).issubset(lines))
+        self.assertNotIn(8, lines)
+        self.assertNotIn(9, lines)
+
 
 class ModulePopulationTests(unittest.TestCase):
     def test_test_only_out_of_line_module_tree_is_inherited(self) -> None:
@@ -131,7 +147,7 @@ class ModulePopulationTests(unittest.TestCase):
             },
         )
 
-    def test_preclassified_tests_module_is_a_valid_terminal_tree(self) -> None:
+    def test_src_tests_tree_requires_test_only_module_reachability(self) -> None:
         lib = Path("crates/demo/src/lib.rs")
         tests = Path("crates/demo/src/tests.rs")
         child = Path("crates/demo/src/tests/helper.rs")
@@ -140,8 +156,54 @@ class ModulePopulationTests(unittest.TestCase):
             tests: "mod helper;\nfn test_root() {}\n",
             child: "fn helper() {}\n",
         }
-        inherited = audit.inherited_test_files(sources, [lib], [tests, child])
-        self.assertEqual(inherited, set())
+        production, external, _ = audit.classify_sources(
+            sources, {"generated_exclusions": []}
+        )
+        self.assertEqual(external, [])
+        self.assertEqual(audit.inherited_test_files(sources, production), {tests, child})
+
+        sources[lib] = "mod tests;\n"
+        self.assertEqual(audit.inherited_test_files(sources, production), set())
+
+    def test_nested_inline_module_resolves_children_in_its_own_directory(self) -> None:
+        lib = Path("crates/demo/src/lib.rs")
+        nested = Path("crates/demo/src/tests/helper.rs")
+        shipping = Path("crates/demo/src/helper.rs")
+        sources = {
+            lib: "#[cfg(test)]\nmod tests { mod helper; }\n",
+            nested: "fn nested_test_helper() {}\n",
+            shipping: "pub fn shipping_helper() {}\n",
+        }
+        inherited = audit.inherited_test_files(sources, sorted(sources))
+        self.assertEqual(inherited, {nested})
+        self.assertNotIn(shipping, inherited)
+
+    def test_nested_inline_module_never_falls_back_to_parent_directory(self) -> None:
+        sources = {
+            Path("crates/demo/src/lib.rs"): "#[cfg(test)]\nmod tests { mod helper; }\n",
+            Path("crates/demo/src/helper.rs"): "pub fn shipping_helper() {}\n",
+        }
+        with self.assertRaises(audit.AuditError):
+            audit.inherited_test_files(sources, sorted(sources))
+
+    def test_macro_tokens_cannot_create_a_test_only_module_edge(self) -> None:
+        helper = Path("crates/demo/src/helper.rs")
+        sources = {
+            Path("crates/demo/src/lib.rs"): "#[cfg(test)]\nfixture!(mod helper;);\n",
+            helper: "pub fn shipping_helper() {}\n",
+        }
+        self.assertEqual(audit.inherited_test_files(sources, sorted(sources)), set())
+
+    def test_path_attributed_test_module_fails_closed(self) -> None:
+        sources = {
+            Path("crates/demo/src/lib.rs"): (
+                '#[cfg(test)]\n#[path = "actual.rs"]\nmod helper;\n'
+            ),
+            Path("crates/demo/src/helper.rs"): "pub fn shipping_helper() {}\n",
+            Path("crates/demo/src/actual.rs"): "fn actual_test_helper() {}\n",
+        }
+        with self.assertRaises(audit.AuditError):
+            audit.inherited_test_files(sources, sorted(sources))
 
     def test_generated_marker_requires_exact_path_allowlist(self) -> None:
         marked = Path("crates/demo/src/marked.rs")
@@ -305,6 +367,46 @@ evidence = "test"
             ):
                 with self.assertRaises(audit.AuditError):
                     audit.verify_baseline(root, path)
+
+    def test_schema_and_analyzer_primitive_types_fail_closed(self) -> None:
+        mutations = {
+            "boolean_report_schema": lambda value: value.update(schema_version=True),
+            "numeric_report_engine": lambda value: value["analyzer"].update(engine=1),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
+                changed = self.report()
+                mutate(changed)
+                root = Path(directory)
+                path = self.write_fixture(root, changed)
+                with self.assertRaises(audit.AuditError):
+                    audit.validate_report(root, path, policy_only=True)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = self.write_fixture(root, self.report())
+            config_path = root / "docs/architecture/code-health.toml"
+            config_path.write_text(
+                config_path.read_text(encoding="utf-8").replace(
+                    "schema_version = 1", "schema_version = true"
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaises(audit.AuditError):
+                audit.validate_report(root, path, policy_only=True)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = self.write_fixture(root, self.report())
+            config_path = root / "docs/architecture/code-health.toml"
+            config_path.write_text(
+                config_path.read_text(encoding="utf-8").replace(
+                    'contract_version = "code-health-v1"', "contract_version = 1"
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaises(audit.AuditError):
+                audit.validate_report(root, path, policy_only=True)
 
 
 if __name__ == "__main__":

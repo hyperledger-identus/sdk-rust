@@ -4,7 +4,7 @@ engine                             = "rust-code-analysis-cli"
 engine_version                     = "0.0.25"
 baseline_revision                  = "707a5a22c3fad18724d5c5cac953e7387f7e49d8"
 baseline_source_fingerprint_sha256 = "e116bfb7afe3105cd8210b71b4c12a6721123c6fd2adc9a442dbd30aa415d6e4"
-baseline_report_sha256             = "b4d3390ed4c5505242d236254ee4df0082f31856c40301ae89d57c5936a8fdf5"
+baseline_report_sha256             = "6177a91537433a846863af91bdade5a7de230e69b147f3402e0c55dc5d3cc01a"
 generated_exclusions               = [  ]
 
 [attention]

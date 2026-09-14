@@ -41,3 +41,8 @@
   and inherited out-of-line test module trees with focused fixtures.
 - [x] 5.3 Add pinned full-report regeneration to weekly CI and rerun all
   affected factory, analyzer, DID, Cargo and Nix gates before pushing.
+- [x] 5.4 Remove filename-based `src/tests.rs` trust, preserve nested inline
+  module context during resolution, and cover same-named source collisions.
+- [x] 5.5 Exclude macro token trees from module reachability, reject custom
+  `#[path]` module loading, include outer doc attributes, and close primitive
+  report/config schema types with focused negative fixtures.

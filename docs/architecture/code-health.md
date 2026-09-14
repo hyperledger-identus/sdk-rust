@@ -38,15 +38,21 @@ worktree; unrelated documentation changes do not invalidate source evidence.
 
 ## Populations
 
-- **Production** is authored Rust under `crates/*/src`, excluding dedicated
-  `src/tests.rs` or `src/tests/` files and syntax-recognized test-only items.
-- **External test** is authored Rust in `crates/*/tests` plus dedicated source
-  test files.
+- **Production** begins as every authored Rust file under `crates/*/src`.
+  A filename such as `src/tests.rs` has no special trust and remains production
+  unless syntax-aware module reachability proves that it is test-only.
+- **External test** is authored Rust in Cargo's intrinsic `crates/*/tests` and
+  `crates/*/benches` target trees.
 - **Inline test** is an item whose `cfg` predicate is definitively false when
-  `test = false`. Its complete contiguous outer-attribute group is included.
+  `test = false`. Its complete contiguous outer-attribute group, including
+  immediately preceding `///` or `/** */` outer documentation, is included.
   A test-only out-of-line `mod name;` recursively classifies the ordinary
-  `name.rs` or `name/mod.rs` module tree. Other predicates are unknown, so
+  `name.rs` or `name/mod.rs` module tree. Nested inline-module context is part
+  of resolution, so `mod tests { mod helper; }` resolves only under `tests/`
+  and cannot hide a same-named shipping module. Other predicates are unknown, so
   `cfg(any(test, feature = "diagnostics"))` remains production.
+  A `#[path = "..."]` override in test-only reachability fails closed because
+  v1 deliberately implements only ordinary Rust module resolution.
 - **Generated** Rust is excluded only when `code-health.toml` names its exact
   path and an exact marker present in the first ten lines. Generic phrases in
   comments never cause exclusion.

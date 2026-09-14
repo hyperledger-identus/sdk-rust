@@ -38,6 +38,12 @@ class Span:
     end: int
 
 
+@dataclass(frozen=True)
+class ModuleReference:
+    context: tuple[str, ...]
+    name: str
+
+
 def canonical_json(value: object) -> str:
     return json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
 
@@ -234,6 +240,47 @@ def skip_space(text: str, index: int) -> int:
     return index
 
 
+def block_comment_start(source: str, end: int) -> int | None:
+    """Return the matching nested block-comment start for an end after `*/`."""
+    depth = 1
+    cursor = end - 2
+    while cursor > 0:
+        cursor -= 1
+        token = source[cursor:cursor + 2]
+        if token == "*/":
+            depth += 1
+        elif token == "/*":
+            depth -= 1
+            if depth == 0:
+                return cursor
+    return None
+
+
+def outer_doc_group_start(source: str, item_attribute_start: int) -> int:
+    """Include contiguous outer doc comments, which are Rust outer attributes."""
+    cursor = item_attribute_start
+    while True:
+        before = cursor
+        while before > 0 and source[before - 1].isspace():
+            before -= 1
+        if before >= 2 and source[before - 2:before] == "*/":
+            start = block_comment_start(source, before)
+            if (
+                start is not None
+                and source.startswith("/**", start)
+                and not source.startswith("/***", start)
+            ):
+                line_start = source.rfind("\n", 0, start) + 1
+                cursor = line_start if source[line_start:start].isspace() else start
+                continue
+        line_start = source.rfind("\n", 0, before) + 1
+        line = source[line_start:before].lstrip(" \t")
+        if line.startswith("///") and not line.startswith("////"):
+            cursor = line_start
+            continue
+        return cursor
+
+
 def item_end(clean: str, index: int) -> int:
     """Find the end of an attributed Rust item in sanitized source."""
     index = skip_space(clean, index)
@@ -298,7 +345,9 @@ def test_only_spans(source: str) -> list[Span]:
             bodies.append(source[after + 2:close])
             after = skip_space(clean, close + 1)
         if any(cfg_value(body) is False for body in bodies):
-            spans.append(Span(group_start, item_end(clean, after)))
+            spans.append(
+                Span(outer_doc_group_start(source, group_start), item_end(clean, after))
+            )
         cursor = after
     return merge_spans(spans)
 
@@ -312,25 +361,59 @@ def span_lines(source: str, spans: list[Span]) -> set[int]:
     return lines
 
 
-OUT_OF_LINE_MODULE = re.compile(
-    r"(?:(?:pub(?:\s*\([^)]*\))?|unsafe)\s+)*mod\s+([A-Za-z_][A-Za-z0-9_]*)\s*;"
-)
+MODULE_ITEM = re.compile(r"\bmod\s+([A-Za-z_][A-Za-z0-9_]*)\s*([;{])")
 
 
-def out_of_line_modules(source: str, spans: list[Span] | None = None) -> list[str]:
+def out_of_line_modules(
+    source: str, spans: list[Span] | None = None
+) -> list[ModuleReference]:
     clean = sanitize_rust(source)
     regions = spans if spans is not None else [Span(0, len(clean))]
-    names: list[str] = []
+    references: list[ModuleReference] = []
+
+    def scan(start: int, end: int, context: tuple[str, ...]) -> None:
+        cursor = start
+        while cursor < end:
+            if clean.startswith("#[", cursor):
+                closing = matching_delimiter(clean, cursor + 1, "[", "]")
+                if re.search(r"\bpath\s*=", clean[cursor + 2:closing]):
+                    raise AuditError(
+                        "path-attributed modules are unsupported in test-only reachability"
+                    )
+                cursor = closing + 1
+                continue
+            match = MODULE_ITEM.match(clean, cursor)
+            if match:
+                name, delimiter = match.groups()
+                if delimiter == ";":
+                    references.append(ModuleReference(context, name))
+                    cursor = match.end()
+                    continue
+                opening = match.end() - 1
+                closing = matching_delimiter(clean, opening, "{", "}")
+                scan(opening + 1, closing, context + (name,))
+                cursor = closing + 1
+                continue
+            if clean[cursor] in "{([":
+                closing = {"{": "}", "(": ")", "[": "]"}[clean[cursor]]
+                cursor = matching_delimiter(clean, cursor, clean[cursor], closing) + 1
+                continue
+            cursor += 1
+
     for region in regions:
-        names.extend(match.group(1) for match in OUT_OF_LINE_MODULE.finditer(clean, region.start, region.end))
-    return names
+        scan(region.start, region.end, ())
+    return references
 
 
-def resolve_module_path(parent: Path, name: str, sources: dict[Path, str]) -> Path:
+def resolve_module_path(
+    parent: Path, reference: ModuleReference, sources: dict[Path, str]
+) -> Path:
     if parent.name in {"lib.rs", "main.rs", "mod.rs"}:
         base = parent.parent
     else:
         base = parent.parent / parent.stem
+    base = base.joinpath(*reference.context)
+    name = reference.name
     candidates = (base / f"{name}.rs", base / name / "mod.rs")
     matches = [candidate for candidate in candidates if candidate in sources]
     if len(matches) != 1:
@@ -350,8 +433,8 @@ def inherited_test_files(
     queued: list[Path] = []
     for parent in production_paths:
         spans = test_only_spans(sources[parent])
-        for name in out_of_line_modules(sources[parent], spans):
-            queued.append(resolve_module_path(parent, name, sources))
+        for reference in out_of_line_modules(sources[parent], spans):
+            queued.append(resolve_module_path(parent, reference, sources))
 
     inherited: set[Path] = set()
     visited: set[Path] = set()
@@ -364,8 +447,8 @@ def inherited_test_files(
             raise AuditError(f"test-only module resolved outside authored production paths: {path}")
         if path in production:
             inherited.add(path)
-        for name in out_of_line_modules(sources[path]):
-            queued.append(resolve_module_path(path, name, sources))
+        for reference in out_of_line_modules(sources[path]):
+            queued.append(resolve_module_path(path, reference, sources))
     return inherited
 
 
@@ -415,14 +498,7 @@ def classify_sources(
                 raise AuditError(f"generated exclusion marker is absent: {path}")
             observed_exclusions.add(path)
             generated.append(path)
-        elif (
-            parts[2] in {"tests", "benches"}
-            or (
-                parts[2] == "src"
-                and len(parts) >= 4
-                and (parts[3] == "tests.rs" or parts[3] == "tests")
-            )
-        ):
+        elif parts[2] in {"tests", "benches"}:
             external_tests.append(path)
         elif len(parts) >= 4 and parts[2] == "src":
             production.append(path)
@@ -497,8 +573,14 @@ def load_config(root: Path) -> dict[str, object]:
     }
     if set(config) != expected_config_keys:
         raise AuditError("code-health config has unknown or missing fields")
-    if config.get("schema_version") != EXPECTED_SCHEMA:
+    if (
+        type(config.get("schema_version")) is not int
+        or config["schema_version"] != EXPECTED_SCHEMA
+    ):
         raise AuditError("unsupported code-health config schema")
+    for field in ("contract_version", "engine", "engine_version"):
+        if not isinstance(config.get(field), str) or not config[field]:
+            raise AuditError(f"{field} must be a non-empty string")
     attention = config.get("attention")
     expected_attention = {
         "function_sloc",
@@ -818,12 +900,17 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
         },
         "report",
     )
-    if report.get("schema_version") != EXPECTED_SCHEMA:
+    if (
+        type(report.get("schema_version")) is not int
+        or report["schema_version"] != EXPECTED_SCHEMA
+    ):
         raise AuditError("report schema version mismatch")
     analyzer = require_exact_keys(
         report["analyzer"], {"contract_version", "engine", "engine_version"}, "analyzer"
     )
     for field in ("contract_version", "engine", "engine_version"):
+        if not isinstance(analyzer.get(field), str) or not analyzer[field]:
+            raise AuditError(f"report analyzer {field} must be a non-empty string")
         if analyzer.get(field) != config.get(field):
             raise AuditError(f"report analyzer {field} does not match config")
     attention = require_exact_keys(

@@ -24,10 +24,10 @@ fn is_port_attr(attr: &syn::Attribute) -> bool {
 fn ports_in_file(file: &syn::File) -> Vec<String> {
     let mut out = Vec::new();
     for item in &file.items {
-        if let syn::Item::Trait(t) = item {
-            if t.attrs.iter().any(is_port_attr) {
-                out.push(t.ident.to_string());
-            }
+        if let syn::Item::Trait(t) = item
+            && t.attrs.iter().any(is_port_attr)
+        {
+            out.push(t.ident.to_string());
         }
     }
     out

@@ -93,6 +93,8 @@ Implementation issues must state:
   protocol task.
 - Keep raw secret material out of debug/display/errors, serialization and FFI.
 - Keep product policy, chain clients and consumer storage out of SDK crates.
+- Follow the [Clippy exception policy](docs/governance/clippy-policy.md); keep
+  exceptions item-scoped, reasoned, registered, and objectively removable.
 - Add constructor/deserializer equivalence, negative and resource-bound tests
   for every untrusted input type.
 - Do not edit a consumer repository to make an upstream component appear done.
@@ -124,6 +126,7 @@ Once the bootstrap lands, the expected baseline is:
 ```bash
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
+nix build --print-build-logs .#checks.$(nix eval --impure --raw --expr builtins.currentSystem).rust-clippy-all-targets-all-features
 cargo test --workspace --all-features
 cargo test --workspace --no-default-features
 cargo doc --workspace --no-deps

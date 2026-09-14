@@ -114,8 +114,12 @@ The machine policy defines `fast` as the single Linux Rust/factory integration
 status on pull requests and `develop`. It runs factory structure, Nix/TOML/text
 lint, formatting, workspace build, strict Clippy and normal workspace tests.
 The `slow` workflow runs the complete flake on Linux and macOS weekly and on
-manual dispatch. A slow failure blocks release-candidate preparation but is
-not a required active-development merge signal.
+manual dispatch. Its explicit `rust-clippy-all-targets-all-features` check
+evaluates every workspace Cargo target with every feature enabled and warnings
+denied; it remains outside the fast selector set. A slow failure blocks
+release-candidate preparation but is not a required active-development merge
+signal. Narrow lint debt follows the
+[Clippy policy and exception registry](../governance/clippy-policy.md).
 
 The required `fast` job has GitHub-enforced read-only cache authority. Its
 pinned cache action may restore GitHub Actions entries but cannot publish from

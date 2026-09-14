@@ -7,7 +7,7 @@ use std::{
         Arc, Mutex,
         atomic::{AtomicUsize, Ordering},
     },
-    task::{Context, Poll, Wake, Waker},
+    task::{Context, Poll, Waker},
     time::Instant,
 };
 
@@ -19,15 +19,8 @@ use identus_did::{
 };
 use serde_json::json;
 
-struct NoopWake;
-
-impl Wake for NoopWake {
-    fn wake(self: Arc<Self>) {}
-}
-
 fn block_on<F: Future>(future: F) -> F::Output {
-    let waker = Waker::from(Arc::new(NoopWake));
-    let mut context = Context::from_waker(&waker);
+    let mut context = Context::from_waker(Waker::noop());
     let mut future = pin!(future);
     loop {
         match future.as_mut().poll(&mut context) {

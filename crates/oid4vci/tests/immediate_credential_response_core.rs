@@ -8,8 +8,8 @@ fn parse(json: &str) -> Result<ImmediateCredentialResponseCore, CredentialOfferE
     ImmediateCredentialResponseCore::parse(json, ImmediateCredentialResponseLimits::default())
 }
 
-#[allow(clippy::too_many_arguments)]
-fn limits(
+#[derive(Clone, Copy)]
+struct TestLimits {
     json_bytes: usize,
     depth: usize,
     nodes: usize,
@@ -19,17 +19,31 @@ fn limits(
     credential_bytes: usize,
     total_credential_bytes: usize,
     notification_id_bytes: usize,
-) -> ImmediateCredentialResponseLimits {
+}
+
+const GENEROUS_LIMITS: TestLimits = TestLimits {
+    json_bytes: 1_024,
+    depth: 16,
+    nodes: 128,
+    response_members: 4,
+    credentials: 4,
+    credential_members: 4,
+    credential_bytes: 64,
+    total_credential_bytes: 64,
+    notification_id_bytes: 64,
+};
+
+fn limits(values: TestLimits) -> ImmediateCredentialResponseLimits {
     ImmediateCredentialResponseLimits::new(
-        json_bytes,
-        depth,
-        nodes,
-        response_members,
-        credentials,
-        credential_members,
-        credential_bytes,
-        total_credential_bytes,
-        notification_id_bytes,
+        values.json_bytes,
+        values.depth,
+        values.nodes,
+        values.response_members,
+        values.credentials,
+        values.credential_members,
+        values.credential_bytes,
+        values.total_credential_bytes,
+        values.notification_id_bytes,
     )
     .expect("positive limits")
 }
@@ -195,7 +209,16 @@ fn duplicate_members_fail_at_every_object_layer() {
 #[test]
 fn response_count_member_and_retention_limits_are_independent() {
     let minimal = r#"{"credentials":[{"credential":"one"}]}"#;
-    let exact = limits(minimal.len(), 16, 128, 1, 1, 1, 5, 5, 16);
+    let exact = limits(TestLimits {
+        json_bytes: minimal.len(),
+        response_members: 1,
+        credentials: 1,
+        credential_members: 1,
+        credential_bytes: 5,
+        total_credential_bytes: 5,
+        notification_id_bytes: 16,
+        ..GENEROUS_LIMITS
+    });
     assert_eq!(
         ImmediateCredentialResponseCore::parse(minimal, exact)
             .expect("exact bounds")
@@ -207,37 +230,58 @@ fn response_count_member_and_retention_limits_are_independent() {
     let cases = [
         (
             minimal,
-            limits(minimal.len() - 1, 16, 128, 4, 4, 4, 64, 64, 64),
+            limits(TestLimits {
+                json_bytes: minimal.len() - 1,
+                ..GENEROUS_LIMITS
+            }),
             CredentialOfferError::ImmediateCredentialResponseTooLarge,
         ),
         (
             r#"{"credentials":[{"credential":"one"}],"extension":true}"#,
-            limits(1_024, 16, 128, 1, 4, 4, 64, 64, 64),
+            limits(TestLimits {
+                response_members: 1,
+                ..GENEROUS_LIMITS
+            }),
             CredentialOfferError::TooManyCredentialResponseMembers,
         ),
         (
             r#"{"credentials":[{"credential":"one"},{"credential":"two"}]}"#,
-            limits(1_024, 16, 128, 4, 1, 4, 64, 64, 64),
+            limits(TestLimits {
+                credentials: 1,
+                ..GENEROUS_LIMITS
+            }),
             CredentialOfferError::TooManyIssuedCredentials,
         ),
         (
             r#"{"credentials":[{"credential":"one","extension":true}]}"#,
-            limits(1_024, 16, 128, 4, 4, 1, 64, 64, 64),
+            limits(TestLimits {
+                credential_members: 1,
+                ..GENEROUS_LIMITS
+            }),
             CredentialOfferError::TooManyIssuedCredentialMembers,
         ),
         (
             minimal,
-            limits(1_024, 16, 128, 4, 4, 4, 4, 64, 64),
+            limits(TestLimits {
+                credential_bytes: 4,
+                ..GENEROUS_LIMITS
+            }),
             CredentialOfferError::IssuedCredentialTooLarge,
         ),
         (
             r#"{"credentials":[{"credential":"one"},{"credential":"two"}]}"#,
-            limits(1_024, 16, 128, 4, 4, 4, 64, 9, 64),
+            limits(TestLimits {
+                total_credential_bytes: 9,
+                ..GENEROUS_LIMITS
+            }),
             CredentialOfferError::IssuedCredentialsTooLarge,
         ),
         (
             r#"{"credentials":[{"credential":"one"}],"notification_id":"notify"}"#,
-            limits(1_024, 16, 128, 4, 4, 4, 64, 64, 5),
+            limits(TestLimits {
+                notification_id_bytes: 5,
+                ..GENEROUS_LIMITS
+            }),
             CredentialOfferError::CredentialNotificationIdTooLarge,
         ),
     ];
@@ -251,14 +295,23 @@ fn response_count_member_and_retention_limits_are_independent() {
     assert_eq!(
         ImmediateCredentialResponseCore::parse(
             r#"{"credentials":[{"credential":{"nested":true}}]}"#,
-            limits(1_024, 2, 128, 4, 4, 4, 64, 64, 64),
+            limits(TestLimits {
+                depth: 2,
+                ..GENEROUS_LIMITS
+            }),
         )
         .expect_err("depth bound"),
         CredentialOfferError::JsonTooDeep
     );
     assert_eq!(
-        ImmediateCredentialResponseCore::parse(minimal, limits(1_024, 16, 2, 4, 4, 4, 64, 64, 64),)
-            .expect_err("node bound"),
+        ImmediateCredentialResponseCore::parse(
+            minimal,
+            limits(TestLimits {
+                nodes: 2,
+                ..GENEROUS_LIMITS
+            }),
+        )
+        .expect_err("node bound"),
         CredentialOfferError::JsonTooManyNodes
     );
 }

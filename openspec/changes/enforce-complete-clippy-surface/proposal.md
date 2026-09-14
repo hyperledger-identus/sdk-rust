@@ -5,18 +5,21 @@
 The required fast lane intentionally checks the default workspace surface, but
 the documented local command also selects every Cargo target and every feature.
 On `develop@dbef9923e65d1a8332c4ba38f42532c8a12811f7` that complete command
-finds four warnings which the lean fast lane does not see. The weekly/manual
+finds an initial four warnings which the lean fast lane does not see; after
+those stopped compilation, complete reruns expose nine more findings in later
+targets. The weekly/manual
 slow lane currently runs every Nix flake check, but it has no separately named
 check that represents this complete Clippy surface.
 
-Issue #268 owns the bounded correction: remove the four warnings, make the
+Issue #268 owns the bounded correction: remove all thirteen warnings, make the
 complete command a generated Nix check in the slow lane, and record why the
 two production OID4VCI constructor exceptions remain narrow for now.
 
 ## What changes
 
-- Fix three nested conditional findings in conformance guards and replace the
-  credentials test's hand-written no-op waker with the standard-library waker.
+- Fix three nested conditional findings in conformance guards, replace nine
+  hand-written no-op wakers with the standard-library waker, and use the
+  standard integer multiple predicate in one DID hardening test.
 - Add a generated `rust-clippy-all-targets-all-features` Nix check whose Cargo
   selection is the exact workspace/all-target/all-feature warning-denied
   surface.

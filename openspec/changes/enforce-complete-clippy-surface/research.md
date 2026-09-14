@@ -16,9 +16,12 @@ The current implementation generates Rust checks from
 The exact local command `cargo clippy --workspace --all-targets --all-features
 -- -D warnings` was run on Rust 1.98.1 at the exact base. It failed on three
 `collapsible_if` findings in `identus-conformance` test-only guards and one
-`manual_noop_waker` finding in an `identus-credentials` integration test. The
-workspace contains two production `too_many_arguments` allowances on public
-OID4VCI limits constructors and one test-helper allowance.
+`manual_noop_waker` finding in an `identus-credentials` integration test. Once
+those compilation-stopping findings were corrected, complete reruns exposed
+eight more hand-written no-op wakers across DID and JOSE tests plus one
+`manual_is_multiple_of` finding in a DID hardening test: thirteen findings in
+total. The workspace contains two production `too_many_arguments` allowances
+on public OID4VCI limits constructors and one test-helper allowance.
 
 ## Normative sources
 
@@ -73,8 +76,8 @@ and existing policy.
 
 - `scripts/factory doctor` passed at the exact base.
 - `cargo clippy --workspace --all-targets --all-features -- -D warnings`
-  reproduced the four issue findings and is currently failing before the
-  implementation.
+  reproduced the initial four issue findings; iterative compilation exposed
+  nine additional findings in later test targets.
 - `rg -n '#\\[(allow|expect)\\(clippy::' --glob '*.rs'` identified the three
   existing narrow Clippy allowances.
 - Factory readiness, validator mutation tests, Rust tests, the new Nix check,

@@ -2345,6 +2345,28 @@ def validate_toolchains(
             "etalon policy gate rust-etalon must be locked and select all targets"
         )
 
+    complete_clippy = "rust-clippy-all-targets-all-features"
+    validate_gate(complete_clippy, "--all-features", gates, "complete Clippy policy", failures)
+    validate_gate_cargo_selection(
+        complete_clippy,
+        declared_workspace,
+        True,
+        False,
+        {"<all-features>"},
+        None,
+        declared_workspace,
+        gates,
+        "complete Clippy policy",
+        failures,
+    )
+    complete_definition = gates.get(complete_clippy, {})
+    if complete_definition.get("operation") != "cargoClippy":
+        failures.append("complete Clippy policy must use cargoClippy")
+    if complete_definition.get("toolchain") != "primary":
+        failures.append("complete Clippy policy must use the primary toolchain")
+    if complete_definition.get("all_targets") is not True:
+        failures.append("complete Clippy policy must select all targets")
+
 
 def validate_ci_lanes(
     root: Path,
@@ -2467,6 +2489,13 @@ def validate_ci_lanes(
                 rf"^\s+{re.escape(selector)}(?:\s+\\)?\s*$", fast, re.MULTILINE
             ) is None:
                 failures.append(f"{fast_path} is missing fast gate selector {selector}")
+        complete_selector = (
+            ".#checks.x86_64-linux.rust-clippy-all-targets-all-features"
+        )
+        if complete_selector in fast:
+            failures.append(
+                f"{fast_path} must keep the complete Clippy selector out of fast CI"
+            )
         if re.search(r"^\s*run:\s*nix flake check\s*$", fast, re.MULTILINE):
             failures.append(f"{fast_path} must not run the exhaustive flake check")
         cache_contract = {
@@ -2528,6 +2557,14 @@ def validate_ci_lanes(
         for runner in ("ubuntu-latest", "macos-latest"):
             if runner not in slow:
                 failures.append(f"{slow_path} matrix is missing {runner}")
+        for system in REQUIRED_HOSTS:
+            if system not in slow:
+                failures.append(f"{slow_path} matrix is missing Nix system {system}")
+        selector = ".#checks.${{ matrix.nix-system }}.rust-clippy-all-targets-all-features"
+        if slow.count(selector) != 1:
+            failures.append(
+                f"{slow_path} must invoke the complete Clippy selector exactly once"
+            )
 
     fuzz_workflows = {
         ".github/workflows/crypto-fuzz.yml": '    - cron: "41 3 * * 1"',

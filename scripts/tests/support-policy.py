@@ -1902,6 +1902,39 @@ in
         )
         self.assert_fails("must retain the pinned weekly schedule")
 
+    def test_complete_clippy_gate_must_select_all_targets(self) -> None:
+        self.replace_gate(
+            "rust-clippy-all-targets-all-features",
+            "all_targets = true",
+            "all_targets = false",
+        )
+        self.assert_fails("complete Clippy policy must select all targets")
+
+    def test_complete_clippy_gate_must_select_all_features(self) -> None:
+        self.replace_gate(
+            "rust-clippy-all-targets-all-features",
+            "all_features = true",
+            "all_features = false",
+        )
+        self.assert_fails("complete Clippy policy gate")
+
+    def test_slow_lane_cannot_drop_complete_clippy(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "          .#checks.${{ matrix.nix-system }}.rust-clippy-all-targets-all-features\n",
+            "          .#checks.${{ matrix.nix-system }}.rust-clippy\n",
+        )
+        self.assert_fails("must invoke the complete Clippy selector exactly once")
+
+    def test_complete_clippy_stays_out_of_fast_lane(self) -> None:
+        self.replace(
+            ".github/workflows/factory-contract.yml",
+            "            .#checks.x86_64-linux.rust-clippy \\\n",
+            "            .#checks.x86_64-linux.rust-clippy \\\n"
+            "            .#checks.x86_64-linux.rust-clippy-all-targets-all-features \\\n",
+        )
+        self.assert_fails("must keep the complete Clippy selector out of fast CI")
+
     def test_fast_gate_selector_comment_is_not_evidence(self) -> None:
         self.replace(
             ".github/workflows/factory-contract.yml",

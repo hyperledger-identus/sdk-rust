@@ -256,13 +256,13 @@ fn direct_dependency_violations(
             }
         }
 
-        if let Some(git) = &dependency.git {
-            if let Some(source) = denied_source(git) {
-                violations.push(format!(
-                    "{}: dependency `{}` references prohibited {source}: {git}",
-                    dependency.section, dependency.alias
-                ));
-            }
+        if let Some(git) = &dependency.git
+            && let Some(source) = denied_source(git)
+        {
+            violations.push(format!(
+                "{}: dependency `{}` references prohibited {source}: {git}",
+                dependency.section, dependency.alias
+            ));
         }
 
         let Some(path) = &dependency.path else {
@@ -317,12 +317,12 @@ fn lockfile_violations(lockfile: &toml::Value) -> Vec<String> {
                 "Cargo.lock package `{name}` matches prohibited {family} family"
             ));
         }
-        if let Some(source) = fields.get("source").and_then(toml::Value::as_str) {
-            if let Some(denied) = denied_source(source) {
-                violations.push(format!(
-                    "Cargo.lock package `{name}` references prohibited {denied}: {source}"
-                ));
-            }
+        if let Some(source) = fields.get("source").and_then(toml::Value::as_str)
+            && let Some(denied) = denied_source(source)
+        {
+            violations.push(format!(
+                "Cargo.lock package `{name}` references prohibited {denied}: {source}"
+            ));
         }
     }
 

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import sys
 from pathlib import Path
 
@@ -23,24 +24,42 @@ EXPECTED_PREFIX = (
 
 def resolve_planning_golden(root: Path, errors: list[str]) -> Path | None:
     active = root / ACTIVE
-    if active.is_file() and not active.is_symlink():
-        return active
+    candidates: list[Path] = []
+    if os.path.lexists(active):
+        if active.is_symlink() or not active.is_file():
+            errors.append(f"active planning golden must be a regular file: {active}")
+        else:
+            candidates.append(active)
 
     archive_root = root / ARCHIVE
-    candidates = []
-    if archive_root.is_dir() and not archive_root.is_symlink():
-        candidates = sorted(
-            candidate
-            for directory in archive_root.iterdir()
-            if directory.is_dir()
-            and not directory.is_symlink()
-            and directory.name.endswith(f"-{CHANGE_NAME}")
-            if (candidate := directory / "golden" / FILE_NAME).is_file()
-            and not candidate.is_symlink()
-        )
+    if os.path.lexists(archive_root):
+        if archive_root.is_symlink() or not archive_root.is_dir():
+            errors.append(f"OpenSpec archive root must be a regular directory: {archive_root}")
+        else:
+            for directory in sorted(archive_root.iterdir()):
+                if not directory.name.endswith(f"-{CHANGE_NAME}"):
+                    continue
+                if directory.is_symlink() or not directory.is_dir():
+                    errors.append(
+                        "matching archived change must be a regular directory: "
+                        f"{directory}"
+                    )
+                    continue
+                candidate = directory / "golden" / FILE_NAME
+                if not os.path.lexists(candidate):
+                    errors.append(
+                        f"matching archived change is missing its planning golden: {candidate}"
+                    )
+                elif candidate.is_symlink() or not candidate.is_file():
+                    errors.append(
+                        f"archived planning golden must be a regular file: {candidate}"
+                    )
+                else:
+                    candidates.append(candidate)
+
     if len(candidates) != 1:
         errors.append(
-            "expected exactly one archived planning golden when the active golden is absent; "
+            "expected exactly one active or archived planning golden; "
             f"found {len(candidates)}"
         )
         return None

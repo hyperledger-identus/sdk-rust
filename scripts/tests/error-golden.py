@@ -117,7 +117,51 @@ def main() -> int:
         write(ambiguous / second, (ambiguous / STABLE).read_bytes())
         require_error(checker, ambiguous, "found 2")
 
-    print("error-golden test: 8 active/archive and mutation cases passed")
+        active_symlink = test_root / "active-symlink-plus-archive"
+        shutil.copytree(archived, active_symlink)
+        active_path = active_symlink / ACTIVE
+        active_path.parent.mkdir(parents=True, exist_ok=True)
+        active_path.symlink_to(active_symlink / STABLE)
+        require_error(checker, active_symlink, "active planning golden must be a regular file")
+
+        active_and_archive = test_root / "active-plus-archive"
+        shutil.copytree(archived, active_and_archive)
+        write(active_and_archive / ACTIVE, (active_and_archive / STABLE).read_bytes())
+        require_error(checker, active_and_archive, "found 2")
+
+        archive_directory_symlink = test_root / "archive-directory-symlink"
+        shutil.copytree(archived, archive_directory_symlink)
+        linked_directory = (
+            archive_directory_symlink
+            / "openspec/changes/archive/2026-09-16-decompose-public-error-contracts"
+        )
+        linked_directory.symlink_to(
+            archive_directory_symlink
+            / "openspec/changes/archive/2026-09-15-decompose-public-error-contracts",
+            target_is_directory=True,
+        )
+        require_error(
+            checker,
+            archive_directory_symlink,
+            "matching archived change must be a regular directory",
+        )
+
+        archive_file_symlink = test_root / "archive-file-symlink"
+        shutil.copytree(archived, archive_file_symlink)
+        linked_file = (
+            archive_file_symlink
+            / "openspec/changes/archive/2026-09-16-decompose-public-error-contracts/golden"
+            / "credentials-error-contract-v1.csv"
+        )
+        linked_file.parent.mkdir(parents=True, exist_ok=True)
+        linked_file.symlink_to(archive_file_symlink / STABLE)
+        require_error(
+            checker,
+            archive_file_symlink,
+            "archived planning golden must be a regular file",
+        )
+
+    print("error-golden test: 12 active/archive and mutation cases passed")
     return 0
 
 

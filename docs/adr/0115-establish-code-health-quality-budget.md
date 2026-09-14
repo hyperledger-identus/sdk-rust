@@ -82,7 +82,8 @@ metadata, standard error kind, wire JSON, features, and dependencies.
 ## Verification and rollback
 
 Focused scanner tests cover comments, literals, balanced attributes, fields,
-variants, outer doc comments, macro-token isolation, rejected path overrides,
+variants, outer doc comments, brace-delimited item macros, macro-token
+isolation, rejected path overrides,
 nested module-context resolution, source-test filename collisions, out-of-line
 module inheritance, mixed production/test reachability and cfg logic. Report mutation tests
 and fast/slow regeneration cover the complete schema, engine pin, policy/tree

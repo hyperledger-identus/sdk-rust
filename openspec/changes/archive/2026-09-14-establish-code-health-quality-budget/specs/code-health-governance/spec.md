@@ -56,6 +56,13 @@ reachability to the same file and its ordinary module descendants.
   definitively test-only item
 - **THEN** the documentation is inline-test evidence rather than production
 
+#### Scenario: Test-only brace-delimited item macro
+
+- **WHEN** a definitively test-only item invokes a qualified macro with a
+  brace-delimited token tree
+- **THEN** the balanced macro item is inline-test evidence and the following
+  shipping item remains production
+
 #### Scenario: Test-only module overrides its source path
 
 - **WHEN** a definitively test-only module uses `#[path = "..."]`

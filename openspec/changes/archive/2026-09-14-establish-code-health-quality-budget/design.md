@@ -35,7 +35,8 @@ module names remain resolution context, so a test-only nested `helper` cannot
 hide a shipping `helper.rs` in its parent directory. Exact tests cover
 comments/strings, `all`, `any`, `not`, preceding outer doc comments and
 adjacent attributes,
-comma-terminated fields and variants, inline and out-of-line module trees,
+comma-terminated fields and variants, brace-delimited item macros, inline and
+out-of-line module trees,
 same-named module collisions, macro token trees, rejected `#[path]` overrides,
 source test files with and without proven test-only reachability, and unknown
 predicates. Test reachability first produces a candidate tree. A fixed-point

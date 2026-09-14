@@ -129,6 +129,21 @@ pub fn shipping() {}
         self.assertNotIn(8, lines)
         self.assertNotIn(9, lines)
 
+    def test_brace_delimited_item_macro_does_not_consume_shipping_item(self) -> None:
+        for suffix in ("", ";"):
+            with self.subTest(suffix=suffix):
+                source = f'''
+#[cfg(test)]
+crate::test_support::make_tests! {{ one, two }}{suffix}
+pub fn shipping() {{}}
+'''
+                spans = audit.test_only_spans(source)
+                lines = audit.span_lines(source, spans)
+                self.assertEqual(len(spans), 1)
+                self.assertIn(2, lines)
+                self.assertIn(3, lines)
+                self.assertNotIn(4, lines)
+
 
 class ModulePopulationTests(unittest.TestCase):
     def test_test_only_out_of_line_module_tree_is_inherited(self) -> None:

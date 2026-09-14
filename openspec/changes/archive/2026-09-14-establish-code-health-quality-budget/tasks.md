@@ -48,3 +48,5 @@
   report/config schema types with focused negative fixtures.
 - [x] 5.6 Make active or unknown production module reachability override a
   test-only candidate edge and propagate that result to descendants.
+- [x] 5.7 Recognize qualified brace-delimited item macros as balanced attributed
+  items and prove the following shipping item remains production.

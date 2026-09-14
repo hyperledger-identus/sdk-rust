@@ -157,6 +157,11 @@ ITEM_BLOCK_HEADER = re.compile(
 EXTERN_BLOCK_HEADER = re.compile(
     r"^\s*(?:(?:pub(?:\s*\([^)]*\))?|unsafe)\s+)*extern(?:\s+\"[^\"]*\")?\s*$"
 )
+ITEM_MACRO_HEADER = re.compile(
+    r"^\s*(?:::)?"
+    r"(?:(?:[A-Za-z_][A-Za-z0-9_]*|r#[A-Za-z_][A-Za-z0-9_]*|\$crate)::)*"
+    r"(?:[A-Za-z_][A-Za-z0-9_]*|r#[A-Za-z_][A-Za-z0-9_]*)\s*!\s*$"
+)
 
 
 class CfgParser:
@@ -308,6 +313,10 @@ def item_end(clean: str, index: int) -> int:
             header = clean[index:cursor]
             if ITEM_BLOCK_HEADER.search(header) or EXTERN_BLOCK_HEADER.fullmatch(header):
                 return matching_delimiter(clean, cursor, "{", "}") + 1
+            if ITEM_MACRO_HEADER.fullmatch(header):
+                end = matching_delimiter(clean, cursor, "{", "}") + 1
+                after = skip_space(clean, end)
+                return after + 1 if clean.startswith(";", after) else end
             braces += 1
         elif char == "}" and braces:
             braces -= 1

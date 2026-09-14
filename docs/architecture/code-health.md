@@ -46,6 +46,8 @@ worktree; unrelated documentation changes do not invalidate source evidence.
 - **Inline test** is an item whose `cfg` predicate is definitively false when
   `test = false`. Its complete contiguous outer-attribute group, including
   immediately preceding `///` or `/** */` outer documentation, is included.
+  Brace-delimited item macros, including qualified macro paths, end at their
+  balanced closing brace and optional semicolon.
   A test-only out-of-line `mod name;` recursively classifies the ordinary
   `name.rs` or `name/mod.rs` module tree. Nested inline-module context is part
   of resolution, so `mod tests { mod helper; }` resolves only under `tests/`

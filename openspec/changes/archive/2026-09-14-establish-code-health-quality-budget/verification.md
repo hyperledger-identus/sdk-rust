@@ -13,6 +13,7 @@
 - **Eighth review-remediation head:** `1521c242ffac901f37dea0766b1510ae2f5180dc`
 - **Final review-remediation head:** `8ef23489d4cded5cb635b970de9c4e1da360d711`
 - **Scheduler-truth remediation head:** `8086d4a162a630eba61071b10bd8b01a90608cdf`
+- **Scheduler-authority consistency head:** `dfa531735f4cf19248b9a3c45217bdff3d4c4236`
 - **Host:** aarch64-darwin
 - **Result:** passed with no unresolved blocker
 
@@ -39,8 +40,10 @@ reduction.
 python3 scripts/code-health-audit.py --check-report docs/architecture/code-health-baseline.json
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --verify-baseline
 python3 scripts/tests/code-health-audit.py (37/37)
-python3 -m unittest scripts/tests/support-policy.py (170/170)
+python3 -m unittest scripts/tests/support-policy.py (172/172)
 python3 scripts/check-support-policy.py
+node --test scripts/tests/factory-operations.mjs (21/21)
+python3 scripts/check-apollo-parity.py
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test -p identus-did --test did_method_registry --test did_resolution_cache (16 passed, 2 ignored)
@@ -88,6 +91,10 @@ The scheduler-truth remediation records `local-or-external` execution and
 `inactive-pending-276` status in the machine-readable support policy, requires
 the slow workflow to disclose the default-branch limitation, and adds mutation
 tests for both claims. It changes no Rust source or analyzer baseline.
+Independent review then found that broader current support, factory, target-plan
+and consumer evidence still used active weekly/manual wording. Head `dfa5317`
+aligns those canonical sources with local/external execution pending #276 and
+extends validation to reject stale active prose and the old target-plan policy.
 A direct `cargo nextest` invocation was
 unavailable outside the pinned shell; the recorded bootstrap invocation is the
 successful replacement. The Nix install fixup emitted a Darwin

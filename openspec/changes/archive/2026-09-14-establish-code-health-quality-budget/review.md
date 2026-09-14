@@ -14,6 +14,7 @@ Seventh review-remediation head: `3bafdbb7ebc3392e381316b28c3ec3afd627c32e`
 Eighth review-remediation head: `1521c242ffac901f37dea0766b1510ae2f5180dc`
 Final review-remediation head: `8ef23489d4cded5cb635b970de9c4e1da360d711`
 Scheduler-truth remediation head: `8086d4a162a630eba61071b10bd8b01a90608cdf`
+Scheduler-authority consistency head: `dfa531735f4cf19248b9a3c45217bdff3d4c4236`
 Planning head: `0a7ded352110474150e409aabcb3a2c4edfed661`
 Unresolved blockers: none
 
@@ -130,8 +131,12 @@ attributes, including the demonstrated macro that consumes a literal
 Head `8086d4a` then makes the slow-lane execution state machine-readable:
 `local-or-external`, `inactive-pending-276`, with a desired weekly cadence.
 It also requires the workflow to disclose why its GitHub trigger is inactive
-and adds mutation tests for both the workflow and policy claims. Review found
-no remaining blocker in the final remediated diff.
+and adds mutation tests for both the workflow and policy claims. Independent
+review found the global machine contract still conflicted with current support,
+factory, target-plan and consumer prose. Head `dfa5317` aligns those authorities
+with local/external execution pending #276 and makes the validator reject stale
+active wording and the old target-plan policy. Review found no remaining blocker
+in the final remediated diff.
 
 ## Review decision
 

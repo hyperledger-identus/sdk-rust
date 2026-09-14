@@ -25,11 +25,11 @@
 
 ## 3. Evidence and delivery
 
-- [ ] 3.1 Run focused/default/minimal/all-feature tests, strict Clippy, docs,
+- [x] 3.1 Run focused/default/minimal/all-feature tests, strict Clippy, docs,
   format, public API/dependency/spec diffs, and honest maintainability metrics.
-- [ ] 3.2 Run direct and authoritative Nix WASM/Android/iOS checks plus
+- [x] 3.2 Run direct and authoritative Nix WASM/Android/iOS checks plus
   applicable workspace Nix/factory gates; preserve #7/#168 and state target
   limits exactly.
-- [ ] 3.3 Resolve independent architecture/API/security and adversarial review,
+- [x] 3.3 Resolve independent architecture/API/security and adversarial review,
   complete verification, ready/receipt/archive, and open one signed+DCO
   issue-linked PR to protected `develop`.

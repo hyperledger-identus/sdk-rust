@@ -50,3 +50,5 @@
   test-only candidate edge and propagate that result to descendants.
 - [x] 5.7 Recognize qualified brace-delimited item macros as balanced attributed
   items and prove the following shipping item remains production.
+- [x] 5.8 Parse commented and raw cfg metadata without altering string values;
+  apply nested `cfg_attr` conservatively and cover false/true/unknown cases.

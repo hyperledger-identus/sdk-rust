@@ -10,7 +10,11 @@ canonical report format. It SHALL report authored production, external-test,
 and inline-test populations separately and SHALL identify generated exclusions.
 Inline code SHALL leave production only when syntax-aware evaluation proves its
 conditional-compilation predicate false with `test = false`; unknown feature
-and target predicates SHALL remain production. A test-only out-of-line module
+and target predicates SHALL remain production. Predicate comments SHALL NOT
+alter parsing of retained string values; raw string and raw identifier tokens
+SHALL be accepted. Nested `cfg_attr` SHALL apply recursively when its predicate
+is true, do nothing when false, and remain production when applicability could
+change inclusion. A test-only out-of-line module
 declaration SHALL recursively classify its ordinary Rust module tree as test
 code while preserving nested inline-module context. Only Cargo `tests/` and
 `benches/` target trees SHALL be intrinsically external-test code; a file under
@@ -33,6 +37,23 @@ reachability to the same file and its ordinary module descendants.
 
 - **WHEN** an item uses `cfg(any(test, feature = "diagnostics"))`
 - **THEN** the unknown non-test predicate keeps the item in production evidence
+
+#### Scenario: Cfg predicate contains comments and raw tokens
+
+- **WHEN** a cfg predicate contains nested comments, raw string values, or a raw
+  identifier such as `r#test`
+- **THEN** valid metadata is evaluated without treating comment-like literal
+  content as a comment
+
+#### Scenario: Cfg attr generates a false cfg
+
+- **WHEN** `cfg_attr(not(test), cfg(any()))` is evaluated with `test = false`
+- **THEN** the generated false cfg makes the item inline-test evidence
+
+#### Scenario: Cfg attr applicability is unknown
+
+- **WHEN** an unknown feature predicate conditionally generates a false cfg
+- **THEN** the item remains production because the attribute may not apply
 
 #### Scenario: Test-only out-of-line module
 

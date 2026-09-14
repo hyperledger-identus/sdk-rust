@@ -42,6 +42,10 @@ source test files with and without proven test-only reachability, and unknown
 predicates. Test reachability first produces a candidate tree. A fixed-point
 pass over active or unknown edges from parents that remain production removes
 mixed-reachable files and their descendants from inline-test classification.
+Cfg predicate comments are blanked while literal tokens retain their value.
+Raw string values and raw identifiers are tokenized, and nested `cfg_attr`
+metadata recursively applies only when its predicate is true. Unknown
+applicability cannot remove an item from production.
 
 The policy pins baseline revision, source fingerprint and canonical report
 digest. Fast validation reloads the Git tree and recomputes authored source

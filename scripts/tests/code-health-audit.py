@@ -33,6 +33,34 @@ class CfgEvaluationTests(unittest.TestCase):
     def test_not_test_is_true(self) -> None:
         self.assertIs(audit.cfg_value("cfg(not(test))"), True)
 
+    def test_comments_are_blank_but_string_content_is_preserved(self) -> None:
+        self.assertIs(
+            audit.cfg_value("cfg(all(test, /* nested /* note */ ok */ unix))"),
+            False,
+        )
+        self.assertIsNone(audit.cfg_value('cfg(feature = "/* literal */")'))
+
+    def test_raw_strings_and_raw_identifiers_are_valid_cfg_tokens(self) -> None:
+        self.assertIsNone(audit.cfg_value('cfg(feature = r#"foo"#)'))
+        self.assertIs(audit.cfg_value("cfg(r#test)"), False)
+
+    def test_cfg_attr_applies_only_when_its_predicate_is_proven(self) -> None:
+        self.assertIs(
+            audit.attribute_inclusion("cfg_attr(not(test), cfg(any()))"), False
+        )
+        self.assertIs(
+            audit.attribute_inclusion("cfg_attr(test, cfg(any()))"), True
+        )
+        self.assertIsNone(
+            audit.attribute_inclusion('cfg_attr(feature = "x", cfg(any()))')
+        )
+        self.assertIs(
+            audit.attribute_inclusion(
+                "cfg_attr(not(test), cfg_attr(not(test), cfg(any())))"
+            ),
+            False,
+        )
+
 
 class RustSpanTests(unittest.TestCase):
     def test_balanced_inline_module_is_excluded(self) -> None:
@@ -62,6 +90,19 @@ fn maybe_shipping() {}
 '''
         lines = audit.span_lines(source, audit.test_only_spans(source))
         self.assertIn(3, lines)
+        self.assertNotIn(5, lines)
+
+    def test_cfg_attr_generated_false_cfg_is_test_only(self) -> None:
+        source = '''
+#[cfg_attr(not(test), cfg(any()))]
+fn generated_test_only() {}
+#[cfg_attr(test, cfg(any()))]
+pub fn shipping() {}
+'''
+        lines = audit.span_lines(source, audit.test_only_spans(source))
+        self.assertIn(2, lines)
+        self.assertIn(3, lines)
+        self.assertNotIn(4, lines)
         self.assertNotIn(5, lines)
 
     def test_lifetime_does_not_hide_item_boundary(self) -> None:

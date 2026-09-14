@@ -46,6 +46,9 @@ worktree; unrelated documentation changes do not invalidate source evidence.
 - **Inline test** is an item whose `cfg` predicate is definitively false when
   `test = false`. Its complete contiguous outer-attribute group, including
   immediately preceding `///` or `/** */` outer documentation, is included.
+  Predicate comments are ignored without altering string values; raw strings
+  and raw identifiers are accepted. Recursive `cfg_attr` application uses the
+  same three-valued rule, so unknown applicability remains production.
   Brace-delimited item macros, including qualified macro paths, end at their
   balanced closing brace and optional semicolon.
   A test-only out-of-line `mod name;` recursively classifies the ordinary

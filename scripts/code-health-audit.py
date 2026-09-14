@@ -147,7 +147,13 @@ def matching_delimiter(text: str, start: int, opening: str, closing: str) -> int
 
 
 CFG_TOKEN = re.compile(
-    r'\s*(?:(?P<ident>[A-Za-z_][A-Za-z0-9_-]*)|(?P<string>"(?:\\.|[^"\\])*")|(?P<punct>[(),=]))'
+    r"\s*(?:"
+    r"(?P<raw_string>r(?P<hashes>#{0,255})\".*?\"(?P=hashes))|"
+    r"(?P<string>\"(?:\\.|[^\"\\])*\")|"
+    r"(?P<raw_ident>r#[A-Za-z_][A-Za-z0-9_]*)|"
+    r"(?P<ident>[A-Za-z_][A-Za-z0-9_-]*)|"
+    r"(?P<punct>[(),=]))",
+    re.DOTALL,
 )
 ITEM_BLOCK_HEADER = re.compile(
     r"^\s*(?:(?:pub(?:\s*\([^)]*\))?|unsafe|async|const|default)\s+)*"
@@ -174,7 +180,14 @@ class CfgParser:
                 if text[offset:].strip():
                     raise AuditError(f"unsupported cfg syntax: {text!r}")
                 break
-            self.tokens.append(match.group("ident") or match.group("string") or match.group("punct"))
+            raw_ident = match.group("raw_ident")
+            self.tokens.append(
+                (raw_ident[2:] if raw_ident else None)
+                or match.group("ident")
+                or match.group("raw_string")
+                or match.group("string")
+                or match.group("punct")
+            )
             offset = match.end()
         self.index = 0
 
@@ -232,11 +245,126 @@ class CfgParser:
         return None
 
 
+def sanitize_cfg_meta(source: str) -> str:
+    """Blank cfg comments while preserving literal tokens and source offsets."""
+    chars = list(source)
+
+    def blank(start: int, end: int) -> None:
+        for offset in range(start, end):
+            if chars[offset] != "\n":
+                chars[offset] = " "
+
+    index = 0
+    while index < len(source):
+        if source.startswith("//", index):
+            end = source.find("\n", index)
+            end = len(source) if end < 0 else end
+            blank(index, end)
+            index = end
+            continue
+        if source.startswith("/*", index):
+            depth = 1
+            end = index + 2
+            while end < len(source) and depth:
+                if source.startswith("/*", end):
+                    depth += 1
+                    end += 2
+                elif source.startswith("*/", end):
+                    depth -= 1
+                    end += 2
+                else:
+                    end += 1
+            if depth:
+                raise AuditError("unclosed comment in cfg metadata")
+            blank(index, end)
+            index = end
+            continue
+        raw = re.match(r'r(#{0,255})"', source[index:])
+        if raw:
+            closing = '"' + raw.group(1)
+            found = source.find(closing, index + raw.end())
+            if found < 0:
+                raise AuditError("unclosed raw string in cfg metadata")
+            index = found + len(closing)
+            continue
+        if source[index] == '"':
+            end = index + 1
+            while end < len(source):
+                if source[end] == "\\":
+                    end += 2
+                    continue
+                end += 1
+                if source[end - 1] == '"':
+                    break
+            if end > len(source) or source[end - 1] != '"':
+                raise AuditError("unclosed string in cfg metadata")
+            index = end
+            continue
+        index += 1
+    return "".join(chars)
+
+
 def cfg_value(attribute_body: str) -> bool | None:
-    match = re.fullmatch(r"\s*cfg\s*\((.*)\)\s*", attribute_body, re.DOTALL)
+    cleaned = sanitize_cfg_meta(attribute_body)
+    match = re.fullmatch(r"\s*cfg\s*\((.*)\)\s*", cleaned, re.DOTALL)
     if not match:
         return None
     return CfgParser(match.group(1)).parse()
+
+
+def split_top_level_meta(meta: str) -> list[str]:
+    clean = sanitize_rust(meta)
+    parts: list[str] = []
+    start = 0
+    parens = brackets = braces = 0
+    for index, char in enumerate(clean):
+        if char == "(":
+            parens += 1
+        elif char == ")":
+            parens -= 1
+        elif char == "[":
+            brackets += 1
+        elif char == "]":
+            brackets -= 1
+        elif char == "{":
+            braces += 1
+        elif char == "}":
+            braces -= 1
+        elif char == "," and parens == 0 and brackets == 0 and braces == 0:
+            parts.append(meta[start:index])
+            start = index + 1
+        if min(parens, brackets, braces) < 0:
+            raise AuditError("unbalanced cfg_attr metadata")
+    if parens or brackets or braces:
+        raise AuditError("unbalanced cfg_attr metadata")
+    parts.append(meta[start:])
+    return parts
+
+
+def and_values(values: list[bool | None]) -> bool | None:
+    if any(value is False for value in values):
+        return False
+    return True if all(value is True for value in values) else None
+
+
+def attribute_inclusion(attribute_body: str) -> bool | None:
+    cleaned = sanitize_cfg_meta(attribute_body)
+    direct = re.fullmatch(r"\s*cfg\s*\((.*)\)\s*", cleaned, re.DOTALL)
+    if direct:
+        return CfgParser(direct.group(1)).parse()
+    conditional = re.fullmatch(r"\s*cfg_attr\s*\((.*)\)\s*", cleaned, re.DOTALL)
+    if not conditional:
+        return True
+    arguments = split_top_level_meta(conditional.group(1))
+    if len(arguments) < 2:
+        raise AuditError("cfg_attr requires a predicate and at least one attribute")
+    predicate = CfgParser(sanitize_cfg_meta(arguments[0])).parse()
+    applied = and_values([attribute_inclusion(item) for item in arguments[1:]])
+    if predicate is True:
+        return applied
+    if predicate is False or applied is True:
+        return True
+    return None
 
 
 def skip_space(text: str, index: int) -> int:
@@ -353,7 +481,7 @@ def test_only_spans(source: str) -> list[Span]:
             close = matching_delimiter(clean, after + 1, "[", "]")
             bodies.append(source[after + 2:close])
             after = skip_space(clean, close + 1)
-        if any(cfg_value(body) is False for body in bodies):
+        if and_values([attribute_inclusion(body) for body in bodies]) is False:
             spans.append(
                 Span(outer_doc_group_start(source, group_start), item_end(clean, after))
             )

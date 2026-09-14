@@ -35,6 +35,12 @@ outer doc comments as part of the attributed item. Production-active or unknown
 module reachability takes precedence over a test-only edge to the same file and
 propagates through its descendants.
 
+Rust cfg metadata also admits comments, raw strings, raw identifiers and
+conditional attribute application. The repository evaluator removes comments
+without changing literal tokens, normalizes raw identifiers, and evaluates
+nested `cfg_attr` recursively. Unknown cfg_attr applicability remains production
+under the existing three-valued rule.
+
 Review of the first implementation found that canonical structure alone could
 not bind a report to source and that generic generated-marker text was
 ambiguous. The final contract pins revision, source fingerprint and full report

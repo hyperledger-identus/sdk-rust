@@ -31,7 +31,7 @@ reversible and changes no protected setting or release promise.
 - Static metrics cannot prove cohesion, correctness, security, or good design.
 - Conditional compilation is classified conservatively: unknown feature or
   target predicates remain production unless `test = false` makes the whole
-  expression false.
+  expression false. An unknown `cfg_attr` application also remains production.
 - Test-only module reachability supports ordinary Rust module layout and fails
   closed on `#[path]` overrides; it does not emulate rustc's complete module
   loader.

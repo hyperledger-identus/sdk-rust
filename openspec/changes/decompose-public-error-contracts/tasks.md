@@ -2,7 +2,8 @@
 
 ## 1. Planning contract
 
-- [x] 1.1 Bind the slice to issue #271 and the exact `develop` base; record
+- [x] 1.1 Bind the slice to umbrella issue #271, delivery issue #278, and the
+  exact `develop` base; record
   research, constraints, scope, compatibility, security, and rollback evidence.
 - [x] 1.2 Add ADR 0116, the `public-error-contracts` delta specification, and
   the immutable 47-row pre-refactor credentials golden.
@@ -40,5 +41,6 @@
   exact implementation head and resolve every finding.
 - [ ] 4.2 Complete verification evidence, sync canonical specs if required,
   pass factory readiness, archive the change, and retain signed+DCO history.
-- [ ] 4.3 Open one ready issue-linked PR to protected `develop`; do not merge,
+- [ ] 4.3 Open one ready PR linked to delivery issue #278 and umbrella #271 to
+  protected `develop`; merge only after required CI/review gates pass. Do not
   publish, adopt in consumers, or expand into other error crates.

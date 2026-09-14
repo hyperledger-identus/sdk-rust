@@ -5,8 +5,9 @@ public constants, `to_identus_error`, `Display`, and domain-split tests. The
 outward behavior is safe, but the duplication makes omission and redaction
 drift difficult to review before further protocol work expands the SDK.
 
-Issue #271 selects the credentials crate as the smallest representative pilot
-for a crate-owned declarative error contract. This change establishes the
+Issue #271 selects the credentials crate as the smallest representative pilot,
+and issue #278 owns its independently revertible delivery as a crate-owned
+declarative error contract. This change establishes the
 mechanism and immutable pre-refactor characterization evidence before any
 other crate is considered.
 
@@ -45,8 +46,8 @@ characterized and preserved rather than changed.
 ## Impact
 
 - **Repository/base:** `hyperledger-identus/sdk-rust` on
-  `develop@707a5a22c3fad18724d5c5cac953e7387f7e49d8`.
-- **Issue/decision:** issue #271 and ADR 0116.
+  `develop@353030a7f263b9a1fba9deac0312ed228e61d761`.
+- **Issue/decision:** issues #271 and #278, and ADR 0116.
 - **Owner:** `identus-credentials`; `identus-core` remains an unchanged
   dependency and owner of `IdentusError`.
 - **Code:** private credentials error-contract/catalogue modules and existing

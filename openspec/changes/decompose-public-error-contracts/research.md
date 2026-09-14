@@ -9,9 +9,9 @@ Research blockers: none
 ## Problem and existing implementation
 
 The inspected repository is `hyperledger-identus/sdk-rust` at protected
-`develop@707a5a22c3fad18724d5c5cac953e7387f7e49d8`. Issue #271 records the
-maintainability baseline and requires a smallest-surface pilot before any broad
-migration.
+`develop@353030a7f263b9a1fba9deac0312ed228e61d761`. Issue #271 records the
+maintainability baseline and issue #278 owns the smallest-surface pilot before
+any broad migration.
 
 `identus-credentials` exposes two fieldless, non-exhaustive error enums:
 
@@ -35,6 +35,8 @@ Those details are included in the compatibility boundary.
 
 - Issue [#271](https://github.com/hyperledger-identus/sdk-rust/issues/271)
   defines the outcome, acceptance and credentials-first staging.
+- Issue [#278](https://github.com/hyperledger-identus/sdk-rust/issues/278)
+  defines the independently revertible credentials delivery slice.
 - Canonical `core-error-conventions`, `credential-core`,
   `credential-metadata`, `credential-status`, and `credential-verification`
   specifications define the existing two-surface and redaction behavior.

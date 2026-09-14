@@ -1,7 +1,7 @@
 # Pre-implementation review
 
-- **Issue:** #271
-- **Exact base:** `707a5a22c3fad18724d5c5cac953e7387f7e49d8`
+- **Issues:** #271 umbrella; #278 credentials delivery
+- **Exact base:** `353030a7f263b9a1fba9deac0312ed228e61d761`
 - **Review scope:** planning artifacts only
 - **Result:** PASS
 - **Blocking findings:** none
@@ -40,7 +40,7 @@ are intentionally not always equal.
 for `CredentialError` and three for `CredentialVerificationError`. Every row
 has the fixed 11-column schema, and enum/variant identities and stable error
 codes are unique. Its SHA-256 is
-`a96ed52d3aed592a0979e85c480ccde8ff7a4526c32fe8602dc616db674a36f4`.
+`6148a00b22bdb8551d4df9369c7a9fcf819e1cf1c2654edc8654feef82227c7c`.
 
 The fixture was captured before implementation from the exact base and is an
 independent oracle. Implementation must copy the exact bytes to the stable

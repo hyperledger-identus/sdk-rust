@@ -1,6 +1,6 @@
 ## Context
 
-At `develop@707a5a22c3fad18724d5c5cac953e7387f7e49d8`,
+At `develop@353030a7f263b9a1fba9deac0312ed228e61d761`,
 `CredentialError` has 44 fieldless variants and 44 public stable code
 constants. Its `to_identus_error` and `Display` implementations independently
 match all variants, while five domain tests repeat partial expected-code lists.
@@ -95,7 +95,7 @@ risk in the first pilot.
 
 The planning artifact
 `golden/credentials-error-contract-v1.csv` contains 47 rows and has SHA-256
-`a96ed52d3aed592a0979e85c480ccde8ff7a4526c32fe8602dc616db674a36f4`.
+`6148a00b22bdb8551d4df9369c7a9fcf819e1cf1c2654edc8654feef82227c7c`.
 It was captured before implementation from the exact base.
 
 After durable preflight, copy those exact bytes to a stable test-fixture path

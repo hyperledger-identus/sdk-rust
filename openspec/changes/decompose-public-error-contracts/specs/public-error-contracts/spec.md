@@ -43,7 +43,7 @@ that record. Adding an enum variant without a contract SHALL fail compilation.
 
 The planning golden SHALL remain the independent compatibility oracle. The
 fixture `golden/credentials-error-contract-v1.csv` was captured from
-`develop@707a5a22c3fad18724d5c5cac953e7387f7e49d8`. A test SHALL parse its fixed schema,
+`develop@353030a7f263b9a1fba9deac0312ed228e61d761`. A test SHALL parse its fixed schema,
 require exactly 47 unique `(error_type, variant)` rows, and compare every
 current variant's constant name/visibility, code, kind, capability, local
 display, public message, complete public display, and error-source state.

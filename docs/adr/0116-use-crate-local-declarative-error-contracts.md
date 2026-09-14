@@ -2,14 +2,16 @@
 
 - **Status:** Accepted for the credentials pilot
 - **Date:** 2026-09-14
-- **Decision authority:** issue
-  [#271](https://github.com/hyperledger-identus/sdk-rust/issues/271) under the
+- **Decision authority:** umbrella issue
+  [#271](https://github.com/hyperledger-identus/sdk-rust/issues/271) and
+  credentials delivery issue
+  [#278](https://github.com/hyperledger-identus/sdk-rust/issues/278) under the
   standing architecture-maintenance mandate
 - **Applies to:** `identus-credentials` pilot only
 - **Related decisions:** ADR 0110, the canonical core-error conventions and
   credential specifications
 - **Assessed revision:** sdk-rust
-  `707a5a22c3fad18724d5c5cac953e7387f7e49d8`
+  `353030a7f263b9a1fba9deac0312ed228e61d761`
 
 ## Context
 
@@ -26,7 +28,7 @@ SDK errors into one crate or derive would replace local duplication with
 cross-crate coupling and a new release axis. Generating the golden from the
 new implementation would also make compatibility evidence tautological.
 
-Issue #271 requires a smallest representative pilot, exact behavioral
+Issues #271 and #278 require a smallest representative pilot, exact behavioral
 preservation, and an independently captured characterization contract before
 any broader migration.
 

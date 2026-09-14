@@ -19,7 +19,7 @@ Constraint blockers: none
   proposed.
 - `SDK-SEC-002`: static redacted public errors remain the only shared error
   projection and receive stronger characterization evidence.
-- `SDK-DELIVERY-001`: issue #271, OpenSpec, ADR 0116, planning receipt and a
+- `SDK-DELIVERY-001`: issues #271 and #278, OpenSpec, ADR 0116, planning receipt and a
   later distinct review remain required.
 - `SDK-LIM-001`: the unpublished `0.0.0` surface has no released stability
   promise, while this refactor voluntarily holds the exact current API and
@@ -30,7 +30,7 @@ Constraint blockers: none
 ## Introduced or changed constraints
 
 No cross-cutting constraint is introduced or changed. Within this bounded
-implementation, issue #271 and ADR 0116 require a private crate-owned
+implementation, issues #271 and #278 and ADR 0116 require a private crate-owned
 declarative contract, domain-cohesive catalogues, exhaustive routing, and exact
 golden compatibility. These are slice acceptance criteria, not a mandate that
 other crates adopt the same internal mechanism.
@@ -72,7 +72,7 @@ activation.
 ## Evidence
 
 The planning golden is bound to
-`develop@707a5a22c3fad18724d5c5cac953e7387f7e49d8`. The later implementation
+`develop@353030a7f263b9a1fba9deac0312ed228e61d761`. The later implementation
 must compare all 47 rows, the public API inventory and error-source behavior;
 run focused credentials default/minimal/all-feature tests and Clippy/docs;
 measure catalogue/mapping SLOC and duplication before/after; and pass the

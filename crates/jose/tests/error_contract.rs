@@ -174,6 +174,7 @@ fn every_jose_error_matches_the_ordered_planning_golden() {
 
         assert_eq!(row[0], "JoseError", "row {index}");
         assert_eq!(row[1], case.variant, "row {index}");
+        assert_eq!(case.error as usize, index, "public enum order drifted");
         assert_eq!(debug_variant, case.variant, "row {index}");
         assert_eq!(row[2], case.code_constant, "row {index}");
         assert_eq!(row[3], "public", "row {index}");

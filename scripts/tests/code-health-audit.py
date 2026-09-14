@@ -261,6 +261,16 @@ strip! {
 '''
         self.assertEqual(audit.test_only_spans(source), [])
 
+    def test_inner_cfg_scope_remains_production(self) -> None:
+        source = '''
+mod conditional_scope {
+    #![cfg(test)]
+    fn nested() {}
+}
+pub fn shipping() {}
+'''
+        self.assertEqual(audit.test_only_spans(source), [])
+
     def test_cfg_inherits_preceding_outer_attributes_and_nested_items(self) -> None:
         source = '''
 #[allow(dead_code)]

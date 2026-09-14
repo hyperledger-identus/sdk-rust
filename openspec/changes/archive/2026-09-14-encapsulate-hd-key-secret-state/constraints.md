@@ -46,7 +46,8 @@ remain separate and cannot be activated here.
 
 ## Evidence
 
-Compile-fail field/format/Serde probes, runtime redaction and explicit-erasure
-tests, unchanged published/Apollo vectors, API-baseline diff, candidate gate,
-portable compile lanes, factory checks, distinct security/API review and
-protected CI provide evidence.
+Compile-fail field/Clone/format probes, public-API inspection for absence of a
+Serde surface, runtime redaction and explicit-erasure tests, unchanged
+published/Apollo vectors, API-baseline diff, candidate gate, portable compile
+lanes, factory checks, distinct security/API review and protected CI provide
+evidence.

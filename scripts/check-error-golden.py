@@ -6,13 +6,32 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 ARCHIVE = Path("openspec/changes/archive")
 CSV_HEADER = "error_type,variant,code_constant,constant_visibility,code,kind,capability,local_display,public_message,identus_display,source"
+SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+RECEIPT_KEYS = frozenset(
+    {
+        "schemaVersion",
+        "repository",
+        "issue",
+        "change",
+        "branch",
+        "baseRef",
+        "baseSha",
+        "contractHeadSha",
+        "createdAt",
+        "researchReady",
+        "constraintsReady",
+        "strictValidation",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -26,6 +45,8 @@ class GoldenBinding:
     expected_sha256: str
     source_revision: str
     generated_at: str
+    issue: int
+    branch: str
 
     @property
     def active_change(self) -> Path:
@@ -53,6 +74,8 @@ CREDENTIALS = GoldenBinding(
     expected_sha256="6148a00b22bdb8551d4df9369c7a9fcf819e1cf1c2654edc8654feef82227c7c",
     source_revision="353030a7f263b9a1fba9deac0312ed228e61d761",
     generated_at="2026-09-14",
+    issue=278,
+    branch="codex/refactor/issue-278",
 )
 PRESENTATIONS = GoldenBinding(
     label="presentations",
@@ -62,6 +85,8 @@ PRESENTATIONS = GoldenBinding(
     expected_sha256="3941cbdb1b3eedb26243b5caf1b8a11c4646c3789a3cab1415834c48d3a8ba49",
     source_revision="105308771dbebceb473b99d9eb82b0fa0178ab09",
     generated_at="2026-09-15",
+    issue=279,
+    branch="codex/refactor/issue-279",
 )
 JOSE = GoldenBinding(
     label="jose",
@@ -71,6 +96,8 @@ JOSE = GoldenBinding(
     expected_sha256="528b29913876710a2ee806e30fef044657f3c6c38e7e3efff860cf71060b9592",
     source_revision="c32c1c8cd0194466a8c7fbfaa8c050f4bf2971a1",
     generated_at="2026-09-15",
+    issue=280,
+    branch="codex/refactor/issue-280",
 )
 BINDINGS = (CREDENTIALS, PRESENTATIONS, JOSE)
 SOURCE_SNAPSHOT_ENV = "SDK_ERROR_GOLDEN_SOURCE_SNAPSHOT"
@@ -196,15 +223,35 @@ def read_contract_head_bytes(
     except (UnicodeDecodeError, json.JSONDecodeError):
         errors.append(f"{binding.label} preimplementation receipt must be valid JSON")
         return None
+    if not isinstance(receipt, dict):
+        errors.append(f"{binding.label} preimplementation receipt must be a JSON object")
+        return None
 
     contract_head = receipt.get("contractHeadSha")
+    created_at = receipt.get("createdAt")
     if (
-        receipt.get("change") != binding.change_name
+        len(receipt_bytes) > 8192
+        or set(receipt) != RECEIPT_KEYS
+        or receipt.get("schemaVersion") != 1
+        or receipt.get("repository") != "hyperledger-identus/sdk-rust"
+        or receipt.get("issue") != binding.issue
+        or receipt.get("change") != binding.change_name
+        or receipt.get("branch") != binding.branch
+        or receipt.get("baseRef") != "origin/develop"
+        or receipt.get("baseSha") != binding.source_revision
         or not isinstance(contract_head, str)
-        or len(contract_head) != 40
-        or any(character not in "0123456789abcdef" for character in contract_head)
+        or SHA_PATTERN.fullmatch(contract_head) is None
+        or not isinstance(created_at, str)
+        or receipt.get("researchReady") is not True
+        or receipt.get("constraintsReady") is not True
+        or receipt.get("strictValidation") is not True
     ):
         errors.append(f"{binding.label} preimplementation receipt identity is invalid")
+        return None
+    try:
+        datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+    except ValueError:
+        errors.append(f"{binding.label} preimplementation receipt timestamp is invalid")
         return None
 
     original_path = (
@@ -222,6 +269,55 @@ def read_contract_head_bytes(
         ).stdout.strip()
         if Path(top_level).resolve() != root.resolve():
             errors.append(f"{binding.label} repository root does not match Git top-level")
+            return None
+        for older, newer, message in (
+            (
+                binding.source_revision,
+                contract_head,
+                "contract head must descend from its fixed base",
+            ),
+            (
+                contract_head,
+                "HEAD",
+                "current head must descend from the contract head",
+            ),
+        ):
+            outcome = subprocess.run(
+                ["git", "-C", str(root), "merge-base", "--is-ancestor", older, newer],
+                capture_output=True,
+            )
+            if outcome.returncode != 0:
+                errors.append(f"{binding.label} preimplementation receipt {message}")
+                return None
+
+        changed = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root),
+                "diff",
+                "--name-only",
+                f"{binding.source_revision}...{contract_head}",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.splitlines()
+        change_prefix = f"openspec/changes/{binding.change_name}/"
+        invalid = [
+            path
+            for path in changed
+            if not path.startswith(change_prefix) and not path.startswith("docs/adr/")
+        ]
+        if not changed or not any(path.startswith(change_prefix) for path in changed):
+            errors.append(
+                f"{binding.label} preimplementation receipt planning diff is incomplete"
+            )
+            return None
+        if invalid:
+            errors.append(
+                f"{binding.label} preimplementation receipt contract head is not planning-only"
+            )
             return None
         return subprocess.run(
             ["git", "-C", str(root), "show", f"{contract_head}:{original_path}"],

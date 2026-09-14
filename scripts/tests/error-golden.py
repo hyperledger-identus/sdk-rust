@@ -266,8 +266,10 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
     require_error(checker, broken_active, binding, "active OpenSpec change must be a regular")
 
     reauthorized = test_root / f"{prefix}-coordinated-reauthorized-drift"
-    active_fixture(reauthorized, binding, payload)
-    subprocess.run(["git", "init", "-q", str(reauthorized)], check=True)
+    subprocess.run(
+        ["git", "clone", "-q", "--shared", str(ROOT), str(reauthorized)],
+        check=True,
+    )
     subprocess.run(
         ["git", "-C", str(reauthorized), "config", "user.name", "Golden Test"],
         check=True,
@@ -283,9 +285,28 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
         ],
         check=True,
     )
-    subprocess.run(["git", "-C", str(reauthorized), "add", "."], check=True)
+    errors: list[str] = []
+    planning_path = checker.resolve_planning_golden(reauthorized, binding, errors)
+    if planning_path is None or errors:
+        raise AssertionError(f"cannot resolve cloned {prefix} planning golden: {errors!r}")
+    for path in (reauthorized / binding.stable, planning_path):
+        original = path.read_bytes()
+        if drift[0] not in original:
+            raise AssertionError(f"fixture bytes not found: {drift[0]!r}")
+        path.write_bytes(original.replace(*drift, 1))
     subprocess.run(
-        ["git", "-C", str(reauthorized), "commit", "-q", "-m", "planning"],
+        [
+            "git",
+            "-C",
+            str(reauthorized),
+            "add",
+            str(binding.stable),
+            str(planning_path.relative_to(reauthorized)),
+        ],
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(reauthorized), "commit", "-q", "-m", "drift"],
         check=True,
     )
     contract_head = subprocess.run(
@@ -294,15 +315,13 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
         capture_output=True,
         text=True,
     ).stdout.strip()
-    receipt = {
-        "change": binding.change_name,
-        "contractHeadSha": contract_head,
-    }
+    receipt_path = planning_path.parent.parent / "preimplementation.json"
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    receipt["contractHeadSha"] = contract_head
     write(
-        reauthorized / binding.active_change / "preimplementation.json",
-        f"{json.dumps(receipt)}\n".encode(),
+        receipt_path,
+        f"{json.dumps(receipt, indent=2)}\n".encode(),
     )
-    replace_both(reauthorized, binding, *drift)
     changed_payload = (reauthorized / binding.stable).read_bytes()
     changed_binding = replace(
         binding,
@@ -314,9 +333,13 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
     finally:
         if source_snapshot is not None:
             os.environ[checker.SOURCE_SNAPSHOT_ENV] = source_snapshot
-    if not any("receipt contractHeadSha blob" in error for error in errors):
+    if not any(
+        marker in error
+        for error in errors
+        for marker in ("contract head is not planning-only", "planning diff is incomplete")
+    ):
         raise AssertionError(
-            f"coordinated re-authorization was accepted for {prefix}: {errors!r}"
+            f"post-drift receipt retarget was accepted for {prefix}: {errors!r}"
         )
 
 
@@ -353,7 +376,7 @@ def main() -> int:
         if errors := checker.validate(combined, trusted_contracts):
             raise AssertionError(f"combined binding validation failed: {errors!r}")
 
-    print("error-golden test: 70 credentials/presentations/JOSE binding cases passed")
+    print("error-golden test: 73 credentials/presentations/JOSE binding cases passed")
     return 0
 
 

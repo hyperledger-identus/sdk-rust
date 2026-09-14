@@ -336,6 +336,12 @@ def main() -> int:
             checker.PRESENTATIONS,
             (b"presentation query id is invalid", b"presentation query id was invalid"),
         )
+        run_binding_cases(
+            checker,
+            test_root,
+            checker.JOSE,
+            (b"JWS limits are invalid", b"JWS limits were invalid"),
+        )
 
         combined = test_root / "combined-active-bindings"
         for binding in checker.BINDINGS:
@@ -347,7 +353,7 @@ def main() -> int:
         if errors := checker.validate(combined, trusted_contracts):
             raise AssertionError(f"combined binding validation failed: {errors!r}")
 
-    print("error-golden test: 47 credentials/presentations binding cases passed")
+    print("error-golden test: 70 credentials/presentations/JOSE binding cases passed")
     return 0
 
 

@@ -63,7 +63,16 @@ PRESENTATIONS = GoldenBinding(
     source_revision="105308771dbebceb473b99d9eb82b0fa0178ab09",
     generated_at="2026-09-15",
 )
-BINDINGS = (CREDENTIALS, PRESENTATIONS)
+JOSE = GoldenBinding(
+    label="jose",
+    change_name="decompose-jose-error-contracts",
+    file_name="jose-error-contract-v1.csv",
+    stable=Path("crates/jose/tests/fixtures/jose-error-contract-v1.csv"),
+    expected_sha256="528b29913876710a2ee806e30fef044657f3c6c38e7e3efff860cf71060b9592",
+    source_revision="c32c1c8cd0194466a8c7fbfaa8c050f4bf2971a1",
+    generated_at="2026-09-15",
+)
+BINDINGS = (CREDENTIALS, PRESENTATIONS, JOSE)
 SOURCE_SNAPSHOT_ENV = "SDK_ERROR_GOLDEN_SOURCE_SNAPSHOT"
 
 

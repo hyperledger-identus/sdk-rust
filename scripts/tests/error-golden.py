@@ -344,6 +344,23 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
         f"{json.dumps(receipt, indent=2)}\n".encode(),
     )
     write(reauthorized / test_binding.stable, test_payload)
+    source_snapshot = os.environ.pop(checker.SOURCE_SNAPSHOT_ENV, None)
+    try:
+        if errors := checker.validate_binding(reauthorized, test_binding):
+            raise AssertionError(f"valid hermetic receipt failed for {prefix}: {errors!r}")
+        receipt["schemaVersion"] = True
+        write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+        errors = checker.validate_binding(reauthorized, test_binding)
+        if not any("receipt identity is invalid" in error for error in errors):
+            raise AssertionError(
+                f"boolean schema version was accepted for {prefix}: {errors!r}"
+            )
+        receipt["schemaVersion"] = 1
+        write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+    finally:
+        if source_snapshot is not None:
+            os.environ[checker.SOURCE_SNAPSHOT_ENV] = source_snapshot
+
     replace_both(reauthorized, test_binding, *drift)
     subprocess.run(
         [
@@ -422,7 +439,7 @@ def main() -> int:
         if errors := checker.validate(combined, trusted_contracts):
             raise AssertionError(f"combined binding validation failed: {errors!r}")
 
-    print("error-golden test: 73 credentials/presentations/JOSE binding cases passed")
+    print("error-golden test: 76 credentials/presentations/JOSE binding cases passed")
     return 0
 
 

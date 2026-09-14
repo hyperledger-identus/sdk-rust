@@ -232,6 +232,7 @@ def read_contract_head_bytes(
     if (
         len(receipt_bytes) > 8192
         or set(receipt) != RECEIPT_KEYS
+        or type(receipt.get("schemaVersion")) is not int
         or receipt.get("schemaVersion") != 1
         or receipt.get("repository") != "hyperledger-identus/sdk-rust"
         or receipt.get("issue") != binding.issue

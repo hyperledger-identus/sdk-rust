@@ -17,6 +17,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/apollo-parity.py"
 "$repository_root/scripts/tests/crypto-benchmark.py"
 "$repository_root/scripts/tests/crypto-coverage.py"
+"$repository_root/scripts/tests/source-distribution.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
 "$repository_root/scripts/tests/constraints.py"
 "$repository_root/scripts/tests/openspec-archive.py"
@@ -24,6 +25,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 
 required_files=(
   AGENTS.md
+  README.md
   CODE_OF_CONDUCT.md
   CONTRIBUTING.md
   DCO.md
@@ -50,6 +52,7 @@ required_files=(
   docs/architecture/sdk-support-policy.md
   docs/architecture/sdk-support-policy.toml
   docs/architecture/apollo-crypto-parity.toml
+  docs/architecture/source-distribution.md
   docs/architecture/ssi-upstream-source-matrix.md
   docs/roadmap/ssi-upstream-dependency-backlog.csv
   docs/governance/agentic-sdlc.md
@@ -116,6 +119,7 @@ required_files=(
   scripts/check-crypto-benchmark.py
   scripts/report-crypto-coverage.py
   scripts/check-ssi-upstream-backlog.py
+  scripts/check-source-distribution.py
   scripts/check-pr-policy.sh
   scripts/check-research-readiness.py
   scripts/tests/factory-contract.sh
@@ -129,6 +133,7 @@ required_files=(
   scripts/tests/apollo-parity.py
   scripts/tests/crypto-benchmark.py
   scripts/tests/crypto-coverage.py
+  scripts/tests/source-distribution.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
   .github/ISSUE_TEMPLATE/delivery-task.yml
@@ -160,10 +165,12 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-support-policy.py" \
   "$fixture_root/scripts/check-apollo-parity.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
+  "$fixture_root/scripts/check-source-distribution.py" \
   "$fixture_root/scripts/tests/bootstrap-inventory.py" \
   "$fixture_root/scripts/tests/constraints.py" \
   "$fixture_root/scripts/tests/crypto-benchmark.py" \
   "$fixture_root/scripts/tests/crypto-coverage.py" \
+  "$fixture_root/scripts/tests/source-distribution.py" \
   "$fixture_root/scripts/tests/factory-contract.sh" \
   "$fixture_root/scripts/tests/factory-operations.mjs" \
   "$fixture_root/scripts/tests/openspec-archive.py" \

@@ -64,3 +64,29 @@ Implementation may start only after the planning-only signed+DCO commit exists
 and its durable preimplementation receipt validates. Public API or golden drift,
 a new dependency, or pressure to centralize the catalogue is a blocker rather
 than an implementation detail.
+
+## Post-implementation exact-diff review
+
+- **Reviewed head:** `16687bc41d437a4d7d2911ae4e72710d7185933e`
+- **Architecture result:** CLEAR
+- **Adversarial result:** CLEAR
+- **Unresolved findings:** none
+
+The implementation preserves the planned private five-catalogue architecture,
+all 47 exact behaviors, both bridge constness contracts, public API, dependency
+inventory, redaction, and source semantics. The enum routers are wildcard-free
+and the same macro input also produces the exhaustive test inventories.
+
+Review initially found that a copied fixture could drift with its planning
+source, that a manually duplicated test inventory was not compile-exhaustive,
+and that Nix cleaned sources omitted the stable CSV. Remediation bound both
+copies to an immutable hash and exact provenance, generated router and test
+inventory from one list per enum, made the Rust test hermetic, and retained only
+the stable CSV in the Nix Rust source filter.
+
+Adversarial follow-up then found active/archive ambiguity and symlink aliases at
+leaf and intermediate path components. The checker now validates the active
+change tree before archive fallback, enumerates every matching archive,
+requires exactly one complete regular planning copy, rejects every symlinked
+component, and exercises 17 mutation states. Both independent reviewers
+approved the final exact head with no remaining finding.

@@ -27,17 +27,17 @@
 
 ## 3. Verification evidence
 
-- [ ] 3.1 Run focused credentials tests, Clippy, docs, and default, minimal,
+- [x] 3.1 Run focused credentials tests, Clippy, docs, and default, minimal,
   and all-feature checks with the repository-pinned Rust toolchain.
-- [ ] 3.2 Record an empty base/head public API diff, unchanged dependency and
+- [x] 3.2 Record an empty base/head public API diff, unchanged dependency and
   feature inventory, and before/after mapping SLOC, duplication, and largest
   function evidence.
-- [ ] 3.3 Run applicable native, WASM, mobile, Nix, architecture, factory, and
+- [x] 3.3 Run applicable native, WASM, mobile, Nix, architecture, factory, and
   full-workspace gates without changing issue #7 or issue #168 behavior.
 
 ## 4. Review and delivery
 
-- [ ] 4.1 Perform a distinct architecture/API/security self-review against the
+- [x] 4.1 Perform a distinct architecture/API/security self-review against the
   exact implementation head and resolve every finding.
 - [ ] 4.2 Complete verification evidence, sync canonical specs if required,
   pass factory readiness, archive the change, and retain signed+DCO history.

@@ -1,4 +1,9 @@
-use std::{collections::BTreeMap, error::Error as _, fs, path::Path};
+use std::{
+    collections::BTreeMap,
+    error::Error as _,
+    fs,
+    path::{Path, PathBuf},
+};
 
 use identus_core::{ErrorCode, ErrorKind, IdentusError};
 use identus_credentials::{CredentialError, CredentialVerificationError, error::error_code};
@@ -183,14 +188,40 @@ fn kind_name(kind: ErrorKind) -> &'static str {
     }
 }
 
+fn planning_golden_path(manifest_dir: &Path) -> PathBuf {
+    let changes = manifest_dir.join("../../openspec/changes");
+    let active =
+        changes.join("decompose-public-error-contracts/golden/credentials-error-contract-v1.csv");
+    if active.is_file() {
+        return active;
+    }
+
+    let mut archived: Vec<_> = fs::read_dir(changes.join("archive"))
+        .expect("read OpenSpec archive")
+        .filter_map(Result::ok)
+        .filter(|entry| {
+            entry
+                .file_name()
+                .to_string_lossy()
+                .ends_with("-decompose-public-error-contracts")
+        })
+        .map(|entry| {
+            entry
+                .path()
+                .join("golden/credentials-error-contract-v1.csv")
+        })
+        .filter(|path| path.is_file())
+        .collect();
+    assert_eq!(archived.len(), 1, "expected one archived planning golden");
+    archived.pop().expect("one archived planning golden")
+}
+
 fn fixture_bytes() -> (Vec<u8>, Vec<u8>) {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let stable = fs::read(manifest_dir.join("tests/fixtures/credentials-error-contract-v1.csv"))
         .expect("read stable credentials error fixture");
-    let planning = fs::read(manifest_dir.join(
-        "../../openspec/changes/decompose-public-error-contracts/golden/credentials-error-contract-v1.csv",
-    ))
-    .expect("read planning credentials error golden");
+    let planning = fs::read(planning_golden_path(manifest_dir))
+        .expect("read planning credentials error golden");
     (stable, planning)
 }
 

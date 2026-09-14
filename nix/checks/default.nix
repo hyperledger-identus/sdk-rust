@@ -14,15 +14,18 @@
     }:
     let
       # Like `craneLib.cleanCargoSource ./../..` but also keeps trybuild
-      # `.stderr` fixtures (the compile-error expectation files under
-      # `crates/derive/tests/ui/`), which the default cargo source filter
-      # strips. Without them the trybuild ui tests treat every `.stderr` as
-      # missing and fail.
+      # `.stderr` fixtures and the single immutable credentials error golden,
+      # which the default cargo source filter strips.
       cleanedSrc = pkgs.lib.cleanSourceWith {
         src = pkgs.lib.cleanSource ./../..;
         filter =
           path: type:
-          craneLib.filterCargoSources path type || pkgs.lib.hasSuffix ".stderr" (baseNameOf (toString path));
+          let
+            sourcePath = toString path;
+          in
+          craneLib.filterCargoSources path type
+          || pkgs.lib.hasSuffix ".stderr" (baseNameOf sourcePath)
+          || pkgs.lib.hasSuffix "/crates/credentials/tests/fixtures/credentials-error-contract-v1.csv" sourcePath;
       };
       cargoArtifacts = craneLib.buildDepsOnly {
         src = cleanedSrc;
@@ -49,6 +52,11 @@
         lint-nix = pkgs.callPackage ./lint-nix.nix { };
         lint-toml = pkgs.callPackage ./lint-toml.nix { };
         lint-text = pkgs.callPackage ./lint-text.nix { };
+        rust-source-contract = pkgs.runCommand "rust-source-contract" { src = cleanedSrc; } ''
+          test -f "$src/crates/credentials/tests/fixtures/credentials-error-contract-v1.csv"
+          test ! -e "$src/openspec/changes/decompose-public-error-contracts/golden/credentials-error-contract-v1.csv"
+          touch "$out"
+        '';
       };
     };
 }

@@ -1,9 +1,15 @@
 # ADR 0064: separate primary Rust validation from evidence-driven MSRV
 
 > **Temporarily superseded:** ADR 0081 sets Rust 1.98.1 as the single SDK
-> compiler and moves exhaustive evidence to weekly/manual workflows through
+> compiler and moves exhaustive evidence to local or externally orchestrated
+> slow commands through
 > 2026-12-08 or release-candidate preparation. This ADR remains the rollback
 > reference for a future consumer-driven compatibility matrix.
+
+> **Operational status (2026-09-14):** This ADR records desired cadence only.
+> GitHub schedule and `workflow_dispatch` execution are inactive while reserved
+> empty `main` remains default. Run evidence locally or through explicit external
+> orchestration; issue #276 owns hosted activation.
 
 - **Status:** Accepted by project-sponsor direction
 - **Date:** 2026-09-07

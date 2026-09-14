@@ -75,6 +75,7 @@ class SupportPolicyTests(unittest.TestCase):
             "docs/factory/README.md",
             "docs/governance/agentic-sdlc.md",
             "docs/adr/0018-reproducible-did-lexical-fuzzing.md",
+            "docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md",
             "docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md",
             "docs/adr/0095-use-dependency-free-crypto-benchmark-harness.md",
             "docs/adr/0096-adopt-cargo-llvm-cov-for-apollo-evidence.md",

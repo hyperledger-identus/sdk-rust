@@ -39,8 +39,8 @@
 
 - [x] 4.1 Perform a distinct architecture/API/security self-review against the
   exact implementation head and resolve every finding.
-- [ ] 4.2 Complete verification evidence, sync canonical specs if required,
+- [x] 4.2 Complete verification evidence, sync canonical specs if required,
   pass factory readiness, archive the change, and retain signed+DCO history.
-- [ ] 4.3 Open one ready PR linked to delivery issue #278 and umbrella #271 to
+- [x] 4.3 Open one ready PR linked to delivery issue #278 and umbrella #271 to
   protected `develop`; merge only after required CI/review gates pass. Do not
   publish, adopt in consumers, or expand into other error crates.

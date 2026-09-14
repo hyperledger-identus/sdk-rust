@@ -2,7 +2,7 @@
 
 ## Identity and provenance
 
-- Umbrella issue: `#271`; delivery issue: `#278`.
+- Umbrella issue: `#271`; delivery issue: `#278`; delivery PR: `#281`.
 - Exact develop base: `353030a7f263b9a1fba9deac0312ed228e61d761`.
 - Planning-contract head: `7d20510124103ef7b18c916376bfbc3d97d1cd87`.
 - Reviewed implementation and hardening head:
@@ -103,3 +103,6 @@ This slice does not create a wire error schema, retryability model, structured
 metadata, localization, binding API, consumer adoption, or a rule for
 data-bearing/source-bearing errors. Presentations, JOSE, and OID4VCI remain
 separate issue-linked decisions under #279, #280, and #277.
+
+PR #281 targets protected `develop` and links both the delivery and umbrella
+issues. Merge remains conditional on required hosted CI and resolved review.

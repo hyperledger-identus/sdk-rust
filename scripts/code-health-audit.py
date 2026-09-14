@@ -150,8 +150,8 @@ CFG_TOKEN = re.compile(
     r"\s*(?:"
     r"(?P<raw_string>r(?P<hashes>#{0,255})\".*?\"(?P=hashes))|"
     r"(?P<string>\"(?:\\.|[^\"\\])*\")|"
-    r"(?P<raw_ident>r#[A-Za-z_][A-Za-z0-9_]*)|"
-    r"(?P<ident>[A-Za-z_][A-Za-z0-9_-]*)|"
+    r"(?P<raw_ident>r#(?:[^\W\d]|_)[\w]*)|"
+    r"(?P<ident>(?:[^\W\d]|_)[\w-]*)|"
     r"(?P<punct>[(),=]))",
     re.DOTALL,
 )
@@ -181,8 +181,13 @@ class CfgParser:
                     raise AuditError(f"unsupported cfg syntax: {text!r}")
                 break
             raw_ident = match.group("raw_ident")
+            # `r#test` still denotes the built-in `test` cfg name. Preserve
+            # other raw identifiers so `r#true`/`r#false` are not confused
+            # with Rust's cfg literal predicates.
+            if raw_ident == "r#test":
+                raw_ident = "test"
             self.tokens.append(
-                (raw_ident[2:] if raw_ident else None)
+                raw_ident
                 or match.group("ident")
                 or match.group("raw_string")
                 or match.group("string")
@@ -209,14 +214,16 @@ class CfgParser:
 
     def expression(self) -> bool | None:
         name = self.take()
-        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]*", name):
+        if not re.fullmatch(r"(?:r#)?(?:[^\W\d]|_)[\w-]*", name):
             raise AuditError(f"expected cfg predicate, found {name!r}")
         if self.peek() == "=":
             self.take()
             self.take()
             return None
         if self.peek() != "(":
-            return False if name == "test" else None
+            if name in {"test", "false"}:
+                return False
+            return True if name == "true" else None
 
         self.take()
         values: list[bool | None] = []
@@ -309,7 +316,13 @@ def cfg_value(attribute_body: str) -> bool | None:
     match = re.fullmatch(r"\s*cfg\s*\((.*)\)\s*", cleaned, re.DOTALL)
     if not match:
         return None
-    return CfgParser(match.group(1)).parse()
+    try:
+        return CfgParser(match.group(1)).parse()
+    except AuditError:
+        # rustc remains the syntax authority. An expression beyond this pinned
+        # evaluator's grammar must stay in production rather than making the
+        # evidence gate brittle or creating a test-only hiding primitive.
+        return None
 
 
 def split_top_level_meta(meta: str) -> list[str]:
@@ -351,18 +364,29 @@ def attribute_inclusion(attribute_body: str) -> bool | None:
     cleaned = sanitize_cfg_meta(attribute_body)
     direct = re.fullmatch(r"\s*cfg\s*\((.*)\)\s*", cleaned, re.DOTALL)
     if direct:
-        return CfgParser(direct.group(1)).parse()
+        return cfg_value(cleaned)
     conditional = re.fullmatch(r"\s*cfg_attr\s*\((.*)\)\s*", cleaned, re.DOTALL)
     if not conditional:
         return True
     arguments = split_top_level_meta(conditional.group(1))
     if len(arguments) < 2:
         raise AuditError("cfg_attr requires a predicate and at least one attribute")
-    predicate = CfgParser(sanitize_cfg_meta(arguments[0])).parse()
-    applied = and_values([attribute_inclusion(item) for item in arguments[1:]])
+    try:
+        predicate = CfgParser(sanitize_cfg_meta(arguments[0])).parse()
+    except AuditError:
+        predicate = None
+    if predicate is False:
+        return True
+    try:
+        applied = and_values([attribute_inclusion(item) for item in arguments[1:]])
+    except AuditError:
+        # An unknown condition may or may not apply metadata that this pinned
+        # parser does not understand. Keep the item in production rather than
+        # letting future syntax create an exclusion or break the fast lane.
+        return None
     if predicate is True:
         return applied
-    if predicate is False or applied is True:
+    if applied is True:
         return True
     return None
 
@@ -414,6 +438,44 @@ def outer_doc_group_start(source: str, item_attribute_start: int) -> int:
         return cursor
 
 
+def enclosing_closer(clean: str, index: int) -> str | None:
+    """Return the delimiter closing the Rust container around `index`."""
+    pairs = {"(": ")", "[": "]", "{": "}"}
+    opening_for = {closing: opening for opening, closing in pairs.items()}
+    stack: list[str] = []
+    for char in clean[:index]:
+        if char in pairs:
+            stack.append(char)
+        elif char in opening_for:
+            if not stack or stack[-1] != opening_for[char]:
+                raise AuditError(f"unbalanced delimiter before byte {index}")
+            stack.pop()
+    return pairs[stack[-1]] if stack else None
+
+
+def optional_item_terminator(clean: str, end: int) -> int:
+    after = skip_space(clean, end)
+    return after + 1 if after < len(clean) and clean[after] in ",;" else end
+
+
+def trim_trailing_space(text: str, end: int) -> int:
+    while end > 0 and text[end - 1].isspace():
+        end -= 1
+    return end
+
+
+def is_block_expression_header(header: str) -> bool:
+    """Recognize block-bodied expressions whose closing brace ends an item."""
+    stripped = header.strip()
+    if not stripped or re.search(r"=>\s*$", stripped):
+        return True
+    return bool(
+        re.match(r"^(?:if|while|for|loop|match|unsafe)\b", stripped)
+        or re.match(r"^async(?:\s+move)?\s*$", stripped)
+        or re.match(r"^const\s*$", stripped)
+    )
+
+
 def item_end(clean: str, index: int) -> int:
     """Find the end of an attributed Rust item in sanitized source."""
     index = skip_space(clean, index)
@@ -421,6 +483,7 @@ def item_end(clean: str, index: int) -> int:
         close = matching_delimiter(clean, index + 1, "[", "]")
         index = skip_space(clean, close + 1)
 
+    container_closer = enclosing_closer(clean, index)
     parens = brackets = braces = angles = 0
     cursor = index
     while cursor < len(clean):
@@ -428,11 +491,17 @@ def item_end(clean: str, index: int) -> int:
         if char == "(":
             parens += 1
         elif char == ")":
-            parens = max(0, parens - 1)
+            if parens:
+                parens -= 1
+            elif brackets == 0 and braces == 0 and container_closer == ")":
+                return trim_trailing_space(clean, cursor)
         elif char == "[":
             brackets += 1
         elif char == "]":
-            brackets = max(0, brackets - 1)
+            if brackets:
+                brackets -= 1
+            elif parens == 0 and braces == 0 and container_closer == "]":
+                return trim_trailing_space(clean, cursor)
         elif char == "<" and parens == 0 and brackets == 0 and braces == 0:
             angles += 1
         elif char == ">" and angles:
@@ -445,9 +514,15 @@ def item_end(clean: str, index: int) -> int:
                 end = matching_delimiter(clean, cursor, "{", "}") + 1
                 after = skip_space(clean, end)
                 return after + 1 if clean.startswith(";", after) else end
+            if is_block_expression_header(header):
+                end = matching_delimiter(clean, cursor, "{", "}") + 1
+                return optional_item_terminator(clean, end)
             braces += 1
-        elif char == "}" and braces:
-            braces -= 1
+        elif char == "}":
+            if braces:
+                braces -= 1
+            elif parens == 0 and brackets == 0 and container_closer == "}":
+                return trim_trailing_space(clean, cursor)
         elif char == ";" and parens == 0 and brackets == 0 and braces == 0:
             return cursor + 1
         elif char == "," and parens == 0 and brackets == 0 and braces == 0 and angles == 0:

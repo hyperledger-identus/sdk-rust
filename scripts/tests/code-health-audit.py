@@ -29,6 +29,7 @@ class CfgEvaluationTests(unittest.TestCase):
     def test_unknown_alternative_stays_production(self) -> None:
         self.assertIsNone(audit.cfg_value('cfg(any(test, feature = "diagnostics"))'))
         self.assertIsNone(audit.cfg_value("cfg(unix)"))
+        self.assertIsNone(audit.cfg_value("cfg(foo + bar)"))
 
     def test_not_test_is_true(self) -> None:
         self.assertIs(audit.cfg_value("cfg(not(test))"), True)
@@ -43,6 +44,12 @@ class CfgEvaluationTests(unittest.TestCase):
     def test_raw_strings_and_raw_identifiers_are_valid_cfg_tokens(self) -> None:
         self.assertIsNone(audit.cfg_value('cfg(feature = r#"foo"#)'))
         self.assertIs(audit.cfg_value("cfg(r#test)"), False)
+        self.assertIsNone(audit.cfg_value("cfg(r#true)"))
+
+    def test_cfg_boolean_literals_and_unicode_identifiers(self) -> None:
+        self.assertIs(audit.cfg_value("cfg(true)"), True)
+        self.assertIs(audit.cfg_value("cfg(false)"), False)
+        self.assertIsNone(audit.cfg_value("cfg(βeta)"))
 
     def test_cfg_attr_applies_only_when_its_predicate_is_proven(self) -> None:
         self.assertIs(
@@ -59,6 +66,20 @@ class CfgEvaluationTests(unittest.TestCase):
                 "cfg_attr(not(test), cfg_attr(not(test), cfg(any())))"
             ),
             False,
+        )
+        self.assertIs(
+            audit.attribute_inclusion("cfg_attr(test, cfg(foo + bar))"), True
+        )
+        self.assertIsNone(
+            audit.attribute_inclusion(
+                'cfg_attr(feature = "future", cfg(foo + bar))'
+            )
+        )
+        self.assertIsNone(
+            audit.attribute_inclusion("cfg_attr(not(test), cfg(foo + bar))")
+        )
+        self.assertIsNone(
+            audit.attribute_inclusion("cfg_attr(foo + bar, cfg(any()))")
         )
 
 
@@ -136,6 +157,53 @@ enum Choice {
         self.assertIn(12, lines)
         self.assertIn(13, lines)
         self.assertNotIn(14, lines)
+
+    def test_container_closers_end_comma_less_attributed_members(self) -> None:
+        source = '''
+struct Named {
+    #[cfg(test)]
+    hidden: u8
+}
+pub const AFTER_NAMED: u8 = 1;
+struct Tuple(
+    #[cfg(test)] u8
+);
+pub const AFTER_TUPLE: u8 = 2;
+enum Choice {
+    #[cfg(test)] Hidden
+}
+pub const AFTER_ENUM: u8 = 3;
+fn parameters(
+    #[cfg(test)] hidden: u8
+) {}
+pub const AFTER_PARAMETER: u8 = 4;
+'''
+        lines = audit.span_lines(source, audit.test_only_spans(source))
+        for hidden in (4, 8, 12, 16):
+            self.assertIn(hidden, lines)
+        for shipping in (5, 6, 9, 10, 13, 14, 17, 18):
+            self.assertNotIn(shipping, lines)
+
+    def test_block_expressions_do_not_consume_following_shipping_nodes(self) -> None:
+        source = '''
+fn statements(value: u8) {
+    #[cfg(test)]
+    { test_only(); }
+    shipping();
+    match value {
+        #[cfg(test)]
+        1 => { test_only() }
+        _ => shipping(),
+    }
+}
+pub const AFTER_FUNCTION: u8 = 1;
+'''
+        lines = audit.span_lines(source, audit.test_only_spans(source))
+        self.assertIn(4, lines)
+        self.assertNotIn(5, lines)
+        self.assertIn(8, lines)
+        self.assertNotIn(9, lines)
+        self.assertNotIn(12, lines)
 
     def test_cfg_inherits_preceding_outer_attributes_and_nested_items(self) -> None:
         source = '''

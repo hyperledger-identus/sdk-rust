@@ -52,9 +52,15 @@ non-published `syn` classifier; this issue does not grow a partial Rust parser.
 The policy pins the baseline Git revision, authored-source fingerprint and
 whole canonical report digest. Fast validation reloads that Git tree and
 recomputes its source fingerprint, generated allowlist and line/file
-populations. The weekly slow gate regenerates analyzer-derived function and
-signal evidence with the exact engine and compares the entire report. Generated
-Rust is excluded only by an exact policy path plus an exact header marker.
+populations. The slow regeneration command regenerates analyzer-derived
+function and signal evidence with the exact engine and compares the entire
+report when run locally or by an explicitly configured external scheduler. The
+ready-to-run workflow declaration is not an active GitHub schedule because
+reserved empty `main` remains the default branch while this work lives on
+`develop`. Issue
+[#276](https://github.com/hyperledger-identus/sdk-rust/issues/276) owns schedule
+activation. Generated Rust is excluded only by an exact policy path plus an
+exact header marker.
 
 Attention prompts are cognitive or cyclomatic complexity above 15, a function
 above 100 SLOC, or a module above 1,000 authored nonblank production lines.

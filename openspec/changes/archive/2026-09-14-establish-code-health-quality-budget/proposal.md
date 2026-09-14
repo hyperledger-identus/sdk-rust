@@ -19,7 +19,8 @@ easy to game and would confuse test evidence with shipped code.
   test modules require syntax-proven reachability, including correct nested
   module context. Generated inputs require an exact path-and-marker allowlist.
 - Bind the baseline to a policy-pinned revision, source fingerprint and report
-  digest with cheap Git-tree verification and pinned weekly regeneration.
+  digest with cheap Git-tree verification and pinned slow regeneration run
+  locally or by explicit external scheduling pending issue #276.
 - Check in the exact-head baseline and classify every named issue #270 hotspot
   as `decompose`, `deduplicate`, `document-exception`, or `defer-with-owner`.
 - Apply one low-risk production refactor: make DID cache and registry reuse one

@@ -157,9 +157,19 @@ Inner `#![cfg(...)]` scopes SHALL remain production in v1.
 The policy SHALL pin the baseline revision, authored-source fingerprint and
 canonical report digest. Fast validation SHALL resolve the revision and
 recompute source fingerprint, generated exclusions, and line/file populations.
-Weekly slow validation SHALL use the pinned analyzer version to regenerate and
-compare the entire report, including function counts and signals. Report schema
-keys SHALL be closed recursively.
+Slow validation SHALL use the pinned analyzer version to regenerate and compare
+the entire report, including function counts and signals, when invoked locally
+or by explicit external scheduling. The repository SHALL NOT treat a workflow
+cron declaration as active execution evidence while reserved empty `main`
+remains GitHub's default branch and the workflow lives on `develop`. Issue #276
+SHALL own schedule activation. Report schema keys SHALL be closed recursively.
+
+#### Scenario: Default branch does not contain the slow workflow
+
+- **WHEN** reserved empty `main` remains GitHub's default branch and the
+  ready-to-run slow workflow exists on `develop`
+- **THEN** documentation identifies local or external invocation as the active
+  path and does not claim that GitHub is executing the declared schedule
 
 #### Scenario: Canonical report field is forged
 

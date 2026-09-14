@@ -39,8 +39,9 @@
   policy-pinned Git tree; add exact generated exclusions and mutation tests.
 - [x] 5.2 Handle contiguous outer attributes, comma-terminated fields/variants,
   and inherited out-of-line test module trees with focused fixtures.
-- [x] 5.3 Add pinned full-report regeneration to weekly CI and rerun all
-  affected factory, analyzer, DID, Cargo and Nix gates before pushing.
+- [x] 5.3 Add a pinned full-report regeneration command to the ready slow
+  workflow and rerun all affected factory, analyzer, DID, Cargo and Nix gates;
+  do not claim active GitHub scheduling before issue #276.
 - [x] 5.4 Remove filename-based `src/tests.rs` trust, preserve nested inline
   module context during resolution, and cover same-named source collisions.
 - [x] 5.5 Exclude macro token trees from module reachability, reject custom

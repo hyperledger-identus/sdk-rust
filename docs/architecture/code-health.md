@@ -20,17 +20,26 @@ python3 scripts/code-health-audit.py \
   --check-report docs/architecture/code-health-baseline.json
 ```
 
-Weekly slow validation uses the Nix-pinned analyzer to regenerate and compare
-the complete report, including function counts and attention signals:
+Slow validation uses the Nix-pinned analyzer to regenerate and compare the
+complete report, including function counts and attention signals:
 
 ```bash
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --verify-baseline
 ```
 
+Run that command locally or from an explicitly configured external scheduler.
+The copy in `.github/workflows/nix-checks.yml` is ready to run but its declared
+weekly trigger is not active: GitHub schedules workflows only from the default
+branch, and this repository intentionally keeps the default `main` branch
+empty while development lives on `develop`. Issue
+[#276](https://github.com/hyperledger-identus/sdk-rust/issues/276) owns a
+truthful scheduling authority; this contract does not treat the YAML cron as
+execution evidence.
+
 Source-only Nix archives lack Git history. Their factory structural check uses
 `--policy-only`, which still enforces the exact schema and policy-pinned report
-digest; the fast Git checkout and weekly regeneration gates provide the tree
-bindings.
+digest; the fast Git checkout and locally or externally invoked slow
+regeneration provide the tree bindings.
 
 A live audit rejects tracked or untracked Rust that differs from the recorded
 revision. Commit the intended source first or run the command from a clean

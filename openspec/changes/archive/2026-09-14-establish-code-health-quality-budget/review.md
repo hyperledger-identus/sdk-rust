@@ -13,6 +13,7 @@ Sixth review-remediation head: `2acf13f4ccb18450b7ebc21294330ac095fd2c9e`
 Seventh review-remediation head: `3bafdbb7ebc3392e381316b28c3ec3afd627c32e`
 Eighth review-remediation head: `1521c242ffac901f37dea0766b1510ae2f5180dc`
 Final review-remediation head: `8ef23489d4cded5cb635b970de9c4e1da360d711`
+Scheduler-truth remediation head: `8086d4a162a630eba61071b10bd8b01a90608cdf`
 Planning head: `0a7ded352110474150e409aabcb3a2c4edfed661`
 Unresolved blockers: none
 
@@ -49,8 +50,11 @@ not changed.
    `rust-code-analysis-cli 0.0.25`; sorted paths and canonical JSON make output
    reproducible. A fast gate resolves the policy-pinned revision and recomputes
    source fingerprint, exclusions, file counts and line populations from that
-   Git tree. The weekly slow gate reruns the pinned analyzer and compares the
-   complete report. Exact recursive schemas, a policy-pinned report digest and
+   Git tree. The slow command reruns the pinned analyzer and compares the
+   complete report when invoked locally or by explicit external scheduling.
+   Its YAML schedule is not execution evidence while reserved empty `main`
+   remains GitHub's default branch; activation belongs to issue #276. Exact
+   recursive schemas, a policy-pinned report digest and
    exact path/marker generated exclusions reject coordinated evidence editing
    and arbitrary marker prose. Numeric attention signals do not fail CI. Finite
    dispositions, semantic call-cluster review and explicit prohibited shortcuts
@@ -85,6 +89,9 @@ not changed.
 - Macro expansion is not attributed as authored source and generated Rust is
   reported separately only when an exact policy-allowlisted path contains its
   exact marker in the first ten lines.
+- The slow workflow is ready to run but GitHub will not execute its declared
+  schedule from non-default `develop`; local/external execution remains the
+  evidence path until issue #276 establishes scheduling authority.
 
 ## Independent PR review remediation
 
@@ -120,7 +127,11 @@ attributes, including the demonstrated macro that consumes a literal
 `#[cfg(test)]` token and emits its captured item without the attribute. Issue
 #275 tracks a future non-published `syn` classifier and owns exact inner
 `#![cfg(...)]` scope classification; v1 retains those scopes as production.
-Review found no remaining blocker in the final remediated diff.
+Head `8086d4a` then makes the slow-lane execution state machine-readable:
+`local-or-external`, `inactive-pending-276`, with a desired weekly cadence.
+It also requires the workflow to disclose why its GitHub trigger is inactive
+and adds mutation tests for both the workflow and policy claims. Review found
+no remaining blocker in the final remediated diff.
 
 ## Review decision
 

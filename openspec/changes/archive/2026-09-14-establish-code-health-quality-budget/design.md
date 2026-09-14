@@ -56,9 +56,12 @@ Inner cfg scopes are also retained as production until that helper exists.
 The policy pins baseline revision, source fingerprint and canonical report
 digest. Fast validation reloads the Git tree and recomputes authored source
 evidence; source-only Nix fixtures enforce the complete schema and digest. A
-weekly fetch-depth-zero gate invokes the pinned analyzer and compares the
-entire regenerated report. Generated exclusion requires an exact allowlisted
-path and exact header marker.
+fetch-depth-zero slow command invokes the pinned analyzer and compares the
+entire regenerated report. It is ready in the slow workflow but runs locally
+or through explicit external orchestration while GitHub's reserved empty
+default `main` cannot schedule the `develop` workflow. Issue #276 owns hosted
+schedule activation. Generated exclusion requires an exact allowlisted path
+and exact header marker.
 
 ### Separate observation from policy
 

@@ -12,6 +12,7 @@
 - **Seventh review-remediation head:** `3bafdbb7ebc3392e381316b28c3ec3afd627c32e`
 - **Eighth review-remediation head:** `1521c242ffac901f37dea0766b1510ae2f5180dc`
 - **Final review-remediation head:** `8ef23489d4cded5cb635b970de9c4e1da360d711`
+- **Scheduler-truth remediation head:** `8086d4a162a630eba61071b10bd8b01a90608cdf`
 - **Host:** aarch64-darwin
 - **Result:** passed with no unresolved blocker
 
@@ -38,6 +39,8 @@ reduction.
 python3 scripts/code-health-audit.py --check-report docs/architecture/code-health-baseline.json
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --verify-baseline
 python3 scripts/tests/code-health-audit.py (37/37)
+python3 -m unittest scripts/tests/support-policy.py (170/170)
+python3 scripts/check-support-policy.py
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test -p identus-did --test did_method_registry --test did_resolution_cache (16 passed, 2 ignored)
@@ -81,6 +84,10 @@ invocation token-tree contents remain production even when a macro consumes a
 literal `#[cfg(test)]` token and emits the captured item without that attribute.
 Inner `#![cfg(...)]` scopes are explicitly retained as production and delegated
 to issue #275.
+The scheduler-truth remediation records `local-or-external` execution and
+`inactive-pending-276` status in the machine-readable support policy, requires
+the slow workflow to disclose the default-branch limitation, and adds mutation
+tests for both claims. It changes no Rust source or analyzer baseline.
 A direct `cargo nextest` invocation was
 unavailable outside the pinned shell; the recorded bootstrap invocation is the
 successful replacement. The Nix install fixup emitted a Darwin
@@ -91,5 +98,8 @@ green.
 ## Unrun evidence
 
 No x86_64-linux Nix build was run locally because the host is aarch64-darwin;
-hosted CI owns that platform. Weekly cross-platform slow gates are not expanded
-by this issue.
+hosted CI owns that platform when invoked by an available authority. The slow
+workflow command is ready, but its declared GitHub schedule is inactive because
+reserved empty `main` remains the default branch while the workflow lives on
+`develop`. Local/external regeneration is the current evidence path; issue #276
+owns scheduling activation.

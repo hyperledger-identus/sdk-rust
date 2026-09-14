@@ -48,8 +48,10 @@ reversible and changes no protected setting or release promise.
 - Macro-expanded code is not attributed as authored production. Generated code
   is excluded only through an exact reviewed path-and-marker allowlist.
 - Fast source binding requires the policy-pinned Git object; source-only Nix
-  archives enforce schema/digest while weekly full-history CI regenerates the
-  analyzer evidence.
+  archives enforce schema/digest while a local or explicitly externally
+  scheduled full-history command regenerates analyzer evidence. The declared
+  GitHub schedule is inactive while empty `main` remains the default branch;
+  issue #276 owns activation.
 - Baselines describe one immutable revision and are not a quality score or a
   requirement that every later PR update a global snapshot.
 

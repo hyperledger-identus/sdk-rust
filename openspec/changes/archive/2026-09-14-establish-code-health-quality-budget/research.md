@@ -54,9 +54,12 @@ can model their exact AST scope.
 Review of the first implementation found that canonical structure alone could
 not bind a report to source and that generic generated-marker text was
 ambiguous. The final contract pins revision, source fingerprint and full report
-digest; fast validation recomputes source evidence from the Git tree, and a
-weekly exact-engine gate regenerates the entire report. Generated exclusion is
-an exact path-and-header-marker policy entry only.
+digest; fast validation recomputes source evidence from the Git tree, and the
+exact-engine slow command regenerates the entire report when invoked locally
+or by explicit external scheduling. GitHub does not execute a schedule from
+the non-default `develop` branch while reserved empty `main` remains default;
+issue #276 owns that activation. Generated exclusion is an exact
+path-and-header-marker policy entry only.
 
 ## Normative sources
 

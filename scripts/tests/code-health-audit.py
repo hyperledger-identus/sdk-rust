@@ -84,6 +84,10 @@ class CfgEvaluationTests(unittest.TestCase):
 
 
 class RustSpanTests(unittest.TestCase):
+    def test_whitespace_separated_attribute_remains_production(self) -> None:
+        source = "# [cfg(test)]\nfn unsupported_test_item() {}\npub fn shipping() {}\n"
+        self.assertEqual(audit.test_only_spans(source), [])
+
     def test_balanced_inline_module_is_excluded(self) -> None:
         source = '''
 const TEXT: &str = "#[cfg(test)] mod fake { }";
@@ -321,6 +325,14 @@ pub fn shipping() {{}}
 
 
 class ModulePopulationTests(unittest.TestCase):
+    def test_whitespace_separated_attribute_cannot_hide_module_tree(self) -> None:
+        helper = Path("crates/demo/src/helper.rs")
+        sources = {
+            Path("crates/demo/src/lib.rs"): "# [cfg(test)]\nmod helper;\n",
+            helper: "pub fn shipping_helper() {}\n",
+        }
+        self.assertEqual(audit.inherited_test_files(sources, sorted(sources)), set())
+
     def test_test_only_out_of_line_module_tree_is_inherited(self) -> None:
         sources = {
             Path("crates/demo/src/lib.rs"): "#[cfg(test)]\nmod guard;\nmod shipping;\n",

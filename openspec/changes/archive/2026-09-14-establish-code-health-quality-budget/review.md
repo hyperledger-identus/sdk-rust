@@ -6,7 +6,8 @@ Develop base: `707a5a22c3fad18724d5c5cac953e7387f7e49d8`
 Implementation head: `f5c057e7b67a7b3c94560a0b03bca92a43110b6d`
 First review-remediation head: `34a197692af144cd53eeafed31175b8a9f8d2af4`
 Second review-remediation head: `88bcb1700170b184760e388634f5ebbf49aeb108`
-Final review-remediation head: `6096cab17a54882cf98e7044d8174610208ccdc4`
+Third review-remediation head: `6096cab17a54882cf98e7044d8174610208ccdc4`
+Final review-remediation head: `2b948ebe47eb03fbf2207d6ba8b7ca2ca859c785`
 Planning head: `0a7ded352110474150e409aabcb3a2c4edfed661`
 Unresolved blockers: none
 
@@ -91,8 +92,11 @@ and production-reachable. Head `6096cab` makes active/unknown production edges
 win at a fixed point, including descendants, and retains enclosing inline-module
 context for nested test declarations. The corrected baseline moves the
 `conformance` guard tree and only proven test-exclusive source modules into
-inline-test evidence. Review found no remaining blocker in the final remediated
-diff.
+inline-test evidence. Hosted review finally identified brace-delimited item
+macros as an unbounded item-end case. Head `2b948eb` recognizes qualified item
+macro paths, balances the brace token tree, and accepts the optional trailing
+semicolon without consuming the next shipping item. Review found no remaining
+blocker in the final remediated diff.
 
 ## Review decision
 

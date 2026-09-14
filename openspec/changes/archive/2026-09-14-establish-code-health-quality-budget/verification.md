@@ -5,7 +5,8 @@
 - **Implementation head:** `f5c057e7b67a7b3c94560a0b03bca92a43110b6d`
 - **First review-remediation head:** `34a197692af144cd53eeafed31175b8a9f8d2af4`
 - **Second review-remediation head:** `88bcb1700170b184760e388634f5ebbf49aeb108`
-- **Final review-remediation head:** `6096cab17a54882cf98e7044d8174610208ccdc4`
+- **Third review-remediation head:** `6096cab17a54882cf98e7044d8174610208ccdc4`
+- **Final review-remediation head:** `2b948ebe47eb03fbf2207d6ba8b7ca2ca859c785`
 - **Host:** aarch64-darwin
 - **Result:** passed with no unresolved blocker
 
@@ -17,7 +18,7 @@ external-test lines in 69 files and 982 functions; and 3,865 inline-test lines
 in 28 files and 312 functions. It contains 50 function and six module
 attention signals plus 13 explicit hotspot dispositions.
 
-The clean exact implementation audit at `6096cab` reports 28,368 production
+The clean exact implementation audit at `2b948eb` reports 28,368 production
 lines and 2,193 production functions: a delta of -6 lines and -1 function.
 External characterization grows by 27 lines to 22,627; inline-test counts,
 production/external file counts, and function/module attention-signal counts
@@ -31,7 +32,7 @@ reduction.
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --output /tmp/sdk-rust-code-health-head-rebased.json
 python3 scripts/code-health-audit.py --check-report docs/architecture/code-health-baseline.json
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --verify-baseline
-python3 scripts/tests/code-health-audit.py (22/22)
+python3 scripts/tests/code-health-audit.py (23/23)
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test -p identus-did --test did_method_registry --test did_resolution_cache (16 passed, 2 ignored)
@@ -62,7 +63,8 @@ isolated macro token trees, rejected `#[path]` overrides, included outer doc
 attributes and closed schema primitive types. Final review added nested
 test-attribute context and a production-wins fixed point for mixed module
 reachability. Mutation and population fixtures cover all reported failure
-modes. A direct `cargo nextest` invocation was
+modes. Hosted review added balanced brace-delimited item macros with and
+without a trailing semicolon. A direct `cargo nextest` invocation was
 unavailable outside the pinned shell; the recorded bootstrap invocation is the
 successful replacement. The Nix install fixup emitted a Darwin
 `audit-tmpdir.sh` child segmentation diagnostic after tests, but the derivation

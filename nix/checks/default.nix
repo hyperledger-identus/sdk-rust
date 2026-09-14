@@ -59,7 +59,7 @@
           test -f "$src/crates/presentations/tests/fixtures/presentations-error-contract-v1.csv"
           if find "$src/openspec/changes" -type f \
             \( -name credentials-error-contract-v1.csv \
-               -o -name presentations-error-contract-v1.csv \) \
+              -o -name presentations-error-contract-v1.csv \) \
             -print -quit | grep -q .; then
             echo "planning error golden entered cleaned Rust sources" >&2
             exit 1

@@ -11,7 +11,8 @@ from pathlib import Path
 CHANGE_NAME = "decompose-public-error-contracts"
 FILE_NAME = "credentials-error-contract-v1.csv"
 STABLE = Path("crates/credentials/tests/fixtures") / FILE_NAME
-ACTIVE = Path("openspec/changes") / CHANGE_NAME / "golden" / FILE_NAME
+ACTIVE_CHANGE = Path("openspec/changes") / CHANGE_NAME
+ACTIVE = ACTIVE_CHANGE / "golden" / FILE_NAME
 ARCHIVE = Path("openspec/changes/archive")
 EXPECTED_SHA256 = "6148a00b22bdb8551d4df9369c7a9fcf819e1cf1c2654edc8654feef82227c7c"
 EXPECTED_PREFIX = (
@@ -48,10 +49,19 @@ def is_regular_without_symlinks(
 
 
 def resolve_planning_golden(root: Path, errors: list[str]) -> Path | None:
+    active_change = root / ACTIVE_CHANGE
     active = root / ACTIVE
     candidates: list[Path] = []
-    if os.path.lexists(active):
-        if is_regular_without_symlinks(active, root, "active planning golden", errors):
+    if os.path.lexists(active_change):
+        if has_symlink_component(active_change, root) or not active_change.is_dir():
+            errors.append(
+                f"active OpenSpec change must be a regular directory: {active_change}"
+            )
+        elif not os.path.lexists(active):
+            errors.append(f"active OpenSpec change is missing its planning golden: {active}")
+        elif is_regular_without_symlinks(
+            active, root, "active planning golden", errors
+        ):
             candidates.append(active)
 
     archive_root = root / ARCHIVE

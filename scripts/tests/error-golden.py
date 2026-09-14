@@ -14,6 +14,7 @@ STABLE = Path("crates/credentials/tests/fixtures/credentials-error-contract-v1.c
 ACTIVE = Path(
     "openspec/changes/decompose-public-error-contracts/golden/credentials-error-contract-v1.csv"
 )
+ACTIVE_CHANGE = Path("openspec/changes/decompose-public-error-contracts")
 ARCHIVE_FILE = Path(
     "openspec/changes/archive/2026-09-15-decompose-public-error-contracts/golden/credentials-error-contract-v1.csv"
 )
@@ -40,7 +41,7 @@ def active_fixture(root: Path) -> None:
 
 
 def archive_fixture(root: Path) -> None:
-    (root / ACTIVE).unlink()
+    shutil.rmtree(root / ACTIVE_CHANGE)
     write(root / ARCHIVE_FILE, (root / STABLE).read_bytes())
 
 
@@ -201,7 +202,28 @@ def main() -> int:
             "stable error fixture must not contain symlinked path components",
         )
 
-    print("error-golden test: 15 active/archive and mutation cases passed")
+        incomplete_active = test_root / "incomplete-active-plus-archive"
+        shutil.copytree(archived, incomplete_active)
+        (incomplete_active / ACTIVE_CHANGE).mkdir(parents=True)
+        require_error(
+            checker,
+            incomplete_active,
+            "active OpenSpec change is missing its planning golden",
+        )
+
+        broken_active = test_root / "broken-active-plus-archive"
+        shutil.copytree(archived, broken_active)
+        broken_change = broken_active / ACTIVE_CHANGE
+        broken_change.symlink_to(
+            broken_active / "missing-active-change", target_is_directory=True
+        )
+        require_error(
+            checker,
+            broken_active,
+            "active OpenSpec change must be a regular directory",
+        )
+
+    print("error-golden test: 17 active/archive and mutation cases passed")
     return 0
 
 

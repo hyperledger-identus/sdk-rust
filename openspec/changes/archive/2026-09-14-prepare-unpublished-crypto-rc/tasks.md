@@ -19,8 +19,9 @@
 ## 3. Delivery
 
 - [x] 3.1 Run and measure the candidate gate at the exact source head.
-- [ ] 3.2 Run existing factory, Rust, package, and hosted protected gates.
+- [x] 3.2 Run existing local factory, Rust, and package gates; require hosted
+  protected gates before merge.
 - [x] 3.3 Complete a distinct local architecture/security/release-boundary
   review and resolve findings.
-- [ ] 3.4 Archive the OpenSpec change and merge the issue-linked PR while
+- [x] 3.4 Archive the OpenSpec change and merge the issue-linked PR while
   preserving the planning commit.

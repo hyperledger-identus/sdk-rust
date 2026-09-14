@@ -137,7 +137,14 @@ reviewer, and protected trusted publishing.
   `cargo-cyclonedx` 0.5.9, and `cargo-public-api` 0.52.0.
 - upstream release/README metadata was retrieved from the two official GitHub
   repositories on 2026-09-14.
-- `cargo test --workspace --all-features` passed locally after implementation.
+- Exact command `cargo test --workspace --all-features` passed locally after
+  implementation.
+- This exact command passed on the clean implementation commit:
+
+  ```console
+  nix run .#crypto-candidate -- --output /tmp/sdk-rust-candidate/head \
+    --source-revision a87ae6d40877e1761c56f26b642fd0ed0e8e8d35
+  ```
 - The exact local fast Nix derivations passed: factory contract, Nix/text/TOML
   lint, Rust formatting, all-target build, Clippy, and 701 nextest cases.
 - The full candidate gate completed in 44.766 seconds on the development host.
@@ -146,6 +153,8 @@ reviewer, and protected trusted publishing.
 - Double assembly, four feature profiles, API rendering, SemVer comparison, and
   three CycloneDX 1.5 documents passed. Exact-head hosted CI remains delivery
   evidence rather than pre-implementation research.
+- Unrun checks: hosted PR policy and exact-head Linux CI; both remain mandatory
+  before merge.
 
 ## Reconsideration triggers
 

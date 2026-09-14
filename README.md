@@ -68,11 +68,16 @@ nix develop .#fuzz -c ./scripts/fuzz-jws.sh smoke
 
 # Run the complete repository gate
 nix flake check
+
+# Reproduce the weekly complete Clippy surface only
+cargo clippy --workspace --all-targets --all-features -- -D warnings
 ```
 
 The flake supports `x86_64-linux` and `aarch64-darwin`. Pull requests and
 `develop` pushes run one Ubuntu `fast` factory/build/lint/test status. The full
-Linux/macOS flake matrix runs weekly and through manual `slow` dispatch.
+Linux/macOS flake matrix, including the all-target/all-feature Clippy surface,
+runs weekly and through manual `slow` dispatch. See the
+[Clippy policy and exception registry](docs/governance/clippy-policy.md).
 
 ## Development workflow
 

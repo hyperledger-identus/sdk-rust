@@ -3,7 +3,7 @@ use std::{
     future::Future,
     pin::pin,
     sync::Arc,
-    task::{Context, Poll, Wake, Waker},
+    task::{Context, Poll, Waker},
 };
 
 use identus_did::{
@@ -18,15 +18,8 @@ const MIDNIGHT_IDENTITY_REVISION: &str = "427f8571950c42967a18726cbcbefecc19ef8d
 const LACE_ID_PORTAL_REVISION: &str = "804de0a9e58cf48ece3cc6c24b2245bb70bc80f1";
 const OXID_REVISION: &str = "685f9670af4846d52697a4cfeb94779758ae1075";
 
-struct NoopWake;
-
-impl Wake for NoopWake {
-    fn wake(self: Arc<Self>) {}
-}
-
 fn block_on<F: Future>(future: F) -> F::Output {
-    let waker = Waker::from(Arc::new(NoopWake));
-    let mut context = Context::from_waker(&waker);
+    let mut context = Context::from_waker(Waker::noop());
     let mut future = pin!(future);
     loop {
         match future.as_mut().poll(&mut context) {

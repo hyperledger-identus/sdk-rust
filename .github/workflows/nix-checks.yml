@@ -133,9 +133,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
+        include:
+          - os: ubuntu-latest
+            nix-system: x86_64-linux
+          - os: macos-latest
+            nix-system: aarch64-darwin
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -168,6 +170,11 @@ jobs:
 
       - name: Magic Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
+
+      - name: Run complete Clippy surface
+        run: >-
+          nix build --print-build-logs
+          .#checks.${{ matrix.nix-system }}.rust-clippy-all-targets-all-features
 
       - name: Run `nix flake check`
         run: nix flake check

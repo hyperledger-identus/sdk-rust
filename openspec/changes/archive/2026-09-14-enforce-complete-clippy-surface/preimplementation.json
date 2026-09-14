@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 268,
+  "change": "enforce-complete-clippy-surface",
+  "branch": "codex/ci/issue-268",
+  "baseRef": "origin/develop",
+  "baseSha": "dbef9923e65d1a8332c4ba38f42532c8a12811f7",
+  "contractHeadSha": "5c83f5a2c0c3f703009269b43a80591dd6f00722",
+  "createdAt": "2026-09-14T11:54:31.012Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -4,7 +4,7 @@ use std::{
         Arc,
         atomic::{AtomicUsize, Ordering},
     },
-    task::{Context, Poll, Wake, Waker},
+    task::{Context, Poll, Waker},
     time::Instant,
 };
 
@@ -18,17 +18,10 @@ use identus_credentials::{
     VerificationStageName, VerificationStageStatus,
 };
 
-struct NoopWake;
-
-impl Wake for NoopWake {
-    fn wake(self: Arc<Self>) {}
-}
-
 fn block_on(
     mut future: CredentialVerificationFuture<'_>,
 ) -> identus_credentials::CredentialVerificationResult {
-    let waker = Waker::from(Arc::new(NoopWake));
-    let mut context = Context::from_waker(&waker);
+    let mut context = Context::from_waker(Waker::noop());
     loop {
         match future.as_mut().poll(&mut context) {
             Poll::Ready(result) => return result,
@@ -333,8 +326,7 @@ fn credential_verifier_registry_dispatch_throughput_diagnostic() {
         .build();
     let credential = envelope("example+ready:v1", &[0xa1]);
     let request = CredentialVerificationRequest::from(&credential);
-    let waker = Waker::from(Arc::new(NoopWake));
-    let mut context = Context::from_waker(&waker);
+    let mut context = Context::from_waker(Waker::noop());
 
     let started = Instant::now();
     for _ in 0..ITERATIONS {

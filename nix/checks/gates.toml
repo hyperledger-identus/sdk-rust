@@ -55,6 +55,24 @@ target              = ""
 extra_args          = [ "--", "-D", "warnings" ]
 
 [[gates]]
+name                = "rust-clippy-all-targets-all-features"
+operation           = "cargoClippy"
+toolchain           = "primary"
+source              = "rust"
+artifacts           = "primary"
+locked              = false
+workspace           = true
+packages            = [  ]
+exclude_packages    = [  ]
+lib                 = false
+all_targets         = true
+no_default_features = false
+all_features        = true
+features            = [  ]
+target              = ""
+extra_args          = [ "--", "-D", "warnings" ]
+
+[[gates]]
 name                = "rust-clippy-crypto-minimal"
 operation           = "cargoClippy"
 toolchain           = "primary"

@@ -219,7 +219,7 @@ fn raw_scanner_limits_and_complete_input_fail_before_typed_construction() {
 }
 
 fn generated_extension(seed: usize) -> Value {
-    let mut value = json!({"seed": seed, "enabled": seed % 2 == 0});
+    let mut value = json!({"seed": seed, "enabled": seed.is_multiple_of(2)});
     for depth in 0..seed % 6 {
         value = json!({format!("level-{depth}"): [value, depth]});
     }

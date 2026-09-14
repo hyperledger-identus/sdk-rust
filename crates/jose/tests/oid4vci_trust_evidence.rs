@@ -2,10 +2,10 @@ use std::{
     future::Future,
     pin::pin,
     sync::{
-        Arc, Mutex,
+        Mutex,
         atomic::{AtomicUsize, Ordering},
     },
-    task::{Context, Poll, Wake, Waker},
+    task::{Context, Poll, Waker},
 };
 
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
@@ -31,15 +31,8 @@ const AUDIENCE: &str = "https://credential-issuer.example";
 const NONCE: &str = "server-nonce";
 const ISSUED_AT: i64 = 1_700_000_000;
 
-struct NoopWake;
-
-impl Wake for NoopWake {
-    fn wake(self: Arc<Self>) {}
-}
-
 fn block_on<F: Future>(future: F) -> F::Output {
-    let waker = Waker::from(Arc::new(NoopWake));
-    let mut context = Context::from_waker(&waker);
+    let mut context = Context::from_waker(Waker::noop());
     let mut future = pin!(future);
     loop {
         match future.as_mut().poll(&mut context) {

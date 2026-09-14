@@ -954,7 +954,10 @@ pub struct ImmediateCredentialResponseLimits {
 
 impl ImmediateCredentialResponseLimits {
     /// Construct a positive response policy with a supported JSON depth.
-    #[allow(clippy::too_many_arguments)]
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "public positional limits constructor retained until a focused API migration"
+    )]
     pub const fn new(
         max_json_bytes: usize,
         max_json_depth: usize,
@@ -1113,7 +1116,10 @@ pub struct CredentialIssuerMetadataLimits {
 
 impl CredentialIssuerMetadataLimits {
     /// Construct a positive metadata resource policy with a supported depth.
-    #[allow(clippy::too_many_arguments)]
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "public positional limits constructor retained until a focused API migration"
+    )]
     pub const fn new(
         max_json_bytes: usize,
         max_json_depth: usize,

@@ -31,6 +31,10 @@ the rollback reference for a later consumer-driven compatibility matrix.
 [ADR 0110](../adr/0110-define-reusable-module-extraction-criteria.md) defines
 the mandatory reusable-module and downstream-adoption gates for extracting
 generic behavior from NeoPRISM and other consumers.
+[ADR 0115](../adr/0115-establish-code-health-quality-budget.md) and the
+[code-health evidence contract](code-health.md) govern granularity and
+duplication work inside sdk-rust without turning static metrics into design
+limits.
 [ADR 0063](../adr/0063-make-material-constraints-explicit.md) and the
 [constraint index](../governance/sdk-constraints.toml) distinguish effective
 cross-cutting promises, future targets, prohibitions and known limitations.
@@ -117,6 +121,9 @@ provenance, consumer-evidence and release-independence gate in ADR 0110. Donor
 package boundaries and generic-looking helpers are not sufficient evidence.
 Every candidate uses the
 [reusable-module assessment template](reusable-module-assessment-template.md).
+Existing code-health refactors additionally ratchet the touched semantic
+responsibility and call cluster under ADR 0115. Moves, wrappers, arbitrary file
+splits, macro hiding, or test reclassification do not prove improvement.
 
 ## 4. Baseline and target crate portfolio
 

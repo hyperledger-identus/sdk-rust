@@ -19,6 +19,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/crypto-coverage.py"
 "$repository_root/scripts/tests/source-distribution.py"
 "$repository_root/scripts/tests/crypto-candidate.py"
+"$repository_root/scripts/tests/code-health-audit.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
 "$repository_root/scripts/tests/constraints.py"
 "$repository_root/scripts/tests/openspec-archive.py"
@@ -53,6 +54,9 @@ required_files=(
   docs/architecture/sdk-support-policy.md
   docs/architecture/sdk-support-policy.toml
   docs/architecture/apollo-crypto-parity.toml
+  docs/architecture/code-health.md
+  docs/architecture/code-health.toml
+  docs/architecture/code-health-baseline.json
   docs/architecture/source-distribution.md
   docs/release/crypto-candidate.toml
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
@@ -129,6 +133,7 @@ required_files=(
   scripts/check-ssi-upstream-backlog.py
   scripts/check-source-distribution.py
   scripts/check-crypto-candidate.py
+  scripts/code-health-audit.py
   scripts/prepare-crypto-candidate.py
   scripts/check-pr-policy.sh
   scripts/check-research-readiness.py
@@ -145,6 +150,7 @@ required_files=(
   scripts/tests/crypto-coverage.py
   scripts/tests/source-distribution.py
   scripts/tests/crypto-candidate.py
+  scripts/tests/code-health-audit.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
   .github/ISSUE_TEMPLATE/delivery-task.yml
@@ -178,6 +184,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/check-source-distribution.py" \
   "$fixture_root/scripts/check-crypto-candidate.py" \
+  "$fixture_root/scripts/code-health-audit.py" \
   "$fixture_root/scripts/prepare-crypto-candidate.py" \
   "$fixture_root/scripts/tests/bootstrap-inventory.py" \
   "$fixture_root/scripts/tests/constraints.py" \
@@ -185,6 +192,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/crypto-coverage.py" \
   "$fixture_root/scripts/tests/source-distribution.py" \
   "$fixture_root/scripts/tests/crypto-candidate.py" \
+  "$fixture_root/scripts/tests/code-health-audit.py" \
   "$fixture_root/scripts/tests/factory-contract.sh" \
   "$fixture_root/scripts/tests/factory-operations.mjs" \
   "$fixture_root/scripts/tests/openspec-archive.py" \

@@ -163,6 +163,19 @@ fn registry_uses_exact_method_names_and_standard_unknown_failure() {
         DidResolutionErrorKind::MethodNotSupported
     );
     assert!(result.document().is_none());
+    assert!(result.document_metadata().is_empty());
+    assert_eq!(
+        serde_json::to_value(&result).unwrap(),
+        serde_json::json!({
+            "didResolutionMetadata": {
+                "error": {
+                    "type": "https://www.w3.org/ns/did#METHOD_NOT_SUPPORTED"
+                }
+            },
+            "didDocument": null,
+            "didDocumentMetadata": {}
+        })
+    );
 
     let empty = DidMethodRegistry::empty();
     assert!(empty.is_empty());

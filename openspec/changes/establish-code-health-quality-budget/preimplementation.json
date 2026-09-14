@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 270,
+  "change": "establish-code-health-quality-budget",
+  "branch": "codex/refactor/issue-270",
+  "baseRef": "origin/develop",
+  "baseSha": "707a5a22c3fad18724d5c5cac953e7387f7e49d8",
+  "contractHeadSha": "0a7ded352110474150e409aabcb3a2c4edfed661",
+  "createdAt": "2026-09-14T12:48:57.728Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -9,10 +9,10 @@ Research blockers: none
 ## Problem and existing implementation
 
 The assessed source is sdk-rust
-`develop@21cdbde6b9c5650d073a4a61f443640363585b38`. The earlier issue baseline
+`develop@707a5a22c3fad18724d5c5cac953e7387f7e49d8`. The earlier issue baseline
 at `dbef9923e65d1a8332c4ba38f42532c8a12811f7` counted 35,482 physical lines in
 117 `crates/*/src` files and 24,513 lines in 67 wider test files. A current
-`wc` count is close but cannot establish a production population: 19 source
+`wc` count is close but cannot establish a production population: 21 source
 files contain `#[cfg(test)]` items, and path-only classification counts their
 inline tests as shipped code.
 

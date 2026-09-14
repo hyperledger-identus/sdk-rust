@@ -88,6 +88,23 @@ activation       = "Effective after ADR 0110 merges; each candidate still requir
 rollback         = "Revert the architecture decision; preserve every independently merged component and downstream facade until its own rollback is reviewed."
 
 [[entries]]
+id               = "SDK-ARCH-004"
+kind             = "guardrail"
+category         = "architecture"
+state            = "effective"
+summary          = "Code-health refactors use separated evidence populations, explicit hotspot dispositions and a touched-semantic-scope ratchet."
+scope            = "Module granularity, complexity and duplication review for authored sdk-rust source."
+canonical_source = "docs/architecture/sdk-rust-blueprint.md#3-bootstrap-principles"
+authority        = "Sponsor-directed issue #270 and accepted ADR 0115."
+rationale        = "Static signals can focus review but hard numeric design limits reward wrappers, arbitrary splits and test reclassification."
+consumer_impact  = "Consumers retain stable public and wire behavior while internal responsibilities become more cohesive and discoverable."
+enforcement      = [ "version-pinned code-health report", "explicit hotspot classification", "touched-scope architecture review", "characterization and compatibility gates" ]
+owner            = "SDK maintainers and component stewards"
+review_triggers  = [ "new or worsened attention signal", "module split", "shared helper extraction", "analysis engine or Rust syntax change" ]
+activation       = "Effective after ADR 0115 merges; numeric attention signals remain non-failing review prompts."
+rollback         = "Revert ADR 0115 and its tooling/constraint slice; separately delivered refactors retain their own compatibility evidence and rollback."
+
+[[entries]]
 id               = "SDK-COMPAT-001"
 kind             = "guardrail"
 category         = "compatibility"

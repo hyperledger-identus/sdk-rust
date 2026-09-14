@@ -9,9 +9,9 @@ use std::{collections::BTreeMap, fmt, sync::Arc};
 use crate::{
     DereferencingOptions, Did, DidMethod, DidRegistrar, DidRegistrationErrorKind,
     DidRegistrationFuture, DidRegistrationResult, DidResolutionError, DidResolutionErrorKind,
-    DidResolutionFuture, DidResolutionMetadata, DidResolutionResult, DidResolver, DidUrl,
-    DidUrlDereferencer, DidUrlDereferencingFuture, DidUrlDereferencingMetadata,
-    DidUrlDereferencingResult, Error, RegistrationRequest, error::RegistryError,
+    DidResolutionFuture, DidResolver, DidUrl, DidUrlDereferencer, DidUrlDereferencingFuture,
+    DidUrlDereferencingMetadata, DidUrlDereferencingResult, Error, RegistrationRequest,
+    error::RegistryError, resolution::standard_resolution_failure,
 };
 
 /// Maximum number of method bindings in one immutable registry.
@@ -193,8 +193,9 @@ impl DidResolver for DidMethodRegistry {
     ) -> DidResolutionFuture<'a> {
         self.bindings.get(did.method()).map_or_else(
             || {
-                Box::pin(async { resolution_failure(DidResolutionErrorKind::MethodNotSupported) })
-                    as DidResolutionFuture<'a>
+                Box::pin(async {
+                    standard_resolution_failure(DidResolutionErrorKind::MethodNotSupported)
+                }) as DidResolutionFuture<'a>
             },
             |binding| binding.resolver.resolve(did, options),
         )
@@ -249,16 +250,6 @@ impl DidRegistrar for DidMethodRegistry {
             }
         }
     }
-}
-
-fn resolution_failure(kind: DidResolutionErrorKind) -> DidResolutionResult {
-    let metadata = DidResolutionMetadata::new(
-        None,
-        Some(DidResolutionError::standard(kind)),
-        BTreeMap::new(),
-    )
-    .expect("standard error metadata is valid");
-    DidResolutionResult::failure(metadata).expect("standard resolution failure is valid")
 }
 
 fn dereferencing_failure(kind: DidResolutionErrorKind) -> DidUrlDereferencingResult {

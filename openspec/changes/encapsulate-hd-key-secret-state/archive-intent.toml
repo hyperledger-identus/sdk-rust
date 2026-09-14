@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "crypto"
+requirement      = "Best-effort lifecycle protection for owned secret buffers"
+canonical_sha256 = "4ae96a292f70c0c17b1584958518e9db919d1efba52e7e55251302b97e163236"
+reason           = "Issue #269 intentionally replaces public raw HD secret fields with an opaque zeroizing exposure owner while preserving the established redaction, erasure, algorithm, vector and limitation contract."

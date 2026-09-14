@@ -16,6 +16,7 @@ Wallet products keep custody, storage, consent, trust and UI policy.
 
 - [Technical blueprint and component sequence](docs/architecture/sdk-rust-blueprint.md)
 - [Bootstrap governance and crate inventory](docs/architecture/sdk-bootstrap-inventory.md)
+- [Alpha source distribution](docs/architecture/source-distribution.md)
 - [Bootstrap branch decision](docs/adr/0001-bootstrap-branch-selection.md)
 - [NeoPRISM toolchain alignment](docs/adr/0002-neoprism-toolchain-alignment.md)
 - [Roadmap](ROADMAP.md)
@@ -32,8 +33,9 @@ Wallet products keep custody, storage, consent, trust and UI policy.
 integration branch. It contains working validated-newtype, derivation,
 cryptography, DID, entropy-adapter and conformance foundations. The baseline
 also contains known bootstrap debt: quarantined placeholder names, version
-`0.0.0`, unactivated live repository controls and no approved publishing
-ownership. Every package is `publish = false`. The MSRV and target lanes are
+`0.0.0`, an enterprise-owned secret-scanning deviation, and no approved
+publishing ownership. Every package is `publish = false`. The protected
+`develop` integration controls are active. The MSRV and target lanes are
 executable; the remaining items are not evidence of a production release.
 
 `main` remains intentionally minimal and is not an integration or release

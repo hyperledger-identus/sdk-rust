@@ -26,3 +26,7 @@ locally.
 The settings receipt records the effective rules and security controls. GitHub
 returned HTTP 422 when repository-level secret scanning was requested because
 the enterprise policy owns it. No bypass was attempted.
+
+PR #264 is the exact-head hosted protection canary. Its first policy event
+correctly blocked a malformed issue field in the pull-request body before any
+merge; the corrected body and signed follow-up head are re-evaluated normally.

@@ -34,7 +34,7 @@ Repository ruleset `23274352` (`develop integration`) is active for exactly
 - applies GitHub code-quality errors.
 
 Auto-merge is enabled, merged branches are deleted automatically, and web
-commits require sign-off. The next issue-linked PR is the operational canary for
+commits require sign-off. SDK-Rust PR #264 is the operational canary for
 pending-check and protected-merge behavior.
 
 ## Reserved `main`

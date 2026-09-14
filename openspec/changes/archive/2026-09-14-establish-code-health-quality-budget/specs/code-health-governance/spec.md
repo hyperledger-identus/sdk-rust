@@ -9,9 +9,12 @@ Inline code SHALL leave production only when syntax-aware evaluation proves its
 conditional-compilation predicate false with `test = false`; unknown feature
 and target predicates SHALL remain production. Predicate comments SHALL NOT
 alter parsing of retained string values; raw string and raw identifier tokens
-SHALL be accepted. Nested `cfg_attr` SHALL apply recursively when its predicate
-is true, do nothing when false, and remain production when applicability could
-change inclusion. A test-only out-of-line module
+and Unicode cfg identifiers SHALL be accepted. Stable `true` and `false` cfg
+literals SHALL be evaluated exactly. Syntax outside the pinned semantic
+evaluator SHALL remain production. Nested `cfg_attr` SHALL apply recursively
+when its predicate is true, avoid parsing applied attributes when false, and
+remain production when applicability or applied syntax could change inclusion.
+A test-only out-of-line module
 declaration SHALL recursively classify its ordinary Rust module tree as test
 code while preserving nested inline-module context. Only Cargo `tests/` and
 `benches/` target trees SHALL be intrinsically external-test code; a file under
@@ -22,6 +25,14 @@ test-only item SHALL share that item's population. Test-only reachability SHALL
 fail closed rather than guess `#[path]` module overrides.
 An active or unknown production module edge SHALL override test-only
 reachability to the same file and its ordinary module descendants.
+An inline-test span SHALL exist only when the v1 whitelist proves a semicolon,
+zero-relative-depth comma, recognized block-item, or recognized item-macro end.
+Ambiguous angles or container delimiters and unsupported nested/member,
+statement, arm, generic, or macro forms SHALL remain production. A mixed
+test/shipping source line SHALL be production. No test span SHALL consume a
+following production node. Attribute-like tokens inside a macro definition or
+invocation token tree SHALL remain production; only an outer cfg applying to a
+recognized macro invocation may classify that invocation inline-test.
 
 #### Scenario: Test-only inline module
 
@@ -51,6 +62,39 @@ reachability to the same file and its ordinary module descendants.
 
 - **WHEN** an unknown feature predicate conditionally generates a false cfg
 - **THEN** the item remains production because the attribute may not apply
+
+#### Scenario: Cfg syntax exceeds the pinned evaluator
+
+- **WHEN** valid current or future cfg metadata uses an unrecognized predicate
+  form, or an unknown `cfg_attr` condition may apply such metadata
+- **THEN** the item remains production and an inactive `cfg_attr` branch is not
+  evaluated
+
+#### Scenario: Unsupported comma-less member precedes shipping code
+
+- **WHEN** a definitively test-only final field, variant, or parameter omits its
+  trailing comma before the enclosing delimiter
+- **THEN** v1 retains the member and following shipping node in production
+
+#### Scenario: Unsupported nested block expression precedes shipping code
+
+- **WHEN** a definitively test-only block statement or comma-less block-bodied
+  match arm precedes a production statement or arm
+- **THEN** v1 retains the unsupported nested construct and following node in
+  production
+
+#### Scenario: Test and shipping code share a line
+
+- **WHEN** a proven test-only node and shipping code have non-whitespace source
+  characters on the same source line
+- **THEN** the whole line and every function starting on it remain production
+
+#### Scenario: Macro consumes a cfg-looking token
+
+- **WHEN** a macro definition or invocation token tree contains tokens that
+  resemble a cfg attribute on a shipping item
+- **THEN** v1 keeps the token-tree source in production rather than treating it
+  as an active source attribute
 
 #### Scenario: Test-only out-of-line module
 

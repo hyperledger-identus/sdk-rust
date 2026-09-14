@@ -37,9 +37,17 @@ propagates through its descendants.
 
 Rust cfg metadata also admits comments, raw strings, raw identifiers and
 conditional attribute application. The repository evaluator removes comments
-without changing literal tokens, normalizes raw identifiers, and evaluates
-nested `cfg_attr` recursively. Unknown cfg_attr applicability remains production
-under the existing three-valued rule.
+without changing literal tokens, distinguishes raw identifiers from boolean
+literals, accepts Unicode identifiers, and evaluates nested `cfg_attr`
+recursively. False predicates short-circuit applied metadata; unknown
+applicability or syntax outside the pinned evaluator remains production.
+
+Review also established that hand-parsing every Rust member, generic and
+expression form would itself become an architecture liability. V1 therefore
+subtracts only locally proven semicolon/comma and recognized block-item/macro
+spans, with production winning on a mixed line. Ambiguous angles, closing
+containers and nested block forms remain production. Issue #275 tracks a
+future non-published `syn` classifier rather than extending this heuristic.
 
 Review of the first implementation found that canonical structure alone could
 not bind a report to source and that generic generated-marker text was

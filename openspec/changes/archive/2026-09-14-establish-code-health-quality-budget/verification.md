@@ -7,7 +7,10 @@
 - **Second review-remediation head:** `88bcb1700170b184760e388634f5ebbf49aeb108`
 - **Third review-remediation head:** `6096cab17a54882cf98e7044d8174610208ccdc4`
 - **Fourth review-remediation head:** `2b948ebe47eb03fbf2207d6ba8b7ca2ca859c785`
-- **Final review-remediation head:** `f1826db71de8f370bfb5cf3dd49f0725be2602bb`
+- **Fifth review-remediation head:** `f1826db71de8f370bfb5cf3dd49f0725be2602bb`
+- **Sixth review-remediation head:** `2acf13f4ccb18450b7ebc21294330ac095fd2c9e`
+- **Seventh review-remediation head:** `3bafdbb7ebc3392e381316b28c3ec3afd627c32e`
+- **Final review-remediation head:** `1521c242ffac901f37dea0766b1510ae2f5180dc`
 - **Host:** aarch64-darwin
 - **Result:** passed with no unresolved blocker
 
@@ -19,7 +22,7 @@ external-test lines in 69 files and 982 functions; and 3,865 inline-test lines
 in 28 files and 312 functions. It contains 50 function and six module
 attention signals plus 13 explicit hotspot dispositions.
 
-The clean exact implementation audit at `f1826db` reports 28,368 production
+The clean exact implementation audit at `1521c24` reports 28,368 production
 lines and 2,193 production functions: a delta of -6 lines and -1 function.
 External characterization grows by 27 lines to 22,627; inline-test counts,
 production/external file counts, and function/module attention-signal counts
@@ -33,7 +36,7 @@ reduction.
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --output /tmp/sdk-rust-code-health-head-rebased.json
 python3 scripts/code-health-audit.py --check-report docs/architecture/code-health-baseline.json
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --verify-baseline
-python3 scripts/tests/code-health-audit.py (27/27)
+python3 scripts/tests/code-health-audit.py (36/36)
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test -p identus-did --test did_method_registry --test did_resolution_cache (16 passed, 2 ignored)
@@ -66,7 +69,16 @@ test-attribute context and a production-wins fixed point for mixed module
 reachability. Mutation and population fixtures cover all reported failure
 modes. Hosted review added balanced brace-delimited item macros with and
 without a trailing semicolon, then comment/raw-token parsing and recursive
-three-valued `cfg_attr` application. A direct `cargo nextest` invocation was
+three-valued `cfg_attr` application. Final review narrowed item subtraction to
+proven terminators: ambiguous generic/comparison angles, comma-less members,
+labels, block expressions, match arms and unrecognized macros remain
+production; mixed source lines are production-wins. Stable cfg booleans,
+Unicode/unknown predicates, inactive `cfg_attr` branches, raw module
+identifiers and Unicode Rust lifetimes have exact regressions. Full syntax
+classification is tracked separately in issue #275. Macro definition and
+invocation token-tree contents remain production even when a macro consumes a
+literal `#[cfg(test)]` token and emits the captured item without that attribute.
+A direct `cargo nextest` invocation was
 unavailable outside the pinned shell; the recorded bootstrap invocation is the
 successful replacement. The Nix install fixup emitted a Darwin
 `audit-tmpdir.sh` child segmentation diagnostic after tests, but the derivation

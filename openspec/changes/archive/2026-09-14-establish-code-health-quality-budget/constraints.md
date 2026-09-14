@@ -32,6 +32,13 @@ reversible and changes no protected setting or release promise.
 - Conditional compilation is classified conservatively: unknown feature or
   target predicates remain production unless `test = false` makes the whole
   expression false. An unknown `cfg_attr` application also remains production.
+- Stable cfg booleans are exact; Unicode/raw identifiers and unsupported
+  predicate syntax are conservative. Inactive `cfg_attr` branches are not
+  parsed.
+- V1 excludes only nodes with a proven semicolon, zero-depth comma, recognized
+  block-item, or recognized item-macro end. Ambiguous angles, enclosing
+  delimiters, unsupported nested forms, unrecognized macros and mixed source
+  lines remain production. Full syntax precision is deferred to issue #275.
 - Test-only module reachability supports ordinary Rust module layout and fails
   closed on `#[path]` overrides; it does not emulate rustc's complete module
   loader.

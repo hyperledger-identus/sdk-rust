@@ -52,3 +52,6 @@
   items and prove the following shipping item remains production.
 - [x] 5.8 Parse commented and raw cfg metadata without altering string values;
   apply nested `cfg_attr` conservatively and cover false/true/unknown cases.
+- [x] 5.9 Make the v1 item boundary a no-hiding whitelist, retain unsupported
+  nested/generic/macro shapes and mixed source lines as production, and track
+  full `syn` classification separately in issue #275.

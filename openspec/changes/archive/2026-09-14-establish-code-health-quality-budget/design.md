@@ -35,8 +35,8 @@ module names remain resolution context, so a test-only nested `helper` cannot
 hide a shipping `helper.rs` in its parent directory. Exact tests cover
 comments/strings, `all`, `any`, `not`, preceding outer doc comments and
 adjacent attributes,
-comma-terminated fields and variants, brace-delimited item macros, inline and
-out-of-line module trees,
+supported comma-terminated nodes, recognized brace-delimited item macros,
+inline and out-of-line module trees,
 same-named module collisions, macro token trees, rejected `#[path]` overrides,
 source test files with and without proven test-only reachability, and unknown
 predicates. Test reachability first produces a candidate tree. A fixed-point
@@ -45,7 +45,12 @@ mixed-reachable files and their descendants from inline-test classification.
 Cfg predicate comments are blanked while literal tokens retain their value.
 Raw string values and raw identifiers are tokenized, and nested `cfg_attr`
 metadata recursively applies only when its predicate is true. Unknown
-applicability cannot remove an item from production.
+applicability, Unicode identifiers and unsupported predicate syntax cannot
+remove an item from production. Stable cfg booleans are exact and inactive
+`cfg_attr` branches short-circuit. The v1 terminator whitelist deliberately
+retains ambiguous angles, comma-less container members, block expressions,
+unrecognized macros and mixed test/shipping lines as production. Broader syntax
+coverage belongs to the non-published `syn` helper tracked by issue #275.
 
 The policy pins baseline revision, source fingerprint and canonical report
 digest. Fast validation reloads the Git tree and recomputes authored source

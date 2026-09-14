@@ -37,6 +37,16 @@ wins and propagates through that file's ordinary module descendants.
 Cfg metadata accepts nested comments, raw strings and raw identifiers without
 confusing literal content for comments. Recursive `cfg_attr` is applied only
 when its predicate is proven true; unknown applicability remains production.
+Stable boolean cfg literals are evaluated exactly, Unicode identifiers and
+unsupported future predicate syntax remain conservatively production, and an
+inactive `cfg_attr` branch is not parsed. A node leaves production only when a
+strict v1 whitelist proves its local terminator: semicolon, zero-relative-depth
+comma, recognized block item, or recognized item macro. Angle ambiguity,
+unmatched container delimiters, comma-less members, nested block expressions,
+unrecognized macros, macro token-tree contents, and mixed test/shipping lines
+remain production. Issue
+[#275](https://github.com/hyperledger-identus/sdk-rust/issues/275) owns a future
+non-published `syn` classifier; this issue does not grow a partial Rust parser.
 
 The policy pins the baseline Git revision, authored-source fingerprint and
 whole canonical report digest. Fast validation reloads that Git tree and
@@ -88,8 +98,11 @@ Focused scanner tests cover comments, literals, balanced attributes, fields,
 variants, outer doc comments, brace-delimited item macros, macro-token
 isolation, rejected path overrides,
 nested module-context resolution, source-test filename collisions, out-of-line
-module inheritance, mixed production/test reachability, comment/raw cfg tokens,
-and nested `cfg_attr` logic. Report mutation tests
+module inheritance, mixed production/test reachability, comment/raw/Unicode cfg
+tokens, boolean literals, unsupported-syntax conservatism, and short-circuiting
+nested `cfg_attr` logic. Adversarial generic parameters, comparisons/shifts,
+comma-less members, labels, block expressions, match arms, Unicode macros, and
+mixed source lines prove that unsupported shapes remain production. Report mutation tests
 and fast/slow regeneration cover the complete schema, engine pin, policy/tree
 binding, population separation, exclusions and dispositions. DID tests cover registry and
 failed-closed cache results. Full factory, formatting, strict Clippy, tests,

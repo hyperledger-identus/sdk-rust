@@ -43,14 +43,27 @@ worktree; unrelated documentation changes do not invalidate source evidence.
   unless syntax-aware module reachability proves that it is test-only.
 - **External test** is authored Rust in Cargo's intrinsic `crates/*/tests` and
   `crates/*/benches` target trees.
-- **Inline test** is an item whose `cfg` predicate is definitively false when
-  `test = false`. Its complete contiguous outer-attribute group, including
+- **Inline test** is a supported node whose `cfg` predicate is definitively
+  false when `test = false` and whose end is proven by a semicolon, a
+  zero-relative-depth comma, or a recognized block item or item macro. Its
+  complete contiguous outer-attribute group, including
   immediately preceding `///` or `/** */` outer documentation, is included.
   Predicate comments are ignored without altering string values; raw strings
-  and raw identifiers are accepted. Recursive `cfg_attr` application uses the
-  same three-valued rule, so unknown applicability remains production.
-  Brace-delimited item macros, including qualified macro paths, end at their
-  balanced closing brace and optional semicolon.
+  and Unicode/raw identifiers are accepted. The `true` and `false` cfg
+  literals are exact; unknown or newer predicate syntax remains production.
+  Recursive `cfg_attr` application uses the same three-valued rule: an
+  inactive branch is not parsed, and unknown applicability or applied syntax
+  remains production.
+  Recognized brace-delimited item macros, including qualified ASCII/raw paths,
+  end at their balanced closing brace and optional semicolon. Ambiguous angle
+  syntax, unmatched enclosing delimiters, comma-less members, nested block
+  expressions and unrecognized macros remain production. A source line is
+  inline-test only when every non-whitespace source character belongs to
+  proven test spans; mixed test/shipping lines remain production. These
+  conservative rules prevent a partial parser from consuming a following
+  shipping node. Attribute-like tokens inside macro definitions or invocations
+  are always production; only a cfg attribute outside and applying to a
+  recognized macro invocation may subtract the invocation.
   A test-only out-of-line `mod name;` recursively classifies the ordinary
   `name.rs` or `name/mod.rs` module tree. Nested inline-module context is part
   of resolution, so `mod tests { mod helper; }` resolves only under `tests/`
@@ -61,6 +74,9 @@ worktree; unrelated documentation changes do not invalidate source evidence.
   Test-only reachability is only a candidate: a fixed-point pass keeps a file
   and its descendants production whenever an active or unknown production edge
   also reaches it.
+- Issue [#275](https://github.com/hyperledger-identus/sdk-rust/issues/275)
+  tracks a non-published `syn` helper for broader full-syntax classification;
+  v1 does not claim that precision.
 - **Generated** Rust is excluded only when `code-health.toml` names its exact
   path and an exact marker present in the first ten lines. Generic phrases in
   comments never cause exclusion.

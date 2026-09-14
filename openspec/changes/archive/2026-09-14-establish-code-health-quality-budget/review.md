@@ -8,7 +8,10 @@ First review-remediation head: `34a197692af144cd53eeafed31175b8a9f8d2af4`
 Second review-remediation head: `88bcb1700170b184760e388634f5ebbf49aeb108`
 Third review-remediation head: `6096cab17a54882cf98e7044d8174610208ccdc4`
 Fourth review-remediation head: `2b948ebe47eb03fbf2207d6ba8b7ca2ca859c785`
-Final review-remediation head: `f1826db71de8f370bfb5cf3dd49f0725be2602bb`
+Fifth review-remediation head: `f1826db71de8f370bfb5cf3dd49f0725be2602bb`
+Sixth review-remediation head: `2acf13f4ccb18450b7ebc21294330ac095fd2c9e`
+Seventh review-remediation head: `3bafdbb7ebc3392e381316b28c3ec3afd627c32e`
+Final review-remediation head: `1521c242ffac901f37dea0766b1510ae2f5180dc`
 Planning head: `0a7ded352110474150e409aabcb3a2c4edfed661`
 Unresolved blockers: none
 
@@ -26,16 +29,21 @@ not changed.
 1. **Population integrity — accepted after correction.** The lexical pass
    blanks nested comments and Rust string/character forms while retaining
    offsets, balances attributes/items, includes a complete contiguous outer
-   attribute group, and terminates comma-delimited fields and variants without
-   consuming the next item. Ordinary out-of-line modules inherit a test-only
+   attribute group, and terminates supported comma-delimited nodes without
+   consuming the next item. Ambiguous angles, unmatched container delimiters,
+   comma-less members, nested block expressions and unrecognized macro forms
+   receive no test span; macro definition/invocation token contents and mixed
+   source lines remain production. Ordinary
+   out-of-line modules inherit a test-only
    declaration recursively with correct nested inline-module context. Only
    Cargo `tests/` and `benches/` targets are intrinsically external tests;
    `src/tests.rs` and its tree require proven test-only reachability. Macro token
    trees cannot create module edges, `#[path]` overrides fail closed, and outer
    line/block docs share their test-only item's span. The evaluator treats
    `test` as false and unknown target/feature predicates conservatively as
-   production. Deleted, modified or untracked Rust invalidates an exact
-   working-tree audit.
+   production. Raw module names normalize to their ordinary source filename,
+   and Unicode Rust lifetimes or labels cannot corrupt lexical boundaries.
+   Deleted, modified or untracked Rust invalidates an exact working-tree audit.
 2. **Metrics and anti-gaming — accepted.** The Nix lock supplies exact
    `rust-code-analysis-cli 0.0.25`; sorted paths and canonical JSON make output
    reproducible. A fast gate resolves the policy-pinned revision and recomputes
@@ -100,8 +108,17 @@ semicolon without consuming the next shipping item. A final cfg review found
 comments were parsed as tokens and `cfg_attr` application was ignored. Head
 `f1826db` preserves literal values while blanking nested comments, accepts raw
 strings and raw identifiers, and applies nested `cfg_attr` with conservative
-true/false/unknown semantics. Review found no remaining blocker in the final
-remediated diff.
+true/false/unknown semantics. Subsequent adversarial review showed that broader
+member/expression heuristics would become a partial Rust parser. Heads
+`2acf13f` and `3bafdbb` replace them with a strict no-hiding terminator
+whitelist, make mixed lines production-wins, normalize raw module identifiers,
+evaluate stable cfg booleans, preserve Unicode/unknown cfg conservatism, and
+recognize Unicode Rust lifetimes. Head `1521c24` additionally prevents
+attribute-like macro token-tree contents from being interpreted as source
+attributes, including the demonstrated macro that consumes a literal
+`#[cfg(test)]` token and emits its captured item without the attribute. Issue
+#275 tracks a future non-published `syn` classifier. Review found no remaining
+blocker in the final remediated diff.
 
 ## Review decision
 

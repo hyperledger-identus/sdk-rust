@@ -15,6 +15,7 @@
 - **Scheduler-truth remediation head:** `8086d4a162a630eba61071b10bd8b01a90608cdf`
 - **Scheduler-authority consistency head:** `dfa531735f4cf19248b9a3c45217bdff3d4c4236`
 - **Historical-authority clarification head:** `19f9927bac6d77196b0d4452c85b6bd8e79230f0`
+- **Supersession-notice clarification head:** `afb417143f6501dd270ce25d1376f6506d1bcdc9`
 - **Host:** aarch64-darwin
 - **Result:** passed with no unresolved blocker
 
@@ -100,6 +101,8 @@ Accepted ADRs and the reuse research retain their historical decisions but now
 carry an exact dated operational-status banner: desired cadence only, inactive
 GitHub schedule/dispatch, local/external execution, and #276 ownership. The
 checker requires that exact inactive statement across the bounded authority set.
+ADR 0064's current supersession notice uses the same clarification and is bound
+into that authority set.
 A direct `cargo nextest` invocation was
 unavailable outside the pinned shell; the recorded bootstrap invocation is the
 successful replacement. The Nix install fixup emitted a Darwin

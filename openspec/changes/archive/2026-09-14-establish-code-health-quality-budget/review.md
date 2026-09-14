@@ -16,6 +16,7 @@ Final review-remediation head: `8ef23489d4cded5cb635b970de9c4e1da360d711`
 Scheduler-truth remediation head: `8086d4a162a630eba61071b10bd8b01a90608cdf`
 Scheduler-authority consistency head: `dfa531735f4cf19248b9a3c45217bdff3d4c4236`
 Historical-authority clarification head: `19f9927bac6d77196b0d4452c85b6bd8e79230f0`
+Supersession-notice clarification head: `afb417143f6501dd270ce25d1376f6506d1bcdc9`
 Planning head: `0a7ded352110474150e409aabcb3a2c4edfed661`
 Unresolved blockers: none
 
@@ -141,7 +142,9 @@ in those current sources. Head `19f9927` adds a dated, exact inactive-status
 banner to every accepted ADR/research source that retains historical cadence
 wording and binds that bounded authority set in the checker. It also binds the
 corrected browser, crypto and DID evidence prose. Review found no remaining
-blocker in the final remediated diff.
+blocker except ADR 0064's top current supersession notice. Head `afb4171`
+aligns and validator-binds that last notice. No remaining blocker exists in the
+final remediated diff.
 
 ## Review decision
 

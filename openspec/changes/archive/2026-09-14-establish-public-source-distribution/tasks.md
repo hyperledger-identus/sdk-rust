@@ -17,4 +17,4 @@
 - [x] 3.2 Run formatting and workspace tests locally; route the canonical Nix
   build, lint, test and docs matrix to hosted `fast`.
 - [x] 3.3 Complete and record a distinct local review.
-- [ ] 3.4 Archive the reviewed OpenSpec change and open a signed issue-linked PR.
+- [x] 3.4 Archive the reviewed OpenSpec change and open a signed issue-linked PR.

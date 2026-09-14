@@ -14,6 +14,7 @@
 - **Final review-remediation head:** `8ef23489d4cded5cb635b970de9c4e1da360d711`
 - **Scheduler-truth remediation head:** `8086d4a162a630eba61071b10bd8b01a90608cdf`
 - **Scheduler-authority consistency head:** `dfa531735f4cf19248b9a3c45217bdff3d4c4236`
+- **Historical-authority clarification head:** `19f9927bac6d77196b0d4452c85b6bd8e79230f0`
 - **Host:** aarch64-darwin
 - **Result:** passed with no unresolved blocker
 
@@ -40,7 +41,7 @@ reduction.
 python3 scripts/code-health-audit.py --check-report docs/architecture/code-health-baseline.json
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --verify-baseline
 python3 scripts/tests/code-health-audit.py (37/37)
-python3 -m unittest scripts/tests/support-policy.py (172/172)
+python3 -m unittest scripts/tests/support-policy.py (173/173)
 python3 scripts/check-support-policy.py
 node --test scripts/tests/factory-operations.mjs (21/21)
 python3 scripts/check-apollo-parity.py
@@ -95,6 +96,10 @@ Independent review then found that broader current support, factory, target-plan
 and consumer evidence still used active weekly/manual wording. Head `dfa5317`
 aligns those canonical sources with local/external execution pending #276 and
 extends validation to reject stale active prose and the old target-plan policy.
+Accepted ADRs and the reuse research retain their historical decisions but now
+carry an exact dated operational-status banner: desired cadence only, inactive
+GitHub schedule/dispatch, local/external execution, and #276 ownership. The
+checker requires that exact inactive statement across the bounded authority set.
 A direct `cargo nextest` invocation was
 unavailable outside the pinned shell; the recorded bootstrap invocation is the
 successful replacement. The Nix install fixup emitted a Darwin

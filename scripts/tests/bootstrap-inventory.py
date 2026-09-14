@@ -31,6 +31,7 @@ class BootstrapInventoryTests(unittest.TestCase):
             "MAINTAINERS.md",
             "RELEASING.md",
             "SECURITY.md",
+            "docs/governance/repository-settings-receipt-2026-09-14.md",
             "Cargo.toml",
             "docs/architecture/sdk-bootstrap-inventory.md",
             "docs/architecture/sdk-bootstrap-inventory.toml",
@@ -319,10 +320,10 @@ class BootstrapInventoryTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("governance document is missing or empty: SECURITY.md", result.stderr)
 
-    def test_live_controls_cannot_be_claimed_active(self) -> None:
+    def test_live_controls_cannot_hide_enterprise_deviation(self) -> None:
         self.write_inventory(
             self.inventory_text().replace(
-                'live_controls_state = "external-action-required"',
+                'live_controls_state = "active-with-enterprise-deviation"',
                 'live_controls_state = "active"',
                 1,
             )
@@ -330,7 +331,7 @@ class BootstrapInventoryTests(unittest.TestCase):
         result = self.run_checker()
         self.assertNotEqual(result.returncode, 0)
         self.assertIn(
-            "repository.live_controls_state must be external-action-required",
+            "repository.live_controls_state must be active-with-enterprise-deviation",
             result.stderr,
         )
 

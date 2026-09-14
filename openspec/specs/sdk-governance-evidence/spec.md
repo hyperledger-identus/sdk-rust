@@ -178,18 +178,20 @@ The inventory SHALL require the repository's license, maintainer inheritance,
 governance, contribution, DCO, security, release, conduct, ownership and
 repository-settings records. It SHALL identify human maintainer release
 authority and SHALL record live GitHub activation as
-`external-action-required` under #26, not as a locally satisfied control.
+`active-with-enterprise-deviation` under #26 while the dated settings receipt
+identifies each active control and remaining enterprise-owned deviation.
 
 #### Scenario: Required governance record disappears
 
 - **WHEN** a required local governance path is missing or empty
 - **THEN** offline structural validation fails
 
-#### Scenario: Local evidence exists while live controls remain incomplete
+#### Scenario: Local evidence records partial live activation
 
-- **WHEN** repository-local records pass but protected GitHub activation has
-  not been completed
-- **THEN** IDR-001 remains `in_progress` and the inventory points to #26
+- **WHEN** the protected `develop` ruleset and repository security/community
+  controls are active but enterprise policy prevents a scanning control
+- **THEN** IDR-001 records the live merge boundary and the remaining deviation
+  explicitly without treating local evidence as authority to bypass it
 
 ### Requirement: Inventory drift validation is deterministic and offline
 

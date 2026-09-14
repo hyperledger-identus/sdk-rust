@@ -13,6 +13,7 @@
 
 mod compact;
 mod error;
+mod error_contract;
 mod header;
 mod limits;
 mod oid4vci;

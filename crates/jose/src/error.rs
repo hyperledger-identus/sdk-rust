@@ -2,7 +2,12 @@
 
 use std::fmt;
 
-use identus_core::{CapabilityId, ErrorKind, IdentusError};
+use identus_core::{CapabilityId, IdentusError};
+
+use crate::error_contract::{
+    ErrorContract, algorithm_key_registry_signing, compact_header, proof_key_evidence,
+    proof_policy_time_replay,
+};
 
 /// Owning capability for JWS Compact errors.
 pub const CAPABILITY: CapabilityId = CapabilityId::new("jose");
@@ -238,221 +243,81 @@ pub enum JoseError {
     ProofReplayUnavailable,
 }
 
+macro_rules! define_jose_error_contracts {
+    ($($variant:ident => $contract:path),+ $(,)?) => {
+        impl JoseError {
+            const fn contract(self) -> ErrorContract {
+                match self {
+                    $(Self::$variant => $contract),+
+                }
+            }
+
+            #[cfg(test)]
+            pub(crate) const CONTRACT_VARIANTS: &'static [Self] = &[
+                $(Self::$variant),+
+            ];
+        }
+    };
+}
+
+define_jose_error_contracts! {
+    InvalidLimits => compact_header::INVALID_LIMITS,
+    CompactTooLarge => compact_header::COMPACT_TOO_LARGE,
+    InvalidCompactStructure => compact_header::INVALID_COMPACT_STRUCTURE,
+    NonCanonicalBase64Url => compact_header::NON_CANONICAL_BASE64URL,
+    ProtectedHeaderTooLarge => compact_header::PROTECTED_HEADER_TOO_LARGE,
+    PayloadTooLarge => compact_header::PAYLOAD_TOO_LARGE,
+    SignatureTooLarge => compact_header::SIGNATURE_TOO_LARGE,
+    InvalidProtectedHeader => compact_header::INVALID_PROTECTED_HEADER,
+    DuplicateProtectedHeader => compact_header::DUPLICATE_PROTECTED_HEADER,
+    UnknownProtectedHeader => compact_header::UNKNOWN_PROTECTED_HEADER,
+    MissingAlgorithm => compact_header::MISSING_ALGORITHM,
+    InvalidHeaderValue => compact_header::INVALID_HEADER_VALUE,
+    AmbiguousKeyReference => compact_header::AMBIGUOUS_KEY_REFERENCE,
+    EmptySignature => compact_header::EMPTY_SIGNATURE,
+    SizeOverflow => compact_header::SIZE_OVERFLOW,
+    UnsupportedAlgorithm => algorithm_key_registry_signing::UNSUPPORTED_ALGORITHM,
+    AlgorithmMismatch => algorithm_key_registry_signing::ALGORITHM_MISMATCH,
+    InvalidVerificationKey => algorithm_key_registry_signing::INVALID_VERIFICATION_KEY,
+    InvalidRegistryCapacity => algorithm_key_registry_signing::INVALID_REGISTRY_CAPACITY,
+    RegistryFull => algorithm_key_registry_signing::REGISTRY_FULL,
+    DuplicateAlgorithm => algorithm_key_registry_signing::DUPLICATE_ALGORITHM,
+    AlgorithmNotAllowed => algorithm_key_registry_signing::ALGORITHM_NOT_ALLOWED,
+    InvalidSignatureLength => algorithm_key_registry_signing::INVALID_SIGNATURE_LENGTH,
+    SigningRejected => algorithm_key_registry_signing::SIGNING_REJECTED,
+    SignerUnavailable => algorithm_key_registry_signing::SIGNER_UNAVAILABLE,
+    SignatureInvalid => algorithm_key_registry_signing::SIGNATURE_INVALID,
+    InvalidProofClaims => proof_key_evidence::INVALID_PROOF_CLAIMS,
+    InvalidProofType => proof_key_evidence::INVALID_PROOF_TYPE,
+    MissingProofKeyReference => proof_key_evidence::MISSING_PROOF_KEY_REFERENCE,
+    UnsupportedProofKeyReference => proof_key_evidence::UNSUPPORTED_PROOF_KEY_REFERENCE,
+    ProofKeyResolutionFailed => proof_key_evidence::PROOF_KEY_RESOLUTION_FAILED,
+    ProofKeyNotAuthorized => proof_key_evidence::PROOF_KEY_NOT_AUTHORIZED,
+    X5cProviderRequired => proof_key_evidence::X5C_PROVIDER_REQUIRED,
+    X5cRejected => proof_key_evidence::X5C_REJECTED,
+    X5cProviderUnavailable => proof_key_evidence::X5C_PROVIDER_UNAVAILABLE,
+    InvalidProofEvidence => proof_key_evidence::INVALID_PROOF_EVIDENCE,
+    TrustChainProviderRequired => proof_key_evidence::TRUST_CHAIN_PROVIDER_REQUIRED,
+    TrustChainRejected => proof_key_evidence::TRUST_CHAIN_REJECTED,
+    TrustChainProviderUnavailable => proof_key_evidence::TRUST_CHAIN_PROVIDER_UNAVAILABLE,
+    KeyAttestationProviderRequired => proof_key_evidence::KEY_ATTESTATION_PROVIDER_REQUIRED,
+    KeyAttestationRejected => proof_key_evidence::KEY_ATTESTATION_REJECTED,
+    KeyAttestationProviderUnavailable => proof_key_evidence::KEY_ATTESTATION_PROVIDER_UNAVAILABLE,
+    InvalidProofPolicy => proof_policy_time_replay::INVALID_PROOF_POLICY,
+    ProofClientMismatch => proof_policy_time_replay::PROOF_CLIENT_MISMATCH,
+    ProofAudienceMismatch => proof_policy_time_replay::PROOF_AUDIENCE_MISMATCH,
+    ProofNonceMismatch => proof_policy_time_replay::PROOF_NONCE_MISMATCH,
+    ProofStale => proof_policy_time_replay::PROOF_STALE,
+    ProofIssuedInFuture => proof_policy_time_replay::PROOF_ISSUED_IN_FUTURE,
+    ProofClockUnavailable => proof_policy_time_replay::PROOF_CLOCK_UNAVAILABLE,
+    ProofReplayRejected => proof_policy_time_replay::PROOF_REPLAY_REJECTED,
+    ProofReplayUnavailable => proof_policy_time_replay::PROOF_REPLAY_UNAVAILABLE,
+}
+
 impl JoseError {
     /// Convert to the workspace-wide redaction-safe error contract.
     pub const fn to_identus_error(self) -> IdentusError {
-        let (code, message) = match self {
-            Self::InvalidLimits => (error_code::INVALID_LIMITS, "JWS limits are invalid"),
-            Self::CompactTooLarge => (
-                error_code::COMPACT_TOO_LARGE,
-                "JWS compact input is too large",
-            ),
-            Self::InvalidCompactStructure => (
-                error_code::INVALID_COMPACT_STRUCTURE,
-                "JWS compact structure is invalid",
-            ),
-            Self::NonCanonicalBase64Url => (
-                error_code::NON_CANONICAL_BASE64URL,
-                "JWS segment encoding is invalid",
-            ),
-            Self::ProtectedHeaderTooLarge => (
-                error_code::PROTECTED_HEADER_TOO_LARGE,
-                "JWS protected header is too large",
-            ),
-            Self::PayloadTooLarge => (error_code::PAYLOAD_TOO_LARGE, "JWS payload is too large"),
-            Self::SignatureTooLarge => (
-                error_code::SIGNATURE_TOO_LARGE,
-                "JWS signature is too large",
-            ),
-            Self::InvalidProtectedHeader => (
-                error_code::INVALID_PROTECTED_HEADER,
-                "JWS protected header is invalid",
-            ),
-            Self::DuplicateProtectedHeader => (
-                error_code::DUPLICATE_PROTECTED_HEADER,
-                "JWS protected header repeats a member",
-            ),
-            Self::UnknownProtectedHeader => (
-                error_code::UNKNOWN_PROTECTED_HEADER,
-                "JWS protected header member is unsupported",
-            ),
-            Self::MissingAlgorithm => (
-                error_code::MISSING_ALGORITHM,
-                "JWS protected header algorithm is missing",
-            ),
-            Self::InvalidHeaderValue => (
-                error_code::INVALID_HEADER_VALUE,
-                "JWS protected header value is invalid",
-            ),
-            Self::AmbiguousKeyReference => (
-                error_code::AMBIGUOUS_KEY_REFERENCE,
-                "JWS protected header key reference is ambiguous",
-            ),
-            Self::EmptySignature => (error_code::EMPTY_SIGNATURE, "JWS signature is empty"),
-            Self::SizeOverflow => (error_code::SIZE_OVERFLOW, "JWS size is invalid"),
-            Self::UnsupportedAlgorithm => (
-                error_code::UNSUPPORTED_ALGORITHM,
-                "JWS algorithm is unsupported",
-            ),
-            Self::AlgorithmMismatch => (
-                error_code::ALGORITHM_MISMATCH,
-                "JWS algorithm binding does not match",
-            ),
-            Self::InvalidVerificationKey => (
-                error_code::INVALID_VERIFICATION_KEY,
-                "JWS verification key is invalid",
-            ),
-            Self::InvalidRegistryCapacity => (
-                error_code::INVALID_REGISTRY_CAPACITY,
-                "JWS signature registry capacity is invalid",
-            ),
-            Self::RegistryFull => (error_code::REGISTRY_FULL, "JWS signature registry is full"),
-            Self::DuplicateAlgorithm => (
-                error_code::DUPLICATE_ALGORITHM,
-                "JWS signature algorithm is already registered",
-            ),
-            Self::AlgorithmNotAllowed => (
-                error_code::ALGORITHM_NOT_ALLOWED,
-                "JWS signature algorithm is not allowed",
-            ),
-            Self::InvalidSignatureLength => (
-                error_code::INVALID_SIGNATURE_LENGTH,
-                "JWS signature length is invalid",
-            ),
-            Self::SigningRejected => (
-                error_code::SIGNING_REJECTED,
-                "JWS signing operation was rejected",
-            ),
-            Self::SignerUnavailable => {
-                (error_code::SIGNER_UNAVAILABLE, "JWS signer is unavailable")
-            }
-            Self::SignatureInvalid => (
-                error_code::SIGNATURE_INVALID,
-                "JWS signature verification failed",
-            ),
-            Self::InvalidProofClaims => (
-                error_code::INVALID_PROOF_CLAIMS,
-                "OID4VCI proof JWT claims are invalid",
-            ),
-            Self::InvalidProofType => (
-                error_code::INVALID_PROOF_TYPE,
-                "OID4VCI proof JWT type is invalid",
-            ),
-            Self::MissingProofKeyReference => (
-                error_code::MISSING_PROOF_KEY_REFERENCE,
-                "OID4VCI proof JWT key reference is missing",
-            ),
-            Self::UnsupportedProofKeyReference => (
-                error_code::UNSUPPORTED_PROOF_KEY_REFERENCE,
-                "OID4VCI proof JWT key reference is unsupported",
-            ),
-            Self::ProofKeyResolutionFailed => (
-                error_code::PROOF_KEY_RESOLUTION_FAILED,
-                "OID4VCI proof JWT key resolution failed",
-            ),
-            Self::ProofKeyNotAuthorized => (
-                error_code::PROOF_KEY_NOT_AUTHORIZED,
-                "OID4VCI proof JWT key is not authorized",
-            ),
-            Self::X5cProviderRequired => (
-                error_code::X5C_PROVIDER_REQUIRED,
-                "OID4VCI proof JWT certificate provider is required",
-            ),
-            Self::X5cRejected => (
-                error_code::X5C_REJECTED,
-                "OID4VCI proof JWT certificate chain was rejected",
-            ),
-            Self::X5cProviderUnavailable => (
-                error_code::X5C_PROVIDER_UNAVAILABLE,
-                "OID4VCI proof JWT certificate provider is unavailable",
-            ),
-            Self::InvalidProofEvidence => (
-                error_code::INVALID_PROOF_EVIDENCE,
-                "OID4VCI proof JWT trust evidence is invalid",
-            ),
-            Self::TrustChainProviderRequired => (
-                error_code::TRUST_CHAIN_PROVIDER_REQUIRED,
-                "OID4VCI proof JWT trust-chain provider is required",
-            ),
-            Self::TrustChainRejected => (
-                error_code::TRUST_CHAIN_REJECTED,
-                "OID4VCI proof JWT trust chain was rejected",
-            ),
-            Self::TrustChainProviderUnavailable => (
-                error_code::TRUST_CHAIN_PROVIDER_UNAVAILABLE,
-                "OID4VCI proof JWT trust-chain provider is unavailable",
-            ),
-            Self::KeyAttestationProviderRequired => (
-                error_code::KEY_ATTESTATION_PROVIDER_REQUIRED,
-                "OID4VCI proof JWT key-attestation validator is required",
-            ),
-            Self::KeyAttestationRejected => (
-                error_code::KEY_ATTESTATION_REJECTED,
-                "OID4VCI proof JWT key attestation was rejected",
-            ),
-            Self::KeyAttestationProviderUnavailable => (
-                error_code::KEY_ATTESTATION_PROVIDER_UNAVAILABLE,
-                "OID4VCI proof JWT key-attestation validator is unavailable",
-            ),
-            Self::InvalidProofPolicy => (
-                error_code::INVALID_PROOF_POLICY,
-                "OID4VCI proof JWT policy is invalid",
-            ),
-            Self::ProofClientMismatch => (
-                error_code::PROOF_CLIENT_MISMATCH,
-                "OID4VCI proof JWT client does not match",
-            ),
-            Self::ProofAudienceMismatch => (
-                error_code::PROOF_AUDIENCE_MISMATCH,
-                "OID4VCI proof JWT audience does not match",
-            ),
-            Self::ProofNonceMismatch => (
-                error_code::PROOF_NONCE_MISMATCH,
-                "OID4VCI proof JWT nonce does not match",
-            ),
-            Self::ProofStale => (error_code::PROOF_STALE, "OID4VCI proof JWT is stale"),
-            Self::ProofIssuedInFuture => (
-                error_code::PROOF_ISSUED_IN_FUTURE,
-                "OID4VCI proof JWT issuance time is in the future",
-            ),
-            Self::ProofClockUnavailable => (
-                error_code::PROOF_CLOCK_UNAVAILABLE,
-                "OID4VCI proof JWT clock is unavailable",
-            ),
-            Self::ProofReplayRejected => (
-                error_code::PROOF_REPLAY_REJECTED,
-                "OID4VCI proof JWT replay was rejected",
-            ),
-            Self::ProofReplayUnavailable => (
-                error_code::PROOF_REPLAY_UNAVAILABLE,
-                "OID4VCI proof JWT replay guard is unavailable",
-            ),
-        };
-        let kind = match self {
-            Self::UnsupportedAlgorithm
-            | Self::AlgorithmNotAllowed
-            | Self::UnsupportedProofKeyReference => ErrorKind::Unsupported,
-            Self::SigningRejected | Self::SignerUnavailable => ErrorKind::Crypto,
-            Self::X5cProviderUnavailable
-            | Self::TrustChainProviderUnavailable
-            | Self::KeyAttestationProviderUnavailable
-            | Self::ProofClockUnavailable
-            | Self::ProofReplayUnavailable => ErrorKind::Internal,
-            Self::SignatureInvalid
-            | Self::ProofKeyResolutionFailed
-            | Self::ProofKeyNotAuthorized
-            | Self::X5cRejected
-            | Self::TrustChainRejected
-            | Self::KeyAttestationRejected
-            | Self::ProofClientMismatch
-            | Self::ProofAudienceMismatch
-            | Self::ProofNonceMismatch
-            | Self::ProofStale
-            | Self::ProofIssuedInFuture
-            | Self::ProofReplayRejected => ErrorKind::VerificationFailed,
-            _ => ErrorKind::InvalidInput,
-        };
-        IdentusError::public(code, kind, CAPABILITY, message)
+        self.contract().to_identus_error()
     }
 }
 
@@ -464,7 +329,7 @@ impl From<JoseError> for IdentusError {
 
 impl fmt::Display for JoseError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(self.to_identus_error().public_message())
+        formatter.write_str(self.contract().message())
     }
 }
 

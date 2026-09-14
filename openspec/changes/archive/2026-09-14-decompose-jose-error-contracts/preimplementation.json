@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 280,
+  "change": "decompose-jose-error-contracts",
+  "branch": "codex/refactor/issue-280",
+  "baseRef": "origin/develop",
+  "baseSha": "c32c1c8cd0194466a8c7fbfaa8c050f4bf2971a1",
+  "contractHeadSha": "6a87eea9595b9e778d82d0802f52d1b0035c5e9e",
+  "createdAt": "2026-09-14T18:16:50.407Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

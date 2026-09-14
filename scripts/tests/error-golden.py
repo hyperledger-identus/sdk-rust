@@ -266,7 +266,7 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
     require_error(checker, broken_active, binding, "active OpenSpec change must be a regular")
 
     reauthorized = test_root / f"{prefix}-coordinated-reauthorized-drift"
-    active_fixture(reauthorized, binding, payload)
+    reauthorized.mkdir()
     subprocess.run(["git", "init", "-q", str(reauthorized)], check=True)
     subprocess.run(
         ["git", "-C", str(reauthorized), "config", "user.name", "Golden Test"],
@@ -283,7 +283,37 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
         ],
         check=True,
     )
-    subprocess.run(["git", "-C", str(reauthorized), "add", "."], check=True)
+    subprocess.run(
+        ["git", "-C", str(reauthorized), "commit", "-q", "--allow-empty", "-m", "base"],
+        check=True,
+    )
+    base_sha = subprocess.run(
+        ["git", "-C", str(reauthorized), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    test_payload = payload.replace(
+        f"# source_revision={binding.source_revision}".encode(),
+        f"# source_revision={base_sha}".encode(),
+        1,
+    )
+    test_binding = replace(
+        binding,
+        source_revision=base_sha,
+        expected_sha256=hashlib.sha256(test_payload).hexdigest(),
+    )
+    write(reauthorized / test_binding.active, test_payload)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(reauthorized),
+            "add",
+            str(test_binding.active),
+        ],
+        check=True,
+    )
     subprocess.run(
         ["git", "-C", str(reauthorized), "commit", "-q", "-m", "planning"],
         check=True,
@@ -294,18 +324,70 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
         capture_output=True,
         text=True,
     ).stdout.strip()
+    receipt_path = reauthorized / test_binding.active_change / "preimplementation.json"
     receipt = {
-        "change": binding.change_name,
+        "schemaVersion": 1,
+        "repository": "hyperledger-identus/sdk-rust",
+        "issue": test_binding.issue,
+        "change": test_binding.change_name,
+        "branch": test_binding.branch,
+        "baseRef": "origin/develop",
+        "baseSha": base_sha,
         "contractHeadSha": contract_head,
+        "createdAt": "2026-09-15T00:00:00.000Z",
+        "researchReady": True,
+        "constraintsReady": True,
+        "strictValidation": True,
     }
     write(
-        reauthorized / binding.active_change / "preimplementation.json",
-        f"{json.dumps(receipt)}\n".encode(),
+        receipt_path,
+        f"{json.dumps(receipt, indent=2)}\n".encode(),
     )
-    replace_both(reauthorized, binding, *drift)
-    changed_payload = (reauthorized / binding.stable).read_bytes()
+    write(reauthorized / test_binding.stable, test_payload)
+    source_snapshot = os.environ.pop(checker.SOURCE_SNAPSHOT_ENV, None)
+    try:
+        if errors := checker.validate_binding(reauthorized, test_binding):
+            raise AssertionError(f"valid hermetic receipt failed for {prefix}: {errors!r}")
+        receipt["schemaVersion"] = True
+        write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+        errors = checker.validate_binding(reauthorized, test_binding)
+        if not any("receipt identity is invalid" in error for error in errors):
+            raise AssertionError(
+                f"boolean schema version was accepted for {prefix}: {errors!r}"
+            )
+        receipt["schemaVersion"] = 1
+        write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+    finally:
+        if source_snapshot is not None:
+            os.environ[checker.SOURCE_SNAPSHOT_ENV] = source_snapshot
+
+    replace_both(reauthorized, test_binding, *drift)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(reauthorized),
+            "add",
+            str(test_binding.stable),
+            str(test_binding.active),
+        ],
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(reauthorized), "commit", "-q", "-m", "drift"],
+        check=True,
+    )
+    drift_head = subprocess.run(
+        ["git", "-C", str(reauthorized), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    receipt["contractHeadSha"] = drift_head
+    write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+    changed_payload = (reauthorized / test_binding.stable).read_bytes()
     changed_binding = replace(
-        binding,
+        test_binding,
         expected_sha256=hashlib.sha256(changed_payload).hexdigest(),
     )
     source_snapshot = os.environ.pop(checker.SOURCE_SNAPSHOT_ENV, None)
@@ -314,9 +396,13 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
     finally:
         if source_snapshot is not None:
             os.environ[checker.SOURCE_SNAPSHOT_ENV] = source_snapshot
-    if not any("receipt contractHeadSha blob" in error for error in errors):
+    if not any(
+        marker in error
+        for error in errors
+        for marker in ("contract head is not planning-only", "planning diff is incomplete")
+    ):
         raise AssertionError(
-            f"coordinated re-authorization was accepted for {prefix}: {errors!r}"
+            f"post-drift receipt retarget was accepted for {prefix}: {errors!r}"
         )
 
 
@@ -336,6 +422,12 @@ def main() -> int:
             checker.PRESENTATIONS,
             (b"presentation query id is invalid", b"presentation query id was invalid"),
         )
+        run_binding_cases(
+            checker,
+            test_root,
+            checker.JOSE,
+            (b"JWS limits are invalid", b"JWS limits were invalid"),
+        )
 
         combined = test_root / "combined-active-bindings"
         for binding in checker.BINDINGS:
@@ -347,7 +439,7 @@ def main() -> int:
         if errors := checker.validate(combined, trusted_contracts):
             raise AssertionError(f"combined binding validation failed: {errors!r}")
 
-    print("error-golden test: 47 credentials/presentations binding cases passed")
+    print("error-golden test: 76 credentials/presentations/JOSE binding cases passed")
     return 0
 
 

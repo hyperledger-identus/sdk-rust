@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -62,6 +64,7 @@ PRESENTATIONS = GoldenBinding(
     generated_at="2026-09-15",
 )
 BINDINGS = (CREDENTIALS, PRESENTATIONS)
+SOURCE_SNAPSHOT_ENV = "SDK_ERROR_GOLDEN_SOURCE_SNAPSHOT"
 
 
 def has_symlink_component(path: Path, root: Path) -> bool:
@@ -160,7 +163,74 @@ def read_rooted_bytes(
         return None
 
 
-def validate_binding(root: Path, binding: GoldenBinding) -> list[str]:
+def read_contract_head_bytes(
+    root: Path,
+    binding: GoldenBinding,
+    planning_path: Path,
+    errors: list[str],
+) -> bytes | None:
+    """Read the planning golden from the immutable preflight Git commit."""
+    if os.environ.get(SOURCE_SNAPSHOT_ENV) == "1":
+        return None
+
+    receipt_path = planning_path.parent.parent / "preimplementation.json"
+    receipt_bytes = read_rooted_bytes(
+        receipt_path,
+        root,
+        f"{binding.label} preimplementation receipt",
+        errors,
+    )
+    if receipt_bytes is None:
+        return None
+    try:
+        receipt = json.loads(receipt_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        errors.append(f"{binding.label} preimplementation receipt must be valid JSON")
+        return None
+
+    contract_head = receipt.get("contractHeadSha")
+    if (
+        receipt.get("change") != binding.change_name
+        or not isinstance(contract_head, str)
+        or len(contract_head) != 40
+        or any(character not in "0123456789abcdef" for character in contract_head)
+    ):
+        errors.append(f"{binding.label} preimplementation receipt identity is invalid")
+        return None
+
+    original_path = (
+        Path("openspec/changes")
+        / binding.change_name
+        / "golden"
+        / binding.file_name
+    )
+    try:
+        top_level = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        if Path(top_level).resolve() != root.resolve():
+            errors.append(f"{binding.label} repository root does not match Git top-level")
+            return None
+        return subprocess.run(
+            ["git", "-C", str(root), "show", f"{contract_head}:{original_path}"],
+            check=True,
+            capture_output=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        errors.append(
+            f"{binding.label} planning golden must resolve from receipt contractHeadSha"
+        )
+        return None
+
+
+def validate_binding(
+    root: Path,
+    binding: GoldenBinding,
+    trusted_contract: bytes | None = None,
+) -> list[str]:
     errors: list[str] = []
     stable = read_rooted_bytes(
         root / binding.stable,
@@ -181,6 +251,16 @@ def validate_binding(root: Path, binding: GoldenBinding) -> list[str]:
     )
     if stable is None or planning is None:
         return errors
+
+    contract = (
+        trusted_contract
+        if trusted_contract is not None
+        else read_contract_head_bytes(root, binding, planning_path, errors)
+    )
+    if contract is not None and planning != contract:
+        errors.append(
+            f"{binding.label} planning golden must match its receipt contractHeadSha blob"
+        )
 
     if stable != planning:
         errors.append(
@@ -218,10 +298,18 @@ def validate_binding(root: Path, binding: GoldenBinding) -> list[str]:
     return errors
 
 
-def validate(root: Path) -> list[str]:
+def validate(
+    root: Path,
+    trusted_contracts: dict[str, bytes] | None = None,
+) -> list[str]:
     errors: list[str] = []
     for binding in BINDINGS:
-        errors.extend(validate_binding(root, binding))
+        trusted = (
+            trusted_contracts.get(binding.label)
+            if trusted_contracts is not None
+            else None
+        )
+        errors.extend(validate_binding(root, binding, trusted))
     return errors
 
 

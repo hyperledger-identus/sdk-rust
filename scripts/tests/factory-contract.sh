@@ -2,6 +2,10 @@
 
 set -euo pipefail
 export PYTHONDONTWRITEBYTECODE=1
+# The synthetic fixture has no repository history. Its mutation suite injects
+# the trusted planning blobs directly; the outer Git-backed factory run binds
+# real fixtures to each receipt's contractHeadSha.
+export SDK_ERROR_GOLDEN_SOURCE_SNAPSHOT=1
 
 if repository_root=$(git rev-parse --show-toplevel 2>/dev/null); then
   :

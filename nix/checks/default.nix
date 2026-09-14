@@ -57,8 +57,13 @@
         rust-source-contract = pkgs.runCommand "rust-source-contract" { src = cleanedSrc; } ''
           test -f "$src/crates/credentials/tests/fixtures/credentials-error-contract-v1.csv"
           test -f "$src/crates/presentations/tests/fixtures/presentations-error-contract-v1.csv"
-          test ! -e "$src/openspec/changes/decompose-public-error-contracts/golden/credentials-error-contract-v1.csv"
-          test ! -e "$src/openspec/changes/decompose-presentation-error-contracts/golden/presentations-error-contract-v1.csv"
+          if find "$src/openspec/changes" -type f \
+            \( -name credentials-error-contract-v1.csv \
+               -o -name presentations-error-contract-v1.csv \) \
+            -print -quit | grep -q .; then
+            echo "planning error golden entered cleaned Rust sources" >&2
+            exit 1
+          fi
           touch "$out"
         '';
       };

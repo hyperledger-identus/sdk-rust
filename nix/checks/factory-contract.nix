@@ -33,6 +33,9 @@ stdenvNoCC.mkDerivation {
   doCheck = true;
   checkPhase = ''
     export OPENSPEC_TELEMETRY=0
+    # cleanSource intentionally excludes .git. Git-backed local/hosted factory
+    # runs additionally bind each golden to its preflight contractHeadSha.
+    export SDK_ERROR_GOLDEN_SOURCE_SNAPSHOT=1
     patchShebangs scripts
     scripts/tests/factory-contract.sh
     node --test scripts/tests/factory-operations.mjs

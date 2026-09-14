@@ -3,9 +3,14 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
+import json
+import os
 import shutil
+import subprocess
 import tempfile
+from dataclasses import replace
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -58,7 +63,7 @@ def archive_fixture(checker, root: Path, binding, payload: bytes) -> None:
 
 
 def require_error(checker, root: Path, binding, expected: str) -> None:
-    errors = checker.validate_binding(root, binding)
+    errors = checker.validate_binding(root, binding, planning_payload(checker, binding))
     if not any(expected in error for error in errors):
         raise AssertionError(f"mutation was accepted; expected {expected!r}, got {errors!r}")
 
@@ -78,13 +83,13 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
 
     active = test_root / f"{prefix}-active"
     active_fixture(active, binding, payload)
-    if errors := checker.validate_binding(active, binding):
+    if errors := checker.validate_binding(active, binding, payload):
         raise AssertionError(f"{prefix} active fixture failed: {errors!r}")
 
     archived = test_root / f"{prefix}-archived"
     shutil.copytree(active, archived)
     archive_fixture(checker, archived, binding, payload)
-    if errors := checker.validate_binding(archived, binding):
+    if errors := checker.validate_binding(archived, binding, payload):
         raise AssertionError(f"{prefix} archive fixture failed: {errors!r}")
 
     coordinated = test_root / f"{prefix}-coordinated-row-drift"
@@ -260,6 +265,60 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
     )
     require_error(checker, broken_active, binding, "active OpenSpec change must be a regular")
 
+    reauthorized = test_root / f"{prefix}-coordinated-reauthorized-drift"
+    active_fixture(reauthorized, binding, payload)
+    subprocess.run(["git", "init", "-q", str(reauthorized)], check=True)
+    subprocess.run(
+        ["git", "-C", str(reauthorized), "config", "user.name", "Golden Test"],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(reauthorized),
+            "config",
+            "user.email",
+            "golden-test@example.com",
+        ],
+        check=True,
+    )
+    subprocess.run(["git", "-C", str(reauthorized), "add", "."], check=True)
+    subprocess.run(
+        ["git", "-C", str(reauthorized), "commit", "-q", "-m", "planning"],
+        check=True,
+    )
+    contract_head = subprocess.run(
+        ["git", "-C", str(reauthorized), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    receipt = {
+        "change": binding.change_name,
+        "contractHeadSha": contract_head,
+    }
+    write(
+        reauthorized / binding.active_change / "preimplementation.json",
+        f"{json.dumps(receipt)}\n".encode(),
+    )
+    replace_both(reauthorized, binding, *drift)
+    changed_payload = (reauthorized / binding.stable).read_bytes()
+    changed_binding = replace(
+        binding,
+        expected_sha256=hashlib.sha256(changed_payload).hexdigest(),
+    )
+    source_snapshot = os.environ.pop(checker.SOURCE_SNAPSHOT_ENV, None)
+    try:
+        errors = checker.validate_binding(reauthorized, changed_binding)
+    finally:
+        if source_snapshot is not None:
+            os.environ[checker.SOURCE_SNAPSHOT_ENV] = source_snapshot
+    if not any("receipt contractHeadSha blob" in error for error in errors):
+        raise AssertionError(
+            f"coordinated re-authorization was accepted for {prefix}: {errors!r}"
+        )
+
 
 def main() -> int:
     checker = load_checker()
@@ -281,10 +340,14 @@ def main() -> int:
         combined = test_root / "combined-active-bindings"
         for binding in checker.BINDINGS:
             active_fixture(combined, binding, planning_payload(checker, binding))
-        if errors := checker.validate(combined):
+        trusted_contracts = {
+            binding.label: planning_payload(checker, binding)
+            for binding in checker.BINDINGS
+        }
+        if errors := checker.validate(combined, trusted_contracts):
             raise AssertionError(f"combined binding validation failed: {errors!r}")
 
-    print("error-golden test: 45 credentials/presentations binding cases passed")
+    print("error-golden test: 47 credentials/presentations binding cases passed")
     return 0
 
 

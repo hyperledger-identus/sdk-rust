@@ -1,7 +1,4 @@
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    error::Error as _,
-};
+use std::{collections::BTreeSet, error::Error as _};
 
 use identus_core::{ErrorCode, ErrorKind, IdentusError};
 use identus_presentations::{PresentationError, error::error_code};
@@ -129,7 +126,7 @@ fn every_presentation_error_matches_the_planning_golden() {
     let mut lines = GOLDEN.lines().filter(|line| !line.starts_with('#'));
     assert_eq!(lines.next(), Some(GOLDEN_HEADER));
 
-    let mut rows = BTreeMap::new();
+    let mut rows = Vec::new();
     for (index, line) in lines.enumerate() {
         let columns: Vec<_> = line.split(',').collect();
         assert_eq!(
@@ -138,19 +135,13 @@ fn every_presentation_error_matches_the_planning_golden() {
             "golden data row {} must have exactly 11 columns",
             index + 1
         );
-        let key = (columns[0], columns[1]);
-        assert!(
-            rows.insert(key, columns).is_none(),
-            "duplicate golden row for {}::{}",
-            key.0,
-            key.1
-        );
+        rows.push(columns);
     }
     assert_eq!(rows.len(), 48, "golden must contain exactly 48 rows");
 
     let mut constant_names = BTreeSet::new();
     let mut stable_codes = BTreeSet::new();
-    for case in CASES {
+    for (index, (case, row)) in CASES.into_iter().zip(rows).enumerate() {
         assert!(
             constant_names.insert(case.code_constant),
             "duplicate constant inventory entry {}",
@@ -162,23 +153,21 @@ fn every_presentation_error_matches_the_planning_golden() {
             case.code
         );
 
-        let row = rows
-            .remove(&("PresentationError", case.variant))
-            .unwrap_or_else(|| {
-                panic!("missing golden row for PresentationError::{}", case.variant)
-            });
         let local_display = case.error.to_string();
         let public = case.error.to_identus_error();
+        let from_public = IdentusError::from(case.error);
         let identus_display = public.to_string();
         let debug_variant = format!("{:?}", case.error);
 
         assert_eq!(row[0], "PresentationError");
         assert_eq!(row[1], case.variant);
+        assert_eq!(case.error as usize, index, "public enum order drifted");
         assert_eq!(debug_variant, case.variant);
         assert_eq!(row[2], case.code_constant);
         assert_eq!(row[3], "public");
         assert_eq!(row[4], case.code.as_str());
         assert_eq!(public, case.const_public);
+        assert_eq!(from_public, public);
         assert_eq!(public.code(), case.code);
         assert_eq!(row[4], public.code().as_str());
         assert_eq!(row[5], kind_name(public.kind()));
@@ -211,7 +200,6 @@ fn every_presentation_error_matches_the_planning_golden() {
         }
     }
 
-    assert!(rows.is_empty(), "golden contains an unenumerated variant");
     assert_eq!(constant_names.len(), 48);
     assert_eq!(stable_codes.len(), 48);
 }

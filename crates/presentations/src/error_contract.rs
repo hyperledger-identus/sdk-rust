@@ -33,30 +33,28 @@ impl ErrorContract {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeSet;
-
     use crate::PresentationError;
 
     const GOLDEN: &str = include_str!("../tests/fixtures/presentations-error-contract-v1.csv");
 
-    fn fixture_variants() -> BTreeSet<String> {
+    fn fixture_variants() -> Vec<String> {
         let mut lines = GOLDEN.lines().filter(|line| !line.starts_with('#'));
         let header = lines.next().expect("golden header");
         assert_eq!(header.split(',').count(), 11);
 
-        let mut variants = BTreeSet::new();
+        let mut variants = Vec::new();
         for line in lines {
             let columns: Vec<_> = line.split(',').collect();
             assert_eq!(columns.len(), 11);
             assert_eq!(columns[0], "PresentationError");
-            assert!(variants.insert(columns[1].to_owned()));
+            variants.push(columns[1].to_owned());
         }
         variants
     }
 
     #[test]
     fn compile_exhaustive_variant_inventory_equals_fixture_keys() {
-        let variants: BTreeSet<_> = PresentationError::CONTRACT_VARIANTS
+        let variants: Vec<_> = PresentationError::CONTRACT_VARIANTS
             .iter()
             .map(|error| format!("{error:?}"))
             .collect();

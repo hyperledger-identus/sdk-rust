@@ -22,9 +22,9 @@
 
 ## 3. Evidence and delivery
 
-- [ ] 3.1 Run focused/default/minimal/all-feature tests, Clippy, docs, format,
+- [x] 3.1 Run focused/default/minimal/all-feature tests, Clippy, docs, format,
   public API/dependency diffs and maintainability measurements.
-- [ ] 3.2 Run direct WASM/Android/iOS checks plus applicable workspace Nix and
+- [x] 3.2 Run direct WASM/Android/iOS checks plus applicable workspace Nix and
   factory gates; preserve #7/#168 behavior and state target limits exactly.
 - [ ] 3.3 Resolve independent architecture/API/security and adversarial review,
   complete verification, ready/receipt/archive, and open one signed+DCO

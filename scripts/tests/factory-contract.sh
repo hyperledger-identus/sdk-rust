@@ -57,6 +57,7 @@ required_files=(
   docs/roadmap/ssi-upstream-dependency-backlog.csv
   docs/governance/agentic-sdlc.md
   docs/governance/constraints-and-limitations.md
+  docs/governance/repository-settings-receipt-2026-09-14.md
   docs/governance/repository-settings.md
   docs/governance/sdk-constraints.toml
   docs/adr/0001-bootstrap-branch-selection.md

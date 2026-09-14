@@ -2,6 +2,8 @@
 
 This file is the reviewable desired state for GitHub controls. Maintainers must
 compare it to the live settings after this governance packet reaches `develop`.
+The latest live comparison is the
+[2026-09-14 settings receipt](repository-settings-receipt-2026-09-14.md).
 
 ## `main` reserved-branch ruleset
 
@@ -48,11 +50,9 @@ nightly sanitizer statuses are weekly/manual evidence and are deliberately not
 required for active-development pull requests. Before any release candidate,
 ADR 0081 requires a new compatibility decision and current green slow evidence.
 
-After `fast` first succeeds on `develop`, a maintainer must add that exact
-status to the ruleset and use a test pull request to prove merge and auto-merge
-remain blocked while it is pending. The repository currently has no active
-`develop` branch protection, so documentation alone must not be represented as
-enforcement.
+The active `develop` ruleset requires these exact statuses and an up-to-date
+head. Each subsequent issue-linked pull request is continuing canary evidence
+that merge and auto-merge remain blocked while a required check is pending.
 
 CodeQL must not be represented as Rust coverage unless GitHub supports Rust for
 this repository. A ruleset must never require an impossible or differently
@@ -108,3 +108,13 @@ selected baseline plus governance commit. Immediately after creation,
 maintainers should apply the integration ruleset and reconcile workflow names,
 review requirements, Rust-compatible scanning, dependency policy and release
 controls with this target state.
+
+## Current activation
+
+Issue #26 activated the dedicated `develop` integration ruleset on 2026-09-14.
+Private vulnerability reporting, dependency alerts, Dependabot security updates
+and auto-merge are active. GitHub's enterprise policy rejected repository-level
+activation of secret scanning, push protection, non-provider patterns and
+validity checks. The dated receipt records the exact rules and this explicit
+enterprise-owned deviation; no repository workflow may represent those four
+controls as enabled.

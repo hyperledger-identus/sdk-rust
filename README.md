@@ -33,10 +33,11 @@ Wallet products keep custody, storage, consent, trust and UI policy.
 integration branch. It contains working validated-newtype, derivation,
 cryptography, DID, entropy-adapter and conformance foundations. The baseline
 also contains known bootstrap debt: quarantined placeholder names, version
-`0.0.0`, an enterprise-owned secret-scanning deviation, and no approved
-publishing ownership. Every package is `publish = false`. The protected
-`develop` integration controls are active. The MSRV and target lanes are
-executable; the remaining items are not evidence of a production release.
+`0.0.0`, enterprise-controlled secret-scanning gaps, and no approved publishing
+ownership. The protected `develop` integration ruleset and private
+vulnerability reporting are active. Every package is `publish = false`. The
+MSRV and target lanes are executable; the remaining items are not evidence of
+a production release.
 
 `main` remains intentionally minimal and is not an integration or release
 target until maintainers explicitly activate it through a later decision.

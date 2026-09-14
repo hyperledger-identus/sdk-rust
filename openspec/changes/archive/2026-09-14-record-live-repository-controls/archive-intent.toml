@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "sdk-governance-evidence"
+requirement      = "Governance evidence is local and release authority stays protected"
+canonical_sha256 = "d04bf872b78fcc8bcca630479de65dc9743a4759ef5ab29d85990d3959b70e8d"
+reason           = "Replace the pre-activation GitHub state with the sponsor-authorized live ruleset and explicit enterprise-owned scanning deviation."

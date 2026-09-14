@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 26,
+  "change": "record-live-repository-controls",
+  "branch": "codex/docs/issue-26",
+  "baseRef": "origin/develop",
+  "baseSha": "e197810b7d94cfa2e9182b7413110c5edac944db",
+  "contractHeadSha": "2b9a9178fb0572fc9ab42ec4b249e710e7a39103",
+  "createdAt": "2026-09-14T08:44:29.858Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

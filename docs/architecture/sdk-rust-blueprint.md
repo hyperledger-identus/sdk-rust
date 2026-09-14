@@ -248,10 +248,10 @@ quarantined; baseline limitations are documented.
 `IDR-002` and `IDR-003` are delivered by issue #22: the chain-neutral boundary
 and compatibility matrix are machine-enforced. Issue #25 delivers the
 repository-local governance/API inventory, publication denial and placeholder
-quarantine for `IDR-001`. The row remains in progress until accountable
-maintainers complete the public repository and protected-control activation in
-issue #26; namespace and trusted-publishing ownership remain separate under
-issue #3.
+quarantine for `IDR-001`. Issue #26 completes the public repository and
+protected `develop` control activation, so `IDR-001` is delivered. Secret
+scanning remains an explicit enterprise-owned deviation; namespace and
+trusted-publishing ownership remain separate under issue #3.
 
 ### B02 — namespace and release ownership (`#3`)
 

@@ -28,6 +28,8 @@ pub mod hdkey;
 #[cfg(feature = "derivation")]
 pub mod mnemonic;
 pub mod path;
+#[cfg(feature = "derivation")]
+mod secret;
 
 #[cfg(feature = "cardano-bip32")]
 pub use cardano_v2::{CardanoV2ExtendedPrivateKey, CardanoV2ExtendedPublicKey};
@@ -37,3 +39,5 @@ pub use edhdkey::EdHDKey;
 pub use hdkey::HDKey;
 #[cfg(feature = "derivation")]
 pub use mnemonic::MnemonicHelper;
+#[cfg(feature = "derivation")]
+pub use secret::HdKeySecretBytes;

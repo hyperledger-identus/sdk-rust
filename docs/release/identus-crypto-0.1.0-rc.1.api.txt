@@ -263,13 +263,13 @@ impl core::fmt::Debug for identus_crypto::derivation::cardano_v2::CardanoV2Exten
 pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 pub mod identus_crypto::derivation::edhdkey
 pub struct identus_crypto::derivation::edhdkey::EdHDKey
-pub identus_crypto::derivation::edhdkey::EdHDKey::chain_code: [u8; 32]
 pub identus_crypto::derivation::edhdkey::EdHDKey::depth: u32
 pub identus_crypto::derivation::edhdkey::EdHDKey::index: u32
-pub identus_crypto::derivation::edhdkey::EdHDKey::private_key: [u8; 32]
 impl identus_crypto::derivation::edhdkey::EdHDKey
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::expose_chain_code(&self) -> identus_crypto::derivation::HdKeySecretBytes
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::expose_private_key(&self) -> identus_crypto::derivation::HdKeySecretBytes
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
 impl core::fmt::Debug for identus_crypto::derivation::edhdkey::EdHDKey
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
@@ -279,13 +279,13 @@ impl zeroize::Zeroize for identus_crypto::derivation::edhdkey::EdHDKey
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::zeroize(&mut self)
 pub mod identus_crypto::derivation::hdkey
 pub struct identus_crypto::derivation::hdkey::HDKey
-pub identus_crypto::derivation::hdkey::HDKey::chain_code: [u8; 32]
 pub identus_crypto::derivation::hdkey::HDKey::child_index: u32
 pub identus_crypto::derivation::hdkey::HDKey::depth: u32
-pub identus_crypto::derivation::hdkey::HDKey::private_key: [u8; 32]
 impl identus_crypto::derivation::hdkey::HDKey
 pub fn identus_crypto::derivation::hdkey::HDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
 pub fn identus_crypto::derivation::hdkey::HDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::hdkey::HDKey::expose_chain_code(&self) -> identus_crypto::derivation::HdKeySecretBytes
+pub fn identus_crypto::derivation::hdkey::HDKey::expose_private_key(&self) -> identus_crypto::derivation::HdKeySecretBytes
 pub fn identus_crypto::derivation::hdkey::HDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
 impl core::fmt::Debug for identus_crypto::derivation::hdkey::HDKey
 pub fn identus_crypto::derivation::hdkey::HDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
@@ -351,13 +351,13 @@ pub const fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey:
 impl core::fmt::Debug for identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey
 pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPublicKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 pub struct identus_crypto::derivation::EdHDKey
-pub identus_crypto::derivation::EdHDKey::chain_code: [u8; 32]
 pub identus_crypto::derivation::EdHDKey::depth: u32
 pub identus_crypto::derivation::EdHDKey::index: u32
-pub identus_crypto::derivation::EdHDKey::private_key: [u8; 32]
 impl identus_crypto::derivation::edhdkey::EdHDKey
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::expose_chain_code(&self) -> identus_crypto::derivation::HdKeySecretBytes
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::expose_private_key(&self) -> identus_crypto::derivation::HdKeySecretBytes
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
 impl core::fmt::Debug for identus_crypto::derivation::edhdkey::EdHDKey
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
@@ -366,13 +366,13 @@ pub fn identus_crypto::derivation::edhdkey::EdHDKey::drop(&mut self)
 impl zeroize::Zeroize for identus_crypto::derivation::edhdkey::EdHDKey
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::zeroize(&mut self)
 pub struct identus_crypto::derivation::HDKey
-pub identus_crypto::derivation::HDKey::chain_code: [u8; 32]
 pub identus_crypto::derivation::HDKey::child_index: u32
 pub identus_crypto::derivation::HDKey::depth: u32
-pub identus_crypto::derivation::HDKey::private_key: [u8; 32]
 impl identus_crypto::derivation::hdkey::HDKey
 pub fn identus_crypto::derivation::hdkey::HDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
 pub fn identus_crypto::derivation::hdkey::HDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::hdkey::HDKey::expose_chain_code(&self) -> identus_crypto::derivation::HdKeySecretBytes
+pub fn identus_crypto::derivation::hdkey::HDKey::expose_private_key(&self) -> identus_crypto::derivation::HdKeySecretBytes
 pub fn identus_crypto::derivation::hdkey::HDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
 impl core::fmt::Debug for identus_crypto::derivation::hdkey::HDKey
 pub fn identus_crypto::derivation::hdkey::HDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
@@ -380,6 +380,15 @@ impl core::ops::drop::Drop for identus_crypto::derivation::hdkey::HDKey
 pub fn identus_crypto::derivation::hdkey::HDKey::drop(&mut self)
 impl zeroize::Zeroize for identus_crypto::derivation::hdkey::HDKey
 pub fn identus_crypto::derivation::hdkey::HDKey::zeroize(&mut self)
+pub struct identus_crypto::derivation::HdKeySecretBytes(_)
+impl identus_crypto::derivation::HdKeySecretBytes
+pub const fn identus_crypto::derivation::HdKeySecretBytes::expose_secret_bytes(&self) -> &[u8; 32]
+impl core::fmt::Debug for identus_crypto::derivation::HdKeySecretBytes
+pub fn identus_crypto::derivation::HdKeySecretBytes::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::ops::drop::Drop for identus_crypto::derivation::HdKeySecretBytes
+pub fn identus_crypto::derivation::HdKeySecretBytes::drop(&mut self)
+impl zeroize::Zeroize for identus_crypto::derivation::HdKeySecretBytes
+pub fn identus_crypto::derivation::HdKeySecretBytes::zeroize(&mut self)
 pub struct identus_crypto::derivation::MnemonicHelper
 impl identus_crypto::derivation::mnemonic::MnemonicHelper
 pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_random_mnemonics(&mut impl identus_crypto::securerandom::SecureRandom) -> core::result::Result<alloc::vec::Vec<alloc::string::String>, identus_crypto::error::Error>
@@ -906,13 +915,13 @@ pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::verify(&self, &[u8], &
 impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::ed25519::Ed25519PublicKey
 pub fn identus_crypto::crypto::ed25519::Ed25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
 pub struct identus_crypto::EdHDKey
-pub identus_crypto::EdHDKey::chain_code: [u8; 32]
 pub identus_crypto::EdHDKey::depth: u32
 pub identus_crypto::EdHDKey::index: u32
-pub identus_crypto::EdHDKey::private_key: [u8; 32]
 impl identus_crypto::derivation::edhdkey::EdHDKey
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::expose_chain_code(&self) -> identus_crypto::derivation::HdKeySecretBytes
+pub fn identus_crypto::derivation::edhdkey::EdHDKey::expose_private_key(&self) -> identus_crypto::derivation::HdKeySecretBytes
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
 impl core::fmt::Debug for identus_crypto::derivation::edhdkey::EdHDKey
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
@@ -921,13 +930,13 @@ pub fn identus_crypto::derivation::edhdkey::EdHDKey::drop(&mut self)
 impl zeroize::Zeroize for identus_crypto::derivation::edhdkey::EdHDKey
 pub fn identus_crypto::derivation::edhdkey::EdHDKey::zeroize(&mut self)
 pub struct identus_crypto::HDKey
-pub identus_crypto::HDKey::chain_code: [u8; 32]
 pub identus_crypto::HDKey::child_index: u32
 pub identus_crypto::HDKey::depth: u32
-pub identus_crypto::HDKey::private_key: [u8; 32]
 impl identus_crypto::derivation::hdkey::HDKey
 pub fn identus_crypto::derivation::hdkey::HDKey::derive(&self, &str) -> core::result::Result<Self, identus_crypto::error::Error>
 pub fn identus_crypto::derivation::hdkey::HDKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
+pub fn identus_crypto::derivation::hdkey::HDKey::expose_chain_code(&self) -> identus_crypto::derivation::HdKeySecretBytes
+pub fn identus_crypto::derivation::hdkey::HDKey::expose_private_key(&self) -> identus_crypto::derivation::HdKeySecretBytes
 pub fn identus_crypto::derivation::hdkey::HDKey::init_from_seed(&[u8]) -> core::result::Result<Self, identus_crypto::error::Error>
 impl core::fmt::Debug for identus_crypto::derivation::hdkey::HDKey
 pub fn identus_crypto::derivation::hdkey::HDKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result

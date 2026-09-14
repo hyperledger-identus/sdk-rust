@@ -1,0 +1,23 @@
+error[E0616]: field `private_key` of struct `HDKey` is private
+ --> tests/ui/hd_key_fields_private.rs:4:16
+  |
+4 |     let _ = hd.private_key;
+  |                ^^^^^^^^^^^ private field
+
+error[E0616]: field `chain_code` of struct `HDKey` is private
+ --> tests/ui/hd_key_fields_private.rs:5:16
+  |
+5 |     let _ = hd.chain_code;
+  |                ^^^^^^^^^^ private field
+
+error[E0616]: field `private_key` of struct `EdHDKey` is private
+ --> tests/ui/hd_key_fields_private.rs:6:16
+  |
+6 |     let _ = ed.private_key;
+  |                ^^^^^^^^^^^ private field
+
+error[E0616]: field `chain_code` of struct `EdHDKey` is private
+ --> tests/ui/hd_key_fields_private.rs:7:16
+  |
+7 |     let _ = ed.chain_code;
+  |                ^^^^^^^^^^ private field

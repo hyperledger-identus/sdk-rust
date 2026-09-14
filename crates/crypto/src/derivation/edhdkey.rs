@@ -10,7 +10,9 @@
 //! Questions.
 
 use crate::derivation::path::{DerivationAxis, DerivationPath};
-use crate::derivation::{MAX_DERIVATION_PATH_AXES, MAX_HD_SEED_BYTES, MIN_HD_SEED_BYTES};
+use crate::derivation::{
+    HdKeySecretBytes, MAX_DERIVATION_PATH_AXES, MAX_HD_SEED_BYTES, MIN_HD_SEED_BYTES,
+};
 use crate::error::Error;
 use crate::hash::hmac_sha512;
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
@@ -20,15 +22,13 @@ const MASTER_KEY: &[u8] = b"ed25519 seed";
 
 /// A SLIP-0010 ed25519 HD key.
 ///
-/// Owned key material is zeroized on drop and omitted from [`Debug`](std::fmt::Debug).
-/// The raw fields remain available for compatibility; callers are responsible
-/// for protecting and erasing any copies they create.
+/// Owned key material is private, zeroized on drop, and omitted from
+/// [`Debug`](std::fmt::Debug). Raw copies are available only through the
+/// explicitly named exposure methods.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct EdHDKey {
-    /// The 32-byte private key. Any copied value becomes caller-owned secret material.
-    pub private_key: [u8; KEY_SIZE],
-    /// The 32-byte chain code. Any copied value becomes caller-owned secret material.
-    pub chain_code: [u8; KEY_SIZE],
+    private_key: [u8; KEY_SIZE],
+    chain_code: [u8; KEY_SIZE],
     /// The depth in the derivation tree (at most 255 for derivation methods).
     pub depth: u32,
     /// The child index that produced this key.
@@ -45,6 +45,24 @@ impl std::fmt::Debug for EdHDKey {
 }
 
 impl EdHDKey {
+    /// Create a separately owned, zeroizing copy of the private-key bytes.
+    ///
+    /// Access to the raw array requires a second explicit call on the returned
+    /// [`HdKeySecretBytes`]. Any further caller-created copy is outside the
+    /// SDK's erasure boundary.
+    pub fn expose_private_key(&self) -> HdKeySecretBytes {
+        HdKeySecretBytes::new(self.private_key)
+    }
+
+    /// Create a separately owned, zeroizing copy of the chain-code bytes.
+    ///
+    /// Access to the raw array requires a second explicit call on the returned
+    /// [`HdKeySecretBytes`]. Any further caller-created copy is outside the
+    /// SDK's erasure boundary.
+    pub fn expose_chain_code(&self) -> HdKeySecretBytes {
+        HdKeySecretBytes::new(self.chain_code)
+    }
+
     /// Derive the master ed25519 HD key from a 16–64-byte seed via SLIP-0010's
     /// master step (HMAC-SHA512 keyed with `"ed25519 seed"`).
     pub fn init_from_seed(seed: &[u8]) -> Result<Self, Error> {

@@ -127,6 +127,11 @@ capability_ids = [ "derivation-path" ]
 vector_ids     = [ "sdk-derivation-path" ]
 
 [[coverage.source_mappings]]
+path           = "crates/crypto/src/derivation/secret.rs"
+capability_ids = [ "secp256k1-bip32-hardened", "slip0010-ed25519" ]
+vector_ids     = [ "apollo-secp256k1-hd", "sdk-bip32-published", "sdk-slip0010-published" ]
+
+[[coverage.source_mappings]]
 path           = "crates/crypto/src/enc.rs"
 capability_ids = [ "encoding-hex", "encoding-base64url-nopad" ]
 vector_ids     = [ "apollo-rfc4648-base16", "apollo-base64url" ]
@@ -175,7 +180,7 @@ selectors = [ "key_generation_propagates_entropy_failure", "ec_key_generation_bo
 
 [[coverage.critical_tests]]
 path      = "crates/crypto/tests/derivation.rs"
-selectors = [ "bip32_invalid_path_is_rejected", "bip39_invalid_mnemonic_is_rejected", "bip39_rejects_valid_words_with_an_invalid_checksum", "bip39_random_creation_propagates_entropy_failure", "hd_keys_are_zeroizing_and_debug_redacted", "explicit_hd_key_zeroization_clears_owned_state", "slip0010_rejects_seed_lengths_outside_the_normative_range", "stateful_hd_keys_reject_children_beyond_depth_255", "kmp_create_seed_rejects_invalid_checksum", "kmp_create_seed_rejects_invalid_mnemonic" ]
+selectors = [ "bip32_invalid_path_is_rejected", "bip39_invalid_mnemonic_is_rejected", "bip39_rejects_valid_words_with_an_invalid_checksum", "bip39_random_creation_propagates_entropy_failure", "hd_keys_are_zeroizing_and_debug_redacted", "explicit_hd_key_zeroization_clears_owned_state", "explicit_hd_secret_exposure_is_redacted_and_zeroizing", "hd_secret_state_has_no_ambient_public_surface", "slip0010_rejects_seed_lengths_outside_the_normative_range", "stateful_hd_keys_reject_children_beyond_depth_255", "kmp_create_seed_rejects_invalid_checksum", "kmp_create_seed_rejects_invalid_mnemonic" ]
 
 [[coverage.critical_tests]]
 path      = "crates/crypto/tests/cardano_bip32.rs"

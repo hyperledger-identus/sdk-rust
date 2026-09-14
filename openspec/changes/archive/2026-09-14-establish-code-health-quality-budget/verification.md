@@ -3,24 +3,27 @@
 - **Develop base:** `707a5a22c3fad18724d5c5cac953e7387f7e49d8`
 - **Planning head:** `0a7ded352110474150e409aabcb3a2c4edfed661`
 - **Implementation head:** `f5c057e7b67a7b3c94560a0b03bca92a43110b6d`
-- **Review-remediation head:** `34a197692af144cd53eeafed31175b8a9f8d2af4`
+- **First review-remediation head:** `34a197692af144cd53eeafed31175b8a9f8d2af4`
+- **Second review-remediation head:** `88bcb1700170b184760e388634f5ebbf49aeb108`
+- **Final review-remediation head:** `6096cab17a54882cf98e7044d8174610208ccdc4`
 - **Host:** aarch64-darwin
 - **Result:** passed with no unresolved blocker
 
 ## Exact-head audit evidence
 
 The checked baseline describes exact develop base `707a5a2`: 28,374 authored
-nonblank production lines in 111 files and 2,194 production functions; 23,589
-external-test lines in 71 files and 1,052 functions; and 2,876 inline-test
-lines in 26 files and 242 functions. It contains 50 function and six module
+nonblank production lines in 111 files and 2,194 production functions; 22,600
+external-test lines in 69 files and 982 functions; and 3,865 inline-test lines
+in 28 files and 312 functions. It contains 50 function and six module
 attention signals plus 13 explicit hotspot dispositions.
 
-The clean exact implementation audit at `34a1976` reports 28,368 production
+The clean exact implementation audit at `6096cab` reports 28,368 production
 lines and 2,193 production functions: a delta of -6 lines and -1 function.
-External characterization grows by 27 lines; inline-test counts, production
-file count, and function/module attention-signal counts are unchanged. This
-is supporting evidence only: the architectural improvement is one owner for
-the identical standard-failure invariant, not the numeric reduction.
+External characterization grows by 27 lines to 22,627; inline-test counts,
+production/external file counts, and function/module attention-signal counts
+are unchanged. This is supporting evidence only: the architectural improvement
+is one owner for the identical standard-failure invariant, not the numeric
+reduction.
 
 ## Commands passed
 
@@ -28,7 +31,7 @@ the identical standard-failure invariant, not the numeric reduction.
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --output /tmp/sdk-rust-code-health-head-rebased.json
 python3 scripts/code-health-audit.py --check-report docs/architecture/code-health-baseline.json
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --verify-baseline
-python3 scripts/tests/code-health-audit.py (14/14)
+python3 scripts/tests/code-health-audit.py (22/22)
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test -p identus-did --test did_method_registry --test did_resolution_cache (16 passed, 2 ignored)
@@ -53,12 +56,18 @@ changed crypto secret encapsulation rather than the DID/tooling slice.
 After the initial PR review failed the evidence-integrity design, the corrected
 implementation added Git-tree source binding, complete slow regeneration,
 closed schemas, exact generated exclusions, balanced comma termination and
-recursive test-only module inheritance. Mutation and population fixtures cover
-all reported failure modes. A direct `cargo nextest` invocation was unavailable
-outside the pinned shell; the recorded bootstrap invocation is the successful
-replacement. The Nix install fixup emitted a Darwin `audit-tmpdir.sh` child
-segmentation diagnostic after tests, but the derivation and complete multi-check
-command exited zero. No failed gate is represented as green.
+recursive test-only module inheritance. Follow-up review then removed implicit
+trust from `src/tests.rs`, preserved nested inline-module resolution context,
+isolated macro token trees, rejected `#[path]` overrides, included outer doc
+attributes and closed schema primitive types. Final review added nested
+test-attribute context and a production-wins fixed point for mixed module
+reachability. Mutation and population fixtures cover all reported failure
+modes. A direct `cargo nextest` invocation was
+unavailable outside the pinned shell; the recorded bootstrap invocation is the
+successful replacement. The Nix install fixup emitted a Darwin
+`audit-tmpdir.sh` child segmentation diagnostic after tests, but the derivation
+and complete multi-check command exited zero. No failed gate is represented as
+green.
 
 ## Unrun evidence
 

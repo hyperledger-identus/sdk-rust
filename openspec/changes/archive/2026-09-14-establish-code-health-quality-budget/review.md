@@ -4,7 +4,9 @@ Review status: completed
 Review date: 2026-09-14
 Develop base: `707a5a22c3fad18724d5c5cac953e7387f7e49d8`
 Implementation head: `f5c057e7b67a7b3c94560a0b03bca92a43110b6d`
-Review-remediation head: `34a197692af144cd53eeafed31175b8a9f8d2af4`
+First review-remediation head: `34a197692af144cd53eeafed31175b8a9f8d2af4`
+Second review-remediation head: `88bcb1700170b184760e388634f5ebbf49aeb108`
+Final review-remediation head: `6096cab17a54882cf98e7044d8174610208ccdc4`
 Planning head: `0a7ded352110474150e409aabcb3a2c4edfed661`
 Unresolved blockers: none
 
@@ -24,10 +26,14 @@ not changed.
    offsets, balances attributes/items, includes a complete contiguous outer
    attribute group, and terminates comma-delimited fields and variants without
    consuming the next item. Ordinary out-of-line modules inherit a test-only
-   declaration recursively, including preclassified `tests.rs` trees. The
-   evaluator treats `test` as false and unknown target/feature predicates
-   conservatively as production. Deleted, modified or untracked Rust invalidates
-   an exact working-tree audit.
+   declaration recursively with correct nested inline-module context. Only
+   Cargo `tests/` and `benches/` targets are intrinsically external tests;
+   `src/tests.rs` and its tree require proven test-only reachability. Macro token
+   trees cannot create module edges, `#[path]` overrides fail closed, and outer
+   line/block docs share their test-only item's span. The evaluator treats
+   `test` as false and unknown target/feature predicates conservatively as
+   production. Deleted, modified or untracked Rust invalidates an exact
+   working-tree audit.
 2. **Metrics and anti-gaming — accepted.** The Nix lock supplies exact
    `rust-code-analysis-cli 0.0.25`; sorted paths and canonical JSON make output
    reproducible. A fast gate resolves the policy-pinned revision and recomputes
@@ -61,6 +67,8 @@ not changed.
 - The repository wrapper is deliberately conservative rather than a full
   rustc configuration evaluator: unknown target and feature predicates remain
   production.
+- Test-only module reachability implements ordinary Rust layout and rejects
+  `#[path]` overrides rather than emulating the full rustc module loader.
 - Static metrics and token similarity cannot prove cohesion, correctness,
   security or semantic duplication; maintainers still own the disposition.
 - Macro expansion is not attributed as authored source and generated Rust is
@@ -73,9 +81,18 @@ The first pushed head was not accepted: independent review demonstrated that
 its report validator trusted mutable evidence, its generated-source heuristic
 was over-broad, and its population scanner mishandled comma-delimited items and
 test-gated out-of-line modules. Head `34a1976` resolves every finding and adds
-mutation and parser fixtures for each failure mode. The corrected baseline moves
-the `conformance` guard tree and other inherited modules from production into
-inline-test evidence. Review found no remaining blocker in the remediated diff.
+mutation and parser fixtures for each failure mode. Follow-up review then found
+two more hiding paths: nested inline modules lost their resolution context, and
+source files named `tests.rs` were trusted without a test-only declaration.
+Head `88bcb17` closes both, isolates macro token trees, rejects custom path
+loading, includes outer doc attributes and closes schema primitive types. A
+final mixed-reachability review showed that a file could still be both test-
+and production-reachable. Head `6096cab` makes active/unknown production edges
+win at a fixed point, including descendants, and retains enclosing inline-module
+context for nested test declarations. The corrected baseline moves the
+`conformance` guard tree and only proven test-exclusive source modules into
+inline-test evidence. Review found no remaining blocker in the final remediated
+diff.
 
 ## Review decision
 

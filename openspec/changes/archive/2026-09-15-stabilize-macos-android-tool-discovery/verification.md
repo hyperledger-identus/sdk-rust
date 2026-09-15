@@ -27,4 +27,6 @@ replacement even when the expected path text remains in a comment.
 Only the GitHub-hosted macOS image can prove package installation and emulator
 execution. The protected PR gates remain authoritative before merge. After
 merge, issue #276 owns the exact-`develop` slow canary receipt and remains open
-until the first natural weekly schedule is observed.
+until the first natural weekly schedule is observed. Because the current
+contribution gate mandates `Closes #276`, the merge operator must reopen it
+immediately before dispatching the canary.

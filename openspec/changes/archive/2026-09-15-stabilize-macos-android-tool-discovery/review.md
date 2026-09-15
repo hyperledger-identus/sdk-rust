@@ -23,6 +23,12 @@
    The checklist now prepares the reviewed archive and explicitly reserves the
    hosted canary as an issue-owned post-merge operation. It does not claim that
    hosted or natural-schedule evidence already exists.
+4. **Resolved — closing-reference policy conflicts with long-lived evidence.**
+   The contribution gate requires this issue branch's PR body to close #276,
+   while the weekly-evidence contract keeps it open through the first natural
+   run. Delivery therefore treats immediate post-merge reopening as part of the
+   merge transaction. Issue #291 records the underlying policy mismatch for
+   factory backlog polishing; this repair does not weaken the required gate.
 
 ## Result
 

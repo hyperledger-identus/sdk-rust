@@ -20,5 +20,6 @@
 - [x] 3.1 Complete a distinct local review and resolve every finding.
 - [x] 3.2 Prepare the reviewed follow-on archive and issue-linked PR for merge
       only after required CI and review are green.
-- [x] 3.3 Reserve the exact-head slow canary and issue receipt as a post-merge
-      issue #276 operation; leave the issue open for the first natural schedule.
+- [x] 3.3 Reserve immediate reopening after the mandatory closing PR reference,
+      then the exact-head slow canary and issue receipt, as post-merge issue #276
+      operations; leave the issue open for the first natural schedule.

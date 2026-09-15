@@ -3,6 +3,7 @@
 - **Date:** 2026-09-15
 - **Planning head:** `ddc3df0688ad3c13b81639aa6ee81abf436c57ee`
 - **Implementation head:** `dd0f594a101c34adf2b748f0f18c764eafdeaf17`
+- **Protected review:** [PR #289](https://github.com/hyperledger-identus/sdk-rust/pull/289)
 - **Implementation scope:** candidate preparation and its offline policy tests
 
 ## Passed locally

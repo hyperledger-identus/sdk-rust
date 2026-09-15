@@ -74,14 +74,24 @@ def main() -> int:
         nested_scratch = repository / "artifacts/build"
         nested_scratch.mkdir(parents=True)
         try:
-            runner.require_external_build_scratch(repository, nested_scratch)
+            runner.require_vcs_independent_build_scratch(repository, nested_scratch)
         except runner.CandidateError:
             pass
         else:
             raise AssertionError("repository-contained build scratch was accepted")
         external_scratch = test_root / "external-build"
         external_scratch.mkdir()
-        runner.require_external_build_scratch(repository, external_scratch)
+        runner.require_vcs_independent_build_scratch(repository, external_scratch)
+        foreign_repository = test_root / "foreign-repository"
+        foreign_scratch = foreign_repository / "temporary/build"
+        foreign_scratch.mkdir(parents=True)
+        (foreign_repository / ".git").mkdir()
+        try:
+            runner.require_vcs_independent_build_scratch(repository, foreign_scratch)
+        except runner.CandidateError:
+            pass
+        else:
+            raise AssertionError("scratch below an unrelated Git worktree was accepted")
 
         fixture = test_root / "valid"
         copy_fixture(fixture)
@@ -116,7 +126,7 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / "scripts/prepare-crypto-candidate.py",
-                    "require_external_build_scratch(root, scratch)",
+                    "require_vcs_independent_build_scratch(root, scratch)",
                     "# removed repository boundary check",
                 ),
                 "missing staging boundary",

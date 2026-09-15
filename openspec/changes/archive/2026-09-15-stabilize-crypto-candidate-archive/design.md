@@ -10,9 +10,10 @@ repositories and not evidence authorities.
 
 Candidate preparation creates one build-scratch directory using the platform
 temporary root without passing the requested output parent. It verifies that
-the resolved scratch is not beneath the canonical repository, then creates the
-two independent Cargo workspaces below that scratch. Cargo therefore does not
-discover the SDK `.git` directory or embed stage-specific `path_in_vcs` values.
+the resolved scratch is not beneath the canonical repository or any enclosing
+Git worktree, then creates the two independent Cargo workspaces below that
+scratch. Cargo therefore does not discover a `.git` directory or embed
+stage-specific `path_in_vcs` values.
 
 A second temporary directory is created beneath the requested output parent.
 Verified packages, API evidence, SBOMs, and the receipt are copied there. The

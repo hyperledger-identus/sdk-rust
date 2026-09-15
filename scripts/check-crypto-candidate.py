@@ -129,7 +129,7 @@ def validate(root: Path) -> list[str]:
             errors.append(f"candidate runner contains prohibited remote mutation: {pattern}")
     required_staging_contract = (
         'TemporaryDirectory(prefix=".identus-crypto-candidate-build-")',
-        "require_external_build_scratch(root, scratch)",
+        "require_vcs_independent_build_scratch(root, scratch)",
         'prefix=f".{output.name}-stage-", dir=output.parent',
         "staging_output.rename(output)",
     )

@@ -89,12 +89,21 @@ def source_revision(root: Path, requested: str | None, allow_dirty: bool) -> tup
     return revision, dirty
 
 
-def require_external_build_scratch(root: Path, scratch: Path) -> None:
+def require_vcs_independent_build_scratch(root: Path, scratch: Path) -> None:
     """Reject build scratch whose path can affect Cargo's VCS metadata."""
     repository = root.resolve()
     candidate = scratch.resolve()
     if candidate == repository or repository in candidate.parents:
         raise CandidateError("candidate build scratch must be outside the source repository")
+    for ancestor in (candidate, *candidate.parents):
+        marker = ancestor / ".git"
+        try:
+            marker.lstat()
+        except FileNotFoundError:
+            continue
+        except OSError as error:
+            raise CandidateError("cannot validate candidate build scratch VCS boundary") from error
+        raise CandidateError("candidate build scratch must not be inside a Git worktree")
 
 
 def dependency_line(root_manifest: str, name: str) -> str:
@@ -398,7 +407,7 @@ def prepare(args: argparse.Namespace) -> Path:
     env.update({"SOURCE_DATE_EPOCH": "1", "CARGO_TERM_COLOR": "never"})
     with tempfile.TemporaryDirectory(prefix=".identus-crypto-candidate-build-") as temporary:
         scratch = Path(temporary)
-        require_external_build_scratch(root, scratch)
+        require_vcs_independent_build_scratch(root, scratch)
         with tempfile.TemporaryDirectory(
             prefix=f".{output.name}-stage-", dir=output.parent
         ) as output_temporary:

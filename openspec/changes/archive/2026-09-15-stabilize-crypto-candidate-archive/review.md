@@ -5,7 +5,16 @@
   path containment, atomic output visibility, cleanup, regression strength,
   and scope control
 - **Scope:** implementation diff after planning head `ddc3df06`
-- **Result:** passed with no unresolved finding
+- **Result:** passed after resolving the exact-head P2 finding below
+
+## Resolved finding
+
+The first guard rejected scratch only beneath the canonical SDK checkout. The
+exact-head Codex review correctly identified that a caller-controlled `TMPDIR`
+could place the system temporary directory beneath an unrelated Git worktree,
+reintroducing stage-specific Cargo VCS metadata. The guard now walks every
+resolved ancestor, fails closed on an unreadable marker, rejects any `.git`
+directory/file/symlink, and has a foreign-worktree behavioral regression.
 
 ## Root-cause review
 
@@ -20,14 +29,14 @@ both build stages under a system temporary root outside the canonical checkout.
 
 - The canonical checkout remains the only source-content and revision
   authority; no synthetic Git repository or archive rewriting is introduced.
-- Resolved build scratch is rejected when equal to or below the checkout before
-  Cargo is invoked.
+- Resolved build scratch is rejected when equal to or below the checkout or any
+  other Git worktree before Cargo is invoked.
 - Byte-for-byte comparison of all three native Cargo archives is unchanged and
   still precedes closure/API/SBOM evidence.
 - Completed evidence is staged below the destination parent and renamed on the
   same filesystem, retaining atomic visibility and failure cleanup.
-- Focused behavioral coverage rejects repository-contained scratch; static
-  mutation tests reject output-rooted build scratch and removal of the guard.
+- Focused behavioral coverage rejects canonical and unrelated worktree scratch;
+  static mutation tests reject output-rooted build scratch and guard removal.
 
 ## Security and compatibility review
 

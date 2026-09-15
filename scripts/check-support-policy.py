@@ -2592,6 +2592,9 @@ def validate_ci_lanes(
             "attempt identity": '"runAttempt": int(os.environ["GITHUB_RUN_ATTEMPT"])',
             "actual checkout": '"actualCheckoutSha": os.environ["ACTUAL_SHA"]',
             "receipt artifact": "name: slow-run-${{ github.sha }}-${{ github.run_attempt }}",
+            "candidate attempt artifact": "name: crypto-candidate-${{ github.sha }}-${{ github.run_attempt }}",
+            "coverage attempt artifact": "name: crypto-coverage-${{ github.sha }}-${{ github.run_attempt }}",
+            "baseline attempt artifact": "name: crypto-baseline-${{ github.sha }}-${{ github.run_attempt }}",
         }
         for contract_name, marker in workflow_contract.items():
             if marker not in slow:

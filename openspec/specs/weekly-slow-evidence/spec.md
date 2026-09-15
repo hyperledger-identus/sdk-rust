@@ -34,6 +34,10 @@ names SHALL include revision and run attempt. Workflow concurrency SHALL bound
 overlapping runs without cancelling an older running revision, and every
 substantive job SHALL have an explicit timeout.
 
+A manually requested rerun of a scheduled run SHALL remain recovery evidence,
+not natural schedule evidence, even when GitHub retains the original `schedule`
+event. The live audit SHALL require attempt one for natural cadence acceptance.
+
 #### Scenario: Slow work succeeds or fails
 
 - **WHEN** every substantive job reaches a terminal conclusion
@@ -46,6 +50,12 @@ substantive job SHALL have an explicit timeout.
 - **WHEN** another slow event is accepted while the prior revision still runs
 - **THEN** concurrency retains the older running evidence, bounds pending work,
   and cannot relabel one revision's result as another revision
+
+#### Scenario: A failed scheduled run is rerun manually
+
+- **WHEN** a later attempt succeeds while retaining the original schedule event
+- **THEN** its attempt-qualified artifacts remain reviewable but the live audit
+  SHALL reject it as natural schedule evidence
 
 ### Requirement: Retention and liveness limitations are actionable
 

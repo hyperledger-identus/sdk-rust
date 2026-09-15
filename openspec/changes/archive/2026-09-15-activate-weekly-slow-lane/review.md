@@ -24,6 +24,13 @@
    rather than the Python 3.11-only `datetime.UTC` name.
 5. **No blocker — manual versus natural evidence.** The ADR, capability and
    issue retain the distinction; the activation PR cannot close #276.
+6. **Resolved P1 — rerun retained the schedule event.** The live query now binds
+   GitHub's attempt field and rejects attempt greater than one as natural
+   schedule evidence, with a dedicated negative regression.
+7. **Resolved P2 — three artifacts omitted attempt identity.** Candidate,
+   coverage and benchmark artifacts now suffix both SHA and run attempt,
+   matching the final receipt and avoiding immutable-upload collisions on
+   rerun.
 
 ## Result
 

@@ -55,7 +55,7 @@ jobs:
       - name: Upload candidate evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: crypto-candidate-${{ github.sha }}
+          name: crypto-candidate-${{ github.sha }}-${{ github.run_attempt }}
           path: artifacts/crypto-candidate
           if-no-files-found: error
           retention-days: 7
@@ -91,7 +91,7 @@ jobs:
       - name: Upload coverage evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: crypto-coverage-${{ github.sha }}
+          name: crypto-coverage-${{ github.sha }}-${{ github.run_attempt }}
           path: artifacts/crypto-coverage
           if-no-files-found: error
           retention-days: 7
@@ -124,7 +124,7 @@ jobs:
       - name: Upload measurement artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: crypto-baseline-${{ github.sha }}
+          name: crypto-baseline-${{ github.sha }}-${{ github.run_attempt }}
           path: artifacts/crypto-baseline.json
           if-no-files-found: error
           retention-days: 7

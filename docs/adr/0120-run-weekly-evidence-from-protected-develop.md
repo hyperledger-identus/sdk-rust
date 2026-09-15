@@ -35,7 +35,8 @@ weaken `main` protection and accidentally overlap the `develop` ruleset.
    not cancel an in-flight evidence run.
 6. Bind every receipt to `GITHUB_SHA` and the actual checkout SHA. Record event,
    run and attempt identity, UTC start/end, per-job result, run URL and the
-   seven-day organization retention ceiling.
+   seven-day organization retention ceiling. Qualify every evidence artifact by
+   SHA and attempt so reruns cannot collide.
 7. Add `scripts/factory slow-live` as a read-only audit of the latest scheduled
    run. Missing, non-successful or older-than-160-hour evidence fails closed and
    identifies the run without echoing command stderr. The threshold leaves an
@@ -43,6 +44,8 @@ weaken `main` protection and accidentally overlap the `develop` ruleset.
 8. Merge the activation PR with `Refs #276`, then apply and verify the repository
    settings and run one manual canary. Keep #276 open until the first successful
    natural scheduled run is attached as evidence.
+9. Treat only attempt one as natural schedule evidence. A successful manual
+   rerun retains operational value but cannot satisfy the first-schedule gate.
 
 ## Consequences
 

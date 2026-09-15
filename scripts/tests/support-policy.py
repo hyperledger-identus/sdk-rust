@@ -1998,6 +1998,14 @@ in
         )
         self.assert_fails("artifacts must use seven-day retention")
 
+    def test_slow_lane_artifacts_must_bind_run_attempt(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "name: crypto-candidate-${{ github.sha }}-${{ github.run_attempt }}",
+            "name: crypto-candidate-${{ github.sha }}",
+        )
+        self.assert_fails("missing candidate attempt artifact")
+
     def test_complete_clippy_gate_must_select_all_targets(self) -> None:
         self.replace_gate(
             "rust-clippy-all-targets-all-features",

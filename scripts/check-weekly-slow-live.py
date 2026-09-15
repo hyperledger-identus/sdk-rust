@@ -25,6 +25,7 @@ SNAPSHOT_FIELDS = {
 }
 RUN_FIELDS = {
     "databaseId",
+    "attempt",
     "event",
     "status",
     "conclusion",
@@ -91,6 +92,9 @@ def validate_run(value: Any, repository: str, index: int) -> dict[str, Any]:
     run_id = value["databaseId"]
     if isinstance(run_id, bool) or not isinstance(run_id, int) or run_id < 1:
         raise AuditError(f"run {index} databaseId must be a positive integer")
+    attempt = value["attempt"]
+    if isinstance(attempt, bool) or not isinstance(attempt, int) or attempt < 1:
+        raise AuditError(f"run {run_id} attempt must be a positive integer")
     if value["event"] != "schedule":
         raise AuditError(f"run {run_id} event must be schedule")
     if value["status"] not in {
@@ -215,7 +219,7 @@ def query_github(repository: str) -> dict[str, Any]:
             "--limit",
             "10",
             "--json",
-            "databaseId,event,status,conclusion,headSha,createdAt,url,workflowName",
+            "databaseId,attempt,event,status,conclusion,headSha,createdAt,url,workflowName",
         ],
         "slow-run lookup",
     )
@@ -239,6 +243,11 @@ def audit(document: dict[str, Any], maximum_age_hours: int) -> dict[str, Any]:
         raise AuditError("no native scheduled slow run exists")
     latest = max(runs, key=lambda run: parse_utc(run["createdAt"], "run createdAt"))
     run_id = latest["databaseId"]
+    if latest["attempt"] != 1:
+        raise AuditError(
+            f"latest scheduled run {run_id} is rerun attempt {latest['attempt']}; "
+            f"it is not natural schedule evidence: {latest['url']}"
+        )
     if latest["status"] != "completed" or latest["conclusion"] != "success":
         raise AuditError(
             f"latest scheduled run {run_id} is "

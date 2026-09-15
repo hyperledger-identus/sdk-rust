@@ -24,6 +24,7 @@ class WeeklySlowLiveTests(unittest.TestCase):
             "runs": [
                 {
                     "databaseId": 123,
+                    "attempt": 1,
                     "event": "schedule",
                     "status": "completed",
                     "conclusion": "success",
@@ -72,6 +73,14 @@ class WeeklySlowLiveTests(unittest.TestCase):
                 result = self.run_snapshot(document)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("run 123", result.stderr)
+
+    def test_manual_rerun_cannot_be_natural_evidence(self) -> None:
+        document = self.snapshot()
+        document["runs"][0]["attempt"] = 2
+        result = self.run_snapshot(document)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("rerun attempt 2", result.stderr)
+        self.assertIn("not natural schedule evidence", result.stderr)
 
     def test_stale_run_fails(self) -> None:
         result = self.run_snapshot(

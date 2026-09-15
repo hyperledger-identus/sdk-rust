@@ -6,7 +6,7 @@
       inventory.
 - [x] 1.2 Record research, constraints, design, and the additive slow-evidence
       contract before implementation.
-- [ ] 1.3 Commit the planning-only change and pass issue #276 preflight.
+- [x] 1.3 Commit the planning-only change and pass issue #276 preflight.
 
 ## 2. Repair and evidence
 

@@ -50,3 +50,15 @@ the complete native family.
 - **WHEN** a caller would pass recursive JSON directly to a DID constructor
 - **THEN** the caller SHALL pre-bound its depth or use the bounded slice parser
   so validation failure cannot enter unbounded recursive destruction
+
+### Requirement: Public resource constants remain inventoried
+
+The offline checker SHALL scan implemented package source for public `MAX_` and
+`MIN_` resource constants and require each name to appear in that package's
+inventory limits. The scan SHALL remain bounded, offline, and symlink-safe.
+
+#### Scenario: A public resource constant is omitted
+
+- **WHEN** an implemented package declares a public resource constant absent
+  from its inventory rows
+- **THEN** validation SHALL fail and name the package and constant

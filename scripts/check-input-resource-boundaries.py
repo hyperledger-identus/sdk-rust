@@ -15,6 +15,8 @@ MAX_FILE_BYTES = 256 * 1024
 MAX_BOUNDARIES = 256
 MAX_ARRAY_ITEMS = 64
 MAX_VALUE_BYTES = 4_096
+MAX_SOURCE_FILES_PER_PACKAGE = 512
+MAX_SOURCE_FILE_BYTES = 2 * 1_024 * 1_024
 TOP_LEVEL_KEYS = {
     "schema_version",
     "repository",
@@ -44,6 +46,9 @@ IDENTIFIER = re.compile(r"[a-z0-9][a-z0-9-]*\Z")
 REVISION = re.compile(r"[0-9a-f]{40}\Z")
 ISSUE = re.compile(r"#[1-9][0-9]*\Z")
 LIMIT = re.compile(r"[A-Za-z][A-Za-z0-9_]*=(?:[1-9][0-9]*|explicit)\Z")
+PUBLIC_RESOURCE_LIMIT = re.compile(
+    rb"(?m)^pub const ((?:MAX|MIN)_[A-Z0-9_]+)\s*:"
+)
 
 
 def has_symlink_component(path: Path, root: Path) -> bool:
@@ -108,25 +113,68 @@ def bounded_string_array(value: Any, label: str, failures: list[str]) -> list[st
     return result
 
 
-def implemented_packages(root: Path, failures: list[str]) -> set[str]:
+def implemented_package_paths(root: Path, failures: list[str]) -> dict[str, Path]:
     source = root / "docs/architecture/sdk-bootstrap-inventory.toml"
     document = read_toml(source, "bootstrap inventory", failures)
     if document is None:
-        return set()
+        return {}
     packages = document.get("packages")
     if not isinstance(packages, list):
         failures.append("bootstrap inventory packages must be an array")
-        return set()
-    implemented: set[str] = set()
+        return {}
+    implemented: dict[str, Path] = {}
     for index, package in enumerate(packages):
         if not isinstance(package, dict):
             failures.append(f"bootstrap package[{index}] must be a table")
             continue
         if package.get("classification") == "implemented":
             name = package.get("name")
-            if isinstance(name, str):
-                implemented.add(name)
+            package_path = package.get("path")
+            if isinstance(name, str) and isinstance(package_path, str):
+                relative = Path(package_path)
+                if relative.is_absolute() or ".." in relative.parts:
+                    failures.append(
+                        f"bootstrap package path must be repository-relative: {package_path}"
+                    )
+                    continue
+                implemented[name] = relative
     return implemented
+
+
+def public_resource_limits(
+    root: Path, package_paths: dict[str, Path], failures: list[str]
+) -> dict[str, set[str]]:
+    discovered: dict[str, set[str]] = {}
+    for package, relative in package_paths.items():
+        source_root = root / relative
+        source_files = sorted(source_root.rglob("*.rs"))
+        if len(source_files) > MAX_SOURCE_FILES_PER_PACKAGE:
+            failures.append(
+                f"{package} exceeds {MAX_SOURCE_FILES_PER_PACKAGE} Rust source files"
+            )
+            continue
+        names: set[str] = set()
+        for source in source_files:
+            if not source.is_file() or has_symlink_component(source, root):
+                failures.append(f"{package} source is missing or symlinked: {source}")
+                continue
+            try:
+                size = source.stat().st_size
+                if size > MAX_SOURCE_FILE_BYTES:
+                    failures.append(
+                        f"{package} source exceeds {MAX_SOURCE_FILE_BYTES} bytes: {source}"
+                    )
+                    continue
+                content = source.read_bytes()
+            except OSError as error:
+                failures.append(f"cannot read {package} source {source}: {error}")
+                continue
+            names.update(
+                match.group(1).decode("ascii")
+                for match in PUBLIC_RESOURCE_LIMIT.finditer(content)
+            )
+        discovered[package] = names
+    return discovered
 
 
 def validate(root: Path, inventory_path: Path) -> list[str]:
@@ -160,9 +208,13 @@ def validate(root: Path, inventory_path: Path) -> list[str]:
         failures.append(f"boundaries exceeds {MAX_BOUNDARIES} entries")
         return failures
 
-    expected_packages = implemented_packages(root, failures)
+    package_paths = implemented_package_paths(root, failures)
+    expected_packages = set(package_paths)
     covered_packages: set[str] = set()
     identifiers: set[str] = set()
+    declared_limit_names: dict[str, set[str]] = {
+        package: set() for package in expected_packages
+    }
 
     for index, boundary in enumerate(boundaries):
         label = f"boundaries[{index}]"
@@ -210,6 +262,8 @@ def validate(root: Path, inventory_path: Path) -> list[str]:
         for limit in limits:
             if LIMIT.fullmatch(limit) is None:
                 failures.append(f"{label} has invalid limit declaration: {limit}")
+            elif package in declared_limit_names:
+                declared_limit_names[package].add(limit.partition("=")[0])
         if disposition == "sdk-enforced" and not limits:
             failures.append(f"{label} sdk-enforced boundary requires explicit limits")
         if disposition in DISPOSITIONS - {"sdk-enforced"} and limits:
@@ -232,6 +286,13 @@ def validate(root: Path, inventory_path: Path) -> list[str]:
     missing = sorted(expected_packages - covered_packages)
     if missing:
         failures.append("implemented packages missing boundary coverage: " + ", ".join(missing))
+    for package, names in public_resource_limits(root, package_paths, failures).items():
+        omitted = sorted(names - declared_limit_names[package])
+        if omitted:
+            failures.append(
+                f"{package} public resource limits missing from inventory: "
+                + ", ".join(omitted)
+            )
     return failures
 
 

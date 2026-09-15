@@ -89,3 +89,12 @@ now preserve the full native owned-JSON rejection-cleanup limitation and require
 bounded wire-slice parsing or an equivalent caller depth bound. Accepted typed
 values remain bounded; no runtime behavior or public API changes in this PR.
 Issue #297 owns comprehensive iterative cleanup and removal of only this clause.
+
+The final hosted review found that package-level coverage still concealed a DID
+option-map family and several credential families. A repository-wide comparison
+of public `MAX_`/`MIN_` constants to inventory limits found the same structural
+weakness in DID document/result/registration, presentation, and HTTP rows. The
+inventory now has 36 cohesive families and names every public resource constant
+declared by implemented packages. The bounded offline checker scans those
+package sources and fails on any future omission; its mutation suite proves the
+new failure mode. Verification-only packages remain outside runtime coverage.

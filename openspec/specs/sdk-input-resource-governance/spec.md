@@ -33,6 +33,12 @@ work, or requires a public compatibility migration.
   repository evidence
 - **THEN** offline validation fails
 
+#### Scenario: A public resource constant is omitted
+
+- **WHEN** an implemented package declares a public `MAX_` or `MIN_` resource
+  constant that no inventory limit names
+- **THEN** offline validation fails and names the package and omitted constant
+
 ### Requirement: Residual resource ownership remains explicit
 
 The inventory and limitation index SHALL distinguish typed SDK validation from

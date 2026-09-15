@@ -104,6 +104,11 @@ def main() -> None:
         "sdk-enforced boundary requires explicit limits",
     )
     expect_failure(
+        "public resource limit omitted",
+        canonical.replace("MAX_URL_BYTES=8192", "MAX_URL_BYTEZ=8192", 1),
+        "identus-core public resource limits missing from inventory: MAX_URL_BYTES",
+    )
+    expect_failure(
         "missing evidence",
         rewrite_first_block(
             canonical,

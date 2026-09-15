@@ -40,11 +40,12 @@ of five dispositions: `sdk-enforced`, `fixed-or-no-input`,
 `known-unbounded-compatibility`.
 
 An offline standard-library checker derives the required package set from the
-bootstrap inventory. It rejects missing/extra package coverage, unknown schema
-or dispositions, duplicate IDs, absent evidence, invalid evidence paths, and
-SDK-enforced rows without explicit limits. A mutation suite proves these
-failure modes. Structural success does not replace semantic
-architecture/security review.
+bootstrap inventory and scans each implemented package for public `MAX_`/`MIN_`
+resource constants. It rejects missing/extra package coverage, omitted public
+resource constants, unknown schema or dispositions, duplicate IDs, absent
+evidence, invalid evidence paths, and SDK-enforced rows without explicit
+limits. A mutation suite proves these failure modes. Structural success does
+not replace semantic architecture/security review.
 
 BIP-39 conversion rejects non-standard entropy lengths before the dependency.
 Mnemonic validation rejects more than 24 words and words above the adopted
@@ -87,6 +88,8 @@ incomplete audit.
 
 - Agents can locate the exact owner, limit and evidence for every implemented
   package before adding or changing a boundary.
+- Adding a public `MAX_`/`MIN_` resource constant without inventory coverage
+  fails the offline factory contract.
 - Consumers still must cap hostile data at their earliest transport,
   deserializer or language-runtime boundary and budget generic operation work.
 - Valid BIP-39 and KMP compatibility vectors remain exact; extreme passphrases

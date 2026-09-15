@@ -8,7 +8,7 @@
 
 ## Focused and workspace evidence
 
-- `scripts/check-input-resource-boundaries.py .`: 27 boundary families passed,
+- `scripts/check-input-resource-boundaries.py .`: 36 boundary families passed,
   including distinct DID method-registry, cache-policy, and cache-adapter rows.
 - `scripts/tests/input-resource-boundaries.py`: all structural mutation cases
   passed locally and inside the isolated Nix factory derivation.
@@ -70,6 +70,14 @@ canonical specification now disclose the complete native family and direct
 consumers to bounded slice parsing or a pre-entry depth bound. The focused
 checker, constraints, factory, and formatting are rerun after this documentation
 correction; protected exact-head CI remains required before integration.
+
+The final hosted review exposed missing DID option-map and credential families.
+All implemented-package public `MAX_`/`MIN_` resource constants were compared
+to inventory limits; the split 36-family inventory has no omissions. The
+checker now performs that bounded offline comparison itself, and its mutation
+suite verifies a removed public limit fails with the package and constant name.
+The complete compatible `nix flake check --fallback` closure passes after the
+checker and 36-family inventory change.
 
 ## Repository boundary
 

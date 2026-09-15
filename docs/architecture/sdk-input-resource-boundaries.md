@@ -36,9 +36,15 @@ calling it unbounded SDK behavior.
 ## Audit result
 
 - Every implemented runtime package has at least one boundary-family row.
+- All public `MAX_`/`MIN_` resource constants declared by implemented package
+  source are named by an inventory limit; the checker enforces this coverage.
 - Core, credential, presentation, JOSE, OID4VCI and wallet retained values have
   explicit fixed or configurable limits. DID values do as well except for the
   explicitly inventoried historical `Multihash` compatibility placeholder.
+- DID document, resolution-result, registration, and option-map policies are
+  separate rows. Credential artifacts, descriptors, format/metadata, schema,
+  status, verification evidence, registry, and verifier execution are likewise
+  independently reviewable.
 - The DID method registry caps retained bindings at 64. DID resolution cache
   keys, declared capacity and TTL policy are bounded separately from the
   caller-owned cache/clock adapter QoS and storage allocation.
@@ -74,7 +80,7 @@ Update the machine inventory atomically when:
 - a limit or ownership disposition changes; or
 - a concrete adapter moves resource ownership into the SDK.
 
-The offline checker proves structure, exact implemented-package coverage,
-evidence existence and limit/disposition coherence. It cannot prove Rust
-semantics. Every qualifying change still requires architecture/security review
-under `SDK-SEC-003`.
+The offline checker proves structure, exact implemented-package and public
+resource-constant coverage, evidence existence and limit/disposition coherence.
+It cannot prove Rust semantics. Every qualifying change still requires
+architecture/security review under `SDK-SEC-003`.

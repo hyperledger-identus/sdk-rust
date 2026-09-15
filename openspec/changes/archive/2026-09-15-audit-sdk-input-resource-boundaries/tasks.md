@@ -37,3 +37,6 @@
 - [x] 3.5 Preserve native DID owned-JSON rejection cleanup as an explicit
       limitation across the complete constructor family and identify bounded
       slice parsing as the hardened hostile-input path.
+- [x] 3.6 Split DID and credential boundary families, inventory every public
+      resource constant in implemented packages, and enforce that coverage in
+      the offline checker after hosted review exposed package-only validation.

@@ -17,9 +17,10 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run focused script/policy/factory gates and proportional compatible
+- [x] 3.1 Run focused script/policy/factory gates and proportional compatible
       Nix checks; complete a distinct architecture/security review.
-- [ ] 3.2 Archive the completed change and deliver an issue-linked protected PR.
+- [x] 3.2 Prepare the completed change for guarded archive and an issue-linked
+      protected PR.
 
 ## Post-merge issue acceptance
 

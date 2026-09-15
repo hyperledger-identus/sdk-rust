@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 276,
+  "change": "stabilize-macos-android-tool-discovery",
+  "branch": "codex/ci/issue-276",
+  "baseRef": "origin/develop",
+  "baseSha": "84d1875722f61c1169d648f19b22164a7747af9e",
+  "contractHeadSha": "026e6e04d8ec675667888cdbdea334020605861b",
+  "createdAt": "2026-09-15T10:46:10.169Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

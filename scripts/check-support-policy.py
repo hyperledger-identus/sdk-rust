@@ -2478,6 +2478,23 @@ def validate_ci_lanes(
         )
         return "\n".join(lines[start + 1 : end])
 
+    def named_step(workflow: str, name: str) -> str:
+        lines = workflow.splitlines()
+        marker = f"      - name: {name}"
+        try:
+            start = lines.index(marker)
+        except ValueError:
+            return ""
+        end = next(
+            (
+                index
+                for index in range(start + 1, len(lines))
+                if lines[index].startswith("      - name:")
+            ),
+            len(lines),
+        )
+        return "\n".join(lines[start:end])
+
     fast, fast_path = workflow_text("fast_workflow")
     if fast:
         for trigger in ("pull_request", "push", "workflow_dispatch"):
@@ -2599,6 +2616,37 @@ def validate_ci_lanes(
         for contract_name, marker in workflow_contract.items():
             if marker not in slow:
                 failures.append(f"{slow_path} is missing {contract_name}")
+        android_step = named_step(slow, "Install exact Android slow-lane inputs")
+        android_contract = [
+            (
+                "Android SDK root fallback",
+                'android_sdk="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"',
+            ),
+            ("Android SDK root guard", 'test -n "$android_sdk"'),
+            (
+                "Android sdkmanager path",
+                'sdkmanager="$android_sdk/cmdline-tools/latest/bin/sdkmanager"',
+            ),
+            ("Android sdkmanager executable guard", 'test -x "$sdkmanager"'),
+            ("absolute sdkmanager invocation", '"$sdkmanager" --install ' + "\\"),
+            ("exact Android NDK package", '  "ndk;27.0.12077973" ' + "\\"),
+            ("exact Android platform package", '  "platforms;android-35" ' + "\\"),
+            (
+                "exact Android system image package",
+                '  "system-images;android-35;google_apis_playstore;arm64-v8a"',
+            ),
+        ]
+        previous_offset = -1
+        for contract_name, command in android_contract:
+            match = re.search(
+                rf"^          {re.escape(command)}\s*$", android_step, re.MULTILINE
+            )
+            if match is None:
+                failures.append(f"{slow_path} is missing {contract_name}")
+            elif match.start() <= previous_offset:
+                failures.append(f"{slow_path} has out-of-order {contract_name}")
+            else:
+                previous_offset = match.start()
         expected_timeouts = {5, 10, 30, 45, 60, 180}
         actual_timeouts = {
             int(value)

@@ -1,7 +1,10 @@
 # sdk-input-resource-governance Specification
 
 ## Purpose
-TBD - created by archiving change audit-sdk-input-resource-boundaries. Update Purpose after archive.
+Define an exhaustive, machine-checked ownership map for implemented SDK input
+and work boundaries so typed limits are not confused with caller, transport,
+deserializer, FFI, language-runtime, or concrete-adapter obligations.
+
 ## Requirements
 ### Requirement: Implemented SDK input boundaries are exhaustively inventoried
 

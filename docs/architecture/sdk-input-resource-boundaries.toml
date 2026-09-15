@@ -103,6 +103,39 @@ consumer_impact  = "SDK-owned slice parsers and typed retained structures have b
 review_triggers  = [ "new DID JSON surface", "open JSON field", "collection or recursion limit change" ]
 
 [[boundaries]]
+id               = "did-method-registry"
+package          = "identus-did"
+surface          = "DidMethodRegistryBuilder retained method-to-adapter bindings"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_DID_METHOD_REGISTRY_ENTRIES=64" ]
+evidence         = [ "crates/did/src/registry.rs" ]
+outer_obligation = "Registered resolver, dereferencer and registrar execution remains governed by each concrete adapter and caller."
+consumer_impact  = "One immutable registry retains at most 64 validated method bindings; dispatched adapter work keeps its separate caller-owned QoS budget."
+review_triggers  = [ "registry capacity change", "new retained registry metadata", "new dispatch capability" ]
+
+[[boundaries]]
+id               = "did-resolution-cache-policy"
+package          = "identus-did"
+surface          = "DID resolution cache keys, declared backend capacity and positive/notFound TTL policy"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_DID_RESOLUTION_CACHE_KEY_BYTES=65536", "MAX_DID_RESOLUTION_CACHE_ENTRIES=4096", "MAX_DID_RESOLUTION_POSITIVE_TTL_MILLIS=86400000", "MAX_DID_RESOLUTION_NOT_FOUND_TTL_MILLIS=300000" ]
+evidence         = [ "crates/did/src/cache.rs", "openspec/specs/did-core/spec.md" ]
+outer_obligation = "Cache-key serialization allocates from already bounded typed DID/options before checking the final encoded key length."
+consumer_impact  = "Portable policy bounds retained key identity, declared capacity and TTL; concrete cache allocation and eviction remain adapter-owned."
+review_triggers  = [ "cache key change", "TTL or capacity change", "new cacheable result class" ]
+
+[[boundaries]]
+id               = "did-resolution-cache-adapters"
+package          = "identus-did"
+surface          = "DidResolutionCache and MonotonicClock injected ports used by CachedDidResolver"
+disposition      = "caller-budgeted-work"
+limits           = [  ]
+evidence         = [ "crates/did/src/cache.rs", "crates/core/src/time.rs" ]
+outer_obligation = "Concrete cache and clock adapters own storage bytes, eviction, lookup/write time, synchronization, cancellation and backend failures."
+consumer_impact  = "The decorator validates policy and entries but does not claim runtime-neutral backend QoS or memory enforcement."
+review_triggers  = [ "concrete cache adapter", "single-flight coordination", "persistent cache", "clock implementation" ]
+
+[[boundaries]]
 id               = "did-resolution-registration-ports"
 package          = "identus-did"
 surface          = "DidResolver, DidUrlDereferencer and DidRegistrar async ports"

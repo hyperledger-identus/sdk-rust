@@ -8,13 +8,15 @@
 
 ## Focused and workspace evidence
 
-- `scripts/check-input-resource-boundaries.py .`: 23 boundary families passed.
+- `scripts/check-input-resource-boundaries.py .`: 26 boundary families passed,
+  including distinct DID method-registry, cache-policy, and cache-adapter rows.
 - `scripts/tests/input-resource-boundaries.py`: all structural mutation cases
   passed locally and inside the isolated Nix factory derivation.
 - BIP-39 derivation tests: 35 default and 40 `kmp-compat` tests passed, including
   exact/one-over word, entropy, and passphrase cases plus published vectors.
-- JWK all-feature integration tests: 22 passed, including exact/one-over member,
-  depth, node and text budgets, serde/native parity, and redaction.
+- JWK all-feature integration tests: 23 passed, including exact/one-over member,
+  depth, node and text budgets, serde/native parity, redaction, and iterative
+  rejection cleanup for a depth-32,768 native extension tree.
 - `cargo test --workspace --all-features`: passed.
 - `cargo clippy --workspace --all-targets --all-features -- -D warnings`:
   passed.
@@ -27,14 +29,15 @@
 
 ## Candidate and reproducible matrix
 
-The pinned `crypto-candidate` app completed in 81.357 seconds with Rust 1.98.1,
+The corrected pinned `crypto-candidate` app completed in 66.814 seconds with
+Rust 1.98.1,
 all four configured feature profiles, three unpublished crate archives, SBOMs,
 and public-API evidence. The baseline delta contains only the intended additive
 BIP-39 and JWK limit constants; no public error variant or dependency edge was
 added.
 
-`nix flake check --fallback` passed the complete compatible aarch64-darwin
-matrix: factory isolation, text/TOML/Nix lint, source contract, format, builds,
+`nix flake check --fallback` passed all 31 compatible aarch64-darwin checks:
+factory isolation, text/TOML/Nix lint, source contract, format, builds,
 strict Clippy variants, default/minimal/KMP/entropy tests, Rust 1.98.1 policy,
 WASM, Android aarch64, iOS aarch64, etalon, rustdoc, cargo-deny, and
 cargo-audit. Nix reported x86_64-linux as incompatible with this local host;
@@ -47,6 +50,11 @@ the Git-backed flake source. After staging the candidate, Taplo identified the
 new inventory formatting, and the formatted form exposed a whitespace-coupled
 mutation helper. Both issues were corrected; the final staged tree passed the
 isolated factory derivation and the full compatible Nix closure.
+
+Hosted review then identified two inventory omissions and one native rejection
+cleanup hazard. The correction adds three DID inventory rows and an internal
+iterative JWK extension-map guard. All focused and full checks above were rerun
+on that corrected tree before publication.
 
 ## Repository boundary
 

@@ -5,7 +5,7 @@
 - **Develop base:** `66ec2b9b3a7ec35cf21ecc52cdca5bebed0b4d0d`
 - **Planning commits:** `b25c23d`, `c6c31eb`, and pre-JWK addendum `32dadd8`
 - **Reviewed candidate:** staged implementation diff before archive
-- **Result:** local review passed; hosted remediation in progress
+- **Result:** local remediation review passed; hosted thread resolution pending
 
 ## Findings and resolutions
 
@@ -60,5 +60,14 @@ findings.
 Review of PR #296 accepted three findings before further remediation: the
 inventory omitted the DID method registry and resolution-cache families, and
 native JWK rejection could recursively destroy a hostile deep owned JSON tree.
-Tasks 2.5, 2.6 and 3.3 track their closure. This result must not return to
-`passed` until the corrections and all three review threads are verified.
+The inventory now has distinct method-registry, portable cache-policy, and
+injected cache/clock adapter rows with exact source evidence. An internal guard
+now owns the native extension map from constructor entry, dismantles nested
+arrays and objects with an explicit work stack on every error path, and yields
+the unchanged map only after successful validation. A depth-32,768 regression
+exercises the profile-error path that precedes extension validation.
+
+The correction adds no public type, dependency, authored unsafe code, wire
+change, or accepted-resource expansion. Focused, workspace, candidate, factory,
+and compatible Nix checks pass. Task 3.3 remains open only until the corrected
+head is published and the three hosted review threads are resolved.

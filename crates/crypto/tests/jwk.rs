@@ -213,6 +213,26 @@ fn jwk_extension_depth_limit_is_exact() {
 }
 
 #[test]
+fn rejected_native_jwk_dismantles_hostile_depth_iteratively() {
+    let hostile = nested_array(32_768);
+    let error = PublicKeyJwk::from_parts(
+        JwkKeyType::Ec,
+        JwkCurve::Ed25519,
+        &zero_coordinate(),
+        None,
+        BTreeMap::from([("hostile".to_owned(), hostile)]),
+    )
+    .expect_err("incompatible profile must fail before extension validation");
+    assert_eq!(
+        error,
+        JwkError::IncompatibleProfile {
+            key_type: JwkKeyType::Ec,
+            curve: JwkCurve::Ed25519,
+        }
+    );
+}
+
+#[test]
 fn jwk_extension_node_limit_is_exact() {
     jwk_with_extension(Value::Array(vec![Value::Null; MAX_JWK_EXTENSION_NODES - 1]))
         .expect("array plus children exactly reaches node limit");

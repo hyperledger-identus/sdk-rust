@@ -56,6 +56,12 @@ keeps validation itself bounded. The existing `ReservedExtension` variant is
 broadened to the complete invalid-extension class, preserving the public enum
 shape and a redacted stable `IdentusError` surface.
 
+DID method registries retain at most 64 method bindings. Cache-key bytes,
+declared cache capacity and positive/`notFound` TTLs retain their existing
+portable limits, while injected cache and monotonic-clock storage/time work is
+explicitly caller-budgeted. These are distinct families from resolver and
+registrar transport work.
+
 `SDK-LIM-007` remains effective but is narrowed: it names outer preallocation
 and caller-budgeted primitive/adapter work instead of an incomplete audit.
 
@@ -70,6 +76,8 @@ and caller-budgeted primitive/adapter work instead of an incomplete audit.
 - Ordinary JWK metadata remains compatible; extreme extension documents are
   rejected by the experimental facade. Public budget constants are additive,
   and no wire or persisted representation changes.
+- DID registry/cache behavior is unchanged; the audit now records its existing
+  limits and the concrete adapter obligations separately.
 - Package activation and new input families require an atomic inventory update.
 
 ## Alternatives rejected

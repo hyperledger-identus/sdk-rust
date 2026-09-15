@@ -17,9 +17,9 @@
       expensive work, with exact-boundary/redaction/KMP tests.
 - [x] 2.4 Enforce count, depth, node and text budgets for retained standalone JWK
       extensions, with native/serde boundary and redaction tests.
-- [ ] 2.5 Inventory the bounded DID method registry and separate DID cache
+- [x] 2.5 Inventory the bounded DID method registry and separate DID cache
       policy limits from injected cache/clock adapter QoS ownership.
-- [ ] 2.6 Iteratively dismantle every rejected native JWK extension tree,
+- [x] 2.6 Iteratively dismantle every rejected native JWK extension tree,
       including errors that precede resource validation, with hostile-depth
       regression coverage.
 

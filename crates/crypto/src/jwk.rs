@@ -299,6 +299,7 @@ impl PublicKeyJwk {
         y: Option<&str>,
         extensions: BTreeMap<String, Value>,
     ) -> Result<Self, JwkError> {
+        let mut extensions = ExtensionMapGuard::new(extensions);
         if kty != crv.key_type() {
             return Err(JwkError::IncompatibleProfile {
                 key_type: kty,
@@ -310,16 +311,16 @@ impl PublicKeyJwk {
             (JwkKeyType::Okp, Some(_)) => return Err(JwkError::UnexpectedYCoordinate),
             _ => {}
         }
-        if extensions.contains_key(PRIVATE_PARAMETER) {
+        if extensions.as_map().contains_key(PRIVATE_PARAMETER) {
             return Err(JwkError::PrivateKeyMaterial);
         }
         if STRUCTURAL_PARAMETERS
             .iter()
-            .any(|parameter| extensions.contains_key(*parameter))
+            .any(|parameter| extensions.as_map().contains_key(*parameter))
         {
             return Err(JwkError::ReservedExtension);
         }
-        validate_extensions(&extensions)?;
+        validate_extensions(extensions.as_map())?;
 
         let x = parse_coordinate(x, JwkCoordinate::X)?;
         let y = y
@@ -331,7 +332,7 @@ impl PublicKeyJwk {
             crv,
             x,
             y,
-            extensions,
+            extensions: extensions.take(),
         })
     }
 
@@ -392,6 +393,52 @@ impl PublicKeyJwk {
             visit(y.as_str().as_bytes());
         }
         visit(br#""}"#);
+    }
+}
+
+struct ExtensionMapGuard {
+    extensions: Option<BTreeMap<String, Value>>,
+}
+
+impl ExtensionMapGuard {
+    fn new(extensions: BTreeMap<String, Value>) -> Self {
+        Self {
+            extensions: Some(extensions),
+        }
+    }
+
+    fn as_map(&self) -> &BTreeMap<String, Value> {
+        self.extensions
+            .as_ref()
+            .expect("extension guard always owns a map before success")
+    }
+
+    fn take(&mut self) -> BTreeMap<String, Value> {
+        self.extensions
+            .take()
+            .expect("extension guard map is taken exactly once")
+    }
+}
+
+impl Drop for ExtensionMapGuard {
+    fn drop(&mut self) {
+        if let Some(extensions) = self.extensions.take() {
+            drop_json_map_iteratively(extensions);
+        }
+    }
+}
+
+fn drop_json_map_iteratively(extensions: BTreeMap<String, Value>) {
+    let mut pending = Vec::new();
+    for value in extensions.into_values() {
+        pending.push(value);
+        while let Some(value) = pending.pop() {
+            match value {
+                Value::Array(mut values) => pending.append(&mut values),
+                Value::Object(values) => pending.extend(values.into_values()),
+                Value::Null | Value::Bool(_) | Value::Number(_) | Value::String(_) => {}
+            }
+        }
     }
 }
 

@@ -37,6 +37,9 @@ calling it unbounded SDK behavior.
 - Every implemented runtime package has at least one boundary-family row.
 - Core, DID, credential, presentation, JOSE, OID4VCI and wallet retained values
   have explicit fixed or configurable limits.
+- The DID method registry caps retained bindings at 64. DID resolution cache
+  keys, declared capacity and TTL policy are bounded separately from the
+  caller-owned cache/clock adapter QoS and storage allocation.
 - The HTTP resolver applies semantic limits after Axum extraction; deployment
   middleware still owns connection, header/request-line and execution limits.
 - UniFFI and WASM DID facades delegate to bounded DID parsing after their
@@ -46,7 +49,8 @@ calling it unbounded SDK behavior.
 - BIP-39 now rejects impossible entropy, excess word count/word bytes and
   passphrases above 4,096 UTF-8 bytes before dependency or expensive work.
 - Standalone public JWK extensions are capped at 32 members, depth 16, 1,024
-  JSON nodes and 65,536 aggregate key/string UTF-8 bytes before retention.
+  JSON nodes and 65,536 aggregate key/string UTF-8 bytes before retention;
+  rejected native trees are dismantled iteratively instead of recursively.
 
 The broad “audit incomplete” wording is therefore retired. `SDK-LIM-007`
 remains, narrowed to the concrete outer-preallocation and caller-budgeted work

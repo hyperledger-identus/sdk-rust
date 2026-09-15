@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
+canonical_sha256 = "e62efeb5355880ff3c22d542ffdfc7b36dac3f93c7e023698da37baf9cb0a57f"
+reason           = "Issue #250 is delivered and closed; active IDR-023 ownership returns to open component epic #7 until the next bounded child exists."

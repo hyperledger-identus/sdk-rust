@@ -39,3 +39,33 @@ implementation begins.
   current reusable contract
 - **THEN** the live audit accepts the evidence reference but does not treat the
   row as selectable active implementation
+
+## MODIFIED Requirements
+
+### Requirement: IDR-023 begins with a focused Credential Offer transport slice
+
+The canonical backlog SHALL keep `IDR-023` at `in_progress` and return its
+issue reference from completed child #250 to open component epic #7 until the
+next focused bounded child is crystallized. Issue #250 delivered only bounded
+construction of the unencrypted Final Deferred Credential Request from
+existing typed response and metadata state.
+
+The completed slice SHALL NOT claim the full OID4VCI engine, HTTP execution,
+token ownership/validation, TLS, interval scheduling, transaction lifecycle,
+request/response encryption, extension parameters, error response handling,
+response correlation, credential verification/storage, format/chain
+extensions, consumer adoption, publication or release.
+
+#### Scenario: Bounded child is complete without a successor
+
+- **WHEN** issue #250 is closed after implementation and no next bounded child
+  has been crystallized
+- **THEN** `IDR-023` references open component epic #7 with
+  `delivery_status=in_progress`
+- **AND** #20 remains the open program parent
+
+#### Scenario: request construction is not engine completion
+
+- **WHEN** a bounded Deferred Credential Request is constructed without HTTP,
+  token, timing, lifecycle, encryption or correlation behavior
+- **THEN** the backlog keeps `IDR-023` in progress rather than delivered

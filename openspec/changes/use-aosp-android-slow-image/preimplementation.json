@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 276,
+  "change": "use-aosp-android-slow-image",
+  "branch": "codex/ci/issue-276",
+  "baseRef": "origin/develop",
+  "baseSha": "47136ed8bc73faba34c78d88768136cd6841364d",
+  "contractHeadSha": "8b869bcd1be94b76bb66415c53b76060fff3957f",
+  "createdAt": "2026-09-15T14:02:53.636Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

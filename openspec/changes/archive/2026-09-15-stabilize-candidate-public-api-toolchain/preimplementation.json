@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 276,
+  "change": "stabilize-candidate-public-api-toolchain",
+  "branch": "codex/ci/issue-276",
+  "baseRef": "origin/develop",
+  "baseSha": "59a8db6b7c34439f4f84d762bc1fd56c6ecba9d0",
+  "contractHeadSha": "af364960fe776bcd7a3568e1e92c9a756fe2ce69",
+  "createdAt": "2026-09-15T13:12:15.758Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

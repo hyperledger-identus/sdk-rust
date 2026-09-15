@@ -87,6 +87,7 @@ class SupportPolicyTests(unittest.TestCase):
             "docs/adr/0108-operationalize-guidance-based-ai-factory.md",
             "docs/adr/0111-use-read-only-nix-cache-on-fast-path.md",
             "docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md",
+            "docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md",
             "docs/research/rust-library-reuse/report-source.md",
             "docs/adr/0002-neoprism-toolchain-alignment.md",
             ".github/workflows/factory-contract.yml",

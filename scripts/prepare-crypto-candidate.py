@@ -349,14 +349,24 @@ def release_evidence(stage: Path, root: Path, output: Path, descriptor: dict[str
         "cargo_semver_checks": tool_version(["cargo", "semver-checks", "--version"], tools["cargo_semver_checks"], root, env),
         "cargo_cyclonedx": tool_version(["cargo", "cyclonedx", "--version"], tools["cargo_cyclonedx"], root, env),
     }
-    # cargo-public-api uses rustdoc JSON, which is not stable yet. Keep the
-    # compiler itself at the 1.98.1 etalon and scope the documented bootstrap
-    # escape hatch to this inspection subprocess only.
+    # Generate rustdoc JSON explicitly so cargo-public-api cannot infer an
+    # ambient rustup-owned nightly from the stable Cargo version. Keep both the
+    # compiler identity and the bootstrap escape hatch local to this one
+    # inspection command.
+    api_target = stage / "target/public-api"
     api_env = env | {"RUSTC_BOOTSTRAP": "1"}
-    api = run_stdout([
-        "cargo", "public-api", "--manifest-path", str(stage / "crates/crypto/Cargo.toml"),
-        "--all-features", "-sss", "--color=never",
+    run([
+        "cargo", "rustdoc", "--manifest-path", str(stage / "crates/crypto/Cargo.toml"),
+        "--all-features", "--lib", "--target-dir", str(api_target), "--",
+        "-Z", "unstable-options", "--output-format", "json",
     ], cwd=stage, env=api_env)
+    api_json = api_target / "doc/identus_crypto.json"
+    if not api_json.is_file():
+        raise CandidateError("cargo rustdoc did not create expected identus_crypto.json")
+    api = run_stdout([
+        "cargo", "public-api", "--rustdoc-json", str(api_json),
+        "-sss", "--color=never",
+    ], cwd=stage, env=env)
     api_path = root / API_BASELINE
     if initialize_api:
         api_path.parent.mkdir(parents=True, exist_ok=True)

@@ -12,6 +12,7 @@ from typing import Any
 DESCRIPTOR = Path("docs/release/crypto-candidate.toml")
 API_BASELINE = Path("docs/release/identus-crypto-0.1.0-rc.1.api.txt")
 ADR = Path("docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md")
+TOOLCHAIN_ADR = Path("docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md")
 RUNNER = Path("scripts/prepare-crypto-candidate.py")
 VERSION = "0.1.0-rc.1"
 BASELINE = "8110277c24714206436ae4a3fe678bdc58a84736"
@@ -113,6 +114,10 @@ def validate(root: Path) -> list[str]:
     for phrase in ("#266", "archive-closure verification", "publish = false", "Rust 1.98.1"):
         if phrase not in adr:
             errors.append(f"candidate ADR is missing decision evidence: {phrase}")
+    toolchain_adr = read(root / TOOLCHAIN_ADR, errors)
+    for phrase in ("#276", "cargo rustdoc", "cargo-public-api 0.52.0", "RUSTC_BOOTSTRAP=1", "Rust 1.98.1"):
+        if phrase not in toolchain_adr:
+            errors.append(f"candidate toolchain ADR is missing decision evidence: {phrase}")
 
     baseline = read(root / API_BASELINE, errors)
     if len(baseline.strip().splitlines()) < 5:
@@ -141,6 +146,18 @@ def validate(root: Path) -> list[str]:
         runner,
     ):
         errors.append("candidate build scratch must not be rooted in the output destination")
+    required_api_contract = (
+        'api_target = stage / "target/public-api"',
+        'api_env = env | {"RUSTC_BOOTSTRAP": "1"}',
+        '"cargo", "rustdoc", "--manifest-path"',
+        '"-Z", "unstable-options", "--output-format", "json"',
+        'api_json = api_target / "doc/identus_crypto.json"',
+        'if not api_json.is_file():',
+        '"cargo", "public-api", "--rustdoc-json", str(api_json)',
+    )
+    for phrase in required_api_contract:
+        if phrase not in runner:
+            errors.append(f"candidate runner is missing stable public-API boundary: {phrase}")
     return errors
 
 

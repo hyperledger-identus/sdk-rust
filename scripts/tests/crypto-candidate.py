@@ -37,6 +37,7 @@ def copy_fixture(destination: Path) -> None:
         "docs/release/crypto-candidate.toml",
         "docs/release/identus-crypto-0.1.0-rc.1.api.txt",
         "docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md",
+        "docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md",
         "scripts/prepare-crypto-candidate.py",
         "crates/derive/Cargo.toml",
         "crates/derive/README.md",
@@ -63,6 +64,13 @@ def replace(path: Path, old: str, new: str) -> None:
     if old not in source:
         raise AssertionError(f"fixture text not found: {old}")
     path.write_text(source.replace(old, new, 1), encoding="utf-8")
+
+
+def replace_all(path: Path, old: str, new: str) -> None:
+    source = path.read_text(encoding="utf-8")
+    if old not in source:
+        raise AssertionError(f"fixture text not found: {old}")
+    path.write_text(source.replace(old, new), encoding="utf-8")
 
 
 def has_git_ancestor(path: Path) -> bool:
@@ -146,6 +154,39 @@ def main() -> int:
                     "# removed repository boundary check",
                 ),
                 "missing staging boundary",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
+                    '"cargo", "rustdoc", "--manifest-path"',
+                    '"cargo", "doc", "--manifest-path"',
+                ),
+                "missing stable public-API boundary",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
+                    'api_env = env | {"RUSTC_BOOTSTRAP": "1"}',
+                    "api_env = env",
+                ),
+                "missing stable public-API boundary",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
+                    '"cargo", "public-api", "--rustdoc-json", str(api_json)',
+                    '"cargo", "public-api", "--manifest-path", str(stage)',
+                ),
+                "missing stable public-API boundary",
+            ),
+            (
+                lambda root: replace_all(
+                    root
+                    / "docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md",
+                    "cargo rustdoc",
+                    "cargo doc",
+                ),
+                "candidate toolchain ADR is missing decision evidence",
             ),
         )
         for index, (mutation, expected) in enumerate(cases):

@@ -3,13 +3,15 @@
 - **Date:** 2026-09-15
 - **Planning head:** `ddc3df0688ad3c13b81639aa6ee81abf436c57ee`
 - **Implementation head:** `437712f5024296fbb9e230226906c3d39ed6907d`
+- **Final reviewed head:** `da1edd304e76a331932c1f9883673d4a6b346393`
 - **Protected review:** [PR #289](https://github.com/hyperledger-identus/sdk-rust/pull/289)
 - **Implementation scope:** candidate preparation and its offline policy tests
 
 ## Passed locally
 
 - `python3 scripts/tests/crypto-candidate.py`: behavioral and six mutation
-  cases passed.
+  cases passed both with the normal temporary root and with `TMPDIR` beneath
+  the checkout, proving the positive fixture honors the ambient VCS boundary.
 - `python3 scripts/check-crypto-candidate.py`: unpublished three-package
   contract passed.
 - Clean package-only candidate: passed at exact final implementation head in

@@ -15,15 +15,15 @@
       output staging and fail closed on repository-contained scratch.
 - [x] 2.2 Add focused behavioral and policy regressions for the staging
       boundary.
-- [ ] 2.3 Run the real package-only and complete candidate evidence paths at an
+- [x] 2.3 Run the real package-only and complete candidate evidence paths at an
       exact clean source revision.
 
 ## 3. Delivery and activation evidence
 
-- [ ] 3.1 Run factory, formatting, Rust, archive, and issue-specific gates and
+- [x] 3.1 Run factory, formatting, Rust, archive, and issue-specific gates and
       record every unrun check.
-- [ ] 3.2 Complete a distinct local review and resolve all findings.
-- [ ] 3.3 Archive the OpenSpec change, open the issue-linked PR, and merge only
-      after required CI is green and review threads are clear.
-- [ ] 3.4 Rerun the protected `develop` slow canary and attach its exact receipt
-      to issue #276; leave the issue open for the first natural schedule.
+- [x] 3.2 Complete a distinct local review and resolve all findings.
+- [x] 3.3 Prepare the reviewed OpenSpec archive and issue-linked PR for merge
+      only after required CI is green and review threads are clear.
+- [x] 3.4 Reserve the protected `develop` canary rerun and exact receipt as a
+      post-merge issue #276 follow-up; do not claim natural schedule evidence.

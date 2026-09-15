@@ -2665,6 +2665,27 @@ def validate_ci_lanes(
             failures.append(f"cannot read {android_verifier_path}: {error}")
         else:
             android_verifier_contract = {
+                "exact SDK-relative NDK selection": (
+                    'ndk_root="$android_sdk/ndk/$ndk_version"'
+                ),
+                "exact NDK metadata path": (
+                    'ndk_properties="$ndk_root/source.properties"'
+                ),
+                "exact NDK metadata guard": (
+                    "grep -Eq '^Pkg\\.Revision[[:space:]]*=[[:space:]]*"
+                    "27\\.0\\.12077973[[:space:]]*$'"
+                ),
+                "ANDROID_NDK child binding": 'export ANDROID_NDK="$ndk_root"',
+                "ANDROID_NDK_HOME child binding": (
+                    'export ANDROID_NDK_HOME="$ndk_root"'
+                ),
+                "ANDROID_NDK_ROOT child binding": (
+                    'export ANDROID_NDK_ROOT="$ndk_root"'
+                ),
+                "ambient latest NDK removal": "unset ANDROID_NDK_LATEST_HOME",
+                "NDK metadata checksum receipt": (
+                    "printf 'ndk_source_properties_sha256=%s\\n'"
+                ),
                 "exact AOSP package identity": (
                     'system_image="system-images;android-35;default;arm64-v8a"'
                 ),
@@ -2675,10 +2696,18 @@ def validate_ci_lanes(
                 "AVD package binding": '--package "$system_image"',
             }
             for contract_name, marker in android_verifier_contract.items():
-                if marker not in android_verifier:
+                if re.search(
+                    rf"^[ \t]*{re.escape(marker)}(?:[ \t]|$)",
+                    android_verifier,
+                    re.MULTILINE,
+                ) is None:
                     failures.append(
                         f"{android_verifier_path} is missing {contract_name}"
                     )
+            if '${ANDROID_NDK_ROOT:-' in android_verifier:
+                failures.append(
+                    f"{android_verifier_path} must not give ambient ANDROID_NDK_ROOT precedence"
+                )
             for marker in ("google_apis_playstore", "google_apis;"):
                 if marker in android_verifier:
                     failures.append(

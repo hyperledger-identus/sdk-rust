@@ -60,8 +60,10 @@ budgets: 32 top-level members, depth 16, 1,024 total JSON nodes, and 65,536
 aggregate UTF-8 bytes across member names and string values. Validation is an
 iterative borrowed walk and runs before coordinates are decoded or the moved
 map is retained. Native and serde construction converge on the same function.
-One redacted `InvalidExtensions` error avoids reflecting attacker-controlled
-keys/values. Outer serde allocation remains a documented residual.
+The existing redacted `ReservedExtension` error is broadened to cover an
+invalid extension set, avoiding a new public enum variant or reflection of
+attacker-controlled keys/values. Outer serde allocation remains a documented
+residual.
 
 ## Risks and mitigations
 

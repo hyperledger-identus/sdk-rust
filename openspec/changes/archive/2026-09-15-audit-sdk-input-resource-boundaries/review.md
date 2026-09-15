@@ -1,0 +1,56 @@
+# Post-implementation security, architecture and API review
+
+- **Date:** 2026-09-16
+- **Issue:** #168
+- **Develop base:** `66ec2b9b3a7ec35cf21ecc52cdca5bebed0b4d0d`
+- **Planning commits:** `b25c23d`, `c6c31eb`, and pre-JWK addendum `32dadd8`
+- **Reviewed candidate:** staged implementation diff before archive
+- **Result:** passed with no unresolved finding
+
+## Findings and resolutions
+
+1. **Coverage and ownership:** all thirteen packages classified `implemented`
+   in the bootstrap inventory have at least one boundary-family row. The four
+   dispositions distinguish typed SDK enforcement, fixed/no runtime input,
+   caller-budgeted work, and allocation that occurs before a typed boundary.
+   No row claims control the SDK does not own.
+2. **Checker safety:** the checker is standard-library-only, offline, bounded
+   to a 256 KiB inventory and 256 rows, rejects unknown schema, and validates
+   repository-relative nonsymlink evidence without executing it. Its mutation
+   suite covers missing package/evidence/limits, invalid classifications,
+   duplicate IDs, unknown fields, missing paths, and oversized input.
+3. **BIP-39 precedence:** entropy sizes are rejected before dependency entry;
+   invalid word count and the English-list byte ceiling are rejected before
+   joining; passphrase bytes are rejected before NFKD and PBKDF2. Standard and
+   KMP paths share the same 4,096-byte policy and redacted error.
+4. **JWK retained-resource safety:** native and serde construction converge on
+   one validator before the map is retained or coordinates are decoded. Its
+   borrowed iterative traversal bounds members, stack growth, depth, nodes,
+   and aggregate key/string bytes without cloning attacker-controlled JSON.
+5. **Outer-allocation honesty:** serde, Axum, UniFFI, JavaScript, and already
+   owned Rust values can allocate before typed validation. The narrowed
+   `SDK-LIM-007` preserves those obligations and keeps generic borrowed crypto
+   work and injected async/storage adapters caller-budgeted.
+6. **API compatibility:** public limit constants are additive. A proposed new
+   JWK error variant was removed during review; resource failures reuse the
+   existing redacted `ReservedExtension` variant, preserving the exhaustive
+   enum shape and stable `IdentusError` contract. There is no wire or persisted
+   representation change.
+7. **Dependency and unsafe surface:** no Cargo dependency, feature default,
+   native code, or authored unsafe Rust is added. The candidate API/SBOM gate
+   completed with the pinned Rust 1.98.1 toolchain.
+8. **Factory robustness:** Taplo formatting exposed spacing assumptions in the
+   mutation test. The test now locates TOML assignments independent of
+   alignment, and both its local and Nix-isolated forms pass.
+
+## Residuals
+
+- Supporting another BIP-39 language requires a deliberate word-byte policy
+  review; the current eight-byte ceiling is explicitly English-list scoped.
+- Consumers must continue applying preallocation, transport, timeout, retry,
+  cancellation, and backend quotas at the earliest boundary they own.
+- A newly discovered omitted family restores the broad limitation immediately
+  until the inventory and executable evidence are corrected.
+
+These are documented ownership constraints, not unresolved implementation
+findings.

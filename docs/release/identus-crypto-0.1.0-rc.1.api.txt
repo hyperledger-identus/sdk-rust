@@ -302,6 +302,10 @@ pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_seed(&[alloc
 pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_seed_kmp(&[alloc::string::String], &str) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::error::Error>
 pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::is_valid_mnemonic_code(&[alloc::string::String]) -> bool
 pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::to_mnemonic_code(&[u8]) -> alloc::vec::Vec<alloc::string::String>
+pub const identus_crypto::derivation::mnemonic::MAX_BIP39_ENGLISH_WORD_BYTES: usize
+pub const identus_crypto::derivation::mnemonic::MAX_BIP39_ENTROPY_BYTES: usize
+pub const identus_crypto::derivation::mnemonic::MAX_BIP39_PASSPHRASE_BYTES: usize
+pub const identus_crypto::derivation::mnemonic::MAX_BIP39_WORDS: usize
 pub fn identus_crypto::derivation::mnemonic::wordlist() -> alloc::vec::Vec<&'static str>
 pub mod identus_crypto::derivation::path
 pub struct identus_crypto::derivation::path::DerivationAxis(_)
@@ -397,6 +401,10 @@ pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_seed(&[alloc
 pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::create_seed_kmp(&[alloc::string::String], &str) -> core::result::Result<alloc::vec::Vec<u8>, identus_crypto::error::Error>
 pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::is_valid_mnemonic_code(&[alloc::string::String]) -> bool
 pub fn identus_crypto::derivation::mnemonic::MnemonicHelper::to_mnemonic_code(&[u8]) -> alloc::vec::Vec<alloc::string::String>
+pub const identus_crypto::derivation::MAX_BIP39_ENGLISH_WORD_BYTES: usize
+pub const identus_crypto::derivation::MAX_BIP39_ENTROPY_BYTES: usize
+pub const identus_crypto::derivation::MAX_BIP39_PASSPHRASE_BYTES: usize
+pub const identus_crypto::derivation::MAX_BIP39_WORDS: usize
 pub const identus_crypto::derivation::MAX_DERIVATION_PATH_AXES: usize
 pub const identus_crypto::derivation::MAX_DERIVATION_PATH_BYTES: usize
 pub const identus_crypto::derivation::MAX_HD_SEED_BYTES: usize
@@ -592,6 +600,10 @@ pub type identus_crypto::cose::PublicKeyCose::Error = identus_crypto::cose::Cose
 pub fn identus_crypto::cose::PublicKeyCose::try_from(&identus_crypto::jwk::PublicKeyJwk) -> core::result::Result<Self, Self::Error>
 impl<'de> serde_core::de::Deserialize<'de> for identus_crypto::jwk::PublicKeyJwk
 pub fn identus_crypto::jwk::PublicKeyJwk::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub const identus_crypto::jwk::MAX_JWK_EXTENSIONS: usize
+pub const identus_crypto::jwk::MAX_JWK_EXTENSION_DEPTH: usize
+pub const identus_crypto::jwk::MAX_JWK_EXTENSION_NODES: usize
+pub const identus_crypto::jwk::MAX_JWK_EXTENSION_TEXT_BYTES: usize
 pub trait identus_crypto::jwk::EncodeJwk
 pub fn identus_crypto::jwk::EncodeJwk::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
 impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::ed25519::Ed25519PublicKey
@@ -1107,6 +1119,10 @@ pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_vec(&self) -> all
 impl identus_crypto::jwk::EncodeJwk for identus_crypto::crypto::x25519::X25519PublicKey
 pub fn identus_crypto::crypto::x25519::X25519PublicKey::encode_jwk(&self) -> identus_crypto::jwk::PublicKeyJwk
 pub const identus_crypto::COMPONENT: identus_core::Component
+pub const identus_crypto::MAX_BIP39_ENGLISH_WORD_BYTES: usize
+pub const identus_crypto::MAX_BIP39_ENTROPY_BYTES: usize
+pub const identus_crypto::MAX_BIP39_PASSPHRASE_BYTES: usize
+pub const identus_crypto::MAX_BIP39_WORDS: usize
 pub const identus_crypto::MAX_COSE_ADDITIONAL_PARAMETERS: usize
 pub const identus_crypto::MAX_COSE_KEY_BYTES: usize
 pub const identus_crypto::MAX_COSE_NESTING_DEPTH: usize
@@ -1114,6 +1130,10 @@ pub const identus_crypto::MAX_CRYPTO_TEXT_BYTES: usize
 pub const identus_crypto::MAX_DERIVATION_PATH_AXES: usize
 pub const identus_crypto::MAX_DERIVATION_PATH_BYTES: usize
 pub const identus_crypto::MAX_HD_SEED_BYTES: usize
+pub const identus_crypto::MAX_JWK_EXTENSIONS: usize
+pub const identus_crypto::MAX_JWK_EXTENSION_DEPTH: usize
+pub const identus_crypto::MAX_JWK_EXTENSION_NODES: usize
+pub const identus_crypto::MAX_JWK_EXTENSION_TEXT_BYTES: usize
 pub const identus_crypto::MIN_HD_SEED_BYTES: usize
 pub trait identus_crypto::EncodeArray<const N: usize>
 pub fn identus_crypto::EncodeArray::encode_array(&self) -> [u8; N]

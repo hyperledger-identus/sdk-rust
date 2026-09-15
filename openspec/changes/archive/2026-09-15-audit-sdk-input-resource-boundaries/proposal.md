@@ -33,8 +33,9 @@ before the SDK applies any bound.
 
 ### Modified capabilities
 
-- `crypto`: bounds BIP-39 word/count/passphrase work without changing valid
-  standard or KMP-compatible derivation results.
+- `crypto`: bounds BIP-39 word/count/passphrase work and retained JWK
+  extensions without changing valid standard/KMP derivation results or the
+  public error-enum shape.
 
 ## Non-goals
 

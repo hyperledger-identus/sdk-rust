@@ -50,6 +50,12 @@ Existing ordinary JWK metadata remains compatible; extension documents beyond
 the explicit experimental-facade budgets are rejected with a redacted JWK
 error and require a higher-level format/profile decision.
 
+The crypto facade adds public constants for the BIP-39 and JWK budgets. It
+preserves the shape of the public `JwkError` enum by using its existing
+`ReservedExtension` variant for every invalid extension set. Its generic local
+message changes, while the stable `IdentusError` code and message remain
+unchanged. No wire or persisted representation changes.
+
 Oxid, Midnight, midnight-identity, NeoPRISM, Lace and Apollo receive no source,
 wire, storage, protocol, support, release, or migration claim.
 

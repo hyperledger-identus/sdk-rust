@@ -74,6 +74,14 @@ type SHALL reject the private `d` member. Additional public members SHALL
 round-trip without being interpreted and SHALL NOT shadow `kty`, `crv`, `x`,
 or `y`.
 
+The standalone crypto facade SHALL retain at most 32 extension members, 16
+levels of extension JSON, 1,024 total extension JSON nodes, and 65,536
+aggregate UTF-8 bytes across extension keys and string values. Native and serde
+construction SHALL enforce the same budgets before retention and SHALL return
+only a redacted JWK error without extension names or values. The enclosing JSON
+transport/deserializer remains responsible for bounding allocation before the
+typed facade receives the extension map.
+
 When `jwk-thumbprint` is enabled, `PublicKeyJwk::thumbprint_sha256()` SHALL
 return a typed `JwkThumbprint` computed according to RFC 7638. OKP hash input
 SHALL contain only `crv`, `kty`, and `x`; EC input SHALL contain only `crv`,
@@ -113,12 +121,19 @@ invariants SHALL remain under the bounded sanitizer campaign.
 - **THEN** deserialization and extension-aware construction SHALL reject it
   without including the private value in an error
 
-#### Scenario: unknown public extensions survive a round trip
+#### Scenario: unknown bounded public extensions survive a round trip
 
-- **WHEN** a valid public JWK contains additional public members such as
-  `kid` or a collision-resistant extension name
+- **WHEN** a valid JWK contains public extension members within all four budgets
 - **THEN** deserialize/serialize SHALL preserve their JSON values while the
   crypto crate SHALL NOT interpret their policy
+
+#### Scenario: each extension budget fails closed
+
+- **WHEN** extension members, depth, nodes or aggregate key/string bytes are
+  exactly at their respective ceiling
+- **THEN** native and serde construction accept an otherwise valid JWK
+- **WHEN** any one budget is exceeded
+- **THEN** construction rejects before retention with no extension data in the error
 
 #### Scenario: RFC 8037 Ed25519 thumbprint matches exactly
 
@@ -394,15 +409,19 @@ return `Error::MnemonicInvalid` on failure.
 Validation SHALL enforce BIP-39 English word counts and checksums, not word
 membership alone. Entropy conversion SHALL accept exactly 16, 20, 24, 28 or 32
 bytes and preserve its existing empty-vector failure shape for every other
-length. Mnemonic sentences and standard passphrases SHALL use NFKD before seed
-derivation. Any normalized text owned by the implementation and every fixed
-seed temporary SHALL be zeroized on drop. Dependency mnemonic/error/formatter
-types SHALL remain private.
+length. Before dependency entry or allocating a joined sentence, validation
+SHALL reject more than 24 words and any word longer than the longest adopted
+English BIP-39 word. Before NFKD normalization or PBKDF2, both seed functions
+SHALL reject a passphrase above 4,096 UTF-8 bytes with the same redacted
+`Error::MnemonicInvalid` contract. Mnemonic sentences and standard passphrases
+SHALL use NFKD before seed derivation. Any normalized text owned by the
+implementation and every fixed seed temporary SHALL be zeroized on drop.
+Dependency mnemonic/error/formatter types SHALL remain private.
 
-The KMP path SHALL share strict normalized mnemonic validation but SHALL keep
-the legacy passphrase bytes and unprefixed salt unchanged. Its local PBKDF2
-mechanics SHALL remain isolated behind `kmp-compat`; the standard path SHALL use
-the adopted BIP-39 engine.
+The KMP path SHALL share strict normalized mnemonic validation and the
+passphrase byte ceiling but SHALL keep the accepted legacy passphrase bytes and
+unprefixed salt unchanged. Its local PBKDF2 mechanics SHALL remain isolated
+behind `kmp-compat`; the standard path SHALL use the adopted BIP-39 engine.
 
 #### Scenario: BIP39 seed derivation matches known vectors
 
@@ -437,6 +456,20 @@ the adopted BIP-39 engine.
 - **THEN** `is_valid_mnemonic_code` SHALL return false, and both `create_seed`
   and `create_seed_kmp` SHALL error with `crypto.mnemonic_invalid`
 
+#### Scenario: Oversized mnemonic input is rejected before joining
+
+- **WHEN** more than 24 words or one word above the adopted English-word byte
+  ceiling is passed to validation or either seed function
+- **THEN** validation fails with the stable redacted mnemonic result before
+  constructing a joined phrase or invoking the BIP-39 dependency
+
+#### Scenario: Passphrase work has an exact SDK ceiling
+
+- **WHEN** a passphrase contains exactly 4,096 UTF-8 bytes
+- **THEN** standard and KMP-compatible derivation accept it when the mnemonic is valid
+- **WHEN** it contains 4,097 UTF-8 bytes
+- **THEN** both reject it before normalization or PBKDF2 without exposing the value
+
 #### Scenario: create_seed_kmp is unavailable without the feature
 
 - **WHEN** the crate is compiled without `--features kmp-compat`
@@ -454,11 +487,11 @@ the adopted BIP-39 engine.
 - **THEN** the result SHALL contain 12, 15, 18, 21 or 24 valid English words,
   respectively
 
-#### Scenario: Non-standard entropy fails without panic
+#### Scenario: Non-standard entropy fails before dependency work
 
 - **WHEN** empty, undersized, oversized or non-32-bit-aligned entropy is
   converted through the existing infallible API
-- **THEN** the result SHALL be an empty vector
+- **THEN** the result SHALL be an empty vector without invoking mnemonic construction
 
 #### Scenario: Word count and checksum are validated
 

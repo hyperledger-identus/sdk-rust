@@ -85,8 +85,12 @@ the legacy PBKDF2 path remains under `kmp-compat`. License and provenance remain
 the existing repository/dependency records; no source or fixture is copied.
 
 The temporary MSRV/compiler floor remains Rust 1.98.1. All existing target and
-feature gates remain applicable. No crate dependency edge, public dependency
-type, feature default, wire encoding, or persisted representation changes.
+feature gates remain applicable. The crypto facade adds named public BIP-39 and
+JWK budget constants. It does not add or rename a public error variant: JWK
+budget failures reuse the existing redacted `ReservedExtension` variant, whose
+message and documentation now describe the complete invalid-extension class.
+No crate dependency edge, public dependency type, feature default, wire
+encoding, or persisted representation changes.
 The direct and resolved dependency cone is unchanged because the work adds no
 Cargo package. The public facade boundary remains `identus-crypto`; dependency
 types and errors do not cross it. Rollback reverts the inventory/checker and
@@ -101,8 +105,8 @@ bounded input and derived seed temporaries preserve zeroization behavior.
 
 JWK extension validation walks borrowed JSON without cloning, counts top-level
 members, total nodes, maximum depth and aggregate key/string UTF-8 bytes, and
-rejects before storing the moved map. The error identifies only the violated
-budget class and never includes an extension name or value. Serde allocation
+rejects before storing the moved map. The generic extension error never
+includes an extension name, value, or which budget was exceeded. Serde allocation
 before typed validation remains disclosed under `SDK-LIM-007`.
 
 The inventory distinguishes four security-relevant dispositions instead of

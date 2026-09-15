@@ -20,6 +20,15 @@ const COORDINATE_SIZE: usize = 32;
 const PRIVATE_PARAMETER: &str = "d";
 const STRUCTURAL_PARAMETERS: [&str; 4] = ["kty", "crv", "x", "y"];
 
+/// Maximum top-level public extension members retained in one JWK.
+pub const MAX_JWK_EXTENSIONS: usize = 32;
+/// Maximum nesting depth retained below one top-level JWK extension member.
+pub const MAX_JWK_EXTENSION_DEPTH: usize = 16;
+/// Maximum JSON value nodes retained across all JWK extensions.
+pub const MAX_JWK_EXTENSION_NODES: usize = 1_024;
+/// Maximum aggregate UTF-8 bytes retained in extension keys and string values.
+pub const MAX_JWK_EXTENSION_TEXT_BYTES: usize = 64 * 1_024;
+
 /// Supported JSON Web Key types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum JwkKeyType {
@@ -142,7 +151,7 @@ pub enum JwkError {
     },
     /// A private `d` parameter was supplied to the public-only type.
     PrivateKeyMaterial,
-    /// An extension attempted to shadow a structural JWK parameter.
+    /// The extension set is invalid or exceeds its retained-resource budget.
     ReservedExtension,
 }
 
@@ -186,9 +195,7 @@ impl fmt::Display for JwkError {
             Self::PrivateKeyMaterial => {
                 formatter.write_str("public JWK must not contain private key material")
             }
-            Self::ReservedExtension => {
-                formatter.write_str("JWK extension must not shadow a structural member")
-            }
+            Self::ReservedExtension => formatter.write_str("JWK extension set is invalid"),
         }
     }
 }
@@ -312,6 +319,7 @@ impl PublicKeyJwk {
         {
             return Err(JwkError::ReservedExtension);
         }
+        validate_extensions(&extensions)?;
 
         let x = parse_coordinate(x, JwkCoordinate::X)?;
         let y = y
@@ -385,6 +393,64 @@ impl PublicKeyJwk {
         }
         visit(br#""}"#);
     }
+}
+
+fn validate_extensions(extensions: &BTreeMap<String, Value>) -> Result<(), JwkError> {
+    if extensions.len() > MAX_JWK_EXTENSIONS {
+        return Err(JwkError::ReservedExtension);
+    }
+
+    let mut text_bytes = 0usize;
+    let mut stack = Vec::with_capacity(extensions.len());
+    for (key, value) in extensions {
+        add_extension_text(&mut text_bytes, key.len())?;
+        stack.push((value, 1usize));
+    }
+
+    let mut nodes = 0usize;
+    while let Some((value, depth)) = stack.pop() {
+        if depth > MAX_JWK_EXTENSION_DEPTH {
+            return Err(JwkError::ReservedExtension);
+        }
+        nodes = nodes.checked_add(1).ok_or(JwkError::ReservedExtension)?;
+        if nodes > MAX_JWK_EXTENSION_NODES {
+            return Err(JwkError::ReservedExtension);
+        }
+
+        match value {
+            Value::String(value) => add_extension_text(&mut text_bytes, value.len())?,
+            Value::Array(values) => {
+                ensure_node_capacity(nodes, stack.len(), values.len())?;
+                stack.extend(values.iter().map(|value| (value, depth + 1)));
+            }
+            Value::Object(values) => {
+                ensure_node_capacity(nodes, stack.len(), values.len())?;
+                for (key, value) in values {
+                    add_extension_text(&mut text_bytes, key.len())?;
+                    stack.push((value, depth + 1));
+                }
+            }
+            Value::Null | Value::Bool(_) | Value::Number(_) => {}
+        }
+    }
+    Ok(())
+}
+
+fn ensure_node_capacity(nodes: usize, pending: usize, added: usize) -> Result<(), JwkError> {
+    nodes
+        .checked_add(pending)
+        .and_then(|total| total.checked_add(added))
+        .filter(|total| *total <= MAX_JWK_EXTENSION_NODES)
+        .map(|_| ())
+        .ok_or(JwkError::ReservedExtension)
+}
+
+fn add_extension_text(total: &mut usize, added: usize) -> Result<(), JwkError> {
+    *total = total
+        .checked_add(added)
+        .filter(|total| *total <= MAX_JWK_EXTENSION_TEXT_BYTES)
+        .ok_or(JwkError::ReservedExtension)?;
+    Ok(())
 }
 
 fn parse_coordinate(value: &str, coordinate: JwkCoordinate) -> Result<Base64UrlStrNoPad, JwkError> {

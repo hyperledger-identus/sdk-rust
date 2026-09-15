@@ -10,10 +10,10 @@
 
 ## 2. Repair and evidence
 
-- [ ] 2.1 Resolve and validate `sdkmanager` below the declared Android SDK.
-- [ ] 2.2 Extend offline support-policy mutations for missing or ambient tool
+- [x] 2.1 Resolve and validate `sdkmanager` below the declared Android SDK.
+- [x] 2.2 Extend offline support-policy mutations for missing or ambient tool
       discovery.
-- [ ] 2.3 Run factory, formatting, workflow, and Nix gates.
+- [x] 2.3 Run factory, formatting, workflow, and Nix gates.
 
 ## 3. Delivery
 

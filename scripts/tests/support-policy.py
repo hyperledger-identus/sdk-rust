@@ -2023,6 +2023,46 @@ in
         )
         self.assert_fails("missing candidate attempt artifact")
 
+    def test_slow_lane_android_tools_must_use_sdk_root_fallback(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            'android_sdk="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"',
+            'android_sdk="${ANDROID_SDK_ROOT:-}"',
+        )
+        self.assert_fails("missing Android SDK root fallback")
+
+    def test_slow_lane_android_sdk_root_must_be_nonempty(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            'test -n "$android_sdk"',
+            'true # missing Android SDK root guard',
+        )
+        self.assert_fails("missing Android SDK root guard")
+
+    def test_slow_lane_sdkmanager_must_use_declared_sdk(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            'sdkmanager="$android_sdk/cmdline-tools/latest/bin/sdkmanager"',
+            'sdkmanager="$(command -v sdkmanager)"',
+        )
+        self.assert_fails("missing Android sdkmanager path")
+
+    def test_slow_lane_sdkmanager_must_be_executable(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            'test -x "$sdkmanager"',
+            'test -f "$sdkmanager"',
+        )
+        self.assert_fails("missing Android sdkmanager executable guard")
+
+    def test_slow_lane_must_invoke_absolute_sdkmanager(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            '"$sdkmanager" --install',
+            "sdkmanager --install",
+        )
+        self.assert_fails("missing absolute sdkmanager invocation")
+
     def test_complete_clippy_gate_must_select_all_targets(self) -> None:
         self.replace_gate(
             "rust-clippy-all-targets-all-features",

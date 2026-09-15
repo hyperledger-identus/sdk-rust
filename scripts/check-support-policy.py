@@ -2595,6 +2595,11 @@ def validate_ci_lanes(
             "candidate attempt artifact": "name: crypto-candidate-${{ github.sha }}-${{ github.run_attempt }}",
             "coverage attempt artifact": "name: crypto-coverage-${{ github.sha }}-${{ github.run_attempt }}",
             "baseline attempt artifact": "name: crypto-baseline-${{ github.sha }}-${{ github.run_attempt }}",
+            "Android SDK root fallback": 'android_sdk="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"',
+            "Android SDK root guard": 'test -n "$android_sdk"',
+            "Android sdkmanager path": 'sdkmanager="$android_sdk/cmdline-tools/latest/bin/sdkmanager"',
+            "Android sdkmanager executable guard": 'test -x "$sdkmanager"',
+            "absolute sdkmanager invocation": '"$sdkmanager" --install',
         }
         for contract_name, marker in workflow_contract.items():
             if marker not in slow:

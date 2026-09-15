@@ -65,6 +65,14 @@ def replace(path: Path, old: str, new: str) -> None:
     path.write_text(source.replace(old, new, 1), encoding="utf-8")
 
 
+def has_git_ancestor(path: Path) -> bool:
+    resolved = path.resolve()
+    return any(
+        (ancestor / ".git").exists() or (ancestor / ".git").is_symlink()
+        for ancestor in (resolved, *resolved.parents)
+    )
+
+
 def main() -> int:
     checker = load_checker()
     runner = load_runner()
@@ -81,7 +89,15 @@ def main() -> int:
             raise AssertionError("repository-contained build scratch was accepted")
         external_scratch = test_root / "external-build"
         external_scratch.mkdir()
-        runner.require_vcs_independent_build_scratch(repository, external_scratch)
+        external_is_vcs_free = not has_git_ancestor(external_scratch)
+        try:
+            runner.require_vcs_independent_build_scratch(repository, external_scratch)
+        except runner.CandidateError:
+            if external_is_vcs_free:
+                raise
+        else:
+            if not external_is_vcs_free:
+                raise AssertionError("scratch below the ambient Git worktree was accepted")
         foreign_repository = test_root / "foreign-repository"
         foreign_scratch = foreign_repository / "temporary/build"
         foreign_scratch.mkdir(parents=True)

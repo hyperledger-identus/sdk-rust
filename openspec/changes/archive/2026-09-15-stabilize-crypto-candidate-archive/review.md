@@ -7,7 +7,7 @@
 - **Scope:** implementation diff after planning head `ddc3df06`
 - **Result:** passed after resolving the exact-head P2 finding below
 
-## Resolved finding
+## Resolved findings
 
 The first guard rejected scratch only beneath the canonical SDK checkout. The
 exact-head Codex review correctly identified that a caller-controlled `TMPDIR`
@@ -15,6 +15,12 @@ could place the system temporary directory beneath an unrelated Git worktree,
 reintroducing stage-specific Cargo VCS metadata. The guard now walks every
 resolved ancestor, fails closed on an unreadable marker, rejects any `.git`
 directory/file/symlink, and has a foreign-worktree behavioral regression.
+
+The refreshed review then identified that the test suite's positive fixture
+also inherits caller-controlled `TMPDIR`. The test now derives the expected
+result from the fixture's actual ancestors: it requires acceptance under a
+VCS-free temporary root and requires rejection under an ambient worktree. A
+separate nested foreign-worktree fixture remains an unconditional rejection.
 
 ## Root-cause review
 

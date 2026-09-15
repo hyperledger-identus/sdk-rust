@@ -37,8 +37,9 @@ weaken `main` protection and accidentally overlap the `develop` ruleset.
    run and attempt identity, UTC start/end, per-job result, run URL and the
    seven-day organization retention ceiling.
 7. Add `scripts/factory slow-live` as a read-only audit of the latest scheduled
-   run. Missing, non-successful or older-than-192-hour evidence fails closed and
-   identifies the run without echoing command stderr.
+   run. Missing, non-successful or older-than-160-hour evidence fails closed and
+   identifies the run without echoing command stderr. The threshold leaves an
+   eight-hour alert margin before the seven-day retention ceiling.
 8. Merge the activation PR with `Refs #276`, then apply and verify the repository
    settings and run one manual canary. Keep #276 open until the first successful
    natural scheduled run is attached as evidence.

@@ -80,6 +80,13 @@ class WeeklySlowLiveTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("is stale", result.stderr)
 
+    def test_evidence_is_stale_before_retention_expires(self) -> None:
+        result = self.run_snapshot(
+            self.snapshot(checkedAt="2026-09-20T19:24:00Z")
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("is stale (161h)", result.stderr)
+
     def test_schema_and_repository_are_strict(self) -> None:
         extra = self.snapshot(unexpected=True)
         result = self.run_snapshot(extra)

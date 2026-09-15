@@ -2397,8 +2397,8 @@ def validate_ci_lanes(
         failures.append("ci.release_candidate_eligible must remain false")
     if ci.get("slow_artifact_retention_days") != 7:
         failures.append("ci.slow_artifact_retention_days must be 7")
-    if ci.get("slow_freshness_hours") != 192:
-        failures.append("ci.slow_freshness_hours must be 192")
+    if ci.get("slow_freshness_hours") != 160:
+        failures.append("ci.slow_freshness_hours must be 160")
     if ci.get("slow_run_metadata") is not True:
         failures.append("ci.slow_run_metadata must remain true")
     expected_fast_cache = {

@@ -140,7 +140,8 @@ running plus one pending revision without cancelling evidence already in
 flight. Each run uploads a seven-day JSON receipt binding the requested and
 checked-out SHA, event, run/attempt identity, timestamps, job results and run
 URL. `scripts/factory slow-live` is the read-only freshness audit; a missing,
-failed or older-than-192-hour scheduled run is an operational alert, not a
+failed or older-than-160-hour scheduled run is an operational alert, leaving an
+eight-hour margin before the seven-day evidence retention ceiling. It is not a
 reason to rewrite history or silently dispatch privileged work.
 
 Both dimensions are `measurement-only`. CI duration, validator p50/p95 and

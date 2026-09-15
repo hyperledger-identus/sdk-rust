@@ -9,6 +9,11 @@
 
 ## Resolved findings
 
+- Hosted exact-head review found that the live checker still accepted an
+  alternate positional backlog despite claiming canonical-ledger freshness.
+  The override was removed and a regression test now proves alternate ledgers
+  are rejected by the command line.
+
 1. The first evidence run passed locally but Nix omitted the new untracked test
    from its Git-derived flake source. Both executable scripts are now staged and
    explicitly listed by the repository/factory contract; the corrected Nix

@@ -30,7 +30,6 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Audit SSI backlog issue ownership against live GitHub state"
     )
-    parser.add_argument("backlog", nargs="?", type=Path, default=DEFAULT_BACKLOG)
     parser.add_argument(
         "--snapshot",
         type=Path,
@@ -223,8 +222,8 @@ def main() -> int:
     arguments = parse_arguments()
     try:
         repository = load_repository()
-        validate_offline(arguments.backlog)
-        rows = load_rows(arguments.backlog)
+        validate_offline(DEFAULT_BACKLOG)
+        rows = load_rows(DEFAULT_BACKLOG)
         issue_numbers = required_issue_numbers(rows)
         if arguments.snapshot is None:
             states = query_github(repository, issue_numbers)

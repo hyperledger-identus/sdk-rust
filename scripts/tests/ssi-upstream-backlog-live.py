@@ -40,14 +40,22 @@ class LiveBacklogContractTests(unittest.TestCase):
             ],
         }
 
-    def run_snapshot(self, snapshot: object) -> subprocess.CompletedProcess[str]:
+    def run_snapshot(
+        self, snapshot: object, extra_arguments: list[str] | None = None
+    ) -> subprocess.CompletedProcess[str]:
         with tempfile.NamedTemporaryFile(
             mode="w", encoding="utf-8", suffix=".json"
         ) as target:
             json.dump(snapshot, target)
             target.flush()
             return subprocess.run(
-                [sys.executable, str(CHECKER), "--snapshot", target.name],
+                [
+                    sys.executable,
+                    str(CHECKER),
+                    *(extra_arguments or []),
+                    "--snapshot",
+                    target.name,
+                ],
                 check=False,
                 capture_output=True,
                 text=True,
@@ -58,6 +66,11 @@ class LiveBacklogContractTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("30 rows", result.stdout)
         self.assertIn("passed (snapshot)", result.stdout)
+
+    def test_alternate_backlog_cannot_replace_canonical_ledger(self) -> None:
+        result = self.run_snapshot(self.snapshot(), [str(BACKLOG)])
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("unrecognized arguments", result.stderr)
 
     def test_closed_in_progress_owner_fails(self) -> None:
         active_issue = int(

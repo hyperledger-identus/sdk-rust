@@ -202,9 +202,10 @@ structural check runs it automatically.
 Before selecting an `in_progress` row or preparing a Pi invocation, the Desktop
 supervisor additionally runs `scripts/factory backlog-live`. This explicit
 networked audit proves that every referenced issue is visible and every active
-owner is open. It does not infer completion or priority and is deliberately not
-part of the deterministic `fast` gate. `--snapshot <path>` is restricted to
-hermetic tests and incident replay; normal selection uses live GitHub state.
+owner is open. The canonical ledger path is fixed and cannot be overridden. It
+does not infer completion or priority and is deliberately not part of the
+deterministic `fast` gate. `--snapshot <path>` is restricted to hermetic tests
+and incident replay; normal selection uses live GitHub state.
 
 The bootstrap-inventory checker validates repository-local governance
 evidence, Cargo publication denial, complete package/path/layer classification

@@ -2,9 +2,10 @@
 
 ## Focused evidence
 
-- `scripts/tests/ssi-upstream-backlog-live.py`: six success/failure families
+- `scripts/tests/ssi-upstream-backlog-live.py`: seven success/failure families
   passed, including closed active ownership, closed evidence rows, missing and
-  duplicate issues, malformed/exact-URL snapshots and redacted GitHub failure.
+  duplicate issues, malformed/exact-URL snapshots, rejected alternate ledgers
+  and redacted GitHub failure.
 - `scripts/factory backlog-live`: 30 rows and nine unique live issues passed.
 - `scripts/check-ssi-upstream-backlog.py`: all 30 canonical rows passed.
 - `scripts/check-openspec-archive.py . --change

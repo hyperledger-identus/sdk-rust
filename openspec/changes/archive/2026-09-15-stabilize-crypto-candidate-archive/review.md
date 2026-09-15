@@ -22,6 +22,12 @@ result from the fixture's actual ancestors: it requires acceptance under a
 VCS-free temporary root and requires rejection under an ambient worktree. A
 separate nested foreign-worktree fixture remains an unconditional rejection.
 
+The final documentation review found that the canonical specification had
+already adopted the broader "every enclosing Git worktree" rule while the
+archived delta still described only the canonical checkout. The archived delta
+now carries the same requirement and unrelated-worktree rejection scenario, so
+future reconstruction of the change preserves the implemented contract.
+
 ## Root-cause review
 
 The prior implementation placed both generated Cargo workspaces below the

@@ -10,9 +10,10 @@ metadata/license/README, Git dependencies, path-only normalized dependencies,
 or checksum drift.
 
 The independent Cargo assembly workspaces SHALL resolve outside the canonical
-source repository so caller-selected output paths and stage names cannot enter
-Cargo VCS metadata. Completed evidence SHALL be staged on the requested output
-filesystem and SHALL become visible only through the existing atomic rename.
+source repository and every enclosing Git worktree so caller-selected output
+paths and stage names cannot enter Cargo VCS metadata. Completed evidence SHALL
+be staged on the requested output filesystem and SHALL become visible only
+through the existing atomic rename.
 
 #### Scenario: Same source is packaged twice
 
@@ -23,6 +24,13 @@ filesystem and SHALL become visible only through the existing atomic rename.
 #### Scenario: Build scratch resolves beneath the source repository
 
 - **WHEN** the selected temporary build root is inside the canonical checkout
+- **THEN** candidate preparation fails before invoking Cargo or creating the
+  completed output
+
+#### Scenario: Build scratch resolves beneath another Git worktree
+
+- **WHEN** the platform temporary root is configured inside an unrelated Git
+  checkout
 - **THEN** candidate preparation fails before invoking Cargo or creating the
   completed output
 

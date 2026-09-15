@@ -71,7 +71,7 @@
             # spec-driven development tooling
             inputs'.openspec.packages.default
           ]
-          ++ lib.optionals stdenv.isDarwin [ libiconv ];
+          ++ lib.optionals stdenv.hostPlatform.isDarwin [ libiconv ];
 
         env = [
           {
@@ -95,7 +95,7 @@
             value = "10G";
           }
         ]
-        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+        ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
           {
             name = "LIBRARY_PATH";
             value = "${pkgs.libiconv}/lib";
@@ -128,7 +128,7 @@
             value = "C.utf8";
           }
         ]
-        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+        ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
           {
             name = "LIBRARY_PATH";
             value = "${pkgs.libiconv}/lib";

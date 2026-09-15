@@ -39,7 +39,7 @@
             git
             cacert
           ]
-          ++ lib.optionals stdenv.isDarwin [ libiconv ];
+          ++ lib.optionals stdenv.hostPlatform.isDarwin [ libiconv ];
 
         env = [
           {
@@ -55,7 +55,7 @@
             value = "${pkgs.jdk17}";
           }
         ]
-        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+        ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
           {
             name = "LIBRARY_PATH";
             value = "${pkgs.libiconv}/lib";

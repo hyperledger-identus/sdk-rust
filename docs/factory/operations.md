@@ -7,8 +7,10 @@ constraints and the normal dependency gates.
 
 ## Production-ready dev-loop
 
-1. Refresh `origin/develop`, select or create one issue, and create an issue
-   branch/worktree. `main` is not a delivery target.
+1. Refresh `origin/develop`, run `scripts/factory backlog-live`, select or
+   create one issue, and create an issue branch/worktree. The live audit is a
+   read-only supervisor gate, not part of offline required CI. `main` is not a
+   delivery target.
 2. Create the OpenSpec change. Complete proposal, research, constraint impact,
    capability deltas, design and ordered tasks.
 3. Run research and constraint readiness plus strict OpenSpec validation.

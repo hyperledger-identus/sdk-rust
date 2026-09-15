@@ -90,6 +90,7 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/factory constraints-ready <change>
 ./scripts/factory preflight <change> --issue N --write
 ./scripts/factory audit
+./scripts/factory backlog-live
 ./scripts/factory plan --base <sha> --head <sha>
 ./scripts/factory worktrees audit
 ./scripts/factory metrics validate --file <record>
@@ -119,6 +120,7 @@ nix run .#factory -- check
 | `constraints-ready` | requires explicit constraint/limitation impact and exact authority for material outcomes before implementation |
 | `preflight` | persists and later validates the issue, branch, exact base and planning-only OpenSpec head |
 | `audit` | enters the pinned Nix shell once when needed, then validates bounded tracked Pi policy and the effective pinned runtime |
+| `backlog-live` | explicitly resolves canonical roadmap issue ownership through GitHub before supervisor work selection; it is read-only and outside offline required CI |
 | `plan` | derives one immutable required fast lane plus risk-routed slow evidence available locally or through external orchestration |
 | `worktrees` | audits or explicitly mutates only canonical bounded issue worktrees |
 | `metrics` | validates, stores, renders or explicitly publishes privacy-bounded exact-head v1/v2 metrics |
@@ -196,6 +198,14 @@ The SSI backlog checker validates the canonical SDK component ledger offline.
 It rejects missing or duplicate rows, schema and enum drift, non-SDK ownership,
 invalid issue/predecessor links and unknown source repositories. The factory
 structural check runs it automatically.
+
+Before selecting an `in_progress` row or preparing a Pi invocation, the Desktop
+supervisor additionally runs `scripts/factory backlog-live`. This explicit
+networked audit proves that every referenced issue is visible and every active
+owner is open. The canonical ledger path is fixed and cannot be overridden. It
+does not infer completion or priority and is deliberately not part of the
+deterministic `fast` gate. `--snapshot <path>` is restricted to hermetic tests
+and incident replay; normal selection uses live GitHub state.
 
 The bootstrap-inventory checker validates repository-local governance
 evidence, Cargo publication denial, complete package/path/layer classification

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 285,
+  "change": "reconcile-live-backlog-freshness",
+  "branch": "codex/chore/issue-285",
+  "baseRef": "origin/develop",
+  "baseSha": "523c64d4ff71d97f71c44b55c99594f065896b56",
+  "contractHeadSha": "a8713d6a83c1cf7fa84f2a1330575ac9134f57f7",
+  "createdAt": "2026-09-15T06:01:24.470Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

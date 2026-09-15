@@ -2047,6 +2047,15 @@ in
         )
         self.assert_fails("missing Android sdkmanager path")
 
+    def test_slow_lane_sdkmanager_comment_decoy_is_not_evidence(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            '          sdkmanager="$android_sdk/cmdline-tools/latest/bin/sdkmanager"',
+            '          # sdkmanager="$android_sdk/cmdline-tools/latest/bin/sdkmanager"\n'
+            '          sdkmanager="$(command -v sdkmanager)"',
+        )
+        self.assert_fails("missing Android sdkmanager path")
+
     def test_slow_lane_sdkmanager_must_be_executable(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",

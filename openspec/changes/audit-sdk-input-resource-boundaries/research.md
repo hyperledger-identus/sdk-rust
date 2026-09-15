@@ -35,6 +35,15 @@ the wire model before that constructor, but the crypto facade can and should
 bound what it retains and subsequently clones/serializes. The existing COSE
 boundary provides a local precedent for count and nesting budgets.
 
+A hosted PR review pass on 2026-09-16 found two inventory omissions before its
+remediation: the bounded `DidMethodRegistry`, and DID resolution cache policy
+plus injected cache/clock adapters. It also identified that returning a deep
+native `serde_json::Value` map could recursively drop the rejected owned tree
+even though validation itself was iterative. The adopted correction inventories
+those DID families and guards all native constructor exits with iterative tree
+dismantling. The source revision for that review is
+`50d7101c1a258c7a9396c919d9ab5001adf5e0e3` at PR #296.
+
 The current implementation revision assessed is
 `66ec2b9b3a7ec35cf21ecc52cdca5bebed0b4d0d`. Current consumer evidence is the
 repository's explicit Oxid, Midnight, midnight-identity, NeoPRISM, Lace and
@@ -64,6 +73,8 @@ this focused SDK change.
 | --- | --- | --- | --- |
 | Machine inventory plus focused BIP-39 fix and narrow residual limitation | `adopt` | Completes the audit honestly, fixes concrete avoidable work, and preserves intentional primitive/adapter ownership. | A covered boundary family or package cannot be expressed without misleading aggregation. |
 | Bound standalone JWK extensions inside the crypto facade | `adopt` | The SDK owns and retains this open JSON; count/depth/node/text budgets preserve useful metadata without unbounded retained work. | A standards profile requires a larger exact budget. |
+| Iteratively dismantle rejected native JWK extensions | `adopt` | Ownership transfer makes cleanup part of the boundary; a private guard closes every early-return path without public API change. | `serde_json::Value` guarantees non-recursive destruction. |
+| Separate DID registry/cache policy from injected adapter work | `adopt` | Existing limits and caller-owned QoS are distinct families and must remain discoverable. | Those surfaces are removed or ownership moves to a concrete SDK adapter. |
 | Add arbitrary global byte limits to every `&[u8]` primitive and port | `not-adopt` | Hash/sign/verify functions do not retain input and generic ports intentionally delegate payload/work budgets to protocol or adapter owners. | A higher-level supported protocol makes an exact budget normative. |
 | Claim typed constructors bound prior allocation | `not-adopt` | Owned `String`/`Vec`, serde, Axum, UniFFI and JavaScript inputs can allocate before SDK validation. | A streaming/preallocation-safe adapter becomes SDK-owned. |
 | Leave `SDK-LIM-007` broad after completing the inventory | `not-adopt` | It would hide usable evidence and keep consumers unable to locate exact residual obligations. | The inventory is later proven incomplete. |

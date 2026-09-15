@@ -65,6 +65,19 @@ invalid extension set, avoiding a new public enum variant or reflection of
 attacker-controlled keys/values. Outer serde allocation remains a documented
 residual.
 
+Native construction owns its extension map even when another invariant fails
+first. A private drop guard consumes every rejected map and dismantles arrays
+and objects with an explicit work stack. Accepted trees remain bounded; hostile
+rejected depth never reaches recursive `serde_json::Value` destruction.
+
+### Inventory DID cache and method registry as distinct families
+
+The method registry's retained 64-entry binding map is SDK-enforced and
+separate from the execution cost of its injected ports. DID cache identity,
+declared capacity and TTL policy retain their existing exact limits. Cache and
+clock adapters separately own allocation, eviction, synchronization, I/O,
+timeouts and cancellation, so they receive a caller-budgeted row.
+
 ## Risks and mitigations
 
 - Aggregated rows can obscure a future API: package/source review triggers and

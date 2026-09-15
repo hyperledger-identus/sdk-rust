@@ -5,7 +5,7 @@
 - **Develop base:** `66ec2b9b3a7ec35cf21ecc52cdca5bebed0b4d0d`
 - **Planning commits:** `b25c23d`, `c6c31eb`, and pre-JWK addendum `32dadd8`
 - **Reviewed candidate:** staged implementation diff before archive
-- **Result:** passed with no unresolved finding
+- **Result:** local review passed; hosted remediation in progress
 
 ## Findings and resolutions
 
@@ -54,3 +54,11 @@
 
 These are documented ownership constraints, not unresolved implementation
 findings.
+
+## Hosted review addendum
+
+Review of PR #296 accepted three findings before further remediation: the
+inventory omitted the DID method registry and resolution-cache families, and
+native JWK rejection could recursively destroy a hostile deep owned JSON tree.
+Tasks 2.5, 2.6 and 3.3 track their closure. This result must not return to
+`passed` until the corrections and all three review threads are verified.

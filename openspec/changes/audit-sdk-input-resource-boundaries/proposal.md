@@ -18,6 +18,10 @@ before the SDK applies any bound.
   normalization, dependency parsing, or PBKDF2 work.
 - Bound standalone public JWK extension count, nesting, nodes and aggregate
   key/string bytes before the crypto facade retains them.
+- Inventory the bounded DID method registry and separate portable DID cache
+  policy from caller-budgeted cache/clock adapter work.
+- Dismantle every rejected native JWK extension tree iteratively, including
+  validation errors that precede the extension budget walk.
 - Narrow `SDK-LIM-007` from an incomplete audit to the unavoidable and named
   outer-allocation and caller-work obligations the SDK cannot enforce at its
   typed API boundary.

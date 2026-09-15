@@ -30,6 +30,9 @@ joining, and passphrases above 4,096 UTF-8 bytes before normalization or PBKDF2.
 Standalone public JWKs SHALL reject more than 32 extension members, extension
 depth above 16, more than 1,024 extension JSON nodes, or more than 65,536
 aggregate UTF-8 bytes across extension keys and string values before retention.
+Rejected native extension maps SHALL be dismantled iteratively across every
+constructor error path. DID method registry, portable cache policy, and
+injected cache/clock adapter work SHALL remain distinct inventory families.
 
 ## Introduced or changed limitations
 
@@ -49,6 +52,8 @@ allocation and must budget primitive/port work for their protocol.
 Existing ordinary JWK metadata remains compatible; extension documents beyond
 the explicit experimental-facade budgets are rejected with a redacted JWK
 error and require a higher-level format/profile decision.
+Existing DID registry and cache behavior is unchanged; their limits and
+adapter obligations become independently discoverable.
 
 The crypto facade adds public constants for the BIP-39 and JWK budgets. It
 preserves the shape of the public `JwkError` enum by using its existing

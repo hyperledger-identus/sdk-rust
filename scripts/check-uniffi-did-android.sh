@@ -11,7 +11,7 @@ gradle_home="$repository_root/target/uniffi-did-android-gradle"
 ndk_version=27.0.12077973
 android_api=21
 compile_api=35
-system_image="system-images;android-35;google_apis_playstore;arm64-v8a"
+system_image="system-images;android-35;default;arm64-v8a"
 emulator_port=5580
 emulator_serial="emulator-$emulator_port"
 
@@ -210,7 +210,7 @@ avd_home="$evidence_root/avd-home"
 prefs_root="$evidence_root/android-prefs"
 emulator_home="$evidence_root/emulator-home"
 mkdir -p "$avd_home" "$prefs_root" "$emulator_home"
-image_dir="$android_sdk/system-images/android-$compile_api/google_apis_playstore/arm64-v8a"
+image_dir="$android_sdk/system-images/android-$compile_api/default/arm64-v8a"
 [[ -d $image_dir ]] || fail "exact emulator image is unavailable: $system_image"
 
 export ANDROID_AVD_HOME="$avd_home"

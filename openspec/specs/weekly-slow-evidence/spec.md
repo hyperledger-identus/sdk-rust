@@ -120,6 +120,11 @@ command-line tools SHALL fail before package installation. The workflow SHALL
 retain exact Android package identifiers rather than accepting ambient default
 versions.
 
+The emulator dependency SHALL be exact package path
+`system-images;android-35;default;arm64-v8a`, and installation SHALL occur
+without blanket SDK license acceptance. Workflow installation and native
+verifier package/directory identity SHALL agree or fail closed.
+
 #### Scenario: Hosted SDK tools are installed but absent from PATH
 
 - **WHEN** the macOS runner declares its Android SDK and does not expose a bare
@@ -133,3 +138,9 @@ versions.
   not executable
 - **THEN** the step fails before installing packages or starting native
   binding verification
+
+#### Scenario: Google Play image has an unaccepted license
+
+- **WHEN** the DID smoke test requires only an API-35 ARM64 Android runtime
+- **THEN** the lane selects the default AOSP image instead of accepting a Google
+  Play or blanket outstanding SDK license

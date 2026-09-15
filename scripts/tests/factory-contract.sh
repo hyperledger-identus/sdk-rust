@@ -103,6 +103,7 @@ required_files=(
   docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md
   docs/adr/0120-run-weekly-evidence-from-protected-develop.md
   docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md
+  docs/adr/0122-use-aosp-image-for-android-runtime-proof.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
@@ -157,6 +158,7 @@ required_files=(
   scripts/report-crypto-coverage.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-ssi-upstream-backlog-live.py
+  scripts/check-uniffi-did-android.sh
   scripts/check-weekly-slow-live.py
   scripts/check-source-distribution.py
   scripts/check-crypto-candidate.py

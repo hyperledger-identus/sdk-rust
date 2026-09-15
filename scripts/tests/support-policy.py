@@ -98,6 +98,7 @@ class SupportPolicyTests(unittest.TestCase):
             "nix/devshells/default.nix",
             "nix/rust-toolchain.nix",
             "scripts/check-weekly-slow-live.py",
+            "scripts/check-uniffi-did-android.sh",
             "scripts/ci/target-plan.mjs",
         ]:
             destination = self.fixture / relative
@@ -2092,10 +2093,36 @@ in
     def test_slow_lane_must_pin_android_system_image_package(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
+            '"system-images;android-35;default;arm64-v8a"',
             '"system-images;android-35;google_apis_playstore;arm64-v8a"',
-            '"system-images;android-35;google_apis;arm64-v8a"',
         )
         self.assert_fails("missing exact Android system image package")
+
+    def test_slow_lane_must_not_accept_all_android_licenses(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            '          test -x "$sdkmanager"',
+            '          test -x "$sdkmanager"\n'
+            '          yes | "$sdkmanager" --licenses',
+        )
+        self.assert_fails("must not contain blanket Android SDK license acceptance")
+
+    def test_android_verifier_must_select_same_aosp_package(self) -> None:
+        self.replace(
+            "scripts/check-uniffi-did-android.sh",
+            'system_image="system-images;android-35;default;arm64-v8a"',
+            'system_image="system-images;android-35;google_apis_playstore;arm64-v8a"',
+        )
+        self.assert_fails("missing exact AOSP package identity")
+
+    def test_android_verifier_must_select_same_aosp_directory(self) -> None:
+        self.replace(
+            "scripts/check-uniffi-did-android.sh",
+            'image_dir="$android_sdk/system-images/android-$compile_api/default/arm64-v8a"',
+            'image_dir="$android_sdk/system-images/android-$compile_api/'
+            'google_apis_playstore/arm64-v8a"',
+        )
+        self.assert_fails("missing exact AOSP image directory")
 
     def test_complete_clippy_gate_must_select_all_targets(self) -> None:
         self.replace_gate(

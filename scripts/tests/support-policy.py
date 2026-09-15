@@ -2132,6 +2132,15 @@ in
         )
         self.assert_fails("missing exact SDK-relative NDK selection")
 
+    def test_android_verifier_ndk_assignment_comment_decoy_is_not_evidence(self) -> None:
+        self.replace(
+            "scripts/check-uniffi-did-android.sh",
+            'ndk_root="$android_sdk/ndk/$ndk_version"',
+            'ndk_root="$ANDROID_NDK_HOME" # '
+            'ndk_root="$android_sdk/ndk/$ndk_version"',
+        )
+        self.assert_fails("missing exact SDK-relative NDK selection")
+
     def test_android_verifier_must_validate_exact_ndk_metadata(self) -> None:
         self.replace(
             "scripts/check-uniffi-did-android.sh",

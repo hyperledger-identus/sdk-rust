@@ -2672,7 +2672,7 @@ def validate_ci_lanes(
                     'ndk_properties="$ndk_root/source.properties"'
                 ),
                 "exact NDK metadata guard": (
-                    "'^Pkg\\.Revision[[:space:]]*=[[:space:]]*"
+                    "grep -Eq '^Pkg\\.Revision[[:space:]]*=[[:space:]]*"
                     "27\\.0\\.12077973[[:space:]]*$'"
                 ),
                 "ANDROID_NDK child binding": 'export ANDROID_NDK="$ndk_root"',
@@ -2696,7 +2696,11 @@ def validate_ci_lanes(
                 "AVD package binding": '--package "$system_image"',
             }
             for contract_name, marker in android_verifier_contract.items():
-                if marker not in android_verifier:
+                if re.search(
+                    rf"^[ \t]*{re.escape(marker)}(?:[ \t]|$)",
+                    android_verifier,
+                    re.MULTILINE,
+                ) is None:
                     failures.append(
                         f"{android_verifier_path} is missing {contract_name}"
                     )

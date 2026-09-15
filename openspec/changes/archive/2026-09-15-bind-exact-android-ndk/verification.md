@@ -8,7 +8,7 @@
 
 ## Passed locally
 
-- `python3 scripts/tests/support-policy.py`: 199 mutation tests passed.
+- `python3 scripts/tests/support-policy.py`: 200 mutation tests passed.
 - `bash -n scripts/check-uniffi-did-android.sh`: passed.
 - `nix develop --command actionlint .github/workflows/nix-checks.yml`: passed.
 - `./scripts/factory check --change bind-exact-android-ndk`: all 71
@@ -21,10 +21,11 @@
 
 ## Negative and provenance evidence
 
-The mutation suite rejects ambient `ANDROID_NDK_ROOT` precedence, a relaxed
-metadata revision, an unbound child NDK root, a retained latest-NDK alias and a
-missing metadata checksum receipt. Existing assertions continue to reject NDK
-r27/build-number drift in the packaged ELF.
+The mutation suite rejects ambient `ANDROID_NDK_ROOT` precedence, an assignment
+hidden behind a comment decoy, a relaxed metadata revision, an unbound child
+NDK root, a retained latest-NDK alias and a missing metadata checksum receipt.
+Existing assertions continue to reject NDK r27/build-number drift in the
+packaged ELF.
 
 Failed canary `34983050826` is positive diagnostic evidence: the AOSP image
 installed successfully and the previous ambient selection reached the exact

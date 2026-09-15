@@ -42,6 +42,14 @@ the complete diff from `develop@6423a9e0d946c1f438f554a3b1fe6222fb28717a`.
    NDK archive is not vendored/checksum-pinned. Android and FFI remain
    experimental; hosted macOS remains authoritative.
 
+## Resolved hosted-review finding
+
+The first checker revision used substring membership for Android verifier
+markers. Codex review correctly identified that a commented copy could preserve
+the expected assignment while an earlier executable assignment selected an
+ambient NDK. The checker now requires every verifier marker at an active shell
+line prefix, and a dedicated mutation proves an inline comment decoy fails.
+
 ## Decision
 
 The repair restores truth between installed, selected and evidenced NDK input

@@ -17,10 +17,10 @@
 
 ## Hosted evidence
 
-PR #288 exact-head DCO, file hygiene, pull-request policy and `fast` passed at
-`4d4ff3dea2bf42e570d2746af04bb35c62632360`. The automated review's retention
-finding is resolved by the follow-up commit; hosted gates must rerun at that
-new exact head before merge.
+PR #288 DCO, file hygiene, pull-request policy and `fast` passed at executable
+and workflow head `7cf1dc907a01a84e0def592dbccf87d9dd5082df`. All review findings through that
+head are resolved. GitHub's required checks and review state remain the
+authoritative merge gate for any later documentation-only reconciliation head.
 
 ## Deliberately outstanding
 

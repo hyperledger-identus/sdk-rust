@@ -6,7 +6,7 @@
       archive members.
 - [x] 1.2 Record research, constraints, design, and the modified candidate
       contract before implementation.
-- [ ] 1.3 Commit the planning-only change and pass the exact issue #276
+- [x] 1.3 Commit the planning-only change and pass the exact issue #276
       preflight receipt.
 
 ## 2. Repair and focused evidence

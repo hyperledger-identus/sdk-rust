@@ -2629,6 +2629,12 @@ def validate_ci_lanes(
             ),
             ("Android sdkmanager executable guard", 'test -x "$sdkmanager"'),
             ("absolute sdkmanager invocation", '"$sdkmanager" --install ' + "\\"),
+            ("exact Android NDK package", '  "ndk;27.0.12077973" ' + "\\"),
+            ("exact Android platform package", '  "platforms;android-35" ' + "\\"),
+            (
+                "exact Android system image package",
+                '  "system-images;android-35;google_apis_playstore;arm64-v8a"',
+            ),
         ]
         previous_offset = -1
         for contract_name, command in android_contract:

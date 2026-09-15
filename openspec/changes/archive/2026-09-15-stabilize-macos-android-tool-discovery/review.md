@@ -29,6 +29,10 @@
    run. Delivery therefore treats immediate post-merge reopening as part of the
    merge transaction. Issue #291 records the underlying policy mismatch for
    factory backlog polishing; this repair does not weaken the required gate.
+5. **Resolved P2 — exact package arguments were not policy-enforced.** The
+   named-step checker originally stopped at the absolute `sdkmanager`
+   invocation. It now continues through the exact NDK, platform, and arm64 Play
+   Store image arguments in order, with an independent mutation for each.
 
 ## Result
 

@@ -2633,7 +2633,7 @@ def validate_ci_lanes(
             ("exact Android platform package", '  "platforms;android-35" ' + "\\"),
             (
                 "exact Android system image package",
-                '  "system-images;android-35;google_apis_playstore;arm64-v8a"',
+                '  "system-images;android-35;default;arm64-v8a"',
             ),
         ]
         previous_offset = -1
@@ -2647,6 +2647,43 @@ def validate_ci_lanes(
                 failures.append(f"{slow_path} has out-of-order {contract_name}")
             else:
                 previous_offset = match.start()
+        forbidden_android_install_fragments = {
+            "blanket Android SDK license acceptance": "--licenses",
+            "Google Play emulator image": "google_apis_playstore",
+            "Google APIs emulator image": "google_apis;",
+        }
+        for contract_name, marker in forbidden_android_install_fragments.items():
+            if marker in android_step:
+                failures.append(f"{slow_path} must not contain {contract_name}")
+
+        android_verifier_path = "scripts/check-uniffi-did-android.sh"
+        try:
+            android_verifier = (root / android_verifier_path).read_text(
+                encoding="utf-8"
+            )
+        except OSError as error:
+            failures.append(f"cannot read {android_verifier_path}: {error}")
+        else:
+            android_verifier_contract = {
+                "exact AOSP package identity": (
+                    'system_image="system-images;android-35;default;arm64-v8a"'
+                ),
+                "exact AOSP image directory": (
+                    'image_dir="$android_sdk/system-images/android-$compile_api/'
+                    'default/arm64-v8a"'
+                ),
+                "AVD package binding": '--package "$system_image"',
+            }
+            for contract_name, marker in android_verifier_contract.items():
+                if marker not in android_verifier:
+                    failures.append(
+                        f"{android_verifier_path} is missing {contract_name}"
+                    )
+            for marker in ("google_apis_playstore", "google_apis;"):
+                if marker in android_verifier:
+                    failures.append(
+                        f"{android_verifier_path} must not select a Google emulator image"
+                    )
         expected_timeouts = {5, 10, 30, 45, 60, 180}
         actual_timeouts = {
             int(value)

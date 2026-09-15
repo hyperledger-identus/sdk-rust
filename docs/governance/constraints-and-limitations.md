@@ -145,28 +145,27 @@ surprise compatibility promise.
 
 - `SDK-SEC-003` is an effective forward guardrail: every new or materially
   changed untrusted-input boundary must ship with explicit resource limits.
-- `SDK-LIM-007` is an effective current limitation: inherited surfaces have
-  not completed a repository-wide resource-bound audit. `identus-core` is now
-  crate-audited in its [public input-boundary inventory](../architecture/identus-core-input-boundaries.md):
-  `Url` rejects values above 8,192 UTF-8 bytes, serialized time values retain
-  only the `u64` range, monotonic time has no serde surface, and remaining
-  public surfaces are static-only, fixed enums, aliases, or no-input ports.
-  This does not bound allocation or lexical parsing performed by a transport,
-  decompressor, or deserializer before SDK validation. Generic crypto text
-  rejects values above 4,096 bytes; hierarchical derivation is limited to
-  4,096 path bytes, 255 axes/depth, and 16–64-byte BIP-32/SLIP-0010 seeds.
-  Programmatic path construction remains caller-budgeted, while every current
-  cryptographic path consumer rejects more than 255 axes before child work.
-  Validated `String` borrowed parsing now validates before cloning, and
-  standalone DID method names reject more than 2,042 bytes before grammar
-  traversal with caller-independent errors. Serde and outer transports may
-  still allocate those strings first. DID Registration opaque identifier
-  borrowed parsing enforces its existing 256-byte or 1,024-byte ceiling before
-  retaining an owned copy. Other unaudited SDK crates and inherited surfaces
-  remain covered by the limitation until they record explicit evidence.
+- `SDK-LIM-007` is an effective residual limitation after the repository-wide
+  [input-resource boundary audit](../architecture/sdk-input-resource-boundaries.md).
+  Typed SDK values have fixed shape or explicit byte, element, nesting and
+  work limits where this repository owns them. This does not bound allocation
+  or lexical parsing performed by a transport, decompressor, deserializer,
+  Axum extraction, FFI bridge or JavaScript engine before SDK validation.
+  Direct DID constructors that receive an already-owned recursive JSON value or
+  map also rely on the caller to pre-bound nesting: rejected hostile-depth trees
+  can recurse during destruction. Use the SDK's bounded wire-slice parsers for
+  hostile DID JSON until native rejection cleanup is made iterative throughout.
+  Borrowed hash/HMAC/sign/verify messages and injected resolver, registrar,
+  verifier, trust, replay and generic storage adapter work remain caller-
+  budgeted because the correct byte/time quota belongs to the owning protocol
+  or adapter. The historical `identus_did::Multihash` placeholder is a separate
+  known unbounded compatibility exception: consumers must cap its byte or hex
+  input before entry until an explicit public API migration adds structural and
+  capacity policy. The machine inventory names every implemented package,
+  exact evidence and review trigger; a missing family restores broad disclosure.
 
 This pairing keeps the intended security direction enforceable without
-misrepresenting incomplete inherited coverage as a proven SDK guarantee.
+misrepresenting outer allocation or delegated work as a typed SDK guarantee.
 
 ## Unsafe-code example
 

@@ -22,6 +22,15 @@ const PBKDF2_DK_LEN: usize = 64;
 const DEFAULT_PASSPHRASE: &str = "";
 const ENTROPY_BYTES_24_WORDS: usize = 32;
 
+/// Maximum standard BIP-39 entropy length.
+pub const MAX_BIP39_ENTROPY_BYTES: usize = 32;
+/// Maximum standard BIP-39 mnemonic word count.
+pub const MAX_BIP39_WORDS: usize = 24;
+/// Maximum UTF-8 byte length of a word in the adopted English BIP-39 list.
+pub const MAX_BIP39_ENGLISH_WORD_BYTES: usize = 8;
+/// Maximum UTF-8 byte length accepted for standard or KMP passphrases.
+pub const MAX_BIP39_PASSPHRASE_BYTES: usize = crate::MAX_CRYPTO_TEXT_BYTES;
+
 /// The standard BIP-39 English wordlist.
 #[must_use]
 pub fn wordlist() -> Vec<&'static str> {
@@ -51,6 +60,9 @@ impl MnemonicHelper {
     /// other than 16, 20, 24, 28 or 32 bytes return an empty vector.
     #[must_use]
     pub fn to_mnemonic_code(entropy: &[u8]) -> Vec<String> {
+        if !matches!(entropy.len(), 16 | 20 | 24 | 28 | MAX_BIP39_ENTROPY_BYTES) {
+            return Vec::new();
+        }
         Mnemonic::from_entropy(entropy)
             .map(|mnemonic| mnemonic.words().map(str::to_owned).collect())
             .unwrap_or_default()
@@ -61,6 +73,7 @@ impl MnemonicHelper {
     /// The mnemonic and passphrase are NFKD-normalized. Dependency errors are
     /// collapsed to the stable, redacted [`Error::MnemonicInvalid`] contract.
     pub fn create_seed(mnemonics: &[String], passphrase: &str) -> Result<Vec<u8>, Error> {
+        Self::validate_passphrase(passphrase)?;
         let mnemonic = Self::parse_mnemonic(mnemonics)?;
         let seed = Self::with_normalized(passphrase, |normalized_passphrase| {
             Zeroizing::new(mnemonic.to_seed_normalized(normalized_passphrase))
@@ -75,6 +88,7 @@ impl MnemonicHelper {
     /// [`create_seed`](Self::create_seed) for standards-compliant wallets.
     #[cfg(feature = "kmp-compat")]
     pub fn create_seed_kmp(mnemonics: &[String], passphrase: &str) -> Result<Vec<u8>, Error> {
+        Self::validate_passphrase(passphrase)?;
         let mnemonic = Self::parse_mnemonic(mnemonics)?;
         let phrase = Zeroizing::new(mnemonic.words().collect::<Vec<_>>().join(" "));
         let mut seed = Zeroizing::new([0u8; PBKDF2_DK_LEN]);
@@ -94,11 +108,25 @@ impl MnemonicHelper {
     }
 
     fn parse_mnemonic(mnemonics: &[String]) -> Result<Mnemonic, Error> {
+        if !matches!(mnemonics.len(), 12 | 15 | 18 | 21 | MAX_BIP39_WORDS)
+            || mnemonics
+                .iter()
+                .any(|word| word.len() > MAX_BIP39_ENGLISH_WORD_BYTES)
+        {
+            return Err(Error::MnemonicInvalid);
+        }
         let phrase = Zeroizing::new(mnemonics.join(" "));
         Self::with_normalized(&phrase, |normalized| {
             Mnemonic::parse_in_normalized(Language::English, normalized)
         })
         .map_err(|_| Error::MnemonicInvalid)
+    }
+
+    fn validate_passphrase(passphrase: &str) -> Result<(), Error> {
+        if passphrase.len() > MAX_BIP39_PASSPHRASE_BYTES {
+            return Err(Error::MnemonicInvalid);
+        }
+        Ok(())
     }
 
     fn with_normalized<T>(input: &str, operation: impl FnOnce(&str) -> T) -> T {

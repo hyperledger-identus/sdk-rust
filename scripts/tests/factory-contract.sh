@@ -28,6 +28,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/error-golden.py"
 "$repository_root/scripts/tests/code-health-audit.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
+"$repository_root/scripts/tests/input-resource-boundaries.py"
 "$repository_root/scripts/tests/constraints.py"
 "$repository_root/scripts/tests/openspec-archive.py"
 "$repository_root/scripts/tests/research-readiness.py"
@@ -65,6 +66,8 @@ required_files=(
   docs/architecture/code-health.md
   docs/architecture/code-health.toml
   docs/architecture/code-health-baseline.json
+  docs/architecture/sdk-input-resource-boundaries.md
+  docs/architecture/sdk-input-resource-boundaries.toml
   docs/architecture/source-distribution.md
   docs/release/crypto-candidate.toml
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
@@ -106,6 +109,7 @@ required_files=(
   docs/adr/0122-use-aosp-image-for-android-runtime-proof.md
   docs/adr/0123-bind-android-build-to-the-exact-installed-ndk.md
   docs/adr/0124-separate-android-package-and-runtime-evidence.md
+  docs/adr/0125-govern-sdk-input-resource-boundaries.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
@@ -151,6 +155,7 @@ required_files=(
   scripts/check-factory.sh
   scripts/check-error-golden.py
   scripts/check-bootstrap-inventory.py
+  scripts/check-input-resource-boundaries.py
   scripts/check-constraints.py
   scripts/check-openspec-archive.py
   scripts/check-support-policy.py
@@ -173,6 +178,7 @@ required_files=(
   scripts/tests/error-golden.py
   scripts/tests/factory-operations.mjs
   scripts/tests/bootstrap-inventory.py
+  scripts/tests/input-resource-boundaries.py
   scripts/tests/constraints.py
   scripts/tests/openspec-archive.py
   scripts/tests/pr-policy.sh
@@ -203,6 +209,26 @@ for relative_path in "${required_files[@]}"; do
       ;;
   esac
 done
+
+# The resource inventory intentionally points at implementation evidence beyond
+# the minimal synthetic factory fixture. Copy that exact bounded evidence set so
+# the fixture proves path validation rather than weakening it.
+while IFS= read -r evidence_path; do
+  if [[ ! -f "$fixture_root/$evidence_path" ]]; then
+    mkdir -p "$fixture_root/$(dirname "$evidence_path")"
+    cp "$repository_root/$evidence_path" "$fixture_root/$evidence_path"
+  fi
+done < <(
+  python3 - "$repository_root/docs/architecture/sdk-input-resource-boundaries.toml" <<'PY'
+import sys
+import tomllib
+
+with open(sys.argv[1], "rb") as source:
+    document = tomllib.load(source)
+for evidence in sorted({item for row in document["boundaries"] for item in row["evidence"]}):
+    print(evidence)
+PY
+)
 
 copy_error_planning_golden() {
   local change_name=$1

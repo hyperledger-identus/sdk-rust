@@ -41,10 +41,34 @@ member error occurs before resource validation.
 
 ## Compatibility and dependency evidence
 
-The change adds inventory evidence and private cleanup code only. Public types,
-constants, errors, feature defaults, dependency edges, wire and persistence
-forms are unchanged. The same pinned Rust 1.98.1 and candidate API baseline
-apply. No source or fixture is copied.
+The current implementation revision assessed is
+`50d7101c1a258c7a9396c919d9ab5001adf5e0e3`. Consumer evidence is limited to
+the repository's explicit Oxid, Midnight, midnight-identity, NeoPRISM, Lace,
+and Apollo boundary; none changes this private cleanup or inventory correction.
+Primary source URLs are the live
+[issue](https://github.com/hyperledger-identus/sdk-rust/issues/168) and
+[PR](https://github.com/hyperledger-identus/sdk-rust/pull/296), pinned to that
+revision for implementation inspection.
+
+The exact version remains unpublished `identus-crypto 0.1.0-rc.1`; all existing
+features, including `jwk` and `jwk-thumbprint`, keep their definitions and
+defaults. License and provenance remain the workspace Apache-2.0 policy and
+the existing repository source; no donor source or fixture is copied. MSRV and
+etalon evidence both remain Rust 1.98.1 for the active-development policy.
+Native, WASM, Android aarch64, and iOS aarch64 target gates remain applicable.
+
+The direct and resolved dependency cone is unchanged because no package or
+feature edge is added. Supply-chain evidence therefore remains the existing
+lockfile, cargo-deny, cargo-audit, SBOM, and source-distribution closure. Public
+types, errors, wire and persistence forms are unchanged. The public facade
+boundary remains `identus-crypto`; guard and dismantling helpers stay private.
+
+Rollback reverts the private guard/test and inventory rows and restores broad
+incomplete-audit disclosure. Maintenance, release and security posture remain
+unpublished and unsupported: no publication, tag, support-tier activation, or
+consumer migration occurs. Protocol or draft currency is unchanged because
+this correction implements ownership/resource semantics rather than a protocol
+revision.
 
 ## Security, privacy and maintenance evidence
 
@@ -73,6 +97,9 @@ verification path.
 - `scripts/tests/input-resource-boundaries.py`
 - `scripts/factory check complete-input-boundary-review`
 - pinned `crypto-candidate` preparation and `nix flake check --fallback`
+
+These exact commands are planned but unrun against remediation code at
+research time; results belong in `verification.md` before archive.
 
 ## Reconsideration triggers
 

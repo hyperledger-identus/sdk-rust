@@ -19,7 +19,10 @@ rendering.
 
 This uses each tool for one cohesive role: Nix-pinned Cargo controls compiler
 identity and JSON generation; the locked parser controls public-API formatting.
-The parser no longer performs compiler discovery or invokes rustup.
+The parser cannot invoke rustup to build JSON on this input path. Version 0.52.0
+still probes the active Cargo/rustup metadata during CLI startup and may compute
+an unused toolchain value; this bounded probe neither installs nor executes a
+compiler and is not candidate compiler evidence.
 
 ### Keep the boundary structural and executable
 

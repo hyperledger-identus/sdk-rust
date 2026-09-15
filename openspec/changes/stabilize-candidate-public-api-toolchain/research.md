@@ -41,7 +41,7 @@ Upstream source: https://github.com/cargo-public-api/cargo-public-api/tree/v0.52
 
 | Candidate | Decision | Reason | Reconsideration trigger |
 | --- | --- | --- | --- |
-| Stable `cargo rustdoc` then parse local JSON | `adopt` | Matches ADR 0113, avoids rustup discovery, adds no compiler or dependency, and creates a testable boundary. | Rust 1.98.1 cannot produce parser-compatible JSON or stable rustdoc JSON becomes available. |
+| Stable `cargo rustdoc` then parse local JSON | `adopt` | Matches ADR 0113, avoids rustup compiler execution, adds no compiler or dependency, and creates a testable boundary. | Rust 1.98.1 cannot produce parser-compatible JSON or stable rustdoc JSON becomes available. |
 | Add rustup nightly to CI | `not-adopt` | Adds mutable toolchain state/network and violates Nix ownership. | Repository replaces Nix toolchain authority through a separate ADR. |
 | Reuse pinned sanitizer nightly | `not-adopt` | Changes candidate compiler evidence and broadens the sanitizer-only exception. | Candidate policy explicitly adopts a reviewed nightly compiler. |
 | Make all candidate commands nightly | `not-adopt` | Weakens the Rust 1.98.1 preparation claim and increases coupling. | Release compiler matrix selects nightly, which is currently prohibited. |
@@ -64,8 +64,8 @@ third-party parser and rustdoc types never enter SDK APIs.
 
 ## Security, privacy and maintenance evidence
 
-No registry/network credential, ambient rustup state, native code or unsafe
-Rust is introduced. A dedicated target directory remains under temporary
+No registry/network credential, required rustup nightly state, native code or
+unsafe Rust is introduced. A dedicated target directory remains under temporary
 candidate scratch and is removed on completion/failure. The parser receives one
 repository-generated path rather than caller content. Existing API output and
 receipt redaction semantics remain unchanged.
@@ -89,7 +89,7 @@ tooling decision is researched.
 ## Open questions and blockers
 
 No planning blocker remains. End-to-end execution must prove Rust 1.98.1 emits
-JSON accepted by parser 0.52.0 when the runner cannot discover a rustup nightly.
+JSON accepted by parser 0.52.0 when the runner has no usable rustup nightly.
 If that fails, implementation stops and this decision is reconsidered rather
 than adding an implicit compiler.
 
@@ -98,7 +98,7 @@ than adding an implicit compiler.
 - Strict OpenSpec/research/constraint readiness and planning receipt.
 - Mutation tests for explicit JSON generation, expected artifact, parser input
   and bootstrap scope.
-- End-to-end `nix run .#crypto-candidate` with ambient rustup state hidden.
+- End-to-end `nix run .#crypto-candidate` with a new empty `RUSTUP_HOME`.
 - Factory and proportional Nix checks, exact-head protected PR CI, then a full
   exact-merged-head manual slow run.
 

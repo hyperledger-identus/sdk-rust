@@ -10,8 +10,9 @@ Public-API evidence SHALL be produced in two explicit stages. The primary
 Nix-pinned Rust 1.98.1 Cargo/rustdoc SHALL generate one all-feature
 `identus_crypto.json` in disposable candidate scratch with
 `RUSTC_BOOTSTRAP=1` scoped only to that command. Locked `cargo-public-api`
-SHALL parse that completed JSON file without selecting or installing a rustup
-toolchain. A missing or differently identified JSON file SHALL fail closed.
+SHALL parse that completed JSON file without invoking or installing a
+rustup-owned compiler. A missing or differently identified JSON file SHALL fail
+closed.
 
 #### Scenario: Evidence cannot be tied to an archive
 
@@ -24,7 +25,7 @@ toolchain. A missing or differently identified JSON file SHALL fail closed.
 - **WHEN** the Nix application prepares public-API evidence without an ambient
   rustup nightly installation
 - **THEN** Rust 1.98.1 generates the JSON, the locked parser renders it, and no
-  toolchain is installed or selected through rustup
+  compiler is installed or invoked through rustup
 
 #### Scenario: Rustdoc JSON is absent or ambiguous
 

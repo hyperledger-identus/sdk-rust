@@ -49,8 +49,8 @@ hand-built tarball would not exercise Cargo's normalized package contract.
    Rustdoc JSON remains unstable, so generate it explicitly with
    `cargo rustdoc` and scope `RUSTC_BOOTSTRAP=1` to that inspection subprocess.
    Pass the completed JSON to `cargo-public-api`; package compilation and every
-   other check remain on unmodified Rust 1.98.1, and the parser cannot select an
-   ambient rustup nightly.
+   other check remain on unmodified Rust 1.98.1, and the parser cannot invoke an
+   ambient rustup nightly to build candidate evidence.
 8. Treat Rust 1.98.1 as preparation evidence only. Publication still requires
    the consumer-driven compiler matrix and the release authority in
    `RELEASING.md`.

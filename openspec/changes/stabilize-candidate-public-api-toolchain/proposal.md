@@ -18,7 +18,7 @@ on `cargo-public-api`'s implicit toolchain discovery.
   Nix-pinned Rust 1.98.1 Cargo/rustdoc and subprocess-scoped
   `RUSTC_BOOTSTRAP=1`.
 - Give the completed JSON file to locked `cargo-public-api 0.52.0` for parsing
-  so it never asks rustup to select or install a toolchain.
+  so it cannot invoke or install a rustup toolchain to build evidence.
 - Fail closed when JSON generation does not produce the one expected package
   file, and keep the build output inside disposable candidate scratch.
 - Extend the structural checker and mutation suite to preserve this separation.
@@ -29,8 +29,8 @@ on `cargo-public-api`'s implicit toolchain discovery.
 
 ### Modified capabilities
 
-- `unpublished-crypto-candidate`: makes public-API evidence independent of
-  ambient rustup installation while retaining the exact stable compiler and
+- `unpublished-crypto-candidate`: makes public-API evidence independent of an
+  installed rustup nightly while retaining the exact stable compiler and
   locked parser.
 
 ## Non-goals

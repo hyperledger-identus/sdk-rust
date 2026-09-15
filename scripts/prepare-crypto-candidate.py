@@ -89,6 +89,23 @@ def source_revision(root: Path, requested: str | None, allow_dirty: bool) -> tup
     return revision, dirty
 
 
+def require_vcs_independent_build_scratch(root: Path, scratch: Path) -> None:
+    """Reject build scratch whose path can affect Cargo's VCS metadata."""
+    repository = root.resolve()
+    candidate = scratch.resolve()
+    if candidate == repository or repository in candidate.parents:
+        raise CandidateError("candidate build scratch must be outside the source repository")
+    for ancestor in (candidate, *candidate.parents):
+        marker = ancestor / ".git"
+        try:
+            marker.lstat()
+        except FileNotFoundError:
+            continue
+        except OSError as error:
+            raise CandidateError("cannot validate candidate build scratch VCS boundary") from error
+        raise CandidateError("candidate build scratch must not be inside a Git worktree")
+
+
 def dependency_line(root_manifest: str, name: str) -> str:
     match = re.search(rf"(?m)^{re.escape(name)}\s*=.*$", root_manifest)
     if match is None:
@@ -388,52 +405,65 @@ def prepare(args: argparse.Namespace) -> Path:
     start = time.monotonic()
     env = os.environ.copy()
     env.update({"SOURCE_DATE_EPOCH": "1", "CARGO_TERM_COLOR": "never"})
-    with tempfile.TemporaryDirectory(prefix=".identus-crypto-candidate-", dir=output.parent) as temporary:
+    with tempfile.TemporaryDirectory(prefix=".identus-crypto-candidate-build-") as temporary:
         scratch = Path(temporary)
-        first_stage = create_stage(root, scratch / "first", descriptor)
-        second_stage = create_stage(root, scratch / "second", descriptor)
-        first = assemble(first_stage, descriptor, env)
-        second = assemble(second_stage, descriptor, env)
-        digests = {name: sha256(first[name]) for name in PACKAGE_ORDER}
-        for name in PACKAGE_ORDER:
-            if first[name].read_bytes() != second[name].read_bytes():
-                raise CandidateError(f"non-deterministic Cargo archive: {name}")
-            package = next(row for row in descriptor["packages"] if row["name"] == name)
-            inspect_archive(first[name], package, descriptor)
-        verify_closure(first, scratch, descriptor, env)
-        staging_output = scratch / "output"
-        (staging_output / "packages").mkdir(parents=True)
-        for name in PACKAGE_ORDER:
-            shutil.copyfile(first[name], staging_output / "packages" / first[name].name)
-        versions: dict[str, str] = {}
-        if not args.package_only:
-            versions = release_evidence(first_stage, root, staging_output, descriptor, env, args.initialize_api)
-        receipt = {
-            "schemaVersion": 1,
-            "candidate": descriptor["candidate"],
-            "version": descriptor["version"],
-            "sourceRevision": revision,
-            "sourceDirty": dirty,
-            "publication": "prohibited",
-            "verification": "unpublished-archive-closure",
-            "rustVersion": run(["rustc", "--version"], cwd=root, env=env).strip(),
-            "cargoVersion": run(["cargo", "--version"], cwd=root, env=env).strip(),
-            "tools": versions,
-            "profiles": [row["name"] for row in descriptor["profiles"]],
-            "packages": [
-                {"name": name, "version": descriptor["version"], "sha256": digests[name], "bytes": first[name].stat().st_size}
-                for name in PACKAGE_ORDER
-            ],
-            "limitations": [
-                "unpublished; no registry resolution or cargo publish dry-run",
-                "Rust 1.98.1 is candidate-preparation evidence, not the publication MSRV",
-                "public API rendering scopes RUSTC_BOOTSTRAP=1 to rustdoc JSON inspection",
-                "no tag, signature, attestation, foreign-language package, main promotion, or downstream migration",
-            ],
-            "durationSeconds": round(time.monotonic() - start, 3),
-        }
-        (staging_output / "receipt.json").write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        staging_output.rename(output)
+        require_vcs_independent_build_scratch(root, scratch)
+        with tempfile.TemporaryDirectory(
+            prefix=f".{output.name}-stage-", dir=output.parent
+        ) as output_temporary:
+            staging_output = Path(output_temporary) / "output"
+            first_stage = create_stage(root, scratch / "first", descriptor)
+            second_stage = create_stage(root, scratch / "second", descriptor)
+            first = assemble(first_stage, descriptor, env)
+            second = assemble(second_stage, descriptor, env)
+            digests = {name: sha256(first[name]) for name in PACKAGE_ORDER}
+            for name in PACKAGE_ORDER:
+                if first[name].read_bytes() != second[name].read_bytes():
+                    raise CandidateError(f"non-deterministic Cargo archive: {name}")
+                package = next(row for row in descriptor["packages"] if row["name"] == name)
+                inspect_archive(first[name], package, descriptor)
+            verify_closure(first, scratch, descriptor, env)
+            (staging_output / "packages").mkdir(parents=True)
+            for name in PACKAGE_ORDER:
+                shutil.copyfile(first[name], staging_output / "packages" / first[name].name)
+            versions: dict[str, str] = {}
+            if not args.package_only:
+                versions = release_evidence(
+                    first_stage, root, staging_output, descriptor, env, args.initialize_api
+                )
+            receipt = {
+                "schemaVersion": 1,
+                "candidate": descriptor["candidate"],
+                "version": descriptor["version"],
+                "sourceRevision": revision,
+                "sourceDirty": dirty,
+                "publication": "prohibited",
+                "verification": "unpublished-archive-closure",
+                "rustVersion": run(["rustc", "--version"], cwd=root, env=env).strip(),
+                "cargoVersion": run(["cargo", "--version"], cwd=root, env=env).strip(),
+                "tools": versions,
+                "profiles": [row["name"] for row in descriptor["profiles"]],
+                "packages": [
+                    {
+                        "name": name,
+                        "version": descriptor["version"],
+                        "sha256": digests[name],
+                        "bytes": first[name].stat().st_size,
+                    }
+                    for name in PACKAGE_ORDER
+                ],
+                "limitations": [
+                    "unpublished; no registry resolution or cargo publish dry-run",
+                    "Rust 1.98.1 is candidate-preparation evidence, not the publication MSRV",
+                    "public API rendering scopes RUSTC_BOOTSTRAP=1 to rustdoc JSON inspection",
+                    "no tag, signature, attestation, foreign-language package, main promotion, or downstream migration",
+                ],
+                "durationSeconds": round(time.monotonic() - start, 3),
+            }
+            (staging_output / "receipt.json").write_text(
+                json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
+            staging_output.rename(output)
     return output
 
 

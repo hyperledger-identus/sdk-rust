@@ -10,12 +10,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "scripts/check-crypto-candidate.py"
+RUNNER = ROOT / "scripts/prepare-crypto-candidate.py"
 
 
 def load_checker():
     spec = importlib.util.spec_from_file_location("crypto_candidate_checker", CHECKER)
     if spec is None or spec.loader is None:
         raise RuntimeError("cannot load crypto-candidate checker")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_runner():
+    spec = importlib.util.spec_from_file_location("crypto_candidate_runner", RUNNER)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("cannot load crypto-candidate runner")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -57,8 +67,22 @@ def replace(path: Path, old: str, new: str) -> None:
 
 def main() -> int:
     checker = load_checker()
+    runner = load_runner()
     with tempfile.TemporaryDirectory(prefix="crypto-candidate-policy-") as temporary:
         test_root = Path(temporary)
+        repository = test_root / "repository"
+        nested_scratch = repository / "artifacts/build"
+        nested_scratch.mkdir(parents=True)
+        try:
+            runner.require_external_build_scratch(repository, nested_scratch)
+        except runner.CandidateError:
+            pass
+        else:
+            raise AssertionError("repository-contained build scratch was accepted")
+        external_scratch = test_root / "external-build"
+        external_scratch.mkdir()
+        runner.require_external_build_scratch(repository, external_scratch)
+
         fixture = test_root / "valid"
         copy_fixture(fixture)
         if errors := checker.validate(fixture):
@@ -80,6 +104,22 @@ def main() -> int:
             (
                 lambda root: (root / "scripts/prepare-crypto-candidate.py").write_text('run(["cargo", "publish"])\n', encoding="utf-8"),
                 "prohibited remote mutation",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
+                    'TemporaryDirectory(prefix=".identus-crypto-candidate-build-")',
+                    'TemporaryDirectory(prefix=".identus-crypto-candidate-build-", dir=output.parent)',
+                ),
+                "build scratch must not be rooted in the output destination",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
+                    "require_external_build_scratch(root, scratch)",
+                    "# removed repository boundary check",
+                ),
+                "missing staging boundary",
             ),
         )
         for index, (mutation, expected) in enumerate(cases):

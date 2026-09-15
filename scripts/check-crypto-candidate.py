@@ -127,6 +127,20 @@ def validate(root: Path) -> list[str]:
     for pattern in prohibited_commands:
         if re.search(pattern, runner):
             errors.append(f"candidate runner contains prohibited remote mutation: {pattern}")
+    required_staging_contract = (
+        'TemporaryDirectory(prefix=".identus-crypto-candidate-build-")',
+        "require_external_build_scratch(root, scratch)",
+        'prefix=f".{output.name}-stage-", dir=output.parent',
+        "staging_output.rename(output)",
+    )
+    for phrase in required_staging_contract:
+        if phrase not in runner:
+            errors.append(f"candidate runner is missing staging boundary: {phrase}")
+    if re.search(
+        r'TemporaryDirectory\(\s*prefix="\.identus-crypto-candidate-build-"\s*,\s*dir=',
+        runner,
+    ):
+        errors.append("candidate build scratch must not be rooted in the output destination")
     return errors
 
 

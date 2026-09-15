@@ -11,9 +11,9 @@
 
 ## 2. Repair and focused evidence
 
-- [ ] 2.1 Separate VCS-independent build scratch from destination-local atomic
+- [x] 2.1 Separate VCS-independent build scratch from destination-local atomic
       output staging and fail closed on repository-contained scratch.
-- [ ] 2.2 Add focused behavioral and policy regressions for the staging
+- [x] 2.2 Add focused behavioral and policy regressions for the staging
       boundary.
 - [ ] 2.3 Run the real package-only and complete candidate evidence paths at an
       exact clean source revision.

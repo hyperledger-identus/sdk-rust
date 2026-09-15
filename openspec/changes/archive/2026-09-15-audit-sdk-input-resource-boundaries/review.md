@@ -5,7 +5,7 @@
 - **Develop base:** `66ec2b9b3a7ec35cf21ecc52cdca5bebed0b4d0d`
 - **Planning commits:** `b25c23d`, `c6c31eb`, and pre-JWK addendum `32dadd8`
 - **Reviewed candidate:** staged implementation diff before archive
-- **Result:** local remediation review passed; hosted thread resolution pending
+- **Result:** passed
 
 ## Findings and resolutions
 
@@ -69,5 +69,5 @@ exercises the profile-error path that precedes extension validation.
 
 The correction adds no public type, dependency, authored unsafe code, wire
 change, or accepted-resource expansion. Focused, workspace, candidate, factory,
-and compatible Nix checks pass. Task 3.3 remains open only until the corrected
-head is published and the three hosted review threads are resolved.
+and compatible Nix checks pass. The corrected head is published and all three
+hosted review threads have evidence-backed replies and are resolved.

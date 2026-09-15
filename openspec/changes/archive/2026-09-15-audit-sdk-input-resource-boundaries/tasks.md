@@ -29,5 +29,5 @@
       security/architecture review.
 - [x] 3.2 Prepare the completed change for guarded archive, protected CI and an
       issue-linked PR to `develop`.
-- [ ] 3.3 Re-run focused, factory, candidate and compatible Nix gates; update
+- [x] 3.3 Re-run focused, factory, candidate and compatible Nix gates; update
       review evidence and resolve every hosted review thread before integration.

@@ -54,7 +54,8 @@ isolated factory derivation and the full compatible Nix closure.
 Hosted review then identified two inventory omissions and one native rejection
 cleanup hazard. The correction adds three DID inventory rows and an internal
 iterative JWK extension-map guard. All focused and full checks above were rerun
-on that corrected tree before publication.
+on that corrected tree before publication. Each hosted finding has a resolution
+reply linked to commit `0900b2f`, and all three review threads are resolved.
 
 ## Repository boundary
 

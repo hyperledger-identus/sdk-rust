@@ -25,8 +25,10 @@ fail() {
 android_sdk=${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}
 [[ -n $android_sdk ]] || fail "ANDROID_SDK_ROOT or ANDROID_HOME must name the Android SDK"
 android_sdk=$(cd "$android_sdk" && pwd)
-ndk_root=${ANDROID_NDK_ROOT:-"$android_sdk/ndk/$ndk_version"}
+ndk_root="$android_sdk/ndk/$ndk_version"
 [[ -d $ndk_root ]] || fail "exact Android NDK $ndk_version is unavailable at $ndk_root"
+ndk_properties="$ndk_root/source.properties"
+[[ -f $ndk_properties ]] || fail "exact Android NDK metadata is unavailable: $ndk_properties"
 
 host_tag=darwin-x86_64
 toolchain="$ndk_root/toolchains/llvm/prebuilt/$host_tag"
@@ -43,6 +45,13 @@ done
 for command in awk cargo cmp cp curl diff du find gradle grep java mkdir python3 rm rustc sed seq shasum sleep sort stat tr unzip xargs; do
     command -v "$command" >/dev/null || fail "required command is unavailable: $command"
 done
+
+grep -Eq '^Pkg\.Revision[[:space:]]*=[[:space:]]*27\.0\.12077973[[:space:]]*$' \
+    "$ndk_properties" || fail "Android NDK metadata does not identify $ndk_version"
+export ANDROID_NDK="$ndk_root"
+export ANDROID_NDK_HOME="$ndk_root"
+export ANDROID_NDK_ROOT="$ndk_root"
+unset ANDROID_NDK_LATEST_HOME
 
 java_home=${IDENTUS_JAVA_HOME:-${JAVA_HOME:-}}
 if [[ -z $java_home ]]; then
@@ -270,6 +279,8 @@ printf '%s\n' "$runtime_log" >"$evidence_root/runtime.log"
     printf 'java=%s\n' "$("$java_home/bin/java" -version 2>&1 | awk 'NR == 1')"
     printf 'gradle=%s\n' "$(gradle --version | awk '/^Gradle / { print $2 }')"
     printf 'ndk=%s\n' "$ndk_version"
+    printf 'ndk_source_properties_sha256=%s\n' \
+        "$(shasum -a 256 "$ndk_properties" | awk '{ print $1 }')"
     printf 'android_min_api=%s\n' "$android_api"
     printf 'emulator_image=%s\n' "$system_image"
     printf 'emulator_abi=%s\n' "$("$adb" -s "$emulator_serial" shell getprop ro.product.cpu.abi | tr -d '\r')"

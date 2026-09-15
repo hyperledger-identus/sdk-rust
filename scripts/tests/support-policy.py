@@ -2124,6 +2124,47 @@ in
         )
         self.assert_fails("missing exact AOSP image directory")
 
+    def test_android_verifier_must_not_prefer_ambient_ndk_root(self) -> None:
+        self.replace(
+            "scripts/check-uniffi-did-android.sh",
+            'ndk_root="$android_sdk/ndk/$ndk_version"',
+            'ndk_root=${ANDROID_NDK_ROOT:-"$android_sdk/ndk/$ndk_version"}',
+        )
+        self.assert_fails("missing exact SDK-relative NDK selection")
+
+    def test_android_verifier_must_validate_exact_ndk_metadata(self) -> None:
+        self.replace(
+            "scripts/check-uniffi-did-android.sh",
+            "'^Pkg\\.Revision[[:space:]]*=[[:space:]]*"
+            "27\\.0\\.12077973[[:space:]]*$'",
+            "'^Pkg\\.Revision[[:space:]]*='",
+        )
+        self.assert_fails("missing exact NDK metadata guard")
+
+    def test_android_verifier_must_bind_child_ndk_root(self) -> None:
+        self.replace(
+            "scripts/check-uniffi-did-android.sh",
+            'export ANDROID_NDK_ROOT="$ndk_root"',
+            'export ANDROID_NDK_ROOT="${ANDROID_NDK_ROOT:-$ndk_root}"',
+        )
+        self.assert_fails("missing ANDROID_NDK_ROOT child binding")
+
+    def test_android_verifier_must_remove_latest_ndk_alias(self) -> None:
+        self.replace(
+            "scripts/check-uniffi-did-android.sh",
+            "unset ANDROID_NDK_LATEST_HOME",
+            ": # retain ambient latest NDK alias",
+        )
+        self.assert_fails("missing ambient latest NDK removal")
+
+    def test_android_verifier_must_record_ndk_metadata_checksum(self) -> None:
+        self.replace(
+            "scripts/check-uniffi-did-android.sh",
+            "printf 'ndk_source_properties_sha256=%s\\n'",
+            "printf 'ndk_metadata=unchecked\\n'",
+        )
+        self.assert_fails("missing NDK metadata checksum receipt")
+
     def test_complete_clippy_gate_must_select_all_targets(self) -> None:
         self.replace_gate(
             "rust-clippy-all-targets-all-features",

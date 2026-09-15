@@ -1,0 +1,11 @@
+[[modified_requirement]]
+capability       = "native-did-bindings"
+requirement      = "Emulator execution does not activate Android support"
+canonical_sha256 = "bb9391aaf44c7b979bbf01170cfe60059a99034a85c99ce074c7df6edfef61ea"
+reason           = "Hosted arm64 macOS cannot nest the ARM64 AVD; preserve ARM64 package proof while moving behavior to an explicitly test-only accelerated Linux ABI."
+
+[[modified_requirement]]
+capability       = "weekly-slow-evidence"
+requirement      = "Android command-line tool discovery is explicit"
+canonical_sha256 = "709a5d898a5fb764edd15d8c5c14218b95b308d2ca2dc525c4d31b71b21656f6"
+reason           = "Split Android package and runtime evidence across capability-appropriate hosted runners and retain exact-run failure diagnostics."

@@ -1162,7 +1162,7 @@ sdk_tier          = "compile-checked"
 sdk_gate          = "rust-build-android-aarch64"
 evidence_revision = "244ded689a29a5e6606eeb36aede14149d585071"
 evidence_uri      = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/34286965807"
-limitation        = "The listed generic packages are compile-only. A separate experimental DID UniFFI leaf has local arm64-v8a NDK/AAR and one API-35 emulator receipt, but no other ABI, physical-device, keystore, publication, support, or certification claim."
+limitation        = "The listed generic packages are compile-only. A separate experimental DID UniFFI leaf has ARM64 NDK/AAR proof and test-only x86_64 API-35 runtime evidence, but no ARM64 execution, physical-device, keystore, publication, support, or certification claim."
 closing_issue     = "https://github.com/hyperledger-identus/sdk-rust/issues/213"
 
 [[targets]]

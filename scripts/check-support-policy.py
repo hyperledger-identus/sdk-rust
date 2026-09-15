@@ -2495,6 +2495,23 @@ def validate_ci_lanes(
         )
         return "\n".join(lines[start:end])
 
+    def named_job(workflow: str, job_id: str) -> str:
+        lines = workflow.splitlines()
+        marker = f"  {job_id}:"
+        try:
+            start = lines.index(marker)
+        except ValueError:
+            return ""
+        end = next(
+            (
+                index
+                for index in range(start + 1, len(lines))
+                if re.match(r"^  [a-zA-Z0-9_-]+:\s*$", lines[index])
+            ),
+            len(lines),
+        )
+        return "\n".join(lines[start:end])
+
     fast, fast_path = workflow_text("fast_workflow")
     if fast:
         for trigger in ("pull_request", "push", "workflow_dispatch"):
@@ -2612,12 +2629,17 @@ def validate_ci_lanes(
             "candidate attempt artifact": "name: crypto-candidate-${{ github.sha }}-${{ github.run_attempt }}",
             "coverage attempt artifact": "name: crypto-coverage-${{ github.sha }}-${{ github.run_attempt }}",
             "baseline attempt artifact": "name: crypto-baseline-${{ github.sha }}-${{ github.run_attempt }}",
+            "Android package attempt artifact": "name: android-arm64-package-${{ github.sha }}-${{ github.run_attempt }}",
+            "Android runtime attempt artifact": "name: android-runtime-${{ github.sha }}-${{ github.run_attempt }}",
+            "Android runtime receipt binding": '"android-did-runtime": os.environ["ANDROID_DID_RUNTIME_RESULT"]',
         }
         for contract_name, marker in workflow_contract.items():
             if marker not in slow:
                 failures.append(f"{slow_path} is missing {contract_name}")
-        android_step = named_step(slow, "Install exact Android slow-lane inputs")
-        android_contract = [
+        android_package_step = named_step(
+            slow, "Install exact Android ARM64 package inputs"
+        )
+        android_package_contract = [
             (
                 "Android SDK root fallback",
                 'android_sdk="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"',
@@ -2630,30 +2652,121 @@ def validate_ci_lanes(
             ("Android sdkmanager executable guard", 'test -x "$sdkmanager"'),
             ("absolute sdkmanager invocation", '"$sdkmanager" --install ' + "\\"),
             ("exact Android NDK package", '  "ndk;27.0.12077973" ' + "\\"),
-            ("exact Android platform package", '  "platforms;android-35" ' + "\\"),
+            ("exact Android platform package", '  "platforms;android-35"'),
+        ]
+        previous_offset = -1
+        for contract_name, command in android_package_contract:
+            match = re.search(
+                rf"^          {re.escape(command)}\s*$",
+                android_package_step,
+                re.MULTILINE,
+            )
+            if match is None:
+                failures.append(f"{slow_path} ARM64 package step is missing {contract_name}")
+            elif match.start() <= previous_offset:
+                failures.append(
+                    f"{slow_path} ARM64 package step has out-of-order {contract_name}"
+                )
+            else:
+                previous_offset = match.start()
+
+        android_runtime_step = named_step(slow, "Install exact Android runtime inputs")
+        android_runtime_contract = [
             (
-                "exact Android system image package",
-                '  "system-images;android-35;default;arm64-v8a"',
+                "Android runtime SDK root fallback",
+                'android_sdk="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"',
+            ),
+            ("Android runtime SDK root guard", 'test -n "$android_sdk"'),
+            (
+                "Android runtime sdkmanager path",
+                'sdkmanager="$android_sdk/cmdline-tools/latest/bin/sdkmanager"',
+            ),
+            ("Android runtime sdkmanager executable guard", 'test -x "$sdkmanager"'),
+            (
+                "Android runtime absolute sdkmanager invocation",
+                '"$sdkmanager" --install ' + "\\",
+            ),
+            (
+                "Android runtime exact NDK package",
+                '  "ndk;27.0.12077973" ' + "\\",
+            ),
+            (
+                "Android runtime exact platform package",
+                '  "platforms;android-35" ' + "\\",
+            ),
+            (
+                "exact Android test-only system image package",
+                '  "system-images;android-35;default;x86_64"',
             ),
         ]
         previous_offset = -1
-        for contract_name, command in android_contract:
+        for contract_name, command in android_runtime_contract:
             match = re.search(
-                rf"^          {re.escape(command)}\s*$", android_step, re.MULTILINE
+                rf"^          {re.escape(command)}\s*$",
+                android_runtime_step,
+                re.MULTILINE,
             )
             if match is None:
-                failures.append(f"{slow_path} is missing {contract_name}")
+                failures.append(f"{slow_path} runtime step is missing {contract_name}")
             elif match.start() <= previous_offset:
-                failures.append(f"{slow_path} has out-of-order {contract_name}")
+                failures.append(
+                    f"{slow_path} runtime step has out-of-order {contract_name}"
+                )
             else:
                 previous_offset = match.start()
+
+        android_runtime_job = named_job(slow, "android-did-runtime")
+        android_runtime_job_contract = {
+            "test-only Android runtime job name": (
+                "name: Android DID runtime (test-only x86_64)"
+            ),
+            "Linux Android runtime runner": "runs-on: ubuntu-latest",
+            "bounded Android runtime timeout": "timeout-minutes: 60",
+            "KVM character-device guard": "test -c /dev/kvm",
+            "least-authority KVM ownership": 'sudo chown "$USER" /dev/kvm',
+            "least-authority KVM mode": "sudo chmod 0600 /dev/kvm",
+            "KVM read guard": "test -r /dev/kvm",
+            "KVM write guard": "test -w /dev/kvm",
+            "test-only runtime verifier mode": (
+                "./scripts/check-uniffi-did-android.sh x86_64-runtime"
+            ),
+            "always-uploaded runtime evidence": "if: ${{ always() }}",
+            "runtime evidence path": (
+                "path: target/uniffi-did-android-x86_64-runtime"
+            ),
+            "runtime evidence retention": "retention-days: 7",
+        }
+        for contract_name, marker in android_runtime_job_contract.items():
+            if marker not in android_runtime_job:
+                failures.append(f"{slow_path} is missing {contract_name}")
+
+        android_package_job = named_job(slow, "checks")
+        android_package_job_contract = {
+            "ARM64 package verifier mode": (
+                "./scripts/check-uniffi-did-android.sh arm64-package"
+            ),
+            "always-uploaded ARM64 package evidence": (
+                "if: ${{ always() && runner.os == 'macOS' }}"
+            ),
+            "ARM64 package evidence path": (
+                "path: target/uniffi-did-android-arm64-package"
+            ),
+            "ARM64 package evidence retention": "retention-days: 7",
+        }
+        for contract_name, marker in android_package_job_contract.items():
+            if marker not in android_package_job:
+                failures.append(f"{slow_path} is missing {contract_name}")
+
         forbidden_android_install_fragments = {
             "blanket Android SDK license acceptance": "--licenses",
             "Google Play emulator image": "google_apis_playstore",
             "Google APIs emulator image": "google_apis;",
+            "hosted ARM64 emulator image": (
+                "system-images;android-35;default;arm64-v8a"
+            ),
         }
         for contract_name, marker in forbidden_android_install_fragments.items():
-            if marker in android_step:
+            if marker in android_package_step or marker in android_runtime_step:
                 failures.append(f"{slow_path} must not contain {contract_name}")
 
         android_verifier_path = "scripts/check-uniffi-did-android.sh"
@@ -2686,14 +2799,35 @@ def validate_ci_lanes(
                 "NDK metadata checksum receipt": (
                     "printf 'ndk_source_properties_sha256=%s\\n'"
                 ),
-                "exact AOSP package identity": (
-                    'system_image="system-images;android-35;default;arm64-v8a"'
+                "distributable ARM64 evidence role": (
+                    "evidence_role=distributable-arm64-package"
                 ),
-                "exact AOSP image directory": (
+                "test-only runtime evidence role": (
+                    "evidence_role=test-only-x86_64-runtime"
+                ),
+                "ARM64 Rust target": "rust_target=aarch64-linux-android",
+                "test-only x86_64 Rust target": "rust_target=x86_64-linux-android",
+                "ARM64 package ABI": "android_abi=arm64-v8a",
+                "test-only package ABI": "android_abi=x86_64",
+                "exact test-only AOSP package identity": (
+                    'system_image="system-images;android-35;default;x86_64"'
+                ),
+                "exact test-only AOSP image directory": (
                     'image_dir="$android_sdk/system-images/android-$compile_api/'
-                    'default/arm64-v8a"'
+                    'default/x86_64"'
                 ),
                 "AVD package binding": '--package "$system_image"',
+                "KVM admission guard": (
+                    "[[ -c /dev/kvm && -r /dev/kvm && -w /dev/kvm ]]"
+                ),
+                "hardware acceleration enforcement": (
+                    "-no-audio -no-boot-anim -no-snapshot -wipe-data -accel on"
+                ),
+                "emulator diagnostic tail": 'tail -n 200 "$evidence_root/emulator.log"',
+                "evidence role receipt": "printf 'evidence_role=%s\\n'",
+                "package-only runtime exclusion": (
+                    "printf 'runtime_status=not-run-package-only\\n'"
+                ),
             }
             for contract_name, marker in android_verifier_contract.items():
                 if re.search(
@@ -2713,6 +2847,22 @@ def validate_ci_lanes(
                     failures.append(
                         f"{android_verifier_path} must not select a Google emulator image"
                     )
+            if "system-images;android-35;default;arm64-v8a" in android_verifier:
+                failures.append(
+                    f"{android_verifier_path} must not boot ARM64 on hosted macOS"
+                )
+        bindings_devshell_path = "nix/devshells/bindings.nix"
+        try:
+            bindings_devshell = (root / bindings_devshell_path).read_text(
+                encoding="utf-8"
+            )
+        except OSError as error:
+            failures.append(f"cannot read {bindings_devshell_path}: {error}")
+        else:
+            if bindings_devshell.count('"x86_64-linux-android"') != 1:
+                failures.append(
+                    f"{bindings_devshell_path} must contain the test-only Android target exactly once"
+                )
         expected_timeouts = {5, 10, 30, 45, 60, 180}
         actual_timeouts = {
             int(value)

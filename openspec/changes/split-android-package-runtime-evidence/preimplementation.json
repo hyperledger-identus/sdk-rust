@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 276,
+  "change": "split-android-package-runtime-evidence",
+  "branch": "codex/ci/issue-276",
+  "baseRef": "origin/develop",
+  "baseSha": "f2221d444e85e4b5e4bffdc0c0fd2d7e43ec83da",
+  "contractHeadSha": "99e5af77d00ed2408a9d0b3ed6c588e7da1b968e",
+  "createdAt": "2026-09-15T16:52:56.856Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

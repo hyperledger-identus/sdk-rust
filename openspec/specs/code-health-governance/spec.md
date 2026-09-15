@@ -170,18 +170,18 @@ The policy SHALL pin the baseline revision, authored-source fingerprint and
 canonical report digest. Fast validation SHALL resolve the revision and
 recompute source fingerprint, generated exclusions, and line/file populations.
 Slow validation SHALL use the pinned analyzer version to regenerate and compare
-the entire report, including function counts and signals, when invoked locally
-or by explicit external scheduling. The repository SHALL NOT treat a workflow
-cron declaration as active execution evidence while reserved empty `main`
-remains GitHub's default branch and the workflow lives on `develop`. Issue #276
-SHALL own schedule activation. Report schema keys SHALL be closed recursively.
+the entire report, including function counts and signals, when invoked by the
+native weekly/manual workflow from protected default `develop` or reproduced
+locally. The run SHALL bind requested and actual revision and SHALL NOT promote
+numeric attention signals into automatic architecture limits. Report schema
+keys SHALL be closed recursively.
 
-#### Scenario: Default branch does not contain the slow workflow
+#### Scenario: Default branch contains the slow workflow
 
-- **WHEN** reserved empty `main` remains GitHub's default branch and the
-  ready-to-run slow workflow exists on `develop`
-- **THEN** documentation identifies local or external invocation as the active
-  path and does not claim that GitHub is executing the declared schedule
+- **WHEN** protected `develop` is GitHub's default branch and the native slow
+  schedule is accepted
+- **THEN** the analyzer runs against the exact default-branch SHA and the
+  evidence identifies that revision and GitHub run
 
 #### Scenario: Canonical report field is forged
 

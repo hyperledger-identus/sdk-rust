@@ -4,9 +4,7 @@
 
 Define the isolated, bounded and reviewable browser WASM contract for generic
 DID and DID URL value parsing without activating browser support or publication.
-
 ## Requirements
-
 ### Requirement: Browser DID bindings isolate the domain model
 
 The SDK SHALL provide bounded DID and DID URL parsing through an isolated
@@ -51,13 +49,14 @@ getters, errors and lifecycle methods.
 
 The package SHALL expose binding API version `1`. Headless Chromium and Firefox
 SHALL execute matching valid, invalid, oversized, redaction, component and
-version tests in the local or externally orchestrated slow Ubuntu command.
-Hosted activation remains pending issue #276. Ordinary Linux pull
-requests SHALL retain the existing fast factory/build/lint/test line.
+version tests in the active hosted weekly/manual slow Ubuntu job or its exact
+local reproduction. Ordinary Linux pull requests SHALL retain the existing fast
+factory/build/lint/test line.
 
 #### Scenario: slow browser evidence runs
 
-- **WHEN** the browser job is invoked locally or by explicit external orchestration
+- **WHEN** the browser job is invoked by the native weekly/manual workflow or
+  reproduced locally
 - **THEN** both engines SHALL pass the same behavior families or the job SHALL
   fail without converting one engine's evidence into the other's
 

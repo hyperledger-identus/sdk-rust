@@ -135,11 +135,11 @@ nix flake check
 
 During the temporary active-development policy, pull requests run the Linux
 `fast` factory/build/lint/test line. Eligible crates also receive WASM/mobile,
-minimal-feature, fuzz, conformance and public-API evidence through locally or
-externally orchestrated slow commands. Hosted schedule and dispatch activation
-is pending issue #276. Before a release candidate, all slow
-evidence must be current and green. If a tool is unavailable, report the exact
-unrun gate; do not claim it passed.
+minimal-feature, fuzz, conformance and public-API evidence through the native
+weekly/manual slow workflows from protected default `develop` or exact local
+reproduction. Before a release candidate, all slow evidence must be current and
+green. If a tool is unavailable, report the exact unrun gate; do not claim it
+passed.
 
 ## Commits
 

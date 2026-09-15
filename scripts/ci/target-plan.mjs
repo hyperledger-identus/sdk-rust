@@ -72,7 +72,7 @@ export function buildPlan({ baseSha, headSha, paths, profile = "production-ready
     areas,
     requiredPullRequestChecks: profile === "prototype" ? ["factory-basic"] : ["fast"],
     slowRecommended: [...slow].sort(),
-    slowPolicy: "local-or-external-pending-276",
+    slowPolicy: "native-weekly-or-manual",
     unknownDiffFailsClosed: areas.includes("unknown"),
   };
 }

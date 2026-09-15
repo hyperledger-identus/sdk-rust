@@ -10,11 +10,9 @@
 **Consumers inspected read-only:** NeoPRISM, midnight-identity, Lace ID Portal,
 and Oxid
 
-> **Operational status (2026-09-14):** References to weekly/manual CI below
-> describe desired cadence only. GitHub schedule and `workflow_dispatch` execution are inactive
-> while reserved empty `main` remains default. Run
-> evidence locally or through explicit external orchestration; issue #276 owns
-> hosted activation.
+> **Superseded operational status (2026-09-15):** ADR 0120 activates native
+> weekly/manual execution from protected default `develop`; reserved `main`
+> remains explicit, minimal and protected.
 
 ## Executive decision
 

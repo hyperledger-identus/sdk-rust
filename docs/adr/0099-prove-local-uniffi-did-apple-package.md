@@ -6,10 +6,9 @@
 - **Builds on:** ADR 0098
 - **Related work:** issue #228
 
-> **Operational status (2026-09-14):** This ADR records desired cadence only.
-> GitHub schedule and `workflow_dispatch` execution are inactive while reserved
-> empty `main` remains default. Run evidence locally or through explicit external
-> orchestration; issue #276 owns hosted activation.
+> **Superseded operational status (2026-09-15):** ADR 0120 activates native
+> weekly/manual execution from protected default `develop`; reserved `main`
+> remains explicit, minimal and protected.
 
 ## Context
 

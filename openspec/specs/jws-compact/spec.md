@@ -220,12 +220,11 @@ The repository SHALL expose one documented JWS command interface for corpus
 replay, fixed-seed smoke and time-boxed soak through the pinned sanitizer
 compiler, runner and runtime. PR/push smoke SHALL fix the seed, run count, input
 ceiling, per-input timeout, memory ceiling, corpus reload and worker count.
-Maintainer-invoked local or externally scheduled soak SHALL remain
-independently bounded. The `develop` workflow SHALL NOT claim GitHub schedule or
-manual triggers while the reserved empty `main` remains the default branch. The
-JWS PR/push workflow SHALL run for changes to the root dependency declarations
-and every local crate in JOSE's dependency cone, plus the flake entrypoint and
-complete Nix configuration surface used by the campaign.
+Native hosted weekly/manual soak and exact local reproduction SHALL remain
+independently bounded. The JWS PR/push workflow SHALL run for changes to the
+root dependency declarations and every local crate in JOSE's dependency cone,
+plus the flake entrypoint and complete Nix configuration surface used by the
+campaign.
 
 An original reviewable corpus and dictionary SHALL cover the RFC example,
 independently reconstructed Oxid/Lace shapes and existing structural,
@@ -249,7 +248,7 @@ MAY be recorded but SHALL NOT become a machine-specific threshold.
 
 #### Scenario: longer search remains bounded and diagnosable
 
-- **WHEN** a local or externally scheduled soak finds a sanitizer or
-  invariant failure
+- **WHEN** a hosted weekly/manual or locally reproduced soak finds a sanitizer
+  or invariant failure
 - **THEN** it stops within the documented envelope and preserves the input for
   minimization without custom logging of its bytes

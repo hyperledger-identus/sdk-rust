@@ -74,6 +74,7 @@ class SupportPolicyTests(unittest.TestCase):
             "openspec/specs/did-core/spec.md",
             "docs/factory/README.md",
             "docs/governance/agentic-sdlc.md",
+            "docs/governance/repository-settings.md",
             "docs/adr/0018-reproducible-did-lexical-fuzzing.md",
             "docs/adr/0064-separate-primary-rust-from-evidence-driven-msrv.md",
             "docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md",
@@ -1917,54 +1918,85 @@ in
         )
         self.assert_fails("must not declare the pull_request trigger")
 
-    def test_slow_lane_cannot_change_desired_weekly_cadence(self) -> None:
+    def test_slow_lane_cannot_change_weekly_cadence(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
             '    - cron: "23 2 * * 1"',
             '    - cron: "23 2 * * *"',
         )
-        self.assert_fails("must retain the desired weekly trigger pending #276")
+        self.assert_fails("must retain the weekly trigger")
 
-    def test_slow_lane_cannot_claim_its_github_schedule_is_active(self) -> None:
+    def test_slow_lane_must_identify_its_protected_default_branch(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
-            "# Desired cadence only: GitHub schedules workflows from the default branch,\n"
-            "# while reserved empty main remains default. Activation is tracked by #276.\n",
+            "# Native weekly/manual evidence runs from protected default develop under ADR 0120.\n",
             "",
         )
-        self.assert_fails("GitHub schedule is inactive pending #276")
+        self.assert_fails("must identify protected develop as its native scheduler")
 
-    def test_slow_lane_policy_cannot_claim_active_github_scheduling(self) -> None:
+    def test_slow_lane_policy_cannot_return_to_inactive_scheduling(self) -> None:
         self.replace(
             "docs/architecture/sdk-support-policy.toml",
-            'slow_schedule_status       = "inactive-pending-276"',
-            'slow_schedule_status       = "active"',
+            'slow_schedule_status         = "active-native"',
+            'slow_schedule_status         = "inactive"',
         )
-        self.assert_fails("ci.slow_schedule_status must be inactive-pending-276")
+        self.assert_fails("ci.slow_schedule_status must be active-native")
 
-    def test_slow_lane_prose_cannot_claim_active_weekly_dispatch(self) -> None:
+    def test_slow_lane_prose_cannot_retain_pending_state(self) -> None:
         self.replace(
             "README.md",
-            "`workflow_dispatch` are inactive while reserved empty",
-            "runs weekly and through manual dispatch while reserved empty",
+            "weekly slow evidence runs from protected `develop`",
+            "weekly slow evidence runs from protected `develop`; pending issue #276",
         )
-        self.assert_fails("must not claim active weekly/manual GitHub slow execution")
+        self.assert_fails("must not retain the pre-activation slow-lane state")
 
-    def test_target_plan_cannot_claim_weekly_or_manual_slow_execution(self) -> None:
+    def test_target_plan_cannot_return_to_external_only_execution(self) -> None:
         self.replace(
             "scripts/ci/target-plan.mjs",
-            'slowPolicy: "local-or-external-pending-276"',
-            'slowPolicy: "weekly-or-manual"',
+            'slowPolicy: "native-weekly-or-manual"',
+            'slowPolicy: "local-or-external"',
         )
-        self.assert_fails("must record local/external slow execution pending #276")
+        self.assert_fails("must record native weekly or manual slow execution")
 
-    def test_accepted_adr_must_disclose_inactive_hosted_schedule(self) -> None:
+    def test_accepted_adr_must_disclose_superseding_schedule_decision(self) -> None:
         self.replace(
             "docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md",
-            "`workflow_dispatch` execution are inactive",
-            "`workflow_dispatch` execution are active",
+            "Superseded operational status (2026-09-15)",
+            "Operational status unknown",
         )
-        self.assert_fails("inactive hosted status pending #276")
+        self.assert_fails("accepted protected-develop schedule status")
+
+    def test_slow_lane_must_keep_read_only_permissions(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "permissions:\n  contents: read",
+            "permissions:\n  contents: write",
+        )
+        self.assert_fails("missing read-only permissions")
+
+    def test_slow_lane_must_keep_non_cancelling_concurrency(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "cancel-in-progress: false",
+            "cancel-in-progress: true",
+        )
+        self.assert_fails("missing non-cancelling concurrency")
+
+    def test_slow_lane_must_bind_actual_checkout(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            'test "$actual_sha" = "$GITHUB_SHA"',
+            'test -n "$actual_sha"',
+        )
+        self.assert_fails("missing revision binding")
+
+    def test_slow_lane_must_keep_seven_day_retention(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "          retention-days: 7",
+            "          retention-days: 6",
+        )
+        self.assert_fails("artifacts must use seven-day retention")
 
     def test_complete_clippy_gate_must_select_all_targets(self) -> None:
         self.replace_gate(

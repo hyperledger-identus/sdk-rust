@@ -74,11 +74,11 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 ```
 
 The flake supports `x86_64-linux` and `aarch64-darwin`. Pull requests and
-`develop` pushes run one Ubuntu `fast` factory/build/lint/test status. The full
-Linux/macOS flake matrix, including the all-target/all-feature Clippy surface,
-is available as a local or externally orchestrated slow command. Its desired
-weekly GitHub trigger and `workflow_dispatch` are inactive while reserved empty
-`main` remains default; issue #276 owns activation. See the
+`develop` pushes run one Ubuntu `fast` factory/build/lint/test status. Native
+weekly slow evidence runs from protected `develop`, which is the GitHub default
+branch while reserved `main` remains minimal. The same complete Linux/macOS
+matrix can be dispatched manually or reproduced locally; it includes the
+all-target/all-feature Clippy surface. See the
 [Clippy policy and exception registry](docs/governance/clippy-policy.md).
 
 ## Development workflow

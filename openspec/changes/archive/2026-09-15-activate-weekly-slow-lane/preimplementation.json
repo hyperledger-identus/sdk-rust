@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 276,
+  "change": "activate-weekly-slow-lane",
+  "branch": "codex/ci/issue-276",
+  "baseRef": "origin/develop",
+  "baseSha": "fa14193d398333d6fb272cadc323355e717f800c",
+  "contractHeadSha": "a777b0f91882dba72df85d568468a1b5d19817cc",
+  "createdAt": "2026-09-15T07:28:32.651Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

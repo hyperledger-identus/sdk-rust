@@ -2,8 +2,17 @@
 
 This file is the reviewable desired state for GitHub controls. Maintainers must
 compare it to the live settings after this governance packet reaches `develop`.
-The latest live comparison is the
-[2026-09-14 settings receipt](repository-settings-receipt-2026-09-14.md).
+The activation procedure and rollback boundary are recorded in
+[ADR 0120](../adr/0120-run-weekly-evidence-from-protected-develop.md). A dated
+live receipt must record the post-merge settings before issue #276 closes.
+
+| Setting | Required value |
+| --- | --- |
+| GitHub default branch | `develop` |
+| `main` ruleset target | explicit `refs/heads/main` |
+| `develop` ruleset target | explicit `refs/heads/develop` |
+| Actions token | read-only contents |
+| Actions retention | seven days (organization maximum) |
 
 ## `main` reserved-branch ruleset
 
@@ -16,6 +25,8 @@ The latest live comparison is the
 - prohibit bypass except the documented Hyperledger emergency path.
 
 `main` remains at the pre-bootstrap revision while this branch model is active.
+Its ruleset names the branch explicitly and does not rely on default-branch
+indirection.
 Do not attach checks that cannot run on its intentionally minimal tree.
 
 ## `develop` integration ruleset
@@ -34,6 +45,10 @@ Do not attach checks that cannot run on its intentionally minimal tree.
 - allow auto-merge so an eligible PR can enter the queue while checks run;
 - prohibit bypass except the documented Hyperledger emergency path.
 
+`develop` is the GitHub default branch so native scheduled workflows execute
+the reviewed integration revision. This selection does not authorize direct
+pushes, publication, release, or population of reserved `main`.
+
 ## Required checks on `develop`
 
 During the temporary active-development phase, configure these stable required
@@ -46,9 +61,9 @@ statuses:
 
 `fast` is the single Rust/factory merge signal and includes factory structure,
 formatting, workspace build, strict Clippy and normal tests. The `slow` and
-nightly sanitizer commands provide local or externally orchestrated evidence
-and are deliberately not required for active-development pull requests. Their
-hosted schedule and dispatch activation is pending issue #276. Before any
+nightly sanitizer workflows provide native scheduled, manually dispatched and
+local evidence and are deliberately not required for active-development pull
+requests. Before any
 release candidate, ADR 0081 requires a new compatibility decision and current
 green slow evidence.
 

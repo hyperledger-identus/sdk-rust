@@ -1,7 +1,7 @@
 name: slow
+run-name: slow / ${{ github.event_name }} / ${{ github.sha }}
 
-# Desired cadence only: GitHub schedules workflows from the default branch,
-# while reserved empty main remains default. Activation is tracked by #276.
+# Native weekly/manual evidence runs from protected default develop under ADR 0120.
 on:
   schedule:
     - cron: "23 2 * * 1"
@@ -10,10 +10,28 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: slow-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
+  run_start:
+    name: bind requested revision
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      started_at: ${{ steps.clock.outputs.started_at }}
+
+    steps:
+      - id: clock
+        name: Record UTC start
+        run: echo "started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
   crypto-candidate:
     name: unpublished crypto candidate
+    needs: run_start
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -40,11 +58,13 @@ jobs:
           name: crypto-candidate-${{ github.sha }}
           path: artifacts/crypto-candidate
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 7
 
   crypto-coverage:
     name: crypto line coverage
+    needs: run_start
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -74,11 +94,13 @@ jobs:
           name: crypto-coverage-${{ github.sha }}
           path: artifacts/crypto-coverage
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 7
 
   crypto-baseline:
     name: crypto performance baseline
+    needs: run_start
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -105,11 +127,13 @@ jobs:
           name: crypto-baseline-${{ github.sha }}
           path: artifacts/crypto-baseline.json
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 7
 
   browser-did:
     name: browser DID (Chromium + Firefox)
+    needs: run_start
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -132,6 +156,7 @@ jobs:
 
   checks:
     name: slow (${{ matrix.os }})
+    needs: run_start
     strategy:
       fail-fast: false
       matrix:
@@ -141,6 +166,7 @@ jobs:
           - os: macos-latest
             nix-system: aarch64-darwin
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -174,8 +200,6 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
 
       - name: Regenerate pinned code-health baseline
-        # Ready to run locally or through external orchestration until #276
-        # establishes an executable hosted scheduling authority.
         run: >-
           nix develop --command
           python3 scripts/code-health-audit.py --verify-baseline
@@ -206,3 +230,104 @@ jobs:
           nix develop .#bindings --command ./scripts/check-uniffi-did-host.sh
           nix develop .#bindings --command ./scripts/check-uniffi-did-apple.sh
           nix develop .#bindings --command ./scripts/check-uniffi-did-android.sh
+
+  evidence:
+    name: immutable slow-run receipt
+    if: ${{ always() }}
+    needs:
+      - run_start
+      - crypto-candidate
+      - crypto-coverage
+      - crypto-baseline
+      - browser-did
+      - checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Bind actual checkout and render receipt
+        env:
+          STARTED_AT: ${{ needs.run_start.outputs.started_at }}
+          RUN_START_RESULT: ${{ needs.run_start.result }}
+          CRYPTO_CANDIDATE_RESULT: ${{ needs.crypto-candidate.result }}
+          CRYPTO_COVERAGE_RESULT: ${{ needs.crypto-coverage.result }}
+          CRYPTO_BASELINE_RESULT: ${{ needs.crypto-baseline.result }}
+          BROWSER_DID_RESULT: ${{ needs.browser-did.result }}
+          CHECKS_RESULT: ${{ needs.checks.result }}
+        run: |
+          actual_sha=$(git rev-parse HEAD)
+          test "$actual_sha" = "$GITHUB_SHA"
+          mkdir -p artifacts/slow-run
+          ACTUAL_SHA="$actual_sha" python3 - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          receipt = {
+              "schemaVersion": 1,
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "event": os.environ["GITHUB_EVENT_NAME"],
+              "requestedSha": os.environ["GITHUB_SHA"],
+              "actualCheckoutSha": os.environ["ACTUAL_SHA"],
+              "runId": int(os.environ["GITHUB_RUN_ID"]),
+              "runAttempt": int(os.environ["GITHUB_RUN_ATTEMPT"]),
+              "runUrl": (
+                  f"{os.environ['GITHUB_SERVER_URL']}/"
+                  f"{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+                  f"{os.environ['GITHUB_RUN_ID']}"
+              ),
+              "startedAt": os.environ["STARTED_AT"],
+              "endedAt": datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+              .replace("+00:00", "Z"),
+              "retentionDays": 7,
+              "jobs": {
+                  "run_start": os.environ["RUN_START_RESULT"],
+                  "crypto-candidate": os.environ["CRYPTO_CANDIDATE_RESULT"],
+                  "crypto-coverage": os.environ["CRYPTO_COVERAGE_RESULT"],
+                  "crypto-baseline": os.environ["CRYPTO_BASELINE_RESULT"],
+                  "browser-did": os.environ["BROWSER_DID_RESULT"],
+                  "checks": os.environ["CHECKS_RESULT"],
+              },
+              "artifactIndex": "runUrl",
+          }
+          Path("artifacts/slow-run/receipt.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Publish receipt summary
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          summary = (
+              "### Immutable slow-run receipt\n\n"
+              f"- Revision: `{os.environ['GITHUB_SHA']}`\n"
+              f"- Run: {os.environ['GITHUB_SERVER_URL']}/"
+              f"{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+              f"{os.environ['GITHUB_RUN_ID']}\n"
+              "- Retention: 7 days (organization maximum)\n"
+          )
+          with Path(os.environ["GITHUB_STEP_SUMMARY"]).open(
+              "a", encoding="utf-8"
+          ) as output:
+              output.write(summary)
+          PY
+
+      - name: Upload immutable slow-run receipt
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: slow-run-${{ github.sha }}-${{ github.run_attempt }}
+          path: artifacts/slow-run/receipt.json
+          if-no-files-found: error
+          retention-days: 7

@@ -18,6 +18,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 
 "$repository_root/scripts/tests/ssi-upstream-backlog.py"
 "$repository_root/scripts/tests/ssi-upstream-backlog-live.py"
+"$repository_root/scripts/tests/weekly-slow-live.py"
 "$repository_root/scripts/tests/support-policy.py"
 "$repository_root/scripts/tests/apollo-parity.py"
 "$repository_root/scripts/tests/crypto-benchmark.py"
@@ -100,6 +101,7 @@ required_files=(
   docs/adr/0108-operationalize-guidance-based-ai-factory.md
   docs/adr/0111-use-read-only-nix-cache-on-fast-path.md
   docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md
+  docs/adr/0120-run-weekly-evidence-from-protected-develop.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
@@ -154,6 +156,7 @@ required_files=(
   scripts/report-crypto-coverage.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-ssi-upstream-backlog-live.py
+  scripts/check-weekly-slow-live.py
   scripts/check-source-distribution.py
   scripts/check-crypto-candidate.py
   scripts/code-health-audit.py
@@ -170,6 +173,7 @@ required_files=(
   scripts/tests/research-readiness.py
   scripts/tests/support-policy.py
   scripts/tests/ssi-upstream-backlog-live.py
+  scripts/tests/weekly-slow-live.py
   scripts/tests/apollo-parity.py
   scripts/tests/crypto-benchmark.py
   scripts/tests/crypto-coverage.py
@@ -245,6 +249,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-apollo-parity.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog-live.py" \
+  "$fixture_root/scripts/check-weekly-slow-live.py" \
   "$fixture_root/scripts/check-source-distribution.py" \
   "$fixture_root/scripts/check-crypto-candidate.py" \
   "$fixture_root/scripts/code-health-audit.py" \
@@ -263,7 +268,8 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/pr-policy.sh" \
   "$fixture_root/scripts/tests/research-readiness.py" \
   "$fixture_root/scripts/tests/support-policy.py" \
-  "$fixture_root/scripts/tests/ssi-upstream-backlog-live.py"
+  "$fixture_root/scripts/tests/ssi-upstream-backlog-live.py" \
+  "$fixture_root/scripts/tests/weekly-slow-live.py"
 chmod +x "$fixture_root/scripts/tests/apollo-parity.py"
 chmod +x "$fixture_root/scripts/ci/"*.mjs "$fixture_root/scripts/factory-tools/"*.mjs \
   "$fixture_root/scripts/git-hooks/"*.mjs "$fixture_root/scripts/worktree-lifecycle.mjs" \

@@ -6,10 +6,9 @@
 - **Related work:** ADRs 0003, 0004 and 0081
 - **Reference snapshot:** `MediaNoxLabs/oxid@6b2320d7456cef439779a006740c561c8a4bf6d7`
 
-> **Operational status (2026-09-14):** This ADR records desired cadence only.
-> GitHub schedule and `workflow_dispatch` execution are inactive while reserved
-> empty `main` remains default. Run evidence locally or through explicit external
-> orchestration; issue #276 owns hosted activation.
+> **Superseded operational status (2026-09-15):** ADR 0120 activates native
+> weekly/manual execution from protected default `develop`; reserved `main`
+> remains explicit, minimal and protected.
 
 ## Context
 

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 276,
+  "change": "bind-exact-android-ndk",
+  "branch": "codex/fix/issue-276",
+  "baseRef": "origin/develop",
+  "baseSha": "6423a9e0d946c1f438f554a3b1fe6222fb28717a",
+  "contractHeadSha": "9c92ac796f80e5595279cd95326d05fe4a554d8c",
+  "createdAt": "2026-09-15T15:21:44.792Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

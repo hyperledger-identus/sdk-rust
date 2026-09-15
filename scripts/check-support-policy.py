@@ -2709,11 +2709,20 @@ def validate_ci_lanes(
                 failures.append(f"{slow_audit_path} is missing {contract_name}")
 
     fuzz_workflows = {
-        ".github/workflows/crypto-fuzz.yml": '    - cron: "41 3 * * 1"',
-        ".github/workflows/did-fuzz.yml": '    - cron: "17 3 * * 2"',
-        ".github/workflows/jws-fuzz.yml": '    - cron: "53 3 * * 3"',
+        ".github/workflows/crypto-fuzz.yml": (
+            '    - cron: "41 3 * * 1"',
+            "crypto-fuzz-artifacts-${{ github.sha }}-${{ github.run_attempt }}",
+        ),
+        ".github/workflows/did-fuzz.yml": (
+            '    - cron: "17 3 * * 2"',
+            "did-fuzz-artifacts-${{ github.sha }}-${{ github.run_attempt }}",
+        ),
+        ".github/workflows/jws-fuzz.yml": (
+            '    - cron: "53 3 * * 3"',
+            "jws-fuzz-artifacts-${{ github.sha }}-${{ github.run_attempt }}",
+        ),
     }
-    for relative_path, expected_cron in fuzz_workflows.items():
+    for relative_path, (expected_cron, expected_artifact) in fuzz_workflows.items():
         try:
             workflow = (root / relative_path).read_text(encoding="utf-8")
         except OSError as error:
@@ -2727,6 +2736,17 @@ def validate_ci_lanes(
                 failures.append(f"{relative_path} must not declare the {trigger} trigger")
         if expected_cron not in trigger_block(workflow, "schedule"):
             failures.append(f"{relative_path} must retain its pinned weekly schedule")
+        if expected_artifact not in workflow:
+            failures.append(
+                f"{relative_path} must bind its failure artifact to SHA and run attempt"
+            )
+        retention_values = re.findall(
+            r"^\s+retention-days: (\d+)\s*$", workflow, re.MULTILINE
+        )
+        if retention_values != ["7"]:
+            failures.append(
+                f"{relative_path} failure artifact must use seven-day retention"
+            )
 
 
 def validate_hosts(

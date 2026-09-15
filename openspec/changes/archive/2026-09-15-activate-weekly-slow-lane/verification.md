@@ -4,7 +4,7 @@
 
 - `scripts/factory check`: passed before archive.
 - `scripts/tests/factory-contract.sh`: passed.
-- support-policy mutation suite: 180 tests passed.
+- support-policy mutation suite: 182 tests passed.
 - weekly slow live-audit suite: eleven tests passed, including manual-rerun
   rejection, disabled-workflow history lookup and scheduled head-branch
   binding.

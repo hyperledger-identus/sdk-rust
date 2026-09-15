@@ -39,6 +39,12 @@
    queries the scheduled run's `headBranch` and requires protected `develop`,
    independently of the repository's current default-branch value. A negative
    snapshot regression rejects a run from a temporary former default branch.
+10. **Resolved P2 — fuzz artifacts exceeded effective retention.** Crypto, DID
+    and JWS failure uploads now use the organization-enforced seven-day ceiling,
+    with a support-policy mutation test preventing drift.
+11. **Resolved P2 — fuzz reruns could collide.** All three failure-artifact
+    names now include SHA and run attempt, with a support-policy mutation test
+    preventing regression.
 
 ## Result
 

@@ -34,6 +34,9 @@ names SHALL include revision and run attempt. Workflow concurrency SHALL bound
 overlapping runs without cancelling an older running revision, and every
 substantive job SHALL have an explicit timeout.
 
+Scheduled fuzz failure artifacts SHALL likewise include revision and run
+attempt and SHALL use the repository's effective seven-day retention ceiling.
+
 A manually requested rerun of a scheduled run SHALL remain recovery evidence,
 not natural schedule evidence, even when GitHub retains the original `schedule`
 event. The live audit SHALL require attempt one for natural cadence acceptance.

@@ -2072,6 +2072,22 @@ in
         )
         self.assert_fails("must not declare the pull_request trigger")
 
+    def test_fuzz_failure_artifact_must_bind_run_attempt(self) -> None:
+        self.replace(
+            ".github/workflows/crypto-fuzz.yml",
+            "crypto-fuzz-artifacts-${{ github.sha }}-${{ github.run_attempt }}",
+            "crypto-fuzz-artifacts-${{ github.sha }}",
+        )
+        self.assert_fails("must bind its failure artifact to SHA and run attempt")
+
+    def test_fuzz_failure_artifact_must_honor_retention_ceiling(self) -> None:
+        self.replace(
+            ".github/workflows/did-fuzz.yml",
+            "          retention-days: 7",
+            "          retention-days: 14",
+        )
+        self.assert_fails("failure artifact must use seven-day retention")
+
     def test_unknown_gate_field_fails(self) -> None:
         self.replace_gate(
             "rust-build-wasm32",

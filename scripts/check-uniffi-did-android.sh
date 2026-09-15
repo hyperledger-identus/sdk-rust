@@ -6,21 +6,55 @@ repository_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 crate_root="$repository_root/crates/uniffi-did"
 tool_manifest="$repository_root/tools/uniffi-bindgen/Cargo.toml"
 template_root="$repository_root/tests/uniffi-did-android/package-template"
-evidence_root="$repository_root/target/uniffi-did-android"
-gradle_home="$repository_root/target/uniffi-did-android-gradle"
 ndk_version=27.0.12077973
 android_api=21
 compile_api=35
-system_image="system-images;android-35;default;arm64-v8a"
 emulator_port=5580
 emulator_serial="emulator-$emulator_port"
 
 fail() {
     printf 'uniffi-did-android: %s\n' "$1" >&2
+    if [[ -n ${evidence_root:-} && -f $evidence_root/emulator.log ]]; then
+        printf '%s\n' '--- emulator.log (last 200 lines) ---' >&2
+        tail -n 200 "$evidence_root/emulator.log" >&2
+    fi
+    if [[ -n ${evidence_root:-} && -d $evidence_root ]]; then
+        printf 'failure=%s\n' "$1" >"$evidence_root/failure.txt"
+    fi
     exit 1
 }
 
-[[ $(uname -s) == "Darwin" ]] || fail "macOS is required for the arm64 emulator gate"
+mode=${1:-}
+case "$mode" in
+    arm64-package)
+        [[ $(uname -s) == "Darwin" ]] || fail "macOS is required for ARM64 package evidence"
+        evidence_role=distributable-arm64-package
+        evidence_root="$repository_root/target/uniffi-did-android-arm64-package"
+        gradle_home="$repository_root/target/uniffi-did-android-arm64-package-gradle"
+        rust_target=aarch64-linux-android
+        android_abi=arm64-v8a
+        host_tag=darwin-x86_64
+        linker_prefix=aarch64-linux-android
+        elf_machine='AArch64'
+        system_image=none
+        ;;
+    x86_64-runtime)
+        [[ $(uname -s) == "Linux" && $(uname -m) == "x86_64" ]] || \
+            fail "Linux x86_64 is required for test-only runtime evidence"
+        evidence_role=test-only-x86_64-runtime
+        evidence_root="$repository_root/target/uniffi-did-android-x86_64-runtime"
+        gradle_home="$repository_root/target/uniffi-did-android-x86_64-runtime-gradle"
+        rust_target=x86_64-linux-android
+        android_abi=x86_64
+        host_tag=linux-x86_64
+        linker_prefix=x86_64-linux-android
+        elf_machine='Advanced Micro Devices X86-64'
+        system_image="system-images;android-35;default;x86_64"
+        ;;
+    *)
+        fail "usage: $0 arm64-package|x86_64-runtime"
+        ;;
+esac
 
 android_sdk=${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}
 [[ -n $android_sdk ]] || fail "ANDROID_SDK_ROOT or ANDROID_HOME must name the Android SDK"
@@ -30,21 +64,32 @@ ndk_root="$android_sdk/ndk/$ndk_version"
 ndk_properties="$ndk_root/source.properties"
 [[ -f $ndk_properties ]] || fail "exact Android NDK metadata is unavailable: $ndk_properties"
 
-host_tag=darwin-x86_64
 toolchain="$ndk_root/toolchains/llvm/prebuilt/$host_tag"
-linker="$toolchain/bin/aarch64-linux-android${android_api}-clang"
+linker="$toolchain/bin/${linker_prefix}${android_api}-clang"
+linker_env="CARGO_TARGET_${rust_target^^}_LINKER"
+linker_env=${linker_env//-/_}
 llvm_nm="$toolchain/bin/llvm-nm"
 llvm_readelf="$toolchain/bin/llvm-readelf"
 avdmanager="$android_sdk/cmdline-tools/latest/bin/avdmanager"
 emulator="$android_sdk/emulator/emulator"
 adb="$android_sdk/platform-tools/adb"
 
-for executable in "$linker" "$llvm_nm" "$llvm_readelf" "$avdmanager" "$emulator" "$adb"; do
+for executable in "$linker" "$llvm_nm" "$llvm_readelf"; do
     [[ -x $executable ]] || fail "required Android executable is unavailable: $executable"
 done
-for command in awk cargo cmp cp curl diff du find gradle grep java mkdir python3 rm rustc sed seq shasum sleep sort stat tr unzip xargs; do
+if [[ $mode == x86_64-runtime ]]; then
+    for executable in "$avdmanager" "$emulator" "$adb"; do
+        [[ -x $executable ]] || fail "required Android executable is unavailable: $executable"
+    done
+fi
+for command in awk cargo cmp cp curl diff du find gradle grep java mkdir python3 rm rustc sed shasum sort tail tr unzip wc xargs; do
     command -v "$command" >/dev/null || fail "required command is unavailable: $command"
 done
+if [[ $mode == x86_64-runtime ]]; then
+    for command in kill seq sleep; do
+        command -v "$command" >/dev/null || fail "required command is unavailable: $command"
+    done
+fi
 
 grep -Eq '^Pkg\.Revision[[:space:]]*=[[:space:]]*27\.0\.12077973[[:space:]]*$' \
     "$ndk_properties" || fail "Android NDK metadata does not identify $ndk_version"
@@ -59,7 +104,7 @@ if [[ -z $java_home ]]; then
 fi
 [[ -x $java_home/bin/java ]] || fail "JDK 17 is unavailable"
 
-[[ $evidence_root == "$repository_root"/target/* ]] || fail "unsafe evidence path"
+[[ $evidence_root == "$repository_root"/target/uniffi-did-android-* ]] || fail "unsafe evidence path"
 rm -rf "$evidence_root"
 mkdir -p "$evidence_root" "$gradle_home"
 
@@ -120,17 +165,17 @@ build_package() {
     local rust_root="$build_root/rust"
     local generated_root="$build_root/generated"
     local project_root="$build_root/project"
-    local library="$rust_root/aarch64-linux-android/release/libidentus_uniffi_did.so"
+    local library="$rust_root/$rust_target/release/libidentus_uniffi_did.so"
     local aar="$project_root/sdk/build/outputs/aar/sdk-release.aar"
 
     mkdir -p "$build_root"
     cp -R "$template_root/library" "$project_root"
 
-    CARGO_INCREMENTAL=0 \
-    CARGO_TARGET_DIR="$rust_root" \
-    CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$linker" \
+    env CARGO_INCREMENTAL=0 \
+        CARGO_TARGET_DIR="$rust_root" \
+        "$linker_env=$linker" \
         cargo build --locked --release --package identus-uniffi-did \
-        --target aarch64-linux-android
+        --target "$rust_target"
 
     CARGO_TARGET_DIR="$repository_root/target/uniffi-bindgen-tool" \
         cargo run --quiet --locked --manifest-path "$tool_manifest" \
@@ -139,10 +184,10 @@ build_package() {
         --language kotlin --out-dir "$generated_root" --no-format
 
     mkdir -p "$project_root/sdk/src/main/kotlin/org/hyperledger/identus/did" \
-        "$project_root/sdk/src/main/jniLibs/arm64-v8a"
+        "$project_root/sdk/src/main/jniLibs/$android_abi"
     cp "$generated_root/org/hyperledger/identus/did/identus_uniffi_did.kt" \
         "$project_root/sdk/src/main/kotlin/org/hyperledger/identus/did/"
-    cp "$library" "$project_root/sdk/src/main/jniLibs/arm64-v8a/"
+    cp "$library" "$project_root/sdk/src/main/jniLibs/$android_abi/"
 
     JAVA_HOME="$java_home" GRADLE_USER_HOME="$gradle_home" \
         gradle --no-daemon --console=plain -p "$project_root" \
@@ -159,16 +204,16 @@ build_package() {
 build_package a
 build_package b
 
-cmp "$evidence_root/build-a/rust/aarch64-linux-android/release/libidentus_uniffi_did.so" \
-    "$evidence_root/build-b/rust/aarch64-linux-android/release/libidentus_uniffi_did.so"
+cmp "$evidence_root/build-a/rust/$rust_target/release/libidentus_uniffi_did.so" \
+    "$evidence_root/build-b/rust/$rust_target/release/libidentus_uniffi_did.so"
 diff -ru "$evidence_root/build-a/generated" "$evidence_root/build-b/generated"
 cmp "$evidence_root/build-a/gradle.lockfile" "$evidence_root/build-b/gradle.lockfile"
 diff -ru "$evidence_root/build-a/normalized-tree" \
     "$evidence_root/build-b/normalized-tree"
 cmp "$evidence_root/build-a/identus-did.aar" "$evidence_root/build-b/identus-did.aar"
 
-library="$evidence_root/build-a/normalized-tree/jni/arm64-v8a/libidentus_uniffi_did.so"
-[[ -f $library ]] || fail "AAR is missing the arm64-v8a SDK library"
+library="$evidence_root/build-a/normalized-tree/jni/$android_abi/libidentus_uniffi_did.so"
+[[ -f $library ]] || fail "AAR is missing the $android_abi SDK library"
 native_paths=$(find "$evidence_root/build-a/normalized-tree/jni" -type f | sort)
 [[ $native_paths == "$library" ]] || fail "AAR contains an unexpected native payload"
 ! find "$evidence_root/build-a/normalized-tree" -type f -print0 | \
@@ -178,7 +223,8 @@ elf_header=$($llvm_readelf -h "$library")
 grep -q 'Class:[[:space:]]*ELF64' <<<"$elf_header" || fail "SDK library is not ELF64"
 grep -q 'Data:[[:space:]]*2.s complement, little endian' <<<"$elf_header" || \
     fail "SDK library has unexpected endianness"
-grep -q 'Machine:[[:space:]]*AArch64' <<<"$elf_header" || fail "SDK library is not AArch64"
+grep -q "Machine:[[:space:]]*$elf_machine" <<<"$elf_header" || \
+    fail "SDK library has an unexpected machine type"
 
 elf_notes=$($llvm_readelf -n "$library")
 grep -q '15 00 00 00 72 32 37' <<<"$elf_notes" || fail "SDK library lacks API-21 NDK-r27 identity"
@@ -215,17 +261,47 @@ consumer_apk="$consumer_root/app/build/outputs/apk/debug/app-debug.apk"
 cmp "$template_root/consumer/app/gradle.lockfile" \
     "$consumer_root/app/gradle.lockfile" || fail "consumer dependency lock drifted"
 
+{
+    printf 'evidence_role=%s\n' "$evidence_role"
+    printf 'rust=%s\n' "$(rustc --version)"
+    printf 'rust_target=%s\n' "$rust_target"
+    printf 'java=%s\n' "$("$java_home/bin/java" -version 2>&1 | awk 'NR == 1')"
+    printf 'gradle=%s\n' "$(gradle --version | awk '/^Gradle / { print $2 }')"
+    printf 'ndk=%s\n' "$ndk_version"
+    printf 'ndk_source_properties_sha256=%s\n' \
+        "$(shasum -a 256 "$ndk_properties" | awk '{ print $1 }')"
+    printf 'android_min_api=%s\n' "$android_api"
+    printf 'packaged_abi=%s\n' "$android_abi"
+    printf 'emulator_image=%s\n' "$system_image"
+    printf 'sdk_library_bytes=%s\n' "$(wc -c <"$library" | tr -d ' ')"
+    printf 'sdk_aar_bytes=%s\n' \
+        "$(wc -c <"$evidence_root/build-a/identus-did.aar" | tr -d ' ')"
+    printf 'consumer_apk_bytes=%s\n' "$(wc -c <"$consumer_apk" | tr -d ' ')"
+} >"$evidence_root/receipt.txt"
+
+if [[ $mode == arm64-package ]]; then
+    printf 'runtime_status=not-run-package-only\n' >>"$evidence_root/receipt.txt"
+    printf 'uniffi-did-android: ARM64 package verification passed\n'
+    exit 0
+fi
+
+[[ -c /dev/kvm && -r /dev/kvm && -w /dev/kvm ]] || \
+    fail "KVM acceleration is unavailable to the Android runtime job"
+
 avd_home="$evidence_root/avd-home"
 prefs_root="$evidence_root/android-prefs"
 emulator_home="$evidence_root/emulator-home"
 mkdir -p "$avd_home" "$prefs_root" "$emulator_home"
-image_dir="$android_sdk/system-images/android-$compile_api/default/arm64-v8a"
+image_dir="$android_sdk/system-images/android-$compile_api/default/x86_64"
 [[ -d $image_dir ]] || fail "exact emulator image is unavailable: $system_image"
 
 export ANDROID_AVD_HOME="$avd_home"
 export ANDROID_PREFS_ROOT="$prefs_root"
 export ANDROID_EMULATOR_HOME="$emulator_home"
-printf 'no\n' | "$avdmanager" create avd --force --name identus_did_api35 \
+"$emulator" -accel-check >"$evidence_root/acceleration.log" 2>&1 || \
+    fail "Android emulator did not confirm KVM acceleration"
+
+printf 'no\n' | "$avdmanager" create avd --force --name identus_did_api35_x86_64 \
     --package "$system_image" --device pixel_6 >/dev/null
 
 emulator_pid=
@@ -238,8 +314,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-"$emulator" -avd identus_did_api35 -port "$emulator_port" -no-window \
-    -no-audio -no-boot-anim -no-snapshot -wipe-data -gpu swiftshader_indirect \
+"$emulator" -avd identus_did_api35_x86_64 -port "$emulator_port" -no-window \
+    -no-audio -no-boot-anim -no-snapshot -wipe-data -accel on \
+    -gpu swiftshader_indirect \
     >"$evidence_root/emulator.log" 2>&1 &
 emulator_pid=$!
 
@@ -275,21 +352,11 @@ grep -q 'IDENTUS_DID_ANDROID_OK' <<<"$runtime_log" || fail "Android success mark
 printf '%s\n' "$runtime_log" >"$evidence_root/runtime.log"
 
 {
-    printf 'rust=%s\n' "$(rustc --version)"
-    printf 'java=%s\n' "$("$java_home/bin/java" -version 2>&1 | awk 'NR == 1')"
-    printf 'gradle=%s\n' "$(gradle --version | awk '/^Gradle / { print $2 }')"
-    printf 'ndk=%s\n' "$ndk_version"
-    printf 'ndk_source_properties_sha256=%s\n' \
-        "$(shasum -a 256 "$ndk_properties" | awk '{ print $1 }')"
-    printf 'android_min_api=%s\n' "$android_api"
-    printf 'emulator_image=%s\n' "$system_image"
+    printf 'runtime_status=passed\n'
     printf 'emulator_abi=%s\n' "$("$adb" -s "$emulator_serial" shell getprop ro.product.cpu.abi | tr -d '\r')"
     printf 'emulator_api=%s\n' "$("$adb" -s "$emulator_serial" shell getprop ro.build.version.sdk | tr -d '\r')"
-    printf 'sdk_library_bytes=%s\n' "$(stat -f %z "$library")"
-    printf 'sdk_aar_bytes=%s\n' "$(stat -f %z "$evidence_root/build-a/identus-did.aar")"
-    printf 'consumer_apk_bytes=%s\n' "$(stat -f %z "$consumer_apk")"
-} >"$evidence_root/receipt.txt"
+} >>"$evidence_root/receipt.txt"
 
 cleanup
 trap - EXIT
-printf 'uniffi-did-android: verification passed\n'
+printf 'uniffi-did-android: test-only x86_64 runtime verification passed\n'

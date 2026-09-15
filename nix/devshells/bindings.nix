@@ -14,6 +14,7 @@
           "aarch64-linux-android"
           "aarch64-apple-ios"
           "aarch64-apple-ios-sim"
+          "x86_64-linux-android"
         ];
       };
     in

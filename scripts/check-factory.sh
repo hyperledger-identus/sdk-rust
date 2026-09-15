@@ -66,6 +66,7 @@ required_files=(
   docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md
   docs/adr/0122-use-aosp-image-for-android-runtime-proof.md
   docs/adr/0123-bind-android-build-to-the-exact-installed-ndk.md
+  docs/adr/0124-separate-android-package-and-runtime-evidence.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   nix/apps/crypto-candidate.nix

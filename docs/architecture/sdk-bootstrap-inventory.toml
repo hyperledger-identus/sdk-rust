@@ -212,7 +212,7 @@ layer          = "outer-boundary"
 classification = "implemented"
 public_api     = "experimental"
 owner_issue    = "#230"
-summary        = "Experimental versioned UniFFI facade with deterministic host generation, local Apple XCFramework/Simulator evidence and local arm64-v8a Android AAR/emulator evidence; unpublished and unsupported."
+summary        = "Experimental versioned UniFFI facade with deterministic host generation, local Apple XCFramework/Simulator evidence, ARM64 Android AAR proof and separate test-only x86_64 Android runtime evidence; unpublished and unsupported."
 
 [[packages]]
 name           = "identus-wasm-did"

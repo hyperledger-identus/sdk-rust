@@ -8,11 +8,11 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add ADR 0124 and parameterize Android verification into explicit
+- [x] 2.1 Add ADR 0124 and parameterize Android verification into explicit
       ARM64 package and test-only x86_64 runtime roles.
-- [ ] 2.2 Add the dedicated accelerated Linux runtime job, exact inputs,
+- [x] 2.2 Add the dedicated accelerated Linux runtime job, exact inputs,
       artifact retention, final receipt binding, and the isolated Rust target.
-- [ ] 2.3 Extend offline support-policy checks and mutations for runner, ABI,
+- [x] 2.3 Extend offline support-policy checks and mutations for runner, ABI,
       package, KVM, role-separation, diagnostics, and artifact contracts.
 
 ## 3. Verification and delivery

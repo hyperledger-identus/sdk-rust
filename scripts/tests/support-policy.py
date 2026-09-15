@@ -96,6 +96,7 @@ class SupportPolicyTests(unittest.TestCase):
             ".github/workflows/did-fuzz.yml",
             ".github/workflows/jws-fuzz.yml",
             "nix/devshells/default.nix",
+            "nix/devshells/bindings.nix",
             "nix/rust-toolchain.nix",
             "scripts/check-weekly-slow-live.py",
             "scripts/check-uniffi-did-android.sh",
@@ -2025,78 +2026,84 @@ in
         )
         self.assert_fails("missing candidate attempt artifact")
 
-    def test_slow_lane_android_tools_must_use_sdk_root_fallback(self) -> None:
+    def test_android_runtime_tools_must_use_sdk_root_fallback(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
             'android_sdk="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"',
             'android_sdk="${ANDROID_SDK_ROOT:-}"',
         )
-        self.assert_fails("missing Android SDK root fallback")
+        self.assert_fails("runtime step is missing Android runtime SDK root fallback")
 
-    def test_slow_lane_android_sdk_root_must_be_nonempty(self) -> None:
+    def test_android_runtime_sdk_root_must_be_nonempty(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
             'test -n "$android_sdk"',
             'true # missing Android SDK root guard',
         )
-        self.assert_fails("missing Android SDK root guard")
+        self.assert_fails("runtime step is missing Android runtime SDK root guard")
 
-    def test_slow_lane_sdkmanager_must_use_declared_sdk(self) -> None:
+    def test_android_runtime_sdkmanager_must_use_declared_sdk(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
             'sdkmanager="$android_sdk/cmdline-tools/latest/bin/sdkmanager"',
             'sdkmanager="$(command -v sdkmanager)"',
         )
-        self.assert_fails("missing Android sdkmanager path")
+        self.assert_fails("runtime step is missing Android runtime sdkmanager path")
 
-    def test_slow_lane_sdkmanager_comment_decoy_is_not_evidence(self) -> None:
+    def test_android_runtime_sdkmanager_comment_decoy_is_not_evidence(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
             '          sdkmanager="$android_sdk/cmdline-tools/latest/bin/sdkmanager"',
             '          # sdkmanager="$android_sdk/cmdline-tools/latest/bin/sdkmanager"\n'
             '          sdkmanager="$(command -v sdkmanager)"',
         )
-        self.assert_fails("missing Android sdkmanager path")
+        self.assert_fails("runtime step is missing Android runtime sdkmanager path")
 
-    def test_slow_lane_sdkmanager_must_be_executable(self) -> None:
+    def test_android_runtime_sdkmanager_must_be_executable(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
             'test -x "$sdkmanager"',
             'test -f "$sdkmanager"',
         )
-        self.assert_fails("missing Android sdkmanager executable guard")
+        self.assert_fails(
+            "runtime step is missing Android runtime sdkmanager executable guard"
+        )
 
-    def test_slow_lane_must_invoke_absolute_sdkmanager(self) -> None:
+    def test_android_runtime_must_invoke_absolute_sdkmanager(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
             '"$sdkmanager" --install',
             "sdkmanager --install",
         )
-        self.assert_fails("missing absolute sdkmanager invocation")
+        self.assert_fails(
+            "runtime step is missing Android runtime absolute sdkmanager invocation"
+        )
 
-    def test_slow_lane_must_pin_android_ndk_package(self) -> None:
+    def test_android_runtime_must_pin_ndk_package(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
             '"ndk;27.0.12077973"',
             '"ndk;latest"',
         )
-        self.assert_fails("missing exact Android NDK package")
+        self.assert_fails("runtime step is missing Android runtime exact NDK package")
 
-    def test_slow_lane_must_pin_android_platform_package(self) -> None:
+    def test_android_runtime_must_pin_platform_package(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
             '"platforms;android-35"',
             '"platforms;android-36"',
         )
-        self.assert_fails("missing exact Android platform package")
+        self.assert_fails(
+            "runtime step is missing Android runtime exact platform package"
+        )
 
-    def test_slow_lane_must_pin_android_system_image_package(self) -> None:
+    def test_android_runtime_must_pin_test_only_system_image(self) -> None:
         self.replace(
             ".github/workflows/nix-checks.yml",
-            '"system-images;android-35;default;arm64-v8a"',
-            '"system-images;android-35;google_apis_playstore;arm64-v8a"',
+            '"system-images;android-35;default;x86_64"',
+            '"system-images;android-35;google_apis_playstore;x86_64"',
         )
-        self.assert_fails("missing exact Android system image package")
+        self.assert_fails("missing exact Android test-only system image package")
 
     def test_slow_lane_must_not_accept_all_android_licenses(self) -> None:
         self.replace(
@@ -2107,22 +2114,94 @@ in
         )
         self.assert_fails("must not contain blanket Android SDK license acceptance")
 
-    def test_android_verifier_must_select_same_aosp_package(self) -> None:
+    def test_android_verifier_must_select_test_only_aosp_package(self) -> None:
         self.replace(
             "scripts/check-uniffi-did-android.sh",
-            'system_image="system-images;android-35;default;arm64-v8a"',
-            'system_image="system-images;android-35;google_apis_playstore;arm64-v8a"',
+            'system_image="system-images;android-35;default;x86_64"',
+            'system_image="system-images;android-35;google_apis_playstore;x86_64"',
         )
-        self.assert_fails("missing exact AOSP package identity")
+        self.assert_fails("missing exact test-only AOSP package identity")
 
-    def test_android_verifier_must_select_same_aosp_directory(self) -> None:
+    def test_android_verifier_must_select_test_only_aosp_directory(self) -> None:
         self.replace(
             "scripts/check-uniffi-did-android.sh",
-            'image_dir="$android_sdk/system-images/android-$compile_api/default/arm64-v8a"',
+            'image_dir="$android_sdk/system-images/android-$compile_api/default/x86_64"',
             'image_dir="$android_sdk/system-images/android-$compile_api/'
-            'google_apis_playstore/arm64-v8a"',
+            'google_apis_playstore/x86_64"',
         )
-        self.assert_fails("missing exact AOSP image directory")
+        self.assert_fails("missing exact test-only AOSP image directory")
+
+    def test_android_runtime_job_must_require_kvm(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "          test -c /dev/kvm",
+            "          true # missing KVM guard",
+        )
+        self.assert_fails("missing KVM character-device guard")
+
+    def test_android_runtime_job_must_limit_kvm_to_runner_user(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            '          sudo chown "$USER" /dev/kvm',
+            "          sudo chmod 0666 /dev/kvm",
+        )
+        self.assert_fails("missing least-authority KVM ownership")
+
+    def test_android_runtime_job_must_use_test_only_mode(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "./scripts/check-uniffi-did-android.sh x86_64-runtime",
+            "./scripts/check-uniffi-did-android.sh arm64-package",
+        )
+        self.assert_fails("missing test-only runtime verifier mode")
+
+    def test_android_package_job_must_use_arm64_mode(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "./scripts/check-uniffi-did-android.sh arm64-package",
+            "./scripts/check-uniffi-did-android.sh x86_64-runtime",
+        )
+        self.assert_fails("missing ARM64 package verifier mode")
+
+    def test_android_runtime_evidence_must_upload_on_failure(self) -> None:
+        self.replace(
+            ".github/workflows/nix-checks.yml",
+            "      - name: Upload Android runtime evidence\n        if: ${{ always() }}",
+            "      - name: Upload Android runtime evidence",
+        )
+        self.assert_fails("missing always-uploaded runtime evidence")
+
+    def test_android_verifier_must_not_boot_arm64_on_hosted_macos(self) -> None:
+        self.replace(
+            "scripts/check-uniffi-did-android.sh",
+            "system_image=none",
+            'system_image="system-images;android-35;default;arm64-v8a"',
+        )
+        self.assert_fails("must not boot ARM64 on hosted macOS")
+
+    def test_android_verifier_must_enforce_hardware_acceleration(self) -> None:
+        self.replace(
+            "scripts/check-uniffi-did-android.sh",
+            "-no-audio -no-boot-anim -no-snapshot -wipe-data -accel on",
+            "-no-audio -no-boot-anim -no-snapshot -wipe-data -no-accel",
+        )
+        self.assert_fails("missing hardware acceleration enforcement")
+
+    def test_android_verifier_must_retain_emulator_diagnostics(self) -> None:
+        self.replace(
+            "scripts/check-uniffi-did-android.sh",
+            'tail -n 200 "$evidence_root/emulator.log"',
+            ': # drop emulator diagnostics',
+        )
+        self.assert_fails("missing emulator diagnostic tail")
+
+    def test_bindings_shell_must_include_test_only_android_target(self) -> None:
+        self.replace(
+            "nix/devshells/bindings.nix",
+            '          "x86_64-linux-android"\n',
+            "",
+        )
+        self.assert_fails("must contain the test-only Android target exactly once")
 
     def test_android_verifier_must_not_prefer_ambient_ndk_root(self) -> None:
         self.replace(

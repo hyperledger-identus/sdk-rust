@@ -4,7 +4,9 @@
 - **Date:** 2026-09-16
 - **Decision authority:** sponsor-directed issue
   [#168](https://github.com/hyperledger-identus/sdk-rust/issues/168)
-- **Related:** ADR 0063, ADR 0115, `SDK-SEC-003`, `SDK-LIM-007`
+- **Related:** ADR 0063, ADR 0115, issue
+  [#297](https://github.com/hyperledger-identus/sdk-rust/issues/297),
+  `SDK-SEC-003`, `SDK-LIM-007`
 - **Assessed revision:** sdk-rust
   `66ec2b9b3a7ec35cf21ecc52cdca5bebed0b4d0d`
 
@@ -69,9 +71,17 @@ The historical public `Multihash` placeholder remains an infallible opaque
 entry, and the exception remains in `SDK-LIM-007` until a named consumer owns a
 structural and capacity migration. It is not safe for direct hostile input.
 
+DID slice parsers bound wire bytes, depth, nodes, and collections while parsing.
+Direct native constructors accepting an already-owned `serde_json::Value` or
+map validate the accepted representation but do not yet dismantle every rejected
+hostile-depth tree iteratively. `SDK-LIM-007` therefore assigns pre-entry depth
+and rejection-cleanup safety to those native callers; they must use the bounded
+slice parser for hostile input or establish an equivalent outer bound.
+
 `SDK-LIM-007` remains effective but is narrowed: it names outer preallocation,
-caller-budgeted primitive/adapter work, and the known unbounded `Multihash`
-compatibility placeholder instead of an incomplete audit.
+native owned-JSON rejection cleanup, caller-budgeted primitive/adapter work,
+and the known unbounded `Multihash` compatibility placeholder instead of an
+incomplete audit.
 
 ## Consequences
 
@@ -88,6 +98,8 @@ compatibility placeholder instead of an incomplete audit.
   limits and the concrete adapter obligations separately.
 - `Multihash` behavior is unchanged; its unbounded retention is visible rather
   than misclassified as a bounded DID value.
+- Native DID JSON behavior is unchanged; bounded slice parsing remains the
+  required hostile-input path until iterative rejection cleanup is comprehensive.
 - Package activation and new input families require an atomic inventory update.
 
 ## Alternatives rejected

@@ -97,10 +97,10 @@ package          = "identus-did"
 surface          = "DID documents, resolution/dereferencing results, registration values and open JSON"
 disposition      = "sdk-enforced"
 limits           = [ "MAX_DID_DOCUMENT_BYTES=262144", "MAX_DID_RESOLUTION_RESULT_BYTES=524288", "MAX_DID_REGISTRATION_BYTES=524288", "MAX_DID_DOCUMENT_WIRE_DEPTH=64", "MAX_DID_DOCUMENT_WIRE_NODES=16384", "MAX_DOCUMENT_ITEMS=128" ]
-evidence         = [ "crates/did/src/document.rs", "crates/did/src/resolution.rs", "crates/did/src/registration.rs", "crates/did/src/wire_json.rs" ]
-outer_obligation = "Generic serde entry points may allocate a Value or collection before semantic validation; prefer bounded slice parsers for hostile wire JSON."
-consumer_impact  = "SDK-owned slice parsers and typed retained structures have byte/node/depth/member limits."
-review_triggers  = [ "new DID JSON surface", "open JSON field", "collection or recursion limit change" ]
+evidence         = [ "crates/did/src/document.rs", "crates/did/src/query.rs", "crates/did/src/resolution.rs", "crates/did/src/registration.rs", "crates/did/src/wire_json.rs" ]
+outer_obligation = "Generic serde and direct native entry points receive already allocated Value/maps; rejection of hostile-depth owned trees may recursively drop them, so use bounded slice parsers or pre-bound native depth."
+consumer_impact  = "Accepted typed structures and SDK-owned slice parsing are byte/node/depth/member bounded; SDK-LIM-007 covers native owned-JSON preallocation and rejection cleanup."
+review_triggers  = [ "new DID JSON surface", "open JSON field", "collection or recursion limit change", "iterative native rejection cleanup" ]
 
 [[boundaries]]
 id               = "did-method-registry"

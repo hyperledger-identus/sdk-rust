@@ -64,6 +64,13 @@ API or pretending an outer layer enforces a typed limit. The focused checker,
 mutation suite, complete factory contract, and all 31 compatible
 `nix flake check --fallback` checks pass after this correction.
 
+A later hosted finding identified recursive drop of hostile-depth owned DID
+JSON after native validation fails. The inventory, ADR, limitation index, and
+canonical specification now disclose the complete native family and direct
+consumers to bounded slice parsing or a pre-entry depth bound. The focused
+checker, constraints, factory, and formatting are rerun after this documentation
+correction; protected exact-head CI remains required before integration.
+
 ## Repository boundary
 
 No downstream repository was edited, switched, copied from, or built. No

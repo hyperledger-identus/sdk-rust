@@ -35,3 +35,18 @@ misrepresented as bounded, non-retaining, or protected by an outer allocator.
 - **THEN** the inventory and `SDK-LIM-007` SHALL disclose its unbounded opaque
   byte retention and require consumers to bound input before construction or
   serde until an explicit migration replaces the compatibility contract
+
+### Requirement: Native DID JSON rejection cleanup remains consumer-guarded
+
+The inventory and limitation index SHALL disclose that native DID constructors
+accepting already-owned recursive JSON can recurse while destroying a rejected
+hostile-depth tree. Accepted retained values SHALL remain resource-bounded, but
+the hardened hostile-input path SHALL be a bounded wire-slice parser or an
+equivalent caller-owned depth bound until rejection cleanup is iterative for
+the complete native family.
+
+#### Scenario: Native caller owns a hostile-depth JSON tree
+
+- **WHEN** a caller would pass recursive JSON directly to a DID constructor
+- **THEN** the caller SHALL pre-bound its depth or use the bounded slice parser
+  so validation failure cannot enter unbounded recursive destruction

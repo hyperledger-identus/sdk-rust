@@ -34,3 +34,6 @@
 - [x] 3.4 Preserve the historical unbounded `Multihash` compatibility surface
       as a distinct inventory disposition and explicit limitation after hosted
       review exposed the omitted family.
+- [x] 3.5 Preserve native DID owned-JSON rejection cleanup as an explicit
+      limitation across the complete constructor family and identify bounded
+      slice parsing as the hardened hostile-input path.

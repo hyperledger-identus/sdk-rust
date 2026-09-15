@@ -151,6 +151,10 @@ surprise compatibility promise.
   work limits where this repository owns them. This does not bound allocation
   or lexical parsing performed by a transport, decompressor, deserializer,
   Axum extraction, FFI bridge or JavaScript engine before SDK validation.
+  Direct DID constructors that receive an already-owned recursive JSON value or
+  map also rely on the caller to pre-bound nesting: rejected hostile-depth trees
+  can recurse during destruction. Use the SDK's bounded wire-slice parsers for
+  hostile DID JSON until native rejection cleanup is made iterative throughout.
   Borrowed hash/HMAC/sign/verify messages and injected resolver, registrar,
   verifier, trust, replay and generic storage adapter work remain caller-
   budgeted because the correct byte/time quota belongs to the owning protocol

@@ -80,3 +80,12 @@ a named consumer or migration policy and conflict with ADR 0082. The audit now
 uses a fifth `known-unbounded-compatibility` disposition, adds a dedicated row,
 and names the exception in `SDK-LIM-007`. Consumers must cap bytes or hex text
 before entry and must not expose the placeholder directly to hostile input.
+
+Another hosted review identified recursive destruction after borrowed resource
+validation rejects an already-owned hostile-depth DID JSON tree. The pattern is
+not limited to the three named constructors, so a partial cleanup would leave
+the family misleadingly covered. The DID JSON inventory row and `SDK-LIM-007`
+now preserve the full native owned-JSON rejection-cleanup limitation and require
+bounded wire-slice parsing or an equivalent caller depth bound. Accepted typed
+values remain bounded; no runtime behavior or public API changes in this PR.
+Issue #297 owns comprehensive iterative cleanup and removal of only this clause.

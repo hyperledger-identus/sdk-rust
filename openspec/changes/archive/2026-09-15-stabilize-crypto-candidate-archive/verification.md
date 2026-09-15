@@ -2,7 +2,7 @@
 
 - **Date:** 2026-09-15
 - **Planning head:** `ddc3df0688ad3c13b81639aa6ee81abf436c57ee`
-- **Implementation head:** `dd0f594a101c34adf2b748f0f18c764eafdeaf17`
+- **Implementation head:** `437712f5024296fbb9e230226906c3d39ed6907d`
 - **Protected review:** [PR #289](https://github.com/hyperledger-identus/sdk-rust/pull/289)
 - **Implementation scope:** candidate preparation and its offline policy tests
 
@@ -12,9 +12,10 @@
   cases passed.
 - `python3 scripts/check-crypto-candidate.py`: unpublished three-package
   contract passed.
-- Clean package-only candidate: passed at exact implementation head in 40.635s;
+- Clean package-only candidate: passed at exact final implementation head in
+  43.735s;
   receipt recorded `sourceDirty: false` and Cargo/Rust 1.98.1.
-- Full `nix run .#crypto-candidate`: passed at the same clean head in 79.973s;
+- Full `nix run .#crypto-candidate`: passed at the same clean head in 63.337s;
   archive closure, five compile/test profiles, public API baseline, semver
   check, and three CycloneDX 1.5 documents completed.
 - Both real paths produced the same archive digests:
@@ -25,8 +26,9 @@
 - `cargo test --workspace --all-features`: all unit, integration, compile-fail,
   and doctests passed; explicitly ignored diagnostic benchmarks remained
   ignored.
-- `nix flake check`: all 31 checks passed locally on `aarch64-darwin`; Nix
-  truthfully reported that the incompatible `x86_64-linux` system was omitted.
+- `nix flake check`: all 31 checks passed again after the exact-head review fix
+  on `aarch64-darwin`; Nix truthfully reported that the incompatible
+  `x86_64-linux` system was omitted.
 - `git diff --check`: passed.
 
 ## Hosted evidence before repair

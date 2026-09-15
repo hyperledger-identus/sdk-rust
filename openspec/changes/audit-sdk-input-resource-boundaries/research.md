@@ -27,6 +27,14 @@ PBKDF2 paths accept arbitrary passphrase bytes. Invalid entropy is already
 rejected by the dependency, but the SDK can cheaply reject non-standard lengths
 before crossing that dependency boundary.
 
+A second semantic pass on 2026-09-16 found another actionable gap before any
+JWK implementation change began. `PublicKeyJwk::from_parts` validates reserved
+members and fixed coordinates but retains an arbitrary number and shape of
+`BTreeMap<String, serde_json::Value>` extensions. Serde has already allocated
+the wire model before that constructor, but the crypto facade can and should
+bound what it retains and subsequently clones/serializes. The existing COSE
+boundary provides a local precedent for count and nesting budgets.
+
 The current implementation revision assessed is
 `66ec2b9b3a7ec35cf21ecc52cdca5bebed0b4d0d`. Current consumer evidence is the
 repository's explicit Oxid, Midnight, midnight-identity, NeoPRISM, Lace and
@@ -55,6 +63,7 @@ this focused SDK change.
 | Candidate | Decision | Reason | Reconsideration trigger |
 | --- | --- | --- | --- |
 | Machine inventory plus focused BIP-39 fix and narrow residual limitation | `adopt` | Completes the audit honestly, fixes concrete avoidable work, and preserves intentional primitive/adapter ownership. | A covered boundary family or package cannot be expressed without misleading aggregation. |
+| Bound standalone JWK extensions inside the crypto facade | `adopt` | The SDK owns and retains this open JSON; count/depth/node/text budgets preserve useful metadata without unbounded retained work. | A standards profile requires a larger exact budget. |
 | Add arbitrary global byte limits to every `&[u8]` primitive and port | `not-adopt` | Hash/sign/verify functions do not retain input and generic ports intentionally delegate payload/work budgets to protocol or adapter owners. | A higher-level supported protocol makes an exact budget normative. |
 | Claim typed constructors bound prior allocation | `not-adopt` | Owned `String`/`Vec`, serde, Axum, UniFFI and JavaScript inputs can allocate before SDK validation. | A streaming/preallocation-safe adapter becomes SDK-owned. |
 | Leave `SDK-LIM-007` broad after completing the inventory | `not-adopt` | It would hide usable evidence and keep consumers unable to locate exact residual obligations. | The inventory is later proven incomplete. |
@@ -89,6 +98,12 @@ The selected design checks word count and per-word UTF-8 bytes before joining,
 checks passphrase bytes before NFKD normalization/PBKDF2, and checks entropy
 length before the dependency. Errors retain no input or secret value. The
 bounded input and derived seed temporaries preserve zeroization behavior.
+
+JWK extension validation walks borrowed JSON without cloning, counts top-level
+members, total nodes, maximum depth and aggregate key/string UTF-8 bytes, and
+rejects before storing the moved map. The error identifies only the violated
+budget class and never includes an extension name or value. Serde allocation
+before typed validation remains disclosed under `SDK-LIM-007`.
 
 The inventory distinguishes four security-relevant dispositions instead of
 pretending every surface has the same owner. An `sdk-enforced` row requires an

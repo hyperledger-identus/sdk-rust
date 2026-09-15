@@ -16,6 +16,8 @@ before the SDK applies any bound.
   evidence, consumer impact, and review triggers.
 - Reject oversized or structurally impossible BIP-39 inputs before joining,
   normalization, dependency parsing, or PBKDF2 work.
+- Bound standalone public JWK extension count, nesting, nodes and aggregate
+  key/string bytes before the crypto facade retains them.
 - Narrow `SDK-LIM-007` from an incomplete audit to the unavoidable and named
   outer-allocation and caller-work obligations the SDK cannot enforce at its
   typed API boundary.

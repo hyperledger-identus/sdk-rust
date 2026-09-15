@@ -27,6 +27,9 @@ fail the offline factory contract.
 BIP-39 helpers SHALL reject unsupported entropy lengths before dependency work,
 more than 24 words or a word above the longest accepted English word before
 joining, and passphrases above 4,096 UTF-8 bytes before normalization or PBKDF2.
+Standalone public JWKs SHALL reject more than 32 extension members, extension
+depth above 16, more than 1,024 extension JSON nodes, or more than 65,536
+aggregate UTF-8 bytes across extension keys and string values before retention.
 
 ## Introduced or changed limitations
 
@@ -43,6 +46,9 @@ passphrase above 4,096 UTF-8 bytes receive the existing redacted invalid-
 mnemonic error and must choose an explicitly budgeted lower-level derivation
 path. Consumers must continue bounding bytes before transport/deserializer/FFI
 allocation and must budget primitive/port work for their protocol.
+Existing ordinary JWK metadata remains compatible; extension documents beyond
+the explicit experimental-facade budgets are rejected with a redacted JWK
+error and require a higher-level format/profile decision.
 
 Oxid, Midnight, midnight-identity, NeoPRISM, Lace and Apollo receive no source,
 wire, storage, protocol, support, release, or migration claim.

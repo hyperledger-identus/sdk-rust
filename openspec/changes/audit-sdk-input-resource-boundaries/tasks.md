@@ -15,6 +15,8 @@
       mutation tests.
 - [ ] 2.3 Enforce BIP-39 entropy, word and passphrase limits before allocation or
       expensive work, with exact-boundary/redaction/KMP tests.
+- [ ] 2.4 Enforce count, depth, node and text budgets for retained standalone JWK
+      extensions, with native/serde boundary and redaction tests.
 
 ## 3. Verification and delivery
 

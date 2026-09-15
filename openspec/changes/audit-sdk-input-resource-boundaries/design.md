@@ -53,6 +53,16 @@ new public error surface. The 4,096-byte passphrase ceiling aligns with existing
 crypto text input policy. The English word ceiling is derived from the adopted
 wordlist and locked by a test.
 
+### Bound open JWK extensions at their owning facade
+
+`PublicKeyJwk` owns open JSON extension retention, so it receives explicit
+budgets: 32 top-level members, depth 16, 1,024 total JSON nodes, and 65,536
+aggregate UTF-8 bytes across member names and string values. Validation is an
+iterative borrowed walk and runs before coordinates are decoded or the moved
+map is retained. Native and serde construction converge on the same function.
+One redacted `InvalidExtensions` error avoids reflecting attacker-controlled
+keys/values. Outer serde allocation remains a documented residual.
+
 ## Risks and mitigations
 
 - Aggregated rows can obscure a future API: package/source review triggers and
@@ -63,6 +73,9 @@ wordlist and locked by a test.
 - The passphrase ceiling rejects a previously accepted extreme input: the API
   is experimental/unpublished, the bound is explicit, and valid test vectors
   remain exact.
+- JWK extension budgets may reject unusually large public metadata: the API is
+  experimental, the bounds are explicit, and ordinary interoperable metadata
+  plus existing round-trip behavior stays covered at and below the limits.
 - Consumers may mistake typed checks for transport safety: the residual
   limitation and every outer-boundary row state preallocation ownership.
 
@@ -72,3 +85,6 @@ Focused tests cover exact/one-over mnemonic word count, word bytes, passphrase
 bytes, entropy lengths, redaction, and KMP parity. Inventory mutations exercise
 every structural invariant. Factory/OpenSpec, format, strict Clippy, all tests,
 builds and compatible Nix validate integration.
+
+JWK tests cover exact/one-over member, depth, node and aggregate-text budgets,
+native/serde parity, precedence and redaction.

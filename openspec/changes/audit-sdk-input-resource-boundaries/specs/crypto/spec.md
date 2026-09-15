@@ -1,5 +1,114 @@
 ## MODIFIED Requirements
 
+### Requirement: JWK
+
+The crate SHALL provide a public-only `PublicKeyJwk` with private fields,
+typed `JwkKeyType` and `JwkCurve`, fallible constructors, read-only accessors,
+validating JSON serialization/deserialization, and an `EncodeJwk` trait
+(`encode_jwk() -> PublicKeyJwk`) implemented for every supported public key
+type. The supported profiles SHALL be `OKP/Ed25519`, `OKP/X25519`,
+`EC/P-256`, and `EC/secp256k1`. Every coordinate SHALL be canonical unpadded
+base64url and decode to exactly 32 bytes. OKP profiles SHALL contain `x` and
+SHALL NOT contain `y`; EC profiles SHALL contain both `x` and `y`. Native
+construction and deserialization SHALL enforce the same invariants. The public
+type SHALL reject the private `d` member. Additional public members SHALL
+round-trip without being interpreted and SHALL NOT shadow `kty`, `crv`, `x`,
+or `y`.
+
+The standalone crypto facade SHALL retain at most 32 extension members, 16
+levels of extension JSON, 1,024 total extension JSON nodes, and 65,536
+aggregate UTF-8 bytes across extension keys and string values. Native and serde
+construction SHALL enforce the same budgets before retention and SHALL return
+only a redacted JWK error without extension names or values. The enclosing JSON
+transport/deserializer remains responsible for bounding allocation before the
+typed facade receives the extension map.
+
+When `jwk-thumbprint` is enabled, `PublicKeyJwk::thumbprint_sha256()` SHALL
+return a typed `JwkThumbprint` computed according to RFC 7638. OKP hash input
+SHALL contain only `crv`, `kty`, and `x`; EC input SHALL contain only `crv`,
+`kty`, `x`, and `y`. Members SHALL be lexicographically ordered with no
+whitespace and encoded as UTF-8. Extensions SHALL NOT affect the result. The
+thumbprint SHALL expose immutable 32-byte SHA-256 digest access and canonical
+unpadded base64url text. The serde, thumbprint, and structural JWK/COSE
+invariants SHALL remain under the bounded sanitizer campaign.
+
+#### Scenario: RFC 8037 Ed25519 public key is accepted exactly
+
+- **WHEN** the RFC 8037 Appendix A.2 public JWK is deserialized
+- **THEN** it SHALL produce `OKP/Ed25519`, preserve the exact `x`, omit `y`,
+  and serialize to an equivalent public JWK without `d`
+
+#### Scenario: curve encoders preserve their public coordinates
+
+- **WHEN** Ed25519, X25519, P-256 or secp256k1 public keys call `encode_jwk()`
+- **THEN** the result SHALL use the correct typed profile and SHALL contain
+  the same canonical coordinate bytes as the public key encoding
+
+#### Scenario: EC and OKP shapes are enforced
+
+- **WHEN** an EC JWK omits `y`, an OKP JWK contains `y`, or `kty` and `crv`
+  are incompatible
+- **THEN** native construction and deserialization SHALL reject the value
+
+#### Scenario: coordinates are canonical and full width
+
+- **WHEN** a coordinate has padding, an invalid alphabet, non-zero trailing
+  bits, or decodes to any length other than 32 bytes
+- **THEN** native construction and deserialization SHALL reject the value
+
+#### Scenario: private material is rejected
+
+- **WHEN** a public JWK contains a `d` member
+- **THEN** deserialization and extension-aware construction SHALL reject it
+  without including the private value in an error
+
+#### Scenario: unknown bounded public extensions survive a round trip
+
+- **WHEN** a valid JWK contains public extension members within all four budgets
+- **THEN** deserialize/serialize SHALL preserve their JSON values while the
+  crypto crate SHALL NOT interpret their policy
+
+#### Scenario: each extension budget fails closed
+
+- **WHEN** extension members, depth, nodes or aggregate key/string bytes are
+  exactly at their respective ceiling
+- **THEN** native and serde construction accept an otherwise valid JWK
+- **WHEN** any one budget is exceeded
+- **THEN** construction rejects before retention with no extension data in the error
+
+#### Scenario: RFC 8037 Ed25519 thumbprint matches exactly
+
+- **WHEN** the RFC 8037 Appendix A.2 public JWK is thumbprinted
+- **THEN** its digest SHALL equal
+  `90facafea9b1556698540f70c0117a22ea37bd5cf3ed3c47093c1707282b4b89`
+  and its base64url value SHALL equal
+  `kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k`
+
+#### Scenario: optional metadata cannot change key identity
+
+- **WHEN** two JWKs have identical required key members but different `kid`,
+  `alg`, `use`, or other public extensions
+- **THEN** their SHA-256 JWK thumbprints SHALL be equal
+
+#### Scenario: required key material changes key identity
+
+- **WHEN** a required coordinate or supported curve differs
+- **THEN** the SHA-256 JWK thumbprint SHALL differ
+
+#### Scenario: canonicalization is fixed and bounded
+
+- **WHEN** an OKP or EC JWK is thumbprinted
+- **THEN** fixed JSON fragments and validated values SHALL stream directly
+  into SHA-256 without a generic JSON canonicalizer or canonicalization heap
+  allocation
+
+#### Scenario: accepted wire values remain coherent under mutation
+
+- **WHEN** sanitizer-guided mutation produces a JWK accepted by the public
+  serde boundary
+- **THEN** round-trip equality, coordinate shape, canonical thumbprint, and
+  supported structural conversion SHALL hold without panic
+
 ### Requirement: BIP39 mnemonic helper
 
 The crate SHALL provide a `MnemonicHelper` with fallible

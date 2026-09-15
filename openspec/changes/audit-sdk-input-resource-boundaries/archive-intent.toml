@@ -3,3 +3,9 @@ capability       = "crypto"
 requirement      = "BIP39 mnemonic helper"
 canonical_sha256 = "d396b1cf0f61212abe0dbc20f89c6fe8a5092da2ac8e601421cff9cb1cf5bfb8"
 reason           = "Reject impossible or oversized entropy, word and passphrase inputs before join, normalization, dependency parsing or PBKDF2 work."
+
+[[modified_requirement]]
+capability       = "crypto"
+requirement      = "JWK"
+canonical_sha256 = "c51b0aae9d02e278e94218053644fece82956a5960c4a7c866427bb1fb9c6e95"
+reason           = "Bound retained public JWK extension members, nesting, nodes and aggregate key/string bytes at the crypto facade."

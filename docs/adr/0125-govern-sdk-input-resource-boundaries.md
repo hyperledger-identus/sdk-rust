@@ -33,8 +33,9 @@ The repository adopts the machine-readable inventory and ownership vocabulary
 defined in
 [`sdk-input-resource-boundaries.md`](../architecture/sdk-input-resource-boundaries.md).
 Every implemented runtime package has one or more boundary-family rows with one
-of four dispositions: `sdk-enforced`, `fixed-or-no-input`,
-`caller-budgeted-work`, or `outer-preallocation`.
+of five dispositions: `sdk-enforced`, `fixed-or-no-input`,
+`caller-budgeted-work`, `outer-preallocation`, or
+`known-unbounded-compatibility`.
 
 An offline standard-library checker derives the required package set from the
 bootstrap inventory. It rejects missing/extra package coverage, unknown schema
@@ -62,8 +63,15 @@ portable limits, while injected cache and monotonic-clock storage/time work is
 explicitly caller-budgeted. These are distinct families from resolver and
 registrar transport work.
 
-`SDK-LIM-007` remains effective but is narrowed: it names outer preallocation
-and caller-budgeted primitive/adapter work instead of an incomplete audit.
+The historical public `Multihash` placeholder remains an infallible opaque
+`Vec<u8>` compatibility surface under ADR 0082. It is inventoried as
+`known-unbounded-compatibility`: consumers must bound bytes or hex text before
+entry, and the exception remains in `SDK-LIM-007` until a named consumer owns a
+structural and capacity migration. It is not safe for direct hostile input.
+
+`SDK-LIM-007` remains effective but is narrowed: it names outer preallocation,
+caller-budgeted primitive/adapter work, and the known unbounded `Multihash`
+compatibility placeholder instead of an incomplete audit.
 
 ## Consequences
 
@@ -78,6 +86,8 @@ and caller-budgeted primitive/adapter work instead of an incomplete audit.
   and no wire or persisted representation changes.
 - DID registry/cache behavior is unchanged; the audit now records its existing
   limits and the concrete adapter obligations separately.
+- `Multihash` behavior is unchanged; its unbounded retention is visible rather
+  than misclassified as a bounded DID value.
 - Package activation and new input families require an atomic inventory update.
 
 ## Alternatives rejected

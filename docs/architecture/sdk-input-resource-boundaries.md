@@ -19,6 +19,7 @@ presented as an SDK input surface.
 | `fixed-or-no-input` | The surface is fixed-size/static/numeric, compile-time only, or parses no untrusted runtime input. | The named crate maintains that shape. |
 | `caller-budgeted-work` | A primitive or generic port does not retain the input and has no honest cross-protocol budget. | Protocol caller or concrete adapter. |
 | `outer-preallocation` | A typed SDK limit exists downstream, but another runtime can allocate or scan first. | Transport, deserializer, FFI or language-runtime owner. |
+| `known-unbounded-compatibility` | A retained public compatibility surface has no enforceable bound without an explicit API migration. | SDK maintainers disclose it; consumers bound it before entry. |
 
 An owned `String`, `Vec`, JSON `Value`, Axum extraction, UniFFI argument or
 JavaScript string has already consumed resources by the time a Rust constructor
@@ -35,8 +36,9 @@ calling it unbounded SDK behavior.
 ## Audit result
 
 - Every implemented runtime package has at least one boundary-family row.
-- Core, DID, credential, presentation, JOSE, OID4VCI and wallet retained values
-  have explicit fixed or configurable limits.
+- Core, credential, presentation, JOSE, OID4VCI and wallet retained values have
+  explicit fixed or configurable limits. DID values do as well except for the
+  explicitly inventoried historical `Multihash` compatibility placeholder.
 - The DID method registry caps retained bindings at 64. DID resolution cache
   keys, declared capacity and TTL policy are bounded separately from the
   caller-owned cache/clock adapter QoS and storage allocation.
@@ -53,9 +55,10 @@ calling it unbounded SDK behavior.
   rejected native trees are dismantled iteratively instead of recursively.
 
 The broad “audit incomplete” wording is therefore retired. `SDK-LIM-007`
-remains, narrowed to the concrete outer-preallocation and caller-budgeted work
-obligations above. Finding a missing input family is a security regression:
-restore broader disclosure immediately and open a focused remediation issue.
+remains, narrowed to the concrete outer-preallocation, caller-budgeted work,
+and known unbounded compatibility obligations above. Finding another missing
+input family is a security regression: restore broader disclosure immediately
+and open a focused remediation issue.
 
 ## Maintenance rule
 

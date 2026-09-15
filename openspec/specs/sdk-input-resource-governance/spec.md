@@ -13,8 +13,9 @@ distinct input-boundary family SHALL have a stable identifier, package, public
 surface summary, one ownership disposition, exact evidence, consumer impact,
 and review triggers. `sdk-enforced` boundaries SHALL name explicit byte,
 element, nesting, recursion, allocation, time, or work limits. Fixed/no-input,
-caller-budgeted-work, and outer-preallocation boundaries SHALL state why an SDK
-limit is inapplicable or cannot protect earlier work.
+caller-budgeted-work, outer-preallocation, and known-unbounded-compatibility
+boundaries SHALL state why an SDK limit is inapplicable, cannot protect earlier
+work, or requires a public compatibility migration.
 
 #### Scenario: An implemented package is omitted
 
@@ -41,6 +42,11 @@ primitive inputs and generic async/storage ports MAY remain caller-budgeted
 when the SDK does not retain them and owns no normative protocol budget. These
 residuals SHALL identify the responsible layer and SHALL NOT be described as an
 incomplete audit.
+
+A retained public compatibility type MAY remain unbounded only when imposing a
+limit requires an explicit public migration. It SHALL be inventoried as
+`known-unbounded-compatibility`, named in the limitation index, and documented
+as unsafe for direct hostile input until that migration occurs.
 
 #### Scenario: Consumer passes an already allocated owned value
 
@@ -93,3 +99,19 @@ treated as evidence that these distinct families are present.
   work
 - **THEN** it SHALL find SDK-enforced key/capacity/TTL limits and a separate
   caller-budgeted cache/clock adapter row
+
+### Requirement: Known unbounded compatibility retention remains explicit
+
+An implemented SDK type SHALL have a distinct
+`known-unbounded-compatibility` inventory row when it retains unbounded caller
+input for public compatibility. The row SHALL name the exact public surface,
+source evidence, consumer guard, migration trigger, and effective limitation.
+It SHALL NOT be
+misrepresented as bounded, non-retaining, or protected by an outer allocator.
+
+#### Scenario: Historical Multihash placeholder is inspected
+
+- **WHEN** an agent audits `identus_did::Multihash`
+- **THEN** the inventory and `SDK-LIM-007` SHALL disclose its unbounded opaque
+  byte retention and require consumers to bound input before construction or
+  serde until an explicit migration replaces the compatibility contract

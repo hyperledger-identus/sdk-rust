@@ -8,7 +8,7 @@
 
 ## Focused and workspace evidence
 
-- `scripts/check-input-resource-boundaries.py .`: 26 boundary families passed,
+- `scripts/check-input-resource-boundaries.py .`: 27 boundary families passed,
   including distinct DID method-registry, cache-policy, and cache-adapter rows.
 - `scripts/tests/input-resource-boundaries.py`: all structural mutation cases
   passed locally and inside the isolated Nix factory derivation.
@@ -56,6 +56,13 @@ cleanup hazard. The correction adds three DID inventory rows and an internal
 iterative JWK extension-map guard. All focused and full checks above were rerun
 on that corrected tree before publication. Each hosted finding has a resolution
 reply linked to commit `0900b2f`, and all three review threads are resolved.
+
+A subsequent hosted finding identified the unbounded `Multihash` compatibility
+placeholder. The checker vocabulary, inventory, ADR, limitation index, and
+canonical specification now disclose it explicitly without changing its public
+API or pretending an outer layer enforces a typed limit. The focused checker,
+mutation suite, complete factory contract, and all 31 compatible
+`nix flake check --fallback` checks pass after this correction.
 
 ## Repository boundary
 

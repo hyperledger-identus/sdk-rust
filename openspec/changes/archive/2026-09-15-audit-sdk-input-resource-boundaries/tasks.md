@@ -31,3 +31,6 @@
       issue-linked PR to `develop`.
 - [x] 3.3 Re-run focused, factory, candidate and compatible Nix gates; update
       review evidence and resolve every hosted review thread before integration.
+- [x] 3.4 Preserve the historical unbounded `Multihash` compatibility surface
+      as a distinct inventory disposition and explicit limitation after hosted
+      review exposed the omitted family.

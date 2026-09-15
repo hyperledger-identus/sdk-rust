@@ -404,16 +404,16 @@ id               = "SDK-LIM-007"
 kind             = "limitation"
 category         = "security"
 state            = "effective"
-summary          = "Outer preallocation and caller-budgeted primitive or adapter work remain outside typed SDK resource enforcement."
-scope            = "Owned/serde/transport/FFI/JavaScript allocation before typed validation, borrowed cryptographic primitive work, and injected async or generic storage adapter QoS."
+summary          = "Outer preallocation, caller-budgeted work, and one known unbounded compatibility placeholder remain outside typed SDK resource enforcement."
+scope            = "Owned/serde/transport/FFI/JavaScript allocation before typed validation, borrowed cryptographic primitive work, injected async or generic storage adapter QoS, and identus_did::Multihash opaque-byte retention."
 canonical_source = "docs/architecture/sdk-input-resource-boundaries.toml"
 authority        = "Completed issue #168 repository-wide audit and accepted ADR 0125."
-rationale        = "A typed SDK constructor cannot retroactively prevent outer allocation, while generic non-retaining primitives and ports need protocol- or adapter-specific byte/time budgets rather than arbitrary cross-domain caps."
-consumer_impact  = "Consumers must apply limits at their earliest owned transport, deserializer, FFI or language-runtime boundary and budget message, I/O, timeout, retry, cancellation, storage and backend work where the inventory assigns caller ownership."
+rationale        = "A typed SDK constructor cannot retroactively prevent outer allocation, generic non-retaining primitives and ports need protocol- or adapter-specific budgets, and bounding the historical infallible Multihash placeholder requires an explicit public API migration."
+consumer_impact  = "Consumers must apply limits at their earliest owned boundary, budget delegated work, and never expose the unbounded Multihash compatibility placeholder directly to hostile input."
 enforcement      = [ "machine-readable implemented-package input-boundary inventory", "offline inventory checker and mutation suite", "new/change boundary review", "typed boundary negative tests", "architecture and security review" ]
 owner            = "SDK maintainers and security reviewers"
 review_triggers  = [ "new or changed input family", "concrete transport or adapter moves into SDK", "consumer handles hostile input directly", "inventory gap found" ]
-activation       = "Effective with the issue #168 inventory and ADR 0125; the earlier incomplete-audit wording is retired."
+activation       = "Effective with the issue #168 inventory and ADR 0125; the earlier incomplete-audit wording is retired while the Multihash exception remains explicit."
 rollback         = "Restore broad incomplete-audit disclosure immediately if a supposedly covered inherited surface lacks an honest disposition or evidence."
 
 [[entries]]

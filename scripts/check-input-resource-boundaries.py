@@ -38,6 +38,7 @@ DISPOSITIONS = {
     "fixed-or-no-input",
     "caller-budgeted-work",
     "outer-preallocation",
+    "known-unbounded-compatibility",
 }
 IDENTIFIER = re.compile(r"[a-z0-9][a-z0-9-]*\Z")
 REVISION = re.compile(r"[0-9a-f]{40}\Z")

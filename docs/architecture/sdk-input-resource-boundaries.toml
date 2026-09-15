@@ -114,6 +114,17 @@ consumer_impact  = "One immutable registry retains at most 64 validated method b
 review_triggers  = [ "registry capacity change", "new retained registry metadata", "new dispatch capability" ]
 
 [[boundaries]]
+id               = "did-multihash-compatibility-placeholder"
+package          = "identus-did"
+surface          = "Multihash infallible opaque Vec<u8> construction and transparent lowercase-hex serde"
+disposition      = "known-unbounded-compatibility"
+limits           = [  ]
+evidence         = [ "crates/did/src/multihash.rs", "docs/adr/0082-defer-multihash-until-a-method-consumes-it.md" ]
+outer_obligation = "Callers and deserializers must cap byte or hex input before construction; the compatibility API itself enforces no retained-byte ceiling."
+consumer_impact  = "Do not expose this placeholder directly to hostile input; SDK-LIM-007 preserves the exception until a consumer-driven migration defines structure and capacity."
+review_triggers  = [ "named multihash consumer", "constructor or serde change", "structural validation", "public API cleanup" ]
+
+[[boundaries]]
 id               = "did-resolution-cache-policy"
 package          = "identus-did"
 surface          = "DID resolution cache keys, declared backend capacity and positive/notFound TTL policy"

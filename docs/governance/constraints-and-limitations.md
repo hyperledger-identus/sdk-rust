@@ -154,8 +154,11 @@ surprise compatibility promise.
   Borrowed hash/HMAC/sign/verify messages and injected resolver, registrar,
   verifier, trust, replay and generic storage adapter work remain caller-
   budgeted because the correct byte/time quota belongs to the owning protocol
-  or adapter. The machine inventory names every implemented package, exact
-  evidence and review trigger; a missing family restores broad disclosure.
+  or adapter. The historical `identus_did::Multihash` placeholder is a separate
+  known unbounded compatibility exception: consumers must cap its byte or hex
+  input before entry until an explicit public API migration adds structural and
+  capacity policy. The machine inventory names every implemented package,
+  exact evidence and review trigger; a missing family restores broad disclosure.
 
 This pairing keeps the intended security direction enforceable without
 misrepresenting outer allocation or delegated work as a typed SDK guarantee.

@@ -71,3 +71,12 @@ The correction adds no public type, dependency, authored unsafe code, wire
 change, or accepted-resource expansion. Focused, workspace, candidate, factory,
 and compatible Nix checks pass. The corrected head is published and all three
 hosted review threads have evidence-backed replies and are resolved.
+
+A later hosted review found the public `identus_did::Multihash` compatibility
+placeholder. Its infallible `Vec<u8>` construction and transparent hex serde
+retain unbounded caller input, so classifying all DID values as bounded was
+incorrect. Imposing a ceiling would change the existing public contract without
+a named consumer or migration policy and conflict with ADR 0082. The audit now
+uses a fifth `known-unbounded-compatibility` disposition, adds a dedicated row,
+and names the exception in `SDK-LIM-007`. Consumers must cap bytes or hex text
+before entry and must not expose the placeholder directly to hostile input.

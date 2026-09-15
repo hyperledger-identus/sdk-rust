@@ -102,6 +102,7 @@ required_files=(
   docs/adr/0111-use-read-only-nix-cache-on-fast-path.md
   docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md
   docs/adr/0120-run-weekly-evidence-from-protected-develop.md
+  docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix

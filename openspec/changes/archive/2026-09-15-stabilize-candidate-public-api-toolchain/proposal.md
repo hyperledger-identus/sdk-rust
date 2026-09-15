@@ -22,8 +22,8 @@ on `cargo-public-api`'s implicit toolchain discovery.
 - Fail closed when JSON generation does not produce the one expected package
   file, and keep the build output inside disposable candidate scratch.
 - Extend the structural checker and mutation suite to preserve this separation.
-- Amend ADR 0113 and the candidate specification so the executable path and
-  documented compiler claim agree.
+- Add successor ADR 0121 without mutating accepted ADR 0113, and update the
+  candidate specification so the executable path and compiler claim agree.
 
 ## Capabilities
 

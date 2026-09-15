@@ -11,7 +11,8 @@
       scope `RUSTC_BOOTSTRAP=1` to that subprocess.
 - [x] 2.2 Parse only the verified JSON artifact with locked
       `cargo-public-api`, without invoking a rustup-owned nightly compiler.
-- [x] 2.3 Extend structural and mutation tests and amend ADR 0113.
+- [x] 2.3 Extend structural and mutation tests and add successor ADR 0121 while
+      preserving accepted ADR 0113 byte-for-byte.
 
 ## 3. Verification and delivery
 

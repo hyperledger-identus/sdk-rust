@@ -64,6 +64,6 @@ artifacts together with the staged workspace.
 
 ## Rollback
 
-Revert the runner/checker/spec amendment and treat the candidate slow job as
-known-red until another deterministic JSON producer is accepted. No external
-artifact or release state changes.
+Revert ADR 0121 and the runner/checker/spec amendment, then treat the candidate
+slow job as known-red until another deterministic JSON producer is accepted. No
+external artifact or release state changes.

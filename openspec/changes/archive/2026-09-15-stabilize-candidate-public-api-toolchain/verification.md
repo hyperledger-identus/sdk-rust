@@ -56,6 +56,11 @@ normative language now promises the narrower executable property that a local
 JSON input prevents rustup-owned compiler execution. No dependency, public API,
 wire contract, target claim, unsafe/native code or secret boundary changes.
 
+Hosted review then identified a P1 governance violation: accepted ADR 0113 had
+been edited in place. The file is restored byte-for-byte to the protected base,
+and successor ADR 0121 records the operational correction. Candidate and
+factory mutation fixtures require both decision records.
+
 ## Outstanding hosted evidence
 
 Protected PR CI/review and the post-merge complete slow canary have not yet run.

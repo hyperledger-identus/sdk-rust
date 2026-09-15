@@ -11,13 +11,6 @@
 > weekly/manual execution from protected default `develop`; reserved `main`
 > remains explicit, minimal and protected.
 
-> **Toolchain clarification (2026-09-15):** `cargo-public-api 0.52.0`
-> automatically asks rustup for `nightly` when it owns rustdoc JSON generation
-> under stable Cargo. The candidate therefore generates
-> `identus_crypto.json` explicitly with Nix-pinned Rust 1.98.1 and the existing
-> subprocess-scoped `RUSTC_BOOTSTRAP=1`, then gives that completed file to the
-> locked parser. No rustup or nightly toolchain enters candidate evidence.
-
 ## Context
 
 `identus-crypto` has Apollo behavioral parity but is not a reviewable package
@@ -46,11 +39,9 @@ hand-built tarball would not exercise Cargo's normalized package contract.
    the required fast lane.
 7. Commit the first all-feature public-API rendering and compare the candidate
    with protected base `8110277c24714206436ae4a3fe678bdc58a84736`.
-   Rustdoc JSON remains unstable, so generate it explicitly with
-   `cargo rustdoc` and scope `RUSTC_BOOTSTRAP=1` to that inspection subprocess.
-   Pass the completed JSON to `cargo-public-api`; package compilation and every
-   other check remain on unmodified Rust 1.98.1, and the parser cannot invoke an
-   ambient rustup nightly to build candidate evidence.
+   `cargo-public-api` still requires rustdoc JSON, so scope
+   `RUSTC_BOOTSTRAP=1` to that inspection subprocess; package compilation and
+   every other check remain on unmodified Rust 1.98.1.
 8. Treat Rust 1.98.1 as preparation evidence only. Publication still requires
    the consumer-driven compiler matrix and the release authority in
    `RELEASING.md`.

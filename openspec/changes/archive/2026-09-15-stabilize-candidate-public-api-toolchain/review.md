@@ -10,24 +10,28 @@
 
 ## Findings
 
-1. **Resolved P2 — toolchain-discovery wording exceeded behavior.** Parser
+1. **Resolved P1 — accepted ADR was edited in place.** Hosted exact-head review
+   identified that ADR 0113 had already integrated and is immutable under
+   `GOVERNANCE.md`. ADR 0113 is restored byte-for-byte to its protected-base
+   SHA-256, and successor ADR 0121 now owns the clarified execution decision.
+2. **Resolved P2 — toolchain-discovery wording exceeded behavior.** Parser
    0.52.0 still probes Cargo/rustup metadata and computes an unused `nightly`
    value even when it receives `--rustdoc-json`. The implementation prevents
    compiler execution, not the startup probe. ADR, design, specification and
    constraints now make only that precise guarantee.
-2. **Verified — bootstrap scope is one subprocess.** The base environment is
+3. **Verified — bootstrap scope is one subprocess.** The base environment is
    copied only for `cargo rustdoc`; parsing, SemVer, SBOM, packaging, closure
    builds and receipt version commands use the unmodified environment.
-3. **Verified — failure is closed and disposable.** The fixed target directory
+4. **Verified — failure is closed and disposable.** The fixed target directory
    is under isolated stage scratch, the exact expected regular JSON file is
    required, and failed work cannot be atomically renamed to completed output.
-4. **Verified — dependency and support boundaries are unchanged.** No manifest,
+5. **Verified — dependency and support boundaries are unchanged.** No manifest,
    lock, Nix package, Rust version, target claim, API, wire model, unsafe/native
    code, credential or publication authority changes.
-5. **Verified — clean runner evidence.** A full clean exact-head candidate run
+6. **Verified — clean runner evidence.** A full clean exact-head candidate run
    succeeded with an empty `RUSTUP_HOME`; the committed API baseline did not
    change.
-6. **Deferred to the next sequential repair — Android license acceptance.** The
+7. **Deferred to the next sequential repair — Android license acceptance.** The
    same canary proved PR #290's absolute command discovery but exposed a
    non-interactive Google Play system-image license prompt. It is independently
    cohesive and does not belong in this candidate API implementation.

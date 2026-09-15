@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -139,8 +140,7 @@ case "$1 $2" in
       *" --all "*) ;;
       *) exit 42 ;;
     esac
-    created_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-    printf '[{"attempt":1,"conclusion":"success","createdAt":"%s","databaseId":123,"event":"schedule","headSha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","status":"completed","url":"https://github.com/hyperledger-identus/sdk-rust/actions/runs/123","workflowName":"slow"}]\n' "$created_at"
+    printf '[{"attempt":1,"conclusion":"success","createdAt":"%s","databaseId":123,"event":"schedule","headSha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","status":"completed","url":"https://github.com/hyperledger-identus/sdk-rust/actions/runs/123","workflowName":"slow"}]\n' "$FAKE_CREATED_AT"
     ;;
   *) exit 43 ;;
 esac
@@ -150,6 +150,9 @@ esac
             gh.chmod(0o700)
             environment = os.environ.copy()
             environment["PATH"] = f"{directory}:/usr/bin:/bin"
+            environment["FAKE_CREATED_AT"] = datetime.now(UTC).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            )
             result = subprocess.run(
                 [sys.executable, str(CHECKER)],
                 check=False,

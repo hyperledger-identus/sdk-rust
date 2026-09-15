@@ -31,6 +31,10 @@
    coverage and benchmark artifacts now suffix both SHA and run attempt,
    matching the final receipt and avoiding immutable-upload collisions on
    rerun.
+8. **Resolved P2 — disabled workflows were excluded.** The live lookup now uses
+   GitHub CLI's `--all` mode so the last historical run remains diagnosable when
+   scheduling has been disabled. A fake-CLI integration test fails unless that
+   option reaches the command.
 
 ## Result
 

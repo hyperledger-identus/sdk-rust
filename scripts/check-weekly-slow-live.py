@@ -216,6 +216,7 @@ def query_github(repository: str) -> dict[str, Any]:
             "nix-checks.yml",
             "--event",
             "schedule",
+            "--all",
             "--limit",
             "10",
             "--json",

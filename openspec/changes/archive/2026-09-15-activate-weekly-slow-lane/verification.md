@@ -5,8 +5,8 @@
 - `scripts/factory check`: passed before archive.
 - `scripts/tests/factory-contract.sh`: passed.
 - support-policy mutation suite: 177 tests passed.
-- weekly slow live-audit suite: nine tests passed, including manual-rerun
-  rejection.
+- weekly slow live-audit suite: ten tests passed, including manual-rerun
+  rejection and disabled-workflow history lookup.
 - `actionlint .github/workflows/nix-checks.yml`: passed.
 - `git diff --check`: passed.
 - Nix `aarch64-darwin` checks: `factory-contract`, `lint-nix`, `lint-text`,

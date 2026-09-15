@@ -125,6 +125,41 @@ class WeeklySlowLiveTests(unittest.TestCase):
         self.assertIn("GitHub repository lookup failed", result.stderr)
         self.assertNotIn("sensitive-detail", result.stderr)
 
+    def test_live_lookup_includes_disabled_workflow_history(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            gh = Path(directory) / "gh"
+            gh.write_text(
+                """#!/bin/sh
+case "$1 $2" in
+  "repo view")
+    printf '%s\n' '{"defaultBranchRef":{"name":"develop"},"nameWithOwner":"hyperledger-identus/sdk-rust"}'
+    ;;
+  "run list")
+    case " $* " in
+      *" --all "*) ;;
+      *) exit 42 ;;
+    esac
+    created_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    printf '[{"attempt":1,"conclusion":"success","createdAt":"%s","databaseId":123,"event":"schedule","headSha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","status":"completed","url":"https://github.com/hyperledger-identus/sdk-rust/actions/runs/123","workflowName":"slow"}]\n' "$created_at"
+    ;;
+  *) exit 43 ;;
+esac
+""",
+                encoding="utf-8",
+            )
+            gh.chmod(0o700)
+            environment = os.environ.copy()
+            environment["PATH"] = f"{directory}:/usr/bin:/bin"
+            result = subprocess.run(
+                [sys.executable, str(CHECKER)],
+                check=False,
+                capture_output=True,
+                text=True,
+                env=environment,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("123 passed", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

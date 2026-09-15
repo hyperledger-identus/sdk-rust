@@ -9,17 +9,17 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add ADR 0123 and bind the verifier to the exact installed NDK path.
-- [ ] 2.2 Validate exact `source.properties`, bind child-process aliases, and
+- [x] 2.1 Add ADR 0123 and bind the verifier to the exact installed NDK path.
+- [x] 2.2 Validate exact `source.properties`, bind child-process aliases, and
       record metadata checksum evidence.
-- [ ] 2.3 Extend structural policy and mutations for ambient-input rejection,
+- [x] 2.3 Extend structural policy and mutations for ambient-input rejection,
       exact revision metadata and child-process binding.
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run focused policy/script/factory gates and proportional Nix checks;
+- [x] 3.1 Run focused policy/script/factory gates and proportional Nix checks;
       complete exact-diff architecture/security review.
-- [ ] 3.2 Archive the completed change and deliver an issue-linked protected PR.
+- [x] 3.2 Archive the completed change and deliver an issue-linked protected PR.
 
 ## Post-merge issue acceptance
 

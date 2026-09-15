@@ -34,5 +34,6 @@ is about to mutate instead of relying on ambient shell configuration.
 ## Delivery
 
 Issue #276 owns this second activation defect found by manual slow run
-`34951058164`. It ships with the candidate determinism repair in one focused
-stabilization PR to `develop`, then the exact-head manual canary is rerun.
+`34951058164`. It follows the independently reviewed candidate determinism
+repair in one focused stabilization PR to `develop`, then the exact-head manual
+canary is rerun.

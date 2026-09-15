@@ -9,18 +9,18 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add ADR 0122 and change workflow installation to the exact API-35
+- [x] 2.1 Add ADR 0122 and change workflow installation to the exact API-35
       default ARM64 package.
-- [ ] 2.2 Change verifier package/directory identity atomically without changing
+- [x] 2.2 Change verifier package/directory identity atomically without changing
       emulator behavior or support claims.
-- [ ] 2.3 Extend ordered structural checks and mutation cases for AOSP identity,
+- [x] 2.3 Extend ordered structural checks and mutation cases for AOSP identity,
       install/execution parity and absence of broad license acceptance.
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run focused support-policy, script syntax, factory/OpenSpec and
+- [x] 3.1 Run focused support-policy, script syntax, factory/OpenSpec and
       proportional Nix checks; complete architecture/security review.
-- [ ] 3.2 Prepare the guarded archive and issue-linked protected PR.
+- [x] 3.2 Prepare the guarded archive and issue-linked protected PR.
 
 ## Post-merge issue acceptance
 

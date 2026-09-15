@@ -141,6 +141,18 @@ def validate(root: Path) -> list[str]:
         runner,
     ):
         errors.append("candidate build scratch must not be rooted in the output destination")
+    required_api_contract = (
+        'api_target = stage / "target/public-api"',
+        'api_env = env | {"RUSTC_BOOTSTRAP": "1"}',
+        '"cargo", "rustdoc", "--manifest-path"',
+        '"-Z", "unstable-options", "--output-format", "json"',
+        'api_json = api_target / "doc/identus_crypto.json"',
+        'if not api_json.is_file():',
+        '"cargo", "public-api", "--rustdoc-json", str(api_json)',
+    )
+    for phrase in required_api_contract:
+        if phrase not in runner:
+            errors.append(f"candidate runner is missing stable public-API boundary: {phrase}")
     return errors
 
 

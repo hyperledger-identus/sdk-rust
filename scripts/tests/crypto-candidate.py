@@ -147,6 +147,30 @@ def main() -> int:
                 ),
                 "missing staging boundary",
             ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
+                    '"cargo", "rustdoc", "--manifest-path"',
+                    '"cargo", "doc", "--manifest-path"',
+                ),
+                "missing stable public-API boundary",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
+                    'api_env = env | {"RUSTC_BOOTSTRAP": "1"}',
+                    "api_env = env",
+                ),
+                "missing stable public-API boundary",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
+                    '"cargo", "public-api", "--rustdoc-json", str(api_json)',
+                    '"cargo", "public-api", "--manifest-path", str(stage)',
+                ),
+                "missing stable public-API boundary",
+            ),
         )
         for index, (mutation, expected) in enumerate(cases):
             case = test_root / f"case-{index}"

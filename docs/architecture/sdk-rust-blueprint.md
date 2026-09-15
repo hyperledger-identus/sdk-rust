@@ -206,9 +206,9 @@ an ADR and dependency-cone evidence.
 The support matrix deliberately separates host-tested Rust behavior from
 compile-only browser/mobile evidence and planned targets. During unpublished
 active development, Rust `1.98.1` is the single workspace floor, development
-compiler and compatibility etalon. The complete target and feature matrix is
-available locally or through explicit external orchestration pending hosted
-activation in issue #276; a pinned nightly is used only for sanitizer tooling.
+compiler and compatibility etalon. The complete target and feature matrix runs
+natively each week from protected default `develop` and remains manually or
+locally reproducible; a pinned nightly is used only for sanitizer tooling.
 There is no supported FFI during bootstrap, and binary size/build time remain
 measurement-only until a candidate release defines reproducible artifacts and
 budgets.

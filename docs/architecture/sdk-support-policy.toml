@@ -1,5 +1,5 @@
 schema_version  = 1
-policy_revision = "2026-09-11"
+policy_revision = "2026-09-15"
 
 [toolchains]
 msrv                         = "1.98.1"
@@ -13,25 +13,30 @@ stable_rust_overlay_revision = "ca7f624be3935a5bc46d2c240515491ab8675503"
 nix_version                  = "2.34.8"
 
 [ci]
-fast_workflow              = ".github/workflows/factory-contract.yml"
-fast_status                = "fast"
-fast_system                = "x86_64-linux"
-fast_gates                 = [ "factory-contract", "lint-nix", "lint-text", "lint-toml", "rust-fmt", "rust-build", "rust-clippy", "rust-test" ]
-fast_cache_mode            = "read"
-fast_cache_backend         = "github-actions"
-fast_cache_writes          = false
-fast_cache_flakehub        = false
-fast_cache_diagnostics     = false
-fast_cache_failure         = "best-effort"
-fast_timeout_minutes       = 20
-slow_workflow              = ".github/workflows/nix-checks.yml"
-slow_status                = "slow"
-slow_cadence               = "desired-weekly-pending-276"
-slow_execution             = "local-or-external"
-slow_schedule_status       = "inactive-pending-276"
-slow_scope                 = "all-flake-checks"
-review_by                  = "2026-12-08"
-release_candidate_eligible = false
+fast_workflow                = ".github/workflows/factory-contract.yml"
+fast_status                  = "fast"
+fast_system                  = "x86_64-linux"
+fast_gates                   = [ "factory-contract", "lint-nix", "lint-text", "lint-toml", "rust-fmt", "rust-build", "rust-clippy", "rust-test" ]
+fast_cache_mode              = "read"
+fast_cache_backend           = "github-actions"
+fast_cache_writes            = false
+fast_cache_flakehub          = false
+fast_cache_diagnostics       = false
+fast_cache_failure           = "best-effort"
+fast_timeout_minutes         = 20
+slow_workflow                = ".github/workflows/nix-checks.yml"
+slow_status                  = "slow"
+slow_cadence                 = "weekly"
+slow_execution               = "github-native-or-local"
+slow_schedule_status         = "active-native"
+slow_default_branch          = "develop"
+slow_artifact_retention_days = 7
+slow_freshness_hours         = 160
+slow_concurrency             = "one-running-one-pending"
+slow_run_metadata            = true
+slow_scope                   = "all-flake-checks"
+review_by                    = "2026-12-08"
+release_candidate_eligible   = false
 
 [gate_operations]
 rust-audit                           = "cargoAudit"

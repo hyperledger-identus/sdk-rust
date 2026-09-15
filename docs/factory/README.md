@@ -160,10 +160,9 @@ lock, and they do not force dependency or runtime upgrades. See the
 During the temporary active-development policy, an issue-linked PR receives
 one Ubuntu `fast` status containing the factory contract, repository lint,
 formatting, workspace build, strict Clippy and normal tests on Rust 1.98.1.
-The exhaustive Linux/macOS flake and sanitizer campaigns remain available as
-local or explicitly externally orchestrated `slow` evidence. Their desired
-hosted cadence and dispatch are inactive while empty `main` remains default;
-issue #276 owns activation. Agents may merge on green required
+Native weekly slow evidence runs from protected `develop`; manual dispatch and
+local reproduction remain available for the exhaustive Linux/macOS flake and
+sanitizer campaigns. Agents may merge on green required
 `fast` evidence, but must treat any slow failure as visible debt; release or
 publication is prohibited until that debt and the release-phase compiler
 matrix are resolved.

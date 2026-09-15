@@ -179,7 +179,7 @@ test("target plan keeps one fast PR gate and routes risk to slow evidence", () =
   const plan = buildPlan({ baseSha: sha, headSha: "b".repeat(40), paths: ["nix/devshells/default.nix"], profile: "production-ready" });
   assert.deepEqual(plan.requiredPullRequestChecks, ["fast"]);
   assert.deepEqual(plan.slowRecommended, ["full-nix-linux", "full-nix-macos", "fuzz-conformance", "portable-targets", "security"]);
-  assert.equal(plan.slowPolicy, "local-or-external-pending-276");
+  assert.equal(plan.slowPolicy, "native-weekly-or-manual");
   assert.equal(buildPlan({ baseSha: sha, headSha: "b".repeat(40), paths: ["unclassified.bin"] }).unknownDiffFailsClosed, true);
 });
 

@@ -1,0 +1,77 @@
+[[modified_requirement]]
+capability       = "apollo-crypto-parity"
+requirement      = "Coverage stays outside the fast pull-request lane"
+canonical_sha256 = "2b99622be6747a0082b35272e28d65211a0494f4fcbb7365b0342e186fde530c"
+reason           = "Issue #276 activates the existing coverage job through the native protected-develop schedule while preserving fast CI and release limitations."
+
+[[modified_requirement]]
+capability       = "browser-did-bindings"
+requirement      = "Two browser engines execute API version one"
+canonical_sha256 = "92002c405ac53bd61c953ca01c00e2a2a6cb011251d2acc94899f918b6bdd3df"
+reason           = "Issue #276 activates the existing Chromium and Firefox job through the native protected-develop schedule without promoting browser support."
+
+[[modified_requirement]]
+capability       = "code-health-governance"
+requirement      = "Baseline evidence is bound to policy and Git content"
+canonical_sha256 = "916bc62145643e269af0d2e1e21b963baa9250ea96bb927c476eeafa245327e6"
+reason           = "Issue #276 replaces the empty-default-main limitation with SHA-bound native weekly regeneration from protected develop."
+
+[[modified_requirement]]
+capability       = "crypto"
+requirement      = "Reproducible bounded crypto fuzz campaigns"
+canonical_sha256 = "f4f0a551a25ad3be5974167f89a550f8cfc77299e23ddb0bb0c914c8d648f6b0"
+reason           = "Issue #276 activates the already bounded crypto sanitizer schedule and preserves its separation from required PR evidence."
+
+[[modified_requirement]]
+capability       = "did-core"
+requirement      = "Reproducible bounded fuzz campaigns"
+canonical_sha256 = "b4c90beb2e5802bdd51363319a788eb3eb13b9167df5440285860dbb4459dd82"
+reason           = "Issue #276 activates the already bounded DID sanitizer schedule and preserves its separation from required PR evidence."
+
+[[modified_requirement]]
+capability       = "factory-operations"
+requirement      = "CI routing is immutable and keeps the fast and slow model"
+canonical_sha256 = "c53908607fb3e90bdac730e03ff551ed294475807844d7c2896ab12b4687ada0"
+reason           = "Issue #276 makes hosted weekly slow evidence effective while keeping one fast PR requirement and exact local reproduction."
+
+[[modified_requirement]]
+capability       = "jws-compact"
+requirement      = "Reproducible bounded JWS fuzz campaigns"
+canonical_sha256 = "5c2956e6eba39ea7202ad44857c3185f320c7e848dfdc427d3b3e951338c0b13"
+reason           = "Issue #276 activates the already bounded JWS sanitizer schedule and removes the obsolete default-main qualifier."
+
+[[modified_requirement]]
+capability       = "native-did-bindings"
+requirement      = "Host consumers execute the versioned value slice"
+canonical_sha256 = "570a8ba6a76557c398022a6bf918877c116e2917a5fa092f16c73caff646a21b"
+reason           = "Issue #276 activates the existing macOS host binding job without changing experimental support status."
+
+[[modified_requirement]]
+capability       = "native-did-bindings"
+requirement      = "Simulator execution does not activate Apple support"
+canonical_sha256 = "fc53acfb2043f0b6af0d4951af2e8076d417be61d4a29228c98a817a9f57ed89"
+reason           = "Issue #276 activates the existing simulator evidence job while preserving every Apple support limitation."
+
+[[modified_requirement]]
+capability       = "native-did-bindings"
+requirement      = "Emulator execution does not activate Android support"
+canonical_sha256 = "d96addbd2d8183b58df6e7c78dfd8843a5091135e4e8015598e2d6338ac01edf"
+reason           = "Issue #276 activates the existing emulator evidence job while preserving every Android support limitation."
+
+[[modified_requirement]]
+capability       = "nix-tooling"
+requirement      = "Complete Clippy surface is slow evidence"
+canonical_sha256 = "72d876f61cff233cec5551f5aab2fb61a2e76340ce6ed04451b8b636daec93b1"
+reason           = "Issue #276 makes the complete Clippy selector active weekly on both hosts without adding it to fast CI."
+
+[[modified_requirement]]
+capability       = "sdk-support-policy"
+requirement      = "Supported feature surfaces are isolated"
+canonical_sha256 = "a4437b279a8994a417c60463e09ab611b8b3f33fa5278a1193393086755cf9c5"
+reason           = "Issue #276 activates native weekly exhaustive feature evidence while preserving isolated fast and local surfaces."
+
+[[modified_requirement]]
+capability       = "sdk-support-policy"
+requirement      = "Temporary active-development compiler and CI lanes"
+canonical_sha256 = "2717abc6589003e9e35f0d9cd4ba151af121c157c4e386def834e62284dcf363"
+reason           = "Issue #276 replaces pending external orchestration with native protected-develop schedules and bounded observable evidence."

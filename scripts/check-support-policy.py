@@ -2381,9 +2381,11 @@ def validate_ci_lanes(
         "fast_system": "x86_64-linux",
         "slow_workflow": ".github/workflows/nix-checks.yml",
         "slow_status": "slow",
-        "slow_cadence": "desired-weekly-pending-276",
-        "slow_execution": "local-or-external",
-        "slow_schedule_status": "inactive-pending-276",
+        "slow_cadence": "weekly",
+        "slow_execution": "github-native-or-local",
+        "slow_schedule_status": "active-native",
+        "slow_default_branch": "develop",
+        "slow_concurrency": "one-running-one-pending",
         "slow_scope": "all-flake-checks",
         "review_by": "2026-12-08",
     }
@@ -2393,6 +2395,12 @@ def validate_ci_lanes(
             failures.append(f"ci.{field} must be {expected_value}, found {actual}")
     if ci.get("release_candidate_eligible") is not False:
         failures.append("ci.release_candidate_eligible must remain false")
+    if ci.get("slow_artifact_retention_days") != 7:
+        failures.append("ci.slow_artifact_retention_days must be 7")
+    if ci.get("slow_freshness_hours") != 160:
+        failures.append("ci.slow_freshness_hours must be 160")
+    if ci.get("slow_run_metadata") is not True:
+        failures.append("ci.slow_run_metadata must remain true")
     expected_fast_cache = {
         "fast_cache_mode": "read",
         "fast_cache_backend": "github-actions",
@@ -2544,13 +2552,13 @@ def validate_ci_lanes(
 
     slow, slow_path = workflow_text("slow_workflow")
     if slow:
-        scheduling_disclaimer = (
-            "# Desired cadence only: GitHub schedules workflows from the default branch,\n"
-            "# while reserved empty main remains default. Activation is tracked by #276."
+        scheduling_marker = (
+            "# Native weekly/manual evidence runs from protected default develop "
+            "under ADR 0120."
         )
-        if scheduling_disclaimer not in slow:
+        if scheduling_marker not in slow:
             failures.append(
-                f"{slow_path} must disclose that its GitHub schedule is inactive pending #276"
+                f"{slow_path} must identify protected develop as its native scheduler"
             )
         for trigger in ("schedule", "workflow_dispatch"):
             if re.search(rf"^  {trigger}:\s*$", slow, re.MULTILINE) is None:
@@ -2563,9 +2571,7 @@ def validate_ci_lanes(
         if re.search(r"^\s*run:\s*nix flake check\s*$", slow, re.MULTILINE) is None:
             failures.append(f"{slow_path} must run the exhaustive nix flake check")
         if '    - cron: "23 2 * * 1"' not in trigger_block(slow, "schedule"):
-            failures.append(
-                f"{slow_path} must retain the desired weekly trigger pending #276"
-            )
+            failures.append(f"{slow_path} must retain the weekly trigger")
         for runner in ("ubuntu-latest", "macos-latest"):
             if runner not in slow:
                 failures.append(f"{slow_path} matrix is missing {runner}")
@@ -2577,41 +2583,53 @@ def validate_ci_lanes(
             failures.append(
                 f"{slow_path} must invoke the complete Clippy selector exactly once"
             )
+        workflow_contract = {
+            "concurrency group": "group: slow-${{ github.workflow }}-${{ github.ref }}",
+            "non-cancelling concurrency": "cancel-in-progress: false",
+            "read-only permissions": "permissions:\n  contents: read",
+            "revision binding": 'test "$actual_sha" = "$GITHUB_SHA"',
+            "run identity": '"runId": int(os.environ["GITHUB_RUN_ID"])',
+            "attempt identity": '"runAttempt": int(os.environ["GITHUB_RUN_ATTEMPT"])',
+            "actual checkout": '"actualCheckoutSha": os.environ["ACTUAL_SHA"]',
+            "receipt artifact": "name: slow-run-${{ github.sha }}-${{ github.run_attempt }}",
+            "candidate attempt artifact": "name: crypto-candidate-${{ github.sha }}-${{ github.run_attempt }}",
+            "coverage attempt artifact": "name: crypto-coverage-${{ github.sha }}-${{ github.run_attempt }}",
+            "baseline attempt artifact": "name: crypto-baseline-${{ github.sha }}-${{ github.run_attempt }}",
+        }
+        for contract_name, marker in workflow_contract.items():
+            if marker not in slow:
+                failures.append(f"{slow_path} is missing {contract_name}")
+        expected_timeouts = {5, 10, 30, 45, 60, 180}
+        actual_timeouts = {
+            int(value)
+            for value in re.findall(r"^    timeout-minutes: (\d+)\s*$", slow, re.MULTILINE)
+        }
+        if actual_timeouts != expected_timeouts:
+            failures.append(
+                f"{slow_path} must retain bounded job timeouts {sorted(expected_timeouts)}"
+            )
+        retention_values = re.findall(
+            r"^          retention-days: (\d+)\s*$", slow, re.MULTILINE
+        )
+        if not retention_values or set(retention_values) != {"7"}:
+            failures.append(f"{slow_path} artifacts must use seven-day retention")
 
     truthful_slow_sources = {
-        "README.md": "`workflow_dispatch` are inactive",
+        "README.md": "weekly slow evidence runs from protected",
         "docs/architecture/sdk-support-policy.md": (
-            "`workflow_dispatch` are not active GitHub execution evidence"
+            "protected `develop`, which is the GitHub default branch"
         ),
-        "docs/governance/sdk-constraints.toml": (
-            "inactive hosted scheduling recorded pending issue #276"
+        "docs/factory/README.md": (
+            "Native weekly slow evidence runs from protected `develop`"
         ),
-        "openspec/specs/sdk-support-policy/spec.md": (
-            "`workflow_dispatch` SHALL NOT be represented as active"
-        ),
-        "docs/factory/README.md": "hosted cadence and dispatch are inactive",
         "docs/governance/agentic-sdlc.md": (
-            "hosted cadence and dispatch are inactive pending"
+            "Native weekly slow evidence runs from protected"
         ),
-        "docs/architecture/first-language-binding-slice.md": (
-            "local/external slow command requires Chromium and Firefox pending "
-            "hosted activation in issue #276"
-        ),
-        "openspec/specs/crypto/spec.md": (
-            "externally orchestrated soak SHALL remain separately bounded pending hosted"
-        ),
-        "openspec/specs/did-core/spec.md": (
-            "externally orchestrated soak SHALL be\nbounded separately pending hosted "
-            "activation in issue #276"
+        "docs/governance/repository-settings.md": (
+            "GitHub default branch | `develop`"
         ),
     }
-    stale_active_claims = (
-        r"\bruns weekly\b",
-        r"\bweekly/manual\b",
-        r"\bweekly (?:and|or) (?:on )?manual(?:ly)?\b",
-        r"\bweekly schedule fires\b",
-        r"\bmanually dispatch(?:ed|es)\b",
-    )
+    stale_pending_claims = ("pending issue #276", "inactive while", "inactive pending")
     for relative_path, truthful_marker in truthful_slow_sources.items():
         try:
             prose = (root / relative_path).read_text(encoding="utf-8")
@@ -2620,12 +2638,12 @@ def validate_ci_lanes(
             continue
         if truthful_marker not in prose:
             failures.append(
-                f"{relative_path} must record inactive hosted slow execution pending #276"
+                f"{relative_path} must record native weekly slow execution from protected develop"
             )
-        for stale_pattern in stale_active_claims:
-            if re.search(stale_pattern, prose, re.IGNORECASE):
+        for stale_marker in stale_pending_claims:
+            if stale_marker in prose:
                 failures.append(
-                    f"{relative_path} must not claim active weekly/manual GitHub slow execution"
+                    f"{relative_path} must not retain the pre-activation slow-lane state"
                 )
                 break
 
@@ -2644,9 +2662,7 @@ def validate_ci_lanes(
         "docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md",
         "docs/research/rust-library-reuse/report-source.md",
     )
-    schedule_status_marker = (
-        "GitHub schedule and `workflow_dispatch` execution are inactive"
-    )
+    schedule_status_marker = "Superseded operational status (2026-09-15)"
     for relative_path in accepted_schedule_sources:
         try:
             authority = (root / relative_path).read_text(encoding="utf-8")
@@ -2654,13 +2670,12 @@ def validate_ci_lanes(
             failures.append(f"cannot read schedule authority {relative_path}: {error}")
             continue
         if (
-            "Operational status (2026-09-14)" not in authority
-            or schedule_status_marker not in authority
-            or "issue #276" not in authority
+            schedule_status_marker not in authority
+            or "ADR 0120" not in authority
         ):
             failures.append(
                 f"{relative_path} must supersede historical cadence prose with the "
-                "inactive hosted status pending #276"
+                "accepted protected-develop schedule status"
             )
 
     target_plan_path = "scripts/ci/target-plan.mjs"
@@ -2669,17 +2684,45 @@ def validate_ci_lanes(
     except OSError as error:
         failures.append(f"cannot read {target_plan_path}: {error}")
     else:
-        if 'slowPolicy: "local-or-external-pending-276"' not in target_plan:
+        if 'slowPolicy: "native-weekly-or-manual"' not in target_plan:
             failures.append(
-                f"{target_plan_path} must record local/external slow execution pending #276"
+                f"{target_plan_path} must record native weekly or manual slow execution"
             )
 
+    slow_audit_path = "scripts/check-weekly-slow-live.py"
+    try:
+        slow_audit = (root / slow_audit_path).read_text(encoding="utf-8")
+    except OSError as error:
+        failures.append(f"cannot read {slow_audit_path}: {error}")
+    else:
+        slow_audit_contract = {
+            "scheduled run head-branch query": (
+                "databaseId,attempt,event,status,conclusion,headBranch,headSha,"
+                "createdAt,url,workflowName"
+            ),
+            "protected develop run binding": (
+                'if value["headBranch"] != "develop":'
+            ),
+        }
+        for contract_name, marker in slow_audit_contract.items():
+            if marker not in slow_audit:
+                failures.append(f"{slow_audit_path} is missing {contract_name}")
+
     fuzz_workflows = {
-        ".github/workflows/crypto-fuzz.yml": '    - cron: "41 3 * * 1"',
-        ".github/workflows/did-fuzz.yml": '    - cron: "17 3 * * 2"',
-        ".github/workflows/jws-fuzz.yml": '    - cron: "53 3 * * 3"',
+        ".github/workflows/crypto-fuzz.yml": (
+            '    - cron: "41 3 * * 1"',
+            "crypto-fuzz-artifacts-${{ github.sha }}-${{ github.run_attempt }}",
+        ),
+        ".github/workflows/did-fuzz.yml": (
+            '    - cron: "17 3 * * 2"',
+            "did-fuzz-artifacts-${{ github.sha }}-${{ github.run_attempt }}",
+        ),
+        ".github/workflows/jws-fuzz.yml": (
+            '    - cron: "53 3 * * 3"',
+            "jws-fuzz-artifacts-${{ github.sha }}-${{ github.run_attempt }}",
+        ),
     }
-    for relative_path, expected_cron in fuzz_workflows.items():
+    for relative_path, (expected_cron, expected_artifact) in fuzz_workflows.items():
         try:
             workflow = (root / relative_path).read_text(encoding="utf-8")
         except OSError as error:
@@ -2693,6 +2736,17 @@ def validate_ci_lanes(
                 failures.append(f"{relative_path} must not declare the {trigger} trigger")
         if expected_cron not in trigger_block(workflow, "schedule"):
             failures.append(f"{relative_path} must retain its pinned weekly schedule")
+        if expected_artifact not in workflow:
+            failures.append(
+                f"{relative_path} must bind its failure artifact to SHA and run attempt"
+            )
+        retention_values = re.findall(
+            r"^\s+retention-days: (\d+)\s*$", workflow, re.MULTILINE
+        )
+        if retention_values != ["7"]:
+            failures.append(
+                f"{relative_path} failure artifact must use seven-day retention"
+            )
 
 
 def validate_hosts(

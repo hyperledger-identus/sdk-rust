@@ -27,7 +27,7 @@ do not share the native Swift/Kotlin compatibility contract.
 | Swift | Go for production slice | Swift 6.3 host program linked the generated wrapper and passed valid, invalid and oversized cases | iOS simulator/device, XCFramework/SwiftPM, API/ABI versioning |
 | Kotlin | Go for production slice | Kotlin 2.2.20/JVM 17 host proof plus a deterministic arm64-v8a AAR and API-35 arm64 emulator receipt using explicit JNA 5.18.1 | physical device, other ABI/runtime matrix, Maven publication and supported JVM/Android API contract |
 | React Native | No-go on current dependency | `uniffi-bindgen-react-native` 0.31.0-5 uses UniFFI 0.31 and adds JSI/TurboModule/runtime coupling | Exact 0.32-compatible release, New Architecture iOS/Android runtime and packaging proof |
-| Browser React | Experimental adapter implemented | exact wasm-bindgen runtime/CLI 0.2.121 browser-native ESM/TypeScript package is byte-reproducible and executes bounded DID behavior in Chrome; the local/external slow command requires Chromium and Firefox pending hosted activation in issue #276 | Named downstream/bundler adoption, browser support matrix and publication contract |
+| Browser React | Experimental adapter implemented | exact wasm-bindgen runtime/CLI 0.2.121 browser-native ESM/TypeScript package is byte-reproducible and executes bounded DID behavior in Chrome; the native weekly/manual slow command requires Chromium and Firefox | Named downstream/bundler adoption, browser support matrix and publication contract |
 | Node | Deferred | Neither native host proof nor browser WASM defines a Node package/loading contract | Named consumer and N-API or WASM runtime decision |
 
 ## Interface comparison

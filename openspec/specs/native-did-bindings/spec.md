@@ -62,9 +62,9 @@ function, record property, error case/code and ABI-version value.
 The facade SHALL expose binding API version `1`. Swift and Kotlin/JVM host tests
 SHALL compile, link and execute valid, invalid, oversized, redacted-error and
 version checks against the built dynamic library. The host execution and
-separately locked generator supply-chain checks SHALL run in the local or
-externally orchestrated slow macOS command, not the Linux-only fast pull-request
-lane. Hosted activation remains pending issue #276.
+separately locked generator supply-chain checks SHALL run in the active hosted
+weekly/manual slow macOS job or its exact local reproduction, not the
+Linux-only fast pull-request lane.
 
 #### Scenario: host language consumes API version one
 
@@ -76,8 +76,8 @@ lane. Hosted activation remains pending issue #276.
 
 - **WHEN** ordinary pull-request CI runs during the active-development phase
 - **THEN** the Linux fast line SHALL retain factory, build, lint and test gates,
-  while macOS host execution and generator deny/audit evidence run locally or
-  through explicit external orchestration pending hosted activation in issue #276
+  while macOS host execution and generator deny/audit evidence remain in the
+  native weekly/manual slow workflow or exact local reproduction
 
 ### Requirement: Host proof does not activate mobile or public FFI support
 
@@ -144,11 +144,10 @@ and keep generated package contents under ignored `target/` paths.
 
 An Xcode-driven iOS Simulator test SHALL observe binding API version `1` and
 the existing valid, invalid, oversized and redacted-error behavior families.
-This evidence SHALL run in the local or externally orchestrated slow macOS
-command; hosted activation remains pending issue #276. `SDK-LIM-002`
-SHALL remain effective because the package is unsigned, unpublished and not
-executed on a physical device, and because multi-Rust-static-library composition
-is unproven.
+This evidence SHALL run in the active hosted weekly/manual slow macOS job or
+its exact local reproduction. `SDK-LIM-002` SHALL remain effective because the
+package is unsigned, unpublished and not executed on a physical device, and
+because multi-Rust-static-library composition is unproven.
 
 #### Scenario: local package passes on one Simulator runtime
 
@@ -203,10 +202,9 @@ outputs, Gradle state and AVD state SHALL remain under ignored `target/` paths.
 
 An isolated arm64 API-35 emulator consumer SHALL observe binding API version
 `1` and the existing valid, invalid, oversized and redacted-error behavior
-families. The evidence SHALL run only in the local or externally orchestrated
-slow macOS command pending hosted activation in issue #276 and
-SHALL NOT mutate a user AVD. `SDK-LIM-002` and `SDK-LIM-003` SHALL remain
-effective.
+families. The evidence SHALL run only in the active hosted weekly/manual slow
+macOS job or its exact local reproduction and SHALL NOT mutate a user AVD.
+`SDK-LIM-002` and `SDK-LIM-003` SHALL remain effective.
 
 #### Scenario: one ephemeral emulator passes
 

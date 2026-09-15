@@ -7,10 +7,9 @@
 - **Report:** [Discussion #178](https://github.com/hyperledger-identus/sdk-rust/discussions/178)
 - **Tool source:** `taiki-e/cargo-llvm-cov@be59056988acd54c7f984b7c85643daea3711b29`
 
-> **Operational status (2026-09-14):** This ADR records desired cadence only.
-> GitHub schedule and `workflow_dispatch` execution are inactive while reserved
-> empty `main` remains default. Run evidence locally or through explicit external
-> orchestration; issue #276 owns hosted activation.
+> **Superseded operational status (2026-09-15):** ADR 0120 activates native
+> weekly/manual execution from protected default `develop`; reserved `main`
+> remains explicit, minimal and protected.
 
 ## Context
 

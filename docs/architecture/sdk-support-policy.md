@@ -17,10 +17,10 @@ fails; neither source may silently make a stronger claim.
 | `not-supported` | No accepted public surface exists. | A placeholder crate or experiment cannot be presented as support. |
 
 The host-tested systems are `x86_64-linux` and `aarch64-darwin`. Linux fast
-evidence runs for every pull request and `develop` push. The complete Linux and
-macOS evidence is available locally or through explicit external orchestration;
-its desired weekly GitHub trigger and `workflow_dispatch` are inactive while
-reserved empty `main` remains default. Issue #276 owns activation. Browser WASM,
+evidence runs for every pull request and `develop` push. Native weekly slow
+evidence runs from protected `develop`, which is the GitHub default branch;
+manual dispatch and local reproduction remain available. Reserved `main` stays
+minimal and explicitly protected. Browser WASM,
 Android ARM64 and iOS ARM64 are compile-checked for `identus-core`,
 `identus-crypto`, `identus-did`, `identus-jose` and
 `identus-oid4vci` and `identus-adapters-entropy`, with the entropy adapter's `getrandom` backend
@@ -57,9 +57,8 @@ default-feature mode and complete feature set with the machine policy.
 `all_features` supplements these checks; it cannot replace them because Cargo
 feature unification can hide incorrect gates. Duplicate host, target, feature
 or gate keys are rejected as ambiguous policy.
-Exhaustive feature permutations remain in the local or externally orchestrated
-slow command instead of blocking every pull request. Hosted activation is
-pending issue #276.
+Exhaustive feature permutations remain in the native weekly or manually
+dispatched slow command instead of blocking every pull request.
 
 Sanitizer-backed fuzzing is the bounded operational exception: libFuzzer uses
 nightly-only compiler instrumentation, so fuzz workflows explicitly enter the
@@ -116,10 +115,9 @@ publish a package, or change `[ffi].status` and `SDK-LIM-002`.
 The machine policy defines `fast` as the single Linux Rust/factory integration
 status on pull requests and `develop`. It runs factory structure, Nix/TOML/text
 lint, formatting, workspace build, strict Clippy and normal workspace tests.
-The `slow` workflow defines the complete flake on Linux and macOS as a
-ready-to-run local or externally orchestrated command. Its declared desired
-weekly trigger and `workflow_dispatch` are not active GitHub execution evidence
-until issue #276 resolves the empty-default-`main` limitation. Its explicit
+The `slow` workflow defines the complete flake on Linux and macOS. GitHub runs
+it weekly from protected default `develop`; maintainers can dispatch the same
+workflow manually, and agents can reproduce it locally. Its explicit
 `rust-clippy-all-targets-all-features` check
 evaluates every workspace Cargo target with every feature enabled and warnings
 denied; it remains outside the fast selector set. A slow failure blocks
@@ -136,6 +134,15 @@ third-party finalization while leaving any timeout as a failing merge gate.
 The short-term throughput target is a median job at or below 480 seconds over
 the first three comparable successful runs, with no cache post phase over 30
 seconds, reviewed no later than 2026-12-08.
+
+Every slow job has an explicit timeout, and workflow concurrency retains one
+running plus one pending revision without cancelling evidence already in
+flight. Each run uploads a seven-day JSON receipt binding the requested and
+checked-out SHA, event, run/attempt identity, timestamps, job results and run
+URL. `scripts/factory slow-live` is the read-only freshness audit; a missing,
+failed or older-than-160-hour scheduled run is an operational alert, leaving an
+eight-hour margin before the seven-day evidence retention ceiling. It is not a
+reason to rewrite history or silently dispatch privileged work.
 
 Both dimensions are `measurement-only`. CI duration, validator p50/p95 and
 intermediate Rust artifacts are diagnostics, not budgets. The validator

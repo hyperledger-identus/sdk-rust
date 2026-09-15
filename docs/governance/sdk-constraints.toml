@@ -285,16 +285,16 @@ id               = "SDK-LIM-009"
 kind             = "limitation"
 category         = "delivery"
 state            = "effective"
-summary          = "Exhaustive compatibility and sanitizer evidence is locally or externally invoked; desired hosted cadence is inactive pending issue #276."
+summary          = "Exhaustive compatibility and sanitizer evidence runs natively each week from protected default develop and remains manually or locally reproducible."
 scope            = "Pull requests and develop merges until 2026-12-08 or release-candidate preparation."
 canonical_source = "docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md"
 authority        = "Sponsor-directed discussion #172 and ADR 0081."
 rationale        = "One Linux fast signal minimizes agent feedback friction while preserving complete evidence off the critical path."
 consumer_impact  = "A pre-release merge may precede its next slow matrix; no release candidate or publication may do so."
-enforcement      = [ "fast workflow on pull requests and develop", "local or external slow and fuzz commands", "inactive hosted scheduling recorded pending issue #276", "release-policy prohibition", "support-policy checker" ]
+enforcement      = [ "fast workflow on pull requests and develop", "native weekly or manual slow and fuzz workflows", "read-only slow-run freshness audit", "release-policy prohibition", "support-policy checker" ]
 owner            = "SDK maintainers"
 review_triggers  = [ "2026-12-08", "release candidate", "repeated slow failure", "fast p95 is unacceptable" ]
-activation       = "Effective through ADR 0081 for fast CI; slow/fuzz GitHub schedule and dispatch activation is pending issue #276 while empty main remains default."
+activation       = "Effective through ADRs 0081 and 0120: protected develop is the default branch for native weekly and manual evidence while main remains explicitly protected and minimal."
 rollback         = "Restore the per-PR full matrix and prior compiler policy by reverting ADR 0081's implementation."
 
 [[entries]]

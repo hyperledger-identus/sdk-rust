@@ -47,6 +47,10 @@ run_backlog_live() {
   "$factory_root/scripts/check-ssi-upstream-backlog-live.py" "$@"
 }
 
+run_slow_live() {
+  "$factory_root/scripts/check-weekly-slow-live.py" "$@"
+}
+
 validate_all() {
   run_openspec validate --all --strict --no-interactive
 }
@@ -275,6 +279,7 @@ Commands:
   audit [options]     Audit pinned Pi runtime and bounded repository policy
   backlog-live [options]
                       Audit roadmap ownership against live GitHub issue state
+  slow-live [options] Audit native scheduled slow-run freshness and health
   plan [options]      Derive immutable fast/slow target routing from exact SHAs
   metrics [options]   Validate, store, render or publish bounded work metrics
   supervisor [options]
@@ -321,6 +326,9 @@ case "$command_name" in
     ;;
   backlog-live)
     run_backlog_live "$@"
+    ;;
+  slow-live)
+    run_slow_live "$@"
     ;;
   plan)
     node "$factory_root/scripts/ci/target-plan.mjs" "$@"

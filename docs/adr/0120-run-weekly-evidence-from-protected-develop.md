@@ -38,9 +38,11 @@ weaken `main` protection and accidentally overlap the `develop` ruleset.
    seven-day organization retention ceiling. Qualify every evidence artifact by
    SHA and attempt so reruns cannot collide.
 7. Add `scripts/factory slow-live` as a read-only audit of the latest scheduled
-   run. Missing, non-successful or older-than-160-hour evidence fails closed and
-   identifies the run without echoing command stderr. The threshold leaves an
-   eight-hour alert margin before the seven-day retention ceiling.
+   run. The audit requires both the current default branch and the run's
+   recorded head branch to be `develop`. Missing, foreign-branch,
+   non-successful or older-than-160-hour evidence fails closed and identifies
+   the run without echoing command stderr. The threshold leaves an eight-hour
+   alert margin before the seven-day retention ceiling.
 8. Merge the activation PR with `Refs #276`, then apply and verify the repository
    settings and run one manual canary. Keep #276 open until the first successful
    natural scheduled run is attached as evidence.

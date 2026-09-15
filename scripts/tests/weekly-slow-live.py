@@ -6,7 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -29,6 +29,7 @@ class WeeklySlowLiveTests(unittest.TestCase):
                     "event": "schedule",
                     "status": "completed",
                     "conclusion": "success",
+                    "headBranch": "develop",
                     "headSha": "a" * 40,
                     "createdAt": "2026-09-14T02:23:00Z",
                     "url": f"https://github.com/{REPOSITORY}/actions/runs/123",
@@ -59,6 +60,13 @@ class WeeklySlowLiveTests(unittest.TestCase):
         result = self.run_snapshot(self.snapshot(defaultBranch="main"))
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("expected protected develop", result.stderr)
+
+    def test_scheduled_run_must_come_from_develop(self) -> None:
+        document = self.snapshot()
+        document["runs"][0]["headBranch"] = "temporary-default"
+        result = self.run_snapshot(document)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("run 123 headBranch must be protected develop", result.stderr)
 
     def test_missing_run_fails(self) -> None:
         result = self.run_snapshot(self.snapshot(runs=[]))
@@ -140,7 +148,7 @@ case "$1 $2" in
       *" --all "*) ;;
       *) exit 42 ;;
     esac
-    printf '[{"attempt":1,"conclusion":"success","createdAt":"%s","databaseId":123,"event":"schedule","headSha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","status":"completed","url":"https://github.com/hyperledger-identus/sdk-rust/actions/runs/123","workflowName":"slow"}]\n' "$FAKE_CREATED_AT"
+    printf '[{"attempt":1,"conclusion":"success","createdAt":"%s","databaseId":123,"event":"schedule","headBranch":"develop","headSha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","status":"completed","url":"https://github.com/hyperledger-identus/sdk-rust/actions/runs/123","workflowName":"slow"}]\n' "$FAKE_CREATED_AT"
     ;;
   *) exit 43 ;;
 esac
@@ -150,7 +158,7 @@ esac
             gh.chmod(0o700)
             environment = os.environ.copy()
             environment["PATH"] = f"{directory}:/usr/bin:/bin"
-            environment["FAKE_CREATED_AT"] = datetime.now(UTC).strftime(
+            environment["FAKE_CREATED_AT"] = datetime.now(timezone.utc).strftime(
                 "%Y-%m-%dT%H:%M:%SZ"
             )
             result = subprocess.run(

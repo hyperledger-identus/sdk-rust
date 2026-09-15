@@ -61,10 +61,11 @@ event. The live audit SHALL require attempt one for natural cadence acceptance.
 
 Repository policy SHALL record the organization-enforced seven-day artifact and
 log retention ceiling. A network-explicit, read-only supervisor audit SHALL
-verify that `develop` is default and classify the newest scheduled slow run as
-fresh-success, running, failed, cancelled, stale or missing without printing
-credentials. A weekly supervisor heartbeat SHALL invoke this audit after the
-scheduled window and notify on every state except fresh success.
+verify that `develop` is default, require the audited run's recorded head branch
+to be `develop`, and classify the newest scheduled slow run as fresh-success,
+running, failed, cancelled, stale or missing without printing credentials. A
+weekly supervisor heartbeat SHALL invoke this audit after the scheduled window
+and notify on every state except fresh success.
 
 #### Scenario: Scheduled run is missing or unhealthy
 
@@ -72,6 +73,13 @@ scheduled window and notify on every state except fresh success.
   terminal conclusion is not success
 - **THEN** the audit fails closed with run identity/state only and the
   supervisor reports an actionable recovery link before evidence expires
+
+#### Scenario: Historical run came from another default branch
+
+- **WHEN** GitHub reports a scheduled run whose recorded head branch is not
+  `develop`
+- **THEN** the audit rejects it even when `develop` is the repository's current
+  default branch
 
 #### Scenario: GitHub scheduling is delayed or disabled
 

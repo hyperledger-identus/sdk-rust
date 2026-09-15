@@ -2689,6 +2689,25 @@ def validate_ci_lanes(
                 f"{target_plan_path} must record native weekly or manual slow execution"
             )
 
+    slow_audit_path = "scripts/check-weekly-slow-live.py"
+    try:
+        slow_audit = (root / slow_audit_path).read_text(encoding="utf-8")
+    except OSError as error:
+        failures.append(f"cannot read {slow_audit_path}: {error}")
+    else:
+        slow_audit_contract = {
+            "scheduled run head-branch query": (
+                "databaseId,attempt,event,status,conclusion,headBranch,headSha,"
+                "createdAt,url,workflowName"
+            ),
+            "protected develop run binding": (
+                'if value["headBranch"] != "develop":'
+            ),
+        }
+        for contract_name, marker in slow_audit_contract.items():
+            if marker not in slow_audit:
+                failures.append(f"{slow_audit_path} is missing {contract_name}")
+
     fuzz_workflows = {
         ".github/workflows/crypto-fuzz.yml": '    - cron: "41 3 * * 1"',
         ".github/workflows/did-fuzz.yml": '    - cron: "17 3 * * 2"',

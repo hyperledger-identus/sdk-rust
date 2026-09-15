@@ -35,6 +35,10 @@
    GitHub CLI's `--all` mode so the last historical run remains diagnosable when
    scheduling has been disabled. A fake-CLI integration test fails unless that
    option reaches the command.
+9. **Resolved P2 — historical run branch was unbound.** The live audit now
+   queries the scheduled run's `headBranch` and requires protected `develop`,
+   independently of the repository's current default-branch value. A negative
+   snapshot regression rejects a run from a temporary former default branch.
 
 ## Result
 

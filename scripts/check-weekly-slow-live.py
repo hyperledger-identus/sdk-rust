@@ -29,6 +29,7 @@ RUN_FIELDS = {
     "event",
     "status",
     "conclusion",
+    "headBranch",
     "headSha",
     "createdAt",
     "url",
@@ -109,6 +110,10 @@ def validate_run(value: Any, repository: str, index: int) -> dict[str, Any]:
     conclusion = value["conclusion"]
     if conclusion is not None and not isinstance(conclusion, str):
         raise AuditError(f"run {run_id} conclusion must be a string or null")
+    if value["headBranch"] != "develop":
+        raise AuditError(
+            f"run {run_id} headBranch must be protected develop"
+        )
     sha = value["headSha"]
     if not isinstance(sha, str) or len(sha) != 40 or any(
         character not in "0123456789abcdef" for character in sha
@@ -220,7 +225,7 @@ def query_github(repository: str) -> dict[str, Any]:
             "--limit",
             "10",
             "--json",
-            "databaseId,attempt,event,status,conclusion,headSha,createdAt,url,workflowName",
+            "databaseId,attempt,event,status,conclusion,headBranch,headSha,createdAt,url,workflowName",
         ],
         "slow-run lookup",
     )

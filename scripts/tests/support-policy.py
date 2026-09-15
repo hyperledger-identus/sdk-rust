@@ -96,6 +96,7 @@ class SupportPolicyTests(unittest.TestCase):
             ".github/workflows/jws-fuzz.yml",
             "nix/devshells/default.nix",
             "nix/rust-toolchain.nix",
+            "scripts/check-weekly-slow-live.py",
             "scripts/ci/target-plan.mjs",
         ]:
             destination = self.fixture / relative
@@ -1957,6 +1958,22 @@ in
             'slowPolicy: "local-or-external"',
         )
         self.assert_fails("must record native weekly or manual slow execution")
+
+    def test_slow_live_audit_must_query_run_head_branch(self) -> None:
+        self.replace(
+            "scripts/check-weekly-slow-live.py",
+            "conclusion,headBranch,headSha,createdAt",
+            "conclusion,headSha,createdAt",
+        )
+        self.assert_fails("missing scheduled run head-branch query")
+
+    def test_slow_live_audit_must_bind_run_to_develop(self) -> None:
+        self.replace(
+            "scripts/check-weekly-slow-live.py",
+            'if value["headBranch"] != "develop":',
+            'if value["headBranch"] != "temporary-default":',
+        )
+        self.assert_fails("missing protected develop run binding")
 
     def test_accepted_adr_must_disclose_superseding_schedule_decision(self) -> None:
         self.replace(

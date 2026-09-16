@@ -3,7 +3,7 @@
 - **Review date:** 2026-09-17
 - **Issue:** #298
 - **Develop base:** `508917b0416147668b9d12949eec987f0b82946b`
-- **Reviewed implementation head:** `0383b42cee9e688efdebf2f72826014cf000733e`
+- **Reviewed implementation head:** `c36e7ca688d0e5b720ac6e40361dce92183c0a27`
 - **Result:** passed with no unresolved blocker
 
 ## Scope reviewed

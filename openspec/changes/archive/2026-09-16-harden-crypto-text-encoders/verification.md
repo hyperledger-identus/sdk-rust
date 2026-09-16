@@ -3,7 +3,7 @@
 - **Date:** 2026-09-17
 - **Issue:** #298
 - **Develop base:** `508917b0416147668b9d12949eec987f0b82946b`
-- **Verified implementation head:** `0383b42cee9e688efdebf2f72826014cf000733e`
+- **Verified implementation head:** `c36e7ca688d0e5b720ac6e40361dce92183c0a27`
 - **Environment:** aarch64-darwin, repository-pinned Rust 1.98.1 and Nix inputs
 
 ## Focused and workspace gates
@@ -26,7 +26,7 @@
 ## Candidate API and supply-chain evidence
 
 `nix run .#crypto-candidate -- --output <temporary> --source-revision
-0383b42cee9e688efdebf2f72826014cf000733e` passed from a clean tree in 77.119
+c36e7ca688d0e5b720ac6e40361dce92183c0a27` passed from a clean tree in 75.685
 seconds. It verified two byte-identical package assemblies, safe normalized
 archives, the extracted three-package closure in default/all/minimal/KMP
 profiles, the committed public API, SemVer comparison, and one CycloneDX 1.6
@@ -42,7 +42,7 @@ The candidate remained unpublished and produced these local archive digests:
 ## Reproducible target closure
 
 - `nix flake check --no-write-lock-file`: all 29 compatible aarch64-darwin
-  checks passed at `fdd0356454731977f1ac3fcf7bf575582617b127`. The closure
+  checks passed at `c36e7ca688d0e5b720ac6e40361dce92183c0a27`. The closure
   included default and minimal/KMP/entropy profiles, strict Clippy, rustdoc,
   formatting, factory/source contracts, dependency policy, Rust 1.98.1 etalon,
   and WASM, Android ARM64, and iOS ARM64 compilation. Nix explicitly reported
@@ -53,7 +53,7 @@ The candidate remained unpublished and produced these local archive digests:
 
 `./scripts/factory plan --base
 508917b0416147668b9d12949eec987f0b82946b --head
-0383b42cee9e688efdebf2f72826014cf000733e --profile production-ready`
+c36e7ca688d0e5b720ac6e40361dce92183c0a27 --profile production-ready`
 classified 26 paths / 951 changed text lines across Rust, specification, and
 documentation. Required PR status is the Linux `fast` lane; portable targets,
 security, and fuzz conformance remain slow-line recommendations. The file-count

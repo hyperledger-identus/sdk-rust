@@ -1,10 +1,13 @@
-schema_version                     = 1
-contract_version                   = "code-health-v1"
+schema_version                     = 2
+contract_version                   = "code-health-v2"
 engine                             = "rust-code-analysis-cli"
 engine_version                     = "0.0.25"
-baseline_revision                  = "707a5a22c3fad18724d5c5cac953e7387f7e49d8"
-baseline_source_fingerprint_sha256 = "e116bfb7afe3105cd8210b71b4c12a6721123c6fd2adc9a442dbd30aa415d6e4"
-baseline_report_sha256             = "6177a91537433a846863af91bdade5a7de230e69b147f3402e0c55dc5d3cc01a"
+classifier                         = "syn-ast-v1"
+classifier_protocol_version        = 1
+classifier_command                 = [ "cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--" ]
+baseline_revision                  = "18394fc38cc085445979ae5e123fe9454ab22bae"
+baseline_source_fingerprint_sha256 = "e1434bfc52689f57cdf6601c8fc158cae6d675122efa885882ef08a9bb424f6b"
+baseline_report_sha256             = "bcd96cc97bc15a052e575c3c4f448566dc6f0a5768fc30526b9f7ebaa7f7f6c2"
 generated_exclusions               = [  ]
 
 [attention]

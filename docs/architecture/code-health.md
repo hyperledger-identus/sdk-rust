@@ -7,16 +7,21 @@ inside the pinned shell:
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --output /tmp/code-health.json
 ```
 
-The command requires `rust-code-analysis-cli 0.0.25`, reads the policy and
-hotspot dispositions in [`code-health.toml`](code-health.toml), and emits
-canonical JSON. `docs/architecture/code-health-baseline.json` records the
-immutable issue #270 starting revision. Its revision, source fingerprint and
-whole canonical-report digest are policy-pinned. Fast validation reloads that
-Git tree and recomputes the authored fingerprint, exact generated exclusions,
-and line/file populations without running the metric engine:
+The command uses the unpublished `syn` classifier and
+`rust-code-analysis-cli 0.0.25`, reads the policy and hotspot dispositions in
+[`code-health.toml`](code-health.toml), and emits canonical JSON. The v2
+baseline records the immutable issue #275 implementation revision. Its
+revision, source fingerprint, classifier identity and protocol, execution
+command, and whole canonical-report digest are policy-pinned. The exhaustive
+v1-to-v2 comparison is in
+[`code-health-v2-migration.md`](code-health-v2-migration.md).
+
+Fast validation reloads the pinned Git tree and uses the same classifier to
+recompute the authored fingerprint, exact generated exclusions, and line/file
+populations without running the metric engine:
 
 ```bash
-python3 scripts/code-health-audit.py \
+nix develop --command python3 scripts/code-health-audit.py \
   --check-report docs/architecture/code-health-baseline.json
 ```
 
@@ -27,14 +32,10 @@ complete report, including function counts and attention signals:
 ./bootstrap.sh -- python3 scripts/code-health-audit.py --verify-baseline
 ```
 
-Run that command locally or from an explicitly configured external scheduler.
-The copy in `.github/workflows/nix-checks.yml` is ready to run but its declared
-weekly trigger is not active: GitHub schedules workflows only from the default
-branch, and this repository intentionally keeps the default `main` branch
-empty while development lives on `develop`. Issue
-[#276](https://github.com/hyperledger-identus/sdk-rust/issues/276) owns a
-truthful scheduling authority; this contract does not treat the YAML cron as
-execution evidence.
+Run that command locally, manually in GitHub, or through the native weekly slow
+workflow on protected default `develop` under ADR 0120. `main` remains minimal
+and explicitly protected. The slow-run freshness audit, rather than the YAML
+cron declaration alone, is the operational execution evidence.
 
 Source-only Nix archives lack Git history. Their factory structural check uses
 `--policy-only`, which still enforces the exact schema and policy-pinned report
@@ -52,44 +53,25 @@ worktree; unrelated documentation changes do not invalidate source evidence.
   unless syntax-aware module reachability proves that it is test-only.
 - **External test** is authored Rust in Cargo's intrinsic `crates/*/tests` and
   `crates/*/benches` target trees.
-- **Inline test** is a supported node whose `cfg` predicate is definitively
-  false when `test = false` and whose end is proven by a semicolon, a
-  zero-relative-depth comma, or a recognized block item or item macro. Its
-  complete contiguous outer-attribute group, including
-  immediately preceding `///` or `/** */` outer documentation, is included.
-  Predicate comments are ignored without altering string values; raw strings
-  and Unicode/raw identifiers are accepted. The `true` and `false` cfg
-  literals are exact; unknown or newer predicate syntax remains production.
-  Recursive `cfg_attr` application uses the same three-valued rule: an
-  inactive branch is not parsed, and unknown applicability or applied syntax
-  remains production.
-  Recognized brace-delimited item macros, including qualified ASCII/raw paths,
-  end at their balanced closing brace and optional semicolon. Ambiguous angle
-  syntax, unmatched enclosing delimiters, comma-less members, nested block
-  expressions and unrecognized macros remain production. A source line is
-  inline-test only when every non-whitespace source character belongs to
-  proven test spans; mixed test/shipping lines remain production. These
-  conservative rules prevent a partial parser from consuming a following
-  shipping node. Attribute-like tokens inside macro definitions or invocations
-  are always production; only a cfg attribute outside and applying to a
-  recognized macro invocation may subtract the invocation.
-  Inner `#![cfg(...)]` scopes are unsupported in v1 and remain production.
-  Only byte-contiguous `#[` attributes are classified. Rust-valid whitespace-
-  separated forms such as `# [cfg(test)]` remain production and cannot seed
-  test-only out-of-line module inheritance. Issue #275 owns full Rust syntax.
-  A test-only out-of-line `mod name;` recursively classifies the ordinary
-  `name.rs` or `name/mod.rs` module tree. Nested inline-module context is part
-  of resolution, so `mod tests { mod helper; }` resolves only under `tests/`
-  and cannot hide a same-named shipping module. Other predicates are unknown, so
-  `cfg(any(test, feature = "diagnostics"))` remains production.
-  A `#[path = "..."]` override in test-only reachability fails closed because
-  v1 deliberately implements only ordinary Rust module resolution.
-  Test-only reachability is only a candidate: a fixed-point pass keeps a file
-  and its descendants production whenever an active or unknown production edge
-  also reaches it.
-- Issue [#275](https://github.com/hyperledger-identus/sdk-rust/issues/275)
-  tracks a non-published `syn` helper for broader full-syntax classification;
-  v1 does not claim nested or inner-scope precision.
+- **Inline test** is classified from the complete `syn` AST. The visitor covers
+  items, fields, variants, parameters, generic parameters, statements and
+  expressions, match arms, impl/trait/foreign items, and represented macros.
+  `cfg` and recursively applied `cfg_attr` use a three-valued evaluation with
+  `test = false`; unknown syntax or inclusion remains production. Inner and
+  outer attributes share those semantics.
+  A source line is inline-test only when every authored non-whitespace byte is
+  covered by proven test-only AST spans. Mixed test/shipping lines therefore
+  remain production. Macro token streams are deliberately opaque: attributes
+  inside a macro body are never interpreted, while an outer cfg on the macro
+  node itself is classified normally.
+  Test-only out-of-line modules recursively resolve ordinary `name.rs` and
+  `name/mod.rs` layouts, raw identifiers, nested module contexts, and literal
+  `#[path = "..."]` overrides. A fixed-point reachability pass applies the
+  production-wins rule whenever any active or unknown production edge reaches
+  a shared module or descendant.
+  Malformed Rust, invalid spans, ambiguous module targets, unsupported
+  predicate forms, and incomplete coverage fail closed with path/location
+  diagnostics and never echo source text.
 - **Generated** Rust is excluded only when `code-health.toml` names its exact
   path and an exact marker present in the first ten lines. Generic phrases in
   comments never cause exclusion.
@@ -101,7 +83,7 @@ or added together to imply a production size.
 
 ## Attention and disposition
 
-The v1 attention prompts are function SLOC above 100, cognitive or cyclomatic
+The v2 attention prompts are function SLOC above 100, cognitive or cyclomatic
 complexity above 15, and module authored nonblank production lines above
 1,000. A module-size signal matters only with evidence of at least two
 independent invariants or change axes. Each named hotspot has exactly one

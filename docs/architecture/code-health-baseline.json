@@ -1,6 +1,19 @@
 {
   "analyzer": {
-    "contract_version": "code-health-v1",
+    "classifier": "syn-ast-v1",
+    "classifier_command": [
+      "cargo",
+      "run",
+      "--quiet",
+      "--locked",
+      "-p",
+      "identus-conformance",
+      "--bin",
+      "code-health-classifier",
+      "--"
+    ],
+    "classifier_protocol_version": 1,
+    "contract_version": "code-health-v2",
     "engine": "rust-code-analysis-cli",
     "engine_version": "0.0.25"
   },
@@ -136,44 +149,74 @@
   ],
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 22600,
-      "files": 69,
-      "functions": 982
+      "authored_nonblank_lines": 24167,
+      "files": 73,
+      "functions": 1027
     },
     "inline_test": {
-      "authored_nonblank_lines": 3865,
-      "files": 28,
-      "functions": 312
+      "authored_nonblank_lines": 4162,
+      "files": 33,
+      "functions": 338
     },
     "production": {
-      "authored_nonblank_lines": 28374,
-      "files": 111,
-      "functions": 2194
+      "authored_nonblank_lines": 29969,
+      "files": 136,
+      "functions": 2289
     }
   },
-  "revision": "707a5a22c3fad18724d5c5cac953e7387f7e49d8",
-  "schema_version": 1,
+  "revision": "18394fc38cc085445979ae5e123fe9454ab22bae",
+  "schema_version": 2,
   "signals": {
     "functions": [
       {
-        "cognitive": 1,
-        "cyclomatic": 45,
-        "end_line": 365,
-        "name": "to_identus_error",
-        "path": "crates/credentials/src/error.rs",
+        "cognitive": 18,
+        "cyclomatic": 18,
+        "end_line": 156,
+        "name": "cfg_truth",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
         "population": "production",
-        "sloc": 176,
-        "start_line": 190
+        "sloc": 41,
+        "start_line": 116
       },
       {
         "cognitive": 1,
-        "cyclomatic": 45,
-        "end_line": 422,
-        "name": "fmt",
-        "path": "crates/credentials/src/error.rs",
+        "cyclomatic": 18,
+        "end_line": 251,
+        "name": "item_attributes",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
         "population": "production",
-        "sloc": 54,
-        "start_line": 369
+        "sloc": 21,
+        "start_line": 231
+      },
+      {
+        "cognitive": 1,
+        "cyclomatic": 42,
+        "end_line": 297,
+        "name": "expr_attributes",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 45,
+        "start_line": 253
+      },
+      {
+        "cognitive": 18,
+        "cyclomatic": 18,
+        "end_line": 744,
+        "name": "inherited_test_paths",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 47,
+        "start_line": 698
+      },
+      {
+        "cognitive": 20,
+        "cyclomatic": 24,
+        "end_line": 833,
+        "name": "classify",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 88,
+        "start_line": 746
       },
       {
         "cognitive": 1,
@@ -204,6 +247,16 @@
         "population": "production",
         "sloc": 35,
         "start_line": 608
+      },
+      {
+        "cognitive": 12,
+        "cyclomatic": 18,
+        "end_line": 484,
+        "name": "validate_extensions",
+        "path": "crates/crypto/src/jwk.rs",
+        "population": "production",
+        "sloc": 40,
+        "start_line": 445
       },
       {
         "cognitive": 25,
@@ -378,22 +431,12 @@
       {
         "cognitive": 17,
         "cyclomatic": 40,
-        "end_line": 1309,
+        "end_line": 1321,
         "name": "validate_datetime",
         "path": "crates/did/src/resolution.rs",
         "population": "production",
         "sloc": 71,
-        "start_line": 1239
-      },
-      {
-        "cognitive": 2,
-        "cyclomatic": 57,
-        "end_line": 456,
-        "name": "to_identus_error",
-        "path": "crates/jose/src/error.rs",
-        "population": "production",
-        "sloc": 214,
-        "start_line": 243
+        "start_line": 1251
       },
       {
         "cognitive": 4,
@@ -434,16 +477,6 @@
         "population": "production",
         "sloc": 35,
         "start_line": 674
-      },
-      {
-        "cognitive": 1,
-        "cyclomatic": 172,
-        "end_line": 1366,
-        "name": "to_identus_error",
-        "path": "crates/oid4vci/src/error.rs",
-        "population": "production",
-        "sloc": 860,
-        "start_line": 507
       },
       {
         "cognitive": 12,
@@ -596,16 +629,6 @@
         "start_line": 152
       },
       {
-        "cognitive": 1,
-        "cyclomatic": 49,
-        "end_line": 402,
-        "name": "contract",
-        "path": "crates/presentations/src/error.rs",
-        "population": "production",
-        "sloc": 190,
-        "start_line": 213
-      },
-      {
         "cognitive": 11,
         "cyclomatic": 16,
         "end_line": 819,
@@ -662,12 +685,8 @@
         "path": "crates/did/src/registration.rs"
       },
       {
-        "authored_nonblank_lines": 1271,
+        "authored_nonblank_lines": 1282,
         "path": "crates/did/src/resolution.rs"
-      },
-      {
-        "authored_nonblank_lines": 1371,
-        "path": "crates/oid4vci/src/error.rs"
       },
       {
         "authored_nonblank_lines": 2074,
@@ -683,5 +702,5 @@
       }
     ]
   },
-  "source_fingerprint_sha256": "e116bfb7afe3105cd8210b71b4c12a6721123c6fd2adc9a442dbd30aa415d6e4"
+  "source_fingerprint_sha256": "e1434bfc52689f57cdf6601c8fc158cae6d675122efa885882ef08a9bb424f6b"
 }

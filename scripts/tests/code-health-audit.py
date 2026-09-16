@@ -52,6 +52,38 @@ class ClassifierProtocolTests(unittest.TestCase):
             with self.assertRaisesRegex(audit.AuditError, "bounded diagnostic"):
                 audit.rust_classifier_population(Path("/repo"), {})
 
+    def test_classifier_protocol_primitives_fail_closed(self) -> None:
+        sources = {Path("crates/demo/src/lib.rs"): "pub fn shipping() {}\n"}
+        base = {
+            "classifier": "syn-ast-v1",
+            "files": [
+                {
+                    "inline_test_lines": [],
+                    "path": "crates/demo/src/lib.rs",
+                }
+            ],
+            "inherited_inline_paths": [],
+            "protocol_version": 1,
+        }
+        mutations = {
+            "boolean_protocol": lambda value: value.update(protocol_version=True),
+            "numeric_path": lambda value: value["files"][0].update(path=1),
+            "wrong_identity": lambda value: value.update(classifier="other"),
+            "extra_field": lambda value: value.update(extra=True),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name):
+                response = copy.deepcopy(base)
+                mutate(response)
+                completed = mock.Mock(
+                    returncode=0,
+                    stdout=audit.canonical_json(response),
+                    stderr="",
+                )
+                with mock.patch.object(audit.subprocess, "run", return_value=completed):
+                    with self.assertRaises(audit.AuditError):
+                        audit.rust_classifier_population(Path("/repo"), sources)
+
     def test_generated_marker_requires_exact_path_allowlist(self) -> None:
         marked = Path("crates/demo/src/marked.rs")
         ordinary = Path("crates/demo/src/ordinary.rs")
@@ -84,7 +116,10 @@ class ReportBindingTests(unittest.TestCase):
     def report(self) -> dict[str, object]:
         return {
             "analyzer": {
-                "contract_version": "code-health-v1",
+                "classifier": "syn-ast-v1",
+                "classifier_command": list(audit.CLASSIFIER_COMMAND),
+                "classifier_protocol_version": 1,
+                "contract_version": "code-health-v2",
                 "engine": "rust-code-analysis-cli",
                 "engine_version": "0.0.25",
             },
@@ -122,7 +157,7 @@ class ReportBindingTests(unittest.TestCase):
                 },
             },
             "revision": self.revision,
-            "schema_version": 1,
+            "schema_version": 2,
             "signals": {"functions": [], "modules": []},
             "source_fingerprint_sha256": self.fingerprint,
         }
@@ -131,10 +166,13 @@ class ReportBindingTests(unittest.TestCase):
         rendered = audit.canonical_json(report)
         digest = hashlib.sha256(rendered.encode()).hexdigest()
         config = f'''\
-schema_version = 1
-contract_version = "code-health-v1"
+schema_version = 2
+contract_version = "code-health-v2"
 engine = "rust-code-analysis-cli"
 engine_version = "0.0.25"
+classifier = "syn-ast-v1"
+classifier_protocol_version = 1
+classifier_command = ["cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--"]
 baseline_revision = "{self.revision}"
 baseline_source_fingerprint_sha256 = "{self.fingerprint}"
 baseline_report_sha256 = "{digest}"
@@ -219,6 +257,15 @@ evidence = "test"
         mutations = {
             "boolean_report_schema": lambda value: value.update(schema_version=True),
             "numeric_report_engine": lambda value: value["analyzer"].update(engine=1),
+            "boolean_report_classifier_protocol": lambda value: value["analyzer"].update(
+                classifier_protocol_version=True
+            ),
+            "wrong_report_classifier": lambda value: value["analyzer"].update(
+                classifier="other"
+            ),
+            "wrong_report_classifier_command": lambda value: value["analyzer"].update(
+                classifier_command=["cargo", "metadata"]
+            ),
         }
         for name, mutate in mutations.items():
             with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
@@ -235,12 +282,38 @@ evidence = "test"
             config_path = root / "docs/architecture/code-health.toml"
             config_path.write_text(
                 config_path.read_text(encoding="utf-8").replace(
-                    "schema_version = 1", "schema_version = true"
+                    "schema_version = 2", "schema_version = true"
                 ),
                 encoding="utf-8",
             )
             with self.assertRaises(audit.AuditError):
                 audit.validate_report(root, path, policy_only=True)
+
+        config_mutations = {
+            "boolean_config_protocol": (
+                "classifier_protocol_version = 1",
+                "classifier_protocol_version = true",
+            ),
+            "wrong_config_classifier": (
+                'classifier = "syn-ast-v1"',
+                'classifier = "other"',
+            ),
+            "wrong_config_command": (
+                'classifier_command = ["cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--"]',
+                'classifier_command = ["cargo", "metadata"]',
+            ),
+        }
+        for name, (before, after) in config_mutations.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                path = self.write_fixture(root, self.report())
+                config_path = root / "docs/architecture/code-health.toml"
+                config_path.write_text(
+                    config_path.read_text(encoding="utf-8").replace(before, after),
+                    encoding="utf-8",
+                )
+                with self.assertRaises(audit.AuditError):
+                    audit.validate_report(root, path, policy_only=True)
 
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -248,7 +321,7 @@ evidence = "test"
             config_path = root / "docs/architecture/code-health.toml"
             config_path.write_text(
                 config_path.read_text(encoding="utf-8").replace(
-                    'contract_version = "code-health-v1"', "contract_version = 1"
+                    'contract_version = "code-health-v2"', "contract_version = 1"
                 ),
                 encoding="utf-8",
             )

@@ -18,7 +18,7 @@ from typing import Iterator
 
 
 CONFIG_PATH = Path("docs/architecture/code-health.toml")
-EXPECTED_SCHEMA = 1
+EXPECTED_SCHEMA = 2
 ALLOWED_DISPOSITIONS = {
     "decompose",
     "deduplicate",
@@ -160,6 +160,9 @@ def load_config(root: Path) -> dict[str, object]:
         "contract_version",
         "engine",
         "engine_version",
+        "classifier",
+        "classifier_protocol_version",
+        "classifier_command",
         "baseline_revision",
         "baseline_source_fingerprint_sha256",
         "baseline_report_sha256",
@@ -174,9 +177,18 @@ def load_config(root: Path) -> dict[str, object]:
         or config["schema_version"] != EXPECTED_SCHEMA
     ):
         raise AuditError("unsupported code-health config schema")
-    for field in ("contract_version", "engine", "engine_version"):
+    for field in ("contract_version", "engine", "engine_version", "classifier"):
         if not isinstance(config.get(field), str) or not config[field]:
             raise AuditError(f"{field} must be a non-empty string")
+    if config["classifier"] != CLASSIFIER_NAME:
+        raise AuditError("code-health classifier identity does not match the implementation")
+    if (
+        type(config.get("classifier_protocol_version")) is not int
+        or config["classifier_protocol_version"] != CLASSIFIER_PROTOCOL_VERSION
+    ):
+        raise AuditError("code-health classifier protocol does not match the implementation")
+    if config.get("classifier_command") != list(CLASSIFIER_COMMAND):
+        raise AuditError("code-health classifier command must match the pinned execution path")
     attention = config.get("attention")
     expected_attention = {
         "function_sloc",
@@ -295,7 +307,9 @@ def exact_working_revision(root: Path, requested: str | None) -> str:
 
 
 def rust_classifier_population(
-    root: Path, sources: dict[Path, str]
+    root: Path,
+    sources: dict[Path, str],
+    command: tuple[str, ...] = CLASSIFIER_COMMAND,
 ) -> tuple[dict[Path, set[int]], set[Path]]:
     request = {
         "protocol_version": CLASSIFIER_PROTOCOL_VERSION,
@@ -305,7 +319,7 @@ def rust_classifier_population(
         ],
     }
     completed = subprocess.run(
-        CLASSIFIER_COMMAND,
+        command,
         cwd=root,
         input=json.dumps(request, ensure_ascii=False, separators=(",", ":")),
         capture_output=True,
@@ -327,7 +341,10 @@ def rust_classifier_population(
     )
     if response["classifier"] != CLASSIFIER_NAME:
         raise AuditError("Rust code-health classifier identity mismatch")
-    if response["protocol_version"] != CLASSIFIER_PROTOCOL_VERSION:
+    if (
+        type(response["protocol_version"]) is not int
+        or response["protocol_version"] != CLASSIFIER_PROTOCOL_VERSION
+    ):
         raise AuditError("Rust code-health classifier protocol mismatch")
     files = response["files"]
     if not isinstance(files, list) or len(files) != len(sources):
@@ -335,7 +352,9 @@ def rust_classifier_population(
     lines_by_path: dict[Path, set[int]] = {}
     for entry in files:
         entry = require_exact_keys(entry, {"path", "inline_test_lines"}, "classifier file")
-        path = Path(str(entry["path"]))
+        if not isinstance(entry["path"], str):
+            raise AuditError("Rust code-health classifier returned a non-string path")
+        path = Path(entry["path"])
         lines = entry["inline_test_lines"]
         if path not in sources or path in lines_by_path:
             raise AuditError(f"Rust code-health classifier returned unexpected path: {path}")
@@ -369,7 +388,9 @@ def source_population_evidence(
 ]:
     production_paths, test_paths, generated_paths = classify_sources(sources, config)
     production_sources = {path: sources[path] for path in production_paths}
-    all_inline_lines, _ = rust_classifier_population(root, production_sources)
+    all_inline_lines, _ = rust_classifier_population(
+        root, production_sources, tuple(config["classifier_command"])
+    )
     inline_lines_by_path: dict[Path, set[int]] = {}
     counts = {
         "production": {"authored_nonblank_lines": 0, "files": 0, "functions": 0},
@@ -472,6 +493,9 @@ def build_report(
 
     return {
         "analyzer": {
+            "classifier": config["classifier"],
+            "classifier_command": config["classifier_command"],
+            "classifier_protocol_version": config["classifier_protocol_version"],
             "contract_version": config["contract_version"],
             "engine": engine,
             "engine_version": config["engine_version"],
@@ -564,13 +588,30 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
     ):
         raise AuditError("report schema version mismatch")
     analyzer = require_exact_keys(
-        report["analyzer"], {"contract_version", "engine", "engine_version"}, "analyzer"
+        report["analyzer"],
+        {
+            "classifier",
+            "classifier_command",
+            "classifier_protocol_version",
+            "contract_version",
+            "engine",
+            "engine_version",
+        },
+        "analyzer",
     )
-    for field in ("contract_version", "engine", "engine_version"):
+    for field in ("classifier", "contract_version", "engine", "engine_version"):
         if not isinstance(analyzer.get(field), str) or not analyzer[field]:
             raise AuditError(f"report analyzer {field} must be a non-empty string")
         if analyzer.get(field) != config.get(field):
             raise AuditError(f"report analyzer {field} does not match config")
+    if (
+        type(analyzer.get("classifier_protocol_version")) is not int
+        or analyzer["classifier_protocol_version"]
+        != config.get("classifier_protocol_version")
+    ):
+        raise AuditError("report classifier protocol does not match config")
+    if analyzer.get("classifier_command") != config.get("classifier_command"):
+        raise AuditError("report classifier command does not match config")
     attention = require_exact_keys(
         report["attention"],
         {"function_sloc", "cognitive", "cyclomatic", "module_authored_nonblank_lines"},

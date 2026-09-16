@@ -43,6 +43,8 @@ required_files=(
   docs/architecture/code-health.md
   docs/architecture/code-health.toml
   docs/architecture/code-health-baseline.json
+  docs/architecture/code-health-v2-migration.md
+  crates/conformance/src/bin/code-health-classifier.rs
   docs/architecture/sdk-input-resource-boundaries.md
   docs/architecture/sdk-input-resource-boundaries.toml
   docs/architecture/source-distribution.md
@@ -238,6 +240,15 @@ if [[ -f "$factory_workflow" ]]; then
     ! grep -Fxq '          python3 scripts/check-error-golden.py .' \
       <<<"$hosted_error_block"; then
     report_failure "fast hosted CI must run Git-backed error-golden validation before Nix"
+  fi
+
+  hosted_code_health_block=$(sed -n \
+    '/^      - name: Verify pinned code-health source evidence$/,/^      - name: Run fast factory and Rust gates$/p' \
+    "$factory_workflow")
+  if ! grep -Fq \
+      'nix develop --command python3 scripts/code-health-audit.py' \
+      <<<"$hosted_code_health_block"; then
+    report_failure "fast hosted code-health validation must use the pinned Nix shell"
   fi
 fi
 

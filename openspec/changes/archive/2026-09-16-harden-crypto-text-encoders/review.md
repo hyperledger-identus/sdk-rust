@@ -49,6 +49,11 @@ infallible constructors and verified every implementation commit signature.
 8. **Dependency and unsafe boundary — accepted.** No dependency, feature,
    compiler, lockfile, build script, network, storage, FFI, or unsafe-code
    change exists.
+9. **Exported limit documentation — accepted after hosted review.** The first
+   automated review correctly found that `MAX_CRYPTO_TEXT_BYTES` still
+   described the removed parser-only/infallible-encoding contract. Its rustdoc
+   now states the shared retained-text ceiling for parsing and fallible byte
+   encoding while preserving the caller-allocation caveat.
 
 ## Decomposition decision
 

@@ -19,6 +19,8 @@
 - `cargo clippy --workspace --all-targets --all-features -- -D warnings`:
   passed.
 - `cargo test --workspace --all-features`: passed.
+- `RUSTDOCFLAGS='-D warnings' cargo doc -p identus-crypto --all-features
+  --no-deps`: passed after the hosted-review documentation correction.
 - `./scripts/factory check`: 72 OpenSpec items and every factory contract
   passed.
 - `git diff --check` and production-source searches: passed.

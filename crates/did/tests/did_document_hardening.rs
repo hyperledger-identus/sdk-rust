@@ -29,6 +29,14 @@ fn sdk_accepts(value: &str) -> bool {
     Uri::parse(value).is_ok()
 }
 
+fn hostile_depth_json() -> Value {
+    let mut value = Value::Null;
+    for _ in 0..32_768 {
+        value = Value::Array(vec![value]);
+    }
+    value
+}
+
 #[test]
 fn uri_recognizer_agrees_with_neoprism_oracle_across_component_classes() {
     let schemes = ["a", "did", "HTTP", "x+v1", "git.transport"];
@@ -156,6 +164,118 @@ fn duplicate_diagnostics_do_not_expose_caller_controlled_names() {
             "diagnostic leaked input: {rendered}"
         );
     }
+}
+
+#[test]
+fn verification_method_rejection_cleans_hostile_json_iteratively() {
+    let result = VerificationMethod::new(
+        Uri::parse("did:example:one#key").unwrap(),
+        "ExampleVerificationMethod".to_owned(),
+        Did::parse("did:example:one").unwrap(),
+        BTreeMap::from([("custom".to_owned(), hostile_depth_json())]),
+    );
+
+    assert!(matches!(
+        result,
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+}
+
+#[test]
+fn verification_method_early_rejection_cleans_hostile_json_iteratively() {
+    let result = VerificationMethod::new(
+        Uri::parse("did:example:one#key").unwrap(),
+        String::new(),
+        Did::parse("did:example:one").unwrap(),
+        BTreeMap::from([("custom".to_owned(), hostile_depth_json())]),
+    );
+
+    assert!(matches!(
+        result,
+        Err(Error::InvalidDocument(DocumentError::InvalidString))
+    ));
+}
+
+#[test]
+fn service_rejection_cleans_hostile_json_iteratively() {
+    let endpoint_map = Service::new(
+        Uri::parse("did:example:one#map").unwrap(),
+        OneOrMany::one("ExampleService".to_owned()),
+        ServiceEndpoint::Map(BTreeMap::from([(
+            "endpoint".to_owned(),
+            hostile_depth_json(),
+        )])),
+        BTreeMap::new(),
+    );
+    assert!(matches!(
+        endpoint_map,
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+
+    let endpoint_set = Service::new(
+        Uri::parse("did:example:one#set").unwrap(),
+        OneOrMany::one("ExampleService".to_owned()),
+        ServiceEndpoint::Set(vec![
+            ServiceEndpointValue::Uri(Uri::parse("https://example.com/one").unwrap()),
+            ServiceEndpointValue::Map(BTreeMap::from([(
+                "endpoint".to_owned(),
+                hostile_depth_json(),
+            )])),
+        ]),
+        BTreeMap::new(),
+    );
+    assert!(matches!(
+        endpoint_set,
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+
+    let extensions = Service::new(
+        Uri::parse("did:example:one#extensions").unwrap(),
+        OneOrMany::one("ExampleService".to_owned()),
+        ServiceEndpoint::Uri(Uri::parse("https://example.com").unwrap()),
+        BTreeMap::from([("custom".to_owned(), hostile_depth_json())]),
+    );
+    assert!(matches!(
+        extensions,
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+}
+
+#[test]
+fn document_builder_rejection_cleans_hostile_json_iteratively() {
+    let context = DidDocument::builder(Did::parse("did:example:one").unwrap())
+        .context(OneOrMany::one(ContextEntry::Object(BTreeMap::from([(
+            "term".to_owned(),
+            hostile_depth_json(),
+        )]))))
+        .build();
+    assert!(matches!(
+        context,
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+
+    let extensions = DidDocument::builder(Did::parse("did:example:one").unwrap())
+        .extensions(BTreeMap::from([(
+            "custom".to_owned(),
+            hostile_depth_json(),
+        )]))
+        .build();
+    assert!(matches!(
+        extensions,
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+
+    let early_error = DidDocument::builder(Did::parse("did:example:one").unwrap())
+        .authentication(Vec::new())
+        .extensions(BTreeMap::from([(
+            "custom".to_owned(),
+            hostile_depth_json(),
+        )]))
+        .build();
+    assert!(matches!(
+        early_error,
+        Err(Error::InvalidDocument(DocumentError::EmptyValue))
+    ));
 }
 
 #[test]

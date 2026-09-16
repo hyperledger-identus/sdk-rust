@@ -76,8 +76,10 @@ upgrades require the same governed migration.
 
 Focused Rust fixtures cover ordinary/raw identifiers, path overrides, generics,
 shifts, labels, Unicode macros, nested comments, raw strings, recursive
-cfg_attr, inner/outer attributes, same-line siblings, fields, variants,
-parameters, statements, match arms, macro opacity, and shared reachability.
+cfg_attr, inner/outer attributes, same-line siblings, declaration/struct-literal
+fields, variants, parameters, statements, match arms, associated-item cfg
+inheritance, standard binary roots, path-adjusted inline modules, generated
+module visibility, macro opacity, and shared reachability.
 Protocol-bound, malformed-source, Python orchestration, baseline mutation,
 fast timing, full regeneration, factory/OpenSpec, fmt, strict Clippy, workspace
 tests, and compatible Nix checks provide integration evidence.

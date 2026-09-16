@@ -12,14 +12,18 @@ protocol. Python orchestration SHALL NOT parse Rust boundaries. Unknown or
 unsupported inclusion SHALL remain production or fail with an actionable audit
 error; it SHALL never silently become test-only.
 
-The classifier SHALL cover ordinary items, fields, variants, parameters,
-generic parameters, statements/expressions, match arms, and represented macro
-nodes. Macro token streams SHALL remain opaque. A source line SHALL be
+The classifier SHALL cover ordinary and associated items, declaration and
+struct-literal fields, variants, parameters, generic parameters,
+statements/expressions, match arms, and represented macro nodes. Macro token
+streams SHALL remain opaque. A source line SHALL be
 inline-test only when every non-whitespace authored byte is proven test-only;
 mixed lines remain production. Raw and ordinary module identifiers SHALL map
 to the same path. Literal path overrides MAY be supported only with contained,
-unambiguous resolution. Active or unknown production reachability SHALL win
-over test-only reachability and propagate to descendants.
+unambiguous resolution, including non-root source modules, path-adjusted inline
+modules, and standard file-based binary roots. Generated sources excluded from
+metrics SHALL remain available to module resolution. Active or unknown
+production reachability SHALL win over test-only reachability and propagate to
+descendants.
 
 #### Scenario: Full Rust node syntax is classified
 
@@ -47,6 +51,20 @@ over test-only reachability and propagate to descendants.
   ambiguous, escaping, or exceeds a protocol bound
 - **THEN** the audit fails with a path/location diagnostic or retains the
   affected source as production; it never excludes it as test-only
+
+#### Scenario: Nested Rust contexts preserve cfg and path state
+
+- **WHEN** a cfg-gated associated item, struct-literal field, or path-adjusted
+  inline module contains nested syntax or an out-of-line module declaration
+- **THEN** the classifier preserves the inherited cfg and module-directory
+  context defined by Rust
+
+#### Scenario: Generated module is excluded from metrics
+
+- **WHEN** an exact allowlisted generated source is reached by an authored
+  module declaration
+- **THEN** it remains available to module resolution while its lines remain
+  absent from authored population metrics
 
 ### Requirement: Baseline evidence is bound to policy and Git content
 

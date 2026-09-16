@@ -5,7 +5,7 @@
 - Base: `5dff6f38c861b858dd62dc8310246f7d485d3e92`
 - Classifier implementation: `18394fc38cc085445979ae5e123fe9454ab22bae`
 - Exact locally reviewed classifier/evidence head:
-  `1d10a646776f1709dbe39cad83a54c5c093c5fed`
+  `d125bf55fb3246717390b8474cbc9503660ac0b5`
 - Issue: [#275](https://github.com/hyperledger-identus/sdk-rust/issues/275)
 - Review lenses: parser correctness, conservative population projection,
   module reachability, resource bounds, diagnostics, dependency direction,
@@ -56,10 +56,29 @@
 12. **Resolved hosted P2 — nested scopes lost inherited cfg state.**
     Reachability now propagates through item, statement, expression, and arm
     scopes. A local module below a test-only block is covered by regression.
+13. **Resolved hosted P2 — associated items lost inherited cfg state.**
+    Impl, trait, and foreign item attributes now update inherited reachability
+    before their nested syntax is visited. Test-only impl and trait methods with
+    local modules are covered by regression.
+14. **Resolved hosted P2 — generated modules disappeared from resolution.**
+    Exact allowlisted generated sources are passed to the classifier graph but
+    remain omitted from authored metrics and the production projection.
+15. **Resolved hosted P2 — standard file-based binaries were not roots.**
+    `src/bin/*.rs` now uses its containing directory as the ordinary child base,
+    matching Cargo's conventional binary-target layout.
+16. **Resolved hosted P2 — inline-module path attributes lost directory state.**
+    Inline modules now replace their logical-name directory with a contained
+    literal path context before nested declarations are traversed.
+17. **Resolved hosted P2 — nested overrides in non-root modules lost the parent
+    module directory.** Direct overrides remain source-directory relative;
+    overrides inside inline contexts now begin at the ordinary parent module
+    directory plus that context.
+18. **Resolved hosted P2 — struct-literal field attributes were omitted.**
+    `syn::FieldValue` spans and inherited reachability are now classified, with
+    a focused mixed test/shipping literal regression.
 
 ## Result
 
 No unresolved local architecture, security, privacy, compatibility, API or
 operations finding remains. Hosted exact-head confirmation is pending. The
-one-time v1/v2 comparison is regenerated against the durable source revision
-before completion.
+one-time v1/v2 comparison remains exact against the durable source revision.

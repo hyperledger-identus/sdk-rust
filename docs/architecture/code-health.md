@@ -61,8 +61,9 @@ interpretation of that snapshot.
 - **External test** is authored Rust in Cargo's intrinsic `crates/*/tests` and
   `crates/*/benches` target trees.
 - **Inline test** is classified from the complete `syn` AST. The visitor covers
-  items, fields, variants, parameters, generic parameters, statements and
-  expressions, match arms, impl/trait/foreign items, and represented macros.
+  items, declaration and struct-literal fields, variants, parameters, generic
+  parameters, statements and expressions, match arms, impl/trait/foreign
+  items, and represented macros.
   `cfg` and recursively applied `cfg_attr` use a three-valued evaluation with
   `test = false`; unknown syntax or inclusion remains production. Inner and
   outer attributes share those semantics.
@@ -73,18 +74,22 @@ interpretation of that snapshot.
   node itself is classified normally.
   Test-only out-of-line modules recursively resolve ordinary `name.rs` and
   `name/mod.rs` layouts, raw identifiers, nested module contexts, and literal
-  `#[path = "..."]` overrides. A fixed-point reachability pass applies the
+  `#[path = "..."]` overrides. Resolution recognizes standard `src/bin/*.rs`
+  crate roots and preserves path-adjusted inline-module directories. A
+  fixed-point reachability pass applies the
   production-wins rule whenever any active or unknown production edge reaches
   a shared module or descendant. Reachability state propagates through nested
-  item, statement, expression, and match-arm scopes. A `cfg_attr` that may
-  conditionally apply a module `path` override fails closed unless its
-  predicate is proven false.
+  item, associated-item, statement, expression, struct-field-value, and
+  match-arm scopes. A `cfg_attr` that may conditionally apply a module `path`
+  override fails closed unless its predicate is proven false.
   Malformed Rust, invalid spans, ambiguous module targets, unsupported
   predicate forms, and incomplete coverage fail closed with path/location
   diagnostics and never echo source text.
 - **Generated** Rust is excluded only when `code-health.toml` names its exact
   path and an exact marker present in the first ten lines. Generic phrases in
-  comments never cause exclusion.
+  comments never cause exclusion. Excluded sources remain available to the
+  module-resolution graph so an authored `mod generated;` edge is still valid;
+  only their metric lines are omitted.
 
 `authored_nonblank_lines` includes comments and documentation deliberately: it
 measures review surface, not executable SLOC. Function `sloc`, cognitive, and

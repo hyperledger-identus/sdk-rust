@@ -36,7 +36,7 @@ scopes and fail-closed behavior for unresolved conditional module path
 overrides.
 
 The second hosted-review remediation at
-`d125bf55fb3246717390b8474cbc9503660ac0b5` passed 38 conformance tests,
+`4a7d9f2ac32d48d837954e86141f3256b81bcee7` passed 38 conformance tests,
 strict all-target conformance Clippy, ten Python protocol/report tests, and
 exact durable-source baseline regeneration. Its regressions cover associated
 items, struct-literal fields, generated-module graph visibility, standard

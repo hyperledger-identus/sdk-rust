@@ -13,17 +13,19 @@ normal case, so current checkout identity is the wrong proof for history.
 ### Local authority before remote derivative
 
 The publication command validates the record, verifies its hosted identity,
-then atomically persists or confirms the exact private record before invoking a
-comment mutation. An existing byte-equivalent semantic record is idempotent; a
-different record at the same issue/head/version path fails closed.
+renders and size-checks the public payload, then atomically persists or
+confirms the exact private record before invoking a comment mutation. An
+existing byte-equivalent semantic record is idempotent; a different record at
+the same issue/head/version path fails closed.
 
 ### Hosted historical identity
 
 When a metric names a PR, GitHub's PR record must match the repository, PR
-number, and exact `headRefOid`. This proof applies after merge and does not
-depend on the operator's current checkout. The issue target must also exist in
-the authoritative repository. Records without a PR remain current-head-only
-until a separately specified hosted commit/issue binding exists.
+number, exact `headRefOid`, and an authoritative closing reference to the
+recorded issue. This proof applies after merge and does not depend on the
+operator's current checkout. The issue target must also exist in the
+authoritative repository. Records without a PR remain current-head-only until
+a separately specified hosted commit/issue binding exists.
 
 ### PR-first target selection
 
@@ -50,8 +52,9 @@ Existing owned marker comments are updated rather than duplicated.
 
 - Public payload may leak private content: reuse the closed renderer and
   forbidden-field validation; never ingest raw sessions during publication.
-- Historical record may be forged: require exact hosted PR-head evidence and
-  matching issue/repository identity before local persistence or mutation.
+- Historical record may be forged: require exact hosted PR-head evidence,
+  matching issue/repository identity, and authoritative PR-to-issue closing
+  linkage before local persistence or mutation.
 - Comment retries may duplicate: select/update the unique owned marker and
   fail on ambiguity; GitHub issue comments have stable identities.
 - Public comments may become stale: exact head and schema marker remain in the

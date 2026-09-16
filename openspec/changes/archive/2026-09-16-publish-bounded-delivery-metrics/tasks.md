@@ -11,8 +11,9 @@
 
 - [x] 2.1 Make publish persist or confirm the exact private record before any
       remote mutation and reject conflicting retained content.
-- [x] 2.2 Add PR-first auto targeting, issue fallback/override, and exact hosted
-      historical PR-head verification without weakening current-head writes.
+- [x] 2.2 Add PR-first auto targeting, issue fallback/override, exact hosted
+      historical PR-head verification, and authoritative closing-issue binding
+      without weakening current-head writes.
 - [x] 2.3 Add one bounded mutation retry and closed, redacted telemetry-debt
       failure behavior.
 

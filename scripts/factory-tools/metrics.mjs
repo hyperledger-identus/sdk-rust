@@ -364,6 +364,11 @@ export function validateHostedMetricIdentity(record, { issue, pullRequest = null
     if (pullRequest?.number !== record.pullRequest || pullRequest?.headRefOid !== record.headSha) {
       fail("metric pull request does not match its exact hosted head");
     }
+    const closesRecordedIssue = Array.isArray(pullRequest.closingIssuesReferences)
+      && pullRequest.closingIssuesReferences.some((reference) => (
+        reference?.number === record.issue && reference?.repository === record.repository
+      ));
+    if (!closesRecordedIssue) fail("metric pull request is not linked to its recorded issue");
   } else if (currentHead !== record.headSha) {
     fail("metric without a pull request must match the current exact HEAD");
   }
@@ -465,15 +470,30 @@ function githubPagedArray(args, failureMessage) {
 }
 
 function publish(record, issue, requestedTarget, execute) {
+  const [owner, name] = policy.repository.split("/");
   const github = {
     readIssue: (number) => githubJson(
       ["api", `repos/${policy.repository}/issues/${number}`],
       "unable to verify authoritative metric issue",
     ),
-    readPullRequest: (number) => githubJson(
-      ["pr", "view", String(number), "--repo", policy.repository, "--json", "headRefOid,number"],
-      "unable to verify authoritative metric pull request",
-    ),
+    readPullRequest: (number) => {
+      const response = githubJson([
+        "api", "graphql",
+        "-f", `owner=${owner}`,
+        "-f", `name=${name}`,
+        "-F", `number=${number}`,
+        "-f", "query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid closingIssuesReferences(first:100){nodes{number repository{nameWithOwner}}}}}}",
+      ], "unable to verify authoritative metric pull request");
+      const pullRequest = response?.data?.repository?.pullRequest;
+      return {
+        number: pullRequest?.number,
+        headRefOid: pullRequest?.headRefOid,
+        closingIssuesReferences: pullRequest?.closingIssuesReferences?.nodes?.map((reference) => ({
+          number: reference?.number,
+          repository: reference?.repository?.nameWithOwner,
+        })),
+      };
+    },
     readLogin: () => githubText(["api", "user", "--jq", ".login"], "unable to resolve authenticated metric publisher"),
     readComments: (number) => githubPagedArray(
       ["api", `repos/${policy.repository}/issues/${number}/comments`],

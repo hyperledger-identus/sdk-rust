@@ -44,16 +44,18 @@ value has a null reason. An unavailable value is null and uses one closed reason
 Input files are byte-bounded regular non-symlink JSON with duplicate fields
 rejected. Closed objects reject extra fields, and attempt counters are checked
 against per-check history. `write` requires the current exact head. Publication
-of a PR-backed record instead verifies the issue, PR and exact hosted PR head,
-so a retained record can be published after merge without checking out its old
-commit. A record without a PR remains current-head-only.
+of a PR-backed record instead verifies the issue, PR, the PR's authoritative
+closing reference to that issue, and the exact hosted PR head, so a retained
+record can be published after merge without checking out its old commit. A
+record without a PR remains current-head-only.
 
 Public output contains allowlisted aggregates and one bounded hidden canonical
 payload using the record version's marker. Publication defaults to the recorded
 PR and falls back to the issue; `--target issue` is the explicit issue-level or
 backfill override, while `--target pull-request` requires a recorded PR. Before
-the first remote mutation, the command atomically retains or confirms the exact
-private record. It then creates or updates only the authenticated publisher's
+the first remote mutation, the command renders and size-checks the public
+payload, then atomically retains or confirms the exact private record. It then
+creates or updates only the authenticated publisher's
 unique comment with that same marker, so a v2 publication never overwrites
 retained v1 evidence. Multiple matching owned comments fail closed.
 

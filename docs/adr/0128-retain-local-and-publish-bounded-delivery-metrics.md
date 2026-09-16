@@ -21,8 +21,9 @@ historical records are not visible to collaborators.
 3. Publication targets the recorded PR by default, falls back to the issue
    when no PR exists, and permits explicit issue targeting for historical or
    issue-centric reporting.
-4. Historical PR-backed publication verifies the exact hosted PR head and
-   repository/issue identity rather than requiring the current checkout head.
+4. Historical PR-backed publication verifies the exact hosted PR head, the
+   authoritative repository/issue identity, and the PR's closing reference to
+   that issue rather than requiring the current checkout head.
 5. Public comments contain only the existing allowlisted aggregate and bounded
    versioned payload. Raw Pi or agent content never leaves the private run.
 6. Comment mutation receives one bounded retry. Persistent failure is visible

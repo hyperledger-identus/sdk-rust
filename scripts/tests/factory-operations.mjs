@@ -783,17 +783,45 @@ test("metric publication routes PR-first and validates hosted historical identit
 
   assert.doesNotThrow(() => validateHostedMetricIdentity(pullRequestMetric, {
     issue: { number: 243 },
-    pullRequest: { number: 244, headRefOid: sha },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      closingIssuesReferences: [{ number: 243, repository: "hyperledger-identus/sdk-rust" }],
+    },
     currentHead: "b".repeat(40),
   }));
   assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
     issue: { number: 243 },
-    pullRequest: { number: 244, headRefOid: "b".repeat(40) },
+    pullRequest: {
+      number: 244,
+      headRefOid: "b".repeat(40),
+      closingIssuesReferences: [{ number: 243, repository: "hyperledger-identus/sdk-rust" }],
+    },
   }), /exact hosted head/u);
   assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
     issue: { number: 243, pull_request: {} },
-    pullRequest: { number: 244, headRefOid: sha },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      closingIssuesReferences: [{ number: 243, repository: "hyperledger-identus/sdk-rust" }],
+    },
   }), /authoritative repository issue/u);
+  assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      closingIssuesReferences: [{ number: 242, repository: "hyperledger-identus/sdk-rust" }],
+    },
+  }), /not linked to its recorded issue/u);
+  assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      closingIssuesReferences: [{ number: 243, repository: "other/sdk-rust" }],
+    },
+  }), /not linked to its recorded issue/u);
   assert.doesNotThrow(() => validateHostedMetricIdentity(metric, {
     issue: { number: 243 },
     currentHead: sha,
@@ -861,7 +889,11 @@ test("metric publication updates one owned PR comment and rejects unsafe executi
   const events = [];
   const github = {
     readIssue: (number) => ({ number }),
-    readPullRequest: (number) => ({ number, headRefOid: sha }),
+    readPullRequest: (number) => ({
+      number,
+      headRefOid: sha,
+      closingIssuesReferences: [{ number: 243, repository: "hyperledger-identus/sdk-rust" }],
+    }),
     readLogin: () => "factory",
     readComments: (number) => {
       events.push(`comments:${number}`);

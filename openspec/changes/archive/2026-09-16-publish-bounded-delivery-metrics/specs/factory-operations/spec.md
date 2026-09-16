@@ -22,8 +22,10 @@ private record before attempting one public allowlisted receipt. Publication
 SHALL default to the record's exact PR and SHALL fall back to its issue when no
 PR exists. An explicit issue target MAY support issue-centric or historical
 reporting. Historical PR-backed publication SHALL verify repository, issue,
-PR, and exact hosted head without requiring the caller's checkout to remain on
-that head. One bounded retry MAY handle a transient comment failure; persistent
+the PR's authoritative closing reference to that issue, and exact hosted head
+without requiring the caller's checkout to remain on that head. The bounded
+public payload SHALL be rendered and size-checked before immutable local
+retention. One bounded retry MAY handle a transient comment failure; persistent
 failure SHALL remain visible telemetry debt and SHALL NOT invalidate otherwise
 independent product evidence.
 
@@ -57,7 +59,8 @@ independent product evidence.
 #### Scenario: Completed PR metrics are published
 
 - **WHEN** a schema-valid record names an authoritative PR whose hosted head
-  equals the record head
+  equals the record head and whose closing references include the recorded
+  issue in the authoritative repository
 - **THEN** the factory atomically retains or confirms the private record before
   creating or updating the publisher's unique versioned comment on that PR
 
@@ -70,8 +73,9 @@ independent product evidence.
 
 #### Scenario: Historical or local evidence conflicts
 
-- **WHEN** the hosted PR head differs, the issue/PR is unavailable, a private
-  issue/head record differs, or multiple owned target comments share a marker
+- **WHEN** the hosted PR head differs, the PR does not close the recorded issue,
+  the issue/PR is unavailable, a private issue/head record differs, the public
+  payload exceeds its bound, or multiple owned target comments share a marker
 - **THEN** publication fails before an ambiguous or forged public receipt is
   created
 

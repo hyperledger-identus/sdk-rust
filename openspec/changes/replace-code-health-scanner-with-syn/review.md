@@ -1,0 +1,43 @@
+# Review
+
+## Scope and identities
+
+- Base: `5dff6f38c861b858dd62dc8310246f7d485d3e92`
+- Classifier implementation: `18394fc38cc085445979ae5e123fe9454ab22bae`
+- Exact locally reviewed head: `f2e5d4a5a3162a1155d5e71208f424aeb767feb0`
+- Issue: [#275](https://github.com/hyperledger-identus/sdk-rust/issues/275)
+- Review lenses: parser correctness, conservative population projection,
+  module reachability, resource bounds, diagnostics, dependency direction,
+  public/API isolation, reproducibility and migration integrity
+
+## Findings
+
+1. **Resolved — Python retained a hermetic test dependency on Cargo.** The
+   source-binding unit test began invoking the Rust classifier after v2
+   orchestration was introduced. The synthetic factory derivation intentionally
+   has no Rust toolchain. The test now injects an exact classifier result; Rust
+   protocol and integration behavior remain covered independently.
+2. **Resolved — synthetic factory source omitted v2 evidence.** The fixture now
+   copies both the migration report and classifier source required by the
+   structural contract.
+3. **Resolved — conformance dependency declarations were not Taplo-formatted.**
+   Canonical alignment was applied with no dependency or semantic change.
+4. **No blocker — conservative syntax boundary.** Unknown cfg predicates,
+   opaque macro token streams, malformed syntax, invalid spans, ambiguous
+   modules and escaping path overrides cannot become test-only evidence.
+5. **No blocker — resource and diagnostic boundary.** Request, aggregate/file
+   source, path, file-count, span and module-edge work are bounded. Diagnostics
+   identify paths and parse locations without returning source contents.
+6. **No blocker — architecture/API boundary.** The classifier remains a binary
+   in the unpublished conformance package. No parser type enters an SDK crate,
+   and no public, wire, persisted, target-runtime or release surface changes.
+7. **No blocker — dependency cone.** `syn`, `proc-macro2`, `serde` and
+   `serde_json` were already workspace-locked. The change adds no new package
+   to `Cargo.lock` and no native or unsafe dependency boundary.
+
+## Result
+
+No unresolved architecture, security, privacy, compatibility, API or
+operations finding remains. The one-time v1/v2 comparison has no authored
+nonblank population delta; the documented blank-line representation change
+does not affect any metric or decision input.

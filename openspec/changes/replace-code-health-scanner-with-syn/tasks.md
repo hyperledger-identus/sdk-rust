@@ -30,8 +30,9 @@
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Run focused tests, fmt, strict Clippy, workspace tests, factory,
+- [x] 4.1 Run focused tests, fmt, strict Clippy, workspace tests, factory,
       OpenSpec, fast-equivalent checks, and the compatible Nix closure.
-- [ ] 4.2 Complete architecture/security/API review and archive the change.
+- [x] 4.2 Complete architecture/security/API review and prepare the change for
+      archive after hosted evidence.
 - [ ] 4.3 Open an issue-linked PR, resolve exact-head review findings, and merge
       to protected `develop` only after every required check is green.

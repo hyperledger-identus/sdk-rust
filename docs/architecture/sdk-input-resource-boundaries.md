@@ -41,8 +41,8 @@ calling it unbounded SDK behavior.
   inventory limit; the checker enforces this coverage.
 - Core, credential, presentation, OID4VCI and wallet retained values have
   explicit fixed or configurable limits. The inventory separately discloses
-  three public compatibility exceptions: infallible crypto text encoders,
-  directly constructible JOSE retained-input enums, and DID `Multihash`.
+  two public compatibility exceptions: directly constructible JOSE
+  retained-input enums and DID `Multihash`.
 - DID document, resolution-result, registration, and option-map policies are
   separate rows. Credential artifacts, descriptors, format/metadata, schema,
   status, verification evidence, registry, and verifier execution are likewise
@@ -64,8 +64,9 @@ calling it unbounded SDK behavior.
 - Standalone public JWK extensions are capped at 32 members, depth 16, 1,024
   JSON nodes and 65,536 aggregate key/string UTF-8 bytes before retention;
   rejected native trees are dismantled iteratively instead of recursively.
-- `HexStr::from` and `Base64UrlStrNoPad::from` retain encodings of arbitrary
-  caller byte slices; #298 owns their validated-construction migration.
+- `HexStr` and `Base64UrlStrNoPad` use fallible byte constructors that reject
+  before canonical text would exceed 4,096 bytes; ADR 0129 records the source
+  migration from the former blanket `From` implementations.
 - Direct `JwsKeyReference::KeyId`/`X5c` and
   `Oid4vciProofJwtClient::Identified` construction can retain arbitrary inputs
   before later builder validation; #299 owns their opaque validated migration.

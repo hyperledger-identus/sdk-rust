@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 298,
+  "change": "harden-crypto-text-encoders",
+  "branch": "codex/fix/issue-298",
+  "baseRef": "origin/develop",
+  "baseSha": "508917b0416147668b9d12949eec987f0b82946b",
+  "contractHeadSha": "710ebc8657e7aae0f36a2dc7b6be649b4fbff901",
+  "createdAt": "2026-09-16T22:09:00.251Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -129,13 +129,6 @@ misrepresented as bounded, non-retaining, or protected by an outer allocator.
   byte retention and require consumers to bound input before construction or
   serde until an explicit migration replaces the compatibility contract
 
-#### Scenario: Infallible crypto codec encoders are inspected
-
-- **WHEN** an agent audits `HexStr::from` and `Base64UrlStrNoPad::from`
-- **THEN** the inventory and `SDK-LIM-007` SHALL disclose their unbounded
-  encoded-string retention and require a caller byte bound until issue #298
-  provides a validated public construction migration
-
 #### Scenario: Direct JOSE retained enums are inspected
 
 - **WHEN** an agent audits direct `JwsKeyReference::KeyId`/`X5c` or
@@ -158,3 +151,23 @@ the complete native family.
 - **WHEN** a caller would pass recursive JSON directly to a DID constructor
 - **THEN** the caller SHALL pre-bound its depth or use the bounded slice parser
   so validation failure cannot enter unbounded recursive destruction
+
+### Requirement: Crypto codec retention is SDK-enforced
+
+The input-boundary inventory SHALL classify public byte-to-`HexStr` and
+byte-to-`Base64UrlStrNoPad` construction as SDK-enforced only after no public
+unbounded infallible encoding path remains and exact boundary evidence passes.
+
+#### Scenario: Codec limitation is narrowed
+
+- **WHEN** the blanket public `From<AsRef<[u8]>>` implementations are absent
+  and every remaining public byte constructor enforces the encoded-text ceiling
+- **THEN** the codec clause SHALL be removed from `SDK-LIM-007`
+- **AND** unrelated residual limitations SHALL remain unchanged
+
+#### Scenario: Public bypass returns
+
+- **WHEN** a future public conversion can retain codec text above the declared
+  ceiling
+- **THEN** the inventory checker or review SHALL fail and the limitation SHALL
+  be restored immediately

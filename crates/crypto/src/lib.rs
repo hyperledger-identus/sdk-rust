@@ -24,11 +24,13 @@
 
 use identus_core::Component;
 
-/// Maximum UTF-8 byte length accepted by the public hex and base64url text
-/// parsers.
+/// Maximum canonical text byte length retained by the public hex and base64url
+/// codecs.
 ///
-/// This is a parser resource boundary, not a universal instance-size limit.
-/// Infallible encoding from caller-owned bytes remains caller-budgeted.
+/// Text parsers reject input above this limit before decoding. Fallible public
+/// byte encoders reject input whose canonical representation would exceed the
+/// same limit before encoding. Allocation of caller-owned input before either
+/// boundary remains caller-owned.
 pub const MAX_CRYPTO_TEXT_BYTES: usize = 4_096;
 
 pub mod enc;

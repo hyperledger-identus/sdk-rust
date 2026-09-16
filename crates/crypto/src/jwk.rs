@@ -223,7 +223,7 @@ impl JwkThumbprint {
     /// Encode the thumbprint as canonical unpadded base64url.
     #[must_use]
     pub fn to_base64url(&self) -> Base64UrlStrNoPad {
-        Base64UrlStrNoPad::from(self.0)
+        Base64UrlStrNoPad::encode_trusted(&self.0)
     }
 }
 
@@ -257,7 +257,7 @@ impl PublicKeyJwk {
     /// Returns [`JwkError::IncompatibleProfile`] when `curve` is not an OKP
     /// curve.
     pub fn new_okp(curve: JwkCurve, x: [u8; COORDINATE_SIZE]) -> Result<Self, JwkError> {
-        let x = Base64UrlStrNoPad::from(x);
+        let x = Base64UrlStrNoPad::encode_trusted(&x);
         Self::from_parts(JwkKeyType::Okp, curve, x.as_str(), None, BTreeMap::new())
     }
 
@@ -272,8 +272,8 @@ impl PublicKeyJwk {
         x: [u8; COORDINATE_SIZE],
         y: [u8; COORDINATE_SIZE],
     ) -> Result<Self, JwkError> {
-        let x = Base64UrlStrNoPad::from(x);
-        let y = Base64UrlStrNoPad::from(y);
+        let x = Base64UrlStrNoPad::encode_trusted(&x);
+        let y = Base64UrlStrNoPad::encode_trusted(&y);
         Self::from_parts(
             JwkKeyType::Ec,
             curve,

@@ -50,24 +50,13 @@ review_triggers  = [ "new key representation", "new COSE/JWK member", "new serde
 [[boundaries]]
 id               = "crypto-codecs-and-derivation"
 package          = "identus-crypto"
-surface          = "hex/base64url parsing and BIP32/SLIP-0010/Cardano derivation paths and seeds, excluding infallible codec encoding"
+surface          = "bounded hex/base64url parsing and byte encoding plus BIP32/SLIP-0010/Cardano derivation paths and seeds"
 disposition      = "sdk-enforced"
 limits           = [ "MAX_CRYPTO_TEXT_BYTES=4096", "MAX_DERIVATION_PATH_BYTES=4096", "MAX_DERIVATION_PATH_AXES=255", "MAX_HD_SEED_BYTES=64", "MIN_HD_SEED_BYTES=16" ]
-evidence         = [ "crates/crypto/src/hex.rs", "crates/crypto/src/base64.rs", "crates/crypto/src/derivation/mod.rs", "crates/crypto/src/derivation/path.rs" ]
-outer_obligation = "Programmatic DerivationPath growth is caller-owned, while every cryptographic path consumer rejects more than 255 axes before child work."
-consumer_impact  = "Untrusted text and seeds fail before decoding/derivation beyond the declared limits."
-review_triggers  = [ "new codec", "new derivation family", "path or seed limit change" ]
-
-[[boundaries]]
-id               = "crypto-codec-infallible-encoders"
-package          = "identus-crypto"
-surface          = "HexStr::from and Base64UrlStrNoPad::from infallible encoding from arbitrary caller byte slices"
-disposition      = "known-unbounded-compatibility"
-limits           = [  ]
-evidence         = [ "crates/crypto/src/hex.rs", "crates/crypto/src/base64.rs", "docs/adr/0125-govern-sdk-input-resource-boundaries.md" ]
-outer_obligation = "Callers must cap arbitrary byte slices before these compatibility constructors; fixed-size SDK key/digest callers remain inherently bounded."
-consumer_impact  = "Do not expose the infallible encoders directly to hostile variable-length input; issue #298 owns validated construction and migration."
-review_triggers  = [ "issue #298 migration", "codec constructor change", "new arbitrary-length encoder", "downstream adoption evidence" ]
+evidence         = [ "crates/crypto/src/hex.rs", "crates/crypto/src/base64.rs", "crates/crypto/tests/codec_boundaries.rs", "crates/crypto/src/derivation/mod.rs", "crates/crypto/src/derivation/path.rs", "docs/adr/0129-bound-public-crypto-text-encoders.md" ]
+outer_obligation = "Callers own byte allocation before codec entry and programmatic DerivationPath growth; public codecs reject before oversized encoded retention, and every cryptographic path consumer rejects more than 255 axes before child work."
+consumer_impact  = "Untrusted text, byte encoding, and seeds fail before retained decoding/encoding/derivation beyond the declared limits; former infallible codec callers migrate to try_from_bytes or TryFrom."
+review_triggers  = [ "new public codec constructor", "codec or derivation budget change", "new derivation family", "path or seed limit change" ]
 
 [[boundaries]]
 id               = "crypto-bip39"

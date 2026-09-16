@@ -15,6 +15,7 @@ use crate::{
     MediaType, VersionId,
     document::{JsonBudget, validate_json_map},
     error::ResolutionError,
+    json_cleanup::{RejectionGuard, drop_json_values_iteratively},
 };
 
 /// Maximum raw JSON size accepted by a resolution or dereferencing option map.
@@ -68,16 +69,19 @@ impl ResolutionOptions {
         version_time: Option<DidResolutionDateTime>,
         extensions: BTreeMap<String, Value>,
     ) -> Result<Self, Error> {
-        let options = Self {
-            accept,
-            expand_relative_urls,
-            no_cache,
-            version_id,
-            version_time,
-            extensions,
-        };
-        options.validate()?;
-        Ok(options)
+        let options = RejectionGuard::new(
+            Self {
+                accept,
+                expand_relative_urls,
+                no_cache,
+                version_id,
+                version_time,
+                extensions,
+            },
+            drop_resolution_options_json,
+        );
+        options.owner().validate()?;
+        Ok(options.into_owner())
     }
 
     /// Begin immutable option construction.
@@ -141,6 +145,18 @@ impl ResolutionOptions {
     fn validate(&self) -> Result<(), Error> {
         validate_option_extensions(&self.extensions, RESOLUTION_RESERVED)
     }
+}
+
+fn drop_resolution_options_json(options: ResolutionOptions) {
+    let ResolutionOptions {
+        accept: _,
+        expand_relative_urls: _,
+        no_cache: _,
+        version_id: _,
+        version_time: _,
+        extensions,
+    } = options;
+    drop_json_values_iteratively(extensions.into_values());
 }
 
 impl<'de> Deserialize<'de> for ResolutionOptions {
@@ -225,8 +241,9 @@ impl ResolutionOptionsBuilder {
 
     /// Validate and return the immutable option map.
     pub fn build(self) -> Result<ResolutionOptions, Error> {
-        self.0.validate()?;
-        Ok(self.0)
+        let options = RejectionGuard::new(self.0, drop_resolution_options_json);
+        options.owner().validate()?;
+        Ok(options.into_owner())
     }
 }
 
@@ -251,13 +268,16 @@ impl DereferencingOptions {
         verification_relationship: Option<VerificationRelationshipName>,
         extensions: BTreeMap<String, Value>,
     ) -> Result<Self, Error> {
-        let options = Self {
-            accept,
-            verification_relationship,
-            extensions,
-        };
-        options.validate()?;
-        Ok(options)
+        let options = RejectionGuard::new(
+            Self {
+                accept,
+                verification_relationship,
+                extensions,
+            },
+            drop_dereferencing_options_json,
+        );
+        options.owner().validate()?;
+        Ok(options.into_owner())
     }
 
     /// Begin immutable option construction.
@@ -303,6 +323,15 @@ impl DereferencingOptions {
     fn validate(&self) -> Result<(), Error> {
         validate_option_extensions(&self.extensions, DEREFERENCING_RESERVED)
     }
+}
+
+fn drop_dereferencing_options_json(options: DereferencingOptions) {
+    let DereferencingOptions {
+        accept: _,
+        verification_relationship: _,
+        extensions,
+    } = options;
+    drop_json_values_iteratively(extensions.into_values());
 }
 
 impl<'de> Deserialize<'de> for DereferencingOptions {
@@ -353,8 +382,9 @@ impl DereferencingOptionsBuilder {
 
     /// Validate and return the immutable option map.
     pub fn build(self) -> Result<DereferencingOptions, Error> {
-        self.0.validate()?;
-        Ok(self.0)
+        let options = RejectionGuard::new(self.0, drop_dereferencing_options_json);
+        options.owner().validate()?;
+        Ok(options.into_owner())
     }
 }
 

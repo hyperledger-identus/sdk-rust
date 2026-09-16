@@ -10,7 +10,11 @@ use std::{collections::BTreeMap, fmt, future::Future, pin::Pin};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use serde_json::Value;
 
-use crate::{Did, DidDocument, DidDocumentMetadata, DidMethod, Error, error::RegistrationError};
+use crate::{
+    Did, DidDocument, DidDocumentMetadata, DidMethod, Error,
+    error::RegistrationError,
+    json_cleanup::{RejectionGuard, drop_json_values_iteratively},
+};
 
 /// Maximum raw JSON bytes accepted by [`RegistrationPublicData`].
 pub const MAX_DID_REGISTRATION_BYTES: usize = 512 * 1_024;
@@ -178,9 +182,10 @@ pub struct RegistrationPublicData(BTreeMap<String, Value>);
 impl RegistrationPublicData {
     /// Validate a native public-data map.
     pub fn new(values: BTreeMap<String, Value>) -> Result<Self, Error> {
+        let data = RejectionGuard::new(Self(values), drop_registration_public_data_json);
         let mut budget = JsonBudget::default();
-        validate_map(&values, 1, &mut budget)?;
-        Ok(Self(values))
+        validate_map(&data.owner().0, 1, &mut budget)?;
+        Ok(data.into_owner())
     }
 
     /// Return an empty public-data object.
@@ -215,6 +220,11 @@ impl RegistrationPublicData {
     pub fn into_map(self) -> BTreeMap<String, Value> {
         self.0
     }
+}
+
+fn drop_registration_public_data_json(data: RegistrationPublicData) {
+    let RegistrationPublicData(values) = data;
+    drop_json_values_iteratively(values.into_values());
 }
 
 impl fmt::Debug for RegistrationPublicData {

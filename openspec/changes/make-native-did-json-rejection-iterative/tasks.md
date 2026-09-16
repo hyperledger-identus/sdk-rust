@@ -14,7 +14,7 @@
 - [x] 2.2 Protect document and service/method native rejection paths.
 - [x] 2.3 Protect resolution, dereferencing metadata/content, and metadata
       builder rejection paths.
-- [ ] 2.4 Protect query direct/builder and registration rejection paths.
+- [x] 2.4 Protect query direct/builder and registration rejection paths.
 
 ## 3. Evidence and governance
 

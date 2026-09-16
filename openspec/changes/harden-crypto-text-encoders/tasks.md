@@ -13,7 +13,7 @@
       remove the blanket infallible `From` surface.
 - [x] 2.2 Migrate bounded parser and fixed-size JWK callers through private
       trusted encoding without changing successful output.
-- [ ] 2.3 Add exact/one-over, ownership-form, canonical parity, redaction, and
+- [x] 2.3 Add exact/one-over, ownership-form, canonical parity, redaction, and
       public source/API regression evidence.
 
 ## 3. Governance and delivery

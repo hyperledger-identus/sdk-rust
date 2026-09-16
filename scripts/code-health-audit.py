@@ -13,7 +13,6 @@ import sys
 import tarfile
 import tempfile
 import tomllib
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator
 
@@ -26,675 +25,27 @@ ALLOWED_DISPOSITIONS = {
     "document-exception",
     "defer-with-owner",
 }
+CLASSIFIER_NAME = "syn-ast-v1"
+CLASSIFIER_PROTOCOL_VERSION = 1
+CLASSIFIER_COMMAND = (
+    "cargo",
+    "run",
+    "--quiet",
+    "--locked",
+    "-p",
+    "identus-conformance",
+    "--bin",
+    "code-health-classifier",
+    "--",
+)
 
 
 class AuditError(RuntimeError):
     """An invalid audit input or failed analysis."""
 
 
-@dataclass(frozen=True)
-class Span:
-    start: int
-    end: int
-
-
-@dataclass(frozen=True)
-class ModuleReference:
-    context: tuple[str, ...]
-    name: str
-
-
 def canonical_json(value: object) -> str:
     return json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
-
-
-def sanitize_rust(source: str) -> str:
-    """Blank comments and literals while retaining offsets and newlines."""
-    chars = list(source)
-
-    def blank(start: int, end: int) -> None:
-        for index in range(start, end):
-            if chars[index] != "\n":
-                chars[index] = " "
-
-    index = 0
-    length = len(source)
-    while index < length:
-        if source.startswith("//", index):
-            end = source.find("\n", index)
-            end = length if end < 0 else end
-            blank(index, end)
-            index = end
-            continue
-        if source.startswith("/*", index):
-            depth = 1
-            end = index + 2
-            while end < length and depth:
-                if source.startswith("/*", end):
-                    depth += 1
-                    end += 2
-                elif source.startswith("*/", end):
-                    depth -= 1
-                    end += 2
-                else:
-                    end += 1
-            blank(index, end)
-            index = end
-            continue
-
-        raw = re.match(r"(?:br|r)(#{0,255})\"", source[index:])
-        if raw:
-            hashes = raw.group(1)
-            closing = '"' + hashes
-            content_start = index + raw.end()
-            found = source.find(closing, content_start)
-            end = length if found < 0 else found + len(closing)
-            blank(index, end)
-            index = end
-            continue
-
-        quote_start = index
-        if source.startswith('b"', index):
-            index += 1
-        if source[index:index + 1] == '"':
-            end = index + 1
-            while end < length:
-                if source[end] == "\\":
-                    end += 2
-                    continue
-                end += 1
-                if source[end - 1] == '"':
-                    break
-            blank(quote_start, min(end, length))
-            index = min(end, length)
-            continue
-
-        char_start = index
-        if source.startswith("b'", index):
-            index += 1
-        if source[index:index + 1] == "'":
-            # A lifetime has no closing quote immediately after one token.
-            match = re.match(r"'(?:[^\W\d]|_)[\w]*", source[index:])
-            if match and source[index + len(match.group(0)):index + len(match.group(0)) + 1] != "'":
-                index += len(match.group(0))
-                continue
-            end = index + 1
-            while end < length:
-                if source[end] == "\\":
-                    end += 2
-                    continue
-                end += 1
-                if source[end - 1] == "'":
-                    break
-            blank(char_start, min(end, length))
-            index = min(end, length)
-            continue
-        index += 1
-    return "".join(chars)
-
-
-def matching_delimiter(text: str, start: int, opening: str, closing: str) -> int:
-    depth = 0
-    for index in range(start, len(text)):
-        char = text[index]
-        if char == opening:
-            depth += 1
-        elif char == closing:
-            depth -= 1
-            if depth == 0:
-                return index
-    raise AuditError(f"unbalanced {opening}{closing} delimiter at byte {start}")
-
-
-CFG_TOKEN = re.compile(
-    r"\s*(?:"
-    r"(?P<raw_string>r(?P<hashes>#{0,255})\".*?\"(?P=hashes))|"
-    r"(?P<string>\"(?:\\.|[^\"\\])*\")|"
-    r"(?P<raw_ident>r#(?:[^\W\d]|_)[\w]*)|"
-    r"(?P<ident>(?:[^\W\d]|_)[\w-]*)|"
-    r"(?P<punct>[(),=]))",
-    re.DOTALL,
-)
-ITEM_BLOCK_HEADER = re.compile(
-    r"^\s*(?:(?:pub(?:\s*\([^)]*\))?|unsafe|async|const|default)\s+)*"
-    r"(?:(?:extern(?:\s+\"[^\"]*\")?)\s+)?"
-    r"(?:(?:fn|mod|impl|trait|enum|struct|union)\b|macro_rules\s*!)"
-)
-EXTERN_BLOCK_HEADER = re.compile(
-    r"^\s*(?:(?:pub(?:\s*\([^)]*\))?|unsafe)\s+)*extern(?:\s+\"[^\"]*\")?\s*$"
-)
-ITEM_MACRO_HEADER = re.compile(
-    r"^\s*(?:::)?"
-    r"(?:(?:[A-Za-z_][A-Za-z0-9_]*|r#[A-Za-z_][A-Za-z0-9_]*|\$crate)::)*"
-    r"(?:[A-Za-z_][A-Za-z0-9_]*|r#[A-Za-z_][A-Za-z0-9_]*)\s*!\s*$"
-)
-RUST_IDENT_PATTERN = r"(?:r#)?(?:[^\W\d]|_)[\w]*"
-MACRO_INVOCATION = re.compile(
-    rf"(?:::)?(?:{RUST_IDENT_PATTERN}::)*{RUST_IDENT_PATTERN}\s*!\s*([({{\[])"
-)
-MACRO_RULES_DEFINITION = re.compile(
-    rf"\bmacro_rules\s*!\s*{RUST_IDENT_PATTERN}\s*([({{\[])"
-)
-
-
-class CfgParser:
-    def __init__(self, text: str):
-        self.tokens: list[str] = []
-        offset = 0
-        while offset < len(text):
-            match = CFG_TOKEN.match(text, offset)
-            if not match:
-                if text[offset:].strip():
-                    raise AuditError(f"unsupported cfg syntax: {text!r}")
-                break
-            raw_ident = match.group("raw_ident")
-            # `r#test` still denotes the built-in `test` cfg name. Preserve
-            # other raw identifiers so `r#true`/`r#false` are not confused
-            # with Rust's cfg literal predicates.
-            if raw_ident == "r#test":
-                raw_ident = "test"
-            self.tokens.append(
-                raw_ident
-                or match.group("ident")
-                or match.group("raw_string")
-                or match.group("string")
-                or match.group("punct")
-            )
-            offset = match.end()
-        self.index = 0
-
-    def peek(self) -> str | None:
-        return self.tokens[self.index] if self.index < len(self.tokens) else None
-
-    def take(self) -> str:
-        token = self.peek()
-        if token is None:
-            raise AuditError("unexpected end of cfg expression")
-        self.index += 1
-        return token
-
-    def parse(self) -> bool | None:
-        value = self.expression()
-        if self.peek() is not None:
-            raise AuditError(f"trailing cfg token {self.peek()!r}")
-        return value
-
-    def expression(self) -> bool | None:
-        name = self.take()
-        if not re.fullmatch(r"(?:r#)?(?:[^\W\d]|_)[\w-]*", name):
-            raise AuditError(f"expected cfg predicate, found {name!r}")
-        if self.peek() == "=":
-            self.take()
-            self.take()
-            return None
-        if self.peek() != "(":
-            if name in {"test", "false"}:
-                return False
-            return True if name == "true" else None
-
-        self.take()
-        values: list[bool | None] = []
-        if self.peek() != ")":
-            while True:
-                values.append(self.expression())
-                if self.peek() != ",":
-                    break
-                self.take()
-                if self.peek() == ")":
-                    break
-        if self.take() != ")":
-            raise AuditError("cfg group is not closed")
-
-        if name == "all":
-            if any(value is False for value in values):
-                return False
-            return True if all(value is True for value in values) else None
-        if name == "any":
-            if any(value is True for value in values):
-                return True
-            return False if all(value is False for value in values) else None
-        if name == "not" and len(values) == 1:
-            value = values[0]
-            return None if value is None else not value
-        return None
-
-
-def sanitize_cfg_meta(source: str) -> str:
-    """Blank cfg comments while preserving literal tokens and source offsets."""
-    chars = list(source)
-
-    def blank(start: int, end: int) -> None:
-        for offset in range(start, end):
-            if chars[offset] != "\n":
-                chars[offset] = " "
-
-    index = 0
-    while index < len(source):
-        if source.startswith("//", index):
-            end = source.find("\n", index)
-            end = len(source) if end < 0 else end
-            blank(index, end)
-            index = end
-            continue
-        if source.startswith("/*", index):
-            depth = 1
-            end = index + 2
-            while end < len(source) and depth:
-                if source.startswith("/*", end):
-                    depth += 1
-                    end += 2
-                elif source.startswith("*/", end):
-                    depth -= 1
-                    end += 2
-                else:
-                    end += 1
-            if depth:
-                raise AuditError("unclosed comment in cfg metadata")
-            blank(index, end)
-            index = end
-            continue
-        raw = re.match(r'r(#{0,255})"', source[index:])
-        if raw:
-            closing = '"' + raw.group(1)
-            found = source.find(closing, index + raw.end())
-            if found < 0:
-                raise AuditError("unclosed raw string in cfg metadata")
-            index = found + len(closing)
-            continue
-        if source[index] == '"':
-            end = index + 1
-            while end < len(source):
-                if source[end] == "\\":
-                    end += 2
-                    continue
-                end += 1
-                if source[end - 1] == '"':
-                    break
-            if end > len(source) or source[end - 1] != '"':
-                raise AuditError("unclosed string in cfg metadata")
-            index = end
-            continue
-        index += 1
-    return "".join(chars)
-
-
-def cfg_value(attribute_body: str) -> bool | None:
-    cleaned = sanitize_cfg_meta(attribute_body)
-    match = re.fullmatch(r"\s*cfg\s*\((.*)\)\s*", cleaned, re.DOTALL)
-    if not match:
-        return None
-    try:
-        return CfgParser(match.group(1)).parse()
-    except AuditError:
-        # rustc remains the syntax authority. An expression beyond this pinned
-        # evaluator's grammar must stay in production rather than making the
-        # evidence gate brittle or creating a test-only hiding primitive.
-        return None
-
-
-def split_top_level_meta(meta: str) -> list[str]:
-    clean = sanitize_rust(meta)
-    parts: list[str] = []
-    start = 0
-    parens = brackets = braces = 0
-    for index, char in enumerate(clean):
-        if char == "(":
-            parens += 1
-        elif char == ")":
-            parens -= 1
-        elif char == "[":
-            brackets += 1
-        elif char == "]":
-            brackets -= 1
-        elif char == "{":
-            braces += 1
-        elif char == "}":
-            braces -= 1
-        elif char == "," and parens == 0 and brackets == 0 and braces == 0:
-            parts.append(meta[start:index])
-            start = index + 1
-        if min(parens, brackets, braces) < 0:
-            raise AuditError("unbalanced cfg_attr metadata")
-    if parens or brackets or braces:
-        raise AuditError("unbalanced cfg_attr metadata")
-    parts.append(meta[start:])
-    return parts
-
-
-def and_values(values: list[bool | None]) -> bool | None:
-    if any(value is False for value in values):
-        return False
-    return True if all(value is True for value in values) else None
-
-
-def attribute_inclusion(attribute_body: str) -> bool | None:
-    cleaned = sanitize_cfg_meta(attribute_body)
-    direct = re.fullmatch(r"\s*cfg\s*\((.*)\)\s*", cleaned, re.DOTALL)
-    if direct:
-        return cfg_value(cleaned)
-    conditional = re.fullmatch(r"\s*cfg_attr\s*\((.*)\)\s*", cleaned, re.DOTALL)
-    if not conditional:
-        return True
-    arguments = split_top_level_meta(conditional.group(1))
-    if len(arguments) < 2:
-        raise AuditError("cfg_attr requires a predicate and at least one attribute")
-    try:
-        predicate = CfgParser(sanitize_cfg_meta(arguments[0])).parse()
-    except AuditError:
-        predicate = None
-    if predicate is False:
-        return True
-    try:
-        applied = and_values([attribute_inclusion(item) for item in arguments[1:]])
-    except AuditError:
-        # An unknown condition may or may not apply metadata that this pinned
-        # parser does not understand. Keep the item in production rather than
-        # letting future syntax create an exclusion or break the fast lane.
-        return None
-    if predicate is True:
-        return applied
-    if applied is True:
-        return True
-    return None
-
-
-def skip_space(text: str, index: int) -> int:
-    while index < len(text) and text[index].isspace():
-        index += 1
-    return index
-
-
-def block_comment_start(source: str, end: int) -> int | None:
-    """Return the matching nested block-comment start for an end after `*/`."""
-    depth = 1
-    cursor = end - 2
-    while cursor > 0:
-        cursor -= 1
-        token = source[cursor:cursor + 2]
-        if token == "*/":
-            depth += 1
-        elif token == "/*":
-            depth -= 1
-            if depth == 0:
-                return cursor
-    return None
-
-
-def outer_doc_group_start(source: str, item_attribute_start: int) -> int:
-    """Include contiguous outer doc comments, which are Rust outer attributes."""
-    cursor = item_attribute_start
-    while True:
-        before = cursor
-        while before > 0 and source[before - 1].isspace():
-            before -= 1
-        if before >= 2 and source[before - 2:before] == "*/":
-            start = block_comment_start(source, before)
-            if (
-                start is not None
-                and source.startswith("/**", start)
-                and not source.startswith("/***", start)
-            ):
-                line_start = source.rfind("\n", 0, start) + 1
-                cursor = line_start if source[line_start:start].isspace() else start
-                continue
-        line_start = source.rfind("\n", 0, before) + 1
-        line = source[line_start:before].lstrip(" \t")
-        if line.startswith("///") and not line.startswith("////"):
-            cursor = line_start
-            continue
-        return cursor
-
-
-def item_end(clean: str, index: int) -> int | None:
-    """Return an exact supported attributed-node end, otherwise no span."""
-    index = skip_space(clean, index)
-    while clean.startswith("#[", index):
-        close = matching_delimiter(clean, index + 1, "[", "]")
-        index = skip_space(clean, close + 1)
-
-    parens = brackets = braces = 0
-    cursor = index
-    while cursor < len(clean):
-        char = clean[cursor]
-        if char == "(":
-            parens += 1
-        elif char == ")":
-            if parens:
-                parens -= 1
-            else:
-                return None
-        elif char == "[":
-            brackets += 1
-        elif char == "]":
-            if brackets:
-                brackets -= 1
-            else:
-                return None
-        elif char == "<" and parens == 0 and brackets == 0 and braces == 0:
-            return None
-        elif char == ">" and cursor > index and clean[cursor - 1] == "-":
-            pass
-        elif char == ">":
-            return None
-        elif char == "{" and parens == 0 and brackets == 0:
-            header = clean[index:cursor]
-            if ITEM_BLOCK_HEADER.search(header) or EXTERN_BLOCK_HEADER.fullmatch(header):
-                return matching_delimiter(clean, cursor, "{", "}") + 1
-            if ITEM_MACRO_HEADER.fullmatch(header):
-                end = matching_delimiter(clean, cursor, "{", "}") + 1
-                after = skip_space(clean, end)
-                return after + 1 if clean.startswith(";", after) else end
-            return None
-        elif char == "}":
-            if braces:
-                braces -= 1
-            else:
-                return None
-        elif (
-            char == ";"
-            and parens == 0
-            and brackets == 0
-            and braces == 0
-        ):
-            return cursor + 1
-        elif char == "," and parens == 0 and brackets == 0 and braces == 0:
-            return cursor + 1
-        cursor += 1
-    return None
-
-
-def merge_spans(spans: list[Span]) -> list[Span]:
-    merged: list[Span] = []
-    for span in sorted(spans, key=lambda item: (item.start, item.end)):
-        if merged and span.start <= merged[-1].end:
-            merged[-1] = Span(merged[-1].start, max(merged[-1].end, span.end))
-        else:
-            merged.append(span)
-    return merged
-
-
-def test_only_spans(source: str) -> list[Span]:
-    clean = sanitize_rust(source)
-    macro_tokens: list[Span] = []
-    closing_for = {"(": ")", "[": "]", "{": "}"}
-    for pattern in (MACRO_INVOCATION, MACRO_RULES_DEFINITION):
-        for match in pattern.finditer(clean):
-            opening = match.end() - 1
-            closing = matching_delimiter(
-                clean, opening, clean[opening], closing_for[clean[opening]]
-            )
-            macro_tokens.append(Span(opening + 1, closing))
-    macro_tokens = merge_spans(macro_tokens)
-    spans: list[Span] = []
-    cursor = 0
-    while cursor < len(clean):
-        found = clean.find("#[", cursor)
-        if found < 0:
-            break
-        containing_macro = next(
-            (span for span in macro_tokens if span.start <= found < span.end), None
-        )
-        if containing_macro is not None:
-            cursor = containing_macro.end
-            continue
-        group_start = found
-        bodies: list[str] = []
-        after = found
-        while clean.startswith("#[", after):
-            close = matching_delimiter(clean, after + 1, "[", "]")
-            bodies.append(source[after + 2:close])
-            after = skip_space(clean, close + 1)
-        if and_values([attribute_inclusion(body) for body in bodies]) is False:
-            end = item_end(clean, after)
-            if end is not None:
-                spans.append(Span(outer_doc_group_start(source, group_start), end))
-        cursor = after
-    return merge_spans(spans)
-
-
-def span_lines(source: str, spans: list[Span]) -> set[int]:
-    """Project spans to lines, retaining every mixed-content line as production."""
-    merged = merge_spans(spans)
-    lines: set[int] = set()
-    offset = 0
-    span_index = 0
-    for number, line in enumerate(source.splitlines(keepends=True), 1):
-        content = [offset + index for index, char in enumerate(line) if not char.isspace()]
-        while span_index < len(merged) and merged[span_index].end <= offset:
-            span_index += 1
-        if content and all(
-            any(span.start <= position < span.end for span in merged[span_index:])
-            for position in content
-        ):
-            lines.add(number)
-        offset += len(line)
-    return lines
-
-
-MODULE_ITEM = re.compile(
-    r"\bmod\s+((?:r#)?(?:[^\W\d]|_)[\w]*)\s*([;{])"
-)
-
-
-def out_of_line_modules(
-    source: str, spans: list[Span] | None = None
-) -> list[ModuleReference]:
-    clean = sanitize_rust(source)
-    regions = spans if spans is not None else [Span(0, len(clean))]
-    references: list[ModuleReference] = []
-
-    def included(position: int) -> bool:
-        return any(region.start <= position < region.end for region in regions)
-
-    def scan(start: int, end: int, context: tuple[str, ...]) -> None:
-        cursor = start
-        while cursor < end:
-            if clean.startswith("#[", cursor):
-                closing = matching_delimiter(clean, cursor + 1, "[", "]")
-                if included(cursor) and re.search(
-                    r"\bpath\s*=", clean[cursor + 2:closing]
-                ):
-                    raise AuditError(
-                        "path-attributed modules are unsupported in test-only reachability"
-                    )
-                cursor = closing + 1
-                continue
-            match = MODULE_ITEM.match(clean, cursor)
-            if match:
-                name, delimiter = match.groups()
-                if name.startswith("r#"):
-                    name = name[2:]
-                if delimiter == ";":
-                    if included(match.start()):
-                        references.append(ModuleReference(context, name))
-                    cursor = match.end()
-                    continue
-                opening = match.end() - 1
-                closing = matching_delimiter(clean, opening, "{", "}")
-                scan(opening + 1, closing, context + (name,))
-                cursor = closing + 1
-                continue
-            if clean[cursor] in "{([":
-                closing = {"{": "}", "(": ")", "[": "]"}[clean[cursor]]
-                cursor = matching_delimiter(clean, cursor, clean[cursor], closing) + 1
-                continue
-            cursor += 1
-
-    scan(0, len(clean), ())
-    return references
-
-
-def complement_spans(length: int, spans: list[Span]) -> list[Span]:
-    regions: list[Span] = []
-    cursor = 0
-    for span in merge_spans(spans):
-        if cursor < span.start:
-            regions.append(Span(cursor, span.start))
-        cursor = max(cursor, span.end)
-    if cursor < length:
-        regions.append(Span(cursor, length))
-    return regions
-
-
-def resolve_module_path(
-    parent: Path, reference: ModuleReference, sources: dict[Path, str]
-) -> Path:
-    if parent.name in {"lib.rs", "main.rs", "mod.rs"}:
-        base = parent.parent
-    else:
-        base = parent.parent / parent.stem
-    base = base.joinpath(*reference.context)
-    name = reference.name
-    candidates = (base / f"{name}.rs", base / name / "mod.rs")
-    matches = [candidate for candidate in candidates if candidate in sources]
-    if len(matches) != 1:
-        raise AuditError(
-            f"out-of-line module {name!r} from {parent} must resolve to exactly one ordinary Rust module"
-        )
-    return matches[0]
-
-
-def inherited_test_files(
-    sources: dict[Path, str],
-    production_paths: list[Path],
-    external_test_paths: list[Path] | None = None,
-) -> set[Path]:
-    production = set(production_paths)
-    external_tests = set(external_test_paths or [])
-    queued: list[Path] = []
-    for parent in production_paths:
-        spans = test_only_spans(sources[parent])
-        for reference in out_of_line_modules(sources[parent], spans):
-            queued.append(resolve_module_path(parent, reference, sources))
-
-    inherited: set[Path] = set()
-    visited: set[Path] = set()
-    while queued:
-        path = queued.pop()
-        if path in visited:
-            continue
-        visited.add(path)
-        if path not in production and path not in external_tests:
-            raise AuditError(f"test-only module resolved outside authored production paths: {path}")
-        if path in production:
-            inherited.add(path)
-        for reference in out_of_line_modules(sources[path]):
-            queued.append(resolve_module_path(path, reference, sources))
-
-    changed = True
-    while changed:
-        changed = False
-        for parent in production_paths:
-            if parent in inherited:
-                continue
-            test_spans = test_only_spans(sources[parent])
-            production_spans = complement_spans(len(sources[parent]), test_spans)
-            for reference in out_of_line_modules(sources[parent], production_spans):
-                path = resolve_module_path(parent, reference, sources)
-                if path in inherited:
-                    inherited.remove(path)
-                    changed = True
-    return inherited
 
 
 def working_tree_sources(root: Path) -> dict[Path, str]:
@@ -943,8 +294,72 @@ def exact_working_revision(root: Path, requested: str | None) -> str:
     return resolved
 
 
+def rust_classifier_population(
+    root: Path, sources: dict[Path, str]
+) -> tuple[dict[Path, set[int]], set[Path]]:
+    request = {
+        "protocol_version": CLASSIFIER_PROTOCOL_VERSION,
+        "sources": [
+            {"path": path.as_posix(), "source": source}
+            for path, source in sorted(sources.items())
+        ],
+    }
+    completed = subprocess.run(
+        CLASSIFIER_COMMAND,
+        cwd=root,
+        input=json.dumps(request, ensure_ascii=False, separators=(",", ":")),
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=180,
+    )
+    if completed.returncode != 0:
+        diagnostic = completed.stderr.strip() or "classifier exited without a diagnostic"
+        raise AuditError(f"Rust code-health classifier failed: {diagnostic}")
+    try:
+        response = json.loads(completed.stdout)
+    except json.JSONDecodeError as error:
+        raise AuditError(f"Rust code-health classifier returned invalid JSON: {error}") from error
+    response = require_exact_keys(
+        response,
+        {"classifier", "files", "inherited_inline_paths", "protocol_version"},
+        "classifier response",
+    )
+    if response["classifier"] != CLASSIFIER_NAME:
+        raise AuditError("Rust code-health classifier identity mismatch")
+    if response["protocol_version"] != CLASSIFIER_PROTOCOL_VERSION:
+        raise AuditError("Rust code-health classifier protocol mismatch")
+    files = response["files"]
+    if not isinstance(files, list) or len(files) != len(sources):
+        raise AuditError("Rust code-health classifier file coverage mismatch")
+    lines_by_path: dict[Path, set[int]] = {}
+    for entry in files:
+        entry = require_exact_keys(entry, {"path", "inline_test_lines"}, "classifier file")
+        path = Path(str(entry["path"]))
+        lines = entry["inline_test_lines"]
+        if path not in sources or path in lines_by_path:
+            raise AuditError(f"Rust code-health classifier returned unexpected path: {path}")
+        if (
+            not isinstance(lines, list)
+            or any(type(line) is not int or line <= 0 for line in lines)
+            or lines != sorted(set(lines))
+            or any(line > len(sources[path].splitlines()) for line in lines)
+        ):
+            raise AuditError(f"Rust code-health classifier returned invalid lines: {path}")
+        lines_by_path[path] = set(lines)
+    inherited_raw = response["inherited_inline_paths"]
+    if not isinstance(inherited_raw, list) or any(
+        not isinstance(path, str) for path in inherited_raw
+    ):
+        raise AuditError("Rust code-health classifier returned invalid inherited paths")
+    inherited = {Path(path) for path in inherited_raw}
+    if not inherited.issubset(sources) or len(inherited) != len(inherited_raw):
+        raise AuditError("Rust code-health classifier inherited-path coverage mismatch")
+    return lines_by_path, inherited
+
+
 def source_population_evidence(
-    sources: dict[Path, str], config: dict[str, object]
+    root: Path, sources: dict[Path, str], config: dict[str, object]
 ) -> tuple[
     list[Path],
     list[Path],
@@ -953,7 +368,8 @@ def source_population_evidence(
     dict[str, dict[str, int]],
 ]:
     production_paths, test_paths, generated_paths = classify_sources(sources, config)
-    inherited_inline_paths = inherited_test_files(sources, production_paths, test_paths)
+    production_sources = {path: sources[path] for path in production_paths}
+    all_inline_lines, _ = rust_classifier_population(root, production_sources)
     inline_lines_by_path: dict[Path, set[int]] = {}
     counts = {
         "production": {"authored_nonblank_lines": 0, "files": 0, "functions": 0},
@@ -963,11 +379,7 @@ def source_population_evidence(
     for path in production_paths:
         source = sources[path]
         lines = source.splitlines()
-        inline_lines = (
-            set(range(1, len(lines) + 1))
-            if path in inherited_inline_paths
-            else span_lines(source, test_only_spans(source))
-        )
+        inline_lines = all_inline_lines[path]
         inline_lines_by_path[path] = inline_lines
         production_lines = sum(
             1
@@ -1000,6 +412,7 @@ def source_population_evidence(
 
 
 def build_report(
+    repository_root: Path,
     analysis_root: Path,
     sources: dict[Path, str],
     config: dict[str, object],
@@ -1012,7 +425,7 @@ def build_report(
         generated_paths,
         inline_lines_by_path,
         counts,
-    ) = source_population_evidence(sources, config)
+    ) = source_population_evidence(repository_root, sources, config)
     all_authored = production_paths + test_paths
     functions: list[dict[str, object]] = []
     modules: list[dict[str, object]] = []
@@ -1091,7 +504,7 @@ def audit(root: Path, revision: str | None) -> dict[str, object]:
     engine = checked_engine(config)
     resolved = exact_working_revision(root, revision)
     sources = working_tree_sources(root)
-    return build_report(root, sources, config, resolved, engine)
+    return build_report(root, root, sources, config, resolved, engine)
 
 
 def regenerate_baseline(root: Path) -> dict[str, object]:
@@ -1105,7 +518,7 @@ def regenerate_baseline(root: Path) -> dict[str, object]:
             target = analysis_root / path
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(source, encoding="utf-8")
-        return build_report(analysis_root, sources, config, revision, engine)
+        return build_report(root, analysis_root, sources, config, revision, engine)
 
 
 def require_exact_keys(value: object, expected: set[str], context: str) -> dict[str, object]:
@@ -1233,7 +646,7 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
             generated_paths,
             _,
             source_counts,
-        ) = source_population_evidence(sources, config)
+        ) = source_population_evidence(root, sources, config)
         fingerprint = source_fingerprint(sources, production_paths + test_paths)
         if fingerprint != report["source_fingerprint_sha256"]:
             raise AuditError("report fingerprint does not match its pinned Git tree")

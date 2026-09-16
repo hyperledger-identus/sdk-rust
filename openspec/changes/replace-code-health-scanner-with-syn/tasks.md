@@ -11,16 +11,16 @@
 
 ## 2. Rust classifier
 
-- [ ] 2.1 Add the non-published conformance binary and bounded JSON protocol.
-- [ ] 2.2 Implement cfg/cfg_attr evaluation, AST span collection, production-
+- [x] 2.1 Add the non-published conformance binary and bounded JSON protocol.
+- [x] 2.2 Implement cfg/cfg_attr evaluation, AST span collection, production-
       conservative line projection, and actionable parse/span diagnostics.
-- [ ] 2.3 Implement ordinary/raw/path-attributed module resolution and
+- [x] 2.3 Implement ordinary/raw/path-attributed module resolution and
       production-wins fixed-point reachability.
-- [ ] 2.4 Add focused and adversarial Rust fixtures for all acceptance syntax.
+- [x] 2.4 Add focused and adversarial Rust fixtures for all acceptance syntax.
 
 ## 3. Orchestration and migration
 
-- [ ] 3.1 Remove Rust boundary parsing from Python and invoke the classifier for
+- [x] 3.1 Remove Rust boundary parsing from Python and invoke the classifier for
       working-tree, Git-tree, fast-check, and baseline-regeneration inputs.
 - [ ] 3.2 Upgrade the closed policy/report schema and mutation tests with exact
       classifier identity and protocol fields.

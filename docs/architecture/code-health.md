@@ -61,8 +61,9 @@ interpretation of that snapshot.
 - **External test** is authored Rust in Cargo's intrinsic `crates/*/tests` and
   `crates/*/benches` target trees.
 - **Inline test** is classified from the complete `syn` AST. The visitor covers
-  items, declaration and struct-literal fields, variants, parameters, generic
-  and closure parameters, statements and expressions, match arms,
+  items, declaration and struct-literal fields, variants, function, method,
+  closure and bare-function-type parameters, generic parameters, statements
+  and expressions, match arms,
   impl/trait/foreign items, and represented macros.
   `cfg` and recursively applied `cfg_attr` use a three-valued evaluation with
   `test = false`; unknown syntax or inclusion remains production. Inner and

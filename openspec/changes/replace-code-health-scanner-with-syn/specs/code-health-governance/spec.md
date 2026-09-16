@@ -13,8 +13,8 @@ unsupported inclusion SHALL remain production or fail with an actionable audit
 error; it SHALL never silently become test-only.
 
 The classifier SHALL cover ordinary and associated items, declaration and
-struct-literal fields, variants, function/method/closure parameters, generic
-parameters,
+struct-literal fields, variants, function/method/closure/bare-function-type
+parameters, generic parameters,
 statements/expressions, match arms, and represented macro nodes. Macro token
 streams SHALL remain opaque. A source line SHALL be
 inline-test only when every non-whitespace authored byte is proven test-only;
@@ -48,6 +48,12 @@ descendants.
   both test-only and active/unknown production edges
 - **THEN** the file and its reachable descendants remain production evidence
 
+#### Scenario: One source has multiple module roles
+
+- **WHEN** one source is reached both as a target root and as a nested module
+- **THEN** test edges are resolved in both roles and every distinct reachable
+  fixture is classified
+
 #### Scenario: Rust source cannot be represented safely
 
 - **WHEN** parsing, span projection, or module resolution is invalid,
@@ -57,8 +63,9 @@ descendants.
 
 #### Scenario: Nested Rust contexts preserve cfg and path state
 
-- **WHEN** a cfg-gated associated item, struct-literal field, or path-adjusted
-  inline module contains nested syntax or an out-of-line module declaration
+- **WHEN** a cfg-gated associated item, declaration or struct-literal field,
+  bare-function-type parameter, or path-adjusted inline module contains nested
+  syntax or an out-of-line module declaration
 - **THEN** the classifier preserves the inherited cfg and module-directory
   context defined by Rust
 
@@ -85,6 +92,12 @@ descendants.
 #### Scenario: Closure parameter is test-only
 
 - **WHEN** a closure pattern parameter is removed by `cfg(test)`
+- **THEN** its complete authored AST span is inline-test evidence without
+  consuming a shipping parameter
+
+#### Scenario: Bare function parameter is test-only
+
+- **WHEN** a bare-function-type parameter is removed by `cfg(test)`
 - **THEN** its complete authored AST span is inline-test evidence without
   consuming a shipping parameter
 

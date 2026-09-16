@@ -79,8 +79,10 @@ shifts, labels, Unicode macros, nested comments, raw strings, recursive
 cfg_attr, inner/outer attributes, same-line siblings, declaration/struct-literal
 fields, variants, parameters, statements, match arms, associated-item cfg
 inheritance, standard binary roots, path-adjusted inline modules, generated
-module visibility, conditional test paths, closure parameters, root-versus-
-nested module resolution, macro opacity, and shared reachability.
+module visibility, conditional test paths, attributed declaration fields,
+closure and bare-function-type parameters, root-versus-nested module
+resolution (including one source in both roles), macro opacity, and shared
+reachability.
 Protocol-bound, malformed-source, Python orchestration, baseline mutation,
 fast timing, full regeneration, factory/OpenSpec, fmt, strict Clippy, workspace
 tests, and compatible Nix checks provide integration evidence.

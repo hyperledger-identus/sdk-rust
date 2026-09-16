@@ -14,8 +14,8 @@ use std::{
 use proc_macro2::Span;
 use serde::{Deserialize, Serialize};
 use syn::{
-    Arm, Attribute, Expr, Field, FieldValue, FnArg, ForeignItem, GenericParam, ImplItem, Item,
-    ItemMod, Meta, Pat, Stmt, TraitItem,
+    Arm, Attribute, BareFnArg, Expr, Field, FieldValue, FnArg, ForeignItem, GenericParam, ImplItem,
+    Item, ItemMod, Meta, Pat, Stmt, TraitItem,
     parse::Parser,
     punctuated::Punctuated,
     spanned::Spanned,
@@ -426,6 +426,12 @@ impl<'ast> Visit<'ast> for SpanCollector<'_> {
         }
     }
 
+    fn visit_bare_fn_arg(&mut self, node: &'ast BareFnArg) {
+        if !self.classify(node, &node.attrs) {
+            visit::visit_bare_fn_arg(self, node);
+        }
+    }
+
     fn visit_generic_param(&mut self, node: &'ast GenericParam) {
         let attributes: &[Attribute] = match node {
             GenericParam::Lifetime(value) => &value.attrs,
@@ -637,6 +643,20 @@ impl<'ast> Visit<'ast> for NestedModuleVisitor<'_> {
         let previous = self.collector.inherited;
         self.collector.inherited = self.collector.local_reachability(&field.attrs);
         visit::visit_field_value(self, field);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_field(&mut self, field: &'ast Field) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(&field.attrs);
+        visit::visit_field(self, field);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_bare_fn_arg(&mut self, argument: &'ast BareFnArg) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(&argument.attrs);
+        visit::visit_bare_fn_arg(self, argument);
         self.collector.inherited = previous;
     }
 
@@ -932,15 +952,32 @@ fn inherited_test_paths(
         })
         .collect();
 
+    let mut contexts: VecDeque<_> = parsed
+        .keys()
+        .map(|path| {
+            let role = if roots.contains(path) {
+                ModuleRole::Root
+            } else {
+                ModuleRole::Nested
+            };
+            (path.clone(), role)
+        })
+        .collect();
+    let mut visited_contexts = BTreeSet::new();
     let mut queued = VecDeque::new();
-    for (parent, file) in parsed {
-        let role = if roots.contains(parent) {
-            ModuleRole::Root
-        } else {
-            ModuleRole::Nested
-        };
+    while let Some((parent, role)) = contexts.pop_front() {
+        if !visited_contexts.insert((parent.clone(), role)) {
+            continue;
+        }
+        let file = parsed
+            .get(&parent)
+            .ok_or_else(|| format!("missing parsed module source: {}", parent.display()))?;
         for reference in &file.test_edges {
-            queued.push_back(resolve_module(parent, reference, sources, role)?);
+            queued.push_back(resolve_module(&parent, reference, sources, role)?);
+        }
+        for reference in &file.production_edges {
+            let child = resolve_module(&parent, reference, sources, role)?;
+            contexts.push_back((child, ModuleRole::Nested));
         }
     }
     let mut inherited = BTreeSet::new();
@@ -1204,6 +1241,27 @@ fn closure() { let _ = |
     }
 
     #[test]
+    fn classifies_bare_function_parameters_by_ast_boundary() {
+        let source = r#"
+type Callback = fn(
+    #[cfg(test)]
+    u8,
+    u16,
+);
+"#;
+        let lines = one(source);
+        for line in [3, 4] {
+            assert!(
+                lines.contains(&line),
+                "expected test-only function-pointer parameter line {line}: {lines:?}"
+            );
+        }
+        for line in [2, 5, 6] {
+            assert!(!lines.contains(&line), "shipping line {line}: {lines:?}");
+        }
+    }
+
+    #[test]
     fn mixed_line_and_macro_token_attributes_remain_production() {
         let source = r#"
 #[cfg(test)] fn hidden() {} pub fn shipping() {}
@@ -1433,6 +1491,62 @@ pub const SHIPPING: u8 = 1;
         })
         .expect("Cargo target roots remain production");
         assert!(response.inherited_inline_paths.is_empty());
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/bin/tool.rs".to_owned(),
+                    source: "mod helper;\nfn main() {}\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/bin/helper.rs".to_owned(),
+                    source: "#[cfg(test)] mod fixture;\nfn main() {}\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/bin/fixture.rs".to_owned(),
+                    source: "fn root_fixture() {}\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/bin/helper/fixture.rs".to_owned(),
+                    source: "fn nested_fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("target reached in root and nested roles");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec![
+                "crates/demo/src/bin/fixture.rs",
+                "crates/demo/src/bin/helper/fixture.rs",
+            ]
+        );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/lib.rs".to_owned(),
+                    source: concat!(
+                        "struct Demo {\n",
+                        "    #[cfg(test)]\n",
+                        "    field: [(); { #[path = \"helper.rs\"] mod helper; 0 }],\n",
+                        "    shipping: u8,\n",
+                        "}\n",
+                    )
+                    .to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/helper.rs".to_owned(),
+                    source: "fn field_fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("declaration field reachability");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec!["crates/demo/src/helper.rs"]
+        );
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,

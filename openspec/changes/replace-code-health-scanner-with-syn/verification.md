@@ -50,6 +50,11 @@ exact baseline regeneration. Its regressions cover test-selected conditional
 paths, distinct target/nested resolution roles, production preservation for
 target roots, and attributed closure parameters.
 
+The fourth hosted-review remediation adds regressions for a source reached in
+both target-root and nested-module roles, inherited cfg state on declaration
+fields, and attributed bare-function-type parameters. Its exact implementation
+head and repeat verification are recorded after the signed remediation commit.
+
 ## Migration evidence
 
 The v1 classifier from planning commit `a27f31f` and the reviewed v2 classifier

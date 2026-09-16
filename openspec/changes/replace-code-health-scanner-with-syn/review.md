@@ -91,6 +91,16 @@
 22. **Resolved hosted P2 — closure parameter attributes were omitted.**
     Attributed `syn::Pat` nodes now participate in span classification and
     inherited reachability, with a focused closure regression.
+23. **Resolved hosted P2 — test edges used only one file-entry role.** A
+    source reachable as both a target root and a nested module now contributes
+    test edges from both contexts; the reachability search carries `(path,
+    role)` identities and a dual-fixture regression proves both results.
+24. **Resolved hosted P2 — declaration fields lost inherited cfg state.**
+    `syn::Field` attributes now update module reachability before nested type
+    and const syntax is visited, with a test-only field-local module regression.
+25. **Resolved hosted P2 — bare function parameters were omitted.**
+    `syn::BareFnArg` spans and inherited reachability are now classified, with
+    a focused function-pointer parameter regression.
 
 ## Result
 

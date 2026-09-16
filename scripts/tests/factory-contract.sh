@@ -66,6 +66,8 @@ required_files=(
   docs/architecture/code-health.md
   docs/architecture/code-health.toml
   docs/architecture/code-health-baseline.json
+  docs/architecture/code-health-v2-migration.md
+  crates/conformance/src/bin/code-health-classifier.rs
   docs/architecture/sdk-input-resource-boundaries.md
   docs/architecture/sdk-input-resource-boundaries.toml
   docs/architecture/source-distribution.md

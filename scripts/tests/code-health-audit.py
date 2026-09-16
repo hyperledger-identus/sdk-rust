@@ -302,6 +302,7 @@ evidence = "test"
             path = self.write_fixture(root, changed)
             sources = {Path("crates/demo/src/lib.rs"): "pub fn shipping() {}\n"}
             with (
+                mock.patch.object(audit, "require_git_ancestor"),
                 mock.patch.object(audit, "git_tree_sources", return_value=sources),
                 mock.patch.object(audit, "cargo_target_roots", return_value=[]),
                 mock.patch.object(
@@ -327,6 +328,7 @@ evidence = "test"
             path = self.write_fixture(root, self.report())
             sources = {Path("crates/demo/src/lib.rs"): "pub fn shipping() {}\n"}
             with (
+                mock.patch.object(audit, "require_git_ancestor"),
                 mock.patch.object(audit, "git_tree_sources", return_value=sources),
                 mock.patch.object(audit, "cargo_target_roots", return_value=[]),
                 mock.patch.object(
@@ -345,6 +347,12 @@ evidence = "test"
             ):
                 with self.assertRaisesRegex(audit.AuditError, "population projection"):
                     audit.validate_report(root, path)
+
+    def test_fast_source_binding_rejects_nonancestor_revision(self) -> None:
+        completed = mock.Mock(returncode=1, stdout=b"", stderr=b"")
+        with mock.patch.object(audit.subprocess, "run", return_value=completed):
+            with self.assertRaisesRegex(audit.AuditError, "not an ancestor"):
+                audit.require_git_ancestor(Path("/repo"), self.revision)
 
     def test_slow_verification_compares_the_complete_report(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

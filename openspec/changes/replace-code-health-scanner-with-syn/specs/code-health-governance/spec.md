@@ -58,6 +58,13 @@ configurations SHALL be omitted without resolving its source file.
 - **THEN** the edge is omitted and its source file is not required for
   resolution
 
+#### Scenario: Unrelated nested path metadata is not an override
+
+- **WHEN** an unknown `cfg_attr` applies metadata such as `cfg(path)` but no
+  direct `path = "..."` attribute
+- **THEN** ordinary module resolution remains active and no conditional-path
+  ambiguity is reported
+
 #### Scenario: One source has multiple module roles
 
 - **WHEN** one source is reached both as a target root and as a nested module
@@ -154,8 +161,15 @@ digest independently bind its interpretation.
 #### Scenario: Baseline branch is removed after merge
 
 - **WHEN** a migration branch will be deleted after integration
-- **THEN** the baseline source revision remains reachable from `develop`
-  regardless of whether integration uses merge, squash, or rebase
+- **THEN** full validation proves the baseline source revision is an ancestor
+  of the reviewed checkout and it remains reachable from `develop` regardless
+  of whether integration uses merge, squash, or rebase
+
+#### Scenario: Maximum bounded projection remains linear
+
+- **WHEN** a source contains many disjoint test-only spans
+- **THEN** line projection advances monotonically through merged spans rather
+  than searching the full span set for every authored byte
 
 #### Scenario: Conditional module path is unresolved
 

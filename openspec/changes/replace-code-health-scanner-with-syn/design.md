@@ -69,7 +69,8 @@ The policy/report contract advances to v2 and records classifier name,
 protocol, locked dependency evidence, and a digest of the complete per-file
 line projection. A governed baseline regeneration is bound to a durable
 target-branch source revision and to the current classifier's exact projection.
-Aggregate population equality is insufficient. A
+Full validation proves that revision is an ancestor of the reviewed checkout
+before reading its Git tree. Aggregate population equality is insufficient. A
 checked-in migration report compares v1 and v2 file/line populations and
 explains every delta by fixture or source location; no unexplained production
 decrease is accepted.
@@ -98,6 +99,8 @@ bind the interpretation of that source snapshot.
   engine on the fast path.
 - Source offsets can split UTF-8 incorrectly: use `proc_macro2` byte ranges and
   validate every boundary against Rust strings before projection.
+- Bounded sources and spans could still multiply work: merge spans and project
+  authored bytes with one monotonic cursor, making the scan linear in both.
 
 ## Alternatives
 

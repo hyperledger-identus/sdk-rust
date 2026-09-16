@@ -83,6 +83,13 @@ the signed remediation commit at
 all-target Clippy, eleven Python tests, exact protocol-v2 baseline
 regeneration, factory checks, and strict OpenSpec 72/72 are green.
 
+The eighth hosted-review remediation enforces baseline ancestry, restricts
+conditional path detection to actually applied path attributes, and replaces
+the source-by-span projection search with a monotonic linear sweep. Focused
+regressions cover non-ancestor rejection and unrelated nested `cfg(path)`
+metadata. Exact implementation and repeat evidence are recorded after the
+signed remediation commit.
+
 The seventh hosted-review remediation distinguishes module edges disabled in
 both audited configurations from reachable test-only edges. A focused
 regression proves `#[cfg(any())]` and `#[cfg(all(test, any()))]` modules do not

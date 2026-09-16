@@ -51,7 +51,9 @@ it remains available after branch deletion and under merge, squash, or rebase
 integration. It identifies the historical source snapshot, not the classifier
 implementation commit. The pinned classifier identity, protocol, dependency
 versions, and exact per-file projection digest bind the current classifier's
-interpretation of that snapshot.
+interpretation of that snapshot. Full validation also requires the pinned
+revision to be an ancestor of the reviewed checkout, preventing temporary
+feature-branch objects from becoming durable evidence.
 
 ## Populations
 
@@ -70,9 +72,10 @@ interpretation of that snapshot.
   outer attributes share those semantics.
   A source line is inline-test only when every authored non-whitespace byte is
   covered by proven test-only AST spans. Mixed test/shipping lines therefore
-  remain production. Macro token streams are deliberately opaque: attributes
-  inside a macro body are never interpreted, while an outer cfg on the macro
-  node itself is classified normally.
+  remain production. Merged spans are consumed through one monotonic cursor,
+  keeping projection linear in source bytes plus spans. Macro token streams are
+  deliberately opaque: attributes inside a macro body are never interpreted,
+  while an outer cfg on the macro node itself is classified normally.
   Test-only out-of-line modules recursively resolve ordinary `name.rs` and
   `name/mod.rs` layouts, raw identifiers, nested module contexts, and literal
   `#[path = "..."]` overrides. Resolution carries whether a source is entered
@@ -88,7 +91,9 @@ interpretation of that snapshot.
   match-arm scopes. Conditional module paths are evaluated separately with
   `test = false` and `test = true`: edges false in both configurations are
   disabled and omitted before path resolution, while unknown predicates or a
-  production edge that selects different paths fail closed.
+  production edge that selects different paths fail closed. Only direct
+  `path = "..."` attributes, including values recursively applied by
+  `cfg_attr`, affect module paths; unrelated nested metadata does not.
   Malformed Rust, invalid spans, ambiguous module targets, unsupported
   predicate forms, and incomplete coverage fail closed with path/location
   diagnostics and never echo source text.

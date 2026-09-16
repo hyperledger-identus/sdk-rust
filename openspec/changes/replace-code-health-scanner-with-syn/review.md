@@ -128,6 +128,16 @@
     and disabled edges by evaluating inclusion with both `test = false` and
     `test = true`. Disabled module edges are omitted before path resolution; a
     regression proves their absent files are not required.
+33. **Resolved hosted P2 — baseline ancestry was not enforced.** Full report
+    validation now requires the pinned source revision to be an ancestor of
+    the reviewed checkout before reading its Git tree. Policy-only structural
+    checks remain independent of repository history.
+34. **Resolved hosted P2 — nested `cfg(path)` looked like `#[path]`.** Unknown
+    conditional attributes now search only directly applied `path` attributes
+    and recursively applied `cfg_attr` values, never arbitrary nested metadata.
+35. **Resolved hosted P2 — projection multiplied source bytes by spans.** The
+    merged, ordered test-span set is now projected with one monotonic cursor,
+    making the scan linear in authored bytes plus merged spans.
 
 ## Result
 

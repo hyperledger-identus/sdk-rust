@@ -74,6 +74,20 @@ def git_tree_sources(root: Path, revision: str) -> dict[Path, str]:
     return sources
 
 
+def require_git_ancestor(root: Path, revision: str) -> None:
+    """Require the pinned baseline revision to be durable in this history."""
+    completed = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", revision, "HEAD"],
+        cwd=root,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode == 1:
+        raise AuditError("report revision is not an ancestor of the reviewed checkout")
+    if completed.returncode != 0:
+        raise AuditError("could not verify report revision ancestry")
+
+
 def cargo_target_roots(
     root: Path, sources: dict[Path, str], revision: str | None = None
 ) -> list[Path]:
@@ -823,6 +837,7 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
             raise AuditError("module signal path must be a string")
 
     if not policy_only:
+        require_git_ancestor(root, report["revision"])
         sources = git_tree_sources(root, report["revision"])
         (
             production_paths,

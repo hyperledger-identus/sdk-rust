@@ -870,16 +870,19 @@ fn apply_path_meta(
             }
             Ok(())
         }
-        Truth::Unknown if values.any(meta_contains_path) => {
+        Truth::Unknown if values.any(meta_applies_path) => {
             Err("conditional module path override has an unknown predicate".to_owned())
         }
         Truth::Unknown => Ok(()),
     }
 }
 
-fn meta_contains_path(meta: &Meta) -> bool {
+fn meta_applies_path(meta: &Meta) -> bool {
     if meta.path().is_ident("path") {
         return true;
+    }
+    if !meta.path().is_ident("cfg_attr") {
+        return false;
     }
     let Meta::List(list) = meta else {
         return false;
@@ -887,7 +890,7 @@ fn meta_contains_path(meta: &Meta) -> bool {
     let parser = Punctuated::<Meta, Comma>::parse_terminated;
     parser
         .parse2(list.tokens.clone())
-        .is_ok_and(|values| values.iter().any(meta_contains_path))
+        .is_ok_and(|values| values.iter().skip(1).any(meta_applies_path))
 }
 
 fn merge_ranges(mut spans: Vec<Range<usize>>) -> Vec<Range<usize>> {
@@ -909,16 +912,28 @@ fn project_lines(source: &str, spans: Vec<Range<usize>>) -> Vec<usize> {
     let spans = merge_ranges(spans);
     let mut result = Vec::new();
     let mut offset = 0;
+    let mut span_index = 0;
     for (index, line) in source.split_inclusive('\n').enumerate() {
-        let content: Vec<usize> = line
-            .char_indices()
-            .filter_map(|(index, character)| (!character.is_whitespace()).then_some(offset + index))
-            .collect();
-        if !content.is_empty()
-            && content
-                .iter()
-                .all(|position| spans.iter().any(|span| span.contains(position)))
-        {
+        let mut authored = false;
+        let mut covered = true;
+        for (line_offset, character) in line.char_indices() {
+            if character.is_whitespace() {
+                continue;
+            }
+            authored = true;
+            let position = offset + line_offset;
+            while span_index < spans.len() && spans[span_index].end <= position {
+                span_index += 1;
+            }
+            if spans
+                .get(span_index)
+                .is_none_or(|span| !span.contains(&position))
+            {
+                covered = false;
+                break;
+            }
+        }
+        if authored && covered {
             result.push(index + 1);
         }
         offset += line.len();
@@ -1469,6 +1484,23 @@ pub const SHIPPING: u8 = 1;
 
     #[test]
     fn raw_modules_path_overrides_and_production_reachability_are_deterministic() {
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/lib.rs".to_owned(),
+                    source: "#[cfg_attr(feature = \"x\", cfg(path))] mod helper;\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/helper.rs".to_owned(),
+                    source: "fn shipping() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("unrelated cfg(path) is not a module path override");
+        assert!(response.inherited_inline_paths.is_empty());
+
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
             target_roots: vec!["crates/demo/src/lib.rs".to_owned()],

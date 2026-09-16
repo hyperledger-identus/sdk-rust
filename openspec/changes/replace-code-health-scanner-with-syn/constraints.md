@@ -22,7 +22,9 @@ The internal Rust classifier SHALL own syntax, cfg evaluation, spans, line
 projection, and reachability under a bounded versioned protocol. Unknown
 inclusion remains production. Mixed lines and production-reachable shared
 modules remain production. Parser/tool upgrades require an explicit contract
-and baseline migration with exhaustive delta evidence.
+and baseline migration with exhaustive delta evidence. Full validation SHALL
+prove baseline ancestry, and span projection SHALL remain linear in source
+bytes plus merged spans.
 
 ## Introduced or changed limitations
 

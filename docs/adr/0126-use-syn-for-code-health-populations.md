@@ -42,7 +42,9 @@ and `test = true` are omitted before resolution. Reachability state propagates
 through nested item, statement, expression, and match-arm scopes. A conditional
 `cfg_attr` that may apply a module `path` override fails closed when its
 predicate is not proven false, because selecting only one candidate could hide
-production code.
+production code. Only direct `path = "..."` values and recursively applied
+`cfg_attr` values participate in that ambiguity check; nested metadata such as
+`cfg(path)` does not alter module resolution.
 
 Python remains responsible for Git/source loading, subprocess orchestration,
 metric evidence, and canonical report validation. It no longer parses Rust
@@ -53,11 +55,12 @@ before full metric regeneration.
 The code-health policy/report advances to v2 and binds classifier identity,
 protocol, and an exact digest of each file's population projection. Migration
 requires an exhaustive v1/v2 delta report and a reachable baseline revision
-from the durable target-branch history. The baseline revision identifies the
-source tree being classified; it need not contain the current classifier,
-because classifier identity, protocol, locked dependencies, and the complete
-per-file projection digest bind the interpretation independently. Parser
-upgrades require the same governed migration.
+from the durable target-branch history. Full validation enforces that the
+baseline revision is an ancestor of the reviewed checkout. The revision
+identifies the source tree being classified; it need not contain the current
+classifier, because classifier identity, protocol, locked dependencies, and
+the complete per-file projection digest bind the interpretation independently.
+Parser upgrades require the same governed migration.
 
 ## Consequences
 
@@ -69,6 +72,8 @@ upgrades require the same governed migration.
 - Macro expansion remains out of scope; only authored AST is classified.
 - Parser/span upgrades become explicit evidence migrations rather than silent
   baseline drift.
+- Projection uses one monotonic cursor over merged spans, keeping work linear
+  in authored bytes plus spans.
 
 ## Alternatives rejected
 

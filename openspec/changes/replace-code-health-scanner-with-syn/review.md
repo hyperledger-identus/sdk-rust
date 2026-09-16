@@ -5,7 +5,7 @@
 - Base: `5dff6f38c861b858dd62dc8310246f7d485d3e92`
 - Classifier implementation: `18394fc38cc085445979ae5e123fe9454ab22bae`
 - Exact locally reviewed classifier/evidence head:
-  `4a7d9f2ac32d48d837954e86141f3256b81bcee7`
+  `f30ab8188bfc0e23058573e113411414889a7310`
 - Issue: [#275](https://github.com/hyperledger-identus/sdk-rust/issues/275)
 - Review lenses: parser correctness, conservative population projection,
   module reachability, resource bounds, diagnostics, dependency direction,
@@ -76,6 +76,21 @@
 18. **Resolved hosted P2 — struct-literal field attributes were omitted.**
     `syn::FieldValue` spans and inherited reachability are now classified, with
     a focused mixed test/shipping literal regression.
+19. **Resolved hosted P2 — test-only conditional paths used production cfg.**
+    Module paths are evaluated for both test modes. Proven test-only edges use
+    the test selection; unknown path predicates and configuration-dependent
+    production paths fail closed.
+20. **Resolved hosted P2 — binary roots and nested modules shared one path
+    role.** Resolution now carries root versus nested entry. A target's child
+    uses the source directory, while a child reached as a module uses its own
+    module directory.
+21. **Resolved hosted P2 — target roots could become inherited test-only.**
+    Standard root filenames and sources with a top-level `main` seed production
+    reachability. A test-only edge cannot remove an independently shipping
+    target from production.
+22. **Resolved hosted P2 — closure parameter attributes were omitted.**
+    Attributed `syn::Pat` nodes now participate in span classification and
+    inherited reachability, with a focused closure regression.
 
 ## Result
 

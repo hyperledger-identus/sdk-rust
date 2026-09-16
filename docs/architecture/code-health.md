@@ -62,8 +62,8 @@ interpretation of that snapshot.
   `crates/*/benches` target trees.
 - **Inline test** is classified from the complete `syn` AST. The visitor covers
   items, declaration and struct-literal fields, variants, parameters, generic
-  parameters, statements and expressions, match arms, impl/trait/foreign
-  items, and represented macros.
+  and closure parameters, statements and expressions, match arms,
+  impl/trait/foreign items, and represented macros.
   `cfg` and recursively applied `cfg_attr` use a three-valued evaluation with
   `test = false`; unknown syntax or inclusion remains production. Inner and
   outer attributes share those semantics.
@@ -74,14 +74,17 @@ interpretation of that snapshot.
   node itself is classified normally.
   Test-only out-of-line modules recursively resolve ordinary `name.rs` and
   `name/mod.rs` layouts, raw identifiers, nested module contexts, and literal
-  `#[path = "..."]` overrides. Resolution recognizes standard `src/bin/*.rs`
-  crate roots and preserves path-adjusted inline-module directories. A
+  `#[path = "..."]` overrides. Resolution carries whether a source is entered
+  as a target root or nested module and preserves path-adjusted inline-module
+  directories. Standard `lib.rs`/`main.rs` roots and sources with a top-level
+  `main` remain production even if a test-only edge reaches them. A
   fixed-point reachability pass applies the
   production-wins rule whenever any active or unknown production edge reaches
   a shared module or descendant. Reachability state propagates through nested
   item, associated-item, statement, expression, struct-field-value, and
-  match-arm scopes. A `cfg_attr` that may conditionally apply a module `path`
-  override fails closed unless its predicate is proven false.
+  match-arm scopes. Conditional module paths are evaluated separately with
+  `test = false` and `test = true`; unknown predicates or a production edge
+  that selects different paths fail closed.
   Malformed Rust, invalid spans, ambiguous module targets, unsupported
   predicate forms, and incomplete coverage fail closed with path/location
   diagnostics and never echo source text.

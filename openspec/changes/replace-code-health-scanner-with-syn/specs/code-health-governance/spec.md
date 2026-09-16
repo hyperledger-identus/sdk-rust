@@ -13,15 +13,18 @@ unsupported inclusion SHALL remain production or fail with an actionable audit
 error; it SHALL never silently become test-only.
 
 The classifier SHALL cover ordinary and associated items, declaration and
-struct-literal fields, variants, parameters, generic parameters,
+struct-literal fields, variants, function/method/closure parameters, generic
+parameters,
 statements/expressions, match arms, and represented macro nodes. Macro token
 streams SHALL remain opaque. A source line SHALL be
 inline-test only when every non-whitespace authored byte is proven test-only;
 mixed lines remain production. Raw and ordinary module identifiers SHALL map
 to the same path. Literal path overrides MAY be supported only with contained,
-unambiguous resolution, including non-root source modules, path-adjusted inline
-modules, and standard file-based binary roots. Generated sources excluded from
-metrics SHALL remain available to module resolution. Active or unknown
+unambiguous resolution, including non-root source modules and path-adjusted
+inline modules. Resolution SHALL preserve whether a source is entered as a
+target root or nested module, and a target root SHALL remain production even if
+a test-only edge reaches it. Generated sources excluded from metrics SHALL
+remain available to module resolution. Active or unknown
 production reachability SHALL win over test-only reachability and propagate to
 descendants.
 
@@ -65,6 +68,25 @@ descendants.
   module declaration
 - **THEN** it remains available to module resolution while its lines remain
   absent from authored population metrics
+
+#### Scenario: Test configuration selects a module path
+
+- **WHEN** a proven test-only module uses `cfg_attr(test, path = "...")`
+- **THEN** reachability follows the test-selected path; an unknown selection or
+  a production edge whose path differs by configuration fails closed
+
+#### Scenario: Binary target reaches a nested module
+
+- **WHEN** a file-based target reaches another `src/bin` source as a module
+- **THEN** the target's children resolve from the target directory, the nested
+  source's children resolve from its module directory, and an independently
+  shipping target root remains production
+
+#### Scenario: Closure parameter is test-only
+
+- **WHEN** a closure pattern parameter is removed by `cfg(test)`
+- **THEN** its complete authored AST span is inline-test evidence without
+  consuming a shipping parameter
 
 ### Requirement: Baseline evidence is bound to policy and Git content
 

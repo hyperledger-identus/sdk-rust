@@ -43,6 +43,13 @@ items, struct-literal fields, generated-module graph visibility, standard
 file-based binary roots, path-adjusted inline modules, and nested overrides in
 non-root module files.
 
+The third hosted-review remediation at
+`f30ab8188bfc0e23058573e113411414889a7310` passed 39 conformance tests,
+strict all-target conformance Clippy, ten Python protocol/report tests, and
+exact baseline regeneration. Its regressions cover test-selected conditional
+paths, distinct target/nested resolution roles, production preservation for
+target roots, and attributed closure parameters.
+
 ## Migration evidence
 
 The v1 classifier from planning commit `a27f31f` and the reviewed v2 classifier

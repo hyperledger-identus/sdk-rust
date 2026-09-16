@@ -7,18 +7,51 @@ use base64::Engine;
 
 use crate::{MAX_CRYPTO_TEXT_BYTES, error::Error};
 
+const MAX_BASE64URL_BYTES: usize = (MAX_CRYPTO_TEXT_BYTES / 4) * 3;
+
 /// A string holding the canonical base64url encoding (no padding) of some bytes.
 ///
-/// Construct via [`Base64UrlStrNoPad::from`] (encoding) or
-/// [`Base64UrlStrNoPad::from_str`] (decoding). The inner string is always a
-/// valid base64url-no-pad encoding, so [`Base64UrlStrNoPad::to_bytes`] is
-/// infallible. Parsing rejects text above [`crate::MAX_CRYPTO_TEXT_BYTES`]
-/// before decoding. Encoding caller-owned bytes remains infallible and may
-/// produce a value that is too large to reparse through [`FromStr`].
+/// Construct from bytes via [`Base64UrlStrNoPad::try_from_bytes`] or
+/// [`TryFrom`], or parse encoded text via [`Base64UrlStrNoPad::from_str`]. The
+/// inner string is always a valid base64url-no-pad encoding, so
+/// [`Base64UrlStrNoPad::to_bytes`] is infallible. Both construction paths
+/// enforce [`crate::MAX_CRYPTO_TEXT_BYTES`] before encoding or decoding.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Base64UrlStrNoPad(String);
 
 impl Base64UrlStrNoPad {
+    /// Encode raw bytes as canonical unpadded base64url.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::KeyParsing`] when the encoded value would exceed
+    /// [`crate::MAX_CRYPTO_TEXT_BYTES`].
+    pub fn try_from_bytes(value: impl AsRef<[u8]>) -> Result<Self, Error> {
+        let bytes = value.as_ref();
+        if bytes.len() > MAX_BASE64URL_BYTES {
+            let trailing_len = match bytes.len() % 3 {
+                0 => 0,
+                1 => 2,
+                2 => 3,
+                _ => unreachable!("remainder modulo three"),
+            };
+            let encoded_len = (bytes.len() / 3)
+                .checked_mul(4)
+                .and_then(|len| len.checked_add(trailing_len))
+                .unwrap_or(usize::MAX);
+            return Err(Error::encoded_text_too_large(
+                "base64url",
+                MAX_CRYPTO_TEXT_BYTES,
+                encoded_len,
+            ));
+        }
+        Ok(Self::encode_trusted(bytes))
+    }
+
+    pub(crate) fn encode_trusted(value: &[u8]) -> Self {
+        Self(base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(value))
+    }
+
     /// Decode the held string back to raw bytes. Infallible by construction.
     #[must_use]
     pub fn to_bytes(&self) -> Vec<u8> {
@@ -33,9 +66,35 @@ impl Base64UrlStrNoPad {
     }
 }
 
-impl<B: AsRef<[u8]>> From<B> for Base64UrlStrNoPad {
-    fn from(value: B) -> Self {
-        Self(base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(value.as_ref()))
+impl TryFrom<&[u8]> for Base64UrlStrNoPad {
+    type Error = Error;
+
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        Self::try_from_bytes(value)
+    }
+}
+
+impl TryFrom<Vec<u8>> for Base64UrlStrNoPad {
+    type Error = Error;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        Self::try_from_bytes(value)
+    }
+}
+
+impl<const N: usize> TryFrom<[u8; N]> for Base64UrlStrNoPad {
+    type Error = Error;
+
+    fn try_from(value: [u8; N]) -> Result<Self, Self::Error> {
+        Self::try_from_bytes(value)
+    }
+}
+
+impl<const N: usize> TryFrom<&[u8; N]> for Base64UrlStrNoPad {
+    type Error = Error;
+
+    fn try_from(value: &[u8; N]) -> Result<Self, Self::Error> {
+        Self::try_from_bytes(value)
     }
 }
 
@@ -78,7 +137,7 @@ impl FromStr for Base64UrlStrNoPad {
             .map_err(|source| Error::KeyParsing {
                 source: Box::new(source),
             })?;
-        Ok(bytes.as_slice().into())
+        Ok(Self::encode_trusted(bytes.as_slice()))
     }
 }
 
@@ -94,7 +153,7 @@ mod tests {
     #[test]
     fn exact_limit_is_accepted_and_remains_canonical() {
         let bytes = vec![0u8; 3 * MAX_CRYPTO_TEXT_BYTES / 4];
-        let encoded = Base64UrlStrNoPad::from(&bytes);
+        let encoded = Base64UrlStrNoPad::try_from_bytes(&bytes).expect("exact raw limit");
         assert_eq!(encoded.as_str().len(), MAX_CRYPTO_TEXT_BYTES);
 
         let parsed = Base64UrlStrNoPad::from_str(encoded.as_str()).expect("exact limit");
@@ -129,9 +188,31 @@ mod tests {
     }
 
     #[test]
+    fn byte_encoding_is_bounded_and_conversion_forms_compile() {
+        let bytes = vec![0u8; 3 * MAX_CRYPTO_TEXT_BYTES / 4];
+        let encoded = Base64UrlStrNoPad::try_from_bytes(&bytes).expect("exact raw limit");
+        assert_eq!(encoded.as_str().len(), MAX_CRYPTO_TEXT_BYTES);
+        assert_eq!(encoded.to_bytes(), bytes);
+
+        let error = Base64UrlStrNoPad::try_from_bytes(vec![0u8; 3 * MAX_CRYPTO_TEXT_BYTES / 4 + 1])
+            .expect_err("one byte over raw limit");
+        assert!(error.to_string().contains("4098 bytes"));
+
+        let array = [0u8];
+        for converted in [
+            Base64UrlStrNoPad::try_from(array.as_slice()).expect("borrowed slice"),
+            Base64UrlStrNoPad::try_from(vec![0u8]).expect("owned vector"),
+            Base64UrlStrNoPad::try_from(array).expect("owned array"),
+            Base64UrlStrNoPad::try_from(&array).expect("borrowed array"),
+        ] {
+            assert_eq!(converted.as_str(), "AA");
+        }
+    }
+
+    #[test]
     fn valid_oversized_text_is_rejected_but_trusted_encoding_remains_infallible() {
         let bytes = vec![0u8; 3 * MAX_CRYPTO_TEXT_BYTES / 4 + 1];
-        let encoded = Base64UrlStrNoPad::from(&bytes);
+        let encoded = Base64UrlStrNoPad::encode_trusted(&bytes);
         assert_eq!(encoded.as_str().len(), MAX_CRYPTO_TEXT_BYTES + 2);
         assert_eq!(encoded.to_bytes(), bytes);
 

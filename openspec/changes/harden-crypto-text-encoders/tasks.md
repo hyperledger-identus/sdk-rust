@@ -9,9 +9,9 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add bounded fallible byte construction for both canonical codecs and
+- [x] 2.1 Add bounded fallible byte construction for both canonical codecs and
       remove the blanket infallible `From` surface.
-- [ ] 2.2 Migrate bounded parser and fixed-size JWK callers through private
+- [x] 2.2 Migrate bounded parser and fixed-size JWK callers through private
       trusted encoding without changing successful output.
 - [ ] 2.3 Add exact/one-over, ownership-form, canonical parity, redaction, and
       public source/API regression evidence.

@@ -38,17 +38,17 @@
 - `./bootstrap.sh --check`: passed, including 72 OpenSpec items and 37 factory
   operation tests.
 - `git diff --check`: passed.
-- Exact-diff plan: 13 paths, 444 changed text lines, no binaries, one required
+- Final exact-diff plan: 15 paths, 538 changed text lines, no binaries, one required
   `fast` status, and no slow evidence requested for this docs/spec-only slice.
 
 ## Decomposition note
 
-The 13-path change exceeds the 12-file guidance by one because the OpenSpec
-planning contract requires eight coordinated change artifacts, while the
-delivery decision must remain synchronized across the completion report,
-roadmap, blueprint, backlog, and local review. Splitting one of those records
-would temporarily publish an incomplete or unverifiable status transition.
-The change remains below the 1,000-line guidance and contains no runtime code.
+The 15-path archived change exceeds the 12-file guidance because the OpenSpec
+contract requires ten coordinated archived artifacts plus its canonical spec,
+while the delivery decision must remain synchronized across the completion
+report, roadmap, blueprint, and backlog. Splitting one of those records would
+temporarily publish an incomplete or unverifiable status transition. The
+change remains below the 1,000-line guidance and contains no runtime code.
 
 ## Factory observation
 
@@ -56,4 +56,3 @@ The task 2.3 Pi worker completed its substantive validation but produced null
 durations for 14 checks. The supervisor correctly rejected that handoff rather
 than accepting incomplete telemetry. Its token/tool usage is retained for the
 terminal metric receipt, and the supervisor independently reran the gates.
-

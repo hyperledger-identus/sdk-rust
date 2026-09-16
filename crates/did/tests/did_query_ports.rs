@@ -49,6 +49,14 @@ fn failure(kind: DidResolutionErrorKind) -> DidResolutionResult {
     DidResolutionResult::failure(metadata).unwrap()
 }
 
+fn hostile_depth_json() -> Value {
+    let mut value = Value::Null;
+    for _ in 0..32_768 {
+        value = Value::Array(vec![value]);
+    }
+    value
+}
+
 #[test]
 fn resolution_options_roundtrip_common_and_extension_values() {
     let options = ResolutionOptions::builder()
@@ -210,6 +218,54 @@ fn option_extensions_reject_collisions_and_resource_exhaustion() {
     assert!(matches!(
         ResolutionOptions::from_json_slice(&oversized),
         Err(Error::InvalidResolution(ResolutionError::TooLarge))
+    ));
+}
+
+#[test]
+fn option_rejections_cleanup_hostile_json_iteratively() {
+    let resolution_direct = ResolutionOptions::new(
+        None,
+        None,
+        None,
+        None,
+        None,
+        BTreeMap::from([("custom".to_owned(), hostile_depth_json())]),
+    );
+    assert!(matches!(
+        resolution_direct,
+        Err(Error::InvalidResolution(ResolutionError::InvalidString))
+    ));
+
+    let resolution_builder = ResolutionOptions::builder()
+        .extensions(BTreeMap::from([(
+            "accept".to_owned(),
+            hostile_depth_json(),
+        )]))
+        .build();
+    assert!(matches!(
+        resolution_builder,
+        Err(Error::InvalidResolution(ResolutionError::InvalidString))
+    ));
+
+    let dereferencing_direct = DereferencingOptions::new(
+        None,
+        None,
+        BTreeMap::from([("custom".to_owned(), hostile_depth_json())]),
+    );
+    assert!(matches!(
+        dereferencing_direct,
+        Err(Error::InvalidResolution(ResolutionError::InvalidString))
+    ));
+
+    let dereferencing_builder = DereferencingOptions::builder()
+        .extensions(BTreeMap::from([(
+            "custom".to_owned(),
+            hostile_depth_json(),
+        )]))
+        .build();
+    assert!(matches!(
+        dereferencing_builder,
+        Err(Error::InvalidResolution(ResolutionError::InvalidString))
     ));
 }
 

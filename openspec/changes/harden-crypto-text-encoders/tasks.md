@@ -22,6 +22,6 @@
       inventory row and only the corresponding `SDK-LIM-007` clause.
 - [x] 3.2 Run format, focused/minimal/all-feature tests, strict workspace gates,
       API/SBOM evidence, compatible Nix closure, and exact-diff plan.
-- [ ] 3.3 Complete fresh security/API/architecture review, archive the change,
+- [x] 3.3 Complete fresh security/API/architecture review, archive the change,
       prepare the signed PR, and publish bounded metrics locally plus to the PR
       and issue.

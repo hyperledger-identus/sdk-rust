@@ -56,3 +56,18 @@ data are forbidden. Pi content-bearing files remain private and are reduced to
 [`pi-usage-v1`](pi-usage-v1.schema.json) counters before metrics ingestion.
 Unknown counters are null; they are never estimated as zero. The private store
 has a 90-day policy, but pruning remains a separate explicit maintenance task.
+
+## Delivery-line interpretation
+
+For the fast integration line, use CI execution rather than queue time for the
+latency SLO and retain queue time separately. The initial comparable target is
+p50 at most 360 seconds and p95 at most 480 seconds. A rolling p95 above 600
+seconds starts a focused optimization issue. Also inspect attempt count,
+post-CI pushes and review duration: PR #300 demonstrated that thirteen healthy
+seven-minute attempts are a larger delay than one slightly slower attempt.
+
+For the slow production-promotion line, duration is descriptive rather than an
+inner-loop SLO. Record exact candidate SHA, total/critical-path duration, job
+outcomes and receipt/artifact identity. A green run applies only to that
+unchanged candidate. Faster execution never compensates for missing production
+evidence, and a slow failure remains promotion debt.

@@ -101,6 +101,20 @@ Before changing files, read:
 Do not represent structural OpenSpec validation as semantic, security or
 conformance approval.
 
+## Delivery lines
+
+- `fast` is the single required active-development PR line for `develop`.
+- `slow` is weekly/manual exact-SHA production-promotion evidence; do not add it
+  to every PR.
+- Run focused local checks and review before the first candidate push. Request
+  one automatic discovery review after green fast CI and perform at most one
+  remediation round.
+- P0/P1, security regressions, introduced defects and failed acceptance remain
+  blocking. Route later independent non-blocking findings to linked follow-up
+  issues.
+- More than 12 changed files or 1,000 changed text lines requires a
+  decomposition note, not an automatic waiver or rejection.
+
 ## Development gates
 
 A Nix flake devshell supplies the reproducible maintainer environment. Plain

@@ -167,6 +167,16 @@ sanitizer campaigns. Agents may merge on green required
 publication is prohibited until that debt and the release-phase compiler
 matrix are resolved.
 
+The two statuses answer different questions. `fast` is the active-development
+integration decision, with a six-minute p50/eight-minute p95 execution SLO and
+a ten-minute optimization trigger. `slow` is an exact-SHA production-promotion
+decision measured in tens of minutes. Agents batch local work before the first
+candidate push, request one automatic discovery review after a green head, and
+perform at most one remediation round. Blocking regressions always stay in the
+slice; later independent non-blocking hardening becomes a linked follow-up.
+See [ADR 0127](../adr/0127-separate-fast-integration-from-slow-production-promotion.md)
+and the [operations handbook](operations.md).
+
 OpenSpec `MODIFIED` operations replace a complete canonical requirement. The
 repository checker permits the default additive path only when every existing
 nonblank canonical line survives in order. An intentional rewrite or deletion

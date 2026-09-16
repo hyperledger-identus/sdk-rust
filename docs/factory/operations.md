@@ -24,7 +24,8 @@ constraints and the normal dependency gates.
    It rejects implementation paths in the planning commit. Implementation may
    begin only after this receipt exists.
 5. Implement one bounded task at a time. Use `scripts/factory plan --base
-   <sha> --head <sha>` to record the exact target plan. The only required hosted
+   <sha> --head <sha>` to record the exact target plan, text churn, integration
+   line, promotion line and decomposition guidance. The only required hosted
    PR lane remains `fast`; slow evidence is run locally or requested through
    native GitHub scheduling from protected default `develop`, manual dispatch,
    or exact local reproduction. Run `scripts/factory slow-live` after the
@@ -32,7 +33,11 @@ constraints and the normal dependency gates.
    evidence; the command is read-only and never dispatches recovery work.
 6. Run focused tests, `./bootstrap.sh --check`, and any risk-routed gates. Record
    commands not run as limitations, not implied successes.
-7. Complete a fresh local review. Mark tasks complete, run `factory ready` and
+7. Complete a fresh local review, then batch a candidate push. Request one
+   automatic discovery review only after the first green fast head. Perform at
+   most one remediation round: P0/P1, security regression, introduced defect
+   or failed acceptance remains blocking; later independent P2/P3 hardening is
+   linked to a follow-up issue. Mark tasks complete, run `factory ready` and
    archive through the guarded facade.
 8. Push signed, DCO-bearing commits, open a ready PR that closes the issue, and
    merge into `develop` only at the reviewed exact head with all required checks
@@ -42,6 +47,30 @@ constraints and the normal dependency gates.
 Prototype work uses the same issue and OpenSpec boundary but cannot publish or
 claim merge readiness. Promotion to production-ready refreshes the base and
 invalidates provisional evidence.
+
+## CI delivery lines
+
+`fast` answers whether one bounded active-development slice may integrate into
+`develop`. It is the single required Linux status and retains policy, OpenSpec,
+formatting, normal workspace build, strict Clippy, tests and bounded first-party
+analysis under the pinned toolchain. Its observational execution SLO is p50 at
+most six minutes and p95 at most eight minutes. A comparable rolling p95 above
+ten minutes starts focused optimization; it does not authorize silent evidence
+removal.
+
+`slow` answers whether one exact unchanged SDK candidate may be promoted toward
+production or release. It retains the complete platform, target, binding,
+security, conformance, coverage, performance, fuzz/sanitizer, deterministic
+package and receipt evidence. It runs weekly from protected `develop` and
+manually after a candidate becomes stable. A failure blocks production
+promotion, publication and release preparation, but does not create another
+ordinary PR matrix or invalidate unrelated green integrations.
+
+Work locally before using hosted CI. The default delivery budget is one
+candidate push, one automatic discovery review and at most one remediation
+push. More than 12 changed files or 1,000 changed text lines requires a
+decomposition note explaining why the slice remains cohesive or how it will be
+split; the threshold alone never approves or rejects correctness.
 
 ## Bootstrap and local controls
 

@@ -2,11 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { execFileSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const factoryPolicy = Object.freeze(JSON.parse(readFileSync(path.join(root, ".factory-policy.json"), "utf8")));
+const validatedPolicy = validateLanePolicy(factoryPolicy);
+const ciPolicy = Object.freeze(validatedPolicy.ci);
+const deliveryPolicy = Object.freeze(validatedPolicy.delivery);
 const shaPattern = /^[0-9a-f]{40}$/u;
 const allSlow = Object.freeze(["full-nix-linux", "full-nix-macos", "portable-targets", "security", "fuzz-conformance"]);
 
@@ -20,6 +24,53 @@ const routes = Object.freeze([
   ["spec", /^(?:openspec\/|docs\/(?:adr|governance|architecture|roadmap)\/)/u],
   ["docs", /^(?:.*\.md|docs\/)/u],
 ]);
+
+export function validateLanePolicy(policy) {
+  const ci = policy?.ci;
+  const delivery = policy?.delivery;
+  if (!ci || !delivery) throw new Error("factory policy must define ci and delivery contracts");
+  if (ci.requiredPullRequestGate !== "fast") throw new Error("the only required pull-request gate must be fast");
+  if (ci.slowSchedule !== "weekly-or-manual" || ci.slow?.schedule !== ci.slowSchedule) {
+    throw new Error("slow schedule must remain weekly-or-manual and internally consistent");
+  }
+  if (JSON.stringify(ci.fast?.requiredStatuses) !== JSON.stringify(["fast"])) {
+    throw new Error("fast line must expose exactly one required status");
+  }
+  if (ci.fast.purpose !== "active-development-integration" || ci.fast.platform !== "x86_64-linux") {
+    throw new Error("fast line identity must remain active-development integration on Linux");
+  }
+  const requiredFastEvidence = ["factory-policy", "openspec", "formatting", "workspace-build", "strict-clippy", "normal-tests"];
+  if (!requiredFastEvidence.every((entry) => ci.fast.includes?.includes(entry))
+      || !["cross-platform-matrix", "coverage", "performance", "fuzz", "sanitizers", "release-artifacts"]
+        .every((entry) => ci.fast.excludes?.includes(entry))) {
+    throw new Error("fast evidence placement is incomplete");
+  }
+  const slo = ci.fast?.executionSloSeconds;
+  if (![slo?.p50, slo?.p95, slo?.optimizationTrigger].every((value) => Number.isSafeInteger(value) && value > 0)
+      || slo.p50 > slo.p95 || slo.p95 >= slo.optimizationTrigger) {
+    throw new Error("fast execution SLO must be positive and ordered p50 <= p95 < optimization trigger");
+  }
+  if (delivery.maximumAutomaticReviewRounds !== 1 || delivery.maximumRemediationRounds !== 1) {
+    throw new Error("delivery must allow one automatic review and one remediation round");
+  }
+  if (delivery.pushStrategy !== "local-first-batched"
+      || delivery.reviewCutoffDisposition !== "linked-follow-up-for-independent-non-blocking-findings") {
+    throw new Error("delivery iteration policy is incomplete");
+  }
+  const slice = delivery.sliceGuidance;
+  if (!Number.isSafeInteger(slice?.changedFiles) || slice.changedFiles < 1
+      || !Number.isSafeInteger(slice?.changedTextLines) || slice.changedTextLines < 1
+      || slice.thresholdAction !== "decomposition-note") {
+    throw new Error("slice guidance must define positive thresholds and a decomposition note");
+  }
+  if (ci.slow?.purpose !== "production-promotion" || ci.slow.exactShaRequired !== true
+      || ci.slow.unchangedCandidateRequired !== true
+      || !ci.slow.blocks?.includes("release-preparation")
+      || JSON.stringify(ci.slow.doesNotBlock) !== JSON.stringify(["ordinary-pull-request-integration"])) {
+    throw new Error("slow production-promotion invariants are incomplete");
+  }
+  return { ci, delivery };
+}
 
 function git(args) {
   return execFileSync("git", args, { cwd: root, encoding: "utf8", maxBuffer: 16 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] });
@@ -49,10 +100,40 @@ export function classifyPaths(paths) {
   return [...areas].sort();
 }
 
-export function buildPlan({ baseSha, headSha, paths, profile = "production-ready" }) {
+export function parseNumstat(raw) {
+  if (typeof raw !== "string") throw new Error("numstat input must be a string");
+  let changedTextLines = 0;
+  let binaryFileCount = 0;
+  for (const record of raw.split("\0").filter(Boolean)) {
+    const firstTab = record.indexOf("\t");
+    const secondTab = firstTab < 0 ? -1 : record.indexOf("\t", firstTab + 1);
+    if (firstTab < 1 || secondTab < firstTab + 2) throw new Error("numstat record is malformed");
+    const additions = record.slice(0, firstTab);
+    const deletions = record.slice(firstTab + 1, secondTab);
+    if (additions === "-" && deletions === "-") {
+      binaryFileCount += 1;
+      continue;
+    }
+    if (!/^\d+$/u.test(additions) || !/^\d+$/u.test(deletions)) throw new Error("numstat count is malformed");
+    changedTextLines += Number(additions) + Number(deletions);
+    if (!Number.isSafeInteger(changedTextLines)) throw new Error("numstat count exceeds the safe integer range");
+  }
+  return { changedTextLines, binaryFileCount };
+}
+
+export function buildPlan({
+  baseSha,
+  headSha,
+  paths,
+  profile = "production-ready",
+  changedTextLines = 0,
+  binaryFileCount = 0,
+}) {
   if (!shaPattern.test(baseSha) || !shaPattern.test(headSha)) throw new Error("plan requires exact base and head SHAs");
   if (!Array.isArray(paths) || paths.length > 2000) throw new Error("changed path set is invalid or exceeds 2,000 entries");
   if (!["prototype", "production-ready", "integration"].includes(profile)) throw new Error(`unsupported delivery profile: ${profile}`);
+  if (!Number.isSafeInteger(changedTextLines) || changedTextLines < 0) throw new Error("changed text lines must be a non-negative safe integer");
+  if (!Number.isSafeInteger(binaryFileCount) || binaryFileCount < 0) throw new Error("binary file count must be a non-negative safe integer");
   const areas = classifyPaths(paths);
   const slow = new Set();
   if (areas.includes("unknown") || areas.some((area) => ["factory", "ci", "build"].includes(area))) {
@@ -61,18 +142,46 @@ export function buildPlan({ baseSha, headSha, paths, profile = "production-ready
   if (areas.some((area) => ["rust", "bindings", "build"].includes(area))) slow.add("portable-targets");
   if (areas.some((area) => ["security", "rust", "bindings"].includes(area))) slow.add("security");
   if (areas.some((area) => ["security", "rust"].includes(area))) slow.add("fuzz-conformance");
+  const sliceGuidance = deliveryPolicy.sliceGuidance;
+  const decompositionNoteRequired = paths.length > sliceGuidance.changedFiles
+    || changedTextLines > sliceGuidance.changedTextLines;
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     repository: "hyperledger-identus/sdk-rust",
     baseSha,
     headSha,
     profile,
     changedPathCount: paths.length,
+    changedTextLines,
+    binaryFileCount,
     paths,
     areas,
-    requiredPullRequestChecks: profile === "prototype" ? ["factory-basic"] : ["fast"],
+    requiredPullRequestChecks: profile === "prototype" ? ["factory-basic"] : [ciPolicy.requiredPullRequestGate],
+    integration: {
+      line: ciPolicy.requiredPullRequestGate,
+      purpose: ciPolicy.fast.purpose,
+      platform: ciPolicy.fast.platform,
+      requiredStatuses: ciPolicy.fast.requiredStatuses,
+      executionSloSeconds: ciPolicy.fast.executionSloSeconds,
+    },
     slowRecommended: [...slow].sort(),
     slowPolicy: "native-weekly-or-manual",
+    promotion: {
+      line: "slow",
+      purpose: ciPolicy.slow.purpose,
+      exactShaRequired: ciPolicy.slow.exactShaRequired,
+      unchangedCandidateRequired: ciPolicy.slow.unchangedCandidateRequired,
+      blocks: ciPolicy.slow.blocks,
+      readiness: "not-evaluated-by-diff-plan",
+    },
+    iteration: {
+      pushStrategy: deliveryPolicy.pushStrategy,
+      maximumAutomaticReviewRounds: deliveryPolicy.maximumAutomaticReviewRounds,
+      maximumRemediationRounds: deliveryPolicy.maximumRemediationRounds,
+      reviewCutoffDisposition: deliveryPolicy.reviewCutoffDisposition,
+      sliceGuidance,
+      decompositionNoteRequired,
+    },
     unknownDiffFailsClosed: areas.includes("unknown"),
   };
 }
@@ -95,7 +204,8 @@ function main() {
   const headSha = resolveCommit(options.head, "head");
   const raw = git(["diff", "--name-only", "-z", `${baseSha}...${headSha}`]);
   const paths = raw.split("\0").filter(Boolean);
-  const plan = buildPlan({ baseSha, headSha, paths, profile: options.profile ?? "production-ready" });
+  const numstat = parseNumstat(git(["diff", "--numstat", "--no-renames", "-z", `${baseSha}...${headSha}`]));
+  const plan = buildPlan({ baseSha, headSha, paths, profile: options.profile ?? "production-ready", ...numstat });
   const rendered = `${JSON.stringify(plan, null, 2)}\n`;
   if (options.output) writeFileSync(path.resolve(root, options.output), rendered, { flag: "w", mode: 0o600 });
   process.stdout.write(rendered);

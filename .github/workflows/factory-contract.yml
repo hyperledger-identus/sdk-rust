@@ -43,7 +43,8 @@ jobs:
             --head "$HEAD_SHA" \
             --profile production-ready \
             --output "$RUNNER_TEMP/target-plan.json"
-          sed -n '/"areas"/,/]/p; /"slowRecommended"/,/]/p' \
+          sed -n \
+            '/"areas"/,/]/p; /"integration"/,/^    },/p; /"slowRecommended"/,/]/p; /"promotion"/,/^    },/p; /"iteration"/,/^    }/p' \
             "$RUNNER_TEMP/target-plan.json" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify preflight-bound error goldens

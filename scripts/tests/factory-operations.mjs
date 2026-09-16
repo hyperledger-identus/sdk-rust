@@ -19,7 +19,7 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { test } from "node:test";
 import { parseConventionalSubject, validateBranchName, validateHostedCommits, validatePullRequest } from "../ci/contribution-policy.mjs";
-import { buildPlan, classifyPaths } from "../ci/target-plan.mjs";
+import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
 import { checkUserPolicy, mergePolicy, policyMismatches } from "../factory-tools/pi-policy.mjs";
 import { auditPi } from "../factory-tools/audit-pi.mjs";
 import {
@@ -176,11 +176,82 @@ test("hosted commit evidence fails closed on invalid verification and head", () 
 
 test("target plan keeps one fast PR gate and routes risk to slow evidence", () => {
   assert.deepEqual(classifyPaths(["crates/identus-crypto/src/lib.rs"]), ["rust"]);
-  const plan = buildPlan({ baseSha: sha, headSha: "b".repeat(40), paths: ["nix/devshells/default.nix"], profile: "production-ready" });
+  const plan = buildPlan({
+    baseSha: sha,
+    headSha: "b".repeat(40),
+    paths: ["nix/devshells/default.nix"],
+    profile: "production-ready",
+    changedTextLines: 20,
+  });
+  assert.equal(plan.schemaVersion, 2);
   assert.deepEqual(plan.requiredPullRequestChecks, ["fast"]);
   assert.deepEqual(plan.slowRecommended, ["full-nix-linux", "full-nix-macos", "fuzz-conformance", "portable-targets", "security"]);
   assert.equal(plan.slowPolicy, "native-weekly-or-manual");
+  assert.deepEqual(plan.integration, {
+    line: "fast",
+    purpose: "active-development-integration",
+    platform: "x86_64-linux",
+    requiredStatuses: ["fast"],
+    executionSloSeconds: { p50: 360, p95: 480, optimizationTrigger: 600 },
+  });
+  assert.equal(plan.promotion.purpose, "production-promotion");
+  assert.equal(plan.promotion.exactShaRequired, true);
+  assert.equal(plan.promotion.unchangedCandidateRequired, true);
+  assert.equal(plan.promotion.readiness, "not-evaluated-by-diff-plan");
+  assert.equal(plan.iteration.maximumAutomaticReviewRounds, 1);
+  assert.equal(plan.iteration.maximumRemediationRounds, 1);
+  assert.equal(plan.iteration.decompositionNoteRequired, false);
+  assert.deepEqual(
+    buildPlan({ baseSha: sha, headSha: "b".repeat(40), paths: ["README.md"], profile: "prototype" }).requiredPullRequestChecks,
+    ["factory-basic"],
+  );
   assert.equal(buildPlan({ baseSha: sha, headSha: "b".repeat(40), paths: ["unclassified.bin"] }).unknownDiffFailsClosed, true);
+});
+
+test("target plan measures text churn and requests decomposition notes without rejecting work", () => {
+  assert.deepEqual(parseNumstat("10\t2\tdocs/a.md\0-\t-\tassets/a.bin\0"), {
+    changedTextLines: 12,
+    binaryFileCount: 1,
+  });
+  assert.deepEqual(parseNumstat("1\t2\tdocs/a\tname.md\0"), {
+    changedTextLines: 3,
+    binaryFileCount: 0,
+  });
+  assert.throws(() => parseNumstat("x\t2\tdocs/a.md\0"), /malformed/u);
+  const plan = buildPlan({
+    baseSha: sha,
+    headSha: "b".repeat(40),
+    paths: Array.from({ length: 13 }, (_, index) => `docs/change-${index}.md`),
+    changedTextLines: 1001,
+  });
+  assert.equal(plan.iteration.decompositionNoteRequired, true);
+  assert.equal(plan.iteration.sliceGuidance.thresholdAction, "decomposition-note");
+  assert.deepEqual(plan.requiredPullRequestChecks, ["fast"]);
+});
+
+test("delivery lane policy rejects expanded PR matrices and weakened promotion evidence", () => {
+  const policy = JSON.parse(readFileSync(new URL("../../.factory-policy.json", import.meta.url), "utf8"));
+  assert.equal(validateLanePolicy(policy).ci.fast.executionSloSeconds.p95, 480);
+
+  const secondPrGate = structuredClone(policy);
+  secondPrGate.ci.fast.requiredStatuses.push("slow");
+  assert.throws(() => validateLanePolicy(secondPrGate), /exactly one required status/u);
+
+  const movedSlowEvidence = structuredClone(policy);
+  movedSlowEvidence.ci.fast.excludes = movedSlowEvidence.ci.fast.excludes.filter((entry) => entry !== "fuzz");
+  assert.throws(() => validateLanePolicy(movedSlowEvidence), /evidence placement/u);
+
+  const unboundedReview = structuredClone(policy);
+  unboundedReview.delivery.maximumAutomaticReviewRounds = 2;
+  assert.throws(() => validateLanePolicy(unboundedReview), /one automatic review/u);
+
+  const stalePromotion = structuredClone(policy);
+  stalePromotion.ci.slow.unchangedCandidateRequired = false;
+  assert.throws(() => validateLanePolicy(stalePromotion), /promotion invariants/u);
+
+  const invertedSlo = structuredClone(policy);
+  invertedSlo.ci.fast.executionSloSeconds.p95 = 601;
+  assert.throws(() => validateLanePolicy(invertedSlo), /ordered/u);
 });
 
 test("Pi policy merge preserves unrelated user choices", () => {

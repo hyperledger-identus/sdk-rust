@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 306,
+  "change": "publish-bounded-delivery-metrics",
+  "branch": "codex/feat/issue-306",
+  "baseRef": "origin/develop",
+  "baseSha": "a6268735c3c50213b00b9998a02da31dd908b1aa",
+  "contractHeadSha": "167f2c5de7e691945fab333bc20d403d46fcd371",
+  "createdAt": "2026-09-16T17:58:27.707Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

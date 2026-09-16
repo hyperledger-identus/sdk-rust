@@ -97,6 +97,10 @@ Before changing files, read:
   and evidence receipt.
 - Monitor every required check. Merge into `develop` only when the pull request
   satisfies the repository integration policy; otherwise diagnose or stop.
+- At terminal closeout, retain the closed metrics record locally and publish
+  its bounded receipt to the recorded PR, or to the issue when no PR exists or
+  issue-centric reporting is explicitly selected. One failed retry is visible
+  telemetry debt; it does not rewrite independent product evidence.
 
 Do not represent structural OpenSpec validation as semantic, security or
 conformance approval.

@@ -54,3 +54,7 @@ At terminal handoff report issue/PR, base, branch/head, worktree, changed paths,
 checks and durations, findings, process ownership, working-tree state, exact
 available token/tool/session counters and unavailable counters as `null`.
 Never include prompts, transcripts, credentials or raw secret-bearing output.
+The supervisor, not a delegated worker, retains the final closed metrics record
+and publishes its bounded receipt with `metrics publish --target auto`; an
+exhausted retry is visible telemetry debt and must not be hidden or treated as
+permission to expose private session artifacts.

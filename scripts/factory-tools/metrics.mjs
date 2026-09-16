@@ -6,11 +6,13 @@ import { execFileSync } from "node:child_process";
 import {
   chmodSync,
   existsSync,
+  linkSync,
   lstatSync,
   mkdirSync,
   readFileSync,
   realpathSync,
   renameSync,
+  unlinkSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
@@ -290,18 +292,87 @@ export function readMetricFile(file) {
   return parseJsonWithoutDuplicates(content);
 }
 
-function writePrivate(record) {
-  const result = validateMetric(record, { requireCurrentHead: true });
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function isLegacyDraftTransition(existing, record) {
+  return existing.outcome === "in-progress"
+    && record.outcome !== "in-progress"
+    && existing.schemaVersion === record.schemaVersion
+    && existing.repository === record.repository
+    && existing.issue === record.issue
+    && existing.headSha === record.headSha
+    && existing.profile === record.profile
+    && existing.startedAt === record.startedAt
+    && (existing.pullRequest === record.pullRequest || existing.pullRequest === null);
+}
+
+function transitionLegacyDraft(target, temporary, existing, record) {
+  const claim = `${target}.transition`;
+  let acquired = false;
+  try {
+    try {
+      linkSync(target, claim);
+      acquired = true;
+    } catch (error) {
+      if (error?.code === "EEXIST") fail("legacy metric draft transition is already active");
+      throw error;
+    }
+    const claimed = readMetricFile(claim);
+    if (canonicalJson(claimed) !== canonicalJson(existing) || !isLegacyDraftTransition(claimed, record)) {
+      fail("existing private metric record conflicts with exact record");
+    }
+    renameSync(temporary, target);
+  } finally {
+    if (acquired && existsSync(claim)) unlinkSync(claim);
+  }
+}
+
+export function retainMetricRecord(target, record) {
+  const result = validateMetric(record);
+  if (!result.ok) fail(result.errors.join("; "));
+  if (record.outcome === "in-progress") fail("in-progress metric record cannot be retained");
+  const temporary = `${target}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    writeFileSync(temporary, `${JSON.stringify(record, null, 2)}\n`, { flag: "wx", mode: 0o600 });
+    try {
+      linkSync(temporary, target);
+    } catch (error) {
+      if (error?.code !== "EEXIST") throw error;
+      const existing = readMetricFile(target);
+      const existingValidation = validateMetric(existing);
+      if (!existingValidation.ok) fail("existing private metric record conflicts with exact record");
+      if (canonicalJson(existing) === canonicalJson(record)) {
+        // Equal terminal evidence is idempotent.
+      } else if (isLegacyDraftTransition(existing, record)) {
+        transitionLegacyDraft(target, temporary, existing, record);
+      } else {
+        fail("existing private metric record conflicts with exact record");
+      }
+    }
+    chmodSync(target, 0o600);
+  } finally {
+    if (existsSync(temporary)) unlinkSync(temporary);
+  }
+  return target;
+}
+
+function persistPrivate(record, { requireCurrentHead = false } = {}) {
+  const result = validateMetric(record, { requireCurrentHead });
   if (!result.ok) fail(result.errors.join("; "));
   const store = metricStoreLayout(record.schemaVersion, { create: true });
   const directory = path.join(store, `issue-${record.issue}`);
   ensurePrivateDirectory(directory);
-  const target = path.join(directory, `${record.headSha}.json`);
-  const temporary = `${target}.${process.pid}.${randomUUID()}.tmp`;
-  writeFileSync(temporary, `${JSON.stringify(record, null, 2)}\n`, { flag: "wx", mode: 0o600 });
-  renameSync(temporary, target);
-  chmodSync(target, 0o600);
-  process.stdout.write(`${target}\n`);
+  return retainMetricRecord(path.join(directory, `${record.headSha}.json`), record);
+}
+
+function writePrivate(record) {
+  process.stdout.write(`${persistPrivate(record, { requireCurrentHead: true })}\n`);
 }
 
 export function selectOwnedMetricComment(comments, login, publicMarker) {
@@ -312,26 +383,180 @@ export function selectOwnedMetricComment(comments, login, publicMarker) {
   return owned[0] ?? null;
 }
 
-function publish(record, issue, execute) {
+export function resolveMetricPublicationTarget(record, requestedTarget = "auto") {
+  if (!["auto", "pull-request", "issue"].includes(requestedTarget)) {
+    fail("metric publication target must be auto, pull-request or issue");
+  }
+  if (requestedTarget === "pull-request" && record.pullRequest === null) {
+    fail("pull-request publication requires a recorded pull request");
+  }
+  if (requestedTarget === "issue" || record.pullRequest === null) {
+    return { kind: "issue", number: record.issue };
+  }
+  return { kind: "pull-request", number: record.pullRequest };
+}
+
+export function validateHostedMetricIdentity(record, { issue, pullRequest = null, currentHead = null }) {
+  if (issue?.number !== record.issue || Object.hasOwn(issue ?? {}, "pull_request")) {
+    fail("metric issue does not match an authoritative repository issue");
+  }
+  if (record.pullRequest !== null) {
+    if (pullRequest?.number !== record.pullRequest || pullRequest?.headRefOid !== record.headSha) {
+      fail("metric pull request does not match its exact hosted head");
+    }
+    const closesRecordedIssue = Array.isArray(pullRequest.closingIssuesReferences)
+      && pullRequest.closingIssuesReferences.some((reference) => (
+        reference?.number === record.issue && reference?.repository === record.repository
+      ));
+    if (!closesRecordedIssue) fail("metric pull request is not linked to its recorded issue");
+  } else if (currentHead !== record.headSha) {
+    fail("metric without a pull request must match the current exact HEAD");
+  }
+}
+
+export function runMetricPublicationMutation(mutate) {
+  const maximumAttempts = policy.metrics.publication.maximumMutationAttempts;
+  if (maximumAttempts !== 2) fail("metric publication policy must allow exactly one retry");
+  for (let attempt = 1; attempt <= maximumAttempts; attempt += 1) {
+    try {
+      return mutate();
+    } catch {
+      if (attempt === 2) {
+        fail("metric publication remains telemetry debt after bounded retry");
+      }
+    }
+  }
+  fail("metric publication remains telemetry debt after bounded retry");
+}
+
+function createMetricComment(github, target, login, marker, body) {
+  try {
+    return github.createComment(target, body);
+  } catch {
+    let recovered;
+    try {
+      recovered = selectOwnedMetricComment(github.readComments(target), login, marker);
+    } catch {
+      fail("metric publication remains telemetry debt after bounded retry");
+    }
+    if (recovered !== null) {
+      if (!positiveInteger(recovered.id)) fail("owned metrics comment has an invalid identity");
+      if (recovered.body === body) return recovered;
+      try {
+        return github.updateComment(recovered.id, body);
+      } catch {
+        fail("metric publication remains telemetry debt after bounded retry");
+      }
+    }
+    try {
+      return github.createComment(target, body);
+    } catch {
+      fail("metric publication remains telemetry debt after bounded retry");
+    }
+  }
+}
+
+export function publishMetric(record, {
+  issue,
+  requestedTarget = "auto",
+  execute = false,
+  currentHead,
+  github,
+  persist = persistPrivate,
+}) {
   if (!execute) fail("publication requires --execute");
-  const validation = validateMetric(record, { requireCurrentHead: true });
+  const validation = validateMetric(record);
   if (!validation.ok) fail(validation.errors.join("; "));
   if (record.issue !== issue) fail("metric issue does not match publication target");
-  if (record.pullRequest !== null) {
-    const pullRequest = JSON.parse(execFileSync("gh", ["pr", "view", String(record.pullRequest), "--repo", policy.repository, "--json", "headRefOid,number"], { encoding: "utf8" }));
-    if (pullRequest.number !== record.pullRequest || pullRequest.headRefOid !== record.headSha) fail("metric pull request does not match its exact head");
-  }
+  const target = resolveMetricPublicationTarget(record, requestedTarget);
+  const hostedIssue = github.readIssue(record.issue);
+  const hostedPullRequest = record.pullRequest === null ? null : github.readPullRequest(record.pullRequest);
+  validateHostedMetricIdentity(record, { issue: hostedIssue, pullRequest: hostedPullRequest, currentHead });
   const body = renderMetric(record);
+  persist(record);
   const versionPolicy = metricVersionPolicy(record.schemaVersion);
-  const login = execFileSync("gh", ["api", "user", "--jq", ".login"], { encoding: "utf8" }).trim();
-  const comments = JSON.parse(execFileSync("gh", ["api", `repos/${policy.repository}/issues/${issue}/comments`, "--paginate"], { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 }));
+  const login = github.readLogin();
+  const comments = github.readComments(target.number);
   const owned = selectOwnedMetricComment(comments, login, versionPolicy.publicMarker);
   if (owned !== null) {
     if (!positiveInteger(owned.id)) fail("owned metrics comment has an invalid identity");
-    execFileSync("gh", ["api", "--method", "PATCH", `repos/${policy.repository}/issues/comments/${owned.id}`, "-f", `body=${body}`], { stdio: "inherit" });
+    runMetricPublicationMutation(() => github.updateComment(owned.id, body));
   } else {
-    execFileSync("gh", ["issue", "comment", String(issue), "--repo", policy.repository, "--body", body], { stdio: "inherit" });
+    createMetricComment(github, target.number, login, versionPolicy.publicMarker, body);
   }
+  return target;
+}
+
+function githubJson(args, failureMessage) {
+  try {
+    return JSON.parse(execFileSync("gh", args, { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 }));
+  } catch {
+    fail(failureMessage);
+  }
+}
+
+function githubText(args, failureMessage) {
+  try {
+    return execFileSync("gh", args, { encoding: "utf8" }).trim();
+  } catch {
+    fail(failureMessage);
+  }
+}
+
+function githubPagedArray(args, failureMessage) {
+  const pages = githubJson([...args, "--paginate", "--slurp"], failureMessage);
+  if (!Array.isArray(pages) || pages.some((page) => !Array.isArray(page))) fail(failureMessage);
+  return pages.flat();
+}
+
+function publish(record, issue, requestedTarget, execute) {
+  const [owner, name] = policy.repository.split("/");
+  const github = {
+    readIssue: (number) => githubJson(
+      ["api", `repos/${policy.repository}/issues/${number}`],
+      "unable to verify authoritative metric issue",
+    ),
+    readPullRequest: (number) => {
+      const response = githubJson([
+        "api", "graphql",
+        "-f", `owner=${owner}`,
+        "-f", `name=${name}`,
+        "-F", `number=${number}`,
+        "-f", "query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid closingIssuesReferences(first:100){nodes{number repository{nameWithOwner}}}}}}",
+      ], "unable to verify authoritative metric pull request");
+      const pullRequest = response?.data?.repository?.pullRequest;
+      return {
+        number: pullRequest?.number,
+        headRefOid: pullRequest?.headRefOid,
+        closingIssuesReferences: pullRequest?.closingIssuesReferences?.nodes?.map((reference) => ({
+          number: reference?.number,
+          repository: reference?.repository?.nameWithOwner,
+        })),
+      };
+    },
+    readLogin: () => githubText(["api", "user", "--jq", ".login"], "unable to resolve authenticated metric publisher"),
+    readComments: (number) => githubPagedArray(
+      ["api", `repos/${policy.repository}/issues/${number}/comments`],
+      "unable to inspect existing metric comments",
+    ),
+    updateComment: (comment, body) => execFileSync(
+      "gh",
+      ["api", "--method", "PATCH", `repos/${policy.repository}/issues/comments/${comment}`, "-f", `body=${body}`],
+      { stdio: ["ignore", "ignore", "ignore"] },
+    ),
+    createComment: (number, body) => execFileSync(
+      "gh",
+      ["api", "--method", "POST", `repos/${policy.repository}/issues/${number}/comments`, "-f", `body=${body}`],
+      { stdio: ["ignore", "ignore", "ignore"] },
+    ),
+  };
+  return publishMetric(record, {
+    issue,
+    requestedTarget,
+    execute,
+    currentHead: git(["rev-parse", "HEAD"]),
+    github,
+  });
 }
 
 function argument(argv, name, required = true) {
@@ -404,9 +629,17 @@ function main() {
       process.stdout.write("factory: metric record is valid\n");
     } else if (command === "write") writePrivate(record);
     else if (command === "render") process.stdout.write(renderMetric(record));
-    else publish(record, Number(argument(argv, "--issue")), argv.includes("--execute"));
+    else {
+      const target = publish(
+        record,
+        Number(argument(argv, "--issue")),
+        argument(argv, "--target", false) ?? "auto",
+        argv.includes("--execute"),
+      );
+      process.stdout.write(`factory: metric receipt published to ${target.kind} #${target.number}\n`);
+    }
   } else {
-    fail("Usage: metrics.mjs <template|validate|write|render|publish> [options]");
+    fail("Usage: metrics.mjs <template|validate|write|render|publish> [options]; publish accepts --target auto|pull-request|issue");
   }
 }
 

@@ -94,6 +94,7 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/factory plan --base <sha> --head <sha>
 ./scripts/factory worktrees audit
 ./scripts/factory metrics validate --file <record>
+./scripts/factory metrics publish --file <record> --issue N --target auto --execute
 ./scripts/factory supervisor prepare --change <change> --issue N <bounded-options>
 ./scripts/factory supervisor run --envelope <absolute-private-path>
 ./scripts/factory ready <change>
@@ -123,7 +124,7 @@ nix run .#factory -- check
 | `backlog-live` | explicitly resolves canonical roadmap issue ownership through GitHub before supervisor work selection; it is read-only and outside offline required CI |
 | `plan` | derives one immutable required fast lane plus risk-routed slow evidence available locally or through external orchestration |
 | `worktrees` | audits or explicitly mutates only canonical bounded issue worktrees |
-| `metrics` | validates, stores, renders or explicitly publishes privacy-bounded exact-head v1/v2 metrics |
+| `metrics` | validates, retains, renders or explicitly publishes privacy-bounded exact-head v1/v2 metrics; publication defaults to the recorded PR, then its issue |
 | `supervisor` | prepares, runs, harvests and effect-checks one exact bootstrap-launched Pi worker |
 | `ready` | requires the named active change and every task to be complete |
 | `receipt` | runs readiness, then prints immutable branch/head/base identifiers |

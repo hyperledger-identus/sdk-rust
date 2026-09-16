@@ -48,6 +48,12 @@
     "retentionDays": 90,
     "publicMarker": "sdk-rust-factory-metrics:v1",
     "defaultSchemaVersion": 2,
+    "publication": {
+      "requiredForCompletedWork": true,
+      "defaultTarget": "pull-request-or-issue",
+      "maximumMutationAttempts": 2,
+      "failureDisposition": "visible-telemetry-debt"
+    },
     "versions": {
       "1": {
         "schema": "docs/factory/work-item-metrics-v1.schema.json",

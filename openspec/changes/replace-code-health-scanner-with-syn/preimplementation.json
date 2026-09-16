@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 275,
+  "change": "replace-code-health-scanner-with-syn",
+  "branch": "codex/refactor/issue-275",
+  "baseRef": "origin/develop",
+  "baseSha": "5dff6f38c861b858dd62dc8310246f7d485d3e92",
+  "contractHeadSha": "501cafb9b6aff3c8fe0b66384c71f7a9fcfbfe7b",
+  "createdAt": "2026-09-16T06:47:14.413Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

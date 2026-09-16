@@ -6,7 +6,7 @@
       workspace parser versions, and conformance dependency boundary.
 - [x] 1.2 Decide bounded classifier protocol, AST population semantics, module
       reachability, conservative fallback, and rollback in OpenSpec/ADR 0126.
-- [ ] 1.3 Pass research, constraints, strict OpenSpec, and immutable preflight
+- [x] 1.3 Pass research, constraints, strict OpenSpec, and immutable preflight
       receipt before production implementation.
 
 ## 2. Rust classifier

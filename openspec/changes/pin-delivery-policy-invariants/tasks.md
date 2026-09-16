@@ -4,7 +4,7 @@
 
 - [x] 1.1 Record proposal, research, constraints, design, capability delta,
       risks, and rollback for issue #305.
-- [ ] 1.2 Pass research readiness, constraint readiness, strict OpenSpec, and
+- [x] 1.2 Pass research readiness, constraint readiness, strict OpenSpec, and
       write the immutable planning receipt.
 
 ## 2. Implementation

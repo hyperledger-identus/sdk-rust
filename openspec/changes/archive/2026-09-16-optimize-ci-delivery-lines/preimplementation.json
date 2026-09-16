@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 303,
+  "change": "optimize-ci-delivery-lines",
+  "branch": "codex/ci/issue-303",
+  "baseRef": "origin/develop",
+  "baseSha": "1d5283105678a4e62253416454a60859111e635c",
+  "contractHeadSha": "a997e77a57cbb29f36deedb850adc8304ad9d085",
+  "createdAt": "2026-09-16T12:06:17.759Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

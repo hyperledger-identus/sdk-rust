@@ -13,6 +13,14 @@
     "qualityTargetPercent": 70,
     "mandatoryInvariantPercent": 100,
     "maximumAutomaticReviewRounds": 1,
+    "maximumRemediationRounds": 1,
+    "reviewCutoffDisposition": "linked-follow-up-for-independent-non-blocking-findings",
+    "pushStrategy": "local-first-batched",
+    "sliceGuidance": {
+      "changedFiles": 12,
+      "changedTextLines": 1000,
+      "thresholdAction": "decomposition-note"
+    },
     "parentCandidates": 1,
     "managedWorktrees": 2
   },
@@ -73,6 +81,47 @@
   "ci": {
     "requiredPullRequestGate": "fast",
     "slowSchedule": "weekly-or-manual",
-    "unknownDiff": "recommend-complete-slow"
+    "unknownDiff": "recommend-complete-slow",
+    "fast": {
+      "purpose": "active-development-integration",
+      "platform": "x86_64-linux",
+      "requiredStatuses": ["fast"],
+      "executionSloSeconds": {
+        "p50": 360,
+        "p95": 480,
+        "optimizationTrigger": 600
+      },
+      "includes": [
+        "factory-policy",
+        "openspec",
+        "formatting",
+        "workspace-build",
+        "strict-clippy",
+        "normal-tests",
+        "bounded-first-party-analysis"
+      ],
+      "excludes": [
+        "cross-platform-matrix",
+        "mobile-runtime",
+        "browser-matrix",
+        "coverage",
+        "performance",
+        "fuzz",
+        "sanitizers",
+        "release-artifacts"
+      ]
+    },
+    "slow": {
+      "purpose": "production-promotion",
+      "schedule": "weekly-or-manual",
+      "exactShaRequired": true,
+      "unchangedCandidateRequired": true,
+      "blocks": [
+        "production-promotion",
+        "publication",
+        "release-preparation"
+      ],
+      "doesNotBlock": ["ordinary-pull-request-integration"]
+    }
   }
 }

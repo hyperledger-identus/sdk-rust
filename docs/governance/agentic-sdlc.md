@@ -101,11 +101,16 @@ The agent then:
 10. produces a standalone consumer-shaped proof when needed;
 11. verifies consumer HEAD/status did not change;
 12. completes and records a distinct local review pass;
-13. pushes the focused branch and opens a ready, issue-linked pull request
-    targeting `develop`;
-14. monitors required CI and merges the eligible pull request into `develop`
+13. batches the locally accepted candidate, pushes the focused branch and opens
+    a ready, issue-linked pull request targeting `develop`;
+14. after the first green fast head, requests one automatic discovery review
+    and performs at most one remediation round; new independent non-blocking
+    findings after that cutoff become linked follow-up issues, while P0/P1,
+    security regressions, introduced defects and failed acceptance remain
+    blocking;
+15. monitors required CI and merges the eligible pull request into `develop`
     when every gate is green and no blocking review remains;
-15. continues to the next eligible slice without waiting for ceremonial
+16. continues to the next eligible slice without waiting for ceremonial
     approval, but stops before release, publication, `main` promotion,
     repository administration, security disclosure or consumer adoption unless
     explicitly authorized by the responsible human.
@@ -116,6 +121,9 @@ active-development integration. Native weekly slow evidence runs from protected
 evidence and visible pre-release debt, not per-PR merge gates. Agents
 must triage failures they encounter and may not prepare a release candidate or
 publish while that debt or the release-phase compiler decision is unresolved.
+ADR 0127 additionally separates the integration verdict from the production-
+promotion verdict. Only an unchanged exact candidate with a green complete slow
+receipt and no release blocker may be promoted toward production or release.
 
 Before final review, the agent runs `scripts/factory ready <change>` and
 `scripts/factory receipt <change>`, syncs reviewed delta specs and archives the

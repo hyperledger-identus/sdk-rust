@@ -36,6 +36,14 @@ performs one correctness review, opens an issue-linked PR, refreshes exact-head
 security/CI evidence and integrates only under ADRs 0003/0004. Prototype work
 does not push, open a PR, or claim merge readiness.
 
+Batch local acceptance before the first candidate push. Request one automatic
+discovery review only after the first green `fast` head and perform at most one
+remediation round. A P0/P1, security regression, introduced defect or failed
+acceptance criterion remains blocking regardless of round count. File a linked
+follow-up for a later independent non-blocking finding instead of expanding an
+otherwise eligible PR. Treat more than 12 changed files or 1,000 changed text
+lines as a decomposition prompt, not an automatic waiver or rejection.
+
 Use at most one mutating worker and one fresh read-only reviewer. Security,
 privacy, cryptography, custody, accepted architecture, changed-capability
 correctness, compilation, critical tests, provenance, exact-head freshness and

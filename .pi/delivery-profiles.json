@@ -36,12 +36,15 @@
         "targetPercent": 70,
         "mandatoryInvariantsPercent": 100,
         "maximumAutomaticReviewRounds": 1,
+        "maximumRemediationRounds": 1,
         "advisoryDisposition": "follow-up"
       },
       "targets": {
         "strategy": "path-and-risk",
         "requiredPullRequestGate": "fast",
-        "slowEvidence": "weekly-or-manual"
+        "integrationDecision": "active-development-integration",
+        "slowEvidence": "weekly-or-manual",
+        "promotionDecision": "exact-sha-production-promotion"
       }
     }
   },

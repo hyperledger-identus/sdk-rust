@@ -6,6 +6,7 @@ import { execFileSync, spawn } from "node:child_process";
 import {
   chmodSync,
   existsSync,
+  linkSync,
   lstatSync,
   mkdtempSync,
   mkdirSync,
@@ -801,11 +802,33 @@ test("legacy in-progress records migrate once to matching terminal evidence", ()
     const terminal = { ...metric, pullRequest: 244 };
     assert.equal(retainMetricRecord(target, terminal), target);
     assert.deepEqual(JSON.parse(readFileSync(target, "utf8")), terminal);
+    assert.equal(existsSync(`${target}.transition`), false);
     assert.equal(retainMetricRecord(target, terminal), target);
     assert.throws(
       () => retainMetricRecord(target, { ...terminal, profile: "prototype" }),
       /conflicts with exact record/u,
     );
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("legacy draft transition claim prevents a concurrent terminal overwrite", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-metric-draft-race-"));
+  const directory = realpathSync(created);
+  try {
+    chmodSync(directory, 0o700);
+    const target = path.join(directory, "metric.json");
+    const claim = `${target}.transition`;
+    const draft = { ...metric, pullRequest: null, outcome: "in-progress" };
+    writeFileSync(target, `${JSON.stringify(draft, null, 2)}\n`, { mode: 0o600 });
+    linkSync(target, claim);
+    assert.throws(
+      () => retainMetricRecord(target, { ...metric, pullRequest: 244 }),
+      /transition is already active/u,
+    );
+    assert.deepEqual(JSON.parse(readFileSync(target, "utf8")), draft);
+    assert.equal(existsSync(claim), true);
   } finally {
     rmSync(created, { recursive: true, force: true });
   }

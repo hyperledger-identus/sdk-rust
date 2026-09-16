@@ -20,7 +20,9 @@ the same issue/head/version path fails closed. Draft `in-progress` records may
 be validated and rendered but cannot enter immutable retention. A valid draft
 left by the former overwriting writer may transition once to terminal evidence
 only when its stable schema/repository/issue/head/profile/start identity
-matches; a previously unknown PR may be bound at that terminal transition.
+matches; a previously unknown PR may be bound at that terminal transition. An
+exclusive hard-link claim in the same private store permits one concurrent
+winner and prevents a later closeout from overwriting terminal evidence.
 
 ### Hosted historical identity
 

@@ -312,6 +312,27 @@ function isLegacyDraftTransition(existing, record) {
     && (existing.pullRequest === record.pullRequest || existing.pullRequest === null);
 }
 
+function transitionLegacyDraft(target, temporary, existing, record) {
+  const claim = `${target}.transition`;
+  let acquired = false;
+  try {
+    try {
+      linkSync(target, claim);
+      acquired = true;
+    } catch (error) {
+      if (error?.code === "EEXIST") fail("legacy metric draft transition is already active");
+      throw error;
+    }
+    const claimed = readMetricFile(claim);
+    if (canonicalJson(claimed) !== canonicalJson(existing) || !isLegacyDraftTransition(claimed, record)) {
+      fail("existing private metric record conflicts with exact record");
+    }
+    renameSync(temporary, target);
+  } finally {
+    if (acquired && existsSync(claim)) unlinkSync(claim);
+  }
+}
+
 export function retainMetricRecord(target, record) {
   const result = validateMetric(record);
   if (!result.ok) fail(result.errors.join("; "));
@@ -329,7 +350,7 @@ export function retainMetricRecord(target, record) {
       if (canonicalJson(existing) === canonicalJson(record)) {
         // Equal terminal evidence is idempotent.
       } else if (isLegacyDraftTransition(existing, record)) {
-        renameSync(temporary, target);
+        transitionLegacyDraft(target, temporary, existing, record);
       } else {
         fail("existing private metric record conflicts with exact record");
       }

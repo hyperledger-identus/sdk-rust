@@ -173,9 +173,10 @@ public payload SHALL be rendered and size-checked before immutable local
 retention. A record whose outcome remains `in-progress` SHALL NOT enter that
 immutable store or publication flow. One valid draft retained by the previous
 writer MAY transition atomically to matching terminal evidence; terminal
-evidence SHALL remain immutable. One bounded retry MAY handle a transient
-comment failure; persistent failure SHALL remain visible telemetry debt and
-SHALL NOT invalidate otherwise independent product evidence.
+evidence SHALL remain immutable, and concurrent transition attempts SHALL
+permit at most one winner. One bounded retry MAY handle a transient comment
+failure; persistent failure SHALL remain visible telemetry debt and SHALL NOT
+invalidate otherwise independent product evidence.
 
 #### Scenario: Valid exact-head closeout is rendered
 
@@ -239,7 +240,8 @@ SHALL NOT invalidate otherwise independent product evidence.
   schema, repository, issue, head, profile and start identity match a closed
   record
 - **THEN** the factory atomically replaces that draft once with the terminal
-  evidence and applies ordinary immutability thereafter
+  evidence, rejects a competing transition without overwrite, and applies
+  ordinary immutability thereafter
 
 #### Scenario: Public mutation remains unavailable
 

@@ -64,7 +64,9 @@ published. Finalize the closed outcome and exact counters before retention.
 For compatibility with the former overwriting writer, one pre-existing valid
 draft may transition atomically to terminal evidence only when its schema,
 repository, issue, head, profile and start time match; a previously absent PR
-may be bound during that transition. Terminal evidence never transitions.
+may be bound during that transition. An exclusive same-store claim serializes
+the transition, and a competing closeout fails without overwriting the winner.
+Terminal evidence never transitions.
 
 A comment create or update receives at most one immediate retry. If both
 attempts fail, the local record remains authoritative and the command reports

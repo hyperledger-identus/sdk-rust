@@ -108,6 +108,34 @@ class ClassifierProtocolTests(unittest.TestCase):
         self.assertEqual(production, [ordinary])
         self.assertEqual(generated, [marked])
 
+    def test_generated_sources_remain_visible_to_module_resolution(self) -> None:
+        root = Path("/repo")
+        library = Path("crates/demo/src/lib.rs")
+        generated = Path("crates/demo/src/generated.rs")
+        sources = {
+            library: "mod generated;\npub fn shipping() {}\n",
+            generated: "// generated\npub fn generated() {}\n",
+        }
+        config = {
+            "classifier_command": list(audit.CLASSIFIER_COMMAND),
+            "generated_exclusions": [
+                {"path": generated.as_posix(), "marker": "// generated"}
+            ],
+        }
+        classifier_result = ({library: set(), generated: set()}, set())
+        with mock.patch.object(
+            audit, "rust_classifier_population", return_value=classifier_result
+        ) as classifier:
+            production, external, excluded, lines, counts = (
+                audit.source_population_evidence(root, sources, config)
+            )
+        self.assertEqual(set(classifier.call_args.args[1]), {library, generated})
+        self.assertEqual(production, [library])
+        self.assertEqual(external, [])
+        self.assertEqual(excluded, [generated])
+        self.assertEqual(lines, {library: set()})
+        self.assertEqual(counts["production"]["authored_nonblank_lines"], 2)
+
 
 class ReportBindingTests(unittest.TestCase):
     revision = "a" * 40

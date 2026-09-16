@@ -387,9 +387,10 @@ def source_population_evidence(
     dict[str, dict[str, int]],
 ]:
     production_paths, test_paths, generated_paths = classify_sources(sources, config)
-    production_sources = {path: sources[path] for path in production_paths}
+    classifier_paths = sorted([*production_paths, *generated_paths])
+    classifier_sources = {path: sources[path] for path in classifier_paths}
     all_inline_lines, _ = rust_classifier_population(
-        root, production_sources, tuple(config["classifier_command"])
+        root, classifier_sources, tuple(config["classifier_command"])
     )
     inline_lines_by_path: dict[Path, set[int]] = {}
     counts = {

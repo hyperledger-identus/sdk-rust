@@ -14,8 +14,8 @@ use std::{
 use proc_macro2::Span;
 use serde::{Deserialize, Serialize};
 use syn::{
-    Arm, Attribute, Expr, Field, FnArg, ForeignItem, GenericParam, ImplItem, Item, ItemMod, Meta,
-    Stmt, TraitItem,
+    Arm, Attribute, Expr, Field, FieldValue, FnArg, ForeignItem, GenericParam, ImplItem, Item,
+    ItemMod, Meta, Stmt, TraitItem,
     parse::Parser,
     punctuated::Punctuated,
     spanned::Spanned,
@@ -250,6 +250,39 @@ fn item_attributes(item: &Item) -> &[Attribute] {
     }
 }
 
+fn impl_item_attributes(item: &ImplItem) -> &[Attribute] {
+    match item {
+        ImplItem::Const(value) => &value.attrs,
+        ImplItem::Fn(value) => &value.attrs,
+        ImplItem::Type(value) => &value.attrs,
+        ImplItem::Macro(value) => &value.attrs,
+        ImplItem::Verbatim(_) => &[],
+        _ => &[],
+    }
+}
+
+fn trait_item_attributes(item: &TraitItem) -> &[Attribute] {
+    match item {
+        TraitItem::Const(value) => &value.attrs,
+        TraitItem::Fn(value) => &value.attrs,
+        TraitItem::Type(value) => &value.attrs,
+        TraitItem::Macro(value) => &value.attrs,
+        TraitItem::Verbatim(_) => &[],
+        _ => &[],
+    }
+}
+
+fn foreign_item_attributes(item: &ForeignItem) -> &[Attribute] {
+    match item {
+        ForeignItem::Fn(value) => &value.attrs,
+        ForeignItem::Static(value) => &value.attrs,
+        ForeignItem::Type(value) => &value.attrs,
+        ForeignItem::Macro(value) => &value.attrs,
+        ForeignItem::Verbatim(_) => &[],
+        _ => &[],
+    }
+}
+
 fn expr_attributes(expr: &Expr) -> &[Attribute] {
     match expr {
         Expr::Array(value) => &value.attrs,
@@ -342,6 +375,12 @@ impl<'ast> Visit<'ast> for SpanCollector<'_> {
         }
     }
 
+    fn visit_field_value(&mut self, node: &'ast FieldValue) {
+        if !self.classify(node, &node.attrs) {
+            visit::visit_field_value(self, node);
+        }
+    }
+
     fn visit_variant(&mut self, node: &'ast syn::Variant) {
         if !self.classify(node, &node.attrs) {
             visit::visit_variant(self, node);
@@ -394,43 +433,19 @@ impl<'ast> Visit<'ast> for SpanCollector<'_> {
     }
 
     fn visit_impl_item(&mut self, node: &'ast ImplItem) {
-        let attributes: &[Attribute] = match node {
-            ImplItem::Const(value) => &value.attrs,
-            ImplItem::Fn(value) => &value.attrs,
-            ImplItem::Type(value) => &value.attrs,
-            ImplItem::Macro(value) => &value.attrs,
-            ImplItem::Verbatim(_) => &[],
-            _ => &[],
-        };
-        if !self.classify(node, attributes) {
+        if !self.classify(node, impl_item_attributes(node)) {
             visit::visit_impl_item(self, node);
         }
     }
 
     fn visit_trait_item(&mut self, node: &'ast TraitItem) {
-        let attributes: &[Attribute] = match node {
-            TraitItem::Const(value) => &value.attrs,
-            TraitItem::Fn(value) => &value.attrs,
-            TraitItem::Type(value) => &value.attrs,
-            TraitItem::Macro(value) => &value.attrs,
-            TraitItem::Verbatim(_) => &[],
-            _ => &[],
-        };
-        if !self.classify(node, attributes) {
+        if !self.classify(node, trait_item_attributes(node)) {
             visit::visit_trait_item(self, node);
         }
     }
 
     fn visit_foreign_item(&mut self, node: &'ast ForeignItem) {
-        let attributes: &[Attribute] = match node {
-            ForeignItem::Fn(value) => &value.attrs,
-            ForeignItem::Static(value) => &value.attrs,
-            ForeignItem::Type(value) => &value.attrs,
-            ForeignItem::Macro(value) => &value.attrs,
-            ForeignItem::Verbatim(_) => &[],
-            _ => &[],
-        };
-        if !self.classify(node, attributes) {
+        if !self.classify(node, foreign_item_attributes(node)) {
             visit::visit_foreign_item(self, node);
         }
     }
@@ -483,11 +498,30 @@ impl ModuleCollector {
     fn visit_module(&mut self, module: &ItemMod, reachability: Reachability) {
         let name = normalized_ident(&module.ident);
         if let Some((_, items)) = &module.content {
+            let path_override = match module_path_override(&module.attrs) {
+                Ok(value) => value,
+                Err(error) => {
+                    self.error = Some(error);
+                    return;
+                }
+            };
             let previous_reachability = self.inherited;
+            let previous_context_len = self.context.len();
             self.inherited = reachability;
-            self.context.push(name);
+            if let Some(path) = path_override {
+                self.context
+                    .extend(path.components().filter_map(|component| {
+                        if let Component::Normal(value) = component {
+                            value.to_str().map(str::to_owned)
+                        } else {
+                            None
+                        }
+                    }));
+            } else {
+                self.context.push(name);
+            }
             self.visit_items(items);
-            self.context.pop();
+            self.context.truncate(previous_context_len);
             self.inherited = previous_reachability;
             return;
         }
@@ -555,6 +589,40 @@ impl<'ast> Visit<'ast> for NestedModuleVisitor<'_> {
         let previous = self.collector.inherited;
         self.collector.inherited = self.collector.local_reachability(&arm.attrs);
         visit::visit_arm(self, arm);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_field_value(&mut self, field: &'ast FieldValue) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(&field.attrs);
+        visit::visit_field_value(self, field);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_impl_item(&mut self, item: &'ast ImplItem) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self
+            .collector
+            .local_reachability(impl_item_attributes(item));
+        visit::visit_impl_item(self, item);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_trait_item(&mut self, item: &'ast TraitItem) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self
+            .collector
+            .local_reachability(trait_item_attributes(item));
+        visit::visit_trait_item(self, item);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_foreign_item(&mut self, item: &'ast ForeignItem) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self
+            .collector
+            .local_reachability(foreign_item_attributes(item));
+        visit::visit_foreign_item(self, item);
         self.collector.inherited = previous;
     }
 
@@ -715,10 +783,21 @@ fn resolve_module(
         .parent()
         .unwrap_or_else(|| Path::new(""))
         .to_path_buf();
-    let ordinary_base = if matches!(
-        parent.file_name().and_then(|value| value.to_str()),
-        Some("lib.rs" | "main.rs" | "mod.rs")
-    ) {
+    let standard_bin_root = parent.extension().and_then(|value| value.to_str()) == Some("rs")
+        && source_directory
+            .file_name()
+            .and_then(|value| value.to_str())
+            == Some("bin")
+        && source_directory
+            .parent()
+            .and_then(Path::file_name)
+            .and_then(|value| value.to_str())
+            == Some("src");
+    let ordinary_base = if standard_bin_root
+        || matches!(
+            parent.file_name().and_then(|value| value.to_str()),
+            Some("lib.rs" | "main.rs" | "mod.rs")
+        ) {
         source_directory.clone()
     } else {
         source_directory.join(
@@ -733,10 +812,11 @@ fn resolve_module(
         .iter()
         .fold(ordinary_base, |path, component| path.join(component));
     if let Some(path_override) = &reference.path_override {
-        let override_contextual = reference
-            .context
-            .iter()
-            .fold(source_directory, |path, component| path.join(component));
+        let override_contextual = if reference.context.is_empty() {
+            source_directory
+        } else {
+            ordinary_contextual.clone()
+        };
         let candidate = override_contextual.join(path_override);
         if sources.contains_key(&candidate) {
             return Ok(candidate);
@@ -983,6 +1063,28 @@ pub fn shipping() {}
     }
 
     #[test]
+    fn classifies_struct_literal_fields_by_ast_boundary() {
+        let source = r#"
+struct Values { test: u8, shipping: u8 }
+fn literal() { let _ = Values {
+    #[cfg(test)]
+    test: 1,
+    shipping: 2,
+}; }
+"#;
+        let lines = one(source);
+        for line in [4, 5] {
+            assert!(
+                lines.contains(&line),
+                "expected test-only field line {line}: {lines:?}"
+            );
+        }
+        for line in [2, 3, 6, 7] {
+            assert!(!lines.contains(&line), "shipping line {line}: {lines:?}");
+        }
+    }
+
+    #[test]
     fn mixed_line_and_macro_token_attributes_remain_production() {
         let source = r#"
 #[cfg(test)] fn hidden() {} pub fn shipping() {}
@@ -1125,6 +1227,96 @@ pub const SHIPPING: u8 = 1;
         assert_eq!(
             response.inherited_inline_paths,
             vec!["crates/demo/src/helper.rs", "crates/demo/src/shared.rs",]
+        );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/lib.rs".to_owned(),
+                    source: concat!(
+                        "struct Demo;\n",
+                        "impl Demo { #[cfg(test)] fn check() { #[path = \"impl_helper.rs\"] mod helper; } }\n",
+                        "trait DemoTrait { #[cfg(test)] fn check() { #[path = \"trait_helper.rs\"] mod helper; } }\n",
+                    )
+                    .to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/impl_helper.rs".to_owned(),
+                    source: "fn impl_fixture() {}\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/trait_helper.rs".to_owned(),
+                    source: "fn trait_fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("associated item reachability");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec![
+                "crates/demo/src/impl_helper.rs",
+                "crates/demo/src/trait_helper.rs",
+            ]
+        );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/bin/tool.rs".to_owned(),
+                    source: "#[cfg(test)] mod helper;\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/bin/helper.rs".to_owned(),
+                    source: "fn bin_fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("file-based binary root reachability");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec!["crates/demo/src/bin/helper.rs"]
+        );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/foo.rs".to_owned(),
+                    source: "#[cfg(test)] mod inner { #[path = \"bar.rs\"] mod helper; }\n"
+                        .to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/foo/inner/bar.rs".to_owned(),
+                    source: "fn nested_fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("non-root nested path override reachability");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec!["crates/demo/src/foo/inner/bar.rs"]
+        );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/lib.rs".to_owned(),
+                    source: "#[cfg(test)] #[path = \"custom\"] mod inline { mod child; }\n"
+                        .to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/custom/child.rs".to_owned(),
+                    source: "fn inline_path_fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("path-adjusted inline module reachability");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec!["crates/demo/src/custom/child.rs"]
         );
 
         let error = classify(Request {

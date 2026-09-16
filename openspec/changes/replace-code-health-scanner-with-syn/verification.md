@@ -87,7 +87,10 @@ The seventh hosted-review remediation distinguishes module edges disabled in
 both audited configurations from reachable test-only edges. A focused
 regression proves `#[cfg(any())]` and `#[cfg(all(test, any()))]` modules do not
 require nonexistent source files. Exact implementation and repeat evidence are
-recorded after the signed remediation commit.
+recorded after the signed remediation commit at
+`c2c024ed54ae873815bd4c6d0e6c17bd94749697`: 41 conformance tests, strict
+all-target Clippy, eleven Python tests, exact protocol-v2 baseline
+regeneration, factory checks, and strict OpenSpec 72/72 are green.
 
 ## Migration evidence
 

@@ -38,10 +38,11 @@ only when all authored non-whitespace bytes are covered by proven test-only
 spans. Raw identifiers normalize for module resolution, contained literal path
 overrides are supported, and any active/unknown production path to a shared
 module wins transitively. Module edges proven disabled with both `test = false`
-and `test = true` are omitted before resolution. Reachability state propagates through nested item,
-statement, expression, and match-arm scopes. A conditional `cfg_attr` that may
-apply a module `path` override fails closed when its predicate is not proven
-false, because selecting only one candidate could hide production code.
+and `test = true` are omitted before resolution. Reachability state propagates
+through nested item, statement, expression, and match-arm scopes. A conditional
+`cfg_attr` that may apply a module `path` override fails closed when its
+predicate is not proven false, because selecting only one candidate could hide
+production code.
 
 Python remains responsible for Git/source loading, subprocess orchestration,
 metric evidence, and canonical report validation. It no longer parses Rust

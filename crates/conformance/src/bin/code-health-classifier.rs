@@ -451,6 +451,16 @@ struct ModuleCollector {
 }
 
 impl ModuleCollector {
+    fn local_reachability(&self, attributes: &[Attribute]) -> Reachability {
+        if self.inherited == Reachability::TestOnly
+            || attributes_inclusion(attributes) == Truth::False
+        {
+            Reachability::TestOnly
+        } else {
+            Reachability::Production
+        }
+    }
+
     fn visit_items(&mut self, items: &[Item]) {
         for item in items {
             self.visit_item(item);
@@ -458,13 +468,7 @@ impl ModuleCollector {
     }
 
     fn visit_item(&mut self, item: &Item) {
-        let local = if self.inherited == Reachability::TestOnly
-            || attributes_inclusion(item_attributes(item)) == Truth::False
-        {
-            Reachability::TestOnly
-        } else {
-            Reachability::Production
-        };
+        let local = self.local_reachability(item_attributes(item));
         if let Item::Mod(module) = item {
             self.visit_module(module, local);
             return;
@@ -472,7 +476,7 @@ impl ModuleCollector {
         let previous = self.inherited;
         self.inherited = local;
         let mut nested = NestedModuleVisitor { collector: self };
-        nested.visit_item(item);
+        visit::visit_item(&mut nested, item);
         self.inherited = previous;
     }
 
@@ -516,15 +520,42 @@ struct NestedModuleVisitor<'a> {
 }
 
 impl<'ast> Visit<'ast> for NestedModuleVisitor<'_> {
+    fn visit_item(&mut self, item: &'ast Item) {
+        self.collector.visit_item(item);
+    }
+
     fn visit_item_mod(&mut self, module: &'ast ItemMod) {
-        let local = if self.collector.inherited == Reachability::TestOnly
-            || attributes_inclusion(&module.attrs) == Truth::False
-        {
-            Reachability::TestOnly
-        } else {
-            Reachability::Production
-        };
+        let local = self.collector.local_reachability(&module.attrs);
         self.collector.visit_module(module, local);
+    }
+
+    fn visit_stmt(&mut self, statement: &'ast Stmt) {
+        let attributes: &[Attribute] = match statement {
+            Stmt::Local(value) => &value.attrs,
+            Stmt::Item(value) => item_attributes(value),
+            Stmt::Expr(value, _) => expr_attributes(value),
+            Stmt::Macro(value) => &value.attrs,
+        };
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(attributes);
+        visit::visit_stmt(self, statement);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_expr(&mut self, expression: &'ast Expr) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self
+            .collector
+            .local_reachability(expr_attributes(expression));
+        visit::visit_expr(self, expression);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_arm(&mut self, arm: &'ast Arm) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(&arm.attrs);
+        visit::visit_arm(self, arm);
+        self.collector.inherited = previous;
     }
 
     fn visit_macro(&mut self, _node: &'ast syn::Macro) {
@@ -535,6 +566,14 @@ impl<'ast> Visit<'ast> for NestedModuleVisitor<'_> {
 fn module_path_override(attributes: &[Attribute]) -> Result<Option<PathBuf>, String> {
     let mut result = None;
     for attribute in attributes {
+        if attribute.path().is_ident("cfg_attr")
+            && conditional_path_override_may_apply(&attribute.meta)?
+        {
+            return Err(
+                "conditional module path override is unsupported and may affect production"
+                    .to_owned(),
+            );
+        }
         if !attribute.path().is_ident("path") {
             continue;
         }
@@ -562,6 +601,32 @@ fn module_path_override(attributes: &[Attribute]) -> Result<Option<PathBuf>, Str
         result = Some(path);
     }
     Ok(result)
+}
+
+fn conditional_path_override_may_apply(meta: &Meta) -> Result<bool, String> {
+    let Meta::List(list) = meta else {
+        return Ok(false);
+    };
+    let parser = Punctuated::<Meta, Comma>::parse_terminated;
+    let values = parser
+        .parse2(list.tokens.clone())
+        .map_err(|_| "conditional module path attribute is malformed".to_owned())?;
+    let mut values = values.iter();
+    let Some(predicate) = values.next() else {
+        return Err("conditional module path attribute has no predicate".to_owned());
+    };
+    if cfg_truth(predicate) == Truth::False {
+        return Ok(false);
+    }
+    for applied in values {
+        if applied.path().is_ident("path") {
+            return Ok(true);
+        }
+        if applied.path().is_ident("cfg_attr") && conditional_path_override_may_apply(applied)? {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 fn merge_ranges(mut spans: Vec<Range<usize>>) -> Vec<Range<usize>> {
@@ -1034,6 +1099,57 @@ pub const SHIPPING: u8 = 1;
             response.inherited_inline_paths,
             vec!["crates/demo/src/bar.rs"]
         );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/lib.rs".to_owned(),
+                    source: concat!(
+                        "fn local() { #[cfg(test)] { #[path = \"helper.rs\"] mod helper; } }\n",
+                        "#[cfg(test)] mod shared;\n",
+                    )
+                    .to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/helper.rs".to_owned(),
+                    source: "fn local_fixture() {}\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/shared.rs".to_owned(),
+                    source: "fn shared_fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("nested expression reachability");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec!["crates/demo/src/helper.rs", "crates/demo/src/shared.rs",]
+        );
+
+        let error = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/lib.rs".to_owned(),
+                    source: concat!(
+                        "#[cfg_attr(feature = \"x\", path = \"shared.rs\")] mod product;\n",
+                        "#[cfg(test)] #[path = \"shared.rs\"] mod fixture;\n",
+                    )
+                    .to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/product.rs".to_owned(),
+                    source: "fn default_product() {}\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/shared.rs".to_owned(),
+                    source: "fn feature_product() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect_err("conditional path ambiguity");
+        assert!(error.contains("conditional module path override"));
     }
 
     #[test]

@@ -33,7 +33,10 @@ remain opaque. Unknown inclusion stays production. A line leaves production
 only when all authored non-whitespace bytes are covered by proven test-only
 spans. Raw identifiers normalize for module resolution, contained literal path
 overrides are supported, and any active/unknown production path to a shared
-module wins transitively.
+module wins transitively. Reachability state propagates through nested item,
+statement, expression, and match-arm scopes. A conditional `cfg_attr` that may
+apply a module `path` override fails closed when its predicate is not proven
+false, because selecting only one candidate could hide production code.
 
 Python remains responsible for Git/source loading, subprocess orchestration,
 metric evidence, and canonical report validation. It no longer parses Rust
@@ -44,9 +47,11 @@ before full metric regeneration.
 The code-health policy/report advances to v2 and binds classifier identity,
 protocol, and an exact digest of each file's population projection. Migration
 requires an exhaustive v1/v2 delta report and a reachable baseline revision
-containing the implementation. The migration uses an ancestry-preserving merge;
-a squash or rebase requires repinning before completion. Parser upgrades
-require the same governed migration.
+from the durable target-branch history. The baseline revision identifies the
+source tree being classified; it need not contain the current classifier,
+because classifier identity, protocol, locked dependencies, and the complete
+per-file projection digest bind the interpretation independently. Parser
+upgrades require the same governed migration.
 
 ## Consequences
 

@@ -58,8 +58,10 @@ Git-tree projection without invoking the heavyweight metric engine. Aggregate
 counts alone SHALL NOT satisfy the binding. Weekly/manual validation SHALL use
 the same classifier and the pinned metric engine. A parser or protocol change
 SHALL require a governed baseline migration and exhaustive explained
-population delta. A baseline migration commit SHALL remain reachable through
-an ancestry-preserving merge or be repinned immediately to a durable commit.
+population delta. The baseline source revision SHALL be a durable ancestor of
+the target branch. It MAY predate the classifier implementation because the
+classifier identity, protocol, locked dependencies, and exact projection
+digest independently bind its interpretation.
 
 #### Scenario: Fast source validation runs
 
@@ -82,5 +84,18 @@ an ancestry-preserving merge or be repinned immediately to a durable commit.
 #### Scenario: Baseline branch is removed after merge
 
 - **WHEN** a migration branch will be deleted after integration
-- **THEN** its baseline commit remains an ancestor of `develop` or the policy
-  is repinned to a durable reachable commit before the migration is complete
+- **THEN** the baseline source revision remains reachable from `develop`
+  regardless of whether integration uses merge, squash, or rebase
+
+#### Scenario: Conditional module path is unresolved
+
+- **WHEN** an active or unknown `cfg_attr` may apply a module `path` override
+- **THEN** classification fails closed rather than selecting only the default
+  or conditional candidate
+
+#### Scenario: Test-only state is nested below an expression
+
+- **WHEN** a local module is nested under a test-only statement, expression,
+  or match arm
+- **THEN** the module inherits test-only reachability unless another active or
+  unknown production path reaches it

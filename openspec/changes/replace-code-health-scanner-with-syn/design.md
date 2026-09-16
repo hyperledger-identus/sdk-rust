@@ -63,8 +63,9 @@ paths fail with an actionable error rather than hiding code.
 
 The policy/report contract advances to v2 and records classifier name,
 protocol, locked dependency evidence, and a digest of the complete per-file
-line projection. A governed baseline regeneration is bound to the
-implementation commit. Aggregate population equality is insufficient. A
+line projection. A governed baseline regeneration is bound to a durable
+target-branch source revision and to the current classifier's exact projection.
+Aggregate population equality is insufficient. A
 checked-in migration report compares v1 and v2 file/line populations and
 explains every delta by fixture or source location; no unexplained production
 decrease is accepted.
@@ -74,10 +75,11 @@ classifier but does not run `rust-code-analysis-cli`. Weekly/manual validation
 uses the same classifier plus the pinned metrics engine to regenerate the full
 report.
 
-The migration PR uses an ancestry-preserving merge so the implementation
-revision remains reachable after automatic branch deletion. A squash or rebase
-integration requires repinning and regenerating the baseline from a durable
-commit before the migration can be called complete.
+The source revision is a durable ancestor of the target branch and therefore
+survives branch deletion under merge, squash, or rebase integration. It need
+not contain the classifier implementation: classifier identity, protocol,
+locked dependencies, and the complete per-file projection digest independently
+bind the interpretation of that source snapshot.
 
 ## Risks and mitigations
 

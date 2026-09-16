@@ -46,9 +46,12 @@ regeneration provide the tree bindings.
 A live audit rejects tracked or untracked Rust that differs from the recorded
 revision. Commit the intended source first or run the command from a clean
 worktree; unrelated documentation changes do not invalidate source evidence.
-The baseline revision must remain reachable after branch deletion. A migration
-PR therefore uses an ancestry-preserving merge; squash or rebase integration
-requires repinning and regenerating the baseline from a durable commit first.
+The baseline source revision must be a durable ancestor of the target branch so
+it remains available after branch deletion and under merge, squash, or rebase
+integration. It identifies the historical source snapshot, not the classifier
+implementation commit. The pinned classifier identity, protocol, dependency
+versions, and exact per-file projection digest bind the current classifier's
+interpretation of that snapshot.
 
 ## Populations
 
@@ -72,7 +75,10 @@ requires repinning and regenerating the baseline from a durable commit first.
   `name/mod.rs` layouts, raw identifiers, nested module contexts, and literal
   `#[path = "..."]` overrides. A fixed-point reachability pass applies the
   production-wins rule whenever any active or unknown production edge reaches
-  a shared module or descendant.
+  a shared module or descendant. Reachability state propagates through nested
+  item, statement, expression, and match-arm scopes. A `cfg_attr` that may
+  conditionally apply a module `path` override fails closed unless its
+  predicate is proven false.
   Malformed Rust, invalid spans, ambiguous module targets, unsupported
   predicate forms, and incomplete coverage fail closed with path/location
   diagnostics and never echo source text.

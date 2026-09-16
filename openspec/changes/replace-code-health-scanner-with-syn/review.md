@@ -4,8 +4,7 @@
 
 - Base: `5dff6f38c861b858dd62dc8310246f7d485d3e92`
 - Classifier implementation: `18394fc38cc085445979ae5e123fe9454ab22bae`
-- Exact locally reviewed implementation head:
-  `a42835a8d0877f3a0fb6bc7fae797308d6efb38e`
+- Exact locally reviewed implementation head: pending final evidence commit
 - Issue: [#275](https://github.com/hyperledger-identus/sdk-rust/issues/275)
 - Review lenses: parser correctness, conservative population projection,
   module reachability, resource bounds, diagnostics, dependency direction,
@@ -45,14 +44,21 @@
    plus inline-module context, while ordinary child modules retain the
    file-stem directory rule. A non-root `foo.rs` regression proves `bar.rs`.
 10. **Resolved hosted P1 — baseline reachability depended on merge method.**
-    The capability, ADR and operations contract require this migration to use
-    an ancestry-preserving merge. Squash/rebase integration requires a repin.
-    The implementation baseline commit is an ancestor of the PR head and will
-    remain reachable from `develop` after the merge commit and branch deletion.
+    The baseline now classifies the durable pre-change `develop` revision. It
+    remains reachable under merge, squash, or rebase. The exact projection
+    digest, classifier identity/protocol, and locked dependencies bind the
+    current implementation independently of the historical source revision.
+11. **Resolved hosted P1 — conditional module path could hide production.**
+    An active or unknown nested `cfg_attr` that may apply `path` now fails
+    closed. A regression combines conditional production and test-only edges to
+    the same file.
+12. **Resolved hosted P2 — nested scopes lost inherited cfg state.**
+    Reachability now propagates through item, statement, expression, and arm
+    scopes. A local module below a test-only block is covered by regression.
 
 ## Result
 
-No unresolved architecture, security, privacy, compatibility, API or
-operations finding remains. The one-time v1/v2 comparison has no authored
-nonblank population delta; the documented blank-line representation change
-does not affect any metric or decision input.
+No unresolved local architecture, security, privacy, compatibility, API or
+operations finding remains. Hosted exact-head confirmation is pending. The
+one-time v1/v2 comparison is regenerated against the durable source revision
+before completion.

@@ -26,6 +26,10 @@ test cannot be explained by an unrelated mutation.
 - `./bootstrap.sh --check`: passed, including OpenSpec/factory structure,
   runtime policy audit, and 37 factory operation tests.
 - `git diff --check`: passed.
+- Exact-diff plan at `c8cb0fcd11af0ee32e41455ae6cc691befc8808f`:
+  12 paths, 345 changed text lines, no binary files, no decomposition note
+  required, one required `fast` status, and complete slow evidence recommended
+  because the specification/tooling diff fails closed to the full backstop.
 
 Hosted exact-head `fast`, DCO, signature, contribution policy, and conflict
 freedom remain PR-stage evidence and are not implied by this local review.

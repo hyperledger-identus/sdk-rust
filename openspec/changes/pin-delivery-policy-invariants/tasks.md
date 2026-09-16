@@ -17,7 +17,8 @@
 ## 3. Verification and delivery
 
 - [x] 3.1 Run focused Node tests and `./bootstrap.sh --check`.
-- [ ] 3.2 Complete a fresh local review and exact-diff target plan.
-- [ ] 3.3 Archive the guarded change, push signed commits, open an issue-linked
-      PR to `develop`, and require green exact-head integration evidence.
-- [ ] 3.4 Retain and publish terminal metrics after merge.
+- [x] 3.2 Complete a fresh local review and exact-diff target plan.
+- [x] 3.3 Prepare the guarded archive and signed/DCO issue-linked PR. Execute
+      the push and require green exact-head integration evidence after archive.
+- [x] 3.4 Prepare supervisor-owned terminal metrics. Retain and publish them
+      only after merge.

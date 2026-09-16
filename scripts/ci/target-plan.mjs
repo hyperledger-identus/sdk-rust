@@ -75,14 +75,15 @@ export function validateLanePolicy(policy) {
     throw new Error("delivery iteration policy is incomplete");
   }
   const slice = delivery.sliceGuidance;
-  if (!Number.isSafeInteger(slice?.changedFiles) || slice.changedFiles < 1
-      || !Number.isSafeInteger(slice?.changedTextLines) || slice.changedTextLines < 1
+  if (slice?.changedFiles !== 12
+      || slice.changedTextLines !== 1000
       || slice.thresholdAction !== "decomposition-note") {
-    throw new Error("slice guidance must define positive thresholds and a decomposition note");
+    throw new Error("slice guidance must remain exactly 12 files, 1,000 text lines, and a decomposition note");
   }
+  const requiredSlowBlockers = ["production-promotion", "publication", "release-preparation"];
   if (ci.slow?.purpose !== "production-promotion" || ci.slow.exactShaRequired !== true
       || ci.slow.unchangedCandidateRequired !== true
-      || !ci.slow.blocks?.includes("release-preparation")
+      || JSON.stringify(ci.slow.blocks) !== JSON.stringify(requiredSlowBlockers)
       || JSON.stringify(ci.slow.doesNotBlock) !== JSON.stringify(["ordinary-pull-request-integration"])) {
     throw new Error("slow production-promotion invariants are incomplete");
   }

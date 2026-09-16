@@ -9,14 +9,14 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Pin the complete ordered slow-blocker set exactly.
-- [ ] 2.2 Pin the two decomposition thresholds and advisory action exactly.
-- [ ] 2.3 Add mutation tests for omission, reorder, insertion, and both
+- [x] 2.1 Pin the complete ordered slow-blocker set exactly.
+- [x] 2.2 Pin the two decomposition thresholds and advisory action exactly.
+- [x] 2.3 Add mutation tests for omission, reorder, insertion, and both
       directions of threshold drift.
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run focused Node tests and `./bootstrap.sh --check`.
+- [x] 3.1 Run focused Node tests and `./bootstrap.sh --check`.
 - [ ] 3.2 Complete a fresh local review and exact-diff target plan.
 - [ ] 3.3 Archive the guarded change, push signed commits, open an issue-linked
       PR to `develop`, and require green exact-head integration evidence.

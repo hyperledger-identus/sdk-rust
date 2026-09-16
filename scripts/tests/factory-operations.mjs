@@ -276,6 +276,46 @@ test("delivery lane policy rejects expanded PR matrices and weakened promotion e
   assert.throws(() => validateLanePolicy(invertedSlo), /ordered/u);
 });
 
+test("delivery lane policy rejects independent slow blocker mutations", () => {
+  const policy = JSON.parse(readFileSync(new URL("../../.factory-policy.json", import.meta.url), "utf8"));
+  const expectedBlockers = ["production-promotion", "publication", "release-preparation"];
+
+  for (const missingBlocker of expectedBlockers) {
+    const missing = structuredClone(policy);
+    missing.ci.slow.blocks = expectedBlockers.filter((blocker) => blocker !== missingBlocker);
+    assert.throws(
+      () => validateLanePolicy(missing),
+      /promotion invariants/u,
+      `missing slow blocker ${missingBlocker} must fail`,
+    );
+  }
+
+  const reordered = structuredClone(policy);
+  reordered.ci.slow.blocks = ["publication", "production-promotion", "release-preparation"];
+  assert.throws(() => validateLanePolicy(reordered), /promotion invariants/u);
+
+  const additional = structuredClone(policy);
+  additional.ci.slow.blocks = [...expectedBlockers, "ordinary-pull-request-integration"];
+  assert.throws(() => validateLanePolicy(additional), /promotion invariants/u);
+});
+
+test("delivery lane policy rejects independent slice guidance mutations", () => {
+  const policy = JSON.parse(readFileSync(new URL("../../.factory-policy.json", import.meta.url), "utf8"));
+  const mutations = [
+    ["changedFiles below 12", (candidate) => { candidate.delivery.sliceGuidance.changedFiles = 11; }],
+    ["changedFiles above 12", (candidate) => { candidate.delivery.sliceGuidance.changedFiles = 13; }],
+    ["changedTextLines below 1000", (candidate) => { candidate.delivery.sliceGuidance.changedTextLines = 999; }],
+    ["changedTextLines above 1000", (candidate) => { candidate.delivery.sliceGuidance.changedTextLines = 1001; }],
+    ["changed advisory action", (candidate) => { candidate.delivery.sliceGuidance.thresholdAction = "hard-rejection"; }],
+  ];
+
+  for (const [label, mutate] of mutations) {
+    const candidate = structuredClone(policy);
+    mutate(candidate);
+    assert.throws(() => validateLanePolicy(candidate), /slice guidance/u, `${label} must fail`);
+  }
+});
+
 test("fast workflow renders target-plan sections through jq", () => {
   const workflow = readFileSync(new URL("../../.github/workflows/factory-contract.yml", import.meta.url), "utf8");
   assert.match(workflow, /jq '\{areas, integration, slowRecommended, promotion, iteration\}'/u);

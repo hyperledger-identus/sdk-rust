@@ -112,6 +112,7 @@ class ClassifierProtocolTests(unittest.TestCase):
 class ReportBindingTests(unittest.TestCase):
     revision = "a" * 40
     fingerprint = "b" * 64
+    projection = "c" * 64
 
     def report(self) -> dict[str, object]:
         return {
@@ -139,6 +140,7 @@ class ReportBindingTests(unittest.TestCase):
                     "evidence": "test",
                 }
             ],
+            "population_projection_sha256": self.projection,
             "populations": {
                 "production": {
                     "authored_nonblank_lines": 1,
@@ -210,6 +212,9 @@ evidence = "test"
                 "crates/demo/src/lib.rs"
             ),
             "missing_attention": lambda value: value.pop("attention"),
+            "projection": lambda value: value.update(
+                population_projection_sha256="d" * 64
+            ),
         }
         for name, mutate in mutations.items():
             with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
@@ -238,8 +243,37 @@ evidence = "test"
                     "rust_classifier_population",
                     return_value=({Path("crates/demo/src/lib.rs"): set()}, set()),
                 ),
+                mock.patch.object(
+                    audit,
+                    "population_projection_sha256",
+                    return_value=self.projection,
+                ),
             ):
                 with self.assertRaises(audit.AuditError):
+                    audit.validate_report(root, path)
+
+    def test_fast_source_binding_rejects_per_file_projection_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = self.write_fixture(root, self.report())
+            sources = {Path("crates/demo/src/lib.rs"): "pub fn shipping() {}\n"}
+            with (
+                mock.patch.object(audit, "git_tree_sources", return_value=sources),
+                mock.patch.object(
+                    audit, "source_fingerprint", return_value=self.fingerprint
+                ),
+                mock.patch.object(
+                    audit,
+                    "rust_classifier_population",
+                    return_value=({Path("crates/demo/src/lib.rs"): set()}, set()),
+                ),
+                mock.patch.object(
+                    audit,
+                    "population_projection_sha256",
+                    return_value="d" * 64,
+                ),
+            ):
+                with self.assertRaisesRegex(audit.AuditError, "population projection"):
                     audit.validate_report(root, path)
 
     def test_slow_verification_compares_the_complete_report(self) -> None:

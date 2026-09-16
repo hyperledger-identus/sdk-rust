@@ -51,12 +51,15 @@ over test-only reachability and propagate to descendants.
 ### Requirement: Baseline evidence is bound to policy and Git content
 
 The canonical policy/report SHALL record classifier name, protocol version,
-and locked implementation evidence in addition to analyzer identity. Fast
-validation SHALL execute the small classifier through the pinned Nix shell and
-recompute Git-tree source populations without invoking the heavyweight metric
-engine. Weekly/manual validation SHALL use the same classifier and the pinned
-metric engine. A parser or protocol change SHALL require a governed baseline
-migration and exhaustive explained population delta.
+locked implementation evidence, and an exact digest of per-file population
+projection in addition to analyzer identity. Fast validation SHALL execute the
+small classifier through the pinned Nix shell and recompute that complete
+Git-tree projection without invoking the heavyweight metric engine. Aggregate
+counts alone SHALL NOT satisfy the binding. Weekly/manual validation SHALL use
+the same classifier and the pinned metric engine. A parser or protocol change
+SHALL require a governed baseline migration and exhaustive explained
+population delta. A baseline migration commit SHALL remain reachable through
+an ancestry-preserving merge or be repinned immediately to a durable commit.
 
 #### Scenario: Fast source validation runs
 
@@ -69,3 +72,15 @@ migration and exhaustive explained population delta.
 - **WHEN** the v2 AST population differs from the v1 conservative baseline
 - **THEN** a checked-in migration report names and explains every delta before
   the new baseline can be accepted
+
+#### Scenario: Per-file lines move without changing totals
+
+- **WHEN** classifier output changes exact inline-test line sets while retaining
+  the same aggregate file and line counts
+- **THEN** fast validation rejects the projection digest mismatch
+
+#### Scenario: Baseline branch is removed after merge
+
+- **WHEN** a migration branch will be deleted after integration
+- **THEN** its baseline commit remains an ancestor of `develop` or the policy
+  is repinned to a durable reachable commit before the migration is complete

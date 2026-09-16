@@ -62,15 +62,22 @@ paths fail with an actionable error rather than hiding code.
 ### Contract v2 and migration evidence
 
 The policy/report contract advances to v2 and records classifier name,
-protocol, and locked dependency evidence. A governed baseline regeneration is
-bound to the implementation commit. A checked-in migration report compares v1
-and v2 file/line populations and explains every delta by fixture or source
-location; no unexplained production decrease is accepted.
+protocol, locked dependency evidence, and a digest of the complete per-file
+line projection. A governed baseline regeneration is bound to the
+implementation commit. Aggregate population equality is insufficient. A
+checked-in migration report compares v1 and v2 file/line populations and
+explains every delta by fixture or source location; no unexplained production
+decrease is accepted.
 
 Fast validation recomputes source fingerprint and populations through the AST
 classifier but does not run `rust-code-analysis-cli`. Weekly/manual validation
 uses the same classifier plus the pinned metrics engine to regenerate the full
 report.
+
+The migration PR uses an ancestry-preserving merge so the implementation
+revision remains reachable after automatic branch deletion. A squash or rebase
+integration requires repinning and regenerating the baseline from a durable
+commit before the migration can be called complete.
 
 ## Risks and mitigations
 

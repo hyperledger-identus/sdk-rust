@@ -432,6 +432,26 @@ def source_population_evidence(
     )
 
 
+def population_projection_sha256(
+    production_paths: list[Path],
+    test_paths: list[Path],
+    generated_paths: list[Path],
+    inline_lines_by_path: dict[Path, set[int]],
+) -> str:
+    projection = {
+        "external_test_paths": [path.as_posix() for path in test_paths],
+        "generated_paths": [path.as_posix() for path in generated_paths],
+        "production_sources": [
+            {
+                "inline_test_lines": sorted(inline_lines_by_path[path]),
+                "path": path.as_posix(),
+            }
+            for path in production_paths
+        ],
+    }
+    return hashlib.sha256(canonical_json(projection).encode("utf-8")).hexdigest()
+
+
 def build_report(
     repository_root: Path,
     analysis_root: Path,
@@ -503,6 +523,12 @@ def build_report(
         "attention": attention,
         "generated_exclusions": [path.as_posix() for path in generated_paths],
         "hotspots": config["hotspots"],
+        "population_projection_sha256": population_projection_sha256(
+            production_paths,
+            test_paths,
+            generated_paths,
+            inline_lines_by_path,
+        ),
         "populations": counts,
         "revision": revision,
         "schema_version": EXPECTED_SCHEMA,
@@ -574,6 +600,7 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
             "attention",
             "generated_exclusions",
             "hotspots",
+            "population_projection_sha256",
             "populations",
             "revision",
             "schema_version",
@@ -629,6 +656,10 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
         raise AuditError("report source fingerprint must be SHA-256")
     if report["source_fingerprint_sha256"] != config["baseline_source_fingerprint_sha256"]:
         raise AuditError("report source fingerprint does not match pinned baseline policy")
+    if not re.fullmatch(
+        r"[0-9a-f]{64}", str(report.get("population_projection_sha256", ""))
+    ):
+        raise AuditError("report population projection must be SHA-256")
     if report.get("hotspots") != config.get("hotspots"):
         raise AuditError("report hotspot classifications are stale")
     populations = require_exact_keys(
@@ -685,7 +716,7 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
             production_paths,
             test_paths,
             generated_paths,
-            _,
+            inline_lines_by_path,
             source_counts,
         ) = source_population_evidence(root, sources, config)
         fingerprint = source_fingerprint(sources, production_paths + test_paths)
@@ -693,6 +724,16 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
             raise AuditError("report fingerprint does not match its pinned Git tree")
         if [path.as_posix() for path in generated_paths] != report["generated_exclusions"]:
             raise AuditError("report generated exclusions do not match its pinned Git tree")
+        projection = population_projection_sha256(
+            production_paths,
+            test_paths,
+            generated_paths,
+            inline_lines_by_path,
+        )
+        if projection != report["population_projection_sha256"]:
+            raise AuditError(
+                "report population projection does not match its pinned Git tree"
+            )
         for population in ("production", "external_test", "inline_test"):
             for field in ("files", "authored_nonblank_lines"):
                 if source_counts[population][field] != populations[population][field]:

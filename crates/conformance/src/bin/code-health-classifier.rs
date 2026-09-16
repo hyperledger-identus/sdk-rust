@@ -646,28 +646,33 @@ fn resolve_module(
     reference: &ModuleReference,
     sources: &BTreeMap<PathBuf, String>,
 ) -> Result<PathBuf, String> {
-    let base = if matches!(
+    let source_directory = parent
+        .parent()
+        .unwrap_or_else(|| Path::new(""))
+        .to_path_buf();
+    let ordinary_base = if matches!(
         parent.file_name().and_then(|value| value.to_str()),
         Some("lib.rs" | "main.rs" | "mod.rs")
     ) {
-        parent
-            .parent()
-            .unwrap_or_else(|| Path::new(""))
-            .to_path_buf()
+        source_directory.clone()
     } else {
-        parent.parent().unwrap_or_else(|| Path::new("")).join(
+        source_directory.join(
             parent
                 .file_stem()
                 .and_then(|value| value.to_str())
                 .unwrap_or_default(),
         )
     };
-    let contextual = reference
+    let ordinary_contextual = reference
         .context
         .iter()
-        .fold(base, |path, component| path.join(component));
+        .fold(ordinary_base, |path, component| path.join(component));
     if let Some(path_override) = &reference.path_override {
-        let candidate = contextual.join(path_override);
+        let override_contextual = reference
+            .context
+            .iter()
+            .fold(source_directory, |path, component| path.join(component));
+        let candidate = override_contextual.join(path_override);
         if sources.contains_key(&candidate) {
             return Ok(candidate);
         }
@@ -678,8 +683,8 @@ fn resolve_module(
         ));
     }
     let candidates = [
-        contextual.join(format!("{}.rs", reference.name)),
-        contextual.join(&reference.name).join("mod.rs"),
+        ordinary_contextual.join(format!("{}.rs", reference.name)),
+        ordinary_contextual.join(&reference.name).join("mod.rs"),
     ];
     let matches: Vec<_> = candidates
         .into_iter()
@@ -1009,6 +1014,25 @@ pub const SHIPPING: u8 = 1;
         assert_eq!(
             response.inherited_inline_paths,
             vec!["crates/demo/src/fixtures/test_only.rs"]
+        );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/foo.rs".to_owned(),
+                    source: "#[cfg(test)] #[path = \"bar.rs\"] mod direct;\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/bar.rs".to_owned(),
+                    source: "fn direct_fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("non-root path override classification");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec!["crates/demo/src/bar.rs"]
         );
     }
 

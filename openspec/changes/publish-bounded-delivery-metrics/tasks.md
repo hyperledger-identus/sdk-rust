@@ -4,7 +4,7 @@
 
 - [x] 1.1 Record issue #306, research, material constraint direction, ADR 0128,
       design, complete delta requirement, and rollback.
-- [ ] 1.2 Pass research readiness, constraint readiness, strict OpenSpec, and
+- [x] 1.2 Pass research readiness, constraint readiness, strict OpenSpec, and
       immutable planning preflight before implementation.
 
 ## 2. Dual-retention publisher

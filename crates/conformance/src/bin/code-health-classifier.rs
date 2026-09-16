@@ -158,17 +158,15 @@ fn cfg_truth_for_test(meta: &Meta, test_enabled: bool) -> Truth {
     }
 }
 
-fn cfg_truth(meta: &Meta) -> Truth {
-    cfg_truth_for_test(meta, false)
-}
-
-fn meta_inclusion(meta: &Meta) -> Truth {
+fn meta_inclusion_for_test(meta: &Meta, test_enabled: bool) -> Truth {
     let Some(name) = meta.path().get_ident().map(normalized_ident) else {
         return Truth::True;
     };
     match (name.as_str(), meta) {
         ("cfg", Meta::List(list)) => syn::parse2::<Meta>(list.tokens.clone())
-            .map_or(Truth::Unknown, |value| cfg_truth(&value)),
+            .map_or(Truth::Unknown, |value| {
+                cfg_truth_for_test(&value, test_enabled)
+            }),
         ("cfg_attr", Meta::List(list)) => {
             let parser = Punctuated::<Meta, Comma>::parse_terminated;
             let Ok(values) = parser.parse2(list.tokens.clone()) else {
@@ -178,12 +176,12 @@ fn meta_inclusion(meta: &Meta) -> Truth {
             let Some(predicate) = values.next() else {
                 return Truth::Unknown;
             };
-            let predicate = cfg_truth(predicate);
+            let predicate = cfg_truth_for_test(predicate, test_enabled);
             if predicate == Truth::False {
                 return Truth::True;
             }
             let applied = values.fold(Truth::True, |result, value| {
-                result.and(meta_inclusion(value))
+                result.and(meta_inclusion_for_test(value, test_enabled))
             });
             match predicate {
                 Truth::True => applied,
@@ -197,8 +195,12 @@ fn meta_inclusion(meta: &Meta) -> Truth {
 }
 
 fn attributes_inclusion(attributes: &[Attribute]) -> Truth {
+    attributes_inclusion_for_test(attributes, false)
+}
+
+fn attributes_inclusion_for_test(attributes: &[Attribute], test_enabled: bool) -> Truth {
     attributes.iter().fold(Truth::True, |result, attribute| {
-        result.and(meta_inclusion(&attribute.meta))
+        result.and(meta_inclusion_for_test(&attribute.meta, test_enabled))
     })
 }
 
@@ -513,6 +515,7 @@ impl<'ast> Visit<'ast> for SpanCollector<'_> {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Reachability {
+    Disabled,
     Production,
     TestOnly,
 }
@@ -534,12 +537,20 @@ struct ModuleCollector {
 
 impl ModuleCollector {
     fn local_reachability(&self, attributes: &[Attribute]) -> Reachability {
-        if self.inherited == Reachability::TestOnly
-            || attributes_inclusion(attributes) == Truth::False
-        {
-            Reachability::TestOnly
-        } else {
-            Reachability::Production
+        if self.inherited == Reachability::Disabled {
+            return Reachability::Disabled;
+        }
+        let production = attributes_inclusion_for_test(attributes, false);
+        let test = attributes_inclusion_for_test(attributes, true);
+        match self.inherited {
+            Reachability::Disabled => Reachability::Disabled,
+            Reachability::Production if production != Truth::False => Reachability::Production,
+            Reachability::Production if test == Truth::False => Reachability::Disabled,
+            Reachability::Production | Reachability::TestOnly if test != Truth::False => {
+                Reachability::TestOnly
+            }
+            Reachability::Production => Reachability::Disabled,
+            Reachability::TestOnly => Reachability::Disabled,
         }
     }
 
@@ -563,6 +574,9 @@ impl ModuleCollector {
     }
 
     fn visit_module(&mut self, module: &ItemMod, reachability: Reachability) {
+        if reachability == Reachability::Disabled {
+            return;
+        }
         let name = normalized_ident(&module.ident);
         if let Some((_, items)) = &module.content {
             let path_override = match module_path_override(&module.attrs, reachability) {
@@ -611,6 +625,7 @@ impl ModuleCollector {
             path_override,
         };
         let edges = match reachability {
+            Reachability::Disabled => return,
             Reachability::Production => &mut self.production_edges,
             Reachability::TestOnly => &mut self.test_edges,
         };
@@ -783,6 +798,7 @@ fn module_path_override(
     let production = module_path_override_for_test(attributes, false)?;
     let test = module_path_override_for_test(attributes, true)?;
     match reachability {
+        Reachability::Disabled => Ok(None),
         Reachability::TestOnly => Ok(test),
         Reachability::Production if production == test => Ok(production),
         Reachability::Production => {
@@ -928,19 +944,15 @@ fn parse_source(path: &str, source: &str) -> Result<ParsedFile, String> {
     if let Some(error) = span_collector.error {
         return Err(format!("{path}: {error}"));
     }
-    let inherited = if attributes_inclusion(&file.attrs) == Truth::False {
-        Reachability::TestOnly
-    } else {
-        Reachability::Production
-    };
     let mut module_collector = ModuleCollector {
         context: Vec::new(),
         context_from_source_directory: false,
-        inherited,
+        inherited: Reachability::Production,
         test_edges: Vec::new(),
         production_edges: Vec::new(),
         error: None,
     };
+    module_collector.inherited = module_collector.local_reachability(&file.attrs);
     module_collector.visit_items(&file.items);
     if let Some(error) = module_collector.error {
         return Err(format!("{path}: {error}"));
@@ -1457,6 +1469,21 @@ pub const SHIPPING: u8 = 1;
 
     #[test]
     fn raw_modules_path_overrides_and_production_reachability_are_deterministic() {
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
+            sources: vec![SourceInput {
+                path: "crates/demo/src/lib.rs".to_owned(),
+                source: concat!(
+                    "#[cfg(any())] mod absent;\n",
+                    "#[cfg(all(test, any()))] mod also_absent;\n",
+                )
+                .to_owned(),
+            }],
+        })
+        .expect("modules disabled in both configurations are not resolved");
+        assert!(response.inherited_inline_paths.is_empty());
+
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
             target_roots: vec!["crates/demo/src/lib.rs".to_owned()],

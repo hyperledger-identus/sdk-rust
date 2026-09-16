@@ -29,7 +29,8 @@ target root SHALL remain production even if a test-only edge reaches it.
 Generated sources excluded from metrics SHALL remain available to module
 resolution. Active or unknown
 production reachability SHALL win over test-only reachability and propagate to
-descendants.
+descendants. A module edge proven disabled in both production and test
+configurations SHALL be omitted without resolving its source file.
 
 #### Scenario: Full Rust node syntax is classified
 
@@ -50,6 +51,12 @@ descendants.
 - **WHEN** raw/ordinary declarations or path overrides reach one file through
   both test-only and active/unknown production edges
 - **THEN** the file and its reachable descendants remain production evidence
+
+#### Scenario: Module is disabled in every audited configuration
+
+- **WHEN** a module edge is false with both `test = false` and `test = true`
+- **THEN** the edge is omitted and its source file is not required for
+  resolution
 
 #### Scenario: One source has multiple module roles
 

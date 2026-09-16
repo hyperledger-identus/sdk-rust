@@ -83,6 +83,12 @@ the signed remediation commit at
 all-target Clippy, eleven Python tests, exact protocol-v2 baseline
 regeneration, factory checks, and strict OpenSpec 72/72 are green.
 
+The seventh hosted-review remediation distinguishes module edges disabled in
+both audited configurations from reachable test-only edges. A focused
+regression proves `#[cfg(any())]` and `#[cfg(all(test, any()))]` modules do not
+require nonexistent source files. Exact implementation and repeat evidence are
+recorded after the signed remediation commit.
+
 ## Migration evidence
 
 The v1 classifier from planning commit `a27f31f` and the reviewed v2 classifier

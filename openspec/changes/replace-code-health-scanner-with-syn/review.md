@@ -123,6 +123,11 @@
     Protocol v2 receives exact library/binary roots derived from the Cargo
     manifests at the audited revision. Source syntax no longer guesses target
     ownership; malformed, missing or duplicate roots fail closed.
+32. **Resolved hosted P2 — modules disabled in every configuration were
+    resolved.** Module reachability now distinguishes production, test-only,
+    and disabled edges by evaluating inclusion with both `test = false` and
+    `test = true`. Disabled module edges are omitted before path resolution; a
+    regression proves their absent files are not required.
 
 ## Result
 

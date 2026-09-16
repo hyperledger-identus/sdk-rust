@@ -86,8 +86,9 @@ interpretation of that snapshot.
   a shared module or descendant. Reachability state propagates through nested
   item, associated-item, statement, expression, struct-field-value, and
   match-arm scopes. Conditional module paths are evaluated separately with
-  `test = false` and `test = true`; unknown predicates or a production edge
-  that selects different paths fail closed.
+  `test = false` and `test = true`: edges false in both configurations are
+  disabled and omitted before path resolution, while unknown predicates or a
+  production edge that selects different paths fail closed.
   Malformed Rust, invalid spans, ambiguous module targets, unsupported
   predicate forms, and incomplete coverage fail closed with path/location
   diagnostics and never echo source text.

@@ -58,8 +58,10 @@ name. It resolves ordinary module paths and literal `#[path = "..."]`
 overrides relative to their declaring module. A module file reached only from a
 proven test-only edge and its test-only descendants becomes inline-test.
 Active or unknown production reachability to the same file wins and propagates
-through ordinary descendants until a fixed point. Ambiguous or escaping module
-paths fail with an actionable error rather than hiding code.
+through ordinary descendants until a fixed point. An edge proven disabled with
+both `test = false` and `test = true` is omitted before path resolution.
+Ambiguous or escaping module paths fail with an actionable error rather than
+hiding code.
 
 ### Contract v2 and migration evidence
 

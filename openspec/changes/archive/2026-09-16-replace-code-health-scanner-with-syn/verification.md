@@ -48,6 +48,9 @@ per-file authored nonblank delta. The exhaustive comparison and the intentional
 
 ## Hosted evidence
 
-The pull-request number, exact hosted head, required-check results and review
-resolution are added before archival and merge. Protected `develop` remains
-the authoritative integration gate.
+[PR #300](https://github.com/hyperledger-identus/sdk-rust/pull/300) at exact
+hosted head `8dbaa46d8404f0a47504380f07883a01bca2dd61` passed DCO, file hygiene,
+Markdown, shell, YAML, contribution-policy, and the 6m58s fast lane. The hosted
+Codex review returned no findings on that exact head after remediation; all
+five earlier threads are resolved. The archive-only head receives the same
+protected checks before merge to `develop`.

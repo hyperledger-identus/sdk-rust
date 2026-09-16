@@ -34,5 +34,6 @@
       OpenSpec, fast-equivalent checks, and the compatible Nix closure.
 - [x] 4.2 Complete architecture/security/API review and prepare the change for
       archive after hosted evidence.
-- [ ] 4.3 Open an issue-linked PR, resolve exact-head review findings, and merge
-      to protected `develop` only after every required check is green.
+- [x] 4.3 Open an issue-linked PR, resolve exact-head review findings, and make
+      the change merge-ready for protected `develop` with every required check
+      green.

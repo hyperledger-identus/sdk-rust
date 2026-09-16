@@ -5,189 +5,101 @@ TBD - created by archiving change establish-code-health-quality-budget. Update P
 ## Requirements
 ### Requirement: Code-health evidence separates authored populations
 
-The repository SHALL provide a deterministic, version-pinned audit command and
-canonical report format. It SHALL report authored production, external-test,
-and inline-test populations separately and SHALL identify generated exclusions.
-Inline code SHALL leave production only when syntax-aware evaluation proves its
-conditional-compilation predicate false with `test = false`; unknown feature
-and target predicates SHALL remain production. Predicate comments SHALL NOT
-alter parsing of retained string values; raw string and raw identifier tokens
-and Unicode cfg identifiers SHALL be accepted. Stable `true` and `false` cfg
-literals SHALL be evaluated exactly. Syntax outside the pinned semantic
-evaluator SHALL remain production. Nested `cfg_attr` SHALL apply recursively
-when its predicate is true, avoid parsing applied attributes when false, and
-remain production when applicability or applied syntax could change inclusion.
-A test-only out-of-line module
-declaration SHALL recursively classify its ordinary Rust module tree as test
-code while preserving nested inline-module context. Only Cargo `tests/` and
-`benches/` target trees SHALL be intrinsically external-test code; a file under
-`src`, including `src/tests.rs`, SHALL require syntax-proven test-only module
-reachability to leave production. Generated exclusion SHALL require an exact
-policy path and exact header marker. Outer doc comments immediately preceding a
-test-only item SHALL share that item's population. Test-only reachability SHALL
-fail closed rather than guess `#[path]` module overrides.
-An active or unknown production module edge SHALL override test-only
-reachability to the same file and its ordinary module descendants.
-An inline-test span SHALL exist only when the v1 whitelist proves a semicolon,
-zero-relative-depth comma, recognized block-item, or recognized item-macro end.
-Ambiguous angles or container delimiters and unsupported nested/member,
-statement, arm, generic, or macro forms SHALL remain production. A mixed
-test/shipping source line SHALL be production. No test span SHALL consume a
-following production node. Attribute-like tokens inside a macro definition or
-invocation token tree SHALL remain production; only an outer cfg applying to a
-recognized macro invocation may classify that invocation inline-test.
-Inner `#![cfg(...)]` scopes SHALL remain production in v1.
-Only byte-contiguous `#[` attributes SHALL enter the v1 classifier. Rust-valid
-whitespace-separated forms such as `# [cfg(test)]` SHALL remain production and
-SHALL NOT seed test-only out-of-line module inheritance. Issue #275 owns exact
-classification of those forms.
+The repository SHALL use a non-published Rust classifier based on the locked
+workspace `syn`/`proc-macro2` family for authored Rust population semantics.
+The classifier SHALL own cfg/cfg_attr evaluation, AST node boundaries, line
+projection, module resolution, and reachability through a bounded versioned
+protocol. Python orchestration SHALL NOT parse Rust boundaries. Unknown or
+unsupported inclusion SHALL remain production or fail with an actionable audit
+error; it SHALL never silently become test-only.
 
-#### Scenario: Attribute opener contains whitespace
+The classifier SHALL cover ordinary items, fields, variants, parameters,
+generic parameters, statements/expressions, match arms, and represented macro
+nodes. Macro token streams SHALL remain opaque. A source line SHALL be
+inline-test only when every non-whitespace authored byte is proven test-only;
+mixed lines remain production. Raw and ordinary module identifiers SHALL map
+to the same path. Literal path overrides MAY be supported only with contained,
+unambiguous resolution. Active or unknown production reachability SHALL win
+over test-only reachability and propagate to descendants.
 
-- **WHEN** a test cfg attribute is written with whitespace between `#` and `[`
-- **THEN** its item and any out-of-line module tree remain production evidence
+#### Scenario: Full Rust node syntax is classified
 
-#### Scenario: Test-only inline module
+- **WHEN** cfg attributes guard supported items, fields, variants, parameters,
+  statements, match arms, or macro nodes containing generics, shifts, labels,
+  Unicode identifiers, nested comments, raw strings, or recursive cfg_attr
+- **THEN** AST boundaries determine the candidate span without consuming a
+  following shipping node
 
-- **WHEN** a source item is guarded by `cfg(test)` or an `all` expression that
-  is false when `test = false`
-- **THEN** its lines and functions appear in inline-test evidence and not the
-  production population
+#### Scenario: Mixed source line remains production
 
-#### Scenario: Test is one alternative
+- **WHEN** a proven test-only AST node and any other authored non-whitespace
+  source share a line
+- **THEN** the entire line remains production evidence
 
-- **WHEN** an item uses `cfg(any(test, feature = "diagnostics"))`
-- **THEN** the unknown non-test predicate keeps the item in production evidence
+#### Scenario: Shared module has production reachability
 
-#### Scenario: Cfg predicate contains comments and raw tokens
+- **WHEN** raw/ordinary declarations or path overrides reach one file through
+  both test-only and active/unknown production edges
+- **THEN** the file and its reachable descendants remain production evidence
 
-- **WHEN** a cfg predicate contains nested comments, raw string values, or a raw
-  identifier such as `r#test`
-- **THEN** valid metadata is evaluated without treating comment-like literal
-  content as a comment
+#### Scenario: Rust source cannot be represented safely
 
-#### Scenario: Cfg attr generates a false cfg
-
-- **WHEN** `cfg_attr(not(test), cfg(any()))` is evaluated with `test = false`
-- **THEN** the generated false cfg makes the item inline-test evidence
-
-#### Scenario: Cfg attr applicability is unknown
-
-- **WHEN** an unknown feature predicate conditionally generates a false cfg
-- **THEN** the item remains production because the attribute may not apply
-
-#### Scenario: Cfg syntax exceeds the pinned evaluator
-
-- **WHEN** valid current or future cfg metadata uses an unrecognized predicate
-  form, or an unknown `cfg_attr` condition may apply such metadata
-- **THEN** the item remains production and an inactive `cfg_attr` branch is not
-  evaluated
-
-#### Scenario: Unsupported comma-less member precedes shipping code
-
-- **WHEN** a definitively test-only final field, variant, or parameter omits its
-  trailing comma before the enclosing delimiter
-- **THEN** v1 retains the member and following shipping node in production
-
-#### Scenario: Unsupported nested block expression precedes shipping code
-
-- **WHEN** a definitively test-only block statement or comma-less block-bodied
-  match arm precedes a production statement or arm
-- **THEN** v1 retains the unsupported nested construct and following node in
-  production
-
-#### Scenario: Test and shipping code share a line
-
-- **WHEN** a proven test-only node and shipping code have non-whitespace source
-  characters on the same source line
-- **THEN** the whole line and every function starting on it remain production
-
-#### Scenario: Macro consumes a cfg-looking token
-
-- **WHEN** a macro definition or invocation token tree contains tokens that
-  resemble a cfg attribute on a shipping item
-- **THEN** v1 keeps the token-tree source in production rather than treating it
-  as an active source attribute
-
-#### Scenario: Inner cfg scopes a nested source region
-
-- **WHEN** a module or block contains an inner `#![cfg(test)]` attribute
-- **THEN** v1 conservatively retains that scope in production and issue #275
-  owns broader syntax classification
-
-#### Scenario: Test-only out-of-line module
-
-- **WHEN** `cfg(test)` guards `mod guard;` and `guard` declares nested ordinary
-  out-of-line modules
-- **THEN** the resolved module tree is inline-test evidence and not production
-
-#### Scenario: Test-shaped source filename lacks a test-only declaration
-
-- **WHEN** `src/tests.rs` exists but no definitively test-only module declaration
-  reaches it
-- **THEN** it remains production evidence
-
-#### Scenario: Nested test helper collides with shipping source
-
-- **WHEN** `cfg(test)` guards `mod tests { mod helper; }` and both
-  `src/tests/helper.rs` and `src/helper.rs` exist
-- **THEN** only `src/tests/helper.rs` becomes inline-test evidence and the
-  shipping `src/helper.rs` remains production
-
-#### Scenario: Test item has outer documentation
-
-- **WHEN** `///` or `/** */` outer documentation immediately precedes a
-  definitively test-only item
-- **THEN** the documentation is inline-test evidence rather than production
-
-#### Scenario: Test-only brace-delimited item macro
-
-- **WHEN** a definitively test-only item invokes a qualified macro with a
-  brace-delimited token tree
-- **THEN** the balanced macro item is inline-test evidence and the following
-  shipping item remains production
-
-#### Scenario: Test-only module overrides its source path
-
-- **WHEN** a definitively test-only module uses `#[path = "..."]`
-- **THEN** v1 audit fails closed rather than resolving a default same-named file
-
-#### Scenario: Module is reachable in test and production configurations
-
-- **WHEN** `cfg(test)` and an active or unknown production predicate declare an
-  out-of-line module that resolves to the same file
-- **THEN** that file and its ordinary descendants remain production evidence
-
-#### Scenario: Ordinary prose resembles a generated marker
-
-- **WHEN** a Rust comment contains "do not edit" outside an exact policy
-  path-and-marker entry
-- **THEN** the file remains authored evidence
+- **WHEN** parsing, span projection, or module resolution is invalid,
+  ambiguous, escaping, or exceeds a protocol bound
+- **THEN** the audit fails with a path/location diagnostic or retains the
+  affected source as production; it never excludes it as test-only
 
 ### Requirement: Baseline evidence is bound to policy and Git content
 
-The policy SHALL pin the baseline revision, authored-source fingerprint and
-canonical report digest. Fast validation SHALL resolve the revision and
-recompute source fingerprint, generated exclusions, and line/file populations.
-Slow validation SHALL use the pinned analyzer version to regenerate and compare
-the entire report, including function counts and signals, when invoked by the
-native weekly/manual workflow from protected default `develop` or reproduced
-locally. The run SHALL bind requested and actual revision and SHALL NOT promote
-numeric attention signals into automatic architecture limits. Report schema
-keys SHALL be closed recursively.
+The canonical policy/report SHALL record classifier name, protocol version,
+locked implementation evidence, and an exact digest of per-file population
+projection in addition to analyzer identity. Fast validation SHALL execute the
+small classifier through the pinned Nix shell and recompute that complete
+Git-tree projection without invoking the heavyweight metric engine. Aggregate
+counts alone SHALL NOT satisfy the binding. Weekly/manual validation SHALL use
+the same classifier and the pinned metric engine. A parser or protocol change
+SHALL require a governed baseline migration and exhaustive explained
+population delta. The baseline source revision SHALL be a durable ancestor of
+the target branch. It MAY predate the classifier implementation because the
+classifier identity, protocol, locked dependencies, and exact projection
+digest independently bind its interpretation.
 
-#### Scenario: Default branch contains the slow workflow
+#### Scenario: Fast source validation runs
 
-- **WHEN** protected `develop` is GitHub's default branch and the native slow
-  schedule is accepted
-- **THEN** the analyzer runs against the exact default-branch SHA and the
-  evidence identifies that revision and GitHub run
+- **WHEN** protected PR validation checks canonical code-health evidence
+- **THEN** the pinned AST classifier recomputes source populations while
+  `rust-code-analysis-cli` remains absent from the fast execution path
 
-#### Scenario: Canonical report field is forged
+#### Scenario: Parser migration changes a population
 
-- **WHEN** revision, fingerprint, population, signal or generated-exclusion
-  content is changed while retaining canonical JSON
-- **THEN** policy, Git-tree, or full regeneration validation fails closed
+- **WHEN** the v2 AST population differs from the v1 conservative baseline
+- **THEN** a checked-in migration report names and explains every delta before
+  the new baseline can be accepted
+
+#### Scenario: Per-file lines move without changing totals
+
+- **WHEN** classifier output changes exact inline-test line sets while retaining
+  the same aggregate file and line counts
+- **THEN** fast validation rejects the projection digest mismatch
+
+#### Scenario: Baseline branch is removed after merge
+
+- **WHEN** a migration branch will be deleted after integration
+- **THEN** the baseline source revision remains reachable from `develop`
+  regardless of whether integration uses merge, squash, or rebase
+
+#### Scenario: Conditional module path is unresolved
+
+- **WHEN** an active or unknown `cfg_attr` may apply a module `path` override
+- **THEN** classification fails closed rather than selecting only the default
+  or conditional candidate
+
+#### Scenario: Test-only state is nested below an expression
+
+- **WHEN** a local module is nested under a test-only statement, expression,
+  or match arm
+- **THEN** the module inherits test-only reachability unless another active or
+  unknown production path reaches it
 
 ### Requirement: Metrics prompt review rather than dictate architecture
 

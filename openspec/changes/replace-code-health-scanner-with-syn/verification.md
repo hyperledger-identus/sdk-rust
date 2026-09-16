@@ -52,8 +52,11 @@ target roots, and attributed closure parameters.
 
 The fourth hosted-review remediation adds regressions for a source reached in
 both target-root and nested-module roles, inherited cfg state on declaration
-fields, and attributed bare-function-type parameters. Its exact implementation
-head and repeat verification are recorded after the signed remediation commit.
+fields, and attributed bare-function-type parameters. Exact implementation head
+`0d405f0ea17f0fd79ca6393415754d3d1a52ac85` passed 40 conformance tests,
+strict all-target conformance Clippy, ten Python protocol/report tests, exact
+durable-source baseline regeneration, factory structure/mutations, and all 72
+strict OpenSpec items.
 
 ## Migration evidence
 

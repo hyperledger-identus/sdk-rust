@@ -43,9 +43,12 @@ jobs:
             --head "$HEAD_SHA" \
             --profile production-ready \
             --output "$RUNNER_TEMP/target-plan.json"
-          sed -n \
-            '/"areas"/,/]/p; /"integration"/,/^    },/p; /"slowRecommended"/,/]/p; /"promotion"/,/^    },/p; /"iteration"/,/^    }/p' \
-            "$RUNNER_TEMP/target-plan.json" >> "$GITHUB_STEP_SUMMARY"
+          {
+            printf '### Target plan\n\n```json\n'
+            jq '{areas, integration, slowRecommended, promotion, iteration}' \
+              "$RUNNER_TEMP/target-plan.json"
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify preflight-bound error goldens
         run: >-

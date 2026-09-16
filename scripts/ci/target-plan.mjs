@@ -39,10 +39,27 @@ export function validateLanePolicy(policy) {
   if (ci.fast.purpose !== "active-development-integration" || ci.fast.platform !== "x86_64-linux") {
     throw new Error("fast line identity must remain active-development integration on Linux");
   }
-  const requiredFastEvidence = ["factory-policy", "openspec", "formatting", "workspace-build", "strict-clippy", "normal-tests"];
-  if (!requiredFastEvidence.every((entry) => ci.fast.includes?.includes(entry))
-      || !["cross-platform-matrix", "coverage", "performance", "fuzz", "sanitizers", "release-artifacts"]
-        .every((entry) => ci.fast.excludes?.includes(entry))) {
+  const requiredFastEvidence = [
+    "factory-policy",
+    "openspec",
+    "formatting",
+    "workspace-build",
+    "strict-clippy",
+    "normal-tests",
+    "bounded-first-party-analysis",
+  ];
+  const excludedFastEvidence = [
+    "cross-platform-matrix",
+    "mobile-runtime",
+    "browser-matrix",
+    "coverage",
+    "performance",
+    "fuzz",
+    "sanitizers",
+    "release-artifacts",
+  ];
+  if (JSON.stringify(ci.fast.includes) !== JSON.stringify(requiredFastEvidence)
+      || JSON.stringify(ci.fast.excludes) !== JSON.stringify(excludedFastEvidence)) {
     throw new Error("fast evidence placement is incomplete");
   }
   const slo = ci.fast?.executionSloSeconds;
@@ -157,7 +174,13 @@ export function buildPlan({
     paths,
     areas,
     requiredPullRequestChecks: profile === "prototype" ? ["factory-basic"] : [ciPolicy.requiredPullRequestGate],
-    integration: {
+    integration: profile === "prototype" ? {
+      line: null,
+      purpose: "provisional-local-validation",
+      platform: "local",
+      requiredStatuses: [],
+      executionSloSeconds: null,
+    } : {
       line: ciPolicy.requiredPullRequestGate,
       purpose: ciPolicy.fast.purpose,
       platform: ciPolicy.fast.platform,

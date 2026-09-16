@@ -201,10 +201,15 @@ test("target plan keeps one fast PR gate and routes risk to slow evidence", () =
   assert.equal(plan.iteration.maximumAutomaticReviewRounds, 1);
   assert.equal(plan.iteration.maximumRemediationRounds, 1);
   assert.equal(plan.iteration.decompositionNoteRequired, false);
-  assert.deepEqual(
-    buildPlan({ baseSha: sha, headSha: "b".repeat(40), paths: ["README.md"], profile: "prototype" }).requiredPullRequestChecks,
-    ["factory-basic"],
-  );
+  const prototypePlan = buildPlan({ baseSha: sha, headSha: "b".repeat(40), paths: ["README.md"], profile: "prototype" });
+  assert.deepEqual(prototypePlan.requiredPullRequestChecks, ["factory-basic"]);
+  assert.deepEqual(prototypePlan.integration, {
+    line: null,
+    purpose: "provisional-local-validation",
+    platform: "local",
+    requiredStatuses: [],
+    executionSloSeconds: null,
+  });
   assert.equal(buildPlan({ baseSha: sha, headSha: "b".repeat(40), paths: ["unclassified.bin"] }).unknownDiffFailsClosed, true);
 });
 
@@ -241,6 +246,16 @@ test("delivery lane policy rejects expanded PR matrices and weakened promotion e
   movedSlowEvidence.ci.fast.excludes = movedSlowEvidence.ci.fast.excludes.filter((entry) => entry !== "fuzz");
   assert.throws(() => validateLanePolicy(movedSlowEvidence), /evidence placement/u);
 
+  const removedFastEvidence = structuredClone(policy);
+  removedFastEvidence.ci.fast.includes = removedFastEvidence.ci.fast.includes
+    .filter((entry) => entry !== "bounded-first-party-analysis");
+  assert.throws(() => validateLanePolicy(removedFastEvidence), /evidence placement/u);
+
+  const removedTargetBoundary = structuredClone(policy);
+  removedTargetBoundary.ci.fast.excludes = removedTargetBoundary.ci.fast.excludes
+    .filter((entry) => entry !== "mobile-runtime");
+  assert.throws(() => validateLanePolicy(removedTargetBoundary), /evidence placement/u);
+
   const unboundedReview = structuredClone(policy);
   unboundedReview.delivery.maximumAutomaticReviewRounds = 2;
   assert.throws(() => validateLanePolicy(unboundedReview), /one automatic review/u);
@@ -252,6 +267,12 @@ test("delivery lane policy rejects expanded PR matrices and weakened promotion e
   const invertedSlo = structuredClone(policy);
   invertedSlo.ci.fast.executionSloSeconds.p95 = 601;
   assert.throws(() => validateLanePolicy(invertedSlo), /ordered/u);
+});
+
+test("fast workflow renders target-plan sections through jq", () => {
+  const workflow = readFileSync(new URL("../../.github/workflows/factory-contract.yml", import.meta.url), "utf8");
+  assert.match(workflow, /jq '\{areas, integration, slowRecommended, promotion, iteration\}'/u);
+  assert.doesNotMatch(workflow, /sed -n/u);
 });
 
 test("Pi policy merge preserves unrelated user choices", () => {

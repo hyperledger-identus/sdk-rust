@@ -330,9 +330,11 @@ point with two unrelated test formats. Do not import Oxid IDs or policy.
 
 ### B08 — bounded JOSE (`#8`)
 
-Deliver strict, narrowly profiled JWS compact handling and proof-JWT
-builder/verifier APIs over DID resolution and signing ports. Fuzz all decoder
-boundaries and reject algorithm confusion, ambiguous keys and unbounded claims.
+The functional, chain-neutral cryptography and bounded JOSE foundation is
+delivered as `IDR-004` under issue #286. It provides strict, narrowly profiled
+JWS compact handling and proof-JWT builder/verifier APIs over DID resolution
+and signing ports, with fuzz evidence and rejection of algorithm confusion,
+ambiguous keys, and unbounded claims.
 
 Issue #95 implements the first wire-only foundation: bounded canonical Compact
 Serialization, a closed initial protected header, exact signing-input
@@ -350,6 +352,11 @@ Compact boundary. Issue #104 adds bounded opaque proof-attestation and
 trust-chain headers, explicit holder construction, an injected OpenID
 Federation key provider, an injected key-attestation validator and a distinct
 trust-evaluated state without selecting platform or product trust policy.
+
+This functional delivery does not complete release or publication (`IDR-011`),
+bindings (`IDR-044` and issue #163), resource-boundary hardening (issues #298
+and #299), downstream adoption, Apollo deprecation, or NeoPRISM crypto removal.
+Each remains separately owned and incomplete.
 
 ### B09 — OID4VCI Final (`#7`)
 

@@ -22,7 +22,7 @@
       constructor family, including pre-resource-validation errors.
 - [x] 3.2 Narrow the machine inventory, ADR/public architecture guidance, and
       only the native cleanup clause of `SDK-LIM-007`.
-- [ ] 3.3 Run focused tests, format, strict Clippy, workspace gates, compatible
+- [x] 3.3 Run focused tests, format, strict Clippy, workspace gates, compatible
       Nix closure, factory/OpenSpec checks, and exact-diff plan.
 - [ ] 3.4 Complete a fresh security/architecture review, archive the change,
       and prepare the signed issue-linked PR and terminal metric publication.

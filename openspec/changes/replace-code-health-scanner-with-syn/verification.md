@@ -88,7 +88,10 @@ conditional path detection to actually applied path attributes, and replaces
 the source-by-span projection search with a monotonic linear sweep. Focused
 regressions cover non-ancestor rejection and unrelated nested `cfg(path)`
 metadata. Exact implementation and repeat evidence are recorded after the
-signed remediation commit.
+signed remediation commit at
+`2663dc728b4289077dd032572f5acee93479e407`: 41 conformance tests, strict
+all-target Clippy, twelve Python tests, exact protocol-v2 baseline
+regeneration, factory checks, and strict OpenSpec 72/72 are green.
 
 The seventh hosted-review remediation distinguishes module edges disabled in
 both audited configurations from reachable test-only edges. A focused

@@ -38,7 +38,7 @@
 - `./bootstrap.sh --check`: passed, including 72 OpenSpec items and 37 factory
   operation tests.
 - `git diff --check`: passed.
-- Final exact-diff plan: 15 paths, 538 changed text lines, no binaries, one required
+- Final exact-diff plan: 15 paths, 537 changed text lines, no binaries, one required
   `fast` status, and no slow evidence requested for this docs/spec-only slice.
 
 ## Decomposition note

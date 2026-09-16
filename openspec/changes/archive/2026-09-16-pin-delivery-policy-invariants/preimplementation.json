@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 305,
+  "change": "pin-delivery-policy-invariants",
+  "branch": "codex/fix/issue-305",
+  "baseRef": "origin/develop",
+  "baseSha": "4c740fbbd6736b36534e0d9dfe73f0f8d45351ff",
+  "contractHeadSha": "527adc8eb64c1ed7dce20dbe5030dedb47cb170a",
+  "createdAt": "2026-09-16T19:33:27.687Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

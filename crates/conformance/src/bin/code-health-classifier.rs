@@ -15,7 +15,7 @@ use proc_macro2::Span;
 use serde::{Deserialize, Serialize};
 use syn::{
     Arm, Attribute, Expr, Field, FieldValue, FnArg, ForeignItem, GenericParam, ImplItem, Item,
-    ItemMod, Meta, Stmt, TraitItem,
+    ItemMod, Meta, Pat, Stmt, TraitItem,
     parse::Parser,
     punctuated::Punctuated,
     spanned::Spanned,
@@ -95,6 +95,7 @@ struct ModuleReference {
 
 #[derive(Debug, Default)]
 struct ParsedFile {
+    has_top_level_main: bool,
     spans: Vec<Range<usize>>,
     test_edges: Vec<ModuleReference>,
     production_edges: Vec<ModuleReference>,
@@ -113,9 +114,10 @@ fn path_ident(meta: &Meta) -> Option<String> {
     Some(normalized_ident(ident))
 }
 
-fn cfg_truth(meta: &Meta) -> Truth {
+fn cfg_truth_for_test(meta: &Meta, test_enabled: bool) -> Truth {
     match meta {
         Meta::Path(_) => match path_ident(meta).as_deref() {
+            Some("test") if test_enabled => Truth::True,
             Some("test" | "false") => Truth::False,
             Some("true") => Truth::True,
             _ => Truth::Unknown,
@@ -130,13 +132,13 @@ fn cfg_truth(meta: &Meta) -> Truth {
                 return Truth::Unknown;
             };
             match name.as_str() {
-                "all" => values
-                    .iter()
-                    .fold(Truth::True, |result, value| result.and(cfg_truth(value))),
+                "all" => values.iter().fold(Truth::True, |result, value| {
+                    result.and(cfg_truth_for_test(value, test_enabled))
+                }),
                 "any" => {
                     let mut unknown = false;
                     for value in &values {
-                        match cfg_truth(value) {
+                        match cfg_truth_for_test(value, test_enabled) {
                             Truth::True => return Truth::True,
                             Truth::Unknown => unknown = true,
                             Truth::False => {}
@@ -148,11 +150,15 @@ fn cfg_truth(meta: &Meta) -> Truth {
                         Truth::False
                     }
                 }
-                "not" if values.len() == 1 => cfg_truth(&values[0]).not(),
+                "not" if values.len() == 1 => cfg_truth_for_test(&values[0], test_enabled).not(),
                 _ => Truth::Unknown,
             }
         }
     }
+}
+
+fn cfg_truth(meta: &Meta) -> Truth {
+    cfg_truth_for_test(meta, false)
 }
 
 fn meta_inclusion(meta: &Meta) -> Truth {
@@ -283,6 +289,29 @@ fn foreign_item_attributes(item: &ForeignItem) -> &[Attribute] {
     }
 }
 
+fn pat_attributes(pattern: &Pat) -> &[Attribute] {
+    match pattern {
+        Pat::Const(value) => &value.attrs,
+        Pat::Ident(value) => &value.attrs,
+        Pat::Lit(value) => &value.attrs,
+        Pat::Macro(value) => &value.attrs,
+        Pat::Or(value) => &value.attrs,
+        Pat::Paren(value) => &value.attrs,
+        Pat::Path(value) => &value.attrs,
+        Pat::Range(value) => &value.attrs,
+        Pat::Reference(value) => &value.attrs,
+        Pat::Rest(value) => &value.attrs,
+        Pat::Slice(value) => &value.attrs,
+        Pat::Struct(value) => &value.attrs,
+        Pat::Tuple(value) => &value.attrs,
+        Pat::TupleStruct(value) => &value.attrs,
+        Pat::Type(value) => &value.attrs,
+        Pat::Wild(value) => &value.attrs,
+        Pat::Verbatim(_) => &[],
+        _ => &[],
+    }
+}
+
 fn expr_attributes(expr: &Expr) -> &[Attribute] {
     match expr {
         Expr::Array(value) => &value.attrs,
@@ -408,6 +437,12 @@ impl<'ast> Visit<'ast> for SpanCollector<'_> {
         }
     }
 
+    fn visit_pat(&mut self, node: &'ast Pat) {
+        if !self.classify(node, pat_attributes(node)) {
+            visit::visit_pat(self, node);
+        }
+    }
+
     fn visit_stmt(&mut self, node: &'ast Stmt) {
         let attributes: &[Attribute] = match node {
             Stmt::Local(value) => &value.attrs,
@@ -457,6 +492,12 @@ enum Reachability {
     TestOnly,
 }
 
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+enum ModuleRole {
+    Root,
+    Nested,
+}
+
 struct ModuleCollector {
     context: Vec<String>,
     inherited: Reachability,
@@ -498,7 +539,7 @@ impl ModuleCollector {
     fn visit_module(&mut self, module: &ItemMod, reachability: Reachability) {
         let name = normalized_ident(&module.ident);
         if let Some((_, items)) = &module.content {
-            let path_override = match module_path_override(&module.attrs) {
+            let path_override = match module_path_override(&module.attrs, reachability) {
                 Ok(value) => value,
                 Err(error) => {
                     self.error = Some(error);
@@ -525,7 +566,7 @@ impl ModuleCollector {
             self.inherited = previous_reachability;
             return;
         }
-        let path_override = match module_path_override(&module.attrs) {
+        let path_override = match module_path_override(&module.attrs, reachability) {
             Ok(value) => value,
             Err(error) => {
                 self.error = Some(error);
@@ -599,6 +640,13 @@ impl<'ast> Visit<'ast> for NestedModuleVisitor<'_> {
         self.collector.inherited = previous;
     }
 
+    fn visit_pat(&mut self, pattern: &'ast Pat) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(pat_attributes(pattern));
+        visit::visit_pat(self, pattern);
+        self.collector.inherited = previous;
+    }
+
     fn visit_impl_item(&mut self, item: &'ast ImplItem) {
         let previous = self.collector.inherited;
         self.collector.inherited = self
@@ -631,21 +679,39 @@ impl<'ast> Visit<'ast> for NestedModuleVisitor<'_> {
     }
 }
 
-fn module_path_override(attributes: &[Attribute]) -> Result<Option<PathBuf>, String> {
+fn module_path_override(
+    attributes: &[Attribute],
+    reachability: Reachability,
+) -> Result<Option<PathBuf>, String> {
+    let production = module_path_override_for_test(attributes, false)?;
+    let test = module_path_override_for_test(attributes, true)?;
+    match reachability {
+        Reachability::TestOnly => Ok(test),
+        Reachability::Production if production == test => Ok(production),
+        Reachability::Production => {
+            Err("conditional module path override differs between production and test".to_owned())
+        }
+    }
+}
+
+fn module_path_override_for_test(
+    attributes: &[Attribute],
+    test_enabled: bool,
+) -> Result<Option<PathBuf>, String> {
     let mut result = None;
     for attribute in attributes {
-        if attribute.path().is_ident("cfg_attr")
-            && conditional_path_override_may_apply(&attribute.meta)?
-        {
-            return Err(
-                "conditional module path override is unsupported and may affect production"
-                    .to_owned(),
-            );
-        }
-        if !attribute.path().is_ident("path") {
-            continue;
-        }
-        let Meta::NameValue(value) = &attribute.meta else {
+        apply_path_meta(&attribute.meta, test_enabled, &mut result)?;
+    }
+    Ok(result)
+}
+
+fn apply_path_meta(
+    meta: &Meta,
+    test_enabled: bool,
+    result: &mut Option<PathBuf>,
+) -> Result<(), String> {
+    if meta.path().is_ident("path") {
+        let Meta::NameValue(value) = meta else {
             return Err("module path attribute must be a string name-value".to_owned());
         };
         let Expr::Lit(value) = &value.value else {
@@ -655,7 +721,7 @@ fn module_path_override(attributes: &[Attribute]) -> Result<Option<PathBuf>, Str
             return Err("module path attribute must contain a literal string".to_owned());
         };
         if result.is_some() {
-            return Err("module has more than one path override".to_owned());
+            return Err("module has more than one active path override".to_owned());
         }
         let path = PathBuf::from(value.value());
         if path.as_os_str().is_empty()
@@ -666,14 +732,14 @@ fn module_path_override(attributes: &[Attribute]) -> Result<Option<PathBuf>, Str
         {
             return Err("module path override must be a contained relative path".to_owned());
         }
-        result = Some(path);
+        *result = Some(path);
+        return Ok(());
     }
-    Ok(result)
-}
-
-fn conditional_path_override_may_apply(meta: &Meta) -> Result<bool, String> {
+    if !meta.path().is_ident("cfg_attr") {
+        return Ok(());
+    }
     let Meta::List(list) = meta else {
-        return Ok(false);
+        return Err("conditional module path attribute is malformed".to_owned());
     };
     let parser = Punctuated::<Meta, Comma>::parse_terminated;
     let values = parser
@@ -683,18 +749,32 @@ fn conditional_path_override_may_apply(meta: &Meta) -> Result<bool, String> {
     let Some(predicate) = values.next() else {
         return Err("conditional module path attribute has no predicate".to_owned());
     };
-    if cfg_truth(predicate) == Truth::False {
-        return Ok(false);
-    }
-    for applied in values {
-        if applied.path().is_ident("path") {
-            return Ok(true);
+    match cfg_truth_for_test(predicate, test_enabled) {
+        Truth::False => Ok(()),
+        Truth::True => {
+            for applied in values {
+                apply_path_meta(applied, test_enabled, result)?;
+            }
+            Ok(())
         }
-        if applied.path().is_ident("cfg_attr") && conditional_path_override_may_apply(applied)? {
-            return Ok(true);
+        Truth::Unknown if values.any(meta_contains_path) => {
+            Err("conditional module path override has an unknown predicate".to_owned())
         }
+        Truth::Unknown => Ok(()),
     }
-    Ok(false)
+}
+
+fn meta_contains_path(meta: &Meta) -> bool {
+    if meta.path().is_ident("path") {
+        return true;
+    }
+    let Meta::List(list) = meta else {
+        return false;
+    };
+    let parser = Punctuated::<Meta, Comma>::parse_terminated;
+    parser
+        .parse2(list.tokens.clone())
+        .is_ok_and(|values| values.iter().any(meta_contains_path))
 }
 
 fn merge_ranges(mut spans: Vec<Range<usize>>) -> Vec<Range<usize>> {
@@ -768,6 +848,9 @@ fn parse_source(path: &str, source: &str) -> Result<ParsedFile, String> {
         return Err(format!("{path}: {error}"));
     }
     Ok(ParsedFile {
+        has_top_level_main: file.items.iter().any(|item| {
+            matches!(item, Item::Fn(function) if normalized_ident(&function.sig.ident) == "main")
+        }),
         spans: span_collector.spans,
         test_edges: module_collector.test_edges,
         production_edges: module_collector.production_edges,
@@ -778,34 +861,25 @@ fn resolve_module(
     parent: &Path,
     reference: &ModuleReference,
     sources: &BTreeMap<PathBuf, String>,
+    role: ModuleRole,
 ) -> Result<PathBuf, String> {
     let source_directory = parent
         .parent()
         .unwrap_or_else(|| Path::new(""))
         .to_path_buf();
-    let standard_bin_root = parent.extension().and_then(|value| value.to_str()) == Some("rs")
-        && source_directory
-            .file_name()
-            .and_then(|value| value.to_str())
-            == Some("bin")
-        && source_directory
-            .parent()
-            .and_then(Path::file_name)
-            .and_then(|value| value.to_str())
-            == Some("src");
-    let ordinary_base = if standard_bin_root
-        || matches!(
-            parent.file_name().and_then(|value| value.to_str()),
-            Some("lib.rs" | "main.rs" | "mod.rs")
-        ) {
-        source_directory.clone()
-    } else {
-        source_directory.join(
+    let ordinary_base = match role {
+        ModuleRole::Root => source_directory.clone(),
+        ModuleRole::Nested
+            if parent.file_name().and_then(|value| value.to_str()) == Some("mod.rs") =>
+        {
+            source_directory.clone()
+        }
+        ModuleRole::Nested => source_directory.join(
             parent
                 .file_stem()
                 .and_then(|value| value.to_str())
                 .unwrap_or_default(),
-        )
+        ),
     };
     let ordinary_contextual = reference
         .context
@@ -849,10 +923,24 @@ fn inherited_test_paths(
     parsed: &BTreeMap<PathBuf, ParsedFile>,
     sources: &BTreeMap<PathBuf, String>,
 ) -> Result<BTreeSet<PathBuf>, String> {
+    let roots: BTreeSet<_> = parsed
+        .iter()
+        .filter_map(|(path, file)| {
+            let filename = path.file_name().and_then(|value| value.to_str());
+            (file.has_top_level_main || matches!(filename, Some("lib.rs" | "main.rs")))
+                .then_some(path.clone())
+        })
+        .collect();
+
     let mut queued = VecDeque::new();
     for (parent, file) in parsed {
+        let role = if roots.contains(parent) {
+            ModuleRole::Root
+        } else {
+            ModuleRole::Nested
+        };
         for reference in &file.test_edges {
-            queued.push_back(resolve_module(parent, reference, sources)?);
+            queued.push_back(resolve_module(parent, reference, sources, role)?);
         }
     }
     let mut inherited = BTreeSet::new();
@@ -864,32 +952,42 @@ fn inherited_test_paths(
             .get(&path)
             .ok_or_else(|| format!("missing parsed module source: {}", path.display()))?;
         for reference in file.test_edges.iter().chain(&file.production_edges) {
-            queued.push_back(resolve_module(&path, reference, sources)?);
+            queued.push_back(resolve_module(
+                &path,
+                reference,
+                sources,
+                ModuleRole::Nested,
+            )?);
         }
     }
 
-    loop {
-        let mut removed = Vec::new();
-        for (parent, file) in parsed {
-            if inherited.contains(parent) {
-                continue;
-            }
-            for reference in &file.production_edges {
-                let child = resolve_module(parent, reference, sources)?;
-                if inherited.contains(&child) {
-                    removed.push(child);
-                }
-            }
-        }
-        removed.sort();
-        removed.dedup();
-        if removed.is_empty() {
-            break;
-        }
-        for path in removed {
-            inherited.remove(&path);
+    let mut production = roots.clone();
+    let mut production_queue: VecDeque<_> = roots
+        .iter()
+        .cloned()
+        .map(|path| (path, ModuleRole::Root))
+        .collect();
+    for path in parsed.keys() {
+        if !inherited.contains(path) && !roots.contains(path) {
+            production.insert(path.clone());
+            production_queue.push_back((path.clone(), ModuleRole::Nested));
         }
     }
+    let mut visited = BTreeSet::new();
+    while let Some((path, role)) = production_queue.pop_front() {
+        if !visited.insert((path.clone(), role)) {
+            continue;
+        }
+        let file = parsed
+            .get(&path)
+            .ok_or_else(|| format!("missing parsed module source: {}", path.display()))?;
+        for reference in &file.production_edges {
+            let child = resolve_module(&path, reference, sources, role)?;
+            production.insert(child.clone());
+            production_queue.push_back((child, ModuleRole::Nested));
+        }
+    }
+    inherited.retain(|path| !production.contains(path));
     Ok(inherited)
 }
 
@@ -1085,6 +1183,27 @@ fn literal() { let _ = Values {
     }
 
     #[test]
+    fn classifies_closure_parameters_by_ast_boundary() {
+        let source = r#"
+fn closure() { let _ = |
+    #[cfg(test)]
+    hidden: u8,
+    shipping: u8,
+| shipping; }
+"#;
+        let lines = one(source);
+        for line in [3, 4] {
+            assert!(
+                lines.contains(&line),
+                "expected test-only closure parameter line {line}: {lines:?}"
+            );
+        }
+        for line in [2, 5, 6] {
+            assert!(!lines.contains(&line), "shipping line {line}: {lines:?}");
+        }
+    }
+
+    #[test]
     fn mixed_line_and_macro_token_attributes_remain_production() {
         let source = r#"
 #[cfg(test)] fn hidden() {} pub fn shipping() {}
@@ -1265,7 +1384,7 @@ pub const SHIPPING: u8 = 1;
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/bin/tool.rs".to_owned(),
-                    source: "#[cfg(test)] mod helper;\n".to_owned(),
+                    source: "#[cfg(test)] mod helper;\nfn main() {}\n".to_owned(),
                 },
                 SourceInput {
                     path: "crates/demo/src/bin/helper.rs".to_owned(),
@@ -1278,6 +1397,42 @@ pub const SHIPPING: u8 = 1;
             response.inherited_inline_paths,
             vec!["crates/demo/src/bin/helper.rs"]
         );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/bin/tool.rs".to_owned(),
+                    source: "mod helper;\nfn main() {}\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/bin/helper.rs".to_owned(),
+                    source: "mod child;\nfn helper() {}\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/bin/helper/child.rs".to_owned(),
+                    source: "fn nested_bin_module() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("binary child reached as nested module");
+        assert!(response.inherited_inline_paths.is_empty());
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/lib.rs".to_owned(),
+                    source: "#[cfg(test)] #[path = \"bin/helper.rs\"] mod helper;\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/bin/helper.rs".to_owned(),
+                    source: "fn main() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("Cargo target roots remain production");
+        assert!(response.inherited_inline_paths.is_empty());
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
@@ -1317,6 +1472,30 @@ pub const SHIPPING: u8 = 1;
         assert_eq!(
             response.inherited_inline_paths,
             vec!["crates/demo/src/custom/child.rs"]
+        );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/lib.rs".to_owned(),
+                    source: concat!(
+                        "#[cfg(test)]\n",
+                        "#[cfg_attr(test, path = \"fixtures/helper.rs\")]\n",
+                        "mod helper;\n",
+                    )
+                    .to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/fixtures/helper.rs".to_owned(),
+                    source: "fn cfg_attr_fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("test-only cfg_attr path override");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec!["crates/demo/src/fixtures/helper.rs"]
         );
 
         let error = classify(Request {

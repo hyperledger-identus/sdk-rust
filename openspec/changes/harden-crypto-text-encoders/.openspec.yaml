@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-09-17
+goal: Replace unbounded public infallible crypto byte encoding with bounded
+  fallible construction while preserving canonical values and internal
+  fixed-size encoding.

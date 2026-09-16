@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability = "crypto"
+requirement = "Public crypto text parsing has one explicit byte boundary"
+canonical_sha256 = "be09bc67ab384069590cc908e40f9aa9449893945a4961680337049593c5cb19"
+reason = "Issue #298 intentionally replaces the caller-budgeted infallible encoding scenario with a bounded fallible byte-construction contract while preserving parser behavior and every unrelated scenario."

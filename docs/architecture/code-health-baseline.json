@@ -147,6 +147,7 @@
       "owner": "identus-derive maintainers"
     }
   ],
+  "population_projection_sha256": "803571144e45c161ff77a090088459ba0add67a023a05e9e9f23dff2ac38fda6",
   "populations": {
     "external_test": {
       "authored_nonblank_lines": 24167,
@@ -154,17 +155,17 @@
       "functions": 1027
     },
     "inline_test": {
-      "authored_nonblank_lines": 4162,
+      "authored_nonblank_lines": 4180,
       "files": 33,
       "functions": 338
     },
     "production": {
-      "authored_nonblank_lines": 29969,
+      "authored_nonblank_lines": 29974,
       "files": 136,
       "functions": 2289
     }
   },
-  "revision": "18394fc38cc085445979ae5e123fe9454ab22bae",
+  "revision": "a42835a8d0877f3a0fb6bc7fae797308d6efb38e",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -201,22 +202,22 @@
       {
         "cognitive": 18,
         "cyclomatic": 18,
-        "end_line": 744,
+        "end_line": 749,
         "name": "inherited_test_paths",
         "path": "crates/conformance/src/bin/code-health-classifier.rs",
         "population": "production",
         "sloc": 47,
-        "start_line": 698
+        "start_line": 703
       },
       {
         "cognitive": 20,
         "cyclomatic": 24,
-        "end_line": 833,
+        "end_line": 838,
         "name": "classify",
         "path": "crates/conformance/src/bin/code-health-classifier.rs",
         "population": "production",
         "sloc": 88,
-        "start_line": 746
+        "start_line": 751
       },
       {
         "cognitive": 1,
@@ -702,5 +703,5 @@
       }
     ]
   },
-  "source_fingerprint_sha256": "e1434bfc52689f57cdf6601c8fc158cae6d675122efa885882ef08a9bb424f6b"
+  "source_fingerprint_sha256": "8116415f54ee456f1f284a4010925debac9005407b352d228d1d14d8f2c68dc6"
 }

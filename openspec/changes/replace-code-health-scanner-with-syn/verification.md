@@ -2,7 +2,7 @@
 
 ## Exact-head local evidence
 
-The implementation and evidence head
+The initial implementation and evidence head
 `f2e5d4a5a3162a1155d5e71208f424aeb767feb0` passed:
 
 - Nix `aarch64-darwin` checks: `factory-contract`, `lint-nix`, `lint-text`,
@@ -24,10 +24,10 @@ heavy `rust-code-analysis-cli` metric engine was not run on that fast path.
 
 ## Migration evidence
 
-The v1 classifier from planning commit `a27f31f` and v2 classifier at
-implementation commit `18394fc38cc085445979ae5e123fe9454ab22bae` classified
+The v1 classifier from planning commit `a27f31f` and v2 classifier at reviewed
+implementation commit `a42835a8d0877f3a0fb6bc7fae797308d6efb38e` classified
 the same 143 production sources and 73 external test files. Both produced
-4,162 inline-test and 29,969 production authored nonblank lines, with no
+4,180 inline-test and 29,974 production authored nonblank lines, with no
 per-file authored nonblank delta. The exhaustive comparison and the intentional
 252 blank-only line representation change are recorded in
 `docs/architecture/code-health-v2-migration.md`.

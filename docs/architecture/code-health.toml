@@ -5,9 +5,9 @@ engine_version                     = "0.0.25"
 classifier                         = "syn-ast-v1"
 classifier_protocol_version        = 1
 classifier_command                 = [ "cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--" ]
-baseline_revision                  = "18394fc38cc085445979ae5e123fe9454ab22bae"
-baseline_source_fingerprint_sha256 = "e1434bfc52689f57cdf6601c8fc158cae6d675122efa885882ef08a9bb424f6b"
-baseline_report_sha256             = "bcd96cc97bc15a052e575c3c4f448566dc6f0a5768fc30526b9f7ebaa7f7f6c2"
+baseline_revision                  = "a42835a8d0877f3a0fb6bc7fae797308d6efb38e"
+baseline_source_fingerprint_sha256 = "8116415f54ee456f1f284a4010925debac9005407b352d228d1d14d8f2c68dc6"
+baseline_report_sha256             = "3e88aa68b86398e260648ba8628cae02383ff7e36278307d6479e36c016c88b8"
 generated_exclusions               = [  ]
 
 [attention]

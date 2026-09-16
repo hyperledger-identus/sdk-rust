@@ -41,10 +41,12 @@ boundaries. Fast CI invokes the helper in the pinned Nix shell without the
 heavy metric engine; weekly/manual evidence uses the same population helper
 before full metric regeneration.
 
-The code-health policy/report advances to v2 and binds classifier identity and
-protocol. Migration requires an exhaustive v1/v2 delta report and a baseline
-revision containing the implementation. Parser upgrades require the same
-governed migration.
+The code-health policy/report advances to v2 and binds classifier identity,
+protocol, and an exact digest of each file's population projection. Migration
+requires an exhaustive v1/v2 delta report and a reachable baseline revision
+containing the implementation. The migration uses an ancestry-preserving merge;
+a squash or rebase requires repinning before completion. Parser upgrades
+require the same governed migration.
 
 ## Consequences
 

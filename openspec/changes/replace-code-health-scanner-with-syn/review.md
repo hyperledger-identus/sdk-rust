@@ -4,7 +4,8 @@
 
 - Base: `5dff6f38c861b858dd62dc8310246f7d485d3e92`
 - Classifier implementation: `18394fc38cc085445979ae5e123fe9454ab22bae`
-- Exact locally reviewed head: `f2e5d4a5a3162a1155d5e71208f424aeb767feb0`
+- Exact locally reviewed implementation head:
+  `a42835a8d0877f3a0fb6bc7fae797308d6efb38e`
 - Issue: [#275](https://github.com/hyperledger-identus/sdk-rust/issues/275)
 - Review lenses: parser correctness, conservative population projection,
   module reachability, resource bounds, diagnostics, dependency direction,
@@ -34,6 +35,20 @@
 7. **No blocker — dependency cone.** `syn`, `proc-macro2`, `serde` and
    `serde_json` were already workspace-locked. The change adds no new package
    to `Cargo.lock` and no native or unsafe dependency boundary.
+8. **Resolved hosted P1 — aggregate equality did not bind classifier output.**
+   The v2 report now records and fast validation recomputes a canonical digest
+   of every production source's exact inline-test line set plus external and
+   generated path sets. A mutation test moves the digest without changing
+   aggregate counts and fails closed.
+9. **Resolved hosted P2 — direct path overrides used ordinary module base.**
+   Literal `#[path]` overrides now resolve from the containing source directory
+   plus inline-module context, while ordinary child modules retain the
+   file-stem directory rule. A non-root `foo.rs` regression proves `bar.rs`.
+10. **Resolved hosted P1 — baseline reachability depended on merge method.**
+    The capability, ADR and operations contract require this migration to use
+    an ancestry-preserving merge. Squash/rebase integration requires a repin.
+    The implementation baseline commit is an ancestor of the PR head and will
+    remain reachable from `develop` after the merge commit and branch deletion.
 
 ## Result
 

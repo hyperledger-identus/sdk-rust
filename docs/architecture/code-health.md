@@ -12,13 +12,14 @@ The command uses the unpublished `syn` classifier and
 [`code-health.toml`](code-health.toml), and emits canonical JSON. The v2
 baseline records the immutable issue #275 implementation revision. Its
 revision, source fingerprint, classifier identity and protocol, execution
-command, and whole canonical-report digest are policy-pinned. The exhaustive
-v1-to-v2 comparison is in
+command, exact per-file population-projection digest, and whole
+canonical-report digest are policy-pinned. The exhaustive v1-to-v2 comparison is in
 [`code-health-v2-migration.md`](code-health-v2-migration.md).
 
 Fast validation reloads the pinned Git tree and uses the same classifier to
-recompute the authored fingerprint, exact generated exclusions, and line/file
-populations without running the metric engine:
+recompute the authored fingerprint, exact generated exclusions, complete
+per-file inline-test line sets, and line/file populations without running the
+metric engine. Aggregate equality cannot hide a line reclassification:
 
 ```bash
 nix develop --command python3 scripts/code-health-audit.py \
@@ -45,6 +46,9 @@ regeneration provide the tree bindings.
 A live audit rejects tracked or untracked Rust that differs from the recorded
 revision. Commit the intended source first or run the command from a clean
 worktree; unrelated documentation changes do not invalidate source evidence.
+The baseline revision must remain reachable after branch deletion. A migration
+PR therefore uses an ancestry-preserving merge; squash or rebase integration
+requires repinning and regenerating the baseline from a durable commit first.
 
 ## Populations
 

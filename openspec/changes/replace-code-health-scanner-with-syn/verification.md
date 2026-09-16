@@ -22,6 +22,19 @@ The warm local fast source-evidence command completed in 5.99 seconds with a
 includes entering the cached Nix development shell and invoking Cargo. The
 heavy `rust-code-analysis-cli` metric engine was not run on that fast path.
 
+Hosted-review remediation through exact classifier/evidence head
+`1d10a646776f1709dbe39cad83a54c5c093c5fed` additionally passed:
+
+- all 37 conformance targets/tests and strict all-target Clippy;
+- all nine Python classifier/report mutation tests;
+- exact durable-source baseline regeneration and canonical report validation;
+- factory structure/mutation checks and strict change validation; and
+- `cargo fmt --all -- --check` plus `git diff --check`.
+
+The added regressions prove inherited test-only state through nested expression
+scopes and fail-closed behavior for unresolved conditional module path
+overrides.
+
 ## Migration evidence
 
 The v1 classifier from planning commit `a27f31f` and the reviewed v2 classifier

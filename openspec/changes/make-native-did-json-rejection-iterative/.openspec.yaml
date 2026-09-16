@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-09-16
+goal: Make every native DID owned-JSON validation rejection stack-safe through
+  one internal iterative cleanup primitive without changing accepted values or
+  public representations.

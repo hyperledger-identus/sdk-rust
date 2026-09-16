@@ -58,6 +58,9 @@ payload, then atomically retains or confirms the exact private record. It then
 creates or updates only the authenticated publisher's
 unique comment with that same marker, so a v2 publication never overwrites
 retained v1 evidence. Multiple matching owned comments fail closed.
+Templates and `in-progress` records may be validated or rendered while work is
+underway, but they cannot be written to the immutable private store or
+published. Finalize the closed outcome and exact counters before retention.
 
 A comment create or update receives at most one immediate retry. If both
 attempts fail, the local record remains authoritative and the command reports

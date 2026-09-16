@@ -302,6 +302,7 @@ function canonicalJson(value) {
 export function retainMetricRecord(target, record) {
   const result = validateMetric(record);
   if (!result.ok) fail(result.errors.join("; "));
+  if (record.outcome === "in-progress") fail("in-progress metric record cannot be retained");
   const temporary = `${target}.${process.pid}.${randomUUID()}.tmp`;
   try {
     writeFileSync(temporary, `${JSON.stringify(record, null, 2)}\n`, { flag: "wx", mode: 0o600 });

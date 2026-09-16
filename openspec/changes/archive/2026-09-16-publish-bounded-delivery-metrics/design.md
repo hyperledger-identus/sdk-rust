@@ -16,7 +16,8 @@ The publication command validates the record, verifies its hosted identity,
 renders and size-checks the public payload, then atomically persists or
 confirms the exact private record before invoking a comment mutation. An
 existing byte-equivalent semantic record is idempotent; a different record at
-the same issue/head/version path fails closed.
+the same issue/head/version path fails closed. Draft `in-progress` records may
+be validated and rendered but cannot enter immutable retention.
 
 ### Hosted historical identity
 

@@ -170,9 +170,10 @@ reporting. Historical PR-backed publication SHALL verify repository, issue,
 the PR's authoritative closing reference to that issue, and exact hosted head
 without requiring the caller's checkout to remain on that head. The bounded
 public payload SHALL be rendered and size-checked before immutable local
-retention. One bounded retry MAY handle a transient comment failure; persistent
-failure SHALL remain visible telemetry debt and SHALL NOT invalidate otherwise
-independent product evidence.
+retention. A record whose outcome remains `in-progress` SHALL NOT enter that
+immutable store or publication flow. One bounded retry MAY handle a transient
+comment failure; persistent failure SHALL remain visible telemetry debt and
+SHALL NOT invalidate otherwise independent product evidence.
 
 #### Scenario: Valid exact-head closeout is rendered
 
@@ -223,6 +224,12 @@ independent product evidence.
   payload exceeds its bound, or multiple owned target comments share a marker
 - **THEN** publication fails before an ambiguous or forged public receipt is
   created
+
+#### Scenario: Draft metric is retained
+
+- **WHEN** an otherwise schema-valid record still has the `in-progress` outcome
+- **THEN** validation and rendering remain available but immutable retention
+  and publication fail before creating terminal evidence
 
 #### Scenario: Public mutation remains unavailable
 

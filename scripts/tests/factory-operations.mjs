@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { execFileSync, spawn } from "node:child_process";
 import {
   chmodSync,
+  existsSync,
   lstatSync,
   mkdtempSync,
   mkdirSync,
@@ -768,6 +769,22 @@ test("conflicting private metric retention fails without replacing the record", 
       /conflicts with exact record/u,
     );
     assert.equal(readFileSync(target, "utf8"), retained);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("in-progress metric drafts cannot become immutable private records", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-metric-draft-"));
+  const directory = realpathSync(created);
+  try {
+    chmodSync(directory, 0o700);
+    const target = path.join(directory, "metric.json");
+    assert.throws(
+      () => retainMetricRecord(target, { ...metric, outcome: "in-progress" }),
+      /in-progress metric record cannot be retained/u,
+    );
+    assert.equal(existsSync(target), false);
   } finally {
     rmSync(created, { recursive: true, force: true });
   }

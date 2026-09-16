@@ -23,9 +23,11 @@ mixed lines remain production. Raw and ordinary module identifiers SHALL map
 to the same path. Literal path overrides MAY be supported only with contained,
 unambiguous resolution, including non-root source modules and path-adjusted
 inline modules. Resolution SHALL preserve whether a source is entered as a
-target root or nested module, and a target root SHALL remain production even if
-a test-only edge reaches it. Generated sources excluded from metrics SHALL
-remain available to module resolution. Active or unknown
+target root or nested module. Target roots SHALL come from Cargo manifests
+bound to the audited revision, not source filenames or function names, and a
+target root SHALL remain production even if a test-only edge reaches it.
+Generated sources excluded from metrics SHALL remain available to module
+resolution. Active or unknown
 production reachability SHALL win over test-only reachability and propagate to
 descendants.
 
@@ -89,6 +91,12 @@ descendants.
 - **THEN** the target's children resolve from the target directory, the nested
   source's children resolve from its module directory, and an independently
   shipping target root remains production
+
+#### Scenario: Nested helper is not inferred as a target
+
+- **WHEN** a nested module contains an ordinary function named `main`
+- **THEN** only Cargo-declared or auto-discovered targets use root resolution
+  and the nested source retains nested-module resolution
 
 #### Scenario: Closure parameter is test-only
 

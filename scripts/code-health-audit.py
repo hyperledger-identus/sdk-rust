@@ -26,7 +26,7 @@ ALLOWED_DISPOSITIONS = {
     "defer-with-owner",
 }
 CLASSIFIER_NAME = "syn-ast-v1"
-CLASSIFIER_PROTOCOL_VERSION = 1
+CLASSIFIER_PROTOCOL_VERSION = 2
 CLASSIFIER_COMMAND = (
     "cargo",
     "run",
@@ -72,6 +72,100 @@ def git_tree_sources(root: Path, revision: str) -> dict[Path, str]:
                 raise AuditError(f"could not read archived Rust source: {member.name}")
             sources[Path(member.name)] = handle.read().decode("utf-8")
     return sources
+
+
+def cargo_target_roots(
+    root: Path, sources: dict[Path, str], revision: str | None = None
+) -> list[Path]:
+    """Resolve library and binary crate roots from Cargo manifests."""
+    manifests: dict[Path, bytes] = {}
+    if revision is None:
+        for manifest in sorted((root / "crates").glob("*/Cargo.toml")):
+            manifests[manifest.relative_to(root)] = manifest.read_bytes()
+    else:
+        archived = subprocess.run(
+            ["git", "archive", "--format=tar", revision, "--", "crates"],
+            cwd=root,
+            capture_output=True,
+            check=True,
+        ).stdout
+        with tarfile.open(fileobj=io.BytesIO(archived), mode="r:") as tree:
+            for member in tree.getmembers():
+                path = Path(member.name)
+                if (
+                    not member.isfile()
+                    or len(path.parts) != 3
+                    or path.parts[0] != "crates"
+                    or path.name != "Cargo.toml"
+                ):
+                    continue
+                handle = tree.extractfile(member)
+                if handle is None:
+                    raise AuditError(f"could not read archived Cargo manifest: {path}")
+                manifests[path] = handle.read()
+
+    roots: set[Path] = set()
+    for manifest, raw in sorted(manifests.items()):
+        try:
+            cargo = tomllib.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, tomllib.TOMLDecodeError) as error:
+            raise AuditError(f"could not parse Cargo target manifest {manifest}: {error}") from error
+        crate = manifest.parent
+        package = cargo.get("package", {})
+        if not isinstance(package, dict):
+            raise AuditError(f"Cargo package table is invalid: {manifest}")
+
+        library = cargo.get("lib")
+        if library is not None and not isinstance(library, dict):
+            raise AuditError(f"Cargo lib target is invalid: {manifest}")
+        if isinstance(library, dict):
+            library_path = library.get("path", "src/lib.rs")
+            if not isinstance(library_path, str):
+                raise AuditError(f"Cargo lib path is invalid: {manifest}")
+            roots.add(crate / library_path)
+        elif package.get("autolib", True) is not False:
+            roots.add(crate / "src/lib.rs")
+
+        binaries = cargo.get("bin", [])
+        if not isinstance(binaries, list) or any(
+            not isinstance(binary, dict) for binary in binaries
+        ):
+            raise AuditError(f"Cargo bin targets are invalid: {manifest}")
+        for binary in binaries:
+            binary_path = binary.get("path")
+            binary_name = binary.get("name")
+            if binary_path is None and isinstance(binary_name, str):
+                candidates = [
+                    crate / "src/bin" / f"{binary_name}.rs",
+                    crate / "src/bin" / binary_name / "main.rs",
+                ]
+                if binary_name == package.get("name"):
+                    candidates.insert(0, crate / "src/main.rs")
+                matches = [candidate for candidate in candidates if candidate in sources]
+                if len(matches) != 1:
+                    raise AuditError(
+                        f"Cargo bin target path is not uniquely inferable: {manifest}"
+                    )
+                roots.add(matches[0])
+                continue
+            if not isinstance(binary_path, str):
+                raise AuditError(f"Cargo bin target lacks a path or name: {manifest}")
+            roots.add(crate / binary_path)
+
+        if package.get("autobins", True) is not False:
+            roots.add(crate / "src/main.rs")
+            binary_directory = crate / "src/bin"
+            for path in sources:
+                try:
+                    relative = path.relative_to(binary_directory)
+                except ValueError:
+                    continue
+                if len(relative.parts) == 1 and path.suffix == ".rs":
+                    roots.add(path)
+                elif len(relative.parts) == 2 and relative.name == "main.rs":
+                    roots.add(path)
+
+    return sorted(roots.intersection(sources))
 
 
 def classify_sources(
@@ -290,7 +384,11 @@ def exact_working_revision(root: Path, requested: str | None) -> str:
         text=True,
         check=False,
     )
-    changed_rust = [path for path in changed.stdout.splitlines() if path.endswith(".rs")]
+    changed_inputs = [
+        path
+        for path in changed.stdout.splitlines()
+        if path.endswith(".rs") or path.endswith("/Cargo.toml")
+    ]
     untracked = subprocess.run(
         ["git", "ls-files", "--others", "--exclude-standard", "--", "crates"],
         cwd=root,
@@ -298,10 +396,15 @@ def exact_working_revision(root: Path, requested: str | None) -> str:
         text=True,
         check=True,
     ).stdout.splitlines()
-    untracked_rust = [path for path in untracked if path.endswith(".rs")]
-    if changed.returncode != 0 or changed_rust or untracked_rust:
+    untracked_inputs = [
+        path
+        for path in untracked
+        if path.endswith(".rs") or path.endswith("/Cargo.toml")
+    ]
+    if changed.returncode != 0 or changed_inputs or untracked_inputs:
         raise AuditError(
-            "authored Rust does not match the requested revision; commit it or audit an exact clean worktree"
+            "authored Rust/Cargo targets do not match the requested revision; "
+            "commit them or audit an exact clean worktree"
         )
     return resolved
 
@@ -310,6 +413,7 @@ def rust_classifier_population(
     root: Path,
     sources: dict[Path, str],
     command: tuple[str, ...] = CLASSIFIER_COMMAND,
+    target_roots: tuple[Path, ...] = (),
 ) -> tuple[dict[Path, set[int]], set[Path]]:
     request = {
         "protocol_version": CLASSIFIER_PROTOCOL_VERSION,
@@ -317,6 +421,7 @@ def rust_classifier_population(
             {"path": path.as_posix(), "source": source}
             for path, source in sorted(sources.items())
         ],
+        "target_roots": [path.as_posix() for path in sorted(target_roots)],
     }
     completed = subprocess.run(
         command,
@@ -378,7 +483,10 @@ def rust_classifier_population(
 
 
 def source_population_evidence(
-    root: Path, sources: dict[Path, str], config: dict[str, object]
+    root: Path,
+    sources: dict[Path, str],
+    config: dict[str, object],
+    manifest_revision: str | None = None,
 ) -> tuple[
     list[Path],
     list[Path],
@@ -390,7 +498,10 @@ def source_population_evidence(
     classifier_paths = sorted([*production_paths, *generated_paths])
     classifier_sources = {path: sources[path] for path in classifier_paths}
     all_inline_lines, _ = rust_classifier_population(
-        root, classifier_sources, tuple(config["classifier_command"])
+        root,
+        classifier_sources,
+        tuple(config["classifier_command"]),
+        tuple(cargo_target_roots(root, classifier_sources, manifest_revision)),
     )
     inline_lines_by_path: dict[Path, set[int]] = {}
     counts = {
@@ -467,7 +578,7 @@ def build_report(
         generated_paths,
         inline_lines_by_path,
         counts,
-    ) = source_population_evidence(repository_root, sources, config)
+    ) = source_population_evidence(repository_root, sources, config, revision)
     all_authored = production_paths + test_paths
     functions: list[dict[str, object]] = []
     modules: list[dict[str, object]] = []
@@ -719,7 +830,7 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
             generated_paths,
             inline_lines_by_path,
             source_counts,
-        ) = source_population_evidence(root, sources, config)
+        ) = source_population_evidence(root, sources, config, report["revision"])
         fingerprint = source_fingerprint(sources, production_paths + test_paths)
         if fingerprint != report["source_fingerprint_sha256"]:
             raise AuditError("report fingerprint does not match its pinned Git tree")

@@ -85,9 +85,8 @@
     uses the source directory, while a child reached as a module uses its own
     module directory.
 21. **Resolved hosted P2 — target roots could become inherited test-only.**
-    Standard root filenames and sources with a top-level `main` seed production
-    reachability. A test-only edge cannot remove an independently shipping
-    target from production.
+    Cargo-derived roots seed production reachability. A test-only edge cannot
+    remove an independently shipping target from production.
 22. **Resolved hosted P2 — closure parameter attributes were omitted.**
     Attributed `syn::Pat` nodes now participate in span classification and
     inherited reachability, with a focused closure regression.
@@ -116,6 +115,14 @@
     defaults.** `syn::GenericParam` now propagates lifetime/type/const cfg state
     into bounds and defaults. One combined regression proves all three module
     edges remain test-only.
+30. **Resolved hosted P2 — path-adjusted inline modules retained the ordinary
+    nested base.** Module references now carry whether an inline path reset the
+    context to the containing source directory. A top-level inline path inside
+    a nested `foo.rs` resolves its child from that source-relative context.
+31. **Resolved hosted P2 — functions named `main` were inferred as targets.**
+    Protocol v2 receives exact library/binary roots derived from the Cargo
+    manifests at the audited revision. Source syntax no longer guesses target
+    ownership; malformed, missing or duplicate roots fail closed.
 
 ## Result
 

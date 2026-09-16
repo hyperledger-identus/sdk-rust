@@ -73,6 +73,14 @@ inside all three attributed nodes. Exact implementation head
 strict all-target Clippy, ten Python tests, exact baseline regeneration,
 factory checks, and strict OpenSpec 72/72.
 
+The sixth hosted-review remediation moves the request to protocol v2 with
+revision-bound Cargo target roots and carries source-relative inline-path base
+state. Focused regressions prove a nested helper named `main` remains nested
+and a path-adjusted inline module inside `foo.rs` resolves from the containing
+source directory. Exact implementation and repeat evidence are recorded after
+the signed remediation commit; the protocol/report suite now contains eleven
+Python tests.
+
 ## Migration evidence
 
 The v1 classifier from planning commit `a27f31f` and the reviewed v2 classifier

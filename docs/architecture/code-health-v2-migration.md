@@ -8,6 +8,11 @@ the durable pre-change `develop` source revision
 Classifier identity, protocol, locked dependencies, and exact projection bind
 the reviewed implementation separately from that historical source snapshot.
 
+The final classifier request uses protocol v2. Python derives exact library and
+binary target roots from Cargo manifests at the audited Git revision; this
+replaced the reviewed-but-insufficient function-name heuristic. The durable
+source population and projection remain unchanged by that protocol refinement.
+
 ## Result
 
 | Measure | v1 Python | v2 `syn` | Delta |

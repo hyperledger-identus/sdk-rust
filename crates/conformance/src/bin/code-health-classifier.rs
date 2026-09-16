@@ -23,7 +23,7 @@ use syn::{
     visit::{self, Visit},
 };
 
-const PROTOCOL_VERSION: u32 = 1;
+const PROTOCOL_VERSION: u32 = 2;
 const CLASSIFIER_NAME: &str = "syn-ast-v1";
 const MAX_REQUEST_BYTES: u64 = 32 * 1024 * 1024;
 const MAX_SOURCE_BYTES: usize = 2 * 1024 * 1024;
@@ -38,6 +38,7 @@ const MAX_MODULE_EDGES: usize = 131_072;
 struct Request {
     protocol_version: u32,
     sources: Vec<SourceInput>,
+    target_roots: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -89,13 +90,13 @@ impl Truth {
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 struct ModuleReference {
     context: Vec<String>,
+    context_from_source_directory: bool,
     name: String,
     path_override: Option<PathBuf>,
 }
 
 #[derive(Debug, Default)]
 struct ParsedFile {
-    has_top_level_main: bool,
     spans: Vec<Range<usize>>,
     test_edges: Vec<ModuleReference>,
     production_edges: Vec<ModuleReference>,
@@ -524,6 +525,7 @@ enum ModuleRole {
 
 struct ModuleCollector {
     context: Vec<String>,
+    context_from_source_directory: bool,
     inherited: Reachability,
     test_edges: Vec<ModuleReference>,
     production_edges: Vec<ModuleReference>,
@@ -572,8 +574,12 @@ impl ModuleCollector {
             };
             let previous_reachability = self.inherited;
             let previous_context_len = self.context.len();
+            let previous_context_base = self.context_from_source_directory;
             self.inherited = reachability;
             if let Some(path) = path_override {
+                if self.context.is_empty() {
+                    self.context_from_source_directory = true;
+                }
                 self.context
                     .extend(path.components().filter_map(|component| {
                         if let Component::Normal(value) = component {
@@ -587,6 +593,7 @@ impl ModuleCollector {
             }
             self.visit_items(items);
             self.context.truncate(previous_context_len);
+            self.context_from_source_directory = previous_context_base;
             self.inherited = previous_reachability;
             return;
         }
@@ -599,6 +606,7 @@ impl ModuleCollector {
         };
         let reference = ModuleReference {
             context: self.context.clone(),
+            context_from_source_directory: self.context_from_source_directory,
             name,
             path_override,
         };
@@ -927,6 +935,7 @@ fn parse_source(path: &str, source: &str) -> Result<ParsedFile, String> {
     };
     let mut module_collector = ModuleCollector {
         context: Vec::new(),
+        context_from_source_directory: false,
         inherited,
         test_edges: Vec::new(),
         production_edges: Vec::new(),
@@ -937,9 +946,6 @@ fn parse_source(path: &str, source: &str) -> Result<ParsedFile, String> {
         return Err(format!("{path}: {error}"));
     }
     Ok(ParsedFile {
-        has_top_level_main: file.items.iter().any(|item| {
-            matches!(item, Item::Fn(function) if normalized_ident(&function.sig.ident) == "main")
-        }),
         spans: span_collector.spans,
         test_edges: module_collector.test_edges,
         production_edges: module_collector.production_edges,
@@ -970,10 +976,15 @@ fn resolve_module(
                 .unwrap_or_default(),
         ),
     };
+    let contextual_base = if reference.context_from_source_directory {
+        source_directory.clone()
+    } else {
+        ordinary_base
+    };
     let ordinary_contextual = reference
         .context
         .iter()
-        .fold(ordinary_base, |path, component| path.join(component));
+        .fold(contextual_base, |path, component| path.join(component));
     if let Some(path_override) = &reference.path_override {
         let override_contextual = if reference.context.is_empty() {
             source_directory
@@ -1011,16 +1022,8 @@ fn resolve_module(
 fn inherited_test_paths(
     parsed: &BTreeMap<PathBuf, ParsedFile>,
     sources: &BTreeMap<PathBuf, String>,
+    roots: &BTreeSet<PathBuf>,
 ) -> Result<BTreeSet<PathBuf>, String> {
-    let roots: BTreeSet<_> = parsed
-        .iter()
-        .filter_map(|(path, file)| {
-            let filename = path.file_name().and_then(|value| value.to_str());
-            (file.has_top_level_main || matches!(filename, Some("lib.rs" | "main.rs")))
-                .then_some(path.clone())
-        })
-        .collect();
-
     let mut contexts: VecDeque<_> = parsed
         .keys()
         .map(|path| {
@@ -1104,7 +1107,7 @@ fn classify(request: Request) -> Result<Response, String> {
             request.protocol_version
         ));
     }
-    if request.sources.len() > MAX_FILES {
+    if request.sources.len() > MAX_FILES || request.target_roots.len() > MAX_FILES {
         return Err(format!("more than {MAX_FILES} source files"));
     }
     let mut total = 0usize;
@@ -1144,6 +1147,27 @@ fn classify(request: Request) -> Result<Response, String> {
         }
     }
 
+    let mut roots = BTreeSet::new();
+    for raw_path in request.target_roots {
+        if raw_path.len() > MAX_PATH_BYTES || raw_path.is_empty() {
+            return Err("target-root path is empty or exceeds the protocol bound".to_owned());
+        }
+        let path = PathBuf::from(&raw_path);
+        if path.is_absolute()
+            || path
+                .components()
+                .any(|component| !matches!(component, Component::Normal(_) | Component::CurDir))
+            || !sources.contains_key(&path)
+        {
+            return Err(format!(
+                "target root is not an input Rust source: {raw_path}"
+            ));
+        }
+        if !roots.insert(path) {
+            return Err(format!("duplicate target root: {raw_path}"));
+        }
+    }
+
     let mut parsed = BTreeMap::new();
     for (path, source) in &sources {
         parsed.insert(
@@ -1151,7 +1175,7 @@ fn classify(request: Request) -> Result<Response, String> {
             parse_source(&path.display().to_string(), source)?,
         );
     }
-    let inherited = inherited_test_paths(&parsed, &sources)?;
+    let inherited = inherited_test_paths(&parsed, &sources, &roots)?;
     let mut files = Vec::with_capacity(sources.len());
     for (path, source) in &sources {
         let inline_test_lines = if inherited.contains(path) {
@@ -1222,6 +1246,7 @@ mod tests {
     fn one(source: &str) -> Vec<usize> {
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
             sources: vec![SourceInput {
                 path: "crates/demo/src/lib.rs".to_owned(),
                 source: source.to_owned(),
@@ -1434,6 +1459,7 @@ pub const SHIPPING: u8 = 1;
     fn raw_modules_path_overrides_and_production_reachability_are_deterministic() {
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/lib.rs".to_owned(),
@@ -1466,6 +1492,7 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: Vec::new(),
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/foo.rs".to_owned(),
@@ -1485,6 +1512,7 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/lib.rs".to_owned(),
@@ -1512,6 +1540,7 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/lib.rs".to_owned(),
@@ -1543,6 +1572,7 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/bin/tool.rs".to_owned()],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/bin/tool.rs".to_owned(),
@@ -1562,6 +1592,7 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/bin/tool.rs".to_owned()],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/bin/tool.rs".to_owned(),
@@ -1582,6 +1613,10 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec![
+                "crates/demo/src/bin/helper.rs".to_owned(),
+                "crates/demo/src/lib.rs".to_owned(),
+            ],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/lib.rs".to_owned(),
@@ -1598,6 +1633,10 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec![
+                "crates/demo/src/bin/helper.rs".to_owned(),
+                "crates/demo/src/bin/tool.rs".to_owned(),
+            ],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/bin/tool.rs".to_owned(),
@@ -1628,6 +1667,7 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/lib.rs".to_owned(),
@@ -1654,6 +1694,7 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/lib.rs".to_owned(),
@@ -1693,6 +1734,7 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: Vec::new(),
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/foo.rs".to_owned(),
@@ -1713,6 +1755,7 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/lib.rs".to_owned(),
@@ -1733,6 +1776,52 @@ pub const SHIPPING: u8 = 1;
 
         let response = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: Vec::new(),
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/foo.rs".to_owned(),
+                    source: "#[cfg(test)] #[path = \"custom\"] mod inline { mod child; }\n"
+                        .to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/custom/child.rs".to_owned(),
+                    source: "fn nested_inline_path_fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("nested-source path-adjusted inline module reachability");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec!["crates/demo/src/custom/child.rs"]
+        );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/lib.rs".to_owned(),
+                    source: "mod foo;\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/foo.rs".to_owned(),
+                    source: "fn main() {}\n#[cfg(test)] mod fixture;\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/foo/fixture.rs".to_owned(),
+                    source: "fn fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("Cargo roots do not infer ordinary functions named main");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec!["crates/demo/src/foo/fixture.rs"]
+        );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/lib.rs".to_owned(),
@@ -1757,6 +1846,7 @@ pub const SHIPPING: u8 = 1;
 
         let error = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/lib.rs".to_owned()],
             sources: vec![
                 SourceInput {
                     path: "crates/demo/src/lib.rs".to_owned(),
@@ -1784,6 +1874,7 @@ pub const SHIPPING: u8 = 1;
     fn rejects_malformed_or_escaping_inputs() {
         let error = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: Vec::new(),
             sources: vec![SourceInput {
                 path: "crates/demo/src/lib.rs".to_owned(),
                 source: "#[path = \"../escape.rs\"] mod escape;".to_owned(),
@@ -1794,6 +1885,7 @@ pub const SHIPPING: u8 = 1;
 
         let error = classify(Request {
             protocol_version: PROTOCOL_VERSION,
+            target_roots: Vec::new(),
             sources: vec![SourceInput {
                 path: "crates/demo/src/lib.rs".to_owned(),
                 source: "fn broken( {".to_owned(),
@@ -1803,7 +1895,16 @@ pub const SHIPPING: u8 = 1;
         assert!(error.contains("Rust parse failed"));
 
         let error = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            target_roots: vec!["crates/demo/src/missing.rs".to_owned()],
+            sources: Vec::new(),
+        })
+        .expect_err("missing target root");
+        assert!(error.contains("target root is not an input Rust source"));
+
+        let error = classify(Request {
             protocol_version: PROTOCOL_VERSION + 1,
+            target_roots: Vec::new(),
             sources: Vec::new(),
         })
         .expect_err("protocol mismatch");

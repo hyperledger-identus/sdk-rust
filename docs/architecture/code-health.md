@@ -77,8 +77,10 @@ interpretation of that snapshot.
   `name/mod.rs` layouts, raw identifiers, nested module contexts, and literal
   `#[path = "..."]` overrides. Resolution carries whether a source is entered
   as a target root or nested module and preserves path-adjusted inline-module
-  directories. Standard `lib.rs`/`main.rs` roots and sources with a top-level
-  `main` remain production even if a test-only edge reaches them. A
+  directories. Exact library/binary roots are derived from Cargo manifests at
+  the audited revision and supplied through classifier protocol v2; an
+  ordinary helper named `main` does not become a target. Cargo roots remain
+  production even if a test-only edge reaches them. A
   fixed-point reachability pass applies the
   production-wins rule whenever any active or unknown production edge reaches
   a shared module or descendant. Reachability state propagates through nested

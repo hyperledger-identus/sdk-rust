@@ -33,17 +33,22 @@ class ClassifierProtocolTests(unittest.TestCase):
                 }
             ],
             "inherited_inline_paths": [],
-            "protocol_version": 1,
+            "protocol_version": 2,
         }
         completed = mock.Mock(returncode=0, stdout=audit.canonical_json(response), stderr="")
         with mock.patch.object(audit.subprocess, "run", return_value=completed) as run:
-            lines, inherited = audit.rust_classifier_population(Path("/repo"), sources)
+            lines, inherited = audit.rust_classifier_population(
+                Path("/repo"),
+                sources,
+                target_roots=(Path("crates/demo/src/lib.rs"),),
+            )
         self.assertEqual(lines, {Path("crates/demo/src/lib.rs"): {1, 2}})
         self.assertEqual(inherited, set())
         self.assertEqual(run.call_args.args[0], audit.CLASSIFIER_COMMAND)
         self.assertEqual(run.call_args.kwargs["cwd"], Path("/repo"))
         request = __import__("json").loads(run.call_args.kwargs["input"])
-        self.assertEqual(request["protocol_version"], 1)
+        self.assertEqual(request["protocol_version"], 2)
+        self.assertEqual(request["target_roots"], ["crates/demo/src/lib.rs"])
         self.assertEqual(request["sources"][0]["path"], "crates/demo/src/lib.rs")
 
     def test_classifier_failure_is_actionable(self) -> None:
@@ -63,7 +68,7 @@ class ClassifierProtocolTests(unittest.TestCase):
                 }
             ],
             "inherited_inline_paths": [],
-            "protocol_version": 1,
+            "protocol_version": 2,
         }
         mutations = {
             "boolean_protocol": lambda value: value.update(protocol_version=True),
@@ -108,6 +113,41 @@ class ClassifierProtocolTests(unittest.TestCase):
         self.assertEqual(production, [ordinary])
         self.assertEqual(generated, [marked])
 
+    def test_cargo_target_roots_follow_manifest_discovery(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            crate = root / "crates/demo"
+            crate.mkdir(parents=True)
+            (crate / "Cargo.toml").write_text(
+                """\
+[package]
+name = "demo"
+version = "0.0.0"
+autobins = false
+
+[lib]
+path = "custom/lib.rs"
+
+[[bin]]
+name = "runner"
+path = "tools/runner.rs"
+""",
+                encoding="utf-8",
+            )
+            sources = {
+                Path("crates/demo/custom/lib.rs"): "pub fn library() {}\n",
+                Path("crates/demo/tools/runner.rs"): "fn main() {}\n",
+                Path("crates/demo/src/main.rs"): "fn not_a_target() {}\n",
+                Path("crates/demo/src/bin/auto.rs"): "fn not_a_target() {}\n",
+            }
+            self.assertEqual(
+                audit.cargo_target_roots(root, sources),
+                [
+                    Path("crates/demo/custom/lib.rs"),
+                    Path("crates/demo/tools/runner.rs"),
+                ],
+            )
+
     def test_generated_sources_remain_visible_to_module_resolution(self) -> None:
         root = Path("/repo")
         library = Path("crates/demo/src/lib.rs")
@@ -147,7 +187,7 @@ class ReportBindingTests(unittest.TestCase):
             "analyzer": {
                 "classifier": "syn-ast-v1",
                 "classifier_command": list(audit.CLASSIFIER_COMMAND),
-                "classifier_protocol_version": 1,
+                "classifier_protocol_version": 2,
                 "contract_version": "code-health-v2",
                 "engine": "rust-code-analysis-cli",
                 "engine_version": "0.0.25",
@@ -201,7 +241,7 @@ contract_version = "code-health-v2"
 engine = "rust-code-analysis-cli"
 engine_version = "0.0.25"
 classifier = "syn-ast-v1"
-classifier_protocol_version = 1
+classifier_protocol_version = 2
 classifier_command = ["cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--"]
 baseline_revision = "{self.revision}"
 baseline_source_fingerprint_sha256 = "{self.fingerprint}"
@@ -263,6 +303,7 @@ evidence = "test"
             sources = {Path("crates/demo/src/lib.rs"): "pub fn shipping() {}\n"}
             with (
                 mock.patch.object(audit, "git_tree_sources", return_value=sources),
+                mock.patch.object(audit, "cargo_target_roots", return_value=[]),
                 mock.patch.object(
                     audit, "source_fingerprint", return_value=self.fingerprint
                 ),
@@ -287,6 +328,7 @@ evidence = "test"
             sources = {Path("crates/demo/src/lib.rs"): "pub fn shipping() {}\n"}
             with (
                 mock.patch.object(audit, "git_tree_sources", return_value=sources),
+                mock.patch.object(audit, "cargo_target_roots", return_value=[]),
                 mock.patch.object(
                     audit, "source_fingerprint", return_value=self.fingerprint
                 ),
@@ -358,7 +400,7 @@ evidence = "test"
 
         config_mutations = {
             "boolean_config_protocol": (
-                "classifier_protocol_version = 1",
+                "classifier_protocol_version = 2",
                 "classifier_protocol_version = true",
             ),
             "wrong_config_classifier": (

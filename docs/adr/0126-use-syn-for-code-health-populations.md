@@ -27,6 +27,10 @@ AST node spans, production-conservative line projection, module resolution, and
 production-wins reachability through a bounded versioned JSON protocol. No
 parser type or classifier API enters an SDK crate.
 
+Protocol v2 includes exact Cargo-derived target roots. Python loads the
+working/Git tree and revision-bound manifests; Rust owns graph semantics and
+rejects missing, duplicate, or non-source roots.
+
 The AST visitor covers items, fields, variants, parameters, generic parameters,
 statements/expressions, match arms, and represented macros. Macro token streams
 remain opaque. Unknown inclusion stays production. A line leaves production
@@ -78,7 +82,7 @@ Focused Rust fixtures cover ordinary/raw identifiers, path overrides, generics,
 shifts, labels, Unicode macros, nested comments, raw strings, recursive
 cfg_attr, inner/outer attributes, same-line siblings, declaration/struct-literal
 fields, variants, parameters, statements, match arms, associated-item cfg
-inheritance, standard binary roots, path-adjusted inline modules, generated
+inheritance, Cargo-derived target roots, path-adjusted inline modules, generated
 module visibility, conditional test paths, attributed declaration and pattern
 fields, closure, ordinary and bare-function-type parameters including
 variadics, root-versus-nested module resolution (including one source in both

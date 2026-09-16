@@ -19,9 +19,11 @@ tooling without entering an SDK crate or public API.
 
 The `code-health-classifier` binary reads one UTF-8 JSON request from stdin and
 writes one canonical JSON result to stdout. The protocol is versioned and caps
-request bytes, file count, path bytes, per-file bytes, emitted spans/lines, and
-module edges before retention. Diagnostics name a repository-relative file and
-source location but never source contents.
+request bytes, file count, path bytes, target roots, per-file bytes, emitted
+spans/lines, and module edges before retention. Protocol v2 supplies exact
+library and binary target roots derived from Cargo manifests at the audited
+revision. Diagnostics name a repository-relative file and source location but
+never source contents.
 
 Python invokes the binary through the exact command recorded in policy while
 inside the repository-pinned Nix shell. The binary is internal tooling; parser

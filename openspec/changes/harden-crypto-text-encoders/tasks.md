@@ -18,7 +18,7 @@
 
 ## 3. Governance and delivery
 
-- [ ] 3.1 Add the compatibility ADR and migration guidance; narrow the codec
+- [x] 3.1 Add the compatibility ADR and migration guidance; narrow the codec
       inventory row and only the corresponding `SDK-LIM-007` clause.
 - [ ] 3.2 Run format, focused/minimal/all-feature tests, strict workspace gates,
       API/SBOM evidence, compatible Nix closure, and exact-diff plan.

@@ -5,7 +5,7 @@
 - Base: `5dff6f38c861b858dd62dc8310246f7d485d3e92`
 - Classifier implementation: `18394fc38cc085445979ae5e123fe9454ab22bae`
 - Exact locally reviewed classifier/evidence head:
-  `181b5c0e589b7fbdeb24d6c5e90ad8557bc6e148`
+  `3682dbeabd0fa8e656107592457b03c01f9bb01f`
 - Issue: [#275](https://github.com/hyperledger-identus/sdk-rust/issues/275)
 - Review lenses: parser correctness, conservative population projection,
   module reachability, resource bounds, diagnostics, dependency direction,

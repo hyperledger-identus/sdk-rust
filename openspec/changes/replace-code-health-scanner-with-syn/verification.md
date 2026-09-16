@@ -78,8 +78,10 @@ revision-bound Cargo target roots and carries source-relative inline-path base
 state. Focused regressions prove a nested helper named `main` remains nested
 and a path-adjusted inline module inside `foo.rs` resolves from the containing
 source directory. Exact implementation and repeat evidence are recorded after
-the signed remediation commit; the protocol/report suite now contains eleven
-Python tests.
+the signed remediation commit at
+`3682dbeabd0fa8e656107592457b03c01f9bb01f`: 41 conformance tests, strict
+all-target Clippy, eleven Python tests, exact protocol-v2 baseline
+regeneration, factory checks, and strict OpenSpec 72/72 are green.
 
 ## Migration evidence
 

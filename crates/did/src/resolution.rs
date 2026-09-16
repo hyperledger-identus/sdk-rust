@@ -16,6 +16,7 @@ use crate::{
     Did, DidDocument, Error, Service, Uri, VerificationMethod,
     document::{JsonBudget, validate_json_map, validate_json_value},
     error::ResolutionError,
+    json_cleanup::{RejectionGuard, drop_json_values_iteratively},
     wire_json::{JsonWireError, JsonWireLimits, validate_unique_object_names},
 };
 
@@ -306,15 +307,18 @@ impl DidResolutionError {
         instance: Option<Uri>,
         extensions: BTreeMap<String, Value>,
     ) -> Result<Self, Error> {
-        let value = Self {
-            type_,
-            title,
-            detail,
-            instance,
-            extensions,
-        };
-        value.validate()?;
-        Ok(value)
+        let error = RejectionGuard::new(
+            Self {
+                type_,
+                title,
+                detail,
+                instance,
+                extensions,
+            },
+            drop_did_resolution_error_json,
+        );
+        error.owner().validate()?;
+        Ok(error.into_owner())
     }
 
     /// Construct a standard W3C error without optional problem details.
@@ -389,6 +393,23 @@ impl DidResolutionError {
     }
 }
 
+fn drop_did_resolution_error_json(error: DidResolutionError) {
+    let mut roots = Vec::new();
+    collect_did_resolution_error_json(error, &mut roots);
+    drop_json_values_iteratively(roots);
+}
+
+fn collect_did_resolution_error_json(error: DidResolutionError, roots: &mut Vec<Value>) {
+    let DidResolutionError {
+        type_: _,
+        title: _,
+        detail: _,
+        instance: _,
+        extensions,
+    } = error;
+    roots.extend(extensions.into_values());
+}
+
 impl<'de> Deserialize<'de> for DidResolutionError {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -433,13 +454,16 @@ impl OperationMetadata {
         error: Option<DidResolutionError>,
         extensions: BTreeMap<String, Value>,
     ) -> Result<Self, Error> {
-        let metadata = Self {
-            content_type,
-            error,
-            extensions,
-        };
-        metadata.validate()?;
-        Ok(metadata)
+        let metadata = RejectionGuard::new(
+            Self {
+                content_type,
+                error,
+                extensions,
+            },
+            drop_operation_metadata_json,
+        );
+        metadata.owner().validate()?;
+        Ok(metadata.into_owner())
     }
 
     fn validate(&self) -> Result<(), Error> {
@@ -452,6 +476,22 @@ impl OperationMetadata {
         }
         validate_extensions_with(&self.extensions, OPERATION_METADATA_RESERVED, budget)
     }
+}
+
+fn drop_operation_metadata_json(metadata: OperationMetadata) {
+    let OperationMetadata {
+        content_type: _,
+        error,
+        extensions,
+    } = metadata;
+    let mut roots = Vec::new();
+
+    if let Some(error) = error {
+        collect_did_resolution_error_json(error, &mut roots);
+    }
+    roots.extend(extensions.into_values());
+
+    drop_json_values_iteratively(roots);
 }
 
 impl<'de> Deserialize<'de> for OperationMetadata {
@@ -779,9 +819,25 @@ impl DidDocumentMetadataBuilder {
 
     /// Validate and return the immutable metadata.
     pub fn build(self) -> Result<DidDocumentMetadata, Error> {
-        self.0.validate()?;
-        Ok(self.0)
+        let metadata = RejectionGuard::new(self.0, drop_did_document_metadata_json);
+        metadata.owner().validate()?;
+        Ok(metadata.into_owner())
     }
+}
+
+fn drop_did_document_metadata_json(metadata: DidDocumentMetadata) {
+    let DidDocumentMetadata {
+        created: _,
+        updated: _,
+        deactivated: _,
+        next_update: _,
+        version_id: _,
+        next_version_id: _,
+        equivalent_id: _,
+        canonical_id: _,
+        extensions,
+    } = metadata;
+    drop_json_values_iteratively(extensions.into_values());
 }
 
 /// A validated W3C DID resolution result envelope.
@@ -959,11 +1015,12 @@ pub struct DereferencedContent(Value);
 impl DereferencedContent {
     /// Validate arbitrary non-null JSON content.
     pub fn new(value: Value) -> Result<Self, Error> {
-        if value.is_null() {
+        let content = RejectionGuard::new(Self(value), drop_dereferenced_content_json);
+        if content.owner().0.is_null() {
             return Err(invalid(ResolutionError::InvalidContent));
         }
-        validate_json_value(&value, 0, &mut JsonBudget::default())?;
-        Ok(Self(value))
+        validate_json_value(&content.owner().0, 0, &mut JsonBudget::default())?;
+        Ok(content.into_owner())
     }
 
     /// Construct content from a validated DID document.
@@ -1027,6 +1084,11 @@ impl DereferencedContent {
     }
 }
 
+fn drop_dereferenced_content_json(content: DereferencedContent) {
+    let DereferencedContent(value) = content;
+    drop_json_values_iteratively([value]);
+}
+
 impl<'de> Deserialize<'de> for DereferencedContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -1046,8 +1108,9 @@ pub struct DidUrlContentMetadata {
 impl DidUrlContentMetadata {
     /// Construct bounded open content metadata.
     pub fn new(values: BTreeMap<String, Value>) -> Result<Self, Error> {
-        validate_extensions(&values, &[])?;
-        Ok(Self { values })
+        let metadata = RejectionGuard::new(Self { values }, drop_did_url_content_metadata_json);
+        validate_extensions(&metadata.owner().values, &[])?;
+        Ok(metadata.into_owner())
     }
 
     fn validate_with(&self, budget: &mut JsonBudget) -> Result<(), Error> {
@@ -1087,6 +1150,11 @@ impl DidUrlContentMetadata {
         serde_json::from_value(Value::Object(self.values.clone().into_iter().collect()))
             .map_err(|_| invalid(ResolutionError::InvalidContent))
     }
+}
+
+fn drop_did_url_content_metadata_json(metadata: DidUrlContentMetadata) {
+    let DidUrlContentMetadata { values } = metadata;
+    drop_json_values_iteratively(values.into_values());
 }
 
 impl<'de> Deserialize<'de> for DidUrlContentMetadata {

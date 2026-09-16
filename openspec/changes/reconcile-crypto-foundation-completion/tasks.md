@@ -4,7 +4,7 @@
 
 - [x] 1.1 Record the completion decision, immutable evidence classes,
       limitations, remote reconciliation, risks, and rollback for issue #286.
-- [ ] 1.2 Pass research readiness, constraint readiness, strict OpenSpec, and
+- [x] 1.2 Pass research readiness, constraint readiness, strict OpenSpec, and
       write the immutable planning receipt.
 
 ## 2. Completion audit

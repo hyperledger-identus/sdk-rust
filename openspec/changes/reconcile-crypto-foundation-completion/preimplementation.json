@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 286,
+  "change": "reconcile-crypto-foundation-completion",
+  "branch": "codex/docs/issue-286",
+  "baseRef": "origin/develop",
+  "baseSha": "fb2cc64ebe09dc382de9d903a6136f7aa8132c47",
+  "contractHeadSha": "a02b6897ab3de0682ab3d4b23b105d99aa4e3791",
+  "createdAt": "2026-09-16T20:04:40.507Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

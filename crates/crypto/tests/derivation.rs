@@ -701,6 +701,62 @@ fn bip39_english_wordlist_is_complete_and_ordered() {
     assert_eq!(words.len(), 2048);
     assert_eq!(words.first(), Some(&"abandon"));
     assert_eq!(words.last(), Some(&"zoo"));
+    assert_eq!(
+        words.iter().map(|word| word.len()).max(),
+        Some(identus_crypto::MAX_BIP39_ENGLISH_WORD_BYTES)
+    );
+}
+
+#[test]
+fn bip39_rejects_oversized_words_and_counts_with_redacted_errors() {
+    let sentinel = "never-print-this-mnemonic";
+    let oversized_word = format!(
+        "{}{}",
+        "x".repeat(identus_crypto::MAX_BIP39_ENGLISH_WORD_BYTES + 1),
+        sentinel
+    );
+    let mut words = vec!["abandon".to_owned(); 12];
+    words[0] = oversized_word;
+    assert!(!MnemonicHelper::is_valid_mnemonic_code(&words));
+    let error = MnemonicHelper::create_seed(&words, "pass").unwrap_err();
+    assert!(matches!(error, Error::MnemonicInvalid));
+    assert!(!error.to_string().contains(sentinel));
+    assert!(!error.to_identus_error().to_string().contains(sentinel));
+
+    let excess = vec!["abandon".to_owned(); identus_crypto::MAX_BIP39_WORDS + 1];
+    assert!(!MnemonicHelper::is_valid_mnemonic_code(&excess));
+    assert!(matches!(
+        MnemonicHelper::create_seed(&excess, "pass"),
+        Err(Error::MnemonicInvalid)
+    ));
+}
+
+#[test]
+fn bip39_passphrase_has_an_exact_utf8_byte_boundary() {
+    let words: Vec<String> = [
+        "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon",
+        "abandon", "abandon", "abandon", "about",
+    ]
+    .iter()
+    .map(|word| (*word).to_owned())
+    .collect();
+
+    let exact = "a".repeat(identus_crypto::MAX_BIP39_PASSPHRASE_BYTES);
+    assert_eq!(
+        MnemonicHelper::create_seed(&words, &exact).unwrap().len(),
+        64
+    );
+
+    let sentinel = "never-print-this-passphrase";
+    let oversized = format!(
+        "{}{}",
+        "a".repeat(identus_crypto::MAX_BIP39_PASSPHRASE_BYTES + 1 - sentinel.len()),
+        sentinel
+    );
+    let error = MnemonicHelper::create_seed(&words, &oversized).unwrap_err();
+    assert!(matches!(error, Error::MnemonicInvalid));
+    assert!(!error.to_string().contains(sentinel));
+    assert!(!error.to_identus_error().to_string().contains(sentinel));
 }
 
 #[test]
@@ -824,6 +880,22 @@ mod kmp_compat {
         let composed = MnemonicHelper::create_seed_kmp(&words(), "é").unwrap();
         let decomposed = MnemonicHelper::create_seed_kmp(&words(), "e\u{301}").unwrap();
         assert_ne!(composed, decomposed);
+    }
+
+    #[test]
+    fn kmp_passphrase_has_the_same_exact_byte_boundary() {
+        let exact = "a".repeat(identus_crypto::MAX_BIP39_PASSPHRASE_BYTES);
+        assert_eq!(
+            MnemonicHelper::create_seed_kmp(&words(), &exact)
+                .unwrap()
+                .len(),
+            64
+        );
+        let oversized = "a".repeat(identus_crypto::MAX_BIP39_PASSPHRASE_BYTES + 1);
+        assert!(matches!(
+            MnemonicHelper::create_seed_kmp(&words(), &oversized),
+            Err(Error::MnemonicInvalid)
+        ));
     }
 }
 

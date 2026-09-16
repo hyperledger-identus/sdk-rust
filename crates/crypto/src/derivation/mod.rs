@@ -38,6 +38,9 @@ pub use edhdkey::EdHDKey;
 #[cfg(feature = "derivation")]
 pub use hdkey::HDKey;
 #[cfg(feature = "derivation")]
-pub use mnemonic::MnemonicHelper;
+pub use mnemonic::{
+    MAX_BIP39_ENGLISH_WORD_BYTES, MAX_BIP39_ENTROPY_BYTES, MAX_BIP39_PASSPHRASE_BYTES,
+    MAX_BIP39_WORDS, MnemonicHelper,
+};
 #[cfg(feature = "derivation")]
 pub use secret::HdKeySecretBytes;

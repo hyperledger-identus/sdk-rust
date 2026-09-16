@@ -2,7 +2,8 @@ use std::collections::BTreeMap;
 
 use identus_core::{CapabilityId, ErrorKind};
 use identus_crypto::{
-    JwkCoordinate, JwkCurve, JwkError, JwkKeyType, MAX_CRYPTO_TEXT_BYTES, PublicKeyJwk,
+    JwkCoordinate, JwkCurve, JwkError, JwkKeyType, MAX_CRYPTO_TEXT_BYTES, MAX_JWK_EXTENSION_DEPTH,
+    MAX_JWK_EXTENSION_NODES, MAX_JWK_EXTENSION_TEXT_BYTES, MAX_JWK_EXTENSIONS, PublicKeyJwk,
 };
 use serde_json::{Value, json};
 
@@ -153,6 +154,121 @@ fn public_extensions_survive_without_policy_interpretation() {
 
     assert_eq!(parsed.extensions().len(), 2);
     assert_eq!(serde_json::to_value(parsed).expect("serialize"), source);
+}
+
+#[test]
+fn jwk_extension_member_limit_is_exact() {
+    let extensions = (0..MAX_JWK_EXTENSIONS)
+        .map(|index| (format!("extension-{index}"), Value::Null))
+        .collect();
+    PublicKeyJwk::from_parts(
+        JwkKeyType::Okp,
+        JwkCurve::Ed25519,
+        &zero_coordinate(),
+        None,
+        extensions,
+    )
+    .expect("exact extension member limit");
+
+    let oversized = (0..=MAX_JWK_EXTENSIONS)
+        .map(|index| (format!("extension-{index}"), Value::Null))
+        .collect();
+    assert_eq!(
+        PublicKeyJwk::from_parts(
+            JwkKeyType::Okp,
+            JwkCurve::Ed25519,
+            &zero_coordinate(),
+            None,
+            oversized,
+        ),
+        Err(JwkError::ReservedExtension)
+    );
+}
+
+fn nested_array(depth: usize) -> Value {
+    let mut value = Value::Null;
+    for _ in 1..depth {
+        value = Value::Array(vec![value]);
+    }
+    value
+}
+
+fn jwk_with_extension(value: Value) -> Result<PublicKeyJwk, JwkError> {
+    PublicKeyJwk::from_parts(
+        JwkKeyType::Okp,
+        JwkCurve::Ed25519,
+        &zero_coordinate(),
+        None,
+        BTreeMap::from([("e".to_owned(), value)]),
+    )
+}
+
+#[test]
+fn jwk_extension_depth_limit_is_exact() {
+    jwk_with_extension(nested_array(MAX_JWK_EXTENSION_DEPTH)).expect("exact depth limit");
+    assert_eq!(
+        jwk_with_extension(nested_array(MAX_JWK_EXTENSION_DEPTH + 1)),
+        Err(JwkError::ReservedExtension)
+    );
+}
+
+#[test]
+fn rejected_native_jwk_dismantles_hostile_depth_iteratively() {
+    let hostile = nested_array(32_768);
+    let error = PublicKeyJwk::from_parts(
+        JwkKeyType::Ec,
+        JwkCurve::Ed25519,
+        &zero_coordinate(),
+        None,
+        BTreeMap::from([("hostile".to_owned(), hostile)]),
+    )
+    .expect_err("incompatible profile must fail before extension validation");
+    assert_eq!(
+        error,
+        JwkError::IncompatibleProfile {
+            key_type: JwkKeyType::Ec,
+            curve: JwkCurve::Ed25519,
+        }
+    );
+}
+
+#[test]
+fn jwk_extension_node_limit_is_exact() {
+    jwk_with_extension(Value::Array(vec![Value::Null; MAX_JWK_EXTENSION_NODES - 1]))
+        .expect("array plus children exactly reaches node limit");
+    assert_eq!(
+        jwk_with_extension(Value::Array(vec![Value::Null; MAX_JWK_EXTENSION_NODES])),
+        Err(JwkError::ReservedExtension)
+    );
+}
+
+#[test]
+fn jwk_extension_text_limit_is_exact_and_redacted() {
+    jwk_with_extension(Value::String("a".repeat(MAX_JWK_EXTENSION_TEXT_BYTES - 1)))
+        .expect("one-byte key plus value exactly reaches text limit");
+
+    let sentinel = "never-print-this-jwk-extension";
+    let oversized = format!(
+        "{}{}",
+        "a".repeat(MAX_JWK_EXTENSION_TEXT_BYTES - sentinel.len()),
+        sentinel
+    );
+    let error = jwk_with_extension(Value::String(oversized)).expect_err("one byte over limit");
+    assert_eq!(error, JwkError::ReservedExtension);
+    assert!(!error.to_string().contains(sentinel));
+    assert!(!error.to_identus_error().to_string().contains(sentinel));
+}
+
+#[test]
+fn serde_enforces_the_same_jwk_extension_budgets() {
+    let source = json!({
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "x": zero_coordinate(),
+        "e": "a".repeat(MAX_JWK_EXTENSION_TEXT_BYTES),
+    });
+    let error = serde_json::from_value::<PublicKeyJwk>(source).expect_err("one byte over limit");
+    assert!(error.to_string().contains("extension set is invalid"));
 }
 
 #[test]

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 168,
+  "change": "audit-sdk-input-resource-boundaries",
+  "branch": "codex/fix/issue-168",
+  "baseRef": "origin/develop",
+  "baseSha": "66ec2b9b3a7ec35cf21ecc52cdca5bebed0b4d0d",
+  "contractHeadSha": "b25c23d7774bb3dfb12d1f17e3b84c0fd7906907",
+  "createdAt": "2026-09-15T19:00:19.721Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

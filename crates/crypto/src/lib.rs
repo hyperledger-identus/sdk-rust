@@ -72,7 +72,10 @@ pub use hex::HexStr;
 #[cfg(feature = "jwk-thumbprint")]
 pub use jwk::JwkThumbprint;
 #[cfg(feature = "jwk")]
-pub use jwk::{EncodeJwk, JwkCoordinate, JwkCurve, JwkError, JwkKeyType, PublicKeyJwk};
+pub use jwk::{
+    EncodeJwk, JwkCoordinate, JwkCurve, JwkError, JwkKeyType, MAX_JWK_EXTENSION_DEPTH,
+    MAX_JWK_EXTENSION_NODES, MAX_JWK_EXTENSION_TEXT_BYTES, MAX_JWK_EXTENSIONS, PublicKeyJwk,
+};
 
 #[cfg(all(feature = "x25519", feature = "hash"))]
 pub use convert::ConvertEd25519;
@@ -102,7 +105,10 @@ pub use derivation::path;
 #[cfg(feature = "cardano-bip32")]
 pub use derivation::{CardanoV2ExtendedPrivateKey, CardanoV2ExtendedPublicKey};
 #[cfg(feature = "derivation")]
-pub use derivation::{EdHDKey, HDKey, MnemonicHelper};
+pub use derivation::{
+    EdHDKey, HDKey, MAX_BIP39_ENGLISH_WORD_BYTES, MAX_BIP39_ENTROPY_BYTES,
+    MAX_BIP39_PASSPHRASE_BYTES, MAX_BIP39_WORDS, MnemonicHelper,
+};
 #[cfg(any(feature = "derivation", feature = "cardano-bip32"))]
 pub use derivation::{
     MAX_DERIVATION_PATH_AXES, MAX_DERIVATION_PATH_BYTES, MAX_HD_SEED_BYTES, MIN_HD_SEED_BYTES,

@@ -18,9 +18,10 @@
 
 ## 3. Delivery and coordination
 
-- [ ] 3.1 Run focused validators, `./bootstrap.sh --check`, exact-diff plan,
+- [x] 3.1 Run focused validators, `./bootstrap.sh --check`, exact-diff plan,
       and a fresh documentation/governance review.
-- [ ] 3.2 Archive the change and prepare a signed/DCO issue-linked PR with
+- [x] 3.2 Prepare the change for archive and a signed/DCO issue-linked PR with
       terminal metric publication after merge.
-- [ ] 3.3 After merge, comment the exact report on discussion #178, reconcile
-      and close implementation epic #8, and verify issue #286 closed by PR.
+- [x] 3.3 Prepare the post-merge coordination: comment the exact report on
+      discussion #178, reconcile and close implementation epic #8, and verify
+      issue #286 closed by PR.

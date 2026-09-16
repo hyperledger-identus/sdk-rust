@@ -9,11 +9,11 @@
 
 ## 2. Completion audit
 
-- [ ] 2.1 Add the exact capability/evidence/limitation matrix and explicit
+- [x] 2.1 Add the exact capability/evidence/limitation matrix and explicit
       functional-delivery decision.
-- [ ] 2.2 Reconcile IDR-004 status, canonical specification, roadmap, and B08
+- [x] 2.2 Reconcile IDR-004 status, canonical specification, roadmap, and B08
       blueprint without changing the frozen Apollo parity baseline.
-- [ ] 2.3 Validate report links/statuses and prove backlog/parity/factory
+- [x] 2.3 Validate report links/statuses and prove backlog/parity/factory
       consistency.
 
 ## 3. Delivery and coordination

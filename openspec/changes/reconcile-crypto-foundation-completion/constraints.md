@@ -9,7 +9,7 @@ Constraint blockers: none
 
 - `SDK-REPO-002`: publication, release, tags, and `main` remain prohibited.
 - `SDK-COMPAT-005`: the temporary Rust 1.98.1 compatibility policy remains.
-- `SDK-LIM-004`: fast/slow evidence remains temporary and separate.
+- `SDK-LIM-009`: fast/slow evidence remains temporary and separate.
 - `SDK-LIM-007`: #298/#299 input-resource hardening remains open and is not
   erased by a functional-delivery decision.
 - IDR-011 retains immutable release/publication ownership; IDR-044/#163 retains

@@ -10,9 +10,9 @@ inside the pinned shell:
 The command uses the unpublished `syn` classifier and
 `rust-code-analysis-cli 0.0.25`, reads the policy and hotspot dispositions in
 [`code-health.toml`](code-health.toml), and emits canonical JSON. The v2
-baseline records the immutable issue #275 implementation revision. Its
-revision, source fingerprint, classifier identity and protocol, execution
-command, exact per-file population-projection digest, and whole
+baseline records an immutable, durable `develop` source revision. Its revision,
+source fingerprint, classifier identity and protocol, execution command, exact
+per-file population-projection digest, and whole
 canonical-report digest are policy-pinned. The exhaustive v1-to-v2 comparison is in
 [`code-health-v2-migration.md`](code-health-v2-migration.md).
 

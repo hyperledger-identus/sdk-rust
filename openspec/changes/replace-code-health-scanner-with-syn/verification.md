@@ -24,10 +24,11 @@ heavy `rust-code-analysis-cli` metric engine was not run on that fast path.
 
 ## Migration evidence
 
-The v1 classifier from planning commit `a27f31f` and v2 classifier at reviewed
-implementation commit `a42835a8d0877f3a0fb6bc7fae797308d6efb38e` classified
-the same 143 production sources and 73 external test files. Both produced
-4,180 inline-test and 29,974 production authored nonblank lines, with no
+The v1 classifier from planning commit `a27f31f` and the reviewed v2 classifier
+classified durable source revision
+`5dff6f38c861b858dd62dc8310246f7d485d3e92`: the same 135 production sources
+and 73 external test files. Both produced 3,990 inline-test and 29,161
+production authored nonblank lines, with no
 per-file authored nonblank delta. The exhaustive comparison and the intentional
 252 blank-only line representation change are recorded in
 `docs/architecture/code-health-v2-migration.md`.

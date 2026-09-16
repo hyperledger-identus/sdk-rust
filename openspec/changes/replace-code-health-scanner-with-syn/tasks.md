@@ -24,8 +24,8 @@
       working-tree, Git-tree, fast-check, and baseline-regeneration inputs.
 - [x] 3.2 Upgrade the closed policy/report schema and mutation tests with exact
       classifier identity and protocol fields.
-- [x] 3.3 Regenerate the baseline from the implementation commit and record an
-      exhaustive v1-to-v2 population delta.
+- [x] 3.3 Regenerate the baseline from a durable `develop` source revision and
+      bind the current classifier with an exhaustive v1-to-v2 population delta.
 - [x] 3.4 Update pinned Nix/workflow/factory execution and human documentation.
 
 ## 4. Verification and delivery

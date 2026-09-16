@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 297,
+  "change": "make-native-did-json-rejection-iterative",
+  "branch": "codex/fix/issue-297",
+  "baseRef": "origin/develop",
+  "baseSha": "508917b0416147668b9d12949eec987f0b82946b",
+  "contractHeadSha": "14270578773a3799f0cb0af2b80b76c6fd1eb17c",
+  "createdAt": "2026-09-16T21:06:37.734Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

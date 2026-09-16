@@ -4,7 +4,7 @@
 
 - [x] 1.1 Audit the complete native DID owned-JSON rejection family and record
       build/adopt/reject research, threats, compatibility, and rollback.
-- [ ] 1.2 Pass research readiness, constraint readiness, strict OpenSpec, and
+- [x] 1.2 Pass research readiness, constraint readiness, strict OpenSpec, and
       write the immutable planning receipt.
 
 ## 2. Shared implementation

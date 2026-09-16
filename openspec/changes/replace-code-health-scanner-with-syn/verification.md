@@ -60,8 +60,10 @@ strict OpenSpec items.
 
 The follow-up locked-AST completeness audit adds one regression spanning
 struct-pattern fields plus ordinary and bare-function variadics. The
-conformance package passes 41 tests and strict all-target Clippy after those
-last attribute-bearing nodes are covered.
+conformance package at
+`be37220ae33f01d28ecca82f82c16e48c2a8ca5f` passes 41 tests and strict
+all-target Clippy after those last attribute-bearing nodes are covered; exact
+baseline regeneration, factory checks, and strict OpenSpec 72/72 remain green.
 
 ## Migration evidence
 

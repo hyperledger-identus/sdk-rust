@@ -1,3 +1,5 @@
+#![cfg(all(feature = "hex", feature = "base64"))]
+
 use std::str::FromStr;
 
 use identus_core::{CapabilityId, ErrorKind};

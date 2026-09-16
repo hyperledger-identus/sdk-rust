@@ -158,10 +158,13 @@ surprise compatibility promise.
   Borrowed hash/HMAC/sign/verify messages and injected resolver, registrar,
   verifier, trust, replay and generic storage adapter work remain caller-
   budgeted because the correct byte/time quota belongs to the owning protocol
-  or adapter. The historical `identus_did::Multihash` placeholder is a separate
-  known unbounded compatibility exception: consumers must cap its byte or hex
-  input before entry until an explicit public API migration adds structural and
-  capacity policy. The machine inventory names every implemented package,
+  or adapter. Three retained compatibility exceptions remain explicit:
+  infallible `HexStr`/`Base64UrlStrNoPad` encoders accept arbitrary byte slices,
+  direct JOSE retained-input enum variants accept arbitrary strings/collections,
+  and the historical `identus_did::Multihash` placeholder accepts arbitrary
+  opaque bytes. Consumers must bound each before entry until issues #298, #299,
+  or a Multihash consumer-driven migration establishes validated policy. The
+  machine inventory names every implemented package,
   exact evidence and review trigger; a missing family restores broad disclosure.
 
 This pairing keeps the intended security direction enforceable without

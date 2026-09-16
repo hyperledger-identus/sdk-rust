@@ -50,13 +50,24 @@ review_triggers  = [ "new key representation", "new COSE/JWK member", "new serde
 [[boundaries]]
 id               = "crypto-codecs-and-derivation"
 package          = "identus-crypto"
-surface          = "hex/base64url parsing and BIP32/SLIP-0010/Cardano derivation paths and seeds"
+surface          = "hex/base64url parsing and BIP32/SLIP-0010/Cardano derivation paths and seeds, excluding infallible codec encoding"
 disposition      = "sdk-enforced"
 limits           = [ "MAX_CRYPTO_TEXT_BYTES=4096", "MAX_DERIVATION_PATH_BYTES=4096", "MAX_DERIVATION_PATH_AXES=255", "MAX_HD_SEED_BYTES=64", "MIN_HD_SEED_BYTES=16" ]
 evidence         = [ "crates/crypto/src/hex.rs", "crates/crypto/src/base64.rs", "crates/crypto/src/derivation/mod.rs", "crates/crypto/src/derivation/path.rs" ]
 outer_obligation = "Programmatic DerivationPath growth is caller-owned, while every cryptographic path consumer rejects more than 255 axes before child work."
 consumer_impact  = "Untrusted text and seeds fail before decoding/derivation beyond the declared limits."
 review_triggers  = [ "new codec", "new derivation family", "path or seed limit change" ]
+
+[[boundaries]]
+id               = "crypto-codec-infallible-encoders"
+package          = "identus-crypto"
+surface          = "HexStr::from and Base64UrlStrNoPad::from infallible encoding from arbitrary caller byte slices"
+disposition      = "known-unbounded-compatibility"
+limits           = [  ]
+evidence         = [ "crates/crypto/src/hex.rs", "crates/crypto/src/base64.rs", "docs/adr/0125-govern-sdk-input-resource-boundaries.md" ]
+outer_obligation = "Callers must cap arbitrary byte slices before these compatibility constructors; fixed-size SDK key/digest callers remain inherently bounded."
+consumer_impact  = "Do not expose the infallible encoders directly to hostile variable-length input; issue #298 owns validated construction and migration."
+review_triggers  = [ "issue #298 migration", "codec constructor change", "new arbitrary-length encoder", "downstream adoption evidence" ]
 
 [[boundaries]]
 id               = "crypto-bip39"
@@ -292,13 +303,24 @@ review_triggers  = [ "new presentation collection", "wire codec", "proof generat
 [[boundaries]]
 id               = "jose-compact-and-proof-jwt"
 package          = "identus-jose"
-surface          = "JWS Compact parsing, protected headers, OID4VCI proof JWTs and signature-suite registry"
+surface          = "JWS Compact parsing, validated protected headers and OID4VCI proof JWTs, and signature-suite registry"
 disposition      = "sdk-enforced"
 limits           = [ "DEFAULT_MAX_COMPACT_BYTES=65536", "DEFAULT_MAX_PROTECTED_HEADER_BYTES=4096", "DEFAULT_MAX_PAYLOAD_BYTES=49152", "DEFAULT_MAX_SIGNATURE_BYTES=1024", "DEFAULT_MAX_HEADER_STRING_BYTES=2048", "DEFAULT_MAX_PROOF_CLAIM_STRING_BYTES=2048", "MAX_X5C_CERTIFICATES=8", "MAX_TRUST_CHAIN_ENTRIES=8", "MAX_SIGNATURE_SUITES=16" ]
 evidence         = [ "crates/jose/src/limits.rs", "crates/jose/src/compact.rs", "crates/jose/src/header.rs", "crates/jose/src/oid4vci.rs", "crates/jose/src/signature.rs" ]
 outer_obligation = "The enclosing transport allocates compact/header text before parser entry."
-consumer_impact  = "JOSE decoding and retained values are bounded; callers bound response/request transport bytes first."
+consumer_impact  = "Validated JOSE decoding, headers, proofs, and registries are bounded; callers bound transport bytes first and treat the separately inventoried direct enums as compatibility exceptions."
 review_triggers  = [ "new JOSE serialization", "new header collection", "new proof token" ]
+
+[[boundaries]]
+id               = "jose-direct-retained-enum-construction"
+package          = "identus-jose"
+surface          = "direct construction of JwsKeyReference KeyId/X5c and Oid4vciProofJwtClient Identified public enum variants"
+disposition      = "known-unbounded-compatibility"
+limits           = [  ]
+evidence         = [ "crates/jose/src/header.rs", "crates/jose/src/oid4vci.rs", "docs/adr/0125-govern-sdk-input-resource-boundaries.md" ]
+outer_obligation = "Callers must validate string bytes and X5c cardinality before retaining standalone enum values; later header/proof builders validate against configured limits but cannot undo prior retention."
+consumer_impact  = "Prefer validated constructors and do not expose direct variants to hostile input; issue #299 owns opaque validated migration."
+review_triggers  = [ "issue #299 migration", "JOSE enum visibility change", "new retained enum variant", "downstream adoption evidence" ]
 
 [[boundaries]]
 id               = "jose-injected-security-ports"

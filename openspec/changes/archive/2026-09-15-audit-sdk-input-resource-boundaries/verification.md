@@ -8,7 +8,7 @@
 
 ## Focused and workspace evidence
 
-- `scripts/check-input-resource-boundaries.py .`: 36 boundary families passed,
+- `scripts/check-input-resource-boundaries.py .`: 38 boundary families passed,
   including distinct DID method-registry, cache-policy, and cache-adapter rows.
 - `scripts/tests/input-resource-boundaries.py`: all structural mutation cases
   passed locally and inside the isolated Nix factory derivation.
@@ -85,6 +85,13 @@ constants are inventoried; a broad repository comparison has no remaining
 implemented-runtime omissions. The focused checker/mutations, complete factory
 contract, and compatible `nix flake check --fallback` closure pass after the
 widened matcher.
+
+The final hosted review found two retained compatibility paths that public
+constant discovery cannot infer: infallible crypto text encoding from arbitrary
+byte slices and direct construction of JOSE enums holding strings/collections.
+Two distinct `known-unbounded-compatibility` rows, `SDK-LIM-007`, ADR 0125, and
+the canonical specification now disclose them. Issues #298 and #299 own the
+respective validated public API migrations. The inventory now has 38 families.
 
 ## Repository boundary
 

@@ -6,6 +6,8 @@
   [#168](https://github.com/hyperledger-identus/sdk-rust/issues/168)
 - **Related:** ADR 0063, ADR 0115, issue
   [#297](https://github.com/hyperledger-identus/sdk-rust/issues/297),
+  [#298](https://github.com/hyperledger-identus/sdk-rust/issues/298),
+  [#299](https://github.com/hyperledger-identus/sdk-rust/issues/299),
   `SDK-SEC-003`, `SDK-LIM-007`
 - **Assessed revision:** sdk-rust
   `66ec2b9b3a7ec35cf21ecc52cdca5bebed0b4d0d`
@@ -73,6 +75,16 @@ The historical public `Multihash` placeholder remains an infallible opaque
 entry, and the exception remains in `SDK-LIM-007` until a named consumer owns a
 structural and capacity migration. It is not safe for direct hostile input.
 
+Two additional retained compatibility paths remain unbounded. The infallible
+`HexStr::from` and `Base64UrlStrNoPad::from` encoders retain strings derived
+from arbitrary caller byte slices even though their text parsers are bounded;
+issue #298 owns validated construction and migration. Public
+`JwsKeyReference::KeyId`/`X5c` and
+`Oid4vciProofJwtClient::Identified` enum variants can be constructed with
+arbitrary strings or collections before later header/proof validation. GitHub
+issue #299 owns opaque validated migration. Both are inventoried as
+`known-unbounded-compatibility` and require caller pre-entry bounds.
+
 DID slice parsers bound wire bytes, depth, nodes, and collections while parsing.
 Direct native constructors accepting an already-owned `serde_json::Value` or
 map validate the accepted representation but do not yet dismantle every rejected
@@ -82,7 +94,7 @@ slice parser for hostile input or establish an equivalent outer bound.
 
 `SDK-LIM-007` remains effective but is narrowed: it names outer preallocation,
 native owned-JSON rejection cleanup, caller-budgeted primitive/adapter work,
-and the known unbounded `Multihash` compatibility placeholder instead of an
+and the three known unbounded retained compatibility surfaces instead of an
 incomplete audit.
 
 ## Consequences
@@ -102,6 +114,8 @@ incomplete audit.
   limits and the concrete adapter obligations separately.
 - `Multihash` behavior is unchanged; its unbounded retention is visible rather
   than misclassified as a bounded DID value.
+- Infallible crypto codec encoding and direct JOSE enum behavior are unchanged;
+  their unbounded retention is visible pending issues #298 and #299.
 - Native DID JSON behavior is unchanged; bounded slice parsing remains the
   required hostile-input path until iterative rejection cleanup is comprehensive.
 - Package activation and new input families require an atomic inventory update.

@@ -39,9 +39,10 @@ calling it unbounded SDK behavior.
 - All public resource constants with `MAX_`/`MIN_` name segments—including
   `DEFAULT_MAX_`—declared by implemented package source are named by an
   inventory limit; the checker enforces this coverage.
-- Core, credential, presentation, JOSE, OID4VCI and wallet retained values have
-  explicit fixed or configurable limits. DID values do as well except for the
-  explicitly inventoried historical `Multihash` compatibility placeholder.
+- Core, credential, presentation, OID4VCI and wallet retained values have
+  explicit fixed or configurable limits. The inventory separately discloses
+  three public compatibility exceptions: infallible crypto text encoders,
+  directly constructible JOSE retained-input enums, and DID `Multihash`.
 - DID document, resolution-result, registration, and option-map policies are
   separate rows. Credential artifacts, descriptors, format/metadata, schema,
   status, verification evidence, registry, and verifier execution are likewise
@@ -63,6 +64,11 @@ calling it unbounded SDK behavior.
 - Standalone public JWK extensions are capped at 32 members, depth 16, 1,024
   JSON nodes and 65,536 aggregate key/string UTF-8 bytes before retention;
   rejected native trees are dismantled iteratively instead of recursively.
+- `HexStr::from` and `Base64UrlStrNoPad::from` retain encodings of arbitrary
+  caller byte slices; #298 owns their validated-construction migration.
+- Direct `JwsKeyReference::KeyId`/`X5c` and
+  `Oid4vciProofJwtClient::Identified` construction can retain arbitrary inputs
+  before later builder validation; #299 owns their opaque validated migration.
 
 The broad “audit incomplete” wording is therefore retired. `SDK-LIM-007`
 remains, narrowed to the concrete outer-preallocation and native rejection-

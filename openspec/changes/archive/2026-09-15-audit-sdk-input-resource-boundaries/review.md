@@ -94,7 +94,7 @@ The final hosted review found that package-level coverage still concealed a DID
 option-map family and several credential families. A repository-wide comparison
 of public `MAX_`/`MIN_` constants to inventory limits found the same structural
 weakness in DID document/result/registration, presentation, and HTTP rows. The
-inventory now has 36 cohesive families and names every public resource constant
+inventory then had 36 cohesive families and named every public resource constant
 declared by implemented packages. The bounded offline checker scans those
 package sources and fails on any future omission; its mutation suite proves the
 new failure mode. Verification-only packages remain outside runtime coverage.
@@ -104,3 +104,12 @@ initial `MAX_`/`MIN_` prefix rule. Discovery now recognizes those tokens as name
 segments, and the JOSE row includes header-string and proof-claim-string limits.
 A broad repository comparison leaves only the verification-only conformance
 crate outside the runtime inventory, as intended.
+
+The last exact-head review identified two compatibility paths missed by
+constant scanning. `HexStr::from` and `Base64UrlStrNoPad::from` retain encodings
+of arbitrary byte slices, while directly constructible `JwsKeyReference` and
+`Oid4vciProofJwtClient` variants retain arbitrary strings or collection
+cardinality before later validation. The audit now records both as distinct
+`known-unbounded-compatibility` families, expands `SDK-LIM-007`, and assigns
+validated public migrations to issues #298 and #299. No runtime behavior or
+public API changes in this audit correction.

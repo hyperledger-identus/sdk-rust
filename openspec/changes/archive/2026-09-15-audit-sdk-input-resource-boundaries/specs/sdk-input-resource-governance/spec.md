@@ -36,6 +36,21 @@ misrepresented as bounded, non-retaining, or protected by an outer allocator.
   byte retention and require consumers to bound input before construction or
   serde until an explicit migration replaces the compatibility contract
 
+#### Scenario: Infallible crypto codec encoders are inspected
+
+- **WHEN** an agent audits `HexStr::from` and `Base64UrlStrNoPad::from`
+- **THEN** the inventory and `SDK-LIM-007` SHALL disclose their unbounded
+  encoded-string retention and require a caller byte bound until issue #298
+  provides a validated public construction migration
+
+#### Scenario: Direct JOSE retained enums are inspected
+
+- **WHEN** an agent audits direct `JwsKeyReference::KeyId`/`X5c` or
+  `Oid4vciProofJwtClient::Identified` construction
+- **THEN** the inventory and `SDK-LIM-007` SHALL disclose arbitrary retained
+  strings or collection cardinality and require caller validation until issue
+  #299 makes those retained values opaque and validated
+
 ### Requirement: Native DID JSON rejection cleanup remains consumer-guarded
 
 The inventory and limitation index SHALL disclose that native DID constructors

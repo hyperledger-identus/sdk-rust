@@ -20,7 +20,7 @@
 
 - [x] 3.1 Add the compatibility ADR and migration guidance; narrow the codec
       inventory row and only the corresponding `SDK-LIM-007` clause.
-- [ ] 3.2 Run format, focused/minimal/all-feature tests, strict workspace gates,
+- [x] 3.2 Run format, focused/minimal/all-feature tests, strict workspace gates,
       API/SBOM evidence, compatible Nix closure, and exact-diff plan.
 - [ ] 3.3 Complete fresh security/API/architecture review, archive the change,
       prepare the signed PR, and publish bounded metrics locally plus to the PR

@@ -939,6 +939,43 @@ test("metric publication stops before remote mutation when local retention confl
   assert.equal(mutations, 0);
 });
 
+test("metric publication rejects oversized public output before private retention", () => {
+  let persisted = false;
+  const checks = Array.from({ length: 48 }, (_, index) => ({
+    name: `fast-${String(index).padStart(2, "0")}-${"x".repeat(50)}`,
+    attempt: 1,
+    outcome: "passed",
+    queueSeconds: measured(index),
+    executionSeconds: measured(index + 1),
+  }));
+  const oversized = {
+    ...metricV2,
+    ci: {
+      ...metricV2.ci,
+      failedAttempts: measured(0),
+      retryCount: measured(0),
+      checks,
+    },
+  };
+  assert.equal(validateMetric(oversized).ok, true);
+  assert.ok(Buffer.byteLength(JSON.stringify(oversized)) <= 32768);
+  assert.throws(() => publishMetric(oversized, {
+    issue: 243,
+    execute: true,
+    currentHead: sha,
+    github: {
+      readIssue: (number) => ({ number }),
+      readPullRequest: () => { throw new Error("not expected"); },
+      readLogin: () => { throw new Error("not expected"); },
+      readComments: () => { throw new Error("not expected"); },
+      updateComment: () => { throw new Error("not expected"); },
+      createComment: () => { throw new Error("not expected"); },
+    },
+    persist: () => { persisted = true; },
+  }), /public metrics payload exceeds/u);
+  assert.equal(persisted, false);
+});
+
 test("metric file ingestion rejects duplicate, oversized and symlinked payloads", () => {
   const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-metric-input-"));
   const directory = realpathSync(created);

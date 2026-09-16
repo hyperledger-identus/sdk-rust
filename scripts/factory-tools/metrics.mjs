@@ -427,8 +427,8 @@ export function publishMetric(record, {
   const hostedIssue = github.readIssue(record.issue);
   const hostedPullRequest = record.pullRequest === null ? null : github.readPullRequest(record.pullRequest);
   validateHostedMetricIdentity(record, { issue: hostedIssue, pullRequest: hostedPullRequest, currentHead });
-  persist(record);
   const body = renderMetric(record);
+  persist(record);
   const versionPolicy = metricVersionPolicy(record.schemaVersion);
   const login = github.readLogin();
   const comments = github.readComments(target.number);

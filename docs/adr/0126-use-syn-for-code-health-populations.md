@@ -82,7 +82,8 @@ inheritance, standard binary roots, path-adjusted inline modules, generated
 module visibility, conditional test paths, attributed declaration and pattern
 fields, closure, ordinary and bare-function-type parameters including
 variadics, root-versus-nested module resolution (including one source in both
-roles), macro opacity, and shared reachability.
+roles), symmetric span/reachability inheritance for variants and generics,
+macro opacity, and shared reachability.
 Protocol-bound, malformed-source, Python orchestration, baseline mutation,
 fast timing, full regeneration, factory/OpenSpec, fmt, strict Clippy, workspace
 tests, and compatible Nix checks provide integration evidence.

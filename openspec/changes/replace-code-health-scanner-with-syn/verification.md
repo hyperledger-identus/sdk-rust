@@ -65,6 +65,11 @@ conformance package at
 all-target Clippy after those last attribute-bearing nodes are covered; exact
 baseline regeneration, factory checks, and strict OpenSpec 72/72 remain green.
 
+The fifth hosted-review remediation makes reachability inheritance symmetric
+with span classification for enum variants, ordinary function arguments, and
+generic parameters. A combined regression exercises expression-local modules
+inside all three attributed nodes.
+
 ## Migration evidence
 
 The v1 classifier from planning commit `a27f31f` and the reviewed v2 classifier

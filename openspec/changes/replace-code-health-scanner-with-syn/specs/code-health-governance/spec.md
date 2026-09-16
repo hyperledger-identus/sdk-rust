@@ -64,9 +64,9 @@ descendants.
 
 #### Scenario: Nested Rust contexts preserve cfg and path state
 
-- **WHEN** a cfg-gated associated item, declaration or struct-literal field,
-  bare-function-type parameter, or path-adjusted inline module contains nested
-  syntax or an out-of-line module declaration
+- **WHEN** a cfg-gated associated item, variant, declaration or struct-literal
+  field, ordinary/bare-function parameter, generic parameter, or path-adjusted
+  inline module contains nested syntax or an out-of-line module declaration
 - **THEN** the classifier preserves the inherited cfg and module-directory
   context defined by Rust
 

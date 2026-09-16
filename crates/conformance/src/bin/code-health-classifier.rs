@@ -699,6 +699,36 @@ impl<'ast> Visit<'ast> for NestedModuleVisitor<'_> {
         self.collector.inherited = previous;
     }
 
+    fn visit_variant(&mut self, variant: &'ast syn::Variant) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(&variant.attrs);
+        visit::visit_variant(self, variant);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_fn_arg(&mut self, argument: &'ast FnArg) {
+        let attributes: &[Attribute] = match argument {
+            FnArg::Receiver(value) => &value.attrs,
+            FnArg::Typed(value) => &value.attrs,
+        };
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(attributes);
+        visit::visit_fn_arg(self, argument);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_generic_param(&mut self, parameter: &'ast GenericParam) {
+        let attributes: &[Attribute] = match parameter {
+            GenericParam::Lifetime(value) => &value.attrs,
+            GenericParam::Type(value) => &value.attrs,
+            GenericParam::Const(value) => &value.attrs,
+        };
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(attributes);
+        visit::visit_generic_param(self, parameter);
+        self.collector.inherited = previous;
+    }
+
     fn visit_pat(&mut self, pattern: &'ast Pat) {
         let previous = self.collector.inherited;
         self.collector.inherited = self.collector.local_reachability(pat_attributes(pattern));
@@ -1620,6 +1650,45 @@ pub const SHIPPING: u8 = 1;
         assert_eq!(
             response.inherited_inline_paths,
             vec!["crates/demo/src/helper.rs"]
+        );
+
+        let response = classify(Request {
+            protocol_version: PROTOCOL_VERSION,
+            sources: vec![
+                SourceInput {
+                    path: "crates/demo/src/lib.rs".to_owned(),
+                    source: concat!(
+                        "enum Demo {\n",
+                        "    #[cfg(test)] Hidden = { #[path = \"variant.rs\"] mod helper; 1 },\n",
+                        "    Shipping = 2,\n",
+                        "}\n",
+                        "fn ordinary(#[cfg(test)] value: [(); { #[path = \"argument.rs\"] mod helper; 0 }]) {}\n",
+                        "struct Generic<#[cfg(test)] const N: usize = { #[path = \"generic.rs\"] mod helper; 0 }>;\n",
+                    )
+                    .to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/variant.rs".to_owned(),
+                    source: "fn variant_fixture() {}\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/argument.rs".to_owned(),
+                    source: "fn argument_fixture() {}\n".to_owned(),
+                },
+                SourceInput {
+                    path: "crates/demo/src/generic.rs".to_owned(),
+                    source: "fn generic_fixture() {}\n".to_owned(),
+                },
+            ],
+        })
+        .expect("variant argument and generic reachability");
+        assert_eq!(
+            response.inherited_inline_paths,
+            vec![
+                "crates/demo/src/argument.rs",
+                "crates/demo/src/generic.rs",
+                "crates/demo/src/variant.rs",
+            ]
         );
 
         let response = classify(Request {

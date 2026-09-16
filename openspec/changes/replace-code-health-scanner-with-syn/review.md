@@ -106,6 +106,16 @@
     `FieldPat`, `Variadic`, and `BareVariadic` outside the already covered enum
     wrappers. All three now classify spans and inherited reachability, with a
     mixed shipping/test regression.
+27. **Resolved hosted P2 — variant attributes did not reach discriminants.**
+    `syn::Variant` now propagates cfg state into discriminant expressions and
+    their local modules.
+28. **Resolved hosted P2 — ordinary argument attributes did not reach types.**
+    `syn::FnArg` now propagates receiver/typed argument cfg state into nested
+    type and const syntax.
+29. **Resolved hosted P2 — generic parameter attributes did not reach
+    defaults.** `syn::GenericParam` now propagates lifetime/type/const cfg state
+    into bounds and defaults. One combined regression proves all three module
+    edges remain test-only.
 
 ## Result
 

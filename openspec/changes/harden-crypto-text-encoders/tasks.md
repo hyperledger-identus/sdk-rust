@@ -4,7 +4,7 @@
 
 - [x] 1.1 Inventory workspace and named downstream callers, alternatives,
       compatibility, threats, supply chain, targets, and rollback.
-- [ ] 1.2 Pass research/constraint/OpenSpec readiness and write the immutable
+- [x] 1.2 Pass research/constraint/OpenSpec readiness and write the immutable
       preimplementation receipt.
 
 ## 2. Implementation

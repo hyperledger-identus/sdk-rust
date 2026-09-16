@@ -108,10 +108,10 @@ package          = "identus-did"
 surface          = "DID documents, verification methods, services and open JSON extensions"
 disposition      = "sdk-enforced"
 limits           = [ "MAX_DID_DOCUMENT_BYTES=262144", "MAX_DOCUMENT_ITEMS=128", "MAX_EXTENSION_DEPTH=32", "MAX_EXTENSION_NODES=4096", "MAX_DID_DOCUMENT_WIRE_DEPTH=64", "MAX_DID_DOCUMENT_WIRE_NODES=16384", "MAX_DID_DOCUMENT_WIRE_OBJECT_MEMBERS=128", "MAX_DID_DOCUMENT_WIRE_LIVE_KEY_BYTES=131072" ]
-evidence         = [ "crates/did/src/document.rs", "crates/did/src/wire_json.rs" ]
-outer_obligation = "Generic serde and direct native entry points receive already allocated Value/maps; rejection of hostile-depth owned trees may recursively drop them, so use bounded slice parsers or pre-bound native depth."
-consumer_impact  = "Accepted typed structures and SDK-owned slice parsing are byte/node/depth/member bounded; SDK-LIM-007 covers native owned-JSON preallocation and rejection cleanup."
-review_triggers  = [ "new DID JSON surface", "open JSON field", "collection or recursion limit change", "iterative native rejection cleanup" ]
+evidence         = [ "crates/did/src/document.rs", "crates/did/src/json_cleanup.rs", "crates/did/src/wire_json.rs" ]
+outer_obligation = "Generic serde and direct native entry points receive already allocated Value/maps; the SDK cannot prevent allocation before entry."
+consumer_impact  = "Accepted typed structures and SDK-owned slice parsing are byte/node/depth/member bounded; rejected native owned JSON is dismantled iteratively after SDK ownership begins, while SDK-LIM-007 still covers pre-entry allocation."
+review_triggers  = [ "new DID JSON surface", "open JSON field", "collection or recursion limit change", "new rejection path bypassing the iterative cleanup guard" ]
 
 [[boundaries]]
 id               = "did-resolution-results-json"
@@ -119,10 +119,10 @@ package          = "identus-did"
 surface          = "DID resolution/dereferencing results, metadata and open JSON content"
 disposition      = "sdk-enforced"
 limits           = [ "MAX_DID_RESOLUTION_RESULT_BYTES=524288", "MAX_DID_RESOLUTION_WIRE_DEPTH=64", "MAX_DID_RESOLUTION_WIRE_NODES=16384", "MAX_DID_RESOLUTION_WIRE_OBJECT_MEMBERS=128", "MAX_DID_RESOLUTION_WIRE_LIVE_KEY_BYTES=131072", "MAX_MEDIA_TYPE_BYTES=1024", "MAX_DID_RESOLUTION_DATETIME_BYTES=128", "MAX_VERSION_ID_BYTES=1024", "MAX_PROBLEM_DETAIL_BYTES=4096" ]
-evidence         = [ "crates/did/src/resolution.rs", "crates/did/src/wire_json.rs" ]
-outer_obligation = "Generic serde and direct native Value/map constructors allocate before validation and share the SDK-LIM-007 hostile-depth rejection-cleanup caveat."
-consumer_impact  = "Use bounded result slice parsers for hostile JSON; accepted resolution values are explicitly bounded."
-review_triggers  = [ "new resolution result field", "wire parser limit change", "native JSON constructor", "iterative rejection cleanup" ]
+evidence         = [ "crates/did/src/json_cleanup.rs", "crates/did/src/resolution.rs", "crates/did/src/wire_json.rs" ]
+outer_obligation = "Generic serde and direct native Value/map constructors allocate before validation; the SDK cannot prevent allocation before entry."
+consumer_impact  = "Use bounded result slice parsers to bound hostile wire allocation; accepted resolution values are explicitly bounded and rejected native owned JSON is dismantled iteratively."
+review_triggers  = [ "new resolution result field", "wire parser limit change", "native JSON constructor", "new rejection path bypassing the iterative cleanup guard" ]
 
 [[boundaries]]
 id               = "did-registration-values-json"
@@ -130,10 +130,10 @@ package          = "identus-did"
 surface          = "DID registration identifiers, public data, options, jobs and wait policy"
 disposition      = "sdk-enforced"
 limits           = [ "MAX_DID_REGISTRATION_BYTES=524288", "MAX_REGISTRATION_ITEMS=128", "MAX_REGISTRATION_ID_BYTES=256", "MAX_REGISTRATION_OPAQUE_ID_BYTES=1024", "MAX_REGISTRATION_WAIT_MILLIS=86400000" ]
-evidence         = [ "crates/did/src/registration.rs" ]
-outer_obligation = "Generic serde and direct native Value/map constructors allocate before validation and share the SDK-LIM-007 hostile-depth rejection-cleanup caveat."
-consumer_impact  = "Use bounded registration slice parsers for hostile JSON; accepted registration values and wait policy are explicitly bounded."
-review_triggers  = [ "new registration value", "identifier or wait limit change", "native JSON constructor", "iterative rejection cleanup" ]
+evidence         = [ "crates/did/src/json_cleanup.rs", "crates/did/src/registration.rs" ]
+outer_obligation = "Generic serde and direct native Value/map constructors allocate before validation; the SDK cannot prevent allocation before entry."
+consumer_impact  = "Use bounded registration slice parsers to bound hostile wire allocation; accepted registration values and wait policy are explicitly bounded and rejected native owned JSON is dismantled iteratively."
+review_triggers  = [ "new registration value", "identifier or wait limit change", "native JSON constructor", "new rejection path bypassing the iterative cleanup guard" ]
 
 [[boundaries]]
 id               = "did-resolution-option-maps"
@@ -141,10 +141,10 @@ package          = "identus-did"
 surface          = "ResolutionOptions and DereferencingOptions extension maps and verification relationship names"
 disposition      = "sdk-enforced"
 limits           = [ "MAX_DID_RESOLUTION_OPTIONS_BYTES=65536", "MAX_VERIFICATION_RELATIONSHIP_BYTES=256" ]
-evidence         = [ "crates/did/src/query.rs" ]
-outer_obligation = "Owned extension maps and serde values allocate before aggregate validation and share the SDK-LIM-007 native JSON cleanup caveat."
-consumer_impact  = "Option-map retention and relationship names are bounded; transports still cap enclosing request bytes."
-review_triggers  = [ "new resolution option", "relationship vocabulary change", "option-map limit change" ]
+evidence         = [ "crates/did/src/json_cleanup.rs", "crates/did/src/query.rs" ]
+outer_obligation = "Owned extension maps and serde values allocate before aggregate validation; the SDK cannot prevent allocation before entry."
+consumer_impact  = "Option-map retention and relationship names are bounded, rejected native owned JSON is dismantled iteratively, and transports still cap enclosing request bytes."
+review_triggers  = [ "new resolution option", "relationship vocabulary change", "option-map limit change", "new rejection path bypassing the iterative cleanup guard" ]
 
 [[boundaries]]
 id               = "did-method-registry"

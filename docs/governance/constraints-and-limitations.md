@@ -152,9 +152,9 @@ surprise compatibility promise.
   or lexical parsing performed by a transport, decompressor, deserializer,
   Axum extraction, FFI bridge or JavaScript engine before SDK validation.
   Direct DID constructors that receive an already-owned recursive JSON value or
-  map also rely on the caller to pre-bound nesting: rejected hostile-depth trees
-  can recurse during destruction. Use the SDK's bounded wire-slice parsers for
-  hostile DID JSON until native rejection cleanup is made iterative throughout.
+  map now dismantle every audited rejected tree iteratively. Callers no longer
+  need a depth bound solely for safe rejection cleanup, but bounded wire-slice
+  parsers remain necessary to constrain allocation before typed SDK entry.
   Borrowed hash/HMAC/sign/verify messages and injected resolver, registrar,
   verifier, trust, replay and generic storage adapter work remain caller-
   budgeted because the correct byte/time quota belongs to the owning protocol

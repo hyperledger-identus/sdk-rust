@@ -12,9 +12,10 @@ protocol. Python orchestration SHALL NOT parse Rust boundaries. Unknown or
 unsupported inclusion SHALL remain production or fail with an actionable audit
 error; it SHALL never silently become test-only.
 
-The classifier SHALL cover ordinary and associated items, declaration and
-struct-literal fields, variants, function/method/closure/bare-function-type
-parameters, generic parameters,
+The classifier SHALL cover ordinary and associated items, declaration,
+struct-literal and struct-pattern fields, variants,
+function/method/closure/bare-function-type parameters and variadics, generic
+parameters,
 statements/expressions, match arms, and represented macro nodes. Macro token
 streams SHALL remain opaque. A source line SHALL be
 inline-test only when every non-whitespace authored byte is proven test-only;
@@ -95,11 +96,12 @@ descendants.
 - **THEN** its complete authored AST span is inline-test evidence without
   consuming a shipping parameter
 
-#### Scenario: Bare function parameter is test-only
+#### Scenario: Pattern fields and variadic parameters are test-only
 
-- **WHEN** a bare-function-type parameter is removed by `cfg(test)`
+- **WHEN** a struct-pattern field, ordinary variadic, or bare-function-type
+  parameter or variadic is removed by `cfg(test)`
 - **THEN** its complete authored AST span is inline-test evidence without
-  consuming a shipping parameter
+  consuming a shipping field or parameter
 
 ### Requirement: Baseline evidence is bound to policy and Git content
 

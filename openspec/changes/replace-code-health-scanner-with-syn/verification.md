@@ -58,6 +58,11 @@ strict all-target conformance Clippy, ten Python protocol/report tests, exact
 durable-source baseline regeneration, factory structure/mutations, and all 72
 strict OpenSpec items.
 
+The follow-up locked-AST completeness audit adds one regression spanning
+struct-pattern fields plus ordinary and bare-function variadics. The
+conformance package passes 41 tests and strict all-target Clippy after those
+last attribute-bearing nodes are covered.
+
 ## Migration evidence
 
 The v1 classifier from planning commit `a27f31f` and the reviewed v2 classifier

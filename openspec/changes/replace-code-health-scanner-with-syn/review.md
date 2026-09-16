@@ -101,6 +101,11 @@
 25. **Resolved hosted P2 — bare function parameters were omitted.**
     `syn::BareFnArg` spans and inherited reachability are now classified, with
     a focused function-pointer parameter regression.
+26. **Resolved local completeness audit — three attribute-bearing nodes were
+    omitted.** An exhaustive review of the locked `syn` file AST found
+    `FieldPat`, `Variadic`, and `BareVariadic` outside the already covered enum
+    wrappers. All three now classify spans and inherited reachability, with a
+    mixed shipping/test regression.
 
 ## Result
 

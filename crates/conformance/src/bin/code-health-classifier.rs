@@ -14,8 +14,8 @@ use std::{
 use proc_macro2::Span;
 use serde::{Deserialize, Serialize};
 use syn::{
-    Arm, Attribute, BareFnArg, Expr, Field, FieldValue, FnArg, ForeignItem, GenericParam, ImplItem,
-    Item, ItemMod, Meta, Pat, Stmt, TraitItem,
+    Arm, Attribute, BareFnArg, BareVariadic, Expr, Field, FieldPat, FieldValue, FnArg, ForeignItem,
+    GenericParam, ImplItem, Item, ItemMod, Meta, Pat, Stmt, TraitItem, Variadic,
     parse::Parser,
     punctuated::Punctuated,
     spanned::Spanned,
@@ -432,6 +432,24 @@ impl<'ast> Visit<'ast> for SpanCollector<'_> {
         }
     }
 
+    fn visit_variadic(&mut self, node: &'ast Variadic) {
+        if !self.classify(node, &node.attrs) {
+            visit::visit_variadic(self, node);
+        }
+    }
+
+    fn visit_bare_variadic(&mut self, node: &'ast BareVariadic) {
+        if !self.classify(node, &node.attrs) {
+            visit::visit_bare_variadic(self, node);
+        }
+    }
+
+    fn visit_field_pat(&mut self, node: &'ast FieldPat) {
+        if !self.classify(node, &node.attrs) {
+            visit::visit_field_pat(self, node);
+        }
+    }
+
     fn visit_generic_param(&mut self, node: &'ast GenericParam) {
         let attributes: &[Attribute] = match node {
             GenericParam::Lifetime(value) => &value.attrs,
@@ -657,6 +675,27 @@ impl<'ast> Visit<'ast> for NestedModuleVisitor<'_> {
         let previous = self.collector.inherited;
         self.collector.inherited = self.collector.local_reachability(&argument.attrs);
         visit::visit_bare_fn_arg(self, argument);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_variadic(&mut self, variadic: &'ast Variadic) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(&variadic.attrs);
+        visit::visit_variadic(self, variadic);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_bare_variadic(&mut self, variadic: &'ast BareVariadic) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(&variadic.attrs);
+        visit::visit_bare_variadic(self, variadic);
+        self.collector.inherited = previous;
+    }
+
+    fn visit_field_pat(&mut self, field: &'ast FieldPat) {
+        let previous = self.collector.inherited;
+        self.collector.inherited = self.collector.local_reachability(&field.attrs);
+        visit::visit_field_pat(self, field);
         self.collector.inherited = previous;
     }
 
@@ -1257,6 +1296,41 @@ type Callback = fn(
             );
         }
         for line in [2, 5, 6] {
+            assert!(!lines.contains(&line), "shipping line {line}: {lines:?}");
+        }
+    }
+
+    #[test]
+    fn classifies_variadics_and_struct_pattern_fields_by_ast_boundary() {
+        let source = r#"
+struct Demo { hidden: u8, shipping: u8 }
+fn pattern(value: Demo) {
+    let Demo {
+        #[cfg(test)] hidden,
+        shipping,
+    } = value;
+}
+unsafe extern "C" {
+    fn foreign(
+        shipping: u8,
+        #[cfg(test)]
+        ...
+    );
+}
+type Callback = unsafe extern "C" fn(
+    u8,
+    #[cfg(test)]
+    ...
+);
+"#;
+        let lines = one(source);
+        for line in [5, 12, 13, 18, 19] {
+            assert!(
+                lines.contains(&line),
+                "expected test-only attributed node line {line}: {lines:?}"
+            );
+        }
+        for line in [2, 3, 6, 7, 9, 11, 16, 17, 20] {
             assert!(!lines.contains(&line), "shipping line {line}: {lines:?}");
         }
     }

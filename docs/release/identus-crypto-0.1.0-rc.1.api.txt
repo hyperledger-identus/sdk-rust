@@ -4,8 +4,15 @@ pub struct identus_crypto::base64::Base64UrlStrNoPad(_)
 impl identus_crypto::base64::Base64UrlStrNoPad
 pub fn identus_crypto::base64::Base64UrlStrNoPad::as_str(&self) -> &str
 pub fn identus_crypto::base64::Base64UrlStrNoPad::to_bytes(&self) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::base64::Base64UrlStrNoPad::try_from_bytes(impl core::convert::AsRef<[u8]>) -> core::result::Result<Self, identus_crypto::error::Error>
 impl core::convert::AsRef<str> for identus_crypto::base64::Base64UrlStrNoPad
 pub fn identus_crypto::base64::Base64UrlStrNoPad::as_ref(&self) -> &str
+impl core::convert::TryFrom<&[u8]> for identus_crypto::base64::Base64UrlStrNoPad
+pub type identus_crypto::base64::Base64UrlStrNoPad::Error = identus_crypto::error::Error
+pub fn identus_crypto::base64::Base64UrlStrNoPad::try_from(&[u8]) -> core::result::Result<Self, Self::Error>
+impl core::convert::TryFrom<alloc::vec::Vec<u8>> for identus_crypto::base64::Base64UrlStrNoPad
+pub type identus_crypto::base64::Base64UrlStrNoPad::Error = identus_crypto::error::Error
+pub fn identus_crypto::base64::Base64UrlStrNoPad::try_from(alloc::vec::Vec<u8>) -> core::result::Result<Self, Self::Error>
 impl core::fmt::Display for identus_crypto::base64::Base64UrlStrNoPad
 pub fn identus_crypto::base64::Base64UrlStrNoPad::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::str::traits::FromStr for identus_crypto::base64::Base64UrlStrNoPad
@@ -13,8 +20,12 @@ pub type identus_crypto::base64::Base64UrlStrNoPad::Err = identus_crypto::error:
 pub fn identus_crypto::base64::Base64UrlStrNoPad::from_str(&str) -> core::result::Result<Self, Self::Err>
 impl serde_core::ser::Serialize for identus_crypto::base64::Base64UrlStrNoPad
 pub fn identus_crypto::base64::Base64UrlStrNoPad::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
-impl<B: core::convert::AsRef<[u8]>> core::convert::From<B> for identus_crypto::base64::Base64UrlStrNoPad
-pub fn identus_crypto::base64::Base64UrlStrNoPad::from(B) -> Self
+impl<const N: usize> core::convert::TryFrom<&[u8; N]> for identus_crypto::base64::Base64UrlStrNoPad
+pub type identus_crypto::base64::Base64UrlStrNoPad::Error = identus_crypto::error::Error
+pub fn identus_crypto::base64::Base64UrlStrNoPad::try_from(&[u8; N]) -> core::result::Result<Self, Self::Error>
+impl<const N: usize> core::convert::TryFrom<[u8; N]> for identus_crypto::base64::Base64UrlStrNoPad
+pub type identus_crypto::base64::Base64UrlStrNoPad::Error = identus_crypto::error::Error
+pub fn identus_crypto::base64::Base64UrlStrNoPad::try_from([u8; N]) -> core::result::Result<Self, Self::Error>
 pub mod identus_crypto::convert
 pub struct identus_crypto::convert::ConvertEd25519
 impl identus_crypto::convert::ConvertEd25519
@@ -524,15 +535,26 @@ pub struct identus_crypto::hex::HexStr(_)
 impl identus_crypto::hex::HexStr
 pub fn identus_crypto::hex::HexStr::as_str(&self) -> &str
 pub fn identus_crypto::hex::HexStr::to_bytes(&self) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::hex::HexStr::try_from_bytes(impl core::convert::AsRef<[u8]>) -> core::result::Result<Self, identus_crypto::error::Error>
 impl core::convert::AsRef<str> for identus_crypto::hex::HexStr
 pub fn identus_crypto::hex::HexStr::as_ref(&self) -> &str
+impl core::convert::TryFrom<&[u8]> for identus_crypto::hex::HexStr
+pub type identus_crypto::hex::HexStr::Error = identus_crypto::error::Error
+pub fn identus_crypto::hex::HexStr::try_from(&[u8]) -> core::result::Result<Self, Self::Error>
+impl core::convert::TryFrom<alloc::vec::Vec<u8>> for identus_crypto::hex::HexStr
+pub type identus_crypto::hex::HexStr::Error = identus_crypto::error::Error
+pub fn identus_crypto::hex::HexStr::try_from(alloc::vec::Vec<u8>) -> core::result::Result<Self, Self::Error>
 impl core::fmt::Display for identus_crypto::hex::HexStr
 pub fn identus_crypto::hex::HexStr::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::str::traits::FromStr for identus_crypto::hex::HexStr
 pub type identus_crypto::hex::HexStr::Err = identus_crypto::error::Error
 pub fn identus_crypto::hex::HexStr::from_str(&str) -> core::result::Result<Self, Self::Err>
-impl<B: core::convert::AsRef<[u8]>> core::convert::From<B> for identus_crypto::hex::HexStr
-pub fn identus_crypto::hex::HexStr::from(B) -> Self
+impl<const N: usize> core::convert::TryFrom<&[u8; N]> for identus_crypto::hex::HexStr
+pub type identus_crypto::hex::HexStr::Error = identus_crypto::error::Error
+pub fn identus_crypto::hex::HexStr::try_from(&[u8; N]) -> core::result::Result<Self, Self::Error>
+impl<const N: usize> core::convert::TryFrom<[u8; N]> for identus_crypto::hex::HexStr
+pub type identus_crypto::hex::HexStr::Error = identus_crypto::error::Error
+pub fn identus_crypto::hex::HexStr::try_from([u8; N]) -> core::result::Result<Self, Self::Error>
 pub mod identus_crypto::jwk
 pub enum identus_crypto::jwk::JwkCoordinate
 pub identus_crypto::jwk::JwkCoordinate::X
@@ -857,8 +879,15 @@ pub struct identus_crypto::Base64UrlStrNoPad(_)
 impl identus_crypto::base64::Base64UrlStrNoPad
 pub fn identus_crypto::base64::Base64UrlStrNoPad::as_str(&self) -> &str
 pub fn identus_crypto::base64::Base64UrlStrNoPad::to_bytes(&self) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::base64::Base64UrlStrNoPad::try_from_bytes(impl core::convert::AsRef<[u8]>) -> core::result::Result<Self, identus_crypto::error::Error>
 impl core::convert::AsRef<str> for identus_crypto::base64::Base64UrlStrNoPad
 pub fn identus_crypto::base64::Base64UrlStrNoPad::as_ref(&self) -> &str
+impl core::convert::TryFrom<&[u8]> for identus_crypto::base64::Base64UrlStrNoPad
+pub type identus_crypto::base64::Base64UrlStrNoPad::Error = identus_crypto::error::Error
+pub fn identus_crypto::base64::Base64UrlStrNoPad::try_from(&[u8]) -> core::result::Result<Self, Self::Error>
+impl core::convert::TryFrom<alloc::vec::Vec<u8>> for identus_crypto::base64::Base64UrlStrNoPad
+pub type identus_crypto::base64::Base64UrlStrNoPad::Error = identus_crypto::error::Error
+pub fn identus_crypto::base64::Base64UrlStrNoPad::try_from(alloc::vec::Vec<u8>) -> core::result::Result<Self, Self::Error>
 impl core::fmt::Display for identus_crypto::base64::Base64UrlStrNoPad
 pub fn identus_crypto::base64::Base64UrlStrNoPad::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::str::traits::FromStr for identus_crypto::base64::Base64UrlStrNoPad
@@ -866,8 +895,12 @@ pub type identus_crypto::base64::Base64UrlStrNoPad::Err = identus_crypto::error:
 pub fn identus_crypto::base64::Base64UrlStrNoPad::from_str(&str) -> core::result::Result<Self, Self::Err>
 impl serde_core::ser::Serialize for identus_crypto::base64::Base64UrlStrNoPad
 pub fn identus_crypto::base64::Base64UrlStrNoPad::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
-impl<B: core::convert::AsRef<[u8]>> core::convert::From<B> for identus_crypto::base64::Base64UrlStrNoPad
-pub fn identus_crypto::base64::Base64UrlStrNoPad::from(B) -> Self
+impl<const N: usize> core::convert::TryFrom<&[u8; N]> for identus_crypto::base64::Base64UrlStrNoPad
+pub type identus_crypto::base64::Base64UrlStrNoPad::Error = identus_crypto::error::Error
+pub fn identus_crypto::base64::Base64UrlStrNoPad::try_from(&[u8; N]) -> core::result::Result<Self, Self::Error>
+impl<const N: usize> core::convert::TryFrom<[u8; N]> for identus_crypto::base64::Base64UrlStrNoPad
+pub type identus_crypto::base64::Base64UrlStrNoPad::Error = identus_crypto::error::Error
+pub fn identus_crypto::base64::Base64UrlStrNoPad::try_from([u8; N]) -> core::result::Result<Self, Self::Error>
 pub struct identus_crypto::CardanoV2ExtendedPrivateKey
 impl identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey
 pub fn identus_crypto::derivation::cardano_v2::CardanoV2ExtendedPrivateKey::derive_child(&self, identus_crypto::derivation::path::DerivationAxis) -> core::result::Result<Self, identus_crypto::error::Error>
@@ -960,15 +993,26 @@ pub struct identus_crypto::HexStr(_)
 impl identus_crypto::hex::HexStr
 pub fn identus_crypto::hex::HexStr::as_str(&self) -> &str
 pub fn identus_crypto::hex::HexStr::to_bytes(&self) -> alloc::vec::Vec<u8>
+pub fn identus_crypto::hex::HexStr::try_from_bytes(impl core::convert::AsRef<[u8]>) -> core::result::Result<Self, identus_crypto::error::Error>
 impl core::convert::AsRef<str> for identus_crypto::hex::HexStr
 pub fn identus_crypto::hex::HexStr::as_ref(&self) -> &str
+impl core::convert::TryFrom<&[u8]> for identus_crypto::hex::HexStr
+pub type identus_crypto::hex::HexStr::Error = identus_crypto::error::Error
+pub fn identus_crypto::hex::HexStr::try_from(&[u8]) -> core::result::Result<Self, Self::Error>
+impl core::convert::TryFrom<alloc::vec::Vec<u8>> for identus_crypto::hex::HexStr
+pub type identus_crypto::hex::HexStr::Error = identus_crypto::error::Error
+pub fn identus_crypto::hex::HexStr::try_from(alloc::vec::Vec<u8>) -> core::result::Result<Self, Self::Error>
 impl core::fmt::Display for identus_crypto::hex::HexStr
 pub fn identus_crypto::hex::HexStr::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::str::traits::FromStr for identus_crypto::hex::HexStr
 pub type identus_crypto::hex::HexStr::Err = identus_crypto::error::Error
 pub fn identus_crypto::hex::HexStr::from_str(&str) -> core::result::Result<Self, Self::Err>
-impl<B: core::convert::AsRef<[u8]>> core::convert::From<B> for identus_crypto::hex::HexStr
-pub fn identus_crypto::hex::HexStr::from(B) -> Self
+impl<const N: usize> core::convert::TryFrom<&[u8; N]> for identus_crypto::hex::HexStr
+pub type identus_crypto::hex::HexStr::Error = identus_crypto::error::Error
+pub fn identus_crypto::hex::HexStr::try_from(&[u8; N]) -> core::result::Result<Self, Self::Error>
+impl<const N: usize> core::convert::TryFrom<[u8; N]> for identus_crypto::hex::HexStr
+pub type identus_crypto::hex::HexStr::Error = identus_crypto::error::Error
+pub fn identus_crypto::hex::HexStr::try_from([u8; N]) -> core::result::Result<Self, Self::Error>
 pub struct identus_crypto::JwkThumbprint(_)
 impl identus_crypto::jwk::JwkThumbprint
 pub const fn identus_crypto::jwk::JwkThumbprint::as_bytes(&self) -> &[u8; 32]

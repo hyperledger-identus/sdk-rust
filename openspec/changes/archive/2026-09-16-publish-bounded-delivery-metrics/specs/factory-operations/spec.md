@@ -26,7 +26,9 @@ the PR's authoritative closing reference to that issue, and exact hosted head
 without requiring the caller's checkout to remain on that head. The bounded
 public payload SHALL be rendered and size-checked before immutable local
 retention. A record whose outcome remains `in-progress` SHALL NOT enter that
-immutable store or publication flow. One bounded retry MAY handle a transient
+immutable store or publication flow. One valid draft retained by the previous
+writer MAY transition atomically to matching terminal evidence; terminal
+evidence SHALL remain immutable. One bounded retry MAY handle a transient
 comment failure; persistent failure SHALL remain visible telemetry debt and
 SHALL NOT invalidate otherwise independent product evidence.
 
@@ -85,6 +87,14 @@ SHALL NOT invalidate otherwise independent product evidence.
 - **WHEN** an otherwise schema-valid record still has the `in-progress` outcome
 - **THEN** validation and rendering remain available but immutable retention
   and publication fail before creating terminal evidence
+
+#### Scenario: Legacy draft precedes terminal evidence
+
+- **WHEN** the former writer retained a valid `in-progress` record whose stable
+  schema, repository, issue, head, profile and start identity match a closed
+  record
+- **THEN** the factory atomically replaces that draft once with the terminal
+  evidence and applies ordinary immutability thereafter
 
 #### Scenario: Public mutation remains unavailable
 

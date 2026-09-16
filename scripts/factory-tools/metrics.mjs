@@ -11,6 +11,7 @@ import {
   mkdirSync,
   readFileSync,
   realpathSync,
+  renameSync,
   unlinkSync,
   writeFileSync,
 } from "node:fs";
@@ -299,6 +300,18 @@ function canonicalJson(value) {
   return JSON.stringify(value);
 }
 
+function isLegacyDraftTransition(existing, record) {
+  return existing.outcome === "in-progress"
+    && record.outcome !== "in-progress"
+    && existing.schemaVersion === record.schemaVersion
+    && existing.repository === record.repository
+    && existing.issue === record.issue
+    && existing.headSha === record.headSha
+    && existing.profile === record.profile
+    && existing.startedAt === record.startedAt
+    && (existing.pullRequest === record.pullRequest || existing.pullRequest === null);
+}
+
 export function retainMetricRecord(target, record) {
   const result = validateMetric(record);
   if (!result.ok) fail(result.errors.join("; "));
@@ -312,7 +325,12 @@ export function retainMetricRecord(target, record) {
       if (error?.code !== "EEXIST") throw error;
       const existing = readMetricFile(target);
       const existingValidation = validateMetric(existing);
-      if (!existingValidation.ok || canonicalJson(existing) !== canonicalJson(record)) {
+      if (!existingValidation.ok) fail("existing private metric record conflicts with exact record");
+      if (canonicalJson(existing) === canonicalJson(record)) {
+        // Equal terminal evidence is idempotent.
+      } else if (isLegacyDraftTransition(existing, record)) {
+        renameSync(temporary, target);
+      } else {
         fail("existing private metric record conflicts with exact record");
       }
     }

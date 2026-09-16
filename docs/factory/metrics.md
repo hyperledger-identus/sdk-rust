@@ -61,6 +61,10 @@ retained v1 evidence. Multiple matching owned comments fail closed.
 Templates and `in-progress` records may be validated or rendered while work is
 underway, but they cannot be written to the immutable private store or
 published. Finalize the closed outcome and exact counters before retention.
+For compatibility with the former overwriting writer, one pre-existing valid
+draft may transition atomically to terminal evidence only when its schema,
+repository, issue, head, profile and start time match; a previously absent PR
+may be bound during that transition. Terminal evidence never transitions.
 
 A comment create or update receives at most one immediate retry. If both
 attempts fail, the local record remains authoritative and the command reports

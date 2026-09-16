@@ -790,6 +790,27 @@ test("in-progress metric drafts cannot become immutable private records", () => 
   }
 });
 
+test("legacy in-progress records migrate once to matching terminal evidence", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-metric-legacy-draft-"));
+  const directory = realpathSync(created);
+  try {
+    chmodSync(directory, 0o700);
+    const target = path.join(directory, "metric.json");
+    const draft = { ...metric, pullRequest: null, outcome: "in-progress" };
+    writeFileSync(target, `${JSON.stringify(draft, null, 2)}\n`, { mode: 0o600 });
+    const terminal = { ...metric, pullRequest: 244 };
+    assert.equal(retainMetricRecord(target, terminal), target);
+    assert.deepEqual(JSON.parse(readFileSync(target, "utf8")), terminal);
+    assert.equal(retainMetricRecord(target, terminal), target);
+    assert.throws(
+      () => retainMetricRecord(target, { ...terminal, profile: "prototype" }),
+      /conflicts with exact record/u,
+    );
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
 test("metric publication routes PR-first and validates hosted historical identity", () => {
   const pullRequestMetric = { ...metric, pullRequest: 244 };
   assert.deepEqual(resolveMetricPublicationTarget(pullRequestMetric), { kind: "pull-request", number: 244 });

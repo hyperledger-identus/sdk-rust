@@ -68,7 +68,10 @@ baseline regeneration, factory checks, and strict OpenSpec 72/72 remain green.
 The fifth hosted-review remediation makes reachability inheritance symmetric
 with span classification for enum variants, ordinary function arguments, and
 generic parameters. A combined regression exercises expression-local modules
-inside all three attributed nodes.
+inside all three attributed nodes. Exact implementation head
+`181b5c0e589b7fbdeb24d6c5e90ad8557bc6e148` passes the 41 conformance tests,
+strict all-target Clippy, ten Python tests, exact baseline regeneration,
+factory checks, and strict OpenSpec 72/72.
 
 ## Migration evidence
 

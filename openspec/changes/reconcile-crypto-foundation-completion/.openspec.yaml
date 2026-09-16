@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-17
+goal: Reconcile IDR-004 completion against immutable crypto, JOSE, conformance,
+  target, packaging, and consumer evidence.

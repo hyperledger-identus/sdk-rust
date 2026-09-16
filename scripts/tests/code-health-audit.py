@@ -233,6 +233,11 @@ evidence = "test"
                 mock.patch.object(
                     audit, "source_fingerprint", return_value=self.fingerprint
                 ),
+                mock.patch.object(
+                    audit,
+                    "rust_classifier_population",
+                    return_value=({Path("crates/demo/src/lib.rs"): set()}, set()),
+                ),
             ):
                 with self.assertRaises(audit.AuditError):
                     audit.validate_report(root, path)

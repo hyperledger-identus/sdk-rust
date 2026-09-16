@@ -11,7 +11,7 @@
 
 - [x] 2.1 Add the crate-private generic rejection guard and sole iterative JSON
       dismantler with focused unit evidence.
-- [ ] 2.2 Protect document and service/method native rejection paths.
+- [x] 2.2 Protect document and service/method native rejection paths.
 - [ ] 2.3 Protect resolution, dereferencing metadata/content, and metadata
       builder rejection paths.
 - [ ] 2.4 Protect query direct/builder and registration rejection paths.

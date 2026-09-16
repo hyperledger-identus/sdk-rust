@@ -59,8 +59,7 @@
 
 ## Result
 
-No unresolved architecture, security, privacy, compatibility, API or operations
-finding remains. Hosted Codex review of `8dbaa46d8404f0a47504380f07883a01bca2dd61`
-returned no findings after the remediation, and all five earlier threads are
-resolved. The one-time v1/v2 comparison is bound to the durable source
-revision.
+No unresolved local architecture, security, privacy, compatibility, API or
+operations finding remains. Hosted exact-head confirmation is pending. The
+one-time v1/v2 comparison is regenerated against the durable source revision
+before completion.

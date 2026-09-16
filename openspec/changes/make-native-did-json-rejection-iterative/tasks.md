@@ -18,9 +18,9 @@
 
 ## 3. Evidence and governance
 
-- [x] 3.1 Add 32,768-level hostile-depth regressions for every audited public
+- [ ] 3.1 Add 32,768-level hostile-depth regressions for every audited public
       constructor family, including pre-resource-validation errors.
-- [x] 3.2 Narrow the machine inventory, ADR/public architecture guidance, and
+- [ ] 3.2 Narrow the machine inventory, ADR/public architecture guidance, and
       only the native cleanup clause of `SDK-LIM-007`.
 - [x] 3.3 Run focused tests, format, strict Clippy, workspace gates, compatible
       Nix closure, factory/OpenSpec checks, and exact-diff plan.

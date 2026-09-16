@@ -1,6 +1,19 @@
 {
   "analyzer": {
-    "contract_version": "code-health-v1",
+    "classifier": "syn-ast-v1",
+    "classifier_command": [
+      "cargo",
+      "run",
+      "--quiet",
+      "--locked",
+      "-p",
+      "identus-conformance",
+      "--bin",
+      "code-health-classifier",
+      "--"
+    ],
+    "classifier_protocol_version": 2,
+    "contract_version": "code-health-v2",
     "engine": "rust-code-analysis-cli",
     "engine_version": "0.0.25"
   },
@@ -134,47 +147,28 @@
       "owner": "identus-derive maintainers"
     }
   ],
+  "population_projection_sha256": "1030e24d3da18d82f524dc163f3703bdc47508378d4855ce443ea1c739f66558",
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 22600,
-      "files": 69,
-      "functions": 982
+      "authored_nonblank_lines": 24167,
+      "files": 73,
+      "functions": 1027
     },
     "inline_test": {
-      "authored_nonblank_lines": 3865,
-      "files": 28,
-      "functions": 312
+      "authored_nonblank_lines": 3990,
+      "files": 32,
+      "functions": 331
     },
     "production": {
-      "authored_nonblank_lines": 28374,
-      "files": 111,
-      "functions": 2194
+      "authored_nonblank_lines": 29161,
+      "files": 135,
+      "functions": 2224
     }
   },
-  "revision": "707a5a22c3fad18724d5c5cac953e7387f7e49d8",
-  "schema_version": 1,
+  "revision": "5dff6f38c861b858dd62dc8310246f7d485d3e92",
+  "schema_version": 2,
   "signals": {
     "functions": [
-      {
-        "cognitive": 1,
-        "cyclomatic": 45,
-        "end_line": 365,
-        "name": "to_identus_error",
-        "path": "crates/credentials/src/error.rs",
-        "population": "production",
-        "sloc": 176,
-        "start_line": 190
-      },
-      {
-        "cognitive": 1,
-        "cyclomatic": 45,
-        "end_line": 422,
-        "name": "fmt",
-        "path": "crates/credentials/src/error.rs",
-        "population": "production",
-        "sloc": 54,
-        "start_line": 369
-      },
       {
         "cognitive": 1,
         "cyclomatic": 20,
@@ -204,6 +198,16 @@
         "population": "production",
         "sloc": 35,
         "start_line": 608
+      },
+      {
+        "cognitive": 12,
+        "cyclomatic": 18,
+        "end_line": 484,
+        "name": "validate_extensions",
+        "path": "crates/crypto/src/jwk.rs",
+        "population": "production",
+        "sloc": 40,
+        "start_line": 445
       },
       {
         "cognitive": 25,
@@ -378,22 +382,12 @@
       {
         "cognitive": 17,
         "cyclomatic": 40,
-        "end_line": 1309,
+        "end_line": 1321,
         "name": "validate_datetime",
         "path": "crates/did/src/resolution.rs",
         "population": "production",
         "sloc": 71,
-        "start_line": 1239
-      },
-      {
-        "cognitive": 2,
-        "cyclomatic": 57,
-        "end_line": 456,
-        "name": "to_identus_error",
-        "path": "crates/jose/src/error.rs",
-        "population": "production",
-        "sloc": 214,
-        "start_line": 243
+        "start_line": 1251
       },
       {
         "cognitive": 4,
@@ -434,16 +428,6 @@
         "population": "production",
         "sloc": 35,
         "start_line": 674
-      },
-      {
-        "cognitive": 1,
-        "cyclomatic": 172,
-        "end_line": 1366,
-        "name": "to_identus_error",
-        "path": "crates/oid4vci/src/error.rs",
-        "population": "production",
-        "sloc": 860,
-        "start_line": 507
       },
       {
         "cognitive": 12,
@@ -596,16 +580,6 @@
         "start_line": 152
       },
       {
-        "cognitive": 1,
-        "cyclomatic": 49,
-        "end_line": 402,
-        "name": "contract",
-        "path": "crates/presentations/src/error.rs",
-        "population": "production",
-        "sloc": 190,
-        "start_line": 213
-      },
-      {
         "cognitive": 11,
         "cyclomatic": 16,
         "end_line": 819,
@@ -662,12 +636,8 @@
         "path": "crates/did/src/registration.rs"
       },
       {
-        "authored_nonblank_lines": 1271,
+        "authored_nonblank_lines": 1282,
         "path": "crates/did/src/resolution.rs"
-      },
-      {
-        "authored_nonblank_lines": 1371,
-        "path": "crates/oid4vci/src/error.rs"
       },
       {
         "authored_nonblank_lines": 2074,
@@ -683,5 +653,5 @@
       }
     ]
   },
-  "source_fingerprint_sha256": "e116bfb7afe3105cd8210b71b4c12a6721123c6fd2adc9a442dbd30aa415d6e4"
+  "source_fingerprint_sha256": "45131b8ad75ed2dfd601c154fde7fae35bd06c49e7f62a1d3ec5b9ca322c9cc5"
 }

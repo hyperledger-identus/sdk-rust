@@ -1,0 +1,11 @@
+[[modified_requirement]]
+capability       = "code-health-governance"
+requirement      = "Code-health evidence separates authored populations"
+canonical_sha256 = "bb96a92a66fb250ae1f90f0855f744a0c3e79280eb168a78bc3c910460bbd7bf"
+reason           = "ADR 0126 intentionally replaces the complete v1 Python syntax-classifier semantics with the bounded syn AST classifier contract while preserving production-conservative population ownership."
+
+[[modified_requirement]]
+capability       = "code-health-governance"
+requirement      = "Baseline evidence is bound to policy and Git content"
+canonical_sha256 = "d66915791a52b01aba0e6ac8e4ad43bc4f05e718cbaf957a16067a6936279f46"
+reason           = "The v2 baseline deliberately adds classifier identity and migration evidence and moves fast source validation into the pinned Nix execution path."

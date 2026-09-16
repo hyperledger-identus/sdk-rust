@@ -1,0 +1,124 @@
+# Verification
+
+## Exact-head local evidence
+
+The initial implementation and evidence head
+`f2e5d4a5a3162a1155d5e71208f424aeb767feb0` passed:
+
+- Nix `aarch64-darwin` checks: `factory-contract`, `lint-nix`, `lint-text`,
+  `lint-toml`, `rust-fmt`, `rust-build`, `rust-clippy`, and `rust-test`;
+- 735 workspace tests under Cargo Nextest, including six focused classifier
+  tests; 22 intentionally skipped tests were reported by the existing suite;
+- strict conformance Clippy with warnings denied and all-target conformance
+  tests;
+- eight Python protocol/report mutation tests;
+- exact v2 baseline regeneration under the pinned Nix shell;
+- factory structure and mutation suites, including 72 strict OpenSpec items;
+- Markdown, YAML, shell, EditorConfig, TOML and Nix linting; and
+- `git diff --check`.
+
+The warm local fast source-evidence command completed in 5.99 seconds with a
+45,645,824-byte maximum resident set size on macOS ARM64. This measurement
+includes entering the cached Nix development shell and invoking Cargo. The
+heavy `rust-code-analysis-cli` metric engine was not run on that fast path.
+
+Hosted-review remediation through exact classifier/evidence head
+`1d10a646776f1709dbe39cad83a54c5c093c5fed` additionally passed:
+
+- all 37 conformance targets/tests and strict all-target Clippy;
+- all nine Python classifier/report mutation tests;
+- exact durable-source baseline regeneration and canonical report validation;
+- factory structure/mutation checks and strict change validation; and
+- `cargo fmt --all -- --check` plus `git diff --check`.
+
+The added regressions prove inherited test-only state through nested expression
+scopes and fail-closed behavior for unresolved conditional module path
+overrides.
+
+The second hosted-review remediation at
+`4a7d9f2ac32d48d837954e86141f3256b81bcee7` passed 38 conformance tests,
+strict all-target conformance Clippy, ten Python protocol/report tests, and
+exact durable-source baseline regeneration. Its regressions cover associated
+items, struct-literal fields, generated-module graph visibility, standard
+file-based binary roots, path-adjusted inline modules, and nested overrides in
+non-root module files.
+
+The third hosted-review remediation at
+`f30ab8188bfc0e23058573e113411414889a7310` passed 39 conformance tests,
+strict all-target conformance Clippy, ten Python protocol/report tests, and
+exact baseline regeneration. Its regressions cover test-selected conditional
+paths, distinct target/nested resolution roles, production preservation for
+target roots, and attributed closure parameters.
+
+The fourth hosted-review remediation adds regressions for a source reached in
+both target-root and nested-module roles, inherited cfg state on declaration
+fields, and attributed bare-function-type parameters. Exact implementation head
+`0d405f0ea17f0fd79ca6393415754d3d1a52ac85` passed 40 conformance tests,
+strict all-target conformance Clippy, ten Python protocol/report tests, exact
+durable-source baseline regeneration, factory structure/mutations, and all 72
+strict OpenSpec items.
+
+The follow-up locked-AST completeness audit adds one regression spanning
+struct-pattern fields plus ordinary and bare-function variadics. The
+conformance package at
+`be37220ae33f01d28ecca82f82c16e48c2a8ca5f` passes 41 tests and strict
+all-target Clippy after those last attribute-bearing nodes are covered; exact
+baseline regeneration, factory checks, and strict OpenSpec 72/72 remain green.
+
+The fifth hosted-review remediation makes reachability inheritance symmetric
+with span classification for enum variants, ordinary function arguments, and
+generic parameters. A combined regression exercises expression-local modules
+inside all three attributed nodes. Exact implementation head
+`181b5c0e589b7fbdeb24d6c5e90ad8557bc6e148` passes the 41 conformance tests,
+strict all-target Clippy, ten Python tests, exact baseline regeneration,
+factory checks, and strict OpenSpec 72/72.
+
+The sixth hosted-review remediation moves the request to protocol v2 with
+revision-bound Cargo target roots and carries source-relative inline-path base
+state. Focused regressions prove a nested helper named `main` remains nested
+and a path-adjusted inline module inside `foo.rs` resolves from the containing
+source directory. Exact implementation and repeat evidence are recorded after
+the signed remediation commit at
+`3682dbeabd0fa8e656107592457b03c01f9bb01f`: 41 conformance tests, strict
+all-target Clippy, eleven Python tests, exact protocol-v2 baseline
+regeneration, factory checks, and strict OpenSpec 72/72 are green.
+
+The eighth hosted-review remediation enforces baseline ancestry, restricts
+conditional path detection to actually applied path attributes, and replaces
+the source-by-span projection search with a monotonic linear sweep. Focused
+regressions cover non-ancestor rejection and unrelated nested `cfg(path)`
+metadata. Exact implementation and repeat evidence are recorded after the
+signed remediation commit at
+`2663dc728b4289077dd032572f5acee93479e407`: 41 conformance tests, strict
+all-target Clippy, twelve Python tests, exact protocol-v2 baseline
+regeneration, factory checks, and strict OpenSpec 72/72 are green.
+
+The seventh hosted-review remediation distinguishes module edges disabled in
+both audited configurations from reachable test-only edges. A focused
+regression proves `#[cfg(any())]` and `#[cfg(all(test, any()))]` modules do not
+require nonexistent source files. Exact implementation and repeat evidence are
+recorded after the signed remediation commit at
+`c2c024ed54ae873815bd4c6d0e6c17bd94749697`: 41 conformance tests, strict
+all-target Clippy, eleven Python tests, exact protocol-v2 baseline
+regeneration, factory checks, and strict OpenSpec 72/72 are green.
+
+## Migration evidence
+
+The v1 classifier from planning commit `a27f31f` and the reviewed v2 classifier
+classified durable source revision
+`5dff6f38c861b858dd62dc8310246f7d485d3e92`: the same 135 production sources
+and 73 external test files. Both produced 3,990 inline-test and 29,161
+production authored nonblank lines, with no
+per-file authored nonblank delta. The exhaustive comparison and the intentional
+252 blank-only line representation change are recorded in
+`docs/architecture/code-health-v2-migration.md`.
+
+## Hosted evidence
+
+PR #300 exact head `d9aceb63d5ed7454c36b6442f09a64beb12fba2e`
+passed all seven required checks. The fast lane completed in 7m03s. Every
+concrete finding from the hosted review at `948b977c` is resolved by
+`2663dc728b4289077dd032572f5acee93479e407`, and all review threads are
+resolved. At the maintainer's direction, additional non-blocking hardening is
+tracked in issue #301 rather than extending the PR review thread. Protected
+`develop` remains the authoritative integration gate.

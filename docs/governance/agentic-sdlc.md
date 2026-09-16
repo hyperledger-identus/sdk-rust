@@ -110,7 +110,11 @@ The agent then:
     blocking;
 15. monitors required CI and merges the eligible pull request into `develop`
     when every gate is green and no blocking review remains;
-16. continues to the next eligible slice without waiting for ceremonial
+16. retains the closed exact-head metrics record and publishes its bounded
+    receipt to the recorded PR, or explicitly to the issue; an exhausted
+    bounded retry is recorded as telemetry debt rather than rewriting product
+    evidence;
+17. continues to the next eligible slice without waiting for ceremonial
     approval, but stops before release, publication, `main` promotion,
     repository administration, security disclosure or consumer adoption unless
     explicitly authorized by the responsible human.

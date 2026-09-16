@@ -152,3 +152,11 @@ After this factory is merged to `develop`, create a separate small issue and
 OpenSpec change, launch it through `./bootstrap.sh --pi`, and capture bounded
 metrics. Any harness tuning is a follow-up issue driven by that evidence. The
 canary does not activate `main` or waive ordinary review and CI.
+
+At terminal closeout, the supervisor first finalizes the closed metrics JSON,
+then runs `scripts/factory metrics publish --file <record> --issue N --target
+auto --execute`. The command retains or confirms the local exact-head record
+before creating or updating the bounded PR comment; it falls back to the issue
+when the record has no PR. Use `--target issue` for an explicit issue receipt.
+If the bounded retry is exhausted, record visible telemetry debt and preserve
+the local record; do not reinterpret independent product gates.

@@ -19,7 +19,9 @@ scripts/factory metrics template --issue 123 --schema-version 1 > /tmp/metric-v1
 scripts/factory metrics validate --file /tmp/metric.json --current-head
 scripts/factory metrics write --file /tmp/metric.json
 scripts/factory metrics render --file /tmp/metric.json
-scripts/factory metrics publish --file /tmp/metric.json --issue 123 --execute
+scripts/factory metrics publish --file /tmp/metric.json --issue 123 --target auto --execute
+# Explicit issue receipt or historical backfill:
+scripts/factory metrics publish --file /tmp/metric.json --issue 123 --target issue --execute
 ```
 
 Version 2 distinguishes:
@@ -40,15 +42,27 @@ value has a null reason. An unavailable value is null and uses one closed reason
 `not-applicable`. Zero is valid only when it was measured exactly.
 
 Input files are byte-bounded regular non-symlink JSON with duplicate fields
-rejected. Closed objects reject extra fields, attempt counters are checked
-against per-check history, and publication requires the current exact head. A
-non-null PR is also checked at its exact hosted head before publication.
+rejected. Closed objects reject extra fields, and attempt counters are checked
+against per-check history. `write` requires the current exact head. Publication
+of a PR-backed record instead verifies the issue, PR and exact hosted PR head,
+so a retained record can be published after merge without checking out its old
+commit. A record without a PR remains current-head-only.
 
 Public output contains allowlisted aggregates and one bounded hidden canonical
-payload using the record version's marker. Publication creates or updates only
-the authenticated publisher's unique comment with that same marker, so a v2
-publication never overwrites retained v1 evidence. Multiple matching owned
-comments fail closed.
+payload using the record version's marker. Publication defaults to the recorded
+PR and falls back to the issue; `--target issue` is the explicit issue-level or
+backfill override, while `--target pull-request` requires a recorded PR. Before
+the first remote mutation, the command atomically retains or confirms the exact
+private record. It then creates or updates only the authenticated publisher's
+unique comment with that same marker, so a v2 publication never overwrites
+retained v1 evidence. Multiple matching owned comments fail closed.
+
+A comment create or update receives at most one immediate retry. If both
+attempts fail, the local record remains authoritative and the command reports
+visible telemetry debt. The supervisor records that debt at closeout without
+turning otherwise independent build, test or review evidence into a failure.
+Re-running the same command is idempotent: equal local content is confirmed and
+the publisher's unique versioned comment is updated rather than duplicated.
 
 Prompts, messages, transcripts, session/response/tool identifiers, credentials,
 secret material, commands, raw output, provider/model data and cost or billing
@@ -56,6 +70,14 @@ data are forbidden. Pi content-bearing files remain private and are reduced to
 [`pi-usage-v1`](pi-usage-v1.schema.json) counters before metrics ingestion.
 Unknown counters are null; they are never estimated as zero. The private store
 has a 90-day policy, but pruning remains a separate explicit maintenance task.
+
+## Terminal closeout
+
+For every completed production-ready item, validate the closed metric file,
+publish it with `--target auto`, and keep the returned public comment as the
+derivative receipt. Use `--target issue` when an issue is the requested durable
+reporting surface. Historical backfill reads only the bounded metric JSON; it
+must never inspect or publish Pi sessions, events, prompts or transcripts.
 
 ## Delivery-line interpretation
 

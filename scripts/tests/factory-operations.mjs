@@ -24,9 +24,14 @@ import { checkUserPolicy, mergePolicy, policyMismatches } from "../factory-tools
 import { auditPi } from "../factory-tools/audit-pi.mjs";
 import {
   metricTemplate,
+  publishMetric,
   readMetricFile,
   renderMetric,
+  resolveMetricPublicationTarget,
+  retainMetricRecord,
+  runMetricPublicationMutation,
   selectOwnedMetricComment,
+  validateHostedMetricIdentity,
   validateMetric,
 } from "../factory-tools/metrics.mjs";
 import { harvestPiUsage, validateUsageAggregate } from "../factory-tools/pi-session-harvest.mjs";
@@ -731,6 +736,207 @@ test("metrics v1 and v2 are closed, versioned and publication-safe", () => {
     () => selectOwnedMetricComment([...comments, comments[1]], "factory", "sdk-rust-factory-metrics:v2"),
     /multiple owned/u,
   );
+});
+
+test("equal private metric retention is idempotent", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-metric-retention-"));
+  const directory = realpathSync(created);
+  try {
+    chmodSync(directory, 0o700);
+    const target = path.join(directory, "metric.json");
+    assert.equal(retainMetricRecord(target, metric), target);
+    const retained = readFileSync(target, "utf8");
+    const reordered = Object.fromEntries(Object.entries(metric).reverse());
+    assert.equal(retainMetricRecord(target, reordered), target);
+    assert.equal(readFileSync(target, "utf8"), retained);
+    assert.equal((lstatSync(target).mode & 0o077), 0);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("conflicting private metric retention fails without replacing the record", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-metric-conflict-"));
+  const directory = realpathSync(created);
+  try {
+    chmodSync(directory, 0o700);
+    const target = path.join(directory, "metric.json");
+    retainMetricRecord(target, metric);
+    const retained = readFileSync(target, "utf8");
+    assert.throws(
+      () => retainMetricRecord(target, { ...metric, durationSeconds: metric.durationSeconds + 1 }),
+      /conflicts with exact record/u,
+    );
+    assert.equal(readFileSync(target, "utf8"), retained);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("metric publication routes PR-first and validates hosted historical identity", () => {
+  const pullRequestMetric = { ...metric, pullRequest: 244 };
+  assert.deepEqual(resolveMetricPublicationTarget(pullRequestMetric), { kind: "pull-request", number: 244 });
+  assert.deepEqual(resolveMetricPublicationTarget(pullRequestMetric, "issue"), { kind: "issue", number: 243 });
+  assert.deepEqual(resolveMetricPublicationTarget(metric), { kind: "issue", number: 243 });
+  assert.throws(() => resolveMetricPublicationTarget(metric, "pull-request"), /requires a recorded pull request/u);
+  assert.throws(() => resolveMetricPublicationTarget(metric, "unknown"), /target must be/u);
+
+  assert.doesNotThrow(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: { number: 244, headRefOid: sha },
+    currentHead: "b".repeat(40),
+  }));
+  assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: { number: 244, headRefOid: "b".repeat(40) },
+  }), /exact hosted head/u);
+  assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243, pull_request: {} },
+    pullRequest: { number: 244, headRefOid: sha },
+  }), /authoritative repository issue/u);
+  assert.doesNotThrow(() => validateHostedMetricIdentity(metric, {
+    issue: { number: 243 },
+    currentHead: sha,
+  }));
+  assert.throws(() => validateHostedMetricIdentity(metric, {
+    issue: { number: 243 },
+    currentHead: "b".repeat(40),
+  }), /current exact HEAD/u);
+});
+
+test("metric publication retains locally before one bounded public mutation retry", () => {
+  const events = [];
+  let createAttempts = 0;
+  const github = {
+    readIssue(number) {
+      events.push(`read-issue:${number}`);
+      return { number };
+    },
+    readPullRequest() {
+      throw new Error("not expected");
+    },
+    readLogin() {
+      events.push("read-login");
+      return "factory";
+    },
+    readComments(number) {
+      events.push(`read-comments:${number}`);
+      return [];
+    },
+    updateComment() {
+      throw new Error("not expected");
+    },
+    createComment(number, body) {
+      createAttempts += 1;
+      events.push(`create:${number}:${createAttempts}`);
+      assert.match(body, /sdk-rust-factory-metrics:v1/u);
+      if (createAttempts === 1) throw new Error("private remote failure");
+    },
+  };
+  const target = publishMetric(metric, {
+    issue: 243,
+    requestedTarget: "issue",
+    execute: true,
+    currentHead: sha,
+    github,
+    persist() {
+      events.push("persist");
+    },
+  });
+  assert.deepEqual(target, { kind: "issue", number: 243 });
+  assert.equal(createAttempts, 2);
+  assert.ok(events.indexOf("persist") < events.indexOf("create:243:1"));
+  let debt;
+  try {
+    runMetricPublicationMutation(() => { throw new Error("private remote failure"); });
+  } catch (error) {
+    debt = error;
+  }
+  assert.match(debt.message, /telemetry debt after bounded retry/u);
+  assert.doesNotMatch(debt.message, /private remote failure/u);
+});
+
+test("metric publication updates one owned PR comment and rejects unsafe execution", () => {
+  const pullRequestMetric = { ...metric, pullRequest: 244 };
+  const events = [];
+  const github = {
+    readIssue: (number) => ({ number }),
+    readPullRequest: (number) => ({ number, headRefOid: sha }),
+    readLogin: () => "factory",
+    readComments: (number) => {
+      events.push(`comments:${number}`);
+      return [{ id: 17, user: { login: "factory" }, body: "<!-- sdk-rust-factory-metrics:v1:old -->" }];
+    },
+    updateComment: (number) => events.push(`update:${number}`),
+    createComment: () => { throw new Error("not expected"); },
+  };
+  assert.throws(() => publishMetric(pullRequestMetric, {
+    issue: 243,
+    execute: false,
+    currentHead: sha,
+    github,
+  }), /requires --execute/u);
+  const target = publishMetric(pullRequestMetric, {
+    issue: 243,
+    execute: true,
+    currentHead: "b".repeat(40),
+    github,
+    persist: () => events.push("persist"),
+  });
+  assert.deepEqual(target, { kind: "pull-request", number: 244 });
+  assert.deepEqual(events, ["persist", "comments:244", "update:17"]);
+});
+
+test("metric publication recovers an accepted create without duplicating the comment", () => {
+  let createdBody = null;
+  let commentReads = 0;
+  let createAttempts = 0;
+  const github = {
+    readIssue: (number) => ({ number }),
+    readPullRequest: () => { throw new Error("not expected"); },
+    readLogin: () => "factory",
+    readComments: () => {
+      commentReads += 1;
+      return commentReads === 1
+        ? []
+        : [{ id: 19, user: { login: "factory" }, body: createdBody }];
+    },
+    updateComment: () => { throw new Error("not expected"); },
+    createComment: (_number, body) => {
+      createAttempts += 1;
+      createdBody = body;
+      throw new Error("response lost after accepted create");
+    },
+  };
+  publishMetric(metric, {
+    issue: 243,
+    execute: true,
+    currentHead: sha,
+    github,
+    persist: () => {},
+  });
+  assert.equal(createAttempts, 1);
+  assert.equal(commentReads, 2);
+});
+
+test("metric publication stops before remote mutation when local retention conflicts", () => {
+  let mutations = 0;
+  const github = {
+    readIssue: (number) => ({ number }),
+    readPullRequest: () => { throw new Error("not expected"); },
+    readLogin: () => "factory",
+    readComments: () => [],
+    updateComment: () => { mutations += 1; },
+    createComment: () => { mutations += 1; },
+  };
+  assert.throws(() => publishMetric(metric, {
+    issue: 243,
+    execute: true,
+    currentHead: sha,
+    github,
+    persist: () => { throw new Error("existing private metric record conflicts with exact record"); },
+  }), /conflicts with exact record/u);
+  assert.equal(mutations, 0);
 });
 
 test("metric file ingestion rejects duplicate, oversized and symlinked payloads", () => {

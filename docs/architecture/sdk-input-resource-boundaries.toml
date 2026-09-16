@@ -294,7 +294,7 @@ id               = "jose-compact-and-proof-jwt"
 package          = "identus-jose"
 surface          = "JWS Compact parsing, protected headers, OID4VCI proof JWTs and signature-suite registry"
 disposition      = "sdk-enforced"
-limits           = [ "DEFAULT_MAX_COMPACT_BYTES=65536", "DEFAULT_MAX_PROTECTED_HEADER_BYTES=4096", "DEFAULT_MAX_PAYLOAD_BYTES=49152", "DEFAULT_MAX_SIGNATURE_BYTES=1024", "MAX_X5C_CERTIFICATES=8", "MAX_TRUST_CHAIN_ENTRIES=8", "MAX_SIGNATURE_SUITES=16" ]
+limits           = [ "DEFAULT_MAX_COMPACT_BYTES=65536", "DEFAULT_MAX_PROTECTED_HEADER_BYTES=4096", "DEFAULT_MAX_PAYLOAD_BYTES=49152", "DEFAULT_MAX_SIGNATURE_BYTES=1024", "DEFAULT_MAX_HEADER_STRING_BYTES=2048", "DEFAULT_MAX_PROOF_CLAIM_STRING_BYTES=2048", "MAX_X5C_CERTIFICATES=8", "MAX_TRUST_CHAIN_ENTRIES=8", "MAX_SIGNATURE_SUITES=16" ]
 evidence         = [ "crates/jose/src/limits.rs", "crates/jose/src/compact.rs", "crates/jose/src/header.rs", "crates/jose/src/oid4vci.rs", "crates/jose/src/signature.rs" ]
 outer_obligation = "The enclosing transport allocates compact/header text before parser entry."
 consumer_impact  = "JOSE decoding and retained values are bounded; callers bound response/request transport bytes first."

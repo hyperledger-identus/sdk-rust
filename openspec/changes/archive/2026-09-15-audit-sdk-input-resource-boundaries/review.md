@@ -98,3 +98,9 @@ inventory now has 36 cohesive families and names every public resource constant
 declared by implemented packages. The bounded offline checker scans those
 package sources and fails on any future omission; its mutation suite proves the
 new failure mode. Verification-only packages remain outside runtime coverage.
+
+A final matcher review found two `DEFAULT_MAX_` JOSE constants outside the
+initial `MAX_`/`MIN_` prefix rule. Discovery now recognizes those tokens as name
+segments, and the JOSE row includes header-string and proof-claim-string limits.
+A broad repository comparison leaves only the verification-only conformance
+crate outside the runtime inventory, as intended.

@@ -36,8 +36,9 @@ calling it unbounded SDK behavior.
 ## Audit result
 
 - Every implemented runtime package has at least one boundary-family row.
-- All public `MAX_`/`MIN_` resource constants declared by implemented package
-  source are named by an inventory limit; the checker enforces this coverage.
+- All public resource constants with `MAX_`/`MIN_` name segments—including
+  `DEFAULT_MAX_`—declared by implemented package source are named by an
+  inventory limit; the checker enforces this coverage.
 - Core, credential, presentation, JOSE, OID4VCI and wallet retained values have
   explicit fixed or configurable limits. DID values do as well except for the
   explicitly inventoried historical `Multihash` compatibility placeholder.
@@ -81,6 +82,6 @@ Update the machine inventory atomically when:
 - a concrete adapter moves resource ownership into the SDK.
 
 The offline checker proves structure, exact implemented-package and public
-resource-constant coverage, evidence existence and limit/disposition coherence.
+resource-limit-constant coverage, evidence existence and limit/disposition coherence.
 It cannot prove Rust semantics. Every qualifying change still requires
 architecture/security review under `SDK-SEC-003`.

@@ -79,6 +79,13 @@ suite verifies a removed public limit fails with the package and constant name.
 The complete compatible `nix flake check --fallback` closure passes after the
 checker and 36-family inventory change.
 
+The public-limit scan was then widened from a leading `MAX_`/`MIN_` token to
+those name segments, covering `DEFAULT_MAX_`. Both previously omitted JOSE
+constants are inventoried; a broad repository comparison has no remaining
+implemented-runtime omissions. The focused checker/mutations, complete factory
+contract, and compatible `nix flake check --fallback` closure pass after the
+widened matcher.
+
 ## Repository boundary
 
 No downstream repository was edited, switched, copied from, or built. No

@@ -53,9 +53,10 @@ the complete native family.
 
 ### Requirement: Public resource constants remain inventoried
 
-The offline checker SHALL scan implemented package source for public `MAX_` and
-`MIN_` resource constants and require each name to appear in that package's
-inventory limits. The scan SHALL remain bounded, offline, and symlink-safe.
+The offline checker SHALL scan implemented package source for public resource
+constants with `MAX_` or `MIN_` name segments, including `DEFAULT_MAX_`, and
+require each name to appear in that package's inventory limits. The scan SHALL
+remain bounded, offline, and symlink-safe.
 
 #### Scenario: A public resource constant is omitted
 

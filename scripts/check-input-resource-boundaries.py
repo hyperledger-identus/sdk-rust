@@ -47,7 +47,7 @@ REVISION = re.compile(r"[0-9a-f]{40}\Z")
 ISSUE = re.compile(r"#[1-9][0-9]*\Z")
 LIMIT = re.compile(r"[A-Za-z][A-Za-z0-9_]*=(?:[1-9][0-9]*|explicit)\Z")
 PUBLIC_RESOURCE_LIMIT = re.compile(
-    rb"(?m)^pub const ((?:MAX|MIN)_[A-Z0-9_]+)\s*:"
+    rb"(?m)^pub const ((?:[A-Z0-9]+_)*(?:MAX|MIN)_[A-Z0-9_]+)\s*:"
 )
 
 

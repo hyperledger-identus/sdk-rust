@@ -35,8 +35,9 @@ work, or requires a public compatibility migration.
 
 #### Scenario: A public resource constant is omitted
 
-- **WHEN** an implemented package declares a public `MAX_` or `MIN_` resource
-  constant that no inventory limit names
+- **WHEN** an implemented package declares a public resource constant with a
+  `MAX_` or `MIN_` name segment, including `DEFAULT_MAX_`, that no inventory
+  limit names
 - **THEN** offline validation fails and names the package and omitted constant
 
 ### Requirement: Residual resource ownership remains explicit

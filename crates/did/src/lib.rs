@@ -12,6 +12,8 @@ mod dereference;
 mod did;
 mod document;
 pub mod error;
+#[cfg_attr(not(test), allow(dead_code))]
+mod json_cleanup;
 pub mod method;
 mod multibase;
 pub mod multihash;

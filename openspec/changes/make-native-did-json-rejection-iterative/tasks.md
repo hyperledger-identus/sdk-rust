@@ -9,7 +9,7 @@
 
 ## 2. Shared implementation
 
-- [ ] 2.1 Add the crate-private generic rejection guard and sole iterative JSON
+- [x] 2.1 Add the crate-private generic rejection guard and sole iterative JSON
       dismantler with focused unit evidence.
 - [ ] 2.2 Protect document and service/method native rejection paths.
 - [ ] 2.3 Protect resolution, dereferencing metadata/content, and metadata

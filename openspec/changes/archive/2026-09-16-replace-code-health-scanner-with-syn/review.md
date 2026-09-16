@@ -142,5 +142,9 @@
 ## Result
 
 No unresolved local architecture, security, privacy, compatibility, API or
-operations finding remains. Hosted exact-head confirmation is pending. The
-one-time v1/v2 comparison remains exact against the durable source revision.
+operations finding remains. Every concrete finding from the hosted review at
+`948b977c6e314023284ef6a00fd13c33aa122c46` is resolved by implementation
+`2663dc728b4289077dd032572f5acee93479e407`; all review threads are resolved.
+At the maintainer's direction, further speculative review iterations move to
+follow-up issue #301 rather than extending PR #300. The one-time v1/v2
+comparison remains exact against the durable source revision.

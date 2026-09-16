@@ -115,6 +115,10 @@ per-file authored nonblank delta. The exhaustive comparison and the intentional
 
 ## Hosted evidence
 
-The pull-request number, exact hosted head, required-check results and review
-resolution are added before archival and merge. Protected `develop` remains
-the authoritative integration gate.
+PR #300 exact head `d9aceb63d5ed7454c36b6442f09a64beb12fba2e`
+passed all seven required checks. The fast lane completed in 7m03s. Every
+concrete finding from the hosted review at `948b977c` is resolved by
+`2663dc728b4289077dd032572f5acee93479e407`, and all review threads are
+resolved. At the maintainer's direction, additional non-blocking hardening is
+tracked in issue #301 rather than extending the PR review thread. Protected
+`develop` remains the authoritative integration gate.

@@ -3,3 +3,9 @@ capability       = "crypto"
 requirement      = "Public crypto text parsing has one explicit byte boundary"
 canonical_sha256 = "be09bc67ab384069590cc908e40f9aa9449893945a4961680337049593c5cb19"
 reason           = "Issue #298 intentionally replaces the caller-budgeted infallible encoding scenario with a bounded fallible byte-construction contract while preserving parser behavior and every unrelated scenario."
+
+[[modified_requirement]]
+capability       = "sdk-input-resource-governance"
+requirement      = "Known unbounded compatibility retention remains explicit"
+canonical_sha256 = "17375494f5b8a0a6140e1c4d43b55ac5b6ff7b9df5d4e31498e1b642413c58d4"
+reason           = "Issue #298 removes only the obsolete infallible crypto-codec scenario after the public bypass is replaced by bounded construction; the Multihash and JOSE compatibility obligations remain unchanged."

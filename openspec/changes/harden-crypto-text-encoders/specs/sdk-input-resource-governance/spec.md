@@ -22,12 +22,28 @@ unbounded infallible encoding path remains and exact boundary evidence passes.
 - **THEN** the inventory checker or review SHALL fail and the limitation SHALL
   be restored immediately
 
-## REMOVED Requirements
+## MODIFIED Requirements
 
-### Requirement: Infallible crypto encoders remain caller-bounded
+### Requirement: Known unbounded compatibility retention remains explicit
 
-**Reason:** Issue #298 removes the blanket public encoding bypass and replaces
-it with checked construction.
+An implemented SDK type SHALL have a distinct
+`known-unbounded-compatibility` inventory row when it retains unbounded caller
+input for public compatibility. The row SHALL name the exact public surface,
+source evidence, consumer guard, migration trigger, and effective limitation.
+It SHALL NOT be
+misrepresented as bounded, non-retaining, or protected by an outer allocator.
 
-**Migration:** Replace `Type::from(bytes)` with
-`Type::try_from_bytes(bytes)?` or an applicable `TryFrom` conversion.
+#### Scenario: Historical Multihash placeholder is inspected
+
+- **WHEN** an agent audits `identus_did::Multihash`
+- **THEN** the inventory and `SDK-LIM-007` SHALL disclose its unbounded opaque
+  byte retention and require consumers to bound input before construction or
+  serde until an explicit migration replaces the compatibility contract
+
+#### Scenario: Direct JOSE retained enums are inspected
+
+- **WHEN** an agent audits direct `JwsKeyReference::KeyId`/`X5c` or
+  `Oid4vciProofJwtClient::Identified` construction
+- **THEN** the inventory and `SDK-LIM-007` SHALL disclose arbitrary retained
+  strings or collection cardinality and require caller validation until issue
+  #299 makes those retained values opaque and validated

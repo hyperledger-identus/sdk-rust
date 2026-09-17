@@ -1,0 +1,11 @@
+[[modified_requirement]]
+capability = "dependency-research-readiness"
+requirement = "Compiler-floor selection is phase-appropriate and measurable"
+canonical_sha256 = "c12f8b1a6b1d4980c54acc03d24ac2ce630861d995c8cb2c8b11e4484f607715"
+reason = "The temporary active-development floor is intentionally replaced by the selected release-candidate MSRV and maintenance policy."
+
+[[modified_requirement]]
+capability = "sdk-support-policy"
+requirement = "Release-candidate compiler and CI lanes"
+canonical_sha256 = "3c3996c0833bd5630a1d7c324aa5b8eb000e2c66777f2c542bcba08b2a6919b8"
+reason = "Release-candidate preparation triggers ADR 0081's mandatory replacement with independently proven primary and MSRV lanes."

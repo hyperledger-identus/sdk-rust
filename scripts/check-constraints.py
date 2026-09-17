@@ -207,6 +207,15 @@ def validate_index(root: Path) -> list[str]:
         failures.append(
             "SDK-COMPAT-003 effective state requires an activated release-candidate policy"
         )
+    if (
+        target_msrv is not None
+        and support_policy is not None
+        and support_policy.get("ci", {}).get("release_candidate_eligible") is True
+        and target_msrv.get("state") != "effective"
+    ):
+        failures.append(
+            "activated release-candidate policy requires SDK-COMPAT-003 to be effective"
+        )
     if effective_msrv is not None and support_policy is not None:
         value_source = effective_msrv.get("value_source")
         if not nonempty_string(value_source):

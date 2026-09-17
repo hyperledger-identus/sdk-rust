@@ -166,6 +166,19 @@ class ConstraintGovernanceTests(unittest.TestCase):
             any("requires an activated release-candidate policy" in item for item in self.failures())
         )
 
+    def test_activated_release_policy_requires_effective_target(self) -> None:
+        (self.root / "docs/architecture/sdk-support-policy.toml").write_text(
+            '[toolchains]\nmsrv = "1.85.0"\n[ci]\nrelease_candidate_eligible = true\n',
+            encoding="utf-8",
+        )
+        self.assertTrue(
+            any(
+                "activated release-candidate policy requires SDK-COMPAT-003 to be effective"
+                in item
+                for item in self.failures()
+            )
+        )
+
     def test_target_cannot_claim_existing_activation(self) -> None:
         self.write_index(target_activation="Already effective through an ADR.")
         self.assertTrue(

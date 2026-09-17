@@ -64,7 +64,7 @@ active-development compiler and compatibility etalon.
 
 Constructors validate byte length before retaining a new accepted value. X.509
 construction rejects empty chains, cardinality above eight, empty/oversized or
-non-canonical standard-base64 entries before wrapping the caller-owned vector.
+malformed standard-base64 entries before wrapping the caller-owned vector.
 Values accepted under one limit are revalidated when used under a tighter
 builder/parser limit. Errors and `Debug` expose only static classifications or
 cardinality, never key identifiers, client identifiers, certificates, compact

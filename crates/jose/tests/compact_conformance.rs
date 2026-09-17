@@ -7,8 +7,8 @@ use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use identus_core::IdentusError;
 use identus_crypto::{JwkCurve, PublicKeyJwk};
 use identus_jose::{
-    JoseError, JwsKeyReference, JwsLimits, JwsSigningInput, MAX_X5C_CERTIFICATES, ProtectedHeader,
-    UnverifiedCompactJws,
+    JoseError, JwsKeyId, JwsKeyReference, JwsLimits, JwsSigningInput, JwsX5c, MAX_X5C_CERTIFICATES,
+    ProtectedHeader, UnverifiedCompactJws,
 };
 
 const RFC_HEADER: &str = "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9";
@@ -210,9 +210,14 @@ fn rejects_invalid_closed_protected_headers() {
 fn protected_headers_round_trip_one_exclusive_public_key_reference() {
     let jwk = PublicKeyJwk::new_okp(JwkCurve::Ed25519, [7; 32]).expect("public JWK");
     let references = [
-        JwsKeyReference::KeyId("did:example:holder#key-1".to_owned()),
+        JwsKeyReference::key_id("did:example:holder#key-1", JwsLimits::default())
+            .expect("bounded key ID"),
         JwsKeyReference::Jwk(jwk),
-        JwsKeyReference::X5c(vec!["AQID".to_owned(), "BAUG".to_owned()]),
+        JwsKeyReference::x5c(
+            vec!["AQID".to_owned(), "BAUG".to_owned()],
+            JwsLimits::default(),
+        )
+        .expect("bounded x5c"),
     ];
 
     for key_reference in references {
@@ -231,6 +236,42 @@ fn protected_headers_round_trip_one_exclusive_public_key_reference() {
             .expect("parse emitted header");
         assert_eq!(parsed.protected_header(), &header);
     }
+}
+
+#[test]
+fn retained_key_reference_payloads_are_bounded_opaque_and_revalidated() {
+    let exact_limits = JwsLimits::new(65_536, 4_096, 64, 64, 8).expect("exact limits");
+    let key_canary = "KID-1234";
+    let key_id = JwsKeyId::new(key_canary, exact_limits).expect("exact key ID");
+    assert_eq!(key_id.as_str(), key_canary);
+    assert!(!format!("{key_id:?}").contains(key_canary));
+    assert_eq!(
+        JwsKeyId::new("KID-12345", exact_limits),
+        Err(JoseError::InvalidHeaderValue)
+    );
+
+    let certificates = vec!["AQID".to_owned(); MAX_X5C_CERTIFICATES];
+    let x5c = JwsX5c::new(certificates.clone(), exact_limits).expect("eight certificates");
+    assert_eq!(x5c.as_slice(), certificates);
+    assert!(!format!("{x5c:?}").contains("AQID"));
+    for invalid in [
+        Vec::new(),
+        vec!["AQID".to_owned(); MAX_X5C_CERTIFICATES + 1],
+        vec!["not base64!".to_owned()],
+        vec!["AQIDAQIDAAAA".to_owned()],
+    ] {
+        assert_eq!(
+            JwsX5c::new(invalid, exact_limits),
+            Err(JoseError::InvalidHeaderValue)
+        );
+    }
+
+    let roomy_limits = JwsLimits::new(65_536, 4_096, 64, 64, 16).expect("roomy limits");
+    let reference = JwsKeyReference::key_id("nine-byte", roomy_limits).expect("roomy key ID");
+    assert_eq!(
+        ProtectedHeader::with_key_reference("Ed25519", None, Some(reference), exact_limits,),
+        Err(JoseError::InvalidHeaderValue)
+    );
 }
 
 #[test]
@@ -275,22 +316,12 @@ fn protected_headers_reject_ambiguous_or_unsafe_key_references() {
     }
 
     assert_eq!(
-        ProtectedHeader::with_key_reference(
-            "Ed25519",
-            None,
-            Some(JwsKeyReference::X5c(Vec::new())),
-            JwsLimits::default(),
-        ),
+        JwsKeyReference::x5c(Vec::new(), JwsLimits::default()),
         Err(JoseError::InvalidHeaderValue)
     );
     assert_eq!(
-        ProtectedHeader::with_key_reference(
-            "Ed25519",
-            None,
-            Some(JwsKeyReference::X5c(vec![
-                "AQID".to_owned();
-                MAX_X5C_CERTIFICATES + 1
-            ])),
+        JwsKeyReference::x5c(
+            vec!["AQID".to_owned(); MAX_X5C_CERTIFICATES + 1],
             JwsLimits::default(),
         ),
         Err(JoseError::InvalidHeaderValue)
@@ -298,12 +329,7 @@ fn protected_headers_reject_ambiguous_or_unsafe_key_references() {
     let header_smaller_than_string =
         JwsLimits::new(65_536, 8, 64, 64, 1_024).expect("separate header bounds");
     assert_eq!(
-        ProtectedHeader::with_key_reference(
-            "Ed25519",
-            None,
-            Some(JwsKeyReference::X5c(vec!["AQIDAQIDAQID".to_owned()])),
-            header_smaller_than_string,
-        ),
+        JwsKeyReference::x5c(vec!["AQIDAQIDAQID".to_owned()], header_smaller_than_string),
         Err(JoseError::InvalidHeaderValue)
     );
 }

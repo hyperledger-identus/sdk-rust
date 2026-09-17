@@ -23,15 +23,107 @@ pub const MAX_X5C_CERTIFICATES: usize = 8;
 /// Maximum number of entity statements accepted in one protected trust chain.
 pub const MAX_TRUST_CHAIN_ENTRIES: usize = 8;
 
+/// An opaque bounded caller-interpreted JWS key identifier.
+///
+/// Raw strings cannot bypass validation:
+///
+/// ```compile_fail
+/// use identus_jose::JwsKeyReference;
+///
+/// let _ = JwsKeyReference::KeyId("unbounded".to_owned());
+/// ```
+#[derive(Clone, PartialEq, Eq)]
+pub struct JwsKeyId(String);
+
+impl JwsKeyId {
+    /// Validate and retain a key identifier under the supplied limits.
+    pub fn new(value: impl AsRef<str>, limits: JwsLimits) -> Result<Self, JoseError> {
+        let value = value.as_ref();
+        if !valid_optional(value, limits) {
+            return Err(JoseError::InvalidHeaderValue);
+        }
+        Ok(Self(value.to_owned()))
+    }
+
+    /// Borrow the exact key identifier.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    fn is_valid_for(&self, limits: JwsLimits) -> bool {
+        valid_optional(&self.0, limits)
+    }
+}
+
+impl fmt::Debug for JwsKeyId {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("JwsKeyId(..)")
+    }
+}
+
+/// An opaque bounded leaf-first X.509 certificate chain.
+///
+/// Raw vectors cannot bypass validation:
+///
+/// ```compile_fail
+/// use identus_jose::JwsKeyReference;
+///
+/// let _ = JwsKeyReference::X5c(vec!["AQID".to_owned()]);
+/// ```
+#[derive(Clone, PartialEq, Eq)]
+pub struct JwsX5c(Vec<String>);
+
+impl JwsX5c {
+    /// Validate and retain standard-base64 certificates under the supplied limits.
+    pub fn new(certificates: Vec<String>, limits: JwsLimits) -> Result<Self, JoseError> {
+        if !valid_x5c(&certificates, limits) {
+            return Err(JoseError::InvalidHeaderValue);
+        }
+        Ok(Self(certificates))
+    }
+
+    /// Borrow the exact standard-base64 certificate strings.
+    #[must_use]
+    pub fn as_slice(&self) -> &[String] {
+        &self.0
+    }
+
+    fn is_valid_for(&self, limits: JwsLimits) -> bool {
+        valid_x5c(&self.0, limits)
+    }
+}
+
+impl fmt::Debug for JwsX5c {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_tuple("JwsX5c")
+            .field(&self.0.len())
+            .finish()
+    }
+}
+
 /// One exclusive public key reference carried by a protected JWS header.
 #[derive(Clone, PartialEq, Eq)]
 pub enum JwsKeyReference {
     /// A caller-interpreted key identifier.
-    KeyId(String),
+    KeyId(JwsKeyId),
     /// A validated public-only JSON Web Key.
     Jwk(PublicKeyJwk),
     /// A leaf-first X.509 certificate chain encoded with standard base64.
-    X5c(Vec<String>),
+    X5c(JwsX5c),
+}
+
+impl JwsKeyReference {
+    /// Validate and construct a key-identifier reference.
+    pub fn key_id(value: impl AsRef<str>, limits: JwsLimits) -> Result<Self, JoseError> {
+        JwsKeyId::new(value, limits).map(Self::KeyId)
+    }
+
+    /// Validate and construct an X.509-chain reference.
+    pub fn x5c(certificates: Vec<String>, limits: JwsLimits) -> Result<Self, JoseError> {
+        JwsX5c::new(certificates, limits).map(Self::X5c)
+    }
 }
 
 impl fmt::Debug for JwsKeyReference {
@@ -41,7 +133,7 @@ impl fmt::Debug for JwsKeyReference {
             Self::Jwk(_) => formatter.write_str("JwsKeyReference::Jwk(..)"),
             Self::X5c(values) => formatter
                 .debug_tuple("JwsKeyReference::X5c")
-                .field(&values.len())
+                .field(&values.as_slice().len())
                 .finish(),
         }
     }
@@ -70,10 +162,9 @@ impl ProtectedHeader {
         key_id: Option<&str>,
         limits: JwsLimits,
     ) -> Result<Self, JoseError> {
-        if key_id.is_some_and(|value| !valid_optional(value, limits)) {
-            return Err(JoseError::InvalidHeaderValue);
-        }
-        let key_reference = key_id.map(|value| JwsKeyReference::KeyId(value.to_owned()));
+        let key_reference = key_id
+            .map(|value| JwsKeyReference::key_id(value, limits))
+            .transpose()?;
         Self::with_key_reference(algorithm, type_, key_reference, limits)
     }
 
@@ -129,7 +220,7 @@ impl ProtectedHeader {
     /// Optional key identifier. It has not been resolved or authorized.
     pub fn key_id(&self) -> Option<&str> {
         match &self.key_reference {
-            Some(JwsKeyReference::KeyId(value)) => Some(value),
+            Some(JwsKeyReference::KeyId(value)) => Some(value.as_str()),
             _ => None,
         }
     }
@@ -150,7 +241,7 @@ impl ProtectedHeader {
     /// Borrow a leaf-first encoded X.509 chain, when selected.
     pub fn certificate_chain(&self) -> Option<&[String]> {
         match &self.key_reference {
-            Some(JwsKeyReference::X5c(value)) => Some(value),
+            Some(JwsKeyReference::X5c(value)) => Some(value.as_slice()),
             _ => None,
         }
     }
@@ -231,9 +322,9 @@ impl Serialize for ProtectedHeader {
             state.serialize_field("typ", type_)?;
         }
         match &self.key_reference {
-            Some(JwsKeyReference::KeyId(value)) => state.serialize_field("kid", value)?,
+            Some(JwsKeyReference::KeyId(value)) => state.serialize_field("kid", value.as_str())?,
             Some(JwsKeyReference::Jwk(value)) => state.serialize_field("jwk", value)?,
-            Some(JwsKeyReference::X5c(value)) => state.serialize_field("x5c", value)?,
+            Some(JwsKeyReference::X5c(value)) => state.serialize_field("x5c", value.as_slice())?,
             None => {}
         }
         if let Some(value) = &self.key_attestation {
@@ -373,9 +464,9 @@ impl<'de> Visitor<'de> for RawProtectedHeaderVisitor {
             return Err(M::Error::custom(AMBIGUOUS_KEY_REFERENCE_MARKER));
         }
         let key_reference = key_id
-            .map(JwsKeyReference::KeyId)
+            .map(|value| JwsKeyReference::KeyId(JwsKeyId(value)))
             .or_else(|| jwk.map(JwsKeyReference::Jwk))
-            .or_else(|| x5c.map(JwsKeyReference::X5c));
+            .or_else(|| x5c.map(|value| JwsKeyReference::X5c(JwsX5c(value))));
         Ok(RawProtectedHeader {
             algorithm,
             type_,
@@ -503,18 +594,20 @@ where
 
 fn valid_key_reference(value: &JwsKeyReference, limits: JwsLimits) -> bool {
     match value {
-        JwsKeyReference::KeyId(value) => valid_optional(value, limits),
+        JwsKeyReference::KeyId(value) => value.is_valid_for(limits),
         JwsKeyReference::Jwk(_) => true,
-        JwsKeyReference::X5c(values) => {
-            !values.is_empty()
-                && values.len() <= MAX_X5C_CERTIFICATES
-                && values.iter().all(|value| {
-                    valid_optional(value, limits)
-                        && value.len() <= limits.max_protected_header_bytes()
-                        && STANDARD.decode(value).is_ok_and(|bytes| !bytes.is_empty())
-                })
-        }
+        JwsKeyReference::X5c(values) => values.is_valid_for(limits),
     }
+}
+
+fn valid_x5c(values: &[String], limits: JwsLimits) -> bool {
+    !values.is_empty()
+        && values.len() <= MAX_X5C_CERTIFICATES
+        && values.iter().all(|value| {
+            valid_optional(value, limits)
+                && value.len() <= limits.max_protected_header_bytes()
+                && STANDARD.decode(value).is_ok_and(|bytes| !bytes.is_empty())
+        })
 }
 
 pub(crate) fn valid_protected_evidence(

@@ -136,11 +136,46 @@ impl fmt::Debug for Oid4vciProofJwtEvidence {
     }
 }
 
+/// An opaque bounded OAuth client identifier for an OID4VCI proof JWT.
+///
+/// Raw strings cannot bypass validation:
+///
+/// ```compile_fail
+/// use identus_jose::Oid4vciProofJwtClient;
+///
+/// let _ = Oid4vciProofJwtClient::Identified("unbounded".to_owned());
+/// ```
+#[derive(Clone, PartialEq, Eq)]
+pub struct Oid4vciProofJwtClientId(String);
+
+impl Oid4vciProofJwtClientId {
+    /// Validate and retain a client identifier under the supplied limits.
+    pub fn new(value: impl AsRef<str>, limits: Oid4vciProofJwtLimits) -> Result<Self, JoseError> {
+        let value = value.as_ref();
+        if !valid_claim(value, limits) {
+            return Err(JoseError::InvalidProofClaims);
+        }
+        Ok(Self(value.to_owned()))
+    }
+
+    /// Borrow the exact client identifier.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Debug for Oid4vciProofJwtClientId {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("Oid4vciProofJwtClientId(..)")
+    }
+}
+
 /// Client identification mode for an OID4VCI key proof.
 #[derive(Clone, PartialEq, Eq)]
 pub enum Oid4vciProofJwtClient {
     /// Emit the supplied OAuth client identifier as the `iss` claim.
-    Identified(String),
+    Identified(Oid4vciProofJwtClientId),
     /// Omit `iss` for anonymous access in a pre-authorized-code flow.
     AnonymousPreAuthorized,
 }
@@ -151,16 +186,12 @@ impl Oid4vciProofJwtClient {
         client_id: impl AsRef<str>,
         limits: Oid4vciProofJwtLimits,
     ) -> Result<Self, JoseError> {
-        let client_id = client_id.as_ref();
-        if !valid_claim(client_id, limits) {
-            return Err(JoseError::InvalidProofClaims);
-        }
-        Ok(Self::Identified(client_id.to_owned()))
+        Oid4vciProofJwtClientId::new(client_id, limits).map(Self::Identified)
     }
 
     pub(crate) fn issuer(&self) -> Option<&str> {
         match self {
-            Self::Identified(value) => Some(value),
+            Self::Identified(value) => Some(value.as_str()),
             Self::AnonymousPreAuthorized => None,
         }
     }

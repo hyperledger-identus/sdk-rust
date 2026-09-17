@@ -4,7 +4,7 @@
 
 `JwsKeyId` privately owns one non-empty, control-free string within
 `JwsLimits::max_header_string_bytes`. `JwsX5c` privately owns one through eight
-non-empty canonical standard-base64 certificate strings, each within both the
+non-empty decodable standard-base64 certificate strings, each within both the
 header-string and protected-header ceilings. `Oid4vciProofJwtClientId` privately
 owns one non-empty, control-free string within
 `Oid4vciProofJwtLimits::max_claim_string_bytes`.

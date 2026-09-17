@@ -297,19 +297,19 @@ disposition      = "sdk-enforced"
 limits           = [ "DEFAULT_MAX_COMPACT_BYTES=65536", "DEFAULT_MAX_PROTECTED_HEADER_BYTES=4096", "DEFAULT_MAX_PAYLOAD_BYTES=49152", "DEFAULT_MAX_SIGNATURE_BYTES=1024", "DEFAULT_MAX_HEADER_STRING_BYTES=2048", "DEFAULT_MAX_PROOF_CLAIM_STRING_BYTES=2048", "MAX_X5C_CERTIFICATES=8", "MAX_TRUST_CHAIN_ENTRIES=8", "MAX_SIGNATURE_SUITES=16" ]
 evidence         = [ "crates/jose/src/limits.rs", "crates/jose/src/compact.rs", "crates/jose/src/header.rs", "crates/jose/src/oid4vci.rs", "crates/jose/src/signature.rs" ]
 outer_obligation = "The enclosing transport allocates compact/header text before parser entry."
-consumer_impact  = "Validated JOSE decoding, headers, proofs, and registries are bounded; callers bound transport bytes first and treat the separately inventoried direct enums as compatibility exceptions."
+consumer_impact  = "Validated JOSE decoding, native key-reference and proof-client construction, headers, proofs, and registries are bounded; callers still bound transport bytes first."
 review_triggers  = [ "new JOSE serialization", "new header collection", "new proof token" ]
 
 [[boundaries]]
 id               = "jose-direct-retained-enum-construction"
 package          = "identus-jose"
-surface          = "direct construction of JwsKeyReference KeyId/X5c and Oid4vciProofJwtClient Identified public enum variants"
-disposition      = "known-unbounded-compatibility"
-limits           = [  ]
-evidence         = [ "crates/jose/src/header.rs", "crates/jose/src/oid4vci.rs", "docs/adr/0125-govern-sdk-input-resource-boundaries.md" ]
-outer_obligation = "Callers must validate string bytes and X5c cardinality before retaining standalone enum values; later header/proof builders validate against configured limits but cannot undo prior retention."
-consumer_impact  = "Prefer validated constructors and do not expose direct variants to hostile input; issue #299 owns opaque validated migration."
-review_triggers  = [ "issue #299 migration", "JOSE enum visibility change", "new retained enum variant", "downstream adoption evidence" ]
+surface          = "opaque retained JwsKeyReference KeyId/X5c and Oid4vciProofJwtClient Identified public enum payloads"
+disposition      = "sdk-enforced"
+limits           = [ "DEFAULT_MAX_HEADER_STRING_BYTES=2048", "DEFAULT_MAX_PROOF_CLAIM_STRING_BYTES=2048", "MAX_X5C_CERTIFICATES=8" ]
+evidence         = [ "crates/jose/src/header.rs", "crates/jose/src/oid4vci.rs", "crates/jose/tests/compact_conformance.rs", "crates/jose/tests/oid4vci_proof_builder.rs", "docs/adr/0130-use-opaque-validated-jose-retained-values.md" ]
+outer_obligation = "Callers, transports and generic deserializers may allocate strings or vectors before the typed constructors validate them."
+consumer_impact  = "Use the named fallible constructors; every successfully retained enum payload is opaque, bounded, redaction-safe and revalidated under tighter builder limits."
+review_triggers  = [ "JOSE enum visibility change", "new retained enum variant", "limit change", "new deserialization path" ]
 
 [[boundaries]]
 id               = "jose-injected-security-ports"

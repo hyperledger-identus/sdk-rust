@@ -13,7 +13,7 @@ revalidated and fail closed.
 
 - **WHEN** a caller constructs a non-empty control-free `kid` exactly at the
   configured string ceiling or an `x5c` chain of one through eight valid
-  standard-base64 entries within all configured ceilings
+  decodable standard-base64 entries within all configured ceilings
 - **THEN** construction succeeds and protected-header serialization/parsing
   preserves the existing JOSE member and exact accepted text
 

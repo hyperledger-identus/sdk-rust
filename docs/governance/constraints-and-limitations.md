@@ -158,11 +158,11 @@ surprise compatibility promise.
   Borrowed hash/HMAC/sign/verify messages and injected resolver, registrar,
   verifier, trust, replay and generic storage adapter work remain caller-
   budgeted because the correct byte/time quota belongs to the owning protocol
-  or adapter. Two retained compatibility exceptions remain explicit: direct
-  JOSE retained-input enum variants accept arbitrary strings/collections,
-  and the historical `identus_did::Multihash` placeholder accepts arbitrary
-  opaque bytes. Consumers must bound each before entry until issue #299 or a
-  Multihash consumer-driven migration establishes validated policy. The
+  or adapter. The historical `identus_did::Multihash` placeholder remains the
+  explicit retained compatibility exception and accepts arbitrary opaque
+  bytes. Consumers must bound it before entry until a Multihash consumer-driven
+  migration establishes validated policy. JOSE key-reference and proof-client
+  enum payloads are opaque and validated under their profile limits. The
   machine inventory names every implemented package,
   exact evidence and review trigger; a missing family restores broad disclosure.
 

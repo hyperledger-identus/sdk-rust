@@ -405,7 +405,7 @@ kind             = "limitation"
 category         = "security"
 state            = "effective"
 summary          = "Outer preallocation and native JSON rejection cleanup, caller-budgeted work, and named unbounded compatibility surfaces remain outside typed SDK resource enforcement."
-scope            = "Owned/serde/transport/FFI/JavaScript allocation before typed validation, recursive cleanup of hostile-depth owned DID JSON rejected by native constructors, borrowed cryptographic primitive work, injected async or generic storage adapter QoS, direct JOSE retained-input enum construction, and identus_did::Multihash opaque-byte retention."
+scope            = "Owned/serde/transport/FFI/JavaScript allocation before typed validation, recursive cleanup of hostile-depth owned DID JSON rejected by native constructors, borrowed cryptographic primitive work, injected async or generic storage adapter QoS, and identus_did::Multihash opaque-byte retention."
 canonical_source = "docs/architecture/sdk-input-resource-boundaries.toml"
 authority        = "Completed issue #168 repository-wide audit and accepted ADR 0125."
 rationale        = "A typed SDK constructor cannot retroactively prevent outer allocation or always make recursive destruction of an already-owned rejected JSON tree stack-safe, generic non-retaining primitives and ports need protocol- or adapter-specific budgets, and bounding retained public compatibility constructors or variants requires explicit API migrations."
@@ -413,7 +413,7 @@ consumer_impact  = "Consumers must apply limits at their earliest owned boundary
 enforcement      = [ "machine-readable implemented-package input-boundary inventory", "offline inventory checker and mutation suite", "new/change boundary review", "typed boundary negative tests", "architecture and security review" ]
 owner            = "SDK maintainers and security reviewers"
 review_triggers  = [ "new or changed input family", "concrete transport or adapter moves into SDK", "consumer handles hostile input directly", "inventory gap found" ]
-activation       = "Effective with the issue #168 inventory and ADR 0125; the earlier incomplete-audit wording is retired while the JOSE enum and Multihash exceptions remain explicit. ADR 0129 removed the bounded crypto-codec clause."
+activation       = "Effective with the issue #168 inventory and ADR 0125; the earlier incomplete-audit wording is retired while the Multihash exception remains explicit. ADRs 0129 and 0130 removed the bounded crypto-codec and direct JOSE retained-enum clauses."
 rollback         = "Restore broad incomplete-audit disclosure immediately if a supposedly covered inherited surface lacks an honest disposition or evidence."
 
 [[entries]]

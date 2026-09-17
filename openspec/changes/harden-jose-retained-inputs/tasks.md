@@ -9,16 +9,16 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add opaque validated key-ID, X.509-chain, and proof-client payloads;
+- [x] 2.1 Add opaque validated key-ID, X.509-chain, and proof-client payloads;
       remove direct raw retained construction.
-- [ ] 2.2 Route protected-header and proof parsing, building, serialization,
+- [x] 2.2 Route protected-header and proof parsing, building, serialization,
       verification, and workspace callers through the validated APIs.
-- [ ] 2.3 Add exact/one-over, malformed, parity, tighter-limit, redaction, and
+- [x] 2.3 Add exact/one-over, malformed, parity, tighter-limit, redaction, and
       public API closure evidence.
 
 ## 3. Governance and delivery
 
-- [ ] 3.1 Add the compatibility ADR and migration guidance; convert the JOSE
+- [x] 3.1 Add the compatibility ADR and migration guidance; convert the JOSE
       inventory row and narrow only the corresponding `SDK-LIM-007` clause.
 - [ ] 3.2 Run format, focused/minimal/all-feature tests, strict workspace gates,
       API/SBOM evidence, compatible target/Nix checks, and exact-diff plan.

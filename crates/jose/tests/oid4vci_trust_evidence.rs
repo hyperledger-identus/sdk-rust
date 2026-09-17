@@ -12,13 +12,13 @@ use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use identus_core::{ClockError, UnixTimestampMillis, WallClock};
 use identus_crypto::{Ed25519PrivateKey, EncodeJwk, P256PrivateKey, PublicKeyJwk};
 use identus_jose::{
-    Ed25519Signer, JoseError, JwsAlgorithm, JwsKeyReference, Oid4vciKeyAttestationFailure,
-    Oid4vciKeyAttestationFuture, Oid4vciKeyAttestationInput, Oid4vciKeyAttestationValidator,
-    Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtEvidence,
-    Oid4vciProofJwtLimits, Oid4vciProofJwtNonce, Oid4vciProofJwtPolicy, Oid4vciProofJwtVerifier,
-    Oid4vciProofReplayFuture, Oid4vciProofReplayGuard, Oid4vciProofReplayInput,
-    Oid4vciTrustChainFailure, Oid4vciTrustChainKeyFuture, Oid4vciTrustChainKeyProvider,
-    SignatureSuiteRegistry,
+    Ed25519Signer, JoseError, JwsAlgorithm, JwsKeyReference, JwsLimits,
+    Oid4vciKeyAttestationFailure, Oid4vciKeyAttestationFuture, Oid4vciKeyAttestationInput,
+    Oid4vciKeyAttestationValidator, Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims,
+    Oid4vciProofJwtClient, Oid4vciProofJwtEvidence, Oid4vciProofJwtLimits, Oid4vciProofJwtNonce,
+    Oid4vciProofJwtPolicy, Oid4vciProofJwtVerifier, Oid4vciProofReplayFuture,
+    Oid4vciProofReplayGuard, Oid4vciProofReplayInput, Oid4vciTrustChainFailure,
+    Oid4vciTrustChainKeyFuture, Oid4vciTrustChainKeyProvider, SignatureSuiteRegistry,
 };
 
 const PRIVATE_BYTES: [u8; 32] = [0x41; 32];
@@ -48,6 +48,10 @@ fn private_key() -> Ed25519PrivateKey {
 
 fn public_key() -> PublicKeyJwk {
     private_key().to_public_key().encode_jwk()
+}
+
+fn key_id(value: impl AsRef<str>) -> JwsKeyReference {
+    JwsKeyReference::key_id(value, JwsLimits::default()).expect("bounded key ID")
 }
 
 fn claims() -> Oid4vciProofJwtClaims {
@@ -222,10 +226,7 @@ impl Oid4vciProofReplayGuard for AcceptReplay {
 
 #[test]
 fn holder_round_trips_bounded_evidence_without_trust_claims() {
-    let proof = proof_with_evidence(
-        JwsKeyReference::KeyId(KEY_ID.to_owned()),
-        evidence(true, true),
-    );
+    let proof = proof_with_evidence(key_id(KEY_ID), evidence(true, true));
     let suites = SignatureSuiteRegistry::recommended();
     let verifier =
         Oid4vciProofJwtVerifier::new(Oid4vciProofJwtLimits::default(), &suites, None, None);
@@ -316,10 +317,7 @@ fn parser_rejects_malformed_duplicate_and_unknown_evidence_members() {
 
 #[test]
 fn trust_chain_selects_one_exact_key_and_never_falls_back() {
-    let compact = proof_with_evidence(
-        JwsKeyReference::KeyId(KEY_ID.to_owned()),
-        evidence(false, true),
-    );
+    let compact = proof_with_evidence(key_id(KEY_ID), evidence(false, true));
     let suites = SignatureSuiteRegistry::recommended();
     let provider = RecordingTrustChainProvider::key(public_key());
     let verifier =
@@ -339,10 +337,7 @@ fn trust_chain_selects_one_exact_key_and_never_falls_back() {
 
 #[test]
 fn trust_chain_missing_rejected_unavailable_and_wrong_keys_fail_closed() {
-    let compact = proof_with_evidence(
-        JwsKeyReference::KeyId(KEY_ID.to_owned()),
-        evidence(false, true),
-    );
+    let compact = proof_with_evidence(key_id(KEY_ID), evidence(false, true));
     let suites = SignatureSuiteRegistry::recommended();
     let bare = Oid4vciProofJwtVerifier::new(Oid4vciProofJwtLimits::default(), &suites, None, None);
     assert_eq!(
@@ -470,10 +465,7 @@ fn attestation_requires_one_accepting_provider_after_a_valid_signature() {
 
 #[test]
 fn composed_authorization_requires_both_trust_capabilities_before_replay() {
-    let compact = proof_with_evidence(
-        JwsKeyReference::KeyId(KEY_ID.to_owned()),
-        evidence(true, true),
-    );
+    let compact = proof_with_evidence(key_id(KEY_ID), evidence(true, true));
     let suites = SignatureSuiteRegistry::recommended();
     let chain = RecordingTrustChainProvider::key(public_key());
     let attestation = RecordingAttestationValidator::accepting();

@@ -40,7 +40,8 @@ fn proof(nonce: &str) -> Oid4vciProofJwt {
     Oid4vciProofJwtBuilder::new(limits)
         .prepare(
             JwsAlgorithm::Ed25519,
-            JwsKeyReference::KeyId("did:example:holder#key-1".to_owned()),
+            JwsKeyReference::key_id("did:example:holder#key-1", limits.jws())
+                .expect("bounded key ID"),
             claims,
         )
         .expect("proof input")

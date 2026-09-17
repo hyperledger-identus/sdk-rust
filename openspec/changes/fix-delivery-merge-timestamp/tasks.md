@@ -10,9 +10,9 @@
 
 ## 2. Repair and evidence
 
-- [ ] 2.1 Implement the closed UTC seconds/fraction timestamp validator.
-- [ ] 2.2 Add live-shape positive and malformed/normalization negative tests.
-- [ ] 2.3 Recover and inspect PR #321's immutable receipt without re-merging.
+- [x] 2.1 Implement the closed UTC seconds/fraction timestamp validator.
+- [x] 2.2 Add live-shape positive and malformed/normalization negative tests.
+- [x] 2.3 Recover and inspect PR #321's immutable receipt without re-merging.
 
 ## 3. Review and delivery
 

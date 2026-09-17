@@ -23,6 +23,7 @@ import { test } from "node:test";
 import { parseConventionalSubject, validateBranchName, validateHostedCommits, validatePullRequest } from "../ci/contribution-policy.mjs";
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
 import {
+  exactIsoDate,
   maximumPullRequestBodyBytes,
   mergePullRequest,
   parseDeliveryArguments,
@@ -526,7 +527,7 @@ test("guarded merge recovers an exact already-merged receipt without merging aga
         readPullRequest() {
           return {
             state: "MERGED", isDraft: false, baseRefName: "develop",
-            headRefOid: expectedHead, mergedAt: "2026-09-17T09:00:00.000Z",
+            headRefOid: expectedHead, mergedAt: "2026-09-17T09:48:40Z",
             mergeCommit: { oid: mergeCommit },
           };
         },
@@ -550,6 +551,27 @@ test("guarded merge recovers an exact already-merged receipt without merging aga
   } finally {
     rmSync(created, { recursive: true, force: true });
   }
+});
+
+test("hosted merge timestamps accept closed UTC RFC 3339 precision", () => {
+  for (const value of [
+    "2026-09-17T09:48:40Z",
+    "2026-09-17T09:48:40.0Z",
+    "2026-09-17T09:48:40.000Z",
+    "2026-09-17T09:48:40.123456789Z",
+  ]) assert.equal(exactIsoDate(value), true, value);
+
+  for (const value of [
+    "2026-02-30T09:48:40Z",
+    "2026-09-17T24:00:00Z",
+    "2026-09-17T09:48:60Z",
+    "2026-09-17T09:48:40+00:00",
+    "2026-09-17T09:48:40",
+    "2026-09-17T09:48:40z",
+    "2026-09-17T09:48:40.1234567890Z",
+    " 2026-09-17T09:48:40Z",
+    "2026-09-17T09:48:40Z trailing",
+  ]) assert.equal(exactIsoDate(value), false, value);
 });
 
 test("merge arguments and private receipts are closed and immutable", () => {

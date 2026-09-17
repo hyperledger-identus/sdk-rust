@@ -6,7 +6,7 @@
       design, scenarios, and rollback.
 - [x] 1.2 Pass research, constraint, and strict OpenSpec readiness and commit
       the planning-only contract.
-- [ ] 1.3 Retain the immutable issue/branch/base/planning-head preflight receipt.
+- [x] 1.3 Retain the immutable issue/branch/base/planning-head preflight receipt.
 
 ## 2. Repair and evidence
 

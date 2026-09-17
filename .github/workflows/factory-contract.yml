@@ -78,6 +78,7 @@ jobs:
             .#checks.x86_64-linux.lint-nix \
             .#checks.x86_64-linux.lint-text \
             .#checks.x86_64-linux.lint-toml \
+            .#checks.x86_64-linux.docs-site \
             .#checks.x86_64-linux.rust-fmt \
             .#checks.x86_64-linux.rust-build \
             .#checks.x86_64-linux.rust-clippy \

@@ -32,6 +32,7 @@
       imports = [
         inputs.devshell.flakeModule
         ./nix/rust-toolchain.nix
+        ./nix/docs-site.nix
         ./nix/devshells
         ./nix/checks
         ./nix/apps

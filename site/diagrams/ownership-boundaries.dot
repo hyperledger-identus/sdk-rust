@@ -1,0 +1,43 @@
+digraph ownership_boundaries {
+  graph [
+    bgcolor="transparent",
+    fontname="Helvetica",
+    label="Ownership stays at the correct boundary",
+    labelloc="t",
+    ranksep="0.8",
+    splines="spline"
+  ];
+  node [shape="box", style="rounded,filled", fontname="Helvetica", fontsize="11", margin="0.18,0.12"];
+  edge [color="#506784", fontname="Helvetica", fontsize="10", arrowsize="0.75"];
+
+  sdk [
+    label="SDK-Rust\ngeneric types · crypto · ports · validation · evidence",
+    color="#1f5d91",
+    fillcolor="#edf5fc",
+    fontcolor="#17233b"
+  ];
+  chain [
+    label="Chain / identity repositories\nDID methods · ledgers · Compact · proving · indexers",
+    color="#6d4da1",
+    fillcolor="#f3effa",
+    fontcolor="#2f2148"
+  ];
+  product [
+    label="Wallets / applications\ncustody · consent · trust · storage · UX · compliance",
+    color="#c47a12",
+    fillcolor="#fff4dc",
+    fontcolor="#5b3500"
+  ];
+  platform [
+    label="Platform adapters\nKMS/HSM · HTTP · database · mobile/browser packaging",
+    color="#28826b",
+    fillcolor="#eef8f4",
+    fontcolor="#153f34"
+  ];
+
+  product -> chain [label="uses method/ledger behavior"];
+  product -> sdk [label="uses generic capabilities"];
+  chain -> sdk [label="adapts generic capabilities"];
+  platform -> sdk [label="implements explicit ports"];
+  product -> platform [label="selects operations"];
+}

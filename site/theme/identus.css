@@ -1,0 +1,86 @@
+:root {
+  --identus-ink: #17233b;
+  --identus-blue: #1356a2;
+  --identus-cyan: #1a8ea5;
+  --identus-gold: #c47a12;
+  --identus-panel: #edf5fc;
+  --identus-border: #b9d3eb;
+}
+
+.light,
+.rust {
+  --links: var(--identus-blue);
+  --sidebar-active: var(--identus-blue);
+  --inline-code-color: #8b3a00;
+}
+
+main {
+  max-width: 980px;
+}
+
+main h1,
+main h2,
+main h3 {
+  color: var(--identus-ink);
+  letter-spacing: -0.015em;
+}
+
+main h1 {
+  border-bottom: 3px solid var(--identus-cyan);
+  padding-bottom: 0.3em;
+}
+
+main blockquote {
+  background: var(--identus-panel);
+  border-left: 5px solid var(--identus-blue);
+  color: var(--identus-ink);
+  padding: 0.75rem 1rem;
+}
+
+main table {
+  display: table;
+  width: 100%;
+}
+
+main th {
+  background: var(--identus-panel);
+  color: var(--identus-ink);
+}
+
+main img[src$=".svg"] {
+  background: #ffffff;
+  border: 1px solid var(--identus-border);
+  border-radius: 10px;
+  box-sizing: border-box;
+  display: block;
+  margin: 1.5rem auto;
+  max-height: 580px;
+  padding: 1rem;
+  width: 100%;
+}
+
+.navy main h1,
+.navy main h2,
+.navy main h3,
+.ayu main h1,
+.ayu main h2,
+.ayu main h3,
+.coal main h1,
+.coal main h2,
+.coal main h3 {
+  color: #e8f3ff;
+}
+
+.navy main blockquote,
+.ayu main blockquote,
+.coal main blockquote {
+  background: #132a47;
+  color: #e8f3ff;
+}
+
+@media (max-width: 760px) {
+  main table {
+    display: block;
+    overflow-x: auto;
+  }
+}

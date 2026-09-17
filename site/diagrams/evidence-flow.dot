@@ -1,0 +1,39 @@
+digraph evidence_flow {
+  graph [
+    bgcolor="transparent",
+    fontname="Helvetica",
+    label="Evidence before publication",
+    labelloc="t",
+    rankdir="LR",
+    nodesep="0.45",
+    ranksep="0.55",
+    splines="ortho"
+  ];
+  node [
+    shape="box",
+    style="rounded,filled",
+    fontname="Helvetica",
+    fontsize="11",
+    color="#1f5d91",
+    fillcolor="#edf5fc",
+    fontcolor="#17233b",
+    margin="0.16,0.11"
+  ];
+  edge [color="#506784", arrowsize="0.75"];
+
+  source [label="Protected develop\nissue · spec · review · fast CI"];
+  candidate [label="Frozen candidate\n3 deterministic Cargo archives"];
+  evidence [label="Promotion evidence\nslow matrix · API · SBOM · provenance"];
+  adoption [label="Consumer evidence\nexact revision · minimal feature cone"];
+  docs [label="Public handbook\narchitecture · limitations · readiness"];
+  approval [label="Two-person approval\nexact revision + receipt", fillcolor="#fff4dc", color="#c47a12"];
+  release [label="Protected release\ntag · trusted publish · verification", fillcolor="#eef8f4", color="#28826b"];
+
+  source -> candidate;
+  candidate -> evidence;
+  candidate -> adoption;
+  evidence -> docs;
+  adoption -> docs;
+  docs -> approval;
+  approval -> release;
+}

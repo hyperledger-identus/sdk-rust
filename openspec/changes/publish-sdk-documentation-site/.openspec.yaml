@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-09-17
+goal: Publish a reproducible SDK-Rust architecture and release handbook for
+  engineer review before the first three-crate release candidate.
+

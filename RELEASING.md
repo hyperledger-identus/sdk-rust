@@ -7,9 +7,12 @@ the Identus ecosystem release process with Rust/crates.io controls.
 
 A human maintainer is assigned release manager. At least one other maintainer
 approves the release receipt. Publishing runs only in a protected GitHub
-environment using organization-controlled crates.io trusted publishing.
-Personal API tokens and local `cargo publish` are emergency-only mechanisms and
-require a governance-recorded incident review.
+environment. Because crates.io cannot configure trusted publishing before a
+crate's first release, the first publication uses an organization-controlled,
+short-lived, crate-scoped token under the same two-person approval. Trusted
+publishing is configured immediately after each namespace exists and is
+mandatory for later releases. Local `cargo publish` remains emergency-only and
+requires a governance-recorded incident review.
 
 ## Version stages
 
@@ -24,11 +27,12 @@ of crate versions tested together and their standards/profile capabilities.
 
 ## Candidate gate
 
-The temporary Rust 1.98.1 fast/slow policy in ADR 0081 is explicitly
-insufficient release-candidate evidence. Before this gate begins, a focused
-compatibility decision must select the consumer-driven compiler matrix, every
-recorded slow and sanitizer failure must be resolved, and required
-repository settings must be verified.
+ADR 0133 selects Rust 1.89.0 as the `0.1.x` MSRV and Rust 1.98.1 as the primary
+compiler for `identus-derive`, `identus-core`, and `identus-crypto`. The fast
+lane stays on one Linux primary build; the release gate additionally requires
+the independent MSRV, profile, and compile-target matrix. Every recorded slow
+and sanitizer failure must be resolved and required repository settings must
+be verified.
 
 Before tagging, the release manager verifies:
 
@@ -55,8 +59,9 @@ Before tagging, the release manager verifies:
 4. During the pre-1.0 bootstrap, create a signed tag from the approved,
    protected `develop` revision using the project tag convention. Do not move
    code or tags to `main`; activating `main` requires a later ADR.
-5. The protected workflow builds/packages again from the tag and publishes via
-   trusted publishing.
+5. The protected workflow builds/packages again from the tag. The namespace-
+   creating release uses the approved bootstrap token; subsequent releases use
+   crates.io trusted publishing.
 6. Verify crates.io ownership, package contents, docs.rs and checksums.
 7. Publish the GitHub release with manifest, SBOM, provenance, conformance and
    migration links.

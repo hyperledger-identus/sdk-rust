@@ -204,8 +204,8 @@ The exact graph can become narrower. A new upward or sideways dependency needs
 an ADR and dependency-cone evidence.
 
 The support matrix deliberately separates host-tested Rust behavior from
-compile-only browser/mobile evidence and planned targets. During unpublished
-active development, Rust `1.98.1` is the single workspace floor, development
+compile-only browser/mobile evidence and planned targets. Rust `1.89.0` is the
+MSRV for the `0.1.x` release line; Rust `1.98.1` is the primary development
 compiler and compatibility etalon. The complete target and feature matrix runs
 natively each week from protected default `develop` and remains manually or
 locally reproducible; a pinned nightly is used only for sanitizer tooling.
@@ -213,10 +213,9 @@ There is no supported FFI during bootstrap, and binary size/build time remain
 measurement-only until a candidate release defines reproducible artifacts and
 budgets.
 
-ADR 0081 expires for release planning on 2026-12-08 or when release-candidate
-preparation begins. That transition requires a focused, consumer-driven
-compiler and evidence decision; this temporary policy cannot authorize
-publication.
+ADR 0133 selects the first release compiler and evidence matrix through
+2027-03-17. The fast lane remains one Linux Rust 1.98.1 build; the independent
+MSRV and complete release profile/target matrix remain slow/release evidence.
 
 ## 6. Delivery program
 
@@ -640,7 +639,7 @@ it is never part of the upstream implementation issue.
 ### Local/external slow command
 
 - full workspace and target matrix;
-- existing compatibility-labelled gates on the same Rust 1.98.1 compiler;
+- independent Rust 1.89.0 MSRV plus Rust 1.98.1 primary/etalon gates;
 - WASM/mobile compile for eligible crates;
 - fuzz/property/negative tests for parsers and crypto boundaries;
 - cross-implementation conformance;
@@ -649,8 +648,7 @@ it is never part of the upstream implementation issue.
 
 Slow or sanitizer failures are pre-release debt. They do not block each
 active-development merge, but every failure must be resolved before a release
-candidate, together with the replacement compatibility decision required by
-ADR 0081.
+candidate, together with the release matrix selected by ADR 0133.
 
 Coverage is a ratchet, not an aggregate vanity score. Critical parser,
 verification, secret and state-transition paths need explicit branch coverage

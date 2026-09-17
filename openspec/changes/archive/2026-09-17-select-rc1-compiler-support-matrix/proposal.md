@@ -36,12 +36,11 @@ policy, and evidence path before publication can be approved.
 ## Non-goals
 
 No crate publication, tag, GitHub release, `main` promotion, FFI support,
-runtime certification, Windows/WASI support, consumer repository mutation, or
-Midnight/Cardano/product primitive enters this change.
+runtime certification, Windows/WASI support, consumer repository mutation,
+chain, ledger, or product primitive enters this change.
 
 ## Delivery
 
 Issue #325 owns this material compatibility slice. It may merge to `develop`
 under the normal issue-linked CI path, but release and publication remain
 human-protected under #326.
-

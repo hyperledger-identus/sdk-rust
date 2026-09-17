@@ -67,7 +67,7 @@ This is a source-only, pre-release channel. Workspace version `0.0.0`,
 `publish = false`, and an exact Git commit provide no SemVer compatibility,
 support lifetime, crates.io checksum, binary, Nix package, FFI package,
 certification, or production-release promise. The current consumer compiler
-floor is Rust 1.98.1.
+floor is Rust 1.89.0.
 
 NeoPRISM's `identus-apollo` is a downstream compatibility facade over
 `identus-crypto`; it is not another name for an SDK package. Registry release

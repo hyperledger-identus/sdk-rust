@@ -21,11 +21,16 @@
           "wasm32-unknown-unknown"
         ];
       };
-      # During the temporary active-development phase, compatibility and MSRV
-      # labels intentionally resolve to the same exact stable compiler. This
-      # keeps existing gate identities without paying for three compilers.
+      # Primary and etalon intentionally share one stable compiler. The
+      # release MSRV is independent, but runs only in slow/release evidence.
       etalonToolchain = toolchain;
-      msrvToolchain = toolchain;
+      msrvToolchain = stablePkgs.rust-bin.stable."1.89.0".minimal.override {
+        targets = [
+          "aarch64-apple-ios"
+          "aarch64-linux-android"
+          "wasm32-unknown-unknown"
+        ];
+      };
       # libFuzzer sanitizer instrumentation remains a tooling-only nightly
       # exception and is never an ordinary SDK compatibility provider.
       fuzzToolchain = pkgs.rust-bin.nightly."2026-03-18".default.override {
@@ -35,7 +40,7 @@
       };
       craneLib = (inputs.crane.mkLib pkgs).overrideToolchain toolchain;
       etalonCraneLib = craneLib;
-      msrvCraneLib = craneLib;
+      msrvCraneLib = (inputs.crane.mkLib pkgs).overrideToolchain msrvToolchain;
     in
     {
       _module.args = {

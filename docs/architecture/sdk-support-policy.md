@@ -21,35 +21,34 @@ evidence runs for every pull request and `develop` push. Native weekly slow
 evidence runs from protected `develop`, which is the GitHub default branch;
 manual dispatch and local reproduction remain available. Reserved `main` stays
 minimal and explicitly protected. Browser WASM,
-Android ARM64 and iOS ARM64 are compile-checked for `identus-core`,
-`identus-crypto`, `identus-did`, `identus-jose` and
+Android ARM64 and iOS ARM64 are compile-checked for `identus-derive`,
+`identus-core`, `identus-crypto`, `identus-did`, `identus-jose` and
 `identus-oid4vci` and `identus-adapters-entropy`, with the entropy adapter's `getrandom` backend
 explicitly selected. Windows and WASI are planned without a compatibility
 promise.
 
 ## Rust versions
 
-Rust `1.98.1` is temporarily the single workspace floor, reproducible
-development compiler, CI compiler and compatibility etalon. The repository
-makes no compatibility claim below it. Ordinary primary, MSRV-labelled and
-etalon-labelled Nix providers resolve to the same exact stable compiler;
-existing gate names retain feature/history meaning but do not represent three
-compiler builds.
+Rust `1.89.0` is the minimum supported Rust version (MSRV) for the `0.1.x`
+release line. Rust `1.98.1` is the reproducible primary development compiler
+and compatibility etalon. The Nix MSRV provider is independent; primary and
+etalon intentionally share the exact corrected stable toolchain.
 
 Nightly `2026-03-18` is retained only as the explicitly named sanitizer fuzz
 toolchain. It is not a supported SDK compiler or compatibility etalon.
 
-[ADR 0081](../adr/0081-use-temporary-rust-198-fast-slow-ci.md) temporarily
-supersedes ADR 0064 through 2026-12-08 or release-candidate preparation. A
-release candidate requires a new consumer-driven compiler-floor and evidence
-decision; the temporary policy cannot authorize publication.
+[ADR 0133](../adr/0133-select-rc1-compiler-support-matrix.md) selects the
+release compiler matrix and supersedes ADR 0081's temporary release
+prohibition. The decision is reviewed no later than 2027-03-17. Rust 1.89.0
+stays fixed for `0.1.x`; raising it requires a new ADR and pre-1.0 minor line.
 
 ## Feature surfaces
 
 Workspace defaults, crypto without default features, KMP compatibility and the
 entropy adapter empty/deterministic/system-random combinations are isolated
-build or test surfaces on stable Rust 1.98.1. Minimal crypto
-has independent Clippy, test and MSRV build evidence, so optional integration
+build or test surfaces on primary Rust 1.98.1 and MSRV Rust 1.89.0. Minimal
+crypto and hash-only crypto have independent Clippy, test and MSRV build
+evidence, so optional integration
 targets cannot rely on unrelated workspace feature unification. The structural
 validator compares each gate's manifest operation, toolchain, effective package
 set, explicit workspace mode, workspace exclusions, structured Cargo target,
@@ -157,7 +156,7 @@ thresholds, variance handling and regression policy.
 
 ## Downstream boundary
 
-This policy does not certify Oxid, Lace ID Portal, NeoPRISM,
-midnight-identity, Apollo or any deployment. Runtime, application, wallet,
-custody, platform security and regulatory evidence remain downstream. The SDK
-does not build those repositories to prove its own compatibility.
+This policy does not certify any downstream repository or deployment. Runtime,
+application, wallet, custody, chain, platform-security, and regulatory evidence
+remain downstream. The SDK does not build consumer repositories to prove its
+own compatibility.

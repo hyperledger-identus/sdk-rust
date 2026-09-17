@@ -10,9 +10,9 @@ and `identus-crypto`. Final `0.1.0` is not the current decision.
 | Reproducible isolated candidate | Prepared; publication prohibited | [#266](https://github.com/hyperledger-identus/sdk-rust/issues/266), ADR 0113 |
 | Functional cryptography foundation | Complete within its recorded limitations | [#286](https://github.com/hyperledger-identus/sdk-rust/issues/286) |
 | Public architecture/release handbook | Required evidence; deployment receipt on issue | [#324](https://github.com/hyperledger-identus/sdk-rust/issues/324) |
-| Durable crate names and trusted publishing | Open blocker | [#3](https://github.com/hyperledger-identus/sdk-rust/issues/3) |
-| Release compiler/support matrix | Open blocker | [#325](https://github.com/hyperledger-identus/sdk-rust/issues/325) |
-| Midnight Identity minimal consumer | Open blocker | [midnight-identity#81](https://github.com/MediaNoxLabs/midnight-identity/issues/81) |
+| Durable crate names and first-publish bootstrap | Open blocker | [#3](https://github.com/hyperledger-identus/sdk-rust/issues/3) |
+| Release compiler/support matrix | Selected; exact candidate evidence pending | [#325](https://github.com/hyperledger-identus/sdk-rust/issues/325), ADR 0133 |
+| Independent downstream canary | Downstream-owned; does not change or specialize the SDK | External adoption evidence |
 | Natural weekly slow evidence | Awaiting first healthy scheduled run | [#276](https://github.com/hyperledger-identus/sdk-rust/issues/276) |
 | Exact candidate slow receipt | Required after candidate freeze | [#326](https://github.com/hyperledger-identus/sdk-rust/issues/326) |
 | Two-person release approval | Not granted | [#326](https://github.com/hyperledger-identus/sdk-rust/issues/326) |

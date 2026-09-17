@@ -38,6 +38,7 @@ def copy_fixture(destination: Path) -> None:
         "docs/release/identus-crypto-0.1.0-rc.1.api.txt",
         "docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md",
         "docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md",
+        "docs/adr/0133-select-rc1-compiler-support-matrix.md",
         "scripts/prepare-crypto-candidate.py",
         "crates/derive/Cargo.toml",
         "crates/derive/README.md",

@@ -707,83 +707,70 @@ network, deep-link registration, FFI, packaging, or certification support.
   deep-link registration, QR ingress, HTTP retrieval, and device certification
   downstream
 
-### Requirement: Temporary active-development compiler and CI lanes
+### Requirement: Release-candidate compiler and CI lanes
 
-Until the earlier of 2026-12-08 or release-candidate preparation, the SDK SHALL
-use exact stable Rust `1.98.1` as its workspace compiler floor, primary
-development compiler and compatibility etalon. All ordinary Crane providers
-and dependency artifacts SHALL resolve to that same compiler rather than
-duplicating primary, lower-MSRV and NeoPRISM-nightly compiler builds. The SDK
-SHALL make no compatibility claim below Rust 1.98.1 during this phase.
+The SDK SHALL declare exact stable Rust 1.89.0 as the package MSRV for the
+`identus-derive` / `identus-core` / `identus-crypto` `0.1.0-rc.1` release train
+and exact stable Rust 1.98.1 as the pinned primary development,
+validation, candidate-preparation, and stable etalon compiler. Ordinary primary
+and etalon providers SHALL resolve to the same 1.98.1 toolchain; an independent
+minimal MSRV provider SHALL prove the lower package floor. Nightly SHALL remain
+a sanitizer-only tooling exception and SHALL NOT become SDK compatibility
+evidence.
 
 Pull requests targeting `develop` and pushes to `develop` SHALL receive one
 Linux job named `fast` that runs the manifest-derived repository/factory,
-formatting, workspace build, strict Clippy and normal workspace test gates.
-The full Linux/macOS Nix matrix SHALL run in the active native weekly/manual
-workflow named `slow` from protected default `develop`, using the same Rust
-1.98.1 compiler for all SDK compatibility checks. It SHALL remain exactly
-reproducible locally. Slow failures SHALL be visible pre-release debt and SHALL
-block release-candidate preparation, but SHALL NOT be represented as required
-per-PR evidence during this temporary phase.
+formatting, workspace build, strict Clippy, and normal workspace test gates on
+Rust 1.98.1. MSRV builds, exhaustive feature combinations, portable targets,
+Linux/macOS full checks, dependency/security checks, and sanitizer campaigns
+SHALL remain in native weekly/manual `slow` or exact release-candidate evidence
+and SHALL NOT expand the required per-PR compiler matrix.
 
-The `fast` job SHALL have read-only GitHub Actions cache authority and a bounded
-complete-job timeout. Cache restoration MAY accelerate the gate, but cache
-publication, FlakeHub authentication and optional cache diagnostics SHALL
-remain outside the pull-request critical path. Cache miss or service failure
-SHALL degrade visibly to the same Nix realization without skipping, weakening
-or fabricating any substantive gate.
+The release train SHALL prove default, all-features, no-default-features,
+`kmp-compat`, and hash-only profiles. Linux x86_64 and macOS ARM64 SHALL be
+host-tested. Browser WASM, Android ARM64, and iOS ARM64 SHALL be compile-checked
+for the three release crates on both declared stable compilers. Compile evidence
+SHALL NOT imply runtime, FFI, device, packaging, storage, performance,
+certification, Windows, or WASI support.
 
-Sanitizer fuzz campaigns MAY use a separately named, exactly pinned nightly
-tooling shell because libFuzzer instrumentation requires nightly. Those
-commands SHALL run only in active hosted weekly/manual workflows or through
-exact local reproduction, SHALL remain outside ordinary SDK compiler providers,
-and SHALL NOT be represented as Rust 1.98.1 compatibility evidence. The policy
-SHALL carry the 2026-12-08 review date and SHALL prohibit release-candidate use
-until a separate consumer-driven compatibility decision.
+The `fast` job SHALL retain read-only cache authority and a bounded complete-job
+timeout. The complete `slow` workflow SHALL remain exact-SHA reproducible,
+weekly/manual from protected default `develop`, bounded in concurrency and
+timeouts, and SHALL emit immutable run metadata. A missing, stale, failed, or
+incomplete slow/MSRV/target receipt SHALL block release approval but SHALL NOT
+be represented as required per-PR evidence.
 
-All scheduled workflows SHALL run from the exact protected `develop` default
-branch with ephemeral read-only repository credentials, bounded concurrency
-and job timeouts. The slow workflow SHALL emit immutable SHA/run-attempt-bound
-metadata and SHALL record the organization-enforced seven-day evidence
-retention. A read-only external supervisor SHALL detect missing, stale or
-failed scheduled evidence without dispatch authority.
+The declared MSRV SHALL remain fixed throughout the `0.1.x` line. A future
+increase SHALL require a focused compatibility ADR, measured payoff, migration
+guidance, complete profile/target evidence, and a later minor pre-1.0 release
+line. The compiler/support contract SHALL be reviewed before 2027-03-17 or the
+next release train, whichever comes first.
 
 #### Scenario: Pull request receives rapid deterministic evidence
 
 - **WHEN** a pull request targets `develop`
 - **THEN** one Ubuntu `fast` status runs factory structure, format, workspace
-  build, strict Clippy and the normal workspace test suite on Rust 1.98.1
+  build, strict Clippy, and normal workspace tests on Rust 1.98.1
 
-#### Scenario: Exhaustive evidence runs outside the pull-request critical path
+#### Scenario: MSRV evidence runs outside the pull-request critical path
 
-- **WHEN** GitHub accepts the native weekly schedule or a maintainer manually
-  dispatches the default-branch workflow
-- **THEN** `slow` runs the complete flake on Linux and macOS, including target,
-  feature, documentation and supply-chain checks, on Rust 1.98.1
+- **WHEN** the weekly/manual slow workflow or exact release gate runs
+- **THEN** Rust 1.89.0 builds the workspace and every declared release feature
+  and portable-target profile independently from Rust 1.98.1 evidence
 
-#### Scenario: Fast cache contains a reusable path
+#### Scenario: Narrow hash consumer is evaluated
 
-- **WHEN** the required pull-request job can restore an accessible GitHub
-  Actions cache entry
-- **THEN** it may consume the entry but cannot publish new cache state
+- **WHEN** a consumer selects `identus-crypto` with default features disabled
+  and only `hash` enabled
+- **THEN** primary test/Clippy and MSRV build gates prove that cone without
+  activating curves, derivation, COSE, JWK, entropy, or product policy
 
-#### Scenario: Fast cache is missing or unavailable
+#### Scenario: Portable release target compiles
 
-- **WHEN** cache lookup misses, is denied, rate-limited or fails
-- **THEN** the cache condition remains visible and the unchanged Nix gates run
-  without treating cache availability as correctness evidence
-
-#### Scenario: Cache finalizer does not terminate
-
-- **WHEN** any cache or action finalizer outlives the bounded job deadline
-- **THEN** the required check fails and cannot merge rather than remaining
-  indefinitely pending or being reported as successful
-
-#### Scenario: Lower compiler is presented as supported
-
-- **WHEN** Cargo, Nix or documentation claims compatibility below Rust 1.98.1
-  during the temporary phase
-- **THEN** structural policy validation fails
+- **WHEN** a release crate compiles for browser WASM, Android ARM64, or iOS
+  ARM64 on both stable compiler lanes
+- **THEN** the receipt records compile-only evidence and retains every runtime,
+  FFI, packaging, storage, device, and certification limitation
 
 #### Scenario: Nightly leaks into ordinary SDK validation
 
@@ -791,14 +778,15 @@ failed scheduled evidence without dispatch authority.
   sanitizer nightly
 - **THEN** structural policy validation fails even if compilation succeeds
 
-#### Scenario: Release candidate is proposed under temporary evidence
+#### Scenario: Release candidate lacks complete evidence
 
-- **WHEN** a release candidate is proposed before a new compatibility decision
-- **THEN** release policy blocks it until slow/sanitizer debt and actual
-  consumer compiler requirements are resolved
+- **WHEN** an exact candidate lacks either compiler, a declared feature cone,
+  a promised target, a host, or a fresh immutable slow receipt
+- **THEN** release policy blocks approval and publication
 
-#### Scenario: Temporary policy reaches its review date
+#### Scenario: MSRV increase is proposed within the release line
 
-- **WHEN** the date reaches 2026-12-08 without a superseding decision
-- **THEN** the policy is expired for further release planning and a focused
-  review issue must choose the next compiler and CI matrix
+- **WHEN** a patch or later release candidate in the `0.1.x` line raises the
+  declared Rust floor above 1.89.0
+- **THEN** compatibility validation rejects the change and requires a later
+  minor line plus a focused migration decision

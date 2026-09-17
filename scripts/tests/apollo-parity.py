@@ -203,7 +203,7 @@ class ApolloParityContract(unittest.TestCase):
 
     def test_portable_package_drift_fails(self) -> None:
         self.replace(
-            'packages            = [ "identus-core", "identus-crypto", "identus-did", "identus-jose", "identus-oid4vci", "identus-adapters-entropy" ]',
+            'packages            = [ "identus-derive", "identus-core", "identus-crypto", "identus-did", "identus-jose", "identus-oid4vci", "identus-adapters-entropy" ]',
             'packages            = [ "identus-crypto" ]',
         )
         self.assertIn("packages differ from support policy", self.run_checker().stderr)

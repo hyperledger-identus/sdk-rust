@@ -4,8 +4,8 @@ The handbook is intentionally explicit about what has **not** been proven.
 
 - No crate is currently published to crates.io.
 - Canonical workspace versions remain `0.0.0` with `publish = false`.
-- Rust 1.98.1 is the temporary development etalon, not yet the release MSRV
-  promise.
+- Rust 1.89.0 is the `0.1.x` release MSRV; Rust 1.98.1 remains the primary and
+  compatibility-etalon compiler.
 - WASM, iOS, and Android cryptography evidence is currently compile-oriented;
   it is not a blanket browser/device/runtime support claim.
 - Experimental DID language-binding evidence does not automatically support

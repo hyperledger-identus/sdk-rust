@@ -187,15 +187,26 @@ def validate_index(root: Path) -> list[str]:
         failures.append("SDK-COMPAT-002 must remain the effective MSRV entry")
     if target_msrv is None:
         failures.append("constraint index missing SDK-COMPAT-003 target MSRV")
-    elif target_msrv.get("state") not in {"target", "deferred"}:
+    elif target_msrv.get("state") not in {"target", "deferred", "effective"}:
         failures.append(
-            "SDK-COMPAT-003 must remain target or deferred until separately activated"
+            "SDK-COMPAT-003 must be target, deferred, or separately activated"
         )
 
     support_policy, support_failures = load_toml(
         root / SUPPORT_POLICY_PATH, "SDK support policy"
     )
     failures.extend(support_failures)
+    if (
+        target_msrv is not None
+        and target_msrv.get("state") == "effective"
+        and (
+            support_policy is None
+            or support_policy.get("ci", {}).get("release_candidate_eligible") is not True
+        )
+    ):
+        failures.append(
+            "SDK-COMPAT-003 effective state requires an activated release-candidate policy"
+        )
     if effective_msrv is not None and support_policy is not None:
         value_source = effective_msrv.get("value_source")
         if not nonempty_string(value_source):

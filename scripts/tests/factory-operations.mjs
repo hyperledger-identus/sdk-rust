@@ -24,9 +24,14 @@ import { parseConventionalSubject, validateBranchName, validateHostedCommits, va
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
 import {
   maximumPullRequestBodyBytes,
+  mergePullRequest,
   parseDeliveryArguments,
+  parseMergeArguments,
   preflightPullRequest,
   readPullRequestBody,
+  retainMergeReceipt,
+  validateMergeBody,
+  validateMergeReceipt,
 } from "../factory-tools/delivery.mjs";
 import { checkUserPolicy, mergePolicy, policyMismatches } from "../factory-tools/pi-policy.mjs";
 import { auditPi } from "../factory-tools/audit-pi.mjs";
@@ -349,6 +354,237 @@ test("pull request preflight arguments and body files are explicit and bounded",
     writeFileSync(bodyFile, Buffer.from([0xff]));
     assert.throws(() => readPullRequestBody(bodyFile), /valid UTF-8/u);
     assert.throws(() => readPullRequestBody(created), /regular non-symlink/u);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("guarded merge is dry by default and retains exact verified evidence on execute", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-merge-pr-"));
+  try {
+    const bodyFile = path.join(created, "merge.md");
+    const body = [
+      "Closes #320.",
+      "",
+      "Signed-off-by: Factory Test <factory@example.invalid>",
+    ].join("\n");
+    writeFileSync(bodyFile, `${body}\n`);
+    const expectedHead = "b".repeat(40);
+    const mergeCommit = "c".repeat(40);
+    let merged = false;
+    let retained;
+    const github = {
+      readPullRequest() {
+        return merged
+          ? {
+            state: "MERGED", isDraft: false, baseRefName: "develop",
+            headRefOid: expectedHead, mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN",
+            reviewDecision: "", mergedAt: "2026-09-17T09:00:00.000Z",
+            mergeCommit: { oid: mergeCommit },
+          }
+          : {
+            state: "OPEN", isDraft: false, baseRefName: "develop",
+            headRefOid: expectedHead, mergeable: "MERGEABLE", mergeStateStatus: "CLEAN",
+            reviewDecision: "", mergedAt: null, mergeCommit: null,
+          };
+      },
+      requiredChecksPass() { return true; },
+      merge(number, head, observedBody) {
+        assert.equal(number, 320);
+        assert.equal(head, expectedHead);
+        assert.equal(observedBody, body);
+        merged = true;
+      },
+      readCommit() {
+        return {
+          sha: mergeCommit,
+          commit: {
+            message: `fix(factory): close delivery loop\n\n${body}`,
+            verification: { verified: true, reason: "valid" },
+          },
+        };
+      },
+    };
+    const options = { pullRequest: 320, expectedHead, bodyFile, execute: false };
+    assert.deepEqual(mergePullRequest(options, {
+      repository: "hyperledger-identus/sdk-rust",
+      identity: { name: "Factory Test", email: "factory@example.invalid" },
+      github,
+      persist() { throw new Error("dry validation must not persist"); },
+    }), { eligible: true, executed: false, mergePerformed: false, receipt: null });
+    assert.equal(merged, false);
+
+    const outcome = mergePullRequest({ ...options, execute: true }, {
+      repository: "hyperledger-identus/sdk-rust",
+      identity: { name: "Factory Test", email: "factory@example.invalid" },
+      github,
+      persist(receipt) { retained = receipt; },
+    });
+    assert.equal(outcome.executed, true);
+    assert.equal(outcome.mergePerformed, true);
+    assert.deepEqual(outcome.receipt, retained);
+    assert.equal(validateMergeReceipt(retained).ok, true);
+    assert.equal(retained.headSha, expectedHead);
+    assert.equal(retained.mergeCommitSha, mergeCommit);
+    assert.equal(retained.requiredChecksPassed, true);
+    assert.equal(retained.verifiedSignature, true);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("guarded merge rejects unsafe messages, stale state, red checks, and invalid post-merge proof", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-merge-negative-"));
+  try {
+    const bodyFile = path.join(created, "merge.md");
+    const validBody = "Closes #320.\n\nSigned-off-by: Factory Test <factory@example.invalid>\n";
+    writeFileSync(bodyFile, validBody);
+    assert.throws(
+      () => validateMergeBody("Closes #320.\\nSigned-off-by: Factory Test <factory@example.invalid>", {
+        name: "Factory Test", email: "factory@example.invalid",
+      }),
+      /literal escaped newline/u,
+    );
+    assert.throws(
+      () => validateMergeBody("Closes #320.\nWrong trailer", {
+        name: "Factory Test", email: "factory@example.invalid",
+      }),
+      /exact Git identity DCO/u,
+    );
+    const expectedHead = "b".repeat(40);
+    const baseState = {
+      state: "OPEN", isDraft: false, baseRefName: "develop", headRefOid: expectedHead,
+      mergeable: "MERGEABLE", mergeStateStatus: "CLEAN", reviewDecision: "",
+    };
+    const dependencies = (state, checks = true) => ({
+      repository: "hyperledger-identus/sdk-rust",
+      identity: { name: "Factory Test", email: "factory@example.invalid" },
+      github: {
+        readPullRequest() { return state; },
+        requiredChecksPass() { return checks; },
+      },
+    });
+    const options = { pullRequest: 320, expectedHead, bodyFile, execute: false };
+    assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, headRefOid: sha })), /expected head/u);
+    assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, isDraft: true })), /not ready/u);
+    assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, mergeStateStatus: "BLOCKED" })), /not clean/u);
+    assert.throws(() => mergePullRequest(options, dependencies(baseState, false)), /required pull request checks/u);
+
+    let reads = 0;
+    assert.throws(() => mergePullRequest({ ...options, execute: true }, {
+      repository: "hyperledger-identus/sdk-rust",
+      identity: { name: "Factory Test", email: "factory@example.invalid" },
+      github: {
+        readPullRequest() {
+          reads += 1;
+          return reads === 1 ? baseState : {
+            ...baseState,
+            state: "MERGED",
+            mergedAt: "2026-09-17T09:00:00.000Z",
+            mergeCommit: { oid: "c".repeat(40) },
+          };
+        },
+        requiredChecksPass() { return true; },
+        merge() {},
+        readCommit() {
+          return {
+            sha: "c".repeat(40),
+            commit: {
+              message: validBody,
+              verification: { verified: false, reason: "unsigned" },
+            },
+          };
+        },
+      },
+      persist() { throw new Error("invalid proof must not persist"); },
+    }), /signature verification/u);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("guarded merge recovers an exact already-merged receipt without merging again", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-merge-recovery-"));
+  try {
+    const bodyFile = path.join(created, "merge.md");
+    const body = "Closes #320.\n\nSigned-off-by: Factory Test <factory@example.invalid>";
+    writeFileSync(bodyFile, `${body}\n`);
+    const expectedHead = "b".repeat(40);
+    const mergeCommit = "c".repeat(40);
+    let retained;
+    const outcome = mergePullRequest({
+      pullRequest: 320, expectedHead, bodyFile, execute: true,
+    }, {
+      repository: "hyperledger-identus/sdk-rust",
+      identity: { name: "Factory Test", email: "factory@example.invalid" },
+      github: {
+        readPullRequest() {
+          return {
+            state: "MERGED", isDraft: false, baseRefName: "develop",
+            headRefOid: expectedHead, mergedAt: "2026-09-17T09:00:00.000Z",
+            mergeCommit: { oid: mergeCommit },
+          };
+        },
+        requiredChecksPass() { return true; },
+        merge() { throw new Error("already-merged recovery must not merge again"); },
+        readCommit() {
+          return {
+            sha: mergeCommit,
+            commit: {
+              message: `fix(factory): close delivery loop\n\n${body}`,
+              verification: { verified: true, reason: "valid" },
+            },
+          };
+        },
+      },
+      persist(receipt) { retained = receipt; },
+    });
+    assert.equal(outcome.executed, true);
+    assert.equal(outcome.mergePerformed, false);
+    assert.deepEqual(outcome.receipt, retained);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("merge arguments and private receipts are closed and immutable", () => {
+  const expectedHead = "b".repeat(40);
+  assert.deepEqual(parseMergeArguments([
+    "merge-pr", "--pr", "320", "--expect-head", expectedHead,
+    "--body-file", "merge.md",
+  ]), { pullRequest: 320, expectedHead, bodyFile: "merge.md", execute: false });
+  assert.equal(parseMergeArguments([
+    "merge-pr", "--pr", "320", "--expect-head", expectedHead,
+    "--body-file", "merge.md", "--execute",
+  ]).execute, true);
+  assert.throws(() => parseMergeArguments(["merge-pr", "--pr", "0"]), /positive integer|requires/u);
+
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-merge-receipt-"));
+  try {
+    execFileSync("git", ["init", "-b", "develop"], { cwd: created });
+    const receipt = {
+      schemaVersion: 1,
+      repository: "hyperledger-identus/sdk-rust",
+      pullRequest: 320,
+      headSha: expectedHead,
+      mergeCommitSha: "c".repeat(40),
+      baseRef: "develop",
+      mergedAt: "2026-09-17T09:00:00.000Z",
+      mergeBodySha256: "d".repeat(64),
+      requiredChecksPassed: true,
+      verifiedSignature: true,
+      verificationReason: "valid",
+      protectedMergePath: true,
+    };
+    const first = retainMergeReceipt(receipt, { repositoryRoot: created });
+    const second = retainMergeReceipt(receipt, { repositoryRoot: created });
+    assert.equal(first, second);
+    assert.equal(lstatSync(first).mode & 0o077, 0);
+    assert.throws(
+      () => retainMergeReceipt({ ...receipt, mergedAt: "2026-09-17T09:00:01.000Z" }, { repositoryRoot: created }),
+      /conflicts/u,
+    );
+    assert.equal(validateMergeReceipt({ ...receipt, unexpected: true }).ok, false);
   } finally {
     rmSync(created, { recursive: true, force: true });
   }

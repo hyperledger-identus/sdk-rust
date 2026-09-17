@@ -16,6 +16,6 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Run focused tests, factory checks, Git diff checks, and local review.
-- [ ] 3.2 Archive the completed contract and prepare a signed, preflighted PR;
+- [x] 3.1 Run focused tests, factory checks, Git diff checks, and local review.
+- [x] 3.2 Archive the completed contract and prepare a signed, preflighted PR;
       hosted CI, review, merge, metrics, and closeout remain delivery evidence.

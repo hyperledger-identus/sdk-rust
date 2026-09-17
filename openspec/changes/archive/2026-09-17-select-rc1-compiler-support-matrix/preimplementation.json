@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 325,
+  "change": "select-rc1-compiler-support-matrix",
+  "branch": "codex/spec/issue-325",
+  "baseRef": "origin/develop",
+  "baseSha": "4a39d7dbde1caf50c26545a2eda609500aa2a146",
+  "contractHeadSha": "ff70467ad8e6f6839573c52be685131fe2c304e4",
+  "createdAt": "2026-09-17T14:05:09.861Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -49,8 +49,8 @@ def validate(root: Path) -> list[str]:
         errors.append("workspace version must remain 0.0.0 for source-only alpha")
     if package_policy.get("publish") is not False:
         errors.append("workspace publish must remain false")
-    if package_policy.get("rust-version") != "1.98.1":
-        errors.append("consumer compiler floor must remain Rust 1.98.1")
+    if package_policy.get("rust-version") != "1.89.0":
+        errors.append("consumer compiler floor must remain Rust 1.89.0")
 
     for expected_name, relative in PACKAGES.items():
         manifest = load_toml(root / relative, errors)
@@ -76,7 +76,7 @@ def validate(root: Path) -> list[str]:
         "Cargo.lock",
         "flake.lock",
         "publish = false",
-        "Rust 1.98.1",
+        "Rust 1.89.0",
         "no SemVer compatibility",
         "identus-apollo",
     )

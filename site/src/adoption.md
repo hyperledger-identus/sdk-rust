@@ -28,8 +28,9 @@ Record:
 - unit, conformance, integration, advisory, and license results;
 - public/wire compatibility and rollback.
 
-The first planned M3 consumer is a minimal hash-only Midnight Identity canary
-tracked by [MediaNoxLabs/midnight-identity#81](https://github.com/MediaNoxLabs/midnight-identity/issues/81).
+The first planned M3 consumer is a minimal hash-only downstream canary. It is
+owned and implemented entirely downstream: this repository accepts only
+generic evidence and does not import consumer names, primitives, or policy.
 NeoPRISM provides a broader source-pinned cryptography integration reference.
 
 Source evaluation provides no crates.io checksum, SemVer support promise,

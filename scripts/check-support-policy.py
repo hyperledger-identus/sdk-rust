@@ -68,6 +68,7 @@ REQUIRED_TARGETS = {
     "wasm32-wasip1": "planned",
 }
 REQUIRED_COMPILE_PACKAGES = {
+    "identus-derive",
     "identus-core",
     "identus-crypto",
     "identus-did",
@@ -78,11 +79,24 @@ REQUIRED_COMPILE_PACKAGES = {
 REQUIRED_FEATURE_SURFACES = {
     "workspace-default",
     "crypto-minimal",
+    "crypto-hash-only",
     "crypto-kmp-compat",
     "entropy-minimal",
     "entropy-deterministic",
     "entropy-system-random",
     "entropy-all",
+}
+REQUIRED_RELEASE_PACKAGES = {
+    "identus-derive",
+    "identus-core",
+    "identus-crypto",
+}
+REQUIRED_RELEASE_PROFILES = {
+    "default",
+    "all-features",
+    "no-default-features",
+    "kmp-compat",
+    "hash-only",
 }
 ALLOWED_TIERS = {"host-tested", "compile-checked", "planned", "not-supported"}
 NIX_URI_PREFIX = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:[A-Za-z0-9%/?@&=+$,_.!~*'-]")
@@ -1901,6 +1915,12 @@ def referenced_policy_gates(policy: dict[str, Any]) -> set[str]:
         gates.update(gate for gate in surface.get("gates", []) if isinstance(gate, str))
         if isinstance(surface.get("msrv_gate"), str):
             gates.add(surface["msrv_gate"])
+    release = policy.get("release_candidate", {})
+    if isinstance(release, dict):
+        for field in ("msrv_profile_gates", "primary_target_gates", "msrv_target_gates"):
+            gates.update(
+                gate for gate in release.get(field, []) if isinstance(gate, str)
+            )
     return gates
 
 
@@ -2061,7 +2081,7 @@ def validate_toolchains(
 ) -> None:
     toolchains = require_table(policy, "toolchains", failures)
     expected = {
-        "msrv": "1.98.1",
+        "msrv": "1.89.0",
         "primary": "1.98.1",
         "etalon": "1.98.1",
         "fuzz": "nightly-2026-03-18",
@@ -2116,6 +2136,7 @@ def validate_toolchains(
 
     fuzz_date = str(toolchains.get("fuzz", "")).removeprefix("nightly-")
     primary = str(toolchains.get("primary", ""))
+    msrv = str(toolchains.get("msrv", ""))
     expected_toolchain_statements = {
         compact(
             f"""toolchain = stablePkgs.rust-bin.stable."{primary}".default.override {{
@@ -2128,7 +2149,15 @@ def validate_toolchains(
             }};"""
         ),
         "etalonToolchain = toolchain;",
-        "msrvToolchain = toolchain;",
+        compact(
+            f'''msrvToolchain = stablePkgs.rust-bin.stable."{msrv}".minimal.override {{
+              targets = [
+                "aarch64-apple-ios"
+                "aarch64-linux-android"
+                "wasm32-unknown-unknown"
+              ];
+            }};'''
+        ),
         compact(
             f"""fuzzToolchain = pkgs.rust-bin.nightly."{fuzz_date}".default.override {{
               extensions = [ "rust-src" ];
@@ -2136,7 +2165,7 @@ def validate_toolchains(
         ),
         "craneLib = (inputs.crane.mkLib pkgs).overrideToolchain toolchain;",
         "etalonCraneLib = craneLib;",
-        "msrvCraneLib = craneLib;",
+        "msrvCraneLib = (inputs.crane.mkLib pkgs).overrideToolchain msrvToolchain;",
     }
     protected_toolchain_names = (
         "inputs",
@@ -2205,25 +2234,11 @@ def validate_toolchains(
         )
     for token in [
         f'stable."{toolchains.get("primary", "")}"',
+        f'stable."{toolchains.get("msrv", "")}"',
         f'nightly."{str(toolchains.get("fuzz", "")).removeprefix("nightly-")}"',
     ]:
         if token not in rust_nix:
             failures.append(f"nix/rust-toolchain.nix does not select {token}")
-
-    if not re.search(
-        r"msrvToolchain\s*=\s*toolchain\s*;",
-        rust_nix,
-    ):
-        failures.append(
-            "nix/rust-toolchain.nix does not alias msrvToolchain to the primary toolchain"
-        )
-    if not re.search(
-        r"msrvCraneLib\s*=\s*craneLib\s*;",
-        rust_nix,
-    ):
-        failures.append(
-            "nix/rust-toolchain.nix does not alias msrvCraneLib to the primary Crane provider"
-        )
 
     fuzz_shell_path = root / "nix/devshells/default.nix"
     try:
@@ -2387,14 +2402,14 @@ def validate_ci_lanes(
         "slow_default_branch": "develop",
         "slow_concurrency": "one-running-one-pending",
         "slow_scope": "all-flake-checks",
-        "review_by": "2026-12-08",
+        "review_by": "2027-03-17",
     }
     for field, expected_value in expected_scalars.items():
         actual = require_nonempty_string(ci, field, "[ci]", failures)
         if actual and actual != expected_value:
             failures.append(f"ci.{field} must be {expected_value}, found {actual}")
-    if ci.get("release_candidate_eligible") is not False:
-        failures.append("ci.release_candidate_eligible must remain false")
+    if ci.get("release_candidate_eligible") is not True:
+        failures.append("ci.release_candidate_eligible must be true after the release matrix decision")
     if ci.get("slow_artifact_retention_days") != 7:
         failures.append("ci.slow_artifact_retention_days must be 7")
     if ci.get("slow_freshness_hours") != 160:
@@ -3243,6 +3258,109 @@ def validate_deferred_dimensions(
         require_nonempty_string(table, "reason", f"[{dimension}]", failures)
 
 
+def validate_release_candidate(
+    policy: dict[str, Any],
+    toolchains: dict[str, Any],
+    gates: dict[str, dict[str, Any]],
+    failures: list[str],
+) -> None:
+    release = require_table(policy, "release_candidate", failures)
+    expected_scalars = {
+        "version": "0.1.0-rc.1",
+        "msrv": toolchains.get("msrv"),
+        "primary": toolchains.get("primary"),
+        "msrv_release_line": "0.1.x",
+        "review_by": "2027-03-17",
+    }
+    for field, expected in expected_scalars.items():
+        if release.get(field) != expected:
+            failures.append(
+                f"release_candidate.{field} must be {expected!r}, found {release.get(field)!r}"
+            )
+
+    expected_lists = {
+        "packages": REQUIRED_RELEASE_PACKAGES,
+        "profiles": REQUIRED_RELEASE_PROFILES,
+        "hosts": set(REQUIRED_HOSTS.values()),
+        "compile_targets": {
+            target
+            for target, tier in REQUIRED_TARGETS.items()
+            if tier == "compile-checked"
+        },
+    }
+    for field, expected in expected_lists.items():
+        actual = release.get(field)
+        if not isinstance(actual, list) or set(actual) != expected or len(actual) != len(expected):
+            failures.append(
+                f"release_candidate.{field} must contain exactly {sorted(expected)}"
+            )
+
+    target_gates = {
+        "primary_target_gates": {
+            "rust-build-wasm32": "wasm32-unknown-unknown",
+            "rust-build-android-aarch64": "aarch64-linux-android",
+            "rust-build-ios-aarch64": "aarch64-apple-ios",
+        },
+        "msrv_target_gates": {
+            "rust-msrv-release-wasm32": "wasm32-unknown-unknown",
+            "rust-msrv-release-android-aarch64": "aarch64-linux-android",
+            "rust-msrv-release-ios-aarch64": "aarch64-apple-ios",
+        },
+    }
+    expected_profile_gates = {
+        "rust-msrv",
+        "rust-msrv-crypto-all-features",
+        "rust-msrv-crypto-minimal",
+        "rust-msrv-crypto-kmp-compat",
+        "rust-msrv-crypto-hash-only",
+    }
+    actual_profile_gates = release.get("msrv_profile_gates")
+    if (
+        not isinstance(actual_profile_gates, list)
+        or set(actual_profile_gates) != expected_profile_gates
+        or len(actual_profile_gates) != len(expected_profile_gates)
+    ):
+        failures.append(
+            "release_candidate.msrv_profile_gates must contain exactly "
+            f"{sorted(expected_profile_gates)}"
+        )
+    else:
+        for gate in actual_profile_gates:
+            validate_msrv_builder(gate, gates, "release candidate profile", failures)
+
+    all_features_gate = gates.get("rust-msrv-crypto-all-features", {})
+    if (
+        all_features_gate.get("packages") != ["identus-crypto"]
+        or all_features_gate.get("all_features") is not True
+        or all_features_gate.get("no_default_features") is not False
+    ):
+        failures.append(
+            "rust-msrv-crypto-all-features must build identus-crypto with all features"
+        )
+
+    for field, expected in target_gates.items():
+        actual = release.get(field)
+        if not isinstance(actual, list) or set(actual) != set(expected) or len(actual) != len(expected):
+            failures.append(
+                f"release_candidate.{field} must contain exactly {sorted(expected)}"
+            )
+            continue
+        for gate, target in expected.items():
+            validate_gate_target(gate, target, gates, f"release candidate {field}", failures)
+            definition = gates.get(gate, {})
+            selected = set(definition.get("packages", []))
+            if not REQUIRED_RELEASE_PACKAGES.issubset(selected):
+                failures.append(
+                    f"release candidate gate {gate} does not cover all three release packages"
+                )
+            if field == "msrv_target_gates":
+                validate_msrv_builder(gate, gates, "release candidate target", failures)
+                if selected != REQUIRED_RELEASE_PACKAGES:
+                    failures.append(
+                        f"release candidate MSRV gate {gate} must select exactly the release packages"
+                    )
+
+
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
     policy = load_toml(root / POLICY_PATH, failures)
@@ -3257,6 +3375,12 @@ def validate(root: Path) -> list[str]:
     validate_gate_operations(policy, gates, failures)
     validate_toolchains(root, policy, cargo, gates, failures)
     validate_ci_lanes(root, policy, gates, failures)
+    validate_release_candidate(
+        policy,
+        require_table(policy, "toolchains", failures),
+        gates,
+        failures,
+    )
     validate_hosts(policy, gates, failures)
     validate_targets(policy, packages, manifests, gates, failures)
     validate_features(policy, manifests, gates, failures)

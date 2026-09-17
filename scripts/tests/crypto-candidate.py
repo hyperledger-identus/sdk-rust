@@ -38,6 +38,7 @@ def copy_fixture(destination: Path) -> None:
         "docs/release/identus-crypto-0.1.0-rc.1.api.txt",
         "docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md",
         "docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md",
+        "docs/adr/0133-select-rc1-compiler-support-matrix.md",
         "scripts/prepare-crypto-candidate.py",
         "crates/derive/Cargo.toml",
         "crates/derive/README.md",
@@ -106,6 +107,15 @@ def main() -> int:
         else:
             if not external_is_vcs_free:
                 raise AssertionError("scratch below the ambient Git worktree was accepted")
+
+        assert runner.require_tool_version("rustc", "rustc 1.98.1 (abc 2026-01-01)\n", "1.98.1")
+        for tool, output in (("rustc", "rustc 1.97.0 (abc)"), ("cargo", "not-a-version")):
+            try:
+                runner.require_tool_version(tool, output, "1.98.1")
+            except runner.CandidateError:
+                pass
+            else:
+                raise AssertionError(f"invalid {tool} preparation version was accepted")
         foreign_repository = test_root / "foreign-repository"
         foreign_scratch = foreign_repository / "temporary/build"
         foreign_scratch.mkdir(parents=True)
@@ -128,7 +138,7 @@ def main() -> int:
                 "canonical workspace publish must remain false",
             ),
             (
-                lambda root: replace(root / "docs/release/crypto-candidate.toml", 'publication       = "prohibited"', 'publication       = "allowed"'),
+                lambda root: replace(root / "docs/release/crypto-candidate.toml", 'publication              = "prohibited"', 'publication              = "allowed"'),
                 "descriptor publication",
             ),
             (
@@ -154,6 +164,14 @@ def main() -> int:
                     "# removed repository boundary check",
                 ),
                 "missing staging boundary",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
+                    "require_preparation_toolchain(root, descriptor, env)",
+                    "# removed preparation toolchain check",
+                ),
+                "missing preparation toolchain enforcement",
             ),
             (
                 lambda root: replace(

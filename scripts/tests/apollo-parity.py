@@ -206,7 +206,7 @@ class ApolloParityContract(unittest.TestCase):
             'packages            = [ "identus-core", "identus-crypto", "identus-did", "identus-jose", "identus-oid4vci", "identus-adapters-entropy" ]',
             'packages            = [ "identus-crypto" ]',
         )
-        self.assertIn("packages differ from support policy", self.run_checker().stderr)
+        self.assertIn("packages differ from the frozen CI receipt", self.run_checker().stderr)
 
     def test_portable_target_array_fails_closed(self) -> None:
         self.replace(

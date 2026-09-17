@@ -169,7 +169,7 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_cargo_msrv_drift_fails(self) -> None:
-        self.replace("Cargo.toml", 'rust-version = "1.98.1"', 'rust-version = "1.98.0"')
+        self.replace("Cargo.toml", 'rust-version = "1.89.0"', 'rust-version = "1.88.0"')
         self.assert_fails("does not match policy MSRV")
 
     def test_primary_stable_drift_fails(self) -> None:
@@ -1778,7 +1778,7 @@ in
     def test_target_gate_must_build_every_declared_package(self) -> None:
         self.replace_gate(
             "rust-build-wasm32",
-            'packages = [ "identus-core", "identus-crypto", "identus-did", "identus-jose", "identus-oid4vci", "identus-adapters-entropy" ]',
+            'packages = [ "identus-derive", "identus-core", "identus-crypto", "identus-did", "identus-jose", "identus-oid4vci", "identus-adapters-entropy" ]',
             'packages = [ "identus-core", "identus-crypto", "identus-did", "identus-adapters-entropy" ]',
         )
         self.assert_fails("rust-build-wasm32 selects packages")
@@ -1861,13 +1861,13 @@ in
         )
         self.assert_fails("rust-test-kmp-compat is not built with the MSRV toolchain")
 
-    def test_msrv_crane_library_must_alias_primary_provider(self) -> None:
+    def test_msrv_crane_library_must_use_independent_provider(self) -> None:
         self.replace(
             "nix/rust-toolchain.nix",
+            "msrvCraneLib = (inputs.crane.mkLib pkgs).overrideToolchain msrvToolchain;",
             "msrvCraneLib = craneLib;",
-            "msrvCraneLib = etalonCraneLib;",
         )
-        self.assert_fails("does not alias msrvCraneLib to the primary Crane provider")
+        self.assert_fails("does not bind canonical Crane providers")
 
     def test_fast_lane_cannot_drop_a_required_gate(self) -> None:
         self.replace(
@@ -2332,7 +2332,7 @@ in
     def test_invalid_list_field_fails_without_traceback(self) -> None:
         self.replace_gate(
             "rust-build-wasm32",
-            'packages = [ "identus-core", "identus-crypto", "identus-did", "identus-jose", "identus-oid4vci", "identus-adapters-entropy" ]',
+            'packages = [ "identus-derive", "identus-core", "identus-crypto", "identus-did", "identus-jose", "identus-oid4vci", "identus-adapters-entropy" ]',
             "packages = 7",
         )
         result = self.run_checker()
@@ -2484,6 +2484,30 @@ evidence_token = "contradictory"
 [[features]]""",
         )
         self.assert_fails("duplicate feature surface 'workspace-default'")
+
+    def test_release_candidate_msrv_must_match_toolchain(self) -> None:
+        self.replace(
+            "docs/architecture/sdk-support-policy.toml",
+            'msrv                 = "1.89.0"',
+            'msrv                 = "1.90.0"',
+        )
+        self.assert_fails("release_candidate.msrv must be '1.89.0'")
+
+    def test_release_candidate_cannot_drop_hash_only_profile(self) -> None:
+        self.replace(
+            "docs/architecture/sdk-support-policy.toml",
+            ', "hash-only" ]',
+            " ]",
+        )
+        self.assert_fails("release_candidate.profiles must contain exactly")
+
+    def test_release_candidate_all_features_must_use_msrv_builder(self) -> None:
+        self.replace_gate(
+            "rust-msrv-crypto-all-features",
+            'toolchain = "msrv"',
+            'toolchain = "primary"',
+        )
+        self.assert_fails("release candidate profile gate rust-msrv-crypto-all-features")
 
 
 if __name__ == "__main__":

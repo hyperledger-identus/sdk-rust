@@ -74,31 +74,40 @@ evidence.
 
 The SDK SHALL select its compiler floor from measured dependency value,
 supported consumer constraints, target evidence and delivery phase rather than
-an arithmetic average or release-distance formula. During the temporary
-unpublished active-development phase authorized by discussion #172, the
-workspace floor, primary compiler and compatibility etalon SHALL all be exact
-Rust 1.98.1 and no lower-version compatibility SHALL be claimed. Dependency
-research SHALL still record each candidate's declared and observed compiler
-requirements so a later release decision has evidence.
+an arithmetic average or release-distance formula. For the
+`identus-derive` / `identus-core` / `identus-crypto` `0.1.0-rc.1` train, the
+published package floor SHALL be exact Rust 1.89.0 while primary development,
+quality, documentation, and candidate preparation SHALL use exact stable Rust
+1.98.1. Dependency research SHALL record each candidate's declared and
+observed compiler requirements against both versions.
 
-A release candidate SHALL require a focused compatibility decision that uses
-named consumer and target evidence, updates Cargo, Nix, machine policy,
-migration guidance and CI together, and resolves all recorded slow-command
-failures.
-A boundary adapter MAY declare a different crate-local floor only through a
-separate material decision and SHALL NOT change generic core automatically.
+The independent MSRV lane SHALL execute in weekly/manual slow and exact
+release-candidate evidence rather than required per-PR fast CI. A future MSRV
+increase SHALL identify concrete dependency, correctness, security, target, or
+supported-consumer value; update Cargo, Nix, machine policy, migration
+guidance, and evidence atomically; and SHALL NOT occur within the `0.1.x`
+release line. A boundary adapter MAY declare a different crate-local floor
+only through a separate material decision and SHALL NOT change generic core
+automatically.
 
-#### Scenario: Dependency requires a recent compiler during active development
+#### Scenario: Dependency fits the published release floor
 
-- **WHEN** a cohesive dependency requires Rust no newer than the exact 1.98.1
-  workspace floor and passes all other adoption gates
-- **THEN** no artificial lower-MSRV lane blocks research or implementation
+- **WHEN** a cohesive dependency declares and proves Rust requirements no newer
+  than 1.89.0 and passes every other adoption gate
+- **THEN** the release MSRV does not block its independently justified use
 
-#### Scenario: Release candidate preparation begins
+#### Scenario: Dependency requires a newer compiler
 
-- **WHEN** the project proposes a release candidate or reaches 2026-12-08
-- **THEN** a focused decision selects and enforces a consumer-driven compiler
-  matrix before any artifact can be published
+- **WHEN** a candidate requires Rust newer than 1.89.0
+- **THEN** it remains deferred until a focused compatibility decision proves
+  concrete payoff, migration, all target/profile evidence, and a later minor
+  release line
+
+#### Scenario: Release candidate preparation runs
+
+- **WHEN** the exact `0.1.0-rc.1` candidate is assembled
+- **THEN** its manifests declare Rust 1.89.0 and its receipt binds both the
+  independent MSRV evidence and Rust 1.98.1 preparation evidence
 
 #### Scenario: Boundary adapter needs a distinct compiler constraint
 

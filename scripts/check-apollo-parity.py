@@ -57,6 +57,11 @@ PORTABLE_TARGET_IDS = {
     "wasm32-unknown-unknown", "aarch64-apple-ios",
     "aarch64-linux-android",
 }
+FROZEN_TARGET_PACKAGES = [
+    "identus-core", "identus-crypto", "identus-did", "identus-jose",
+    "identus-oid4vci", "identus-adapters-entropy",
+]
+FROZEN_TARGET_FEATURES = ["identus-adapters-entropy/getrandom"]
 COVERAGE_PROFILES = [
     "default", "all-features", "no-default-features", "kmp-compat",
 ]
@@ -381,6 +386,10 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
             evidence_arrays[field] = values
     if len(evidence_arrays["targets"]) != len(PORTABLE_TARGET_IDS) or set(evidence_arrays["targets"]) != PORTABLE_TARGET_IDS:
         check.fail("target_evidence: targets must be exactly the portable compile targets")
+    if evidence_arrays["packages"] != FROZEN_TARGET_PACKAGES:
+        check.fail("target_evidence: packages differ from the frozen CI receipt")
+    if evidence_arrays["features"] != FROZEN_TARGET_FEATURES:
+        check.fail("target_evidence: features differ from the frozen CI receipt")
     if target_evidence.get("no_default_features") is not False:
         check.fail("target_evidence: no_default_features must be false")
 
@@ -431,8 +440,8 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
         check.fail("target_evidence: portable support-policy package/feature shapes differ")
     elif portable_shapes:
         packages, features, no_default_features = next(iter(portable_shapes))
-        if target_evidence.get("packages") != list(packages):
-            check.fail("target_evidence: packages differ from support policy")
+        if not set(evidence_arrays["packages"]).issubset(packages):
+            check.fail("target_evidence: current support policy dropped a historically proven package")
         if target_evidence.get("features") != list(features):
             check.fail("target_evidence: features differ from support policy")
         if target_evidence.get("no_default_features") != no_default_features:

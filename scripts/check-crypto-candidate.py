@@ -28,7 +28,7 @@ TOOLS = {
     "cargo_cyclonedx": "0.5.9",
     "cyclonedx_spec": "1.5",
 }
-PROFILES = ("default", "all-features", "no-default-features", "kmp-compat")
+PROFILES = ("default", "all-features", "no-default-features", "hash-only", "kmp-compat")
 
 
 def load_toml(path: Path, errors: list[str]) -> dict[str, Any]:
@@ -56,7 +56,8 @@ def validate(root: Path) -> list[str]:
         "schema_version": 1,
         "candidate": "identus-crypto-0.1.0-rc.1",
         "version": VERSION,
-        "rust_version": "1.98.1",
+        "rust_version": "1.89.0",
+        "preparation_rust_version": "1.98.1",
         "baseline_revision": BASELINE,
         "repository": "https://github.com/hyperledger-identus/sdk-rust",
         "license": "Apache-2.0",
@@ -97,8 +98,8 @@ def validate(root: Path) -> list[str]:
         errors.append("canonical workspace version must remain 0.0.0")
     if package_policy.get("publish") is not False:
         errors.append("canonical workspace publish must remain false")
-    if package_policy.get("rust-version") != "1.98.1":
-        errors.append("canonical Rust version must remain 1.98.1")
+    if package_policy.get("rust-version") != "1.89.0":
+        errors.append("canonical Rust version must remain the selected 1.89.0 MSRV")
 
     for name, package_path in PACKAGE_PATHS.items():
         manifest = load_toml(root / package_path / "Cargo.toml", errors)
@@ -111,9 +112,13 @@ def validate(root: Path) -> list[str]:
                 errors.append(f"{name}: README is missing candidate warning: {phrase}")
 
     adr = read(root / ADR, errors)
-    for phrase in ("#266", "archive-closure verification", "publish = false", "Rust 1.98.1"):
+    for phrase in ("#266", "archive-closure verification", "publish = false"):
         if phrase not in adr:
             errors.append(f"candidate ADR is missing decision evidence: {phrase}")
+    support_adr = read(root / "docs/adr/0133-select-rc1-compiler-support-matrix.md", errors)
+    for phrase in ("Rust 1.89.0", "Rust 1.98.1", "0.1.x", "hash-only"):
+        if phrase not in support_adr:
+            errors.append(f"support-matrix ADR is missing decision evidence: {phrase}")
     toolchain_adr = read(root / TOOLCHAIN_ADR, errors)
     for phrase in ("#276", "cargo rustdoc", "cargo-public-api 0.52.0", "RUSTC_BOOTSTRAP=1", "Rust 1.98.1"):
         if phrase not in toolchain_adr:
@@ -146,6 +151,8 @@ def validate(root: Path) -> list[str]:
         runner,
     ):
         errors.append("candidate build scratch must not be rooted in the output destination")
+    if "require_preparation_toolchain(root, descriptor, env)" not in runner:
+        errors.append("candidate runner is missing preparation toolchain enforcement")
     required_api_contract = (
         'api_target = stage / "target/public-api"',
         'api_env = env | {"RUSTC_BOOTSTRAP": "1"}',

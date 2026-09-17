@@ -1,13 +1,14 @@
-schema_version    = 1
-candidate         = "identus-crypto-0.1.0-rc.1"
-version           = "0.1.0-rc.1"
-rust_version      = "1.98.1"
-baseline_revision = "8110277c24714206436ae4a3fe678bdc58a84736"
-repository        = "https://github.com/hyperledger-identus/sdk-rust"
-homepage          = "https://hyperledger-identus.github.io/"
-license           = "Apache-2.0"
-max_archive_bytes = 1048576
-publication       = "prohibited"
+schema_version           = 1
+candidate                = "identus-crypto-0.1.0-rc.1"
+version                  = "0.1.0-rc.1"
+rust_version             = "1.89.0"
+preparation_rust_version = "1.98.1"
+baseline_revision        = "8110277c24714206436ae4a3fe678bdc58a84736"
+repository               = "https://github.com/hyperledger-identus/sdk-rust"
+homepage                 = "https://hyperledger-identus.github.io/"
+license                  = "Apache-2.0"
+max_archive_bytes        = 1048576
+publication              = "prohibited"
 
 [tools]
 cargo_public_api    = "0.52.0"
@@ -29,6 +30,11 @@ features         = [ "all" ]
 name             = "no-default-features"
 default_features = false
 features         = [  ]
+
+[[profiles]]
+name             = "hash-only"
+default_features = false
+features         = [ "hash" ]
 
 [[profiles]]
 name             = "kmp-compat"

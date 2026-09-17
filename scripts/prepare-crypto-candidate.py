@@ -68,6 +68,32 @@ def load_descriptor(root: Path) -> dict[str, Any]:
         return tomllib.load(source)
 
 
+def require_tool_version(tool: str, output: str, expected: str) -> str:
+    """Require an exact release tool version and return its normalized output."""
+    normalized = output.strip()
+    match = re.fullmatch(rf"{re.escape(tool)} ([0-9]+\.[0-9]+\.[0-9]+)(?: .*)?", normalized)
+    if match is None:
+        raise CandidateError(f"cannot parse {tool} version: {normalized!r}")
+    if match.group(1) != expected:
+        raise CandidateError(
+            f"candidate preparation requires {tool} {expected}; found {match.group(1)}"
+        )
+    return normalized
+
+
+def require_preparation_toolchain(
+    root: Path, descriptor: dict[str, Any], env: dict[str, str]
+) -> tuple[str, str]:
+    expected = descriptor["preparation_rust_version"]
+    rust_version = require_tool_version(
+        "rustc", run(["rustc", "--version"], cwd=root, env=env), expected
+    )
+    cargo_version = require_tool_version(
+        "cargo", run(["cargo", "--version"], cwd=root, env=env), expected
+    )
+    return rust_version, cargo_version
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as source:
@@ -313,6 +339,7 @@ def verify_closure(archives: dict[str, Path], root: Path, descriptor: dict[str, 
         "[dependencies]", f'identus-crypto = {{ version = "={descriptor["version"]}", default-features = false }}', "",
         "[features]", 'default = [ "identus-crypto/default" ]',
         f'all-crypto = {toml_array([f"identus-crypto/{name}" for name in all_features])}',
+        'hash-only = [ "identus-crypto/hash" ]',
         'kmp-compat = [ "identus-crypto/kmp-compat" ]', "",
     ])
     (consumer / "Cargo.toml").write_text(consumer_manifest, encoding="utf-8")
@@ -328,6 +355,7 @@ def verify_closure(archives: dict[str, Path], root: Path, descriptor: dict[str, 
         ["cargo", "check", "--locked", "-p", "candidate-consumer"],
         ["cargo", "check", "--locked", "-p", "candidate-consumer", "--no-default-features"],
         ["cargo", "check", "--locked", "-p", "candidate-consumer", "--no-default-features", "--features", "all-crypto"],
+        ["cargo", "check", "--locked", "-p", "candidate-consumer", "--no-default-features", "--features", "hash-only"],
         ["cargo", "check", "--locked", "-p", "candidate-consumer", "--no-default-features", "--features", "kmp-compat"],
         ["cargo", "test", "--locked", "-p", "identus-crypto", "--all-features"],
     ]
@@ -415,6 +443,7 @@ def prepare(args: argparse.Namespace) -> Path:
     start = time.monotonic()
     env = os.environ.copy()
     env.update({"SOURCE_DATE_EPOCH": "1", "CARGO_TERM_COLOR": "never"})
+    rust_version, cargo_version = require_preparation_toolchain(root, descriptor, env)
     with tempfile.TemporaryDirectory(prefix=".identus-crypto-candidate-build-") as temporary:
         scratch = Path(temporary)
         require_vcs_independent_build_scratch(root, scratch)
@@ -449,8 +478,9 @@ def prepare(args: argparse.Namespace) -> Path:
                 "sourceDirty": dirty,
                 "publication": "prohibited",
                 "verification": "unpublished-archive-closure",
-                "rustVersion": run(["rustc", "--version"], cwd=root, env=env).strip(),
-                "cargoVersion": run(["cargo", "--version"], cwd=root, env=env).strip(),
+                "rustVersion": rust_version,
+                "cargoVersion": cargo_version,
+                "declaredMsrv": descriptor["rust_version"],
                 "tools": versions,
                 "profiles": [row["name"] for row in descriptor["profiles"]],
                 "packages": [
@@ -464,7 +494,7 @@ def prepare(args: argparse.Namespace) -> Path:
                 ],
                 "limitations": [
                     "unpublished; no registry resolution or cargo publish dry-run",
-                    "Rust 1.98.1 is candidate-preparation evidence, not the publication MSRV",
+                    "Rust 1.98.1 is candidate-preparation evidence; the published MSRV is Rust 1.89.0",
                     "public API rendering scopes RUSTC_BOOTSTRAP=1 to rustdoc JSON inspection",
                     "no tag, signature, attestation, foreign-language package, main promotion, or downstream migration",
                 ],

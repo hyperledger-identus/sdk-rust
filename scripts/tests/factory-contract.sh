@@ -112,6 +112,7 @@ required_files=(
   docs/adr/0123-bind-android-build-to-the-exact-installed-ndk.md
   docs/adr/0124-separate-android-package-and-runtime-evidence.md
   docs/adr/0125-govern-sdk-input-resource-boundaries.md
+  docs/adr/0133-select-rc1-compiler-support-matrix.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix

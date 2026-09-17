@@ -12,8 +12,6 @@ on:
       - "nix/docs-site.nix"
       - "scripts/build-docs-site.sh"
       - "site/**"
-  workflow_dispatch:
-
 permissions: {}
 
 concurrency:

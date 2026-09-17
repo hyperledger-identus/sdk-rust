@@ -22,6 +22,17 @@ import { Readable } from "node:stream";
 import { test } from "node:test";
 import { parseConventionalSubject, validateBranchName, validateHostedCommits, validatePullRequest } from "../ci/contribution-policy.mjs";
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
+import {
+  maximumPullRequestBodyBytes,
+  mergePullRequest,
+  parseDeliveryArguments,
+  parseMergeArguments,
+  preflightPullRequest,
+  readPullRequestBody,
+  retainMergeReceipt,
+  validateMergeBody,
+  validateMergeReceipt,
+} from "../factory-tools/delivery.mjs";
 import { checkUserPolicy, mergePolicy, policyMismatches } from "../factory-tools/pi-policy.mjs";
 import { auditPi } from "../factory-tools/audit-pi.mjs";
 import {
@@ -55,7 +66,12 @@ import {
   preparePiPackageCache,
 } from "../factory-tools/pi-package-cache.mjs";
 import { validatePlanningPaths } from "../factory-tools/preflight.mjs";
-import { isWithinManagedRoot, parseWorktrees } from "../worktree-lifecycle.mjs";
+import {
+  isWithinManagedRoot,
+  parseRemoteBranchHead,
+  parseWorktrees,
+  validateSupersededEvidence,
+} from "../worktree-lifecycle.mjs";
 
 const sha = "a".repeat(40);
 const metric = {
@@ -166,6 +182,417 @@ test("contribution metadata binds conventional type, scope and issue branch", ()
     branch: "codex/feat/issue-243",
     body: "Closes #243",
   }).ok, false);
+});
+
+test("file-backed pull request preflight applies both hosted policy layers", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-preflight-"));
+  try {
+    const bodyFile = path.join(created, "body.md");
+    const body = [
+      "Closes #320",
+      "- Local review: passed by a focused review",
+      "- Constraint impact: routine",
+      "- Limitations: none",
+    ].join("\n");
+    writeFileSync(bodyFile, body);
+    let observedEnvironment;
+    const options = {
+      title: "fix(factory): preflight pull request metadata",
+      bodyFile,
+      headRef: "codex/fix/issue-320",
+      baseRef: "develop",
+      draft: false,
+    };
+    const outcome = preflightPullRequest(options, {
+      runPolicy(environment) {
+        observedEnvironment = environment;
+        return { status: 0, stderr: "" };
+      },
+    });
+    assert.deepEqual(observedEnvironment, {
+      PR_BASE_REF: "develop",
+      PR_DRAFT: "false",
+      PR_BODY: body,
+    });
+    assert.deepEqual(outcome, { ok: true, issue: 320, type: "fix", scope: "factory" });
+
+    const commandOutput = execFileSync(path.resolve("scripts/factory"), [
+      "delivery", "pr-preflight",
+      "--title", options.title,
+      "--body-file", bodyFile,
+      "--head-ref", options.headRef,
+      "--base-ref", options.baseRef,
+      "--draft", "false",
+    ], { encoding: "utf8" });
+    assert.match(commandOutput, /metadata preflight passed for issue #320/u);
+    assert.match(
+      execFileSync(path.resolve("scripts/factory"), ["delivery", "--help"], { encoding: "utf8" }),
+      /delivery pr-preflight/u,
+    );
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("local pull request preflight does not write hosted workflow outputs", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-output-"));
+  try {
+    const bodyFile = path.join(created, "body.md");
+    const outputFile = path.join(created, "github-output.txt");
+    writeFileSync(bodyFile, [
+      "Closes #320",
+      "- Local review: completed",
+      "- Constraint impact: routine",
+      "- Limitations: none",
+    ].join("\n"));
+    writeFileSync(outputFile, "unchanged\n");
+    const previous = process.env.GITHUB_OUTPUT;
+    process.env.GITHUB_OUTPUT = outputFile;
+    try {
+      preflightPullRequest({
+        title: "fix(factory): preflight pull request metadata",
+        bodyFile,
+        headRef: "codex/fix/issue-320",
+        baseRef: "develop",
+        draft: false,
+      });
+    } finally {
+      if (previous === undefined) delete process.env.GITHUB_OUTPUT;
+      else process.env.GITHUB_OUTPUT = previous;
+    }
+    assert.equal(readFileSync(outputFile, "utf8"), "unchanged\n");
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("factory replaces its shell process before a mutable supervisor run", () => {
+  const factory = readFileSync(new URL("../factory", import.meta.url), "utf8");
+  assert.match(
+    factory,
+    /supervisor\)\s+exec node "\$factory_root\/scripts\/factory-tools\/supervisor\.mjs" "\$@"/u,
+  );
+});
+
+test("pull request preflight rejects either hosted policy layer without exposing the body", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-policy-negative-"));
+  try {
+    const validBodyFile = path.join(created, "valid.md");
+    writeFileSync(validBodyFile, [
+      "Closes #320",
+      "- Local review: completed",
+      "- Constraint impact: routine",
+      "- Limitations: none",
+    ].join("\n"));
+    const options = {
+      title: "fix(factory): preflight pull request metadata",
+      bodyFile: validBodyFile,
+      headRef: "codex/fix/issue-320",
+      baseRef: "develop",
+      draft: false,
+    };
+    assert.throws(
+      () => preflightPullRequest({ ...options, draft: true }),
+      (error) => error.diagnostics?.some((entry) => entry.includes("must be ready, not draft")),
+    );
+    assert.throws(
+      () => preflightPullRequest({ ...options, title: "feat(factory): use mismatched type" }),
+      (error) => error.diagnostics?.some((entry) => entry.includes("branch type 'fix' does not match subject type 'feat'")),
+    );
+
+    const privateBody = path.join(created, "private.md");
+    writeFileSync(privateBody, "private-body-canary");
+    let failure;
+    try {
+      preflightPullRequest({ ...options, bodyFile: privateBody });
+    } catch (error) {
+      failure = error;
+    }
+    assert.ok(failure?.diagnostics.some((entry) => entry.includes("corresponding repository issue")));
+    assert.doesNotMatch(JSON.stringify(failure.diagnostics), /private-body-canary/u);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("pull request preflight arguments and body files are explicit and bounded", () => {
+  assert.deepEqual(parseDeliveryArguments([
+    "pr-preflight",
+    "--title", "fix(factory): preflight pull request metadata",
+    "--body-file", "body.md",
+    "--head-ref", "codex/fix/issue-320",
+    "--base-ref", "develop",
+    "--draft", "false",
+  ]), {
+    title: "fix(factory): preflight pull request metadata",
+    bodyFile: "body.md",
+    headRef: "codex/fix/issue-320",
+    baseRef: "develop",
+    draft: false,
+  });
+  assert.throws(
+    () => parseDeliveryArguments([
+      "pr-preflight",
+      "--title", "fix(factory): preflight pull request metadata",
+      "--body-file", "body.md",
+      "--head-ref", "codex/fix/issue-320",
+      "--base-ref", "develop",
+      "--draft", "False",
+    ]),
+    /explicitly true or false/u,
+  );
+  assert.throws(
+    () => parseDeliveryArguments(["pr-preflight", "--draft", "false", "--draft", "false"]),
+    /duplicate/u,
+  );
+
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-body-"));
+  try {
+    const bodyFile = path.join(created, "body.md");
+    writeFileSync(bodyFile, "Closes #320\n");
+    assert.equal(readPullRequestBody(bodyFile), "Closes #320\n");
+    const linked = path.join(created, "linked.md");
+    symlinkSync(bodyFile, linked);
+    assert.throws(() => readPullRequestBody(linked), /regular non-symlink/u);
+    writeFileSync(bodyFile, "x".repeat(maximumPullRequestBodyBytes + 1));
+    assert.throws(() => readPullRequestBody(bodyFile), /64 KiB/u);
+    writeFileSync(bodyFile, Buffer.from([0xff]));
+    assert.throws(() => readPullRequestBody(bodyFile), /valid UTF-8/u);
+    assert.throws(() => readPullRequestBody(created), /regular non-symlink/u);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("guarded merge is dry by default and retains exact verified evidence on execute", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-merge-pr-"));
+  try {
+    const bodyFile = path.join(created, "merge.md");
+    const body = [
+      "Closes #320.",
+      "",
+      "Signed-off-by: Factory Test <factory@example.invalid>",
+    ].join("\n");
+    writeFileSync(bodyFile, `${body}\n`);
+    const expectedHead = "b".repeat(40);
+    const mergeCommit = "c".repeat(40);
+    let merged = false;
+    let retained;
+    const github = {
+      readPullRequest() {
+        return merged
+          ? {
+            state: "MERGED", isDraft: false, baseRefName: "develop",
+            headRefOid: expectedHead, mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN",
+            reviewDecision: "", mergedAt: "2026-09-17T09:00:00.000Z",
+            mergeCommit: { oid: mergeCommit },
+          }
+          : {
+            state: "OPEN", isDraft: false, baseRefName: "develop",
+            headRefOid: expectedHead, mergeable: "MERGEABLE", mergeStateStatus: "CLEAN",
+            reviewDecision: "", mergedAt: null, mergeCommit: null,
+          };
+      },
+      requiredChecksPass() { return true; },
+      merge(number, head, observedBody) {
+        assert.equal(number, 320);
+        assert.equal(head, expectedHead);
+        assert.equal(observedBody, body);
+        merged = true;
+      },
+      readCommit() {
+        return {
+          sha: mergeCommit,
+          commit: {
+            message: `fix(factory): close delivery loop\n\n${body}`,
+            verification: { verified: true, reason: "valid" },
+          },
+        };
+      },
+    };
+    const options = { pullRequest: 320, expectedHead, bodyFile, execute: false };
+    assert.deepEqual(mergePullRequest(options, {
+      repository: "hyperledger-identus/sdk-rust",
+      identity: { name: "Factory Test", email: "factory@example.invalid" },
+      github,
+      persist() { throw new Error("dry validation must not persist"); },
+    }), { eligible: true, executed: false, mergePerformed: false, receipt: null });
+    assert.equal(merged, false);
+
+    const outcome = mergePullRequest({ ...options, execute: true }, {
+      repository: "hyperledger-identus/sdk-rust",
+      identity: { name: "Factory Test", email: "factory@example.invalid" },
+      github,
+      persist(receipt) { retained = receipt; },
+    });
+    assert.equal(outcome.executed, true);
+    assert.equal(outcome.mergePerformed, true);
+    assert.deepEqual(outcome.receipt, retained);
+    assert.equal(validateMergeReceipt(retained).ok, true);
+    assert.equal(retained.headSha, expectedHead);
+    assert.equal(retained.mergeCommitSha, mergeCommit);
+    assert.equal(retained.requiredChecksPassed, true);
+    assert.equal(retained.verifiedSignature, true);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("guarded merge rejects unsafe messages, stale state, red checks, and invalid post-merge proof", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-merge-negative-"));
+  try {
+    const bodyFile = path.join(created, "merge.md");
+    const validBody = "Closes #320.\n\nSigned-off-by: Factory Test <factory@example.invalid>\n";
+    writeFileSync(bodyFile, validBody);
+    assert.throws(
+      () => validateMergeBody("Closes #320.\\nSigned-off-by: Factory Test <factory@example.invalid>", {
+        name: "Factory Test", email: "factory@example.invalid",
+      }),
+      /literal escaped newline/u,
+    );
+    assert.throws(
+      () => validateMergeBody("Closes #320.\nWrong trailer", {
+        name: "Factory Test", email: "factory@example.invalid",
+      }),
+      /exact Git identity DCO/u,
+    );
+    const expectedHead = "b".repeat(40);
+    const baseState = {
+      state: "OPEN", isDraft: false, baseRefName: "develop", headRefOid: expectedHead,
+      mergeable: "MERGEABLE", mergeStateStatus: "CLEAN", reviewDecision: "",
+    };
+    const dependencies = (state, checks = true) => ({
+      repository: "hyperledger-identus/sdk-rust",
+      identity: { name: "Factory Test", email: "factory@example.invalid" },
+      github: {
+        readPullRequest() { return state; },
+        requiredChecksPass() { return checks; },
+      },
+    });
+    const options = { pullRequest: 320, expectedHead, bodyFile, execute: false };
+    assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, headRefOid: sha })), /expected head/u);
+    assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, isDraft: true })), /not ready/u);
+    assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, mergeStateStatus: "BLOCKED" })), /not clean/u);
+    assert.throws(() => mergePullRequest(options, dependencies(baseState, false)), /required pull request checks/u);
+
+    let reads = 0;
+    assert.throws(() => mergePullRequest({ ...options, execute: true }, {
+      repository: "hyperledger-identus/sdk-rust",
+      identity: { name: "Factory Test", email: "factory@example.invalid" },
+      github: {
+        readPullRequest() {
+          reads += 1;
+          return reads === 1 ? baseState : {
+            ...baseState,
+            state: "MERGED",
+            mergedAt: "2026-09-17T09:00:00.000Z",
+            mergeCommit: { oid: "c".repeat(40) },
+          };
+        },
+        requiredChecksPass() { return true; },
+        merge() {},
+        readCommit() {
+          return {
+            sha: "c".repeat(40),
+            commit: {
+              message: validBody,
+              verification: { verified: false, reason: "unsigned" },
+            },
+          };
+        },
+      },
+      persist() { throw new Error("invalid proof must not persist"); },
+    }), /signature verification/u);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("guarded merge recovers an exact already-merged receipt without merging again", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-merge-recovery-"));
+  try {
+    const bodyFile = path.join(created, "merge.md");
+    const body = "Closes #320.\n\nSigned-off-by: Factory Test <factory@example.invalid>";
+    writeFileSync(bodyFile, `${body}\n`);
+    const expectedHead = "b".repeat(40);
+    const mergeCommit = "c".repeat(40);
+    let retained;
+    const outcome = mergePullRequest({
+      pullRequest: 320, expectedHead, bodyFile, execute: true,
+    }, {
+      repository: "hyperledger-identus/sdk-rust",
+      identity: { name: "Factory Test", email: "factory@example.invalid" },
+      github: {
+        readPullRequest() {
+          return {
+            state: "MERGED", isDraft: false, baseRefName: "develop",
+            headRefOid: expectedHead, mergedAt: "2026-09-17T09:00:00.000Z",
+            mergeCommit: { oid: mergeCommit },
+          };
+        },
+        requiredChecksPass() { return true; },
+        merge() { throw new Error("already-merged recovery must not merge again"); },
+        readCommit() {
+          return {
+            sha: mergeCommit,
+            commit: {
+              message: `fix(factory): close delivery loop\n\n${body}`,
+              verification: { verified: true, reason: "valid" },
+            },
+          };
+        },
+      },
+      persist(receipt) { retained = receipt; },
+    });
+    assert.equal(outcome.executed, true);
+    assert.equal(outcome.mergePerformed, false);
+    assert.deepEqual(outcome.receipt, retained);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("merge arguments and private receipts are closed and immutable", () => {
+  const expectedHead = "b".repeat(40);
+  assert.deepEqual(parseMergeArguments([
+    "merge-pr", "--pr", "320", "--expect-head", expectedHead,
+    "--body-file", "merge.md",
+  ]), { pullRequest: 320, expectedHead, bodyFile: "merge.md", execute: false });
+  assert.equal(parseMergeArguments([
+    "merge-pr", "--pr", "320", "--expect-head", expectedHead,
+    "--body-file", "merge.md", "--execute",
+  ]).execute, true);
+  assert.throws(() => parseMergeArguments(["merge-pr", "--pr", "0"]), /positive integer|requires/u);
+
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-merge-receipt-"));
+  try {
+    execFileSync("git", ["init", "-b", "develop"], { cwd: created });
+    const receipt = {
+      schemaVersion: 1,
+      repository: "hyperledger-identus/sdk-rust",
+      pullRequest: 320,
+      headSha: expectedHead,
+      mergeCommitSha: "c".repeat(40),
+      baseRef: "develop",
+      mergedAt: "2026-09-17T09:00:00.000Z",
+      mergeBodySha256: "d".repeat(64),
+      requiredChecksPassed: true,
+      verifiedSignature: true,
+      verificationReason: "valid",
+      protectedMergePath: true,
+    };
+    const first = retainMergeReceipt(receipt, { repositoryRoot: created });
+    const second = retainMergeReceipt(receipt, { repositoryRoot: created });
+    assert.equal(first, second);
+    assert.equal(lstatSync(first).mode & 0o077, 0);
+    assert.throws(
+      () => retainMergeReceipt({ ...receipt, mergedAt: "2026-09-17T09:00:01.000Z" }, { repositoryRoot: created }),
+      /conflicts/u,
+    );
+    assert.equal(validateMergeReceipt({ ...receipt, unexpected: true }).ok, false);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
 });
 
 test("hosted commit evidence fails closed on invalid verification and head", () => {
@@ -1139,4 +1566,60 @@ test("worktree porcelain parser retains safety-relevant state", () => {
   assert.equal(records[1].branch, "codex/feat/issue-243");
   assert.equal(isWithinManagedRoot("/tmp/unmanaged", "/tmp/managed"), false);
   assert.equal(isWithinManagedRoot("/tmp/managed/issue-243", "/tmp/managed"), true);
+});
+
+test("superseded worktree evidence requires exact recoverability and replacement closure", () => {
+  const expectedHead = "b".repeat(40);
+  const expectedBranch = "codex/fix/issue-297";
+  const original = {
+    state: "CLOSED",
+    mergedAt: null,
+    baseRefName: "develop",
+    headRefOid: expectedHead,
+    headRefName: expectedBranch,
+    body: "Closes #297",
+  };
+  const replacement = {
+    state: "MERGED",
+    mergedAt: "2026-09-17T08:27:14.000Z",
+    baseRefName: "develop",
+    body: "Closes #315.\nCloses #297.",
+  };
+  const evidence = {
+    original,
+    replacement,
+    expectedHead,
+    expectedBranch,
+    issue: 297,
+    remoteHead: expectedHead,
+  };
+  assert.equal(validateSupersededEvidence(evidence), true);
+  assert.equal(
+    parseRemoteBranchHead(`${expectedHead}\trefs/heads/${expectedBranch}\n`, expectedBranch),
+    expectedHead,
+  );
+  assert.throws(() => validateSupersededEvidence({
+    ...evidence, original: { ...original, state: "MERGED", mergedAt: replacement.mergedAt },
+  }), /closed without merge/u);
+  assert.throws(() => validateSupersededEvidence({
+    ...evidence, original: { ...original, headRefOid: sha },
+  }), /head does not match/u);
+  assert.throws(() => validateSupersededEvidence({ ...evidence, remoteHead: sha }), /does not preserve/u);
+  assert.throws(() => validateSupersededEvidence({
+    ...evidence, replacement: { ...replacement, state: "CLOSED", mergedAt: null },
+  }), /not merged/u);
+  assert.throws(() => validateSupersededEvidence({
+    ...evidence, replacement: { ...replacement, body: "References #297" },
+  }), /does not explicitly close/u);
+  assert.throws(() => validateSupersededEvidence({
+    ...evidence, replacement: { ...replacement, body: "This does not close #297." },
+  }), /does not explicitly close/u);
+  assert.throws(
+    () => parseRemoteBranchHead("", expectedBranch),
+    /missing or malformed/u,
+  );
+  assert.throws(
+    () => parseRemoteBranchHead(`${expectedHead}\trefs/heads/wrong\n`, expectedBranch),
+    /missing or malformed/u,
+  );
 });

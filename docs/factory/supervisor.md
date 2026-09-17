@@ -49,6 +49,11 @@ while the worker remains active, the post-artifact grace bounds process exit.
 The command reports worker exit and handoff acceptance as separate closed
 states without replaying worker output.
 
+The `scripts/factory supervisor` dispatch replaces the shell facade process
+with the Node supervisor. A worker permitted to edit the facade therefore
+cannot make a returning shell parse a different file generation after the
+supervisor has accepted the handoff.
+
 The wrapper prepends a bounded supervisor contract to the standard-input task.
 The worker receives `SDK_FACTORY_INVOCATION` and `SDK_FACTORY_HANDOFF`; it must
 write the handoff atomically with owner-only permissions. The supervisor then

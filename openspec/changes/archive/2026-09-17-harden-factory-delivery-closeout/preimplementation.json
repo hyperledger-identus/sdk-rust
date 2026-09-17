@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 320,
+  "change": "harden-factory-delivery-closeout",
+  "branch": "codex/fix/issue-320",
+  "baseRef": "origin/develop",
+  "baseSha": "81593db3418d5b70990ec3c31ae8ddc3a4bc6edf",
+  "contractHeadSha": "4c3983b2ff13e1a18adad825c85c8d2563c945e8",
+  "createdAt": "2026-09-17T08:50:02.766Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

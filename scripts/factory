@@ -281,6 +281,8 @@ Commands:
                       Audit roadmap ownership against live GitHub issue state
   slow-live [options] Audit native scheduled slow-run freshness and health
   plan [options]      Derive immutable fast/slow target routing from exact SHAs
+  delivery pr-preflight --title T --body-file FILE --head-ref REF --base-ref REF --draft true|false
+                      Apply hosted PR metadata policy to file-backed inputs
   metrics [options]   Validate, store, render or publish bounded work metrics
   supervisor [options]
                       Prepare, run and validate a bounded Pi worker
@@ -333,11 +335,14 @@ case "$command_name" in
   plan)
     node "$factory_root/scripts/ci/target-plan.mjs" "$@"
     ;;
+  delivery)
+    node "$factory_root/scripts/factory-tools/delivery.mjs" "$@"
+    ;;
   metrics)
     node "$factory_root/scripts/factory-tools/metrics.mjs" "$@"
     ;;
   supervisor)
-    node "$factory_root/scripts/factory-tools/supervisor.mjs" "$@"
+    exec node "$factory_root/scripts/factory-tools/supervisor.mjs" "$@"
     ;;
   worktrees)
     node "$factory_root/scripts/worktree-lifecycle.mjs" "$@"

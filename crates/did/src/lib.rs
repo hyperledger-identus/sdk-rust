@@ -12,6 +12,8 @@ mod dereference;
 mod did;
 mod document;
 pub mod error;
+#[cfg_attr(not(test), allow(dead_code))]
+mod json_cleanup;
 pub mod method;
 mod multibase;
 pub mod multihash;
@@ -34,7 +36,7 @@ pub use cache::{
 pub use dereference::GenericDidUrlDereferencer;
 pub use did::{Did, DidUrl, MAX_DID_BYTES, MAX_DID_URL_BYTES};
 pub use document::{
-    ContextEntry, DidDocument, DidDocumentBuilder, MAX_DID_DOCUMENT_BYTES,
+    ContextEntry, ContextObject, DidDocument, DidDocumentBuilder, MAX_DID_DOCUMENT_BYTES,
     MAX_DID_DOCUMENT_WIRE_DEPTH, MAX_DID_DOCUMENT_WIRE_LIVE_KEY_BYTES, MAX_DID_DOCUMENT_WIRE_NODES,
     MAX_DID_DOCUMENT_WIRE_OBJECT_MEMBERS, MAX_DOCUMENT_ITEMS, MAX_EXTENSION_DEPTH,
     MAX_EXTENSION_NODES, OneOrMany, Service, ServiceEndpoint, ServiceEndpointValue,

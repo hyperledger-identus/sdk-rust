@@ -75,6 +75,14 @@ fn finished(method_name: &str, did: Did) -> DidRegistrationResult {
     .unwrap()
 }
 
+fn hostile_depth_json() -> Value {
+    let mut value = Value::Null;
+    for _ in 0..32_768 {
+        value = Value::Array(vec![value]);
+    }
+    value
+}
+
 #[test]
 fn opaque_identifiers_are_bounded_and_redacted() {
     let id = RegistrationJobId::parse("wallet-secret-job-token").unwrap();
@@ -237,6 +245,27 @@ fn public_data_enforces_raw_and_structural_resource_bounds() {
         nested = json!({"nested": nested});
     }
     assert!(RegistrationPublicData::new(BTreeMap::from([("root".to_owned(), nested)])).is_err());
+}
+
+#[test]
+fn public_data_rejections_cleanup_hostile_json_iteratively() {
+    let too_deep = RegistrationPublicData::new(BTreeMap::from([(
+        "custom".to_owned(),
+        hostile_depth_json(),
+    )]));
+    assert!(matches!(
+        too_deep,
+        Err(Error::InvalidRegistration(RegistrationError::TooDeep))
+    ));
+
+    let reserved =
+        RegistrationPublicData::new(BTreeMap::from([("jobId".to_owned(), hostile_depth_json())]));
+    assert!(matches!(
+        reserved,
+        Err(Error::InvalidRegistration(
+            RegistrationError::ReservedProperty
+        ))
+    ));
 }
 
 #[test]

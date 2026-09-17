@@ -77,6 +77,110 @@ fn minimal_document(value: &str) -> DidDocument {
     DidDocument::from_json_str(&format!(r#"{{"id":"{value}"}}"#)).unwrap()
 }
 
+fn hostile_depth_json() -> Value {
+    let mut value = Value::Null;
+    for _ in 0..32_768 {
+        value = Value::Array(vec![value]);
+    }
+    value
+}
+
+#[test]
+fn resolution_error_rejection_cleans_hostile_json_iteratively() {
+    let result = DidResolutionError::new(
+        Uri::parse("urn:example:error").unwrap(),
+        None,
+        None,
+        None,
+        BTreeMap::from([("custom".to_owned(), hostile_depth_json())]),
+    );
+    assert!(matches!(
+        result,
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+
+    let early_error = DidResolutionError::new(
+        Uri::parse("urn:example:error").unwrap(),
+        Some(String::new()),
+        None,
+        None,
+        BTreeMap::from([("custom".to_owned(), hostile_depth_json())]),
+    );
+    assert!(matches!(
+        early_error,
+        Err(Error::InvalidResolution(ResolutionError::InvalidString))
+    ));
+}
+
+#[test]
+fn operation_metadata_rejection_cleans_hostile_json_iteratively() {
+    let resolution = DidResolutionMetadata::new(
+        None,
+        None,
+        BTreeMap::from([("custom".to_owned(), hostile_depth_json())]),
+    );
+    assert!(matches!(
+        resolution,
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+
+    let dereferencing = DidUrlDereferencingMetadata::new(
+        None,
+        None,
+        BTreeMap::from([("custom".to_owned(), hostile_depth_json())]),
+    );
+    assert!(matches!(
+        dereferencing,
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+}
+
+#[test]
+fn document_metadata_builder_rejection_cleans_hostile_json_iteratively() {
+    let result = DidDocumentMetadata::builder()
+        .extensions(BTreeMap::from([(
+            "custom".to_owned(),
+            hostile_depth_json(),
+        )]))
+        .build();
+    assert!(matches!(
+        result,
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+
+    let early_error = DidDocumentMetadata::builder()
+        .equivalent_ids(Vec::new())
+        .extensions(BTreeMap::from([(
+            "custom".to_owned(),
+            hostile_depth_json(),
+        )]))
+        .build();
+    assert!(matches!(
+        early_error,
+        Err(Error::InvalidResolution(ResolutionError::EmptyValue))
+    ));
+}
+
+#[test]
+fn dereferenced_content_rejection_cleans_hostile_json_iteratively() {
+    assert!(matches!(
+        DereferencedContent::new(hostile_depth_json()),
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+}
+
+#[test]
+fn content_metadata_rejection_cleans_hostile_json_iteratively() {
+    let result = DidUrlContentMetadata::new(BTreeMap::from([(
+        "custom".to_owned(),
+        hostile_depth_json(),
+    )]));
+    assert!(matches!(
+        result,
+        Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
+    ));
+}
+
 #[test]
 fn current_w3c_success_result_roundtrips_semantically() {
     let expected: Value = serde_json::from_str(SUCCESS_RESULT).unwrap();

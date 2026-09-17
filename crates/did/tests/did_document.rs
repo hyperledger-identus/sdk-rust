@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, hint::black_box, time::Instant};
 
 use identus_did::{
-    ContextEntry, Did, DidDocument, DocumentError, Error, MAX_DID_DOCUMENT_BYTES,
+    ContextEntry, ContextObject, Did, DidDocument, DocumentError, Error, MAX_DID_DOCUMENT_BYTES,
     MAX_DOCUMENT_ITEMS, MAX_EXTENSION_DEPTH, MAX_EXTENSION_NODES, MAX_URI_BYTES, OneOrMany,
     Service, ServiceEndpoint, Uri, UriSyntaxError, VerificationMethod, VerificationRelationship,
 };
@@ -191,10 +191,13 @@ fn native_builder_uses_the_same_structural_boundary() {
         .context(
             OneOrMany::try_many(vec![
                 ContextEntry::Uri(Uri::parse("https://www.w3.org/ns/did/v1").unwrap()),
-                ContextEntry::Object(BTreeMap::from([(
-                    "example".to_owned(),
-                    json!("https://example.com/ns#"),
-                )])),
+                ContextEntry::Object(
+                    ContextObject::new(BTreeMap::from([(
+                        "example".to_owned(),
+                        json!("https://example.com/ns#"),
+                    )]))
+                    .unwrap(),
+                ),
             ])
             .unwrap(),
         )

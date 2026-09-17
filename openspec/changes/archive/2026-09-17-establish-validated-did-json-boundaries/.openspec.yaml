@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-09-17
+goal: Make hostile recursive JSON cross one explicit iterative DID trust boundary,
+  keep validated domain objects bounded by construction, and separate generic
+  scalar-or-array representation from DID collection policy.

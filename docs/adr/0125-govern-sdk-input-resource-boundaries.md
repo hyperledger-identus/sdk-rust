@@ -92,6 +92,11 @@ hostile-depth tree iteratively. `SDK-LIM-007` therefore assigns pre-entry depth
 and rejection-cleanup safety to those native callers; they must use the bounded
 slice parser for hostile input or establish an equivalent outer bound.
 
+ADR 0131 subsequently replaces that native rejection-cleanup obligation with
+an opaque validated context object and one iterative cleanup boundary across
+the complete native DID owned-JSON family. Allocation before typed SDK entry
+remains assigned to the caller, transport, or generic deserializer.
+
 `SDK-LIM-007` remains effective but is narrowed: it names outer preallocation,
 native owned-JSON rejection cleanup, caller-budgeted primitive/adapter work,
 and the three known unbounded retained compatibility surfaces instead of an

@@ -4,7 +4,10 @@
 //! cryptosuite, resolution, dereferencing and authorization policy belong to
 //! adapters above this crate.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt,
+};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use serde_json::Value;
@@ -12,6 +15,7 @@ use serde_json::Value;
 use crate::{
     Did, Error, Uri,
     error::DocumentError,
+    json_cleanup::{RejectionGuard, drop_json_values_iteratively},
     multibase::is_canonical_public_key_carrier,
     wire_json::{JsonWireError, JsonWireLimits, validate_unique_object_names},
 };
@@ -75,12 +79,13 @@ impl<T> OneOrMany<T> {
     }
 
     /// Construct the array representation, rejecting an empty array.
+    ///
+    /// This representation helper intentionally does not apply a DID domain
+    /// collection ceiling. Validated owners such as [`DidDocument`] and
+    /// [`Service`] enforce [`MAX_DOCUMENT_ITEMS`] before they are returned.
     pub fn try_many(values: Vec<T>) -> Result<Self, Error> {
         if values.is_empty() {
             return Err(invalid(DocumentError::EmptyValue));
-        }
-        if values.len() > MAX_DOCUMENT_ITEMS {
-            return Err(invalid(DocumentError::TooManyItems));
         }
         Ok(Self {
             values,
@@ -148,14 +153,85 @@ where
     }
 }
 
+/// A validated inline JSON-LD context object.
+///
+/// Construction enforces the DID JSON depth, node, property, collection,
+/// property-name, and string limits before the recursive value can inhabit a
+/// public DID domain object. Diagnostics intentionally reveal only shape.
+#[derive(Clone, PartialEq, Eq, Serialize)]
+#[serde(transparent)]
+pub struct ContextObject(BTreeMap<String, Value>);
+
+impl ContextObject {
+    /// Validate an owned inline JSON-LD context map.
+    pub fn new(values: BTreeMap<String, Value>) -> Result<Self, Error> {
+        let object = RejectionGuard::new(Self(values), drop_context_object_json);
+        validate_json_map(&object.owner().0, &[], &mut JsonBudget::default())?;
+        Ok(object.into_owner())
+    }
+
+    /// Borrow the validated context map.
+    #[must_use]
+    pub const fn as_map(&self) -> &BTreeMap<String, Value> {
+        &self.0
+    }
+
+    /// Consume the context object and return its validated map.
+    #[must_use]
+    pub fn into_map(self) -> BTreeMap<String, Value> {
+        self.0
+    }
+}
+
+impl TryFrom<BTreeMap<String, Value>> for ContextObject {
+    type Error = Error;
+
+    fn try_from(values: BTreeMap<String, Value>) -> Result<Self, Self::Error> {
+        Self::new(values)
+    }
+}
+
+impl fmt::Debug for ContextObject {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ContextObject")
+            .field("property_count", &self.0.len())
+            .finish_non_exhaustive()
+    }
+}
+
+impl<'de> Deserialize<'de> for ContextObject {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let values = BTreeMap::<String, Value>::deserialize(deserializer)?;
+        Self::new(values).map_err(de::Error::custom)
+    }
+}
+
+fn drop_context_object_json(object: ContextObject) {
+    drop_json_values_iteratively(object.0.into_values());
+}
+
 /// One JSON-LD context entry retained by the representation-neutral model.
+///
+/// Raw maps cannot directly inhabit this enum. Construct a validated
+/// [`ContextObject`] first:
+///
+/// ```compile_fail
+/// use std::collections::BTreeMap;
+/// use identus_did::ContextEntry;
+///
+/// let _ = ContextEntry::Object(BTreeMap::new());
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ContextEntry {
     /// A context URI.
     Uri(Uri),
     /// An inline JSON-LD context definition.
-    Object(BTreeMap<String, Value>),
+    Object(ContextObject),
 }
 
 /// A verification method used directly inside a relationship or by reference.
@@ -203,15 +279,19 @@ impl<'de> Deserialize<'de> for ServiceEndpoint {
             Set(Vec<ServiceEndpointValue>),
         }
 
-        let endpoint = match Wire::deserialize(deserializer)? {
-            Wire::Uri(uri) => Self::Uri(uri),
-            Wire::Map(map) => Self::Map(map),
-            Wire::Set(values) => Self::Set(values),
-        };
+        let endpoint = RejectionGuard::new(
+            match Wire::deserialize(deserializer)? {
+                Wire::Uri(uri) => Self::Uri(uri),
+                Wire::Map(map) => Self::Map(map),
+                Wire::Set(values) => Self::Set(values),
+            },
+            drop_service_endpoint_json,
+        );
         endpoint
+            .owner()
             .validate(&mut JsonBudget::default())
             .map_err(de::Error::custom)?;
-        Ok(endpoint)
+        Ok(endpoint.into_owner())
     }
 }
 
@@ -255,14 +335,17 @@ impl VerificationMethod {
         controller: Did,
         properties: BTreeMap<String, Value>,
     ) -> Result<Self, Error> {
-        let method = Self {
-            id,
-            type_,
-            controller,
-            properties,
-        };
-        method.validate(&mut JsonBudget::default())?;
-        Ok(method)
+        let method = RejectionGuard::new(
+            Self {
+                id,
+                type_,
+                controller,
+                properties,
+            },
+            drop_verification_method_json,
+        );
+        method.owner().validate(&mut JsonBudget::default())?;
+        Ok(method.into_owner())
     }
 
     /// Borrow the verification method identifier.
@@ -339,6 +422,22 @@ impl VerificationMethod {
     }
 }
 
+fn drop_verification_method_json(method: VerificationMethod) {
+    let mut roots = Vec::new();
+    collect_verification_method_json(method, &mut roots);
+    drop_json_values_iteratively(roots);
+}
+
+fn collect_verification_method_json(method: VerificationMethod, roots: &mut Vec<Value>) {
+    let VerificationMethod {
+        id: _,
+        type_: _,
+        controller: _,
+        properties,
+    } = method;
+    roots.extend(properties.into_values());
+}
+
 impl<'de> Deserialize<'de> for VerificationMethod {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -379,14 +478,17 @@ impl Service {
         endpoint: ServiceEndpoint,
         extensions: BTreeMap<String, Value>,
     ) -> Result<Self, Error> {
-        let service = Self {
-            id,
-            type_,
-            endpoint,
-            extensions,
-        };
-        service.validate(&mut JsonBudget::default())?;
-        Ok(service)
+        let service = RejectionGuard::new(
+            Self {
+                id,
+                type_,
+                endpoint,
+                extensions,
+            },
+            drop_service_json,
+        );
+        service.owner().validate(&mut JsonBudget::default())?;
+        Ok(service.into_owner())
     }
 
     /// Borrow the service identifier.
@@ -417,6 +519,43 @@ impl Service {
         validate_open_set(self.type_.as_slice())?;
         self.endpoint.validate(budget)?;
         validate_json_map(&self.extensions, SERVICE_RESERVED, budget)
+    }
+}
+
+fn drop_service_json(service: Service) {
+    let mut roots = Vec::new();
+    collect_service_json(service, &mut roots);
+    drop_json_values_iteratively(roots);
+}
+
+fn collect_service_json(service: Service, roots: &mut Vec<Value>) {
+    let Service {
+        id: _,
+        type_: _,
+        endpoint,
+        extensions,
+    } = service;
+    collect_service_endpoint_json(endpoint, roots);
+    roots.extend(extensions.into_values());
+}
+
+fn drop_service_endpoint_json(endpoint: ServiceEndpoint) {
+    let mut roots = Vec::new();
+    collect_service_endpoint_json(endpoint, &mut roots);
+    drop_json_values_iteratively(roots);
+}
+
+fn collect_service_endpoint_json(endpoint: ServiceEndpoint, roots: &mut Vec<Value>) {
+    match endpoint {
+        ServiceEndpoint::Uri(_) => {}
+        ServiceEndpoint::Map(map) => roots.extend(map.into_values()),
+        ServiceEndpoint::Set(values) => {
+            for value in values {
+                if let ServiceEndpointValue::Map(map) = value {
+                    roots.extend(map.into_values());
+                }
+            }
+        }
     }
 }
 
@@ -599,13 +738,15 @@ impl DidDocument {
         let mut budget = JsonBudget::default();
 
         if let Some(context) = &self.context {
+            validate_collection(context.as_slice())?;
             for entry in context.as_slice() {
-                if let ContextEntry::Object(map) = entry {
-                    validate_json_map(map, &[], &mut budget)?;
+                if let ContextEntry::Object(object) = entry {
+                    validate_json_map(object.as_map(), &[], &mut budget)?;
                 }
             }
         }
         if let Some(controller) = &self.controller {
+            validate_collection(controller.as_slice())?;
             validate_unique_by(controller.as_slice(), Did::as_str)?;
         }
         if let Some(aliases) = &self.also_known_as {
@@ -693,22 +834,25 @@ impl<'de> Deserialize<'de> for DidDocument {
         }
 
         let wire = Wire::deserialize(deserializer)?;
-        let document = Self {
-            context: wire.context,
-            id: wire.id,
-            controller: wire.controller,
-            also_known_as: wire.also_known_as,
-            verification_methods: wire.verification_methods,
-            authentication: wire.authentication,
-            assertion_method: wire.assertion_method,
-            key_agreement: wire.key_agreement,
-            capability_invocation: wire.capability_invocation,
-            capability_delegation: wire.capability_delegation,
-            service: wire.service,
-            extensions: wire.extensions,
-        };
-        document.validate().map_err(de::Error::custom)?;
-        Ok(document)
+        let document = RejectionGuard::new(
+            Self {
+                context: wire.context,
+                id: wire.id,
+                controller: wire.controller,
+                also_known_as: wire.also_known_as,
+                verification_methods: wire.verification_methods,
+                authentication: wire.authentication,
+                assertion_method: wire.assertion_method,
+                key_agreement: wire.key_agreement,
+                capability_invocation: wire.capability_invocation,
+                capability_delegation: wire.capability_delegation,
+                service: wire.service,
+                extensions: wire.extensions,
+            },
+            drop_did_document_json,
+        );
+        document.owner().validate().map_err(de::Error::custom)?;
+        Ok(document.into_owner())
     }
 }
 
@@ -819,9 +963,65 @@ impl DidDocumentBuilder {
 
     /// Validate all cross-document invariants and return the immutable model.
     pub fn build(self) -> Result<DidDocument, Error> {
-        self.document.validate()?;
-        Ok(self.document)
+        let document = RejectionGuard::new(self.document, drop_did_document_json);
+        document.owner().validate()?;
+        Ok(document.into_owner())
     }
+}
+
+fn drop_did_document_json(document: DidDocument) {
+    let DidDocument {
+        context,
+        id: _,
+        controller: _,
+        also_known_as: _,
+        verification_methods,
+        authentication,
+        assertion_method,
+        key_agreement,
+        capability_invocation,
+        capability_delegation,
+        service,
+        extensions,
+    } = document;
+    let mut roots = Vec::new();
+
+    if let Some(context) = context {
+        for entry in context.into_vec() {
+            if let ContextEntry::Object(object) = entry {
+                roots.extend(object.into_map().into_values());
+            }
+        }
+    }
+    if let Some(methods) = verification_methods {
+        for method in methods {
+            collect_verification_method_json(method, &mut roots);
+        }
+    }
+    for relationships in [
+        authentication,
+        assertion_method,
+        key_agreement,
+        capability_invocation,
+        capability_delegation,
+    ]
+    .into_iter()
+    .flatten()
+    {
+        for relationship in relationships {
+            if let VerificationRelationship::Embedded(method) = relationship {
+                collect_verification_method_json(method, &mut roots);
+            }
+        }
+    }
+    if let Some(services) = service {
+        for service in services {
+            collect_service_json(service, &mut roots);
+        }
+    }
+    roots.extend(extensions.into_values());
+
+    drop_json_values_iteratively(roots);
 }
 
 fn validate_relationship<'a>(

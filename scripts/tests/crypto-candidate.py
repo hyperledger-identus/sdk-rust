@@ -129,7 +129,7 @@ def main() -> int:
                 "canonical workspace publish must remain false",
             ),
             (
-                lambda root: replace(root / "docs/release/crypto-candidate.toml", 'publication       = "prohibited"', 'publication       = "allowed"'),
+                lambda root: replace(root / "docs/release/crypto-candidate.toml", 'publication              = "prohibited"', 'publication              = "allowed"'),
                 "descriptor publication",
             ),
             (

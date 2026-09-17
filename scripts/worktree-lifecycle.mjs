@@ -196,7 +196,10 @@ export function validateSupersededEvidence({
   if (remoteHead !== expectedHead) fail("remote branch does not preserve the superseded exact head");
   if (replacement?.state !== "MERGED" || !replacement.mergedAt) fail("replacement pull request is not merged");
   if (replacement.baseRefName !== policy.integrationBranch) fail("replacement pull request did not target develop");
-  const closesIssue = new RegExp(`(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\\s+#${issue}(?![0-9])`, "iu");
+  const closesIssue = new RegExp(
+    `^[ \\t]*(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\\s+#${issue}(?![0-9])`,
+    "imu",
+  );
   if (!closesIssue.test(replacement.body ?? "")) fail("replacement pull request does not explicitly close the superseded issue");
   return true;
 }

@@ -1611,6 +1611,9 @@ test("superseded worktree evidence requires exact recoverability and replacement
   assert.throws(() => validateSupersededEvidence({
     ...evidence, replacement: { ...replacement, body: "References #297" },
   }), /does not explicitly close/u);
+  assert.throws(() => validateSupersededEvidence({
+    ...evidence, replacement: { ...replacement, body: "This does not close #297." },
+  }), /does not explicitly close/u);
   assert.throws(
     () => parseRemoteBranchHead("", expectedBranch),
     /missing or malformed/u,

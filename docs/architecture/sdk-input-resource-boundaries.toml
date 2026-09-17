@@ -98,9 +98,9 @@ surface          = "DID documents, verification methods, services and open JSON 
 disposition      = "sdk-enforced"
 limits           = [ "MAX_DID_DOCUMENT_BYTES=262144", "MAX_DOCUMENT_ITEMS=128", "MAX_EXTENSION_DEPTH=32", "MAX_EXTENSION_NODES=4096", "MAX_DID_DOCUMENT_WIRE_DEPTH=64", "MAX_DID_DOCUMENT_WIRE_NODES=16384", "MAX_DID_DOCUMENT_WIRE_OBJECT_MEMBERS=128", "MAX_DID_DOCUMENT_WIRE_LIVE_KEY_BYTES=131072" ]
 evidence         = [ "crates/did/src/document.rs", "crates/did/src/wire_json.rs" ]
-outer_obligation = "Generic serde and direct native entry points receive already allocated Value/maps; rejection of hostile-depth owned trees may recursively drop them, so use bounded slice parsers or pre-bound native depth."
-consumer_impact  = "Accepted typed structures and SDK-owned slice parsing are byte/node/depth/member bounded; SDK-LIM-007 covers native owned-JSON preallocation and rejection cleanup."
-review_triggers  = [ "new DID JSON surface", "open JSON field", "collection or recursion limit change", "iterative native rejection cleanup" ]
+outer_obligation = "Generic serde and direct native entry points receive already allocated Value/maps; callers and transports own allocation before typed SDK entry. After native ownership transfer, every rejected recursive tree is dismantled iteratively."
+consumer_impact  = "Accepted typed structures, including inline ContextObject values, and SDK-owned slice parsing are byte/node/depth/member bounded; SDK-LIM-007 covers outer preallocation but no longer native rejection cleanup."
+review_triggers  = [ "new DID JSON surface", "open JSON field", "collection or recursion limit change", "new owned fallible boundary", "iterative cleanup regression" ]
 
 [[boundaries]]
 id               = "did-resolution-results-json"
@@ -109,9 +109,9 @@ surface          = "DID resolution/dereferencing results, metadata and open JSON
 disposition      = "sdk-enforced"
 limits           = [ "MAX_DID_RESOLUTION_RESULT_BYTES=524288", "MAX_DID_RESOLUTION_WIRE_DEPTH=64", "MAX_DID_RESOLUTION_WIRE_NODES=16384", "MAX_DID_RESOLUTION_WIRE_OBJECT_MEMBERS=128", "MAX_DID_RESOLUTION_WIRE_LIVE_KEY_BYTES=131072", "MAX_MEDIA_TYPE_BYTES=1024", "MAX_DID_RESOLUTION_DATETIME_BYTES=128", "MAX_VERSION_ID_BYTES=1024", "MAX_PROBLEM_DETAIL_BYTES=4096" ]
 evidence         = [ "crates/did/src/resolution.rs", "crates/did/src/wire_json.rs" ]
-outer_obligation = "Generic serde and direct native Value/map constructors allocate before validation and share the SDK-LIM-007 hostile-depth rejection-cleanup caveat."
-consumer_impact  = "Use bounded result slice parsers for hostile JSON; accepted resolution values are explicitly bounded."
-review_triggers  = [ "new resolution result field", "wire parser limit change", "native JSON constructor", "iterative rejection cleanup" ]
+outer_obligation = "Generic serde and direct native Value/map constructors allocate before validation; callers and transports own that pre-entry allocation. Rejected recursive values are dismantled iteratively after typed ownership transfer."
+consumer_impact  = "Use bounded result slice parsers to prevent hostile preallocation; accepted resolution values and native rejection cleanup are explicitly bounded."
+review_triggers  = [ "new resolution result field", "wire parser limit change", "native JSON constructor", "iterative cleanup regression" ]
 
 [[boundaries]]
 id               = "did-registration-values-json"
@@ -120,9 +120,9 @@ surface          = "DID registration identifiers, public data, options, jobs and
 disposition      = "sdk-enforced"
 limits           = [ "MAX_DID_REGISTRATION_BYTES=524288", "MAX_REGISTRATION_ITEMS=128", "MAX_REGISTRATION_ID_BYTES=256", "MAX_REGISTRATION_OPAQUE_ID_BYTES=1024", "MAX_REGISTRATION_WAIT_MILLIS=86400000" ]
 evidence         = [ "crates/did/src/registration.rs" ]
-outer_obligation = "Generic serde and direct native Value/map constructors allocate before validation and share the SDK-LIM-007 hostile-depth rejection-cleanup caveat."
-consumer_impact  = "Use bounded registration slice parsers for hostile JSON; accepted registration values and wait policy are explicitly bounded."
-review_triggers  = [ "new registration value", "identifier or wait limit change", "native JSON constructor", "iterative rejection cleanup" ]
+outer_obligation = "Generic serde and direct native Value/map constructors allocate before validation; callers and transports own that pre-entry allocation. Rejected recursive values are dismantled iteratively after typed ownership transfer."
+consumer_impact  = "Use bounded registration slice parsers to prevent hostile preallocation; accepted registration values, native rejection cleanup and wait policy are explicitly bounded."
+review_triggers  = [ "new registration value", "identifier or wait limit change", "native JSON constructor", "iterative cleanup regression" ]
 
 [[boundaries]]
 id               = "did-resolution-option-maps"
@@ -131,9 +131,9 @@ surface          = "ResolutionOptions and DereferencingOptions extension maps an
 disposition      = "sdk-enforced"
 limits           = [ "MAX_DID_RESOLUTION_OPTIONS_BYTES=65536", "MAX_VERIFICATION_RELATIONSHIP_BYTES=256" ]
 evidence         = [ "crates/did/src/query.rs" ]
-outer_obligation = "Owned extension maps and serde values allocate before aggregate validation and share the SDK-LIM-007 native JSON cleanup caveat."
-consumer_impact  = "Option-map retention and relationship names are bounded; transports still cap enclosing request bytes."
-review_triggers  = [ "new resolution option", "relationship vocabulary change", "option-map limit change" ]
+outer_obligation = "Owned extension maps and serde values allocate before aggregate validation; callers and transports own that pre-entry allocation. Rejected recursive values are dismantled iteratively after typed ownership transfer."
+consumer_impact  = "Option-map retention, relationship names and native rejection cleanup are bounded; transports still cap enclosing request bytes."
+review_triggers  = [ "new resolution option", "relationship vocabulary change", "option-map limit change", "iterative cleanup regression" ]
 
 [[boundaries]]
 id               = "did-method-registry"

@@ -51,9 +51,10 @@ calling it unbounded SDK behavior.
   caller-owned cache/clock adapter QoS and storage allocation.
 - The HTTP resolver applies semantic limits after Axum extraction; deployment
   middleware still owns connection, header/request-line and execution limits.
-- Bounded DID wire-slice parsers are the hostile-input path. Native constructors
-  accepting already-owned recursive JSON require callers to pre-bound depth;
-  rejection cleanup can otherwise recurse while dropping the owned tree.
+- Bounded DID wire-slice parsers remain the preferred hostile-byte path because
+  transports and generic deserializers can allocate before typed SDK entry.
+  Native constructors arm one iterative cleanup boundary after taking ownership,
+  and inline context objects are bounded before entering the domain model.
 - UniFFI and WASM DID facades delegate to bounded DID parsing after their
   language bridges allocate input.
 - Hash/sign/verify primitives and injected resolver, registrar, verifier,
@@ -72,8 +73,8 @@ calling it unbounded SDK behavior.
   and tighter builder limits are revalidated.
 
 The broad “audit incomplete” wording is therefore retired. `SDK-LIM-007`
-remains, narrowed to the concrete outer-preallocation and native rejection-
-cleanup obligations, caller-budgeted work, and known unbounded compatibility
+remains, narrowed to the concrete outer-preallocation, caller-budgeted work,
+and known unbounded compatibility
 obligations above. Finding another missing input family is a security
 regression: restore broader disclosure immediately and open a focused
 remediation issue.

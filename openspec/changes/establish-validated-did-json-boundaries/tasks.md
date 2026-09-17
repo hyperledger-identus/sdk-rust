@@ -5,21 +5,21 @@
 - [x] 1.1 Inventory representation/domain types and every owned recursive-JSON
       fallible boundary; assess alternatives, compatibility, threats, targets,
       dependency cone, named consumers, and rollback.
-- [ ] 1.2 Pass research/constraint/strict OpenSpec readiness, commit the
+- [x] 1.2 Pass research/constraint/strict OpenSpec readiness, commit the
       planning-only contract, and write the immutable preimplementation receipt.
 
 ## 2. Domain and trust boundary
 
-- [ ] 2.1 Add the opaque validated `ContextObject`, transparent serde, accessors,
+- [x] 2.1 Add the opaque validated `ContextObject`, transparent serde, accessors,
       migration documentation, and sole iterative rejection mechanism.
-- [ ] 2.2 Make `OneOrMany<T>` structural and enforce cardinality at each DID
+- [x] 2.2 Make `OneOrMany<T>` structural and enforce cardinality at each DID
       domain owner.
-- [ ] 2.3 Protect the complete document, resolution/dereferencing, query, and
+- [x] 2.3 Protect the complete document, resolution/dereferencing, query, and
       registration native rejection family with the shared mechanism.
 
 ## 3. Evidence and governance
 
-- [ ] 3.1 Add 32,768-level trust-boundary and constructor-family regressions,
+- [x] 3.1 Add 32,768-level trust-boundary and constructor-family regressions,
       129-entry domain-policy rejection, wire parity, diagnostics, and API-
       closure evidence.
 - [ ] 3.2 Add the ADR and migration guide; update the machine inventory and

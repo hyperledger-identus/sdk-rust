@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use identus_did::{
-    ContextEntry, Did, DidDocument, DocumentError, Error, MAX_DID_DOCUMENT_BYTES,
+    ContextEntry, ContextObject, Did, DidDocument, DocumentError, Error, MAX_DID_DOCUMENT_BYTES,
     MAX_DID_DOCUMENT_WIRE_DEPTH, MAX_DID_DOCUMENT_WIRE_LIVE_KEY_BYTES, MAX_DID_DOCUMENT_WIRE_NODES,
     MAX_DID_DOCUMENT_WIRE_OBJECT_MEMBERS, MAX_EXTENSION_DEPTH, MAX_EXTENSION_NODES, OneOrMany,
     Service, ServiceEndpoint, ServiceEndpointValue, Uri, VerificationMethod,
@@ -242,18 +242,62 @@ fn service_rejection_cleans_hostile_json_iteratively() {
 }
 
 #[test]
-fn document_builder_rejection_cleans_hostile_json_iteratively() {
-    let context = DidDocument::builder(Did::parse("did:example:one").unwrap())
-        .context(OneOrMany::one(ContextEntry::Object(BTreeMap::from([(
-            "term".to_owned(),
-            hostile_depth_json(),
-        )]))))
-        .build();
+fn context_object_rejection_cleans_hostile_json_iteratively() {
+    let context = ContextObject::new(BTreeMap::from([("term".to_owned(), hostile_depth_json())]));
     assert!(matches!(
         context,
         Err(Error::InvalidDocument(DocumentError::ExtensionTooDeep))
     ));
+}
 
+#[test]
+fn context_object_preserves_wire_and_redacts_diagnostics() {
+    let marker = "caller-secret-context-term";
+    let map = BTreeMap::from([(
+        marker.to_owned(),
+        json!({"id": "https://example.com/context#"}),
+    )]);
+    let object = ContextObject::new(map.clone()).unwrap();
+
+    assert_eq!(object.as_map(), &map);
+    assert_eq!(serde_json::to_value(&object).unwrap(), json!(map));
+    assert!(!format!("{object:?}").contains(marker));
+
+    let roundtrip: ContextObject =
+        serde_json::from_value(serde_json::to_value(&object).unwrap()).unwrap();
+    assert_eq!(roundtrip.into_map(), map);
+}
+
+#[test]
+fn document_policy_rejects_oversized_validated_context() {
+    let entries = (0..=identus_did::MAX_DOCUMENT_ITEMS)
+        .map(|index| {
+            ContextEntry::Object(
+                ContextObject::new(BTreeMap::from([(
+                    format!("term{index}"),
+                    json!(format!("https://example.com/{index}#")),
+                )]))
+                .unwrap(),
+            )
+        })
+        .collect();
+    let context = OneOrMany::try_many(entries).unwrap();
+    assert_eq!(
+        context.as_slice().len(),
+        identus_did::MAX_DOCUMENT_ITEMS + 1
+    );
+
+    let result = DidDocument::builder(Did::parse("did:example:one").unwrap())
+        .context(context)
+        .build();
+    assert!(matches!(
+        result,
+        Err(Error::InvalidDocument(DocumentError::TooManyItems))
+    ));
+}
+
+#[test]
+fn document_builder_rejection_cleans_hostile_json_iteratively() {
     let extensions = DidDocument::builder(Did::parse("did:example:one").unwrap())
         .extensions(BTreeMap::from([(
             "custom".to_owned(),
@@ -394,10 +438,13 @@ fn deterministic_generated_documents_preserve_native_semantic_wire_equivalence()
             .context(
                 OneOrMany::try_many(vec![
                     ContextEntry::Uri(Uri::parse("https://www.w3.org/ns/did/v1").unwrap()),
-                    ContextEntry::Object(BTreeMap::from([(
-                        "example".to_owned(),
-                        json!("https://example.com/ns#"),
-                    )])),
+                    ContextEntry::Object(
+                        ContextObject::new(BTreeMap::from([(
+                            "example".to_owned(),
+                            json!("https://example.com/ns#"),
+                        )]))
+                        .unwrap(),
+                    ),
                 ])
                 .unwrap(),
             )

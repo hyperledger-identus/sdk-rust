@@ -733,19 +733,22 @@ impl<'de> Deserialize<'de> for DidDocumentMetadata {
         }
 
         let wire = Wire::deserialize(deserializer)?;
-        let metadata = Self {
-            created: wire.created,
-            updated: wire.updated,
-            deactivated: wire.deactivated,
-            next_update: wire.next_update,
-            version_id: wire.version_id,
-            next_version_id: wire.next_version_id,
-            equivalent_id: wire.equivalent_id,
-            canonical_id: wire.canonical_id,
-            extensions: wire.extensions,
-        };
-        metadata.validate().map_err(de::Error::custom)?;
-        Ok(metadata)
+        let metadata = RejectionGuard::new(
+            Self {
+                created: wire.created,
+                updated: wire.updated,
+                deactivated: wire.deactivated,
+                next_update: wire.next_update,
+                version_id: wire.version_id,
+                next_version_id: wire.next_version_id,
+                equivalent_id: wire.equivalent_id,
+                canonical_id: wire.canonical_id,
+                extensions: wire.extensions,
+            },
+            drop_did_document_metadata_json,
+        );
+        metadata.owner().validate().map_err(de::Error::custom)?;
+        Ok(metadata.into_owner())
     }
 }
 

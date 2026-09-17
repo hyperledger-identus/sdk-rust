@@ -77,6 +77,15 @@ constructor use in Oxid, Lace ID Portal, Midnight Identity, or NeoPRISM. The
 facade boundary stays SDK-owned; no dependency type becomes policy or error
 surface. Rollback is source-only and requires no wire/data migration.
 
+Midnight Identity PR #78 was additionally inspected at exact head
+`2dcece66f17614968ce57d0aaa4786966763911a`. Its `DocumentContext` accepts only
+one or many strings, so it does not directly construct the changed sdk-rust
+context-object variant. The PR independently establishes depth 32, cardinality
+128, and aggregate extension budgets for document extensions and service
+endpoints, but those public raw recursive values are validated later by owning
+domain constructors. This is useful convergence evidence for a future adoption
+slice, not authority to mutate that downstream PR or copy its model here.
+
 ## Security, privacy and maintenance evidence
 
 The private worklist moves each array/object child exactly once, uses no
@@ -103,6 +112,8 @@ model invariants, not semantics.
   received 2026-09-17 and treated as decision research rather than donor code.
 - Current source at `fee94946ca489f88dbc50282b5ee1eca095507f3`, especially
   `crates/did/src/{document,resolution,query,registration}.rs`.
+- Read-only downstream evidence: Midnight Identity PR #78 at exact head
+  `2dcece66f17614968ce57d0aaa4786966763911a`.
 - Public primary source URL: https://docs.rs/serde_json/1.0.150/serde_json/value/enum.Value.html.
 - Existing internal JWK iterative rejection pattern and #297 implementation
   candidate, both Apache-2.0 sdk-rust source.

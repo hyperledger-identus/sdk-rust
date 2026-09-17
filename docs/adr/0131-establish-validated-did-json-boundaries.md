@@ -20,6 +20,12 @@ searches found no direct construction of the raw sdk-rust context-object
 variant, so an explicit pre-release source migration is preferable to custom
 destruction semantics on every context value.
 
+Midnight Identity PR #78 is related but not blocked by this migration. At its
+reviewed exact head it models document contexts as strings only and therefore
+does not construct the affected inline-object variant. Its independently
+bounded extension and service-endpoint model is downstream convergence
+evidence; adoption remains a separate explicit slice.
+
 ## Decision
 
 1. Treat `OneOrMany<T>` only as a non-empty scalar-or-array representation.

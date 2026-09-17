@@ -15,19 +15,25 @@
         src = source;
         nativeBuildInputs = with pkgs; [
           bash
+          cacert
           coreutils
           findutils
+          fontconfig
           graphviz
           gnugrep
           lychee
           mdbook
         ];
+        SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+        FONTCONFIG_FILE = "${pkgs.fontconfig.out}/etc/fonts/fonts.conf";
         phases = [
           "unpackPhase"
           "buildPhase"
         ];
         buildPhase = ''
           runHook preBuild
+          export XDG_CACHE_HOME="$TMPDIR/fontconfig-cache"
+          mkdir -p "$XDG_CACHE_HOME"
           patchShebangs scripts/build-docs-site.sh
           scripts/build-docs-site.sh "$out"
           runHook postBuild

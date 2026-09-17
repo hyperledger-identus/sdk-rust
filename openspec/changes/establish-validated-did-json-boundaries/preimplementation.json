@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 315,
+  "change": "establish-validated-did-json-boundaries",
+  "branch": "codex/fix/issue-315",
+  "baseRef": "origin/develop",
+  "baseSha": "fee94946ca489f88dbc50282b5ee1eca095507f3",
+  "contractHeadSha": "d6d9dc8917d17be008ec48f6bdd5e2a190ee063a",
+  "createdAt": "2026-09-17T07:25:13.051Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

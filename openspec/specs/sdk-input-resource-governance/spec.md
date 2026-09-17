@@ -129,14 +129,6 @@ misrepresented as bounded, non-retaining, or protected by an outer allocator.
   byte retention and require consumers to bound input before construction or
   serde until an explicit migration replaces the compatibility contract
 
-#### Scenario: Direct JOSE retained enums are inspected
-
-- **WHEN** an agent audits direct `JwsKeyReference::KeyId`/`X5c` or
-  `Oid4vciProofJwtClient::Identified` construction
-- **THEN** the inventory and `SDK-LIM-007` SHALL disclose arbitrary retained
-  strings or collection cardinality and require caller validation until issue
-  #299 makes those retained values opaque and validated
-
 ### Requirement: Native DID JSON rejection cleanup remains consumer-guarded
 
 The inventory and limitation index SHALL disclose that native DID constructors
@@ -171,3 +163,26 @@ unbounded infallible encoding path remains and exact boundary evidence passes.
   ceiling
 - **THEN** the inventory checker or review SHALL fail and the limitation SHALL
   be restored immediately
+
+### Requirement: JOSE retained alternatives are SDK-enforced
+
+The input-boundary inventory SHALL classify `JwsKeyReference::KeyId`/`X5c` and
+`Oid4vciProofJwtClient::Identified` as SDK-enforced only after every public
+variant payload is opaque and validated and no raw retained construction path
+remains.
+
+#### Scenario: JOSE compatibility limitation is narrowed
+
+- **WHEN** named fallible constructors, parser equivalence, tighter-limit
+  revalidation, and public API closure evidence pass
+- **THEN** the direct JOSE retained-enum clause SHALL be removed from
+  `SDK-LIM-007`
+- **AND** outer preallocation and every unrelated residual limitation SHALL
+  remain unchanged
+
+#### Scenario: A raw retained variant returns
+
+- **WHEN** a future public alternative can retain an unvalidated raw string or
+  collection
+- **THEN** the inventory checker or review SHALL fail and the compatibility
+  limitation SHALL be restored immediately

@@ -1,5 +1,0 @@
-[[modified_requirement]]
-capability = "sdk-input-resource-governance"
-requirement = "Known unbounded compatibility retention remains explicit"
-canonical_sha256 = "a456812a2a2f8acef53533939f17493f7bacf0c96384b14b612c4f4c4080d36e"
-reason = "Issue #299 removes the direct JOSE retained-enum exception while preserving the still-applicable Multihash compatibility scenario."

@@ -22,10 +22,11 @@
 - [x] 3.1 Add 32,768-level trust-boundary and constructor-family regressions,
       129-entry domain-policy rejection, wire parity, diagnostics, and API-
       closure evidence.
-- [ ] 3.2 Add the ADR and migration guide; update the machine inventory and
+- [x] 3.2 Add the ADR and migration guide; update the machine inventory and
       narrow only the native cleanup clause of `SDK-LIM-007`.
-- [ ] 3.3 Run focused/minimal/all-feature tests, strict workspace gates,
+- [x] 3.3 Run focused/minimal/all-feature tests, strict workspace gates,
       API/SBOM, portable-target/Nix evidence, and exact-diff plan.
-- [ ] 3.4 Complete fresh security/API/architecture review, archive the change,
-      open the signed PR closing #315 and #297, publish bounded metrics, and
-      retire the superseded draft only after replacement evidence is green.
+- [x] 3.4 Complete fresh security/API/architecture review and prepare the
+      archive plus signed PR handoff closing #315 and #297. The supervisor
+      publishes bounded metrics and retires the superseded draft only after
+      replacement evidence is green.

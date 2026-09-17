@@ -20,11 +20,11 @@
 
 ## 3. Evidence and operator flow
 
-- [ ] 3.1 Add deterministic positive, negative, mutation, file-safety, hosted-
+- [x] 3.1 Add deterministic positive, negative, mutation, file-safety, hosted-
       state, receipt-conflict, and superseded-closeout tests.
-- [ ] 3.2 Update factory, supervisor, operations, and recovery documentation
+- [x] 3.2 Update factory, supervisor, operations, and recovery documentation
       with exact commands, authority, limitations, and rollback.
-- [ ] 3.3 Run one bounded supervisor/Pi canary, validate its handoff, and harvest
+- [x] 3.3 Run one bounded supervisor/Pi canary, validate its handoff, and harvest
       privacy-bounded aggregate usage evidence.
 
 ## 4. Verification and delivery

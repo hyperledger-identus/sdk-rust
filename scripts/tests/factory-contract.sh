@@ -144,6 +144,7 @@ required_files=(
   scripts/ci/contribution-policy.mjs
   scripts/ci/target-plan.mjs
   scripts/factory-tools/audit-pi.mjs
+  scripts/factory-tools/delivery.mjs
   scripts/factory-tools/metrics.mjs
   scripts/factory-tools/pi-session-harvest.mjs
   scripts/factory-tools/strict-json.mjs

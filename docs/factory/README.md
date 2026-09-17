@@ -92,6 +92,10 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/factory audit
 ./scripts/factory backlog-live
 ./scripts/factory plan --base <sha> --head <sha>
+./scripts/factory delivery pr-preflight --title <title> --body-file <file> \
+  --head-ref <branch> --base-ref develop --draft false
+./scripts/factory delivery merge-pr --pr N --expect-head <sha> \
+  --body-file <file> [--execute]
 ./scripts/factory worktrees audit
 ./scripts/factory metrics validate --file <record>
 ./scripts/factory metrics publish --file <record> --issue N --target auto --execute
@@ -123,6 +127,7 @@ nix run .#factory -- check
 | `audit` | enters the pinned Nix shell once when needed, then validates bounded tracked Pi policy and the effective pinned runtime |
 | `backlog-live` | explicitly resolves canonical roadmap issue ownership through GitHub before supervisor work selection; it is read-only and outside offline required CI |
 | `plan` | derives one immutable required fast lane plus risk-routed slow evidence available locally or through external orchestration |
+| `delivery` | preflights file-backed PR metadata against both hosted policy layers and guards exact-head protected squash merges with private receipts |
 | `worktrees` | audits or explicitly mutates only canonical bounded issue worktrees |
 | `metrics` | validates, retains, renders or explicitly publishes privacy-bounded exact-head v1/v2 metrics; publication defaults to the recorded PR, then its issue |
 | `supervisor` | prepares, runs, harvests and effect-checks one exact bootstrap-launched Pi worker |
@@ -140,7 +145,9 @@ for the layout and the recovery runbook before changing operator-owned cache
 state. The [supervisor contract](supervisor.md) defines typed Pi admission,
 heartbeat, handoff and content-free usage harvesting without changing that
 cache or inspecting authentication. The first measured SDK exercise is the
-[issue #259 canary](canary-259-supervisor-contract.md).
+[issue #259 canary](canary-259-supervisor-contract.md); the measured
+[issue #320 canary](canary-320-delivery-closeout.md) closes the supervisor-owned
+PR, merge, and superseded-worktree delivery edge.
 
 `./bootstrap.sh --check` is the complete local factory health check. In one
 pinned shell it runs the structural/OpenSpec contract, the effective runtime

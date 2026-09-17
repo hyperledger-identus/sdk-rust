@@ -16,6 +16,10 @@ Recovery favors inspection and resumption over deletion.
    output does not apply to a new head.
 6. When a PR is merged, close the managed worktree only through
    `closeout-pr` with its exact merged head and explicit `--execute`.
+7. When a PR was closed because a replacement PR merged the owning issue, use
+   `closeout-superseded` only if the exact original head is still preserved by
+   its remote branch. Name both PRs and the exact head. The command keeps local
+   and remote branches and removes only the clean registered worktree.
 
 If capacity is full, finish or safely close an existing slice. If Pi policy is
 misaligned, inspect the reported keys and use the explicit configuration command
@@ -26,6 +30,23 @@ not.
 
 Never remove the primary checkout, the current worktree, a dirty or locked
 worktree, an unknown path, or a worktree whose head differs from the merged PR.
+Do not use superseded closeout as a claim of semantic equivalence; its safety
+comes from preserving the exact remote recovery ref.
+
+## Pull-request and merge recovery
+
+Run `scripts/factory delivery pr-preflight` against the exact body file before
+`gh pr create` or `gh pr edit`. Do not reconstruct a multiline body with shell
+escape sequences. Use `delivery merge-pr` without `--execute` to validate the
+current hosted exact head and required checks, then repeat the equal command
+with `--execute` for the normal protected squash merge.
+
+If GitHub accepted a merge but the client lost the response or private receipt
+retention failed, rerun the exact `merge-pr ... --execute` command. An already-
+merged PR is accepted only when its base/head/merge commit, required checks,
+verified GitHub signature, exact message body, and receipt identity all match;
+the recovery path never calls merge again. A conflicting local receipt or
+different hosted state is a stop condition.
 
 ## Supervisor runs
 

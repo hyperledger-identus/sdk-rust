@@ -134,17 +134,41 @@ prepare or inspect the reported exact path before a Pi launch.
 ## Worktrees and targets
 
 ```bash
+scripts/factory delivery pr-preflight \
+  --title 'fix(factory): bounded outcome' --body-file /absolute/pr-body.md \
+  --head-ref codex/fix/issue-123 --base-ref develop --draft false
+scripts/factory delivery merge-pr --pr 456 --expect-head <sha> \
+  --body-file /absolute/merge-body.md
+scripts/factory delivery merge-pr --pr 456 --expect-head <sha> \
+  --body-file /absolute/merge-body.md --execute
 scripts/factory worktrees audit
 scripts/factory worktrees ensure --issue 123 --branch codex/feat/issue-123 \
   --base origin/develop --execute
 scripts/factory worktrees closeout-pr --pr 456 \
   --path /absolute/canonical/path --expect-head <sha> --execute
+scripts/factory worktrees closeout-superseded --pr 455 --replacement-pr 456 \
+  --path /absolute/canonical/path --expect-head <sha> --execute
 scripts/factory plan --base <sha> --head <sha> --profile production-ready
 ```
 
-Cleanup rejects dirty, locked, symlinked, current, primary, noncanonical,
-wrong-head or unmerged targets. Unknown path classifications fail closed by
-recommending the complete slow set; they do not silently expand required PR CI.
+PR preflight reads a bounded regular non-symlink file and applies the exact
+base/readiness/body policy plus the contribution title/branch/closing-link
+policy used in hosted CI. Merge validation is dry unless `--execute` is
+present. It requires the exact hosted head, ready/open `develop` PR, clean
+mergeability, green required checks, real multiline input ending in the exact
+Git identity DCO trailer, normal protected squash merge, verified GitHub
+signature, and an owner-private immutable post-merge receipt. Re-running
+`--execute` against that exact already-merged PR can recover a missing equal
+receipt without attempting another merge.
+
+Cleanup rejects dirty, locked, symlinked, current, primary, noncanonical or
+wrong-head targets. The ordinary path requires its own merged PR. The
+superseded path additionally requires the original closed-unmerged PR, an
+exact matching remote recovery branch, and a merged `develop` replacement
+that explicitly closes the branch issue. It removes only the clean registered
+worktree and keeps local and remote branch refs; it does not claim semantic
+patch equivalence. Unknown path classifications fail closed by recommending
+the complete slow set; they do not silently expand required PR CI.
 
 ## Post-merge canary
 

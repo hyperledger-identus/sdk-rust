@@ -26,10 +26,11 @@ diagram breakage cannot merge unnoticed.
 
 ## Deployment
 
-A dedicated workflow triggers on pushes to `develop` and manual dispatch. The
+A dedicated workflow triggers only on path-matching pushes to protected
+`develop`; it cannot publish a feature branch through manual dispatch. The
 build job checks out the exact revision, installs Nix, builds the Nix package,
-configures Pages, and uploads the dereferenced static directory. A separate
-deploy job uses the `github-pages` environment and only Pages/OIDC write
+and directly uploads the dereferenced static directory. A separate deploy job
+uses the `github-pages` environment and alone receives Pages/OIDC write
 permissions. Concurrency cancels superseded deployments but never changes the
 artifact identity of a completed run.
 
@@ -56,4 +57,3 @@ approval gates and links their live issues.
 Disable the Pages publishing source, then revert the workflow, Nix module,
 build script, site content, README link, ADR, and canonical capability. No
 crate, tag, registry object, consumer, or persistent data requires migration.
-

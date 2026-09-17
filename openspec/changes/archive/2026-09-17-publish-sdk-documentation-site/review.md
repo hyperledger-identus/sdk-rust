@@ -1,8 +1,8 @@
 # Local architecture, security, and factual review
 
 - **Review date:** 2026-09-17
-- **Reviewed implementation:** `f3696ced..12bfbccc`
-- **Result:** passed after the findings in `verification.md` were resolved
+- **Reviewed implementation:** PR #327 delivered tree
+- **Result:** passed after local and hosted review findings were resolved
 
 ## Architecture and product truth
 
@@ -26,9 +26,10 @@
 - Every Pages action is pinned to an exact commit. The build job has only
   `contents: read`; the isolated deployment job alone receives `pages: write`
   and `id-token: write`, through the `github-pages` environment.
-- Deployment runs only for the protected `develop` source or an explicit
-  manual dispatch. It does not populate `main`, publish a crate, or handle a
-  secret.
+- Deployment runs only for a path-matching push to protected `develop`; there
+  is no feature-branch or manual publication route. The build job uploads the
+  artifact directly without Pages API authority. It does not populate `main`,
+  publish a crate, or handle a secret.
 
 ## Operability and rollback
 

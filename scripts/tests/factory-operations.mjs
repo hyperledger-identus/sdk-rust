@@ -22,6 +22,12 @@ import { Readable } from "node:stream";
 import { test } from "node:test";
 import { parseConventionalSubject, validateBranchName, validateHostedCommits, validatePullRequest } from "../ci/contribution-policy.mjs";
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
+import {
+  maximumPullRequestBodyBytes,
+  parseDeliveryArguments,
+  preflightPullRequest,
+  readPullRequestBody,
+} from "../factory-tools/delivery.mjs";
 import { checkUserPolicy, mergePolicy, policyMismatches } from "../factory-tools/pi-policy.mjs";
 import { auditPi } from "../factory-tools/audit-pi.mjs";
 import {
@@ -166,6 +172,186 @@ test("contribution metadata binds conventional type, scope and issue branch", ()
     branch: "codex/feat/issue-243",
     body: "Closes #243",
   }).ok, false);
+});
+
+test("file-backed pull request preflight applies both hosted policy layers", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-preflight-"));
+  try {
+    const bodyFile = path.join(created, "body.md");
+    const body = [
+      "Closes #320",
+      "- Local review: passed by a focused review",
+      "- Constraint impact: routine",
+      "- Limitations: none",
+    ].join("\n");
+    writeFileSync(bodyFile, body);
+    let observedEnvironment;
+    const options = {
+      title: "fix(factory): preflight pull request metadata",
+      bodyFile,
+      headRef: "codex/fix/issue-320",
+      baseRef: "develop",
+      draft: false,
+    };
+    const outcome = preflightPullRequest(options, {
+      runPolicy(environment) {
+        observedEnvironment = environment;
+        return { status: 0, stderr: "" };
+      },
+    });
+    assert.deepEqual(observedEnvironment, {
+      PR_BASE_REF: "develop",
+      PR_DRAFT: "false",
+      PR_BODY: body,
+    });
+    assert.deepEqual(outcome, { ok: true, issue: 320, type: "fix", scope: "factory" });
+
+    const commandOutput = execFileSync(path.resolve("scripts/factory"), [
+      "delivery", "pr-preflight",
+      "--title", options.title,
+      "--body-file", bodyFile,
+      "--head-ref", options.headRef,
+      "--base-ref", options.baseRef,
+      "--draft", "false",
+    ], { encoding: "utf8" });
+    assert.match(commandOutput, /metadata preflight passed for issue #320/u);
+    assert.match(
+      execFileSync(path.resolve("scripts/factory"), ["delivery", "--help"], { encoding: "utf8" }),
+      /delivery pr-preflight/u,
+    );
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("local pull request preflight does not write hosted workflow outputs", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-output-"));
+  try {
+    const bodyFile = path.join(created, "body.md");
+    const outputFile = path.join(created, "github-output.txt");
+    writeFileSync(bodyFile, [
+      "Closes #320",
+      "- Local review: completed",
+      "- Constraint impact: routine",
+      "- Limitations: none",
+    ].join("\n"));
+    writeFileSync(outputFile, "unchanged\n");
+    const previous = process.env.GITHUB_OUTPUT;
+    process.env.GITHUB_OUTPUT = outputFile;
+    try {
+      preflightPullRequest({
+        title: "fix(factory): preflight pull request metadata",
+        bodyFile,
+        headRef: "codex/fix/issue-320",
+        baseRef: "develop",
+        draft: false,
+      });
+    } finally {
+      if (previous === undefined) delete process.env.GITHUB_OUTPUT;
+      else process.env.GITHUB_OUTPUT = previous;
+    }
+    assert.equal(readFileSync(outputFile, "utf8"), "unchanged\n");
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("factory replaces its shell process before a mutable supervisor run", () => {
+  const factory = readFileSync(new URL("../factory", import.meta.url), "utf8");
+  assert.match(
+    factory,
+    /supervisor\)\s+exec node "\$factory_root\/scripts\/factory-tools\/supervisor\.mjs" "\$@"/u,
+  );
+});
+
+test("pull request preflight rejects either hosted policy layer without exposing the body", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-policy-negative-"));
+  try {
+    const validBodyFile = path.join(created, "valid.md");
+    writeFileSync(validBodyFile, [
+      "Closes #320",
+      "- Local review: completed",
+      "- Constraint impact: routine",
+      "- Limitations: none",
+    ].join("\n"));
+    const options = {
+      title: "fix(factory): preflight pull request metadata",
+      bodyFile: validBodyFile,
+      headRef: "codex/fix/issue-320",
+      baseRef: "develop",
+      draft: false,
+    };
+    assert.throws(
+      () => preflightPullRequest({ ...options, draft: true }),
+      (error) => error.diagnostics?.some((entry) => entry.includes("must be ready, not draft")),
+    );
+    assert.throws(
+      () => preflightPullRequest({ ...options, title: "feat(factory): use mismatched type" }),
+      (error) => error.diagnostics?.some((entry) => entry.includes("branch type 'fix' does not match subject type 'feat'")),
+    );
+
+    const privateBody = path.join(created, "private.md");
+    writeFileSync(privateBody, "private-body-canary");
+    let failure;
+    try {
+      preflightPullRequest({ ...options, bodyFile: privateBody });
+    } catch (error) {
+      failure = error;
+    }
+    assert.ok(failure?.diagnostics.some((entry) => entry.includes("corresponding repository issue")));
+    assert.doesNotMatch(JSON.stringify(failure.diagnostics), /private-body-canary/u);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("pull request preflight arguments and body files are explicit and bounded", () => {
+  assert.deepEqual(parseDeliveryArguments([
+    "pr-preflight",
+    "--title", "fix(factory): preflight pull request metadata",
+    "--body-file", "body.md",
+    "--head-ref", "codex/fix/issue-320",
+    "--base-ref", "develop",
+    "--draft", "false",
+  ]), {
+    title: "fix(factory): preflight pull request metadata",
+    bodyFile: "body.md",
+    headRef: "codex/fix/issue-320",
+    baseRef: "develop",
+    draft: false,
+  });
+  assert.throws(
+    () => parseDeliveryArguments([
+      "pr-preflight",
+      "--title", "fix(factory): preflight pull request metadata",
+      "--body-file", "body.md",
+      "--head-ref", "codex/fix/issue-320",
+      "--base-ref", "develop",
+      "--draft", "False",
+    ]),
+    /explicitly true or false/u,
+  );
+  assert.throws(
+    () => parseDeliveryArguments(["pr-preflight", "--draft", "false", "--draft", "false"]),
+    /duplicate/u,
+  );
+
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-body-"));
+  try {
+    const bodyFile = path.join(created, "body.md");
+    writeFileSync(bodyFile, "Closes #320\n");
+    assert.equal(readPullRequestBody(bodyFile), "Closes #320\n");
+    const linked = path.join(created, "linked.md");
+    symlinkSync(bodyFile, linked);
+    assert.throws(() => readPullRequestBody(linked), /regular non-symlink/u);
+    writeFileSync(bodyFile, "x".repeat(maximumPullRequestBodyBytes + 1));
+    assert.throws(() => readPullRequestBody(bodyFile), /64 KiB/u);
+    writeFileSync(bodyFile, Buffer.from([0xff]));
+    assert.throws(() => readPullRequestBody(bodyFile), /valid UTF-8/u);
+    assert.throws(() => readPullRequestBody(created), /regular non-symlink/u);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
 });
 
 test("hosted commit evidence fails closed on invalid verification and head", () => {

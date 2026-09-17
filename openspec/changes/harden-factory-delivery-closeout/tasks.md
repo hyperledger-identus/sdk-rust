@@ -10,7 +10,7 @@
 
 ## 2. File-backed delivery lifecycle
 
-- [ ] 2.1 Add local PR metadata preflight that reuses both hosted validators
+- [x] 2.1 Add local PR metadata preflight that reuses both hosted validators
       and bounded regular-file input.
 - [ ] 2.2 Add exact-head guarded squash merge with real multiline input,
       required-check verification, explicit execution, and private immutable

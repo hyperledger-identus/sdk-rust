@@ -6,7 +6,7 @@
       constraints, design, scenarios, rollback, and release-boundary context.
 - [x] 1.2 Pass research readiness, constraint readiness, strict OpenSpec, and
       commit the planning-only contract.
-- [ ] 1.3 Persist the immutable issue/branch/base/planning-head preflight receipt.
+- [x] 1.3 Persist the immutable issue/branch/base/planning-head preflight receipt.
 
 ## 2. File-backed delivery lifecycle
 

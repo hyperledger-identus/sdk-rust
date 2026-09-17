@@ -843,6 +843,7 @@ in
             """      imports = [
         inputs.devshell.flakeModule
         ./nix/rust-toolchain.nix
+        ./nix/docs-site.nix
         ./nix/devshells
         ./nix/checks
         ./nix/apps
@@ -850,16 +851,18 @@ in
             """      imports = builtins.attrValues {
         a = inputs.devshell.flakeModule;
         b = ./nix/rust-toolchain.nix;
-        c = ./nix/devshells;
-        d = ./nix/checks;
-        e = ./nix/apps;
-        f = ./nix/override.nix;
+        c = ./nix/docs-site.nix;
+        d = ./nix/devshells;
+        e = ./nix/checks;
+        f = ./nix/apps;
+        g = ./nix/override.nix;
       };
 
       _module.args.importDecoy = _: flake-parts.lib.mkFlake { inherit inputs; } {
         imports = [
           inputs.devshell.flakeModule
           ./nix/rust-toolchain.nix
+          ./nix/docs-site.nix
           ./nix/devshells
           ./nix/checks
           ./nix/apps

@@ -1,0 +1,34 @@
+[book]
+title       = "Hyperledger Identus SDK for Rust"
+authors     = [ "Hyperledger Identus contributors" ]
+description = "Architecture, crate responsibilities, adoption guidance, and release evidence for the chain-neutral Identus Rust SDK."
+language    = "en"
+src         = "src"
+
+[build]
+build-dir      = "book"
+create-missing = false
+
+[rust]
+edition = "2024"
+
+[output.html]
+additional-css       = [ "theme/identus.css" ]
+default-theme        = "light"
+preferred-dark-theme = "navy"
+git-repository-url   = "https://github.com/hyperledger-identus/sdk-rust"
+git-repository-icon  = "fab-github"
+edit-url-template    = "https://github.com/hyperledger-identus/sdk-rust/edit/develop/site/src/{path}"
+site-url             = "/sdk-rust/"
+no-section-label     = true
+smart-punctuation    = true
+
+[output.html.search]
+enable          = true
+limit-results   = 24
+use-boolean-and = true
+
+[output.html.playground]
+runnable     = false
+editable     = false
+line-numbers = true

@@ -1,0 +1,36 @@
+digraph release_train {
+  graph [
+    bgcolor="transparent",
+    fontname="Helvetica",
+    label="SDK-Rust dependency direction",
+    labelloc="t",
+    nodesep="0.55",
+    ranksep="0.7",
+    splines="ortho"
+  ];
+  node [
+    shape="box",
+    style="rounded,filled",
+    fontname="Helvetica",
+    fontsize="12",
+    color="#1f5d91",
+    fillcolor="#edf5fc",
+    fontcolor="#17233b",
+    margin="0.18,0.12"
+  ];
+  edge [color="#506784", fontname="Helvetica", fontsize="10", arrowsize="0.75"];
+
+  consumers [label="Consumers\nMidnight · NeoPRISM · Oxid · Lace", fillcolor="#fff4dc", color="#c47a12"];
+  components [label="Higher SDK components\nDID · credentials · protocols · bindings", fillcolor="#eef8f4", color="#28826b"];
+  crypto [label="identus-crypto\nprimitive cryptographic operations"];
+  core [label="identus-core\nchain-neutral foundation values"];
+  derive [label="identus-derive\ncompile-time safe scaffolding"];
+
+  consumers -> components [xlabel="select"];
+  consumers -> crypto [xlabel="may select directly"];
+  components -> crypto [xlabel="use primitives"];
+  components -> core [xlabel="use foundations"];
+  crypto -> core [xlabel="depends on"];
+  crypto -> derive [xlabel="build-time"];
+  core -> derive [xlabel="build-time"];
+}

@@ -29,10 +29,11 @@
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Run focused Node/shell checks, factory/OpenSpec readiness, Pi audit,
+- [x] 4.1 Run focused Node/shell checks, factory/OpenSpec readiness, Pi audit,
       Git diff checks, and the applicable compatible Nix closure.
-- [ ] 4.2 Complete a fresh local architecture/security/process review and
+- [x] 4.2 Complete a fresh local architecture/security/process review and
       resolve every blocking finding within the bounded remediation policy.
-- [ ] 4.3 Archive the guarded change, open the file-preflighted signed/DCO PR,
-      pass hosted exact-head CI, merge through the guarded delivery command,
-      publish metrics, and close managed worktrees.
+- [x] 4.3 Prepare the guarded archive and signed, file-preflighted PR evidence.
+      Hosted exact-head CI, guarded merge, metric publication, and managed-
+      worktree closeout follow the archived contract and are recorded as
+      delivery evidence rather than pre-archive implementation claims.

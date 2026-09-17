@@ -314,9 +314,23 @@ function validatePreMergeState(state, expectedHead) {
   if (state.reviewDecision === "CHANGES_REQUESTED") fail("pull request has blocking review changes");
 }
 
-function exactIsoDate(value) {
-  const parsed = Date.parse(value ?? "");
-  return Number.isFinite(parsed) && new Date(parsed).toISOString() === value;
+export function exactIsoDate(value) {
+  if (typeof value !== "string") return false;
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?Z$/u.exec(value);
+  if (!match) return false;
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return false;
+  const instant = new Date(parsed);
+  const expected = match.slice(1, 7).map(Number);
+  const actual = [
+    instant.getUTCFullYear(),
+    instant.getUTCMonth() + 1,
+    instant.getUTCDate(),
+    instant.getUTCHours(),
+    instant.getUTCMinutes(),
+    instant.getUTCSeconds(),
+  ];
+  return actual.every((part, index) => part === expected[index]);
 }
 
 export function validateMergeReceipt(receipt) {

@@ -5,8 +5,8 @@ use std::time::Instant;
 use identus_crypto::{JwkCurve, PublicKeyJwk};
 use identus_jose::{
     JoseError, JwsAlgorithm, JwsKeyReference, JwsLimits, JwsSigner, OID4VCI_PROOF_JWT_TYPE,
-    Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtLimits,
-    SignerFailure,
+    Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtClientId,
+    Oid4vciProofJwtLimits, SignerFailure,
 };
 use serde_json::{Value, json};
 
@@ -54,13 +54,21 @@ fn identified_claims(limits: Oid4vciProofJwtLimits) -> Oid4vciProofJwtClaims {
     .expect("valid identified claims")
 }
 
+fn key_id(value: impl AsRef<str>) -> JwsKeyReference {
+    JwsKeyReference::key_id(value, JwsLimits::default()).expect("bounded key ID")
+}
+
+fn x5c(certificates: Vec<String>) -> JwsKeyReference {
+    JwsKeyReference::x5c(certificates, JwsLimits::default()).expect("bounded x5c")
+}
+
 #[test]
 fn identified_kid_proof_preserves_exact_signing_input_and_profile() {
     let limits = Oid4vciProofJwtLimits::default();
     let input = Oid4vciProofJwtBuilder::new(limits)
         .prepare(
             JwsAlgorithm::Ed25519,
-            JwsKeyReference::KeyId("did:example:holder#authentication-1".to_owned()),
+            key_id("did:example:holder#authentication-1"),
             identified_claims(limits),
         )
         .expect("prepare proof");
@@ -89,6 +97,27 @@ fn identified_kid_proof_preserves_exact_signing_input_and_profile() {
 }
 
 #[test]
+fn identified_client_payload_is_bounded_opaque_and_revalidated() {
+    let exact_limits = Oid4vciProofJwtLimits::new(JwsLimits::default(), 8).expect("exact limits");
+    let canary = "client-1";
+    let client_id = Oid4vciProofJwtClientId::new(canary, exact_limits).expect("exact client");
+    assert_eq!(client_id.as_str(), canary);
+    assert!(!format!("{client_id:?}").contains(canary));
+    assert_eq!(
+        Oid4vciProofJwtClientId::new("client-12", exact_limits),
+        Err(JoseError::InvalidProofClaims)
+    );
+
+    let roomy_limits = Oid4vciProofJwtLimits::new(JwsLimits::default(), 16).expect("roomy limits");
+    let client = Oid4vciProofJwtClient::identified("nine-byte", roomy_limits)
+        .expect("roomy identified client");
+    assert_eq!(
+        Oid4vciProofJwtClaims::new(client, "audience", 1, None, exact_limits),
+        Err(JoseError::InvalidProofClaims)
+    );
+}
+
+#[test]
 fn anonymous_pre_authorized_proof_omits_issuer_by_construction() {
     let limits = Oid4vciProofJwtLimits::default();
     let claims = Oid4vciProofJwtClaims::new(
@@ -102,7 +131,7 @@ fn anonymous_pre_authorized_proof_omits_issuer_by_construction() {
     let proof = Oid4vciProofJwtBuilder::new(limits)
         .prepare(
             JwsAlgorithm::LegacyEdDsa,
-            JwsKeyReference::KeyId("did:midnight:fixture:holder#auth-1".to_owned()),
+            key_id("did:midnight:fixture:holder#auth-1"),
             claims,
         )
         .expect("Oxid-shaped proof")
@@ -164,7 +193,7 @@ fn x5c_reference_is_bounded_but_not_misrepresented_as_trusted() {
     let proof = Oid4vciProofJwtBuilder::new(limits)
         .prepare(
             JwsAlgorithm::Es256,
-            JwsKeyReference::X5c(vec!["AQID".to_owned(), "BAUG".to_owned()]),
+            x5c(vec!["AQID".to_owned(), "BAUG".to_owned()]),
             identified_claims(limits),
         )
         .expect("bounded x5c")
@@ -219,7 +248,7 @@ fn invalid_claims_and_fixed_output_bounds_precede_external_signing() {
     let baseline = builder
         .prepare(
             JwsAlgorithm::Ed25519,
-            JwsKeyReference::KeyId("key-1".to_owned()),
+            key_id("key-1"),
             identified_claims(default_limits),
         )
         .expect("baseline");
@@ -229,7 +258,7 @@ fn invalid_claims_and_fixed_output_bounds_precede_external_signing() {
     let input = Oid4vciProofJwtBuilder::new(tight_limits)
         .prepare(
             JwsAlgorithm::Ed25519,
-            JwsKeyReference::KeyId("key-1".to_owned()),
+            key_id("key-1"),
             identified_claims(tight_limits),
         )
         .expect("one-byte minimum fits");
@@ -256,7 +285,7 @@ fn invalid_claims_and_fixed_output_bounds_precede_external_signing() {
     assert!(matches!(
         Oid4vciProofJwtBuilder::new(small_payload_limits).prepare(
             JwsAlgorithm::Ed25519,
-            JwsKeyReference::KeyId("key-1".to_owned()),
+            key_id("key-1"),
             claims,
         ),
         Err(JoseError::PayloadTooLarge)
@@ -278,11 +307,7 @@ fn algorithm_mismatch_and_diagnostics_do_not_leak_proof_values() {
     .expect("claims");
     let claims_debug = format!("{claims:?}");
     let input = Oid4vciProofJwtBuilder::new(limits)
-        .prepare(
-            JwsAlgorithm::Ed25519,
-            JwsKeyReference::KeyId(canary.to_owned()),
-            claims,
-        )
+        .prepare(JwsAlgorithm::Ed25519, key_id(canary), claims)
         .expect("prepared");
     let input_debug = format!("{input:?}");
     let signer = RecordingSigner::new(JwsAlgorithm::Es256);
@@ -307,7 +332,7 @@ fn proof_preparation_throughput_diagnostic() {
         let input = builder
             .prepare(
                 JwsAlgorithm::Ed25519,
-                JwsKeyReference::KeyId("did:example:holder#key-1".to_owned()),
+                key_id("did:example:holder#key-1"),
                 identified_claims(limits),
             )
             .expect("prepare diagnostic proof");

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 299,
+  "change": "harden-jose-retained-inputs",
+  "branch": "codex/fix/issue-299",
+  "baseRef": "origin/develop",
+  "baseSha": "4c2942fc11124348f5a330334294a91e221306eb",
+  "contractHeadSha": "d31a159652b3c9194e30facd3dcd363c67a43e34",
+  "createdAt": "2026-09-16T23:54:30.885Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

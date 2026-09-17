@@ -22,12 +22,15 @@ mod signature;
 
 pub use compact::{JwsSigningInput, UnverifiedCompactJws};
 pub use error::{CAPABILITY, JoseError, error_code};
-pub use header::{JwsKeyReference, MAX_TRUST_CHAIN_ENTRIES, MAX_X5C_CERTIFICATES, ProtectedHeader};
+pub use header::{
+    JwsKeyId, JwsKeyReference, JwsX5c, MAX_TRUST_CHAIN_ENTRIES, MAX_X5C_CERTIFICATES,
+    ProtectedHeader,
+};
 pub use limits::JwsLimits;
 pub use oid4vci::{
     DEFAULT_MAX_PROOF_CLAIM_STRING_BYTES, OID4VCI_PROOF_JWT_TYPE, Oid4vciProofJwt,
-    Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtEvidence,
-    Oid4vciProofJwtLimits, Oid4vciProofSigningInput,
+    Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtClientId,
+    Oid4vciProofJwtEvidence, Oid4vciProofJwtLimits, Oid4vciProofSigningInput,
 };
 pub use oid4vci_verifier::{
     Oid4vciAuthorizedProofJwt, Oid4vciKeyAttestationFailure, Oid4vciKeyAttestationFuture,

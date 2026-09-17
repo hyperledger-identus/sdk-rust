@@ -544,7 +544,7 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
             serde_json::from_slice(compact.payload()).map_err(|_| JoseError::InvalidProofClaims)?;
         let client = match wire.iss {
             Some(value) if valid_claim(&value, self.limits) => {
-                Oid4vciProofJwtClient::Identified(value)
+                Oid4vciProofJwtClient::identified(value, self.limits)?
             }
             Some(_) => return Err(JoseError::InvalidProofClaims),
             None => Oid4vciProofJwtClient::AnonymousPreAuthorized,
@@ -579,16 +579,16 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
             }
             JwsKeyReference::KeyId(value) => {
                 let public_key = if let Some(chain) = header.trust_chain() {
-                    self.resolve_trust_chain_key(algorithm, value, chain)
+                    self.resolve_trust_chain_key(algorithm, value.as_str(), chain)
                         .await?
                 } else {
-                    self.resolve_did_key(value).await?
+                    self.resolve_did_key(value.as_str()).await?
                 };
                 let key = JwsVerificationKey::new(algorithm, &public_key)?;
                 (self.suites.verify(&parsed.compact, &key)?, public_key)
             }
             JwsKeyReference::X5c(value) => {
-                let public_key = self.resolve_x5c_key(algorithm, value).await?;
+                let public_key = self.resolve_x5c_key(algorithm, value.as_slice()).await?;
                 let key = JwsVerificationKey::new(algorithm, &public_key)?;
                 (self.suites.verify(&parsed.compact, &key)?, public_key)
             }

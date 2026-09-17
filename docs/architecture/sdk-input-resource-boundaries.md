@@ -39,10 +39,9 @@ calling it unbounded SDK behavior.
 - All public resource constants with `MAX_`/`MIN_` name segments—including
   `DEFAULT_MAX_`—declared by implemented package source are named by an
   inventory limit; the checker enforces this coverage.
-- Core, credential, presentation, OID4VCI and wallet retained values have
+- Core, credential, presentation, JOSE, OID4VCI and wallet retained values have
   explicit fixed or configurable limits. The inventory separately discloses
-  two public compatibility exceptions: directly constructible JOSE
-  retained-input enums and DID `Multihash`.
+  the remaining public compatibility exception: DID `Multihash`.
 - DID document, resolution-result, registration, and option-map policies are
   separate rows. Credential artifacts, descriptors, format/metadata, schema,
   status, verification evidence, registry, and verifier execution are likewise
@@ -67,9 +66,10 @@ calling it unbounded SDK behavior.
 - `HexStr` and `Base64UrlStrNoPad` use fallible byte constructors that reject
   before canonical text would exceed 4,096 bytes; ADR 0129 records the source
   migration from the former blanket `From` implementations.
-- Direct `JwsKeyReference::KeyId`/`X5c` and
-  `Oid4vciProofJwtClient::Identified` construction can retain arbitrary inputs
-  before later builder validation; #299 owns their opaque validated migration.
+- `JwsKeyReference::KeyId`/`X5c` and
+  `Oid4vciProofJwtClient::Identified` carry opaque validated payloads; raw
+  strings or collections cannot directly inhabit those public alternatives,
+  and tighter builder limits are revalidated.
 
 The broad “audit incomplete” wording is therefore retired. `SDK-LIM-007`
 remains, narrowed to the concrete outer-preallocation and native rejection-

@@ -22,7 +22,7 @@ use identus_did::{
     ResolutionOptions, VerificationMethod,
 };
 use identus_jose::{
-    Ed25519Signer, JoseError, JwsAlgorithm, JwsKeyReference, JwsSigningInput,
+    Ed25519Signer, JoseError, JwsAlgorithm, JwsKeyReference, JwsLimits, JwsSigningInput,
     OID4VCI_PROOF_JWT_TYPE, Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims, Oid4vciProofJwtClient,
     Oid4vciProofJwtLimits, Oid4vciProofJwtNonce, Oid4vciProofJwtPolicy, Oid4vciProofJwtVerifier,
     Oid4vciProofReplayFailure, Oid4vciProofReplayFuture, Oid4vciProofReplayGuard,
@@ -56,6 +56,14 @@ fn private_key() -> Ed25519PrivateKey {
 
 fn public_key() -> PublicKeyJwk {
     private_key().to_public_key().encode_jwk()
+}
+
+fn key_id(value: impl AsRef<str>) -> JwsKeyReference {
+    JwsKeyReference::key_id(value, JwsLimits::default()).expect("bounded key ID")
+}
+
+fn x5c(certificates: Vec<String>) -> JwsKeyReference {
+    JwsKeyReference::x5c(certificates, JwsLimits::default()).expect("bounded x5c")
 }
 
 fn proof(
@@ -442,7 +450,7 @@ fn malformed_profile_and_known_claim_types_fail_before_providers() {
                 header(
                     "EdDSA",
                     Some(OID4VCI_PROOF_JWT_TYPE),
-                    Some(JwsKeyReference::X5c(vec!["AQID".to_owned()])),
+                    Some(x5c(vec!["AQID".to_owned()])),
                 ),
                 br#"{"aud":"issuer","iat":1}"#,
             ),
@@ -494,7 +502,7 @@ fn did_url_key_requires_exact_authentication_relationship() {
     let did = "did:midnight:testnet:holder";
     let method = format!("{did}#auth-1");
     let compact = proof(
-        JwsKeyReference::KeyId(method.clone()),
+        key_id(&method),
         Oid4vciProofJwtClient::AnonymousPreAuthorized,
         AUDIENCE,
         ISSUED_AT,
@@ -541,7 +549,7 @@ fn did_provider_cannot_substitute_method_or_unsupported_key_material() {
     let did = "did:midnight:testnet:holder";
     let selected = format!("{did}#auth-1");
     let compact = proof(
-        JwsKeyReference::KeyId(selected),
+        key_id(&selected),
         Oid4vciProofJwtClient::AnonymousPreAuthorized,
         AUDIENCE,
         ISSUED_AT,
@@ -593,7 +601,7 @@ fn non_did_and_selector_kids_fail_without_dereferencing() {
         "did:example:holder?versionId=1#key-1",
     ] {
         let compact = proof(
-            JwsKeyReference::KeyId(kid.to_owned()),
+            key_id(kid),
             Oid4vciProofJwtClient::AnonymousPreAuthorized,
             AUDIENCE,
             ISSUED_AT,
@@ -613,7 +621,7 @@ fn non_did_and_selector_kids_fail_without_dereferencing() {
 #[test]
 fn x5c_provider_is_explicit_and_leaf_key_is_rebound() {
     let compact = proof(
-        JwsKeyReference::X5c(vec!["AQID".to_owned(), "BAUG".to_owned()]),
+        x5c(vec!["AQID".to_owned(), "BAUG".to_owned()]),
         Oid4vciProofJwtClient::AnonymousPreAuthorized,
         AUDIENCE,
         ISSUED_AT,
@@ -821,7 +829,7 @@ fn freshness_boundaries_are_inclusive_and_negative_iat_is_rejected() {
 #[test]
 fn convenience_path_rejects_policy_before_x5c_and_replay_providers() {
     let compact = proof(
-        JwsKeyReference::X5c(vec!["AQID".to_owned()]),
+        x5c(vec!["AQID".to_owned()]),
         Oid4vciProofJwtClient::AnonymousPreAuthorized,
         AUDIENCE,
         ISSUED_AT,
@@ -901,7 +909,7 @@ fn policy_and_state_diagnostics_are_redacted() {
     let nonce = "NONCE_CANARY";
     let certificate = "Q0VSVF9DQU5BUlk=";
     let compact = proof(
-        JwsKeyReference::X5c(vec![certificate.to_owned()]),
+        x5c(vec![certificate.to_owned()]),
         Oid4vciProofJwtClient::identified(issuer, limits).unwrap(),
         audience,
         ISSUED_AT,

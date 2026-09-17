@@ -22,7 +22,14 @@
    surface, workflow, or target matrix.
 4. **No process blocker.** Issue, planning-only commit, preimplementation
    receipt, live hosted evidence, local review, and exact recovered receipt all
-   predate PR creation.
+   predate PR creation. GitHub reports every commit in this PR as DCO-compliant
+   and cryptographically verified; the local `git log --show-signature` check
+   independently reports a good signature for each commit.
+5. **Resolved — non-string timestamps could be coerced.** The discovery review
+   found that JavaScript regular expressions and `Date.parse` accepted a
+   single-element array through string coercion. The validator now rejects
+   every non-string value before applying the closed grammar, with regression
+   coverage for arrays, objects, and `null`.
 
 ## Live evidence
 

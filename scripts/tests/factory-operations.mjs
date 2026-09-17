@@ -571,6 +571,9 @@ test("hosted merge timestamps accept closed UTC RFC 3339 precision", () => {
     "2026-09-17T09:48:40.1234567890Z",
     " 2026-09-17T09:48:40Z",
     "2026-09-17T09:48:40Z trailing",
+    ["2026-09-17T09:48:40Z"],
+    { toString: () => "2026-09-17T09:48:40Z" },
+    null,
   ]) assert.equal(exactIsoDate(value), false, value);
 });
 

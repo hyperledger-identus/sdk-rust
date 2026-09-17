@@ -66,7 +66,12 @@ import {
   preparePiPackageCache,
 } from "../factory-tools/pi-package-cache.mjs";
 import { validatePlanningPaths } from "../factory-tools/preflight.mjs";
-import { isWithinManagedRoot, parseWorktrees } from "../worktree-lifecycle.mjs";
+import {
+  isWithinManagedRoot,
+  parseRemoteBranchHead,
+  parseWorktrees,
+  validateSupersededEvidence,
+} from "../worktree-lifecycle.mjs";
 
 const sha = "a".repeat(40);
 const metric = {
@@ -1561,4 +1566,57 @@ test("worktree porcelain parser retains safety-relevant state", () => {
   assert.equal(records[1].branch, "codex/feat/issue-243");
   assert.equal(isWithinManagedRoot("/tmp/unmanaged", "/tmp/managed"), false);
   assert.equal(isWithinManagedRoot("/tmp/managed/issue-243", "/tmp/managed"), true);
+});
+
+test("superseded worktree evidence requires exact recoverability and replacement closure", () => {
+  const expectedHead = "b".repeat(40);
+  const expectedBranch = "codex/fix/issue-297";
+  const original = {
+    state: "CLOSED",
+    mergedAt: null,
+    baseRefName: "develop",
+    headRefOid: expectedHead,
+    headRefName: expectedBranch,
+    body: "Closes #297",
+  };
+  const replacement = {
+    state: "MERGED",
+    mergedAt: "2026-09-17T08:27:14.000Z",
+    baseRefName: "develop",
+    body: "Closes #315.\nCloses #297.",
+  };
+  const evidence = {
+    original,
+    replacement,
+    expectedHead,
+    expectedBranch,
+    issue: 297,
+    remoteHead: expectedHead,
+  };
+  assert.equal(validateSupersededEvidence(evidence), true);
+  assert.equal(
+    parseRemoteBranchHead(`${expectedHead}\trefs/heads/${expectedBranch}\n`, expectedBranch),
+    expectedHead,
+  );
+  assert.throws(() => validateSupersededEvidence({
+    ...evidence, original: { ...original, state: "MERGED", mergedAt: replacement.mergedAt },
+  }), /closed without merge/u);
+  assert.throws(() => validateSupersededEvidence({
+    ...evidence, original: { ...original, headRefOid: sha },
+  }), /head does not match/u);
+  assert.throws(() => validateSupersededEvidence({ ...evidence, remoteHead: sha }), /does not preserve/u);
+  assert.throws(() => validateSupersededEvidence({
+    ...evidence, replacement: { ...replacement, state: "CLOSED", mergedAt: null },
+  }), /not merged/u);
+  assert.throws(() => validateSupersededEvidence({
+    ...evidence, replacement: { ...replacement, body: "References #297" },
+  }), /does not explicitly close/u);
+  assert.throws(
+    () => parseRemoteBranchHead("", expectedBranch),
+    /missing or malformed/u,
+  );
+  assert.throws(
+    () => parseRemoteBranchHead(`${expectedHead}\trefs/heads/wrong\n`, expectedBranch),
+    /missing or malformed/u,
+  );
 });

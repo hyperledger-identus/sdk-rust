@@ -161,12 +161,92 @@ function closeout(argv) {
   process.stdout.write(`Closed managed worktree ${record.path} for PR #${pr}.\n`);
 }
 
+function readPullRequest(repository, number) {
+  return JSON.parse(execFileSync("gh", [
+    "pr", "view", String(number), "--repo", repository, "--json",
+    "state,mergedAt,headRefOid,headRefName,baseRefName,body",
+  ], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }));
+}
+
+export function parseRemoteBranchHead(output, branch) {
+  const expectedRef = `refs/heads/${branch}`;
+  const records = String(output).split("\n").filter(Boolean).map((line) => line.split("\t"));
+  if (records.length !== 1 || records[0].length !== 2 || records[0][1] !== expectedRef
+      || !/^[0-9a-f]{40}$/u.test(records[0][0])) {
+    fail("remote recovery branch evidence is missing or malformed");
+  }
+  return records[0][0];
+}
+
+export function validateSupersededEvidence({
+  original,
+  replacement,
+  expectedHead,
+  expectedBranch,
+  issue,
+  remoteHead,
+}) {
+  if (!Number.isSafeInteger(issue) || issue < 1) fail("superseded branch issue is invalid");
+  if (!/^[0-9a-f]{40}$/u.test(expectedHead ?? "")) fail("superseded expected head is invalid");
+  if (original?.state !== "CLOSED" || original.mergedAt !== null) fail("superseded pull request must be closed without merge");
+  if (original.baseRefName !== policy.integrationBranch) fail("superseded pull request did not target develop");
+  if (original.headRefOid !== expectedHead || original.headRefName !== expectedBranch) {
+    fail("superseded pull request head does not match the managed worktree");
+  }
+  if (remoteHead !== expectedHead) fail("remote branch does not preserve the superseded exact head");
+  if (replacement?.state !== "MERGED" || !replacement.mergedAt) fail("replacement pull request is not merged");
+  if (replacement.baseRefName !== policy.integrationBranch) fail("replacement pull request did not target develop");
+  const closesIssue = new RegExp(`(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\\s+#${issue}(?![0-9])`, "iu");
+  if (!closesIssue.test(replacement.body ?? "")) fail("replacement pull request does not explicitly close the superseded issue");
+  return true;
+}
+
+function closeoutSuperseded(argv) {
+  requireExecute(argv);
+  const pr = Number(option(argv, "--pr"));
+  const replacementPr = Number(option(argv, "--replacement-pr"));
+  const candidate = option(argv, "--path");
+  const expectedHead = option(argv, "--expect-head");
+  if (!Number.isSafeInteger(pr) || pr < 1) fail("--pr must be a positive integer");
+  if (!Number.isSafeInteger(replacementPr) || replacementPr < 1 || replacementPr === pr) {
+    fail("--replacement-pr must be a distinct positive integer");
+  }
+  const record = validateManagedTarget(candidate, expectedHead);
+  if (!record.branch) fail("superseded worktree must remain attached to its issue branch");
+  const branchResult = validateBranchName(record.branch);
+  if (!branchResult.ok || !branchResult.issue) fail("superseded worktree branch grammar is invalid");
+  const repository = git(["remote", "get-url", "origin"]).match(/github\.com[/:]([^/]+\/[^/.]+)(?:\.git)?$/u)?.[1];
+  if (repository !== policy.repository) fail("origin does not identify the authoritative repository");
+  const original = readPullRequest(repository, pr);
+  const replacement = readPullRequest(repository, replacementPr);
+  const remoteOutput = execFileSync("git", [
+    "ls-remote", "--heads", "origin", `refs/heads/${record.branch}`,
+  ], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  const remoteHead = parseRemoteBranchHead(remoteOutput, record.branch);
+  validateSupersededEvidence({
+    original,
+    replacement,
+    expectedHead,
+    expectedBranch: record.branch,
+    issue: branchResult.issue,
+    remoteHead,
+  });
+  execFileSync("git", ["worktree", "remove", record.path], { cwd: root, stdio: "inherit" });
+  if (git(["rev-parse", `refs/heads/${record.branch}`]) !== expectedHead) {
+    fail("local recovery branch changed during superseded closeout");
+  }
+  process.stdout.write(
+    `Closed recoverable managed worktree ${record.path} for superseded PR #${pr}; replacement PR #${replacementPr} merged and branch refs remain.\n`,
+  );
+}
+
 function main() {
   const [command, ...argv] = process.argv.slice(2);
   if (command === "audit") audit(argv);
   else if (command === "ensure") ensure(argv);
   else if (command === "closeout-pr") closeout(argv);
-  else fail("Usage: worktree-lifecycle.mjs <audit|ensure|closeout-pr> [options]");
+  else if (command === "closeout-superseded") closeoutSuperseded(argv);
+  else fail("Usage: worktree-lifecycle.mjs <audit|ensure|closeout-pr|closeout-superseded> [options]");
 }
 
 if (path.resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) {

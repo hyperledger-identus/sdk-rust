@@ -151,6 +151,8 @@ def validate(root: Path) -> list[str]:
         runner,
     ):
         errors.append("candidate build scratch must not be rooted in the output destination")
+    if "require_preparation_toolchain(root, descriptor, env)" not in runner:
+        errors.append("candidate runner is missing preparation toolchain enforcement")
     required_api_contract = (
         'api_target = stage / "target/public-api"',
         'api_env = env | {"RUSTC_BOOTSTRAP": "1"}',

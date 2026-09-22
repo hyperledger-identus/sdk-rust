@@ -1,5 +1,5 @@
 schema_version  = 1
-policy_revision = "2026-09-10"
+policy_revision = "2026-09-22"
 governing_adr   = "docs/adr/0063-make-material-constraints-explicit.md"
 
 [[entries]]
@@ -52,6 +52,40 @@ owner            = "SDK maintainers"
 review_triggers  = [ "new chain dependency", "product policy proposed in an SDK crate" ]
 activation       = "Already effective through the SDK blueprint."
 rollback         = "Requires a product-boundary ADR and migration plan for every affected consumer."
+
+[[entries]]
+id               = "SDK-REL-001"
+kind             = "hard"
+category         = "release"
+state            = "effective"
+summary          = "Only the reviewed derive, core, and crypto release train may publish at 0.1.0-rc.1."
+scope            = "identus-derive, identus-core, identus-crypto and all other workspace manifests."
+canonical_source = "docs/adr/0134-activate-protected-crates-io-release-trains.md"
+authority        = "Sponsor-directed issue #326 and accepted ADR 0134."
+rationale        = "A narrow train creates usable foundations without converting monorepo presence into unsupported package promises."
+consumer_impact  = "Rust consumers may use the three experimental packages; every other workspace package remains source-only and unpublished."
+enforcement      = [ "explicit selected manifests", "workspace publish=false default", "release-train checker", "protected publisher" ]
+owner            = "SDK maintainers and release managers"
+review_triggers  = [ "additional crate proposed", "version changes", "final 0.1.0 proposed" ]
+activation       = "Effective when ADR 0134 and the release workflow merge; external availability requires the immutable publication receipt."
+rollback         = "Before publication revert activation; after publication preserve the immutable version and issue a corrected release if necessary."
+
+[[entries]]
+id               = "SDK-REL-002"
+kind             = "hard"
+category         = "release"
+state            = "effective"
+summary          = "Crates.io publication requires signed exact identity, protected two-person approval, and short-lived authentication after bootstrap."
+scope            = "Every SDK-Rust registry publication and GitHub release."
+canonical_source = "docs/adr/0134-activate-protected-crates-io-release-trains.md"
+authority        = "RELEASING.md, issue #3, issue #326, and accepted ADR 0134."
+rationale        = "Crate versions are immutable and registry credentials are supply-chain authority."
+consumer_impact  = "Consumers can trace published artifacts to a protected develop revision and retained receipt."
+enforcement      = [ "signed release tag", "crates-io GitHub environment", "independent maintainer review", "bootstrap token then trusted publishing", "checksum receipt" ]
+owner            = "Assigned release manager and independent Identus maintainer"
+review_triggers  = [ "release workflow changes", "credential model changes", "registry incident", "main activation" ]
+activation       = "Effective through ADR 0134; the bootstrap exception expires after trusted publishers are configured."
+rollback         = "Stop publication, preserve evidence, revoke credentials, and follow the yank/corrected-version process."
 
 [[entries]]
 id               = "SDK-ARCH-002"

@@ -12,11 +12,11 @@ catalogue and does not reserve future crate names. The normative local data is
 | Repository | `hyperledger-identus/sdk-rust` |
 | Integration | issue-linked, reviewed, green-CI pull requests into `develop` |
 | Reserved branch | `main`; intentionally outside integration and release |
-| Release state | unreleased; every package is Cargo `publish = false` |
+| Release state | protected `0.1.0-rc.1` train activated for derive/core/crypto; every other package remains `publish = false` |
 | Maintainers | inherited from the canonical Hyperledger Identus policy |
 | Release authority | assigned human release manager plus a second maintainer |
 | Security response | Identus security response team through private reporting |
-| Namespace/publishing | not activated; governed separately by issue #3 |
+| Namespace/publishing | protected release train governed by issues #3/#326 and ADR 0134; registry receipt proves external state |
 | Live repository controls | protected `develop` active; enterprise scanning deviation recorded under issue #26 |
 
 The repository-local governance packet includes the Apache-2.0 license,

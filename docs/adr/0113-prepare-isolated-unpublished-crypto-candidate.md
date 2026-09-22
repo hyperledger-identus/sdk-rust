@@ -11,6 +11,11 @@
 > weekly/manual execution from protected default `develop`; reserved `main`
 > remains explicit, minimal and protected.
 
+> **Release activation (2026-09-22):** ADR 0134 supersedes the temporary
+> canonical publication denial for exactly the reviewed three-crate train.
+> Candidate preparation remains non-publishing; only the separately protected
+> workflow may upload the signed, approved artifacts.
+
 ## Context
 
 `identus-crypto` has Apollo behavioral parity but is not a reviewable package

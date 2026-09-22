@@ -33,9 +33,9 @@ completed train stops; immutable successful uploads are recorded and the same
 version is never overwritten.
 
 The environment is configured for protected branches/tags, prevents self
-review, and requires approval from the Identus maintainer team. This is the
-second-person control in addition to the release manager who creates the tag
-and dispatches the run.
+review, disables administrator bypass, and requires approval from the Identus
+maintainer team. This is the second-person control in addition to the release
+manager who creates the tag and dispatches the run.
 
 ## Authentication transition
 

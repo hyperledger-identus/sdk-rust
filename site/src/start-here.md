@@ -20,14 +20,15 @@ product model into the others.
 | Term | Meaning here |
 | --- | --- |
 | Implemented | Code and tests exist; the public surface may still change. |
-| Candidate | A reproducible artifact is available for review, but it is not published. |
+| Candidate | A reproducible artifact is available for review; publication status is proven only by its registry receipt. |
 | Experimental `0.x` | SemVer applies with an explicit migration policy and support window. |
 | Supported | The documented compiler, targets, features, and support period are an effective promise. |
 | Certified | An external assessment or certification exists; tests alone never imply this. |
 
-Today the first three packages are **unpublished candidates**. Canonical
-workspace manifests remain version `0.0.0` with `publish = false`; candidate
-archives are prepared in an isolated temporary workspace.
+The first three packages are release-activated `0.1.0-rc.1` candidates.
+Every other workspace package remains version `0.0.0` with `publish = false`;
+candidate archives are prepared in an isolated temporary workspace and may be
+uploaded only by the protected release train.
 
 ## Branches
 

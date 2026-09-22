@@ -25,6 +25,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/crypto-coverage.py"
 "$repository_root/scripts/tests/source-distribution.py"
 "$repository_root/scripts/tests/crypto-candidate.py"
+"$repository_root/scripts/tests/release-train.py"
 "$repository_root/scripts/tests/error-golden.py"
 "$repository_root/scripts/tests/code-health-audit.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
@@ -72,6 +73,7 @@ required_files=(
   docs/architecture/sdk-input-resource-boundaries.toml
   docs/architecture/source-distribution.md
   docs/release/crypto-candidate.toml
+  docs/release/0.1.0-rc.1.md
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
   crates/derive/README.md
   crates/core/README.md
@@ -86,6 +88,7 @@ required_files=(
   docs/governance/constraints-and-limitations.md
   docs/governance/repository-settings-receipt-2026-09-14.md
   docs/governance/repository-settings.md
+  docs/governance/crates-io-environment-receipt-2026-09-22.md
   docs/governance/sdk-constraints.toml
   docs/adr/0001-bootstrap-branch-selection.md
   docs/adr/0003-delegate-develop-integration.md
@@ -113,6 +116,7 @@ required_files=(
   docs/adr/0124-separate-android-package-and-runtime-evidence.md
   docs/adr/0125-govern-sdk-input-resource-boundaries.md
   docs/adr/0133-select-rc1-compiler-support-matrix.md
+  docs/adr/0134-activate-protected-crates-io-release-trains.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
@@ -174,8 +178,10 @@ required_files=(
   scripts/check-weekly-slow-live.py
   scripts/check-source-distribution.py
   scripts/check-crypto-candidate.py
+  scripts/check-release-train.py
   scripts/code-health-audit.py
   scripts/prepare-crypto-candidate.py
+  scripts/publish-release-train.py
   scripts/check-pr-policy.sh
   scripts/check-research-readiness.py
   scripts/tests/factory-contract.sh
@@ -195,6 +201,7 @@ required_files=(
   scripts/tests/crypto-coverage.py
   scripts/tests/source-distribution.py
   scripts/tests/crypto-candidate.py
+  scripts/tests/release-train.py
   scripts/tests/code-health-audit.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
@@ -202,6 +209,7 @@ required_files=(
   .github/pull_request_template.md
   .github/workflows/factory-contract.yml
   .github/workflows/nix-checks.yml
+  .github/workflows/publish-crates.yml
   .github/workflows/pull-request-policy.yml
 )
 
@@ -288,8 +296,10 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-weekly-slow-live.py" \
   "$fixture_root/scripts/check-source-distribution.py" \
   "$fixture_root/scripts/check-crypto-candidate.py" \
+  "$fixture_root/scripts/check-release-train.py" \
   "$fixture_root/scripts/code-health-audit.py" \
   "$fixture_root/scripts/prepare-crypto-candidate.py" \
+  "$fixture_root/scripts/publish-release-train.py" \
   "$fixture_root/scripts/tests/bootstrap-inventory.py" \
   "$fixture_root/scripts/tests/constraints.py" \
   "$fixture_root/scripts/tests/error-golden.py" \
@@ -297,6 +307,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/crypto-coverage.py" \
   "$fixture_root/scripts/tests/source-distribution.py" \
   "$fixture_root/scripts/tests/crypto-candidate.py" \
+  "$fixture_root/scripts/tests/release-train.py" \
   "$fixture_root/scripts/tests/code-health-audit.py" \
   "$fixture_root/scripts/tests/factory-contract.sh" \
   "$fixture_root/scripts/tests/factory-operations.mjs" \
@@ -320,6 +331,7 @@ done
 for relative_path in .github/workflows/factory-contract.yml \
   .github/workflows/nix-checks.yml .github/workflows/crypto-fuzz.yml \
   .github/workflows/did-fuzz.yml .github/workflows/jws-fuzz.yml \
+  .github/workflows/publish-crates.yml \
   nix/devshells/default.nix; do
   mkdir -p "$fixture_root/$(dirname "$relative_path")"
   cp "$repository_root/$relative_path" "$fixture_root/$relative_path"

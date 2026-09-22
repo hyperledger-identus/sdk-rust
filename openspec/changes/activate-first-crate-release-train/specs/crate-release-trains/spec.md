@@ -23,7 +23,8 @@ The release workflow SHALL accept only the exact approved full source SHA and
 signed release tag, SHALL verify they resolve to the same commit contained in
 protected `develop`, and SHALL rebuild deterministic candidate evidence before
 requesting access to the protected `crates-io` environment. The environment
-SHALL prevent self-review and require an independent Identus maintainer.
+SHALL prevent self-review, disable administrator bypass, and require an
+independent Identus maintainer.
 
 #### Scenario: Tag or approval identity differs
 

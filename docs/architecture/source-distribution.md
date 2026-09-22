@@ -1,13 +1,15 @@
-# Alpha source distribution
+# Source and prerelease distribution
 
-The SDK has no published release yet. Rust consumers may evaluate the following
-packages from the public source repository:
+Rust consumers may evaluate all implemented packages from the public source
+repository. The protected `0.1.0-rc.1` train additionally activates
+`identus-derive`, `identus-core`, and `identus-crypto` for crates.io; an
+immutable registry receipt proves whether that external publication completed.
 
 | Cargo package | Path | Default features | Current status |
 | --- | --- | --- | --- |
-| `identus-core` | `crates/core` | none | experimental source |
-| `identus-derive` | `crates/derive` | none | experimental source |
-| `identus-crypto` | `crates/crypto` | crypto suite | experimental source |
+| `identus-core` | `crates/core` | none | experimental `0.1.0-rc.1` train |
+| `identus-derive` | `crates/derive` | none | experimental `0.1.0-rc.1` train |
+| `identus-crypto` | `crates/crypto` | crypto suite | experimental `0.1.0-rc.1` train |
 | `identus-did` | `crates/did` | none | experimental source |
 | `identus-did-resolver-http` | `crates/did-resolver-http` | none | experimental source |
 
@@ -63,11 +65,13 @@ model.
 
 ## Limitations
 
-This is a source-only, pre-release channel. Workspace version `0.0.0`,
-`publish = false`, and an exact Git commit provide no SemVer compatibility,
-support lifetime, crates.io checksum, binary, Nix package, FFI package,
-certification, or production-release promise. The current consumer compiler
-floor is Rust 1.89.0.
+This remains a pre-release channel. The three release-train crates make an
+experimental prerelease SemVer commitment; they make no stable SemVer compatibility,
+support-lifetime, binary, Nix package, FFI package,
+certification, or production-release promise. Every other workspace package
+retains version `0.0.0` and `publish = false`. An exact Git commit is still the
+only supported evaluation identity for those source-only packages. The current
+consumer compiler floor is Rust 1.89.0.
 
 NeoPRISM's `identus-apollo` is a downstream compatibility facade over
 `identus-crypto`; it is not another name for an SDK package. Registry release

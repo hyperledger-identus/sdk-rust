@@ -630,7 +630,7 @@ dependencies = [
 
 [[package]]
 name = "identus-core"
-version = "0.0.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "identus-derive",
  "serde",
@@ -648,7 +648,7 @@ dependencies = [
 
 [[package]]
 name = "identus-crypto"
-version = "0.0.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "base64",
  "bip39",
@@ -672,7 +672,7 @@ dependencies = [
 
 [[package]]
 name = "identus-derive"
-version = "0.0.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",

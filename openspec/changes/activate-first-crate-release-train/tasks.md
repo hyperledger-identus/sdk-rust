@@ -2,25 +2,26 @@
 
 ## 1. Planning and release controls
 
-- [ ] 1.1 Record the package, credential, environment, approval, immutable
+- [x] 1.1 Record the package, credential, environment, approval, immutable
       identity, failure, and rollback decisions in OpenSpec and ADR 0134.
-- [ ] 1.2 Pass research, constraint, and strict OpenSpec readiness and commit
+- [x] 1.2 Pass research, constraint, and strict OpenSpec readiness and commit
       the planning-only contract.
 - [ ] 1.3 Create the protected `crates-io` GitHub environment with independent
-      maintainer approval and protected-ref deployment policy.
+      maintainer approval, disabled administrator bypass, and protected-ref
+      deployment policy.
 
 ## 2. Package and publisher implementation
 
-- [ ] 2.1 Activate explicit metadata for exactly the three release crates and
+- [x] 2.1 Activate explicit metadata for exactly the three release crates and
       exact path-plus-version internal dependencies.
-- [ ] 2.2 Extend deterministic candidate evidence with a clean publication
+- [x] 2.2 Extend deterministic candidate evidence with a clean publication
       workspace and release-eligible receipt while preserving the no-publish
       candidate boundary.
-- [ ] 2.3 Add a constrained, idempotent, dependency-ordered publisher and
+- [x] 2.3 Add a constrained, idempotent, dependency-ordered publisher and
       protected workflow with bootstrap-token and trusted-publishing modes.
-- [ ] 2.4 Add structural and mutation tests for scope, versions, tag/SHA,
+- [x] 2.4 Add structural and mutation tests for scope, versions, tag/SHA,
       signatures, environment controls, credentials, action pins, and order.
-- [ ] 2.5 Update release policy, public handbook, changelog, limitations,
+- [x] 2.5 Update release policy, public handbook, changelog, limitations,
       ownership/recovery, and operator runbook.
 
 ## 3. Evidence and publication

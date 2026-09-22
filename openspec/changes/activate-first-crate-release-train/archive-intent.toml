@@ -1,17 +1,17 @@
 [[modified_requirement]]
-capability = "unpublished-crypto-candidate"
-requirement = "Candidate scope and brand are explicit"
+capability       = "unpublished-crypto-candidate"
+requirement      = "Candidate scope and brand are explicit"
 canonical_sha256 = "ce806b36fff4c90a92e9616c72e9a809607f74cba279c7401cd7a1dbd911bd1c"
-reason = "Explicit human release activation supersedes the temporary canonical publish denial for exactly the reviewed three-crate train."
+reason           = "Explicit human release activation supersedes the temporary canonical publish denial for exactly the reviewed three-crate train."
 
 [[modified_requirement]]
-capability = "unpublished-crypto-candidate"
-requirement = "Unpublished dependency closure is verified honestly"
+capability       = "unpublished-crypto-candidate"
+requirement      = "Unpublished dependency closure is verified honestly"
 canonical_sha256 = "509bbcb1e8bbd5331778b1252aecb05a4696b9baf1504bb0efd25c66e27768ac"
-reason = "The first-publish train adds sequential Cargo registry verification after preserving honest pre-index archive-closure evidence."
+reason           = "The first-publish train adds sequential Cargo registry verification after preserving honest pre-index archive-closure evidence."
 
 [[modified_requirement]]
-capability = "unpublished-crypto-candidate"
-requirement = "Preparation cannot publish"
+capability       = "unpublished-crypto-candidate"
+requirement      = "Preparation cannot publish"
 canonical_sha256 = "8661fd727ea1c697055a3907f452e20c89cbd9843245dde43b49ddec2711576e"
-reason = "Candidate preparation remains non-mutating while a separate protected publisher becomes the only authorized release boundary."
+reason           = "Candidate preparation remains non-mutating while a separate protected publisher becomes the only authorized release boundary."

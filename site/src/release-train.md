@@ -40,6 +40,13 @@ maintainer approval and an immutable publication receipt. The namespace-
 creating train uses a short-lived bootstrap token; every later train uses
 crates.io trusted publishing through OIDC.
 
+The credential-bearing job repeats the signed-tag, exact-SHA, and protected
+`develop` ancestry checks after environment approval. Candidate artifacts are
+scoped to the workflow run rather than an individual attempt, so a failed job
+can be retried without rebuilding or substituting evidence. Existing packages
+and release assets are reused only when their checksums and release identity
+match exactly; disagreement fails closed.
+
 Read [ADR 0134](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/adr/0134-activate-protected-crates-io-release-trains.md),
 [ADR 0113](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md),
 and the [candidate descriptor](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/release/crypto-candidate.toml)

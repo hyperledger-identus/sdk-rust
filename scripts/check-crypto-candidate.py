@@ -81,7 +81,12 @@ def validate(root: Path) -> list[str]:
     ]:
         errors.append("descriptor authentication modes must remain bootstrap then OIDC")
 
-    packages = descriptor.get("packages", [])
+    packages_value = descriptor.get("packages", [])
+    if not isinstance(packages_value, list):
+        errors.append("candidate packages must be an array of tables")
+        packages: list[object] = []
+    else:
+        packages = packages_value
     names = tuple(row.get("name") for row in packages if isinstance(row, dict))
     if names != PACKAGE_ORDER:
         errors.append("candidate package order/scope must remain derive, core, crypto")
@@ -96,7 +101,12 @@ def validate(root: Path) -> list[str]:
             if not row.get(field):
                 errors.append(f"{name}: descriptor metadata missing {field}")
 
-    profiles = descriptor.get("profiles", [])
+    profiles_value = descriptor.get("profiles", [])
+    if not isinstance(profiles_value, list):
+        errors.append("candidate profiles must be an array of tables")
+        profiles: list[object] = []
+    else:
+        profiles = profiles_value
     profile_names = tuple(row.get("name") for row in profiles if isinstance(row, dict))
     if profile_names != PROFILES:
         errors.append("candidate verification profiles differ from the reviewed set")
@@ -117,20 +127,26 @@ def validate(root: Path) -> list[str]:
             errors.append(f"canonical package identity differs: {name}")
             continue
         row = next(
-            item
-            for item in packages
-            if isinstance(item, dict) and item.get("name") == name
+            (
+                item
+                for item in packages
+                if isinstance(item, dict) and item.get("name") == name
+            ),
+            None,
         )
+        if not isinstance(row, dict):
+            errors.append(f"{name}: descriptor package metadata is missing")
+            continue
         expected_metadata = {
             "version": VERSION,
             "publish": ["crates-io"],
-            "description": row["description"],
-            "repository": descriptor["repository"],
-            "homepage": descriptor["homepage"],
-            "documentation": row["documentation"],
-            "readme": row["readme"],
-            "keywords": row["keywords"],
-            "categories": row["categories"],
+            "description": row.get("description"),
+            "repository": descriptor.get("repository"),
+            "homepage": descriptor.get("homepage"),
+            "documentation": row.get("documentation"),
+            "readme": row.get("readme"),
+            "keywords": row.get("keywords"),
+            "categories": row.get("categories"),
         }
         for field, expected in expected_metadata.items():
             if package.get(field) != expected:
@@ -185,6 +201,8 @@ def validate(root: Path) -> list[str]:
         'TemporaryDirectory(prefix=".identus-crypto-candidate-build-")',
         "require_vcs_independent_build_scratch(root, scratch)",
         'prefix=f".{output.name}-stage-", dir=output.parent',
+        'publication_stage = create_stage(root, scratch / "publication", descriptor)',
+        'shutil.copytree(publication_stage, publication_output)',
         "staging_output.rename(output)",
     )
     for phrase in required_staging_contract:

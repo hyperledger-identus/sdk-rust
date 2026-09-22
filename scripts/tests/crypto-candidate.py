@@ -169,6 +169,14 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / "scripts/prepare-crypto-candidate.py",
+                    'create_stage(root, scratch / "publication", descriptor)',
+                    'create_stage(root, staging_output / "publication", descriptor)',
+                ),
+                "missing staging boundary",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
                     "require_vcs_independent_build_scratch(root, scratch)",
                     "# removed repository boundary check",
                 ),
@@ -214,6 +222,30 @@ def main() -> int:
                     "cargo doc",
                 ),
                 "candidate toolchain ADR is missing decision evidence",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/crypto-candidate.toml",
+                    'homepage                 = "https://hyperledger-identus.github.io/sdk-rust/"',
+                    'removed_homepage         = "https://hyperledger-identus.github.io/sdk-rust/"',
+                ),
+                "canonical release metadata differs: homepage",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/crypto-candidate.toml",
+                    'name          = "identus-crypto"',
+                    'name          = "identus-unknown"',
+                ),
+                "descriptor package metadata is missing",
+            ),
+            (
+                lambda root: replace_all(
+                    root / "docs/release/crypto-candidate.toml",
+                    "[[packages]]",
+                    "[[unknown_packages]]",
+                ),
+                "candidate package order/scope",
             ),
         )
         for index, (mutation, expected) in enumerate(cases):

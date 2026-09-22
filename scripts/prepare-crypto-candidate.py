@@ -480,9 +480,7 @@ def prepare(args: argparse.Namespace) -> Path:
                 versions = release_evidence(
                     first_stage, root, staging_output, descriptor, env, args.initialize_api
                 )
-            publication_stage = create_stage(
-                root, staging_output / "publication", descriptor
-            )
+            publication_stage = create_stage(root, scratch / "publication", descriptor)
             run(
                 [
                     "cargo",
@@ -493,6 +491,9 @@ def prepare(args: argparse.Namespace) -> Path:
                 cwd=publication_stage,
                 env=env,
             )
+            publication_output = staging_output / "publication" / "workspace"
+            publication_output.parent.mkdir(parents=True)
+            shutil.copytree(publication_stage, publication_output)
             receipt = {
                 "schemaVersion": 1,
                 "candidate": descriptor["candidate"],

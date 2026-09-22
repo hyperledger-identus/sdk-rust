@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -165,6 +166,28 @@ def verify_repackaged(
                 raise ReleaseError(f"publication workspace does not reproduce {name}")
 
 
+def stage_publication_workspace(source: Path, destination: Path) -> Path:
+    """Copy reviewed source into a VCS-independent Cargo publication workspace."""
+    if source.is_symlink() or not source.is_dir():
+        raise ReleaseError("publication workspace source is missing or unsafe")
+    if destination.exists():
+        raise ReleaseError("publication staging destination already exists")
+    for ancestor in (destination.resolve(), *destination.resolve().parents):
+        marker = ancestor / ".git"
+        try:
+            marker.lstat()
+        except FileNotFoundError:
+            continue
+        except OSError as error:
+            raise ReleaseError("cannot validate publication VCS boundary") from error
+        raise ReleaseError("publication staging must be outside every Git worktree")
+    for path in source.rglob("*"):
+        if path.is_symlink():
+            raise ReleaseError("publication workspace contains a symlink")
+    shutil.copytree(source, destination)
+    return destination
+
+
 def wait_for_registry(name: str, expected: str) -> dict[str, Any]:
     for attempt in range(30):
         value = registry_version(name, VERSION)
@@ -292,26 +315,32 @@ def main() -> int:
         "status": "running",
     }
     try:
-        _, workspace, digests = require_candidate(
+        _, evidence_workspace, digests = require_candidate(
             evidence, args.expected_sha, args.release_tag
         )
         env = os.environ.copy()
         env.update({"SOURCE_DATE_EPOCH": "1", "CARGO_TERM_COLOR": "never"})
-        verify_repackaged(workspace, digests, env)
-        if args.publish:
-            publish(workspace, digests, args.auth_class, env, results)
-            release_receipt["status"] = "published"
-        else:
-            release_receipt["packages"] = [
-                {
-                    "name": name,
-                    "version": VERSION,
-                    "result": "verified",
-                    "sha256": digests[name],
-                }
-                for name in PACKAGE_ORDER
-            ]
-            release_receipt["status"] = "verified"
+        with tempfile.TemporaryDirectory(
+            prefix=".identus-release-publication-"
+        ) as temporary:
+            workspace = stage_publication_workspace(
+                evidence_workspace, Path(temporary) / "workspace"
+            )
+            verify_repackaged(workspace, digests, env)
+            if args.publish:
+                publish(workspace, digests, args.auth_class, env, results)
+                release_receipt["status"] = "published"
+            else:
+                release_receipt["packages"] = [
+                    {
+                        "name": name,
+                        "version": VERSION,
+                        "result": "verified",
+                        "sha256": digests[name],
+                    }
+                    for name in PACKAGE_ORDER
+                ]
+                release_receipt["status"] = "verified"
     except (KeyError, OSError, ReleaseError) as error:
         release_receipt["status"] = "failed"
         release_receipt["error"] = str(error)

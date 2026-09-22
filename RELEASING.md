@@ -110,7 +110,8 @@ revision approved on issue #326:
 
 5. A maintainer other than the initiating release manager reviews and approves
    the protected environment deployment. The workflow rebuilds evidence and
-   publishes derive, core, then crypto. Never approve a run whose tag, SHA,
+   rebinds the credential-bearing checkout to the signed tag and exact SHA,
+   then publishes derive, core, and crypto. Never approve a run whose tag, SHA,
    candidate receipt, or requested authentication class differs.
 6. Verify all three crates.io versions, checksums, owners, docs.rs pages,
    provenance attestations, publication receipt, and GitHub prerelease. Attach
@@ -124,6 +125,14 @@ Every later train uses the same dispatch shape with
 `authentication=trusted-publishing`. The workflow exchanges GitHub OIDC for a
 short-lived registry token and fails closed; it never falls back to
 `bootstrap-token` or `CARGO_PUBLISH`.
+
+If a publish job fails after verification, use **Re-run failed jobs** only for
+the same workflow run, tag, and expected SHA. The run-scoped candidate artifact
+is intentionally stable across attempts. Existing package versions are reused
+only when their registry checksums match, and an existing GitHub release is
+resumed only when its tag, prerelease metadata, notes, and asset digests match.
+Any identity or digest disagreement is an incident: stop instead of rerunning
+with another tag, SHA, artifact, or authentication class.
 
 ## Crate ownership and recovery
 

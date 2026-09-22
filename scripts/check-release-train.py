@@ -109,7 +109,10 @@ def validate(root: Path) -> list[str]:
         "can_admins_bypass",
         "prevent_self_review",
         "Verify signed tag identity through GitHub",
+        "Rebind publish checkout to approved identity",
         "git merge-base --is-ancestor",
+        "if: ${{ always() }}",
+        "overwrite: true",
         "secrets.CARGO_PUBLISH",
         "inputs.authentication == 'bootstrap-token'",
         "inputs.authentication == 'trusted-publishing'",
@@ -117,6 +120,8 @@ def validate(root: Path) -> list[str]:
         "actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8",
         "scripts/publish-release-train.py",
         "gh release create",
+        "gh release view",
+        "expected_digest=\"sha256:",
     )
     for phrase in required_workflow:
         if phrase not in workflow:
@@ -127,6 +132,19 @@ def validate(root: Path) -> list[str]:
             errors.append(f"release workflow has forbidden automatic trigger: {forbidden}")
     if workflow.count("secrets.CARGO_PUBLISH") != 1:
         errors.append("bootstrap secret must occur exactly once in the release workflow")
+    if workflow.count("if: ${{ always() }}") != 2:
+        errors.append("verify and publish receipts must both survive failed steps")
+    candidate_name = "crates-io-candidate-${{ inputs.expected_sha }}"
+    if workflow.count(candidate_name) != 2:
+        errors.append("candidate artifact identity must be stable across attempts")
+    for line in workflow.splitlines():
+        if "crates-io-candidate-" in line and "github.run_attempt" in line:
+            errors.append("candidate artifact identity must not include run_attempt")
+    publish_job = workflow.split("  publish:", 1)[-1]
+    if publish_job.find("Rebind publish checkout to approved identity") > publish_job.find(
+        "Authenticate with crates.io trusted publishing"
+    ):
+        errors.append("publish identity must be rebound before registry authentication")
     for action in re.findall(r"uses:\s*([^\s#]+)", workflow):
         if not re.search(r"@[0-9a-f]{40}$", action):
             errors.append(f"release workflow action is not immutable: {action}")
@@ -142,6 +160,9 @@ def validate(root: Path) -> list[str]:
         '"cargo",\n                "publish"',
         'if authentication_class == "bootstrap-token" and all(observed.values()):',
         'if authentication_class == "trusted-publishing":',
+        "def stage_publication_workspace(",
+        'prefix=".identus-release-publication-"',
+        'raise ReleaseError("publication staging must be outside every Git worktree")',
         '"status"] = "failed"',
     )
     for phrase in required_publisher:

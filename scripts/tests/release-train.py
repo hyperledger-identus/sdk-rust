@@ -11,12 +11,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "scripts/check-release-train.py"
+PUBLISHER = ROOT / "scripts/publish-release-train.py"
 
 
 def load_checker():
     spec = importlib.util.spec_from_file_location("release_train_checker", CHECKER)
     if spec is None or spec.loader is None:
         raise RuntimeError("cannot load release-train checker")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_publisher():
+    spec = importlib.util.spec_from_file_location("release_train_publisher", PUBLISHER)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("cannot load release-train publisher")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -57,7 +67,39 @@ def require_rejection(checker, root: Path, mutation, expected: str) -> None:
 
 def main() -> int:
     checker = load_checker()
+    publisher = load_publisher()
     with tempfile.TemporaryDirectory(prefix="release-train-policy-") as temporary:
+        test_root = Path(temporary)
+        repository = test_root / "repository"
+        source = repository / "artifacts/publication/workspace"
+        source.mkdir(parents=True)
+        (repository / ".git").mkdir()
+        (source / "Cargo.toml").write_text("[workspace]\n", encoding="utf-8")
+        external = test_root / "external/workspace"
+        staged = publisher.stage_publication_workspace(source, external)
+        if staged.parent == repository or repository in staged.parents:
+            raise AssertionError("publication workspace remained inside the repository")
+        if (staged / "Cargo.toml").read_text(encoding="utf-8") != "[workspace]\n":
+            raise AssertionError("publication workspace copy differs")
+        try:
+            publisher.stage_publication_workspace(
+                source, repository / "temporary/workspace"
+            )
+        except publisher.ReleaseError:
+            pass
+        else:
+            raise AssertionError("repository-contained publication stage was accepted")
+        source_link = test_root / "publication-source-link"
+        source_link.symlink_to(source, target_is_directory=True)
+        try:
+            publisher.stage_publication_workspace(
+                source_link, test_root / "symlink-copy/workspace"
+            )
+        except publisher.ReleaseError:
+            pass
+        else:
+            raise AssertionError("symlinked publication source was accepted")
+
         fixture = Path(temporary) / "valid"
         copy_fixture(fixture)
         if errors := checker.validate(fixture):
@@ -98,6 +140,38 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / ".github/workflows/publish-crates.yml",
+                    "Rebind publish checkout to approved identity",
+                    "Skip publish identity rebind",
+                ),
+                "Rebind publish checkout to approved identity",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/publish-crates.yml",
+                    "crates-io-candidate-${{ inputs.expected_sha }}",
+                    "crates-io-candidate-${{ inputs.expected_sha }}-${{ github.run_attempt }}",
+                ),
+                "candidate artifact identity must not include run_attempt",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/publish-crates.yml",
+                    "if: ${{ always() }}",
+                    "if: ${{ success() }}",
+                ),
+                "verify and publish receipts must both survive failed steps",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/publish-crates.yml",
+                    "gh release view",
+                    "gh release inspect",
+                ),
+                "gh release view",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/publish-crates.yml",
                     "'.can_admins_bypass'",
                     "'.name'",
                 ),
@@ -116,6 +190,14 @@ def main() -> int:
                     root / "scripts/publish-release-train.py",
                     '("identus-derive", "identus-core", "identus-crypto")',
                     '("identus-crypto", "identus-core", "identus-derive")',
+                ),
+                "publisher is missing fail-closed contract",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/publish-release-train.py",
+                    "def stage_publication_workspace(",
+                    "def stage_untrusted_workspace(",
                 ),
                 "publisher is missing fail-closed contract",
             ),

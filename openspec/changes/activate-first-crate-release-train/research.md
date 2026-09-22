@@ -6,6 +6,37 @@ Decision date: 2026-09-22
 Source retrieval date: 2026-09-22
 Research blockers: none
 
+## Release review amendment — issue #335
+
+The independent discovery review on PR #334 identified six blocking defects
+and one directly related evidence-retention defect. The findings were accepted
+before remediation:
+
+- the publication workspace was created beneath the requested evidence output,
+  so an in-checkout output lets Cargo inject different VCS metadata than the
+  VCS-independent reviewed archives and also leaves `cargo publish` subject to
+  dirty-worktree rejection;
+- the credential-bearing job checked out the tag after environment approval
+  without repeating the exact tag/SHA/develop binding;
+- `github.run_attempt` in the candidate artifact name made a failed-job-only
+  rerun unable to consume the successful verify job's artifact;
+- unconditional `gh release create` conflicted with the publisher's intended
+  exact-version retry behavior;
+- malformed descriptor shapes could escape the checker as `StopIteration` or
+  `KeyError` rather than bounded policy diagnostics; and
+- verify evidence was skipped when a later verify step failed.
+
+The existing `require_vcs_independent_build_scratch()` boundary is the correct
+primitive for both packaging and publication staging. The evidence artifact may
+contain a copied clean publication workspace, but Cargo commands that determine
+archive bytes must run only in the guarded external scratch. Recovery reuses a
+run-stable candidate artifact, rebinds the credential-bearing checkout after
+the approval wait, and treats an existing GitHub release as success only after
+its tag identity is exact; a conflicting release fails closed.
+
+Review evidence:
+https://github.com/hyperledger-identus/sdk-rust/pull/334#issuecomment-5778587052
+
 ## Problem and existing implementation
 
 The current implementation under ADR 0113 and the `crypto-candidate` Nix
@@ -26,7 +57,8 @@ monorepo releasable.
 
 ## Normative sources
 
-- Issues #3 and #326 define the first-publication outcome and human authority;
+- Issues #3, #326, and #335 define the first-publication outcome, remediation,
+  and human authority;
   `RELEASING.md` requires a release manager, independent maintainer, signed
   tag, protected environment, exact candidate, and immediate OIDC transition.
 - Cargo's official publishing guide recommends inspecting package contents and

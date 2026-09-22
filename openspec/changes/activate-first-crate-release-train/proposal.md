@@ -29,6 +29,10 @@ later release.
   two modes.
 - Record release checksums, package ownership/recovery duties, migration and
   rollback guidance, and the transition to trusted publishing.
+- Close the release-readiness defects tracked by #335: keep the publication
+  workspace VCS-independent even when evidence is written inside the checkout,
+  repeat immutable identity binding after environment approval, and make failed
+  job recovery preserve evidence and reuse only an exact prior release.
 
 ## Capabilities
 
@@ -53,8 +57,9 @@ upload.
 
 ## Delivery
 
-Issue #326 owns implementation and the exact release packet; issue #3 owns the
+Issue #326 owns implementation and the exact release packet; issue #335 owns
+the release-readiness remediation found during review; issue #3 owns the
 namespace, owner, token-revocation, and trusted-publisher receipts. The release
-PR may merge through protected `develop` after normal CI and independent
-maintainer review. Publication still requires the protected environment gate
-and exact signed-tag approval.
+PR may merge through protected `develop` only after the remediation, normal CI,
+and a fresh independent maintainer review. Publication still requires the
+protected environment gate and exact signed-tag approval.

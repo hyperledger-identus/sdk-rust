@@ -4,6 +4,7 @@
 - **Date:** 2026-09-22
 - **Issue:** [#326](https://github.com/hyperledger-identus/sdk-rust/issues/326)
 - **Namespace closeout:** [#3](https://github.com/hyperledger-identus/sdk-rust/issues/3)
+- **Release hardening:** [#335](https://github.com/hyperledger-identus/sdk-rust/issues/335)
 - **Supersedes operational parts of:** ADR 0113
 - **Review no later than:** before the next crate release train
 
@@ -46,6 +47,12 @@ CI authority.
 8. Configure trusted publishers for all three crates, verify organization
    ownership and recovery/yank duties, and revoke the bootstrap token before
    issues #3 and #326 close.
+9. Construct every byte-affecting publication workspace outside any Git
+   worktree and copy only its clean source tree into evidence. Repeat exact
+   tag/SHA/develop binding after the environment approval wait.
+10. Keep candidate artifact identity stable across attempts of one workflow
+    run, retain available failure evidence, and accept an existing GitHub
+    release only when its tag is the exact approved release tag.
 
 ## Consequences
 
@@ -75,7 +82,8 @@ before a corrected version is released.
 
 Package, candidate, workflow, and publisher mutation tests bind the exact
 scope, versions, tag/SHA, protected environment, credentials, action pins,
-order, and receipts. Actionlint, factory checks, Cargo package verification,
+order, retry identity, post-approval rebinding, failure evidence, and receipts.
+Actionlint, factory checks, Cargo package verification,
 the accepted compiler/target matrix, protected PR CI, tag signature, and
 environment approval are mandatory.
 

@@ -1,5 +1,21 @@
 # unpublished-crypto-candidate
 
+## ADDED Requirements
+
+### Requirement: Release publication workspace is VCS-independent
+
+The release-eligible candidate SHALL construct and lock its publication
+workspace outside every Git worktree, then copy only the clean source workspace
+into evidence. Repackaging SHALL reproduce the reviewed archive checksums even
+when the requested evidence directory is inside the canonical checkout.
+
+#### Scenario: Workflow writes evidence below the checkout
+
+- **WHEN** candidate preparation targets an in-repository `artifacts` directory
+- **THEN** the copied publication workspace contains no ambient Cargo VCS
+  metadata or build output and publisher verification reproduces all reviewed
+  archive bytes
+
 ## MODIFIED Requirements
 
 ### Requirement: Candidate scope and brand are explicit

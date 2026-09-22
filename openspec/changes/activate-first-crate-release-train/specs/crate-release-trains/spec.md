@@ -32,6 +32,18 @@ independent Identus maintainer.
   protected `develop`, or lacks protected-environment approval
 - **THEN** no registry credential is acquired and no package is uploaded
 
+### Requirement: Credential-bearing execution rebinds immutable identity
+
+After the protected-environment wait, the publish job SHALL independently
+verify that its checkout, signed tag, expected full SHA, and protected
+`develop` ancestry still agree before acquiring or using either registry
+credential.
+
+#### Scenario: Tag moves during the approval wait
+
+- **WHEN** the publish job checkout no longer resolves to the approved SHA
+- **THEN** the job fails before authentication and no package is uploaded
+
 ### Requirement: Bootstrap and trusted credentials are separated
 
 The first namespace-creating publication SHALL use only protected environment
@@ -59,6 +71,22 @@ checksums, version URLs, and result for every package.
   expected checksum
 - **THEN** the publisher stops before uploading any dependent package and
   preserves partial-train evidence
+
+### Requirement: Failed release attempts are recoverable without identity drift
+
+The verify artifact identity SHALL remain stable across attempts of one
+workflow run. A failed-job-only rerun SHALL reuse only that run's verified
+candidate. GitHub release creation SHALL be idempotent only for an existing
+release bound to the exact expected tag; conflicting release identity SHALL
+fail closed. Verify and publication receipts SHALL be retained on failure when
+their files exist.
+
+#### Scenario: Publish succeeds but release finalization is interrupted
+
+- **WHEN** the publish job is rerun without rerunning the successful verify job
+- **THEN** it consumes the same run-scoped candidate, verifies any existing
+  package checksums and release tag, and completes without creating a second
+  release identity
 
 ### Requirement: First publication transitions immediately to trusted publishing
 

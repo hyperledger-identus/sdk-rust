@@ -28,6 +28,13 @@ secret `CARGO_PUBLISH`; later trains may use only crates.io OIDC. Missing
 credentials, signature, approval, source identity, receipt, or dependency
 availability fail closed.
 
+Every byte-affecting Cargo packaging workspace must be outside all Git
+worktrees even when evidence is emitted below the checkout. The
+credential-bearing job must rebind the signed tag and expected SHA after the
+environment approval wait. Retry identity is scoped to the workflow run, not
+the attempt; an existing GitHub release is reusable only when its tag identity
+matches exactly.
+
 ## Introduced or changed limitations
 
 The first public version remains experimental `0.1.0-rc.1`; it is not final
@@ -57,6 +64,7 @@ to yank, and release a corrected version through the full train.
 
 ## Evidence
 
-Issues #3 and #326 plus the sponsor direction in this session provide the
-material authority. The natural slow receipt is run 35555024293 at protected
-`develop` revision `19d0362038c3f2af6898624ea04347e3cd4648f7`.
+Issues #3, #326, and #335 plus the sponsor direction in this session provide
+the material authority. The natural slow receipt is run 35555024293 at
+protected `develop` revision
+`19d0362038c3f2af6898624ea04347e3cd4648f7`.

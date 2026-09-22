@@ -23,6 +23,14 @@
       signatures, environment controls, credentials, action pins, and order.
 - [x] 2.5 Update release policy, public handbook, changelog, limitations,
       ownership/recovery, and operator runbook.
+- [ ] 2.6 Resolve #335 by staging the publication workspace in guarded external
+      scratch and add in-checkout-output/dirty-VCS regression coverage.
+- [ ] 2.7 Repeat immutable identity binding in the publish job after environment
+      approval and make run artifact identity stable across retry attempts.
+- [ ] 2.8 Make exact GitHub release finalization retry-safe and preserve verify
+      evidence on failure.
+- [ ] 2.9 Make malformed candidate descriptors produce bounded checker
+      diagnostics and add mutation coverage for every reviewed failure mode.
 
 ## 3. Evidence and publication
 

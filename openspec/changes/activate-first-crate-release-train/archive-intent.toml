@@ -15,4 +15,3 @@ capability = "unpublished-crypto-candidate"
 requirement = "Preparation cannot publish"
 canonical_sha256 = "8661fd727ea1c697055a3907f452e20c89cbd9843245dde43b49ddec2711576e"
 reason = "Candidate preparation remains non-mutating while a separate protected publisher becomes the only authorized release boundary."
-

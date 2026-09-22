@@ -60,4 +60,3 @@ to yank, and release a corrected version through the full train.
 Issues #3 and #326 plus the sponsor direction in this session provide the
 material authority. The natural slow receipt is run 35555024293 at protected
 `develop` revision `19d0362038c3f2af6898624ea04347e3cd4648f7`.
-

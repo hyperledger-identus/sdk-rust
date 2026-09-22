@@ -26,7 +26,7 @@
 
 ## 3. Evidence and publication
 
-- [ ] 3.1 Run factory, Rust, package, workflow, release-train, and dry-run
+- [x] 3.1 Run factory, Rust, package, workflow, release-train, and dry-run
       evidence from a clean focused branch; complete a distinct local review.
 - [ ] 3.2 Merge the issue-linked PR only after required CI and an independent
       maintainer approval; freeze the resulting protected `develop` revision.

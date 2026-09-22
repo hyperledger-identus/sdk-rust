@@ -12,7 +12,6 @@ import subprocess
 import sys
 import tempfile
 import time
-import tomllib
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -283,6 +282,11 @@ def main() -> int:
         "mode": "publish" if args.publish else "verify-only",
         "workflowRun": os.environ.get("GITHUB_RUN_ID"),
         "workflowAttempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+        "workflowRunUrl": (
+            f"https://github.com/{REPOSITORY}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+            if os.environ.get("GITHUB_RUN_ID")
+            else None
+        ),
         "startedAt": datetime.now(timezone.utc).isoformat(),
         "packages": results,
         "status": "running",
@@ -308,9 +312,10 @@ def main() -> int:
                 for name in PACKAGE_ORDER
             ]
             release_receipt["status"] = "verified"
-    except (KeyError, OSError, ReleaseError, tomllib.TOMLDecodeError) as error:
+    except (KeyError, OSError, ReleaseError) as error:
         release_receipt["status"] = "failed"
         release_receipt["error"] = str(error)
+        release_receipt["finishedAt"] = datetime.now(timezone.utc).isoformat()
         write_receipt(output, release_receipt)
         print(f"release-train: {error}", file=sys.stderr)
         return 1

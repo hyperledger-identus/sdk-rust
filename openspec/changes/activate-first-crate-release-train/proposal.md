@@ -33,6 +33,10 @@ later release.
   workspace VCS-independent even when evidence is written inside the checkout,
   repeat immutable identity binding after environment approval, and make failed
   job recovery preserve evidence and reuse only an exact prior release.
+- Resolve #336 before any tag exists by using the repository-wide conventional
+  tag `v0.1.0-rc.1` throughout candidate, workflow, receipt, and operator
+  policy. Treat the midnight-identity registry canary as post-publication
+  adoption evidence rather than a prerequisite for the namespace bootstrap.
 
 ## Capabilities
 
@@ -59,7 +63,8 @@ upload.
 
 Issue #326 owns implementation and the exact release packet; issue #335 owns
 the release-readiness remediation found during review; issue #3 owns the
-namespace, owner, token-revocation, and trusted-publisher receipts. The release
+namespace, owner, token-revocation, and trusted-publisher receipts; issue #336
+owns the pre-publication tag migration. The release
 PR may merge through protected `develop` only after the remediation, normal CI,
 and a fresh independent maintainer review. Publication still requires the
 protected environment gate and exact signed-tag approval.

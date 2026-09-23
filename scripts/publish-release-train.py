@@ -22,7 +22,7 @@ from typing import Any
 
 PACKAGE_ORDER = ("identus-derive", "identus-core", "identus-crypto")
 VERSION = "0.1.0-rc.1"
-RELEASE_TAG = "crypto-v0.1.0-rc.1"
+RELEASE_TAG = "v0.1.0-rc.1"
 REPOSITORY = "hyperledger-identus/sdk-rust"
 AUTHENTICATION_CLASSES = ("bootstrap-token", "trusted-publishing")
 FULL_SHA = re.compile(r"^[0-9a-f]{40}$")

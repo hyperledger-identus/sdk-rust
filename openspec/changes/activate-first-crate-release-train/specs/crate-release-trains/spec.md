@@ -20,11 +20,11 @@ dependencies SHALL use local paths plus exact registry requirement
 ### Requirement: Publication binds reviewed immutable identity
 
 The release workflow SHALL accept only the exact approved full source SHA and
-signed release tag, SHALL verify they resolve to the same commit contained in
-protected `develop`, and SHALL rebuild deterministic candidate evidence before
-requesting access to the protected `crates-io` environment. The environment
-SHALL prevent self-review, disable administrator bypass, and require an
-independent Identus maintainer.
+signed release tag `v0.1.0-rc.1`, SHALL verify they resolve to the same commit
+contained in protected `develop`, and SHALL rebuild deterministic candidate
+evidence before requesting access to the protected `crates-io` environment.
+The environment SHALL prevent self-review, disable administrator bypass, and
+require an independent Identus maintainer.
 
 #### Scenario: Tag or approval identity differs
 
@@ -101,3 +101,16 @@ the resulting receipt before the release milestone closes.
   not evidenced
 - **THEN** issue #3 and the release milestone remain open and no later train is
   authorized
+
+### Requirement: Registry adoption follows publication
+
+The first midnight-identity adoption canary SHALL run after publication and
+SHALL use exact crates.io requirement `=0.1.0-rc.1`. It SHALL NOT be treated as
+authorization for the namespace-creating upload.
+
+#### Scenario: Bootstrap evidence is otherwise complete
+
+- **WHEN** the exact release receipt has approval but the post-publication
+  registry canary does not yet exist
+- **THEN** publication may proceed and consumer adoption remains a separately
+  tracked closeout task

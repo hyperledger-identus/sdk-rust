@@ -68,6 +68,87 @@ Before tagging, the release manager verifies:
 8. Open or update downstream adoption issues. A release does not authorize an
    automatic consumer dependency change.
 
+## First protected crypto train
+
+The first approved train is exactly `identus-derive`, `identus-core`, and
+`identus-crypto` at `0.1.0-rc.1`. Its immutable tag is
+`crypto-v0.1.0-rc.1`; its only publication workflow is
+`.github/workflows/publish-crates.yml`; and its protected GitHub environment is
+`crates-io`.
+
+The release manager performs these steps from the exact protected `develop`
+revision approved on issue #326:
+
+1. Confirm the release PR has an independent maintainer approval, required CI
+   is green, the complete slow receipt is current for the exact revision, all
+   three names remain available, and environment `crates-io` requires the
+   `identus-maintainers` team with self-review prevention and administrator
+   bypass disabled.
+2. For the first upload only, confirm environment secret `CARGO_PUBLISH` is a
+   short-lived least-privilege crates.io token. Do not place it in ordinary
+   repository secrets, a local Cargo credential file, an issue, or a log.
+3. Create an annotated signed tag and verify it locally before pushing:
+
+   ```console
+   git tag -s crypto-v0.1.0-rc.1 <approved-full-sha> \
+     -m "SDK-Rust crypto train 0.1.0-rc.1"
+   git verify-tag crypto-v0.1.0-rc.1
+   git push origin refs/tags/crypto-v0.1.0-rc.1
+   ```
+
+4. Dispatch the workflow from protected branch `develop`, binding the tag and
+   full SHA explicitly:
+
+   ```console
+   gh workflow run publish-crates.yml \
+     --repo hyperledger-identus/sdk-rust \
+     --ref develop \
+     -f release_tag=crypto-v0.1.0-rc.1 \
+     -f expected_sha=<approved-full-sha> \
+     -f authentication=bootstrap-token
+   ```
+
+5. A maintainer other than the initiating release manager reviews and approves
+   the protected environment deployment. The workflow rebuilds evidence and
+   rebinds the credential-bearing checkout to the signed tag and exact SHA,
+   then publishes derive, core, and crypto. Never approve a run whose tag, SHA,
+   candidate receipt, or requested authentication class differs.
+6. Verify all three crates.io versions, checksums, owners, docs.rs pages,
+   provenance attestations, publication receipt, and GitHub prerelease. Attach
+   immutable links to issues #3 and #326.
+7. In each crate's crates.io settings, configure trusted publishing for GitHub
+   organization `hyperledger-identus`, repository `sdk-rust`, workflow
+   `publish-crates.yml`, and environment `crates-io`. Revoke the bootstrap
+   token and remove `CARGO_PUBLISH` from the environment.
+
+Every later train uses the same dispatch shape with
+`authentication=trusted-publishing`. The workflow exchanges GitHub OIDC for a
+short-lived registry token and fails closed; it never falls back to
+`bootstrap-token` or `CARGO_PUBLISH`.
+
+If a publish job fails after verification, use **Re-run failed jobs** only for
+the same workflow run, tag, and expected SHA. The run-scoped candidate artifact
+is intentionally stable across attempts. Existing package versions are reused
+only when their registry checksums match, and an existing GitHub release is
+resumed only when its tag, prerelease metadata, notes, and asset digests match.
+Any identity or digest disagreement is an incident: stop instead of rerunning
+with another tag, SHA, artifact, or authentication class.
+
+## Crate ownership and recovery
+
+All published crates must remain recoverable by the Hyperledger Identus
+maintainer organization rather than one person's account. The post-publication
+receipt records crates.io owners for each name. The assigned release manager
+operates the train; the independent environment approver verifies immutable
+identity and evidence; the canonical Identus maintainer team owns succession,
+owner recovery, and ordinary yank decisions; and the security response team
+coordinates security yanks/advisories.
+
+Loss of an individual account must not prevent owner rotation. A crate owner or
+publisher change requires a maintainer-reviewed release/governance record. A
+yank never deletes the version or its evidence, and unyank/corrected-version
+decisions are recorded on the release issue.
+
 ## Failure and rollback
 
 Crates.io releases are immutable. If publication is wrong:

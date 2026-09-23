@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mutation tests for the unpublished crypto-candidate policy."""
+"""Mutation tests for the isolated crypto release-candidate policy."""
 
 from __future__ import annotations
 
@@ -39,6 +39,7 @@ def copy_fixture(destination: Path) -> None:
         "docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md",
         "docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md",
         "docs/adr/0133-select-rc1-compiler-support-matrix.md",
+        "docs/adr/0134-activate-protected-crates-io-release-trains.md",
         "scripts/prepare-crypto-candidate.py",
         "crates/derive/Cargo.toml",
         "crates/derive/README.md",
@@ -138,8 +139,16 @@ def main() -> int:
                 "canonical workspace publish must remain false",
             ),
             (
-                lambda root: replace(root / "docs/release/crypto-candidate.toml", 'publication              = "prohibited"', 'publication              = "allowed"'),
+                lambda root: replace(root / "docs/release/crypto-candidate.toml", 'publication              = "release-gated"', 'publication              = "allowed"'),
                 "descriptor publication",
+            ),
+            (
+                lambda root: replace(
+                    root / "crates/crypto/Cargo.toml",
+                    'publish                = [ "crates-io" ]',
+                    "publish                = false",
+                ),
+                "canonical release metadata differs: publish",
             ),
             (
                 lambda root: replace(root / "docs/release/crypto-candidate.toml", 'cargo_cyclonedx     = "0.5.9"', 'cargo_cyclonedx     = "0.6.0"'),
@@ -156,6 +165,14 @@ def main() -> int:
                     'TemporaryDirectory(prefix=".identus-crypto-candidate-build-", dir=output.parent)',
                 ),
                 "build scratch must not be rooted in the output destination",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
+                    'create_stage(root, scratch / "publication", descriptor)',
+                    'create_stage(root, staging_output / "publication", descriptor)',
+                ),
+                "missing staging boundary",
             ),
             (
                 lambda root: replace(
@@ -205,6 +222,30 @@ def main() -> int:
                     "cargo doc",
                 ),
                 "candidate toolchain ADR is missing decision evidence",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/crypto-candidate.toml",
+                    'homepage                 = "https://hyperledger-identus.github.io/sdk-rust/"',
+                    'removed_homepage         = "https://hyperledger-identus.github.io/sdk-rust/"',
+                ),
+                "canonical release metadata differs: homepage",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/crypto-candidate.toml",
+                    'name          = "identus-crypto"',
+                    'name          = "identus-unknown"',
+                ),
+                "descriptor package metadata is missing",
+            ),
+            (
+                lambda root: replace_all(
+                    root / "docs/release/crypto-candidate.toml",
+                    "[[packages]]",
+                    "[[unknown_packages]]",
+                ),
+                "candidate package order/scope",
             ),
         )
         for index, (mutation, expected) in enumerate(cases):

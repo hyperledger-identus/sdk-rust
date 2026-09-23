@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 326,
+  "change": "activate-first-crate-release-train",
+  "branch": "codex/ci/issue-326",
+  "baseRef": "origin/develop",
+  "baseSha": "19d0362038c3f2af6898624ea04347e3cd4648f7",
+  "contractHeadSha": "c6688124b750cdfe4ce32aa6c863c87966f45c85",
+  "createdAt": "2026-09-22T12:42:58.179Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

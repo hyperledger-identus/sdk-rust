@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and verify the unpublished three-crate cryptography candidate."""
+"""Build and verify the isolated three-crate cryptography release candidate."""
 
 from __future__ import annotations
 
@@ -167,20 +167,30 @@ def toml_array(values: list[str]) -> str:
 
 
 def render_package_manifest(source: str, package: dict[str, Any]) -> str:
-    name_line = re.search(rf'(?m)^name\s*=\s*"{re.escape(package["name"])}"\s*$', source)
-    if name_line is None:
-        raise CandidateError(f"cannot locate package name in {package['path']}/Cargo.toml")
-    metadata = "\n".join([
-        name_line.group(0),
-        f'description = {json.dumps(package["description"])}',
-        "repository.workspace = true",
-        "homepage.workspace = true",
-        f'documentation = {json.dumps(package["documentation"])}',
-        f'readme = {json.dumps(package["readme"])}',
-        f'keywords = {toml_array(package["keywords"])}',
-        f'categories = {toml_array(package["categories"])}',
-    ])
-    return source[: name_line.start()] + metadata + source[name_line.end() :]
+    """Validate and preserve the canonical release-activated package manifest."""
+    try:
+        manifest = tomllib.loads(source)
+    except tomllib.TOMLDecodeError as error:
+        raise CandidateError(f"cannot parse {package['path']}/Cargo.toml") from error
+    metadata = manifest.get("package", {})
+    expected = {
+        "name": package["name"],
+        "version": "0.1.0-rc.1",
+        "publish": ["crates-io"],
+        "description": package["description"],
+        "repository": "https://github.com/hyperledger-identus/sdk-rust",
+        "homepage": "https://hyperledger-identus.github.io/sdk-rust/",
+        "documentation": package["documentation"],
+        "readme": package["readme"],
+        "keywords": package["keywords"],
+        "categories": package["categories"],
+    }
+    for field, value in expected.items():
+        if metadata.get(field) != value:
+            raise CandidateError(
+                f"{package['name']}: canonical package metadata differs: {field}"
+            )
+    return source
 
 
 def copy_package(root: Path, stage: Path, package: dict[str, Any]) -> None:
@@ -470,14 +480,32 @@ def prepare(args: argparse.Namespace) -> Path:
                 versions = release_evidence(
                     first_stage, root, staging_output, descriptor, env, args.initialize_api
                 )
+            publication_stage = create_stage(root, scratch / "publication", descriptor)
+            run(
+                [
+                    "cargo",
+                    "generate-lockfile",
+                    "--manifest-path",
+                    str(publication_stage / "Cargo.toml"),
+                ],
+                cwd=publication_stage,
+                env=env,
+            )
+            publication_output = staging_output / "publication" / "workspace"
+            publication_output.parent.mkdir(parents=True)
+            shutil.copytree(publication_stage, publication_output)
             receipt = {
                 "schemaVersion": 1,
                 "candidate": descriptor["candidate"],
                 "version": descriptor["version"],
                 "sourceRevision": revision,
                 "sourceDirty": dirty,
-                "publication": "prohibited",
-                "verification": "unpublished-archive-closure",
+                "publication": descriptor["publication"],
+                "releaseTag": descriptor["release_tag"],
+                "releaseWorkflow": descriptor["release_workflow"],
+                "releaseEnvironment": descriptor["release_environment"],
+                "authenticationModes": descriptor["authentication_modes"],
+                "verification": "release-eligible-archive-closure",
                 "rustVersion": rust_version,
                 "cargoVersion": cargo_version,
                 "declaredMsrv": descriptor["rust_version"],
@@ -493,10 +521,10 @@ def prepare(args: argparse.Namespace) -> Path:
                     for name in PACKAGE_ORDER
                 ],
                 "limitations": [
-                    "unpublished; no registry resolution or cargo publish dry-run",
+                    "pre-index archive closure uses local patches; registry verification occurs sequentially in the protected publisher",
                     "Rust 1.98.1 is candidate-preparation evidence; the published MSRV is Rust 1.89.0",
                     "public API rendering scopes RUSTC_BOOTSTRAP=1 to rustdoc JSON inspection",
-                    "no tag, signature, attestation, foreign-language package, main promotion, or downstream migration",
+                    "candidate preparation does not publish, tag, attest, promote main, or migrate a downstream",
                 ],
                 "durationSeconds": round(time.monotonic() - start, 3),
             }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the unreleased public-source distribution contract."""
+"""Validate the public source and first registry-train distribution contract."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ PACKAGES = {
     "identus-did": Path("crates/did/Cargo.toml"),
     "identus-did-resolver-http": Path("crates/did-resolver-http/Cargo.toml"),
 }
+RELEASE_PACKAGES = {"identus-core", "identus-derive", "identus-crypto"}
 SHA = re.compile(r"^[0-9a-f]{40}$")
 EXAMPLE = re.compile(
     r'^identus-[a-z0-9-]+ = \{ git = "([^"]+)", rev = "([^"]+)"[^}]*\}$',
@@ -60,10 +61,16 @@ def validate(root: Path) -> list[str]:
             continue
         version = package.get("version")
         publish = package.get("publish")
-        if not isinstance(version, dict) or version.get("workspace") is not True:
-            errors.append(f"{expected_name}: version must inherit the workspace")
-        if not isinstance(publish, dict) or publish.get("workspace") is not True:
-            errors.append(f"{expected_name}: publish must inherit the workspace")
+        if expected_name in RELEASE_PACKAGES:
+            if version != "0.1.0-rc.1":
+                errors.append(f"{expected_name}: release version must be 0.1.0-rc.1")
+            if publish != ["crates-io"]:
+                errors.append(f"{expected_name}: release registry must be crates-io")
+        else:
+            if not isinstance(version, dict) or version.get("workspace") is not True:
+                errors.append(f"{expected_name}: version must inherit the workspace")
+            if not isinstance(publish, dict) or publish.get("workspace") is not True:
+                errors.append(f"{expected_name}: publish must inherit the workspace")
 
     try:
         guide = (root / GUIDE).read_text(encoding="utf-8")
@@ -77,7 +84,8 @@ def validate(root: Path) -> list[str]:
         "flake.lock",
         "publish = false",
         "Rust 1.89.0",
-        "no SemVer compatibility",
+        "no stable SemVer compatibility",
+        "protected `0.1.0-rc.1`",
         "identus-apollo",
     )
     for phrase in required_phrases:

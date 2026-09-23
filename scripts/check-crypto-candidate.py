@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the unpublished identus-crypto candidate contract."""
+"""Validate the isolated identus-crypto release-candidate contract."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ DESCRIPTOR = Path("docs/release/crypto-candidate.toml")
 API_BASELINE = Path("docs/release/identus-crypto-0.1.0-rc.1.api.txt")
 ADR = Path("docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md")
 TOOLCHAIN_ADR = Path("docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md")
+RELEASE_ADR = Path("docs/adr/0134-activate-protected-crates-io-release-trains.md")
 RUNNER = Path("scripts/prepare-crypto-candidate.py")
 VERSION = "0.1.0-rc.1"
 BASELINE = "8110277c24714206436ae4a3fe678bdc58a84736"
@@ -61,7 +62,10 @@ def validate(root: Path) -> list[str]:
         "baseline_revision": BASELINE,
         "repository": "https://github.com/hyperledger-identus/sdk-rust",
         "license": "Apache-2.0",
-        "publication": "prohibited",
+        "publication": "release-gated",
+        "release_tag": "crypto-v0.1.0-rc.1",
+        "release_workflow": ".github/workflows/publish-crates.yml",
+        "release_environment": "crates-io",
     }
     for key, expected in expected_scalars.items():
         if descriptor.get(key) != expected:
@@ -71,8 +75,18 @@ def validate(root: Path) -> list[str]:
         errors.append("descriptor max_archive_bytes must be within 1 MiB")
     if descriptor.get("tools") != TOOLS:
         errors.append("descriptor tools must retain the reviewed exact versions")
+    if descriptor.get("authentication_modes") != [
+        "bootstrap-token",
+        "trusted-publishing",
+    ]:
+        errors.append("descriptor authentication modes must remain bootstrap then OIDC")
 
-    packages = descriptor.get("packages", [])
+    packages_value = descriptor.get("packages", [])
+    if not isinstance(packages_value, list):
+        errors.append("candidate packages must be an array of tables")
+        packages: list[object] = []
+    else:
+        packages = packages_value
     names = tuple(row.get("name") for row in packages if isinstance(row, dict))
     if names != PACKAGE_ORDER:
         errors.append("candidate package order/scope must remain derive, core, crypto")
@@ -87,7 +101,12 @@ def validate(root: Path) -> list[str]:
             if not row.get(field):
                 errors.append(f"{name}: descriptor metadata missing {field}")
 
-    profiles = descriptor.get("profiles", [])
+    profiles_value = descriptor.get("profiles", [])
+    if not isinstance(profiles_value, list):
+        errors.append("candidate profiles must be an array of tables")
+        profiles: list[object] = []
+    else:
+        profiles = profiles_value
     profile_names = tuple(row.get("name") for row in profiles if isinstance(row, dict))
     if profile_names != PROFILES:
         errors.append("candidate verification profiles differ from the reviewed set")
@@ -106,10 +125,41 @@ def validate(root: Path) -> list[str]:
         package = manifest.get("package", {})
         if not isinstance(package, dict) or package.get("name") != name:
             errors.append(f"canonical package identity differs: {name}")
+            continue
+        row = next(
+            (
+                item
+                for item in packages
+                if isinstance(item, dict) and item.get("name") == name
+            ),
+            None,
+        )
+        if not isinstance(row, dict):
+            errors.append(f"{name}: descriptor package metadata is missing")
+            continue
+        expected_metadata = {
+            "version": VERSION,
+            "publish": ["crates-io"],
+            "description": row.get("description"),
+            "repository": descriptor.get("repository"),
+            "homepage": descriptor.get("homepage"),
+            "documentation": row.get("documentation"),
+            "readme": row.get("readme"),
+            "keywords": row.get("keywords"),
+            "categories": row.get("categories"),
+        }
+        for field, expected in expected_metadata.items():
+            if package.get(field) != expected:
+                errors.append(f"{name}: canonical release metadata differs: {field}")
         readme = read(root / package_path / "README.md", errors)
-        for phrase in ("unpublished", "0.1.0-rc.1", "not published to crates.io"):
+        for phrase in (
+            "0.1.0-rc.1",
+            "experimental",
+            "immutable release receipt",
+            "merging package metadata alone does not prove upload",
+        ):
             if phrase not in readme:
-                errors.append(f"{name}: README is missing candidate warning: {phrase}")
+                errors.append(f"{name}: README is missing release warning: {phrase}")
 
     adr = read(root / ADR, errors)
     for phrase in ("#266", "archive-closure verification", "publish = false"):
@@ -123,6 +173,16 @@ def validate(root: Path) -> list[str]:
     for phrase in ("#276", "cargo rustdoc", "cargo-public-api 0.52.0", "RUSTC_BOOTSTRAP=1", "Rust 1.98.1"):
         if phrase not in toolchain_adr:
             errors.append(f"candidate toolchain ADR is missing decision evidence: {phrase}")
+    release_adr = read(root / RELEASE_ADR, errors)
+    for phrase in (
+        "#326",
+        "CARGO_PUBLISH",
+        "trusted publishing",
+        "identus-maintainers",
+        "derive, core, crypto",
+    ):
+        if phrase not in release_adr:
+            errors.append(f"release ADR is missing decision evidence: {phrase}")
 
     baseline = read(root / API_BASELINE, errors)
     if len(baseline.strip().splitlines()) < 5:
@@ -141,6 +201,8 @@ def validate(root: Path) -> list[str]:
         'TemporaryDirectory(prefix=".identus-crypto-candidate-build-")',
         "require_vcs_independent_build_scratch(root, scratch)",
         'prefix=f".{output.name}-stage-", dir=output.parent',
+        'publication_stage = create_stage(root, scratch / "publication", descriptor)',
+        'shutil.copytree(publication_stage, publication_output)',
         "staging_output.rename(output)",
     )
     for phrase in required_staging_contract:
@@ -176,7 +238,7 @@ def main() -> int:
             print(f"crypto-candidate: {error}", file=sys.stderr)
         print(f"crypto-candidate: {len(errors)} failure(s)", file=sys.stderr)
         return 1
-    print("crypto-candidate: unpublished three-package contract passed")
+    print("crypto-candidate: isolated release-gated three-package contract passed")
     return 0
 
 

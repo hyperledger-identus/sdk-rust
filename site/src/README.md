@@ -3,9 +3,10 @@
 Chain-neutral Rust foundations for decentralized identity, verifiable
 credentials, and wallet products.
 
-> **Pre-release software:** the active `develop` line is experimental. No crate
-> described here is currently published, production-supported, certified, or a
-> final SemVer commitment.
+> **Pre-release software:** the active `develop` line and first `0.1.0-rc.1`
+> train are experimental. A registry receipt—not this handbook—proves whether a
+> crate is published. No crate is production-supported, certified, or a final
+> SemVer commitment.
 
 This handbook answers three practical questions:
 

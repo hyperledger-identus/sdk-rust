@@ -49,6 +49,7 @@ required_files=(
   docs/architecture/sdk-input-resource-boundaries.toml
   docs/architecture/source-distribution.md
   docs/release/crypto-candidate.toml
+  docs/release/0.1.0-rc.1.md
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
   crates/derive/README.md
   crates/core/README.md
@@ -58,6 +59,7 @@ required_files=(
   docs/roadmap/ssi-upstream-dependency-backlog.csv
   docs/governance/agentic-sdlc.md
   docs/governance/repository-settings.md
+  docs/governance/crates-io-environment-receipt-2026-09-22.md
   docs/adr/0003-delegate-develop-integration.md
   docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md
   docs/adr/0087-enforce-first-party-unsafe-forbid.md
@@ -72,6 +74,7 @@ required_files=(
   docs/adr/0123-bind-android-build-to-the-exact-installed-ndk.md
   docs/adr/0124-separate-android-package-and-runtime-evidence.md
   docs/adr/0125-govern-sdk-input-resource-boundaries.md
+  docs/adr/0134-activate-protected-crates-io-release-trains.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   nix/apps/crypto-candidate.nix
@@ -128,8 +131,10 @@ required_files=(
   scripts/check-weekly-slow-live.py
   scripts/check-source-distribution.py
   scripts/check-crypto-candidate.py
+  scripts/check-release-train.py
   scripts/code-health-audit.py
   scripts/prepare-crypto-candidate.py
+  scripts/publish-release-train.py
   scripts/check-pr-policy.sh
   scripts/check-research-readiness.py
   scripts/tests/factory-contract.sh
@@ -149,6 +154,7 @@ required_files=(
   scripts/tests/crypto-coverage.py
   scripts/tests/source-distribution.py
   scripts/tests/crypto-candidate.py
+  scripts/tests/release-train.py
   scripts/tests/code-health-audit.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
@@ -156,6 +162,7 @@ required_files=(
   .github/pull_request_template.md
   .github/workflows/factory-contract.yml
   .github/workflows/nix-checks.yml
+  .github/workflows/publish-crates.yml
   .github/workflows/pull-request-policy.yml
 )
 
@@ -165,7 +172,7 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in bootstrap.sh scripts/factory scripts/benchmark-support-policy.py scripts/benchmark-crypto.sh scripts/coverage-crypto.sh scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-input-resource-boundaries.py scripts/check-constraints.py scripts/check-error-golden.py scripts/check-crypto-benchmark.py scripts/report-crypto-coverage.py scripts/code-health-audit.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-ssi-upstream-backlog.py scripts/check-ssi-upstream-backlog-live.py scripts/check-uniffi-did-android.sh scripts/check-weekly-slow-live.py scripts/check-source-distribution.py scripts/check-crypto-candidate.py scripts/prepare-crypto-candidate.py scripts/ci/contribution-policy.mjs scripts/ci/target-plan.mjs scripts/factory-tools/audit-pi.mjs scripts/factory-tools/delivery.mjs scripts/factory-tools/metrics.mjs scripts/factory-tools/pi-session-harvest.mjs scripts/factory-tools/strict-json.mjs scripts/factory-tools/supervisor.mjs scripts/factory-tools/pi-package-cache.mjs scripts/factory-tools/pi-policy.mjs scripts/factory-tools/preflight.mjs scripts/git-hooks/configure.mjs scripts/git-hooks/local-policy.mjs scripts/worktree-lifecycle.mjs scripts/tests/bootstrap-inventory.py scripts/tests/input-resource-boundaries.py scripts/tests/constraints.py scripts/tests/error-golden.py scripts/tests/crypto-benchmark.py scripts/tests/crypto-coverage.py scripts/tests/code-health-audit.py scripts/tests/source-distribution.py scripts/tests/crypto-candidate.py scripts/tests/factory-contract.sh scripts/tests/factory-operations.mjs scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py scripts/tests/ssi-upstream-backlog.py scripts/tests/ssi-upstream-backlog-live.py scripts/tests/weekly-slow-live.py .githooks/commit-msg .githooks/pre-commit .githooks/pre-push; do
+for executable_path in bootstrap.sh scripts/factory scripts/benchmark-support-policy.py scripts/benchmark-crypto.sh scripts/coverage-crypto.sh scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-input-resource-boundaries.py scripts/check-constraints.py scripts/check-error-golden.py scripts/check-crypto-benchmark.py scripts/report-crypto-coverage.py scripts/code-health-audit.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-ssi-upstream-backlog.py scripts/check-ssi-upstream-backlog-live.py scripts/check-uniffi-did-android.sh scripts/check-weekly-slow-live.py scripts/check-source-distribution.py scripts/check-crypto-candidate.py scripts/check-release-train.py scripts/prepare-crypto-candidate.py scripts/publish-release-train.py scripts/ci/contribution-policy.mjs scripts/ci/target-plan.mjs scripts/factory-tools/audit-pi.mjs scripts/factory-tools/delivery.mjs scripts/factory-tools/metrics.mjs scripts/factory-tools/pi-session-harvest.mjs scripts/factory-tools/strict-json.mjs scripts/factory-tools/supervisor.mjs scripts/factory-tools/pi-package-cache.mjs scripts/factory-tools/pi-policy.mjs scripts/factory-tools/preflight.mjs scripts/git-hooks/configure.mjs scripts/git-hooks/local-policy.mjs scripts/worktree-lifecycle.mjs scripts/tests/bootstrap-inventory.py scripts/tests/input-resource-boundaries.py scripts/tests/constraints.py scripts/tests/error-golden.py scripts/tests/crypto-benchmark.py scripts/tests/crypto-coverage.py scripts/tests/code-health-audit.py scripts/tests/source-distribution.py scripts/tests/crypto-candidate.py scripts/tests/release-train.py scripts/tests/factory-contract.sh scripts/tests/factory-operations.mjs scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py scripts/tests/ssi-upstream-backlog.py scripts/tests/ssi-upstream-backlog-live.py scripts/tests/weekly-slow-live.py .githooks/commit-msg .githooks/pre-commit .githooks/pre-push; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi
@@ -221,7 +228,13 @@ fi
 
 if [[ -x "$factory_root/scripts/check-crypto-candidate.py" && -f "$factory_root/docs/release/crypto-candidate.toml" ]]; then
   if ! "$factory_root/scripts/check-crypto-candidate.py" "$factory_root"; then
-    report_failure "unpublished crypto-candidate validation failed"
+    report_failure "isolated crypto release-candidate validation failed"
+  fi
+fi
+
+if [[ -x "$factory_root/scripts/check-release-train.py" ]]; then
+  if ! "$factory_root/scripts/check-release-train.py" "$factory_root"; then
+    report_failure "protected release-train validation failed"
   fi
 fi
 

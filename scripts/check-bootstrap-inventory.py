@@ -40,8 +40,8 @@ REPOSITORY_CONTRACT = {
     "active_branch": "develop",
     "reserved_branch": "main",
     "baseline_revision": "662f8d7d2b9b9a151365c6bb889cd614bca625f7",
-    "release_state": "unreleased",
-    "publication_state": "disabled",
+    "release_state": "rc1-release-activated",
+    "publication_state": "protected-three-crate-train",
     "parent_issue": "#4",
     "delivery_issue": "#25",
     "namespace_issue": "#3",
@@ -87,6 +87,7 @@ LAYER_NAMES = {
 ISSUE_PATTERN = re.compile(r"#[1-9][0-9]*\Z")
 SHA_PATTERN = re.compile(r"[0-9a-f]{40}\Z")
 DEPENDENCY_SECTIONS = ("dependencies", "dev-dependencies", "build-dependencies")
+RELEASE_PACKAGES = {"identus-derive", "identus-core", "identus-crypto"}
 
 
 def load_toml(path: Path, failures: list[str], label: str) -> dict[str, Any]:
@@ -232,7 +233,12 @@ def workspace_packages(root: Path, failures: list[str]) -> dict[str, Path]:
             failures.append(f"duplicate workspace package name: {name}")
         packages[name] = member_dir.relative_to(root.resolve())
 
-        if package.get("publish") != {"workspace": True}:
+        if name in RELEASE_PACKAGES:
+            if package.get("version") != "0.1.0-rc.1":
+                failures.append(f"{name}: activated release version must be 0.1.0-rc.1")
+            if package.get("publish") != ["crates-io"]:
+                failures.append(f"{name}: activated registry must be crates-io")
+        elif package.get("publish") != {"workspace": True}:
             failures.append(f"{name}: package.publish.workspace must be true")
 
     return packages

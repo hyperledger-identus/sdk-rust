@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-22
+goal: Activate, protect, and publish the first three SDK-Rust crates.io release
+  train from an immutable reviewed candidate.

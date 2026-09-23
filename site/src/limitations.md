@@ -2,8 +2,11 @@
 
 The handbook is intentionally explicit about what has **not** been proven.
 
-- No crate is currently published to crates.io.
-- Canonical workspace versions remain `0.0.0` with `publish = false`.
+- Only `identus-derive`, `identus-core`, and `identus-crypto` are activated for
+  the protected `0.1.0-rc.1` crates.io train; use its registry receipt to
+  determine live publication state.
+- Every unrelated canonical workspace package remains `0.0.0` with
+  `publish = false`.
 - Rust 1.89.0 is the `0.1.x` release MSRV; Rust 1.98.1 remains the primary and
   compatibility-etalon compiler.
 - WASM, iOS, and Android cryptography evidence is currently compile-oriented;

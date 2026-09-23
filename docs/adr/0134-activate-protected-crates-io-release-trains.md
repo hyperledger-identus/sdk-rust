@@ -5,6 +5,7 @@
 - **Issue:** [#326](https://github.com/hyperledger-identus/sdk-rust/issues/326)
 - **Namespace closeout:** [#3](https://github.com/hyperledger-identus/sdk-rust/issues/3)
 - **Release hardening:** [#335](https://github.com/hyperledger-identus/sdk-rust/issues/335)
+- **Tag identity amendment:** [#336](https://github.com/hyperledger-identus/sdk-rust/issues/336)
 - **Supersedes operational parts of:** ADR 0113
 - **Review no later than:** before the next crate release train
 
@@ -34,7 +35,7 @@ CI authority.
    It emits the reviewed archives, clean publication workspace, and immutable
    receipt but never reads a credential or mutates a remote system.
 4. Publish only through `.github/workflows/publish-crates.yml` from signed immutable tag
-   `crypto-v0.1.0-rc.1` and an exact full SHA contained in protected `develop`.
+   `v0.1.0-rc.1` and an exact full SHA contained in protected `develop`.
 5. Protect the job with GitHub environment `crates-io`, protected-ref policy,
    self-review prevention, disabled administrator bypass, and independent
    `identus-maintainers` approval.
@@ -53,6 +54,9 @@ CI authority.
 10. Keep candidate artifact identity stable across attempts of one workflow
     run, retain available failure evidence, and accept an existing GitHub
     release only when its tag is the exact approved release tag.
+11. Run the midnight-identity registry adoption canary after publication using
+    exact version `=0.1.0-rc.1`; it is closeout evidence, not bootstrap
+    authority.
 
 ## Consequences
 

@@ -107,6 +107,39 @@ def main() -> int:
         cases = (
             (
                 lambda root: replace(
+                    root / "docs/release/crypto-candidate.toml",
+                    'release_tag              = "v0.1.0-rc.1"',
+                    'release_tag              = "crypto-v0.1.0-rc.1"',
+                ),
+                "release descriptor differs: release_tag",
+            ),
+            (
+                lambda root: (root / "RELEASING.md").write_text(
+                    (root / "RELEASING.md")
+                    .read_text(encoding="utf-8")
+                    .replace("v0.1.0-rc.1", "crypto-v0.1.0-rc.1"),
+                    encoding="utf-8",
+                ),
+                "release runbook is missing exact operation",
+            ),
+            (
+                lambda root: replace(
+                    root / "RELEASING.md",
+                    "Its immutable tag is `v0.1.0-rc.1`",
+                    "Its immutable tag is `crypto-v0.1.0-rc.1`",
+                ),
+                "release runbook still names the superseded release tag",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/publish-crates.yml",
+                    'test "$RELEASE_TAG" = "v0.1.0-rc.1"',
+                    'test "$RELEASE_TAG" = "crypto-v0.1.0-rc.1"',
+                ),
+                "release workflow still names the superseded release tag",
+            ),
+            (
+                lambda root: replace(
                     root / "crates/did/Cargo.toml",
                     "version.workspace      = true",
                     'version                = "0.1.0-rc.1"',

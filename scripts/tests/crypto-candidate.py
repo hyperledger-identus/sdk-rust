@@ -135,6 +135,14 @@ def main() -> int:
 
         cases = (
             (
+                lambda root: replace(
+                    root / "docs/release/crypto-candidate.toml",
+                    'release_tag              = "v0.1.0-rc.1"',
+                    'release_tag              = "crypto-v0.1.0-rc.1"',
+                ),
+                "descriptor release_tag",
+            ),
+            (
                 lambda root: replace(root / "Cargo.toml", "publish      = false", "publish      = true"),
                 "canonical workspace publish must remain false",
             ),

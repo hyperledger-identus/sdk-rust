@@ -23,7 +23,7 @@ mutation.
 ## Release identity and controls
 
 The protected workflow is manual and accepts an exact source SHA, exact
-`crypto-v0.1.0-rc.1` tag, and explicit authentication mode. Before access to
+`v0.1.0-rc.1` tag, and explicit authentication mode. Before access to
 the protected environment it checks out the requested tag, verifies that the
 tag and checkout resolve to the same full SHA, verifies the tag signature,
 proves the commit is contained in protected `origin/develop`, re-runs the full
@@ -87,6 +87,11 @@ checksums, uploads a publication receipt, and makes that receipt available for
 issue #3, issue #326, and the GitHub release. A later human step configures the
 three trusted publishers and records token revocation; automation does not
 claim those web-console actions happened.
+
+After publication closeout, the downstream midnight-identity canary replaces
+its source revision with exact registry requirement `=0.1.0-rc.1`. That
+consumer-owned CI becomes adoption evidence; it cannot retroactively authorize
+or block the already approved namespace bootstrap.
 
 ## Failure and rollback
 

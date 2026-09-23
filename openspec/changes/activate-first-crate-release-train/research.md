@@ -6,6 +6,23 @@ Decision date: 2026-09-22
 Source retrieval date: 2026-09-22
 Research blockers: none
 
+## Release identity amendment — issue #336
+
+The sponsor selected conventional tag `v0.1.0-rc.1` before either the former
+`crypto-v0.1.0-rc.1` name or the replacement existed remotely. The shorter tag
+matches the first repository release and remains unambiguous because this train
+publishes all three mutually versioned packages together. The exact-tag policy,
+signed annotated tag, full-SHA binding, protected-develop ancestry, and
+retry/conflict checks remain unchanged.
+
+The crates.io API still returned `404` for `identus-derive`, `identus-core`, and
+`identus-crypto` on 2026-09-23. The protected `crates-io` environment reported
+administrator bypass disabled, protected-branch deployment only, self-review
+prevention, and the `identus-maintainers` approval team. The downstream
+midnight-identity canary is explicitly deferred until publication, when it can
+prove registry consumption of exact version `=0.1.0-rc.1` rather than another
+source revision.
+
 ## Release review amendment — issue #335
 
 The independent discovery review on PR #334 identified six blocking defects
@@ -57,8 +74,8 @@ monorepo releasable.
 
 ## Normative sources
 
-- Issues #3, #326, and #335 define the first-publication outcome, remediation,
-  and human authority;
+- Issues #3, #326, #335, and #336 define the first-publication outcome,
+  remediation, tag identity, and human authority;
   `RELEASING.md` requires a release manager, independent maintainer, signed
   tag, protected environment, exact candidate, and immediate OIDC transition.
 - Cargo's official publishing guide recommends inspecting package contents and

@@ -27,8 +27,8 @@
 
 - [x] 4.1 Run focused Node, factory, OpenSpec, actionlint and applicable Nix
       checks; report every unrun gate.
-- [ ] 4.2 Complete a distinct local review and resolve blocking findings.
-- [ ] 4.3 Complete factory readiness and receipt, then archive the change.
+- [x] 4.2 Complete a distinct local review and resolve blocking findings.
+- [x] 4.3 Complete factory readiness and receipt, then archive the change.
 
 ## Delivery boundary
 

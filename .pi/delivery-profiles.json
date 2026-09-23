@@ -67,7 +67,7 @@
     "branch-grammar",
     "conventional-commits",
     "dco-signoff",
-    "gpg-signing",
+    "commit-signature-verification",
     "secret-and-custody-boundaries",
     "process-ownership",
     "disk-bounds"

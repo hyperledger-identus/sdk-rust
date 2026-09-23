@@ -10,10 +10,16 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 export const policy = Object.freeze(JSON.parse(readFileSync(path.join(root, ".github/contribution-policy.json"), "utf8")));
 const types = new Set(policy.types);
 const scopes = new Set(policy.scopes);
-const pgpHeader = "gpgsig -----BEGIN PGP SIGNATURE-----";
 
 function result(errors = [], values = {}) {
   return { ok: errors.length === 0, errors, ...values };
+}
+
+export function resolveSignatureEnvelopes(document) {
+  const configured = document?.commit?.signatureEnvelopes;
+  if (!Array.isArray(configured) || configured.length === 0) return null;
+  if (!configured.every((entry) => typeof entry === "string" && entry.trim().length > 0)) return null;
+  return configured;
 }
 
 export function parseConventionalSubject(subject, body = "") {
@@ -62,6 +68,26 @@ export function validatePullRequest({ title, body = "", branch, actor = "" }) {
   return result(errors, { subject, branch: branchResult });
 }
 
+export function validateSignatureProvenance({ verification = null, rawCommit = "" }, document = policy) {
+  const envelopes = resolveSignatureEnvelopes(document);
+  if (envelopes === null) return ["contribution policy requires a signature but declares no usable signature envelope set"];
+  if (!verification) {
+    return envelopes.some((envelope) => String(rawCommit ?? "").includes(`gpgsig ${envelope}`))
+      ? []
+      : ["commit does not contain an accepted signature envelope"];
+  }
+  if (!verification.verified || verification.reason !== "valid") {
+    return [`GitHub does not verify this commit signature (reason: ${verification.reason ?? "missing"})`];
+  }
+  const signature = verification.signature;
+  if (typeof signature !== "string" || signature.length === 0) {
+    return ["verified commit is missing its signature envelope"];
+  }
+  if (envelopes.some((envelope) => signature.startsWith(envelope))) return [];
+  const rejected = signature.split("\n", 1)[0].slice(0, 64);
+  return [`commit signature envelope is not accepted by the contribution policy: ${rejected}`];
+}
+
 export function validateCommitEvidence({ message, authorName, authorEmail, rawCommit, verification = null, actor = "" }) {
   const normalized = String(message ?? "").replace(/\n+$/u, "");
   const [subject = "", ...bodyLines] = normalized.split("\n");
@@ -71,15 +97,7 @@ export function validateCommitEvidence({ message, authorName, authorEmail, rawCo
     const expected = `Signed-off-by: ${authorName} <${authorEmail}>`;
     if (!bodyLines.includes(expected)) errors.push(`missing exact DCO trailer '${expected}'`);
   }
-  if (policy.commit.requireOpenPgp) {
-    if (verification) {
-      if (!verification.verified || verification.reason !== "valid" || !verification.signature?.startsWith("-----BEGIN PGP SIGNATURE-----")) {
-        errors.push(`GitHub OpenPGP verification failed (${verification.reason ?? "missing"})`);
-      }
-    } else if (!String(rawCommit ?? "").includes(pgpHeader)) {
-      errors.push("commit does not contain an OpenPGP signature envelope");
-    }
-  }
+  if (policy.commit.requireSignature) errors.push(...validateSignatureProvenance({ verification, rawCommit }));
   return result(errors, { subject: subjectResult });
 }
 
@@ -93,7 +111,17 @@ function git(repository, args, options = {}) {
   });
 }
 
-export function validateCommitRange({ repository, base, head, verifyOpenPgp = false }) {
+// A failed verify-commit still interleaves success-status lines with the failure cause; only the non-status lines explain the exit.
+const verifyCommitStatusLine = /^(?:Good "git" signature|(?:gpg: )?Good signature from|\[GNUPG:\] (?:NEWSIG|KEY_CONSIDERED|SIG_ID|GOODSIG|VALIDSIG|PLAINTEXT)\b)/u;
+
+export function localVerificationFailureDetail(stderr) {
+  const lines = String(stderr ?? "").split("\n").map((line) => line.trim()).filter(Boolean);
+  const causes = lines.filter((line) => !verifyCommitStatusLine.test(line));
+  const detail = (causes.length > 0 ? causes : lines).join("; ");
+  return detail.length > 256 ? `${detail.slice(0, 253)}...` : detail;
+}
+
+export function validateCommitRange({ repository, base, head, verifySignature = false }) {
   const commits = git(repository, ["rev-list", "--reverse", `${base}..${head}`]).trim().split("\n").filter(Boolean);
   if (commits.length === 0) return result(["commit range is empty"], { commits: [] });
   if (commits.length > policy.commit.maximumRange) return result([`commit range exceeds ${policy.commit.maximumRange}`], { commits: [] });
@@ -105,11 +133,12 @@ export function validateCommitRange({ repository, base, head, verifyOpenPgp = fa
       authorEmail: git(repository, ["show", "-s", "--format=%ae", commit]).trim(),
       rawCommit: git(repository, ["cat-file", "commit", commit]),
     });
-    if (verifyOpenPgp) {
+    if (verifySignature) {
       try {
-        git(repository, ["verify-commit", "--raw", commit], { stdio: ["ignore", "ignore", "ignore"] });
-      } catch {
-        evidence.errors.push("local OpenPGP cryptographic verification failed");
+        git(repository, ["verify-commit", "--raw", commit], { stdio: ["ignore", "ignore", "pipe"] });
+      } catch (error) {
+        const detail = localVerificationFailureDetail(error?.stderr);
+        evidence.errors.push(`local signature verification failed${detail ? `: ${detail}` : ""}`);
         evidence.ok = false;
       }
     }
@@ -166,7 +195,7 @@ function main() {
       repository: requireEnv("REPOSITORY_PATH"),
       base: requireEnv("BASE_SHA"),
       head: requireEnv("HEAD_SHA"),
-      verifyOpenPgp: process.env.VERIFY_OPENPGP === "true",
+      verifySignature: process.env.VERIFY_SIGNATURES === "true" || process.env.VERIFY_OPENPGP === "true",
     });
     report(outcome);
     if (outcome.ok) process.stdout.write(`Commit policy passed for ${outcome.commits.length} commit(s).\n`);

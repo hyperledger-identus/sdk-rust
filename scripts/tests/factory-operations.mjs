@@ -20,7 +20,7 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { test } from "node:test";
-import { parseConventionalSubject, validateBranchName, validateHostedCommits, validatePullRequest } from "../ci/contribution-policy.mjs";
+import { localVerificationFailureDetail, parseConventionalSubject, policy, resolveSignatureEnvelopes, validateBranchName, validateCommitEvidence, validateCommitRange, validateHostedCommits, validatePullRequest, validateSignatureProvenance } from "../ci/contribution-policy.mjs";
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
 import {
   exactIsoDate,
@@ -620,7 +620,7 @@ test("merge arguments and private receipts are closed and immutable", () => {
   }
 });
 
-test("hosted commit evidence fails closed on invalid verification and head", () => {
+test("hosted commit evidence accepts declared envelopes and fails closed otherwise", () => {
   const record = {
     sha,
     message: "feat(factory): add bounded runtime\n\nSigned-off-by: Agent <agent@example.com>",
@@ -629,8 +629,94 @@ test("hosted commit evidence fails closed on invalid verification and head", () 
     verification: { verified: true, reason: "valid", signature: "-----BEGIN PGP SIGNATURE-----\nfixture" },
   };
   assert.equal(validateHostedCommits([record], sha).ok, true);
-  assert.equal(validateHostedCommits([{ ...record, verification: { verified: false, reason: "unsigned" } }], sha).ok, false);
+  const ssh = { ...record, verification: { ...record.verification, signature: "-----BEGIN SSH SIGNATURE-----\nfixture" } };
+  assert.equal(validateHostedCommits([ssh], sha).ok, true);
+  const undeclared = { ...record, verification: { ...record.verification, signature: "-----BEGIN X509 SIGNATURE-----\nfixture" } };
+  const undeclaredOutcome = validateHostedCommits([undeclared], sha);
+  assert.equal(undeclaredOutcome.ok, false);
+  assert.match(undeclaredOutcome.errors.join("\n"), /envelope is not accepted by the contribution policy: -----BEGIN X509 SIGNATURE-----/u);
+  const unsigned = { ...record, verification: { verified: false, reason: "unsigned" } };
+  const unsignedOutcome = validateHostedCommits([unsigned], sha);
+  assert.equal(unsignedOutcome.ok, false);
+  assert.match(unsignedOutcome.errors.join("\n"), /does not verify this commit signature \(reason: unsigned\)/u);
+  const misreported = { ...record, verification: { ...record.verification, verified: false } };
+  assert.equal(validateHostedCommits([misreported], sha).ok, false);
+  const noEnvelope = { ...record, verification: { verified: true, reason: "valid" } };
+  const noEnvelopeOutcome = validateHostedCommits([noEnvelope], sha);
+  assert.equal(noEnvelopeOutcome.ok, false);
+  assert.match(noEnvelopeOutcome.errors.join("\n"), /missing its signature envelope/u);
   assert.equal(validateHostedCommits([record], "b".repeat(40)).ok, false);
+});
+
+test("signature envelope policy fails closed on a malformed declaration", () => {
+  const sshVerification = { verified: true, reason: "valid", signature: "-----BEGIN SSH SIGNATURE-----\nfixture" };
+  assert.deepEqual(resolveSignatureEnvelopes(policy), ["-----BEGIN PGP SIGNATURE-----", "-----BEGIN SSH SIGNATURE-----"]);
+  const malformed = [
+    {},
+    { commit: {} },
+    { commit: { signatureEnvelopes: [] } },
+    { commit: { signatureEnvelopes: [""] } },
+    { commit: { signatureEnvelopes: ["-----BEGIN PGP SIGNATURE-----", 7] } },
+  ];
+  for (const document of malformed) {
+    assert.equal(resolveSignatureEnvelopes(document), null);
+    assert.deepEqual(validateSignatureProvenance({ verification: sshVerification }, document), [
+      "contribution policy requires a signature but declares no usable signature envelope set",
+    ]);
+  }
+  assert.deepEqual(validateSignatureProvenance({ verification: sshVerification }, policy), []);
+});
+
+test("local commit range provenance requires a declared envelope", () => {
+  const message = "feat(factory): add bounded runtime\n\nSigned-off-by: Agent <agent@example.com>";
+  const identity = { message, authorName: "Agent", authorEmail: "agent@example.com" };
+  assert.equal(validateCommitEvidence({ ...identity, rawCommit: `tree 0\ngpgsig -----BEGIN SSH SIGNATURE-----\n fixture` }).ok, true);
+  assert.equal(validateCommitEvidence({ ...identity, rawCommit: `tree 0\ngpgsig -----BEGIN GPG SIGNATURE-----\n fixture` }).ok, false);
+  assert.equal(validateCommitEvidence({ ...identity, rawCommit: "tree 0" }).ok, false);
+});
+
+test("local verification failure diagnostics name git's reported cause", () => {
+  const sshFailure = [
+    'Good "git" signature with ED25519 key SHA256:Fla/EieHPL/5OP7Hm1LOZmcfA1QqGRhIEmOgg6dXAhQ',
+    'Unable to open allowed keys file "/home/pat/.ssh/allowed_signers": No such file or directory',
+    "sig_find_principals: sshsig_find_principal: No such file or directory",
+    "No principal matched.",
+  ].join("\n");
+  const sshDetail = localVerificationFailureDetail(sshFailure);
+  assert.match(sshDetail, /Unable to open allowed keys file/u);
+  assert.match(sshDetail, /No principal matched\./u);
+  assert.doesNotMatch(sshDetail, /Good "git" signature/u);
+  const pgpFailure = [
+    "[GNUPG:] NEWSIG",
+    "[GNUPG:] ERRSIG B5690EEEBB952194 1 8 00 1790150208 9 -",
+    "[GNUPG:] NO_PUBKEY B5690EEEBB952194",
+    "[GNUPG:] FAILURE gpg-exit 33554433",
+  ].join("\n");
+  assert.equal(
+    localVerificationFailureDetail(pgpFailure),
+    "[GNUPG:] ERRSIG B5690EEEBB952194 1 8 00 1790150208 9 -; [GNUPG:] NO_PUBKEY B5690EEEBB952194; [GNUPG:] FAILURE gpg-exit 33554433",
+  );
+  assert.equal(localVerificationFailureDetail("error: no signature found\n"), "error: no signature found");
+  assert.equal(localVerificationFailureDetail(""), "");
+  assert.equal(localVerificationFailureDetail(undefined), "");
+  assert.equal(localVerificationFailureDetail('[GNUPG:] VALIDSIG abc123\n'), "[GNUPG:] VALIDSIG abc123");
+});
+
+test("local commit range verification reports the failure cause for an unverifiable commit", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-verify-"));
+  try {
+    execFileSync("git", ["-c", "init.defaultBranch=main", "init", "-q", created]);
+    const identity = ["-c", "user.name=Agent", "-c", "user.email=agent@example.com", "-c", "commit.gpgsign=false"];
+    execFileSync("git", [...identity, "commit", "-q", "--allow-empty", "-m", "feat(factory): seed baseline\n\nSigned-off-by: Agent <agent@example.com>"], { cwd: created });
+    const base = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    execFileSync("git", [...identity, "commit", "-q", "--allow-empty", "-m", "feat(factory): probe local verification diagnostics\n\nSigned-off-by: Agent <agent@example.com>"], { cwd: created });
+    const head = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    const outcome = validateCommitRange({ repository: created, base, head, verifySignature: true });
+    assert.equal(outcome.ok, false);
+    assert.match(outcome.errors.join("\n"), /local signature verification failed/u);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
 });
 
 test("target plan keeps one fast PR gate and routes risk to slow evidence", () => {

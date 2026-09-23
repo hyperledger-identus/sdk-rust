@@ -53,7 +53,7 @@ function prePush() {
     if (!localRef?.startsWith("refs/heads/") || zeroSha.test(localSha ?? "")) continue;
     let base = remoteSha;
     if (!base || zeroSha.test(base)) base = git(["merge-base", "HEAD", "origin/develop"]).trim();
-    const outcome = validateCommitRange({ repository: root, base, head: localSha, verifyOpenPgp: true });
+    const outcome = validateCommitRange({ repository: root, base, head: localSha, verifySignature: true });
     errors.push(...outcome.errors);
   }
   if (errors.length) return fail(errors);

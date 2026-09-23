@@ -30,8 +30,10 @@ versions, topology or release policy.
 4. Retain the active-development CI model: one required Ubuntu `fast` lane and
    weekly/manual slow evidence. A deterministic planner records risk routing but
    does not create more per-PR compiler builds.
-5. Enforce conventional scoped metadata, issue identity, DCO and OpenPGP both
-   locally and from GitHub's hosted commit evidence.
+5. Enforce conventional scoped metadata, issue identity, DCO and
+   GitHub-verified signature provenance both locally and from GitHub's hosted
+   commit evidence. ADR 0135 declares the accepted OpenPGP and SSH envelopes;
+   the org-level PGP-only policy is not enforced here.
 6. Store closed-schema exact-head metrics privately under the Git common
    directory. Only a bounded aggregate and one hidden payload may be published.
 7. Treat configuration mutations, worktree removal, remote publication and

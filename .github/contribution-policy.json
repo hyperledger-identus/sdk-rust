@@ -52,7 +52,11 @@
     "maxSubjectLength": 100,
     "requireScope": true,
     "requireDco": true,
-    "requireOpenPgp": true,
+    "requireSignature": true,
+    "signatureEnvelopes": [
+      "-----BEGIN PGP SIGNATURE-----",
+      "-----BEGIN SSH SIGNATURE-----"
+    ],
     "requireBreakingChangeFooter": true,
     "maximumRange": 250
   },

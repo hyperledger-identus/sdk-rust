@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "factory-operations"
+requirement      = "Contribution provenance has local and hosted enforcement"
+canonical_sha256 = "b3be860f9fa04aa32a40ffe8094a30afe7c122f9444d2defe9392caace69cf09"
+reason           = "The gate now validates accepted commit-signature provenance declared by the tracked policy instead of requiring the OpenPGP mechanism, per ADR 0135."

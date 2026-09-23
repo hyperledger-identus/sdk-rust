@@ -148,7 +148,8 @@ Every commit must:
 - be a small, coherent change;
 - follow Conventional Commits;
 - carry a Developer Certificate of Origin `Signed-off-by` trailer;
-- have a cryptographic signature that GitHub can verify.
+- have a cryptographic signature that GitHub can verify, using either an
+  OpenPGP or an SSH signing key registered on the pushing account.
 
 Typical command:
 
@@ -156,7 +157,8 @@ Typical command:
 git commit -S -s -m "docs: define sdk governance"
 ```
 
-See [DCO.md](DCO.md) for the controlling policy and setup guidance.
+See [DCO.md](DCO.md) for the accepted signature mechanisms, the SSH signing
+setup and the org-level divergence record.
 
 ## Pull requests
 

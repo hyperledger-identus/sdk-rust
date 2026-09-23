@@ -20,7 +20,7 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { test } from "node:test";
-import { parseConventionalSubject, policy, resolveSignatureEnvelopes, validateBranchName, validateHostedCommits, validatePullRequest } from "../ci/contribution-policy.mjs";
+import { parseConventionalSubject, policy, resolveSignatureEnvelopes, validateBranchName, validateCommitEvidence, validateHostedCommits, validatePullRequest, validateSignatureProvenance } from "../ci/contribution-policy.mjs";
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
 import {
   exactIsoDate,
@@ -634,11 +634,11 @@ test("hosted commit evidence accepts declared envelopes and fails closed otherwi
   const undeclared = { ...record, verification: { ...record.verification, signature: "-----BEGIN X509 SIGNATURE-----\nfixture" } };
   const undeclaredOutcome = validateHostedCommits([undeclared], sha);
   assert.equal(undeclaredOutcome.ok, false);
-  assert.match(undeclaredOutcome.errors.join("\n"), /envelope is not accepted/u);
+  assert.match(undeclaredOutcome.errors.join("\n"), /envelope is not accepted by the contribution policy: -----BEGIN X509 SIGNATURE-----/u);
   const unsigned = { ...record, verification: { verified: false, reason: "unsigned" } };
   const unsignedOutcome = validateHostedCommits([unsigned], sha);
   assert.equal(unsignedOutcome.ok, false);
-  assert.match(unsignedOutcome.errors.join("\n"), /does not verify this commit signature \(unsigned\)/u);
+  assert.match(unsignedOutcome.errors.join("\n"), /does not verify this commit signature \(reason: unsigned\)/u);
   const misreported = { ...record, verification: { ...record.verification, verified: false } };
   assert.equal(validateHostedCommits([misreported], sha).ok, false);
   const noEnvelope = { ...record, verification: { verified: true, reason: "valid" } };
@@ -649,6 +649,7 @@ test("hosted commit evidence accepts declared envelopes and fails closed otherwi
 });
 
 test("signature envelope policy fails closed on a malformed declaration", () => {
+  const sshVerification = { verified: true, reason: "valid", signature: "-----BEGIN SSH SIGNATURE-----\nfixture" };
   assert.deepEqual(resolveSignatureEnvelopes(policy), ["-----BEGIN PGP SIGNATURE-----", "-----BEGIN SSH SIGNATURE-----"]);
   const malformed = [
     {},
@@ -657,7 +658,21 @@ test("signature envelope policy fails closed on a malformed declaration", () => 
     { commit: { signatureEnvelopes: [""] } },
     { commit: { signatureEnvelopes: ["-----BEGIN PGP SIGNATURE-----", 7] } },
   ];
-  for (const document of malformed) assert.equal(resolveSignatureEnvelopes(document), null);
+  for (const document of malformed) {
+    assert.equal(resolveSignatureEnvelopes(document), null);
+    assert.deepEqual(validateSignatureProvenance({ verification: sshVerification }, document), [
+      "contribution policy requires a signature but declares no usable signature envelope set",
+    ]);
+  }
+  assert.deepEqual(validateSignatureProvenance({ verification: sshVerification }, policy), []);
+});
+
+test("local commit range provenance requires a declared envelope", () => {
+  const message = "feat(factory): add bounded runtime\n\nSigned-off-by: Agent <agent@example.com>";
+  const identity = { message, authorName: "Agent", authorEmail: "agent@example.com" };
+  assert.equal(validateCommitEvidence({ ...identity, rawCommit: `tree 0\ngpgsig -----BEGIN SSH SIGNATURE-----\n fixture` }).ok, true);
+  assert.equal(validateCommitEvidence({ ...identity, rawCommit: `tree 0\ngpgsig -----BEGIN GPG SIGNATURE-----\n fixture` }).ok, false);
+  assert.equal(validateCommitEvidence({ ...identity, rawCommit: "tree 0" }).ok, false);
 });
 
 test("target plan keeps one fast PR gate and routes risk to slow evidence", () => {

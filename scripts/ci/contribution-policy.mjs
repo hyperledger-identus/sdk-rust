@@ -68,8 +68,8 @@ export function validatePullRequest({ title, body = "", branch, actor = "" }) {
   return result(errors, { subject, branch: branchResult });
 }
 
-export function validateSignatureProvenance({ verification = null, rawCommit = "" }) {
-  const envelopes = resolveSignatureEnvelopes(policy);
+export function validateSignatureProvenance({ verification = null, rawCommit = "" }, document = policy) {
+  const envelopes = resolveSignatureEnvelopes(document);
   if (envelopes === null) return ["contribution policy requires a signature but declares no usable signature envelope set"];
   if (!verification) {
     return envelopes.some((envelope) => String(rawCommit ?? "").includes(`gpgsig ${envelope}`))
@@ -77,15 +77,15 @@ export function validateSignatureProvenance({ verification = null, rawCommit = "
       : ["commit does not contain an accepted signature envelope"];
   }
   if (!verification.verified || verification.reason !== "valid") {
-    return [`GitHub does not verify this commit signature (${verification.reason ?? "missing"})`];
+    return [`GitHub does not verify this commit signature (reason: ${verification.reason ?? "missing"})`];
   }
   const signature = verification.signature;
   if (typeof signature !== "string" || signature.length === 0) {
     return ["verified commit is missing its signature envelope"];
   }
-  return envelopes.some((envelope) => signature.startsWith(envelope))
-    ? []
-    : ["commit signature envelope is not accepted by the contribution policy"];
+  if (envelopes.some((envelope) => signature.startsWith(envelope))) return [];
+  const rejected = signature.split("\n", 1)[0].slice(0, 64);
+  return [`commit signature envelope is not accepted by the contribution policy: ${rejected}`];
 }
 
 export function validateCommitEvidence({ message, authorName, authorEmail, rawCommit, verification = null, actor = "" }) {

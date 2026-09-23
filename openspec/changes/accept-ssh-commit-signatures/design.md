@@ -42,7 +42,7 @@ and adds the declared-envelope test:
   an unverified commit, naming the reason GitHub returned.
 - a verified commit whose `verification.signature` does not begin with a
   declared envelope reports a rejected-envelope condition that names the
-  policy set, not an OpenPGP failure.
+  rejected envelope, not an OpenPGP failure.
 - a verified commit without a signature string reports a missing-envelope
   condition.
 
@@ -88,12 +88,15 @@ and has no other consumer, so the rename is safe and is not a behavior change.
 ## Tests
 
 `scripts/tests/factory-operations.mjs` gains cases for a PGP envelope, an SSH
-envelope, an unknown envelope, an unsigned commit, a commit GitHub reports as
-unverified while claiming `reason: "valid"`, and an exact-head mismatch. The
-existing PGP-accepted and unverified cases stay. Every case asserts the
-returned `ok` value, and the envelope cases additionally assert that the
-diagnostic distinguishes the two failure modes, so the regression that produced
-`failed (valid)` cannot return unnoticed.
+envelope, an unknown envelope, an unsigned commit, a commit whose verification
+reason contradicts its verified flag, a verified commit without an envelope
+string, a commit with no verification record but a declared `gpgsig` header, a
+commit whose raw header carries an undeclared envelope, the malformed-policy
+branch through the `validateSignatureProvenance` document seam, and an
+exact-head mismatch. The existing PGP-accepted and unverified cases stay. Every
+case asserts the returned `ok` value, and the envelope cases additionally
+assert the diagnostic text, so the regression that produced `failed (valid)`
+cannot return unnoticed.
 
 The suite is executed by the required `fast` lane through
 `nix/checks/factory-contract.nix` and by `./bootstrap.sh --check`. It is

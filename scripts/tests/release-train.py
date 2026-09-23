@@ -107,6 +107,14 @@ def main() -> int:
         cases = (
             (
                 lambda root: replace(
+                    root / "docs/release/crypto-candidate.toml",
+                    'release_tag              = "v0.1.0-rc.1"',
+                    'release_tag              = "crypto-v0.1.0-rc.1"',
+                ),
+                "release descriptor differs: release_tag",
+            ),
+            (
+                lambda root: replace(
                     root / "crates/did/Cargo.toml",
                     "version.workspace      = true",
                     'version                = "0.1.0-rc.1"',

@@ -63,7 +63,7 @@ def validate(root: Path) -> list[str]:
         "repository": "https://github.com/hyperledger-identus/sdk-rust",
         "license": "Apache-2.0",
         "publication": "release-gated",
-        "release_tag": "crypto-v0.1.0-rc.1",
+        "release_tag": "v0.1.0-rc.1",
         "release_workflow": ".github/workflows/publish-crates.yml",
         "release_environment": "crates-io",
     }

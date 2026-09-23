@@ -20,11 +20,11 @@ dependencies SHALL use local paths plus exact registry requirement
 ### Requirement: Publication binds reviewed immutable identity
 
 The release workflow SHALL accept only the exact approved full source SHA and
-signed release tag `v0.1.0-rc.1`, SHALL verify they resolve to the same commit contained in
-protected `develop`, and SHALL rebuild deterministic candidate evidence before
-requesting access to the protected `crates-io` environment. The environment
-SHALL prevent self-review, disable administrator bypass, and require an
-independent Identus maintainer.
+signed release tag `v0.1.0-rc.1`, SHALL verify they resolve to the same commit
+contained in protected `develop`, and SHALL rebuild deterministic candidate
+evidence before requesting access to the protected `crates-io` environment.
+The environment SHALL prevent self-review, disable administrator bypass, and
+require an independent Identus maintainer.
 
 #### Scenario: Tag or approval identity differs
 

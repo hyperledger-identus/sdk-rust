@@ -31,7 +31,7 @@
       evidence on failure.
 - [x] 2.9 Make malformed candidate descriptors produce bounded checker
       diagnostics and add mutation coverage for every reviewed failure mode.
-- [ ] 2.10 Resolve #336 by migrating every operational release identity from
+- [x] 2.10 Resolve #336 by migrating every operational release identity from
       `crypto-v0.1.0-rc.1` to `v0.1.0-rc.1`, with policy and mutation evidence.
 
 ## 3. Evidence and publication

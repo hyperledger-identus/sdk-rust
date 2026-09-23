@@ -44,7 +44,7 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
           EXPECTED_SHA: ${{ inputs.expected_sha }}
         run: |
-          test "$RELEASE_TAG" = "crypto-v0.1.0-rc.1"
+          test "$RELEASE_TAG" = "v0.1.0-rc.1"
           printf '%s\n' "$EXPECTED_SHA" | grep -Eq '^[0-9a-f]{40}$'
           ref_json=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG")
           test "$(jq -r '.object.type' <<<"$ref_json")" = "tag"

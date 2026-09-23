@@ -71,8 +71,8 @@ Before tagging, the release manager verifies:
 ## First protected crypto train
 
 The first approved train is exactly `identus-derive`, `identus-core`, and
-`identus-crypto` at `0.1.0-rc.1`. Its immutable tag is
-`crypto-v0.1.0-rc.1`; its only publication workflow is
+`identus-crypto` at `0.1.0-rc.1`. Its immutable tag is `v0.1.0-rc.1`; its only
+publication workflow is
 `.github/workflows/publish-crates.yml`; and its protected GitHub environment is
 `crates-io`.
 
@@ -90,10 +90,10 @@ revision approved on issue #326:
 3. Create an annotated signed tag and verify it locally before pushing:
 
    ```console
-   git tag -s crypto-v0.1.0-rc.1 <approved-full-sha> \
+   git tag -s v0.1.0-rc.1 <approved-full-sha> \
      -m "SDK-Rust crypto train 0.1.0-rc.1"
-   git verify-tag crypto-v0.1.0-rc.1
-   git push origin refs/tags/crypto-v0.1.0-rc.1
+   git verify-tag v0.1.0-rc.1
+   git push origin refs/tags/v0.1.0-rc.1
    ```
 
 4. Dispatch the workflow from protected branch `develop`, binding the tag and
@@ -103,7 +103,7 @@ revision approved on issue #326:
    gh workflow run publish-crates.yml \
      --repo hyperledger-identus/sdk-rust \
      --ref develop \
-     -f release_tag=crypto-v0.1.0-rc.1 \
+     -f release_tag=v0.1.0-rc.1 \
      -f expected_sha=<approved-full-sha> \
      -f authentication=bootstrap-token
    ```

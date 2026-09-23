@@ -93,7 +93,7 @@ def validate(root: Path) -> list[str]:
     descriptor_expectations = {
         "version": VERSION,
         "publication": "release-gated",
-        "release_tag": "crypto-v0.1.0-rc.1",
+        "release_tag": "v0.1.0-rc.1",
         "release_workflow": WORKFLOW.as_posix(),
         "release_environment": "crates-io",
         "authentication_modes": ["bootstrap-token", "trusted-publishing"],
@@ -153,7 +153,7 @@ def validate(root: Path) -> list[str]:
     required_publisher = (
         'PACKAGE_ORDER = ("identus-derive", "identus-core", "identus-crypto")',
         'VERSION = "0.1.0-rc.1"',
-        'RELEASE_TAG = "crypto-v0.1.0-rc.1"',
+        'RELEASE_TAG = "v0.1.0-rc.1"',
         'if os.environ.get("GITHUB_ACTIONS") != "true":',
         'if os.environ.get("GITHUB_REPOSITORY") != REPOSITORY:',
         'env.get("CARGO_REGISTRY_TOKEN", "")',
@@ -187,7 +187,7 @@ def validate(root: Path) -> list[str]:
             errors.append(f"release ADR is missing protected decision: {phrase}")
     releasing = read(root / "RELEASING.md", errors)
     for phrase in (
-        "crypto-v0.1.0-rc.1",
+        "v0.1.0-rc.1",
         "publish-crates.yml",
         "crates-io",
         "bootstrap-token",

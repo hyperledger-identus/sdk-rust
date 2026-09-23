@@ -111,6 +111,16 @@ function git(repository, args, options = {}) {
   });
 }
 
+// A failed verify-commit still interleaves success-status lines with the failure cause; only the non-status lines explain the exit.
+const verifyCommitStatusLine = /^(?:Good "git" signature|(?:gpg: )?Good signature from|\[GNUPG:\] (?:NEWSIG|KEY_CONSIDERED|SIG_ID|GOODSIG|VALIDSIG|PLAINTEXT)\b)/u;
+
+export function localVerificationFailureDetail(stderr) {
+  const lines = String(stderr ?? "").split("\n").map((line) => line.trim()).filter(Boolean);
+  const causes = lines.filter((line) => !verifyCommitStatusLine.test(line));
+  const detail = (causes.length > 0 ? causes : lines).join("; ");
+  return detail.length > 256 ? `${detail.slice(0, 253)}...` : detail;
+}
+
 export function validateCommitRange({ repository, base, head, verifySignature = false }) {
   const commits = git(repository, ["rev-list", "--reverse", `${base}..${head}`]).trim().split("\n").filter(Boolean);
   if (commits.length === 0) return result(["commit range is empty"], { commits: [] });
@@ -127,7 +137,7 @@ export function validateCommitRange({ repository, base, head, verifySignature = 
       try {
         git(repository, ["verify-commit", "--raw", commit], { stdio: ["ignore", "ignore", "pipe"] });
       } catch (error) {
-        const detail = String(error?.stderr ?? "").split("\n").map((line) => line.trim()).filter(Boolean)[0];
+        const detail = localVerificationFailureDetail(error?.stderr);
         evidence.errors.push(`local signature verification failed${detail ? `: ${detail}` : ""}`);
         evidence.ok = false;
       }

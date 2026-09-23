@@ -21,6 +21,9 @@ WORKFLOW = Path(".github/workflows/publish-crates.yml")
 PUBLISHER = Path("scripts/publish-release-train.py")
 DESCRIPTOR = Path("docs/release/crypto-candidate.toml")
 ADR = Path("docs/adr/0134-activate-protected-crates-io-release-trains.md")
+RELEASING = Path("RELEASING.md")
+RELEASE_TAG = "v0.1.0-rc.1"
+SUPERSEDED_RELEASE_TAG = "crypto-v0.1.0-rc.1"
 
 
 def load_toml(path: Path, errors: list[str]) -> dict[str, Any]:
@@ -93,7 +96,7 @@ def validate(root: Path) -> list[str]:
     descriptor_expectations = {
         "version": VERSION,
         "publication": "release-gated",
-        "release_tag": "v0.1.0-rc.1",
+        "release_tag": RELEASE_TAG,
         "release_workflow": WORKFLOW.as_posix(),
         "release_environment": "crates-io",
         "authentication_modes": ["bootstrap-token", "trusted-publishing"],
@@ -153,7 +156,7 @@ def validate(root: Path) -> list[str]:
     required_publisher = (
         'PACKAGE_ORDER = ("identus-derive", "identus-core", "identus-crypto")',
         'VERSION = "0.1.0-rc.1"',
-        'RELEASE_TAG = "v0.1.0-rc.1"',
+        f'RELEASE_TAG = "{RELEASE_TAG}"',
         'if os.environ.get("GITHUB_ACTIONS") != "true":',
         'if os.environ.get("GITHUB_REPOSITORY") != REPOSITORY:',
         'env.get("CARGO_REGISTRY_TOKEN", "")',
@@ -185,9 +188,9 @@ def validate(root: Path) -> list[str]:
     ):
         if phrase not in adr:
             errors.append(f"release ADR is missing protected decision: {phrase}")
-    releasing = read(root / "RELEASING.md", errors)
+    releasing = read(root / RELEASING, errors)
     for phrase in (
-        "v0.1.0-rc.1",
+        f"git tag -s {RELEASE_TAG}",
         "publish-crates.yml",
         "crates-io",
         "bootstrap-token",
@@ -198,6 +201,16 @@ def validate(root: Path) -> list[str]:
     ):
         if phrase not in releasing:
             errors.append(f"release runbook is missing exact operation: {phrase}")
+    for label, text in (
+        ("release runbook", releasing),
+        ("release workflow", workflow),
+        ("release descriptor", read(root / DESCRIPTOR, errors)),
+        ("publisher", publisher),
+    ):
+        if SUPERSEDED_RELEASE_TAG in text:
+            errors.append(
+                f"{label} still names the superseded release tag: {SUPERSEDED_RELEASE_TAG}"
+            )
     return errors
 
 

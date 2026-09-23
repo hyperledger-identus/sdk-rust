@@ -6,7 +6,7 @@
       identity, failure, and rollback decisions in OpenSpec and ADR 0134.
 - [x] 1.2 Pass research, constraint, and strict OpenSpec readiness and commit
       the planning-only contract.
-- [ ] 1.3 Create the protected `crates-io` GitHub environment with independent
+- [x] 1.3 Create the protected `crates-io` GitHub environment with independent
       maintainer approval, disabled administrator bypass, and protected-ref
       deployment policy.
 
@@ -31,6 +31,8 @@
       evidence on failure.
 - [x] 2.9 Make malformed candidate descriptors produce bounded checker
       diagnostics and add mutation coverage for every reviewed failure mode.
+- [ ] 2.10 Resolve #336 by migrating every operational release identity from
+      `crypto-v0.1.0-rc.1` to `v0.1.0-rc.1`, with policy and mutation evidence.
 
 ## 3. Evidence and publication
 
@@ -44,3 +46,5 @@
       release evidence; configure all trusted publishers and revoke the token.
 - [ ] 3.5 Close #3 and #326 only after immutable publication and ownership
       receipts are attached; archive this OpenSpec change.
+- [ ] 3.6 After publication closeout, refresh the downstream midnight-identity
+      canary to exact registry version `=0.1.0-rc.1` and record its CI receipt.

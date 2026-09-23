@@ -18,8 +18,8 @@ product, wallet, FFI, runtime, and consumer behavior outside this train.
 
 Only `identus-derive`, `identus-core`, and `identus-crypto` may be versioned and
 published. Their internal requirements are exact and their upload order is
-fixed. Release identity is a signed immutable tag plus full SHA contained in
-protected `develop`; `main` remains reserved and empty/minimal.
+fixed. Release identity is signed immutable tag `v0.1.0-rc.1` plus a full SHA
+contained in protected `develop`; `main` remains reserved and empty/minimal.
 
 Candidate construction cannot publish. Publication requires a separate manual
 workflow, the protected `crates-io` environment, independent maintainer
@@ -48,7 +48,9 @@ unbounded retry or a duplicate publication.
 Rust consumers gain registry-addressable generic derive, core, and crypto
 packages at the already selected Rust 1.89.0 floor. Consumers retain ownership
 of adapters, chain semantics, custody, storage, identity policy, runtimes, and
-deployment. No downstream repository is changed by this slice.
+deployment. No downstream repository is changed by this slice. The first
+midnight-identity registry canary runs after publication and is not authority
+for the namespace-creating upload.
 
 ## Activation and rollback
 
@@ -64,7 +66,7 @@ to yank, and release a corrected version through the full train.
 
 ## Evidence
 
-Issues #3, #326, and #335 plus the sponsor direction in this session provide
-the material authority. The natural slow receipt is run 35555024293 at
+Issues #3, #326, #335, and #336 plus the sponsor direction in this session
+provide the material authority. The natural slow receipt is run 35555024293 at
 protected `develop` revision
 `19d0362038c3f2af6898624ea04347e3cd4648f7`.

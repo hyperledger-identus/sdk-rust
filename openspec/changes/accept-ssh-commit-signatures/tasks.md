@@ -40,9 +40,9 @@
 - [x] 4.1 Run the contribution-policy and factory-contract suites, strict
       OpenSpec validation, `scripts/factory check`, and the `factory-contract`
       and `lint-text` nix checks; report every unrun gate exactly.
-- [ ] 4.2 Complete a distinct local review pass in a fresh context and resolve
+- [x] 4.2 Complete a distinct local review pass in a fresh context and resolve
       blocking findings.
-- [ ] 4.3 Complete the factory readiness receipt and archive the change through
+- [x] 4.3 Complete the factory readiness receipt and archive the change through
       `scripts/factory archive`.
 
 ## Delivery boundary

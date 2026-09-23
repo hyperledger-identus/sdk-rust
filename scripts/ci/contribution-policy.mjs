@@ -88,17 +88,74 @@ export function validateSignatureProvenance({ verification = null, rawCommit = "
   return [`commit signature envelope is not accepted by the contribution policy: ${rejected}`];
 }
 
-export function validateCommitEvidence({ message, authorName, authorEmail, rawCommit, verification = null, actor = "" }) {
+export function validateCommitEvidence(
+  { message, authorName, authorEmail, rawCommit, verification = null, actor = "" },
+  { authoredMetadata = true } = {},
+) {
   const normalized = String(message ?? "").replace(/\n+$/u, "");
   const [subject = "", ...bodyLines] = normalized.split("\n");
   const subjectResult = parseConventionalSubject(subject, bodyLines.join("\n"));
-  const errors = [...subjectResult.errors.map((entry) => `subject: ${entry}`)];
-  if (policy.commit.requireDco && !policy.bots[actor]?.dcoAuthorNames?.includes(authorName)) {
+  const errors = authoredMetadata
+    ? [...subjectResult.errors.map((entry) => `subject: ${entry}`)]
+    : [];
+  if (authoredMetadata && policy.commit.requireDco && !policy.bots[actor]?.dcoAuthorNames?.includes(authorName)) {
     const expected = `Signed-off-by: ${authorName} <${authorEmail}>`;
     if (!bodyLines.includes(expected)) errors.push(`missing exact DCO trailer '${expected}'`);
   }
   if (policy.commit.requireSignature) errors.push(...validateSignatureProvenance({ verification, rawCommit }));
   return result(errors, { subject: subjectResult });
+}
+
+function validSha(value) {
+  return typeof value === "string" && /^[0-9a-f]{40}$/u.test(value);
+}
+
+function gitAncestor(repository, ancestor, descendant) {
+  if (ancestor === descendant) return true;
+  try {
+    git(repository, ["merge-base", "--is-ancestor", ancestor, descendant], {
+      stdio: ["ignore", "ignore", "ignore"],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function gitMergeTree(repository, firstParent, secondParent) {
+  try {
+    const [tree = ""] = git(repository, ["merge-tree", "--write-tree", firstParent, secondParent])
+      .trim()
+      .split("\n");
+    return validSha(tree) ? tree : "";
+  } catch {
+    return "";
+  }
+}
+
+export function isGitHubSynchronizationMerge(
+  record,
+  previousSha,
+  {
+    baseSha = "",
+    baseRef = "",
+    headRef = "",
+    repository = root,
+    isAncestor = (ancestor, descendant) => gitAncestor(repository, ancestor, descendant),
+    mergeTree = (firstParent, secondParent) => gitMergeTree(repository, firstParent, secondParent),
+  } = {},
+) {
+  const parents = record?.parentShas;
+  if (!Array.isArray(parents) || parents.length !== 2 || parents[0] === parents[1]) return false;
+  if (!parents.every(validSha) || !validSha(previousSha) || !validSha(baseSha)) return false;
+  if (typeof baseRef !== "string" || baseRef.length === 0 || typeof headRef !== "string" || headRef.length === 0) return false;
+  if (record.committerName !== "GitHub" || record.committerEmail !== "noreply@github.com") return false;
+  if (record.committerActor !== "web-flow") return false;
+  if (record.verification?.verified !== true || record.verification?.reason !== "valid") return false;
+  const [subject = ""] = String(record.message ?? "").split("\n");
+  if (subject !== `Merge branch '${baseRef}' into ${headRef}`) return false;
+  if (!validSha(record.treeSha) || parents[0] !== previousSha || !isAncestor(parents[1], baseSha)) return false;
+  return mergeTree(parents[0], parents[1]) === record.treeSha;
 }
 
 function git(repository, args, options = {}) {
@@ -147,18 +204,23 @@ export function validateCommitRange({ repository, base, head, verifySignature = 
   return result(reports.flatMap((entry) => entry.errors.map((error) => `${entry.commit}: ${error}`)), { commits: reports });
 }
 
-export function validateHostedCommits(records, expectedHead) {
+export function validateHostedCommits(records, expectedHead, context = {}) {
   if (!Array.isArray(records) || records.length === 0) return result(["pull request has no commits"]);
   if (records.length > policy.commit.maximumRange) return result([`pull request exceeds ${policy.commit.maximumRange} commits`]);
   const errors = [];
   const seen = new Set();
-  for (const record of records) {
+  for (const [index, record] of records.entries()) {
     if (!/^[0-9a-f]{40}$/u.test(record?.sha ?? "") || seen.has(record.sha)) {
       errors.push("hosted commit records contain an invalid or repeated SHA");
       continue;
     }
     seen.add(record.sha);
-    const evidence = validateCommitEvidence(record);
+    const synchronizationMerge = isGitHubSynchronizationMerge(
+      record,
+      index > 0 ? records[index - 1]?.sha : "",
+      context,
+    );
+    const evidence = validateCommitEvidence(record, { authoredMetadata: !synchronizationMerge });
     errors.push(...evidence.errors.map((entry) => `${record.sha}: ${entry}`));
   }
   if (records.at(-1)?.sha !== expectedHead) errors.push(`last hosted commit is not exact PR head ${expectedHead}`);
@@ -203,7 +265,12 @@ function main() {
   }
   if (command === "hosted-commits") {
     const records = JSON.parse(readFileSync(requireEnv("COMMITS_FILE"), "utf8"));
-    const outcome = validateHostedCommits(records, requireEnv("HEAD_SHA"));
+    const outcome = validateHostedCommits(records, requireEnv("HEAD_SHA"), {
+      baseSha: requireEnv("PR_BASE_SHA"),
+      baseRef: requireEnv("PR_BASE_REF"),
+      headRef: requireEnv("PR_HEAD_REF"),
+      repository: root,
+    });
     report(outcome);
     if (outcome.ok) process.stdout.write(`Hosted commit policy passed for ${records.length} commit(s).\n`);
     return;

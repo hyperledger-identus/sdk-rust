@@ -5,8 +5,8 @@ All contributions follow the canonical
 for the Developer Certificate of Origin. This repository additionally accepts
 GitHub-verified SSH commit signatures; see [Accepted signatures](#accepted-signatures).
 
-Every commit must include a `Signed-off-by` trailer matching its author and a
-cryptographic signature GitHub can verify:
+Every authored commit must include a `Signed-off-by` trailer matching its
+author and a cryptographic signature GitHub can verify:
 
 ```bash
 git commit -S -s -m "type: concise summary"
@@ -48,3 +48,18 @@ recorded in
 divergence is deliberate and is reported rather than hidden; reconciling it
 upstream belongs to the organization repository, which this repository does not
 modify.
+
+## GitHub branch synchronization
+
+GitHub's **Update branch** merge path creates platform metadata whose subject
+and trailers are not contributor-controlled. Hosted CI recognizes that record
+only when its verified signature, `web-flow` committer identity, canonical
+base-into-head subject, two-parent graph and reproduced conflict-free merge
+tree match the pull-request event. It then omits the authored subject and DCO
+checks while retaining signature validation.
+
+This is not a general merge exemption. Ordinary web-editor commits, local
+merges, unverified merges and incomplete or unexpected hosted records retain
+all authored-commit requirements. See
+[ADR 0136](docs/adr/0136-permit-verified-github-synchronization-merges.md) and
+issue [#342](https://github.com/hyperledger-identus/sdk-rust/issues/342).

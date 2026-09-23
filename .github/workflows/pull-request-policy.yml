@@ -67,6 +67,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           gh api --paginate \
@@ -76,6 +79,11 @@ jobs:
                 message: .commit.message,
                 authorName: .commit.author.name,
                 authorEmail: .commit.author.email,
+                committerName: .commit.committer.name,
+                committerEmail: .commit.committer.email,
+                committerActor: (.committer.login // ""),
+                parentShas: [.parents[].sha],
+                treeSha: .commit.tree.sha,
                 verification: .commit.verification,
                 actor: (.author.login // "")
               }]' > "$RUNNER_TEMP/pull-commits.json"

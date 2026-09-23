@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-23
+goal: Permit narrowly identified GitHub branch-synchronization merge commits
+  without weakening authored-commit provenance.

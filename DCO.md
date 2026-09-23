@@ -54,9 +54,9 @@ modify.
 GitHub's **Update branch** merge path creates platform metadata whose subject
 and trailers are not contributor-controlled. Hosted CI recognizes that record
 only when its verified signature, `web-flow` committer identity, canonical
-base-into-head subject and two-parent graph match the pull-request event. It
-then omits the authored subject and DCO checks while retaining signature
-validation.
+base-into-head subject, two-parent graph and reproduced conflict-free merge
+tree match the pull-request event. It then omits the authored subject and DCO
+checks while retaining signature validation.
 
 This is not a general merge exemption. Ordinary web-editor commits, local
 merges, unverified merges and incomplete or unexpected hosted records retain

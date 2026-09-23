@@ -83,6 +83,7 @@ jobs:
                 committerEmail: .commit.committer.email,
                 committerActor: (.committer.login // ""),
                 parentShas: [.parents[].sha],
+                treeSha: .commit.tree.sha,
                 verification: .commit.verification,
                 actor: (.author.login // "")
               }]' > "$RUNNER_TEMP/pull-commits.json"

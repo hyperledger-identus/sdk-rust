@@ -26,8 +26,9 @@ hand-authored merge can contain new conflict resolution or other content.
 2. The synchronization classification requires two distinct parents, the
    previous pull-request commit as first parent, the protected base or its
    ancestor as second parent, the exact base-into-head subject, GitHub's
-   platform committer identity including the `web-flow` actor, and a signature
-   GitHub reports as verified and valid.
+   platform committer identity including the `web-flow` actor, a signature
+   GitHub reports as verified and valid, and exact reproduction of the recorded
+   tree from the two parents without a conflict.
 3. Only Conventional Commit subject and DCO trailer checks are omitted for
    that record. Accepted-envelope signature validation remains mandatory.
 4. Ordinary commits, malformed records, hand-authored merges and local range
@@ -40,9 +41,10 @@ hand-authored merge can contain new conflict resolution or other content.
   without rewriting platform-generated metadata.
 - Authored web-editor and local commits retain all existing provenance rules.
 - Hosted validation becomes slightly more complex and relies on GitHub event,
-  API and ancestry evidence, but avoids an unconditional merge loophole.
-- Pull-request review remains responsible for the complete resulting diff; the
-  checker does not independently reproduce GitHub's merge tree.
+  API, ancestry and deterministic merge-tree evidence, but avoids an
+  unconditional merge loophole or conflict-resolution exemption.
+- Pull-request review remains responsible for the complete resulting diff even
+  though the checker reproduces the merge tree for this narrow classification.
 
 ## Verification and rollback
 

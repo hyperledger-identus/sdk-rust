@@ -653,6 +653,7 @@ test("hosted policy narrowly accepts a verified GitHub synchronization merge", (
   const baseParent = "c".repeat(40);
   const currentBase = "d".repeat(40);
   const mergeSha = "e".repeat(40);
+  const treeSha = "f".repeat(40);
   const signature = { verified: true, reason: "valid", signature: "-----BEGIN PGP SIGNATURE-----\nfixture" };
   const prior = {
     sha: previousSha,
@@ -670,6 +671,7 @@ test("hosted policy narrowly accepts a verified GitHub synchronization merge", (
     committerEmail: "noreply@github.com",
     committerActor: "web-flow",
     parentShas: [previousSha, baseParent],
+    treeSha,
     verification: signature,
   };
   const context = {
@@ -677,6 +679,7 @@ test("hosted policy narrowly accepts a verified GitHub synchronization merge", (
     baseRef: "develop",
     headRef: "fix/issue-342",
     isAncestor: (ancestor, descendant) => ancestor === baseParent && descendant === currentBase,
+    mergeTree: (firstParent, secondParent) => firstParent === previousSha && secondParent === baseParent ? treeSha : "",
   };
 
   assert.equal(isGitHubSynchronizationMerge(merge, previousSha, context), true);
@@ -691,6 +694,7 @@ test("hosted policy narrowly accepts a verified GitHub synchronization merge", (
     { ...merge, committerEmail: "agent@example.com" },
     { ...merge, committerActor: "agent" },
     { ...merge, message: "Merge develop into fix/issue-342" },
+    { ...merge, treeSha: "0".repeat(40) },
     { ...merge, verification: { verified: false, reason: "unsigned" } },
   ];
   for (const candidate of rejected) {
@@ -706,17 +710,30 @@ test("synchronization classification accepts a protected-base ancestor", () => {
   try {
     execFileSync("git", ["-c", "init.defaultBranch=develop", "init", "-q", created]);
     const identity = ["-c", "user.name=Agent", "-c", "user.email=agent@example.com", "-c", "commit.gpgsign=false"];
-    execFileSync("git", [...identity, "commit", "-q", "--allow-empty", "-m", "base one"], { cwd: created });
+    writeFileSync(path.join(created, "base.txt"), "base one\n");
+    execFileSync("git", ["add", "base.txt"], { cwd: created });
+    execFileSync("git", [...identity, "commit", "-q", "-m", "base one"], { cwd: created });
     const baseParent = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
-    execFileSync("git", [...identity, "commit", "-q", "--allow-empty", "-m", "base two"], { cwd: created });
+    writeFileSync(path.join(created, "develop.txt"), "base two\n");
+    execFileSync("git", ["add", "develop.txt"], { cwd: created });
+    execFileSync("git", [...identity, "commit", "-q", "-m", "base two"], { cwd: created });
     const currentBase = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
-    const previousSha = "b".repeat(40);
+    execFileSync("git", ["switch", "-q", "--detach", baseParent], { cwd: created });
+    writeFileSync(path.join(created, "topic.txt"), "topic\n");
+    execFileSync("git", ["add", "topic.txt"], { cwd: created });
+    execFileSync("git", [...identity, "commit", "-q", "-m", "topic"], { cwd: created });
+    const previousSha = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    const treeSha = execFileSync(
+      "git", ["merge-tree", "--write-tree", previousSha, baseParent],
+      { cwd: created, encoding: "utf8" },
+    ).trim();
     const record = {
       message: "Merge branch 'develop' into fix/issue-342",
       committerName: "GitHub",
       committerEmail: "noreply@github.com",
       committerActor: "web-flow",
       parentShas: [previousSha, baseParent],
+      treeSha,
       verification: { verified: true, reason: "valid" },
     };
     assert.equal(isGitHubSynchronizationMerge(record, previousSha, {
@@ -746,6 +763,7 @@ test("hosted workflow projects synchronization evidence from GitHub", () => {
     /committerEmail: \.commit\.committer\.email/u,
     /committerActor: \(\.committer\.login \/\/ ""\)/u,
     /parentShas: \[\.parents\[\]\.sha\]/u,
+    /treeSha: \.commit\.tree\.sha/u,
   ]) assert.match(workflow, pattern);
 });
 

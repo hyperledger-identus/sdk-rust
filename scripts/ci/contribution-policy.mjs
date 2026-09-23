@@ -122,6 +122,17 @@ function gitAncestor(repository, ancestor, descendant) {
   }
 }
 
+function gitMergeTree(repository, firstParent, secondParent) {
+  try {
+    const [tree = ""] = git(repository, ["merge-tree", "--write-tree", firstParent, secondParent])
+      .trim()
+      .split("\n");
+    return validSha(tree) ? tree : "";
+  } catch {
+    return "";
+  }
+}
+
 export function isGitHubSynchronizationMerge(
   record,
   previousSha,
@@ -131,18 +142,20 @@ export function isGitHubSynchronizationMerge(
     headRef = "",
     repository = root,
     isAncestor = (ancestor, descendant) => gitAncestor(repository, ancestor, descendant),
+    mergeTree = (firstParent, secondParent) => gitMergeTree(repository, firstParent, secondParent),
   } = {},
 ) {
   const parents = record?.parentShas;
   if (!Array.isArray(parents) || parents.length !== 2 || parents[0] === parents[1]) return false;
   if (!parents.every(validSha) || !validSha(previousSha) || !validSha(baseSha)) return false;
-  if (parents[0] !== previousSha || !isAncestor(parents[1], baseSha)) return false;
+  if (typeof baseRef !== "string" || baseRef.length === 0 || typeof headRef !== "string" || headRef.length === 0) return false;
   if (record.committerName !== "GitHub" || record.committerEmail !== "noreply@github.com") return false;
   if (record.committerActor !== "web-flow") return false;
   if (record.verification?.verified !== true || record.verification?.reason !== "valid") return false;
-  if (typeof baseRef !== "string" || baseRef.length === 0 || typeof headRef !== "string" || headRef.length === 0) return false;
   const [subject = ""] = String(record.message ?? "").split("\n");
-  return subject === `Merge branch '${baseRef}' into ${headRef}`;
+  if (subject !== `Merge branch '${baseRef}' into ${headRef}`) return false;
+  if (!validSha(record.treeSha) || parents[0] !== previousSha || !isAncestor(parents[1], baseSha)) return false;
+  return mergeTree(parents[0], parents[1]) === record.treeSha;
 }
 
 function git(repository, args, options = {}) {

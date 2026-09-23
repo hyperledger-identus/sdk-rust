@@ -78,18 +78,16 @@ metadata for every local merge.
 
 The exemption is contextual, not message-only. It requires two distinct
 parents, GitHub's verified signature and platform committer identity, the
-canonical base/head subject, the prior pull-request record as first parent,
-and a second parent that is the current base or its ancestor. Signature
-envelope enforcement still runs. A malformed or partial record is ordinary and
-therefore fails the existing subject/DCO rules.
+canonical base/head subject, the prior pull-request record as first parent, a
+second parent that is the current base or its ancestor, and exact reproduction
+of the recorded tree through `git merge-tree --write-tree`. Signature envelope
+enforcement still runs. A malformed or partial record, merge conflict or tree
+mismatch is ordinary and therefore fails the existing subject/DCO rules.
 
 Residual risk: GitHub's verification and committer identity remain the hosted
-trust anchor, as already accepted in ADR 0135. GitHub conflict-resolution flows
-can also create merge commits; the parent, subject and identity boundaries
-reduce accidental admission, while the full pull-request diff and review remain
-mandatory. A future exact merge-tree reproduction check may narrow this
-further if GitHub's merge strategy can be reproduced portably without false
-negatives.
+trust anchor, as already accepted in ADR 0135. Exact merge-tree reproduction
+excludes conflict-resolution content from the exemption, while full
+pull-request diff and review remain mandatory.
 
 Rollback is a normal revert. It restores the stricter false-negative behavior
 without changing published artifacts or persisted data.
@@ -97,18 +95,15 @@ without changing published artifacts or persisted data.
 ## Rejected or deferred candidates
 
 An unconditional merge exemption is rejected because a content-bearing merge
-can carry authored conflict resolution. Independent merge-tree reproduction is
-deferred: it would strengthen the classification, but GitHub's exact merge
-strategy and runner Git compatibility need separate false-negative evidence
-before becoming a required contribution gate. Replacing DCO2, changing branch
+can carry authored conflict resolution. Replacing DCO2, changing branch
 protection and implementing issue #339 are rejected as unrelated scope.
 
 ## Open questions and blockers
 
-None blocking. The residual dependence on GitHub's verified identity and the
-absence of merge-tree reproduction are explicit limitations, not hidden
-assurance claims. A false positive or false negative in the structural
-classifier triggers reconsideration before the next policy revision.
+None blocking. The residual dependence on GitHub's verified identity is an
+explicit limitation, not a hidden assurance claim. A false positive or false
+negative in the structural classifier triggers reconsideration before the next
+policy revision.
 
 ## Evidence commands
 

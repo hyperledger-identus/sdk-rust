@@ -20,7 +20,7 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { test } from "node:test";
-import { parseConventionalSubject, validateBranchName, validateHostedCommits, validatePullRequest } from "../ci/contribution-policy.mjs";
+import { parseConventionalSubject, policy, resolveSignatureEnvelopes, validateBranchName, validateHostedCommits, validatePullRequest } from "../ci/contribution-policy.mjs";
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
 import {
   exactIsoDate,
@@ -620,7 +620,7 @@ test("merge arguments and private receipts are closed and immutable", () => {
   }
 });
 
-test("hosted commit evidence fails closed on invalid verification and head", () => {
+test("hosted commit evidence accepts declared envelopes and fails closed otherwise", () => {
   const record = {
     sha,
     message: "feat(factory): add bounded runtime\n\nSigned-off-by: Agent <agent@example.com>",
@@ -629,8 +629,35 @@ test("hosted commit evidence fails closed on invalid verification and head", () 
     verification: { verified: true, reason: "valid", signature: "-----BEGIN PGP SIGNATURE-----\nfixture" },
   };
   assert.equal(validateHostedCommits([record], sha).ok, true);
-  assert.equal(validateHostedCommits([{ ...record, verification: { verified: false, reason: "unsigned" } }], sha).ok, false);
+  const ssh = { ...record, verification: { ...record.verification, signature: "-----BEGIN SSH SIGNATURE-----\nfixture" } };
+  assert.equal(validateHostedCommits([ssh], sha).ok, true);
+  const undeclared = { ...record, verification: { ...record.verification, signature: "-----BEGIN X509 SIGNATURE-----\nfixture" } };
+  const undeclaredOutcome = validateHostedCommits([undeclared], sha);
+  assert.equal(undeclaredOutcome.ok, false);
+  assert.match(undeclaredOutcome.errors.join("\n"), /envelope is not accepted/u);
+  const unsigned = { ...record, verification: { verified: false, reason: "unsigned" } };
+  const unsignedOutcome = validateHostedCommits([unsigned], sha);
+  assert.equal(unsignedOutcome.ok, false);
+  assert.match(unsignedOutcome.errors.join("\n"), /does not verify this commit signature \(unsigned\)/u);
+  const misreported = { ...record, verification: { ...record.verification, verified: false } };
+  assert.equal(validateHostedCommits([misreported], sha).ok, false);
+  const noEnvelope = { ...record, verification: { verified: true, reason: "valid" } };
+  const noEnvelopeOutcome = validateHostedCommits([noEnvelope], sha);
+  assert.equal(noEnvelopeOutcome.ok, false);
+  assert.match(noEnvelopeOutcome.errors.join("\n"), /missing its signature envelope/u);
   assert.equal(validateHostedCommits([record], "b".repeat(40)).ok, false);
+});
+
+test("signature envelope policy fails closed on a malformed declaration", () => {
+  assert.deepEqual(resolveSignatureEnvelopes(policy), ["-----BEGIN PGP SIGNATURE-----", "-----BEGIN SSH SIGNATURE-----"]);
+  const malformed = [
+    {},
+    { commit: {} },
+    { commit: { signatureEnvelopes: [] } },
+    { commit: { signatureEnvelopes: [""] } },
+    { commit: { signatureEnvelopes: ["-----BEGIN PGP SIGNATURE-----", 7] } },
+  ];
+  for (const document of malformed) assert.equal(resolveSignatureEnvelopes(document), null);
 });
 
 test("target plan keeps one fast PR gate and routes risk to slow evidence", () => {

@@ -26,8 +26,8 @@ hand-authored merge can contain new conflict resolution or other content.
 2. The synchronization classification requires two distinct parents, the
    previous pull-request commit as first parent, the protected base or its
    ancestor as second parent, the exact base-into-head subject, GitHub's
-   platform committer identity, and a signature GitHub reports as verified and
-   valid.
+   platform committer identity including the `web-flow` actor, and a signature
+   GitHub reports as verified and valid.
 3. Only Conventional Commit subject and DCO trailer checks are omitted for
    that record. Accepted-envelope signature validation remains mandatory.
 4. Ordinary commits, malformed records, hand-authored merges and local range

@@ -2,10 +2,10 @@
 
 ## Hosted record and context
 
-The workflow adds `committerName`, `committerEmail` and `parentShas` to every
-commit record and supplies `PR_BASE_SHA`, `PR_BASE_REF` and `PR_HEAD_REF` to the
-checker. All new values come from the signed pull-request event or GitHub API;
-none is supplied by pull-request prose.
+The workflow adds `committerName`, `committerEmail`, `committerActor` and
+`parentShas` to every commit record and supplies `PR_BASE_SHA`, `PR_BASE_REF`
+and `PR_HEAD_REF` to the checker. All new values come from the signed
+pull-request event or GitHub API; none is supplied by pull-request prose.
 
 `validateHostedCommits` receives this context and classifies each record before
 authored-metadata validation. The function keeps its exact-head and duplicate-
@@ -19,7 +19,8 @@ A record is a GitHub synchronization merge only when:
 2. its first parent equals the immediately preceding pull-request record;
 3. its second parent equals or is an ancestor of the event's base SHA;
 4. its subject is exactly `Merge branch '<base-ref>' into <head-ref>`;
-5. its committer is exactly `GitHub <noreply@github.com>`; and
+5. its committer is exactly `GitHub <noreply@github.com>` and its API actor is
+   `web-flow`; and
 6. GitHub reports its signature as verified with reason `valid`.
 
 The ancestor test uses the already complete checkout and `git merge-base

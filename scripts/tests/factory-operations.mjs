@@ -20,7 +20,7 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { test } from "node:test";
-import { localVerificationFailureDetail, parseConventionalSubject, policy, resolveSignatureEnvelopes, validateBranchName, validateCommitEvidence, validateCommitRange, validateHostedCommits, validatePullRequest, validateSignatureProvenance } from "../ci/contribution-policy.mjs";
+import { isGitHubSynchronizationMerge, localVerificationFailureDetail, parseConventionalSubject, policy, resolveSignatureEnvelopes, validateBranchName, validateCommitEvidence, validateCommitRange, validateHostedCommits, validatePullRequest, validateSignatureProvenance } from "../ci/contribution-policy.mjs";
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
 import {
   exactIsoDate,
@@ -646,6 +646,107 @@ test("hosted commit evidence accepts declared envelopes and fails closed otherwi
   assert.equal(noEnvelopeOutcome.ok, false);
   assert.match(noEnvelopeOutcome.errors.join("\n"), /missing its signature envelope/u);
   assert.equal(validateHostedCommits([record], "b".repeat(40)).ok, false);
+});
+
+test("hosted policy narrowly accepts a verified GitHub synchronization merge", () => {
+  const previousSha = "b".repeat(40);
+  const baseParent = "c".repeat(40);
+  const currentBase = "d".repeat(40);
+  const mergeSha = "e".repeat(40);
+  const signature = { verified: true, reason: "valid", signature: "-----BEGIN PGP SIGNATURE-----\nfixture" };
+  const prior = {
+    sha: previousSha,
+    message: "fix(governance): accept ssh signatures\n\nSigned-off-by: Agent <agent@example.com>",
+    authorName: "Agent",
+    authorEmail: "agent@example.com",
+    verification: signature,
+  };
+  const merge = {
+    sha: mergeSha,
+    message: "Merge branch 'develop' into fix/issue-342",
+    authorName: "Agent",
+    authorEmail: "agent@example.com",
+    committerName: "GitHub",
+    committerEmail: "noreply@github.com",
+    committerActor: "web-flow",
+    parentShas: [previousSha, baseParent],
+    verification: signature,
+  };
+  const context = {
+    baseSha: currentBase,
+    baseRef: "develop",
+    headRef: "fix/issue-342",
+    isAncestor: (ancestor, descendant) => ancestor === baseParent && descendant === currentBase,
+  };
+
+  assert.equal(isGitHubSynchronizationMerge(merge, previousSha, context), true);
+  assert.equal(validateHostedCommits([prior, merge], mergeSha, context).ok, true);
+  assert.equal(validateCommitEvidence(merge).ok, false, "local/default validation stays fail-closed");
+
+  const rejected = [
+    { ...merge, parentShas: [previousSha] },
+    { ...merge, parentShas: [baseParent, previousSha] },
+    { ...merge, parentShas: [previousSha, "f".repeat(40)] },
+    { ...merge, committerName: "Agent" },
+    { ...merge, committerEmail: "agent@example.com" },
+    { ...merge, committerActor: "agent" },
+    { ...merge, message: "Merge develop into fix/issue-342" },
+    { ...merge, verification: { verified: false, reason: "unsigned" } },
+  ];
+  for (const candidate of rejected) {
+    assert.equal(isGitHubSynchronizationMerge(candidate, previousSha, context), false);
+    assert.equal(validateHostedCommits([prior, candidate], mergeSha, context).ok, false);
+  }
+  assert.equal(isGitHubSynchronizationMerge(merge, previousSha), false);
+  assert.equal(validateHostedCommits([prior, merge], mergeSha).ok, false);
+});
+
+test("synchronization classification accepts a protected-base ancestor", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-sync-ancestor-"));
+  try {
+    execFileSync("git", ["-c", "init.defaultBranch=develop", "init", "-q", created]);
+    const identity = ["-c", "user.name=Agent", "-c", "user.email=agent@example.com", "-c", "commit.gpgsign=false"];
+    execFileSync("git", [...identity, "commit", "-q", "--allow-empty", "-m", "base one"], { cwd: created });
+    const baseParent = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    execFileSync("git", [...identity, "commit", "-q", "--allow-empty", "-m", "base two"], { cwd: created });
+    const currentBase = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    const previousSha = "b".repeat(40);
+    const record = {
+      message: "Merge branch 'develop' into fix/issue-342",
+      committerName: "GitHub",
+      committerEmail: "noreply@github.com",
+      committerActor: "web-flow",
+      parentShas: [previousSha, baseParent],
+      verification: { verified: true, reason: "valid" },
+    };
+    assert.equal(isGitHubSynchronizationMerge(record, previousSha, {
+      baseSha: currentBase,
+      baseRef: "develop",
+      headRef: "fix/issue-342",
+      repository: created,
+    }), true);
+    assert.equal(isGitHubSynchronizationMerge(record, previousSha, {
+      baseSha: "f".repeat(40),
+      baseRef: "develop",
+      headRef: "fix/issue-342",
+      repository: created,
+    }), false);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("hosted workflow projects synchronization evidence from GitHub", () => {
+  const workflow = readFileSync(new URL("../../.github/workflows/pull-request-policy.yml", import.meta.url), "utf8");
+  for (const pattern of [
+    /PR_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/u,
+    /PR_BASE_REF: \$\{\{ github\.event\.pull_request\.base\.ref \}\}/u,
+    /PR_HEAD_REF: \$\{\{ github\.event\.pull_request\.head\.ref \}\}/u,
+    /committerName: \.commit\.committer\.name/u,
+    /committerEmail: \.commit\.committer\.email/u,
+    /committerActor: \(\.committer\.login \/\/ ""\)/u,
+    /parentShas: \[\.parents\[\]\.sha\]/u,
+  ]) assert.match(workflow, pattern);
 });
 
 test("signature envelope policy fails closed on a malformed declaration", () => {

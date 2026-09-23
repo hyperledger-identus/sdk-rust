@@ -143,7 +143,7 @@ passed.
 
 ## Commits
 
-Every commit must:
+Every authored commit must:
 
 - be a small, coherent change;
 - follow Conventional Commits;
@@ -158,7 +158,10 @@ git commit -S -s -m "docs: define sdk governance"
 ```
 
 See [DCO.md](DCO.md) for the accepted signature mechanisms, the SSH signing
-setup and the org-level divergence record.
+setup, the org-level divergence record and the narrow hosted-CI treatment of a
+GitHub-generated **Update branch** synchronization merge. That platform merge
+still requires a verified accepted signature; ordinary web-editor and local
+commits receive no subject or DCO exemption.
 
 ## Pull requests
 

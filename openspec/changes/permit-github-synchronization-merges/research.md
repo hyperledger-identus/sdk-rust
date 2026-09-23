@@ -18,8 +18,8 @@ an authored commit from a platform-generated synchronization merge.
 PR #340 provides an exact regression fixture. Commit
 `39d20dccd05c520d4cb4f06d7413755231235bff` has two parents: prior PR head
 `44206da491b1190db783e8c635ffc8c8361a6463` and protected `develop` head
-`e7002e8d662b4efd9207b1ba9df0c16a9988c279`. GitHub is the committer, the
-OpenPGP signature is verified and valid, and the subject is the canonical
+`e7002e8d662b4efd9207b1ba9df0c16a9988c279`. GitHub is the committer with API
+actor `web-flow`, the OpenPGP signature is verified and valid, and the subject is the canonical
 base-into-head merge subject. The local policy rejected only the non-
 conventional subject and absent DCO trailer. The independent DCO2 status passed.
 

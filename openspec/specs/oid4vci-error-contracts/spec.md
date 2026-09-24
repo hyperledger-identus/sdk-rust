@@ -50,34 +50,48 @@ SHALL occur in the router.
 
 ### Requirement: Exact pre-refactor behavior is immutable
 
-The compatibility oracle SHALL be a planning golden captured from
+The compatibility oracle SHALL remain the planning golden captured from
 `develop@6217384f85ff72003a7b94482bf7879f4587be02` with exactly 171 unique
 ordered rows and SHA-256
 `2c9e03381744b11902eb8b8bbc08934374781fad99d6561573cfcd62490bcd39`.
-It SHALL pin constant identity/visibility, code, kind, capability,
+It SHALL pin baseline constant identity/visibility, code, kind, capability,
 local/public/full display, discriminant order, and source. Stable and planning
-copies SHALL be byte-identical, fixed-hash, and receipt-blob bound. Ambiguity,
-absence, schema/type drift, coordinated mutation, path escape, or symlinked
-components SHALL fail closed.
+copies SHALL remain byte-identical, fixed-hash, and receipt-blob bound.
 
-#### Scenario: every current error remains exact
+The 171 baseline variants SHALL be the exact ordered prefix of the complete
+live exhaustive inventory. Every live inventory entry SHALL be unique. A new
+variant SHALL append after the existing inventory and SHALL NOT rewrite the v1
+fixture. Ambiguity, baseline insertion/reorder/removal, schema/type drift,
+coordinated fixture mutation, path escape, or symlinked components SHALL fail
+closed.
 
-- **WHEN** the refactored catalogue is compared with the golden
-- **THEN** all 171 rows remain ordered, public, exact-message, source-free, and distributed as 167 InvalidInput plus four Unsupported
+#### Scenario: every baseline error remains exact after additive evolution
+
+- **WHEN** the live catalogue is compared with the v1 golden
+- **THEN** the first 171 entries remain ordered, public, exact-message,
+  source-free, and distributed as 167 InvalidInput plus four Unsupported
+- **AND** any live suffix contains only unique append-only variants
 
 ### Requirement: Public, wire, and protocol boundaries remain unchanged
 
-The public OID4VCI error surface SHALL remain exact, including enum order,
-derives, non-exhaustive marker, `CAPABILITY`, all public constants/paths,
-`From`, `Display`, `Error`, and `pub const fn to_identus_error`. Existing typed
-protocol error responses, Serde/wire shapes, parsers, bounds, transports,
-metadata, token, credential, nonce, and issuance behavior SHALL remain exact.
-Issues #7 and #168 SHALL receive no behavioral delta.
+The v1 OID4VCI error surface SHALL remain exact, including its enum prefix,
+derives, non-exhaustive marker, `CAPABILITY`, all baseline public
+constants/paths, `From`, `Display`, `Error`, and
+`pub const fn to_identus_error`. A later issue-scoped feature MAY append a
+fieldless variant, public stable code and exhaustive router record only when it
+preserves every baseline discriminant and contract and independently tests the
+new contract.
 
-#### Scenario: compatibility diff is empty
+Existing typed protocol error responses and Serde/wire shapes SHALL remain
+unchanged unless the feature's own specification explicitly governs a delta.
+No feature may use this evolution rule to weaken redaction, stable-code,
+resource-bound or compatibility requirements.
 
-- **WHEN** base and head public/dependency/protocol inventories are compared
-- **THEN** no public item, constness, wire behavior, manifest, feature, dependency, lockfile, canonical protocol specification, #7, or #168 delta exists
+#### Scenario: additive error leaves the baseline exact
+
+- **WHEN** a feature appends an independently tested fieldless error contract
+- **THEN** all v1 public items, discriminants, codes, kinds, messages,
+  conversions and wire behavior remain exact
 
 ### Requirement: Portable-target evidence remains bounded
 
@@ -93,13 +107,16 @@ promise.
 
 ### Requirement: Maintainability evidence is truthful
 
-The change SHALL report largest bridge/router/catalogue, mapping sites,
-wildcard defaults, decision count, error-contract lines, and whole-crate
-production lines. It SHALL retain 171 behavioral decisions, one mapping site,
-and zero wildcard defaults, cap catalogues at 39 records, and disclose every
-total-line movement without claiming decision deduplication or compression.
+The historical refactor SHALL retain its 171 baseline behavioral decisions,
+one mapping site and zero wildcard defaults. The complete live decision count
+MAY grow only through append-only independently tested feature contracts. Six
+responsibility catalogues SHALL remain discoverable, no catalogue SHALL exceed
+the standing 39-record review ceiling, and every total-line or record-count
+movement SHALL be disclosed without claiming decision deduplication.
 
-#### Scenario: cohesion improves without false compression
+#### Scenario: cohesion survives additive evolution
 
-- **WHEN** before/after evidence is reviewed
-- **THEN** six responsibility catalogues are independently discoverable, the public bridge is a small delegator, and all 171 decisions remain explicit
+- **WHEN** a new error contract is appended
+- **THEN** its responsibility catalogue remains independently reviewable, the
+  router remains one explicit wildcard-free decision site, and all baseline
+  plus live decisions remain explicit

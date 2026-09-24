@@ -598,6 +598,15 @@ count claim and adds no HTTP execution/provenance, token/TLS handling, interval
 scheduling, retry/invalidation, error response parsing, encryption, credential
 verification/storage, trust or product policy.
 
+The twenty-sixth bounded delivery, issue #348, composes the existing Final
+Credential payload-error HTTP parser through the originating Deferred
+Credential Request. It recognizes exact `invalid_transaction_id`, distinguishes
+exact `credential_request_denied`, and exposes the standard's stop-polling
+guidance as a pure query while retaining inherited known and extension errors
+through the existing bounded core. It adds no parser, limits, error contracts,
+dependency, HTTP/RFC 6750 handling, timer, retry, invalidation, persistence,
+encryption, credential verification, trust or product policy.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

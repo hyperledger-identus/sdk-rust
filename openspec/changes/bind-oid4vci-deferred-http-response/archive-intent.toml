@@ -2,7 +2,7 @@
 capability       = "ssi-upstream-program"
 requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
 canonical_sha256 = "3991cd20ab45759a55324efe8d5f7a3a860157910413e02310c3b4fc60f57f78"
-reason           = "Focused issue #345 becomes the live IDR-023 owner while preserving the in-progress component status and all prior non-completion boundaries."
+reason           = "Issue #345 delivers request-bound successful deferred responses and hands the live IDR-023 pointer to focused successor #348 while preserving in-progress status and all non-completion boundaries."
 
 [[modified_requirement]]
 capability       = "oid4vci-error-contracts"

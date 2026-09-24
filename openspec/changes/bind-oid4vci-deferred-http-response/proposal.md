@@ -21,7 +21,8 @@ one request-bound state transition.
 - Reuse the existing bounded Final response parsers and JSON media-type rules.
 - Add exact status, media-type, correlation, boundary, redaction and
   compatibility tests.
-- Add ADR 0138 and advance the canonical IDR-023 pointer to issue #345.
+- Add ADR 0138 and hand the canonical IDR-023 pointer from delivered issue
+  #345 to focused successor #348.
 
 ## What does not change
 
@@ -40,8 +41,8 @@ added.
 
 ### Modified capabilities
 
-- `ssi-upstream-program`: advance IDR-023 from component epic #7 to focused
-  child #345 while retaining `in_progress` status.
+- `ssi-upstream-program`: record focused child #345 as delivered and advance
+  IDR-023 to focused successor #348 while retaining `in_progress` status.
 - `oid4vci-error-contracts`: append five independently tested fieldless
   response-validation errors under ADR 0137 without changing the v1 prefix.
 

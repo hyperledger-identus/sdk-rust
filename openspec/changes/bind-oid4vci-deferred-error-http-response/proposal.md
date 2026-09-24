@@ -22,8 +22,8 @@ that logic in wallets would fragment lifecycle semantics and error handling.
   descriptions through the existing response core.
 - Add exact status, media-type, classification, boundary, repeatability and
   redaction tests.
-- Add ADR 0139 and retain #348 as the live IDR-023 owner until delivery chooses
-  a focused successor or returns ownership to component epic #7.
+- Add ADR 0139 and hand the live IDR-023 pointer from delivered #348 to focused
+  authorization-code server-binding successor #350.
 
 ## What does not change
 
@@ -41,9 +41,9 @@ mutation, publication, release or product policy is added.
 
 ### Modified capabilities
 
-- `ssi-upstream-program`: record #348 as the active bounded payload-error
-  child while preserving IDR-023 `in_progress` status and all engine-level
-  non-completion boundaries.
+- `ssi-upstream-program`: record #348 as delivered and advance IDR-023 to
+  focused successor #350 while preserving `in_progress` status and all
+  engine-level non-completion boundaries.
 
 ## Authority
 

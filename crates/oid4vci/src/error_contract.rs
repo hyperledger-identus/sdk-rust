@@ -55,18 +55,53 @@ mod tests {
             .collect()
     }
 
+    fn assert_inventory_extends_baseline(inventory: &[String], baseline: &[String]) {
+        let unique: BTreeSet<_> = inventory.iter().collect();
+
+        assert!(inventory.len() >= baseline.len());
+        assert_eq!(unique.len(), inventory.len());
+        assert_eq!(&inventory[..baseline.len()], baseline);
+    }
+
     #[test]
     fn compile_exhaustive_variant_inventory_extends_ordered_fixture_keys() {
         let inventory: Vec<_> = CredentialOfferError::CONTRACT_VARIANTS
             .iter()
             .map(|error| format!("{error:?}"))
             .collect();
-        let unique: BTreeSet<_> = inventory.iter().collect();
         let baseline = fixture_variants();
 
         assert_eq!(baseline.len(), 171);
-        assert!(inventory.len() >= baseline.len());
-        assert_eq!(unique.len(), inventory.len());
-        assert_eq!(&inventory[..baseline.len()], baseline.as_slice());
+        assert_inventory_extends_baseline(&inventory, &baseline);
+    }
+
+    #[test]
+    fn append_only_rule_accepts_a_unique_suffix() {
+        let baseline = vec!["First".to_owned(), "Second".to_owned()];
+        let inventory = vec![
+            "First".to_owned(),
+            "Second".to_owned(),
+            "Appended".to_owned(),
+        ];
+
+        assert_inventory_extends_baseline(&inventory, &baseline);
+    }
+
+    #[test]
+    #[should_panic]
+    fn append_only_rule_rejects_baseline_reordering() {
+        let baseline = vec!["First".to_owned(), "Second".to_owned()];
+        let inventory = vec!["Second".to_owned(), "First".to_owned()];
+
+        assert_inventory_extends_baseline(&inventory, &baseline);
+    }
+
+    #[test]
+    #[should_panic]
+    fn append_only_rule_rejects_duplicate_suffix_entries() {
+        let baseline = vec!["First".to_owned(), "Second".to_owned()];
+        let inventory = vec!["First".to_owned(), "Second".to_owned(), "Second".to_owned()];
+
+        assert_inventory_extends_baseline(&inventory, &baseline);
     }
 }

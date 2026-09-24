@@ -21,6 +21,37 @@ pub(crate) const DEFERRED_CREDENTIAL_REQUEST_TOO_LARGE: ErrorContract = ErrorCon
     "OID4VCI Deferred Credential Request is too large",
 );
 
+pub(crate) const INVALID_DEFERRED_CREDENTIAL_HTTP_RESPONSE_LIMITS: ErrorContract =
+    ErrorContract::new(
+        error_code::INVALID_DEFERRED_CREDENTIAL_HTTP_RESPONSE_LIMITS,
+        ErrorKind::InvalidInput,
+        "OID4VCI Deferred Credential HTTP response limits are invalid",
+    );
+
+pub(crate) const INVALID_DEFERRED_CREDENTIAL_HTTP_STATUS: ErrorContract = ErrorContract::new(
+    error_code::INVALID_DEFERRED_CREDENTIAL_HTTP_STATUS,
+    ErrorKind::InvalidInput,
+    "OID4VCI Deferred Credential HTTP status is invalid",
+);
+
+pub(crate) const DEFERRED_CREDENTIAL_CONTENT_TYPE_TOO_LARGE: ErrorContract = ErrorContract::new(
+    error_code::DEFERRED_CREDENTIAL_CONTENT_TYPE_TOO_LARGE,
+    ErrorKind::InvalidInput,
+    "OID4VCI Deferred Credential Content-Type is too large",
+);
+
+pub(crate) const INVALID_DEFERRED_CREDENTIAL_CONTENT_TYPE: ErrorContract = ErrorContract::new(
+    error_code::INVALID_DEFERRED_CREDENTIAL_CONTENT_TYPE,
+    ErrorKind::InvalidInput,
+    "OID4VCI Deferred Credential Content-Type is invalid",
+);
+
+pub(crate) const DEFERRED_CREDENTIAL_TRANSACTION_MISMATCH: ErrorContract = ErrorContract::new(
+    error_code::DEFERRED_CREDENTIAL_TRANSACTION_MISMATCH,
+    ErrorKind::InvalidInput,
+    "OID4VCI Deferred Credential transaction does not match its request",
+);
+
 pub(crate) const INVALID_DEFERRED_CREDENTIAL_RESPONSE_LIMITS: ErrorContract = ErrorContract::new(
     error_code::INVALID_DEFERRED_CREDENTIAL_RESPONSE_LIMITS,
     ErrorKind::InvalidInput,

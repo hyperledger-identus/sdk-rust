@@ -21,6 +21,7 @@ pub const DEFERRED_CREDENTIAL_REQUEST_MEDIA_TYPE: &str = "application/json";
 pub struct DeferredCredentialRequest {
     deferred_credential_endpoint: DeferredCredentialEndpoint,
     json_body: Zeroizing<Vec<u8>>,
+    transaction_id: Zeroizing<String>,
 }
 
 impl DeferredCredentialRequest {
@@ -56,6 +57,10 @@ impl DeferredCredentialRequest {
     pub fn expose_sensitive_json_body(&self) -> &[u8] {
         &self.json_body
     }
+
+    pub(crate) fn transaction_id(&self) -> &str {
+        &self.transaction_id
+    }
 }
 
 impl fmt::Debug for DeferredCredentialRequest {
@@ -90,6 +95,11 @@ impl DeferredCredentialResponseCore {
         Ok(DeferredCredentialRequest {
             deferred_credential_endpoint: endpoint.duplicate(),
             json_body,
+            transaction_id: Zeroizing::new(
+                self.transaction_id()
+                    .expose_sensitive_transaction_id()
+                    .to_owned(),
+            ),
         })
     }
 }

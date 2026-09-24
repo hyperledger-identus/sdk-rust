@@ -275,6 +275,16 @@ pub mod error_code {
         ErrorCode::new("oid4vci.deferred_credential_endpoint_required");
     pub const DEFERRED_CREDENTIAL_REQUEST_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.deferred_credential_request_too_large");
+    pub const INVALID_DEFERRED_CREDENTIAL_HTTP_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_deferred_credential_http_response_limits");
+    pub const INVALID_DEFERRED_CREDENTIAL_HTTP_STATUS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_deferred_credential_http_status");
+    pub const DEFERRED_CREDENTIAL_CONTENT_TYPE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.deferred_credential_content_type_too_large");
+    pub const INVALID_DEFERRED_CREDENTIAL_CONTENT_TYPE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_deferred_credential_content_type");
+    pub const DEFERRED_CREDENTIAL_TRANSACTION_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vci.deferred_credential_transaction_mismatch");
     pub const INVALID_DEFERRED_CREDENTIAL_RESPONSE_LIMITS: ErrorCode =
         ErrorCode::new("oid4vci.invalid_deferred_credential_response_limits");
     pub const DEFERRED_CREDENTIAL_RESPONSE_TOO_LARGE: ErrorCode =
@@ -506,6 +516,11 @@ pub enum CredentialOfferError {
     ImmediateCredentialContentTypeTooLarge,
     InvalidImmediateCredentialContentType,
     CredentialResponseExceedsProofCount,
+    InvalidDeferredCredentialHttpResponseLimits,
+    InvalidDeferredCredentialHttpStatus,
+    DeferredCredentialContentTypeTooLarge,
+    InvalidDeferredCredentialContentType,
+    DeferredCredentialTransactionMismatch,
 }
 
 macro_rules! define_credential_offer_error_contracts {
@@ -697,6 +712,11 @@ define_credential_offer_error_contracts! {
     ImmediateCredentialContentTypeTooLarge => deferred_immediate_issuance::IMMEDIATE_CREDENTIAL_CONTENT_TYPE_TOO_LARGE,
     InvalidImmediateCredentialContentType => deferred_immediate_issuance::INVALID_IMMEDIATE_CREDENTIAL_CONTENT_TYPE,
     CredentialResponseExceedsProofCount => deferred_immediate_issuance::CREDENTIAL_RESPONSE_EXCEEDS_PROOF_COUNT,
+    InvalidDeferredCredentialHttpResponseLimits => deferred_immediate_issuance::INVALID_DEFERRED_CREDENTIAL_HTTP_RESPONSE_LIMITS,
+    InvalidDeferredCredentialHttpStatus => deferred_immediate_issuance::INVALID_DEFERRED_CREDENTIAL_HTTP_STATUS,
+    DeferredCredentialContentTypeTooLarge => deferred_immediate_issuance::DEFERRED_CREDENTIAL_CONTENT_TYPE_TOO_LARGE,
+    InvalidDeferredCredentialContentType => deferred_immediate_issuance::INVALID_DEFERRED_CREDENTIAL_CONTENT_TYPE,
+    DeferredCredentialTransactionMismatch => deferred_immediate_issuance::DEFERRED_CREDENTIAL_TRANSACTION_MISMATCH,
 }
 
 impl CredentialOfferError {

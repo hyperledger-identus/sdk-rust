@@ -21,7 +21,7 @@ one request-bound state transition.
 - Reuse the existing bounded Final response parsers and JSON media-type rules.
 - Add exact status, media-type, correlation, boundary, redaction and
   compatibility tests.
-- Add ADR 0137 and advance the canonical IDR-023 pointer to issue #345.
+- Add ADR 0138 and advance the canonical IDR-023 pointer to issue #345.
 
 ## What does not change
 

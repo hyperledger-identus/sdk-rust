@@ -12,7 +12,7 @@
 - [ ] 2.1 Retain the request transaction identifier under zeroizing ownership.
 - [ ] 2.2 Add composite limits, typed issued/pending outcomes and validation.
 - [ ] 2.3 Add status, media-type, body, correlation and redaction tests.
-- [ ] 2.4 Add ADR 0137 and update IDR-023 roadmap/inventory evidence.
+- [ ] 2.4 Add ADR 0138 and update IDR-023 roadmap/inventory evidence.
 
 ## 3. Review and delivery
 

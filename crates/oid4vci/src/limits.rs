@@ -1099,6 +1099,57 @@ impl Default for ImmediateCredentialHttpResponseLimits {
     }
 }
 
+/// Resource limits for a caller-supplied Deferred Credential HTTP response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DeferredCredentialHttpResponseLimits {
+    immediate_response_limits: ImmediateCredentialResponseLimits,
+    deferred_response_limits: DeferredCredentialResponseLimits,
+    max_content_type_bytes: usize,
+}
+
+impl DeferredCredentialHttpResponseLimits {
+    /// Combine both successful body policies with a positive Content-Type bound.
+    pub const fn new(
+        immediate_response_limits: ImmediateCredentialResponseLimits,
+        deferred_response_limits: DeferredCredentialResponseLimits,
+        max_content_type_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_content_type_bytes == 0 {
+            return Err(CredentialOfferError::InvalidDeferredCredentialHttpResponseLimits);
+        }
+        Ok(Self {
+            immediate_response_limits,
+            deferred_response_limits,
+            max_content_type_bytes,
+        })
+    }
+
+    /// Return the bounded issued response-body policy.
+    pub const fn immediate_response_limits(self) -> ImmediateCredentialResponseLimits {
+        self.immediate_response_limits
+    }
+
+    /// Return the bounded still-pending response-body policy.
+    pub const fn deferred_response_limits(self) -> DeferredCredentialResponseLimits {
+        self.deferred_response_limits
+    }
+
+    /// Maximum bytes in the effective Content-Type field value.
+    pub const fn max_content_type_bytes(self) -> usize {
+        self.max_content_type_bytes
+    }
+}
+
+impl Default for DeferredCredentialHttpResponseLimits {
+    fn default() -> Self {
+        Self {
+            immediate_response_limits: ImmediateCredentialResponseLimits::default(),
+            deferred_response_limits: DeferredCredentialResponseLimits::default(),
+            max_content_type_bytes: 1_024,
+        }
+    }
+}
+
 /// Resource limits for unsigned Credential Issuer Metadata.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialIssuerMetadataLimits {

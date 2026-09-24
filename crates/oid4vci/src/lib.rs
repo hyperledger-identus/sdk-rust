@@ -29,6 +29,7 @@ mod credential_error_response;
 mod credential_nonce_http_response;
 mod credential_nonce_request;
 mod credential_nonce_response;
+mod deferred_credential_http_response;
 mod deferred_credential_request;
 mod deferred_credential_response;
 mod error;
@@ -60,6 +61,7 @@ pub use credential_nonce_request::{
     CredentialNonceRequest, NONCE_REQUEST_BODY, NONCE_REQUEST_HTTP_METHOD,
 };
 pub use credential_nonce_response::{CredentialNonce, CredentialNonceResponseCore};
+pub use deferred_credential_http_response::DeferredCredentialOutcome;
 pub use deferred_credential_request::{
     DEFERRED_CREDENTIAL_REQUEST_HTTP_METHOD, DEFERRED_CREDENTIAL_REQUEST_MEDIA_TYPE,
     DeferredCredentialRequest,
@@ -84,11 +86,12 @@ pub use limits::{
     AuthorizationServerMetadataLimits, CredentialErrorHttpResponseLimits,
     CredentialErrorResponseLimits, CredentialIssuerMetadataLimits,
     CredentialNonceHttpResponseLimits, CredentialNonceResponseLimits, CredentialOfferGrantLimits,
-    CredentialOfferLimits, CredentialOfferSemanticLimits, DeferredCredentialRequestLimits,
-    DeferredCredentialResponseLimits, ImmediateCredentialHttpResponseLimits,
-    ImmediateCredentialResponseLimits, JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH,
-    PreAuthorizedTokenRequestLimits, TokenAuthorizationDetailsLimits, TokenErrorResponseLimits,
-    TokenResponseLimits, TransactionCodeInputLimits,
+    CredentialOfferLimits, CredentialOfferSemanticLimits, DeferredCredentialHttpResponseLimits,
+    DeferredCredentialRequestLimits, DeferredCredentialResponseLimits,
+    ImmediateCredentialHttpResponseLimits, ImmediateCredentialResponseLimits,
+    JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH, PreAuthorizedTokenRequestLimits,
+    TokenAuthorizationDetailsLimits, TokenErrorResponseLimits, TokenResponseLimits,
+    TransactionCodeInputLimits,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,

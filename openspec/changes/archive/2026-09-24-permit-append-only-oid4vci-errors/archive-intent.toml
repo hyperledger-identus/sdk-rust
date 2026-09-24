@@ -1,0 +1,17 @@
+[[modified_requirement]]
+capability       = "oid4vci-error-contracts"
+requirement      = "Exact pre-refactor behavior is immutable"
+canonical_sha256 = "7ce6f4a5a52d240b491a323515b1cb0d21f29cfa7a9d2d42596ff7944d3cb93b"
+reason           = "The immutable 171-row v1 oracle becomes the exact prefix of an append-only live inventory rather than a permanent ceiling."
+
+[[modified_requirement]]
+capability       = "oid4vci-error-contracts"
+requirement      = "Public, wire, and protocol boundaries remain unchanged"
+canonical_sha256 = "f39c2cbc122a12d6f600bf1998c6d6f4fa462a50e23355f7aaea7a54b57f0008"
+reason           = "The original boundary remains immutable while future issue-scoped additions append without changing baseline discriminants or contracts."
+
+[[modified_requirement]]
+capability       = "oid4vci-error-contracts"
+requirement      = "Maintainability evidence is truthful"
+canonical_sha256 = "85af9d33e03e7d3a899024ed9606ad4e3262e51c32f23afe907f1ae4af9aa6d4"
+reason           = "The baseline retains 171 decisions while the live decision count may grow append-only with independently tested feature errors."

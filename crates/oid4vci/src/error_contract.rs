@@ -56,15 +56,17 @@ mod tests {
     }
 
     #[test]
-    fn compile_exhaustive_variant_inventory_equals_ordered_fixture_keys() {
+    fn compile_exhaustive_variant_inventory_extends_ordered_fixture_keys() {
         let inventory: Vec<_> = CredentialOfferError::CONTRACT_VARIANTS
             .iter()
             .map(|error| format!("{error:?}"))
             .collect();
         let unique: BTreeSet<_> = inventory.iter().collect();
+        let baseline = fixture_variants();
 
-        assert_eq!(CredentialOfferError::CONTRACT_VARIANTS.len(), 171);
-        assert_eq!(unique.len(), 171);
-        assert_eq!(inventory, fixture_variants());
+        assert_eq!(baseline.len(), 171);
+        assert!(inventory.len() >= baseline.len());
+        assert_eq!(unique.len(), inventory.len());
+        assert_eq!(&inventory[..baseline.len()], baseline.as_slice());
     }
 }

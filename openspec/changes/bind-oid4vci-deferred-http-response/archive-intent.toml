@@ -3,3 +3,9 @@ capability       = "ssi-upstream-program"
 requirement      = "IDR-023 begins with a focused Credential Offer transport slice"
 canonical_sha256 = "3991cd20ab45759a55324efe8d5f7a3a860157910413e02310c3b4fc60f57f78"
 reason           = "Focused issue #345 becomes the live IDR-023 owner while preserving the in-progress component status and all prior non-completion boundaries."
+
+[[modified_requirement]]
+capability       = "oid4vci-error-contracts"
+requirement      = "Catalogue ownership follows OID4VCI responsibilities"
+canonical_sha256 = "af4e79864ba440a4d879ef12b9740fe1086d96e93676c877d2baa5049a82a7a6"
+reason           = "Five issue-scoped request-bound deferred HTTP validation errors append to the issuance catalogue under ADR 0137 without changing the immutable v1 prefix."

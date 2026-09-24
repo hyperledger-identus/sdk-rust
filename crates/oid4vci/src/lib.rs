@@ -10,8 +10,9 @@
 //! Error Response core with an explicit typed credential Authorization Details
 //! transition and the Credential Error payload-error HTTP envelope, plus bounded
 //! parsing of the deferred Credential Response body and bounded construction
-//! of the unencrypted Deferred Credential Request, plus a Credential Nonce
-//! Response core and a
+//! of the unencrypted Deferred Credential Request with request-bound issued or
+//! correlated-pending successful HTTP response validation, plus a Credential
+//! Nonce Response core and a
 //! transport-neutral Final Credential Nonce
 //! Request description and bounded validation of its mandatory HTTP response
 //! metadata, and bounded construction of the unencrypted Final

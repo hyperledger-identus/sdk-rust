@@ -35,6 +35,11 @@ second zeroizing copy of the decoded transaction identifier is bounded by the
 existing deferred response parser and is necessary for correlation after the
 request body has been constructed.
 
+Issue #346 and ADR 0137 preserve the immutable 171-row error v1 prefix while
+permitting only independently tested append-only live contracts. The five new
+fieldless errors follow that rule; the historical fixture and hash do not
+change and are not misrepresented as coverage of the suffix.
+
 ## Candidate decisions
 
 | Candidate | Disposition | Reason |

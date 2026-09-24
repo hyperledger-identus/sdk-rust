@@ -588,6 +588,16 @@ HTTP/TLS execution, interval scheduling, retry/replay/invalidation, encryption,
 response correlation, trust, storage and product policy remain later
 issue-first layers.
 
+The twenty-fifth bounded delivery, issue #345, binds caller-supplied successful
+Deferred Credential Endpoint response metadata and body to the originating
+request. It accepts only bounded `application/json` status 200 or 202 responses,
+returns an exhaustive issued/pending outcome through the existing bounded body
+parsers, and requires a pending response to return the exact request-owned
+zeroizing transaction identifier. It deliberately makes no immediate proof-
+count claim and adds no HTTP execution/provenance, token/TLS handling, interval
+scheduling, retry/invalidation, error response parsing, encryption, credential
+verification/storage, trust or product policy.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

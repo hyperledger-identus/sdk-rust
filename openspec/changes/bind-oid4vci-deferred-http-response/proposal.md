@@ -42,6 +42,8 @@ added.
 
 - `ssi-upstream-program`: advance IDR-023 from component epic #7 to focused
   child #345 while retaining `in_progress` status.
+- `oid4vci-error-contracts`: append five independently tested fieldless
+  response-validation errors under ADR 0137 without changing the v1 prefix.
 
 ## Authority
 

@@ -67,6 +67,9 @@ fn exact_200_json_response_returns_issued_outcome_without_cardinality_claim() {
     let issued = outcome.issued().expect("issued branch");
 
     assert!(outcome.pending().is_none());
+    let diagnostic = format!("{outcome:?}");
+    assert!(!diagnostic.contains("one"));
+    assert!(!diagnostic.contains("claim"));
     assert_eq!(issued.credentials().len(), 2);
     assert_eq!(
         issued.credentials()[0].expose_sensitive_string(),
@@ -93,6 +96,7 @@ fn exact_202_json_response_returns_correlated_pending_outcome() {
     let pending = outcome.pending().expect("pending branch");
 
     assert!(outcome.issued().is_none());
+    assert!(!format!("{outcome:?}").contains("8xLOxBtZp8"));
     assert_eq!(pending.interval().as_str(), "10");
     assert_eq!(pending.response_len(), body.len());
 }
@@ -260,29 +264,37 @@ fn new_errors_bridge_to_static_codes() {
         (
             CredentialOfferError::InvalidDeferredCredentialHttpResponseLimits,
             error_code::INVALID_DEFERRED_CREDENTIAL_HTTP_RESPONSE_LIMITS,
+            "OID4VCI Deferred Credential HTTP response limits are invalid",
         ),
         (
             CredentialOfferError::InvalidDeferredCredentialHttpStatus,
             error_code::INVALID_DEFERRED_CREDENTIAL_HTTP_STATUS,
+            "OID4VCI Deferred Credential HTTP status is invalid",
         ),
         (
             CredentialOfferError::DeferredCredentialContentTypeTooLarge,
             error_code::DEFERRED_CREDENTIAL_CONTENT_TYPE_TOO_LARGE,
+            "OID4VCI Deferred Credential Content-Type is too large",
         ),
         (
             CredentialOfferError::InvalidDeferredCredentialContentType,
             error_code::INVALID_DEFERRED_CREDENTIAL_CONTENT_TYPE,
+            "OID4VCI Deferred Credential Content-Type is invalid",
         ),
         (
             CredentialOfferError::DeferredCredentialTransactionMismatch,
             error_code::DEFERRED_CREDENTIAL_TRANSACTION_MISMATCH,
+            "OID4VCI Deferred Credential transaction does not match its request",
         ),
     ];
 
-    for (error, code) in cases {
+    for (error, code, message) in cases {
         let core: IdentusError = error.into();
         assert_eq!(core.code(), code);
         assert_eq!(core.kind(), ErrorKind::InvalidInput);
         assert_eq!(core.capability(), Some(CAPABILITY));
+        assert_eq!(error.to_string(), message);
+        assert_eq!(core.public_message(), message);
+        assert_eq!(core.to_string(), format!("{code}: {message}"));
     }
 }

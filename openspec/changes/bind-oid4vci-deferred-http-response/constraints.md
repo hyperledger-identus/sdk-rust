@@ -25,6 +25,8 @@ and honest target claims do not change.
   `202` uses the existing bounded deferred response parser and must return the
   exact request transaction identifier.
 - Limits, status, media type and mismatch failures use static fieldless errors.
+- Five new error variants and router entries append after the immutable v1
+  prefix under ADR 0137 and receive independent exact contract tests.
 - No generic serialization, Clone, networking or ambient authority is added.
 
 ## Introduced or changed limitations

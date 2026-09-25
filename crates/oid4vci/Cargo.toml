@@ -9,6 +9,7 @@ publish.workspace      = true
 [dependencies]
 fluent-uri.workspace   = true
 identus-core.workspace = true
+identus-crypto         = { workspace = true, features = [ "base64", "hash" ] }
 identus-jose.workspace = true
 serde_json.workspace   = true
 zeroize.workspace      = true

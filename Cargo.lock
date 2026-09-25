@@ -737,6 +737,7 @@ version = "0.0.0"
 dependencies = [
  "fluent-uri",
  "identus-core",
+ "identus-crypto",
  "identus-jose",
  "serde_json",
  "zeroize",

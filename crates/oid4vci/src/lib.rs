@@ -13,14 +13,15 @@
 //! of the unencrypted Deferred Credential Request with request-bound issued or
 //! correlated-pending successful HTTP response validation and bounded
 //! deferred payload-error classification, plus bounded Authorization Code
-//! offer/server capability binding, a Credential Nonce Response core and a
+//! offer/server capability binding and caller-supplied request-input validation
+//! with SDK-derived PKCE S256, a Credential Nonce Response core and a
 //! transport-neutral Final Credential Nonce
 //! Request description and bounded validation of its mandatory HTTP response
 //! metadata, and bounded construction of the unencrypted Final
 //! configuration-ID/JWT-proof Credential Request, and bounded parsing of the
 //! unencrypted immediate Final Credential Response core. It performs no
-//! network access, deferred polling policy, or Authorization Request/PKCE/PAR
-//! behavior, does not validate complete RFC 8414 metadata or Token Response
+//! network access, deferred polling policy, Authorization Request serialization,
+//! PAR, or callback behavior, does not validate complete RFC 8414 metadata or Token Response
 //! Authorization Details, and establishes no issuer, server, token,
 //! authorization, proof, transaction, or nonce trust.
 
@@ -28,6 +29,7 @@
 
 mod authorization_code_server;
 mod authorization_metadata;
+mod authorization_request_input;
 mod credential_error_http_response;
 mod credential_error_response;
 mod credential_nonce_http_response;
@@ -59,6 +61,11 @@ pub use authorization_code_server::CredentialOfferWithAuthorizationCodeServer;
 pub use authorization_metadata::{
     AUTHORIZATION_CODE_GRANT_TYPE, AuthorizationEndpoint, AuthorizationServerMetadataCore,
     GrantTypeIdentifier, IMPLICIT_GRANT_TYPE, PRE_AUTHORIZED_CODE_GRANT_TYPE, TokenEndpoint,
+};
+pub use authorization_request_input::{
+    AuthorizationRequestClientId, AuthorizationRequestInputLimits, AuthorizationRequestRedirectUri,
+    AuthorizationRequestState, CredentialOfferWithAuthorizationRequestInput, PKCE_S256_METHOD,
+    PkceCodeVerifier, PkceS256Challenge,
 };
 pub use credential_error_response::{
     CredentialEndpointErrorCode, CredentialEndpointErrorKind, CredentialErrorResponseCore,

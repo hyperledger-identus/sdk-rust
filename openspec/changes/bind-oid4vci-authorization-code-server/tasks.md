@@ -5,7 +5,7 @@
 - [x] 1.1 Create issue #350 before implementation.
 - [x] 1.2 Pin Final/RFC behavior, reuse decisions, compatibility and
   constraints from primary sources.
-- [ ] 1.3 Pass factory research and constraint readiness; bind the immutable
+- [x] 1.3 Pass factory research and constraint readiness; bind the immutable
   preimplementation receipt after committing this planning contract.
 
 ## 2. Implementation

@@ -180,6 +180,19 @@ consumer adoption, publication or release.
   payload errors without transport, authorization, timing or lifecycle effects
 - **THEN** the backlog keeps `IDR-023` in progress rather than delivered
 
+Before #350 integrates, the row SHALL reference one open focused successor for
+the next least-authority Authorization Code request-input seam. This handoff
+does not claim request serialization, PKCE/PAR, callback mix-up protection,
+HTTP execution, token exchange, credential verification/storage,
+format/chain extensions, consumer adoption, publication or release.
+
+#### Scenario: server binding hands off without claiming engine completion
+
+- **WHEN** issue #350 is delivered and its focused successor is open
+- **THEN** `IDR-023` references that successor with
+  `delivery_status=in_progress`
+- **AND** #7 and #20 remain open component and program parents
+
 ### Requirement: Active backlog ownership is live before autonomous selection
 
 The repository SHALL provide a network-explicit, read-only audit that validates

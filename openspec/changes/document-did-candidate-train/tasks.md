@@ -4,7 +4,7 @@
 
 - [x] 1.1 Record #386 scope, exact base, sources, alternatives, constraint
       impact, claim boundaries, rollback and verification plan.
-- [ ] 1.2 Pass research, constraint and strict OpenSpec readiness; commit the
+- [x] 1.2 Pass research, constraint and strict OpenSpec readiness; commit the
       planning-only contract and persist the exact preimplementation receipt.
 
 ## 2. Engineer review surface

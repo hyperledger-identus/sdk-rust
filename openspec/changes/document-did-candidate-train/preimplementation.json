@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 386,
+  "change": "document-did-candidate-train",
+  "branch": "codex/docs/issue-386",
+  "baseRef": "origin/develop",
+  "baseSha": "cda086f3e7fe72d251c1f896bccdcf5dd1bc8c16",
+  "contractHeadSha": "521b771c5c1e1e5060414d9d202f1ee48298862b",
+  "createdAt": "2026-09-25T16:14:29.020Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

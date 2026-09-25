@@ -1,8 +1,8 @@
 # OID4VC Rust reuse evidence completion
 
-**Issue:** [#391](https://github.com/hyperledger-identus/sdk-rust/issues/391)  
-**Decision:** [ADR 0156](../../adr/0156-retain-oid4vci-and-spike-a-private-dcql-engine.md)  
-**Retrieval and measurement date:** 2026-09-26  
+**Issue:** [#391](https://github.com/hyperledger-identus/sdk-rust/issues/391)
+**Decision:** [ADR 0156](../../adr/0156-retain-oid4vci-and-spike-a-private-dcql-engine.md)
+**Retrieval and measurement date:** 2026-09-26
 **Baseline:** `develop@cd4d4eceef92cf18bb5c991f2957f2fac261d53e`
 
 ## Executive answer

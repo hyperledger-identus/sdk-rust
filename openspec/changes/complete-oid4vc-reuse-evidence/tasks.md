@@ -14,6 +14,6 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Run fixture, primary/MSRV/portable, factory, and repository gates.
-- [ ] 3.2 Complete an exact-diff evidence/architecture/security review.
+- [x] 3.1 Run fixture, primary/MSRV/portable, factory, and repository gates.
+- [x] 3.2 Complete an exact-diff evidence/architecture/security review.
 - [ ] 3.3 Archive the change and deliver a signed/DCO issue-linked PR.

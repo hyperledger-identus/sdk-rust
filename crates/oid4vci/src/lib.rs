@@ -18,7 +18,8 @@
 //! bounded unauthenticated public-client Authorization Code Token Request
 //! construction with request-bound bounded success/error Token Endpoint HTTP
 //! response classification followed by exact selected-configuration Token
-//! Authorization Details correlation, a Credential Nonce Response core and a
+//! Authorization Details correlation and consuming request-bound construction
+//! of an authorized-dataset JWT Credential Request, a Credential Nonce Response core and a
 //! transport-neutral Final Credential Nonce
 //! Request description and bounded validation of its mandatory HTTP response
 //! metadata, and bounded construction of the unencrypted Final

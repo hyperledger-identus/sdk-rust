@@ -10,10 +10,10 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add the consuming correlated-state Credential Request transition.
-- [ ] 2.2 Generalize the existing private serializer without changing old APIs.
-- [ ] 2.3 Add exact wire, substitution, index, bounds, ownership and redaction tests.
-- [ ] 2.4 Add ADR 0147 and update inventory, blueprint and roadmap evidence.
+- [x] 2.1 Add the consuming correlated-state Credential Request transition.
+- [x] 2.2 Generalize the existing private serializer without changing old APIs.
+- [x] 2.3 Add exact wire, substitution, index, bounds, ownership and redaction tests.
+- [x] 2.4 Add ADR 0147 and update inventory, blueprint and roadmap evidence.
 
 ## 3. Review and delivery
 

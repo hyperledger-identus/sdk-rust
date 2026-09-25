@@ -694,6 +694,17 @@ dependency, HTTP, token/dataset trust, proof, storage, consumer, chain or
 product behavior. Request-bound authorized-dataset Credential Request
 construction continues in focused issue #364.
 
+The thirty-fourth bounded delivery, issue #364, consumes that exact correlated
+success and selects one source-ordered authorized Credential Dataset by index.
+It derives the Credential Endpoint, Token Response and identifier exclusively
+from retained request lineage, then reuses the existing bounded JWT Credential
+Request serializer and error vocabulary. The result owns its endpoint and
+zeroizing Authorization/body values; no detached metadata, token,
+configuration or identifier can be substituted at the transition. It adds no
+dependency, error, HTTP, response handling, trust, storage, recovery, format,
+chain or product behavior. Consuming request-bound Credential Endpoint
+response classification continues in focused issue #366.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

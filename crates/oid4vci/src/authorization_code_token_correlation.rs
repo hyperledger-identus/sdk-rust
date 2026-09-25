@@ -47,6 +47,22 @@ impl CorrelatedAuthorizationCodeTokenResponse {
     pub const fn unknown_authorization_detail_count(&self) -> usize {
         self.unknown_authorization_detail_count
     }
+
+    pub(crate) fn into_credential_request_parts(
+        self,
+    ) -> (
+        AuthorizationCodeTokenResponseLineage,
+        TokenResponseCore,
+        Vec<Zeroizing<String>>,
+        usize,
+    ) {
+        (
+            self.lineage,
+            self.response,
+            self.authorized_credential_identifiers,
+            self.unknown_authorization_detail_count,
+        )
+    }
 }
 
 impl fmt::Debug for CorrelatedAuthorizationCodeTokenResponse {

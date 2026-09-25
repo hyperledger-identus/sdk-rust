@@ -1,0 +1,85 @@
+# Exact-diff architecture, security and provenance review
+
+Review status: completed
+Review date: 2026-09-25
+Base: develop@149a35e62fc54f91dc99a496feb884d5b2f92cce
+Reviewed implementation head: b76ff21b10e89b7006c8a005b1ab8c1424b32d59
+Unresolved blockers: none
+
+## Scope reviewed
+
+The review inspected the complete base-to-head diff, issue #376, ADR 0152,
+the closed provenance manifest, all positive/negative payloads, their public
+API execution, the conformance report/matrix and IDR-023 program closeout.
+Oxid and Lace ID Portal were treated only as pinned, read-only design oracles.
+
+## Findings
+
+1. **Provenance and licensing — accepted.** Every executable byte is authored
+   for this Apache-2.0 SDK from named Final sections, carries a SHA-256 digest
+   and an independent transformation statement, and is rejected if the closed
+   manifest drifts. No Portal byte is imported despite its manifest-level
+   license claim; Oxid remains reference-only despite its usable repository
+   license.
+2. **Public behavior — accepted.** The positive journey crosses the existing
+   public wallet APIs from offer transport through immediate Credential
+   Response. The three negative vectors assert stable public error variants.
+   No crate-private parser or consumer implementation becomes the oracle.
+3. **Security and privacy — accepted.** Paths are relative, bounded,
+   non-symlinked, regular and digest-bound; IDs and paths are unique; unknown
+   manifest fields fail closed. Synthetic secrets and domains are used. Error
+   assertions do not disclose caller or fixture content.
+4. **Architecture and coupling — accepted.** This is test/documentation
+   evidence only. Runtime sources, dependencies, manifests, features, public
+   APIs and workflows do not change. Consumer repositories, network stacks,
+   credential formats and chain semantics remain outside the generic crate.
+5. **Claim boundary — accepted.** Matrix status means repository-executable
+   generic wallet-core coverage. It does not mean current Portal compatibility,
+   live issuer interoperability, certification, publication, production
+   readiness or downstream adoption.
+6. **Decomposition — accepted.** The 27-path/1,330-line diff is dominated by
+   one strict test, its closed manifest and auditable evidence. Those artifacts
+   must agree atomically; independent consumer/live/format-specific work is
+   excluded rather than hidden inside this slice.
+
+## Residual limitations
+
+- Five partial and four unsupported Final rows remain deliberately visible.
+- No live HTTP/TLS flow, external issuer, wallet UI or network is exercised.
+- Consumer canaries and format-specific interoperability remain owned by their
+  repositories and future issue-scoped deliveries.
+- Hosted Linux `fast` evidence is still required on the exact pull-request
+  candidate before merge.
+
+## Review decision
+
+The candidate provides a cohesive, reusable and license-safe generic
+interoperability suite with deterministic drift controls and an honest claim
+boundary. No unresolved correctness, security, privacy, architecture,
+dependency, provenance or delivery finding remains.
+
+## Hosted remediation review
+
+The Linux factory contract exposed one lifecycle assumption in its own test:
+it hard-coded `cross-consumer-vector-suite` as an open conformance gap even
+though this delivery intentionally makes that row implemented with
+`followup_issue=none`. The production live checker already handled `none`
+correctly and was not changed.
+
+The test now selects an owned conformance row when one exists and preserves
+the exact closed-owner failure assertion. When the matrix has no remaining
+owners, it instead proves the canonical snapshot passes and does not report a
+fabricated conformance-owner failure. This keeps the negative contract active
+for future gaps without requiring a permanently open issue. The eight focused
+tests and the complete factory-contract mutation suite pass; no runtime,
+protocol or hosted-policy behavior is weakened.
+
+The subsequent exact Linux candidate proved the factory fix but exposed that
+the Nix cleaned Cargo source retained only Rust/default fixture suffixes. All
+865 other executed tests and every factory, lint, build, Clippy and docs gate
+passed; the three interoperability tests failed before parsing because their
+manifest was absent. The source filter now admits only the exact
+`crates/oid4vci/tests/fixtures/interop-v1` subtree and the Rust source contract
+requires its manifest and exact ten-file packet. It does not admit unrelated
+JSON/text files or planning evidence. This is build-input parity for the
+already-reviewed tests, not a runtime or protocol expansion.

@@ -745,7 +745,8 @@ The borrowed structural validators remain behavior-compatible. It adds no
 dependency, error, HTTP execution/provenance, token validation/storage,
 interval/retry or polling effects, credential processing, trust, chain or
 product policy. Final capability and fixture reconciliation proceeds in issue
-#372 before M4 is declared complete.
+[#372](https://github.com/hyperledger-identus/sdk-rust/issues/372) before M4 is
+declared complete.
 
 ### B10 — OID4VP Final, DCQL and SIOPv2
 

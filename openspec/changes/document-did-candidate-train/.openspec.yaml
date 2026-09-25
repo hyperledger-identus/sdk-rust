@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-26
+goal: Make the public SDK-Rust handbook a truthful engineer-review surface for
+  the candidate-only DID release train without activating publication.

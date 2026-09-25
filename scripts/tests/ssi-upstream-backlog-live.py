@@ -108,18 +108,24 @@ class LiveBacklogContractTests(unittest.TestCase):
         result = self.run_snapshot(self.snapshot(closed))
         self.assertEqual(result.returncode, 0, result.stderr)
 
-    def test_closed_conformance_gap_owner_fails(self) -> None:
-        owner = int(
-            next(
-                row["followup_issue"]
-                for row in self.conformance_rows
-                if row["id"] == "cross-consumer-vector-suite"
-            ).removeprefix("#")
-        )
+    def test_closed_conformance_gap_owner_fails_when_one_exists(self) -> None:
+        owned_rows = [
+            row
+            for row in self.conformance_rows
+            if row["followup_issue"] != "none"
+        ]
+        if not owned_rows:
+            result = self.run_snapshot(self.snapshot())
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotIn("conformance owner", result.stderr)
+            return
+
+        row = owned_rows[0]
+        owner = int(row["followup_issue"].removeprefix("#"))
         result = self.run_snapshot(self.snapshot({owner: "CLOSED"}))
         self.assertNotEqual(result.returncode, 0)
         self.assertIn(
-            f"cross-consumer-vector-suite: conformance owner #{owner} is CLOSED",
+            f"{row['id']}: conformance owner #{owner} is CLOSED",
             result.stderr,
         )
 

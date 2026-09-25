@@ -57,3 +57,19 @@ The candidate provides a cohesive, reusable and license-safe generic
 interoperability suite with deterministic drift controls and an honest claim
 boundary. No unresolved correctness, security, privacy, architecture,
 dependency, provenance or delivery finding remains.
+
+## Hosted remediation review
+
+The Linux factory contract exposed one lifecycle assumption in its own test:
+it hard-coded `cross-consumer-vector-suite` as an open conformance gap even
+though this delivery intentionally makes that row implemented with
+`followup_issue=none`. The production live checker already handled `none`
+correctly and was not changed.
+
+The test now selects an owned conformance row when one exists and preserves
+the exact closed-owner failure assertion. When the matrix has no remaining
+owners, it instead proves the canonical snapshot passes and does not report a
+fabricated conformance-owner failure. This keeps the negative contract active
+for future gaps without requiring a permanently open issue. The eight focused
+tests and the complete factory-contract mutation suite pass; no runtime,
+protocol or hosted-policy behavior is weakened.

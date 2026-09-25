@@ -69,3 +69,20 @@ security lanes remain appropriate slow evidence; they are not duplicated as
 required PR matrices. No live network, issuer application, human approval,
 certification, consumer adoption, publication or product-level
 interoperability claim was run or inferred.
+
+## Hosted remediation evidence
+
+The exact hosted `fast` run at candidate `6887fff3a27cbdaab5d005a0b1721a21a04c3ffd`
+failed in `factory-contract` because its mutation test attempted to parse the
+newly delivered row's `followup_issue=none` as an integer. The production
+checker and live audit were green.
+
+After making that test lifecycle-aware:
+
+- `python3 scripts/tests/ssi-upstream-backlog-live.py`: 8 passed.
+- `python3 -m py_compile scripts/tests/ssi-upstream-backlog-live.py`: passed.
+- `scripts/tests/factory-contract.sh`: complete mutation suite passed.
+- `git diff --check`: passed.
+
+The next exact hosted candidate must still pass `fast`; no rerun or bypass of
+the failed revision is accepted.

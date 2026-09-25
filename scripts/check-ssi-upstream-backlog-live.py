@@ -12,7 +12,9 @@ from typing import Any
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BACKLOG = REPOSITORY_ROOT / "docs/roadmap/ssi-upstream-dependency-backlog.csv"
+CONFORMANCE_MATRIX = REPOSITORY_ROOT / "docs/conformance/oid4vci-final-wallet-core.csv"
 OFFLINE_CHECKER = REPOSITORY_ROOT / "scripts/check-ssi-upstream-backlog.py"
+CONFORMANCE_CHECKER = REPOSITORY_ROOT / "scripts/check-oid4vci-conformance.py"
 FACTORY_POLICY = REPOSITORY_ROOT / ".factory-policy.json"
 SNAPSHOT_FIELDS = {"schemaVersion", "repository", "issues"}
 ISSUE_FIELDS = {"number", "state", "url"}
@@ -50,16 +52,24 @@ def load_repository() -> str:
 
 
 def validate_offline(backlog: Path) -> None:
-    result = subprocess.run(
-        [sys.executable, str(OFFLINE_CHECKER), str(backlog)],
-        check=False,
-        capture_output=True,
-        text=True,
+    checks = (
+        ("backlog", [sys.executable, str(OFFLINE_CHECKER), str(backlog)]),
+        (
+            "conformance matrix",
+            [sys.executable, str(CONFORMANCE_CHECKER), str(REPOSITORY_ROOT)],
+        ),
     )
-    if result.returncode != 0:
-        detail = result.stderr.strip().splitlines()
-        suffix = f": {detail[0]}" if detail else ""
-        raise AuditError(f"offline backlog validation failed{suffix}")
+    for name, command in checks:
+        result = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            detail = result.stderr.strip().splitlines()
+            suffix = f": {detail[0]}" if detail else ""
+            raise AuditError(f"offline {name} validation failed{suffix}")
 
 
 def load_rows(backlog: Path) -> list[dict[str, str]]:
@@ -70,11 +80,32 @@ def load_rows(backlog: Path) -> list[dict[str, str]]:
         raise AuditError(f"cannot read backlog: {error}") from error
 
 
+def load_conformance_rows() -> list[dict[str, str]]:
+    try:
+        with CONFORMANCE_MATRIX.open(encoding="utf-8", newline="") as source:
+            return list(csv.DictReader(source, strict=True))
+    except (OSError, csv.Error) as error:
+        raise AuditError(f"cannot read conformance matrix: {error}") from error
+
+
 def required_issue_numbers(rows: list[dict[str, str]]) -> list[int]:
     try:
         return sorted({int(row["issue"].removeprefix("#")) for row in rows})
     except (KeyError, ValueError) as error:
         raise AuditError("backlog changed after offline validation") from error
+
+
+def conformance_issue_numbers(rows: list[dict[str, str]]) -> list[int]:
+    try:
+        return sorted(
+            {
+                int(row["followup_issue"].removeprefix("#"))
+                for row in rows
+                if row["followup_issue"] != "none"
+            }
+        )
+    except (KeyError, ValueError) as error:
+        raise AuditError("conformance matrix changed after offline validation") from error
 
 
 def validate_issue_record(value: Any, context: str) -> tuple[int, str]:
@@ -218,13 +249,36 @@ def audit_rows(rows: list[dict[str, str]], states: dict[int, str]) -> list[str]:
     return failures
 
 
+def audit_conformance_rows(
+    rows: list[dict[str, str]], states: dict[int, str]
+) -> list[str]:
+    failures: list[str] = []
+    try:
+        for row in rows:
+            issue = row["followup_issue"]
+            if issue == "none":
+                continue
+            number = int(issue.removeprefix("#"))
+            if states[number] != "OPEN":
+                failures.append(
+                    f"{row['id']}: conformance owner #{number} is {states[number]}"
+                )
+    except (KeyError, ValueError) as error:
+        raise AuditError("conformance matrix or issue state changed during audit") from error
+    return failures
+
+
 def main() -> int:
     arguments = parse_arguments()
     try:
         repository = load_repository()
         validate_offline(DEFAULT_BACKLOG)
         rows = load_rows(DEFAULT_BACKLOG)
-        issue_numbers = required_issue_numbers(rows)
+        conformance_rows = load_conformance_rows()
+        issue_numbers = sorted(
+            set(required_issue_numbers(rows))
+            | set(conformance_issue_numbers(conformance_rows))
+        )
         if arguments.snapshot is None:
             states = query_github(repository, issue_numbers)
             mode = "live"
@@ -232,6 +286,7 @@ def main() -> int:
             states = load_snapshot(arguments.snapshot, repository, issue_numbers)
             mode = "snapshot"
         failures = audit_rows(rows, states)
+        failures.extend(audit_conformance_rows(conformance_rows, states))
     except AuditError as error:
         print(f"ssi-upstream-backlog-live: {error}", file=sys.stderr)
         return 1
@@ -242,7 +297,8 @@ def main() -> int:
         return 1
     print(
         "ssi-upstream-backlog-live: "
-        f"{len(rows)} rows and {len(states)} issues passed ({mode})"
+        f"{len(rows)} backlog rows, {len(conformance_rows)} conformance rows and "
+        f"{len(states)} issues passed ({mode})"
     )
     return 0
 

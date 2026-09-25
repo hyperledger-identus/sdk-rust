@@ -45,9 +45,12 @@ backlog transition and focused/workspace/portable verification.
 7. **Compatibility — accepted.** The slice changes no Rust source, manifest,
    lockfile, feature, dependency, wire, stored-data or public API contract.
    The exact `identus-oid4vci` dependency cone is unchanged.
-8. **Delivery integrity — accepted.** Every branch commit has a valid OpenPGP
+8. **Delivery integrity — accepted.** Every reviewed branch commit has a valid OpenPGP
    signature and DCO sign-off. The preimplementation receipt binds the exact
    planning commit, base SHA, issue and branch before implementation.
+9. **Review hardening — accepted.** Dedicated section 10 and 11 dispositions
+   cannot be collapsed into generic section coverage, and the live backlog
+   audit requires every matrix follow-up owner—including #376—to remain open.
 
 ## Decomposition decision
 

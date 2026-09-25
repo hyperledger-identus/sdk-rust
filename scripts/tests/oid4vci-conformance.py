@@ -33,7 +33,32 @@ class Oid4vciConformanceContractTests(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text("evidence\n", encoding="utf-8")
         (self.root / "docs/conformance").mkdir(parents=True)
-        self.rows = [self.row(str(section)) for section in range(4, 13)]
+        self.rows = [self.row(str(section)) for section in range(4, 10)]
+        self.rows.extend(
+            [
+                self.row(
+                    "10",
+                    identifier="encrypted-credential-exchange",
+                    relevance="out-of-scope",
+                    status="unsupported",
+                    implementation_paths="none",
+                    spec_paths="none",
+                    test_paths="none",
+                    provenance="not-applicable",
+                ),
+                self.row(
+                    "11",
+                    identifier="notification-endpoint",
+                    relevance="out-of-scope",
+                    status="unsupported",
+                    implementation_paths="none",
+                    spec_paths="none",
+                    test_paths="none",
+                    provenance="not-applicable",
+                ),
+                self.row("12"),
+            ]
+        )
         self.rows.append(
             self.row(
                 "profile",
@@ -133,6 +158,35 @@ class Oid4vciConformanceContractTests(unittest.TestCase):
         result = self.run_checker()
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("duplicate capability id", result.stderr)
+
+    def test_required_unsupported_dispositions_are_dedicated(self) -> None:
+        self.rows = [
+            row for row in self.rows if row["id"] != "notification-endpoint"
+        ]
+        encryption = next(
+            row
+            for row in self.rows
+            if row["id"] == "encrypted-credential-exchange"
+        )
+        encryption.update(
+            section="10-11",
+            relevance="required",
+            status="partial",
+            implementation_paths="src/evidence.rs",
+            spec_paths="specs/evidence.md",
+            test_paths="tests/evidence.rs",
+            provenance="sdk-authored",
+        )
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "encrypted-credential-exchange: disposition must remain",
+            result.stderr,
+        )
+        self.assertIn(
+            "missing required disposition row: notification-endpoint",
+            result.stderr,
+        )
 
 
 if __name__ == "__main__":

@@ -27,6 +27,20 @@ REQUIRED_SECTIONS = {str(section) for section in range(4, 13)}
 RELEVANCE = {"required", "adjacent", "out-of-scope"}
 STATUSES = {"implemented", "partial", "unsupported", "missing"}
 PROVENANCE = {"sdk-authored", "reference-only", "not-applicable"}
+REQUIRED_DISPOSITIONS = {
+    "encrypted-credential-exchange": (
+        "10",
+        "out-of-scope",
+        "unsupported",
+        "not-applicable",
+    ),
+    "notification-endpoint": (
+        "11",
+        "out-of-scope",
+        "unsupported",
+        "not-applicable",
+    ),
+}
 ID_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 SECTION_PATTERN = re.compile(
     r"(?:[4-9]|1[0-2])(?:\.[0-9]+)*(?:-(?:[4-9]|1[0-2])(?:\.[0-9]+)*)?\Z"
@@ -90,9 +104,11 @@ def validate(root: Path, matrix: Path | None = None) -> tuple[list[str], Counter
             failures.append(f"duplicate capability id: {identifier}")
 
     covered_sections: set[str] = set()
+    rows_by_identifier: dict[str, dict[str, str]] = {}
     for line_number, row in enumerate(rows, start=2):
         values = {field: row.get(field) or "" for field in EXPECTED_FIELDS}
         context = values["id"] or f"line-{line_number}"
+        rows_by_identifier[values["id"]] = values
         if None in row:
             failures.append(f"{context}: row has fields outside the canonical schema")
         for field, value in values.items():
@@ -156,6 +172,20 @@ def validate(root: Path, matrix: Path | None = None) -> tuple[list[str], Counter
         failures.append(f"missing Final sections: {','.join(missing_sections)}")
     if "profile" not in {row.get("section") for row in rows}:
         failures.append("missing cross-consumer profile evidence row")
+    for identifier, expected in REQUIRED_DISPOSITIONS.items():
+        row = rows_by_identifier.get(identifier)
+        if row is None:
+            failures.append(f"missing required disposition row: {identifier}")
+            continue
+        actual = tuple(
+            row[field] for field in ("section", "relevance", "status", "provenance")
+        )
+        if actual != expected:
+            failures.append(
+                f"{identifier}: disposition must remain "
+                f"section={expected[0]}, relevance={expected[1]}, "
+                f"status={expected[2]}, provenance={expected[3]}"
+            )
     return failures, counts
 
 

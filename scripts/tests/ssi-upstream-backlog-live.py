@@ -13,6 +13,7 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 CHECKER = REPOSITORY_ROOT / "scripts/check-ssi-upstream-backlog-live.py"
 BACKLOG = REPOSITORY_ROOT / "docs/roadmap/ssi-upstream-dependency-backlog.csv"
+CONFORMANCE_MATRIX = REPOSITORY_ROOT / "docs/conformance/oid4vci-final-wallet-core.csv"
 REPOSITORY = "hyperledger-identus/sdk-rust"
 
 
@@ -21,8 +22,15 @@ class LiveBacklogContractTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         with BACKLOG.open(encoding="utf-8", newline="") as source:
             cls.rows = list(csv.DictReader(source))
+        with CONFORMANCE_MATRIX.open(encoding="utf-8", newline="") as source:
+            cls.conformance_rows = list(csv.DictReader(source))
         cls.issue_numbers = sorted(
             {int(row["issue"].removeprefix("#")) for row in cls.rows}
+            | {
+                int(row["followup_issue"].removeprefix("#"))
+                for row in cls.conformance_rows
+                if row["followup_issue"] != "none"
+            }
         )
 
     def snapshot(self, overrides: dict[int, str] | None = None) -> dict:
@@ -64,7 +72,8 @@ class LiveBacklogContractTests(unittest.TestCase):
     def test_current_backlog_passes_with_open_active_owners(self) -> None:
         result = self.run_snapshot(self.snapshot())
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("30 rows", result.stdout)
+        self.assertIn("30 backlog rows", result.stdout)
+        self.assertIn("24 conformance rows", result.stdout)
         self.assertIn("passed (snapshot)", result.stdout)
 
     def test_alternate_backlog_cannot_replace_canonical_ledger(self) -> None:
@@ -98,6 +107,21 @@ class LiveBacklogContractTests(unittest.TestCase):
         }
         result = self.run_snapshot(self.snapshot(closed))
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_closed_conformance_gap_owner_fails(self) -> None:
+        owner = int(
+            next(
+                row["followup_issue"]
+                for row in self.conformance_rows
+                if row["id"] == "cross-consumer-vector-suite"
+            ).removeprefix("#")
+        )
+        result = self.run_snapshot(self.snapshot({owner: "CLOSED"}))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            f"cross-consumer-vector-suite: conformance owner #{owner} is CLOSED",
+            result.stderr,
+        )
 
     def test_missing_referenced_issue_fails(self) -> None:
         snapshot = self.snapshot()

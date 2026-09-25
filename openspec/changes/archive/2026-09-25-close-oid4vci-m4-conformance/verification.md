@@ -7,13 +7,15 @@ Reviewed implementation head: `70a1a31fb41aafb66cee38384a37929b0cf98e79`
 
 - `scripts/check-oid4vci-conformance.py .`: 24 rows passed; 13 implemented,
   5 partial, 4 unsupported and 2 missing.
-- `scripts/tests/oid4vci-conformance.py`: seven mutation tests passed.
+- `scripts/tests/oid4vci-conformance.py`: eight mutation tests passed,
+  including dedicated section 10/11 disposition enforcement.
 - `scripts/tests/factory-contract.sh`: passed, including the integrated matrix
   checker in the synthetic repository fixture.
 - `scripts/factory check`: passed; all 84 OpenSpec/factory items and structural
   contracts were green.
-- `scripts/factory backlog-live`: 30 rows and nine distinct live issue owners
-  passed; IDR-023 points to open successor #375.
+- `scripts/factory backlog-live`: 30 backlog rows, 24 conformance rows and ten
+  distinct live issue owners passed; IDR-023 points to open successor #375 and
+  the matrix independently keeps #376 live.
 - The immutable preimplementation receipt validates exact specification commit
   `03ee4c2c2e94e2c3066a2959c2f9f5c10218c49e` against
   `develop@7f23129a245072e34ea5ddf1e601e14a4b493ed5` for issue #372.

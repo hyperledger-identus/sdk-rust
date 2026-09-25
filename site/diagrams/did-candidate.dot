@@ -1,0 +1,37 @@
+digraph did_candidate {
+  graph [
+    bgcolor="transparent",
+    fontname="Helvetica",
+    label="DID candidate boundary and dependency direction",
+    labelloc="t",
+    nodesep="0.5",
+    ranksep="0.75",
+    splines="polyline"
+  ];
+  node [
+    shape="box",
+    style="rounded,filled",
+    fontname="Helvetica",
+    fontsize="12",
+    color="#1f5d91",
+    fillcolor="#edf5fc",
+    fontcolor="#17233b",
+    margin="0.18,0.12"
+  ];
+  edge [color="#506784", fontname="Helvetica", fontsize="10", arrowsize="0.75"];
+
+  products [label="Wallets and identity services\nmay select either package", fillcolor="#fff4dc", color="#c47a12"];
+  methods [label="DID method and chain adapters\nimplement generic ports outside candidate", fillcolor="#fff4dc", color="#c47a12"];
+  http [label="identus-did-resolver-http\noptional Axum host adapter", fillcolor="#eef8f4", color="#28826b"];
+  did [label="identus-did\ndomain models and resolver ports"];
+  core [label="identus-core\nreleased foundation"];
+  derive [label="identus-derive\nreleased compile-time tooling"];
+
+  products -> http [style="dashed", color="#c47a12"];
+  products -> did [style="dashed", color="#c47a12"];
+  methods -> did [style="dashed", color="#c47a12"];
+  http -> did;
+  http -> core;
+  did -> core;
+  did -> derive;
+}

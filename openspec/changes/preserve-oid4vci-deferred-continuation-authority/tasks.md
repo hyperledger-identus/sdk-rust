@@ -17,4 +17,4 @@
 
 - [x] 3.1 Complete focused/full/portable gates and exact-diff local review.
 - [x] 3.2 Open a focused successor before integration.
-- [ ] 3.3 Archive, publish metrics and merge only after hosted `fast` passes.
+- [x] 3.3 Archive, publish metrics and merge only after hosted `fast` passes.

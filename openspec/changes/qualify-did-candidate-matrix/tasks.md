@@ -4,7 +4,7 @@
 
 - [x] 1.1 Record #387 scope, exact base, sources, alternatives,
       package-by-package decision, constraints, threats, rollback, and evidence.
-- [ ] 1.2 Pass research, constraint, and strict OpenSpec readiness; commit the
+- [x] 1.2 Pass research, constraint, and strict OpenSpec readiness; commit the
       planning-only contract and persist the immutable preimplementation receipt.
 - [ ] 1.3 Accept ADR 0155 for staged-source qualification and the host-only HTTP
       adapter boundary.

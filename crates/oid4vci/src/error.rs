@@ -5,10 +5,10 @@ use std::fmt;
 use identus_core::{CapabilityId, IdentusError};
 
 use crate::error_contract::{
-    ErrorContract, authorization_code_server, authorization_code_token_request,
-    authorization_code_token_response, authorization_response, credential_nonce_http,
-    deferred_immediate_issuance, issuer_authorization_server_metadata, offer_semantics_grants,
-    offer_transport_json, token_request_response_errors,
+    ErrorContract, authorization_code_server, authorization_code_token_correlation,
+    authorization_code_token_request, authorization_code_token_response, authorization_response,
+    credential_nonce_http, deferred_immediate_issuance, issuer_authorization_server_metadata,
+    offer_semantics_grants, offer_transport_json, token_request_response_errors,
 };
 
 /// Owning capability for OID4VCI errors.
@@ -438,6 +438,10 @@ pub mod error_code {
         ErrorCode::new("oid4vci.authorization_code_token_pragma_too_large");
     pub const INVALID_AUTHORIZATION_CODE_TOKEN_PRAGMA: ErrorCode =
         ErrorCode::new("oid4vci.invalid_authorization_code_token_pragma");
+    pub const AUTHORIZATION_CODE_TOKEN_CONFIGURATION_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_code_token_configuration_mismatch");
+    pub const AMBIGUOUS_AUTHORIZATION_CODE_TOKEN_AUTHORIZATION_DETAILS: ErrorCode =
+        ErrorCode::new("oid4vci.ambiguous_authorization_code_token_authorization_details");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -672,6 +676,8 @@ pub enum CredentialOfferError {
     InvalidAuthorizationCodeTokenCacheControl,
     AuthorizationCodeTokenPragmaTooLarge,
     InvalidAuthorizationCodeTokenPragma,
+    AuthorizationCodeTokenConfigurationMismatch,
+    AmbiguousAuthorizationCodeTokenAuthorizationDetails,
 }
 
 macro_rules! define_credential_offer_error_contracts {
@@ -918,6 +924,8 @@ define_credential_offer_error_contracts! {
     InvalidAuthorizationCodeTokenCacheControl => authorization_code_token_response::INVALID_AUTHORIZATION_CODE_TOKEN_CACHE_CONTROL,
     AuthorizationCodeTokenPragmaTooLarge => authorization_code_token_response::AUTHORIZATION_CODE_TOKEN_PRAGMA_TOO_LARGE,
     InvalidAuthorizationCodeTokenPragma => authorization_code_token_response::INVALID_AUTHORIZATION_CODE_TOKEN_PRAGMA,
+    AuthorizationCodeTokenConfigurationMismatch => authorization_code_token_correlation::AUTHORIZATION_CODE_TOKEN_CONFIGURATION_MISMATCH,
+    AmbiguousAuthorizationCodeTokenAuthorizationDetails => authorization_code_token_correlation::AMBIGUOUS_AUTHORIZATION_CODE_TOKEN_AUTHORIZATION_DETAILS,
 }
 
 impl CredentialOfferError {

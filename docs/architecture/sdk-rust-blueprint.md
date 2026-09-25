@@ -683,6 +683,17 @@ decompression policy, client authentication, DPoP, retries, token trust or
 storage, consumer, chain or product behavior. Token Authorization Details
 correlation continues in focused issue #362.
 
+The thirty-third bounded delivery, issue #362, consumes only that
+request-bound success and reuses the existing bounded Token Authorization
+Details parser. It rejects every recognized configuration other than the exact
+request selection before rejecting repeated matching entries as ambiguous.
+One matching entry advances its source-ordered unique zeroizing Credential
+Dataset identifiers with the exact lineage and Token Response core; bounded
+unknown detail types are counted and ignored without authority. It adds no
+dependency, HTTP, token/dataset trust, proof, storage, consumer, chain or
+product behavior. Request-bound authorized-dataset Credential Request
+construction continues in focused issue #364.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

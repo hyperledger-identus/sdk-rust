@@ -17,7 +17,8 @@
 //! with SDK-derived PKCE S256, one-shot Authorization Response correlation and
 //! bounded unauthenticated public-client Authorization Code Token Request
 //! construction with request-bound bounded success/error Token Endpoint HTTP
-//! response classification, a Credential Nonce Response core and a
+//! response classification followed by exact selected-configuration Token
+//! Authorization Details correlation, a Credential Nonce Response core and a
 //! transport-neutral Final Credential Nonce
 //! Request description and bounded validation of its mandatory HTTP response
 //! metadata, and bounded construction of the unencrypted Final
@@ -25,14 +26,15 @@
 //! unencrypted immediate Final Credential Response core. It performs no
 //! network access, deferred polling policy, PAR, callback routing, confidential
 //! client authentication, or Token Endpoint transport, does not validate
-//! complete RFC 8414 metadata or Token Response Authorization Details, and
-//! establishes no issuer, server, token,
+//! complete RFC 8414 metadata or Token Response Authorization Details trust,
+//! and establishes no issuer, server, token,
 //! authorization, proof, transaction, response provenance, mix-up protection
 //! when RFC 9207 is not advertised, or nonce trust.
 
 #![forbid(unsafe_code)]
 
 mod authorization_code_server;
+mod authorization_code_token_correlation;
 mod authorization_code_token_http_response;
 mod authorization_code_token_request;
 mod authorization_metadata;
@@ -69,6 +71,7 @@ mod transaction_code_input;
 mod transport;
 
 pub use authorization_code_server::CredentialOfferWithAuthorizationCodeServer;
+pub use authorization_code_token_correlation::CorrelatedAuthorizationCodeTokenResponse;
 pub use authorization_code_token_http_response::{
     AuthorizationCodeTokenResponseLineage, AuthorizationCodeTokenResponseOutcome,
     RequestBoundAuthorizationCodeTokenErrorResponse, RequestBoundAuthorizationCodeTokenResponse,

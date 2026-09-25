@@ -21,5 +21,5 @@
       OpenSpec gates.
 - [x] 3.2 Complete local architecture, documentation, claim-boundary and
       decomposition review.
-- [ ] 3.3 Archive, open the issue-linked PR, pass exact-head hosted CI, merge,
+- [x] 3.3 Archive, open the issue-linked PR, pass exact-head hosted CI, merge,
       publish metrics and close the managed worktree.

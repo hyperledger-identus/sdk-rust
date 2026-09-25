@@ -15,6 +15,16 @@ pub struct RequestBoundDeferredCredentialResponse {
 }
 
 impl RequestBoundDeferredCredentialResponse {
+    pub(crate) const fn new(
+        response: DeferredCredentialResponseCore,
+        authority: DeferredCredentialContinuationAuthority,
+    ) -> Self {
+        Self {
+            response,
+            authority,
+        }
+    }
+
     /// Return the originating request's JWT proof count.
     pub const fn request_proof_count(&self) -> usize {
         self.authority.request_proof_count
@@ -149,10 +159,7 @@ impl JwtCredentialRequest {
                     deferred_limits.deferred_response_limits(),
                 )?;
                 Ok(CredentialEndpointResponseOutcome::Deferred(
-                    RequestBoundDeferredCredentialResponse {
-                        response,
-                        authority,
-                    },
+                    RequestBoundDeferredCredentialResponse::new(response, authority),
                 ))
             }
             400 => {

@@ -732,6 +732,22 @@ polling effects, credential processing, trust, chain or product policy.
 Consuming Deferred Credential Endpoint response binding continues in focused
 issue #370.
 
+The thirty-seventh bounded delivery, issue #370, consumes that authorized
+Deferred Credential Request exactly once and classifies status before media or
+body. HTTP `200` erases the complete request before parsing and caps issued
+credentials to the originating proof count. HTTP `400` likewise erases all
+authority and retains only bounded deferred-error evidence plus proof count.
+HTTP `202` erases the serialized request body and preserves the exact issuer,
+endpoint, bearer and proof count only when the bounded transaction equals the
+request transaction; only that result can construct the next authorized
+request. Unsupported, malformed and mismatched branches retain no authority.
+The borrowed structural validators remain behavior-compatible. It adds no
+dependency, error, HTTP execution/provenance, token validation/storage,
+interval/retry or polling effects, credential processing, trust, chain or
+product policy. Final capability and fixture reconciliation proceeds in issue
+[#372](https://github.com/hyperledger-identus/sdk-rust/issues/372) before M4 is
+declared complete.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

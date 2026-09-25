@@ -60,6 +60,32 @@ impl RequestBoundDeferredCredentialRequest {
         })
     }
 
+    pub(crate) fn into_response_parts(
+        self,
+    ) -> (Zeroizing<String>, DeferredCredentialContinuationAuthority) {
+        let Self {
+            request,
+            credential_issuer,
+            authorization,
+            request_proof_count,
+        } = self;
+        let DeferredCredentialRequest {
+            deferred_credential_endpoint,
+            json_body,
+            transaction_id,
+        } = request;
+        drop(json_body);
+        (
+            transaction_id,
+            DeferredCredentialContinuationAuthority {
+                credential_issuer,
+                deferred_credential_endpoint: Some(deferred_credential_endpoint),
+                authorization,
+                request_proof_count,
+            },
+        )
+    }
+
     /// Borrow the exact validated Credential Issuer Identifier.
     pub const fn credential_issuer(&self) -> &CredentialIssuerIdentifier {
         &self.credential_issuer

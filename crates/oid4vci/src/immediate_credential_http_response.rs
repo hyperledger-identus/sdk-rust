@@ -15,6 +15,19 @@ pub struct RequestBoundImmediateCredentialResponse {
 }
 
 impl RequestBoundImmediateCredentialResponse {
+    pub(crate) fn try_from_response(
+        response: ImmediateCredentialResponseCore,
+        request_proof_count: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if response.credentials().len() > request_proof_count {
+            return Err(CredentialOfferError::CredentialResponseExceedsProofCount);
+        }
+        Ok(Self {
+            response,
+            request_proof_count,
+        })
+    }
+
     /// Return the originating request's JWT proof count.
     pub const fn request_proof_count(&self) -> usize {
         self.request_proof_count
@@ -79,12 +92,5 @@ pub(crate) fn bind_immediate_response(
     }
 
     let response = ImmediateCredentialResponseCore::parse(body, limits.response_limits())?;
-    if response.credentials().len() > request_proof_count {
-        return Err(CredentialOfferError::CredentialResponseExceedsProofCount);
-    }
-
-    Ok(RequestBoundImmediateCredentialResponse {
-        response,
-        request_proof_count,
-    })
+    RequestBoundImmediateCredentialResponse::try_from_response(response, request_proof_count)
 }

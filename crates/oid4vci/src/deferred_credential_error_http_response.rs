@@ -26,6 +26,49 @@ pub struct DeferredCredentialErrorResponse {
     core: CredentialErrorResponseCore,
 }
 
+/// A terminal Deferred Credential payload error bound to its request proof count.
+pub struct RequestBoundDeferredCredentialErrorResponse {
+    response: DeferredCredentialErrorResponse,
+    request_proof_count: usize,
+}
+
+impl RequestBoundDeferredCredentialErrorResponse {
+    pub(crate) const fn new(
+        response: DeferredCredentialErrorResponse,
+        request_proof_count: usize,
+    ) -> Self {
+        Self {
+            response,
+            request_proof_count,
+        }
+    }
+
+    /// Return the originating Credential Request JWT proof count.
+    pub const fn request_proof_count(&self) -> usize {
+        self.request_proof_count
+    }
+
+    /// Borrow the bounded deferred payload-error response.
+    pub const fn response(&self) -> &DeferredCredentialErrorResponse {
+        &self.response
+    }
+
+    /// Consume this binding into the bounded deferred payload-error response.
+    pub fn into_response(self) -> DeferredCredentialErrorResponse {
+        self.response
+    }
+}
+
+impl fmt::Debug for RequestBoundDeferredCredentialErrorResponse {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RequestBoundDeferredCredentialErrorResponse")
+            .field("request_proof_count", &self.request_proof_count)
+            .field("response", &self.response)
+            .finish_non_exhaustive()
+    }
+}
+
 impl DeferredCredentialErrorResponse {
     /// Return the deferred endpoint classification of the exact error code.
     pub fn kind(&self) -> DeferredCredentialErrorKind {
@@ -77,12 +120,17 @@ impl DeferredCredentialRequest {
         body: &str,
         limits: CredentialErrorHttpResponseLimits,
     ) -> Result<DeferredCredentialErrorResponse, CredentialOfferError> {
-        let core = CredentialErrorResponseCore::parse_http_response(
-            status_code,
-            content_type,
-            body,
-            limits,
-        )?;
-        Ok(DeferredCredentialErrorResponse { core })
+        parse_deferred_error_response(status_code, content_type, body, limits)
     }
+}
+
+pub(crate) fn parse_deferred_error_response(
+    status_code: u16,
+    content_type: &str,
+    body: &str,
+    limits: CredentialErrorHttpResponseLimits,
+) -> Result<DeferredCredentialErrorResponse, CredentialOfferError> {
+    let core =
+        CredentialErrorResponseCore::parse_http_response(status_code, content_type, body, limits)?;
+    Ok(DeferredCredentialErrorResponse { core })
 }

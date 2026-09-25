@@ -17,9 +17,9 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Build/render/check the full site and pass Markdown, factory and
+- [x] 3.1 Build/render/check the full site and pass Markdown, factory and
       OpenSpec gates.
-- [ ] 3.2 Complete local architecture, documentation, claim-boundary and
+- [x] 3.2 Complete local architecture, documentation, claim-boundary and
       decomposition review.
 - [ ] 3.3 Archive, open the issue-linked PR, pass exact-head hosted CI, merge,
       publish metrics and close the managed worktree.

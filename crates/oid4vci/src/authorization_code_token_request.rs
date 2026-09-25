@@ -17,6 +17,7 @@ use crate::{
 /// must not be logged, placed in a URL, sent to telemetry, cached, generically
 /// serialized, or retained longer than the transport operation requires.
 pub struct AuthorizationCodeTokenRequest {
+    token_endpoint: TokenEndpoint,
     credential_issuer_metadata: CredentialIssuerMetadata,
     authorization_server_metadata: AuthorizationServerMetadataCore,
     selected_configuration: CredentialConfigurationId,
@@ -26,10 +27,8 @@ pub struct AuthorizationCodeTokenRequest {
 
 impl AuthorizationCodeTokenRequest {
     /// Borrow the validated Token Endpoint selected before authorization.
-    pub fn token_endpoint(&self) -> &TokenEndpoint {
-        self.authorization_server_metadata
-            .token_endpoint()
-            .expect("the constructor requires a Token Endpoint")
+    pub const fn token_endpoint(&self) -> &TokenEndpoint {
+        &self.token_endpoint
     }
 
     /// Borrow the retained validated Credential Issuer Metadata.
@@ -105,6 +104,7 @@ impl CorrelatedAuthorizationCode {
         if token_endpoint.as_str().len() > limits.max_token_endpoint_bytes() {
             return Err(CredentialOfferError::AuthorizationCodeTokenEndpointTooLarge);
         }
+        let token_endpoint = token_endpoint.duplicate();
 
         let form_body_len = request_body_len(
             &code,
@@ -135,12 +135,13 @@ impl CorrelatedAuthorizationCode {
             .credential_offer()
             .credential_configuration_ids()
             .get(selected_configuration_index)
-            .expect("the predecessor validates the retained configuration index")
+            .ok_or(CredentialOfferError::AuthorizationRequestConfigurationMissing)?
             .duplicate();
         let (matched_offer, authorization_server_metadata) = server.into_parts();
         let (_, credential_issuer_metadata) = matched_offer.into_parts();
 
         Ok(AuthorizationCodeTokenRequest {
+            token_endpoint,
             credential_issuer_metadata,
             authorization_server_metadata,
             selected_configuration,

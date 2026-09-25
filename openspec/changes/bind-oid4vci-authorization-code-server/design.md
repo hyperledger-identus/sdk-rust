@@ -26,8 +26,11 @@ server when the selected flow was never offered.
 
 Append four static variants: Authorization Code grant missing, selected server
 hint mismatch, selected server does not support the grant, and Authorization
-Endpoint required. Reuse the existing generic unadvertised-server diagnostic.
-No prior error row, code, category, Display text or help URL changes.
+Endpoint required. Place them in a dedicated private authorization-code server
+catalogue because the existing issuer/Authorization Server metadata catalogue
+is at the 39-record review ceiling. Reuse the existing generic
+unadvertised-server diagnostic. No prior error row, code, category, Display
+text or help URL changes.
 
 ## Least authority and redaction
 

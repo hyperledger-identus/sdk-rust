@@ -55,6 +55,12 @@ a separate type: its required endpoint and later security inputs differ. The
 existing Authorization Code grant continues to own optional `issuer_state`,
 so the transition adds no secret copy and preserves existing redaction.
 
+The issuer/Authorization Server metadata error catalogue already contains the
+standing maximum of 39 records. The four new transition diagnostics therefore
+belong in a small authorization-code server-binding catalogue. This preserves
+the review ceiling and keeps a new semantic boundary out of a full parser and
+metadata catalogue.
+
 ## Candidate decisions
 
 | Candidate | Disposition | Reason |
@@ -64,6 +70,7 @@ so the transition adds no secret copy and preserves existing redaction.
 | RFC 8414 effective grant default | `adopt` | Omission means `authorization_code` plus `implicit`. |
 | Exact hint and advertised-server comparisons | `adopt` | Matches Final semantics and avoids normalization ambiguity. |
 | Require Authorization Endpoint | `adopt` | Authorization Code uses the authorization endpoint. |
+| Dedicated four-record error catalogue | `adopt` | Preserves the 39-record review ceiling and semantic cohesion. |
 | Reuse the pre-authorized result type | `not-adopt` | It proves the wrong grant and Token Endpoint capability. |
 | Build the Authorization Request in this slice | `defer` | Client, redirect, state, PKCE and credential-selection inputs need a separate contract. |
 | Discovery or endpoint reachability checks | `defer` | Network and trust remain caller-owned boundaries. |

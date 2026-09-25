@@ -1,0 +1,11 @@
+[[modified_requirement]]
+capability       = "oid4vci-error-contracts"
+requirement      = "Catalogue ownership follows OID4VCI responsibilities"
+canonical_sha256 = "8c238ac32369b5ad374f007537d6d7732cdd6efda79b40466493df208360b48b"
+reason           = "Issue #350 adds a dedicated four-record Authorization Code server-binding catalogue so the existing full metadata catalogue and the standing 39-record review ceiling remain intact."
+
+[[modified_requirement]]
+capability       = "oid4vci-error-contracts"
+requirement      = "Maintainability evidence is truthful"
+canonical_sha256 = "fc498b9048119ef7a3cc9e3b9a7e70a84907e12812db5fa540357bb3ea5c9e35"
+reason           = "The catalogue count intentionally becomes seven while every catalogue remains discoverable and at or below the 39-record review ceiling."

@@ -38,3 +38,51 @@ SHALL remain exact.
 - **WHEN** the authorization-code server-binding capability is delivered
 - **THEN** its four diagnostics follow the previous canonical inventory rows
 - **AND** the historical prefix remains byte-for-byte semantically unchanged
+
+### Requirement: Catalogue ownership follows OID4VCI responsibilities
+
+Records SHALL be grouped privately into offer transport/JSON, offer
+semantics/grants, issuer/authorization-server metadata, token
+request/response/errors, credential/nonce/HTTP, deferred/immediate issuance,
+and authorization-code server-binding catalogues with live counts 12, 21, 39,
+34, 36, 34, and 4. The first six ordered ranges SHALL remain
+`InvalidLimits` through `UnsafeReferenceUri`, `InvalidSemanticLimits` through
+`TransactionCodeDescriptionTooLarge`, `InvalidMetadataLimits` through
+`TokenEndpointRequired`, `InvalidTransactionCodeInputLimits` through
+`TokenErrorUriTooLarge`, `InvalidCredentialErrorResponseLimits` through
+`CredentialRequestBodyTooLarge`, and
+`InvalidDeferredCredentialRequestLimits` through
+`DeferredCredentialTransactionMismatch`. The seventh SHALL range from
+`AuthorizationCodeGrantMissing` through `AuthorizationEndpointRequired`.
+
+The five issuance-catalogue suffix records SHALL remain the issue #345
+fieldless HTTP limits, status, media-type bound, media-type syntax and
+transaction correlation errors. The four authorization-code records SHALL be
+the issue #350 fieldless grant absence, server-hint mismatch, unsupported
+grant and endpoint absence diagnostics. All SHALL preserve the immutable
+171-variant v1 prefix and receive independent exact code, kind, message,
+conversion and redaction tests.
+
+#### Scenario: authorization-code diagnostics remain cohesive
+
+- **WHEN** a reviewer inspects Authorization Code server binding
+- **THEN** all four appended records are visible in one focused catalogue
+  without widening the full metadata catalogue
+- **AND** no catalogue exceeds the standing 39-record review ceiling
+
+### Requirement: Maintainability evidence is truthful
+
+The historical refactor SHALL retain its 171 baseline behavioral decisions,
+one mapping site and zero wildcard defaults. The complete live decision count
+MAY grow only through append-only independently tested feature contracts.
+Seven responsibility catalogues SHALL remain discoverable, no catalogue SHALL
+exceed the standing 39-record review ceiling, and every total-line or
+record-count movement SHALL be disclosed without claiming decision
+deduplication.
+
+#### Scenario: cohesion survives additive evolution
+
+- **WHEN** a new error contract is appended
+- **THEN** its responsibility catalogue remains independently reviewable, the
+  router remains one explicit wildcard-free decision site, and all baseline
+  plus live decisions remain explicit

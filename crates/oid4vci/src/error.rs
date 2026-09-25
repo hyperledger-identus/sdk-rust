@@ -442,6 +442,8 @@ pub mod error_code {
         ErrorCode::new("oid4vci.authorization_code_token_configuration_mismatch");
     pub const AMBIGUOUS_AUTHORIZATION_CODE_TOKEN_AUTHORIZATION_DETAILS: ErrorCode =
         ErrorCode::new("oid4vci.ambiguous_authorization_code_token_authorization_details");
+    pub const INVALID_CREDENTIAL_ENDPOINT_HTTP_STATUS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_credential_endpoint_http_status");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -678,6 +680,7 @@ pub enum CredentialOfferError {
     InvalidAuthorizationCodeTokenPragma,
     AuthorizationCodeTokenConfigurationMismatch,
     AmbiguousAuthorizationCodeTokenAuthorizationDetails,
+    InvalidCredentialEndpointHttpStatus,
 }
 
 macro_rules! define_credential_offer_error_contracts {
@@ -926,6 +929,7 @@ define_credential_offer_error_contracts! {
     InvalidAuthorizationCodeTokenPragma => authorization_code_token_response::INVALID_AUTHORIZATION_CODE_TOKEN_PRAGMA,
     AuthorizationCodeTokenConfigurationMismatch => authorization_code_token_correlation::AUTHORIZATION_CODE_TOKEN_CONFIGURATION_MISMATCH,
     AmbiguousAuthorizationCodeTokenAuthorizationDetails => authorization_code_token_correlation::AMBIGUOUS_AUTHORIZATION_CODE_TOKEN_AUTHORIZATION_DETAILS,
+    InvalidCredentialEndpointHttpStatus => deferred_immediate_issuance::INVALID_CREDENTIAL_ENDPOINT_HTTP_STATUS,
 }
 
 impl CredentialOfferError {

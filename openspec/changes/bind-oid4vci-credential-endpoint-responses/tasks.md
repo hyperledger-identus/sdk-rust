@@ -8,10 +8,10 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add composed limits, closed outcome and request-bound wrapper states.
-- [ ] 2.2 Add the consuming status-first response transition with parser reuse.
-- [ ] 2.3 Add exact branch, precedence, proof-count, ownership and redaction tests.
-- [ ] 2.4 Add ADR 0148 and update inventory, resource, blueprint and roadmap evidence.
+- [x] 2.1 Add composed limits, closed outcome and request-bound wrapper states.
+- [x] 2.2 Add the consuming status-first response transition with parser reuse.
+- [x] 2.3 Add exact branch, precedence, proof-count, ownership and redaction tests.
+- [x] 2.4 Add ADR 0148 and update inventory, resource, blueprint and roadmap evidence.
 
 ## 3. Review and delivery
 

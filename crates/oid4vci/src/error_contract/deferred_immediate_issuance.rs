@@ -208,3 +208,9 @@ pub(crate) const CREDENTIAL_RESPONSE_EXCEEDS_PROOF_COUNT: ErrorContract = ErrorC
     ErrorKind::InvalidInput,
     "OID4VCI Credential Response exceeds request proof count",
 );
+
+pub(crate) const INVALID_CREDENTIAL_ENDPOINT_HTTP_STATUS: ErrorContract = ErrorContract::new(
+    error_code::INVALID_CREDENTIAL_ENDPOINT_HTTP_STATUS,
+    ErrorKind::InvalidInput,
+    "OID4VCI Credential Endpoint HTTP status is invalid",
+);

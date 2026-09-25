@@ -25,3 +25,13 @@ No HTTP execution or provenance, authorization-error/`WWW-Authenticate`
 parsing, TLS, token validation/storage, proof generation, retry/recovery,
 polling, credential verification/storage, consumer, release, chain, Midnight,
 or product behavior.
+
+## Capabilities
+
+### Modified capabilities
+
+- `oid4vci-credential-endpoint-response`: add consuming, status-first response
+  classification with request proof-count evidence.
+- `oid4vci-error-contracts`: append one static invalid Credential Endpoint
+  status diagnostic without changing the immutable baseline.
+- `ssi-upstream-program`: keep IDR-023 in progress under focused successor #368.

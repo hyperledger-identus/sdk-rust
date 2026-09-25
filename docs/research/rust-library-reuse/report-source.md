@@ -192,6 +192,11 @@ SDK cone smaller for some candidates.
 | Spruce `openid4vp` | upstream at assessed SHA | inherits 1.89+ | broad | `oracle` | OID4VP 1.0 reference, but carries transport/runtime dependencies and a git-pinned JOSE fork. |
 | Spruce `isomdl` | 0.2.0 | not declared | 251 | `spike` | Strong behavior and state-machine evidence; monolithic library/CLI dependencies and target cost need isolation first. |
 | impierce `openid4vc` | upstream at assessed SHA | not declared | broad | `oracle` | Tracks OID4VCI/OID4VP finals, but published `oid4vci`/`openid4vp` 0.1 crates are empty placeholders and upstream uses git patches. |
+| Affinidi OID4VC crates | VCI 0.2.1 / VP 0.1.3 / core 0.1.8 | 1.95 | 107-package combined probe | `oracle` | Published and Final-labelled, but above the SDK MSRV with a broad public model; its VP surface is Presentation Exchange-oriented rather than a narrow DCQL engine. |
+| `equs-oid4vci` | 0.1.0 | not declared | 534-package probe | `not-adopt` | Very young package whose broad SSI, mdoc, and OAuth-alpha graph overwhelms the local bounded OID4VCI implementation. |
+| Credibil `vdc` | `288e2dcb` | 1.90 | not publicly reproducible | `not-adopt` | Depends on private Credibil registry packages and lacks current maintenance evidence. |
+| Spruce `open-auth2-rs` | `5d653eac` | not declared | unreleased source graph | `oracle` | Useful modular design evidence, but no release/tag and unconditional HTTP/form/JSON/RNG coupling. |
+| `siros-dcql` | 0.3.0 | 1.82 | 12 resolved packages | `spike` / `conditional-adopt` | Cohesive pure-Rust OID4VP Final DCQL selection engine; exact fixture proves matching and isolation, while unbounded/tolerant public models require an Identus facade and portable target evidence under ADR 0156. |
 | OWF `sd-jwt-rs` | 0.7.1 | 1.67 | 54 | `not-adopt` | Explicitly implements draft version 7, not RFC 9901. |
 | `didcomm` | 0.4.1 | not declared | about 84 | `not-adopt` | Last release is from 2023 and dependencies/API predate the roadmap's DIDComm 2.1 target. |
 | `aries-askar` | 0.4.6 | 1.81 | 192 host normal/build lines; 256 lock packages | `not-adopt` | The exact-record fixture passes 16/16 shared operations, but storage cannot be sliced from broad KMS crypto, SQLite/Tokio/SQLx, native toolchains or SDK-owned revision/CAS mechanics; ADR 0103 retains reference evidence only. |

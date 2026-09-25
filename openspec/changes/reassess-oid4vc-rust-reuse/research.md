@@ -78,10 +78,13 @@ For the exact SIROS version, the direct dependency cone is `serde` and
 `serde_json`; the separately resolved dependency cone contains 12 external
 registry packages. The minimal Affinidi and Equs probes resolved 107 and 534
 external packages respectively. These counts describe isolated manifests, not
-incremental workspace deltas. The SIROS probe compiled on the Rust 1.89 MSRV
-host. WASM, iOS, and Android target evidence remains unrun at planning time
-because those targets and repository Nix were unavailable in the invoking
-shell; no portable support is inferred.
+incremental workspace deltas. An ephemeral minimal probe and the committed
+adapter compiled on the Rust 1.89 MSRV host (the latter with
+`--ignore-rust-version` because the research package itself retains the
+repository's exact 1.98.1 policy). Exact locked compile checks also passed on
+Rust 1.98.1 for `wasm32-unknown-unknown`, `aarch64-apple-ios`, and
+`aarch64-linux-android`. These are compile receipts, not browser/device
+runtime, linker, packaging, FFI, or support claims.
 
 The fixture selects no HTTP, runtime, clock, RNG, native library, or build
 script. It cannot change consumer APIs or release artifacts. Its bounded
@@ -104,8 +107,12 @@ only behind an Identus-owned pre-parse bound, stricter validation, redacted
 errors, and private type mapping.
 
 Supply-chain evidence includes the exact crates.io release, generated lock,
-published checksum, license metadata, and source scan; advisory and license
-gates will run once the fixture exists. Maintenance evidence is a 0.3.0 release dated
+published checksum `749a7da5b56f724a05c9694d87a82e0b03a609ad412deaf84ccf9376de2ec192`,
+license metadata, and source scan. `cargo deny 0.20.2` passed advisories, bans,
+licenses, and sources with only expected unmatched-root-policy warnings;
+`cargo audit 0.22.2 --deny warnings` passed 13 lock entries. The crate source
+denies unsafe and the scan found no unsafe block, native link, or FFI token.
+Maintenance evidence is a 0.3.0 release dated
 2026-09-21 from an active tagged repository; this is promising, not a security
 or longevity guarantee.
 
@@ -121,25 +128,32 @@ reconsideration trigger.
 
 ## Open questions and blockers
 
-There is no research-readiness blocker. The executable fixture must establish
-whether strict identifier/meta validation can be layered without duplicating
-most of the engine and whether result mapping stays small. Production adoption
-remains blocked on a separate OID4VP consumer issue, portable target evidence,
-and an accepted public facade.
+There is no research-readiness blocker. The fixture establishes that a small
+pre-parse byte bound, category-only error, and candidate-free result mapping
+are possible, while strict identifier and required-`meta` validation still
+belong to the future facade. Production adoption remains blocked on a separate
+OID4VP consumer issue, runtime evidence, complete structural limits, and an
+accepted public facade.
 
 ## Evidence commands
 
-Planned exact locked evidence:
+Executed exact locked evidence:
 
 ```text
 cargo +1.98.1 generate-lockfile
 cargo +1.98.1 test --locked
 cargo +1.98.1 clippy --locked --all-targets -- -D warnings
 cargo +1.98.1 tree --locked -p siros-dcql --edges normal,build
-cargo +1.89.0 check --locked
+cargo +1.89.0 check --locked --ignore-rust-version
+cargo +1.98.1 check --locked --target wasm32-unknown-unknown
+cargo +1.98.1 check --locked --target aarch64-apple-ios
+cargo +1.98.1 check --locked --target aarch64-linux-android
+cargo deny --manifest-path <fixture>/Cargo.toml --config deny.toml check
+cargo audit --file <fixture>/Cargo.lock --deny warnings
 rg 'unsafe|extern "C"|#\[link' <siros-dcql-0.3.0>/src
 ```
 
-Unrun checks must include any unavailable WASM/iOS/Android compilation,
-browser/mobile runtime, interoperability, performance, publication, release,
-certification, presentation construction, and cryptographic verification.
+Unrun checks are browser/mobile runtime, linking and packaging, deployed
+interoperability, performance, publication, release, certification,
+presentation construction, and cryptographic verification. No success is
+inferred for them.

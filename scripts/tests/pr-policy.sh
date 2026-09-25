@@ -26,6 +26,17 @@ GITHUB_OUTPUT="$output_file" PR_BASE_REF=develop PR_DRAFT=false \
   PR_BODY="$valid_body" "$checker" >/dev/null
 grep -qx 'issue-number=16' "$output_file"
 
+printf -v long_filler '%*s' 60000 ''
+long_beginning_body="$valid_body"$'\n'"$long_filler"
+long_end_body="$long_filler"$'\n'"$valid_body"
+
+for long_body in "$long_beginning_body" "$long_end_body"; do
+  : >"$output_file"
+  GITHUB_OUTPUT="$output_file" PR_BASE_REF=develop PR_DRAFT=false \
+    PR_BODY="$long_body" "$checker" >/dev/null
+  grep -qx 'issue-number=16' "$output_file"
+done
+
 assert_rejected "a pull request targeting main" \
   env PR_BASE_REF=main PR_DRAFT=false PR_BODY="$valid_body" "$checker"
 assert_rejected "a draft pull request" \

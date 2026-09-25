@@ -189,12 +189,14 @@ test("file-backed pull request preflight applies both hosted policy layers", () 
   const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-preflight-"));
   try {
     const bodyFile = path.join(created, "body.md");
-    const body = [
+    const metadata = [
       "Closes #320",
       "- Local review: passed by a focused review",
       "- Constraint impact: routine",
       "- Limitations: none",
     ].join("\n");
+    const filler = "x".repeat(60_000);
+    const body = `${metadata}\n${filler}`;
     writeFileSync(bodyFile, body);
     let observedEnvironment;
     const options = {
@@ -226,6 +228,17 @@ test("file-backed pull request preflight applies both hosted policy layers", () 
       "--draft", "false",
     ], { encoding: "utf8" });
     assert.match(commandOutput, /metadata preflight passed for issue #320/u);
+
+    writeFileSync(bodyFile, `${filler}\n${metadata}`);
+    const endMatchOutput = execFileSync(path.resolve("scripts/factory"), [
+      "delivery", "pr-preflight",
+      "--title", options.title,
+      "--body-file", bodyFile,
+      "--head-ref", options.headRef,
+      "--base-ref", options.baseRef,
+      "--draft", "false",
+    ], { encoding: "utf8" });
+    assert.match(endMatchOutput, /metadata preflight passed for issue #320/u);
     assert.match(
       execFileSync(path.resolve("scripts/factory"), ["delivery", "--help"], { encoding: "utf8" }),
       /delivery pr-preflight/u,

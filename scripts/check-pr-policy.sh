@@ -21,7 +21,7 @@ if [[ "$pr_draft" != "false" ]]; then
 fi
 
 issue_pattern='^[[:space:]]*-[[:space:]]*Issue:[[:space:]]*#[0-9]+([[:space:]]|$)|^[[:space:]]*(Closes|Fixes|Resolves|Refs|References)[[:space:]]+#[0-9]+([[:space:]]|$)'
-if issue_line=$(printf '%s\n' "$pr_body" | grep -Eim1 "$issue_pattern"); then
+if issue_line=$(grep -Eim1 "$issue_pattern" <<<"$pr_body"); then
   issue_suffix=${issue_line#*#}
   issue_number=${issue_suffix%%[!0-9]*}
 else
@@ -30,17 +30,17 @@ else
 fi
 
 review_pattern='^[[:space:]]*-[[:space:]]*Local review:[[:space:]]*(passed|complete|completed)([[:space:][:punct:]]|$)'
-if ! printf '%s\n' "$pr_body" | grep -Eiq "$review_pattern"; then
+if ! grep -Eiq "$review_pattern" <<<"$pr_body"; then
   report_failure "body must record completed local review"
 fi
 
 constraint_pattern='^[[:space:]]*-[[:space:]]*Constraint impact:[[:space:]]*(none|routine|material)([[:space:][:punct:]]|$)'
-if ! printf '%s\n' "$pr_body" | grep -Eiq "$constraint_pattern"; then
+if ! grep -Eiq "$constraint_pattern" <<<"$pr_body"; then
   report_failure "body must classify constraint impact as none, routine or material"
 fi
 
 limitation_pattern='^[[:space:]]*-[[:space:]]*Limitations:[[:space:]]*[^[:space:]<].*$'
-if ! printf '%s\n' "$pr_body" | grep -Eiq "$limitation_pattern"; then
+if ! grep -Eiq "$limitation_pattern" <<<"$pr_body"; then
   report_failure "body must state none or describe the introduced limitation"
 fi
 

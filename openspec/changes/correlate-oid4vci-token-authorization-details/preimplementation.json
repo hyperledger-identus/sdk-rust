@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 362,
+  "change": "correlate-oid4vci-token-authorization-details",
+  "branch": "codex/feat/issue-362",
+  "baseRef": "origin/develop",
+  "baseSha": "e2112c00f98436bacfacff795f0333eb522fb220",
+  "contractHeadSha": "a7b92d73ca07ea230fc381bcedf60c1be7cb1fad",
+  "createdAt": "2026-09-25T08:24:48.996Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -128,6 +128,24 @@ pub struct CredentialOfferWithAuthorizationRequestInput {
 }
 
 impl CredentialOfferWithAuthorizationRequestInput {
+    pub(crate) fn into_public_client_token_request_parts(
+        self,
+    ) -> (
+        CredentialOfferWithAuthorizationCodeServer,
+        usize,
+        AuthorizationRequestClientId,
+        AuthorizationRequestRedirectUri,
+        PkceCodeVerifier,
+    ) {
+        (
+            self.server,
+            self.selected_configuration_index,
+            self.client_id,
+            self.redirect_uri,
+            self.code_verifier,
+        )
+    }
+
     /// Borrow the capable server-bound offer.
     pub const fn credential_offer_with_authorization_code_server(
         &self,

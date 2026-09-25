@@ -271,6 +271,48 @@ impl Default for PreAuthorizedTokenRequestLimits {
     }
 }
 
+/// Resource limits for a constructed Authorization Code Token Request.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AuthorizationCodeTokenRequestLimits {
+    max_token_endpoint_bytes: usize,
+    max_form_body_bytes: usize,
+}
+
+impl AuthorizationCodeTokenRequestLimits {
+    /// Construct a positive endpoint and encoded form-body policy.
+    pub const fn new(
+        max_token_endpoint_bytes: usize,
+        max_form_body_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_token_endpoint_bytes == 0 || max_form_body_bytes == 0 {
+            return Err(CredentialOfferError::InvalidAuthorizationCodeTokenRequestLimits);
+        }
+        Ok(Self {
+            max_token_endpoint_bytes,
+            max_form_body_bytes,
+        })
+    }
+
+    /// Maximum bytes in the selected Token Endpoint URL.
+    pub const fn max_token_endpoint_bytes(self) -> usize {
+        self.max_token_endpoint_bytes
+    }
+
+    /// Maximum encoded UTF-8 bytes in the complete form body.
+    pub const fn max_form_body_bytes(self) -> usize {
+        self.max_form_body_bytes
+    }
+}
+
+impl Default for AuthorizationCodeTokenRequestLimits {
+    fn default() -> Self {
+        Self {
+            max_token_endpoint_bytes: 2_048,
+            max_form_body_bytes: 16_384,
+        }
+    }
+}
+
 /// Resource limits for a successful OAuth Token Response core.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TokenResponseLimits {

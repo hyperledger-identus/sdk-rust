@@ -192,6 +192,16 @@ pub struct CorrelatedAuthorizationCode {
 }
 
 impl CorrelatedAuthorizationCode {
+    pub(crate) fn into_token_request_parts(
+        self,
+    ) -> (
+        AuthorizationRequest,
+        Zeroizing<String>,
+        AuthorizationResponseIssuerIdentification,
+    ) {
+        (*self.request, self.code, self.issuer_identification)
+    }
+
     /// Borrow the consumed request lineage needed by a later code exchange.
     pub const fn authorization_request(&self) -> &AuthorizationRequest {
         &self.request

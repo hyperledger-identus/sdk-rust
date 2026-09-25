@@ -19,6 +19,12 @@ pub struct CredentialOfferWithAuthorizationCodeServer {
 }
 
 impl CredentialOfferWithAuthorizationCodeServer {
+    pub(crate) fn into_parts(
+        self,
+    ) -> (CredentialOfferWithMetadata, AuthorizationServerMetadataCore) {
+        (self.offer, self.authorization_server_metadata)
+    }
+
     /// Borrow the matched Credential Offer and Credential Issuer Metadata.
     pub const fn credential_offer_with_metadata(&self) -> &CredentialOfferWithMetadata {
         &self.offer

@@ -47,6 +47,17 @@ conversion and redaction tests.
   without widening the full metadata catalogue
 - **AND** no catalogue exceeds the standing 39-record review ceiling
 
+Issue #352 SHALL extend the seventh focused catalogue with ten request-input
+diagnostics, changing its live count to 14 and its terminal range to
+`PkceCodeVerifierTooLarge` while keeping it below 39 records. The router SHALL
+remain one explicit wildcard-free decision site.
+
+#### Scenario: request preparation remains in the focused catalogue
+
+- **WHEN** a reviewer inspects server binding and request preparation
+- **THEN** their static errors are discoverable together without widening
+  unrelated metadata, token or issuance catalogues
+
 ### Requirement: Routing and inventory are compile-exhaustive
 
 One private wildcard-free router SHALL map every `CredentialOfferError`
@@ -96,6 +107,18 @@ SHALL remain exact.
 - **WHEN** the authorization-code server-binding capability is delivered
 - **THEN** its four diagnostics follow the previous canonical inventory rows
 - **AND** the historical prefix remains byte-for-byte semantically unchanged
+
+The Authorization Request input capability SHALL append static public rows for
+invalid limits, an absent configuration index, invalid or oversized client
+identifier, redirect URI and state, and invalid or oversized PKCE verifier.
+Every prior live row SHALL remain exact, and no new diagnostic SHALL retain or
+display remote input.
+
+#### Scenario: request-input diagnostics append safely
+
+- **WHEN** issue #352 extends the live error inventory
+- **THEN** all request-input rows follow every pre-existing row
+- **AND** the v1 golden and prior live rows remain semantically exact
 
 ### Requirement: Public, wire, and protocol boundaries remain unchanged
 

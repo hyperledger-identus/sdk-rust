@@ -193,6 +193,28 @@ format/chain extensions, consumer adoption, publication or release.
   `delivery_status=in_progress`
 - **AND** #7 and #20 remain open component and program parents
 
+After #350 delivers, the row SHALL reference focused child #352. Issue #352
+owns bounded offered-configuration selection, OAuth caller-input validation
+and SDK-derived PKCE S256 for a later Authorization Request serializer. It
+SHALL NOT claim URL serialization, scope or `authorization_details` selection,
+PAR, browser/callback behavior, Authorization Response correlation, code
+exchange, HTTP execution or authorization completion.
+
+#### Scenario: server binding hands off to request-input preparation
+
+- **WHEN** issue #350 is delivered and #352 is open
+- **THEN** `IDR-023` references #352 with `delivery_status=in_progress`
+- **AND** #7 and #20 remain open component and program parents
+
+Before #352 integrates, the row SHALL reference one open focused successor for
+the next least-authority Authorization Request seam.
+
+#### Scenario: prepared inputs do not complete the engine
+
+- **WHEN** bounded inputs and PKCE S256 are prepared without wire serialization
+  or response correlation
+- **THEN** the backlog remains in progress under the focused successor
+
 ### Requirement: Active backlog ownership is live before autonomous selection
 
 The repository SHALL provide a network-explicit, read-only audit that validates

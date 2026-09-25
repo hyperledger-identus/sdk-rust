@@ -2,16 +2,16 @@
 
 ## Exact clean candidate
 
-At implementation head `a0ff1196b7d5959c65e70350298241eb61cea105` with
+At implementation head `9eaf7e2bc7d48097d2073276e9854dd58e13c236` with
 Rust/Cargo `1.98.1`:
 
 ```text
 scripts/prepare-did-candidate.py --root . --output <external> \
-  --revision a0ff1196b7d5959c65e70350298241eb61cea105
+  --revision 9eaf7e2bc7d48097d2073276e9854dd58e13c236
   sourceDirty: false
   twoPassByteIdentical: true
   12 profile commands passed
-  elapsedSeconds: 42.259
+  elapsedSeconds: 45.976
 
 identus-did-0.1.0-rc.1.crate
   bytes: 97727

@@ -4,7 +4,7 @@
 
 - Issue: `#382`
 - Exact base: `96cf5f577b5f3585461d34589aad465297693af0`
-- Reviewed implementation head: `a0ff1196b7d5959c65e70350298241eb61cea105`
+- Reviewed implementation head: `9eaf7e2bc7d48097d2073276e9854dd58e13c236`
 - Scope: additive release-train registry, DID candidate descriptor and READMEs,
   offline policy checker, credential-free local assembler, mutation tests and
   factory integration.

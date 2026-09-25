@@ -64,29 +64,41 @@ impl DeferredCredentialRequest {
         body: &str,
         limits: DeferredCredentialHttpResponseLimits,
     ) -> Result<DeferredCredentialOutcome, CredentialOfferError> {
-        if status_code != 200 && status_code != 202 {
-            return Err(CredentialOfferError::InvalidDeferredCredentialHttpStatus);
-        }
-        if content_type.len() > limits.max_content_type_bytes() {
-            return Err(CredentialOfferError::DeferredCredentialContentTypeTooLarge);
-        }
-        if !is_application_json(content_type.as_bytes()) {
-            return Err(CredentialOfferError::InvalidDeferredCredentialContentType);
-        }
-
-        if status_code == 200 {
-            return ImmediateCredentialResponseCore::parse(
-                body,
-                limits.immediate_response_limits(),
-            )
-            .map(DeferredCredentialOutcome::Issued);
-        }
-
-        let response =
-            DeferredCredentialResponseCore::parse(body, limits.deferred_response_limits())?;
-        if response.transaction_id().expose_sensitive_transaction_id() != self.transaction_id() {
-            return Err(CredentialOfferError::DeferredCredentialTransactionMismatch);
-        }
-        Ok(DeferredCredentialOutcome::Pending(response))
+        parse_deferred_success_response(
+            self.transaction_id(),
+            status_code,
+            content_type,
+            body,
+            limits,
+        )
     }
+}
+
+pub(crate) fn parse_deferred_success_response(
+    transaction_id: &str,
+    status_code: u16,
+    content_type: &str,
+    body: &str,
+    limits: DeferredCredentialHttpResponseLimits,
+) -> Result<DeferredCredentialOutcome, CredentialOfferError> {
+    if status_code != 200 && status_code != 202 {
+        return Err(CredentialOfferError::InvalidDeferredCredentialHttpStatus);
+    }
+    if content_type.len() > limits.max_content_type_bytes() {
+        return Err(CredentialOfferError::DeferredCredentialContentTypeTooLarge);
+    }
+    if !is_application_json(content_type.as_bytes()) {
+        return Err(CredentialOfferError::InvalidDeferredCredentialContentType);
+    }
+
+    if status_code == 200 {
+        return ImmediateCredentialResponseCore::parse(body, limits.immediate_response_limits())
+            .map(DeferredCredentialOutcome::Issued);
+    }
+
+    let response = DeferredCredentialResponseCore::parse(body, limits.deferred_response_limits())?;
+    if response.transaction_id().expose_sensitive_transaction_id() != transaction_id {
+        return Err(CredentialOfferError::DeferredCredentialTransactionMismatch);
+    }
+    Ok(DeferredCredentialOutcome::Pending(response))
 }

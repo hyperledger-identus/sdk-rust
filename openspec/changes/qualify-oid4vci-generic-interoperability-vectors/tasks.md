@@ -4,7 +4,7 @@
 
 - [x] 1.1 Audit the pinned Oxid/Portal sources, licenses, genericity and current SDK matrix.
 - [x] 1.2 Select clean-room repository-authored vectors and record excluded consumer behavior.
-- [ ] 1.3 Pass research/constraint readiness, commit planning and bind the issue receipt.
+- [x] 1.3 Pass research/constraint readiness, commit planning and bind the issue receipt.
 
 ## 2. Executable conformance
 

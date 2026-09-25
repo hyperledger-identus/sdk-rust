@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 376,
+  "change": "qualify-oid4vci-generic-interoperability-vectors",
+  "branch": "codex/test/issue-376",
+  "baseRef": "origin/develop",
+  "baseSha": "149a35e62fc54f91dc99a496feb884d5b2f92cce",
+  "contractHeadSha": "f8e77570dfbb5c84a1c2434193dadfe5638b5feb",
+  "createdAt": "2026-09-25T13:07:55.371Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

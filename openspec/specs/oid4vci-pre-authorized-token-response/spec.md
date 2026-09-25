@@ -74,4 +74,3 @@ trust, storage, retry, consumer, chain, release or product behavior.
 - **WHEN** a response is bound
 - **THEN** the result makes no claim about HTTP origin, TLS, token trust or
   external cache behavior
-

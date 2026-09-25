@@ -26,5 +26,5 @@
 ## 3. Review and delivery
 
 - [x] 3.1 Complete focused/full gates and exact-diff review.
-- [ ] 3.2 Prepare the OpenSpec archive; merge remains gated by the hosted
+- [x] 3.2 Prepare the OpenSpec archive; merge remains gated by the hosted
   `fast` lane.

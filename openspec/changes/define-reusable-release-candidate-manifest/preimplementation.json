@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 382,
+  "change": "define-reusable-release-candidate-manifest",
+  "branch": "codex/feat/issue-382",
+  "baseRef": "origin/develop",
+  "baseSha": "96cf5f577b5f3585461d34589aad465297693af0",
+  "contractHeadSha": "44f92828cab893a2ca645a20a2b60e1bf19fc067",
+  "createdAt": "2026-09-25T14:44:36.003Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

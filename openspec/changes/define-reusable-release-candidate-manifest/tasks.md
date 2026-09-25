@@ -2,11 +2,11 @@
 
 ## 1. Contract and preflight
 
-- [ ] 1.1 Record #382, M5 scope, exact base, first-train evidence, tag decision,
+- [x] 1.1 Record #382, M5 scope, exact base, first-train evidence, tag decision,
       constraints, architecture, security, rollback and test plan.
-- [ ] 1.2 Pass research, constraints and strict OpenSpec readiness; commit the
+- [x] 1.2 Pass research, constraints and strict OpenSpec readiness; commit the
       planning-only contract and persist the exact preimplementation receipt.
-- [ ] 1.3 Add and review ADR 0153 before candidate implementation.
+- [x] 1.3 Add and review ADR 0153 before candidate implementation.
 
 ## 2. Train identity and configuration
 

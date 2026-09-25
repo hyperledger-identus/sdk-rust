@@ -11,16 +11,16 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Factor the private strict form mechanics without changing existing
+- [x] 2.1 Factor the private strict form mechanics without changing existing
   Pre-Authorized Token Request bytes.
-- [ ] 2.2 Add bounded Authorization Details and exact request-URI construction
+- [x] 2.2 Add bounded Authorization Details and exact request-URI construction
   from the issue #352 predecessor.
-- [ ] 2.3 Strictly validate and retain pre-existing endpoint query fields,
+- [x] 2.3 Strictly validate and retain pre-existing endpoint query fields,
   rejecting malformed, duplicate and reserved names.
-- [ ] 2.4 Append stable static diagnostics without changing prior rows.
-- [ ] 2.5 Add normative, ordering, conditional-location, query, boundary,
+- [x] 2.4 Append stable static diagnostics without changing prior rows.
+- [x] 2.5 Add normative, ordering, conditional-location, query, boundary,
   ownership and redaction tests.
-- [ ] 2.6 Add the ADR and update inventory, blueprint and roadmap evidence with
+- [x] 2.6 Add the ADR and update inventory, blueprint and roadmap evidence with
   a focused response-correlation successor.
 
 ## 3. Review and delivery

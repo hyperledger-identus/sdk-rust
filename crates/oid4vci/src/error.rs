@@ -365,6 +365,20 @@ pub mod error_code {
         ErrorCode::new("oid4vci.invalid_pkce_code_verifier");
     pub const PKCE_CODE_VERIFIER_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.pkce_code_verifier_too_large");
+    pub const INVALID_AUTHORIZATION_REQUEST_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_request_limits");
+    pub const AUTHORIZATION_DETAILS_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_details_too_large");
+    pub const TOO_MANY_AUTHORIZATION_ENDPOINT_QUERY_PARAMETERS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_authorization_endpoint_query_parameters");
+    pub const AUTHORIZATION_ENDPOINT_QUERY_COMPONENT_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_endpoint_query_component_too_large");
+    pub const INVALID_AUTHORIZATION_ENDPOINT_QUERY: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_endpoint_query");
+    pub const AUTHORIZATION_ENDPOINT_QUERY_PARAMETER_COLLISION: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_endpoint_query_parameter_collision");
+    pub const AUTHORIZATION_REQUEST_URI_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_request_uri_too_large");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -563,6 +577,13 @@ pub enum CredentialOfferError {
     AuthorizationRequestStateTooLarge,
     InvalidPkceCodeVerifier,
     PkceCodeVerifierTooLarge,
+    InvalidAuthorizationRequestLimits,
+    AuthorizationDetailsTooLarge,
+    TooManyAuthorizationEndpointQueryParameters,
+    AuthorizationEndpointQueryComponentTooLarge,
+    InvalidAuthorizationEndpointQuery,
+    AuthorizationEndpointQueryParameterCollision,
+    AuthorizationRequestUriTooLarge,
 }
 
 macro_rules! define_credential_offer_error_contracts {
@@ -773,6 +794,13 @@ define_credential_offer_error_contracts! {
     AuthorizationRequestStateTooLarge => authorization_code_server::AUTHORIZATION_REQUEST_STATE_TOO_LARGE,
     InvalidPkceCodeVerifier => authorization_code_server::INVALID_PKCE_CODE_VERIFIER,
     PkceCodeVerifierTooLarge => authorization_code_server::PKCE_CODE_VERIFIER_TOO_LARGE,
+    InvalidAuthorizationRequestLimits => authorization_code_server::INVALID_AUTHORIZATION_REQUEST_LIMITS,
+    AuthorizationDetailsTooLarge => authorization_code_server::AUTHORIZATION_DETAILS_TOO_LARGE,
+    TooManyAuthorizationEndpointQueryParameters => authorization_code_server::TOO_MANY_AUTHORIZATION_ENDPOINT_QUERY_PARAMETERS,
+    AuthorizationEndpointQueryComponentTooLarge => authorization_code_server::AUTHORIZATION_ENDPOINT_QUERY_COMPONENT_TOO_LARGE,
+    InvalidAuthorizationEndpointQuery => authorization_code_server::INVALID_AUTHORIZATION_ENDPOINT_QUERY,
+    AuthorizationEndpointQueryParameterCollision => authorization_code_server::AUTHORIZATION_ENDPOINT_QUERY_PARAMETER_COLLISION,
+    AuthorizationRequestUriTooLarge => authorization_code_server::AUTHORIZATION_REQUEST_URI_TOO_LARGE,
 }
 
 impl CredentialOfferError {

@@ -20,7 +20,7 @@
 //! metadata, and bounded construction of the unencrypted Final
 //! configuration-ID/JWT-proof Credential Request, and bounded parsing of the
 //! unencrypted immediate Final Credential Response core. It performs no
-//! network access, deferred polling policy, Authorization Request serialization,
+//! network access, deferred polling policy, Authorization Response parsing,
 //! PAR, or callback behavior, does not validate complete RFC 8414 metadata or Token Response
 //! Authorization Details, and establishes no issuer, server, token,
 //! authorization, proof, transaction, or nonce trust.
@@ -29,6 +29,7 @@
 
 mod authorization_code_server;
 mod authorization_metadata;
+mod authorization_request;
 mod authorization_request_input;
 mod credential_error_http_response;
 mod credential_error_response;
@@ -41,6 +42,7 @@ mod deferred_credential_request;
 mod deferred_credential_response;
 mod error;
 mod error_contract;
+mod form;
 mod grants;
 mod http_field;
 mod immediate_credential_http_response;
@@ -61,6 +63,9 @@ pub use authorization_code_server::CredentialOfferWithAuthorizationCodeServer;
 pub use authorization_metadata::{
     AUTHORIZATION_CODE_GRANT_TYPE, AuthorizationEndpoint, AuthorizationServerMetadataCore,
     GrantTypeIdentifier, IMPLICIT_GRANT_TYPE, PRE_AUTHORIZED_CODE_GRANT_TYPE, TokenEndpoint,
+};
+pub use authorization_request::{
+    AUTHORIZATION_REQUEST_HTTP_METHOD, AuthorizationRequest, AuthorizationRequestLimits,
 };
 pub use authorization_request_input::{
     AuthorizationRequestClientId, AuthorizationRequestInputLimits, AuthorizationRequestRedirectUri,

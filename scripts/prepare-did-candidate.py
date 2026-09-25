@@ -31,6 +31,7 @@ EXTERNAL_DEPENDENCIES = (
     "serde", "serde_json", "tokio", "tower", "uriparse", "utoipa",
 )
 ALLOWED_SUFFIXES = {".rs", ".md"}
+ALLOWED_CARGO_OPERATIONS = frozenset({"check", "generate-lockfile", "package", "test"})
 SHA = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -38,7 +39,27 @@ class CandidateError(RuntimeError):
     pass
 
 
+def require_local_command(command: list[str]) -> None:
+    if not command:
+        raise CandidateError("empty candidate command")
+    executable = Path(command[0]).name
+    if executable == "git" and command[1:] in (["rev-parse", "HEAD"], ["status", "--porcelain"]):
+        return
+    if executable in {"cargo", "rustc"} and command[1:] == ["--version"]:
+        return
+    if executable == "cargo" and len(command) >= 2 and command[1] in ALLOWED_CARGO_OPERATIONS:
+        return
+    if (
+        Path(command[0]).resolve() == Path(sys.executable).resolve()
+        and len(command) == 3
+        and Path(command[1]).name == "check-release-candidates.py"
+    ):
+        return
+    raise CandidateError(f"candidate command is not allowlisted: {executable}")
+
+
 def run(command: list[str], *, cwd: Path, env: dict[str, str]) -> str:
+    require_local_command(command)
     result = subprocess.run(
         command, cwd=cwd, env=env, check=False, text=True,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,

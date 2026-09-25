@@ -252,7 +252,8 @@ def validate(root: Path) -> list[str]:
     required_builder = (
         "require_vcs_independent_build_scratch", "cargo", "package", "--workspace",
         "--locked", "--no-verify", "--allow-dirty", "inspect_archive",
-        "verify_closure", "os.replace", "candidate-receipt.json",
+        "verify_closure", "require_local_command", "ALLOWED_CARGO_OPERATIONS",
+        "os.replace", "candidate-receipt.json",
     )
     for phrase in required_builder:
         if phrase not in builder:

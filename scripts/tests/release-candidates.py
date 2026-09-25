@@ -87,6 +87,17 @@ def main() -> int:
         external = boundary / "external"
         external.mkdir()
         builder.require_vcs_independent_build_scratch(repository, external)
+        builder.require_local_command(["git", "status", "--porcelain"])
+        builder.require_local_command(["cargo", "package", "--workspace"])
+        for forbidden_command in (
+            ["git", "push"], ["cargo", "publish"], ["gh", "release", "create"],
+        ):
+            try:
+                builder.require_local_command(forbidden_command)
+            except builder.CandidateError:
+                pass
+            else:
+                raise AssertionError(f"remote-mutation command was accepted: {forbidden_command}")
 
         unsafe_archive = boundary / "package.crate"
         with tarfile.open(unsafe_archive, "w:gz") as archive:

@@ -10,8 +10,16 @@ immutable registry receipt proves whether that external publication completed.
 | `identus-core` | `crates/core` | none | experimental `0.1.0-rc.1` train |
 | `identus-derive` | `crates/derive` | none | experimental `0.1.0-rc.1` train |
 | `identus-crypto` | `crates/crypto` | crypto suite | experimental `0.1.0-rc.1` train |
-| `identus-did` | `crates/did` | none | experimental source |
-| `identus-did-resolver-http` | `crates/did-resolver-http` | none | experimental source |
+| `identus-did` | `crates/did` | none | experimental `0.1.0-rc.1` candidate; source-only |
+| `identus-did-resolver-http` | `crates/did-resolver-http` | none | experimental `0.1.0-rc.1` candidate; source-only |
+
+The candidate-only DID train is described by
+`docs/release/release-trains.toml` and `docs/release/did-candidate.toml`. Its
+reserved identity is `identus-did-v0.1.0-rc.1`. Local assembly renders and
+tests release-shaped archives in an external scratch directory, but does not
+change the canonical manifests, publish a crate, create a tag, or claim that
+the candidate is available from crates.io. Publication activation is a
+separate reviewed milestone.
 
 ## Cargo contract
 
@@ -65,13 +73,13 @@ model.
 
 ## Limitations
 
-This remains a pre-release channel. The three release-train crates make an
-experimental prerelease SemVer commitment; they make no stable SemVer compatibility,
+This remains a pre-release channel. The three published release-train crates
+make an experimental prerelease SemVer commitment; they make no stable SemVer compatibility,
 support-lifetime, binary, Nix package, FFI package,
-certification, or production-release promise. Every other workspace package
-retains version `0.0.0` and `publish = false`. An exact Git commit is still the
-only supported evaluation identity for those source-only packages. The current
-consumer compiler floor is Rust 1.89.0.
+certification, or production-release promise. Candidate-only and other
+workspace packages retain version `0.0.0` and `publish = false`. An exact Git
+commit is still the only supported evaluation identity for those source-only
+packages. The current consumer compiler floor is Rust 1.89.0.
 
 NeoPRISM's `identus-apollo` is a downstream compatibility facade over
 `identus-crypto`; it is not another name for an SDK package. Registry release

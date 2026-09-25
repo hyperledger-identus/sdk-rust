@@ -1,0 +1,17 @@
+schema_version = 1
+
+[[trains]]
+id              = "crypto"
+lifecycle       = "published"
+primary_package = "identus-crypto"
+descriptor      = "docs/release/crypto-candidate.toml"
+tag             = "v0.1.0-rc.1"
+packages        = [ "identus-derive", "identus-core", "identus-crypto" ]
+
+[[trains]]
+id              = "did"
+lifecycle       = "candidate-only"
+primary_package = "identus-did"
+descriptor      = "docs/release/did-candidate.toml"
+tag             = "identus-did-v0.1.0-rc.1"
+packages        = [ "identus-did", "identus-did-resolver-http" ]

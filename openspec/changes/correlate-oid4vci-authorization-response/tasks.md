@@ -6,7 +6,7 @@
   roadmap-directed security transition.
 - [x] 1.2 Pin Final/RFC response, state, issuer-identification, grammar,
   callback-boundary, compatibility, reuse and resource decisions.
-- [ ] 1.3 Pass research/constraint readiness, commit the planning contract,
+- [x] 1.3 Pass research/constraint readiness, commit the planning contract,
   and bind its immutable preimplementation receipt.
 
 ## 2. Implementation

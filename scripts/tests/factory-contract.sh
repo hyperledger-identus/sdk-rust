@@ -17,6 +17,7 @@ fixture_root=$(mktemp -d)
 trap 'rm -rf "$fixture_root"' EXIT
 
 "$repository_root/scripts/tests/ssi-upstream-backlog.py"
+"$repository_root/scripts/tests/oid4vci-conformance.py"
 "$repository_root/scripts/tests/ssi-upstream-backlog-live.py"
 "$repository_root/scripts/tests/weekly-slow-live.py"
 "$repository_root/scripts/tests/support-policy.py"
@@ -72,6 +73,8 @@ required_files=(
   docs/architecture/sdk-input-resource-boundaries.md
   docs/architecture/sdk-input-resource-boundaries.toml
   docs/architecture/source-distribution.md
+  docs/conformance/oid4vci-final-wallet-core.csv
+  docs/conformance/oid4vci-final-wallet-core.md
   docs/release/crypto-candidate.toml
   docs/release/0.1.0-rc.1.md
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
@@ -173,6 +176,7 @@ required_files=(
   scripts/check-crypto-benchmark.py
   scripts/report-crypto-coverage.py
   scripts/check-ssi-upstream-backlog.py
+  scripts/check-oid4vci-conformance.py
   scripts/check-ssi-upstream-backlog-live.py
   scripts/check-uniffi-did-android.sh
   scripts/check-weekly-slow-live.py
@@ -195,6 +199,7 @@ required_files=(
   scripts/tests/research-readiness.py
   scripts/tests/support-policy.py
   scripts/tests/ssi-upstream-backlog-live.py
+  scripts/tests/oid4vci-conformance.py
   scripts/tests/weekly-slow-live.py
   scripts/tests/apollo-parity.py
   scripts/tests/crypto-benchmark.py
@@ -292,6 +297,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-support-policy.py" \
   "$fixture_root/scripts/check-apollo-parity.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
+  "$fixture_root/scripts/check-oid4vci-conformance.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog-live.py" \
   "$fixture_root/scripts/check-weekly-slow-live.py" \
   "$fixture_root/scripts/check-source-distribution.py" \
@@ -316,6 +322,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/research-readiness.py" \
   "$fixture_root/scripts/tests/support-policy.py" \
   "$fixture_root/scripts/tests/ssi-upstream-backlog-live.py" \
+  "$fixture_root/scripts/tests/oid4vci-conformance.py" \
   "$fixture_root/scripts/tests/weekly-slow-live.py"
 chmod +x "$fixture_root/scripts/tests/apollo-parity.py"
 chmod +x "$fixture_root/scripts/ci/"*.mjs "$fixture_root/scripts/factory-tools/"*.mjs \
@@ -348,6 +355,12 @@ while IFS= read -r source_file; do
   mkdir -p "$fixture_root/$(dirname "$relative_source")"
   cp "$source_file" "$fixture_root/$relative_source"
 done < <(find "$repository_root/crates" -type f -name '*.rs' | sort)
+while IFS= read -r spec_file; do
+  relative_spec=${spec_file#"$repository_root/"}
+  mkdir -p "$fixture_root/$(dirname "$relative_spec")"
+  cp "$spec_file" "$fixture_root/$relative_spec"
+done < <(find "$repository_root/openspec/specs" -mindepth 2 -maxdepth 2 \
+  -type f -path '*/oid4vci-*/spec.md' | sort)
 
 "$repository_root/scripts/tests/pr-policy.sh"
 

@@ -748,6 +748,25 @@ product policy. Final capability and fixture reconciliation proceeds in issue
 [#372](https://github.com/hyperledger-identus/sdk-rust/issues/372) before M4 is
 declared complete.
 
+The thirty-eighth bounded delivery, issue #372, closes the discovery phase
+with a machine-readable OpenID4VCI 1.0 Final wallet-core conformance matrix,
+an offline fail-closed checker and a human evidence report. Twenty-four
+capability rows cover Final sections 4 through 12 plus the cross-consumer
+profile: thirteen are implemented, five partial, four deliberately unsupported
+and two missing. The matrix records repository evidence, limitations,
+provenance and focused ownership without claiming official OpenID
+certification. Oxid and Lace ID Portal fixtures remain reference-only because
+their exact genericity and license boundary is not yet sufficient for copying.
+M4 therefore remains open: issue
+[#375](https://github.com/hyperledger-identus/sdk-rust/issues/375) owns the
+request-bound Pre-Authorized Code Token Endpoint response transition, then
+issue [#376](https://github.com/hyperledger-identus/sdk-rust/issues/376) owns
+the qualified generic cross-consumer vector suite and current consumer review.
+The canonical matrix and report are
+[`docs/conformance/oid4vci-final-wallet-core.csv`](../conformance/oid4vci-final-wallet-core.csv)
+and
+[`docs/conformance/oid4vci-final-wallet-core.md`](../conformance/oid4vci-final-wallet-core.md).
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

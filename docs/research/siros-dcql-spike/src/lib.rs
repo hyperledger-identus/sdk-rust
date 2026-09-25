@@ -157,4 +157,83 @@ mod tests {
             "identifier.with.dot"
         );
     }
+
+    #[test]
+    fn duplicate_query_identifiers_fail_through_redacted_adapter() {
+        let canary = "DUPLICATE-CANARY";
+        let input = format!(
+            r#"{{"credentials":[{{"id":"{canary}","format":"dc+sd-jwt","meta":{{}}}},{{"id":"{canary}","format":"mso_mdoc","meta":{{}}}}]}}"#
+        );
+        let error = parse_query(input.as_bytes()).expect_err("duplicate ids must fail");
+        assert_eq!(error, AdapterError::InvalidQuery);
+        assert!(!format!("{error:?}").contains(canary));
+    }
+
+    #[test]
+    fn empty_query_is_never_satisfiable() {
+        let query = DcqlQuery::from_json(r#"{"credentials":[]}"#)
+            .expect("candidate parser deliberately accepts the empty list");
+        let credentials: [JsonCredential; 0] = [];
+        assert!(!execute(&query, &credentials, &ExactFormat).satisfiable);
+    }
+
+    #[test]
+    fn claim_value_matching_preserves_json_types() {
+        let query = DcqlQuery::from_json(
+            r#"{"credentials":[{"id":"age","format":"dc+sd-jwt","meta":{},"claims":[{"path":["adult"],"values":[true]}]}]}"#,
+        )
+        .expect("fixed query is valid");
+        let credentials = [
+            JsonCredential {
+                id: "boolean",
+                format: "dc+sd-jwt",
+                claims: json!({"adult": true}),
+                holder_bound: true,
+            },
+            JsonCredential {
+                id: "string",
+                format: "dc+sd-jwt",
+                claims: json!({"adult": "true"}),
+                holder_bound: true,
+            },
+        ];
+        let result = execute(&query, &credentials, &ExactFormat);
+        let candidates = &result.query("age").expect("query exists").candidates;
+        assert_eq!(candidates.len(), 1);
+        assert_eq!(candidates[0].credential_id, "boolean");
+    }
+
+    #[test]
+    fn required_alternatives_and_combination_limit_are_explicit() {
+        let query = DcqlQuery::from_json(
+            r#"{
+                "credentials":[
+                    {"id":"pid","format":"dc+sd-jwt","meta":{}},
+                    {"id":"mdl","format":"mso_mdoc","meta":{}}
+                ],
+                "credential_sets":[{"options":[["pid"],["mdl"]],"required":true}]
+            }"#,
+        )
+        .expect("fixed query is valid");
+        let credentials = [
+            JsonCredential {
+                id: "pid-a",
+                format: "dc+sd-jwt",
+                claims: json!({}),
+                holder_bound: true,
+            },
+            JsonCredential {
+                id: "pid-b",
+                format: "dc+sd-jwt",
+                claims: json!({}),
+                holder_bound: true,
+            },
+        ];
+        let result = execute(&query, &credentials, &ExactFormat);
+        assert!(result.satisfiable);
+        let combinations = result.combinations(1);
+        assert_eq!(combinations.combinations.len(), 1);
+        assert_eq!(combinations.dropped.count(), 1);
+        assert!(combinations.dropped.is_exact());
+    }
 }

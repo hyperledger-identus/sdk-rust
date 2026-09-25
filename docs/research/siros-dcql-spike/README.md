@@ -14,3 +14,5 @@ Run the host evidence from the repository root:
 
 The checker performs no network or protocol request. Cross-target commands are
 recorded separately and only count when their required toolchains are present.
+The [completed results](results.md) contain the capability matrix, clean-room
+vector inventory, measured payoff, resource analysis, and acceptance mapping.

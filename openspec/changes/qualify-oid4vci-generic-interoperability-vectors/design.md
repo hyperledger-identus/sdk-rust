@@ -68,6 +68,23 @@ as the fortieth bounded delivery. Partial and unsupported rows remain intact.
 Issue #7/M4 may then close as a bounded wallet-core milestone without implying
 publication, certification or downstream adoption.
 
+## Delivery decomposition
+
+The reviewed implementation spans 27 paths and 1,330 changed text lines
+(1,303 additions and 27 deletions), so the repository's decomposition trigger
+requires an explicit cohesion decision. The bulk is test evidence: a 507-line
+strict public-API integration test, a 130-line closed manifest, ten deliberately
+small fixture payloads, and the planning/conformance records required to make
+the evidence independently auditable. No runtime Rust source, Cargo manifest,
+lockfile, dependency, public API or workflow changes.
+
+Splitting the manifest from its validating/executing test would create an
+unverified evidence window. Splitting the conformance matrix, backlog and
+assessment would make the milestone claim disagree with the executable suite.
+Those parts therefore land atomically. Consumer adoption, live-network
+interoperability and format-specific behavior remain independent future slices
+and are deliberately excluded.
+
 ## Rejected alternatives
 
 Copying licensed Oxid wrappers would preserve ambiguous Portal-derived bytes.

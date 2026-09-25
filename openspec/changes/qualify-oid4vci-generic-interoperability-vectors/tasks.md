@@ -15,6 +15,6 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Run focused, crate, workspace, factory, documentation and portable-target evidence.
-- [ ] 3.2 Complete a distinct exact-diff architecture/security/provenance review.
-- [ ] 3.3 Archive the change, publish metrics and merge only after hosted gates are green.
+- [x] 3.1 Run focused, crate, workspace, factory, documentation and portable-target evidence.
+- [x] 3.2 Complete a distinct exact-diff architecture/security/provenance review.
+- [x] 3.3 Prepare the exact archive candidate and route metrics/merge to the protected hosted gates.

@@ -27,13 +27,16 @@ DESCRIPTOR_KEYS = {
     "schema_version", "candidate", "version", "rust_version",
     "preparation_rust_version", "baseline_revision", "repository", "homepage",
     "license", "max_archive_bytes", "max_archive_members", "max_expansion_ratio",
-    "publication", "release_tag", "profiles", "packages",
+    "max_evidence_bytes", "publication", "release_tag", "compatibility_status",
+    "tools", "profiles", "packages",
 }
 PROFILE_KEYS = {"package", "name", "default_features", "features"}
 PACKAGE_KEYS = {
     "name", "path", "description", "documentation", "readme", "keywords",
-    "categories", "candidate_dependencies", "published_dependencies", "features",
+    "categories", "api_baseline", "candidate_dependencies", "published_dependencies",
+    "features",
 }
+TOOL_KEYS = {"cargo_public_api", "cargo_semver_checks", "cargo_cyclonedx", "cyclonedx_spec"}
 EXPECTED_TRAINS = (
     {
         "id": "crypto", "lifecycle": "published", "primary_package": "identus-crypto",
@@ -168,14 +171,29 @@ def validate(root: Path) -> list[str]:
         "max_archive_bytes": 1048576,
         "max_archive_members": 512,
         "max_expansion_ratio": 20,
+        "max_evidence_bytes": 16777216,
         "publication": "candidate-only",
         "release_tag": "identus-did-v0.1.0-rc.1",
+        "compatibility_status": "not-applicable-first-candidate",
     }
     for field, expected in expected_scalars.items():
         if descriptor.get(field) != expected:
             errors.append(f"DID descriptor differs: {field}")
     if not re.fullmatch(r"[0-9a-f]{40}", str(descriptor.get("baseline_revision", ""))):
         errors.append("DID descriptor baseline_revision must be a full lowercase SHA")
+    tools = descriptor.get("tools")
+    if not isinstance(tools, dict):
+        errors.append("DID descriptor tools must be a table")
+    else:
+        require_keys(tools, TOOL_KEYS, "DID descriptor tools", errors)
+        expected_tools = {
+            "cargo_public_api": "0.52.0",
+            "cargo_semver_checks": "0.50.0",
+            "cargo_cyclonedx": "0.5.9",
+            "cyclonedx_spec": "1.5",
+        }
+        if tools != expected_tools:
+            errors.append("DID descriptor evidence tools differ")
 
     profiles = descriptor.get("profiles")
     observed_profiles: list[tuple[Any, Any, Any, tuple[Any, ...]]] = []
@@ -244,6 +262,14 @@ def validate(root: Path) -> list[str]:
         readme = package.get("readme")
         if not isinstance(readme, str) or not (root / expected_path / readme).is_file():
             errors.append(f"DID package README is missing: {name}")
+        api_baseline = package.get("api_baseline")
+        expected_baseline = f"docs/release/{name}-{VERSION}.api.txt"
+        if api_baseline != expected_baseline:
+            errors.append(f"DID package API baseline path differs: {name}")
+        elif not (root / api_baseline).is_file() or not (root / api_baseline).read_text(
+            encoding="utf-8"
+        ).strip():
+            errors.append(f"DID package API baseline is missing or empty: {name}")
         for field in ("description", "documentation", "keywords", "categories"):
             if not package.get(field):
                 errors.append(f"DID package release metadata missing {field}: {name}")
@@ -253,7 +279,8 @@ def validate(root: Path) -> list[str]:
         "require_vcs_independent_build_scratch", "cargo", "package", "--workspace",
         "--locked", "--no-verify", "--allow-dirty", "inspect_archive",
         "verify_closure", "require_local_command", "ALLOWED_CARGO_OPERATIONS",
-        "os.replace", "candidate-receipt.json",
+        "release_evidence", "public-api", "cyclonedx",
+        "repositoryPolicy", "candidateSpecificScan", "os.replace", "candidate-receipt.json",
     )
     for phrase in required_builder:
         if phrase not in builder:
@@ -273,6 +300,15 @@ def validate(root: Path) -> list[str]:
     ):
         if phrase not in adr:
             errors.append(f"release-train ADR is missing decision evidence: {phrase}")
+    api_adr = read(
+        root / "docs/adr/0154-use-first-candidate-api-snapshots-as-semver-origin.md", errors
+    )
+    for phrase in (
+        "cargo-public-api 0.52.0", "cargo-semver-checks 0.50.0",
+        "cargo-cyclonedx 0.5.9", "`not-applicable`", "not a stable API promise",
+    ):
+        if phrase not in api_adr:
+            errors.append(f"DID API-origin ADR is missing decision evidence: {phrase}")
     return errors
 
 

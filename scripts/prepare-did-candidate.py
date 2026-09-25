@@ -31,7 +31,10 @@ EXTERNAL_DEPENDENCIES = (
     "serde", "serde_json", "tokio", "tower", "uriparse", "utoipa",
 )
 ALLOWED_SUFFIXES = {".rs", ".md"}
-ALLOWED_CARGO_OPERATIONS = frozenset({"check", "generate-lockfile", "package", "test"})
+ALLOWED_CARGO_OPERATIONS = frozenset({
+    "check", "cyclonedx", "generate-lockfile", "package", "public-api", "rustdoc",
+    "test",
+})
 SHA = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -46,6 +49,8 @@ def require_local_command(command: list[str]) -> None:
     if executable == "git" and command[1:] in (["rev-parse", "HEAD"], ["status", "--porcelain"]):
         return
     if executable in {"cargo", "rustc"} and command[1:] == ["--version"]:
+        return
+    if executable == "cargo" and command[1:] == ["semver-checks", "--version"]:
         return
     if executable == "cargo" and len(command) >= 2 and command[1] in ALLOWED_CARGO_OPERATIONS:
         return
@@ -70,6 +75,20 @@ def run(command: list[str], *, cwd: Path, env: dict[str, str]) -> str:
     return result.stdout
 
 
+def run_stdout(command: list[str], *, cwd: Path, env: dict[str, str]) -> str:
+    require_local_command(command)
+    result = subprocess.run(
+        command, cwd=cwd, env=env, check=False, text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+    if result.returncode != 0:
+        rendered = " ".join(command)
+        raise CandidateError(
+            f"command failed ({result.returncode}): {rendered}\n{result.stdout}{result.stderr}"
+        )
+    return result.stdout
+
+
 def load_toml(path: Path) -> dict[str, Any]:
     with path.open("rb") as source:
         value = tomllib.load(source)
@@ -88,6 +107,13 @@ def require_tool_version(tool: str, output: str, expected: str) -> str:
             f"candidate preparation requires {tool} {expected}; found {match.group(1)}"
         )
     return normalized
+
+
+def require_subcommand_version(command: list[str], expected: str, root: Path, env: dict[str, str]) -> str:
+    output = run(command, cwd=root, env=env).strip()
+    if not output or output.split()[-1] != expected:
+        raise CandidateError(f"tool version differs; expected {expected}: {output}")
+    return output
 
 
 def sha256(path: Path) -> str:
@@ -383,6 +409,168 @@ def verify_closure(
     return commands
 
 
+def require_bounded_evidence(path: Path, descriptor: dict[str, Any]) -> None:
+    if path.is_symlink() or not path.is_file():
+        raise CandidateError(f"evidence is not a regular file: {path.name}")
+    size = path.stat().st_size
+    if size == 0 or size > descriptor["max_evidence_bytes"]:
+        raise CandidateError(f"evidence has invalid byte size: {path.name}")
+
+
+def component_license_ids(component: dict[str, Any]) -> set[str]:
+    identifiers: set[str] = set()
+    licenses = component.get("licenses", [])
+    if not isinstance(licenses, list):
+        return identifiers
+    for entry in licenses:
+        if not isinstance(entry, dict):
+            continue
+        license_value = entry.get("license")
+        if isinstance(license_value, dict) and isinstance(license_value.get("id"), str):
+            identifiers.add(license_value["id"])
+        if isinstance(entry.get("expression"), str):
+            identifiers.add(entry["expression"])
+    return identifiers
+
+
+def normalize_local_sbom_references(value: Any) -> Any:
+    if isinstance(value, str) and value.startswith("path+file://") and "#" in value:
+        return f"path+file:///candidate#{value.split('#', 1)[1]}"
+    if isinstance(value, list):
+        return [normalize_local_sbom_references(item) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: normalize_local_sbom_references(item) for key, item in value.items()
+        }
+    return value
+
+
+def validate_cyclonedx(
+    sbom: dict[str, Any], package: dict[str, Any], descriptor: dict[str, Any]
+) -> None:
+    name = package["name"]
+    if sbom.get("bomFormat") != "CycloneDX" or sbom.get("specVersion") != descriptor["tools"]["cyclonedx_spec"]:
+        raise CandidateError(f"CycloneDX format/specification differs: {name}")
+    component = sbom.get("metadata", {}).get("component", {})
+    if not isinstance(component, dict):
+        raise CandidateError(f"CycloneDX root component is missing: {name}")
+    if component.get("name") != name or component.get("version") != descriptor["version"]:
+        raise CandidateError(f"CycloneDX component identity differs: {name}")
+    if descriptor["license"] not in component_license_ids(component):
+        raise CandidateError(f"CycloneDX component license differs: {name}")
+
+    components = sbom.get("components", [])
+    dependencies = sbom.get("dependencies", [])
+    if not isinstance(components, list) or not isinstance(dependencies, list):
+        raise CandidateError(f"CycloneDX dependency graph is malformed: {name}")
+    references = [component.get("bom-ref")]
+    references.extend(
+        dependency.get("bom-ref") for dependency in components if isinstance(dependency, dict)
+    )
+    if any(not isinstance(reference, str) or not reference for reference in references):
+        raise CandidateError(f"CycloneDX component reference is missing: {name}")
+    if len(references) != len(set(references)):
+        raise CandidateError(f"CycloneDX component reference is duplicated: {name}")
+    known = set(references)
+    graph_references: list[str] = []
+    for dependency in dependencies:
+        if not isinstance(dependency, dict) or not isinstance(dependency.get("ref"), str):
+            raise CandidateError(f"CycloneDX dependency graph is malformed: {name}")
+        graph_references.append(dependency["ref"])
+        depends_on = dependency.get("dependsOn", [])
+        if not isinstance(depends_on, list) or not all(
+            isinstance(reference, str) and reference in known for reference in depends_on
+        ):
+            raise CandidateError(f"CycloneDX dependency identity differs: {name}")
+    if len(graph_references) != len(set(graph_references)) or not set(graph_references) <= known:
+        raise CandidateError(f"CycloneDX dependency identity differs: {name}")
+    if component["bom-ref"] not in graph_references:
+        raise CandidateError(f"CycloneDX root dependency is missing: {name}")
+    if "git+" in json.dumps(sbom, sort_keys=True):
+        raise CandidateError(f"CycloneDX evidence contains a Git source: {name}")
+
+
+def release_evidence(
+    stage: Path,
+    root: Path,
+    output: Path,
+    descriptor: dict[str, Any],
+    env: dict[str, str],
+    initialize_api: bool,
+) -> tuple[dict[str, str], list[dict[str, Any]]]:
+    tools = descriptor["tools"]
+    versions = {
+        "cargoPublicApi": require_subcommand_version(
+            ["cargo", "public-api", "--version"], tools["cargo_public_api"], root, env
+        ),
+        "cargoSemverChecks": require_subcommand_version(
+            ["cargo", "semver-checks", "--version"],
+            tools["cargo_semver_checks"], root, env,
+        ),
+        "cargoCyclonedx": require_subcommand_version(
+            ["cargo", "cyclonedx", "--version"], tools["cargo_cyclonedx"], root, env
+        ),
+        "cyclonedxSpec": tools["cyclonedx_spec"],
+    }
+    evidence: list[dict[str, Any]] = []
+    api_target = stage / "target/public-api"
+    api_env = env | {"RUSTC_BOOTSTRAP": "1"}
+    for package in descriptor["packages"]:
+        name = package["name"]
+        run([
+            "cargo", "rustdoc", "--manifest-path", str(stage / package["path"] / "Cargo.toml"),
+            "--all-features", "--lib", "--target-dir", str(api_target), "--",
+            "-Z", "unstable-options", "--output-format", "json",
+        ], cwd=stage, env=api_env)
+        api_json = api_target / "doc" / f"{name.replace('-', '_')}.json"
+        require_bounded_evidence(api_json, descriptor)
+        api = run_stdout([
+            "cargo", "public-api", "--rustdoc-json", str(api_json),
+            "-sss", "--color=never",
+        ], cwd=stage, env=env)
+        api_bytes = api.encode("utf-8")
+        if not api.strip() or len(api_bytes) > descriptor["max_evidence_bytes"]:
+            raise CandidateError(f"public API evidence has invalid byte size: {name}")
+        baseline = root / package["api_baseline"]
+        if not initialize_api and baseline.read_text(encoding="utf-8") != api:
+            raise CandidateError(f"public API differs from committed candidate baseline: {name}")
+        api_output = output / f"{name}.public-api.txt"
+        api_output.write_text(api, encoding="utf-8")
+        evidence.append({
+            "kind": "public-api", "package": name, "file": api_output.name,
+            "sha256": sha256(api_output), "bytes": api_output.stat().st_size,
+            "baseline": package["api_baseline"],
+        })
+
+        override = f"{name}-candidate"
+        run([
+            "cargo", "cyclonedx", "--manifest-path", str(stage / package["path"] / "Cargo.toml"),
+            "--format", "json", "--spec-version", tools["cyclonedx_spec"],
+            "--all-features", "--override-filename", override,
+        ], cwd=stage, env=env)
+        matches = sorted((stage / package["path"]).glob(f"{override}*.json"))
+        if len(matches) != 1:
+            raise CandidateError(f"expected one CycloneDX document for {name}; found {len(matches)}")
+        sbom_source = matches[0]
+        require_bounded_evidence(sbom_source, descriptor)
+        try:
+            sbom = json.loads(sbom_source.read_text(encoding="utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise CandidateError(f"invalid CycloneDX JSON: {name}") from error
+        sbom = normalize_local_sbom_references(sbom)
+        validate_cyclonedx(sbom, package, descriptor)
+        sbom_output = output / f"{name}.cdx.json"
+        sbom_output.write_text(
+            json.dumps(sbom, indent=2, sort_keys=False) + "\n", encoding="utf-8"
+        )
+        evidence.append({
+            "kind": "cyclonedx", "package": name, "file": sbom_output.name,
+            "sha256": sha256(sbom_output), "bytes": sbom_output.stat().st_size,
+            "specVersion": tools["cyclonedx_spec"],
+        })
+    return versions, evidence
+
+
 def sanitized_environment(cargo_home: Path) -> dict[str, str]:
     env = {
         key: value for key, value in os.environ.items()
@@ -394,7 +582,9 @@ def sanitized_environment(cargo_home: Path) -> dict[str, str]:
     return env
 
 
-def build(root: Path, output: Path, requested: str | None, allow_dirty: bool) -> Path:
+def build(
+    root: Path, output: Path, requested: str | None, allow_dirty: bool, initialize_api: bool
+) -> Path:
     run(
         [sys.executable, str(root / "scripts/check-release-candidates.py"), str(root)],
         cwd=root,
@@ -405,7 +595,8 @@ def build(root: Path, output: Path, requested: str | None, allow_dirty: bool) ->
     did_train = next((train for train in index.get("trains", []) if train.get("id") == "did"), None)
     if not isinstance(did_train, dict) or did_train.get("descriptor") != DESCRIPTOR.as_posix():
         raise CandidateError("DID train index binding differs")
-    revision, dirty = source_revision(root, requested, allow_dirty)
+    revision, dirty = source_revision(root, requested, allow_dirty or initialize_api)
+    dirty = dirty or initialize_api
     started = time.monotonic()
     output_parent = output.resolve().parent
     output_parent.mkdir(parents=True, exist_ok=True)
@@ -438,6 +629,10 @@ def build(root: Path, output: Path, requested: str | None, allow_dirty: bool) ->
                     "sha256": sha256(destination), "bytes": destination.stat().st_size,
                     "files": archive_files(destination, descriptor),
                 })
+            evidence_tools, evidence = release_evidence(
+                scratch / "first" / "workspace", root, staged_output,
+                descriptor, env, initialize_api,
+            )
             receipt = {
                 "schemaVersion": 1,
                 "candidate": descriptor["candidate"],
@@ -445,14 +640,29 @@ def build(root: Path, output: Path, requested: str | None, allow_dirty: bool) ->
                 "publication": descriptor["publication"],
                 "sourceRevision": revision,
                 "sourceDirty": dirty,
-                "tools": {"rustc": rustc, "cargo": cargo},
+                "tools": {"rustc": rustc, "cargo": cargo, **evidence_tools},
+                "compatibility": {
+                    "status": descriptor["compatibility_status"],
+                    "futureTool": descriptor["tools"]["cargo_semver_checks"],
+                    "claim": "first candidate API origin; no stable SemVer promise",
+                },
+                "repositoryPolicy": {
+                    "licenseAdvisoryAuthority": ["Cargo.lock", "deny.toml"],
+                    "candidateSpecificScan": "not-run",
+                    "reason": (
+                        "local candidate SBOM evidence is deterministic; repository "
+                        "license/advisory gates remain a separate promotion control"
+                    ),
+                },
                 "twoPassByteIdentical": True,
                 "archives": archive_receipts,
+                "evidence": evidence,
                 "verificationCommands": commands,
                 "limitations": [
                     "candidate-only; canonical manifests remain unpublished",
                     "no registry upload, Git tag, GitHub release, or credentials",
                     "registry availability and platform matrix are separate promotion gates",
+                    "local SBOMs are not signed provenance or vulnerability-free claims",
                 ],
                 "elapsedSeconds": round(time.monotonic() - started, 3),
             }
@@ -475,6 +685,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--revision")
     parser.add_argument("--allow-dirty", action="store_true")
+    parser.add_argument("--initialize-api", action="store_true")
     return parser.parse_args()
 
 
@@ -483,7 +694,7 @@ def main() -> int:
     try:
         receipt = build(
             arguments.root.resolve(), arguments.output.resolve(),
-            arguments.revision, arguments.allow_dirty,
+            arguments.revision, arguments.allow_dirty, arguments.initialize_api,
         )
     except (CandidateError, OSError, KeyError, tomllib.TOMLDecodeError) as error:
         print(f"did-candidate: {error}", file=sys.stderr)

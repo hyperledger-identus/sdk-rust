@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-25
+goal: Qualify the candidate-only DID train with deterministic public API and
+  supply-chain evidence without changing its archives or publication state.

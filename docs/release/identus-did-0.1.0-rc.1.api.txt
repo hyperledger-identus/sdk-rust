@@ -1,0 +1,983 @@
+pub mod identus_did
+pub mod identus_did::error
+#[non_exhaustive] pub enum identus_did::error::CacheError
+pub identus_did::error::CacheError::InvalidCapacity
+pub identus_did::error::CacheError::InvalidEntryLifetime
+pub identus_did::error::CacheError::InvalidTtl
+pub identus_did::error::CacheError::KeyTooLarge
+impl core::fmt::Display for identus_did::error::CacheError
+pub fn identus_did::error::CacheError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::error::DidSyntaxError
+pub identus_did::error::DidSyntaxError::InvalidFragment
+pub identus_did::error::DidSyntaxError::InvalidMethodCharacter
+pub identus_did::error::DidSyntaxError::InvalidMethodSpecificIdCharacter
+pub identus_did::error::DidSyntaxError::InvalidPath
+pub identus_did::error::DidSyntaxError::InvalidPercentEncoding
+pub identus_did::error::DidSyntaxError::InvalidQuery
+pub identus_did::error::DidSyntaxError::MissingMethod
+pub identus_did::error::DidSyntaxError::MissingMethodSpecificId
+pub identus_did::error::DidSyntaxError::MissingPrefix
+pub identus_did::error::DidSyntaxError::TooLong
+pub identus_did::error::DidSyntaxError::TrailingColon
+impl core::fmt::Display for identus_did::error::DidSyntaxError
+pub fn identus_did::error::DidSyntaxError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::error::DocumentError
+pub identus_did::error::DocumentError::DuplicateJsonProperty
+pub identus_did::error::DocumentError::DuplicateService
+pub identus_did::error::DocumentError::DuplicateSetMember
+pub identus_did::error::DocumentError::DuplicateVerificationMethod
+pub identus_did::error::DocumentError::EmptyValue
+pub identus_did::error::DocumentError::ExtensionTooDeep
+pub identus_did::error::DocumentError::ExtensionTooLarge
+pub identus_did::error::DocumentError::InvalidPropertyName
+pub identus_did::error::DocumentError::InvalidPropertyShape
+pub identus_did::error::DocumentError::InvalidString
+pub identus_did::error::DocumentError::MalformedJson
+pub identus_did::error::DocumentError::MultipleVerificationMaterial
+pub identus_did::error::DocumentError::PrivateKeyMaterial
+pub identus_did::error::DocumentError::ReservedProperty
+pub identus_did::error::DocumentError::TooLarge
+pub identus_did::error::DocumentError::TooManyItems
+pub identus_did::error::DocumentError::TooManyProperties
+impl core::fmt::Display for identus_did::error::DocumentError
+pub fn identus_did::error::DocumentError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_did::error::Error
+pub identus_did::error::Error::InvalidCache(identus_did::error::CacheError)
+pub identus_did::error::Error::InvalidDid(identus_did::error::DidSyntaxError)
+pub identus_did::error::Error::InvalidDidUrl(identus_did::error::DidSyntaxError)
+pub identus_did::error::Error::InvalidDocument(identus_did::error::DocumentError)
+pub identus_did::error::Error::InvalidMethod(alloc::string::String)
+pub identus_did::error::Error::InvalidRegistration(identus_did::error::RegistrationError)
+pub identus_did::error::Error::InvalidRegistry(identus_did::error::RegistryError)
+pub identus_did::error::Error::InvalidResolution(identus_did::error::ResolutionError)
+pub identus_did::error::Error::InvalidUri(identus_did::error::UriSyntaxError)
+pub identus_did::error::Error::InvalidVersion(alloc::string::String)
+impl identus_did::error::Error
+pub fn identus_did::error::Error::to_identus_error(&self) -> identus_core::IdentusError
+impl core::error::Error for identus_did::error::Error
+impl core::fmt::Display for identus_did::error::Error
+pub fn identus_did::error::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::error::RegistrationError
+pub identus_did::error::RegistrationError::ActionMismatch
+pub identus_did::error::RegistrationError::EmptyValue
+pub identus_did::error::RegistrationError::InvalidPropertyName
+pub identus_did::error::RegistrationError::InvalidSecretPolicy
+pub identus_did::error::RegistrationError::InvalidState
+pub identus_did::error::RegistrationError::InvalidString
+pub identus_did::error::RegistrationError::JobMismatch
+pub identus_did::error::RegistrationError::MalformedJson
+pub identus_did::error::RegistrationError::MethodOrDidMismatch
+pub identus_did::error::RegistrationError::PrivateMaterial
+pub identus_did::error::RegistrationError::ReservedProperty
+pub identus_did::error::RegistrationError::TooDeep
+pub identus_did::error::RegistrationError::TooLarge
+pub identus_did::error::RegistrationError::TooManyItems
+pub identus_did::error::RegistrationError::TooManyNodes
+pub identus_did::error::RegistrationError::TooManyProperties
+impl core::fmt::Display for identus_did::error::RegistrationError
+pub fn identus_did::error::RegistrationError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::error::RegistryError
+pub identus_did::error::RegistryError::DuplicateMethod
+pub identus_did::error::RegistryError::TooManyMethods
+impl core::fmt::Display for identus_did::error::RegistryError
+pub fn identus_did::error::RegistryError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::error::ResolutionError
+pub identus_did::error::ResolutionError::DifferentDidMethod
+pub identus_did::error::ResolutionError::DocumentIdMismatch
+pub identus_did::error::ResolutionError::DuplicateEquivalentId
+pub identus_did::error::ResolutionError::DuplicateJsonProperty
+pub identus_did::error::ResolutionError::EmptyValue
+pub identus_did::error::ResolutionError::InvalidContent
+pub identus_did::error::ResolutionError::InvalidDateTime
+pub identus_did::error::ResolutionError::InvalidMediaType
+pub identus_did::error::ResolutionError::InvalidState
+pub identus_did::error::ResolutionError::InvalidString
+pub identus_did::error::ResolutionError::MalformedJson
+pub identus_did::error::ResolutionError::TooLarge
+pub identus_did::error::ResolutionError::TooManyItems
+pub identus_did::error::ResolutionError::WireTooDeep
+pub identus_did::error::ResolutionError::WireTooLarge
+pub identus_did::error::ResolutionError::WireTooManyProperties
+impl core::fmt::Display for identus_did::error::ResolutionError
+pub fn identus_did::error::ResolutionError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::error::UriSyntaxError
+pub identus_did::error::UriSyntaxError::InvalidAuthority
+pub identus_did::error::UriSyntaxError::InvalidCharacter
+pub identus_did::error::UriSyntaxError::InvalidPercentEncoding
+pub identus_did::error::UriSyntaxError::InvalidScheme
+pub identus_did::error::UriSyntaxError::MissingScheme
+pub identus_did::error::UriSyntaxError::MultipleFragments
+pub identus_did::error::UriSyntaxError::TooLong
+impl core::fmt::Display for identus_did::error::UriSyntaxError
+pub fn identus_did::error::UriSyntaxError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub mod identus_did::method
+pub struct identus_did::method::DidMethod(_)
+pub const identus_did::method::MAX_DID_METHOD_BYTES: usize
+pub mod identus_did::multihash
+pub struct identus_did::multihash::Multihash(_)
+pub mod identus_did::version
+pub struct identus_did::version::Version(_)
+#[non_exhaustive] pub enum identus_did::CacheError
+pub identus_did::CacheError::InvalidCapacity
+pub identus_did::CacheError::InvalidEntryLifetime
+pub identus_did::CacheError::InvalidTtl
+pub identus_did::CacheError::KeyTooLarge
+impl core::fmt::Display for identus_did::error::CacheError
+pub fn identus_did::error::CacheError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::CacheFailureMode
+pub identus_did::CacheFailureMode::Bypass
+pub identus_did::CacheFailureMode::FailClosed
+pub enum identus_did::ContextEntry
+pub identus_did::ContextEntry::Object(identus_did::ContextObject)
+pub identus_did::ContextEntry::Uri(identus_did::Uri)
+pub enum identus_did::DidDocumentOperation
+pub identus_did::DidDocumentOperation::AddToDidDocument(identus_did::RegistrationPublicData)
+pub identus_did::DidDocumentOperation::MethodSpecific
+pub identus_did::DidDocumentOperation::MethodSpecific::data: core::option::Option<identus_did::RegistrationPublicData>
+pub identus_did::DidDocumentOperation::MethodSpecific::name: identus_did::RegistrationOperationName
+pub identus_did::DidDocumentOperation::RemoveFromDidDocument(identus_did::RegistrationPublicData)
+pub identus_did::DidDocumentOperation::SetDidDocument(alloc::boxed::Box<identus_did::DidDocument>)
+impl core::fmt::Debug for identus_did::DidDocumentOperation
+pub fn identus_did::DidDocumentOperation::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::DidRegistrationErrorKind
+pub identus_did::DidRegistrationErrorKind::Cancelled
+pub identus_did::DidRegistrationErrorKind::Conflict
+pub identus_did::DidRegistrationErrorKind::FeatureNotSupported
+pub identus_did::DidRegistrationErrorKind::InternalError
+pub identus_did::DidRegistrationErrorKind::MethodNotSupported
+impl identus_did::DidRegistrationErrorKind
+pub const fn identus_did::DidRegistrationErrorKind::as_str(self) -> &'static str
+pub enum identus_did::DidRegistrationState
+pub identus_did::DidRegistrationState::Action
+pub identus_did::DidRegistrationState::Action::action: identus_did::RegistrationAction
+pub identus_did::DidRegistrationState::Action::did: core::option::Option<identus_did::Did>
+pub identus_did::DidRegistrationState::Failed
+pub identus_did::DidRegistrationState::Failed::code: identus_did::RegistrationFailureCode
+pub identus_did::DidRegistrationState::Failed::did: core::option::Option<identus_did::Did>
+pub identus_did::DidRegistrationState::Finished
+pub identus_did::DidRegistrationState::Finished::did: identus_did::Did
+pub identus_did::DidRegistrationState::Finished::document: core::option::Option<alloc::boxed::Box<identus_did::DidDocument>>
+pub identus_did::DidRegistrationState::Finished::secret_handles: alloc::vec::Vec<identus_did::RegistrationSecretHandle>
+pub identus_did::DidRegistrationState::Wait
+pub identus_did::DidRegistrationState::Wait::did: core::option::Option<identus_did::Did>
+pub identus_did::DidRegistrationState::Wait::retry_after_millis: core::option::Option<u64>
+impl identus_did::DidRegistrationState
+pub const fn identus_did::DidRegistrationState::did(&self) -> core::option::Option<&identus_did::Did>
+pub const fn identus_did::DidRegistrationState::is_terminal(&self) -> bool
+impl core::fmt::Debug for identus_did::DidRegistrationState
+pub fn identus_did::DidRegistrationState::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::DidResolutionCacheStatus
+pub identus_did::DidResolutionCacheStatus::BackendBypass
+pub identus_did::DidResolutionCacheStatus::Disabled
+pub identus_did::DidResolutionCacheStatus::FailedClosed
+pub identus_did::DidResolutionCacheStatus::Hit
+pub identus_did::DidResolutionCacheStatus::MissNotStored
+pub identus_did::DidResolutionCacheStatus::MissStored
+pub identus_did::DidResolutionCacheStatus::RefreshNotStored
+pub identus_did::DidResolutionCacheStatus::RefreshStored
+pub identus_did::DidResolutionCacheStatus::RequestedBypass
+#[non_exhaustive] pub enum identus_did::DidResolutionErrorKind
+pub identus_did::DidResolutionErrorKind::FeatureNotSupported
+pub identus_did::DidResolutionErrorKind::InternalError
+pub identus_did::DidResolutionErrorKind::InvalidDid
+pub identus_did::DidResolutionErrorKind::InvalidDidDocument
+pub identus_did::DidResolutionErrorKind::InvalidDidUrl
+pub identus_did::DidResolutionErrorKind::InvalidOptions
+pub identus_did::DidResolutionErrorKind::MethodNotSupported
+pub identus_did::DidResolutionErrorKind::NotFound
+pub identus_did::DidResolutionErrorKind::RepresentationNotSupported
+impl identus_did::DidResolutionErrorKind
+pub const fn identus_did::DidResolutionErrorKind::as_str(self) -> &'static str
+#[non_exhaustive] pub enum identus_did::DidSyntaxError
+pub identus_did::DidSyntaxError::InvalidFragment
+pub identus_did::DidSyntaxError::InvalidMethodCharacter
+pub identus_did::DidSyntaxError::InvalidMethodSpecificIdCharacter
+pub identus_did::DidSyntaxError::InvalidPath
+pub identus_did::DidSyntaxError::InvalidPercentEncoding
+pub identus_did::DidSyntaxError::InvalidQuery
+pub identus_did::DidSyntaxError::MissingMethod
+pub identus_did::DidSyntaxError::MissingMethodSpecificId
+pub identus_did::DidSyntaxError::MissingPrefix
+pub identus_did::DidSyntaxError::TooLong
+pub identus_did::DidSyntaxError::TrailingColon
+impl core::fmt::Display for identus_did::error::DidSyntaxError
+pub fn identus_did::error::DidSyntaxError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::DocumentError
+pub identus_did::DocumentError::DuplicateJsonProperty
+pub identus_did::DocumentError::DuplicateService
+pub identus_did::DocumentError::DuplicateSetMember
+pub identus_did::DocumentError::DuplicateVerificationMethod
+pub identus_did::DocumentError::EmptyValue
+pub identus_did::DocumentError::ExtensionTooDeep
+pub identus_did::DocumentError::ExtensionTooLarge
+pub identus_did::DocumentError::InvalidPropertyName
+pub identus_did::DocumentError::InvalidPropertyShape
+pub identus_did::DocumentError::InvalidString
+pub identus_did::DocumentError::MalformedJson
+pub identus_did::DocumentError::MultipleVerificationMaterial
+pub identus_did::DocumentError::PrivateKeyMaterial
+pub identus_did::DocumentError::ReservedProperty
+pub identus_did::DocumentError::TooLarge
+pub identus_did::DocumentError::TooManyItems
+pub identus_did::DocumentError::TooManyProperties
+impl core::fmt::Display for identus_did::error::DocumentError
+pub fn identus_did::error::DocumentError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_did::Error
+pub identus_did::Error::InvalidCache(identus_did::error::CacheError)
+pub identus_did::Error::InvalidDid(identus_did::error::DidSyntaxError)
+pub identus_did::Error::InvalidDidUrl(identus_did::error::DidSyntaxError)
+pub identus_did::Error::InvalidDocument(identus_did::error::DocumentError)
+pub identus_did::Error::InvalidMethod(alloc::string::String)
+pub identus_did::Error::InvalidRegistration(identus_did::error::RegistrationError)
+pub identus_did::Error::InvalidRegistry(identus_did::error::RegistryError)
+pub identus_did::Error::InvalidResolution(identus_did::error::ResolutionError)
+pub identus_did::Error::InvalidUri(identus_did::error::UriSyntaxError)
+pub identus_did::Error::InvalidVersion(alloc::string::String)
+impl identus_did::error::Error
+pub fn identus_did::error::Error::to_identus_error(&self) -> identus_core::IdentusError
+impl core::error::Error for identus_did::error::Error
+impl core::fmt::Display for identus_did::error::Error
+pub fn identus_did::error::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_did::RegistrationContinuation
+pub identus_did::RegistrationContinuation::Action(identus_did::RegistrationActionId)
+pub identus_did::RegistrationContinuation::Wait
+#[non_exhaustive] pub enum identus_did::RegistrationError
+pub identus_did::RegistrationError::ActionMismatch
+pub identus_did::RegistrationError::EmptyValue
+pub identus_did::RegistrationError::InvalidPropertyName
+pub identus_did::RegistrationError::InvalidSecretPolicy
+pub identus_did::RegistrationError::InvalidState
+pub identus_did::RegistrationError::InvalidString
+pub identus_did::RegistrationError::JobMismatch
+pub identus_did::RegistrationError::MalformedJson
+pub identus_did::RegistrationError::MethodOrDidMismatch
+pub identus_did::RegistrationError::PrivateMaterial
+pub identus_did::RegistrationError::ReservedProperty
+pub identus_did::RegistrationError::TooDeep
+pub identus_did::RegistrationError::TooLarge
+pub identus_did::RegistrationError::TooManyItems
+pub identus_did::RegistrationError::TooManyNodes
+pub identus_did::RegistrationError::TooManyProperties
+impl core::fmt::Display for identus_did::error::RegistrationError
+pub fn identus_did::error::RegistrationError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_did::RegistrationRequest
+pub identus_did::RegistrationRequest::Cancel(identus_did::CancelRegistrationRequest)
+pub identus_did::RegistrationRequest::Continue(identus_did::ContinueRegistrationRequest)
+pub identus_did::RegistrationRequest::Create(identus_did::CreateRegistrationRequest)
+pub identus_did::RegistrationRequest::Deactivate(identus_did::DeactivateRegistrationRequest)
+pub identus_did::RegistrationRequest::Update(identus_did::UpdateRegistrationRequest)
+impl identus_did::RegistrationRequest
+pub fn identus_did::RegistrationRequest::idempotency_key(&self) -> &identus_did::RegistrationIdempotencyKey
+pub fn identus_did::RegistrationRequest::method(&self) -> &identus_did::method::DidMethod
+impl core::fmt::Debug for identus_did::RegistrationRequest
+pub fn identus_did::RegistrationRequest::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_did::RegistrationSecretMode
+pub identus_did::RegistrationSecretMode::ClientManaged
+pub identus_did::RegistrationSecretMode::External(identus_did::RegistrationSecretHandle)
+pub identus_did::RegistrationSecretMode::Internal(identus_did::InternalSecretPolicy)
+#[non_exhaustive] pub enum identus_did::RegistryError
+pub identus_did::RegistryError::DuplicateMethod
+pub identus_did::RegistryError::TooManyMethods
+impl core::fmt::Display for identus_did::error::RegistryError
+pub fn identus_did::error::RegistryError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::ResolutionError
+pub identus_did::ResolutionError::DifferentDidMethod
+pub identus_did::ResolutionError::DocumentIdMismatch
+pub identus_did::ResolutionError::DuplicateEquivalentId
+pub identus_did::ResolutionError::DuplicateJsonProperty
+pub identus_did::ResolutionError::EmptyValue
+pub identus_did::ResolutionError::InvalidContent
+pub identus_did::ResolutionError::InvalidDateTime
+pub identus_did::ResolutionError::InvalidMediaType
+pub identus_did::ResolutionError::InvalidState
+pub identus_did::ResolutionError::InvalidString
+pub identus_did::ResolutionError::MalformedJson
+pub identus_did::ResolutionError::TooLarge
+pub identus_did::ResolutionError::TooManyItems
+pub identus_did::ResolutionError::WireTooDeep
+pub identus_did::ResolutionError::WireTooLarge
+pub identus_did::ResolutionError::WireTooManyProperties
+impl core::fmt::Display for identus_did::error::ResolutionError
+pub fn identus_did::error::ResolutionError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_did::ServiceEndpoint
+pub identus_did::ServiceEndpoint::Map(alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>)
+pub identus_did::ServiceEndpoint::Set(alloc::vec::Vec<identus_did::ServiceEndpointValue>)
+pub identus_did::ServiceEndpoint::Uri(identus_did::Uri)
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::ServiceEndpoint
+pub fn identus_did::ServiceEndpoint::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub enum identus_did::ServiceEndpointValue
+pub identus_did::ServiceEndpointValue::Map(alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>)
+pub identus_did::ServiceEndpointValue::Uri(identus_did::Uri)
+#[non_exhaustive] pub enum identus_did::UriSyntaxError
+pub identus_did::UriSyntaxError::InvalidAuthority
+pub identus_did::UriSyntaxError::InvalidCharacter
+pub identus_did::UriSyntaxError::InvalidPercentEncoding
+pub identus_did::UriSyntaxError::InvalidScheme
+pub identus_did::UriSyntaxError::MissingScheme
+pub identus_did::UriSyntaxError::MultipleFragments
+pub identus_did::UriSyntaxError::TooLong
+impl core::fmt::Display for identus_did::error::UriSyntaxError
+pub fn identus_did::error::UriSyntaxError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub enum identus_did::VerificationRelationship
+pub identus_did::VerificationRelationship::Embedded(identus_did::VerificationMethod)
+pub identus_did::VerificationRelationship::Reference(identus_did::Uri)
+pub struct identus_did::CachedDidResolution
+impl identus_did::CachedDidResolution
+pub fn identus_did::CachedDidResolution::into_result(self) -> identus_did::DidResolutionResult
+pub const fn identus_did::CachedDidResolution::result(&self) -> &identus_did::DidResolutionResult
+pub const fn identus_did::CachedDidResolution::status(&self) -> identus_did::DidResolutionCacheStatus
+impl core::fmt::Debug for identus_did::CachedDidResolution
+pub fn identus_did::CachedDidResolution::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::CachingDidResolver
+impl identus_did::CachingDidResolver
+pub fn identus_did::CachingDidResolver::new(alloc::sync::Arc<dyn identus_did::DidResolver>, alloc::sync::Arc<dyn identus_did::DidResolutionCache>, alloc::sync::Arc<dyn identus_core::time::MonotonicClock>, identus_did::DidResolutionCachePolicy) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::CachingDidResolver::resolve_with_cache_status<'a>(&'a self, &'a identus_did::Did, &'a identus_did::ResolutionOptions) -> identus_did::CachedDidResolutionFuture<'a>
+impl core::fmt::Debug for identus_did::CachingDidResolver
+pub fn identus_did::CachingDidResolver::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl identus_did::DidResolver for identus_did::CachingDidResolver
+pub fn identus_did::CachingDidResolver::resolve<'a>(&'a self, &'a identus_did::Did, &'a identus_did::ResolutionOptions) -> identus_did::DidResolutionFuture<'a>
+pub struct identus_did::CancelRegistrationRequest
+impl identus_did::CancelRegistrationRequest
+pub const fn identus_did::CancelRegistrationRequest::idempotency_key(&self) -> &identus_did::RegistrationIdempotencyKey
+pub const fn identus_did::CancelRegistrationRequest::job(&self) -> &identus_did::RegistrationJob
+pub const fn identus_did::CancelRegistrationRequest::new(identus_did::RegistrationJob, identus_did::RegistrationIdempotencyKey) -> Self
+pub struct identus_did::ContextObject(_)
+impl identus_did::ContextObject
+pub const fn identus_did::ContextObject::as_map(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_did::ContextObject::into_map(self) -> alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_did::ContextObject::new(alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_did::error::Error>
+impl core::convert::TryFrom<alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>> for identus_did::ContextObject
+pub type identus_did::ContextObject::Error = identus_did::error::Error
+pub fn identus_did::ContextObject::try_from(alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, Self::Error>
+impl core::fmt::Debug for identus_did::ContextObject
+pub fn identus_did::ContextObject::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::ContextObject
+pub fn identus_did::ContextObject::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::ContinueRegistrationRequest
+impl identus_did::ContinueRegistrationRequest
+pub const fn identus_did::ContinueRegistrationRequest::idempotency_key(&self) -> &identus_did::RegistrationIdempotencyKey
+pub const fn identus_did::ContinueRegistrationRequest::job(&self) -> &identus_did::RegistrationJob
+pub fn identus_did::ContinueRegistrationRequest::new(identus_did::RegistrationJob, core::option::Option<identus_did::RegistrationActionResponse>, identus_did::RegistrationIdempotencyKey) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::ContinueRegistrationRequest::response(&self) -> core::option::Option<&identus_did::RegistrationActionResponse>
+pub struct identus_did::CreateRegistrationRequest
+impl identus_did::CreateRegistrationRequest
+pub fn identus_did::CreateRegistrationRequest::document(&self) -> core::option::Option<&identus_did::DidDocument>
+pub const fn identus_did::CreateRegistrationRequest::idempotency_key(&self) -> &identus_did::RegistrationIdempotencyKey
+pub const fn identus_did::CreateRegistrationRequest::method(&self) -> &identus_did::method::DidMethod
+pub fn identus_did::CreateRegistrationRequest::new(identus_did::method::DidMethod, core::option::Option<identus_did::Did>, core::option::Option<identus_did::DidDocument>, identus_did::RegistrationPublicData, identus_did::RegistrationSecretMode, identus_did::RegistrationIdempotencyKey) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::CreateRegistrationRequest::options(&self) -> &identus_did::RegistrationPublicData
+pub const fn identus_did::CreateRegistrationRequest::requested_did(&self) -> core::option::Option<&identus_did::Did>
+pub const fn identus_did::CreateRegistrationRequest::secret_mode(&self) -> &identus_did::RegistrationSecretMode
+pub struct identus_did::DeactivateRegistrationRequest
+impl identus_did::DeactivateRegistrationRequest
+pub const fn identus_did::DeactivateRegistrationRequest::did(&self) -> &identus_did::Did
+pub const fn identus_did::DeactivateRegistrationRequest::idempotency_key(&self) -> &identus_did::RegistrationIdempotencyKey
+pub const fn identus_did::DeactivateRegistrationRequest::method(&self) -> &identus_did::method::DidMethod
+pub fn identus_did::DeactivateRegistrationRequest::new(identus_did::Did, identus_did::RegistrationPublicData, identus_did::RegistrationSecretMode, identus_did::RegistrationIdempotencyKey) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::DeactivateRegistrationRequest::options(&self) -> &identus_did::RegistrationPublicData
+pub const fn identus_did::DeactivateRegistrationRequest::secret_mode(&self) -> &identus_did::RegistrationSecretMode
+pub struct identus_did::DereferencedContent(_)
+impl identus_did::DereferencedContent
+pub const fn identus_did::DereferencedContent::as_value(&self) -> &serde_json::value::Value
+pub fn identus_did::DereferencedContent::from_did_document(&identus_did::DidDocument) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DereferencedContent::from_service(&identus_did::Service) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DereferencedContent::from_uri(&identus_did::Uri) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DereferencedContent::from_verification_method(&identus_did::VerificationMethod) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DereferencedContent::new(serde_json::value::Value) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DereferencedContent::to_did_document(&self) -> core::result::Result<identus_did::DidDocument, identus_did::error::Error>
+pub fn identus_did::DereferencedContent::to_service(&self) -> core::result::Result<identus_did::Service, identus_did::error::Error>
+pub fn identus_did::DereferencedContent::to_uri(&self) -> core::result::Result<identus_did::Uri, identus_did::error::Error>
+pub fn identus_did::DereferencedContent::to_verification_method(&self) -> core::result::Result<identus_did::VerificationMethod, identus_did::error::Error>
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::DereferencedContent
+pub fn identus_did::DereferencedContent::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::DereferencingOptions
+impl identus_did::DereferencingOptions
+pub const fn identus_did::DereferencingOptions::accept(&self) -> core::option::Option<&identus_did::MediaType>
+pub fn identus_did::DereferencingOptions::builder() -> identus_did::DereferencingOptionsBuilder
+pub fn identus_did::DereferencingOptions::empty() -> Self
+pub const fn identus_did::DereferencingOptions::extensions(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_did::DereferencingOptions::from_json_slice(&[u8]) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DereferencingOptions::from_json_str(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DereferencingOptions::new(core::option::Option<identus_did::MediaType>, core::option::Option<identus_did::VerificationRelationshipName>, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::DereferencingOptions::verification_relationship(&self) -> core::option::Option<&identus_did::VerificationRelationshipName>
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::DereferencingOptions
+pub fn identus_did::DereferencingOptions::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::DereferencingOptionsBuilder(_)
+impl identus_did::DereferencingOptionsBuilder
+pub fn identus_did::DereferencingOptionsBuilder::accept(self, identus_did::MediaType) -> Self
+pub fn identus_did::DereferencingOptionsBuilder::build(self) -> core::result::Result<identus_did::DereferencingOptions, identus_did::error::Error>
+pub fn identus_did::DereferencingOptionsBuilder::extensions(self, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> Self
+pub fn identus_did::DereferencingOptionsBuilder::verification_relationship(self, identus_did::VerificationRelationshipName) -> Self
+pub struct identus_did::Did
+impl identus_did::Did
+pub fn identus_did::Did::as_str(&self) -> &str
+pub fn identus_did::Did::into_string(self) -> alloc::string::String
+pub fn identus_did::Did::method(&self) -> &str
+pub fn identus_did::Did::method_specific_id(&self) -> &str
+pub fn identus_did::Did::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::Did::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl core::convert::AsRef<str> for identus_did::Did
+pub fn identus_did::Did::as_ref(&self) -> &str
+impl core::convert::From<identus_did::Did> for identus_did::DidUrl
+pub fn identus_did::DidUrl::from(identus_did::Did) -> Self
+impl core::convert::From<identus_did::Did> for identus_did::Uri
+pub fn identus_did::Uri::from(identus_did::Did) -> Self
+impl core::convert::TryFrom<alloc::string::String> for identus_did::Did
+pub type identus_did::Did::Error = identus_did::error::Error
+pub fn identus_did::Did::try_from(alloc::string::String) -> core::result::Result<Self, Self::Error>
+impl core::fmt::Display for identus_did::Did
+pub fn identus_did::Did::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::str::traits::FromStr for identus_did::Did
+pub type identus_did::Did::Err = identus_did::error::Error
+pub fn identus_did::Did::from_str(&str) -> core::result::Result<Self, Self::Err>
+impl serde_core::ser::Serialize for identus_did::Did
+pub fn identus_did::Did::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::Did
+pub fn identus_did::Did::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::DidDocument
+impl identus_did::DidDocument
+pub fn identus_did::DidDocument::also_known_as(&self) -> core::option::Option<&[identus_did::Uri]>
+pub fn identus_did::DidDocument::assertion_method(&self) -> core::option::Option<&[identus_did::VerificationRelationship]>
+pub fn identus_did::DidDocument::authentication(&self) -> core::option::Option<&[identus_did::VerificationRelationship]>
+pub fn identus_did::DidDocument::builder(identus_did::Did) -> identus_did::DidDocumentBuilder
+pub fn identus_did::DidDocument::capability_delegation(&self) -> core::option::Option<&[identus_did::VerificationRelationship]>
+pub fn identus_did::DidDocument::capability_invocation(&self) -> core::option::Option<&[identus_did::VerificationRelationship]>
+pub const fn identus_did::DidDocument::context(&self) -> core::option::Option<&identus_did::OneOrMany<identus_did::ContextEntry>>
+pub const fn identus_did::DidDocument::controller(&self) -> core::option::Option<&identus_did::OneOrMany<identus_did::Did>>
+pub const fn identus_did::DidDocument::extensions(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_did::DidDocument::from_json_slice(&[u8]) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidDocument::from_json_str(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::DidDocument::id(&self) -> &identus_did::Did
+pub fn identus_did::DidDocument::key_agreement(&self) -> core::option::Option<&[identus_did::VerificationRelationship]>
+pub fn identus_did::DidDocument::services(&self) -> core::option::Option<&[identus_did::Service]>
+pub fn identus_did::DidDocument::verification_methods(&self) -> core::option::Option<&[identus_did::VerificationMethod]>
+pub fn identus_did::DidDocument::with_services(&self, core::option::Option<alloc::vec::Vec<identus_did::Service>>) -> core::result::Result<Self, identus_did::error::Error>
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::DidDocument
+pub fn identus_did::DidDocument::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::DidDocumentBuilder
+impl identus_did::DidDocumentBuilder
+pub fn identus_did::DidDocumentBuilder::also_known_as(self, alloc::vec::Vec<identus_did::Uri>) -> Self
+pub fn identus_did::DidDocumentBuilder::assertion_method(self, alloc::vec::Vec<identus_did::VerificationRelationship>) -> Self
+pub fn identus_did::DidDocumentBuilder::authentication(self, alloc::vec::Vec<identus_did::VerificationRelationship>) -> Self
+pub fn identus_did::DidDocumentBuilder::build(self) -> core::result::Result<identus_did::DidDocument, identus_did::error::Error>
+pub fn identus_did::DidDocumentBuilder::capability_delegation(self, alloc::vec::Vec<identus_did::VerificationRelationship>) -> Self
+pub fn identus_did::DidDocumentBuilder::capability_invocation(self, alloc::vec::Vec<identus_did::VerificationRelationship>) -> Self
+pub fn identus_did::DidDocumentBuilder::context(self, identus_did::OneOrMany<identus_did::ContextEntry>) -> Self
+pub fn identus_did::DidDocumentBuilder::controller(self, identus_did::OneOrMany<identus_did::Did>) -> Self
+pub fn identus_did::DidDocumentBuilder::extensions(self, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> Self
+pub fn identus_did::DidDocumentBuilder::key_agreement(self, alloc::vec::Vec<identus_did::VerificationRelationship>) -> Self
+pub fn identus_did::DidDocumentBuilder::new(identus_did::Did) -> Self
+pub fn identus_did::DidDocumentBuilder::services(self, alloc::vec::Vec<identus_did::Service>) -> Self
+pub fn identus_did::DidDocumentBuilder::verification_methods(self, alloc::vec::Vec<identus_did::VerificationMethod>) -> Self
+pub struct identus_did::DidDocumentMetadata
+impl identus_did::DidDocumentMetadata
+pub fn identus_did::DidDocumentMetadata::builder() -> identus_did::DidDocumentMetadataBuilder
+pub const fn identus_did::DidDocumentMetadata::canonical_id(&self) -> core::option::Option<&identus_did::Did>
+pub const fn identus_did::DidDocumentMetadata::created(&self) -> core::option::Option<&identus_did::DidResolutionDateTime>
+pub const fn identus_did::DidDocumentMetadata::deactivated(&self) -> core::option::Option<bool>
+pub fn identus_did::DidDocumentMetadata::empty() -> Self
+pub fn identus_did::DidDocumentMetadata::equivalent_ids(&self) -> core::option::Option<&[identus_did::Did]>
+pub const fn identus_did::DidDocumentMetadata::extensions(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_did::DidDocumentMetadata::is_empty(&self) -> bool
+pub const fn identus_did::DidDocumentMetadata::next_update(&self) -> core::option::Option<&identus_did::DidResolutionDateTime>
+pub const fn identus_did::DidDocumentMetadata::next_version_id(&self) -> core::option::Option<&identus_did::VersionId>
+pub const fn identus_did::DidDocumentMetadata::updated(&self) -> core::option::Option<&identus_did::DidResolutionDateTime>
+pub fn identus_did::DidDocumentMetadata::validate_for(&self, &identus_did::Did) -> core::result::Result<(), identus_did::error::Error>
+pub const fn identus_did::DidDocumentMetadata::version_id(&self) -> core::option::Option<&identus_did::VersionId>
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::DidDocumentMetadata
+pub fn identus_did::DidDocumentMetadata::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::DidDocumentMetadataBuilder(_)
+impl identus_did::DidDocumentMetadataBuilder
+pub fn identus_did::DidDocumentMetadataBuilder::build(self) -> core::result::Result<identus_did::DidDocumentMetadata, identus_did::error::Error>
+pub fn identus_did::DidDocumentMetadataBuilder::canonical_id(self, identus_did::Did) -> Self
+pub fn identus_did::DidDocumentMetadataBuilder::created(self, identus_did::DidResolutionDateTime) -> Self
+pub fn identus_did::DidDocumentMetadataBuilder::deactivated(self, bool) -> Self
+pub fn identus_did::DidDocumentMetadataBuilder::equivalent_ids(self, alloc::vec::Vec<identus_did::Did>) -> Self
+pub fn identus_did::DidDocumentMetadataBuilder::extensions(self, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> Self
+pub fn identus_did::DidDocumentMetadataBuilder::next_update(self, identus_did::DidResolutionDateTime) -> Self
+pub fn identus_did::DidDocumentMetadataBuilder::next_version_id(self, identus_did::VersionId) -> Self
+pub fn identus_did::DidDocumentMetadataBuilder::updated(self, identus_did::DidResolutionDateTime) -> Self
+pub fn identus_did::DidDocumentMetadataBuilder::version_id(self, identus_did::VersionId) -> Self
+pub struct identus_did::DidMethod(_)
+pub struct identus_did::DidMethodBinding
+impl identus_did::DidMethodBinding
+pub const fn identus_did::DidMethodBinding::method(&self) -> &identus_did::method::DidMethod
+pub fn identus_did::DidMethodBinding::new(identus_did::method::DidMethod, alloc::sync::Arc<dyn identus_did::DidResolver>) -> Self
+pub const fn identus_did::DidMethodBinding::supports_dereferencing(&self) -> bool
+pub const fn identus_did::DidMethodBinding::supports_registration(&self) -> bool
+pub fn identus_did::DidMethodBinding::with_dereferencer(self, alloc::sync::Arc<dyn identus_did::DidUrlDereferencer>) -> Self
+pub fn identus_did::DidMethodBinding::with_registrar(self, alloc::sync::Arc<dyn identus_did::DidRegistrar>) -> Self
+impl core::fmt::Debug for identus_did::DidMethodBinding
+pub fn identus_did::DidMethodBinding::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::DidMethodRegistry
+impl identus_did::DidMethodRegistry
+pub fn identus_did::DidMethodRegistry::builder() -> identus_did::DidMethodRegistryBuilder
+pub fn identus_did::DidMethodRegistry::contains_method(&self, &identus_did::method::DidMethod) -> bool
+pub fn identus_did::DidMethodRegistry::empty() -> Self
+pub fn identus_did::DidMethodRegistry::is_empty(&self) -> bool
+pub fn identus_did::DidMethodRegistry::method_count(&self) -> usize
+pub fn identus_did::DidMethodRegistry::methods(&self) -> impl core::iter::traits::exact_size::ExactSizeIterator<Item = &str>
+pub fn identus_did::DidMethodRegistry::supports_dereferencing(&self, &identus_did::method::DidMethod) -> bool
+pub fn identus_did::DidMethodRegistry::supports_registration(&self, &identus_did::method::DidMethod) -> bool
+impl core::fmt::Debug for identus_did::DidMethodRegistry
+pub fn identus_did::DidMethodRegistry::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl identus_did::DidRegistrar for identus_did::DidMethodRegistry
+pub fn identus_did::DidMethodRegistry::execute<'a>(&'a self, &'a identus_did::RegistrationRequest) -> identus_did::DidRegistrationFuture<'a>
+impl identus_did::DidResolver for identus_did::DidMethodRegistry
+pub fn identus_did::DidMethodRegistry::resolve<'a>(&'a self, &'a identus_did::Did, &'a identus_did::ResolutionOptions) -> identus_did::DidResolutionFuture<'a>
+impl identus_did::DidUrlDereferencer for identus_did::DidMethodRegistry
+pub fn identus_did::DidMethodRegistry::dereference<'a>(&'a self, &'a identus_did::DidUrl, &'a identus_did::DereferencingOptions) -> identus_did::DidUrlDereferencingFuture<'a>
+pub struct identus_did::DidMethodRegistryBuilder
+impl identus_did::DidMethodRegistryBuilder
+pub fn identus_did::DidMethodRegistryBuilder::build(self) -> identus_did::DidMethodRegistry
+pub fn identus_did::DidMethodRegistryBuilder::register(self, identus_did::DidMethodBinding) -> core::result::Result<Self, identus_did::error::Error>
+impl core::fmt::Debug for identus_did::DidMethodRegistryBuilder
+pub fn identus_did::DidMethodRegistryBuilder::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::DidRegistrationResult
+impl identus_did::DidRegistrationResult
+pub const fn identus_did::DidRegistrationResult::document_metadata(&self) -> &identus_did::DidDocumentMetadata
+pub const fn identus_did::DidRegistrationResult::job(&self) -> core::option::Option<&identus_did::RegistrationJob>
+pub const fn identus_did::DidRegistrationResult::method(&self) -> &identus_did::method::DidMethod
+pub fn identus_did::DidRegistrationResult::new(identus_did::method::DidMethod, core::option::Option<identus_did::RegistrationJob>, identus_did::DidRegistrationState, identus_did::RegistrationPublicData, identus_did::DidDocumentMetadata) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::DidRegistrationResult::registration_metadata(&self) -> &identus_did::RegistrationPublicData
+pub fn identus_did::DidRegistrationResult::standard_failure(identus_did::method::DidMethod, identus_did::DidRegistrationErrorKind) -> Self
+pub const fn identus_did::DidRegistrationResult::state(&self) -> &identus_did::DidRegistrationState
+pub fn identus_did::DidRegistrationResult::validate_for_request(&self, &identus_did::RegistrationRequest) -> core::result::Result<(), identus_did::error::Error>
+impl core::fmt::Debug for identus_did::DidRegistrationResult
+pub fn identus_did::DidRegistrationResult::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::DidResolutionCacheEntry
+impl identus_did::DidResolutionCacheEntry
+pub const fn identus_did::DidResolutionCacheEntry::expires_at(&self) -> identus_core::time::MonotonicTimestampMillis
+pub const fn identus_did::DidResolutionCacheEntry::inserted_at(&self) -> identus_core::time::MonotonicTimestampMillis
+pub fn identus_did::DidResolutionCacheEntry::new(identus_did::DidResolutionResult, identus_core::time::MonotonicTimestampMillis, identus_core::time::MonotonicTimestampMillis) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::DidResolutionCacheEntry::result(&self) -> &identus_did::DidResolutionResult
+impl core::fmt::Debug for identus_did::DidResolutionCacheEntry
+pub fn identus_did::DidResolutionCacheEntry::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::DidResolutionCacheKey
+impl identus_did::DidResolutionCacheKey
+pub const fn identus_did::DidResolutionCacheKey::did(&self) -> &identus_did::Did
+pub fn identus_did::DidResolutionCacheKey::encoded_len(&self) -> usize
+pub fn identus_did::DidResolutionCacheKey::for_resolution(&identus_did::Did, &identus_did::ResolutionOptions) -> core::result::Result<Self, identus_did::error::Error>
+impl core::fmt::Debug for identus_did::DidResolutionCacheKey
+pub fn identus_did::DidResolutionCacheKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::DidResolutionCachePolicy
+impl identus_did::DidResolutionCachePolicy
+pub const fn identus_did::DidResolutionCachePolicy::disabled() -> Self
+pub const fn identus_did::DidResolutionCachePolicy::failure_mode(self) -> identus_did::CacheFailureMode
+pub const fn identus_did::DidResolutionCachePolicy::is_enabled(self) -> bool
+pub fn identus_did::DidResolutionCachePolicy::new(core::option::Option<identus_core::time::DurationMillis>, core::option::Option<identus_core::time::DurationMillis>, identus_did::CacheFailureMode) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::DidResolutionCachePolicy::not_found_ttl(self) -> core::option::Option<identus_core::time::DurationMillis>
+pub const fn identus_did::DidResolutionCachePolicy::positive_ttl(self) -> core::option::Option<identus_core::time::DurationMillis>
+impl core::default::Default for identus_did::DidResolutionCachePolicy
+pub fn identus_did::DidResolutionCachePolicy::default() -> Self
+pub struct identus_did::DidResolutionDateTime(_)
+impl identus_did::DidResolutionDateTime
+pub fn identus_did::DidResolutionDateTime::as_str(&self) -> &str
+pub fn identus_did::DidResolutionDateTime::into_string(self) -> alloc::string::String
+pub fn identus_did::DidResolutionDateTime::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidResolutionDateTime::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl core::convert::AsRef<str> for identus_did::DidResolutionDateTime
+pub fn identus_did::DidResolutionDateTime::as_ref(&self) -> &str
+impl core::convert::TryFrom<alloc::string::String> for identus_did::DidResolutionDateTime
+pub type identus_did::DidResolutionDateTime::Error = identus_did::error::Error
+pub fn identus_did::DidResolutionDateTime::try_from(alloc::string::String) -> core::result::Result<Self, Self::Error>
+impl core::fmt::Display for identus_did::DidResolutionDateTime
+pub fn identus_did::DidResolutionDateTime::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::str::traits::FromStr for identus_did::DidResolutionDateTime
+pub type identus_did::DidResolutionDateTime::Err = identus_did::error::Error
+pub fn identus_did::DidResolutionDateTime::from_str(&str) -> core::result::Result<Self, Self::Err>
+impl serde_core::ser::Serialize for identus_did::DidResolutionDateTime
+pub fn identus_did::DidResolutionDateTime::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::DidResolutionDateTime
+pub fn identus_did::DidResolutionDateTime::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::DidResolutionError
+impl identus_did::DidResolutionError
+pub fn identus_did::DidResolutionError::detail(&self) -> core::option::Option<&str>
+pub const fn identus_did::DidResolutionError::extensions(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_did::DidResolutionError::from_legacy_keyword(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::DidResolutionError::instance(&self) -> core::option::Option<&identus_did::Uri>
+pub fn identus_did::DidResolutionError::kind(&self) -> core::option::Option<identus_did::DidResolutionErrorKind>
+pub fn identus_did::DidResolutionError::new(identus_did::Uri, core::option::Option<alloc::string::String>, core::option::Option<alloc::string::String>, core::option::Option<identus_did::Uri>, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidResolutionError::standard(identus_did::DidResolutionErrorKind) -> Self
+pub fn identus_did::DidResolutionError::title(&self) -> core::option::Option<&str>
+pub const fn identus_did::DidResolutionError::type_uri(&self) -> &identus_did::Uri
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::DidResolutionError
+pub fn identus_did::DidResolutionError::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::DidResolutionMetadata(_)
+impl identus_did::DidResolutionMetadata
+pub const fn identus_did::DidResolutionMetadata::content_type(&self) -> core::option::Option<&identus_did::MediaType>
+pub fn identus_did::DidResolutionMetadata::empty() -> Self
+pub const fn identus_did::DidResolutionMetadata::error(&self) -> core::option::Option<&identus_did::DidResolutionError>
+pub const fn identus_did::DidResolutionMetadata::extensions(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_did::DidResolutionMetadata::new(core::option::Option<identus_did::MediaType>, core::option::Option<identus_did::DidResolutionError>, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_did::error::Error>
+pub struct identus_did::DidResolutionResult
+impl identus_did::DidResolutionResult
+pub fn identus_did::DidResolutionResult::deactivated(identus_did::DidResolutionMetadata, identus_did::DidDocumentMetadata) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::DidResolutionResult::document(&self) -> core::option::Option<&identus_did::DidDocument>
+pub const fn identus_did::DidResolutionResult::document_metadata(&self) -> &identus_did::DidDocumentMetadata
+pub fn identus_did::DidResolutionResult::failure(identus_did::DidResolutionMetadata) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidResolutionResult::from_json_slice(&[u8]) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidResolutionResult::from_json_slice_for(&[u8], &identus_did::Did) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidResolutionResult::from_json_str(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidResolutionResult::from_json_str_for(&str, &identus_did::Did) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::DidResolutionResult::metadata(&self) -> &identus_did::DidResolutionMetadata
+pub fn identus_did::DidResolutionResult::success(identus_did::DidResolutionMetadata, identus_did::DidDocument, identus_did::DidDocumentMetadata) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidResolutionResult::validate_for(&self, &identus_did::Did) -> core::result::Result<(), identus_did::error::Error>
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::DidResolutionResult
+pub fn identus_did::DidResolutionResult::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::DidUrl
+impl identus_did::DidUrl
+pub fn identus_did::DidUrl::as_did_str(&self) -> &str
+pub fn identus_did::DidUrl::as_str(&self) -> &str
+pub fn identus_did::DidUrl::fragment(&self) -> core::option::Option<&str>
+pub fn identus_did::DidUrl::into_string(self) -> alloc::string::String
+pub fn identus_did::DidUrl::method(&self) -> &str
+pub fn identus_did::DidUrl::method_specific_id(&self) -> &str
+pub fn identus_did::DidUrl::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidUrl::path(&self) -> &str
+pub fn identus_did::DidUrl::query(&self) -> core::option::Option<&str>
+pub fn identus_did::DidUrl::to_did(&self) -> identus_did::Did
+pub fn identus_did::DidUrl::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl core::convert::AsRef<str> for identus_did::DidUrl
+pub fn identus_did::DidUrl::as_ref(&self) -> &str
+impl core::convert::From<identus_did::Did> for identus_did::DidUrl
+pub fn identus_did::DidUrl::from(identus_did::Did) -> Self
+impl core::convert::From<identus_did::DidUrl> for identus_did::Uri
+pub fn identus_did::Uri::from(identus_did::DidUrl) -> Self
+impl core::convert::TryFrom<alloc::string::String> for identus_did::DidUrl
+pub type identus_did::DidUrl::Error = identus_did::error::Error
+pub fn identus_did::DidUrl::try_from(alloc::string::String) -> core::result::Result<Self, Self::Error>
+impl core::fmt::Display for identus_did::DidUrl
+pub fn identus_did::DidUrl::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::str::traits::FromStr for identus_did::DidUrl
+pub type identus_did::DidUrl::Err = identus_did::error::Error
+pub fn identus_did::DidUrl::from_str(&str) -> core::result::Result<Self, Self::Err>
+impl serde_core::ser::Serialize for identus_did::DidUrl
+pub fn identus_did::DidUrl::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::DidUrl
+pub fn identus_did::DidUrl::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::DidUrlContentMetadata
+impl identus_did::DidUrlContentMetadata
+pub fn identus_did::DidUrlContentMetadata::empty() -> Self
+pub fn identus_did::DidUrlContentMetadata::from_document_metadata(&identus_did::DidDocumentMetadata) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidUrlContentMetadata::is_empty(&self) -> bool
+pub fn identus_did::DidUrlContentMetadata::new(alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidUrlContentMetadata::to_document_metadata(&self) -> core::result::Result<identus_did::DidDocumentMetadata, identus_did::error::Error>
+pub const fn identus_did::DidUrlContentMetadata::values(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::DidUrlContentMetadata
+pub fn identus_did::DidUrlContentMetadata::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::DidUrlDereferencingMetadata(_)
+impl identus_did::DidUrlDereferencingMetadata
+pub const fn identus_did::DidUrlDereferencingMetadata::content_type(&self) -> core::option::Option<&identus_did::MediaType>
+pub fn identus_did::DidUrlDereferencingMetadata::empty() -> Self
+pub const fn identus_did::DidUrlDereferencingMetadata::error(&self) -> core::option::Option<&identus_did::DidResolutionError>
+pub const fn identus_did::DidUrlDereferencingMetadata::extensions(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_did::DidUrlDereferencingMetadata::new(core::option::Option<identus_did::MediaType>, core::option::Option<identus_did::DidResolutionError>, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_did::error::Error>
+pub struct identus_did::DidUrlDereferencingResult
+impl identus_did::DidUrlDereferencingResult
+pub const fn identus_did::DidUrlDereferencingResult::content(&self) -> core::option::Option<&identus_did::DereferencedContent>
+pub const fn identus_did::DidUrlDereferencingResult::content_metadata(&self) -> &identus_did::DidUrlContentMetadata
+pub fn identus_did::DidUrlDereferencingResult::failure(identus_did::DidUrlDereferencingMetadata) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidUrlDereferencingResult::from_json_slice(&[u8]) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::DidUrlDereferencingResult::from_json_str(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::DidUrlDereferencingResult::metadata(&self) -> &identus_did::DidUrlDereferencingMetadata
+pub fn identus_did::DidUrlDereferencingResult::success(identus_did::DidUrlDereferencingMetadata, identus_did::DereferencedContent, identus_did::DidUrlContentMetadata) -> core::result::Result<Self, identus_did::error::Error>
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::DidUrlDereferencingResult
+pub fn identus_did::DidUrlDereferencingResult::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::GenericDidUrlDereferencer
+impl identus_did::GenericDidUrlDereferencer
+pub fn identus_did::GenericDidUrlDereferencer::new(alloc::sync::Arc<dyn identus_did::DidResolver>) -> Self
+impl core::fmt::Debug for identus_did::GenericDidUrlDereferencer
+pub fn identus_did::GenericDidUrlDereferencer::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl identus_did::DidUrlDereferencer for identus_did::GenericDidUrlDereferencer
+pub fn identus_did::GenericDidUrlDereferencer::dereference<'a>(&'a self, &'a identus_did::DidUrl, &'a identus_did::DereferencingOptions) -> identus_did::DidUrlDereferencingFuture<'a>
+pub struct identus_did::InternalSecretPolicy
+impl identus_did::InternalSecretPolicy
+pub fn identus_did::InternalSecretPolicy::new(bool, bool) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::InternalSecretPolicy::return_handle(self) -> bool
+pub const fn identus_did::InternalSecretPolicy::store_generated(self) -> bool
+pub struct identus_did::MediaType(_)
+impl identus_did::MediaType
+pub fn identus_did::MediaType::as_str(&self) -> &str
+pub fn identus_did::MediaType::into_string(self) -> alloc::string::String
+pub fn identus_did::MediaType::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::MediaType::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl core::convert::AsRef<str> for identus_did::MediaType
+pub fn identus_did::MediaType::as_ref(&self) -> &str
+impl core::convert::TryFrom<alloc::string::String> for identus_did::MediaType
+pub type identus_did::MediaType::Error = identus_did::error::Error
+pub fn identus_did::MediaType::try_from(alloc::string::String) -> core::result::Result<Self, Self::Error>
+impl core::fmt::Display for identus_did::MediaType
+pub fn identus_did::MediaType::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::str::traits::FromStr for identus_did::MediaType
+pub type identus_did::MediaType::Err = identus_did::error::Error
+pub fn identus_did::MediaType::from_str(&str) -> core::result::Result<Self, Self::Err>
+impl serde_core::ser::Serialize for identus_did::MediaType
+pub fn identus_did::MediaType::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::MediaType
+pub fn identus_did::MediaType::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::Multihash(_)
+pub struct identus_did::OneOrMany<T>
+impl<T> identus_did::OneOrMany<T>
+pub fn identus_did::OneOrMany<T>::as_slice(&self) -> &[T]
+pub fn identus_did::OneOrMany<T>::into_vec(self) -> alloc::vec::Vec<T>
+pub const fn identus_did::OneOrMany<T>::is_many(&self) -> bool
+pub fn identus_did::OneOrMany<T>::one(T) -> Self
+pub fn identus_did::OneOrMany<T>::try_many(alloc::vec::Vec<T>) -> core::result::Result<Self, identus_did::error::Error>
+impl<'de, T> serde_core::de::Deserialize<'de> for identus_did::OneOrMany<T> where T: serde_core::de::Deserialize<'de>
+pub fn identus_did::OneOrMany<T>::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+impl<T: serde_core::ser::Serialize> serde_core::ser::Serialize for identus_did::OneOrMany<T>
+pub fn identus_did::OneOrMany<T>::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
+impl<T> core::convert::From<T> for identus_did::OneOrMany<T>
+pub fn identus_did::OneOrMany<T>::from(T) -> Self
+pub struct identus_did::RegistrationAction
+impl identus_did::RegistrationAction
+pub const fn identus_did::RegistrationAction::data(&self) -> &identus_did::RegistrationPublicData
+pub const fn identus_did::RegistrationAction::id(&self) -> &identus_did::RegistrationActionId
+pub const fn identus_did::RegistrationAction::name(&self) -> &identus_did::RegistrationOperationName
+pub const fn identus_did::RegistrationAction::new(identus_did::RegistrationActionId, identus_did::RegistrationOperationName, identus_did::RegistrationPublicData) -> Self
+impl core::fmt::Debug for identus_did::RegistrationAction
+pub fn identus_did::RegistrationAction::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::RegistrationActionId(_)
+impl identus_did::RegistrationActionId
+pub fn identus_did::RegistrationActionId::as_str(&self) -> &str
+pub fn identus_did::RegistrationActionId::into_string(self) -> alloc::string::String
+pub fn identus_did::RegistrationActionId::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::RegistrationActionId::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl core::fmt::Debug for identus_did::RegistrationActionId
+pub fn identus_did::RegistrationActionId::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::RegistrationActionResponse
+impl identus_did::RegistrationActionResponse
+pub const fn identus_did::RegistrationActionResponse::data(&self) -> &identus_did::RegistrationPublicData
+pub const fn identus_did::RegistrationActionResponse::id(&self) -> &identus_did::RegistrationActionId
+pub const fn identus_did::RegistrationActionResponse::new(identus_did::RegistrationActionId, identus_did::RegistrationPublicData) -> Self
+impl core::fmt::Debug for identus_did::RegistrationActionResponse
+pub fn identus_did::RegistrationActionResponse::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::RegistrationFailureCode(_)
+impl identus_did::RegistrationFailureCode
+pub fn identus_did::RegistrationFailureCode::as_str(&self) -> &str
+pub fn identus_did::RegistrationFailureCode::into_string(self) -> alloc::string::String
+pub fn identus_did::RegistrationFailureCode::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::RegistrationFailureCode::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl identus_did::RegistrationFailureCode
+pub fn identus_did::RegistrationFailureCode::kind(&self) -> core::option::Option<identus_did::DidRegistrationErrorKind>
+pub fn identus_did::RegistrationFailureCode::standard(identus_did::DidRegistrationErrorKind) -> Self
+impl core::fmt::Debug for identus_did::RegistrationFailureCode
+pub fn identus_did::RegistrationFailureCode::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::RegistrationIdempotencyKey(_)
+impl identus_did::RegistrationIdempotencyKey
+pub fn identus_did::RegistrationIdempotencyKey::as_str(&self) -> &str
+pub fn identus_did::RegistrationIdempotencyKey::into_string(self) -> alloc::string::String
+pub fn identus_did::RegistrationIdempotencyKey::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::RegistrationIdempotencyKey::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl core::fmt::Debug for identus_did::RegistrationIdempotencyKey
+pub fn identus_did::RegistrationIdempotencyKey::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::RegistrationJob
+impl identus_did::RegistrationJob
+pub const fn identus_did::RegistrationJob::continuation(&self) -> &identus_did::RegistrationContinuation
+pub const fn identus_did::RegistrationJob::id(&self) -> &identus_did::RegistrationJobId
+pub const fn identus_did::RegistrationJob::method(&self) -> &identus_did::method::DidMethod
+pub const fn identus_did::RegistrationJob::new(identus_did::method::DidMethod, identus_did::RegistrationJobId, identus_did::RegistrationContinuation) -> Self
+impl core::fmt::Debug for identus_did::RegistrationJob
+pub fn identus_did::RegistrationJob::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::RegistrationJobId(_)
+impl identus_did::RegistrationJobId
+pub fn identus_did::RegistrationJobId::as_str(&self) -> &str
+pub fn identus_did::RegistrationJobId::into_string(self) -> alloc::string::String
+pub fn identus_did::RegistrationJobId::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::RegistrationJobId::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl core::fmt::Debug for identus_did::RegistrationJobId
+pub fn identus_did::RegistrationJobId::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::RegistrationOperationName(_)
+impl identus_did::RegistrationOperationName
+pub fn identus_did::RegistrationOperationName::as_str(&self) -> &str
+pub fn identus_did::RegistrationOperationName::into_string(self) -> alloc::string::String
+pub fn identus_did::RegistrationOperationName::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::RegistrationOperationName::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl core::fmt::Debug for identus_did::RegistrationOperationName
+pub fn identus_did::RegistrationOperationName::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::RegistrationPublicData(_)
+impl identus_did::RegistrationPublicData
+pub const fn identus_did::RegistrationPublicData::as_map(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub const fn identus_did::RegistrationPublicData::empty() -> Self
+pub fn identus_did::RegistrationPublicData::from_json_slice(&[u8]) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::RegistrationPublicData::from_json_str(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::RegistrationPublicData::into_map(self) -> alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_did::RegistrationPublicData::new(alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_did::error::Error>
+impl core::fmt::Debug for identus_did::RegistrationPublicData
+pub fn identus_did::RegistrationPublicData::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl serde_core::ser::Serialize for identus_did::RegistrationPublicData
+pub fn identus_did::RegistrationPublicData::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::RegistrationPublicData
+pub fn identus_did::RegistrationPublicData::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::RegistrationSecretHandle(_)
+impl identus_did::RegistrationSecretHandle
+pub fn identus_did::RegistrationSecretHandle::as_str(&self) -> &str
+pub fn identus_did::RegistrationSecretHandle::into_string(self) -> alloc::string::String
+pub fn identus_did::RegistrationSecretHandle::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::RegistrationSecretHandle::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl core::fmt::Debug for identus_did::RegistrationSecretHandle
+pub fn identus_did::RegistrationSecretHandle::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+pub struct identus_did::ResolutionOptions
+impl identus_did::ResolutionOptions
+pub const fn identus_did::ResolutionOptions::accept(&self) -> core::option::Option<&identus_did::MediaType>
+pub fn identus_did::ResolutionOptions::builder() -> identus_did::ResolutionOptionsBuilder
+pub fn identus_did::ResolutionOptions::empty() -> Self
+pub const fn identus_did::ResolutionOptions::expand_relative_urls(&self) -> core::option::Option<bool>
+pub const fn identus_did::ResolutionOptions::extensions(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_did::ResolutionOptions::from_json_slice(&[u8]) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::ResolutionOptions::from_json_str(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::ResolutionOptions::new(core::option::Option<identus_did::MediaType>, core::option::Option<bool>, core::option::Option<bool>, core::option::Option<identus_did::VersionId>, core::option::Option<identus_did::DidResolutionDateTime>, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::ResolutionOptions::no_cache(&self) -> core::option::Option<bool>
+pub const fn identus_did::ResolutionOptions::version_id(&self) -> core::option::Option<&identus_did::VersionId>
+pub const fn identus_did::ResolutionOptions::version_time(&self) -> core::option::Option<&identus_did::DidResolutionDateTime>
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::ResolutionOptions
+pub fn identus_did::ResolutionOptions::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::ResolutionOptionsBuilder(_)
+impl identus_did::ResolutionOptionsBuilder
+pub fn identus_did::ResolutionOptionsBuilder::accept(self, identus_did::MediaType) -> Self
+pub fn identus_did::ResolutionOptionsBuilder::build(self) -> core::result::Result<identus_did::ResolutionOptions, identus_did::error::Error>
+pub fn identus_did::ResolutionOptionsBuilder::expand_relative_urls(self, bool) -> Self
+pub fn identus_did::ResolutionOptionsBuilder::extensions(self, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> Self
+pub fn identus_did::ResolutionOptionsBuilder::no_cache(self, bool) -> Self
+pub fn identus_did::ResolutionOptionsBuilder::version_id(self, identus_did::VersionId) -> Self
+pub fn identus_did::ResolutionOptionsBuilder::version_time(self, identus_did::DidResolutionDateTime) -> Self
+pub struct identus_did::Service
+impl identus_did::Service
+pub const fn identus_did::Service::endpoint(&self) -> &identus_did::ServiceEndpoint
+pub const fn identus_did::Service::extensions(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub const fn identus_did::Service::id(&self) -> &identus_did::Uri
+pub fn identus_did::Service::new(identus_did::Uri, identus_did::OneOrMany<alloc::string::String>, identus_did::ServiceEndpoint, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::Service::service_types(&self) -> &identus_did::OneOrMany<alloc::string::String>
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::Service
+pub fn identus_did::Service::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::UpdateRegistrationRequest
+impl identus_did::UpdateRegistrationRequest
+pub const fn identus_did::UpdateRegistrationRequest::did(&self) -> &identus_did::Did
+pub const fn identus_did::UpdateRegistrationRequest::idempotency_key(&self) -> &identus_did::RegistrationIdempotencyKey
+pub const fn identus_did::UpdateRegistrationRequest::method(&self) -> &identus_did::method::DidMethod
+pub fn identus_did::UpdateRegistrationRequest::new(identus_did::Did, alloc::vec::Vec<identus_did::DidDocumentOperation>, identus_did::RegistrationPublicData, identus_did::RegistrationSecretMode, identus_did::RegistrationIdempotencyKey) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::UpdateRegistrationRequest::operations(&self) -> &[identus_did::DidDocumentOperation]
+pub const fn identus_did::UpdateRegistrationRequest::options(&self) -> &identus_did::RegistrationPublicData
+pub const fn identus_did::UpdateRegistrationRequest::secret_mode(&self) -> &identus_did::RegistrationSecretMode
+pub struct identus_did::Uri(_)
+impl identus_did::Uri
+pub fn identus_did::Uri::as_str(&self) -> &str
+pub fn identus_did::Uri::into_string(self) -> alloc::string::String
+pub fn identus_did::Uri::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::Uri::scheme(&self) -> &str
+pub fn identus_did::Uri::to_did_url(&self) -> core::result::Result<identus_did::DidUrl, identus_did::error::Error>
+pub fn identus_did::Uri::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl core::convert::AsRef<str> for identus_did::Uri
+pub fn identus_did::Uri::as_ref(&self) -> &str
+impl core::convert::From<identus_did::Did> for identus_did::Uri
+pub fn identus_did::Uri::from(identus_did::Did) -> Self
+impl core::convert::From<identus_did::DidUrl> for identus_did::Uri
+pub fn identus_did::Uri::from(identus_did::DidUrl) -> Self
+impl core::convert::TryFrom<alloc::string::String> for identus_did::Uri
+pub type identus_did::Uri::Error = identus_did::error::Error
+pub fn identus_did::Uri::try_from(alloc::string::String) -> core::result::Result<Self, Self::Error>
+impl core::fmt::Display for identus_did::Uri
+pub fn identus_did::Uri::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::str::traits::FromStr for identus_did::Uri
+pub type identus_did::Uri::Err = identus_did::error::Error
+pub fn identus_did::Uri::from_str(&str) -> core::result::Result<Self, Self::Err>
+impl serde_core::ser::Serialize for identus_did::Uri
+pub fn identus_did::Uri::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::Uri
+pub fn identus_did::Uri::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::VerificationMethod
+impl identus_did::VerificationMethod
+pub const fn identus_did::VerificationMethod::controller(&self) -> &identus_did::Did
+pub const fn identus_did::VerificationMethod::id(&self) -> &identus_did::Uri
+pub fn identus_did::VerificationMethod::method_type(&self) -> &str
+pub fn identus_did::VerificationMethod::new(identus_did::Uri, alloc::string::String, identus_did::Did, alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>) -> core::result::Result<Self, identus_did::error::Error>
+pub const fn identus_did::VerificationMethod::properties(&self) -> &alloc::collections::btree::map::BTreeMap<alloc::string::String, serde_json::value::Value>
+pub fn identus_did::VerificationMethod::public_key_jwk(&self) -> core::option::Option<&serde_json::map::Map<alloc::string::String, serde_json::value::Value>>
+pub fn identus_did::VerificationMethod::public_key_multibase(&self) -> core::option::Option<&str>
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::VerificationMethod
+pub fn identus_did::VerificationMethod::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub struct identus_did::VerificationRelationshipName(_)
+pub struct identus_did::Version(_)
+pub struct identus_did::VersionId(_)
+impl identus_did::VersionId
+pub fn identus_did::VersionId::as_str(&self) -> &str
+pub fn identus_did::VersionId::into_string(self) -> alloc::string::String
+pub fn identus_did::VersionId::parse(&str) -> core::result::Result<Self, identus_did::error::Error>
+pub fn identus_did::VersionId::try_new(alloc::string::String) -> core::result::Result<Self, identus_did::error::Error>
+impl core::convert::AsRef<str> for identus_did::VersionId
+pub fn identus_did::VersionId::as_ref(&self) -> &str
+impl core::convert::TryFrom<alloc::string::String> for identus_did::VersionId
+pub type identus_did::VersionId::Error = identus_did::error::Error
+pub fn identus_did::VersionId::try_from(alloc::string::String) -> core::result::Result<Self, Self::Error>
+impl core::fmt::Display for identus_did::VersionId
+pub fn identus_did::VersionId::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::str::traits::FromStr for identus_did::VersionId
+pub type identus_did::VersionId::Err = identus_did::error::Error
+pub fn identus_did::VersionId::from_str(&str) -> core::result::Result<Self, Self::Err>
+impl serde_core::ser::Serialize for identus_did::VersionId
+pub fn identus_did::VersionId::serialize<S>(&self, S) -> core::result::Result<<S as serde_core::ser::Serializer>::Ok, <S as serde_core::ser::Serializer>::Error> where S: serde_core::ser::Serializer
+impl<'de> serde_core::de::Deserialize<'de> for identus_did::VersionId
+pub fn identus_did::VersionId::deserialize<D>(D) -> core::result::Result<Self, <D as serde_core::de::Deserializer>::Error> where D: serde_core::de::Deserializer<'de>
+pub const identus_did::COMPONENT: identus_core::Component
+pub const identus_did::MAX_DID_BYTES: usize
+pub const identus_did::MAX_DID_DOCUMENT_BYTES: usize
+pub const identus_did::MAX_DID_DOCUMENT_WIRE_DEPTH: usize
+pub const identus_did::MAX_DID_DOCUMENT_WIRE_LIVE_KEY_BYTES: usize
+pub const identus_did::MAX_DID_DOCUMENT_WIRE_NODES: usize
+pub const identus_did::MAX_DID_DOCUMENT_WIRE_OBJECT_MEMBERS: usize
+pub const identus_did::MAX_DID_METHOD_BYTES: usize
+pub const identus_did::MAX_DID_METHOD_REGISTRY_ENTRIES: usize
+pub const identus_did::MAX_DID_REGISTRATION_BYTES: usize
+pub const identus_did::MAX_DID_RESOLUTION_CACHE_ENTRIES: usize
+pub const identus_did::MAX_DID_RESOLUTION_CACHE_KEY_BYTES: usize
+pub const identus_did::MAX_DID_RESOLUTION_DATETIME_BYTES: usize
+pub const identus_did::MAX_DID_RESOLUTION_NOT_FOUND_TTL_MILLIS: u64
+pub const identus_did::MAX_DID_RESOLUTION_OPTIONS_BYTES: usize
+pub const identus_did::MAX_DID_RESOLUTION_POSITIVE_TTL_MILLIS: u64
+pub const identus_did::MAX_DID_RESOLUTION_RESULT_BYTES: usize
+pub const identus_did::MAX_DID_RESOLUTION_WIRE_DEPTH: usize
+pub const identus_did::MAX_DID_RESOLUTION_WIRE_LIVE_KEY_BYTES: usize
+pub const identus_did::MAX_DID_RESOLUTION_WIRE_NODES: usize
+pub const identus_did::MAX_DID_RESOLUTION_WIRE_OBJECT_MEMBERS: usize
+pub const identus_did::MAX_DID_URL_BYTES: usize
+pub const identus_did::MAX_DOCUMENT_ITEMS: usize
+pub const identus_did::MAX_EXTENSION_DEPTH: usize
+pub const identus_did::MAX_EXTENSION_NODES: usize
+pub const identus_did::MAX_MEDIA_TYPE_BYTES: usize
+pub const identus_did::MAX_PROBLEM_DETAIL_BYTES: usize
+pub const identus_did::MAX_REGISTRATION_ID_BYTES: usize
+pub const identus_did::MAX_REGISTRATION_ITEMS: usize
+pub const identus_did::MAX_REGISTRATION_OPAQUE_ID_BYTES: usize
+pub const identus_did::MAX_REGISTRATION_WAIT_MILLIS: u64
+pub const identus_did::MAX_URI_BYTES: usize
+pub const identus_did::MAX_VERIFICATION_RELATIONSHIP_BYTES: usize
+pub const identus_did::MAX_VERSION_ID_BYTES: usize
+pub trait identus_did::DidRegistrar: core::marker::Send + core::marker::Sync
+pub fn identus_did::DidRegistrar::execute<'a>(&'a self, &'a identus_did::RegistrationRequest) -> identus_did::DidRegistrationFuture<'a>
+impl identus_did::DidRegistrar for identus_did::DidMethodRegistry
+pub fn identus_did::DidMethodRegistry::execute<'a>(&'a self, &'a identus_did::RegistrationRequest) -> identus_did::DidRegistrationFuture<'a>
+pub trait identus_did::DidResolutionCache: core::marker::Send + core::marker::Sync
+pub fn identus_did::DidResolutionCache::capacity(&self) -> usize
+pub fn identus_did::DidResolutionCache::invalidate<'a>(&'a self, &'a identus_did::DidResolutionCacheKey) -> identus_did::DidResolutionCacheWriteFuture<'a>
+pub fn identus_did::DidResolutionCache::invalidate_did<'a>(&'a self, &'a identus_did::Did) -> identus_did::DidResolutionCacheWriteFuture<'a>
+pub fn identus_did::DidResolutionCache::lookup<'a>(&'a self, &'a identus_did::DidResolutionCacheKey) -> identus_did::DidResolutionCacheLookupFuture<'a>
+pub fn identus_did::DidResolutionCache::store<'a>(&'a self, identus_did::DidResolutionCacheKey, identus_did::DidResolutionCacheEntry) -> identus_did::DidResolutionCacheWriteFuture<'a>
+pub trait identus_did::DidResolver: core::marker::Send + core::marker::Sync
+pub fn identus_did::DidResolver::resolve<'a>(&'a self, &'a identus_did::Did, &'a identus_did::ResolutionOptions) -> identus_did::DidResolutionFuture<'a>
+impl identus_did::DidResolver for identus_did::CachingDidResolver
+pub fn identus_did::CachingDidResolver::resolve<'a>(&'a self, &'a identus_did::Did, &'a identus_did::ResolutionOptions) -> identus_did::DidResolutionFuture<'a>
+impl identus_did::DidResolver for identus_did::DidMethodRegistry
+pub fn identus_did::DidMethodRegistry::resolve<'a>(&'a self, &'a identus_did::Did, &'a identus_did::ResolutionOptions) -> identus_did::DidResolutionFuture<'a>
+pub trait identus_did::DidUrlDereferencer: core::marker::Send + core::marker::Sync
+pub fn identus_did::DidUrlDereferencer::dereference<'a>(&'a self, &'a identus_did::DidUrl, &'a identus_did::DereferencingOptions) -> identus_did::DidUrlDereferencingFuture<'a>
+impl identus_did::DidUrlDereferencer for identus_did::DidMethodRegistry
+pub fn identus_did::DidMethodRegistry::dereference<'a>(&'a self, &'a identus_did::DidUrl, &'a identus_did::DereferencingOptions) -> identus_did::DidUrlDereferencingFuture<'a>
+impl identus_did::DidUrlDereferencer for identus_did::GenericDidUrlDereferencer
+pub fn identus_did::GenericDidUrlDereferencer::dereference<'a>(&'a self, &'a identus_did::DidUrl, &'a identus_did::DereferencingOptions) -> identus_did::DidUrlDereferencingFuture<'a>
+pub type identus_did::CachedDidResolutionFuture<'a> = core::pin::Pin<alloc::boxed::Box<(dyn core::future::future::Future<Output = identus_did::CachedDidResolution> + core::marker::Send + 'a)>>
+pub type identus_did::DidRegistrationFuture<'a> = core::pin::Pin<alloc::boxed::Box<(dyn core::future::future::Future<Output = identus_did::DidRegistrationResult> + core::marker::Send + 'a)>>
+pub type identus_did::DidResolutionCacheLookupFuture<'a> = core::pin::Pin<alloc::boxed::Box<(dyn core::future::future::Future<Output = identus_core::IdentusResult<core::option::Option<identus_did::DidResolutionCacheEntry>>> + core::marker::Send + 'a)>>
+pub type identus_did::DidResolutionCacheWriteFuture<'a> = core::pin::Pin<alloc::boxed::Box<(dyn core::future::future::Future<Output = identus_core::IdentusResult<()>> + core::marker::Send + 'a)>>
+pub type identus_did::DidResolutionFuture<'a> = core::pin::Pin<alloc::boxed::Box<(dyn core::future::future::Future<Output = identus_did::DidResolutionResult> + core::marker::Send + 'a)>>
+pub type identus_did::DidUrlDereferencingFuture<'a> = core::pin::Pin<alloc::boxed::Box<(dyn core::future::future::Future<Output = identus_did::DidUrlDereferencingResult> + core::marker::Send + 'a)>>

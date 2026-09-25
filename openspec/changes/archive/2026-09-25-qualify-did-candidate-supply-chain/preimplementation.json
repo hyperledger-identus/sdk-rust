@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 384,
+  "change": "qualify-did-candidate-supply-chain",
+  "branch": "codex/feat/issue-384",
+  "baseRef": "origin/develop",
+  "baseSha": "0fed1ec7f002fbf9ca5d7b84eaa0e7b62b068183",
+  "contractHeadSha": "c9c6aeb7edc3c14972dc196f22b78ddab8c8bd69",
+  "createdAt": "2026-09-25T15:32:26.059Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

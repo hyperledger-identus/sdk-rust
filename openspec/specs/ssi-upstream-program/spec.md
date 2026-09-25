@@ -215,6 +215,28 @@ the next least-authority Authorization Request seam.
   or response correlation
 - **THEN** the backlog remains in progress under the focused successor
 
+After #352 delivers, the row SHALL reference focused child #354. Issue #354
+owns one deterministic, bounded Authorization-Details-based request URI with
+strict endpoint query retention and exact offered `issuer_state`. It SHALL NOT
+claim PAR/HTTP/browser execution, Authorization Response correlation, callback
+or redirect safety, code exchange, authorization completion, consumer adoption,
+publication or release.
+
+#### Scenario: request inputs hand off to deterministic construction
+
+- **WHEN** issue #352 is delivered and #354 is open
+- **THEN** `IDR-023` references #354 with `delivery_status=in_progress`
+- **AND** #7 and #20 remain open component and program parents
+
+Before #354 integrates, the row SHALL reference one open focused successor for
+the next least-authority Authorization Response correlation seam.
+
+#### Scenario: request construction does not complete authorization
+
+- **WHEN** a bounded deterministic request URI exists without response parsing
+  or correlation
+- **THEN** the backlog remains in progress under the focused successor
+
 ### Requirement: Active backlog ownership is live before autonomous selection
 
 The repository SHALL provide a network-explicit, read-only audit that validates

@@ -86,3 +86,48 @@ pub(crate) const PKCE_CODE_VERIFIER_TOO_LARGE: ErrorContract = ErrorContract::ne
     ErrorKind::InvalidInput,
     "OID4VCI PKCE code verifier is too large",
 );
+
+pub(crate) const INVALID_AUTHORIZATION_REQUEST_LIMITS: ErrorContract = ErrorContract::new(
+    error_code::INVALID_AUTHORIZATION_REQUEST_LIMITS,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Request limits are invalid",
+);
+
+pub(crate) const AUTHORIZATION_DETAILS_TOO_LARGE: ErrorContract = ErrorContract::new(
+    error_code::AUTHORIZATION_DETAILS_TOO_LARGE,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Details are too large",
+);
+
+pub(crate) const TOO_MANY_AUTHORIZATION_ENDPOINT_QUERY_PARAMETERS: ErrorContract =
+    ErrorContract::new(
+        error_code::TOO_MANY_AUTHORIZATION_ENDPOINT_QUERY_PARAMETERS,
+        ErrorKind::InvalidInput,
+        "OID4VCI Authorization Endpoint has too many query parameters",
+    );
+
+pub(crate) const AUTHORIZATION_ENDPOINT_QUERY_COMPONENT_TOO_LARGE: ErrorContract =
+    ErrorContract::new(
+        error_code::AUTHORIZATION_ENDPOINT_QUERY_COMPONENT_TOO_LARGE,
+        ErrorKind::InvalidInput,
+        "OID4VCI Authorization Endpoint query component is too large",
+    );
+
+pub(crate) const INVALID_AUTHORIZATION_ENDPOINT_QUERY: ErrorContract = ErrorContract::new(
+    error_code::INVALID_AUTHORIZATION_ENDPOINT_QUERY,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Endpoint query is invalid",
+);
+
+pub(crate) const AUTHORIZATION_ENDPOINT_QUERY_PARAMETER_COLLISION: ErrorContract =
+    ErrorContract::new(
+        error_code::AUTHORIZATION_ENDPOINT_QUERY_PARAMETER_COLLISION,
+        ErrorKind::InvalidInput,
+        "OID4VCI Authorization Endpoint query parameter collides with request construction",
+    );
+
+pub(crate) const AUTHORIZATION_REQUEST_URI_TOO_LARGE: ErrorContract = ErrorContract::new(
+    error_code::AUTHORIZATION_REQUEST_URI_TOO_LARGE,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Request URI is too large",
+);

@@ -1,9 +1,11 @@
-use std::{fmt, str};
+use std::fmt;
 
 use fluent_uri::Uri as ParsedUri;
 use zeroize::Zeroizing;
 
-use crate::{CredentialOfferError, CredentialOfferLimits, json::validate_json};
+use crate::{
+    CredentialOfferError, CredentialOfferLimits, form::decode_component, json::validate_json,
+};
 
 const SCHEME: &str = "openid-credential-offer";
 
@@ -42,17 +44,19 @@ impl CredentialOfferRequest {
 
         match name {
             "credential_offer" => {
-                let value = decode_form_value(
+                let value = decode_component(
                     encoded_value,
                     limits.max_embedded_json_bytes(),
+                    CredentialOfferError::InvalidFormEncoding,
                     CredentialOfferError::EmbeddedTooLarge,
                 )?;
                 EmbeddedCredentialOffer::try_from_json(&value, limits).map(Self::Embedded)
             }
             "credential_offer_uri" => {
-                let value = decode_form_value(
+                let value = decode_component(
                     encoded_value,
                     limits.max_reference_uri_bytes(),
+                    CredentialOfferError::InvalidFormEncoding,
                     CredentialOfferError::ReferenceTooLarge,
                 )?;
                 CredentialOfferReference::try_from_uri(&value, limits).map(Self::Referenced)
@@ -161,61 +165,5 @@ impl fmt::Debug for CredentialOfferReference {
         formatter
             .debug_struct("CredentialOfferReference")
             .finish_non_exhaustive()
-    }
-}
-
-fn decode_form_value(
-    encoded: &str,
-    max_decoded_bytes: usize,
-    too_large: CredentialOfferError,
-) -> Result<Zeroizing<String>, CredentialOfferError> {
-    let input = encoded.as_bytes();
-    let mut decoded = Zeroizing::new(Vec::with_capacity(input.len().min(max_decoded_bytes)));
-    let mut cursor = 0;
-
-    while cursor < input.len() {
-        let byte = match input[cursor] {
-            b'+' => {
-                cursor += 1;
-                b' '
-            }
-            b'%' => {
-                let high = input
-                    .get(cursor + 1)
-                    .and_then(|value| hex_nibble(*value))
-                    .ok_or(CredentialOfferError::InvalidFormEncoding)?;
-                let low = input
-                    .get(cursor + 2)
-                    .and_then(|value| hex_nibble(*value))
-                    .ok_or(CredentialOfferError::InvalidFormEncoding)?;
-                cursor += 3;
-                (high << 4) | low
-            }
-            byte if byte.is_ascii() => {
-                cursor += 1;
-                byte
-            }
-            _ => return Err(CredentialOfferError::InvalidFormEncoding),
-        };
-        if byte == 0 {
-            return Err(CredentialOfferError::InvalidFormEncoding);
-        }
-        if decoded.len() == max_decoded_bytes {
-            return Err(too_large);
-        }
-        decoded.push(byte);
-    }
-
-    let decoded_str =
-        str::from_utf8(&decoded).map_err(|_| CredentialOfferError::InvalidFormEncoding)?;
-    Ok(Zeroizing::new(decoded_str.to_owned()))
-}
-
-const fn hex_nibble(byte: u8) -> Option<u8> {
-    match byte {
-        b'0'..=b'9' => Some(byte - b'0'),
-        b'a'..=b'f' => Some(byte - b'a' + 10),
-        b'A'..=b'F' => Some(byte - b'A' + 10),
-        _ => None,
     }
 }

@@ -5,6 +5,7 @@ use zeroize::Zeroizing;
 use crate::{
     CredentialOfferError, CredentialOfferWithPreAuthorizedTokenInput,
     PRE_AUTHORIZED_CODE_GRANT_TYPE, PreAuthorizedTokenRequestLimits, TokenEndpoint,
+    form::{append_pair, pair_len},
 };
 
 /// HTTP method required for a Token Endpoint request.
@@ -122,46 +123,4 @@ fn request_body_len(pre_authorized_code: &str, transaction_code: Option<&str>) -
             Some(value) => 1usize.checked_add(pair_len("tx_code", value)?)?,
             None => 0,
         })
-}
-
-fn pair_len(name: &str, value: &str) -> Option<usize> {
-    encoded_len(name)?
-        .checked_add(1)?
-        .checked_add(encoded_len(value)?)
-}
-
-fn encoded_len(value: &str) -> Option<usize> {
-    value.as_bytes().iter().try_fold(0usize, |length, byte| {
-        length.checked_add(if is_form_literal(*byte) || *byte == b' ' {
-            1
-        } else {
-            3
-        })
-    })
-}
-
-fn append_pair(output: &mut String, name: &str, value: &str) {
-    append_encoded(output, name);
-    output.push('=');
-    append_encoded(output, value);
-}
-
-fn append_encoded(output: &mut String, value: &str) {
-    const HEX: &[u8; 16] = b"0123456789ABCDEF";
-
-    for byte in value.bytes() {
-        if is_form_literal(byte) {
-            output.push(char::from(byte));
-        } else if byte == b' ' {
-            output.push('+');
-        } else {
-            output.push('%');
-            output.push(char::from(HEX[usize::from(byte >> 4)]));
-            output.push(char::from(HEX[usize::from(byte & 0x0f)]));
-        }
-    }
-}
-
-const fn is_form_literal(byte: u8) -> bool {
-    byte.is_ascii_alphanumeric() || matches!(byte, b'*' | b'-' | b'.' | b'_')
 }

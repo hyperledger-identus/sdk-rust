@@ -628,6 +628,20 @@ serialization, scope/`authorization_details` choice, PAR, browser/callback,
 response correlation, code exchange, networking, trust, persistence,
 format/chain behavior or product policy.
 
+The twenty-ninth bounded delivery, issue #354, consumes that request-input
+state and constructs one deterministic RFC 6749 Authorization Request target
+using OID4VCI Final `authorization_details`. It includes exactly one selected
+Credential Configuration, adds the issuer location only when issuer metadata
+explicitly advertises Authorization Servers, carries optional offered
+`issuer_state`, and preserves safe pre-existing endpoint query fields. A
+private strict form codec rejects malformed bytes, decoded duplicates and
+reserved or alternate-intent parameter collisions. Authorization Details,
+endpoint query components/count and the complete sensitive URI are bounded;
+the URI is zeroizing and absent from Debug. It adds no scope/resource variant,
+entropy, PAR, browser/callback, Authorization Response parsing/correlation,
+code exchange, HTTP, trust, persistence, format/chain behavior or product
+policy. Response correlation continues in focused issue #356.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

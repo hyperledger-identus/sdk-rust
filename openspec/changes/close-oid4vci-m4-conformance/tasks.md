@@ -8,10 +8,10 @@
 
 ## 2. Traceability implementation
 
-- [ ] 2.1 Add the closed machine-readable conformance matrix.
-- [ ] 2.2 Add the offline validator, fixture tests and required factory hook.
-- [ ] 2.3 Add the human report with limitations, provenance and M4 recommendation.
-- [ ] 2.4 Reconcile issue #7/M4 children and create only evidence-backed gap issues.
+- [x] 2.1 Add the closed machine-readable conformance matrix.
+- [x] 2.2 Add the offline validator, fixture tests and required factory hook.
+- [x] 2.3 Add the human report with limitations, provenance and M4 recommendation.
+- [x] 2.4 Reconcile issue #7/M4 children and create only evidence-backed gap issues.
 
 ## 3. Review and delivery
 

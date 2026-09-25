@@ -50,25 +50,25 @@ default_features = false
 features         = [ "openapi" ]
 
 [[packages]]
-name                  = "identus-did"
-path                  = "crates/did"
-description           = "Chain-neutral DID syntax, URL, document, and resolution primitives for Hyperledger Identus Rust SDK consumers."
-documentation         = "https://docs.rs/identus-did/0.1.0-rc.1"
-readme                = "README.md"
-keywords              = [ "identity", "ssi", "did" ]
-categories            = [ "data-structures", "web-programming" ]
+name                   = "identus-did"
+path                   = "crates/did"
+description            = "Chain-neutral DID syntax, URL, document, and resolution primitives for Hyperledger Identus Rust SDK consumers."
+documentation          = "https://docs.rs/identus-did/0.1.0-rc.1"
+readme                 = "README.md"
+keywords               = [ "identity", "ssi", "did" ]
+categories             = [ "data-structures", "web-programming" ]
 candidate_dependencies = [  ]
 published_dependencies = [ "identus-core", "identus-derive" ]
-features              = [  ]
+features               = [  ]
 
 [[packages]]
-name                  = "identus-did-resolver-http"
-path                  = "crates/did-resolver-http"
-description           = "Chain-neutral HTTP bindings for DID resolution in the Hyperledger Identus Rust SDK."
-documentation         = "https://docs.rs/identus-did-resolver-http/0.1.0-rc.1"
-readme                = "README.md"
-keywords              = [ "identity", "ssi", "did", "resolver" ]
-categories            = [ "web-programming::http-server" ]
+name                   = "identus-did-resolver-http"
+path                   = "crates/did-resolver-http"
+description            = "Chain-neutral HTTP bindings for DID resolution in the Hyperledger Identus Rust SDK."
+documentation          = "https://docs.rs/identus-did-resolver-http/0.1.0-rc.1"
+readme                 = "README.md"
+keywords               = [ "identity", "ssi", "did", "resolver" ]
+categories             = [ "web-programming::http-server" ]
 candidate_dependencies = [ "identus-did" ]
 published_dependencies = [ "identus-core" ]
-features              = [ "openapi" ]
+features               = [ "openapi" ]

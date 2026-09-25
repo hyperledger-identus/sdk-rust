@@ -152,7 +152,7 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / "docs/release/did-candidate.toml",
-                    'path                  = "crates/did"', 'path                  = "crates/did2"',
+                    'path                   = "crates/did"', 'path                   = "crates/did2"',
                 ),
                 "DID package path differs",
             ),
@@ -167,7 +167,7 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / "docs/release/did-candidate.toml",
-                    'features              = [ "openapi" ]', 'features              = [  ]',
+                    'features               = [ "openapi" ]', 'features               = [  ]',
                 ),
                 "DID package feature declaration differs",
             ),

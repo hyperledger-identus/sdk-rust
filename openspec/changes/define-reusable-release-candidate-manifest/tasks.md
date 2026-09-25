@@ -10,28 +10,28 @@
 
 ## 2. Train identity and configuration
 
-- [ ] 2.1 Add the closed train index with immutable crypto and candidate-only
+- [x] 2.1 Add the closed train index with immutable crypto and candidate-only
       DID records.
-- [ ] 2.2 Add the closed DID descriptor for exactly `identus-did` then
+- [x] 2.2 Add the closed DID descriptor for exactly `identus-did` then
       `identus-did-resolver-http`.
-- [ ] 2.3 Add a fail-closed checker and mutation suite for identities, tags,
+- [x] 2.3 Add a fail-closed checker and mutation suite for identities, tags,
       paths, scope, lifecycle, metadata, ordering and canonical publish denial.
 
 ## 3. Deterministic candidate
 
-- [ ] 3.1 Add credential-free external-scratch two-pass DID candidate assembly.
-- [ ] 3.2 Inspect bounded archives, exact normalized dependencies/metadata and
+- [x] 3.1 Add credential-free external-scratch two-pass DID candidate assembly.
+- [x] 3.2 Inspect bounded archives, exact normalized dependencies/metadata and
       safe file lists; verify local patched closure and declared profiles.
-- [ ] 3.3 Emit an atomic closed receipt with exact revision, tools, checksums,
+- [x] 3.3 Emit an atomic closed receipt with exact revision, tools, checksums,
       sizes, file lists and limitations.
-- [ ] 3.4 Prove the existing crypto candidate/release checks remain unchanged
+- [x] 3.4 Prove the existing crypto candidate/release checks remain unchanged
       and green.
 
 ## 4. Review and delivery
 
-- [ ] 4.1 Run focused, factory/OpenSpec, formatting, candidate and compatible
+- [x] 4.1 Run focused, factory/OpenSpec, formatting, candidate and compatible
       cleaned-source checks.
-- [ ] 4.2 Complete local architecture, security, decomposition and release-
+- [x] 4.2 Complete local architecture, security, decomposition and release-
       boundary review; resolve every blocking finding.
-- [ ] 4.3 Archive the change and open an issue-linked PR. Exact-head hosted CI,
+- [x] 4.3 Archive the change and open an issue-linked PR. Exact-head hosted CI,
       protected merge, metrics and worktree closeout follow as receipts.

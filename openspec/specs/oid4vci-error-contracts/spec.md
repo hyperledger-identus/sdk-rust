@@ -58,6 +58,16 @@ remain one explicit wildcard-free decision site.
 - **THEN** their static errors are discoverable together without widening
   unrelated metadata, token or issuance catalogues
 
+Issue #354 SHALL extend the same catalogue with seven request-construction
+diagnostics, changing its live count to 21 and its terminal range to
+`AuthorizationRequestUriTooLarge` while keeping it below 39 records.
+
+#### Scenario: request construction remains in the focused catalogue
+
+- **WHEN** a reviewer inspects the complete Authorization Code request seam
+- **THEN** its 21 static errors remain in one cohesive catalogue and the router
+  remains one explicit wildcard-free decision site
+
 ### Requirement: Routing and inventory are compile-exhaustive
 
 One private wildcard-free router SHALL map every `CredentialOfferError`
@@ -118,6 +128,18 @@ display remote input.
 
 - **WHEN** issue #352 extends the live error inventory
 - **THEN** all request-input rows follow every pre-existing row
+- **AND** the v1 golden and prior live rows remain semantically exact
+
+The Authorization Request construction capability SHALL append static public
+rows for invalid limits, oversized Authorization Details, excessive endpoint
+query fields, oversized or invalid endpoint query components, duplicate or
+reserved query names, and an oversized final request URI. Every prior live row
+SHALL remain exact, and no new diagnostic SHALL retain or display request data.
+
+#### Scenario: request-construction diagnostics append safely
+
+- **WHEN** issue #354 extends the live error inventory
+- **THEN** all seven construction rows follow every pre-existing row
 - **AND** the v1 golden and prior live rows remain semantically exact
 
 ### Requirement: Public, wire, and protocol boundaries remain unchanged

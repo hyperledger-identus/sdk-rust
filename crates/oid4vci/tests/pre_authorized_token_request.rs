@@ -108,6 +108,22 @@ fn request_without_transaction_code_has_exact_mandatory_form() {
         request.token_endpoint().as_str(),
         "https://credential-issuer.example/token"
     );
+    assert_eq!(
+        request
+            .credential_issuer_metadata()
+            .credential_issuer()
+            .as_str(),
+        ISSUER
+    );
+    assert_eq!(
+        request.authorization_server_metadata().issuer().as_str(),
+        ISSUER
+    );
+    assert_eq!(request.offered_credential_configurations().len(), 1);
+    assert_eq!(
+        request.offered_credential_configurations()[0].as_str(),
+        "degree"
+    );
 }
 
 #[test]

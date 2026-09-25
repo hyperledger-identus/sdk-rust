@@ -5,7 +5,7 @@ use crate::{
     AuthorizationResponseIssuerIdentification, AuthorizationServerMetadataCore,
     CredentialConfigurationId, CredentialIssuerMetadata, CredentialOfferError,
     TokenEndpointErrorKind, TokenErrorResponseCore, TokenResponseCore,
-    http_field::{has_bare_no_cache, has_bare_no_store, is_application_json},
+    token_http_response::{TokenHttpHeaderError, validate_token_http_headers},
 };
 
 /// Public request lineage retained across one Authorization Code token exchange.
@@ -197,23 +197,32 @@ fn validate_headers(
     pragma: &str,
     limits: AuthorizationCodeTokenHttpResponseLimits,
 ) -> Result<(), CredentialOfferError> {
-    if content_type.len() > limits.max_content_type_bytes() {
-        return Err(CredentialOfferError::AuthorizationCodeTokenContentTypeTooLarge);
-    }
-    if !is_application_json(content_type.as_bytes()) {
-        return Err(CredentialOfferError::InvalidAuthorizationCodeTokenContentType);
-    }
-    if cache_control.len() > limits.max_cache_control_bytes() {
-        return Err(CredentialOfferError::AuthorizationCodeTokenCacheControlTooLarge);
-    }
-    if !has_bare_no_store(cache_control.as_bytes()) {
-        return Err(CredentialOfferError::InvalidAuthorizationCodeTokenCacheControl);
-    }
-    if pragma.len() > limits.max_pragma_bytes() {
-        return Err(CredentialOfferError::AuthorizationCodeTokenPragmaTooLarge);
-    }
-    if !has_bare_no_cache(pragma.as_bytes()) {
-        return Err(CredentialOfferError::InvalidAuthorizationCodeTokenPragma);
-    }
-    Ok(())
+    validate_token_http_headers(
+        content_type,
+        cache_control,
+        pragma,
+        limits.max_content_type_bytes(),
+        limits.max_cache_control_bytes(),
+        limits.max_pragma_bytes(),
+    )
+    .map_err(|error| match error {
+        TokenHttpHeaderError::ContentTypeTooLarge => {
+            CredentialOfferError::AuthorizationCodeTokenContentTypeTooLarge
+        }
+        TokenHttpHeaderError::InvalidContentType => {
+            CredentialOfferError::InvalidAuthorizationCodeTokenContentType
+        }
+        TokenHttpHeaderError::CacheControlTooLarge => {
+            CredentialOfferError::AuthorizationCodeTokenCacheControlTooLarge
+        }
+        TokenHttpHeaderError::InvalidCacheControl => {
+            CredentialOfferError::InvalidAuthorizationCodeTokenCacheControl
+        }
+        TokenHttpHeaderError::PragmaTooLarge => {
+            CredentialOfferError::AuthorizationCodeTokenPragmaTooLarge
+        }
+        TokenHttpHeaderError::InvalidPragma => {
+            CredentialOfferError::InvalidAuthorizationCodeTokenPragma
+        }
+    })
 }

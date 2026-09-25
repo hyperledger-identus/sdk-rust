@@ -8,7 +8,8 @@ use crate::error_contract::{
     ErrorContract, authorization_code_server, authorization_code_token_correlation,
     authorization_code_token_request, authorization_code_token_response, authorization_response,
     credential_nonce_http, deferred_immediate_issuance, issuer_authorization_server_metadata,
-    offer_semantics_grants, offer_transport_json, token_request_response_errors,
+    offer_semantics_grants, offer_transport_json, pre_authorized_token_response,
+    token_request_response_errors,
 };
 
 /// Owning capability for OID4VCI errors.
@@ -444,6 +445,22 @@ pub mod error_code {
         ErrorCode::new("oid4vci.ambiguous_authorization_code_token_authorization_details");
     pub const INVALID_CREDENTIAL_ENDPOINT_HTTP_STATUS: ErrorCode =
         ErrorCode::new("oid4vci.invalid_credential_endpoint_http_status");
+    pub const INVALID_PRE_AUTHORIZED_TOKEN_HTTP_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_pre_authorized_token_http_response_limits");
+    pub const INVALID_PRE_AUTHORIZED_TOKEN_HTTP_STATUS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_pre_authorized_token_http_status");
+    pub const PRE_AUTHORIZED_TOKEN_CONTENT_TYPE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.pre_authorized_token_content_type_too_large");
+    pub const INVALID_PRE_AUTHORIZED_TOKEN_CONTENT_TYPE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_pre_authorized_token_content_type");
+    pub const PRE_AUTHORIZED_TOKEN_CACHE_CONTROL_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.pre_authorized_token_cache_control_too_large");
+    pub const INVALID_PRE_AUTHORIZED_TOKEN_CACHE_CONTROL: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_pre_authorized_token_cache_control");
+    pub const PRE_AUTHORIZED_TOKEN_PRAGMA_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.pre_authorized_token_pragma_too_large");
+    pub const INVALID_PRE_AUTHORIZED_TOKEN_PRAGMA: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_pre_authorized_token_pragma");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -681,6 +698,14 @@ pub enum CredentialOfferError {
     AuthorizationCodeTokenConfigurationMismatch,
     AmbiguousAuthorizationCodeTokenAuthorizationDetails,
     InvalidCredentialEndpointHttpStatus,
+    InvalidPreAuthorizedTokenHttpResponseLimits,
+    InvalidPreAuthorizedTokenHttpStatus,
+    PreAuthorizedTokenContentTypeTooLarge,
+    InvalidPreAuthorizedTokenContentType,
+    PreAuthorizedTokenCacheControlTooLarge,
+    InvalidPreAuthorizedTokenCacheControl,
+    PreAuthorizedTokenPragmaTooLarge,
+    InvalidPreAuthorizedTokenPragma,
 }
 
 macro_rules! define_credential_offer_error_contracts {
@@ -930,6 +955,14 @@ define_credential_offer_error_contracts! {
     AuthorizationCodeTokenConfigurationMismatch => authorization_code_token_correlation::AUTHORIZATION_CODE_TOKEN_CONFIGURATION_MISMATCH,
     AmbiguousAuthorizationCodeTokenAuthorizationDetails => authorization_code_token_correlation::AMBIGUOUS_AUTHORIZATION_CODE_TOKEN_AUTHORIZATION_DETAILS,
     InvalidCredentialEndpointHttpStatus => deferred_immediate_issuance::INVALID_CREDENTIAL_ENDPOINT_HTTP_STATUS,
+    InvalidPreAuthorizedTokenHttpResponseLimits => pre_authorized_token_response::INVALID_PRE_AUTHORIZED_TOKEN_HTTP_RESPONSE_LIMITS,
+    InvalidPreAuthorizedTokenHttpStatus => pre_authorized_token_response::INVALID_PRE_AUTHORIZED_TOKEN_HTTP_STATUS,
+    PreAuthorizedTokenContentTypeTooLarge => pre_authorized_token_response::PRE_AUTHORIZED_TOKEN_CONTENT_TYPE_TOO_LARGE,
+    InvalidPreAuthorizedTokenContentType => pre_authorized_token_response::INVALID_PRE_AUTHORIZED_TOKEN_CONTENT_TYPE,
+    PreAuthorizedTokenCacheControlTooLarge => pre_authorized_token_response::PRE_AUTHORIZED_TOKEN_CACHE_CONTROL_TOO_LARGE,
+    InvalidPreAuthorizedTokenCacheControl => pre_authorized_token_response::INVALID_PRE_AUTHORIZED_TOKEN_CACHE_CONTROL,
+    PreAuthorizedTokenPragmaTooLarge => pre_authorized_token_response::PRE_AUTHORIZED_TOKEN_PRAGMA_TOO_LARGE,
+    InvalidPreAuthorizedTokenPragma => pre_authorized_token_response::INVALID_PRE_AUTHORIZED_TOKEN_PRAGMA,
 }
 
 impl CredentialOfferError {

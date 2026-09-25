@@ -5,9 +5,10 @@
 //! Endpoint discovery, exact cross-document
 //! agreement, a partial Authorization Server Metadata core, and explicit
 //! Pre-Authorized Code server and Transaction Code input binding, and bounded
-//! construction of the mandatory Pre-Authorized Token Request form plus a
-//! partial successful Token Response, Token Error Response, and Credential
-//! Error Response core with an explicit typed credential Authorization Details
+//! construction of the mandatory Pre-Authorized Token Request form with
+//! request-bound bounded success/error Token Endpoint HTTP response
+//! classification, plus a partial successful Token Response, Token Error
+//! Response, and Credential Error Response core with explicit Authorization Details
 //! transition and the Credential Error payload-error HTTP envelope, plus bounded
 //! parsing of the deferred Credential Response body and bounded construction
 //! of the unencrypted Deferred Credential Request with request-bound issued or
@@ -70,9 +71,11 @@ mod limits;
 mod metadata;
 mod oauth;
 mod pre_authorized_server;
+mod pre_authorized_token_http_response;
 mod pre_authorized_token_request;
 mod semantic;
 mod token_error_response;
+mod token_http_response;
 mod token_response;
 mod transaction_code_input;
 mod transport;
@@ -148,8 +151,9 @@ pub use limits::{
     DeferredCredentialHttpResponseLimits, DeferredCredentialRequestLimits,
     DeferredCredentialResponseLimits, ImmediateCredentialHttpResponseLimits,
     ImmediateCredentialResponseLimits, JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH,
-    PreAuthorizedTokenRequestLimits, TokenAuthorizationDetailsLimits, TokenErrorResponseLimits,
-    TokenResponseLimits, TransactionCodeInputLimits,
+    PreAuthorizedTokenHttpResponseLimits, PreAuthorizedTokenRequestLimits,
+    TokenAuthorizationDetailsLimits, TokenErrorResponseLimits, TokenResponseLimits,
+    TransactionCodeInputLimits,
 };
 pub use metadata::{
     CredentialConfigurationSummary, CredentialEndpoint, CredentialFormatIdentifier,
@@ -157,6 +161,10 @@ pub use metadata::{
     NonceEndpoint,
 };
 pub use pre_authorized_server::CredentialOfferWithPreAuthorizedServer;
+pub use pre_authorized_token_http_response::{
+    PreAuthorizedTokenResponseLineage, PreAuthorizedTokenResponseOutcome,
+    RequestBoundPreAuthorizedTokenErrorResponse, RequestBoundPreAuthorizedTokenResponse,
+};
 pub use pre_authorized_token_request::{
     PreAuthorizedTokenRequest, TOKEN_REQUEST_HTTP_METHOD, TOKEN_REQUEST_MEDIA_TYPE,
 };

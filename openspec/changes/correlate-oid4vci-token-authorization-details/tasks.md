@@ -10,13 +10,13 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add the one-shot request-bound Authorization Details correlation
+- [x] 2.1 Add the one-shot request-bound Authorization Details correlation
   transition and redacted correlated state.
-- [ ] 2.2 Reuse private response-local decomposition and append stable static
+- [x] 2.2 Reuse private response-local decomposition and append stable static
   diagnostics without changing prior public behavior or rows.
-- [ ] 2.3 Add missing, mismatch, duplicate, extension, ownership, lineage,
+- [x] 2.3 Add missing, mismatch, duplicate, extension, ownership, lineage,
   boundary and redaction tests.
-- [ ] 2.4 Add ADR 0146 and update inventory/blueprint/roadmap evidence with
+- [x] 2.4 Add ADR 0146 and update inventory/blueprint/roadmap evidence with
   successor #364.
 
 ## 3. Review and delivery

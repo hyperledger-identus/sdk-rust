@@ -196,6 +196,13 @@ impl CredentialAuthorizationDetail {
             .iter()
             .map(|value| value.as_str())
     }
+
+    pub(crate) fn into_parts(self) -> (Zeroizing<String>, Vec<Zeroizing<String>>) {
+        (
+            self.credential_configuration_id,
+            self.credential_identifiers,
+        )
+    }
 }
 
 impl fmt::Debug for CredentialAuthorizationDetail {
@@ -234,6 +241,12 @@ impl TokenResponseWithAuthorizationDetails {
     /// Return the number of bounded unsupported authorization-detail types.
     pub const fn unknown_authorization_detail_count(&self) -> usize {
         self.unknown_type_count
+    }
+
+    pub(crate) fn into_parts(
+        self,
+    ) -> (TokenResponseCore, Vec<CredentialAuthorizationDetail>, usize) {
+        (self.core, self.credential_details, self.unknown_type_count)
     }
 }
 

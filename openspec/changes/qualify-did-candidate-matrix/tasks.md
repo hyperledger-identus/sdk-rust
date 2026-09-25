@@ -42,5 +42,5 @@
       format, workflow, factory, and OpenSpec checks.
 - [x] 5.2 Complete local architecture, security, compatibility, claim-boundary,
       workflow, and decomposition review.
-- [ ] 5.3 Archive, open the issue-linked PR, pass exact-head hosted fast, merge,
-      publish metrics, update M5, and close the managed worktree.
+- [x] 5.3 Prepare the reviewed OpenSpec archive and issue-linked PR; merge,
+      metrics, M5 update, and worktree closeout remain exact-head delivery steps.

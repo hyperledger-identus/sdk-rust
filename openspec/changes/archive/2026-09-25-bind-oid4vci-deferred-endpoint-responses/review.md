@@ -70,6 +70,11 @@ proof-count binding would detach one branch-lifetime decision from its tests.
 M4 conformance/fixture reconciliation is already separated into #372, so no
 additional functional split is warranted.
 
+After adding this review, verification evidence, canonical spec synchronization
+and the immutable archive, the complete PR plan spans 28 paths and 1,421
+changed text lines. That increase is evidence-only and does not alter the
+functional decomposition decision above.
+
 ## Residual limitations
 
 - HTTP origin, TLS, redirects, decompression, timeout and cancellation remain

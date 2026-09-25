@@ -10,8 +10,16 @@ license                  = "Apache-2.0"
 max_archive_bytes        = 1048576
 max_archive_members      = 512
 max_expansion_ratio      = 20
+max_evidence_bytes       = 16777216
 publication              = "candidate-only"
 release_tag              = "identus-did-v0.1.0-rc.1"
+compatibility_status     = "not-applicable-first-candidate"
+
+[tools]
+cargo_public_api    = "0.52.0"
+cargo_semver_checks = "0.50.0"
+cargo_cyclonedx     = "0.5.9"
+cyclonedx_spec      = "1.5"
 
 [[profiles]]
 package          = "identus-did"
@@ -57,6 +65,7 @@ documentation          = "https://docs.rs/identus-did/0.1.0-rc.1"
 readme                 = "README.md"
 keywords               = [ "identity", "ssi", "did" ]
 categories             = [ "data-structures", "web-programming" ]
+api_baseline           = "docs/release/identus-did-0.1.0-rc.1.api.txt"
 candidate_dependencies = [  ]
 published_dependencies = [ "identus-core", "identus-derive" ]
 features               = [  ]
@@ -69,6 +78,7 @@ documentation          = "https://docs.rs/identus-did-resolver-http/0.1.0-rc.1"
 readme                 = "README.md"
 keywords               = [ "identity", "ssi", "did", "resolver" ]
 categories             = [ "web-programming::http-server" ]
+api_baseline           = "docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt"
 candidate_dependencies = [ "identus-did" ]
 published_dependencies = [ "identus-core" ]
 features               = [ "openapi" ]

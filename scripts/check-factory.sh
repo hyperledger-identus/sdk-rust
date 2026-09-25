@@ -55,6 +55,8 @@ required_files=(
   docs/release/release-trains.toml
   docs/release/0.1.0-rc.1.md
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
+  docs/release/identus-did-0.1.0-rc.1.api.txt
+  docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt
   crates/derive/README.md
   crates/core/README.md
   crates/crypto/README.md
@@ -82,6 +84,7 @@ required_files=(
   docs/adr/0125-govern-sdk-input-resource-boundaries.md
   docs/adr/0134-activate-protected-crates-io-release-trains.md
   docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md
+  docs/adr/0154-use-first-candidate-api-snapshots-as-semver-origin.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   nix/apps/crypto-candidate.nix

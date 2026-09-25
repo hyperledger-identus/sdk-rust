@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import importlib.util
 import io
+import json
 import shutil
 import tarfile
 import tempfile
@@ -39,8 +40,11 @@ def copy_fixture(destination: Path) -> None:
         "Cargo.toml",
         "docs/release/release-trains.toml",
         "docs/release/did-candidate.toml",
+        "docs/release/identus-did-0.1.0-rc.1.api.txt",
+        "docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt",
         "docs/release/crypto-candidate.toml",
         "docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md",
+        "docs/adr/0154-use-first-candidate-api-snapshots-as-semver-origin.md",
         "scripts/prepare-did-candidate.py",
         "crates/did/Cargo.toml",
         "crates/did/README.md",
@@ -89,8 +93,10 @@ def main() -> int:
         builder.require_vcs_independent_build_scratch(repository, external)
         builder.require_local_command(["git", "status", "--porcelain"])
         builder.require_local_command(["cargo", "package", "--workspace"])
+        builder.require_local_command(["cargo", "semver-checks", "--version"])
         for forbidden_command in (
             ["git", "push"], ["cargo", "publish"], ["gh", "release", "create"],
+            ["cargo", "semver-checks", "check-release"],
         ):
             try:
                 builder.require_local_command(forbidden_command)
@@ -116,6 +122,66 @@ def main() -> int:
             pass
         else:
             raise AssertionError("path-traversing archive member was accepted")
+
+        evidence = boundary / "evidence.json"
+        evidence.write_text("{}", encoding="utf-8")
+        builder.require_bounded_evidence(
+            evidence, {"max_evidence_bytes": evidence.stat().st_size}
+        )
+        try:
+            builder.require_bounded_evidence(evidence, {"max_evidence_bytes": 1})
+        except builder.CandidateError:
+            pass
+        else:
+            raise AssertionError("oversized evidence was accepted")
+
+        package = {"name": "identus-did"}
+        descriptor = {
+            "version": "0.1.0-rc.1", "license": "Apache-2.0",
+            "tools": {"cyclonedx_spec": "1.5"},
+        }
+        root_ref = "pkg:cargo/identus-did@0.1.0-rc.1"
+        dependency_ref = "pkg:cargo/serde@1.0.0"
+        sbom = {
+            "bomFormat": "CycloneDX", "specVersion": "1.5",
+            "metadata": {"component": {
+                "name": "identus-did", "version": "0.1.0-rc.1", "bom-ref": root_ref,
+                "licenses": [{"license": {"id": "Apache-2.0"}}],
+            }},
+            "components": [{"name": "serde", "version": "1.0.0", "bom-ref": dependency_ref}],
+            "dependencies": [
+                {"ref": root_ref, "dependsOn": [dependency_ref]},
+                {"ref": dependency_ref, "dependsOn": []},
+            ],
+        }
+        builder.validate_cyclonedx(sbom, package, descriptor)
+        local = f"path+file:///tmp/random/workspace/crates/did#{root_ref}"
+        normalized = builder.normalize_local_sbom_references(
+            {"ref": local, "nested": [local, "registry+https://example.invalid#serde@1"]}
+        )
+        if normalized != {
+            "ref": f"path+file:///candidate#{root_ref}",
+            "nested": [
+                f"path+file:///candidate#{root_ref}",
+                "registry+https://example.invalid#serde@1",
+            ],
+        }:
+            raise AssertionError("local CycloneDX references were not normalized deterministically")
+        for mutation, expected in (
+            (lambda value: value["metadata"]["component"].update(name="other"), "identity"),
+            (lambda value: value["metadata"]["component"].update(licenses=[]), "license"),
+            (lambda value: value["components"][0].update(**{"bom-ref": root_ref}), "duplicated"),
+            (lambda value: value["components"][0].update(purl="git+https://example.invalid/repo"), "Git source"),
+        ):
+            mutated = json.loads(json.dumps(sbom))
+            mutation(mutated)
+            try:
+                builder.validate_cyclonedx(mutated, package, descriptor)
+            except builder.CandidateError as error:
+                if expected not in str(error):
+                    raise AssertionError(f"unexpected CycloneDX rejection: {error}") from error
+            else:
+                raise AssertionError(f"invalid CycloneDX evidence was accepted: {expected}")
 
         fixture = Path(temporary) / "valid"
         copy_fixture(fixture)
@@ -148,6 +214,30 @@ def main() -> int:
                     'publication              = "release-gated"',
                 ),
                 "DID descriptor differs: publication",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-candidate.toml",
+                    'cargo_public_api    = "0.52.0"',
+                    'cargo_public_api    = "0.53.0"',
+                ),
+                "DID descriptor evidence tools differ",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-candidate.toml",
+                    'compatibility_status     = "not-applicable-first-candidate"',
+                    'compatibility_status     = "compatible"',
+                ),
+                "DID descriptor differs: compatibility_status",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-candidate.toml",
+                    'api_baseline           = "docs/release/identus-did-0.1.0-rc.1.api.txt"',
+                    'api_baseline           = "docs/release/missing.api.txt"',
+                ),
+                "DID package API baseline path differs: identus-did",
             ),
             (
                 lambda root: replace(

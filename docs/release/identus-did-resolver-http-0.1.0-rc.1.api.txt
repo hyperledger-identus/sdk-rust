@@ -1,0 +1,13 @@
+pub mod identus_did_resolver_http
+pub const identus_did_resolver_http::APPLICATION_DID: &str
+pub const identus_did_resolver_http::APPLICATION_DID_RESOLUTION: &str
+pub const identus_did_resolver_http::APPLICATION_JSON: &str
+pub const identus_did_resolver_http::COMPONENT: identus_core::Component
+pub const identus_did_resolver_http::MAX_ACCEPT_HEADER_BYTES: usize
+pub const identus_did_resolver_http::MAX_ACCEPT_MEDIA_RANGES: usize
+pub const identus_did_resolver_http::MAX_RESOLUTION_QUERY_BYTES: usize
+pub const identus_did_resolver_http::MAX_RESOLUTION_QUERY_NAME_BYTES: usize
+pub const identus_did_resolver_http::MAX_RESOLUTION_QUERY_PARAMETERS: usize
+pub const identus_did_resolver_http::MAX_RESOLUTION_QUERY_VALUE_BYTES: usize
+pub fn identus_did_resolver_http::did_resolver_http_openapi() -> utoipa::openapi::OpenApi
+pub fn identus_did_resolver_http::did_resolver_http_router(alloc::sync::Arc<dyn identus_did::query::DidResolver>) -> axum::routing::Router

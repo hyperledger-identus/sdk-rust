@@ -345,6 +345,26 @@ pub mod error_code {
         ErrorCode::new("oid4vci.authorization_code_grant_not_supported");
     pub const AUTHORIZATION_ENDPOINT_REQUIRED: ErrorCode =
         ErrorCode::new("oid4vci.authorization_endpoint_required");
+    pub const INVALID_AUTHORIZATION_REQUEST_INPUT_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_request_input_limits");
+    pub const AUTHORIZATION_REQUEST_CONFIGURATION_MISSING: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_request_configuration_missing");
+    pub const INVALID_AUTHORIZATION_REQUEST_CLIENT_ID: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_request_client_id");
+    pub const AUTHORIZATION_REQUEST_CLIENT_ID_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_request_client_id_too_large");
+    pub const INVALID_AUTHORIZATION_REQUEST_REDIRECT_URI: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_request_redirect_uri");
+    pub const AUTHORIZATION_REQUEST_REDIRECT_URI_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_request_redirect_uri_too_large");
+    pub const INVALID_AUTHORIZATION_REQUEST_STATE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_request_state");
+    pub const AUTHORIZATION_REQUEST_STATE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_request_state_too_large");
+    pub const INVALID_PKCE_CODE_VERIFIER: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_pkce_code_verifier");
+    pub const PKCE_CODE_VERIFIER_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.pkce_code_verifier_too_large");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -533,6 +553,16 @@ pub enum CredentialOfferError {
     AuthorizationCodeServerHintMismatch,
     AuthorizationCodeGrantNotSupported,
     AuthorizationEndpointRequired,
+    InvalidAuthorizationRequestInputLimits,
+    AuthorizationRequestConfigurationMissing,
+    InvalidAuthorizationRequestClientId,
+    AuthorizationRequestClientIdTooLarge,
+    InvalidAuthorizationRequestRedirectUri,
+    AuthorizationRequestRedirectUriTooLarge,
+    InvalidAuthorizationRequestState,
+    AuthorizationRequestStateTooLarge,
+    InvalidPkceCodeVerifier,
+    PkceCodeVerifierTooLarge,
 }
 
 macro_rules! define_credential_offer_error_contracts {
@@ -733,6 +763,16 @@ define_credential_offer_error_contracts! {
     AuthorizationCodeServerHintMismatch => authorization_code_server::AUTHORIZATION_CODE_SERVER_HINT_MISMATCH,
     AuthorizationCodeGrantNotSupported => authorization_code_server::AUTHORIZATION_CODE_GRANT_NOT_SUPPORTED,
     AuthorizationEndpointRequired => authorization_code_server::AUTHORIZATION_ENDPOINT_REQUIRED,
+    InvalidAuthorizationRequestInputLimits => authorization_code_server::INVALID_AUTHORIZATION_REQUEST_INPUT_LIMITS,
+    AuthorizationRequestConfigurationMissing => authorization_code_server::AUTHORIZATION_REQUEST_CONFIGURATION_MISSING,
+    InvalidAuthorizationRequestClientId => authorization_code_server::INVALID_AUTHORIZATION_REQUEST_CLIENT_ID,
+    AuthorizationRequestClientIdTooLarge => authorization_code_server::AUTHORIZATION_REQUEST_CLIENT_ID_TOO_LARGE,
+    InvalidAuthorizationRequestRedirectUri => authorization_code_server::INVALID_AUTHORIZATION_REQUEST_REDIRECT_URI,
+    AuthorizationRequestRedirectUriTooLarge => authorization_code_server::AUTHORIZATION_REQUEST_REDIRECT_URI_TOO_LARGE,
+    InvalidAuthorizationRequestState => authorization_code_server::INVALID_AUTHORIZATION_REQUEST_STATE,
+    AuthorizationRequestStateTooLarge => authorization_code_server::AUTHORIZATION_REQUEST_STATE_TOO_LARGE,
+    InvalidPkceCodeVerifier => authorization_code_server::INVALID_PKCE_CODE_VERIFIER,
+    PkceCodeVerifierTooLarge => authorization_code_server::PKCE_CODE_VERIFIER_TOO_LARGE,
 }
 
 impl CredentialOfferError {

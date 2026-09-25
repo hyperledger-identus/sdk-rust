@@ -82,10 +82,10 @@ conversion and redaction tests.
   without widening the full metadata catalogue
 - **AND** no catalogue exceeds the standing 39-record review ceiling
 
-Issue #352 SHALL extend the seventh focused catalogue with its request-input
-diagnostics, changing its live count and terminal range to the exact delivered
-values while keeping it below 39 records. The router SHALL remain one explicit
-wildcard-free decision site.
+Issue #352 SHALL extend the seventh focused catalogue with ten request-input
+diagnostics, changing its live count to 14 and its terminal range to
+`PkceCodeVerifierTooLarge` while keeping it below 39 records. The router SHALL
+remain one explicit wildcard-free decision site.
 
 #### Scenario: request preparation remains in the focused catalogue
 

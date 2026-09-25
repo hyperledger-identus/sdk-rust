@@ -616,6 +616,18 @@ zeroizing owner. It adds no request serialization, client/redirect input,
 PKCE, PAR, browser/callback, Token Endpoint requirement, code exchange,
 networking, trust, persistence, format/chain behavior or product policy.
 
+The twenty-eighth bounded delivery, issue #352, consumes that server-bound
+state and selects one already validated offered Credential Configuration by
+index. It validates positively bounded RFC 6749 client identifier, absolute
+fragment/userinfo-free redirect URI and CSRF state inputs, validates the RFC
+7636 43-to-128-byte verifier grammar, and derives the canonical S256 challenge
+through feature-minimal existing `identus-crypto` primitives. All retained
+values have redacted Debug surfaces and sensitive state/verifier ownership is
+zeroizing. It generates no entropy and adds no Authorization Request
+serialization, scope/`authorization_details` choice, PAR, browser/callback,
+response correlation, code exchange, networking, trust, persistence,
+format/chain behavior or product policy.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

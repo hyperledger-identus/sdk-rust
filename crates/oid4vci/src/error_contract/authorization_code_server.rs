@@ -26,3 +26,63 @@ pub(crate) const AUTHORIZATION_ENDPOINT_REQUIRED: ErrorContract = ErrorContract:
     ErrorKind::InvalidInput,
     "OID4VCI selected Authorization Server has no Authorization Endpoint",
 );
+
+pub(crate) const INVALID_AUTHORIZATION_REQUEST_INPUT_LIMITS: ErrorContract = ErrorContract::new(
+    error_code::INVALID_AUTHORIZATION_REQUEST_INPUT_LIMITS,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Request input limits are invalid",
+);
+
+pub(crate) const AUTHORIZATION_REQUEST_CONFIGURATION_MISSING: ErrorContract = ErrorContract::new(
+    error_code::AUTHORIZATION_REQUEST_CONFIGURATION_MISSING,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Request Credential Configuration is missing",
+);
+
+pub(crate) const INVALID_AUTHORIZATION_REQUEST_CLIENT_ID: ErrorContract = ErrorContract::new(
+    error_code::INVALID_AUTHORIZATION_REQUEST_CLIENT_ID,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Request client identifier is invalid",
+);
+
+pub(crate) const AUTHORIZATION_REQUEST_CLIENT_ID_TOO_LARGE: ErrorContract = ErrorContract::new(
+    error_code::AUTHORIZATION_REQUEST_CLIENT_ID_TOO_LARGE,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Request client identifier is too large",
+);
+
+pub(crate) const INVALID_AUTHORIZATION_REQUEST_REDIRECT_URI: ErrorContract = ErrorContract::new(
+    error_code::INVALID_AUTHORIZATION_REQUEST_REDIRECT_URI,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Request redirect URI is invalid",
+);
+
+pub(crate) const AUTHORIZATION_REQUEST_REDIRECT_URI_TOO_LARGE: ErrorContract = ErrorContract::new(
+    error_code::AUTHORIZATION_REQUEST_REDIRECT_URI_TOO_LARGE,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Request redirect URI is too large",
+);
+
+pub(crate) const INVALID_AUTHORIZATION_REQUEST_STATE: ErrorContract = ErrorContract::new(
+    error_code::INVALID_AUTHORIZATION_REQUEST_STATE,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Request state is invalid",
+);
+
+pub(crate) const AUTHORIZATION_REQUEST_STATE_TOO_LARGE: ErrorContract = ErrorContract::new(
+    error_code::AUTHORIZATION_REQUEST_STATE_TOO_LARGE,
+    ErrorKind::InvalidInput,
+    "OID4VCI Authorization Request state is too large",
+);
+
+pub(crate) const INVALID_PKCE_CODE_VERIFIER: ErrorContract = ErrorContract::new(
+    error_code::INVALID_PKCE_CODE_VERIFIER,
+    ErrorKind::InvalidInput,
+    "OID4VCI PKCE code verifier is invalid",
+);
+
+pub(crate) const PKCE_CODE_VERIFIER_TOO_LARGE: ErrorContract = ErrorContract::new(
+    error_code::PKCE_CODE_VERIFIER_TOO_LARGE,
+    ErrorKind::InvalidInput,
+    "OID4VCI PKCE code verifier is too large",
+);

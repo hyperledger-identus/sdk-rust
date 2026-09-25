@@ -25,10 +25,13 @@ product model into the others.
 | Supported | The documented compiler, targets, features, and support period are an effective promise. |
 | Certified | An external assessment or certification exists; tests alone never imply this. |
 
-The first three packages are release-activated `0.1.0-rc.1` candidates.
-Every other workspace package remains version `0.0.0` with `publish = false`;
-candidate archives are prepared in an isolated temporary workspace and may be
-uploaded only by the protected release train.
+The first three packages—`identus-derive`, `identus-core`, and
+`identus-crypto`—are release-activated `0.1.0-rc.1` packages. The independent
+`identus-did` and `identus-did-resolver-http` train is candidate-only: its
+release-shaped archives are prepared in an isolated temporary workspace, but
+its canonical manifests remain version `0.0.0` with `publish = false`. Every
+other workspace package remains `0.0.0`, unpublished, and outside either
+candidate closure.
 
 ## Branches
 

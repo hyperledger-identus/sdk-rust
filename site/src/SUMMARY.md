@@ -3,7 +3,8 @@
 [SDK-Rust handbook](README.md)
 
 - [Start here](start-here.md)
-- [The first release train](release-train.md)
+- [The first crypto release train](release-train.md)
+- [DID candidate train](did-candidate.md)
 - [Crates](crates/index.md)
   - [`identus-derive`](crates/identus-derive.md)
   - [`identus-core`](crates/identus-core.md)

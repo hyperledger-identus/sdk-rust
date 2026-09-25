@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-25
+goal: Bind one bounded OAuth Token Endpoint HTTP response to the exact OID4VCI Authorization Code Token Request lineage.

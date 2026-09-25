@@ -28,8 +28,8 @@
 
 ## 4. Review and delivery
 
-- [ ] 4.1 Run focused mutations, candidate, API, SBOM, Taplo, factory/OpenSpec
+- [x] 4.1 Run focused mutations, candidate, API, SBOM, Taplo, factory/OpenSpec
       and compatible cleaned-source checks.
-- [ ] 4.2 Complete local architecture/security/decomposition/release review.
+- [x] 4.2 Complete local architecture/security/decomposition/release review.
 - [ ] 4.3 Archive, open an issue-linked PR, pass exact-head hosted CI, merge,
       publish metrics and close the managed worktree.

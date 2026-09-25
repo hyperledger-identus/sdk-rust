@@ -767,6 +767,19 @@ The canonical matrix and report are
 and
 [`docs/conformance/oid4vci-final-wallet-core.md`](../conformance/oid4vci-final-wallet-core.md).
 
+The thirty-ninth bounded delivery, issue #375, closes the required
+Pre-Authorized Code response-binding gap. Request construction now preserves
+the matched public issuer/server metadata and ordered offered configuration
+scope without retaining the secret-bearing offer JSON. A consuming transition
+erases the request form, classifies exact `200`/`400` status before bounded
+JSON/cache headers and delegates to the existing Token Response cores. Only a
+private header validator is shared with the Authorization Code flow; public
+authority and diagnostics remain flow-specific. This adds no dependency,
+HTTP, authenticated-client behavior, trust, token storage, retry, chain or
+product policy. The Final matrix now has fourteen implemented rows and one
+remaining missing row; M4 and IDR-023 proceed under generic vector/provenance
+issue [#376](https://github.com/hyperledger-identus/sdk-rust/issues/376).
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

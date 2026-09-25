@@ -3,6 +3,7 @@ use std::fmt;
 use zeroize::Zeroizing;
 
 use crate::{
+    AuthorizationServerMetadataCore, CredentialConfigurationId, CredentialIssuerMetadata,
     CredentialOfferError, CredentialOfferWithPreAuthorizedTokenInput,
     PRE_AUTHORIZED_CODE_GRANT_TYPE, PreAuthorizedTokenRequestLimits, TokenEndpoint,
     form::{append_pair, pair_len},
@@ -21,14 +22,57 @@ pub const TOKEN_REQUEST_MEDIA_TYPE: &str = "application/x-www-form-urlencoded";
 /// or retained longer than the transport operation requires.
 pub struct PreAuthorizedTokenRequest {
     token_endpoint: TokenEndpoint,
+    credential_issuer_metadata: CredentialIssuerMetadata,
+    authorization_server_metadata: AuthorizationServerMetadataCore,
+    offered_configurations: Vec<CredentialConfigurationId>,
     form_body: Zeroizing<String>,
     transaction_code_present: bool,
 }
 
 impl PreAuthorizedTokenRequest {
+    pub(crate) fn into_response_parts(
+        self,
+    ) -> (
+        CredentialIssuerMetadata,
+        AuthorizationServerMetadataCore,
+        Vec<CredentialConfigurationId>,
+        bool,
+    ) {
+        let Self {
+            token_endpoint: _,
+            credential_issuer_metadata,
+            authorization_server_metadata,
+            offered_configurations,
+            form_body,
+            transaction_code_present,
+        } = self;
+        drop(form_body);
+        (
+            credential_issuer_metadata,
+            authorization_server_metadata,
+            offered_configurations,
+            transaction_code_present,
+        )
+    }
+
     /// Borrow the validated HTTPS Token Endpoint.
     pub const fn token_endpoint(&self) -> &TokenEndpoint {
         &self.token_endpoint
+    }
+
+    /// Borrow the exact Credential Issuer Metadata matched before construction.
+    pub const fn credential_issuer_metadata(&self) -> &CredentialIssuerMetadata {
+        &self.credential_issuer_metadata
+    }
+
+    /// Borrow the exact selected Authorization Server Metadata.
+    pub const fn authorization_server_metadata(&self) -> &AuthorizationServerMetadataCore {
+        &self.authorization_server_metadata
+    }
+
+    /// Borrow the ordered Credential Configuration IDs from the matched offer.
+    pub fn offered_credential_configurations(&self) -> &[CredentialConfigurationId] {
+        &self.offered_configurations
     }
 
     /// Return the HTTP method required for this request.
@@ -82,7 +126,8 @@ impl CredentialOfferWithPreAuthorizedTokenInput {
         let token_endpoint = server
             .authorization_server_metadata()
             .token_endpoint()
-            .ok_or(CredentialOfferError::TokenEndpointRequired)?;
+            .ok_or(CredentialOfferError::TokenEndpointRequired)?
+            .duplicate();
         let pre_authorized_code = server
             .credential_offer_with_metadata()
             .credential_offer()
@@ -107,10 +152,28 @@ impl CredentialOfferWithPreAuthorizedTokenInput {
         }
         debug_assert_eq!(form_body.len(), form_body_len);
 
+        let transaction_code_present = transaction_code.is_some();
+        let (server, transaction_code) = self.into_parts();
+        drop(transaction_code);
+        let offered_configurations = server
+            .credential_offer_with_metadata()
+            .credential_offer()
+            .credential_offer()
+            .credential_configuration_ids()
+            .iter()
+            .map(CredentialConfigurationId::duplicate)
+            .collect();
+        let (matched_offer, authorization_server_metadata) = server.into_parts();
+        let (grant_offer, credential_issuer_metadata) = matched_offer.into_parts();
+        drop(grant_offer);
+
         Ok(PreAuthorizedTokenRequest {
-            token_endpoint: token_endpoint.duplicate(),
+            token_endpoint,
+            credential_issuer_metadata,
+            authorization_server_metadata,
+            offered_configurations,
             form_body,
-            transaction_code_present: transaction_code.is_some(),
+            transaction_code_present,
         })
     }
 }

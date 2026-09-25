@@ -18,6 +18,15 @@ pub struct CredentialOfferWithPreAuthorizedTokenInput {
 }
 
 impl CredentialOfferWithPreAuthorizedTokenInput {
+    pub(crate) fn into_parts(
+        self,
+    ) -> (
+        CredentialOfferWithPreAuthorizedServer,
+        Option<Zeroizing<String>>,
+    ) {
+        (self.offer, self.transaction_code)
+    }
+
     pub(crate) fn transaction_code(&self) -> Option<&str> {
         self.transaction_code.as_deref().map(String::as_str)
     }

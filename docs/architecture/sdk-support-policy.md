@@ -70,6 +70,15 @@ are intentionally identical and its exact internal dependency cone is guarded
 by repository conformance. It is compiled by the workspace host/MSRV gates and
 the browser/mobile target gates without activating crypto algorithms itself.
 
+The staged DID `0.1.0-rc.1` candidate adds a narrower release receipt on top of
+that repository-wide policy. Its descriptor runs every declared profile for
+`identus-did` and `identus-did-resolver-http` on Linux and macOS, using tests on
+primary Rust 1.98.1 and compile checks on MSRV 1.89.0. Only `identus-did` is
+compile-checked for browser WASM, Android ARM64, and iOS ARM64 in that receipt.
+The Axum-based `identus-did-resolver-http` adapter is explicitly host-only; an
+incidental cross-target build is not a support claim. See [ADR
+0155](../adr/0155-qualify-staged-did-candidate-matrix.md).
+
 `nix/checks/rust-gates.nix` generates every named Rust check from the manifest.
 Only that generator, reached from `flake.nix` through
 `nix/checks/default.nix`, counts as execution evidence. Gate names or Cargo-like
@@ -140,7 +149,9 @@ Every slow job has an explicit timeout, and workflow concurrency retains one
 running plus one pending revision without cancelling evidence already in
 flight. Each run uploads a seven-day JSON receipt binding the requested and
 checked-out SHA, event, run/attempt identity, timestamps, job results and run
-URL. `scripts/factory slow-live` is the read-only freshness audit; a missing,
+URL. The same receipt directory includes a closed staged-DID matrix aggregate
+when its exact four Linux/macOS primary/MSRV lanes agree on source and lockfile.
+`scripts/factory slow-live` is the read-only freshness audit; a missing,
 failed or older-than-160-hour scheduled run is an operational alert, leaving an
 eight-hour margin before the seven-day evidence retention ceiling. It is not a
 reason to rewrite history or silently dispatch privileged work.

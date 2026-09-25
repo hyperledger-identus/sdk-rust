@@ -2,6 +2,7 @@
   perSystem =
     {
       pkgs,
+      msrvToolchain,
       toolchain,
       inputs',
       ...
@@ -45,6 +46,22 @@
             }
           )}";
           meta.description = "Prepare and verify the unpublished crypto candidate";
+        };
+
+        did-candidate-matrix-primary = {
+          type = "app";
+          program = "${pkgs.lib.getExe (
+            pkgs.callPackage ./did-candidate-matrix-primary.nix { inherit toolchain; }
+          )}";
+          meta.description = "Qualify the staged DID candidate with the primary compiler";
+        };
+
+        did-candidate-matrix-msrv = {
+          type = "app";
+          program = "${pkgs.lib.getExe (
+            pkgs.callPackage ./did-candidate-matrix-msrv.nix { inherit msrvToolchain; }
+          )}";
+          meta.description = "Compile-check the staged DID candidate with the MSRV";
         };
       };
     };

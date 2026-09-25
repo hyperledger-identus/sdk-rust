@@ -85,9 +85,13 @@ required_files=(
   docs/adr/0134-activate-protected-crates-io-release-trains.md
   docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md
   docs/adr/0154-use-first-candidate-api-snapshots-as-semver-origin.md
+  docs/adr/0155-qualify-staged-did-candidate-matrix.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   nix/apps/crypto-candidate.nix
+  nix/apps/default.nix
+  nix/apps/did-candidate-matrix-primary.nix
+  nix/apps/did-candidate-matrix-msrv.nix
   openspec/config.yaml
   scripts/benchmark-support-policy.py
   scripts/factory

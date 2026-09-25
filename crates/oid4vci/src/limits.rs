@@ -1261,6 +1261,44 @@ impl Default for DeferredCredentialHttpResponseLimits {
     }
 }
 
+/// Resource policies for every unencrypted Credential Endpoint response branch.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct CredentialEndpointResponseLimits {
+    immediate_response_limits: ImmediateCredentialHttpResponseLimits,
+    deferred_response_limits: DeferredCredentialHttpResponseLimits,
+    error_response_limits: CredentialErrorHttpResponseLimits,
+}
+
+impl CredentialEndpointResponseLimits {
+    /// Compose already-validated policies for the `200`, `202`, and `400` branches.
+    pub const fn new(
+        immediate_response_limits: ImmediateCredentialHttpResponseLimits,
+        deferred_response_limits: DeferredCredentialHttpResponseLimits,
+        error_response_limits: CredentialErrorHttpResponseLimits,
+    ) -> Self {
+        Self {
+            immediate_response_limits,
+            deferred_response_limits,
+            error_response_limits,
+        }
+    }
+
+    /// Return the immediate-success (`200`) response policy.
+    pub const fn immediate_response_limits(self) -> ImmediateCredentialHttpResponseLimits {
+        self.immediate_response_limits
+    }
+
+    /// Return the deferred-success (`202`) response policy.
+    pub const fn deferred_response_limits(self) -> DeferredCredentialHttpResponseLimits {
+        self.deferred_response_limits
+    }
+
+    /// Return the payload-error (`400`) response policy.
+    pub const fn error_response_limits(self) -> CredentialErrorHttpResponseLimits {
+        self.error_response_limits
+    }
+}
+
 /// Resource limits for unsigned Credential Issuer Metadata.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialIssuerMetadataLimits {

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 366,
+  "change": "bind-oid4vci-credential-endpoint-responses",
+  "branch": "codex/feat/issue-366",
+  "baseRef": "origin/develop",
+  "baseSha": "97776294492057c7c601d03470b1eb9440a6f497",
+  "contractHeadSha": "eacb6d2f9fac2551fd197f8004398730ca6a9f44",
+  "createdAt": "2026-09-25T09:35:56.696Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -18,14 +18,16 @@
 //! bounded unauthenticated public-client Authorization Code Token Request
 //! construction with request-bound bounded success/error Token Endpoint HTTP
 //! response classification followed by exact selected-configuration Token
-//! Authorization Details correlation and consuming request-bound construction
-//! of an authorized-dataset JWT Credential Request, a Credential Nonce Response core and a
+//! Authorization Details correlation, consuming request-bound construction
+//! of an authorized-dataset JWT Credential Request, and consuming status-first
+//! classification of its immediate, deferred, or payload-error Credential
+//! Endpoint response, a Credential Nonce Response core and a
 //! transport-neutral Final Credential Nonce
 //! Request description and bounded validation of its mandatory HTTP response
 //! metadata, and bounded construction of the unencrypted Final
 //! configuration-ID/JWT-proof Credential Request, and bounded parsing of the
 //! unencrypted immediate Final Credential Response core. It performs no
-//! network access, deferred polling policy, PAR, callback routing, confidential
+//! network access, deferred continuation or polling policy, PAR, callback routing, confidential
 //! client authentication, or Token Endpoint transport, does not validate
 //! complete RFC 8414 metadata or Token Response Authorization Details trust,
 //! and establishes no issuer, server, token,
@@ -42,6 +44,7 @@ mod authorization_metadata;
 mod authorization_request;
 mod authorization_request_input;
 mod authorization_response;
+mod credential_endpoint_http_response;
 mod credential_error_http_response;
 mod credential_error_response;
 mod credential_nonce_http_response;
@@ -95,6 +98,10 @@ pub use authorization_response::{
     AuthorizationErrorUri, AuthorizationResponseIssuerIdentification, AuthorizationResponseLimits,
     AuthorizationResponseOutcome, CorrelatedAuthorizationCode,
 };
+pub use credential_endpoint_http_response::{
+    CredentialEndpointResponseOutcome, RequestBoundCredentialErrorResponse,
+    RequestBoundDeferredCredentialResponse,
+};
 pub use credential_error_response::{
     CredentialEndpointErrorCode, CredentialEndpointErrorKind, CredentialErrorResponseCore,
 };
@@ -128,10 +135,11 @@ pub use jwt_credential_request::{
 };
 pub use limits::{
     AuthorizationCodeTokenHttpResponseLimits, AuthorizationCodeTokenRequestLimits,
-    AuthorizationServerMetadataLimits, CredentialErrorHttpResponseLimits,
-    CredentialErrorResponseLimits, CredentialIssuerMetadataLimits,
-    CredentialNonceHttpResponseLimits, CredentialNonceResponseLimits, CredentialOfferGrantLimits,
-    CredentialOfferLimits, CredentialOfferSemanticLimits, DeferredCredentialHttpResponseLimits,
+    AuthorizationServerMetadataLimits, CredentialEndpointResponseLimits,
+    CredentialErrorHttpResponseLimits, CredentialErrorResponseLimits,
+    CredentialIssuerMetadataLimits, CredentialNonceHttpResponseLimits,
+    CredentialNonceResponseLimits, CredentialOfferGrantLimits, CredentialOfferLimits,
+    CredentialOfferSemanticLimits, DeferredCredentialHttpResponseLimits,
     DeferredCredentialRequestLimits, DeferredCredentialResponseLimits,
     ImmediateCredentialHttpResponseLimits, ImmediateCredentialResponseLimits,
     JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH, PreAuthorizedTokenRequestLimits,

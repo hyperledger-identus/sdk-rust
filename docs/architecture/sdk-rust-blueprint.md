@@ -705,6 +705,19 @@ dependency, error, HTTP, response handling, trust, storage, recovery, format,
 chain or product behavior. Consuming request-bound Credential Endpoint
 response classification continues in focused issue #366.
 
+The thirty-fifth bounded delivery, issue #366, consumes that secret-bearing
+request once and erases its zeroizing Authorization/body before inspecting
+remote response data. Status selects exactly one existing bounded parser:
+immediate issuance for `200`, deferred issuance for `202`, or Credential
+payload error for `400`; authorization and every other status fail statically
+before media/body parsing. Each accepted branch retains the exact originating
+proof count, and immediate credentials cannot exceed that count. The existing
+borrowed immediate-only validator remains behavior-compatible through one
+shared private binder. It adds no dependency, HTTP execution/provenance,
+encrypted response, RFC 6750 authorization-error handling, trust, validation,
+retry, polling, storage, format, chain or product policy. Authority-preserving
+deferred continuation proceeds in focused issue #368.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

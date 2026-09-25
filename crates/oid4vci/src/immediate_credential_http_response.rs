@@ -54,27 +54,37 @@ impl JwtCredentialRequest {
         body: &str,
         limits: ImmediateCredentialHttpResponseLimits,
     ) -> Result<RequestBoundImmediateCredentialResponse, CredentialOfferError> {
-        if status_code == 202 {
-            return Err(CredentialOfferError::DeferredCredentialResponseUnsupported);
-        }
-        if status_code != 200 {
-            return Err(CredentialOfferError::InvalidImmediateCredentialHttpStatus);
-        }
-        if content_type.len() > limits.max_content_type_bytes() {
-            return Err(CredentialOfferError::ImmediateCredentialContentTypeTooLarge);
-        }
-        if !is_application_json(content_type.as_bytes()) {
-            return Err(CredentialOfferError::InvalidImmediateCredentialContentType);
-        }
-
-        let response = ImmediateCredentialResponseCore::parse(body, limits.response_limits())?;
-        if response.credentials().len() > self.proof_count() {
-            return Err(CredentialOfferError::CredentialResponseExceedsProofCount);
-        }
-
-        Ok(RequestBoundImmediateCredentialResponse {
-            response,
-            request_proof_count: self.proof_count(),
-        })
+        bind_immediate_response(self.proof_count(), status_code, content_type, body, limits)
     }
+}
+
+pub(crate) fn bind_immediate_response(
+    request_proof_count: usize,
+    status_code: u16,
+    content_type: &str,
+    body: &str,
+    limits: ImmediateCredentialHttpResponseLimits,
+) -> Result<RequestBoundImmediateCredentialResponse, CredentialOfferError> {
+    if status_code == 202 {
+        return Err(CredentialOfferError::DeferredCredentialResponseUnsupported);
+    }
+    if status_code != 200 {
+        return Err(CredentialOfferError::InvalidImmediateCredentialHttpStatus);
+    }
+    if content_type.len() > limits.max_content_type_bytes() {
+        return Err(CredentialOfferError::ImmediateCredentialContentTypeTooLarge);
+    }
+    if !is_application_json(content_type.as_bytes()) {
+        return Err(CredentialOfferError::InvalidImmediateCredentialContentType);
+    }
+
+    let response = ImmediateCredentialResponseCore::parse(body, limits.response_limits())?;
+    if response.credentials().len() > request_proof_count {
+        return Err(CredentialOfferError::CredentialResponseExceedsProofCount);
+    }
+
+    Ok(RequestBoundImmediateCredentialResponse {
+        response,
+        request_proof_count,
+    })
 }

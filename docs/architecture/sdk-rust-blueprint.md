@@ -669,6 +669,20 @@ HTTP, retry, response binding, token trust/storage, consumer, chain or product
 behavior. Request-bound Token Endpoint HTTP response handling continues in
 focused issue #360.
 
+The thirty-second bounded delivery, issue #360, consumes that request once,
+erases its zeroizing form body before remote validation, and binds one
+caller-supplied final Token Endpoint response to the exact public request
+lineage. Exact status selects the existing bounded success or OAuth error
+parser before body inspection; bounded JSON media type and strict bare
+`no-store`/`no-cache` cache evidence are required on either branch, and `401`
+is limited to exact `invalid_client`. The result preserves the selected
+Credential Issuer, Authorization Server, Credential Configuration and #356
+issuer-identification evidence without accepting replacement lineage.
+It adds no HTTP execution/provenance, field combination, redirect or
+decompression policy, client authentication, DPoP, retries, token trust or
+storage, consumer, chain or product behavior. Token Authorization Details
+correlation continues in focused issue #362.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

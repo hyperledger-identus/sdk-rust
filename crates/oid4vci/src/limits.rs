@@ -313,6 +313,75 @@ impl Default for AuthorizationCodeTokenRequestLimits {
     }
 }
 
+/// Resource limits for a caller-supplied Authorization Code Token HTTP response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AuthorizationCodeTokenHttpResponseLimits {
+    success_response_limits: TokenResponseLimits,
+    error_response_limits: TokenErrorResponseLimits,
+    max_content_type_bytes: usize,
+    max_cache_control_bytes: usize,
+    max_pragma_bytes: usize,
+}
+
+impl AuthorizationCodeTokenHttpResponseLimits {
+    /// Combine bounded success/error bodies with positive response-header limits.
+    pub const fn new(
+        success_response_limits: TokenResponseLimits,
+        error_response_limits: TokenErrorResponseLimits,
+        max_content_type_bytes: usize,
+        max_cache_control_bytes: usize,
+        max_pragma_bytes: usize,
+    ) -> Result<Self, CredentialOfferError> {
+        if max_content_type_bytes == 0 || max_cache_control_bytes == 0 || max_pragma_bytes == 0 {
+            return Err(CredentialOfferError::InvalidAuthorizationCodeTokenHttpResponseLimits);
+        }
+        Ok(Self {
+            success_response_limits,
+            error_response_limits,
+            max_content_type_bytes,
+            max_cache_control_bytes,
+            max_pragma_bytes,
+        })
+    }
+
+    /// Return the bounded successful Token Response body policy.
+    pub const fn success_response_limits(self) -> TokenResponseLimits {
+        self.success_response_limits
+    }
+
+    /// Return the bounded Token Error Response body policy.
+    pub const fn error_response_limits(self) -> TokenErrorResponseLimits {
+        self.error_response_limits
+    }
+
+    /// Maximum bytes in the effective Content-Type field value.
+    pub const fn max_content_type_bytes(self) -> usize {
+        self.max_content_type_bytes
+    }
+
+    /// Maximum bytes in the effective Cache-Control field value.
+    pub const fn max_cache_control_bytes(self) -> usize {
+        self.max_cache_control_bytes
+    }
+
+    /// Maximum bytes in the effective Pragma field value.
+    pub const fn max_pragma_bytes(self) -> usize {
+        self.max_pragma_bytes
+    }
+}
+
+impl Default for AuthorizationCodeTokenHttpResponseLimits {
+    fn default() -> Self {
+        Self {
+            success_response_limits: TokenResponseLimits::default(),
+            error_response_limits: TokenErrorResponseLimits::default(),
+            max_content_type_bytes: 1_024,
+            max_cache_control_bytes: 1_024,
+            max_pragma_bytes: 1_024,
+        }
+    }
+}
+
 /// Resource limits for a successful OAuth Token Response core.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TokenResponseLimits {

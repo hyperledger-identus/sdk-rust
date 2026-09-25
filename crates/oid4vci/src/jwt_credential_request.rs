@@ -8,8 +8,9 @@ use identus_jose::Oid4vciProofJwt;
 use zeroize::Zeroizing;
 
 use crate::{
-    CredentialEndpoint, CredentialOfferError, CredentialOfferWithMetadata,
-    JwtCredentialRequestLimits, TokenResponseCore, TokenResponseWithAuthorizationDetails,
+    CorrelatedAuthorizationCodeTokenResponse, CredentialEndpoint, CredentialOfferError,
+    CredentialOfferWithMetadata, JwtCredentialRequestLimits, TokenResponseCore,
+    TokenResponseWithAuthorizationDetails,
 };
 
 /// HTTP method required for a Credential Endpoint request.
@@ -29,6 +30,35 @@ pub struct JwtCredentialRequest {
     authorization: Zeroizing<String>,
     json_body: Zeroizing<Vec<u8>>,
     proof_count: usize,
+}
+
+impl CorrelatedAuthorizationCodeTokenResponse {
+    /// Consume correlated token authority and construct one authorized-dataset request.
+    ///
+    /// The index addresses the exact source-ordered identifiers authorized for
+    /// the Credential Configuration selected by the originating Authorization
+    /// Request. No detached metadata, token response, configuration, or
+    /// identifier can be substituted at this transition.
+    pub fn try_into_authorized_jwt_credential_request(
+        self,
+        credential_identifier_index: usize,
+        proofs: &[Oid4vciProofJwt],
+        limits: JwtCredentialRequestLimits,
+    ) -> Result<JwtCredentialRequest, CredentialOfferError> {
+        let (lineage, token_response, authorized_identifiers, _) =
+            self.into_credential_request_parts();
+        let identifier = authorized_identifiers
+            .get(credential_identifier_index)
+            .ok_or(CredentialOfferError::CredentialRequestIdentifierMissing)?;
+
+        try_create_jwt_credential_request_with_selector(
+            lineage.credential_issuer_metadata().credential_endpoint(),
+            &token_response,
+            CredentialSelector::AuthorizedDataset(identifier),
+            proofs,
+            limits,
+        )
+    }
 }
 
 impl JwtCredentialRequest {
@@ -110,7 +140,8 @@ impl CredentialOfferWithMetadata {
             return Err(CredentialOfferError::CredentialRequestAuthorizationDetailsUnsupported);
         }
 
-        self.try_create_jwt_credential_request_with_selector(
+        try_create_jwt_credential_request_with_selector(
+            self.credential_issuer_metadata().credential_endpoint(),
             token_response,
             CredentialSelector::Configuration(configuration.as_str()),
             proofs,
@@ -149,82 +180,80 @@ impl CredentialOfferWithMetadata {
             return Err(CredentialOfferError::CredentialRequestAuthorizationConfigurationMismatch);
         }
 
-        self.try_create_jwt_credential_request_with_selector(
+        try_create_jwt_credential_request_with_selector(
+            self.credential_issuer_metadata().credential_endpoint(),
             token_response.token_response_core(),
             CredentialSelector::AuthorizedDataset(identifier),
             proofs,
             limits,
         )
     }
+}
 
-    fn try_create_jwt_credential_request_with_selector(
-        &self,
-        token_response: &TokenResponseCore,
-        selector: CredentialSelector<'_>,
-        proofs: &[Oid4vciProofJwt],
-        limits: JwtCredentialRequestLimits,
-    ) -> Result<JwtCredentialRequest, CredentialOfferError> {
-        if !token_response.token_type().eq_ignore_ascii_case("Bearer") {
-            return Err(CredentialOfferError::CredentialRequestTokenTypeUnsupported);
-        }
-        let access_token = token_response.expose_sensitive_access_token();
-        if !is_rfc6750_b64token(access_token) {
-            return Err(CredentialOfferError::InvalidCredentialRequestBearerToken);
-        }
-        if proofs.is_empty() {
-            return Err(CredentialOfferError::CredentialRequestProofsRequired);
-        }
-        if proofs.len() > limits.max_proofs() {
-            return Err(CredentialOfferError::TooManyCredentialRequestProofs);
-        }
-        if proofs
-            .iter()
-            .any(|proof| proof.compact().len() > limits.max_proof_bytes())
-        {
-            return Err(CredentialOfferError::CredentialRequestProofTooLarge);
-        }
-
-        let authorization_len = BEARER_PREFIX
-            .len()
-            .checked_add(access_token.len())
-            .ok_or(CredentialOfferError::CredentialRequestAuthorizationTooLarge)?;
-        if authorization_len > limits.max_authorization_bytes() {
-            return Err(CredentialOfferError::CredentialRequestAuthorizationTooLarge);
-        }
-        let mut authorization = Zeroizing::new(String::with_capacity(authorization_len));
-        authorization.push_str(BEARER_PREFIX);
-        authorization.push_str(access_token);
-
-        let mut body = BoundedJsonBody::new(limits.max_json_body_bytes());
-        match selector {
-            CredentialSelector::Configuration(configuration) => {
-                body.push_static(b"{\"credential_configuration_id\":")?;
-                body.push_json_string(configuration)?;
-            }
-            CredentialSelector::AuthorizedDataset(identifier) => {
-                body.push_static(b"{\"credential_identifier\":")?;
-                body.push_json_string(identifier)?;
-            }
-        }
-        body.push_static(b",\"proofs\":{\"jwt\":[")?;
-        for (index, proof) in proofs.iter().enumerate() {
-            if index != 0 {
-                body.push_static(b",")?;
-            }
-            body.push_json_string(proof.compact())?;
-        }
-        body.push_static(b"]}}")?;
-
-        Ok(JwtCredentialRequest {
-            credential_endpoint: self
-                .credential_issuer_metadata()
-                .credential_endpoint()
-                .duplicate(),
-            authorization,
-            json_body: body.into_bytes(),
-            proof_count: proofs.len(),
-        })
+fn try_create_jwt_credential_request_with_selector(
+    credential_endpoint: &CredentialEndpoint,
+    token_response: &TokenResponseCore,
+    selector: CredentialSelector<'_>,
+    proofs: &[Oid4vciProofJwt],
+    limits: JwtCredentialRequestLimits,
+) -> Result<JwtCredentialRequest, CredentialOfferError> {
+    if !token_response.token_type().eq_ignore_ascii_case("Bearer") {
+        return Err(CredentialOfferError::CredentialRequestTokenTypeUnsupported);
     }
+    let access_token = token_response.expose_sensitive_access_token();
+    if !is_rfc6750_b64token(access_token) {
+        return Err(CredentialOfferError::InvalidCredentialRequestBearerToken);
+    }
+    if proofs.is_empty() {
+        return Err(CredentialOfferError::CredentialRequestProofsRequired);
+    }
+    if proofs.len() > limits.max_proofs() {
+        return Err(CredentialOfferError::TooManyCredentialRequestProofs);
+    }
+    if proofs
+        .iter()
+        .any(|proof| proof.compact().len() > limits.max_proof_bytes())
+    {
+        return Err(CredentialOfferError::CredentialRequestProofTooLarge);
+    }
+
+    let authorization_len = BEARER_PREFIX
+        .len()
+        .checked_add(access_token.len())
+        .ok_or(CredentialOfferError::CredentialRequestAuthorizationTooLarge)?;
+    if authorization_len > limits.max_authorization_bytes() {
+        return Err(CredentialOfferError::CredentialRequestAuthorizationTooLarge);
+    }
+    let mut authorization = Zeroizing::new(String::with_capacity(authorization_len));
+    authorization.push_str(BEARER_PREFIX);
+    authorization.push_str(access_token);
+
+    let mut body = BoundedJsonBody::new(limits.max_json_body_bytes());
+    match selector {
+        CredentialSelector::Configuration(configuration) => {
+            body.push_static(b"{\"credential_configuration_id\":")?;
+            body.push_json_string(configuration)?;
+        }
+        CredentialSelector::AuthorizedDataset(identifier) => {
+            body.push_static(b"{\"credential_identifier\":")?;
+            body.push_json_string(identifier)?;
+        }
+    }
+    body.push_static(b",\"proofs\":{\"jwt\":[")?;
+    for (index, proof) in proofs.iter().enumerate() {
+        if index != 0 {
+            body.push_static(b",")?;
+        }
+        body.push_json_string(proof.compact())?;
+    }
+    body.push_static(b"]}}")?;
+
+    Ok(JwtCredentialRequest {
+        credential_endpoint: credential_endpoint.duplicate(),
+        authorization,
+        json_body: body.into_bytes(),
+        proof_count: proofs.len(),
+    })
 }
 
 enum CredentialSelector<'a> {

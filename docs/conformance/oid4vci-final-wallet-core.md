@@ -22,7 +22,7 @@ gap, but one required exit condition is not delivered:
    review.
 
 After #376 lands, update the matrix at its exact merged revision and re-evaluate
-#7/M4. No additional feature is justified by this report alone.
+issue #7 and M4. No additional feature is justified by this report alone.
 
 ## Coverage summary
 

@@ -4,7 +4,7 @@
 
 - [x] 1.1 Inventory Final sections, SDK APIs/specs/tests and issue #7 acceptance.
 - [x] 1.2 Audit Oxid/Portal fixture revisions, hashes, licenses and genericity.
-- [ ] 1.3 Pass research/constraint readiness, commit planning and bind receipt.
+- [x] 1.3 Pass research/constraint readiness, commit planning and bind receipt.
 
 ## 2. Traceability implementation
 

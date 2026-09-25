@@ -2,20 +2,22 @@ use std::fmt;
 
 use crate::{
     CredentialEndpointResponseLimits, CredentialErrorResponseCore, CredentialOfferError,
-    DeferredCredentialResponseCore, JwtCredentialRequest, RequestBoundImmediateCredentialResponse,
+    DeferredCredentialRequestLimits, DeferredCredentialResponseCore, JwtCredentialRequest,
+    RequestBoundDeferredCredentialRequest, RequestBoundImmediateCredentialResponse,
     http_field::is_application_json, immediate_credential_http_response::bind_immediate_response,
+    jwt_credential_request::DeferredCredentialContinuationAuthority,
 };
 
 /// A deferred Credential Response bound to the originating request proof count.
 pub struct RequestBoundDeferredCredentialResponse {
     response: DeferredCredentialResponseCore,
-    request_proof_count: usize,
+    authority: DeferredCredentialContinuationAuthority,
 }
 
 impl RequestBoundDeferredCredentialResponse {
     /// Return the originating request's JWT proof count.
     pub const fn request_proof_count(&self) -> usize {
-        self.request_proof_count
+        self.authority.request_proof_count
     }
 
     /// Borrow the bounded deferred response core.
@@ -27,13 +29,25 @@ impl RequestBoundDeferredCredentialResponse {
     pub fn into_response(self) -> DeferredCredentialResponseCore {
         self.response
     }
+
+    /// Consume this bound response into one authority-preserving request.
+    ///
+    /// No replacement metadata, endpoint, bearer token, transaction or proof
+    /// count is accepted. The caller remains responsible for HTTP execution,
+    /// token validity, interval/retry policy and credential processing.
+    pub fn try_into_deferred_credential_request(
+        self,
+        limits: DeferredCredentialRequestLimits,
+    ) -> Result<RequestBoundDeferredCredentialRequest, CredentialOfferError> {
+        RequestBoundDeferredCredentialRequest::try_from_parts(self.authority, self.response, limits)
+    }
 }
 
 impl fmt::Debug for RequestBoundDeferredCredentialResponse {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("RequestBoundDeferredCredentialResponse")
-            .field("request_proof_count", &self.request_proof_count)
+            .field("request_proof_count", &self.request_proof_count())
             .field("response", &self.response)
             .finish_non_exhaustive()
     }
@@ -95,8 +109,10 @@ impl fmt::Debug for CredentialEndpointResponseOutcome {
 impl JwtCredentialRequest {
     /// Consume this request and classify its unencrypted Credential Endpoint response.
     ///
-    /// The request's bearer credential and proof body are dropped before any
-    /// untrusted response field is parsed. The caller remains responsible for
+    /// For HTTP 202 only, the request's exact minimal continuation authority is
+    /// retained while its proof body and Credential Endpoint are dropped before
+    /// untrusted response fields are parsed. Every other branch drops the whole
+    /// request first. The caller remains responsible for
     /// HTTP execution, origin binding, encrypted responses, authorization
     /// errors, retry or polling policy, credential verification, and storage.
     pub fn try_into_credential_endpoint_response(
@@ -106,19 +122,21 @@ impl JwtCredentialRequest {
         body: &str,
         limits: CredentialEndpointResponseLimits,
     ) -> Result<CredentialEndpointResponseOutcome, CredentialOfferError> {
-        let request_proof_count = self.proof_count();
-        drop(self);
-
         match status_code {
-            200 => bind_immediate_response(
-                request_proof_count,
-                status_code,
-                content_type,
-                body,
-                limits.immediate_response_limits(),
-            )
-            .map(CredentialEndpointResponseOutcome::Issued),
+            200 => {
+                let request_proof_count = self.proof_count();
+                drop(self);
+                bind_immediate_response(
+                    request_proof_count,
+                    status_code,
+                    content_type,
+                    body,
+                    limits.immediate_response_limits(),
+                )
+                .map(CredentialEndpointResponseOutcome::Issued)
+            }
             202 => {
+                let authority = self.into_deferred_continuation_authority();
                 let deferred_limits = limits.deferred_response_limits();
                 if content_type.len() > deferred_limits.max_content_type_bytes() {
                     return Err(CredentialOfferError::DeferredCredentialContentTypeTooLarge);
@@ -133,23 +151,30 @@ impl JwtCredentialRequest {
                 Ok(CredentialEndpointResponseOutcome::Deferred(
                     RequestBoundDeferredCredentialResponse {
                         response,
-                        request_proof_count,
+                        authority,
                     },
                 ))
             }
-            400 => CredentialErrorResponseCore::parse_http_response(
-                status_code,
-                content_type,
-                body,
-                limits.error_response_limits(),
-            )
-            .map(|response| {
-                CredentialEndpointResponseOutcome::Error(RequestBoundCredentialErrorResponse {
-                    response,
-                    request_proof_count,
+            400 => {
+                let request_proof_count = self.proof_count();
+                drop(self);
+                CredentialErrorResponseCore::parse_http_response(
+                    status_code,
+                    content_type,
+                    body,
+                    limits.error_response_limits(),
+                )
+                .map(|response| {
+                    CredentialEndpointResponseOutcome::Error(RequestBoundCredentialErrorResponse {
+                        response,
+                        request_proof_count,
+                    })
                 })
-            }),
-            _ => Err(CredentialOfferError::InvalidCredentialEndpointHttpStatus),
+            }
+            _ => {
+                drop(self);
+                Err(CredentialOfferError::InvalidCredentialEndpointHttpStatus)
+            }
         }
     }
 }

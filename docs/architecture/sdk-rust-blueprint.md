@@ -718,6 +718,20 @@ encrypted response, RFC 6750 authorization-error handling, trust, validation,
 retry, polling, storage, format, chain or product policy. Authority-preserving
 deferred continuation proceeds in focused issue #368.
 
+The thirty-sixth bounded delivery, issue #368, retains the smallest authority
+needed after an exact request-bound initial `202`: the validated Credential
+Issuer Identifier, optional advertised Deferred Credential Endpoint, moved
+zeroizing bearer Authorization and originating proof count. It erases the
+proof body and obsolete Credential Endpoint before parsing the remote body,
+then binds the bounded transaction to that authority. A consuming transition
+reuses the existing bounded request serializer and accepts no replacement
+metadata, endpoint, token, transaction or proof count. The legacy token-free
+structural constructor remains behavior-compatible. It adds no dependency,
+error, HTTP execution/provenance, token validation/storage, interval/retry or
+polling effects, credential processing, trust, chain or product policy.
+Consuming Deferred Credential Endpoint response binding continues in focused
+issue #370.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

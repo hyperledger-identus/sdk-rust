@@ -8,8 +8,9 @@ use identus_jose::Oid4vciProofJwt;
 use zeroize::Zeroizing;
 
 use crate::{
-    CorrelatedAuthorizationCodeTokenResponse, CredentialEndpoint, CredentialOfferError,
-    CredentialOfferWithMetadata, JwtCredentialRequestLimits, TokenResponseCore,
+    CorrelatedAuthorizationCodeTokenResponse, CredentialEndpoint, CredentialIssuerIdentifier,
+    CredentialIssuerMetadata, CredentialOfferError, CredentialOfferWithMetadata,
+    DeferredCredentialEndpoint, JwtCredentialRequestLimits, TokenResponseCore,
     TokenResponseWithAuthorizationDetails,
 };
 
@@ -26,7 +27,9 @@ const BEARER_PREFIX: &str = "Bearer ";
 /// This value contains an access token and proof material. Keep its sensitive
 /// values out of logs, URLs, telemetry, caches, and long-lived storage.
 pub struct JwtCredentialRequest {
+    credential_issuer: CredentialIssuerIdentifier,
     credential_endpoint: CredentialEndpoint,
+    deferred_credential_endpoint: Option<DeferredCredentialEndpoint>,
     authorization: Zeroizing<String>,
     json_body: Zeroizing<Vec<u8>>,
     proof_count: usize,
@@ -52,7 +55,7 @@ impl CorrelatedAuthorizationCodeTokenResponse {
             .ok_or(CredentialOfferError::CredentialRequestIdentifierMissing)?;
 
         try_create_jwt_credential_request_with_selector(
-            lineage.credential_issuer_metadata().credential_endpoint(),
+            lineage.credential_issuer_metadata(),
             &token_response,
             CredentialSelector::AuthorizedDataset(identifier),
             proofs,
@@ -107,6 +110,32 @@ impl JwtCredentialRequest {
     pub fn expose_sensitive_json_body(&self) -> &str {
         str::from_utf8(&self.json_body).expect("serde_json emitted UTF-8")
     }
+
+    pub(crate) fn into_deferred_continuation_authority(
+        self,
+    ) -> DeferredCredentialContinuationAuthority {
+        let Self {
+            credential_issuer,
+            credential_endpoint: _,
+            deferred_credential_endpoint,
+            authorization,
+            json_body: _,
+            proof_count,
+        } = self;
+        DeferredCredentialContinuationAuthority {
+            credential_issuer,
+            deferred_credential_endpoint,
+            authorization,
+            request_proof_count: proof_count,
+        }
+    }
+}
+
+pub(crate) struct DeferredCredentialContinuationAuthority {
+    pub(crate) credential_issuer: CredentialIssuerIdentifier,
+    pub(crate) deferred_credential_endpoint: Option<DeferredCredentialEndpoint>,
+    pub(crate) authorization: Zeroizing<String>,
+    pub(crate) request_proof_count: usize,
 }
 
 impl fmt::Debug for JwtCredentialRequest {
@@ -141,7 +170,7 @@ impl CredentialOfferWithMetadata {
         }
 
         try_create_jwt_credential_request_with_selector(
-            self.credential_issuer_metadata().credential_endpoint(),
+            self.credential_issuer_metadata(),
             token_response,
             CredentialSelector::Configuration(configuration.as_str()),
             proofs,
@@ -181,7 +210,7 @@ impl CredentialOfferWithMetadata {
         }
 
         try_create_jwt_credential_request_with_selector(
-            self.credential_issuer_metadata().credential_endpoint(),
+            self.credential_issuer_metadata(),
             token_response.token_response_core(),
             CredentialSelector::AuthorizedDataset(identifier),
             proofs,
@@ -191,7 +220,7 @@ impl CredentialOfferWithMetadata {
 }
 
 fn try_create_jwt_credential_request_with_selector(
-    credential_endpoint: &CredentialEndpoint,
+    metadata: &CredentialIssuerMetadata,
     token_response: &TokenResponseCore,
     selector: CredentialSelector<'_>,
     proofs: &[Oid4vciProofJwt],
@@ -249,7 +278,11 @@ fn try_create_jwt_credential_request_with_selector(
     body.push_static(b"]}}")?;
 
     Ok(JwtCredentialRequest {
-        credential_endpoint: credential_endpoint.duplicate(),
+        credential_issuer: metadata.credential_issuer().duplicate(),
+        credential_endpoint: metadata.credential_endpoint().duplicate(),
+        deferred_credential_endpoint: metadata
+            .deferred_credential_endpoint()
+            .map(DeferredCredentialEndpoint::duplicate),
         authorization,
         json_body: body.into_bytes(),
         proof_count: proofs.len(),

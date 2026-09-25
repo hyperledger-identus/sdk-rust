@@ -21,13 +21,14 @@
 //! Authorization Details correlation, consuming request-bound construction
 //! of an authorized-dataset JWT Credential Request, and consuming status-first
 //! classification of its immediate, deferred, or payload-error Credential
-//! Endpoint response, a Credential Nonce Response core and a
+//! Endpoint response with authority-preserving deferred request continuation,
+//! a Credential Nonce Response core and a
 //! transport-neutral Final Credential Nonce
 //! Request description and bounded validation of its mandatory HTTP response
 //! metadata, and bounded construction of the unencrypted Final
 //! configuration-ID/JWT-proof Credential Request, and bounded parsing of the
 //! unencrypted immediate Final Credential Response core. It performs no
-//! network access, deferred continuation or polling policy, PAR, callback routing, confidential
+//! network access, deferred response execution or polling policy, PAR, callback routing, confidential
 //! client authentication, or Token Endpoint transport, does not validate
 //! complete RFC 8414 metadata or Token Response Authorization Details trust,
 //! and establishes no issuer, server, token,
@@ -115,7 +116,7 @@ pub use deferred_credential_error_http_response::{
 pub use deferred_credential_http_response::DeferredCredentialOutcome;
 pub use deferred_credential_request::{
     DEFERRED_CREDENTIAL_REQUEST_HTTP_METHOD, DEFERRED_CREDENTIAL_REQUEST_MEDIA_TYPE,
-    DeferredCredentialRequest,
+    DeferredCredentialRequest, RequestBoundDeferredCredentialRequest,
 };
 pub use deferred_credential_response::{
     DeferredCredentialInterval, DeferredCredentialResponseCore, DeferredTransactionId,

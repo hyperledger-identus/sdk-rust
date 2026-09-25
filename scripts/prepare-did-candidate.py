@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -49,6 +50,8 @@ def require_local_command(command: list[str]) -> None:
     if executable == "git" and command[1:] in (["rev-parse", "HEAD"], ["status", "--porcelain"]):
         return
     if executable in {"cargo", "rustc"} and command[1:] == ["--version"]:
+        return
+    if executable == "rustc" and command[1:] == ["-vV"]:
         return
     if executable == "cargo" and command[1:] == ["semver-checks", "--version"]:
         return
@@ -582,6 +585,320 @@ def sanitized_environment(cargo_home: Path) -> dict[str, str]:
     return env
 
 
+def matrix_host(descriptor: dict[str, Any], rustc_verbose: str) -> dict[str, Any]:
+    match = re.search(r"(?m)^host: (\S+)$", rustc_verbose)
+    if match is None:
+        raise CandidateError("cannot determine rustc host triple")
+    rust_triple = match.group(1)
+    identities = {
+        ("Linux", "x86_64"): ("linux", "x86_64-unknown-linux-gnu"),
+        ("Darwin", "arm64"): ("macos", "aarch64-apple-darwin"),
+    }
+    identity = identities.get((platform.system(), platform.machine()))
+    if identity is None or rust_triple != identity[1]:
+        raise CandidateError(
+            f"unsupported DID matrix host: {platform.system()}/{platform.machine()}/{rust_triple}"
+        )
+    host = next(
+        (row for row in descriptor["matrix_hosts"] if row.get("name") == identity[0]), None
+    )
+    if not isinstance(host, dict):
+        raise CandidateError(f"DID matrix host is not declared: {identity[0]}")
+    return host | {"rust_triple": rust_triple}
+
+
+def matrix_profiles(descriptor: dict[str, Any], package: str) -> list[dict[str, Any]]:
+    return [profile for profile in descriptor["profiles"] if profile.get("package") == package]
+
+
+def matrix_command(
+    operation: str, package: str, profile: dict[str, Any], target: str | None = None
+) -> list[str]:
+    command = ["cargo", operation, "--locked", "-p", package]
+    command.extend(profile_arguments(profile))
+    if target is not None:
+        command.extend(["--target", target])
+    return command
+
+
+def write_json_atomic(path: Path, value: dict[str, Any], maximum: int) -> None:
+    payload = (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    if not payload or len(payload) > maximum:
+        raise CandidateError(f"matrix receipt exceeds byte limit: {path.name}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(dir=path.parent, prefix=f".{path.name}.", delete=False) as stream:
+        temporary = Path(stream.name)
+        stream.write(payload)
+        stream.flush()
+        os.fsync(stream.fileno())
+    try:
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def build_matrix_lane(
+    root: Path,
+    output: Path,
+    requested: str | None,
+    allow_dirty: bool,
+    toolchain_class: str,
+) -> Path:
+    run(
+        [sys.executable, str(root / "scripts/check-release-candidates.py"), str(root)],
+        cwd=root,
+        env=os.environ.copy(),
+    )
+    descriptor = load_toml(root / DESCRIPTOR)
+    matrix = descriptor["matrix"]
+    if toolchain_class not in {"primary", "msrv"}:
+        raise CandidateError("matrix toolchain must be primary or msrv")
+    revision, dirty = source_revision(root, requested, allow_dirty)
+    started = time.monotonic()
+    with tempfile.TemporaryDirectory(prefix="identus-did-matrix-") as temporary:
+        scratch = Path(temporary)
+        require_vcs_independent_build_scratch(root, scratch)
+        env = sanitized_environment(scratch / "cargo-home")
+        expected_version = matrix[f"{toolchain_class}_rust_version"]
+        rustc = require_tool_version(
+            "rustc", run(["rustc", "--version"], cwd=root, env=env), expected_version
+        )
+        cargo = require_tool_version(
+            "cargo", run(["cargo", "--version"], cwd=root, env=env), expected_version
+        )
+        host = matrix_host(descriptor, run(["rustc", "-vV"], cwd=root, env=env))
+        stage = create_stage(root, scratch / "candidate", descriptor)
+        run(["cargo", "generate-lockfile"], cwd=stage, env=env)
+        lock = stage / "Cargo.lock"
+        rows: list[dict[str, Any]] = []
+        host_operation = host[f"{toolchain_class}_operation"]
+        for package in host["packages"]:
+            for profile in matrix_profiles(descriptor, package):
+                command = matrix_command(host_operation, package, profile)
+                run(command, cwd=stage, env=env)
+                rows.append({
+                    "scope": "host", "package": package, "profile": profile["name"],
+                    "operation": host_operation, "target": host["rust_triple"],
+                    "tier": "host-tested" if host_operation == "test" else "host-compiled",
+                    "status": "passed", "command": command,
+                })
+        unsupported: list[dict[str, Any]] = []
+        for target in descriptor["matrix_targets"]:
+            if target["runner_host"] != host["name"]:
+                continue
+            for package in target["packages"]:
+                for profile in matrix_profiles(descriptor, package):
+                    command = matrix_command(target["operation"], package, profile, target["triple"])
+                    run(command, cwd=stage, env=env)
+                    rows.append({
+                        "scope": "target", "package": package, "profile": profile["name"],
+                        "operation": target["operation"], "target": target["triple"],
+                        "tier": target["tier"], "status": "passed", "command": command,
+                    })
+            for package in target["unsupported_packages"]:
+                unsupported.append({
+                    "package": package, "target": target["triple"],
+                    "status": "not-supported", "limitation": target["limitation"],
+                })
+        receipt = {
+            "schemaVersion": matrix["schema_version"],
+            "candidate": descriptor["candidate"],
+            "sourceRevision": revision,
+            "sourceDirty": dirty,
+            "host": {
+                "name": host["name"], "nixSystem": host["nix_system"],
+                "rustTriple": host["rust_triple"],
+            },
+            "toolchain": {
+                "class": toolchain_class, "rustVersion": expected_version,
+                "rustc": rustc, "cargo": cargo,
+            },
+            "lock": {"file": "Cargo.lock", "sha256": sha256(lock)},
+            "rows": rows,
+            "unsupported": unsupported,
+            "limitations": [
+                "portable rows are compile-only and make no runtime or packaging claim",
+                "the HTTP resolver adapter is host-only",
+            ],
+            "elapsedSeconds": round(time.monotonic() - started, 3),
+        }
+        receipt_path = output / f"{host['name']}-{toolchain_class}.json"
+        if output.exists():
+            raise CandidateError(f"output already exists: {output}")
+        write_json_atomic(receipt_path, receipt, matrix["max_receipt_bytes"])
+        return receipt_path
+
+
+def require_exact_keys(value: dict[str, Any], expected: set[str], label: str) -> None:
+    if set(value) != expected:
+        raise CandidateError(f"{label} fields differ")
+
+
+def expected_lane_rows(
+    descriptor: dict[str, Any], host: dict[str, Any], toolchain_class: str
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    operation = host[f"{toolchain_class}_operation"]
+    rows: list[dict[str, Any]] = []
+    for package in host["packages"]:
+        for profile in matrix_profiles(descriptor, package):
+            command = matrix_command(operation, package, profile)
+            rows.append({
+                "scope": "host", "package": package, "profile": profile["name"],
+                "operation": operation, "target": host["rust_triple"],
+                "tier": "host-tested" if operation == "test" else "host-compiled",
+                "status": "passed", "command": command,
+            })
+    unsupported: list[dict[str, Any]] = []
+    for target in descriptor["matrix_targets"]:
+        if target["runner_host"] != host["name"]:
+            continue
+        for package in target["packages"]:
+            for profile in matrix_profiles(descriptor, package):
+                command = matrix_command(target["operation"], package, profile, target["triple"])
+                rows.append({
+                    "scope": "target", "package": package, "profile": profile["name"],
+                    "operation": target["operation"], "target": target["triple"],
+                    "tier": target["tier"], "status": "passed", "command": command,
+                })
+        for package in target["unsupported_packages"]:
+            unsupported.append({
+                "package": package, "target": target["triple"],
+                "status": "not-supported", "limitation": target["limitation"],
+            })
+    return rows, unsupported
+
+
+def aggregate_matrix(
+    root: Path, output: Path, requested: str | None, lane_paths: list[Path]
+) -> Path:
+    run(
+        [sys.executable, str(root / "scripts/check-release-candidates.py"), str(root)],
+        cwd=root,
+        env=os.environ.copy(),
+    )
+    descriptor = load_toml(root / DESCRIPTOR)
+    matrix = descriptor["matrix"]
+    head = run(["git", "rev-parse", "HEAD"], cwd=root, env=os.environ.copy()).strip()
+    revision = requested or head
+    if not SHA.fullmatch(revision) or revision != head:
+        raise CandidateError("matrix aggregate revision must equal repository HEAD")
+    expected_identities = {
+        (host["name"], toolchain_class)
+        for host in descriptor["matrix_hosts"]
+        for toolchain_class in ("primary", "msrv")
+    }
+    if len(lane_paths) != len(expected_identities):
+        raise CandidateError("matrix aggregate requires exactly four lane receipts")
+    lanes: list[dict[str, Any]] = []
+    identities: set[tuple[str, str]] = set()
+    lock_hashes: set[str] = set()
+    for path in lane_paths:
+        require_bounded_evidence(path, {"max_evidence_bytes": matrix["max_receipt_bytes"]})
+        try:
+            lane = json.loads(path.read_text(encoding="utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise CandidateError(f"invalid matrix lane receipt: {path.name}") from error
+        if not isinstance(lane, dict):
+            raise CandidateError(f"matrix lane receipt is not an object: {path.name}")
+        require_exact_keys(lane, {
+            "schemaVersion", "candidate", "sourceRevision", "sourceDirty", "host",
+            "toolchain", "lock", "rows", "unsupported", "limitations", "elapsedSeconds",
+        }, "matrix lane")
+        if lane["schemaVersion"] != matrix["schema_version"]:
+            raise CandidateError("matrix lane schema differs")
+        if lane["candidate"] != descriptor["candidate"] or lane["sourceRevision"] != revision:
+            raise CandidateError("matrix lane source identity differs")
+        if lane["sourceDirty"] is not False:
+            raise CandidateError("matrix lane source must be clean")
+        if not isinstance(lane.get("host"), dict):
+            raise CandidateError("matrix lane host is malformed")
+        if not isinstance(lane.get("toolchain"), dict):
+            raise CandidateError("matrix lane toolchain is malformed")
+        if not isinstance(lane.get("lock"), dict):
+            raise CandidateError("matrix lane lock is malformed")
+        require_exact_keys(lane["host"], {"name", "nixSystem", "rustTriple"}, "matrix host")
+        require_exact_keys(
+            lane["toolchain"], {"class", "rustVersion", "rustc", "cargo"},
+            "matrix toolchain",
+        )
+        require_exact_keys(lane["lock"], {"file", "sha256"}, "matrix lock")
+        if lane["lock"]["file"] != "Cargo.lock":
+            raise CandidateError("matrix lane lock identity differs")
+        if lane["limitations"] != [
+            "portable rows are compile-only and make no runtime or packaging claim",
+            "the HTTP resolver adapter is host-only",
+        ]:
+            raise CandidateError("matrix lane limitations differ")
+        if (
+            not isinstance(lane["elapsedSeconds"], (int, float))
+            or isinstance(lane["elapsedSeconds"], bool)
+            or lane["elapsedSeconds"] < 0
+        ):
+            raise CandidateError("matrix lane elapsed time is invalid")
+        host_name = lane.get("host", {}).get("name")
+        toolchain_class = lane.get("toolchain", {}).get("class")
+        identity = (host_name, toolchain_class)
+        if identity in identities or identity not in expected_identities:
+            raise CandidateError("matrix lane identity is duplicate or unexpected")
+        identities.add(identity)
+        host = next(row for row in descriptor["matrix_hosts"] if row["name"] == host_name)
+        expected_triples = {
+            "linux": "x86_64-unknown-linux-gnu", "macos": "aarch64-apple-darwin",
+        }
+        expected_host = {
+            "name": host_name, "nixSystem": host["nix_system"],
+            "rustTriple": expected_triples[host_name],
+        }
+        if lane["host"] != expected_host:
+            raise CandidateError("matrix lane host differs")
+        expected_version = matrix[f"{toolchain_class}_rust_version"]
+        toolchain = lane["toolchain"]
+        if (
+            not isinstance(toolchain, dict)
+            or toolchain.get("rustVersion") != expected_version
+            or not str(toolchain.get("rustc", "")).startswith(f"rustc {expected_version}")
+            or not str(toolchain.get("cargo", "")).startswith(f"cargo {expected_version}")
+        ):
+            raise CandidateError("matrix lane compiler identity differs")
+        expected_rows, expected_unsupported = expected_lane_rows(
+            descriptor, host | {"rust_triple": expected_triples[host_name]}, toolchain_class
+        )
+        if lane["rows"] != expected_rows:
+            raise CandidateError("matrix lane rows differ or overclaim support")
+        if lane["unsupported"] != expected_unsupported:
+            raise CandidateError("matrix lane unsupported boundary differs")
+        lock_hash = lane.get("lock", {}).get("sha256")
+        if not isinstance(lock_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", lock_hash):
+            raise CandidateError("matrix lane lock hash is invalid")
+        lock_hashes.add(lock_hash)
+        lanes.append(lane)
+    if identities != expected_identities:
+        raise CandidateError("matrix lane set is incomplete")
+    if len(lock_hashes) != 1:
+        raise CandidateError("matrix lanes did not use one staged lockfile")
+    aggregate = {
+        "schemaVersion": matrix["schema_version"],
+        "candidate": descriptor["candidate"],
+        "sourceRevision": revision,
+        "sourceDirty": False,
+        "lockSha256": next(iter(lock_hashes)),
+        "laneCount": len(lanes),
+        "status": "passed",
+        "lanes": sorted(
+            lanes, key=lambda row: (row["host"]["name"], row["toolchain"]["class"])
+        ),
+        "claim": "host-tested plus explicitly bounded portable compile support",
+        "limitations": [
+            "portable rows are compile-only and make no runtime or packaging claim",
+            "identus-did-resolver-http remains host-only",
+        ],
+    }
+    if output.exists():
+        raise CandidateError(f"output already exists: {output}")
+    write_json_atomic(output, aggregate, matrix["max_receipt_bytes"])
+    return output
+
+
 def build(
     root: Path, output: Path, requested: str | None, allow_dirty: bool, initialize_api: bool
 ) -> Path:
@@ -686,16 +1003,38 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--revision")
     parser.add_argument("--allow-dirty", action="store_true")
     parser.add_argument("--initialize-api", action="store_true")
+    parser.add_argument("--matrix-toolchain", choices=("primary", "msrv"))
+    parser.add_argument("--aggregate-matrix", action="store_true")
+    parser.add_argument("--lane-receipt", action="append", type=Path, default=[])
     return parser.parse_args()
 
 
 def main() -> int:
     arguments = parse_args()
     try:
-        receipt = build(
-            arguments.root.resolve(), arguments.output.resolve(),
-            arguments.revision, arguments.allow_dirty, arguments.initialize_api,
-        )
+        root = arguments.root.resolve()
+        output = arguments.output.resolve()
+        if arguments.aggregate_matrix:
+            if arguments.matrix_toolchain or arguments.allow_dirty or arguments.initialize_api:
+                raise CandidateError("aggregate mode does not accept lane/build options")
+            receipt = aggregate_matrix(
+                root, output, arguments.revision,
+                [path.resolve() for path in arguments.lane_receipt],
+            )
+        elif arguments.matrix_toolchain:
+            if arguments.lane_receipt or arguments.initialize_api:
+                raise CandidateError("matrix lane mode does not accept aggregate/build options")
+            receipt = build_matrix_lane(
+                root, output, arguments.revision, arguments.allow_dirty,
+                arguments.matrix_toolchain,
+            )
+        else:
+            if arguments.lane_receipt:
+                raise CandidateError("candidate build does not accept lane receipts")
+            receipt = build(
+                root, output, arguments.revision,
+                arguments.allow_dirty, arguments.initialize_api,
+            )
     except (CandidateError, OSError, KeyError, tomllib.TOMLDecodeError) as error:
         print(f"did-candidate: {error}", file=sys.stderr)
         return 1

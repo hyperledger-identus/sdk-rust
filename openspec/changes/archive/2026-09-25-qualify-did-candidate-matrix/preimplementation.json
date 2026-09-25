@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 387,
+  "change": "qualify-did-candidate-matrix",
+  "branch": "codex/ci/issue-387",
+  "baseRef": "origin/develop",
+  "baseSha": "e5e4c0c914dc9b7a8129f475ba39243c8b8e0bae",
+  "contractHeadSha": "87ee80964d554054d413b0a8e62a95c4b7bb031f",
+  "createdAt": "2026-09-25T16:44:58.885Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

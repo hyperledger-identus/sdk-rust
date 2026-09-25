@@ -15,6 +15,55 @@ publication              = "candidate-only"
 release_tag              = "identus-did-v0.1.0-rc.1"
 compatibility_status     = "not-applicable-first-candidate"
 
+[matrix]
+schema_version       = 1
+primary_rust_version = "1.98.1"
+msrv_rust_version    = "1.89.0"
+max_receipt_bytes    = 262144
+
+[[matrix_hosts]]
+name              = "linux"
+nix_system        = "x86_64-linux"
+github_runner     = "ubuntu-latest"
+packages          = [ "identus-did", "identus-did-resolver-http" ]
+primary_operation = "test"
+msrv_operation    = "check"
+
+[[matrix_hosts]]
+name              = "macos"
+nix_system        = "aarch64-darwin"
+github_runner     = "macos-latest"
+packages          = [ "identus-did", "identus-did-resolver-http" ]
+primary_operation = "test"
+msrv_operation    = "check"
+
+[[matrix_targets]]
+triple               = "wasm32-unknown-unknown"
+runner_host          = "linux"
+packages             = [ "identus-did" ]
+unsupported_packages = [ "identus-did-resolver-http" ]
+operation            = "check"
+tier                 = "compile-checked"
+limitation           = "No browser or runtime claim; browser runtime evidence is independent."
+
+[[matrix_targets]]
+triple               = "aarch64-linux-android"
+runner_host          = "linux"
+packages             = [ "identus-did" ]
+unsupported_packages = [ "identus-did-resolver-http" ]
+operation            = "check"
+tier                 = "compile-checked"
+limitation           = "No Android device or emulator claim; runtime evidence is independent."
+
+[[matrix_targets]]
+triple               = "aarch64-apple-ios"
+runner_host          = "macos"
+packages             = [ "identus-did" ]
+unsupported_packages = [ "identus-did-resolver-http" ]
+operation            = "check"
+tier                 = "compile-checked"
+limitation           = "No iOS simulator, device, or binding claim; runtime evidence is independent."
+
 [tools]
 cargo_public_api    = "0.52.0"
 cargo_semver_checks = "0.50.0"

@@ -218,6 +218,56 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+  did-candidate-matrix:
+    name: DID candidate (${{ matrix.host }}, primary + MSRV)
+    needs: run_start
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - host: linux
+            os: ubuntu-latest
+          - host: macos
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
+
+      - name: Qualify staged DID sources with the primary compiler
+        run: >-
+          nix run .#did-candidate-matrix-primary --
+          --output artifacts/did-matrix/primary
+          --revision "$GITHUB_SHA"
+
+      - name: Qualify staged DID sources with the MSRV
+        run: >-
+          nix run .#did-candidate-matrix-msrv --
+          --output artifacts/did-matrix/msrv
+          --revision "$GITHUB_SHA"
+
+      - name: Upload bounded DID matrix lanes
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: did-matrix-${{ matrix.host }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: artifacts/did-matrix
+          if-no-files-found: error
+          retention-days: 7
+
   checks:
     name: slow (${{ matrix.os }})
     needs: run_start
@@ -318,6 +368,7 @@ jobs:
       - crypto-baseline
       - browser-did
       - android-did-runtime
+      - did-candidate-matrix
       - checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -330,7 +381,29 @@ jobs:
 
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
+      - name: Download exact-attempt DID matrix lanes
+        if: ${{ needs.did-candidate-matrix.result == 'success' }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: did-matrix-*-${{ github.sha }}-${{ github.run_attempt }}
+          path: artifacts/did-matrix/lanes
+          merge-multiple: true
+
+      - name: Aggregate the closed DID candidate matrix
+        if: ${{ needs.did-candidate-matrix.result == 'success' }}
+        run: >-
+          python3 scripts/prepare-did-candidate.py
+          --root .
+          --aggregate-matrix
+          --revision "$GITHUB_SHA"
+          --output artifacts/slow-run/did-candidate-matrix.json
+          --lane-receipt artifacts/did-matrix/lanes/primary/linux-primary.json
+          --lane-receipt artifacts/did-matrix/lanes/msrv/linux-msrv.json
+          --lane-receipt artifacts/did-matrix/lanes/primary/macos-primary.json
+          --lane-receipt artifacts/did-matrix/lanes/msrv/macos-msrv.json
+
       - name: Bind actual checkout and render receipt
+        if: ${{ always() }}
         env:
           STARTED_AT: ${{ needs.run_start.outputs.started_at }}
           RUN_START_RESULT: ${{ needs.run_start.result }}
@@ -339,6 +412,7 @@ jobs:
           CRYPTO_BASELINE_RESULT: ${{ needs.crypto-baseline.result }}
           BROWSER_DID_RESULT: ${{ needs.browser-did.result }}
           ANDROID_DID_RUNTIME_RESULT: ${{ needs.android-did-runtime.result }}
+          DID_MATRIX_RESULT: ${{ needs.did-candidate-matrix.result }}
           CHECKS_RESULT: ${{ needs.checks.result }}
         run: |
           actual_sha=$(git rev-parse HEAD)
@@ -374,8 +448,14 @@ jobs:
                   "crypto-baseline": os.environ["CRYPTO_BASELINE_RESULT"],
                   "browser-did": os.environ["BROWSER_DID_RESULT"],
                   "android-did-runtime": os.environ["ANDROID_DID_RUNTIME_RESULT"],
+                  "did-candidate-matrix": os.environ["DID_MATRIX_RESULT"],
                   "checks": os.environ["CHECKS_RESULT"],
               },
+              "didCandidateMatrix": (
+                  "did-candidate-matrix.json"
+                  if Path("artifacts/slow-run/did-candidate-matrix.json").is_file()
+                  else None
+              ),
               "artifactIndex": "runUrl",
           }
           Path("artifacts/slow-run/receipt.json").write_text(
@@ -385,6 +465,7 @@ jobs:
           PY
 
       - name: Publish receipt summary
+        if: ${{ always() }}
         run: |
           python3 - <<'PY'
           import os
@@ -405,9 +486,10 @@ jobs:
           PY
 
       - name: Upload immutable slow-run receipt
+        if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: slow-run-${{ github.sha }}-${{ github.run_attempt }}
-          path: artifacts/slow-run/receipt.json
+          path: artifacts/slow-run
           if-no-files-found: error
           retention-days: 7

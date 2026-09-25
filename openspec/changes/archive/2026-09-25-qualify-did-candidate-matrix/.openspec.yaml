@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-26
+goal: Qualify the staged DID candidate on its explicit compiler, host, and
+  package-specific portable-target matrix without expanding required PR CI.

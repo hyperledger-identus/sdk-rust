@@ -15,6 +15,11 @@ DID_DESCRIPTOR = Path("docs/release/did-candidate.toml")
 CRYPTO_DESCRIPTOR = Path("docs/release/crypto-candidate.toml")
 BUILDER = Path("scripts/prepare-did-candidate.py")
 ADR = Path("docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md")
+MATRIX_ADR = Path("docs/adr/0155-qualify-staged-did-candidate-matrix.md")
+MATRIX_PRIMARY_APP = Path("nix/apps/did-candidate-matrix-primary.nix")
+MATRIX_MSRV_APP = Path("nix/apps/did-candidate-matrix-msrv.nix")
+APPS = Path("nix/apps/default.nix")
+SLOW_WORKFLOW = Path(".github/workflows/nix-checks.yml")
 VERSION = "0.1.0-rc.1"
 DID_PACKAGES = ("identus-did", "identus-did-resolver-http")
 PACKAGE_PATHS = {
@@ -28,7 +33,7 @@ DESCRIPTOR_KEYS = {
     "preparation_rust_version", "baseline_revision", "repository", "homepage",
     "license", "max_archive_bytes", "max_archive_members", "max_expansion_ratio",
     "max_evidence_bytes", "publication", "release_tag", "compatibility_status",
-    "tools", "profiles", "packages",
+    "tools", "matrix", "matrix_hosts", "matrix_targets", "profiles", "packages",
 }
 PROFILE_KEYS = {"package", "name", "default_features", "features"}
 PACKAGE_KEYS = {
@@ -37,6 +42,17 @@ PACKAGE_KEYS = {
     "features",
 }
 TOOL_KEYS = {"cargo_public_api", "cargo_semver_checks", "cargo_cyclonedx", "cyclonedx_spec"}
+MATRIX_KEYS = {
+    "schema_version", "primary_rust_version", "msrv_rust_version", "max_receipt_bytes",
+}
+MATRIX_HOST_KEYS = {
+    "name", "nix_system", "github_runner", "packages", "primary_operation",
+    "msrv_operation",
+}
+MATRIX_TARGET_KEYS = {
+    "triple", "runner_host", "packages", "unsupported_packages", "operation", "tier",
+    "limitation",
+}
 EXPECTED_TRAINS = (
     {
         "id": "crypto", "lifecycle": "published", "primary_package": "identus-crypto",
@@ -61,6 +77,42 @@ EXPECTED_INTERNAL = {
     "identus-did": {"identus-core", "identus-derive"},
     "identus-did-resolver-http": {"identus-core", "identus-did"},
 }
+EXPECTED_MATRIX = {
+    "schema_version": 1,
+    "primary_rust_version": "1.98.1",
+    "msrv_rust_version": "1.89.0",
+    "max_receipt_bytes": 262144,
+}
+EXPECTED_MATRIX_HOSTS = [
+    {
+        "name": "linux", "nix_system": "x86_64-linux", "github_runner": "ubuntu-latest",
+        "packages": list(DID_PACKAGES), "primary_operation": "test", "msrv_operation": "check",
+    },
+    {
+        "name": "macos", "nix_system": "aarch64-darwin", "github_runner": "macos-latest",
+        "packages": list(DID_PACKAGES), "primary_operation": "test", "msrv_operation": "check",
+    },
+]
+EXPECTED_MATRIX_TARGETS = [
+    {
+        "triple": "wasm32-unknown-unknown", "runner_host": "linux",
+        "packages": ["identus-did"], "unsupported_packages": ["identus-did-resolver-http"],
+        "operation": "check", "tier": "compile-checked",
+        "limitation": "No browser or runtime claim; browser runtime evidence is independent.",
+    },
+    {
+        "triple": "aarch64-linux-android", "runner_host": "linux",
+        "packages": ["identus-did"], "unsupported_packages": ["identus-did-resolver-http"],
+        "operation": "check", "tier": "compile-checked",
+        "limitation": "No Android device or emulator claim; runtime evidence is independent.",
+    },
+    {
+        "triple": "aarch64-apple-ios", "runner_host": "macos",
+        "packages": ["identus-did"], "unsupported_packages": ["identus-did-resolver-http"],
+        "operation": "check", "tier": "compile-checked",
+        "limitation": "No iOS simulator, device, or binding claim; runtime evidence is independent.",
+    },
+]
 
 
 def load_toml(path: Path, errors: list[str]) -> dict[str, Any]:
@@ -195,6 +247,42 @@ def validate(root: Path) -> list[str]:
         if tools != expected_tools:
             errors.append("DID descriptor evidence tools differ")
 
+    matrix = descriptor.get("matrix")
+    if not isinstance(matrix, dict):
+        errors.append("DID descriptor matrix must be a table")
+    else:
+        require_keys(matrix, MATRIX_KEYS, "DID descriptor matrix", errors)
+        if matrix != EXPECTED_MATRIX:
+            errors.append("DID descriptor compiler matrix differs")
+
+    matrix_hosts = descriptor.get("matrix_hosts")
+    if not isinstance(matrix_hosts, list):
+        errors.append("DID descriptor matrix_hosts must be an array")
+        matrix_hosts = []
+    for position, host in enumerate(matrix_hosts):
+        if not isinstance(host, dict):
+            errors.append(f"DID matrix host {position} must be a table")
+        else:
+            require_keys(host, MATRIX_HOST_KEYS, f"DID matrix host {position}", errors)
+    if matrix_hosts != EXPECTED_MATRIX_HOSTS:
+        errors.append("DID descriptor host matrix differs")
+
+    matrix_targets = descriptor.get("matrix_targets")
+    if not isinstance(matrix_targets, list):
+        errors.append("DID descriptor matrix_targets must be an array")
+        matrix_targets = []
+    for position, target in enumerate(matrix_targets):
+        if not isinstance(target, dict):
+            errors.append(f"DID matrix target {position} must be a table")
+        else:
+            require_keys(target, MATRIX_TARGET_KEYS, f"DID matrix target {position}", errors)
+            if target.get("packages") != ["identus-did"]:
+                errors.append(f"DID matrix target {position} overclaims portable packages")
+            if target.get("unsupported_packages") != ["identus-did-resolver-http"]:
+                errors.append(f"DID matrix target {position} HTTP support boundary differs")
+    if matrix_targets != EXPECTED_MATRIX_TARGETS:
+        errors.append("DID descriptor portable target matrix differs")
+
     profiles = descriptor.get("profiles")
     observed_profiles: list[tuple[Any, Any, Any, tuple[Any, ...]]] = []
     if not isinstance(profiles, list):
@@ -281,6 +369,8 @@ def validate(root: Path) -> list[str]:
         "verify_closure", "require_local_command", "ALLOWED_CARGO_OPERATIONS",
         "release_evidence", "public-api", "cyclonedx",
         "repositoryPolicy", "candidateSpecificScan", "os.replace", "candidate-receipt.json",
+        "--matrix-toolchain", "--aggregate-matrix", "build_matrix_lane",
+        "aggregate_matrix", "matrix receipt exceeds byte limit",
     )
     for phrase in required_builder:
         if phrase not in builder:
@@ -309,6 +399,43 @@ def validate(root: Path) -> list[str]:
     ):
         if phrase not in api_adr:
             errors.append(f"DID API-origin ADR is missing decision evidence: {phrase}")
+
+    matrix_adr = read(root / MATRIX_ADR, errors)
+    for phrase in (
+        "staged sources", "Rust 1.98.1", "MSRV 1.89.0", "compile-only claims",
+        "explicitly unsupported", "exact four receipts", "not authorize dispatch or rerun",
+    ):
+        if phrase not in matrix_adr:
+            errors.append(f"DID matrix ADR is missing decision evidence: {phrase}")
+
+    primary_app = read(root / MATRIX_PRIMARY_APP, errors)
+    msrv_app = read(root / MATRIX_MSRV_APP, errors)
+    apps = read(root / APPS, errors)
+    for source, label, phrases in (
+        (primary_app, "primary matrix app", ("toolchain", "--matrix-toolchain primary")),
+        (msrv_app, "MSRV matrix app", ("msrvToolchain", "--matrix-toolchain msrv")),
+        (
+            apps, "matrix app registration",
+            ("did-candidate-matrix-primary", "did-candidate-matrix-msrv"),
+        ),
+    ):
+        for phrase in phrases:
+            if phrase not in source:
+                errors.append(f"DID {label} is missing contract: {phrase}")
+
+    workflow = read(root / SLOW_WORKFLOW, errors)
+    required_workflow = (
+        "did-candidate-matrix:", "did-candidate-matrix-primary",
+        "did-candidate-matrix-msrv", "did-matrix-${{ matrix.host }}-${{ github.sha }}-",
+        "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+        "--aggregate-matrix", "DID_MATRIX_RESULT", '"did-candidate-matrix"',
+        "artifacts/slow-run",
+    )
+    for phrase in required_workflow:
+        if phrase not in workflow:
+            errors.append(f"slow workflow is missing DID matrix contract: {phrase}")
+    if "pull_request:" in workflow:
+        errors.append("slow workflow must not gain a pull_request trigger")
     return errors
 
 

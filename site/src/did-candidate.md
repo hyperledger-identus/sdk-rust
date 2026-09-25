@@ -66,12 +66,33 @@ Primary evidence:
 - [DID candidate descriptor](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/release/did-candidate.toml)
 - [Release-train registry](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/release/release-trains.toml)
 - [ADR 0153: independent train tags](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md)
-- [ADR 0154: first-candidate API origin](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/adr/0154-use-first-candidate-api-snapshots-as-the-semver-origin.md)
+- [ADR 0154: first-candidate API origin](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/adr/0154-use-first-candidate-api-snapshots-as-semver-origin.md)
+- [ADR 0155: staged compiler and target matrix](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/adr/0155-qualify-staged-did-candidate-matrix.md)
 - [Supply-chain qualification issue #384](https://github.com/hyperledger-identus/sdk-rust/issues/384)
+
+## Compiler and target contract
+
+| Package | Linux + macOS | Browser WASM | Android ARM64 | iOS ARM64 |
+| --- | --- | --- | --- | --- |
+| `identus-did` | Primary tests + MSRV compile checks | Compile-checked | Compile-checked | Compile-checked |
+| `identus-did-resolver-http` | Primary tests + MSRV compile checks | Not supported | Not supported | Not supported |
+
+The matrix always exercises the staged `0.1.0-rc.1` sources and their exact
+internal dependency versions. Portable rows use `cargo check` with Rust 1.98.1
+and 1.89.0; they make no browser, device, simulator, binding, packaging,
+performance, or certification claim. The HTTP adapter is host-only by design.
+Weekly/manual slow CI produces four attempt-scoped lane receipts and accepts
+their aggregate only when source revision, compiler identities, target rows,
+outcomes, and staged lockfile agree.
 
 ## Promotion gates
 
-Candidate assembly and documentation do not authorize publication. M5 still
-requires the compiler and target matrix in [#387](https://github.com/hyperledger-identus/sdk-rust/issues/387), then an independent exact-SHA decision in [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388). Administrator-owned trusted-publishing hardening remains tracked by [#344](https://github.com/hyperledger-identus/sdk-rust/issues/344).
+Candidate assembly and documentation do not authorize publication. The matrix
+implementation is tracked in [#387](https://github.com/hyperledger-identus/sdk-rust/issues/387),
+but only a natural or explicitly approved manual slow run at the final revision
+constitutes release evidence. M5 then requires an independent exact-SHA
+decision in [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388).
+Administrator-owned trusted-publishing hardening remains tracked by
+[#344](https://github.com/hyperledger-identus/sdk-rust/issues/344).
 
 See [release readiness](release-readiness.md) for the consolidated gate table.

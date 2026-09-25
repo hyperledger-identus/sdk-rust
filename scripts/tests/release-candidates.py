@@ -45,6 +45,11 @@ def copy_fixture(destination: Path) -> None:
         "docs/release/crypto-candidate.toml",
         "docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md",
         "docs/adr/0154-use-first-candidate-api-snapshots-as-semver-origin.md",
+        "docs/adr/0155-qualify-staged-did-candidate-matrix.md",
+        ".github/workflows/nix-checks.yml",
+        "nix/apps/default.nix",
+        "nix/apps/did-candidate-matrix-primary.nix",
+        "nix/apps/did-candidate-matrix-msrv.nix",
         "scripts/prepare-did-candidate.py",
         "crates/did/Cargo.toml",
         "crates/did/README.md",
@@ -183,6 +188,82 @@ def main() -> int:
             else:
                 raise AssertionError(f"invalid CycloneDX evidence was accepted: {expected}")
 
+        descriptor = builder.load_toml(ROOT / builder.DESCRIPTOR)
+        revision = "b" * 40
+        original_run = builder.run
+
+        def aggregate_run(command, *, cwd, env):
+            if command == ["git", "rev-parse", "HEAD"]:
+                return revision + "\n"
+            if len(command) == 3 and Path(command[1]).name == "check-release-candidates.py":
+                return "release-candidates: test fixture passed\n"
+            return original_run(command, cwd=cwd, env=env)
+
+        builder.run = aggregate_run
+        lane_paths: list[Path] = []
+        lock_hash = "a" * 64
+        host_triples = {
+            "linux": "x86_64-unknown-linux-gnu", "macos": "aarch64-apple-darwin",
+        }
+        for host in descriptor["matrix_hosts"]:
+            for toolchain_class in ("primary", "msrv"):
+                version = descriptor["matrix"][f"{toolchain_class}_rust_version"]
+                full_host = host | {"rust_triple": host_triples[host["name"]]}
+                rows, unsupported = builder.expected_lane_rows(
+                    descriptor, full_host, toolchain_class
+                )
+                lane = {
+                    "schemaVersion": 1,
+                    "candidate": descriptor["candidate"],
+                    "sourceRevision": revision,
+                    "sourceDirty": False,
+                    "host": {
+                        "name": host["name"], "nixSystem": host["nix_system"],
+                        "rustTriple": full_host["rust_triple"],
+                    },
+                    "toolchain": {
+                        "class": toolchain_class, "rustVersion": version,
+                        "rustc": f"rustc {version} (test)",
+                        "cargo": f"cargo {version} (test)",
+                    },
+                    "lock": {"file": "Cargo.lock", "sha256": lock_hash},
+                    "rows": rows,
+                    "unsupported": unsupported,
+                    "limitations": [
+                        "portable rows are compile-only and make no runtime or packaging claim",
+                        "the HTTP resolver adapter is host-only",
+                    ],
+                    "elapsedSeconds": 1.0,
+                }
+                path = boundary / f"{host['name']}-{toolchain_class}.json"
+                path.write_text(json.dumps(lane), encoding="utf-8")
+                lane_paths.append(path)
+        aggregate = boundary / "aggregate.json"
+        builder.aggregate_matrix(ROOT, aggregate, revision, lane_paths)
+        result = json.loads(aggregate.read_text(encoding="utf-8"))
+        if result["status"] != "passed" or result["laneCount"] != 4:
+            raise AssertionError("valid closed matrix did not aggregate")
+        overclaim = json.loads(lane_paths[0].read_text(encoding="utf-8"))
+        overclaim["rows"].append({
+            "scope": "target", "package": "identus-did-resolver-http",
+            "profile": "default", "operation": "check",
+            "target": "wasm32-unknown-unknown", "tier": "compile-checked",
+            "status": "passed", "command": ["cargo", "check"],
+        })
+        overclaim_path = boundary / "overclaim.json"
+        overclaim_path.write_text(json.dumps(overclaim), encoding="utf-8")
+        try:
+            builder.aggregate_matrix(
+                ROOT, boundary / "rejected-overclaim.json", revision,
+                [overclaim_path, *lane_paths[1:]],
+            )
+        except builder.CandidateError as error:
+            if "overclaim" not in str(error):
+                raise AssertionError(f"unexpected matrix rejection: {error}") from error
+        else:
+            raise AssertionError("portable HTTP overclaim was accepted")
+        builder.run = original_run
+
         fixture = Path(temporary) / "valid"
         copy_fixture(fixture)
         if errors := checker.validate(fixture):
@@ -230,6 +311,35 @@ def main() -> int:
                     'compatibility_status     = "compatible"',
                 ),
                 "DID descriptor differs: compatibility_status",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-candidate.toml",
+                    'primary_rust_version = "1.98.1"',
+                    'primary_rust_version = "1.99.0"',
+                ),
+                "DID descriptor compiler matrix differs",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-candidate.toml",
+                    'packages             = [ "identus-did" ]',
+                    'packages             = [ "identus-did", "identus-did-resolver-http" ]',
+                ),
+                "overclaims portable packages",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-candidate.toml",
+                    'runner_host          = "linux"', 'runner_host          = "macos"',
+                ),
+                "DID descriptor portable target matrix differs",
+            ),
+            (
+                lambda root: append(
+                    root / ".github/workflows/nix-checks.yml", "\npull_request:\n",
+                ),
+                "slow workflow must not gain a pull_request trigger",
             ),
             (
                 lambda root: replace(

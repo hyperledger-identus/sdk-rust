@@ -90,3 +90,16 @@ issuer, server or issuance trust.
 - **WHEN** response-local data is correlated
 - **THEN** no DNS, TLS, HTTP, clock, entropy, persistence, proof, retry or trust
   effect occurs
+
+### Requirement: Correlated dataset authority has a consuming request continuation
+
+The correlated state SHALL expose a consuming continuation into bounded
+authorized-dataset JWT Credential Request construction and SHALL expose no
+metadata, token, configuration or raw-identifier replacement input.
+
+#### Scenario: continuation preserves least authority
+
+- **WHEN** one correlated state advances
+- **THEN** only its retained endpoint, token and authorized identifier can
+  appear in the resulting request
+

@@ -25,6 +25,12 @@ impl CredentialIssuerIdentifier {
     pub fn as_str(&self) -> &str {
         &self.value
     }
+
+    pub(crate) fn duplicate(&self) -> Self {
+        Self {
+            value: Zeroizing::new(self.value.to_string()),
+        }
+    }
 }
 
 pub(crate) fn is_valid_https_identifier(value: &str) -> bool {

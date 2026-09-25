@@ -1,6 +1,6 @@
 # ADR 0148: bind OID4VCI Credential Endpoint responses
 
-- **Status:** Accepted
+- **Status:** Accepted; HTTP 202 secret lifetime amended by ADR 0149
 - **Date:** 2026-09-25
 - **Issue:** [#366](https://github.com/hyperledger-identus/sdk-rust/issues/366)
 - **Decision authority:** ADR 0119, ADR 0137, ADR 0147 and issue #366
@@ -25,7 +25,9 @@ outside the current unencrypted profile.
 1. Add a consuming `JwtCredentialRequest` transition that accepts one status,
    effective Content-Type, borrowed body and composed response limits.
 2. Copy only the local proof count, then drop the request before parsing remote
-   input so its zeroizing bearer field and proof body are erased first.
+   input so its zeroizing bearer field and proof body are erased first. ADR
+   0149 later narrows this rule for exact HTTP 202 only by retaining minimal
+   continuation authority while still erasing the proof body first.
 3. Select exactly one parser by status before inspecting media type or body:
    `200` immediate success, `202` deferred success, and `400` Credential
    payload error. Reject every other status with one static diagnostic.
@@ -53,9 +55,9 @@ origin, issuer authorization, credential validity, trust, freshness, or safe
 recovery.
 
 Dropping the request before parsing intentionally avoids extending the bearer
-token lifetime. A later deferred-continuation slice must make any different
-secret-lifetime decision explicitly rather than retaining authority here by
-accident.
+token lifetime on terminal, payload-error and invalid-status paths. ADR 0149
+records the explicit different lifetime decision required for exact HTTP 202
+continuation.
 
 ## Reconsideration and rollback
 

@@ -7,7 +7,8 @@ use identus_oid4vci::{
     CAPABILITY, CredentialEndpointErrorKind, CredentialEndpointResponseLimits,
     CredentialEndpointResponseOutcome, CredentialIssuerMetadata, CredentialIssuerMetadataLimits,
     CredentialOffer, CredentialOfferError, CredentialOfferGrantLimits, CredentialOfferLimits,
-    CredentialOfferSemanticLimits, DeferredCredentialHttpResponseLimits, EmbeddedCredentialOffer,
+    CredentialOfferSemanticLimits, DeferredCredentialHttpResponseLimits,
+    DeferredCredentialRequestLimits, EmbeddedCredentialOffer,
     ImmediateCredentialHttpResponseLimits, JwtCredentialRequest, JwtCredentialRequestLimits,
     PRE_AUTHORIZED_CODE_GRANT_TYPE, TokenResponseCore, TokenResponseLimits, error_code,
 };
@@ -15,6 +16,7 @@ use serde_json::json;
 
 const ISSUER: &str = "https://credential-issuer.example.com";
 const ENDPOINT: &str = "https://credential-issuer.example.com/credential";
+const DEFERRED_ENDPOINT: &str = "https://credential-issuer.example.com/deferred";
 
 struct StubSigner;
 
@@ -51,6 +53,13 @@ fn proof(nonce: &str) -> Oid4vciProofJwt {
 }
 
 fn request(proof_count: usize) -> JwtCredentialRequest {
+    request_with_deferred_endpoint(proof_count, Some(DEFERRED_ENDPOINT))
+}
+
+fn request_with_deferred_endpoint(
+    proof_count: usize,
+    deferred_endpoint: Option<&str>,
+) -> JwtCredentialRequest {
     let offer = CredentialOffer::try_from_embedded(
         EmbeddedCredentialOffer::try_from_json(
             &json!({
@@ -71,15 +80,21 @@ fn request(proof_count: usize) -> JwtCredentialRequest {
     .expect("offer semantics")
     .try_into_grants(CredentialOfferGrantLimits::default())
     .expect("offer grants");
+    let mut metadata_json = json!({
+        "credential_issuer": ISSUER,
+        "credential_endpoint": ENDPOINT,
+        "credential_configurations_supported": {
+            "degree": {"format": "dc+sd-jwt"}
+        }
+    });
+    if let Some(endpoint) = deferred_endpoint {
+        metadata_json
+            .as_object_mut()
+            .expect("metadata object")
+            .insert("deferred_credential_endpoint".to_owned(), json!(endpoint));
+    }
     let metadata = CredentialIssuerMetadata::parse(
-        &json!({
-            "credential_issuer": ISSUER,
-            "credential_endpoint": ENDPOINT,
-            "credential_configurations_supported": {
-                "degree": {"format": "dc+sd-jwt"}
-            }
-        })
-        .to_string(),
+        &metadata_json.to_string(),
         ISSUER,
         CredentialIssuerMetadataLimits::default(),
     )
@@ -164,7 +179,77 @@ fn exact_202_response_is_classified_and_bound_to_request_count() {
             .expose_sensitive_transaction_id(),
         "opaque-transaction"
     );
-    assert_eq!(bound.into_response().interval().as_str(), "5");
+    let request = bound
+        .try_into_deferred_credential_request(DeferredCredentialRequestLimits::default())
+        .expect("authority-preserving Deferred Credential Request");
+    assert_eq!(request.credential_issuer().as_str(), ISSUER);
+    assert_eq!(
+        request.deferred_credential_endpoint().as_str(),
+        DEFERRED_ENDPOINT
+    );
+    assert_eq!(request.request_proof_count(), 3);
+    assert_eq!(request.http_method(), "POST");
+    assert_eq!(request.media_type(), "application/json");
+    assert_eq!(
+        request.expose_sensitive_authorization(),
+        "Bearer opaque-token"
+    );
+    assert_eq!(
+        request.expose_sensitive_json_body(),
+        br#"{"transaction_id":"opaque-transaction"}"#
+    );
+    assert_eq!(
+        request.authorization_len(),
+        request.expose_sensitive_authorization().len()
+    );
+    assert_eq!(
+        request.json_body_len(),
+        request.expose_sensitive_json_body().len()
+    );
+}
+
+#[test]
+fn bound_continuation_reuses_request_limits_and_requires_advertised_endpoint() {
+    let body = r#"{"transaction_id":"opaque-transaction","interval":5}"#;
+    let bound = match request(1)
+        .try_into_credential_endpoint_response(
+            202,
+            "application/json",
+            body,
+            CredentialEndpointResponseLimits::default(),
+        )
+        .expect("deferred response")
+    {
+        CredentialEndpointResponseOutcome::Deferred(bound) => bound,
+        _ => panic!("expected deferred response"),
+    };
+    assert_eq!(
+        bound
+            .try_into_deferred_credential_request(
+                DeferredCredentialRequestLimits::new(1).expect("positive limit"),
+            )
+            .expect_err("bounded request body"),
+        CredentialOfferError::DeferredCredentialRequestTooLarge
+    );
+
+    let bound = match request_with_deferred_endpoint(1, None)
+        .try_into_credential_endpoint_response(
+            202,
+            "application/json",
+            body,
+            CredentialEndpointResponseLimits::default(),
+        )
+        .expect("deferred response without endpoint")
+    {
+        CredentialEndpointResponseOutcome::Deferred(bound) => bound,
+        _ => panic!("expected deferred response"),
+    };
+    assert_eq!(
+        bound
+            .try_into_deferred_credential_request(DeferredCredentialRequestLimits::default())
+            .expect_err("missing advertised Deferred Credential Endpoint"),
+        CredentialOfferError::DeferredCredentialEndpointRequired
+    );
 }
 
 #[test]
@@ -273,6 +358,19 @@ fn debug_and_error_bridges_do_not_disclose_response_values() {
 
     let deferred_debug = format!("{deferred:?}");
     assert!(!deferred_debug.contains("private-transaction"));
+    assert!(!deferred_debug.contains("opaque-token"));
+    assert!(!deferred_debug.contains(ISSUER));
+    let CredentialEndpointResponseOutcome::Deferred(deferred) = deferred else {
+        panic!("expected deferred response")
+    };
+    let request = deferred
+        .try_into_deferred_credential_request(DeferredCredentialRequestLimits::default())
+        .expect("bound request");
+    let request_debug = format!("{request:?}");
+    assert!(!request_debug.contains("private-transaction"));
+    assert!(!request_debug.contains("opaque-token"));
+    assert!(!request_debug.contains(ISSUER));
+    assert!(!request_debug.contains(DEFERRED_ENDPOINT));
     let error_debug = format!("{error:?}");
     assert!(!error_debug.contains("private-description"));
 

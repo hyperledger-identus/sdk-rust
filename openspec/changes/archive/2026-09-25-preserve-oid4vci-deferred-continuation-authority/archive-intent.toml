@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "oid4vci-credential-endpoint-response"
+requirement      = "one-shot authority and proof-count binding"
+canonical_sha256 = "6fb277671be0ad6b8ed07280831c42b69bd380f427139086ff84fa23aa679a04"
+reason           = "Issue #368 deliberately narrows the predecessor's erase-before-parse rule for exact HTTP 202 only: it erases the proof body and obsolete Credential Endpoint while retaining the minimal validated issuer, Deferred Credential Endpoint, bearer Authorization and proof-count authority required by the Final continuation request."

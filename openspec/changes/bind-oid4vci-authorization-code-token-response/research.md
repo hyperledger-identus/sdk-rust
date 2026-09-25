@@ -48,13 +48,15 @@ storing the response but is not itself a complete privacy mechanism.
 The SDK classifies status before reading any header or body semantic:
 
 1. `200` selects `TokenResponseCore`.
-2. `400` or `401` selects `TokenErrorResponseCore`.
+2. `400` selects `TokenErrorResponseCore`; `401` selects the same parser but
+   is accepted only when the parsed error is exact `invalid_client`.
 3. Every other status fails with one static diagnostic.
 
 The selected class cannot be overridden by body shape. A `200` error object
 therefore fails the success parser, and a `400`/`401` success object fails the
-error parser. This prevents ambiguous success/error branches and follows the
-OAuth-defined HTTP contract.
+error parser. A non-`invalid_client` error on `401` fails a separate static
+status/error mismatch diagnostic. This prevents ambiguous success/error
+branches and follows the OAuth-defined HTTP contract.
 
 Both branches require a bounded valid `application/json` Content-Type, a
 bounded valid Cache-Control field containing a bare `no-store`, and a bounded

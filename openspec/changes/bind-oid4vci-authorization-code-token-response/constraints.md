@@ -18,7 +18,8 @@ remain unchanged.
 - Only `AuthorizationCodeTokenRequest` may bind this response and the request
   is consumed exactly once on every return path.
 - Exact status `200` selects success; exact `400` or `401` selects OAuth error;
-  every other status fails before header or body parsing.
+  every other status fails before header or body parsing, and `401` succeeds
+  only for exact `invalid_client`.
 - Content-Type, Cache-Control and Pragma each have positive independent byte
   limits and strict static validation before the existing bounded body parser.
 - Both outcome branches require JSON, a bare `no-store`, and a bare `no-cache`.

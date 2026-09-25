@@ -27,7 +27,8 @@ Validation applies in this order:
 4. Bound Pragma, then require a syntactically valid bare `no-cache`.
 5. Parse `200` with `TokenResponseCore` and `400`/`401` with
    `TokenErrorResponseCore` under their independently supplied limits.
-6. Construct exactly one request-bound success or error outcome.
+6. Require a parsed `401` error to be exact `invalid_client`.
+7. Construct exactly one request-bound success or error outcome.
 
 Status wins over body shape. The envelope does not infer outcome from JSON and
 does not parse a body after an earlier status or header failure.
@@ -46,7 +47,8 @@ handling stays outside the SDK; callers pass one effective bounded value.
 
 ## Error and compatibility surface
 
-Append eight fieldless diagnostics: invalid limits; invalid status; oversized
+Append nine fieldless diagnostics: invalid limits; invalid status; a `401`
+status/error mismatch; oversized
 and invalid Content-Type; oversized and invalid Cache-Control; oversized and
 invalid Pragma. Keep them in one focused authorization-code token-response
 catalogue after every existing live row. The central wildcard-free router maps

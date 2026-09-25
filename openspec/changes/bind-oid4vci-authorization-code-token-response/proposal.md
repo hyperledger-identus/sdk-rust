@@ -16,7 +16,8 @@ process unbounded headers and bodies.
 - Consume one `AuthorizationCodeTokenRequest` exactly once when binding a
   caller-supplied final Token Endpoint response.
 - Classify exact HTTP `200` as success and exact `400` or `401` as OAuth error
-  before any body parsing.
+  before any body parsing; require a parsed `401` error to be exact
+  `invalid_client`.
 - Require bounded `application/json`, `Cache-Control` containing a bare
   `no-store`, and `Pragma` containing a bare `no-cache`.
 - Parse the body with the existing bounded `TokenResponseCore` or

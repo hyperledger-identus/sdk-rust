@@ -8,7 +8,8 @@ The SDK SHALL consume exactly one `AuthorizationCodeTokenRequest` to bind one
 caller-supplied final Token Endpoint HTTP response. Exact status `200` SHALL
 select `TokenResponseCore`; exact status `400` or `401` SHALL select
 `TokenErrorResponseCore`; every other status SHALL fail before any header or
-body semantic is inspected.
+body semantic is inspected. A `401` response SHALL be accepted only when the
+parsed error code is exact `invalid_client`.
 
 The result SHALL be exactly one request-bound success or OAuth error outcome.
 Body shape SHALL NOT override the status-selected branch, and the transition
@@ -31,6 +32,12 @@ SHALL perform no HTTP.
 - **WHEN** a `200` carries an error object or a `400`/`401` carries a success
   object
 - **THEN** the status-selected parser rejects the mismatched body
+
+#### Scenario: 401 remains specific to invalid client
+
+- **WHEN** status `401` carries a valid Token Error Response whose exact error
+  code is not `invalid_client`
+- **THEN** binding fails with a static status/error mismatch diagnostic
 
 ### Requirement: HTTP status and headers are strict and independently bounded
 

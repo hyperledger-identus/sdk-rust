@@ -5,7 +5,8 @@
 ### Requirement: Authorization Code Token HTTP diagnostics are append-only
 
 The response-binding capability SHALL append unique fieldless public
-diagnostics for invalid non-positive limits, unsupported HTTP status,
+diagnostics for invalid non-positive limits, unsupported HTTP status, a `401`
+status/error mismatch,
 oversized/invalid Content-Type, oversized/invalid Cache-Control, and
 oversized/invalid Pragma. One focused private catalogue SHALL own the records
 and the central wildcard-free router SHALL map every variant explicitly.
@@ -23,6 +24,6 @@ token, request secret, endpoint, lineage or remote value.
 
 #### Scenario: historical inventory stays exact
 
-- **WHEN** the eight response diagnostics are appended
+- **WHEN** the nine response diagnostics are appended
 - **THEN** every prior exhaustive inventory row remains semantically exact and
   the router has no wildcard fallback

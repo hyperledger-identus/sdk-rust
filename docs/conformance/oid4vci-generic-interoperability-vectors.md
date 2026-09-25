@@ -73,7 +73,7 @@ hosts and signatures are synthetic.
 ## M4 disposition
 
 The cross-consumer matrix row can be `implemented` from clean-room executable
-evidence. This closes the last required missing row and permits IDR-023, issue
-#7 and M4 to close as a bounded wallet-core milestone. The five partial and
+evidence. This closes the last required missing row and permits IDR-023,
+issue #7 and M4 to close as a bounded wallet-core milestone. The five partial and
 four unsupported rows remain visible; publication, certification and
 downstream adoption remain separate.

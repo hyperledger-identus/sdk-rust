@@ -10,7 +10,8 @@ fi
 checker="$repository_root/scripts/check-pr-policy.sh"
 valid_body=$'- Issue: #16\n- Local review: passed by a fresh review pass\n- Constraint impact: routine\n- Limitations: none'
 output_file=$(mktemp)
-trap 'rm -f "$output_file"' EXIT
+private_tmp=$(mktemp -d)
+trap 'rm -f "$output_file"; rmdir "$private_tmp"' EXIT
 
 assert_rejected() {
   local description=$1
@@ -25,6 +26,22 @@ assert_rejected() {
 GITHUB_OUTPUT="$output_file" PR_BASE_REF=develop PR_DRAFT=false \
   PR_BODY="$valid_body" "$checker" >/dev/null
 grep -qx 'issue-number=16' "$output_file"
+
+printf -v long_filler '%*s' 60000 ''
+long_beginning_body="$valid_body"$'\n'"$long_filler"
+long_end_body="$long_filler"$'\n'"$valid_body"
+
+for long_body in "$long_beginning_body" "$long_end_body"; do
+  : >"$output_file"
+  TMPDIR="$private_tmp" GITHUB_OUTPUT="$output_file" \
+    PR_BASE_REF=develop PR_DRAFT=false \
+    PR_BODY="$long_body" "$checker" >/dev/null
+  grep -qx 'issue-number=16' "$output_file"
+done
+if [[ -n $(find "$private_tmp" -mindepth 1 -maxdepth 1 -print -quit) ]]; then
+  printf 'pr-policy test: checker retained private body material\n' >&2
+  exit 1
+fi
 
 assert_rejected "a pull request targeting main" \
   env PR_BASE_REF=main PR_DRAFT=false PR_BODY="$valid_body" "$checker"

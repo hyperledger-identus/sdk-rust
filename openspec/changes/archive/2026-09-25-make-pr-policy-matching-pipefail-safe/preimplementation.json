@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 374,
+  "change": "make-pr-policy-matching-pipefail-safe",
+  "branch": "codex/fix/issue-374",
+  "baseRef": "origin/develop",
+  "baseSha": "b7348510ce0db180a320bdf557c3976be56c67ec",
+  "contractHeadSha": "0f8e0366ed17c288398826d01dd91f76294f23c1",
+  "createdAt": "2026-09-25T14:14:23.838Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

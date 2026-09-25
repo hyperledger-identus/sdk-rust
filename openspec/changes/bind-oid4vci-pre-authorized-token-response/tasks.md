@@ -21,6 +21,6 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Complete focused/full/portable gates and exact-diff local review.
+- [x] 3.1 Complete focused/full/portable gates and exact-diff local review.
 - [ ] 3.2 Archive OpenSpec, publish bounded metrics and merge only after hosted
   `fast` passes.

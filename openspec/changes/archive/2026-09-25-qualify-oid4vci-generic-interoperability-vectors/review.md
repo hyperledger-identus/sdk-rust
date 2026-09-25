@@ -73,3 +73,13 @@ fabricated conformance-owner failure. This keeps the negative contract active
 for future gaps without requiring a permanently open issue. The eight focused
 tests and the complete factory-contract mutation suite pass; no runtime,
 protocol or hosted-policy behavior is weakened.
+
+The subsequent exact Linux candidate proved the factory fix but exposed that
+the Nix cleaned Cargo source retained only Rust/default fixture suffixes. All
+865 other executed tests and every factory, lint, build, Clippy and docs gate
+passed; the three interoperability tests failed before parsing because their
+manifest was absent. The source filter now admits only the exact
+`crates/oid4vci/tests/fixtures/interop-v1` subtree and the Rust source contract
+requires its manifest and exact ten-file packet. It does not admit unrelated
+JSON/text files or planning evidence. This is build-input parity for the
+already-reviewed tests, not a runtime or protocol expansion.

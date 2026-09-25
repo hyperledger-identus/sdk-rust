@@ -14,22 +14,25 @@
     }:
     let
       # Like `craneLib.cleanCargoSource ./../..` but also keeps trybuild
-      # `.stderr` fixtures and the four immutable error goldens, which the
-      # default cargo source filter strips. Keep the CSV suffixes exact so no
-      # planning golden or unrelated CSV enters Rust build sources.
+      # `.stderr` fixtures, the four immutable error goldens and the bounded
+      # OID4VCI interoperability packet, which the default cargo source filter
+      # strips. Keep every exception path-scoped so planning evidence and
+      # unrelated data files do not enter Rust build sources.
       cleanedSrc = pkgs.lib.cleanSourceWith {
         src = pkgs.lib.cleanSource ./../..;
         filter =
           path: type:
           let
             sourcePath = toString path;
+            oid4vciInteropRoot = "${toString ./../..}/crates/oid4vci/tests/fixtures/interop-v1";
           in
           craneLib.filterCargoSources path type
           || pkgs.lib.hasSuffix ".stderr" (baseNameOf sourcePath)
           || pkgs.lib.hasSuffix "/crates/credentials/tests/fixtures/credentials-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/crates/presentations/tests/fixtures/presentations-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/crates/jose/tests/fixtures/jose-error-contract-v1.csv" sourcePath
-          || pkgs.lib.hasSuffix "/crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv" sourcePath;
+          || pkgs.lib.hasSuffix "/crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv" sourcePath
+          || pkgs.lib.hasPrefix oid4vciInteropRoot sourcePath;
       };
       cargoArtifacts = craneLib.buildDepsOnly {
         src = cleanedSrc;
@@ -61,6 +64,8 @@
           test -f "$src/crates/presentations/tests/fixtures/presentations-error-contract-v1.csv"
           test -f "$src/crates/jose/tests/fixtures/jose-error-contract-v1.csv"
           test -f "$src/crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv"
+          test -f "$src/crates/oid4vci/tests/fixtures/interop-v1/manifest.json"
+          test "$(find "$src/crates/oid4vci/tests/fixtures/interop-v1" -type f | wc -l)" -eq 10
           if find "$src/openspec/changes" -type f \
             \( -name credentials-error-contract-v1.csv \
               -o -name presentations-error-contract-v1.csv \

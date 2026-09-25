@@ -86,3 +86,18 @@ After making that test lifecycle-aware:
 
 The next exact hosted candidate must still pass `fast`; no rerun or bypass of
 the failed revision is accepted.
+
+The next candidate passed the factory remediation and every non-test Nix gate,
+then reported 865 passed and three failed tests. Each new interoperability test
+failed at the same precondition because `manifest.json` was absent from the
+Nix cleaned Cargo source. The Nix filter and `rust-source-contract` now retain
+and assert only the exact ten-file `interop-v1` subtree. Before another hosted
+candidate:
+
+- `nix build .#checks.aarch64-darwin.rust-source-contract`: passed.
+- `nix build .#checks.aarch64-darwin.rust-test`: 868 passed, 22 skipped; the
+  three interoperability tests passed from the cleaned source.
+- `nix build .#checks.aarch64-darwin.lint-nix`: passed after canonical Nix
+  formatting.
+
+The failed run remains immutable evidence and is not rerun.

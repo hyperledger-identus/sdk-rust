@@ -57,6 +57,32 @@ fn omitted_grants_and_anonymous_flag_preserve_rfc_and_final_defaults() {
     assert_eq!(parsed.effective_grant_type(2), None);
     assert_eq!(parsed.advertised_anonymous_pre_authorized_access(), None);
     assert!(!parsed.effective_anonymous_pre_authorized_access());
+    assert_eq!(
+        parsed.advertised_authorization_response_iss_parameter_supported(),
+        None
+    );
+    assert!(!parsed.effective_authorization_response_iss_parameter_supported());
+}
+
+#[test]
+fn authorization_response_issuer_support_is_exact_and_defaults_false() {
+    let parsed = metadata(&format!(
+        r#"{{"issuer":"{ISSUER}","authorization_response_iss_parameter_supported":true}}"#
+    ))
+    .expect("metadata core");
+    assert_eq!(
+        parsed.advertised_authorization_response_iss_parameter_supported(),
+        Some(true)
+    );
+    assert!(parsed.effective_authorization_response_iss_parameter_supported());
+
+    assert_eq!(
+        metadata(&format!(
+            r#"{{"issuer":"{ISSUER}","authorization_response_iss_parameter_supported":"true"}}"#
+        ))
+        .expect_err("non-boolean support flag must fail"),
+        CredentialOfferError::InvalidAuthorizationServerMetadata
+    );
 }
 
 #[test]

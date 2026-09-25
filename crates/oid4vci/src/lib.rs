@@ -21,9 +21,10 @@
 //! configuration-ID/JWT-proof Credential Request, and bounded parsing of the
 //! unencrypted immediate Final Credential Response core. It performs no
 //! network access, deferred polling policy, Authorization Response parsing,
-//! PAR, or callback behavior, does not validate complete RFC 8414 metadata or Token Response
+//! PAR, callback routing, or authorization-code exchange, does not validate complete RFC 8414 metadata or Token Response
 //! Authorization Details, and establishes no issuer, server, token,
-//! authorization, proof, transaction, or nonce trust.
+//! authorization, proof, transaction, response provenance, mix-up protection
+//! when RFC 9207 is not advertised, or nonce trust.
 
 #![forbid(unsafe_code)]
 
@@ -31,6 +32,7 @@ mod authorization_code_server;
 mod authorization_metadata;
 mod authorization_request;
 mod authorization_request_input;
+mod authorization_response;
 mod credential_error_http_response;
 mod credential_error_response;
 mod credential_nonce_http_response;
@@ -51,6 +53,7 @@ mod json;
 mod jwt_credential_request;
 mod limits;
 mod metadata;
+mod oauth;
 mod pre_authorized_server;
 mod pre_authorized_token_request;
 mod semantic;
@@ -71,6 +74,11 @@ pub use authorization_request_input::{
     AuthorizationRequestClientId, AuthorizationRequestInputLimits, AuthorizationRequestRedirectUri,
     AuthorizationRequestState, CredentialOfferWithAuthorizationRequestInput, PKCE_S256_METHOD,
     PkceCodeVerifier, PkceS256Challenge,
+};
+pub use authorization_response::{
+    AuthorizationEndpointErrorCode, AuthorizationEndpointErrorKind, AuthorizationErrorResponse,
+    AuthorizationErrorUri, AuthorizationResponseIssuerIdentification, AuthorizationResponseLimits,
+    AuthorizationResponseOutcome, CorrelatedAuthorizationCode,
 };
 pub use credential_error_response::{
     CredentialEndpointErrorCode, CredentialEndpointErrorKind, CredentialErrorResponseCore,

@@ -62,6 +62,7 @@ pub(crate) struct AuthorizationServerMetadataFields {
     pub(crate) token_endpoint: Option<Zeroizing<String>>,
     pub(crate) grant_types_supported: Option<Vec<Zeroizing<String>>>,
     pub(crate) anonymous_pre_authorized_access: Option<bool>,
+    pub(crate) authorization_response_iss_parameter_supported: Option<bool>,
 }
 
 pub(crate) struct TokenResponseFields {
@@ -676,6 +677,7 @@ impl Scanner<'_> {
         let mut grant_types_supported = None;
         let mut grant_types_present = false;
         let mut anonymous_pre_authorized_access = None;
+        let mut authorization_response_iss_parameter_supported = None;
         loop {
             let name = self.parse_unique_member_name(&mut names)?;
             self.require_member_separator()?;
@@ -710,6 +712,12 @@ impl Scanner<'_> {
                         CredentialOfferError::InvalidAnonymousPreAuthorizedAccess,
                     )?);
                 }
+                "authorization_response_iss_parameter_supported" => {
+                    authorization_response_iss_parameter_supported =
+                        Some(self.parse_boolean(
+                            CredentialOfferError::InvalidAuthorizationServerMetadata,
+                        )?);
+                }
                 _ => self.parse_value(depth)?,
             }
             if self.finish_or_continue_object()? {
@@ -727,6 +735,7 @@ impl Scanner<'_> {
                 None
             },
             anonymous_pre_authorized_access,
+            authorization_response_iss_parameter_supported,
         })
     }
 

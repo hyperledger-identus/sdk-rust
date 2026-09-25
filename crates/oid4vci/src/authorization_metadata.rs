@@ -96,6 +96,7 @@ pub struct AuthorizationServerMetadataCore {
     token_endpoint: Option<TokenEndpoint>,
     grant_types_supported: Option<Vec<GrantTypeIdentifier>>,
     anonymous_pre_authorized_access: Option<bool>,
+    authorization_response_iss_parameter_supported: Option<bool>,
 }
 
 impl AuthorizationServerMetadataCore {
@@ -153,6 +154,8 @@ impl AuthorizationServerMetadataCore {
             token_endpoint,
             grant_types_supported,
             anonymous_pre_authorized_access: fields.anonymous_pre_authorized_access,
+            authorization_response_iss_parameter_supported: fields
+                .authorization_response_iss_parameter_supported,
         })
     }
 
@@ -204,6 +207,18 @@ impl AuthorizationServerMetadataCore {
         self.anonymous_pre_authorized_access.unwrap_or(false)
     }
 
+    /// Return whether RFC 9207 Authorization Response issuer identification
+    /// support was explicitly advertised.
+    pub const fn advertised_authorization_response_iss_parameter_supported(&self) -> Option<bool> {
+        self.authorization_response_iss_parameter_supported
+    }
+
+    /// Return the RFC 9207 support flag, defaulting omission to false.
+    pub fn effective_authorization_response_iss_parameter_supported(&self) -> bool {
+        self.authorization_response_iss_parameter_supported
+            .unwrap_or(false)
+    }
+
     /// Borrow the exact unsigned JSON retained from validation.
     pub fn as_json(&self) -> &str {
         &self.json
@@ -227,6 +242,12 @@ impl fmt::Debug for AuthorizationServerMetadataCore {
             .field(
                 "anonymous_access_advertised",
                 &self.anonymous_pre_authorized_access.is_some(),
+            )
+            .field(
+                "authorization_response_issuer_advertised",
+                &self
+                    .authorization_response_iss_parameter_supported
+                    .is_some(),
             )
             .finish_non_exhaustive()
     }

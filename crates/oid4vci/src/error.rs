@@ -5,9 +5,9 @@ use std::fmt;
 use identus_core::{CapabilityId, IdentusError};
 
 use crate::error_contract::{
-    ErrorContract, authorization_code_server, credential_nonce_http, deferred_immediate_issuance,
-    issuer_authorization_server_metadata, offer_semantics_grants, offer_transport_json,
-    token_request_response_errors,
+    ErrorContract, authorization_code_server, authorization_response, credential_nonce_http,
+    deferred_immediate_issuance, issuer_authorization_server_metadata, offer_semantics_grants,
+    offer_transport_json, token_request_response_errors,
 };
 
 /// Owning capability for OID4VCI errors.
@@ -379,6 +379,40 @@ pub mod error_code {
         ErrorCode::new("oid4vci.authorization_endpoint_query_parameter_collision");
     pub const AUTHORIZATION_REQUEST_URI_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vci.authorization_request_uri_too_large");
+    pub const INVALID_AUTHORIZATION_RESPONSE_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_response_limits");
+    pub const AUTHORIZATION_RESPONSE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_response_too_large");
+    pub const TOO_MANY_AUTHORIZATION_RESPONSE_PARAMETERS: ErrorCode =
+        ErrorCode::new("oid4vci.too_many_authorization_response_parameters");
+    pub const AUTHORIZATION_RESPONSE_COMPONENT_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_response_component_too_large");
+    pub const INVALID_AUTHORIZATION_RESPONSE_ENCODING: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_response_encoding");
+    pub const DUPLICATE_AUTHORIZATION_RESPONSE_PARAMETER: ErrorCode =
+        ErrorCode::new("oid4vci.duplicate_authorization_response_parameter");
+    pub const AUTHORIZATION_RESPONSE_STATE_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_response_state_mismatch");
+    pub const AUTHORIZATION_RESPONSE_ISSUER_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_response_issuer_mismatch");
+    pub const INVALID_AUTHORIZATION_RESPONSE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_response");
+    pub const AUTHORIZATION_CODE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_code_too_large");
+    pub const INVALID_AUTHORIZATION_CODE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_code");
+    pub const AUTHORIZATION_ENDPOINT_ERROR_CODE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_endpoint_error_code_too_large");
+    pub const INVALID_AUTHORIZATION_ENDPOINT_ERROR_CODE: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_endpoint_error_code");
+    pub const AUTHORIZATION_ERROR_DESCRIPTION_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_error_description_too_large");
+    pub const INVALID_AUTHORIZATION_ERROR_DESCRIPTION: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_error_description");
+    pub const AUTHORIZATION_ERROR_URI_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_error_uri_too_large");
+    pub const INVALID_AUTHORIZATION_ERROR_URI: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_error_uri");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -584,6 +618,23 @@ pub enum CredentialOfferError {
     InvalidAuthorizationEndpointQuery,
     AuthorizationEndpointQueryParameterCollision,
     AuthorizationRequestUriTooLarge,
+    InvalidAuthorizationResponseLimits,
+    AuthorizationResponseTooLarge,
+    TooManyAuthorizationResponseParameters,
+    AuthorizationResponseComponentTooLarge,
+    InvalidAuthorizationResponseEncoding,
+    DuplicateAuthorizationResponseParameter,
+    AuthorizationResponseStateMismatch,
+    AuthorizationResponseIssuerMismatch,
+    InvalidAuthorizationResponse,
+    AuthorizationCodeTooLarge,
+    InvalidAuthorizationCode,
+    AuthorizationEndpointErrorCodeTooLarge,
+    InvalidAuthorizationEndpointErrorCode,
+    AuthorizationErrorDescriptionTooLarge,
+    InvalidAuthorizationErrorDescription,
+    AuthorizationErrorUriTooLarge,
+    InvalidAuthorizationErrorUri,
 }
 
 macro_rules! define_credential_offer_error_contracts {
@@ -801,6 +852,23 @@ define_credential_offer_error_contracts! {
     InvalidAuthorizationEndpointQuery => authorization_code_server::INVALID_AUTHORIZATION_ENDPOINT_QUERY,
     AuthorizationEndpointQueryParameterCollision => authorization_code_server::AUTHORIZATION_ENDPOINT_QUERY_PARAMETER_COLLISION,
     AuthorizationRequestUriTooLarge => authorization_code_server::AUTHORIZATION_REQUEST_URI_TOO_LARGE,
+    InvalidAuthorizationResponseLimits => authorization_response::INVALID_AUTHORIZATION_RESPONSE_LIMITS,
+    AuthorizationResponseTooLarge => authorization_response::AUTHORIZATION_RESPONSE_TOO_LARGE,
+    TooManyAuthorizationResponseParameters => authorization_response::TOO_MANY_AUTHORIZATION_RESPONSE_PARAMETERS,
+    AuthorizationResponseComponentTooLarge => authorization_response::AUTHORIZATION_RESPONSE_COMPONENT_TOO_LARGE,
+    InvalidAuthorizationResponseEncoding => authorization_response::INVALID_AUTHORIZATION_RESPONSE_ENCODING,
+    DuplicateAuthorizationResponseParameter => authorization_response::DUPLICATE_AUTHORIZATION_RESPONSE_PARAMETER,
+    AuthorizationResponseStateMismatch => authorization_response::AUTHORIZATION_RESPONSE_STATE_MISMATCH,
+    AuthorizationResponseIssuerMismatch => authorization_response::AUTHORIZATION_RESPONSE_ISSUER_MISMATCH,
+    InvalidAuthorizationResponse => authorization_response::INVALID_AUTHORIZATION_RESPONSE,
+    AuthorizationCodeTooLarge => authorization_response::AUTHORIZATION_CODE_TOO_LARGE,
+    InvalidAuthorizationCode => authorization_response::INVALID_AUTHORIZATION_CODE,
+    AuthorizationEndpointErrorCodeTooLarge => authorization_response::AUTHORIZATION_ENDPOINT_ERROR_CODE_TOO_LARGE,
+    InvalidAuthorizationEndpointErrorCode => authorization_response::INVALID_AUTHORIZATION_ENDPOINT_ERROR_CODE,
+    AuthorizationErrorDescriptionTooLarge => authorization_response::AUTHORIZATION_ERROR_DESCRIPTION_TOO_LARGE,
+    InvalidAuthorizationErrorDescription => authorization_response::INVALID_AUTHORIZATION_ERROR_DESCRIPTION,
+    AuthorizationErrorUriTooLarge => authorization_response::AUTHORIZATION_ERROR_URI_TOO_LARGE,
+    InvalidAuthorizationErrorUri => authorization_response::INVALID_AUTHORIZATION_ERROR_URI,
 }
 
 impl CredentialOfferError {

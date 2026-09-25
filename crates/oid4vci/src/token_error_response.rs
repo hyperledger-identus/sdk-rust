@@ -4,7 +4,9 @@ use fluent_uri::UriRef;
 use zeroize::Zeroizing;
 
 use crate::{
-    CredentialOfferError, TokenErrorResponseLimits, json::parse_token_error_response_fields,
+    CredentialOfferError, TokenErrorResponseLimits,
+    json::parse_token_error_response_fields,
+    oauth::{is_nqschar, is_uri_reference_chars},
 };
 
 /// Closed classification of OAuth 2.0 token-endpoint error codes.
@@ -174,16 +176,4 @@ impl fmt::Debug for TokenErrorResponseCore {
             .field("error_uri_present", &self.error_uri.is_some())
             .finish_non_exhaustive()
     }
-}
-
-fn is_nqschar(value: &str) -> bool {
-    value
-        .bytes()
-        .all(|byte| matches!(byte, 0x20..=0x21 | 0x23..=0x5b | 0x5d..=0x7e))
-}
-
-fn is_uri_reference_chars(value: &str) -> bool {
-    value
-        .bytes()
-        .all(|byte| matches!(byte, 0x21 | 0x23..=0x5b | 0x5d..=0x7e))
 }

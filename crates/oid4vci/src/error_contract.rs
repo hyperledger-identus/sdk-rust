@@ -1,6 +1,7 @@
 use identus_core::{ErrorCode, ErrorKind, IdentusError};
 
 pub(crate) mod authorization_code_server;
+pub(crate) mod authorization_response;
 pub(crate) mod credential_nonce_http;
 pub(crate) mod deferred_immediate_issuance;
 pub(crate) mod issuer_authorization_server_metadata;

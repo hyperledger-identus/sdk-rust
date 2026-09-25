@@ -15,6 +15,6 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Run focused, crate, workspace, factory and portable target evidence.
-- [ ] 3.2 Complete a distinct exact-diff review and consumer read-only receipt.
-- [ ] 3.3 Archive the change, publish metrics and merge only after hosted gates.
+- [x] 3.1 Run focused, crate, workspace, factory and portable target evidence.
+- [x] 3.2 Complete a distinct exact-diff review and consumer read-only receipt.
+- [x] 3.3 Archive the change, publish metrics and merge only after hosted gates.

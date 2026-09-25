@@ -4,9 +4,9 @@
 
 - [x] 1.1 Record #384 scope, exact base, sources, alternatives, constraints,
       security/resource boundaries, rollback and verification plan.
-- [ ] 1.2 Pass research, constraints and strict OpenSpec readiness; commit the
+- [x] 1.2 Pass research, constraints and strict OpenSpec readiness; commit the
       planning-only contract and persist the exact preimplementation receipt.
-- [ ] 1.3 Accept ADR 0154 for the first-candidate API/SemVer origin.
+- [x] 1.3 Accept ADR 0154 for the first-candidate API/SemVer origin.
 
 ## 2. Closed evidence configuration
 

@@ -5,7 +5,7 @@ use std::fmt;
 use identus_core::{CapabilityId, IdentusError};
 
 use crate::error_contract::{
-    ErrorContract, credential_nonce_http, deferred_immediate_issuance,
+    ErrorContract, authorization_code_server, credential_nonce_http, deferred_immediate_issuance,
     issuer_authorization_server_metadata, offer_semantics_grants, offer_transport_json,
     token_request_response_errors,
 };
@@ -337,6 +337,14 @@ pub mod error_code {
         ErrorCode::new("oid4vci.invalid_immediate_credential_content_type");
     pub const CREDENTIAL_RESPONSE_EXCEEDS_PROOF_COUNT: ErrorCode =
         ErrorCode::new("oid4vci.credential_response_exceeds_proof_count");
+    pub const AUTHORIZATION_CODE_GRANT_MISSING: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_code_grant_missing");
+    pub const AUTHORIZATION_CODE_SERVER_HINT_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_code_server_hint_mismatch");
+    pub const AUTHORIZATION_CODE_GRANT_NOT_SUPPORTED: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_code_grant_not_supported");
+    pub const AUTHORIZATION_ENDPOINT_REQUIRED: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_endpoint_required");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -521,6 +529,10 @@ pub enum CredentialOfferError {
     DeferredCredentialContentTypeTooLarge,
     InvalidDeferredCredentialContentType,
     DeferredCredentialTransactionMismatch,
+    AuthorizationCodeGrantMissing,
+    AuthorizationCodeServerHintMismatch,
+    AuthorizationCodeGrantNotSupported,
+    AuthorizationEndpointRequired,
 }
 
 macro_rules! define_credential_offer_error_contracts {
@@ -717,6 +729,10 @@ define_credential_offer_error_contracts! {
     DeferredCredentialContentTypeTooLarge => deferred_immediate_issuance::DEFERRED_CREDENTIAL_CONTENT_TYPE_TOO_LARGE,
     InvalidDeferredCredentialContentType => deferred_immediate_issuance::INVALID_DEFERRED_CREDENTIAL_CONTENT_TYPE,
     DeferredCredentialTransactionMismatch => deferred_immediate_issuance::DEFERRED_CREDENTIAL_TRANSACTION_MISMATCH,
+    AuthorizationCodeGrantMissing => authorization_code_server::AUTHORIZATION_CODE_GRANT_MISSING,
+    AuthorizationCodeServerHintMismatch => authorization_code_server::AUTHORIZATION_CODE_SERVER_HINT_MISMATCH,
+    AuthorizationCodeGrantNotSupported => authorization_code_server::AUTHORIZATION_CODE_GRANT_NOT_SUPPORTED,
+    AuthorizationEndpointRequired => authorization_code_server::AUTHORIZATION_ENDPOINT_REQUIRED,
 }
 
 impl CredentialOfferError {

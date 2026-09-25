@@ -607,6 +607,15 @@ through the existing bounded core. It adds no parser, limits, error contracts,
 dependency, HTTP/RFC 6750 handling, timer, retry, invalidation, persistence,
 encryption, credential verification, trust or product policy.
 
+The twenty-seventh bounded delivery, issue #350, consumes a matched
+Authorization Code offer and one caller-selected bounded Authorization Server
+Metadata core. It proves effective advertisement, exact grant-hint agreement,
+effective RFC 8414 `authorization_code` support and Authorization Endpoint
+presence while preserving optional `issuer_state` through its existing
+zeroizing owner. It adds no request serialization, client/redirect input,
+PKCE, PAR, browser/callback, Token Endpoint requirement, code exchange,
+networking, trust, persistence, format/chain behavior or product policy.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

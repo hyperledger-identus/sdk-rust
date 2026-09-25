@@ -10,12 +10,12 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add the owned Authorization Code server state and ordered semantic
+- [x] 2.1 Add the owned Authorization Code server state and ordered semantic
   transition.
-- [ ] 2.2 Append stable static diagnostics without changing existing rows.
-- [ ] 2.3 Add success, precedence, defaulting, mismatch, boundary, ownership
+- [x] 2.2 Append stable static diagnostics without changing existing rows.
+- [x] 2.3 Add success, precedence, defaulting, mismatch, boundary, ownership
   and redaction tests.
-- [ ] 2.4 Add ADR 0140 and update inventory/blueprint/roadmap evidence with a
+- [x] 2.4 Add ADR 0140 and update inventory/blueprint/roadmap evidence with a
   focused successor.
 
 ## 3. Review and delivery

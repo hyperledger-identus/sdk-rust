@@ -642,6 +642,19 @@ entropy, PAR, browser/callback, Authorization Response parsing/correlation,
 code exchange, HTTP, trust, persistence, format/chain behavior or product
 policy. Response correlation continues in focused issue #356.
 
+The thirtieth bounded delivery, issue #356, consumes that request once and
+correlates an already-extracted Authorization Response query. It strictly
+form-decodes bounded unique fields, requires exact request state, and applies
+the selected Authorization Server Metadata RFC 9207 flag with its false
+default: advertised support requires an exact selected-server `iss`, while
+omission forbids `iss`. Closed evidence distinguishes verified RFC 9207 from
+not advertised without claiming mix-up protection. Exclusive success retains
+the complete request lineage and a zeroizing code; a correlated OAuth error
+drops request secrets and exposes classified exact error data only through
+explicit untrusted accessors. It adds no callback routing, fragment/form-post,
+JARM, browser, HTTP, trust, persistence, token exchange or product policy.
+Bounded code-exchange request construction continues in focused issue #358.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

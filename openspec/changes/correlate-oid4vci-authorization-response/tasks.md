@@ -11,17 +11,17 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Extend Authorization Server Metadata with the bounded RFC 9207
+- [x] 2.1 Extend Authorization Server Metadata with the bounded RFC 9207
   support flag and exact false default.
-- [ ] 2.2 Factor private shared OAuth grammar without changing token-error
+- [x] 2.2 Factor private shared OAuth grammar without changing token-error
   behavior.
-- [ ] 2.3 Add bounded strict query parsing, duplicate defense and exact state
+- [x] 2.3 Add bounded strict query parsing, duplicate defense and exact state
   and selected-server issuer correlation.
-- [ ] 2.4 Add closed success/error outcomes with zeroizing values and redacted
+- [x] 2.4 Add closed success/error outcomes with zeroizing values and redacted
   diagnostics.
-- [ ] 2.5 Add normative, delegated-server, adversarial, boundary, ownership,
+- [x] 2.5 Add normative, delegated-server, adversarial, boundary, ownership,
   metadata and regression tests.
-- [ ] 2.6 Add the ADR and update inventory, blueprint and roadmap evidence with
+- [x] 2.6 Add the ADR and update inventory, blueprint and roadmap evidence with
   a focused code-exchange-request successor.
 
 ## 3. Review and delivery

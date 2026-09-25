@@ -5,7 +5,7 @@
 - [x] 1.1 Confirm issue #375 exists before implementation.
 - [x] 1.2 Pin Final/RFC behavior, least-authority lineage, status/header,
   reuse/dependency, compatibility and limitation decisions.
-- [ ] 1.3 Pass research/constraint readiness, commit planning only and bind the
+- [x] 1.3 Pass research/constraint readiness, commit planning only and bind the
   immutable preimplementation receipt.
 
 ## 2. Implementation

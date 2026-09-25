@@ -10,8 +10,9 @@ name makes the unauthenticated public-client policy explicit.
 The transition consumes the response, Authorization Request and request-input
 states through crate-private decomposition methods. It moves the exact code,
 client ID, redirect URI and verifier into one encoded `Zeroizing<String>`,
-drops state, challenge and Authorization Request URI, and retains the selected
-server/offer/configuration state plus configuration index. No sensitive input
+drops state, challenge, Authorization Request URI and the consumed Credential
+Offer, and retains only public issuer/server metadata plus the selected
+configuration. No sensitive input
 is cloned into a parallel reusable field.
 
 ## Ordered validation and serialization
@@ -26,7 +27,7 @@ Construction applies checks in this order:
    order.
 
 The result exposes the validated endpoint, POST method, form media type, exact
-body length, explicit sensitive body accessor, retained server/configuration
+body length, explicit sensitive body accessor, retained issuer/server/configuration
 lineage and unchanged issuer-identification evidence. Debug exposes only body
 length and issuer-evidence enum.
 

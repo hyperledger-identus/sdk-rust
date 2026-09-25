@@ -23,8 +23,9 @@ remain unchanged.
   `grant_type=authorization_code` in a deterministic fixed order.
 - The selected server must expose a Token Endpoint and the complete endpoint
   and encoded body must each satisfy positive request-specific limits.
-- The result retains non-secret server/offer/configuration lineage and exact
-  issuer-identification evidence, but no separately reusable code or verifier.
+- The result retains least-authority issuer/server/configuration lineage and exact
+  issuer-identification evidence, but no consumed offer, separately reusable
+  code or verifier.
 - Debug, Display and public errors remain static and redact the body, code,
   verifier, redirect, client, endpoint and remote values.
 - No dependency, feature, unsafe/native code, network or downstream behavior

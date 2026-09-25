@@ -21,7 +21,7 @@ credentials or authentication assertions, or perform HTTP.
 - **THEN** the transition returns the fixed five-field encoded form body for
   the retained unauthenticated public client
 
-#### Scenario: encoded punctuation and Unicode are exact
+#### Scenario: encoded punctuation is exact
 
 - **WHEN** retained code, redirect or client values require form encoding
 - **THEN** the output follows the existing form codec and exact fixed order
@@ -53,10 +53,11 @@ checked-size overflow, or a body above its cap before returning a request.
 
 ### Requirement: The request owns least-authority lineage and secrets
 
-After construction, the request SHALL retain the exact selected
-Authorization Code server/offer/configuration lineage, selected configuration
-index, and unchanged `AuthorizationResponseIssuerIdentification`. It SHALL
-retain no separately accessible code, verifier, state, redirect URI, client
+After construction, the request SHALL retain the validated Credential Issuer
+Metadata, selected Authorization Server Metadata, selected Credential
+Configuration, and unchanged `AuthorizationResponseIssuerIdentification`. It
+SHALL discard the consumed Credential Offer and retain no separately
+accessible code, verifier, state, redirect URI, client
 identifier or Authorization Request URI outside the encoded zeroizing body.
 
 The request SHALL expose the sensitive body only through an explicitly named

@@ -334,6 +334,10 @@ pub struct CredentialOfferWithMetadata {
 }
 
 impl CredentialOfferWithMetadata {
+    pub(crate) fn into_parts(self) -> (CredentialOfferWithGrants, CredentialIssuerMetadata) {
+        (self.offer, self.metadata)
+    }
+
     /// Borrow the grant-validated offer.
     pub const fn credential_offer(&self) -> &CredentialOfferWithGrants {
         &self.offer

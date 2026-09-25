@@ -89,8 +89,9 @@ parallel objects.
 The request form contains an authorization code and PKCE verifier and is
 therefore zeroizing, explicitly exposed only for immediate transport, and
 redacted from Debug. Construction consumes the correlated success so callers
-cannot retry or exchange the same typed code state. The result retains the
-server/offer/configuration lineage needed by a later response-bound transition
+cannot retry or exchange the same typed code state. The result retains public
+issuer/server metadata and the selected configuration needed by a later
+response-bound transition
 but not the code, verifier, state, redirect URI, client identifier or complete
 Authorization Request URI outside the already encoded ephemeral body.
 

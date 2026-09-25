@@ -655,6 +655,20 @@ explicit untrusted accessors. It adds no callback routing, fragment/form-post,
 JARM, browser, HTTP, trust, persistence, token exchange or product policy.
 Bounded code-exchange request construction continues in focused issue #358.
 
+The thirty-first bounded delivery, issue #358, consumes one correlated success
+and constructs the RFC 6749/RFC 7636 Authorization Code Token Request for an
+explicit unauthenticated public-client profile. It emits the exact code,
+redirect URI, client ID and PKCE verifier in one deterministic zeroizing form
+body for the exact selected server Token Endpoint. Independent positive
+endpoint/body limits fail before output. Construction discards reusable code,
+verifier, state, Authorization Request URI state and the consumed Credential
+Offer while retaining public issuer/server metadata, the selected
+configuration and exact #356 issuer evidence.
+It adds no client secret or assertion, DPoP, Authorization Details narrowing,
+HTTP, retry, response binding, token trust/storage, consumer, chain or product
+behavior. Request-bound Token Endpoint HTTP response handling continues in
+focused issue #360.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

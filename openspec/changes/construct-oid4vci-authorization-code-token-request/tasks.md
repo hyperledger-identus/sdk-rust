@@ -10,12 +10,12 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add positive endpoint/body limits and the one-shot public-client
+- [x] 2.1 Add positive endpoint/body limits and the one-shot public-client
   Token Request transition with retained non-secret lineage.
-- [ ] 2.2 Append stable static diagnostics without changing prior rows.
-- [ ] 2.3 Add normative, exact-byte, boundary, ownership, evidence and
+- [x] 2.2 Append stable static diagnostics without changing prior rows.
+- [x] 2.3 Add normative, exact-byte, boundary, ownership, evidence and
   redaction tests.
-- [ ] 2.4 Add ADR 0144 and update inventory/blueprint/roadmap evidence with a
+- [x] 2.4 Add ADR 0144 and update inventory/blueprint/roadmap evidence with a
   focused successor.
 
 ## 3. Review and delivery

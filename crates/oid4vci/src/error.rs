@@ -5,9 +5,10 @@ use std::fmt;
 use identus_core::{CapabilityId, IdentusError};
 
 use crate::error_contract::{
-    ErrorContract, authorization_code_server, authorization_response, credential_nonce_http,
-    deferred_immediate_issuance, issuer_authorization_server_metadata, offer_semantics_grants,
-    offer_transport_json, token_request_response_errors,
+    ErrorContract, authorization_code_server, authorization_code_token_request,
+    authorization_response, credential_nonce_http, deferred_immediate_issuance,
+    issuer_authorization_server_metadata, offer_semantics_grants, offer_transport_json,
+    token_request_response_errors,
 };
 
 /// Owning capability for OID4VCI errors.
@@ -413,6 +414,12 @@ pub mod error_code {
         ErrorCode::new("oid4vci.authorization_error_uri_too_large");
     pub const INVALID_AUTHORIZATION_ERROR_URI: ErrorCode =
         ErrorCode::new("oid4vci.invalid_authorization_error_uri");
+    pub const INVALID_AUTHORIZATION_CODE_TOKEN_REQUEST_LIMITS: ErrorCode =
+        ErrorCode::new("oid4vci.invalid_authorization_code_token_request_limits");
+    pub const AUTHORIZATION_CODE_TOKEN_ENDPOINT_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_code_token_endpoint_too_large");
+    pub const AUTHORIZATION_CODE_TOKEN_REQUEST_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vci.authorization_code_token_request_too_large");
 }
 
 /// A static reason that OID4VCI validation failed.
@@ -635,6 +642,9 @@ pub enum CredentialOfferError {
     InvalidAuthorizationErrorDescription,
     AuthorizationErrorUriTooLarge,
     InvalidAuthorizationErrorUri,
+    InvalidAuthorizationCodeTokenRequestLimits,
+    AuthorizationCodeTokenEndpointTooLarge,
+    AuthorizationCodeTokenRequestTooLarge,
 }
 
 macro_rules! define_credential_offer_error_contracts {
@@ -869,6 +879,9 @@ define_credential_offer_error_contracts! {
     InvalidAuthorizationErrorDescription => authorization_response::INVALID_AUTHORIZATION_ERROR_DESCRIPTION,
     AuthorizationErrorUriTooLarge => authorization_response::AUTHORIZATION_ERROR_URI_TOO_LARGE,
     InvalidAuthorizationErrorUri => authorization_response::INVALID_AUTHORIZATION_ERROR_URI,
+    InvalidAuthorizationCodeTokenRequestLimits => authorization_code_token_request::INVALID_AUTHORIZATION_CODE_TOKEN_REQUEST_LIMITS,
+    AuthorizationCodeTokenEndpointTooLarge => authorization_code_token_request::AUTHORIZATION_CODE_TOKEN_ENDPOINT_TOO_LARGE,
+    AuthorizationCodeTokenRequestTooLarge => authorization_code_token_request::AUTHORIZATION_CODE_TOKEN_REQUEST_TOO_LARGE,
 }
 
 impl CredentialOfferError {

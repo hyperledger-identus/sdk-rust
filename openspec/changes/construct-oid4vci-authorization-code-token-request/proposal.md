@@ -17,9 +17,9 @@ misidentification, unbounded form output, or exchange at a different server.
 - Require and retain the exact selected server's validated Token Endpoint.
 - Apply independent positive Token Endpoint and complete-body byte caps before
   returning a request.
-- Preserve non-secret offer/server/configuration lineage and the exact #356
+- Preserve least-authority issuer/server/configuration lineage and the exact #356
   issuer-identification evidence while discarding reusable code, verifier,
-  state and Authorization Request URI state.
+  state, Authorization Request URI state and the consumed Credential Offer.
 - Add stable diagnostics, normative/exact-byte/boundary/redaction tests, ADR
   0144, architecture evidence and a focused successor.
 

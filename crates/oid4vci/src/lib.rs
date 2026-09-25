@@ -14,14 +14,16 @@
 //! correlated-pending successful HTTP response validation and bounded
 //! deferred payload-error classification, plus bounded Authorization Code
 //! offer/server capability binding and caller-supplied request-input validation
-//! with SDK-derived PKCE S256, a Credential Nonce Response core and a
+//! with SDK-derived PKCE S256, one-shot Authorization Response correlation and
+//! bounded unauthenticated public-client Authorization Code Token Request
+//! construction, a Credential Nonce Response core and a
 //! transport-neutral Final Credential Nonce
 //! Request description and bounded validation of its mandatory HTTP response
 //! metadata, and bounded construction of the unencrypted Final
 //! configuration-ID/JWT-proof Credential Request, and bounded parsing of the
 //! unencrypted immediate Final Credential Response core. It performs no
-//! network access, deferred polling policy, Authorization Response parsing,
-//! PAR, callback routing, or authorization-code exchange, does not validate complete RFC 8414 metadata or Token Response
+//! network access, deferred polling policy, PAR, callback routing, confidential
+//! client authentication, or Token Endpoint response binding, does not validate complete RFC 8414 metadata or Token Response
 //! Authorization Details, and establishes no issuer, server, token,
 //! authorization, proof, transaction, response provenance, mix-up protection
 //! when RFC 9207 is not advertised, or nonce trust.
@@ -29,6 +31,7 @@
 #![forbid(unsafe_code)]
 
 mod authorization_code_server;
+mod authorization_code_token_request;
 mod authorization_metadata;
 mod authorization_request;
 mod authorization_request_input;
@@ -63,6 +66,7 @@ mod transaction_code_input;
 mod transport;
 
 pub use authorization_code_server::CredentialOfferWithAuthorizationCodeServer;
+pub use authorization_code_token_request::AuthorizationCodeTokenRequest;
 pub use authorization_metadata::{
     AUTHORIZATION_CODE_GRANT_TYPE, AuthorizationEndpoint, AuthorizationServerMetadataCore,
     GrantTypeIdentifier, IMPLICIT_GRANT_TYPE, PRE_AUTHORIZED_CODE_GRANT_TYPE, TokenEndpoint,
@@ -112,10 +116,11 @@ pub use jwt_credential_request::{
     CREDENTIAL_REQUEST_HTTP_METHOD, CREDENTIAL_REQUEST_MEDIA_TYPE, JwtCredentialRequest,
 };
 pub use limits::{
-    AuthorizationServerMetadataLimits, CredentialErrorHttpResponseLimits,
-    CredentialErrorResponseLimits, CredentialIssuerMetadataLimits,
-    CredentialNonceHttpResponseLimits, CredentialNonceResponseLimits, CredentialOfferGrantLimits,
-    CredentialOfferLimits, CredentialOfferSemanticLimits, DeferredCredentialHttpResponseLimits,
+    AuthorizationCodeTokenRequestLimits, AuthorizationServerMetadataLimits,
+    CredentialErrorHttpResponseLimits, CredentialErrorResponseLimits,
+    CredentialIssuerMetadataLimits, CredentialNonceHttpResponseLimits,
+    CredentialNonceResponseLimits, CredentialOfferGrantLimits, CredentialOfferLimits,
+    CredentialOfferSemanticLimits, DeferredCredentialHttpResponseLimits,
     DeferredCredentialRequestLimits, DeferredCredentialResponseLimits,
     ImmediateCredentialHttpResponseLimits, ImmediateCredentialResponseLimits,
     JwtCredentialRequestLimits, MAX_CONFIGURABLE_JSON_DEPTH, PreAuthorizedTokenRequestLimits,

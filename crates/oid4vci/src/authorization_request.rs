@@ -120,6 +120,10 @@ pub struct AuthorizationRequest {
 }
 
 impl AuthorizationRequest {
+    pub(crate) fn into_input(self) -> CredentialOfferWithAuthorizationRequestInput {
+        self.input
+    }
+
     /// Borrow the complete validated input lineage needed by later response
     /// correlation and code exchange.
     pub const fn authorization_request_input(

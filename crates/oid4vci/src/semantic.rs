@@ -79,6 +79,12 @@ pub struct CredentialConfigurationId {
 }
 
 impl CredentialConfigurationId {
+    pub(crate) fn duplicate(&self) -> Self {
+        Self {
+            value: Zeroizing::new(self.value.to_string()),
+        }
+    }
+
     /// Borrow the exact decoded Credential Configuration ID.
     pub fn as_str(&self) -> &str {
         &self.value

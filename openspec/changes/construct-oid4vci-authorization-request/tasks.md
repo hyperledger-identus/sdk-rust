@@ -6,7 +6,7 @@
   roadmap-directed wire transition.
 - [x] 1.2 Pin Final/RFC behavior, mechanism choice, endpoint query handling,
   reuse decisions, compatibility, threats and resource bounds.
-- [ ] 1.3 Pass research/constraint readiness, commit this planning contract,
+- [x] 1.3 Pass research/constraint readiness, commit this planning contract,
   and bind its immutable preimplementation receipt.
 
 ## 2. Implementation

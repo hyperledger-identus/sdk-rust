@@ -14,6 +14,8 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Run focused, factory, formatting and applicable Nix checks.
-- [ ] 3.2 Complete local architecture/security/process review.
-- [ ] 3.3 Archive the change, open an issue-linked PR and merge only after exact-head hosted gates pass.
+- [x] 3.1 Run focused, factory, formatting and applicable cleaned-source checks.
+- [x] 3.2 Complete local architecture/security/process review.
+- [x] 3.3 Prepare the guarded archive and issue-linked PR evidence. Hosted
+      exact-head CI, protected merge, metrics publication and worktree closeout
+      follow this archived contract as delivery receipts.

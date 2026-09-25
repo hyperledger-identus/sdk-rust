@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 348,
+  "change": "bind-oid4vci-deferred-error-http-response",
+  "branch": "codex/feat/issue-348",
+  "baseRef": "origin/develop",
+  "baseSha": "b077af2ba011cdcce9f9b4f62da17e873396c9c6",
+  "contractHeadSha": "2f1ecc98f3c11c800fc33a59a10fbdeaef8802c5",
+  "createdAt": "2026-09-24T18:33:42.758Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

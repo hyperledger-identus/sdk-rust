@@ -26,6 +26,31 @@ pub struct AuthorizationCodeTokenRequest {
 }
 
 impl AuthorizationCodeTokenRequest {
+    pub(crate) fn into_response_parts(
+        self,
+    ) -> (
+        CredentialIssuerMetadata,
+        AuthorizationServerMetadataCore,
+        CredentialConfigurationId,
+        AuthorizationResponseIssuerIdentification,
+    ) {
+        let Self {
+            token_endpoint: _,
+            credential_issuer_metadata,
+            authorization_server_metadata,
+            selected_configuration,
+            form_body,
+            issuer_identification,
+        } = self;
+        drop(form_body);
+        (
+            credential_issuer_metadata,
+            authorization_server_metadata,
+            selected_configuration,
+            issuer_identification,
+        )
+    }
+
     /// Borrow the validated Token Endpoint selected before authorization.
     pub const fn token_endpoint(&self) -> &TokenEndpoint {
         &self.token_endpoint

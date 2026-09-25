@@ -2,6 +2,7 @@ use identus_core::{ErrorCode, ErrorKind, IdentusError};
 
 pub(crate) mod authorization_code_server;
 pub(crate) mod authorization_code_token_request;
+pub(crate) mod authorization_code_token_response;
 pub(crate) mod authorization_response;
 pub(crate) mod credential_nonce_http;
 pub(crate) mod deferred_immediate_issuance;

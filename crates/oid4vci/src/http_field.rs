@@ -44,6 +44,14 @@ pub(crate) fn is_application_json(bytes: &[u8]) -> bool {
 }
 
 pub(crate) fn has_bare_no_store(bytes: &[u8]) -> bool {
+    has_bare_directive(bytes, b"no-store")
+}
+
+pub(crate) fn has_bare_no_cache(bytes: &[u8]) -> bool {
+    has_bare_directive(bytes, b"no-cache")
+}
+
+fn has_bare_directive(bytes: &[u8], required: &[u8]) -> bool {
     let mut cursor = Cursor::new(bytes);
     let mut found = false;
 
@@ -72,7 +80,7 @@ pub(crate) fn has_bare_no_store(bytes: &[u8]) -> bool {
         } else {
             false
         };
-        if name.eq_ignore_ascii_case(b"no-store") && !has_argument {
+        if name.eq_ignore_ascii_case(required) && !has_argument {
             found = true;
         }
 

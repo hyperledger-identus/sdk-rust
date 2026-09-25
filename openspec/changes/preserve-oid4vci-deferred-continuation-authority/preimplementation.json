@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 368,
+  "change": "preserve-oid4vci-deferred-continuation-authority",
+  "branch": "codex/feat/issue-368",
+  "baseRef": "origin/develop",
+  "baseSha": "342d936107624aee95788f1788b8cee6d62641c8",
+  "contractHeadSha": "2b70661b1dad631cc6a3b279ea4b307be03eb045",
+  "createdAt": "2026-09-25T10:13:07.486Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

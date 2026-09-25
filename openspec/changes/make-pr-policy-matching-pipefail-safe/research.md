@@ -27,8 +27,8 @@ delivery-facade bound, and the existing policy tests govern the correction.
 | Disable `pipefail` | `not-adopt` | Weakens unrelated shell failure detection. |
 | Append required fields at EOF | `not-adopt` | Leaks an implementation accident into contributor formatting. |
 | Add `|| true` around pipelines | `not-adopt` | Can hide real non-matches and errors. |
-| Pass the body through a here-string to grep | `adopt` | Removes the producer process while preserving the existing regexes and diagnostics. |
-| Write a temporary file | `not-adopt` | Adds lifecycle and file-safety complexity for an in-memory bounded value. |
+| Pass the body through a here-string to grep | `not-adopt` | Fast on macOS Bash 3.2, but the pinned Linux Bash 5.3 stalled while materializing the 60 KiB regression input. |
+| Write one mode-0600 temporary file and trap cleanup | `adopt` | Gives grep a seekable bounded input on both supported hosts without a producer pipeline or early-close race. |
 
 ## Compatibility and dependency evidence
 
@@ -41,18 +41,19 @@ which are already part of the factory environment.
 The 64 KiB file-backed delivery bound and safe-file checks are unchanged. The
 same ERE patterns, case handling, issue extraction and error messages remain
 authoritative. No untrusted text is evaluated as shell code or printed by the
-checker.
+checker. The checker creates one unpredictable mode-0600 file below the
+platform temporary directory and removes it on every ordinary exit by trap.
 
 ## Rejected or deferred candidates
 
 Disabling `pipefail`, formatting workarounds, error-masking pipelines and
-temporary files are rejected. Replacing the regex contract or contribution
-policy is outside this correction.
+here-strings are rejected. Replacing the regex contract or contribution policy
+is outside this correction.
 
 ## Open questions and blockers
 
-No implementation blocker remains. Here-strings append one newline, which is
-equivalent to the checker's existing `printf '%s\n'` input shape.
+No implementation blocker remains. The temporary representation retains the
+checker's existing trailing-newline input shape.
 
 ## Evidence
 

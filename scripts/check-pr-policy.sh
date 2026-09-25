@@ -6,6 +6,10 @@ pr_base_ref=${PR_BASE_REF:-}
 pr_draft=${PR_DRAFT:-}
 pr_body=${PR_BODY:-}
 failures=0
+pr_body_file=$(mktemp "${TMPDIR:-/tmp}/sdk-rust-pr-body.XXXXXX")
+trap 'rm -f "$pr_body_file"' EXIT
+chmod 600 "$pr_body_file"
+printf '%s\n' "$pr_body" >"$pr_body_file"
 
 report_failure() {
   printf 'pull-request-policy: %s\n' "$1" >&2
@@ -21,7 +25,7 @@ if [[ "$pr_draft" != "false" ]]; then
 fi
 
 issue_pattern='^[[:space:]]*-[[:space:]]*Issue:[[:space:]]*#[0-9]+([[:space:]]|$)|^[[:space:]]*(Closes|Fixes|Resolves|Refs|References)[[:space:]]+#[0-9]+([[:space:]]|$)'
-if issue_line=$(grep -Eim1 "$issue_pattern" <<<"$pr_body"); then
+if issue_line=$(grep -Eim1 "$issue_pattern" "$pr_body_file"); then
   issue_suffix=${issue_line#*#}
   issue_number=${issue_suffix%%[!0-9]*}
 else
@@ -30,17 +34,17 @@ else
 fi
 
 review_pattern='^[[:space:]]*-[[:space:]]*Local review:[[:space:]]*(passed|complete|completed)([[:space:][:punct:]]|$)'
-if ! grep -Eiq "$review_pattern" <<<"$pr_body"; then
+if ! grep -Eiq "$review_pattern" "$pr_body_file"; then
   report_failure "body must record completed local review"
 fi
 
 constraint_pattern='^[[:space:]]*-[[:space:]]*Constraint impact:[[:space:]]*(none|routine|material)([[:space:][:punct:]]|$)'
-if ! grep -Eiq "$constraint_pattern" <<<"$pr_body"; then
+if ! grep -Eiq "$constraint_pattern" "$pr_body_file"; then
   report_failure "body must classify constraint impact as none, routine or material"
 fi
 
 limitation_pattern='^[[:space:]]*-[[:space:]]*Limitations:[[:space:]]*[^[:space:]<].*$'
-if ! grep -Eiq "$limitation_pattern" <<<"$pr_body"; then
+if ! grep -Eiq "$limitation_pattern" "$pr_body_file"; then
   report_failure "body must state none or describe the introduced limitation"
 fi
 

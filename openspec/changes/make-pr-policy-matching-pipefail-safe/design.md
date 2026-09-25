@@ -2,10 +2,12 @@
 
 ## Decision
 
-Feed the bounded shell variable directly to each existing grep expression by
-here-string. This keeps grep as the single matcher, avoids an independently
-failing producer process under `pipefail`, and retains issue-line capture for
-numeric extraction.
+Write the bounded shell variable once to an unpredictable mode-0600 temporary
+file, register cleanup with an exit trap, and give that seekable file to each
+existing grep expression. This keeps grep as the single matcher, avoids an
+independently failing producer process under `pipefail`, works across the
+pinned macOS and Linux Bash implementations, and retains issue-line capture
+for numeric extraction.
 
 ## Tests
 
@@ -19,6 +21,7 @@ the factory contract so the safe-file and 64 KiB boundary remain integrated.
 
 ## Error and privacy behavior
 
-Diagnostics remain static and do not echo the PR body. Inputs are not written
-to disk by the checker. The delivery facade continues to own file validation,
-size bounds and GitHub-facing metadata composition.
+Diagnostics remain static and do not echo the PR body or temporary path. The
+private temporary representation is removed on exit. The delivery facade
+continues to own file validation, size bounds and GitHub-facing metadata
+composition.

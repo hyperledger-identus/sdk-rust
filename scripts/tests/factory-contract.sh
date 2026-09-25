@@ -27,6 +27,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/source-distribution.py"
 "$repository_root/scripts/tests/crypto-candidate.py"
 "$repository_root/scripts/tests/release-train.py"
+"$repository_root/scripts/tests/release-candidates.py"
 "$repository_root/scripts/tests/error-golden.py"
 "$repository_root/scripts/tests/code-health-audit.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
@@ -76,11 +77,15 @@ required_files=(
   docs/conformance/oid4vci-final-wallet-core.csv
   docs/conformance/oid4vci-final-wallet-core.md
   docs/release/crypto-candidate.toml
+  docs/release/did-candidate.toml
+  docs/release/release-trains.toml
   docs/release/0.1.0-rc.1.md
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
   crates/derive/README.md
   crates/core/README.md
   crates/crypto/README.md
+  crates/did/README.md
+  crates/did-resolver-http/README.md
   crates/credentials/tests/fixtures/credentials-error-contract-v1.csv
   crates/presentations/tests/fixtures/presentations-error-contract-v1.csv
   crates/jose/tests/fixtures/jose-error-contract-v1.csv
@@ -120,6 +125,7 @@ required_files=(
   docs/adr/0125-govern-sdk-input-resource-boundaries.md
   docs/adr/0133-select-rc1-compiler-support-matrix.md
   docs/adr/0134-activate-protected-crates-io-release-trains.md
+  docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
@@ -183,8 +189,10 @@ required_files=(
   scripts/check-source-distribution.py
   scripts/check-crypto-candidate.py
   scripts/check-release-train.py
+  scripts/check-release-candidates.py
   scripts/code-health-audit.py
   scripts/prepare-crypto-candidate.py
+  scripts/prepare-did-candidate.py
   scripts/publish-release-train.py
   scripts/check-pr-policy.sh
   scripts/check-research-readiness.py
@@ -207,6 +215,7 @@ required_files=(
   scripts/tests/source-distribution.py
   scripts/tests/crypto-candidate.py
   scripts/tests/release-train.py
+  scripts/tests/release-candidates.py
   scripts/tests/code-health-audit.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
@@ -303,8 +312,10 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-source-distribution.py" \
   "$fixture_root/scripts/check-crypto-candidate.py" \
   "$fixture_root/scripts/check-release-train.py" \
+  "$fixture_root/scripts/check-release-candidates.py" \
   "$fixture_root/scripts/code-health-audit.py" \
   "$fixture_root/scripts/prepare-crypto-candidate.py" \
+  "$fixture_root/scripts/prepare-did-candidate.py" \
   "$fixture_root/scripts/publish-release-train.py" \
   "$fixture_root/scripts/tests/bootstrap-inventory.py" \
   "$fixture_root/scripts/tests/constraints.py" \
@@ -314,6 +325,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/source-distribution.py" \
   "$fixture_root/scripts/tests/crypto-candidate.py" \
   "$fixture_root/scripts/tests/release-train.py" \
+  "$fixture_root/scripts/tests/release-candidates.py" \
   "$fixture_root/scripts/tests/code-health-audit.py" \
   "$fixture_root/scripts/tests/factory-contract.sh" \
   "$fixture_root/scripts/tests/factory-operations.mjs" \

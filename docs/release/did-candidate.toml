@@ -1,0 +1,74 @@
+schema_version           = 1
+candidate                = "identus-did-0.1.0-rc.1"
+version                  = "0.1.0-rc.1"
+rust_version             = "1.89.0"
+preparation_rust_version = "1.98.1"
+baseline_revision        = "96cf5f577b5f3585461d34589aad465297693af0"
+repository               = "https://github.com/hyperledger-identus/sdk-rust"
+homepage                 = "https://hyperledger-identus.github.io/sdk-rust/"
+license                  = "Apache-2.0"
+max_archive_bytes        = 1048576
+max_archive_members      = 512
+max_expansion_ratio      = 20
+publication              = "candidate-only"
+release_tag              = "identus-did-v0.1.0-rc.1"
+
+[[profiles]]
+package          = "identus-did"
+name             = "default"
+default_features = true
+features         = [  ]
+
+[[profiles]]
+package          = "identus-did"
+name             = "no-default-features"
+default_features = false
+features         = [  ]
+
+[[profiles]]
+package          = "identus-did-resolver-http"
+name             = "default"
+default_features = true
+features         = [  ]
+
+[[profiles]]
+package          = "identus-did-resolver-http"
+name             = "no-default-features"
+default_features = false
+features         = [  ]
+
+[[profiles]]
+package          = "identus-did-resolver-http"
+name             = "all-features"
+default_features = true
+features         = [ "openapi" ]
+
+[[profiles]]
+package          = "identus-did-resolver-http"
+name             = "openapi"
+default_features = false
+features         = [ "openapi" ]
+
+[[packages]]
+name                  = "identus-did"
+path                  = "crates/did"
+description           = "Chain-neutral DID syntax, URL, document, and resolution primitives for Hyperledger Identus Rust SDK consumers."
+documentation         = "https://docs.rs/identus-did/0.1.0-rc.1"
+readme                = "README.md"
+keywords              = [ "identity", "ssi", "did" ]
+categories            = [ "data-structures", "web-programming" ]
+candidate_dependencies = [  ]
+published_dependencies = [ "identus-core", "identus-derive" ]
+features              = [  ]
+
+[[packages]]
+name                  = "identus-did-resolver-http"
+path                  = "crates/did-resolver-http"
+description           = "Chain-neutral HTTP bindings for DID resolution in the Hyperledger Identus Rust SDK."
+documentation         = "https://docs.rs/identus-did-resolver-http/0.1.0-rc.1"
+readme                = "README.md"
+keywords              = [ "identity", "ssi", "did", "resolver" ]
+categories            = [ "web-programming::http-server" ]
+candidate_dependencies = [ "identus-did" ]
+published_dependencies = [ "identus-core" ]
+features              = [ "openapi" ]

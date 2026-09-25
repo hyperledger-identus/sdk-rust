@@ -52,3 +52,16 @@ explicit wildcard-free router.
 Remove the additive response module/export/limits/errors/tests/ADR, the
 private shared validator and added request lineage. Existing request
 construction and response-core parsing remain available.
+
+## Decomposition decision
+
+The production-ready diff planner reports more than 12 paths and 1,000 text
+lines because this issue includes its complete issue-first OpenSpec contract,
+preimplementation receipt, ADR, conformance report/matrix, roadmap handoff and
+focused negative tests. The runtime change is one inseparable typed transition:
+request construction must preserve the same least-authority lineage that the
+new consuming response binder returns, and its private header extraction must
+prove the existing Authorization Code behavior unchanged. Splitting those
+pieces would create an intermediate request API that either loses authority or
+retains secrets without a consuming continuation. Issue #376 already owns the
+independent fixture/provenance work, so no unrelated feature is included here.

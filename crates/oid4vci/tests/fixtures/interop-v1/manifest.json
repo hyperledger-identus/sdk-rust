@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "suite": "identus-oid4vci-generic-interop-v1",
+  "authorship": {
+    "kind": "repository-authored",
+    "repository": "https://github.com/hyperledger-identus/sdk-rust",
+    "planningRevision": "f8e77570dfbb5c84a1c2434193dadfe5638b5feb",
+    "license": "Apache-2.0",
+    "copiedConsumerBytes": false
+  },
+  "normativeSource": {
+    "uri": "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-final.html",
+    "version": "OpenID4VCI 1.0 Final",
+    "retrievedAt": "2026-09-25"
+  },
+  "consumerReferences": [
+    {
+      "repository": "https://github.com/MediaNoxLabs/oxid",
+      "revision": "e9ecfe5df27c0790dac40776e1d0a37e5f99f907",
+      "relatedRevisions": [],
+      "paths": [
+        "crates/adapters/openid4vci/src/laceid_portal_contract_tests.rs",
+        "docs/adr/0101-gate-laceid-portal-interoperability-on-final-openid4vci.md"
+      ],
+      "licenseDisposition": "Apache-2.0",
+      "classification": "reference-only",
+      "importedBytes": false,
+      "role": "strict Final holder behavior and legacy rejection oracle"
+    },
+    {
+      "repository": "https://github.com/input-output-hk/lace-id-portal",
+      "revision": "25499870f84d77173c46e4af3021311decfb840b",
+      "relatedRevisions": [
+        "804de0a9e58cf48ece3cc6c24b2245bb70bc80f1",
+        "76e8edf394a4cb37ca822037272d543c68f25f71"
+      ],
+      "paths": [
+        "crates/issuer-integration/fixtures/openid4vci-final/provenance.json",
+        "crates/issuer-integration/tests/fixture_provenance.rs"
+      ],
+      "licenseDisposition": "unresolved-no-explicit-repository-license",
+      "classification": "reference-only",
+      "importedBytes": false,
+      "role": "Final-shaped issuer/profile design oracle; Midnight format remains downstream"
+    }
+  ],
+  "vectors": [
+    {
+      "id": "positive-credential-offer",
+      "path": "positive/credential-offer.json",
+      "sha256": "cc0f9296c7ea3d171312fcbc857f587e8281b8fad2f1dad6e012ff61eddf9676",
+      "section": "4",
+      "transformation": "independently authored synthetic by-value offer; form-encoded by the test",
+      "expectedResult": "accepted offer transport, semantics and Pre-Authorized Code grant",
+      "publicApi": "CredentialOfferRequest::parse"
+    },
+    {
+      "id": "positive-credential-issuer-metadata",
+      "path": "positive/credential-issuer-metadata.json",
+      "sha256": "ffc6b8efc2b721250671887cb41daf40ebf8ba4cf5f3a1639f02731acab30199",
+      "section": "12.2",
+      "transformation": "independently authored synthetic issuer metadata",
+      "expectedResult": "accepted metadata with exact issuer, endpoint and configuration",
+      "publicApi": "CredentialIssuerMetadata::parse"
+    },
+    {
+      "id": "positive-authorization-server-metadata",
+      "path": "positive/authorization-server-metadata.json",
+      "sha256": "4f316c1e2db840cf2e631e754605f4774ce42273ef297fa44a93f0370188c3c6",
+      "section": "12.3",
+      "transformation": "independently authored synthetic authorization-server metadata",
+      "expectedResult": "accepted server with Pre-Authorized Code grant and Token Endpoint",
+      "publicApi": "AuthorizationServerMetadataCore::parse"
+    },
+    {
+      "id": "positive-token-request",
+      "path": "positive/expected-token-request.txt",
+      "sha256": "61c7558fd0c722c2bb303497603eb9ed2939ceb1caefa90fc855211ec7de2a93",
+      "section": "6.1",
+      "transformation": "independently authored expected deterministic form body",
+      "expectedResult": "exact generated Pre-Authorized Code Token Request form",
+      "publicApi": "PreAuthorizedTokenRequest::expose_sensitive_form_body"
+    },
+    {
+      "id": "positive-token-response",
+      "path": "positive/token-response.json",
+      "sha256": "baac90fff3508a376d066d72d581ffc56a57f6008812d384312400a1380471ee",
+      "section": "6.2",
+      "transformation": "independently authored synthetic successful Token Response",
+      "expectedResult": "request-bound success with exact non-secret lineage",
+      "publicApi": "PreAuthorizedTokenRequest::try_bind_response"
+    },
+    {
+      "id": "positive-credential-response",
+      "path": "positive/credential-response.json",
+      "sha256": "e84f59c1034e191ffbbaddd69745e4867e340eb80ce53be796efba18bbaea6aa",
+      "section": "8.3",
+      "transformation": "independently authored synthetic immediate Credential Response",
+      "expectedResult": "one immediate credential bound to one proof",
+      "publicApi": "JwtCredentialRequest::validate_immediate_response"
+    },
+    {
+      "id": "negative-extra-offer-query",
+      "path": "negative/extra-offer-query.txt",
+      "sha256": "760d4f404887659c3bc5d64c14f3f9fa7ccb746df2a4b86547020b3fc514ec44",
+      "section": "4.1",
+      "transformation": "independently authored legacy extra-query class",
+      "expectedResult": "rejected as unsupported offer transport",
+      "publicApi": "CredentialOfferRequest::parse"
+    },
+    {
+      "id": "negative-null-transaction-code",
+      "path": "negative/null-transaction-code-offer.json",
+      "sha256": "8badc2ceeac99af93a08cc2dfa0658218ef617d72f488238e26aa2f6efaba2e9",
+      "section": "4.1.1",
+      "transformation": "independently authored legacy null Transaction Code class",
+      "expectedResult": "rejected during grant validation",
+      "publicApi": "CredentialOffer::try_into_grants"
+    },
+    {
+      "id": "negative-singular-credential-response",
+      "path": "negative/singular-credential-response.json",
+      "sha256": "fa529c27c8d41d429ed694217767f027c03a0f6b223fa1470a001c9c65580c13",
+      "section": "8.3",
+      "transformation": "independently authored legacy singular response class",
+      "expectedResult": "rejected as an invalid immediate Credential Response",
+      "publicApi": "JwtCredentialRequest::validate_immediate_response"
+    }
+  ]
+}

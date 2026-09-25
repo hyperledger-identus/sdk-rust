@@ -780,6 +780,19 @@ product policy. The Final matrix now has fourteen implemented rows and one
 remaining missing row; M4 and IDR-023 proceed under generic vector/provenance
 issue [#376](https://github.com/hyperledger-identus/sdk-rust/issues/376).
 
+The fortieth bounded delivery, issue #376, closes the remaining M4 evidence
+gap without copying the historical consumer fixture exchange. A versioned
+Apache-2.0 clean-room packet exercises one coherent Pre-Authorized Code wallet
+journey and three legacy rejection classes through public SDK APIs. Its closed
+manifest binds every fixture to SHA-256, normative section, authorship,
+transformation, expected result and entry point, while immutable Oxid and
+Portal revisions remain reference-only design oracles. Portal licensing,
+Midnight credential semantics, issuer behavior, live transport, current human
+app-team approval, certification and downstream adoption remain explicit
+non-claims. The Final matrix has fifteen implemented, five partial, four
+unsupported and zero missing rows; IDR-023 and M4 are functionally complete at
+the reviewed #376 merge revision.
+
 ### B10 — OID4VP Final, DCQL and SIOPv2
 
 Crystallize issues before implementation. Pin final/errata versions and any

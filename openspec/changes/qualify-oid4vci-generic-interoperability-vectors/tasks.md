@@ -8,10 +8,10 @@
 
 ## 2. Executable conformance
 
-- [ ] 2.1 Add the versioned positive/negative fixture packet and closed provenance manifest.
-- [ ] 2.2 Add manifest drift/provenance validation and execute every vector through public APIs.
-- [ ] 2.3 Publish the immutable consumer compatibility assessment and read-only receipt.
-- [ ] 2.4 Update the conformance matrix/report, blueprint and IDR-023 backlog/spec evidence.
+- [x] 2.1 Add the versioned positive/negative fixture packet and closed provenance manifest.
+- [x] 2.2 Add manifest drift/provenance validation and execute every vector through public APIs.
+- [x] 2.3 Publish the immutable consumer compatibility assessment and read-only receipt.
+- [x] 2.4 Update the conformance matrix/report, blueprint and IDR-023 backlog/spec evidence.
 
 ## 3. Review and delivery
 

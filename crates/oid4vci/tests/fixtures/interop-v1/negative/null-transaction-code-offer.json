@@ -1,0 +1,1 @@
+{"credential_issuer":"https://issuer.interop.example","credential_configuration_ids":["UniversityDegreeCredential"],"grants":{"urn:ietf:params:oauth:grant-type:pre-authorized_code":{"pre-authorized_code":"SYNTHETIC_PRE_AUTHORIZED_CODE","tx_code":null}}}

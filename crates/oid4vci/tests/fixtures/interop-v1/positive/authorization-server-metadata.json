@@ -1,0 +1,1 @@
+{"issuer":"https://authorization.interop.example","token_endpoint":"https://authorization.interop.example/token","grant_types_supported":["urn:ietf:params:oauth:grant-type:pre-authorized_code"]}

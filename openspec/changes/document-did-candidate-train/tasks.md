@@ -9,10 +9,10 @@
 
 ## 2. Engineer review surface
 
-- [ ] 2.1 Add the DID candidate page, navigation and tracked layering diagram.
-- [ ] 2.2 Reconcile landing, start, release-train, crate-index, adoption,
+- [x] 2.1 Add the DID candidate page, navigation and tracked layering diagram.
+- [x] 2.2 Reconcile landing, start, release-train, crate-index, adoption,
       readiness and limitations prose with both independent train states.
-- [ ] 2.3 Add exact-revision source-evaluation examples and evidence/non-claim
+- [x] 2.3 Add exact-revision source-evaluation examples and evidence/non-claim
       links without implying registry availability.
 
 ## 3. Verification and delivery

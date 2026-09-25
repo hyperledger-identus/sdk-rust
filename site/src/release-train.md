@@ -1,6 +1,6 @@
-# The first release train
+# The first crypto release train
 
-The proposed first candidate is a three-package closure at `0.1.0-rc.1`:
+The first published prerelease is a three-package closure at `0.1.0-rc.1`:
 
 ```text
 identus-crypto =0.1.0-rc.1
@@ -21,8 +21,12 @@ consumer capability that justified preparing the closure first.
 The workspace also contains implemented experimental components and
 quarantined placeholders. Releasing all of them together would convert package
 presence into accidental API, support, and namespace promises. The isolated
-train keeps the first review cohesive and leaves DID, credentials, protocols,
-bindings, and wallet ports on their own evidence-driven timelines.
+train keeps the first review cohesive. DID follows its own candidate-only
+train; credentials, protocols, bindings, and wallet ports remain on their own
+evidence-driven timelines.
+
+The separate [DID candidate train](did-candidate.md) reuses the released
+foundation without changing this train's immutable tag or publication receipt.
 
 ## Candidate and publication mechanics
 

@@ -48,4 +48,3 @@ report, fixture, ADR, or a truthful limitation.
 
 - **WHEN** the evidence PR lands
 - **THEN** #391 can close without activating a production dependency
-

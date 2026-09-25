@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 391,
+  "change": "reassess-oid4vc-rust-reuse",
+  "branch": "codex/feat/issue-391",
+  "baseRef": "origin/develop",
+  "baseSha": "c5543efc807c5bbcd8a9bd1d45f4282c10b58057",
+  "contractHeadSha": "52e8e9b3245f17fb6287d718bbb2f11c757c3d74",
+  "createdAt": "2026-09-25T18:07:18.128Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

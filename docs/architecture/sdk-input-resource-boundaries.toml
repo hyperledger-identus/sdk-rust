@@ -336,7 +336,7 @@ review_triggers  = [ "new endpoint slice", "new JSON member or collection", "new
 [[boundaries]]
 id               = "oid4vp-reference-invocation"
 package          = "identus-oid4vp"
-surface          = "OpenID4VP custom-scheme Authorization Request invocation with decoded client identifier, HTTPS Request URI and GET/default or POST retrieval intent"
+surface          = "OpenID4VP static openid4vp: Authorization Request invocation with decoded client identifier, HTTPS Request URI and GET/default or POST retrieval intent"
 disposition      = "sdk-enforced"
 limits           = [ "AuthorizationRequestInvocationLimits=explicit" ]
 evidence         = [ "crates/oid4vp/src/invocation.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/invocation.rs", "crates/oid4vp/tests/error_contract.rs", "docs/adr/0157-establish-the-oid4vp-reference-ingress.md" ]

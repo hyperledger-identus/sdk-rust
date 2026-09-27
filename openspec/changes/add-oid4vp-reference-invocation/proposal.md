@@ -9,7 +9,8 @@ can retrieve or validate an OID4VP Request Object.
 # What changes
 
 - Activate an unpublished `identus-oid4vp` crate for one transport-only slice.
-- Parse bounded `openid4vp://authorize` Request Object references with owned,
+- Parse bounded `openid4vp:?…` Request Object references at the Final static
+  `openid4vp:` authorization endpoint with owned,
   redacted client and URI values plus explicit GET/default or POST intent.
 - Add strict form, duplicate, URI, resource, diagnostic, and portability
   evidence without fetching or interpreting referenced content.
@@ -37,3 +38,6 @@ can retrieve or validate an OID4VP Request Object.
 
 Issue #394 and ADR 0157 control this additive pre-release slice. Planning and
 readiness precede code; reviewed signed/DCO delivery targets `develop`.
+The exact-diff review corrected the initial Oxid-shaped endpoint before
+delivery: `openid4vp://authorize` remains downstream and is not represented as
+the Final static endpoint.

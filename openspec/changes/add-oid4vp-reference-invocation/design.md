@@ -15,10 +15,11 @@ generic presentation types intentionally contain no protocol wire data.
 
 ## One closed transport result
 
-`AuthorizationRequestInvocation::parse` accepts the custom-scheme invocation
-and currently returns one `ReferencedAuthorizationRequest`. Unsupported inline
-or by-value shapes receive a distinct static error. The enum leaves room for
-later transports without exposing unbounded maps.
+`AuthorizationRequestInvocation::parse` accepts the Final static
+`openid4vp:?…` authorization-endpoint invocation and currently returns one
+`ReferencedAuthorizationRequest`. Unsupported inline or by-value shapes
+receive a distinct static error. The enum leaves room for later transports
+without exposing unbounded maps.
 
 ## Decode once, detect duplicates after decoding
 
@@ -36,11 +37,12 @@ and the method, never contents.
 
 ## Validate structure, not trust
 
-The custom scheme is case-insensitive but host/path/query shape is exact,
-without userinfo, port or fragment. The Request URI must be absolute HTTPS
-with a non-empty host, no userinfo and no fragment; query is allowed. No
-network safety, redirect, TLS, signature, `typ`, audience or prefix claim is
-made.
+The registered scheme is case-insensitive, and the static endpoint has no
+authority, path or fragment before its query. Product routes such as
+`openid4vp://authorize` are not silently treated as Final syntax. The Request
+URI must be absolute HTTPS with a non-empty host, no userinfo and no fragment;
+query is allowed. No network safety, redirect, TLS, signature, `typ`, audience
+or prefix claim is made.
 
 ## Error ownership
 

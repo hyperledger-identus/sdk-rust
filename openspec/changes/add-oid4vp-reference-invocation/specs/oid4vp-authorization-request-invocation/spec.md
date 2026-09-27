@@ -4,10 +4,10 @@
 
 ### Requirement: Reference invocation is exact and bounded
 
-The SDK SHALL parse one bounded `openid4vp://authorize` Authorization Request
-reference containing exactly one decoded non-empty `client_id`, exactly one
-decoded HTTPS `request_uri`, and at most one `request_uri_method` whose only
-supported explicit value is `post`.
+The SDK SHALL parse one bounded `openid4vp:?…` Authorization Request reference
+at the Final static `openid4vp:` authorization endpoint containing exactly one
+decoded non-empty `client_id`, exactly one decoded HTTPS `request_uri`, and at
+most one `request_uri_method` whose only supported explicit value is `post`.
 
 #### Scenario: Final by-reference shape arrives
 
@@ -27,8 +27,13 @@ supported explicit value is `post`.
 ### Requirement: Ambiguous and unsupported transports fail closed
 
 The SDK SHALL reject decoded duplicate parameters, malformed form data,
-userinfo/port/fragment custom-scheme shapes, unsafe references, by-value or
-inline transports and unsupported transaction data.
+authority/path/fragment endpoint variants, unsafe references, by-value or inline
+transports and unsupported transaction data.
+
+#### Scenario: a product-specific route is supplied
+
+- **WHEN** the invocation uses `openid4vp://authorize` instead of the static endpoint
+- **THEN** parsing returns the invalid-invocation category
 
 #### Scenario: encoded names collide
 

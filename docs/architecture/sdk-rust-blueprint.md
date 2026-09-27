@@ -803,9 +803,10 @@ Crystallize issues before implementation. Pin final/errata versions and any
 pre-final dependencies required by the selected high-assurance profile.
 
 The first bounded delivery, issue #394, establishes an unpublished
-`identus-oid4vp` wire owner and classifies only `openid4vp://authorize`
-invocations containing a bounded client identifier and HTTPS Request Object
-reference. It rejects decoded duplicates, ambiguous/by-value transports,
+`identus-oid4vp` wire owner and classifies only `openid4vp:?…` invocations at
+the Final static `openid4vp:` authorization endpoint containing a bounded
+client identifier and HTTPS Request Object reference. It rejects decoded
+duplicates, product-specific endpoint variants, ambiguous/by-value transports,
 unsupported transaction data, unsafe references and unbounded inputs while
 retaining only redacted least-authority values plus GET/default or POST intent.
 HTTP retrieval, JAR verification, `typ`/audience/client-prefix validation,

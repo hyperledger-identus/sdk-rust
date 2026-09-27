@@ -24,7 +24,8 @@ choosing the DCQL engine or trusting a referenced Request Object.
 
 1. Create unpublished `identus-oid4vp` as the generic OID4VP wire/state owner.
 2. Its first public contract accepts only the Final Request Object by-reference
-   invocation at `openid4vp://authorize`.
+   invocation at the static `openid4vp:` authorization endpoint, serialized as
+   `openid4vp:?…` when query parameters are present.
 3. Retain only bounded decoded `client_id`, syntactically safe HTTPS
    `request_uri`, and GET/default or explicit POST retrieval intent.
 4. Enforce independent byte/pair/name/value limits, strict decoding, decoded
@@ -47,6 +48,8 @@ not make a runtime, release, certification or downstream compatibility claim.
 Oxid's loopback HTTP demonstration remains downstream-only. A production
 consumer can adopt the SDK boundary after its request delivery is HTTPS or a
 separate explicitly bounded local-development adapter owns the exception.
+Oxid's `openid4vp://authorize` invocation route is also downstream product
+syntax and is not represented as the Final static endpoint.
 
 ## Alternatives rejected
 

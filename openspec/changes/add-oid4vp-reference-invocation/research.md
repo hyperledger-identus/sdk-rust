@@ -16,10 +16,13 @@ framework or DCQL dependency yet. Oxid revision
 `openid4vp://authorize?client_id=...&request_uri=...`; it couples localhost
 demo policy, session orchestration, Midnight formats, consent, storage and
 proof handling and is therefore an oracle rather than extraction source.
+It also differs from the Final static wallet configuration, which declares
+the authorization endpoint as `openid4vp:`. The generic SDK must not mistake
+Oxid's `authorize` authority for normative protocol syntax.
 
 ## Normative sources
 
-- OpenID4VP 1.0 Final sections 5, 5.4, 5.7 through 5.10 and 14; the current
+- OpenID4VP 1.0 Final sections 5, 5.4, 5.7 through 5.10, 9, 13.1.2 and 14; the current
   errata-incorporating publication was retrieved from
   `https://openid.net/specs/openid-4-verifiable-presentations-1_0.html`.
 - RFC 9101 defines Request Objects by reference and their retrieval boundary.
@@ -28,8 +31,9 @@ proof handling and is therefore an oracle rather than extraction source.
 
 The Final specification defines three transports: encoded request parameters,
 a Request Object by value, and a Request Object by reference. This slice
-supports only the reference discriminator. The parser does not claim JAR
-validation merely because a URI is syntactically safe.
+supports only the reference discriminator at the static `openid4vp:`
+authorization endpoint. The parser does not claim JAR validation merely
+because a URI is syntactically safe.
 
 ## Candidate decisions
 
@@ -108,7 +112,9 @@ silent parser drift.
 
 None. The roadmap and issue #394 name the crate, consumer outcome, supported
 transport and explicit non-scope. HTTPS-only reference syntax is deliberately
-stricter than Oxid's localhost demo and does not promise downstream adoption.
+stricter than Oxid's localhost demo, and the static `openid4vp:` endpoint is
+deliberately not widened to Oxid's product-specific `openid4vp://authorize`
+route. This does not promise downstream adoption.
 
 Rollback removes the unpublished crate and additive records before any release
 or downstream adoption. No wire migration, stored-data conversion, registry

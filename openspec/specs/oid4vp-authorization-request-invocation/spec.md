@@ -71,4 +71,3 @@ client identifier, URI, query value, Request Object, or verifier canary.
 
 - **WHEN** verifier-controlled canaries are included in malformed input
 - **THEN** every public diagnostic contains only stable category metadata
-

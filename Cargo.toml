@@ -16,6 +16,7 @@ identus-jose               = { path = "crates/jose" }
 identus-messaging          = { path = "crates/messaging" }
 identus-openid4vc          = { path = "crates/openid4vc" }
 identus-oid4vci            = { path = "crates/oid4vci" }
+identus-oid4vp             = { path = "crates/oid4vp" }
 identus-wallet             = { path = "crates/wallet" }
 identus-agent              = { path = "crates/agent" }
 identus-bindings           = { path = "crates/bindings" }

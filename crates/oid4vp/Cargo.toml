@@ -1,0 +1,18 @@
+[package]
+name                   = "identus-oid4vp"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+publish.workspace      = true
+
+[dependencies]
+fluent-uri.workspace   = true
+identus-core.workspace = true
+zeroize.workspace      = true
+
+[features]
+default = [  ]
+
+[lints]
+workspace = true

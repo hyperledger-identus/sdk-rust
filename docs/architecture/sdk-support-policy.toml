@@ -135,6 +135,7 @@ packages = [
   "identus-did",
   "identus-jose",
   "identus-oid4vci",
+  "identus-oid4vp",
   "identus-adapters-entropy",
 ]
 no_default_features = false
@@ -154,6 +155,7 @@ packages = [
   "identus-did",
   "identus-jose",
   "identus-oid4vci",
+  "identus-oid4vp",
   "identus-adapters-entropy",
 ]
 no_default_features = false
@@ -173,6 +175,7 @@ packages = [
   "identus-did",
   "identus-jose",
   "identus-oid4vci",
+  "identus-oid4vp",
   "identus-adapters-entropy",
 ]
 no_default_features = false

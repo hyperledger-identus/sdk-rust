@@ -1,0 +1,100 @@
+use std::collections::BTreeSet;
+
+use identus_core::{ErrorCode, ErrorKind, IdentusError};
+use identus_oid4vp::{CAPABILITY, Oid4vpError, error_code};
+
+const GOLDEN: &str = include_str!("fixtures/oid4vp-error-contract-v1.csv");
+const GOLDEN_HEADER: &str = "variant,code,kind,public_message";
+
+#[derive(Clone, Copy)]
+struct Case {
+    variant: &'static str,
+    code: ErrorCode,
+    error: Oid4vpError,
+}
+
+macro_rules! case {
+    ($variant:ident, $constant:ident) => {
+        Case {
+            variant: stringify!($variant),
+            code: error_code::$constant,
+            error: Oid4vpError::$variant,
+        }
+    };
+}
+
+const CASES: [Case; 15] = [
+    case!(InvalidLimits, INVALID_LIMITS),
+    case!(InvocationTooLarge, INVOCATION_TOO_LARGE),
+    case!(InvalidInvocation, INVALID_INVOCATION),
+    case!(TooManyParameters, TOO_MANY_PARAMETERS),
+    case!(InvalidFormEncoding, INVALID_FORM_ENCODING),
+    case!(ParameterNameTooLarge, PARAMETER_NAME_TOO_LARGE),
+    case!(ParameterValueTooLarge, PARAMETER_VALUE_TOO_LARGE),
+    case!(DuplicateParameter, DUPLICATE_PARAMETER),
+    case!(ClientIdTooLarge, CLIENT_ID_TOO_LARGE),
+    case!(RequestUriTooLarge, REQUEST_URI_TOO_LARGE),
+    case!(MissingRequiredParameter, MISSING_REQUIRED_PARAMETER),
+    case!(UnsupportedTransport, UNSUPPORTED_TRANSPORT),
+    case!(UnsupportedParameter, UNSUPPORTED_PARAMETER),
+    case!(UnsupportedRequestUriMethod, UNSUPPORTED_REQUEST_URI_METHOD),
+    case!(UnsafeRequestUri, UNSAFE_REQUEST_URI),
+];
+
+#[test]
+fn public_error_contract_matches_the_versioned_fixture() {
+    let mut lines = GOLDEN.lines().filter(|line| !line.starts_with('#'));
+    assert_eq!(lines.next(), Some(GOLDEN_HEADER));
+
+    let rows: Vec<_> = lines.collect();
+    assert_eq!(rows.len(), CASES.len());
+    let mut codes = BTreeSet::new();
+
+    for (row, case) in rows.iter().zip(CASES) {
+        let columns: Vec<_> = row.splitn(4, ',').collect();
+        assert_eq!(columns.len(), 4);
+        assert_eq!(columns[0], case.variant);
+        assert_eq!(columns[1], case.code.as_str());
+        let public = case.error.to_identus_error();
+        assert_eq!(columns[2], format!("{:?}", public.kind()));
+        assert_eq!(columns[3], public.public_message());
+        assert_eq!(public.code(), case.code);
+        assert_eq!(public.capability(), Some(CAPABILITY));
+        assert!(codes.insert(case.code.as_str()));
+    }
+}
+
+#[test]
+fn local_and_shared_diagnostics_are_static_and_redacted() {
+    const CANARY: &str = "VERIFIER_SECRET_CANARY";
+    for case in CASES {
+        let public: IdentusError = case.error.into();
+        for rendered in [
+            format!("{}", case.error),
+            format!("{:?}", case.error),
+            format!("{public}"),
+            format!("{public:?}"),
+        ] {
+            assert!(!rendered.contains(CANARY));
+        }
+        assert!(matches!(
+            public.kind(),
+            ErrorKind::InvalidInput | ErrorKind::Unsupported
+        ));
+    }
+}
+
+#[test]
+fn compile_inventory_extends_the_ordered_fixture() {
+    let fixture: Vec<_> = GOLDEN
+        .lines()
+        .filter(|line| !line.starts_with('#'))
+        .skip(1)
+        .map(|line| line.split(',').next().expect("variant"))
+        .collect();
+    let inventory: Vec<_> = Oid4vpError::CONTRACT_VARIANTS
+        .iter()
+        .map(|error| format!("{error:?}"))
+        .collect();
+    assert_eq!(inventory, fixture);
+}

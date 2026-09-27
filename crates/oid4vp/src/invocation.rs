@@ -37,11 +37,8 @@ impl AuthorizationRequestInvocation {
             return Err(Oid4vpError::InvalidInvocation);
         }
         let parsed = ParsedUri::parse(base).map_err(|_| Oid4vpError::InvalidInvocation)?;
-        let authority = parsed.authority().ok_or(Oid4vpError::InvalidInvocation)?;
         if !parsed.scheme().as_str().eq_ignore_ascii_case("openid4vp")
-            || !authority.host().eq_ignore_ascii_case("authorize")
-            || authority.userinfo().is_some()
-            || authority.port().is_some()
+            || parsed.authority().is_some()
             || !parsed.path().as_str().is_empty()
             || parsed.fragment().is_some()
             || parsed.query().is_some()

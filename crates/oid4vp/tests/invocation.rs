@@ -3,7 +3,7 @@ use identus_oid4vp::{
     RequestUriMethod,
 };
 
-const REFERENCE: &str = "openid4vp://authorize?client_id=https%3A%2F%2Fverifier.example%2Fclient&request_uri=https%3A%2F%2Fverifier.example%2Frequest.jwt%3Fx%3D1";
+const REFERENCE: &str = "openid4vp:?client_id=https%3A%2F%2Fverifier.example%2Fclient&request_uri=https%3A%2F%2Fverifier.example%2Frequest.jwt%3Fx%3D1";
 
 fn referenced(input: &str) -> identus_oid4vp::ReferencedAuthorizationRequest {
     let AuthorizationRequestInvocation::Referenced(request) =
@@ -55,67 +55,63 @@ fn decoded_duplicate_names_fail_closed() {
 fn malformed_or_ambiguous_invocations_are_rejected() {
     let cases = [
         (
-            "openid4vp://authorize?client_id=x&request_uri=%",
+            "openid4vp:?client_id=x&request_uri=%",
             Oid4vpError::InvalidFormEncoding,
         ),
         (
-            "openid4vp://authorize?client_id=x&request_uri=https%3A%2F%2Fv.example&client_id=y",
+            "openid4vp:?client_id=x&request_uri=https%3A%2F%2Fv.example&client_id=y",
             Oid4vpError::DuplicateParameter,
         ),
         (
-            "openid4vp://authorize?client_id=x&request=jwt",
+            "openid4vp:?client_id=x&request=jwt",
             Oid4vpError::UnsupportedTransport,
         ),
         (
-            "openid4vp://authorize?client_id=x&dcql_query=%7B%7D",
+            "openid4vp:?client_id=x&dcql_query=%7B%7D",
             Oid4vpError::UnsupportedTransport,
         ),
         (
-            "openid4vp://authorize?client_id=x&request_uri=https%3A%2F%2Fv.example&transaction_data=%5B%5D",
+            "openid4vp:?client_id=x&request_uri=https%3A%2F%2Fv.example&transaction_data=%5B%5D",
             Oid4vpError::UnsupportedParameter,
         ),
         (
-            "openid4vp://authorize?client_id=x&request_uri=https%3A%2F%2Fv.example&request_uri_method=get",
+            "openid4vp:?client_id=x&request_uri=https%3A%2F%2Fv.example&request_uri_method=get",
             Oid4vpError::UnsupportedRequestUriMethod,
         ),
         (
-            "openid4vp://authorize?client_id=x",
+            "openid4vp:?client_id=x",
             Oid4vpError::MissingRequiredParameter,
         ),
         (
-            "openid4vp://authorize?request_uri=https%3A%2F%2Fv.example",
+            "openid4vp:?request_uri=https%3A%2F%2Fv.example",
             Oid4vpError::MissingRequiredParameter,
         ),
         (
-            "openid4vp://authorize?client_id=&request_uri=https%3A%2F%2Fv.example",
+            "openid4vp:?client_id=&request_uri=https%3A%2F%2Fv.example",
             Oid4vpError::MissingRequiredParameter,
         ),
         (
-            "openid4vp://authorize?client_id=x&request_uri=http%3A%2F%2Fv.example",
+            "openid4vp:?client_id=x&request_uri=http%3A%2F%2Fv.example",
             Oid4vpError::UnsafeRequestUri,
         ),
         (
-            "openid4vp://authorize?client_id=x&request_uri=https%3A%2F%2Fuser%40v.example",
+            "openid4vp:?client_id=x&request_uri=https%3A%2F%2Fuser%40v.example",
             Oid4vpError::UnsafeRequestUri,
         ),
         (
-            "openid4vp://authorize?client_id=x&request_uri=https%3A%2F%2Fv.example%2Fr%23fragment",
+            "openid4vp:?client_id=x&request_uri=https%3A%2F%2Fv.example%2Fr%23fragment",
             Oid4vpError::UnsafeRequestUri,
         ),
         (
-            "openid4vp://user@authorize?client_id=x&request_uri=https%3A%2F%2Fv.example",
+            "openid4vp://authorize?client_id=x&request_uri=https%3A%2F%2Fv.example",
             Oid4vpError::InvalidInvocation,
         ),
         (
-            "openid4vp://authorize:443?client_id=x&request_uri=https%3A%2F%2Fv.example",
+            "openid4vp:/path?client_id=x&request_uri=https%3A%2F%2Fv.example",
             Oid4vpError::InvalidInvocation,
         ),
         (
-            "openid4vp://authorize/path?client_id=x&request_uri=https%3A%2F%2Fv.example",
-            Oid4vpError::InvalidInvocation,
-        ),
-        (
-            "openid4vp://other?client_id=x&request_uri=https%3A%2F%2Fv.example",
+            "other:?client_id=x&request_uri=https%3A%2F%2Fv.example",
             Oid4vpError::InvalidInvocation,
         ),
     ];
@@ -136,7 +132,7 @@ fn malformed_or_ambiguous_invocations_are_rejected() {
 #[test]
 fn every_configurable_resource_boundary_is_enforced() {
     let limits = AuthorizationRequestInvocationLimits::new(512, 2, 11, 25, 4, 25).unwrap();
-    let exact = "openid4vp://authorize?client_id=abcd&request_uri=https%3A%2F%2Fv.example%2Fr";
+    let exact = "openid4vp:?client_id=abcd&request_uri=https%3A%2F%2Fv.example%2Fr";
     assert!(AuthorizationRequestInvocation::parse(exact, limits).is_ok());
 
     let cases = [
@@ -190,9 +186,8 @@ fn zero_limits_are_invalid() {
 #[test]
 fn successful_and_failed_diagnostics_do_not_leak_verifier_values() {
     const CANARY: &str = "VERIFIER_SECRET_CANARY";
-    let input = format!(
-        "openid4vp://authorize?client_id={CANARY}&request_uri=https%3A%2F%2Fv.example%2F{CANARY}"
-    );
+    let input =
+        format!("openid4vp:?client_id={CANARY}&request_uri=https%3A%2F%2Fv.example%2F{CANARY}");
     let parsed = AuthorizationRequestInvocation::parse(
         &input,
         AuthorizationRequestInvocationLimits::default(),
@@ -200,7 +195,7 @@ fn successful_and_failed_diagnostics_do_not_leak_verifier_values() {
     .unwrap();
     assert!(!format!("{parsed:?}").contains(CANARY));
 
-    let malformed = format!("openid4vp://authorize?client_id={CANARY}&request_uri=%");
+    let malformed = format!("openid4vp:?client_id={CANARY}&request_uri=%");
     let error = AuthorizationRequestInvocation::parse(
         &malformed,
         AuthorizationRequestInvocationLimits::default(),

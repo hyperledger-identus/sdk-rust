@@ -150,6 +150,10 @@ not a namespace-stability, publication or wallet-product commitment. Issue
 Issue #111 activates the separate experimental `identus-oid4vci` package for the
 Credential Offer transport boundary without changing the quarantined
 `identus-openid4vc` umbrella marker.
+Issue #394 activates the separate unpublished experimental `identus-oid4vp`
+package for a bounded Final by-reference invocation boundary. It likewise does
+not activate the umbrella marker and makes no Request Object, DCQL, trust,
+selection, consent, response, certification or downstream-adoption claim.
 
 The intended component portfolio below is a planning target. A crate enters
 the supported portfolio only through an accepted slice; inherited names do not
@@ -797,6 +801,16 @@ the reviewed #376 merge revision.
 
 Crystallize issues before implementation. Pin final/errata versions and any
 pre-final dependencies required by the selected high-assurance profile.
+
+The first bounded delivery, issue #394, establishes an unpublished
+`identus-oid4vp` wire owner and classifies only `openid4vp://authorize`
+invocations containing a bounded client identifier and HTTPS Request Object
+reference. It rejects decoded duplicates, ambiguous/by-value transports,
+unsupported transaction data, unsafe references and unbounded inputs while
+retaining only redacted least-authority values plus GET/default or POST intent.
+HTTP retrieval, JAR verification, `typ`/audience/client-prefix validation,
+DCQL, credential selection, consent and response construction remain later
+independent slices. SIROS remains research-only under ADR 0156.
 
 ### B11 — formats and profiles
 

@@ -1,0 +1,19 @@
+# source_repository=hyperledger-identus/sdk-rust
+# source_revision=2ace51f35b0c24201616e74048dd180d9e6bf0af
+# generated_at=2026-09-28
+variant,code,kind,public_message
+InvalidLimits,oid4vp.invalid_limits,InvalidInput,OID4VP resource limits are invalid
+InvocationTooLarge,oid4vp.invocation_too_large,InvalidInput,OID4VP invocation exceeds its byte limit
+InvalidInvocation,oid4vp.invalid_invocation,InvalidInput,OID4VP invocation is invalid
+TooManyParameters,oid4vp.too_many_parameters,InvalidInput,OID4VP invocation has too many parameters
+InvalidFormEncoding,oid4vp.invalid_form_encoding,InvalidInput,OID4VP parameter encoding is invalid
+ParameterNameTooLarge,oid4vp.parameter_name_too_large,InvalidInput,OID4VP parameter name exceeds its byte limit
+ParameterValueTooLarge,oid4vp.parameter_value_too_large,InvalidInput,OID4VP parameter value exceeds its byte limit
+DuplicateParameter,oid4vp.duplicate_parameter,InvalidInput,OID4VP invocation contains a duplicate parameter
+ClientIdTooLarge,oid4vp.client_id_too_large,InvalidInput,OID4VP client identifier exceeds its byte limit
+RequestUriTooLarge,oid4vp.request_uri_too_large,InvalidInput,OID4VP request URI exceeds its byte limit
+MissingRequiredParameter,oid4vp.missing_required_parameter,InvalidInput,OID4VP invocation is missing a required parameter
+UnsupportedTransport,oid4vp.unsupported_transport,Unsupported,OID4VP transport is not supported
+UnsupportedParameter,oid4vp.unsupported_parameter,Unsupported,OID4VP parameter is not supported
+UnsupportedRequestUriMethod,oid4vp.unsupported_request_uri_method,Unsupported,OID4VP request URI method is not supported
+UnsafeRequestUri,oid4vp.unsafe_request_uri,InvalidInput,OID4VP request URI is unsafe

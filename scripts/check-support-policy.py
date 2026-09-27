@@ -74,6 +74,7 @@ REQUIRED_COMPILE_PACKAGES = {
     "identus-did",
     "identus-jose",
     "identus-oid4vci",
+    "identus-oid4vp",
     "identus-adapters-entropy",
 }
 REQUIRED_FEATURE_SURFACES = {

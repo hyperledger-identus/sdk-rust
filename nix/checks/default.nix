@@ -14,7 +14,7 @@
     }:
     let
       # Like `craneLib.cleanCargoSource ./../..` but also keeps trybuild
-      # `.stderr` fixtures, the four immutable error goldens and the bounded
+      # `.stderr` fixtures, the five immutable error goldens and the bounded
       # OID4VCI interoperability packet, which the default cargo source filter
       # strips. Keep every exception path-scoped so planning evidence and
       # unrelated data files do not enter Rust build sources.
@@ -32,6 +32,7 @@
           || pkgs.lib.hasSuffix "/crates/presentations/tests/fixtures/presentations-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/crates/jose/tests/fixtures/jose-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv" sourcePath
+          || pkgs.lib.hasSuffix "/crates/oid4vp/tests/fixtures/oid4vp-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasPrefix oid4vciInteropRoot sourcePath;
       };
       cargoArtifacts = craneLib.buildDepsOnly {
@@ -64,13 +65,15 @@
           test -f "$src/crates/presentations/tests/fixtures/presentations-error-contract-v1.csv"
           test -f "$src/crates/jose/tests/fixtures/jose-error-contract-v1.csv"
           test -f "$src/crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv"
+          test -f "$src/crates/oid4vp/tests/fixtures/oid4vp-error-contract-v1.csv"
           test -f "$src/crates/oid4vci/tests/fixtures/interop-v1/manifest.json"
           test "$(find "$src/crates/oid4vci/tests/fixtures/interop-v1" -type f | wc -l)" -eq 10
           if find "$src/openspec/changes" -type f \
             \( -name credentials-error-contract-v1.csv \
               -o -name presentations-error-contract-v1.csv \
               -o -name jose-error-contract-v1.csv \
-              -o -name oid4vci-error-contract-v1.csv \) \
+              -o -name oid4vci-error-contract-v1.csv \
+              -o -name oid4vp-error-contract-v1.csv \) \
             -print -quit | grep -q .; then
             echo "planning error golden entered cleaned Rust sources" >&2
             exit 1

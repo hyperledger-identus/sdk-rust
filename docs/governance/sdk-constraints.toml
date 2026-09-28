@@ -466,3 +466,20 @@ owner            = "SDK maintainers and security reviewers"
 review_triggers  = [ "procedural macro added or changed", "Rust macro-span behavior changes", "Rust unsafe lint or attribute inventory changes" ]
 activation       = "Narrowed to external and nested expansion output through ADR 0088 after issue #189 machine evidence passes and merges."
 rollback         = "Restore the broader procedural-macro limitation if the direct-output visitor is removed, becomes incomplete for the pinned Rust inventory or changes supported macro behavior."
+
+[[entries]]
+id               = "SDK-LIM-010"
+kind             = "limitation"
+category         = "security"
+state            = "effective"
+summary          = "The hermetic RustSec advisory gate does not provide authoritative crates.io yank evidence."
+scope            = "The Nix rust-audit slow/release evidence and its pinned Cargo.lock."
+canonical_source = "docs/adr/0160-separate-rustsec-advisory-and-yank-evidence.md"
+authority        = "Issue #401 and accepted ADR 0160."
+rationale        = "RustSec advisories and registry yank state use different data sources, while the Nix sandbox has no immutable freshness-governed registry index."
+consumer_impact  = "A clean RustSec result proves no matching pinned-db advisory; it does not prove that every locked registry version remains unyanked."
+enforcement      = [ "pinned cargo-audit version assertion", "CVSS 4 compatibility probe", "explicit --no-yanked scan", "structured unavailable-yank result" ]
+owner            = "SDK maintainers and release managers"
+review_triggers  = [ "authoritative registry-index input accepted", "cargo-audit report semantics change", "release evidence policy changes" ]
+activation       = "Effective when ADR 0160 and the structured audit evidence gate merge."
+rollback         = "Restore the prior disclosed limitation; do not relabel missing registry-index evidence as a successful yank check."

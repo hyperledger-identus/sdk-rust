@@ -1558,6 +1558,26 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
             "          }\n"
             '          // optionalAttrs (gate.operation == "cargoAudit") {\n'
             "            inherit (inputs) advisory-db;\n"
+            "            cargoAuditExtraArgs = ''\n"
+            "              --no-yanked --format json > rust-audit-raw.json || audit_exit=$?\n"
+            "              ${pkgs.python3}/bin/python ${auditChecker} classify \\\n"
+            '                --command-exit "\'\'${audit_exit:-0}" \\\n'
+            "                --expected-tool-version ${auditToolVersion} \\\n"
+            "                --advisory-db-revision ${inputs.advisory-db.rev} \\\n"
+            "                --output rust-audit-evidence.json \\\n"
+            "                < rust-audit-raw.json\n"
+            "            '';\n"
+            "            nativeBuildInputs = [ pkgs.python3 ];\n"
+            "            preBuild = ''\n"
+            "              ${pkgs.python3}/bin/python ${auditChecker} probe \\\n"
+            "                --cargo-audit ${pkgs.cargo-audit}/bin/cargo-audit \\\n"
+            "                --expected-tool-version ${auditToolVersion} \\\n"
+            "                --advisory-db ${auditFixture}/advisory-db \\\n"
+            "                --lockfile ${auditFixture}/Cargo.lock\n"
+            "            '';\n"
+            "            postInstall = ''\n"
+            '              install -Dm444 rust-audit-evidence.json "$out/evidence.json"\n'
+            "            '';\n"
             "          }\n"
             "        );"
         ),

@@ -159,6 +159,14 @@ cannot recurse.
 The receipt proves only the factory contract. Rust, target, conformance,
 security and release gates must be attached separately and truthfully.
 
+The slow `rust-audit` evidence is deliberately advisory-only. It first proves
+that pinned `cargo-audit 0.22.2` parses a deterministic CVSS 4.0 fixture, then
+scans the locked workspace against the pinned RustSec database with
+`--no-yanked`. Its retained `evidence.json` reports advisory success or failure
+separately from `yanked = unavailable`; the hermetic Nix lane has no
+authoritative crates.io index and must never imply otherwise. See
+[ADR 0160](../adr/0160-separate-rustsec-advisory-and-yank-evidence.md).
+
 The Obsidian factory notes and the pinned Oxid snapshot are guidance. They do
 not override this repository's ADRs, constraints, OpenSpec contract or Nix
 lock, and they do not force dependency or runtime upgrades. See the

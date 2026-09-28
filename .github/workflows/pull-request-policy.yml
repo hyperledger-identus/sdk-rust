@@ -1,19 +1,6 @@
 name: Pull Request Policy
 
 on:
-  # Bootstrap invariant: retain the legacy trigger for this transition PR so
-  # its existing required status can report. The immediate canary removes it
-  # after the base branch owns pull_request_target.
-  pull_request:
-    branches:
-      - develop
-    types:
-      - opened
-      - edited
-      - synchronize
-      - reopened
-      - ready_for_review
-      - converted_to_draft
   pull_request_target:
     branches:
       - develop

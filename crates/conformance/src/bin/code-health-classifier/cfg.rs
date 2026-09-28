@@ -47,7 +47,7 @@ fn path_ident(meta: &Meta) -> Option<String> {
 
 enum CfgPredicate {
     Boolean(bool),
-    Meta(Meta),
+    Meta(Box<Meta>),
 }
 
 impl Parse for CfgPredicate {
@@ -57,7 +57,7 @@ impl Parse for CfgPredicate {
                 .parse::<LitBool>()
                 .map(|value| Self::Boolean(value.value));
         }
-        input.parse().map(Self::Meta)
+        input.parse().map(Box::new).map(Self::Meta)
     }
 }
 

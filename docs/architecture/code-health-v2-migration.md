@@ -72,4 +72,4 @@ nix develop --command python3 scripts/code-health-audit.py --verify-baseline
 ```
 
 The canonical v2 report digest is
-`3b6e23fefc0e23f4e0d00675212a8e0cd69705584d09becfae69e7740b41b951`.
+`3da85015831da6cd6615466960319ae80e48b355d758c5713fef0edef5faa982`.

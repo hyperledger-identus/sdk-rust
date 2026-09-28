@@ -99,6 +99,14 @@ assertions that prove projection and graph work are linear after sorting. A
 separate ignored stress test records representative and near-bound elapsed
 time; weekly/manual CI executes it so the PR fast lane remains focused.
 
+The committed live audit reports no module-size signals. Existing classifier
+function signals retain their prior cyclomatic/cognitive values except that
+`apply_path_meta` improves from 58 to 52 SLOC. Exact boolean support adds two
+SLOC to the already-signalled cfg evaluator without increasing complexity;
+edge instrumentation adds five SLOC to the already-signalled traversal without
+increasing complexity. These reviewed semantic additions do not introduce a
+new hotspot or conceal production behind wrappers.
+
 ## Blockers
 
 None. The parser and serialization dependencies are already locked, issue #301

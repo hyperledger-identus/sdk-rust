@@ -24,9 +24,9 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run post-move OID4VCI tests, error/conformance evidence, strict
+- [x] 3.1 Run post-move OID4VCI tests, error/conformance evidence, strict
       Clippy, workspace tests, factory checks, and relevant Nix gates.
-- [ ] 3.2 Perform a distinct exact-diff architecture/security/Rust review and
+- [x] 3.2 Perform a distinct exact-diff architecture/security/Rust review and
       resolve every blocking finding.
 - [ ] 3.3 Archive the completed change, open an issue-linked signed/DCO PR to
       `develop`, publish metrics, and merge only after required CI is green.

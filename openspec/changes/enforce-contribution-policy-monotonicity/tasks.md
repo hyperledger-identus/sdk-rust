@@ -18,6 +18,6 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Pass focused/full gates and exact-diff security review.
-- [ ] 3.2 Archive the contract and prepare the issue-linked PR; merge remains
+- [x] 3.1 Pass focused/full gates and exact-diff security review.
+- [x] 3.2 Archive the contract and prepare the issue-linked PR; merge remains
   gated by exact-head protected CI.

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 339,
+  "change": "enforce-contribution-policy-monotonicity",
+  "branch": "codex/fix/issue-339",
+  "baseRef": "origin/develop",
+  "baseSha": "7ec1cafd40d37d797c50b5205e1196700d31ee94",
+  "contractHeadSha": "a906b295e2b84a6c3815ec1fa19ae593a615ad23",
+  "createdAt": "2026-09-28T21:47:07.108Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

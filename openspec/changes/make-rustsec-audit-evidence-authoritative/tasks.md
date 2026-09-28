@@ -23,7 +23,7 @@
 
 - [x] 3.1 Run the focused fixtures, full pinned-db audit, Nix evaluation/build,
       formatting, and factory checks.
-- [ ] 3.2 Perform a distinct exact-diff security/factory review and resolve all
+- [x] 3.2 Perform a distinct exact-diff security/factory review and resolve all
       blocking findings.
-- [ ] 3.3 Archive the completed OpenSpec change, open a signed/DCO PR to
+- [x] 3.3 Archive the completed OpenSpec change, open a signed/DCO PR to
       `develop`, publish metrics, and merge only after required CI is green.

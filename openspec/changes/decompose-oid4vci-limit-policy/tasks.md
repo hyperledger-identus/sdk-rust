@@ -8,7 +8,7 @@
       constraint impact, rejected abstractions, and rollback boundary.
 - [x] 1.3 Pass research/constraint/planning checks, commit planning alone, and
       write the exact-head pre-implementation receipt for issue #404.
-- [ ] 1.4 Run the complete existing OID4VCI characterization suite before
+- [x] 1.4 Run the complete existing OID4VCI characterization suite before
       moving policy or public type mechanics.
 
 ## 2. Implementation

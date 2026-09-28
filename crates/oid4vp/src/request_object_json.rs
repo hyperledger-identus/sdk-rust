@@ -2,6 +2,7 @@ use zeroize::Zeroizing;
 
 use crate::{Oid4vpError, RequestObjectValidationLimits};
 
+#[derive(Default)]
 pub(crate) struct RequestObjectClaims {
     pub(crate) client_id: Option<Zeroizing<String>>,
     pub(crate) wallet_nonce: Option<Zeroizing<String>>,
@@ -24,7 +25,7 @@ pub(crate) fn parse_request_object_claims(
     if scanner.cursor != input.len() {
         return Err(Oid4vpError::InvalidRequestObjectPayload);
     }
-    Ok(claims.expect("top-level object returns claims"))
+    claims.ok_or(Oid4vpError::InvalidRequestObjectPayload)
 }
 
 struct Scanner<'input> {
@@ -46,13 +47,9 @@ impl Scanner<'_> {
 
         let mut names = Vec::<Zeroizing<String>>::new();
         let mut members = 0_usize;
-        let mut client_id = None;
-        let mut wallet_nonce = None;
+        let mut claims = RequestObjectClaims::default();
         if self.consume_if(b'}') {
-            return Ok(capture_claims.then_some(RequestObjectClaims {
-                client_id,
-                wallet_nonce,
-            }));
+            return Ok(capture_claims.then_some(claims));
         }
 
         loop {
@@ -62,43 +59,7 @@ impl Scanner<'_> {
             if members > self.limits.max_object_members() {
                 return Err(Oid4vpError::InvalidRequestObjectPayload);
             }
-            self.visit_node()?;
-            let name = self.parse_string()?;
-            if names
-                .iter()
-                .any(|existing| existing.as_str() == name.as_str())
-            {
-                return Err(match name.as_str() {
-                    "client_id" => Oid4vpError::RequestObjectClientIdMismatch,
-                    "wallet_nonce" => Oid4vpError::RequestObjectWalletNonceMismatch,
-                    _ => Oid4vpError::InvalidRequestObjectPayload,
-                });
-            }
-            self.skip_whitespace();
-            self.expect(b':')?;
-            self.skip_whitespace();
-
-            if capture_claims && matches!(name.as_str(), "client_id" | "wallet_nonce") {
-                self.visit_node()?;
-                let value = self.parse_string().map_err(|_| match name.as_str() {
-                    "client_id" => Oid4vpError::RequestObjectClientIdMismatch,
-                    _ => Oid4vpError::RequestObjectWalletNonceMismatch,
-                })?;
-                if value.is_empty() || value.chars().any(char::is_control) {
-                    return Err(match name.as_str() {
-                        "client_id" => Oid4vpError::RequestObjectClientIdMismatch,
-                        _ => Oid4vpError::RequestObjectWalletNonceMismatch,
-                    });
-                }
-                if name.as_str() == "client_id" {
-                    client_id = Some(value);
-                } else {
-                    wallet_nonce = Some(value);
-                }
-            } else {
-                self.parse_value(depth)?;
-            }
-            names.push(name);
+            self.parse_object_member(depth, capture_claims, &mut names, &mut claims)?;
             self.skip_whitespace();
             if self.consume_if(b'}') {
                 break;
@@ -107,10 +68,52 @@ impl Scanner<'_> {
             self.skip_whitespace();
         }
 
-        Ok(capture_claims.then_some(RequestObjectClaims {
-            client_id,
-            wallet_nonce,
-        }))
+        Ok(capture_claims.then_some(claims))
+    }
+
+    fn parse_object_member(
+        &mut self,
+        depth: usize,
+        capture_claims: bool,
+        names: &mut Vec<Zeroizing<String>>,
+        claims: &mut RequestObjectClaims,
+    ) -> Result<(), Oid4vpError> {
+        self.visit_node()?;
+        let name = self.parse_string()?;
+        if names
+            .iter()
+            .any(|existing| existing.as_str() == name.as_str())
+        {
+            return Err(claim_error(&name));
+        }
+        self.skip_whitespace();
+        self.expect(b':')?;
+        self.skip_whitespace();
+
+        if capture_claims && matches!(name.as_str(), "client_id" | "wallet_nonce") {
+            let value = self.parse_claim_string(&name)?;
+            if name.as_str() == "client_id" {
+                claims.client_id = Some(value);
+            } else {
+                claims.wallet_nonce = Some(value);
+            }
+        } else {
+            self.parse_value(depth)?;
+        }
+        names.push(name);
+        Ok(())
+    }
+
+    fn parse_claim_string(
+        &mut self,
+        name: &Zeroizing<String>,
+    ) -> Result<Zeroizing<String>, Oid4vpError> {
+        self.visit_node()?;
+        let value = self.parse_string().map_err(|_| claim_error(name))?;
+        if value.is_empty() || value.chars().any(char::is_control) {
+            return Err(claim_error(name));
+        }
+        Ok(value)
     }
 
     fn parse_array(&mut self, depth: usize) -> Result<(), Oid4vpError> {
@@ -247,5 +250,13 @@ impl Scanner<'_> {
 
     fn peek(&self) -> Option<u8> {
         self.input.get(self.cursor).copied()
+    }
+}
+
+fn claim_error(name: &str) -> Oid4vpError {
+    match name {
+        "client_id" => Oid4vpError::RequestObjectClientIdMismatch,
+        "wallet_nonce" => Oid4vpError::RequestObjectWalletNonceMismatch,
+        _ => Oid4vpError::InvalidRequestObjectPayload,
     }
 }

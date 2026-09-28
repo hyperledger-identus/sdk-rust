@@ -5,6 +5,10 @@
 **Retrieval and measurement date:** 2026-09-26
 **Baseline:** `develop@cd4d4eceef92cf18bb5c991f2957f2fac261d53e`
 
+**Production follow-up:** issue #429 and ADR 0165 activate exact 0.3.0 only as
+a private `identus-oid4vp` engine behind the strict facade required below. The
+fixture remains independent differential/supply-chain evidence.
+
 ## Executive answer
 
 Do not replace any delivered `identus-oid4vci` component. Start a future

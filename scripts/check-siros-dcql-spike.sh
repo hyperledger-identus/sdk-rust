@@ -24,10 +24,22 @@ if [[ "$host_cone" != "12" ]]; then
   exit 1
 fi
 
-if rg -q '^name = "siros-dcql"$' "$repo_root/Cargo.lock" || \
-  rg -q '^[[:space:]]*siros-dcql[[:space:]]*=' "$repo_root/Cargo.toml"; then
-  echo "siros-dcql-spike: candidate entered the root manifest or lock" >&2
+if ! rg -q '^siros-dcql[[:space:]]*=[[:space:]]*"=0\.3\.0"$' "$repo_root/Cargo.toml" || \
+  [[ "$(rg -c '^name = "siros-dcql"$' "$repo_root/Cargo.lock")" != "1" ]]; then
+  echo "siros-dcql-spike: exact root adoption evidence is missing" >&2
   exit 1
 fi
 
-echo "siros-dcql-spike: host, supply-chain and root-graph isolation checks passed"
+if ! cargo tree --locked -p identus-oid4vp --edges normal,build --prefix none | \
+  rg -q '^siros-dcql v0\.3\.0$'; then
+  echo "siros-dcql-spike: identus-oid4vp does not privately consume exact 0.3.0" >&2
+  exit 1
+fi
+
+if rg -n 'pub (use|fn|struct|enum|trait|type).*siros_dcql|pub use siros_dcql' \
+  "$repo_root/crates/oid4vp/src"; then
+  echo "siros-dcql-spike: candidate types escaped the OID4VP public facade" >&2
+  exit 1
+fi
+
+echo "siros-dcql-spike: fixture, supply-chain and exact private-adoption checks passed"

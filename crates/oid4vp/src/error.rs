@@ -58,6 +58,13 @@ pub mod error_code {
         ErrorCode::new("oid4vp.request_object_client_id_mismatch");
     pub const REQUEST_OBJECT_WALLET_NONCE_MISMATCH: ErrorCode =
         ErrorCode::new("oid4vp.request_object_wallet_nonce_mismatch");
+    pub const MISSING_DCQL_QUERY: ErrorCode = ErrorCode::new("oid4vp.missing_dcql_query");
+    pub const UNSUPPORTED_DCQL_SCOPE: ErrorCode = ErrorCode::new("oid4vp.unsupported_dcql_scope");
+    pub const INVALID_DCQL_QUERY: ErrorCode = ErrorCode::new("oid4vp.invalid_dcql_query");
+    pub const DCQL_QUERY_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.dcql_query_too_large");
+    pub const DCQL_WORK_LIMIT_EXCEEDED: ErrorCode =
+        ErrorCode::new("oid4vp.dcql_work_limit_exceeded");
+    pub const INVALID_DCQL_CREDENTIAL: ErrorCode = ErrorCode::new("oid4vp.invalid_dcql_credential");
 }
 
 /// Public error categories for OID4VP invocation parsing.
@@ -97,11 +104,17 @@ pub enum Oid4vpError {
     InvalidRequestObjectPayload,
     RequestObjectClientIdMismatch,
     RequestObjectWalletNonceMismatch,
+    MissingDcqlQuery,
+    UnsupportedDcqlScope,
+    InvalidDcqlQuery,
+    DcqlQueryTooLarge,
+    DcqlWorkLimitExceeded,
+    InvalidDcqlCredential,
 }
 
 impl Oid4vpError {
     /// Ordered error inventory frozen by the v1 contract fixture.
-    pub const CONTRACT_VARIANTS: [Self; 33] = [
+    pub const CONTRACT_VARIANTS: [Self; 39] = [
         Self::InvalidLimits,
         Self::InvocationTooLarge,
         Self::InvalidInvocation,
@@ -135,9 +148,15 @@ impl Oid4vpError {
         Self::InvalidRequestObjectPayload,
         Self::RequestObjectClientIdMismatch,
         Self::RequestObjectWalletNonceMismatch,
+        Self::MissingDcqlQuery,
+        Self::UnsupportedDcqlScope,
+        Self::InvalidDcqlQuery,
+        Self::DcqlQueryTooLarge,
+        Self::DcqlWorkLimitExceeded,
+        Self::InvalidDcqlCredential,
     ];
 
-    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 33] = {
+    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 39] = {
         use error_code as code;
         [
             (
@@ -304,6 +323,36 @@ impl Oid4vpError {
                 code::REQUEST_OBJECT_WALLET_NONCE_MISMATCH,
                 ErrorKind::InvalidInput,
                 "OID4VP Request Object wallet nonce does not match",
+            ),
+            (
+                code::MISSING_DCQL_QUERY,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object does not contain a DCQL query",
+            ),
+            (
+                code::UNSUPPORTED_DCQL_SCOPE,
+                ErrorKind::Unsupported,
+                "OID4VP scope-based DCQL is not supported",
+            ),
+            (
+                code::INVALID_DCQL_QUERY,
+                ErrorKind::InvalidInput,
+                "OID4VP DCQL query is invalid",
+            ),
+            (
+                code::DCQL_QUERY_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP DCQL query exceeds its resource limits",
+            ),
+            (
+                code::DCQL_WORK_LIMIT_EXCEEDED,
+                ErrorKind::InvalidInput,
+                "OID4VP DCQL evaluation exceeds its work limits",
+            ),
+            (
+                code::INVALID_DCQL_CREDENTIAL,
+                ErrorKind::InvalidInput,
+                "OID4VP DCQL credential descriptor is invalid",
             ),
         ]
     };

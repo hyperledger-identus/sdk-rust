@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 429,
+  "change": "adopt-bounded-oid4vp-dcql",
+  "branch": "codex/feat/issue-429",
+  "baseRef": "origin/develop",
+  "baseSha": "73274255307eb31825a4da3788043c0ff39b6a43",
+  "contractHeadSha": "628db4c5dfb0cc9237526b6a32b525cd95a58462",
+  "createdAt": "2026-09-28T20:18:54.290Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

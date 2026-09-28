@@ -23,7 +23,7 @@ macro_rules! case {
     };
 }
 
-const CASES: [Case; 33] = [
+const CASES: [Case; 39] = [
     case!(InvalidLimits, INVALID_LIMITS),
     case!(InvocationTooLarge, INVOCATION_TOO_LARGE),
     case!(InvalidInvocation, INVALID_INVOCATION),
@@ -72,6 +72,12 @@ const CASES: [Case; 33] = [
         RequestObjectWalletNonceMismatch,
         REQUEST_OBJECT_WALLET_NONCE_MISMATCH
     ),
+    case!(MissingDcqlQuery, MISSING_DCQL_QUERY),
+    case!(UnsupportedDcqlScope, UNSUPPORTED_DCQL_SCOPE),
+    case!(InvalidDcqlQuery, INVALID_DCQL_QUERY),
+    case!(DcqlQueryTooLarge, DCQL_QUERY_TOO_LARGE),
+    case!(DcqlWorkLimitExceeded, DCQL_WORK_LIMIT_EXCEEDED),
+    case!(InvalidDcqlCredential, INVALID_DCQL_CREDENTIAL),
 ];
 
 #[test]

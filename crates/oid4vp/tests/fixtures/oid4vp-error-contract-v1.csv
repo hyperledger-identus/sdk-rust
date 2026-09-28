@@ -35,3 +35,9 @@ InvalidRequestObjectSignature,oid4vp.invalid_request_object_signature,InvalidInp
 InvalidRequestObjectPayload,oid4vp.invalid_request_object_payload,InvalidInput,OID4VP Request Object payload is invalid
 RequestObjectClientIdMismatch,oid4vp.request_object_client_id_mismatch,InvalidInput,OID4VP Request Object client identifier does not match
 RequestObjectWalletNonceMismatch,oid4vp.request_object_wallet_nonce_mismatch,InvalidInput,OID4VP Request Object wallet nonce does not match
+MissingDcqlQuery,oid4vp.missing_dcql_query,InvalidInput,OID4VP Request Object does not contain a DCQL query
+UnsupportedDcqlScope,oid4vp.unsupported_dcql_scope,Unsupported,OID4VP scope-based DCQL is not supported
+InvalidDcqlQuery,oid4vp.invalid_dcql_query,InvalidInput,OID4VP DCQL query is invalid
+DcqlQueryTooLarge,oid4vp.dcql_query_too_large,InvalidInput,OID4VP DCQL query exceeds its resource limits
+DcqlWorkLimitExceeded,oid4vp.dcql_work_limit_exceeded,InvalidInput,OID4VP DCQL evaluation exceeds its work limits
+InvalidDcqlCredential,oid4vp.invalid_dcql_credential,InvalidInput,OID4VP DCQL credential descriptor is invalid

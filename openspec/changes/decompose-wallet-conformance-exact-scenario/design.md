@@ -58,3 +58,20 @@ moving code. The transcript, existing tests, public/source comparison, and
 exact-diff review make this visible. The branch is independently revertible;
 rollback restores the previous private layout without consumer or stored-data
 migration.
+
+## Squash-safe canonical evidence
+
+The repository's guarded merge creates one protected squash commit. A report
+pinned to a feature-branch implementation commit would cease to be an ancestor
+of `develop`, violating canonical baseline durability. Delivery is therefore
+two issue-linked PRs:
+
+1. merge the characterized private refactor with exact-head comparison
+   evidence while the existing historical baseline remains unchanged;
+2. generate and pin the canonical code-health report from that protected
+   squash commit, remove the completed hotspot disposition, archive this
+   change, and close #438.
+
+The second branch retains the planning/preimplementation ancestry by merging
+the protected squash commit into the reviewed implementation lineage before
+adding evidence. No product code changes in the closeout PR.

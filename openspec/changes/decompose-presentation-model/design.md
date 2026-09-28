@@ -12,7 +12,9 @@
 | `model/artifact.rs` | Artifact bindings/payloads, generated-presentation coverage and aggregate budgets, and value-free receipt projection |
 
 The children remain private. The facade explicitly re-exports all existing
-public items and retains the public resource constants.
+public items, retains the public resource constants, and owns the single
+generic duplicate detector shared by request, selection, and artifact
+validation.
 
 ## Ownership and dependency direction
 

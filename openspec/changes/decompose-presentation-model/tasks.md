@@ -2,22 +2,22 @@
 
 ## 1. Planning and characterization
 
-- [ ] 1.1 Inventory public exports, scalar syntax, request/candidate/selection
+- [x] 1.1 Inventory public exports, scalar syntax, request/candidate/selection
       invariants, artifact budgets, receipt projection, and internal consumers.
-- [ ] 1.2 Record private module ownership, dependency direction, compatibility,
+- [x] 1.2 Record private module ownership, dependency direction, compatibility,
       non-goals, risk, and rollback.
-- [ ] 1.3 Commit planning alone, rebase it onto the current merged `develop`
+- [x] 1.3 Commit planning alone, rebase it onto the current merged `develop`
       tip, pass readiness, and write issue #407's exact-head receipt.
-- [ ] 1.4 Run the complete pre-move presentation all-feature suite and capture
+- [x] 1.4 Run the complete pre-move presentation all-feature suite and capture
       public/source invariants.
 
 ## 2. Implementation
 
-- [ ] 2.1 Move scalar and opaque value roles with syntax and redaction intact.
-- [ ] 2.2 Move request/query/filter models without public or validation drift.
-- [ ] 2.3 Move candidate/disclosure validation with exact request, format,
+- [x] 2.1 Move scalar and opaque value roles with syntax and redaction intact.
+- [x] 2.2 Move request/query/filter models without public or validation drift.
+- [x] 2.3 Move candidate/disclosure validation with exact request, format,
       multiplicity, path, and intent binding.
-- [ ] 2.4 Move generated artifacts and receipt projection with exact coverage,
+- [x] 2.4 Move generated artifacts and receipt projection with exact coverage,
       aggregate byte budgets, and value-free retention.
 - [ ] 2.5 Prove public/error/source equivalence and refresh code-health evidence
       without weakening unrelated ownership.

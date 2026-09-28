@@ -19,7 +19,7 @@
       while preserving the private facade and crate-root public exports.
 - [x] 2.3 Prove exact public signatures, defaults, validation predicates,
       errors, and compositions against the base inventory.
-- [ ] 2.4 Refresh code-health evidence and remove the completed limits hotspot
+- [x] 2.4 Refresh code-health evidence and remove the completed limits hotspot
       without weakening unrelated ownership or governance.
 
 ## 3. Verification and delivery

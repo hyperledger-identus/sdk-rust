@@ -5,9 +5,9 @@ engine_version                     = "0.0.25"
 classifier                         = "syn-ast-v1"
 classifier_protocol_version        = 2
 classifier_command                 = [ "cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--" ]
-baseline_revision                  = "8eed426fc00cef48d3e4a2000e1a08dc3c93d0bb"
-baseline_source_fingerprint_sha256 = "51138f0966835a9522639fa88ec16a39ae6437bef166f13ecb700a5444558274"
-baseline_report_sha256             = "68192f79e5c2f5650aba1d28e7cdfb9a7db3265b98d01b22688c63fcb09c6336"
+baseline_revision                  = "6d1886a27529bf6afbdecb60637ce81cd6b71ec7"
+baseline_source_fingerprint_sha256 = "d40aaa6e4a49112a691d9553eb15b58e8fa79cab0edabd4d049647654e953b9b"
+baseline_report_sha256             = "e99bb33f42d624e18e5dadd6322305fd0e461d66b258a0c95f167db8f96206c5"
 generated_exclusions               = [  ]
 
 [attention]
@@ -64,13 +64,6 @@ locations   = [ "crates/did/src/registration.rs" ]
 disposition = "decompose"
 owner       = "identus-did maintainers"
 evidence    = "Lifecycle modeling and recursive extension validation should become characterized private boundaries."
-
-[[hotspots]]
-id          = "oid4vci-limits-policy-and-mechanics"
-locations   = [ "crates/oid4vci/src/limits.rs" ]
-disposition = "decompose"
-owner       = "issue #404 / identus-oid4vci maintainers"
-evidence    = "Issue #404 owns characterization and decomposition while issue #168 remains authoritative for resource-bound semantics."
 
 [[hotspots]]
 id          = "oid4vci-error-projection"

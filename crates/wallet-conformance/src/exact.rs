@@ -194,6 +194,7 @@ where
         &fixture.initial_value,
         &first_revision,
         "read-after-insert",
+        ConformanceFailureKind::RevisionMismatch,
     )?;
 
     let isolated = load_optional(
@@ -248,6 +249,7 @@ where
         &fixture.initial_value,
         first_revision,
         "insert-conflict-preserves",
+        ConformanceFailureKind::ValueMismatch,
     )
 }
 
@@ -340,7 +342,13 @@ where
     D::Value: PartialEq,
 {
     let current = required_load(driver, &fixture.scope, &fixture.key, step, evidence).await?;
-    require_value_and_revision(&current, &fixture.replacement_value, current_revision, step)
+    require_value_and_revision(
+        &current,
+        &fixture.replacement_value,
+        current_revision,
+        step,
+        ConformanceFailureKind::ValueMismatch,
+    )
 }
 
 async fn delete_and_prove_absence<D: ExactDriver + ?Sized>(
@@ -436,12 +444,13 @@ fn require_value_and_revision<Value: PartialEq>(
     expected_value: &Value,
     expected_revision: &StorageRevision,
     step: &'static str,
+    revision_kind: ConformanceFailureKind,
 ) -> Result<(), ConformanceFailure> {
     if loaded.value() != expected_value {
         return Err(failure(step, ConformanceFailureKind::ValueMismatch));
     }
     if loaded.revision() != expected_revision {
-        return Err(failure(step, ConformanceFailureKind::RevisionMismatch));
+        return Err(failure(step, revision_kind));
     }
     Ok(())
 }

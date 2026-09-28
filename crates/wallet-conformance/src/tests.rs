@@ -35,6 +35,7 @@ struct MemoryStore {
     state: Mutex<MemoryState>,
     reuse_replaced_revision: bool,
     repeat_cursor: bool,
+    corrupt_revision_on_operation: Option<usize>,
 }
 
 impl MemoryStore {
@@ -64,6 +65,13 @@ impl MemoryStore {
         }
     }
 
+    fn with_corrupt_revision_on_operation(operation: usize) -> Self {
+        Self {
+            corrupt_revision_on_operation: Some(operation),
+            ..Self::default()
+        }
+    }
+
     fn exact_operations(&self) -> Vec<ExactOperation> {
         self.state
             .lock()
@@ -79,10 +87,21 @@ impl MemoryStore {
             ("isolated", "record") => ExactOperation::LoadIsolated,
             _ => ExactOperation::LoadPrimary,
         });
+        let operation = state.exact_operations.len();
         state
             .records
             .get(&(scope.to_owned(), key.to_owned()))
-            .map(|(value, revision)| Ok(Stored::new(value.clone(), encode_revision(*revision)?)))
+            .map(|(value, revision)| {
+                let reported_revision = if self.corrupt_revision_on_operation == Some(operation) {
+                    revision.checked_add(1).ok_or(StorageError::Internal)?
+                } else {
+                    *revision
+                };
+                Ok(Stored::new(
+                    value.clone(),
+                    encode_revision(reported_revision)?,
+                ))
+            })
             .transpose()
     }
 
@@ -402,6 +421,40 @@ fn revision_reuse_fails_closed() {
     .expect_err("reused replacement revision must fail");
     assert_eq!(error.step(), "replace");
     assert_eq!(error.kind(), ConformanceFailureKind::RevisionNotInvalidated);
+}
+
+#[test]
+fn revision_mismatch_failure_projection_remains_step_specific() {
+    for (operation, step, kind) in [
+        (
+            5,
+            "read-after-insert",
+            ConformanceFailureKind::RevisionMismatch,
+        ),
+        (
+            8,
+            "insert-conflict-preserves",
+            ConformanceFailureKind::ValueMismatch,
+        ),
+        (
+            11,
+            "stale-write-preserves",
+            ConformanceFailureKind::ValueMismatch,
+        ),
+        (
+            13,
+            "stale-delete-preserves",
+            ConformanceFailureKind::ValueMismatch,
+        ),
+    ] {
+        let error = block_on(check_secret_store(
+            &MemoryStore::with_corrupt_revision_on_operation(operation),
+            &exact_fixture(),
+        ))
+        .expect_err("corrupt revision must fail");
+        assert_eq!(error.step(), step);
+        assert_eq!(error.kind(), kind);
+    }
 }
 
 #[test]

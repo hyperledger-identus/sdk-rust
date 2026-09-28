@@ -1,0 +1,40 @@
+schema_version = 1
+program_issue  = 415
+status         = "active-empty"
+
+[vocabulary]
+change_classes = [
+  "additive",
+  "fix",
+  "behavioral",
+  "deprecated",
+  "breaking",
+  "security",
+]
+release_note_classes = [
+  "added",
+  "changed",
+  "deprecated",
+  "removed",
+  "fixed",
+  "security",
+]
+compatibility = [
+  "compatible",
+  "source-break",
+  "abi-break",
+  "wire-break",
+  "persistence-break",
+  "behavior-break",
+  "runtime-requirement-break",
+]
+
+# Add one [[change]] record in the same PR as each consumer-visible migration.
+# Required fields:
+# id, capability, class, release_note_class, compatibility, affected_packages,
+# old_behavior, new_behavior, migration_action, replacement, first_version,
+# last_compatible_version, compatibility_window, deprecation_phase,
+# legacy_bug_policy, tests, issue, pull_request, rollback, and evidence.
+#
+# The ledger deliberately starts without change records because this bootstrap
+# changes governance only and no consumer-visible runtime/package behavior.

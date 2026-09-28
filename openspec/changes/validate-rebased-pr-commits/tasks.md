@@ -21,7 +21,7 @@
 
 - [x] 3.1 Pass focused Node tests, the complete operational suite, factory
       checks, and the Nix factory contract.
-- [ ] 3.2 Complete a distinct exact-diff local review and resolve every blocking
+- [x] 3.2 Complete a distinct exact-diff local review and resolve every blocking
       finding.
 - [ ] 3.3 Sync the canonical specification, archive through the guarded facade,
       and prepare a signed/DCO issue-linked PR.

@@ -1,0 +1,8 @@
+{
+  "max_elapsed_ms": 5000,
+  "max_peak_rss_mib": 384,
+  "module_edges": 3500,
+  "projection_nodes": 35000,
+  "samples": 3,
+  "schema_version": 1
+}

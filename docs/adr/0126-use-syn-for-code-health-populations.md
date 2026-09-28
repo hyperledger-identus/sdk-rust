@@ -53,7 +53,9 @@ heavy metric engine; weekly/manual evidence uses the same population helper
 before full metric regeneration.
 
 The code-health policy/report advances to v2 and binds classifier identity,
-protocol, and an exact digest of each file's population projection. Migration
+protocol, the complete private classifier source set, resolved
+`syn`/`proc-macro2` package identities, and an exact digest of each file's
+population projection. Migration
 requires an exhaustive v1/v2 delta report and a reachable baseline revision
 from the durable target-branch history. Full validation enforces that the
 baseline revision is an ancestor of the reviewed checkout. The revision
@@ -61,6 +63,14 @@ identifies the source tree being classified; it need not contain the current
 classifier, because classifier identity, protocol, locked dependencies, and
 the complete per-file projection digest bind the interpretation independently.
 Parser upgrades require the same governed migration.
+
+The implementation is decomposed into private cfg, AST-span, projection,
+module-reachability, protocol/orchestration, and test-fixture modules. The
+boundary is semantic rather than cosmetic: each module owns a distinct
+invariant and no classifier production module exceeds the 1,000-line attention
+threshold. Conditional paths are compared only across configurations in which
+the module edge is reachable. Cargo target paths are lexically normalized and
+must remain contained before matching repository source keys.
 
 ## Consequences
 

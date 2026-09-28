@@ -11,8 +11,9 @@ The command uses the unpublished `syn` classifier and
 `rust-code-analysis-cli 0.0.25`, reads the policy and hotspot dispositions in
 [`code-health.toml`](code-health.toml), and emits canonical JSON. The v2
 baseline records an immutable, durable `develop` source revision. Its revision,
-source fingerprint, classifier identity and protocol, execution command, exact
-per-file population-projection digest, and whole
+source fingerprint, classifier identity and protocol, execution command,
+complete classifier-source digest, resolved `syn`/`proc-macro2` lock digest,
+exact per-file population-projection digest, and whole
 canonical-report digest are policy-pinned. The exhaustive v1-to-v2 comparison is in
 [`code-health-v2-migration.md`](code-health-v2-migration.md).
 
@@ -49,9 +50,10 @@ worktree; unrelated documentation changes do not invalidate source evidence.
 The baseline source revision must be a durable ancestor of the target branch so
 it remains available after branch deletion and under merge, squash, or rebase
 integration. It identifies the historical source snapshot, not the classifier
-implementation commit. The pinned classifier identity, protocol, dependency
-versions, and exact per-file projection digest bind the current classifier's
-interpretation of that snapshot. Full validation also requires the pinned
+implementation commit. The pinned classifier identity, protocol, resolved
+dependencies, complete private source set, and exact per-file projection
+digest bind the current classifier's interpretation of that snapshot. Full
+validation also requires the pinned
 revision to be an ancestor of the reviewed checkout, preventing temporary
 feature-branch objects from becoming durable evidence.
 
@@ -102,6 +104,15 @@ feature-branch objects from becoming durable evidence.
   comments never cause exclusion. Excluded sources remain available to the
   module-resolution graph so an authored `mod generated;` edge is still valid;
   only their metric lines are omitted.
+
+The classifier implementation is split into private protocol/orchestration,
+cfg, AST-span, projection, module-reachability, and test-fixture modules. This
+keeps independent invariants discoverable without publishing a tooling API.
+Deterministic fast tests compare supported conditional module paths with
+`rustc` and instrument projection/edge work. The weekly slow lane additionally
+runs `scripts/benchmark-code-health-classifier.py` against the reviewed
+near-limit profile in `code-health-classifier-performance.json`, recording
+elapsed time and peak resident memory under explicit non-public thresholds.
 
 `authored_nonblank_lines` includes comments and documentation deliberately: it
 measures review surface, not executable SLOC. Function `sloc`, cognitive, and

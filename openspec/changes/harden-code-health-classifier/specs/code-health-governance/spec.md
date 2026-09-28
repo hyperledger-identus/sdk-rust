@@ -36,6 +36,11 @@ near-limit timing evidence SHALL run only in weekly/manual validation.
 - **WHEN** a module path applies only in a configuration where the module edge is disabled
 - **THEN** that path does not create a false ambiguity or require an unreachable source
 
+#### Scenario: Boolean literal is nested in cfg algebra
+
+- **WHEN** `true` or `false` appears inside supported `all`, `any`, or `not` predicates
+- **THEN** the classifier evaluates the literal exactly rather than silently treating the predicate as unknown
+
 #### Scenario: Cargo target uses lexical parent components
 
 - **WHEN** a contained manifest target path uses `.` or `..`

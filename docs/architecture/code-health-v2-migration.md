@@ -25,9 +25,9 @@ source population and projection remain unchanged by that protocol refinement.
 
 Every file has the same authored nonblank production/test population under
 both classifiers. The source fingerprint is
-`45131b8ad75ed2dfd601c154fde7fae35bd06c49e7f62a1d3ec5b9ca322c9cc5`.
+`86868a1d7baaa194cd2eb7511ab1dda62d6a51f24a0292166321175aae9e6bdb`.
 The v2 per-file population projection digest is
-`1030e24d3da18d82f524dc163f3703bdc47508378d4855ce443ea1c739f66558`.
+`f383a26031ea9601e15a68aff5759aa8dfce6d72c33d562de2a37248538f91b0`.
 
 The sole representation delta is intentional: v1 included blank lines in a
 file inherited wholly as inline test, while v2 reports only lines containing
@@ -72,4 +72,4 @@ nix develop --command python3 scripts/code-health-audit.py --verify-baseline
 ```
 
 The canonical v2 report digest is
-`5212a3c7c2682a9679d2c1ccbe3422489e9d08b56eb7fd6dc39805db4d589655`.
+`3b6e23fefc0e23f4e0d00675212a8e0cd69705584d09becfae69e7740b41b951`.

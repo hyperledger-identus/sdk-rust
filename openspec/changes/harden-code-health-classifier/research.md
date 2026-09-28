@@ -56,6 +56,9 @@ internal repository-evidence migration with no downstream compatibility cost.
    edge is reachable.
 5. Cargo target paths containing lexical `.` or `..` components need contained
    normalization before matching source keys.
+6. Seeded property cases showed that boolean literals nested inside `all`,
+   `any`, or `not` were conservatively downgraded to unknown because `syn::Meta`
+   does not represent literal booleans; ADR 0126 requires exact evaluation.
 
 ## Security, privacy and maintenance evidence
 

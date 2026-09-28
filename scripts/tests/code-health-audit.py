@@ -126,7 +126,7 @@ version = "0.0.0"
 autobins = false
 
 [lib]
-path = "custom/lib.rs"
+path = "custom/../src/lib.rs"
 
 [[bin]]
 name = "runner"
@@ -135,7 +135,7 @@ path = "tools/runner.rs"
                 encoding="utf-8",
             )
             sources = {
-                Path("crates/demo/custom/lib.rs"): "pub fn library() {}\n",
+                Path("crates/demo/src/lib.rs"): "pub fn library() {}\n",
                 Path("crates/demo/tools/runner.rs"): "fn main() {}\n",
                 Path("crates/demo/src/main.rs"): "fn not_a_target() {}\n",
                 Path("crates/demo/src/bin/auto.rs"): "fn not_a_target() {}\n",
@@ -143,10 +143,47 @@ path = "tools/runner.rs"
             self.assertEqual(
                 audit.cargo_target_roots(root, sources),
                 [
-                    Path("crates/demo/custom/lib.rs"),
+                    Path("crates/demo/src/lib.rs"),
                     Path("crates/demo/tools/runner.rs"),
                 ],
             )
+
+    def test_cargo_target_roots_reject_paths_escaping_repository(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            crate = root / "crates/demo"
+            crate.mkdir(parents=True)
+            (crate / "Cargo.toml").write_text(
+                '[package]\nname = "demo"\nversion = "0.0.0"\n\n[lib]\npath = "../../../outside.rs"\n',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(audit.AuditError, "escapes the repository"):
+                audit.cargo_target_roots(
+                    root, {Path("crates/demo/src/lib.rs"): "pub fn library() {}\n"}
+                )
+
+    def test_cargo_target_roots_cover_auto_and_nested_bins(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            crate = root / "crates/demo"
+            crate.mkdir(parents=True)
+            (crate / "Cargo.toml").write_text(
+                """\
+[package]
+name = "demo"
+version.workspace = true
+edition.workspace = true
+""",
+                encoding="utf-8",
+            )
+            paths = [
+                Path("crates/demo/src/lib.rs"),
+                Path("crates/demo/src/main.rs"),
+                Path("crates/demo/src/bin/tool.rs"),
+                Path("crates/demo/src/bin/nested/main.rs"),
+            ]
+            sources = {path: "fn target() {}\n" for path in paths}
+            self.assertEqual(audit.cargo_target_roots(root, sources), sorted(paths))
 
     def test_generated_sources_remain_visible_to_module_resolution(self) -> None:
         root = Path("/repo")
@@ -187,7 +224,9 @@ class ReportBindingTests(unittest.TestCase):
             "analyzer": {
                 "classifier": "syn-ast-v1",
                 "classifier_command": list(audit.CLASSIFIER_COMMAND),
+                "classifier_dependencies_sha256": "d" * 64,
                 "classifier_protocol_version": 2,
+                "classifier_source_sha256": "e" * 64,
                 "contract_version": "code-health-v2",
                 "engine": "rust-code-analysis-cli",
                 "engine_version": "0.0.25",
@@ -243,6 +282,8 @@ engine_version = "0.0.25"
 classifier = "syn-ast-v1"
 classifier_protocol_version = 2
 classifier_command = ["cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--"]
+classifier_source_sha256 = "{'e' * 64}"
+classifier_dependencies_sha256 = "{'d' * 64}"
 baseline_revision = "{self.revision}"
 baseline_source_fingerprint_sha256 = "{self.fingerprint}"
 baseline_report_sha256 = "{digest}"
@@ -302,6 +343,12 @@ evidence = "test"
             path = self.write_fixture(root, changed)
             sources = {Path("crates/demo/src/lib.rs"): "pub fn shipping() {}\n"}
             with (
+                mock.patch.object(
+                    audit, "classifier_source_sha256", return_value="e" * 64
+                ),
+                mock.patch.object(
+                    audit, "classifier_dependencies_sha256", return_value="d" * 64
+                ),
                 mock.patch.object(audit, "require_git_ancestor"),
                 mock.patch.object(audit, "git_tree_sources", return_value=sources),
                 mock.patch.object(audit, "cargo_target_roots", return_value=[]),
@@ -328,6 +375,12 @@ evidence = "test"
             path = self.write_fixture(root, self.report())
             sources = {Path("crates/demo/src/lib.rs"): "pub fn shipping() {}\n"}
             with (
+                mock.patch.object(
+                    audit, "classifier_source_sha256", return_value="e" * 64
+                ),
+                mock.patch.object(
+                    audit, "classifier_dependencies_sha256", return_value="d" * 64
+                ),
                 mock.patch.object(audit, "require_git_ancestor"),
                 mock.patch.object(audit, "git_tree_sources", return_value=sources),
                 mock.patch.object(audit, "cargo_target_roots", return_value=[]),
@@ -369,6 +422,24 @@ evidence = "test"
             ):
                 with self.assertRaises(audit.AuditError):
                     audit.verify_baseline(root, path)
+
+    def test_migration_digest_drift_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            architecture = root / "docs/architecture"
+            architecture.mkdir(parents=True)
+            architecture.joinpath("code-health-v2-migration.md").write_text(
+                "source fingerprint is\n`0" + "0" * 63 + "`.\n"
+                "per-file population projection digest is\n`" + self.projection + "`.\n"
+                "canonical v2 report digest is\n`" + "f" * 64 + "`.\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(audit.AuditError, "source fingerprint"):
+                audit.validate_migration_digests(
+                    root,
+                    {"baseline_report_sha256": "f" * 64},
+                    self.report(),
+                )
 
     def test_schema_and_analyzer_primitive_types_fail_closed(self) -> None:
         mutations = {

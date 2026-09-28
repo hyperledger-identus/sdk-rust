@@ -12,7 +12,9 @@
       "code-health-classifier",
       "--"
     ],
+    "classifier_dependencies_sha256": "bc9684c06a8598c630ae022b966eb35ea871dc68a4a98e1bbe0f455c2e41a3f6",
     "classifier_protocol_version": 2,
+    "classifier_source_sha256": "a685f40e14cf28223af8e8bf1ae48d0ad35d83cbed88a5bbd5d04a7788509045",
     "contract_version": "code-health-v2",
     "engine": "rust-code-analysis-cli",
     "engine_version": "0.0.25"

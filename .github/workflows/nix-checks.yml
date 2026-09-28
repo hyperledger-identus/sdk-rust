@@ -318,6 +318,13 @@ jobs:
           nix develop --command
           python3 scripts/code-health-audit.py --verify-baseline
 
+      - name: Measure near-limit code-health classifier cost
+        run: |
+          nix develop --command cargo build --locked \
+            -p identus-conformance --bin code-health-classifier
+          nix develop --command \
+            python3 scripts/benchmark-code-health-classifier.py
+
       - name: Run complete Clippy surface
         run: >-
           nix build --print-build-logs

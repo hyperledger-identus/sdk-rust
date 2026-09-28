@@ -8,7 +8,7 @@
       cleanup boundary, routine constraint impact, and rollback contract.
 - [x] 1.3 Pass research/constraint/planning checks, commit planning alone, and
       write the exact-head pre-implementation receipt for issue #405.
-- [ ] 1.4 Run the complete existing `identus-did` all-feature suite and capture
+- [x] 1.4 Run the complete existing `identus-did` all-feature suite and capture
       public/source invariants before moving code.
 
 ## 2. Implementation

@@ -100,53 +100,7 @@ pub(crate) fn expand(ctx: &Ctx) -> TokenStream2 {
     }
 
     if attrs.serde {
-        if let (Some(validate_fn), Some(_validate_err)) = (&attrs.validate_fn, &attrs.validate_err)
-        {
-            ts.extend(quote! {
-                #[automatically_derived]
-                impl ::serde::Serialize for #name {
-                    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
-                    where
-                        S: ::serde::Serializer,
-                    {
-                        ::serde::Serialize::serialize(&self.0, serializer)
-                    }
-                }
-                #[automatically_derived]
-                impl<'de> ::serde::Deserialize<'de> for #name {
-                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
-                    where
-                        D: ::serde::Deserializer<'de>,
-                    {
-                        let inner = <#inner as ::serde::Deserialize<'de>>::deserialize(deserializer)?;
-                        #validate_fn(&inner).map_err(|e| <D::Error as ::serde::de::Error>::custom(e))?;
-                        ::core::result::Result::Ok(Self(inner))
-                    }
-                }
-            });
-        } else {
-            ts.extend(quote! {
-                #[automatically_derived]
-                impl ::serde::Serialize for #name {
-                    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
-                    where
-                        S: ::serde::Serializer,
-                    {
-                        ::serde::Serialize::serialize(&self.0, serializer)
-                    }
-                }
-                #[automatically_derived]
-                impl<'de> ::serde::Deserialize<'de> for #name {
-                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
-                    where
-                        D: ::serde::Deserializer<'de>,
-                    {
-                        let inner = <#inner as ::serde::Deserialize<'de>>::deserialize(deserializer)?;
-                        ::core::result::Result::Ok(Self(inner))
-                    }
-                }
-            });
-        }
+        ts.extend(crate::scalar_serde::expand(ctx));
     }
 
     ts

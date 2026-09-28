@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 402,
+  "change": "deduplicate-newtype-serde-generation",
+  "branch": "codex/refactor/issue-402",
+  "baseRef": "origin/develop",
+  "baseSha": "837094dc77ede54ac5d41b10bdecc75bc6666aed",
+  "contractHeadSha": "f910b8305dea7399fd73bab1e48bc01acf8f20ad",
+  "createdAt": "2026-09-28T10:59:49.239Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

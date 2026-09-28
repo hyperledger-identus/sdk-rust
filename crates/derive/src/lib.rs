@@ -11,6 +11,7 @@ mod bytes;
 mod category;
 mod num;
 mod output_safety;
+mod scalar_serde;
 mod str;
 
 use proc_macro::TokenStream;

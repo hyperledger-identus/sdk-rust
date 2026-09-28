@@ -75,7 +75,7 @@ target drift blocks this slice.
 
 ## Evidence commands
 
-Planning inspected `5c469f7cd5c4ae7b54c54ee5090aa3382a41fbd6`, issue #407,
+Planning inspected `f48d0be8ad6e8193fb1136fbf104fe1c533840f4`, issue #407,
 Discussion #399, `model.rs`, `lib.rs`, presentation tests, code-health policy,
 and canonical specifications. After rebasing and before implementation run
 `cargo test -p identus-presentations --all-features`. Afterward run the same

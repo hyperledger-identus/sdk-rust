@@ -34,7 +34,7 @@ behavior is introduced.
 
 ## Delivery
 
-Issue #407 owns this slice. Planning is prepared while #406 runs but is rebased
-onto the current protected `develop` tip before exact-head preflight or code
-changes. Presentation characterization, public/error/source contracts,
-code-health evidence, portable targets, and protected CI prove compatibility.
+Issue #407 owns this slice. The planning-only contract was rebased onto the
+current protected `develop` tip before exact-head preflight or code changes.
+Presentation characterization, public/error/source contracts, code-health
+evidence, portable targets, and protected CI prove compatibility.

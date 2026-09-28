@@ -179,14 +179,20 @@ function git(repository, args, options = {}) {
 
 export function readContributionPolicyAt({ repository = root, head }) {
   if (!validSha(head)) throw new Error("proposed policy head must be an exact lowercase SHA");
+  const commit = git(repository, ["rev-parse", "--verify", `${head}^{commit}`]).trim();
+  if (commit !== head) throw new Error("proposed policy head is not the exact commit object");
   const object = `${head}:.github/contribution-policy.json`;
-  const sizeText = git(repository, ["cat-file", "-s", object]).trim();
+  const blob = git(repository, ["rev-parse", "--verify", object]).trim();
+  if (!validSha(blob) || git(repository, ["cat-file", "-t", blob]).trim() !== "blob") {
+    throw new Error("proposed contribution policy is not a Git blob");
+  }
+  const sizeText = git(repository, ["cat-file", "-s", blob]).trim();
   if (!/^[0-9]+$/u.test(sizeText)) throw new Error("proposed contribution policy blob size is invalid");
   const size = Number(sizeText);
   if (!Number.isSafeInteger(size) || size > 64 * 1024) {
     throw new Error("proposed contribution policy exceeds 65536 bytes");
   }
-  const text = git(repository, ["show", object]);
+  const text = git(repository, ["cat-file", "blob", blob]);
   if (Buffer.byteLength(text, "utf8") !== size) {
     throw new Error("proposed contribution policy blob size changed while reading");
   }

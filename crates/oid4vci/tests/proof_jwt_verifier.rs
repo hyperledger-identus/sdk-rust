@@ -1,3 +1,4 @@
+// OID4VCI proof-profile conformance belongs to the protocol crate.
 use std::{
     collections::BTreeMap,
     future::Future,
@@ -23,11 +24,14 @@ use identus_did::{
 };
 use identus_jose::{
     Ed25519Signer, JoseError, JwsAlgorithm, JwsKeyReference, JwsLimits, JwsSigningInput,
-    OID4VCI_PROOF_JWT_TYPE, Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims, Oid4vciProofJwtClient,
-    Oid4vciProofJwtLimits, Oid4vciProofJwtNonce, Oid4vciProofJwtPolicy, Oid4vciProofJwtVerifier,
-    Oid4vciProofReplayFailure, Oid4vciProofReplayFuture, Oid4vciProofReplayGuard,
-    Oid4vciProofReplayInput, Oid4vciX5cKeyFailure, Oid4vciX5cKeyFuture, Oid4vciX5cKeyProvider,
-    ProtectedHeader, SignatureSuiteRegistry, error_code,
+    ProtectedHeader, SignatureSuiteRegistry,
+};
+use identus_oid4vci::{
+    OID4VCI_PROOF_JWT_TYPE, Oid4vciProofError, Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims,
+    Oid4vciProofJwtClient, Oid4vciProofJwtLimits, Oid4vciProofJwtNonce, Oid4vciProofJwtPolicy,
+    Oid4vciProofJwtVerifier, Oid4vciProofReplayFailure, Oid4vciProofReplayFuture,
+    Oid4vciProofReplayGuard, Oid4vciProofReplayInput, Oid4vciX5cKeyFailure, Oid4vciX5cKeyFuture,
+    Oid4vciX5cKeyProvider, proof_error_code,
 };
 use serde_json::{Value, json};
 
@@ -413,7 +417,7 @@ fn identified_and_anonymous_client_modes_are_exact() {
         &FixedClock::at(ISSUED_AT as u64),
         &replay,
     ));
-    assert_eq!(rejected, Err(JoseError::ProofClientMismatch));
+    assert_eq!(rejected, Err(Oid4vciProofError::ProofClientMismatch));
 }
 
 #[test]
@@ -429,21 +433,21 @@ fn malformed_profile_and_known_claim_types_fail_before_providers() {
                 header("Ed25519", Some("JWT"), Some(key.clone())),
                 br#"{"aud":"issuer","iat":1}"#,
             ),
-            JoseError::InvalidProofType,
+            Oid4vciProofError::InvalidProofType,
         ),
         (
             raw_compact(
                 header("Ed25519", Some(OID4VCI_PROOF_JWT_TYPE), None),
                 br#"{"aud":"issuer","iat":1}"#,
             ),
-            JoseError::MissingProofKeyReference,
+            Oid4vciProofError::MissingProofKeyReference,
         ),
         (
             raw_compact(
                 header("HS256", Some(OID4VCI_PROOF_JWT_TYPE), Some(key.clone())),
                 br#"{"aud":"issuer","iat":1}"#,
             ),
-            JoseError::UnsupportedAlgorithm,
+            Oid4vciProofError::Jose(JoseError::UnsupportedAlgorithm),
         ),
         (
             raw_compact(
@@ -454,28 +458,28 @@ fn malformed_profile_and_known_claim_types_fail_before_providers() {
                 ),
                 br#"{"aud":"issuer","iat":1}"#,
             ),
-            JoseError::AlgorithmNotAllowed,
+            Oid4vciProofError::Jose(JoseError::AlgorithmNotAllowed),
         ),
         (
             raw_compact(
                 header("Ed25519", Some(OID4VCI_PROOF_JWT_TYPE), Some(key.clone())),
                 br#"{"aud":"one","aud":"two","iat":1}"#,
             ),
-            JoseError::InvalidProofClaims,
+            Oid4vciProofError::InvalidProofClaims,
         ),
         (
             raw_compact(
                 header("Ed25519", Some(OID4VCI_PROOF_JWT_TYPE), Some(key.clone())),
                 br#"{"iss":null,"aud":"issuer","iat":1}"#,
             ),
-            JoseError::InvalidProofClaims,
+            Oid4vciProofError::InvalidProofClaims,
         ),
         (
             raw_compact(
                 header("Ed25519", Some(OID4VCI_PROOF_JWT_TYPE), Some(key)),
                 br#"{"aud":"issuer","iat":1.5}"#,
             ),
-            JoseError::InvalidProofClaims,
+            Oid4vciProofError::InvalidProofClaims,
         ),
     ];
     let suites = SignatureSuiteRegistry::recommended();
@@ -539,7 +543,7 @@ fn did_url_key_requires_exact_authentication_relationship() {
     );
     assert_eq!(
         block_on(rejected.verify_signature(rejected.parse(&compact).unwrap())),
-        Err(JoseError::ProofKeyNotAuthorized)
+        Err(Oid4vciProofError::ProofKeyNotAuthorized)
     );
     assert_eq!(rejected_resolver.calls.load(Ordering::SeqCst), 1);
 }
@@ -569,7 +573,7 @@ fn did_provider_cannot_substitute_method_or_unsupported_key_material() {
     );
     assert_eq!(
         block_on(verifier.verify_signature(verifier.parse(&compact).unwrap())),
-        Err(JoseError::ProofKeyResolutionFailed)
+        Err(Oid4vciProofError::ProofKeyResolutionFailed)
     );
 
     let multibase = StaticDereferencer(dereferenced_method(
@@ -587,7 +591,7 @@ fn did_provider_cannot_substitute_method_or_unsupported_key_material() {
     );
     assert_eq!(
         block_on(verifier.verify_signature(verifier.parse(&compact).unwrap())),
-        Err(JoseError::UnsupportedProofKeyReference)
+        Err(Oid4vciProofError::UnsupportedProofKeyReference)
     );
 }
 
@@ -612,7 +616,7 @@ fn non_did_and_selector_kids_fail_without_dereferencing() {
         let parsed = verifier.parse(&compact).expect("profile parses");
         assert_eq!(
             block_on(verifier.verify_signature(parsed)),
-            Err(JoseError::UnsupportedProofKeyReference),
+            Err(Oid4vciProofError::UnsupportedProofKeyReference),
             "{kid}"
         );
     }
@@ -632,7 +636,7 @@ fn x5c_provider_is_explicit_and_leaf_key_is_rebound() {
         Oid4vciProofJwtVerifier::new(Oid4vciProofJwtLimits::default(), &suites, None, None);
     assert_eq!(
         block_on(no_provider.verify_signature(no_provider.parse(&compact).unwrap())),
-        Err(JoseError::X5cProviderRequired)
+        Err(Oid4vciProofError::X5cProviderRequired)
     );
 
     let provider = RecordingX5cProvider::key(public_key());
@@ -650,10 +654,13 @@ fn x5c_provider_is_explicit_and_leaf_key_is_rebound() {
     );
 
     for (failure, expected) in [
-        (Oid4vciX5cKeyFailure::Rejected, JoseError::X5cRejected),
+        (
+            Oid4vciX5cKeyFailure::Rejected,
+            Oid4vciProofError::X5cRejected,
+        ),
         (
             Oid4vciX5cKeyFailure::Unavailable,
-            JoseError::X5cProviderUnavailable,
+            Oid4vciProofError::X5cProviderUnavailable,
         ),
     ] {
         let provider = RecordingX5cProvider::failing(failure);
@@ -682,7 +689,7 @@ fn x5c_provider_is_explicit_and_leaf_key_is_rebound() {
     );
     assert_eq!(
         block_on(verifier.verify_signature(verifier.parse(&compact).unwrap())),
-        Err(JoseError::InvalidVerificationKey)
+        Err(Oid4vciProofError::Jose(JoseError::InvalidVerificationKey))
     );
 }
 
@@ -728,22 +735,22 @@ fn issuer_policy_failures_are_independent_and_never_touch_replay() {
         (
             identified,
             FixedClock::at(ISSUED_AT as u64),
-            JoseError::ProofClientMismatch,
+            Oid4vciProofError::ProofClientMismatch,
         ),
         (
             wrong_audience,
             FixedClock::at(ISSUED_AT as u64),
-            JoseError::ProofAudienceMismatch,
+            Oid4vciProofError::ProofAudienceMismatch,
         ),
         (
             wrong_nonce,
             FixedClock::at(ISSUED_AT as u64),
-            JoseError::ProofNonceMismatch,
+            Oid4vciProofError::ProofNonceMismatch,
         ),
         (
             absent_nonce,
             FixedClock::at(ISSUED_AT as u64),
-            JoseError::ProofNonceMismatch,
+            Oid4vciProofError::ProofNonceMismatch,
         ),
         (
             anonymous_policy(
@@ -753,7 +760,7 @@ fn issuer_policy_failures_are_independent_and_never_touch_replay() {
                 60,
             ),
             FixedClock::at(ISSUED_AT as u64 + 361),
-            JoseError::ProofStale,
+            Oid4vciProofError::ProofStale,
         ),
         (
             anonymous_policy(
@@ -763,7 +770,7 @@ fn issuer_policy_failures_are_independent_and_never_touch_replay() {
                 60,
             ),
             FixedClock::at(ISSUED_AT as u64 - 61),
-            JoseError::ProofIssuedInFuture,
+            Oid4vciProofError::ProofIssuedInFuture,
         ),
         (
             anonymous_policy(
@@ -773,7 +780,7 @@ fn issuer_policy_failures_are_independent_and_never_touch_replay() {
                 60,
             ),
             FixedClock::unavailable(),
-            JoseError::ProofClockUnavailable,
+            Oid4vciProofError::ProofClockUnavailable,
         ),
     ];
 
@@ -822,7 +829,7 @@ fn freshness_boundaries_are_inclusive_and_negative_iat_is_rejected() {
     );
     assert_eq!(
         block_on(verifier.verify_and_authorize(&negative, &policy, &FixedClock::at(0), &replay,)),
-        Err(JoseError::ProofStale)
+        Err(Oid4vciProofError::ProofStale)
     );
 }
 
@@ -850,7 +857,7 @@ fn convenience_path_rejects_policy_before_x5c_and_replay_providers() {
 
     assert_eq!(
         block_on(verifier.verify_and_authorize(&compact, &policy, &clock, &replay)),
-        Err(JoseError::ProofAudienceMismatch)
+        Err(Oid4vciProofError::ProofAudienceMismatch)
     );
     assert_eq!(clock.calls.load(Ordering::SeqCst), 0);
     assert_eq!(x5c.calls.load(Ordering::SeqCst), 0);
@@ -877,7 +884,7 @@ fn invalid_signature_and_replay_results_fail_closed() {
         Oid4vciProofJwtVerifier::new(Oid4vciProofJwtLimits::default(), &suites, None, None);
     assert_eq!(
         block_on(verifier.verify_signature(verifier.parse(&tampered).unwrap())),
-        Err(JoseError::SignatureInvalid)
+        Err(Oid4vciProofError::Jose(JoseError::SignatureInvalid))
     );
 
     let policy = anonymous_policy(AUDIENCE, Oid4vciProofJwtNonce::absent(), 300, 0);
@@ -885,11 +892,11 @@ fn invalid_signature_and_replay_results_fail_closed() {
     for (failure, expected) in [
         (
             Oid4vciProofReplayFailure::Rejected,
-            JoseError::ProofReplayRejected,
+            Oid4vciProofError::ProofReplayRejected,
         ),
         (
             Oid4vciProofReplayFailure::Unavailable,
-            JoseError::ProofReplayUnavailable,
+            Oid4vciProofError::ProofReplayUnavailable,
         ),
     ] {
         let replay = RecordingReplay::failing(failure);
@@ -942,8 +949,8 @@ fn policy_and_state_diagnostics_are_redacted() {
     .unwrap();
     let diagnostics = format!(
         "{parsed_debug} {verified_debug} {policy_debug} {authorized:?} {:?} {}",
-        JoseError::ProofNonceMismatch,
-        JoseError::ProofNonceMismatch
+        Oid4vciProofError::ProofNonceMismatch,
+        Oid4vciProofError::ProofNonceMismatch
     );
     let replay_debug = replay.debug.lock().unwrap().join(" ");
 
@@ -967,123 +974,128 @@ fn policy_and_state_diagnostics_are_redacted() {
 fn verifier_errors_bridge_to_stable_static_contracts() {
     let cases = [
         (
-            JoseError::InvalidProofType,
-            error_code::INVALID_PROOF_TYPE,
+            Oid4vciProofError::InvalidProofClaims,
+            proof_error_code::INVALID_PROOF_CLAIMS,
             ErrorKind::InvalidInput,
         ),
         (
-            JoseError::MissingProofKeyReference,
-            error_code::MISSING_PROOF_KEY_REFERENCE,
+            Oid4vciProofError::InvalidProofType,
+            proof_error_code::INVALID_PROOF_TYPE,
             ErrorKind::InvalidInput,
         ),
         (
-            JoseError::UnsupportedProofKeyReference,
-            error_code::UNSUPPORTED_PROOF_KEY_REFERENCE,
+            Oid4vciProofError::MissingProofKeyReference,
+            proof_error_code::MISSING_PROOF_KEY_REFERENCE,
+            ErrorKind::InvalidInput,
+        ),
+        (
+            Oid4vciProofError::UnsupportedProofKeyReference,
+            proof_error_code::UNSUPPORTED_PROOF_KEY_REFERENCE,
             ErrorKind::Unsupported,
         ),
         (
-            JoseError::ProofKeyResolutionFailed,
-            error_code::PROOF_KEY_RESOLUTION_FAILED,
+            Oid4vciProofError::ProofKeyResolutionFailed,
+            proof_error_code::PROOF_KEY_RESOLUTION_FAILED,
             ErrorKind::VerificationFailed,
         ),
         (
-            JoseError::ProofKeyNotAuthorized,
-            error_code::PROOF_KEY_NOT_AUTHORIZED,
+            Oid4vciProofError::ProofKeyNotAuthorized,
+            proof_error_code::PROOF_KEY_NOT_AUTHORIZED,
             ErrorKind::VerificationFailed,
         ),
         (
-            JoseError::X5cProviderRequired,
-            error_code::X5C_PROVIDER_REQUIRED,
+            Oid4vciProofError::X5cProviderRequired,
+            proof_error_code::X5C_PROVIDER_REQUIRED,
             ErrorKind::InvalidInput,
         ),
         (
-            JoseError::X5cRejected,
-            error_code::X5C_REJECTED,
+            Oid4vciProofError::X5cRejected,
+            proof_error_code::X5C_REJECTED,
             ErrorKind::VerificationFailed,
         ),
         (
-            JoseError::X5cProviderUnavailable,
-            error_code::X5C_PROVIDER_UNAVAILABLE,
+            Oid4vciProofError::X5cProviderUnavailable,
+            proof_error_code::X5C_PROVIDER_UNAVAILABLE,
             ErrorKind::Internal,
         ),
         (
-            JoseError::InvalidProofEvidence,
-            error_code::INVALID_PROOF_EVIDENCE,
+            Oid4vciProofError::InvalidProofEvidence,
+            proof_error_code::INVALID_PROOF_EVIDENCE,
             ErrorKind::InvalidInput,
         ),
         (
-            JoseError::TrustChainProviderRequired,
-            error_code::TRUST_CHAIN_PROVIDER_REQUIRED,
+            Oid4vciProofError::TrustChainProviderRequired,
+            proof_error_code::TRUST_CHAIN_PROVIDER_REQUIRED,
             ErrorKind::InvalidInput,
         ),
         (
-            JoseError::TrustChainRejected,
-            error_code::TRUST_CHAIN_REJECTED,
+            Oid4vciProofError::TrustChainRejected,
+            proof_error_code::TRUST_CHAIN_REJECTED,
             ErrorKind::VerificationFailed,
         ),
         (
-            JoseError::TrustChainProviderUnavailable,
-            error_code::TRUST_CHAIN_PROVIDER_UNAVAILABLE,
+            Oid4vciProofError::TrustChainProviderUnavailable,
+            proof_error_code::TRUST_CHAIN_PROVIDER_UNAVAILABLE,
             ErrorKind::Internal,
         ),
         (
-            JoseError::KeyAttestationProviderRequired,
-            error_code::KEY_ATTESTATION_PROVIDER_REQUIRED,
+            Oid4vciProofError::KeyAttestationProviderRequired,
+            proof_error_code::KEY_ATTESTATION_PROVIDER_REQUIRED,
             ErrorKind::InvalidInput,
         ),
         (
-            JoseError::KeyAttestationRejected,
-            error_code::KEY_ATTESTATION_REJECTED,
+            Oid4vciProofError::KeyAttestationRejected,
+            proof_error_code::KEY_ATTESTATION_REJECTED,
             ErrorKind::VerificationFailed,
         ),
         (
-            JoseError::KeyAttestationProviderUnavailable,
-            error_code::KEY_ATTESTATION_PROVIDER_UNAVAILABLE,
+            Oid4vciProofError::KeyAttestationProviderUnavailable,
+            proof_error_code::KEY_ATTESTATION_PROVIDER_UNAVAILABLE,
             ErrorKind::Internal,
         ),
         (
-            JoseError::InvalidProofPolicy,
-            error_code::INVALID_PROOF_POLICY,
+            Oid4vciProofError::InvalidProofPolicy,
+            proof_error_code::INVALID_PROOF_POLICY,
             ErrorKind::InvalidInput,
         ),
         (
-            JoseError::ProofClientMismatch,
-            error_code::PROOF_CLIENT_MISMATCH,
+            Oid4vciProofError::ProofClientMismatch,
+            proof_error_code::PROOF_CLIENT_MISMATCH,
             ErrorKind::VerificationFailed,
         ),
         (
-            JoseError::ProofAudienceMismatch,
-            error_code::PROOF_AUDIENCE_MISMATCH,
+            Oid4vciProofError::ProofAudienceMismatch,
+            proof_error_code::PROOF_AUDIENCE_MISMATCH,
             ErrorKind::VerificationFailed,
         ),
         (
-            JoseError::ProofNonceMismatch,
-            error_code::PROOF_NONCE_MISMATCH,
+            Oid4vciProofError::ProofNonceMismatch,
+            proof_error_code::PROOF_NONCE_MISMATCH,
             ErrorKind::VerificationFailed,
         ),
         (
-            JoseError::ProofStale,
-            error_code::PROOF_STALE,
+            Oid4vciProofError::ProofStale,
+            proof_error_code::PROOF_STALE,
             ErrorKind::VerificationFailed,
         ),
         (
-            JoseError::ProofIssuedInFuture,
-            error_code::PROOF_ISSUED_IN_FUTURE,
+            Oid4vciProofError::ProofIssuedInFuture,
+            proof_error_code::PROOF_ISSUED_IN_FUTURE,
             ErrorKind::VerificationFailed,
         ),
         (
-            JoseError::ProofClockUnavailable,
-            error_code::PROOF_CLOCK_UNAVAILABLE,
+            Oid4vciProofError::ProofClockUnavailable,
+            proof_error_code::PROOF_CLOCK_UNAVAILABLE,
             ErrorKind::Internal,
         ),
         (
-            JoseError::ProofReplayRejected,
-            error_code::PROOF_REPLAY_REJECTED,
+            Oid4vciProofError::ProofReplayRejected,
+            proof_error_code::PROOF_REPLAY_REJECTED,
             ErrorKind::VerificationFailed,
         ),
         (
-            JoseError::ProofReplayUnavailable,
-            error_code::PROOF_REPLAY_UNAVAILABLE,
+            Oid4vciProofError::ProofReplayUnavailable,
+            proof_error_code::PROOF_REPLAY_UNAVAILABLE,
             ErrorKind::Internal,
         ),
     ];
@@ -1092,7 +1104,7 @@ fn verifier_errors_bridge_to_stable_static_contracts() {
         let bridged = source.to_identus_error();
         assert_eq!(bridged.code(), code);
         assert_eq!(bridged.kind(), kind);
-        assert_eq!(bridged.capability(), Some(identus_jose::CAPABILITY));
+        assert_eq!(bridged.capability(), Some(identus_oid4vci::CAPABILITY));
     }
 }
 
@@ -1101,7 +1113,7 @@ fn policy_construction_rejects_invalid_and_overflowing_inputs() {
     let limits = Oid4vciProofJwtLimits::default();
     assert_eq!(
         Oid4vciProofJwtNonce::required("", limits),
-        Err(JoseError::InvalidProofPolicy)
+        Err(Oid4vciProofError::InvalidProofPolicy)
     );
     assert_eq!(
         Oid4vciProofJwtPolicy::new(
@@ -1112,7 +1124,7 @@ fn policy_construction_rejects_invalid_and_overflowing_inputs() {
             1,
             limits,
         ),
-        Err(JoseError::InvalidProofPolicy)
+        Err(Oid4vciProofError::InvalidProofPolicy)
     );
     assert_eq!(
         Oid4vciProofJwtPolicy::new(
@@ -1123,7 +1135,7 @@ fn policy_construction_rejects_invalid_and_overflowing_inputs() {
             1,
             limits,
         ),
-        Err(JoseError::InvalidProofPolicy)
+        Err(Oid4vciProofError::InvalidProofPolicy)
     );
 }
 

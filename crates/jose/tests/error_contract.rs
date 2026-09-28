@@ -3,11 +3,11 @@ use std::{collections::BTreeSet, error::Error as _};
 use identus_core::{ErrorCode, ErrorKind, IdentusError};
 use identus_jose::{CAPABILITY, JoseError, error_code};
 
-const GOLDEN: &str = include_str!("fixtures/jose-error-contract-v1.csv");
+const GOLDEN: &str = include_str!("fixtures/jose-error-contract-v2.csv");
 const GOLDEN_HEADER: &str = "error_type,variant,code_constant,constant_visibility,code,kind,capability,local_display,public_message,identus_display,source";
 const SOURCE_REPOSITORY: &str = "# source_repository=hyperledger-identus/sdk-rust";
-const SOURCE_REVISION: &str = "# source_revision=c32c1c8cd0194466a8c7fbfaa8c050f4bf2971a1";
-const GENERATED_AT: &str = "# generated_at=2026-09-15";
+const SOURCE_REVISION: &str = "# source_revision=61b8650452812900203658f3072df11b0b2a378c";
+const GENERATED_AT: &str = "# generated_at=2026-09-28";
 
 #[derive(Clone, Copy)]
 struct Case {
@@ -30,7 +30,7 @@ macro_rules! jose_case {
     };
 }
 
-const CASES: [Case; 51] = [
+const CASES: [Case; 26] = [
     jose_case!(InvalidLimits, INVALID_LIMITS),
     jose_case!(CompactTooLarge, COMPACT_TOO_LARGE),
     jose_case!(InvalidCompactStructure, INVALID_COMPACT_STRUCTURE),
@@ -57,43 +57,6 @@ const CASES: [Case; 51] = [
     jose_case!(SigningRejected, SIGNING_REJECTED),
     jose_case!(SignerUnavailable, SIGNER_UNAVAILABLE),
     jose_case!(SignatureInvalid, SIGNATURE_INVALID),
-    jose_case!(InvalidProofClaims, INVALID_PROOF_CLAIMS),
-    jose_case!(InvalidProofType, INVALID_PROOF_TYPE),
-    jose_case!(MissingProofKeyReference, MISSING_PROOF_KEY_REFERENCE),
-    jose_case!(
-        UnsupportedProofKeyReference,
-        UNSUPPORTED_PROOF_KEY_REFERENCE
-    ),
-    jose_case!(ProofKeyResolutionFailed, PROOF_KEY_RESOLUTION_FAILED),
-    jose_case!(ProofKeyNotAuthorized, PROOF_KEY_NOT_AUTHORIZED),
-    jose_case!(X5cProviderRequired, X5C_PROVIDER_REQUIRED),
-    jose_case!(X5cRejected, X5C_REJECTED),
-    jose_case!(X5cProviderUnavailable, X5C_PROVIDER_UNAVAILABLE),
-    jose_case!(InvalidProofEvidence, INVALID_PROOF_EVIDENCE),
-    jose_case!(TrustChainProviderRequired, TRUST_CHAIN_PROVIDER_REQUIRED),
-    jose_case!(TrustChainRejected, TRUST_CHAIN_REJECTED),
-    jose_case!(
-        TrustChainProviderUnavailable,
-        TRUST_CHAIN_PROVIDER_UNAVAILABLE
-    ),
-    jose_case!(
-        KeyAttestationProviderRequired,
-        KEY_ATTESTATION_PROVIDER_REQUIRED
-    ),
-    jose_case!(KeyAttestationRejected, KEY_ATTESTATION_REJECTED),
-    jose_case!(
-        KeyAttestationProviderUnavailable,
-        KEY_ATTESTATION_PROVIDER_UNAVAILABLE
-    ),
-    jose_case!(InvalidProofPolicy, INVALID_PROOF_POLICY),
-    jose_case!(ProofClientMismatch, PROOF_CLIENT_MISMATCH),
-    jose_case!(ProofAudienceMismatch, PROOF_AUDIENCE_MISMATCH),
-    jose_case!(ProofNonceMismatch, PROOF_NONCE_MISMATCH),
-    jose_case!(ProofStale, PROOF_STALE),
-    jose_case!(ProofIssuedInFuture, PROOF_ISSUED_IN_FUTURE),
-    jose_case!(ProofClockUnavailable, PROOF_CLOCK_UNAVAILABLE),
-    jose_case!(ProofReplayRejected, PROOF_REPLAY_REJECTED),
-    jose_case!(ProofReplayUnavailable, PROOF_REPLAY_UNAVAILABLE),
 ];
 
 fn kind_name(kind: ErrorKind) -> &'static str {
@@ -143,7 +106,7 @@ fn embedded_stable_fixture_has_exact_provenance() {
 #[test]
 fn every_jose_error_matches_the_ordered_planning_golden() {
     let rows = golden_rows();
-    assert_eq!(rows.len(), 51, "golden must contain exactly 51 rows");
+    assert_eq!(rows.len(), 26, "golden must contain exactly 26 rows");
 
     let mut variant_names = BTreeSet::new();
     let mut constant_names = BTreeSet::new();
@@ -209,9 +172,9 @@ fn every_jose_error_matches_the_ordered_planning_golden() {
         }
     }
 
-    assert_eq!(variant_names.len(), 51);
-    assert_eq!(constant_names.len(), 51);
-    assert_eq!(stable_codes.len(), 51);
+    assert_eq!(variant_names.len(), 26);
+    assert_eq!(constant_names.len(), 26);
+    assert_eq!(stable_codes.len(), 26);
 }
 
 #[test]
@@ -234,7 +197,7 @@ fn size_overflow_contract_is_explicit_and_stable() {
 
 #[test]
 fn catalogue_is_private_and_every_bridge_is_const_usable() {
-    assert_eq!(CASES.len(), 51);
+    assert_eq!(CASES.len(), 26);
     assert!(
         CASES
             .iter()

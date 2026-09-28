@@ -1,4 +1,5 @@
 //! Issuer-side verification of the OpenID4VCI 1.0 Final JWT key proof.
+//! This profile belongs to the OID4VCI protocol crate.
 
 use std::{fmt, future::Future, pin::Pin};
 
@@ -7,10 +8,13 @@ use identus_crypto::PublicKeyJwk;
 use identus_did::{DereferencingOptions, DidUrl, DidUrlDereferencer, VerificationRelationshipName};
 use serde::{Deserialize, Deserializer};
 
-use crate::oid4vci::valid_claim;
-use crate::{
-    JoseError, JwsAlgorithm, JwsKeyReference, JwsVerificationKey, OID4VCI_PROOF_JWT_TYPE,
-    Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtLimits, SignatureSuiteRegistry,
+use crate::Oid4vciProofError;
+use crate::proof_jwt::valid_claim;
+use crate::proof_jwt::{
+    OID4VCI_PROOF_JWT_TYPE, Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtLimits,
+};
+use identus_jose::{
+    JoseError, JwsAlgorithm, JwsKeyReference, JwsVerificationKey, SignatureSuiteRegistry,
     UnverifiedCompactJws, VerifiedCompactJws,
 };
 
@@ -199,10 +203,10 @@ impl Oid4vciProofJwtNonce {
     pub fn required(
         value: impl AsRef<str>,
         limits: Oid4vciProofJwtLimits,
-    ) -> Result<Self, JoseError> {
+    ) -> Result<Self, Oid4vciProofError> {
         let value = value.as_ref();
         if !valid_claim(value, limits) {
-            return Err(JoseError::InvalidProofPolicy);
+            return Err(Oid4vciProofError::InvalidProofPolicy);
         }
         Ok(Self(Some(value.to_owned())))
     }
@@ -248,7 +252,7 @@ impl Oid4vciProofJwtPolicy {
         max_age_seconds: u64,
         allowed_clock_skew_seconds: u64,
         limits: Oid4vciProofJwtLimits,
-    ) -> Result<Self, JoseError> {
+    ) -> Result<Self, Oid4vciProofError> {
         let audience = audience.as_ref();
         if client
             .issuer()
@@ -261,7 +265,7 @@ impl Oid4vciProofJwtPolicy {
                 .checked_add(allowed_clock_skew_seconds)
                 .is_none()
         {
-            return Err(JoseError::InvalidProofPolicy);
+            return Err(Oid4vciProofError::InvalidProofPolicy);
         }
         Ok(Self {
             client,
@@ -522,31 +526,31 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
     }
 
     /// Parse and validate the bounded profile without invoking providers.
-    pub fn parse(&self, value: &str) -> Result<Oid4vciParsedProofJwt, JoseError> {
+    pub fn parse(&self, value: &str) -> Result<Oid4vciParsedProofJwt, Oid4vciProofError> {
         let compact = UnverifiedCompactJws::parse(value, self.limits.jws())?;
         let header = compact.protected_header();
         if header.type_() != Some(OID4VCI_PROOF_JWT_TYPE) {
-            return Err(JoseError::InvalidProofType);
+            return Err(Oid4vciProofError::InvalidProofType);
         }
         if header.key_reference().is_none() {
-            return Err(JoseError::MissingProofKeyReference);
+            return Err(Oid4vciProofError::MissingProofKeyReference);
         }
         if header.trust_chain().is_some()
             && !matches!(header.key_reference(), Some(JwsKeyReference::KeyId(_)))
         {
-            return Err(JoseError::InvalidProofEvidence);
+            return Err(Oid4vciProofError::InvalidProofEvidence);
         }
         let algorithm = JwsAlgorithm::parse(header.algorithm())?;
         if !self.suites.contains(algorithm) {
-            return Err(JoseError::AlgorithmNotAllowed);
+            return Err(Oid4vciProofError::Jose(JoseError::AlgorithmNotAllowed));
         }
-        let wire: ParsedClaims =
-            serde_json::from_slice(compact.payload()).map_err(|_| JoseError::InvalidProofClaims)?;
+        let wire: ParsedClaims = serde_json::from_slice(compact.payload())
+            .map_err(|_| Oid4vciProofError::InvalidProofClaims)?;
         let client = match wire.iss {
             Some(value) if valid_claim(&value, self.limits) => {
                 Oid4vciProofJwtClient::identified(value, self.limits)?
             }
-            Some(_) => return Err(JoseError::InvalidProofClaims),
+            Some(_) => return Err(Oid4vciProofError::InvalidProofClaims),
             None => Oid4vciProofJwtClient::AnonymousPreAuthorized,
         };
         let claims = Oid4vciProofJwtClaims::from_parsed(
@@ -563,12 +567,12 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
     pub async fn verify_signature(
         &self,
         parsed: Oid4vciParsedProofJwt,
-    ) -> Result<Oid4vciVerifiedProofJwt, JoseError> {
+    ) -> Result<Oid4vciVerifiedProofJwt, Oid4vciProofError> {
         let header = parsed.compact.protected_header();
         let algorithm = JwsAlgorithm::parse(header.algorithm())?;
         let selected = header
             .key_reference()
-            .ok_or(JoseError::MissingProofKeyReference)?;
+            .ok_or(Oid4vciProofError::MissingProofKeyReference)?;
         let (proof, proof_key) = match selected {
             JwsKeyReference::Jwk(public_key) => {
                 let key = JwsVerificationKey::new(algorithm, public_key)?;
@@ -604,7 +608,7 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
     pub async fn validate_trust(
         &self,
         verified: Oid4vciVerifiedProofJwt,
-    ) -> Result<Oid4vciTrustedProofJwt, JoseError> {
+    ) -> Result<Oid4vciTrustedProofJwt, Oid4vciProofError> {
         if let Some(attestation) = verified
             .proof
             .as_compact()
@@ -613,7 +617,7 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
         {
             let validator = self
                 .key_attestation_validator
-                .ok_or(JoseError::KeyAttestationProviderRequired)?;
+                .ok_or(Oid4vciProofError::KeyAttestationProviderRequired)?;
             validator
                 .validate(Oid4vciKeyAttestationInput {
                     attestation,
@@ -622,9 +626,11 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
                 })
                 .await
                 .map_err(|failure| match failure {
-                    Oid4vciKeyAttestationFailure::Rejected => JoseError::KeyAttestationRejected,
+                    Oid4vciKeyAttestationFailure::Rejected => {
+                        Oid4vciProofError::KeyAttestationRejected
+                    }
                     Oid4vciKeyAttestationFailure::Unavailable => {
-                        JoseError::KeyAttestationProviderUnavailable
+                        Oid4vciProofError::KeyAttestationProviderUnavailable
                     }
                 })?;
         }
@@ -638,7 +644,7 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
         policy: &Oid4vciProofJwtPolicy,
         clock: &dyn WallClock,
         replay: &dyn Oid4vciProofReplayGuard,
-    ) -> Result<Oid4vciAuthorizedProofJwt, JoseError> {
+    ) -> Result<Oid4vciAuthorizedProofJwt, Oid4vciProofError> {
         validate_policy_with_clock(&verified.claims, policy, clock)?;
         let trusted = self.validate_trust(verified).await?;
         accept_replay(trusted, replay).await
@@ -651,7 +657,7 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
         policy: &Oid4vciProofJwtPolicy,
         clock: &dyn WallClock,
         replay: &dyn Oid4vciProofReplayGuard,
-    ) -> Result<Oid4vciAuthorizedProofJwt, JoseError> {
+    ) -> Result<Oid4vciAuthorizedProofJwt, Oid4vciProofError> {
         validate_policy_with_clock(trusted.claims(), policy, clock)?;
         accept_replay(trusted, replay).await
     }
@@ -663,7 +669,7 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
         policy: &Oid4vciProofJwtPolicy,
         clock: &dyn WallClock,
         replay: &dyn Oid4vciProofReplayGuard,
-    ) -> Result<Oid4vciAuthorizedProofJwt, JoseError> {
+    ) -> Result<Oid4vciAuthorizedProofJwt, Oid4vciProofError> {
         let parsed = self.parse(value)?;
         validate_policy_with_clock(&parsed.claims, policy, clock)?;
         let verified = self.verify_signature(parsed).await?;
@@ -671,54 +677,57 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
         accept_replay(trusted, replay).await
     }
 
-    async fn resolve_did_key(&self, value: &str) -> Result<PublicKeyJwk, JoseError> {
-        let did_url = DidUrl::parse(value).map_err(|_| JoseError::UnsupportedProofKeyReference)?;
+    async fn resolve_did_key(&self, value: &str) -> Result<PublicKeyJwk, Oid4vciProofError> {
+        let did_url =
+            DidUrl::parse(value).map_err(|_| Oid4vciProofError::UnsupportedProofKeyReference)?;
         if did_url.fragment().is_none() || !did_url.path().is_empty() || did_url.query().is_some() {
-            return Err(JoseError::UnsupportedProofKeyReference);
+            return Err(Oid4vciProofError::UnsupportedProofKeyReference);
         }
         let dereferencer = self
             .did_dereferencer
-            .ok_or(JoseError::UnsupportedProofKeyReference)?;
+            .ok_or(Oid4vciProofError::UnsupportedProofKeyReference)?;
         let relationship = VerificationRelationshipName::parse(AUTHENTICATION)
-            .map_err(|_| JoseError::ProofKeyResolutionFailed)?;
+            .map_err(|_| Oid4vciProofError::ProofKeyResolutionFailed)?;
         let options = DereferencingOptions::builder()
             .verification_relationship(relationship)
             .build()
-            .map_err(|_| JoseError::ProofKeyResolutionFailed)?;
+            .map_err(|_| Oid4vciProofError::ProofKeyResolutionFailed)?;
         let result = dereferencer.dereference(&did_url, &options).await;
         if let Some(error) = result.metadata().error() {
             if error.type_uri().as_str() == INVALID_RELATIONSHIP_URI {
-                return Err(JoseError::ProofKeyNotAuthorized);
+                return Err(Oid4vciProofError::ProofKeyNotAuthorized);
             }
-            return Err(JoseError::ProofKeyResolutionFailed);
+            return Err(Oid4vciProofError::ProofKeyResolutionFailed);
         }
         let method = result
             .content()
-            .ok_or(JoseError::ProofKeyResolutionFailed)?
+            .ok_or(Oid4vciProofError::ProofKeyResolutionFailed)?
             .to_verification_method()
-            .map_err(|_| JoseError::ProofKeyResolutionFailed)?;
+            .map_err(|_| Oid4vciProofError::ProofKeyResolutionFailed)?;
         if method.id().as_str() != value {
-            return Err(JoseError::ProofKeyResolutionFailed);
+            return Err(Oid4vciProofError::ProofKeyResolutionFailed);
         }
         let jwk = method
             .public_key_jwk()
-            .ok_or(JoseError::UnsupportedProofKeyReference)?;
+            .ok_or(Oid4vciProofError::UnsupportedProofKeyReference)?;
         serde_json::from_value(serde_json::Value::Object(jwk.clone()))
-            .map_err(|_| JoseError::InvalidVerificationKey)
+            .map_err(|_| Oid4vciProofError::Jose(JoseError::InvalidVerificationKey))
     }
 
     async fn resolve_x5c_key(
         &self,
         algorithm: JwsAlgorithm,
         chain: &[String],
-    ) -> Result<PublicKeyJwk, JoseError> {
-        let provider = self.x5c_provider.ok_or(JoseError::X5cProviderRequired)?;
+    ) -> Result<PublicKeyJwk, Oid4vciProofError> {
+        let provider = self
+            .x5c_provider
+            .ok_or(Oid4vciProofError::X5cProviderRequired)?;
         provider
             .verification_key(algorithm, chain)
             .await
             .map_err(|failure| match failure {
-                Oid4vciX5cKeyFailure::Rejected => JoseError::X5cRejected,
-                Oid4vciX5cKeyFailure::Unavailable => JoseError::X5cProviderUnavailable,
+                Oid4vciX5cKeyFailure::Rejected => Oid4vciProofError::X5cRejected,
+                Oid4vciX5cKeyFailure::Unavailable => Oid4vciProofError::X5cProviderUnavailable,
             })
     }
 
@@ -727,16 +736,18 @@ impl<'a> Oid4vciProofJwtVerifier<'a> {
         algorithm: JwsAlgorithm,
         key_id: &str,
         chain: &[String],
-    ) -> Result<PublicKeyJwk, JoseError> {
+    ) -> Result<PublicKeyJwk, Oid4vciProofError> {
         let provider = self
             .trust_chain_provider
-            .ok_or(JoseError::TrustChainProviderRequired)?;
+            .ok_or(Oid4vciProofError::TrustChainProviderRequired)?;
         provider
             .verification_key(algorithm, key_id, chain)
             .await
             .map_err(|failure| match failure {
-                Oid4vciTrustChainFailure::Rejected => JoseError::TrustChainRejected,
-                Oid4vciTrustChainFailure::Unavailable => JoseError::TrustChainProviderUnavailable,
+                Oid4vciTrustChainFailure::Rejected => Oid4vciProofError::TrustChainRejected,
+                Oid4vciTrustChainFailure::Unavailable => {
+                    Oid4vciProofError::TrustChainProviderUnavailable
+                }
             })
     }
 }
@@ -781,15 +792,15 @@ where
 fn validate_claim_policy(
     claims: &Oid4vciProofJwtClaims,
     policy: &Oid4vciProofJwtPolicy,
-) -> Result<(), JoseError> {
+) -> Result<(), Oid4vciProofError> {
     if claims.client().issuer() != policy.client.issuer() {
-        return Err(JoseError::ProofClientMismatch);
+        return Err(Oid4vciProofError::ProofClientMismatch);
     }
     if claims.audience() != policy.audience {
-        return Err(JoseError::ProofAudienceMismatch);
+        return Err(Oid4vciProofError::ProofAudienceMismatch);
     }
     if claims.nonce() != policy.nonce.expected() {
-        return Err(JoseError::ProofNonceMismatch);
+        return Err(Oid4vciProofError::ProofNonceMismatch);
     }
     Ok(())
 }
@@ -798,11 +809,11 @@ fn validate_policy_with_clock(
     claims: &Oid4vciProofJwtClaims,
     policy: &Oid4vciProofJwtPolicy,
     clock: &dyn WallClock,
-) -> Result<(), JoseError> {
+) -> Result<(), Oid4vciProofError> {
     validate_claim_policy(claims, policy)?;
     let now = clock
         .now()
-        .map_err(|_| JoseError::ProofClockUnavailable)?
+        .map_err(|_| Oid4vciProofError::ProofClockUnavailable)?
         .whole_seconds();
     validate_freshness(claims.issued_at(), now, policy)
 }
@@ -810,7 +821,7 @@ fn validate_policy_with_clock(
 async fn accept_replay(
     trusted: Oid4vciTrustedProofJwt,
     replay: &dyn Oid4vciProofReplayGuard,
-) -> Result<Oid4vciAuthorizedProofJwt, JoseError> {
+) -> Result<Oid4vciAuthorizedProofJwt, Oid4vciProofError> {
     replay
         .accept(Oid4vciProofReplayInput {
             proof: &trusted.verified.proof,
@@ -818,8 +829,8 @@ async fn accept_replay(
         })
         .await
         .map_err(|failure| match failure {
-            Oid4vciProofReplayFailure::Rejected => JoseError::ProofReplayRejected,
-            Oid4vciProofReplayFailure::Unavailable => JoseError::ProofReplayUnavailable,
+            Oid4vciProofReplayFailure::Rejected => Oid4vciProofError::ProofReplayRejected,
+            Oid4vciProofReplayFailure::Unavailable => Oid4vciProofError::ProofReplayUnavailable,
         })?;
     Ok(Oid4vciAuthorizedProofJwt { trusted })
 }
@@ -828,23 +839,23 @@ fn validate_freshness(
     issued_at: i64,
     now: u64,
     policy: &Oid4vciProofJwtPolicy,
-) -> Result<(), JoseError> {
-    let issued_at = u64::try_from(issued_at).map_err(|_| JoseError::ProofStale)?;
+) -> Result<(), Oid4vciProofError> {
+    let issued_at = u64::try_from(issued_at).map_err(|_| Oid4vciProofError::ProofStale)?;
     let latest = now
         .checked_add(policy.allowed_clock_skew_seconds)
-        .ok_or(JoseError::InvalidProofPolicy)?;
+        .ok_or(Oid4vciProofError::InvalidProofPolicy)?;
     if issued_at > latest {
-        return Err(JoseError::ProofIssuedInFuture);
+        return Err(Oid4vciProofError::ProofIssuedInFuture);
     }
     let accepted_age = policy
         .max_age_seconds
         .checked_add(policy.allowed_clock_skew_seconds)
-        .ok_or(JoseError::InvalidProofPolicy)?;
+        .ok_or(Oid4vciProofError::InvalidProofPolicy)?;
     if now
         .checked_sub(issued_at)
         .is_some_and(|age| age > accepted_age)
     {
-        return Err(JoseError::ProofStale);
+        return Err(Oid4vciProofError::ProofStale);
     }
     Ok(())
 }

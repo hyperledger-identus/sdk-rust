@@ -5,17 +5,15 @@ use std::{
 };
 
 use identus_crypto::sha256;
-use identus_jose::{
-    JwsAlgorithm, JwsKeyReference, JwsSigner, Oid4vciProofJwt, Oid4vciProofJwtBuilder,
-    Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtLimits, SignerFailure,
-};
+use identus_jose::{JwsAlgorithm, JwsKeyReference, JwsSigner, SignerFailure};
 use identus_oid4vci::{
     AuthorizationServerMetadataCore, AuthorizationServerMetadataLimits, CredentialIssuerMetadata,
     CredentialIssuerMetadataLimits, CredentialOffer, CredentialOfferError,
     CredentialOfferGrantLimits, CredentialOfferLimits, CredentialOfferRequest,
     CredentialOfferSemanticLimits, CredentialOfferWithMetadata, EmbeddedCredentialOffer,
     ImmediateCredentialHttpResponseLimits, JwtCredentialRequest, JwtCredentialRequestLimits,
-    PreAuthorizedTokenHttpResponseLimits, PreAuthorizedTokenRequestLimits,
+    Oid4vciProofJwt, Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims, Oid4vciProofJwtClient,
+    Oid4vciProofJwtLimits, PreAuthorizedTokenHttpResponseLimits, PreAuthorizedTokenRequestLimits,
     PreAuthorizedTokenResponseOutcome, TokenResponseCore, TokenResponseLimits,
     TransactionCodeInputLimits,
 };

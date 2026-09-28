@@ -37,7 +37,8 @@ impl JwsAlgorithm {
         }
     }
 
-    pub(crate) fn parse(value: &str) -> Result<Self, JoseError> {
+    /// Parse one exact algorithm spelling from the supported closed set.
+    pub fn parse(value: &str) -> Result<Self, JoseError> {
         match value {
             "Ed25519" => Ok(Self::Ed25519),
             "ES256" => Ok(Self::Es256),

@@ -4,7 +4,7 @@ use std::{
     str,
 };
 
-use identus_jose::Oid4vciProofJwt;
+use crate::Oid4vciProofJwt;
 use zeroize::Zeroizing;
 
 use crate::{

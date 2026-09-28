@@ -7,11 +7,24 @@ use std::time::Instant;
 use super::*;
 use identus_wallet::{StoragePage, StorageRevision, StorageWriteReceipt, Stored};
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ExactOperation {
+    LoadMissing,
+    LoadPrimary,
+    LoadIsolated,
+    WriteInsertOnly,
+    WriteAny,
+    WriteIfRevision,
+    DeleteIfRevision,
+    DeleteAny,
+}
+
 #[derive(Default)]
 struct MemoryState {
     records: BTreeMap<(String, String), (String, u64)>,
     indexes: BTreeMap<String, Vec<String>>,
     next_revision: u64,
+    exact_operations: Vec<ExactOperation>,
 }
 
 #[derive(Default)]
@@ -48,8 +61,21 @@ impl MemoryStore {
         }
     }
 
+    fn exact_operations(&self) -> Vec<ExactOperation> {
+        self.state
+            .lock()
+            .expect("test memory state is available")
+            .exact_operations
+            .clone()
+    }
+
     fn load_value(&self, scope: &str, key: &str) -> Result<Option<Stored<String>>, StorageError> {
-        let state = self.state.lock().map_err(|_| StorageError::Internal)?;
+        let mut state = self.state.lock().map_err(|_| StorageError::Internal)?;
+        state.exact_operations.push(match (scope, key) {
+            ("primary", "missing") => ExactOperation::LoadMissing,
+            ("isolated", "record") => ExactOperation::LoadIsolated,
+            _ => ExactOperation::LoadPrimary,
+        });
         state
             .records
             .get(&(scope.to_owned(), key.to_owned()))
@@ -65,6 +91,12 @@ impl MemoryStore {
     ) -> Result<StorageWriteReceipt, StorageError> {
         let (value, condition) = write.into_parts();
         let mut state = self.state.lock().map_err(|_| StorageError::Internal)?;
+        state.exact_operations.push(match &condition {
+            StorageWriteCondition::InsertOnly => ExactOperation::WriteInsertOnly,
+            StorageWriteCondition::Any => ExactOperation::WriteAny,
+            StorageWriteCondition::IfRevision(_) => ExactOperation::WriteIfRevision,
+            _ => return Err(StorageError::Internal),
+        });
         let record_key = (scope.to_owned(), key.to_owned());
         let current = state.records.get(&record_key).cloned();
 
@@ -110,6 +142,11 @@ impl MemoryStore {
         condition: StorageDeleteCondition,
     ) -> Result<StorageDeleteOutcome, StorageError> {
         let mut state = self.state.lock().map_err(|_| StorageError::Internal)?;
+        state.exact_operations.push(match &condition {
+            StorageDeleteCondition::IfRevision(_) => ExactOperation::DeleteIfRevision,
+            StorageDeleteCondition::Any => ExactOperation::DeleteAny,
+            _ => return Err(StorageError::Internal),
+        });
         let record_key = (scope.to_owned(), key.to_owned());
         let current = state.records.get(&record_key).cloned();
 
@@ -323,6 +360,34 @@ fn all_five_production_ports_pass_the_same_contract() {
     ))
     .expect("protocol state");
     assert_eq!(report.completed_operations(), 19);
+}
+
+#[test]
+fn exact_suite_preserves_the_complete_operation_transcript() {
+    let store = MemoryStore::default();
+    let report = block_on(check_secret_store(&store, &exact_fixture())).expect("exact suite");
+    assert_eq!(report.completed_operations(), 16);
+    assert_eq!(
+        store.exact_operations(),
+        [
+            ExactOperation::LoadMissing,
+            ExactOperation::LoadPrimary,
+            ExactOperation::LoadIsolated,
+            ExactOperation::WriteInsertOnly,
+            ExactOperation::LoadPrimary,
+            ExactOperation::LoadIsolated,
+            ExactOperation::WriteInsertOnly,
+            ExactOperation::LoadPrimary,
+            ExactOperation::WriteAny,
+            ExactOperation::WriteIfRevision,
+            ExactOperation::LoadPrimary,
+            ExactOperation::DeleteIfRevision,
+            ExactOperation::LoadPrimary,
+            ExactOperation::DeleteIfRevision,
+            ExactOperation::LoadPrimary,
+            ExactOperation::DeleteAny,
+        ]
+    );
 }
 
 #[test]

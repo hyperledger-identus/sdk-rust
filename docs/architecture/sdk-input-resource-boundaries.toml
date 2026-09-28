@@ -378,6 +378,17 @@ consumer_impact  = "The verified state proves the selected-key signature, protec
 review_triggers  = [ "HTTP adapter", "JWE or JWS JSON", "client identifier prefix", "audience or clock validation", "DCQL parsing", "limit change" ]
 
 [[boundaries]]
+id               = "oid4vp-dcql-query"
+package          = "identus-oid4vp"
+surface          = "signature-proven DCQL extraction, strict structural validation, credential claim-resolution port, selection and capped combinations"
+disposition      = "sdk-enforced"
+limits           = [ "DcqlLimits=explicit" ]
+evidence         = [ "crates/oid4vp/src/dcql.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/dcql.rs", "docs/adr/0165-adopt-siros-dcql-behind-a-bounded-identus-facade.md" ]
+outer_obligation = "Callers bound credential retrieval and claim-resolution work and remain responsible for credential authenticity, format metadata/trust policy, consent and response construction."
+consumer_impact  = "The result proves DCQL structure and exact-format selection only; it does not prove the full Authorization Request, verifier trust, credential validity or response safety."
+review_triggers  = [ "format metadata policy", "trusted-authority policy", "scope expansion", "candidate version", "limit change", "response construction" ]
+
+[[boundaries]]
 id               = "wallet-storage-vocabulary"
 package          = "identus-wallet"
 surface          = "storage revisions, cursors, page sizes/pages and write/delete conditions"

@@ -155,9 +155,11 @@ package for a bounded Final by-reference invocation boundary. It likewise does
 not activate the umbrella marker. Issue #396 adds runtime-neutral Request URI
 GET/POST construction, bounded response binding, and signed compact JAR
 verification through `identus-jose`, with exact protected type, client-id and
-optional wallet-nonce correlation. Neither slice claims HTTP execution,
+optional wallet-nonce correlation. Issue #429 adds strict bounded DCQL
+validation and selection through private exact `siros-dcql 0.3.0` without
+exporting candidate types. These slices do not claim HTTP execution,
 client-prefix key authorization, verifier trust, JWE, audience/freshness/full
-request validity, DCQL, selection, consent, response, certification or
+request validity, format metadata policy, consent, response, certification or
 downstream adoption.
 
 The intended component portfolio below is a planning target. A crate enters

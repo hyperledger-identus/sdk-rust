@@ -1,6 +1,6 @@
 # ADR 0156: retain OID4VCI and spike a private DCQL engine
 
-- **Status:** Accepted under standing material authority; production adoption deferred
+- **Status:** Accepted; DCQL production deferral superseded by ADR 0165
 - **Date:** 2026-09-26
 - **Issue:** [#391](https://github.com/hyperledger-identus/sdk-rust/issues/391)
 - **Review no later than:** before activating IDR-024 or adding an OID4VP production dependency

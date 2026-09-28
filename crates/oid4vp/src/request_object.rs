@@ -130,6 +130,10 @@ pub struct VerifiedRequestObject {
 }
 
 impl VerifiedRequestObject {
+    pub(crate) fn into_sensitive_payload(self) -> Zeroizing<Vec<u8>> {
+        self.payload
+    }
+
     /// Exact algorithm accepted by the selected signature suite and key.
     pub const fn algorithm(&self) -> JwsAlgorithm {
         self.algorithm

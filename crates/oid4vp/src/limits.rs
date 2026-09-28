@@ -232,3 +232,97 @@ impl Default for RequestObjectValidationLimits {
         }
     }
 }
+
+/// Resource and work limits for one DCQL query evaluation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DcqlLimits {
+    max_query_bytes: usize,
+    max_collection_items: usize,
+    max_string_bytes: usize,
+    max_path_components: usize,
+    max_credentials: usize,
+    max_evaluation_work: usize,
+    max_combinations: usize,
+}
+
+impl DcqlLimits {
+    /// Construct a positive DCQL resource policy.
+    pub const fn new(
+        max_query_bytes: usize,
+        max_collection_items: usize,
+        max_string_bytes: usize,
+        max_path_components: usize,
+        max_credentials: usize,
+        max_evaluation_work: usize,
+        max_combinations: usize,
+    ) -> Result<Self, Oid4vpError> {
+        if max_query_bytes == 0
+            || max_collection_items == 0
+            || max_string_bytes == 0
+            || max_path_components == 0
+            || max_credentials == 0
+            || max_evaluation_work == 0
+            || max_combinations == 0
+        {
+            return Err(Oid4vpError::InvalidLimits);
+        }
+        Ok(Self {
+            max_query_bytes,
+            max_collection_items,
+            max_string_bytes,
+            max_path_components,
+            max_credentials,
+            max_evaluation_work,
+            max_combinations,
+        })
+    }
+
+    /// Maximum serialized bytes in the extracted `dcql_query`.
+    pub const fn max_query_bytes(self) -> usize {
+        self.max_query_bytes
+    }
+
+    /// Maximum elements in any DCQL-owned collection.
+    pub const fn max_collection_items(self) -> usize {
+        self.max_collection_items
+    }
+
+    /// Maximum UTF-8 bytes in an identifier, format, or path key.
+    pub const fn max_string_bytes(self) -> usize {
+        self.max_string_bytes
+    }
+
+    /// Maximum components in one claims path pointer.
+    pub const fn max_path_components(self) -> usize {
+        self.max_path_components
+    }
+
+    /// Maximum credential descriptors supplied for one evaluation.
+    pub const fn max_credentials(self) -> usize {
+        self.max_credentials
+    }
+
+    /// Maximum checked query/claim-by-credential work units.
+    pub const fn max_evaluation_work(self) -> usize {
+        self.max_evaluation_work
+    }
+
+    /// Maximum satisfying combinations retained in one outcome.
+    pub const fn max_combinations(self) -> usize {
+        self.max_combinations
+    }
+}
+
+impl Default for DcqlLimits {
+    fn default() -> Self {
+        Self {
+            max_query_bytes: 16_384,
+            max_collection_items: 64,
+            max_string_bytes: 256,
+            max_path_components: 32,
+            max_credentials: 256,
+            max_evaluation_work: 65_536,
+            max_combinations: 256,
+        }
+    }
+}

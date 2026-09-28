@@ -754,6 +754,7 @@ dependencies = [
  "identus-crypto",
  "identus-jose",
  "serde_json",
+ "siros-dcql",
  "zeroize",
 ]
 
@@ -1161,6 +1162,16 @@ name = "siphasher"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ee5873ec9cce0195efcb7a4e9507a04cd49aec9c83d0389df45b1ef7ba2e649"
+
+[[package]]
+name = "siros-dcql"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "749a7da5b56f724a05c9694d87a82e0b03a609ad412deaf84ccf9376de2ec192"
+dependencies = [
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "slab"

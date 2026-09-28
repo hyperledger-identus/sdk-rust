@@ -7,9 +7,9 @@ classifier_protocol_version        = 2
 classifier_command                 = [ "cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--" ]
 classifier_source_sha256           = "607a9a81b0ff289aeb90691c2067bbe5db08973aef733910f1dd9b2ed6ac0017"
 classifier_dependencies_sha256     = "bc9684c06a8598c630ae022b966eb35ea871dc68a4a98e1bbe0f455c2e41a3f6"
-baseline_revision                  = "125e8caa0ecb9e9024a74dc479f998d12c5051a0"
-baseline_source_fingerprint_sha256 = "86868a1d7baaa194cd2eb7511ab1dda62d6a51f24a0292166321175aae9e6bdb"
-baseline_report_sha256             = "3da85015831da6cd6615466960319ae80e48b355d758c5713fef0edef5faa982"
+baseline_revision                  = "e4afece895eb3814b5d9b8c945d6ba457c6ad1c1"
+baseline_source_fingerprint_sha256 = "abf66d32446c22bf387df1301a3a35c3d71e405e3c762d1d2998bdd6de7175c1"
+baseline_report_sha256             = "d383b78ef4161fc9a0f69156e8c6561390083ec417d407be71fce31f86e77a92"
 generated_exclusions               = [  ]
 
 [attention]
@@ -45,13 +45,6 @@ locations   = [ "crates/oid4vci/src/error.rs" ]
 disposition = "defer-with-owner"
 owner       = "issue #271 / ADR 0116"
 evidence    = "Error architecture needs an independently characterized representative pilot."
-
-[[hotspots]]
-id          = "wallet-conformance-run-exact"
-locations   = [ "crates/wallet-conformance/src/lib.rs::run_exact" ]
-disposition = "decompose"
-owner       = "identus-wallet-conformance maintainers"
-evidence    = "Scenario orchestration and evidence projection have separate change axes; excluded from issue #270 implementation."
 
 [[hotspots]]
 id          = "did-oid-http-token-grammar"

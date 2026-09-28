@@ -17,7 +17,7 @@
       preserving crate-root paths and five public checker signatures.
 - [x] 2.2 Decompose `run_exact` into named lifecycle phases with private
       aggregate evidence and unchanged revision/failure semantics.
-- [ ] 2.3 Prove public/source/failure equivalence, merge the implementation,
+- [x] 2.3 Prove public/source/failure equivalence, merge the implementation,
       then rebind canonical code-health evidence to the protected squash commit
       without weakening unrelated signals.
 
@@ -27,6 +27,6 @@
       code-health, factory, portable-target, and relevant Nix gates.
 - [x] 3.2 Perform a distinct exact-diff architecture/security/Rust review and
       resolve every blocking finding.
-- [ ] 3.3 Deliver the implementation and squash-safe evidence closeout as two
+- [x] 3.3 Deliver the implementation and squash-safe evidence closeout as two
       signed/DCO issue-linked PRs; archive, merge, and metrics remain gated by
       green exact-head hosted CI.

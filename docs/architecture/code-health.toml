@@ -5,9 +5,9 @@ engine_version                     = "0.0.25"
 classifier                         = "syn-ast-v1"
 classifier_protocol_version        = 2
 classifier_command                 = [ "cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--" ]
-baseline_revision                  = "cf3935465caf319730857a554c42d9e0edff78a6"
-baseline_source_fingerprint_sha256 = "6f3107644684a6611321f03310afb6e31d0cc5c8c96a3b8511cd1f56a310b280"
-baseline_report_sha256             = "a7577846597320c28ff90b5c18f68b04f5d48b2308c9b72b25568324718196a3"
+baseline_revision                  = "125e8caa0ecb9e9024a74dc479f998d12c5051a0"
+baseline_source_fingerprint_sha256 = "86868a1d7baaa194cd2eb7511ab1dda62d6a51f24a0292166321175aae9e6bdb"
+baseline_report_sha256             = "a5d14649a2033417cd36bf7a79ee4dc60360da27ff3787c125a95bfde0ecdc14"
 generated_exclusions               = [  ]
 
 [attention]
@@ -36,13 +36,6 @@ locations   = [ "crates/derive/src/attr.rs::from_attributes" ]
 disposition = "document-exception"
 owner       = "identus-derive maintainers"
 evidence    = "One compile-time attribute grammar and diagnostic contract."
-
-[[hotspots]]
-id          = "did-document-validation"
-locations   = [ "crates/did/src/document.rs" ]
-disposition = "decompose"
-owner       = "identus-did maintainers"
-evidence    = "Document model and validation traversal are private-module candidates after characterization."
 
 [[hotspots]]
 id          = "oid4vci-error-projection"

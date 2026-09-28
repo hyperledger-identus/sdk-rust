@@ -53,15 +53,6 @@
       "owner": "identus-derive maintainers"
     },
     {
-      "disposition": "decompose",
-      "evidence": "Document model and validation traversal are private-module candidates after characterization.",
-      "id": "did-document-validation",
-      "locations": [
-        "crates/did/src/document.rs"
-      ],
-      "owner": "identus-did maintainers"
-    },
-    {
       "disposition": "defer-with-owner",
       "evidence": "Error architecture needs an independently characterized representative pilot.",
       "id": "oid4vci-error-projection",
@@ -100,7 +91,7 @@
       "owner": "identus-did resolution model"
     }
   ],
-  "population_projection_sha256": "403932cb2351dc8fa61aab9c9202b8b87f697c2d47d0ec159bbbb46b4a2b6e97",
+  "population_projection_sha256": "f383a26031ea9601e15a68aff5759aa8dfce6d72c33d562de2a37248538f91b0",
   "populations": {
     "external_test": {
       "authored_nonblank_lines": 30252,
@@ -113,12 +104,12 @@
       "functions": 357
     },
     "production": {
-      "authored_nonblank_lines": 36348,
-      "files": 191,
+      "authored_nonblank_lines": 36406,
+      "files": 196,
       "functions": 2767
     }
   },
-  "revision": "cf3935465caf319730857a554c42d9e0edff78a6",
+  "revision": "125e8caa0ecb9e9024a74dc479f998d12c5051a0",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -365,22 +356,22 @@
       {
         "cognitive": 21,
         "cyclomatic": 24,
-        "end_line": 792,
+        "end_line": 230,
         "name": "validate",
-        "path": "crates/did/src/document.rs",
+        "path": "crates/did/src/document/model.rs",
         "population": "production",
         "sloc": 56,
-        "start_line": 737
+        "start_line": 175
       },
       {
         "cognitive": 18,
         "cyclomatic": 11,
-        "end_line": 1025,
+        "end_line": 463,
         "name": "drop_did_document_json",
-        "path": "crates/did/src/document.rs",
+        "path": "crates/did/src/document/model.rs",
         "population": "production",
         "sloc": 54,
-        "start_line": 972
+        "start_line": 410
       },
       {
         "cognitive": 1,
@@ -727,12 +718,8 @@
       {
         "authored_nonblank_lines": 1179,
         "path": "crates/conformance/src/bin/code-health-classifier.rs"
-      },
-      {
-        "authored_nonblank_lines": 1083,
-        "path": "crates/did/src/document.rs"
       }
     ]
   },
-  "source_fingerprint_sha256": "6f3107644684a6611321f03310afb6e31d0cc5c8c96a3b8511cd1f56a310b280"
+  "source_fingerprint_sha256": "86868a1d7baaa194cd2eb7511ab1dda62d6a51f24a0292166321175aae9e6bdb"
 }

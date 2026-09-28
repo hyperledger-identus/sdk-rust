@@ -15,5 +15,5 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Run focused, factory, workspace, strict lint, documentation, Nix, and local review gates.
-- [ ] 3.2 Archive the ready OpenSpec change, open the issue-linked PR, publish metrics, and merge only on green hosted CI.
+- [x] 3.1 Run focused, factory, workspace, strict lint, documentation, Nix, and local review gates.
+- [x] 3.2 Prepare the guarded OpenSpec archive and issue-linked PR; publish metrics and merge only on green hosted CI.

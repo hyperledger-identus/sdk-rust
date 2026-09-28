@@ -341,8 +341,19 @@ disposition      = "sdk-enforced"
 limits           = [ "AuthorizationRequestInvocationLimits=explicit" ]
 evidence         = [ "crates/oid4vp/src/invocation.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/invocation.rs", "crates/oid4vp/tests/error_contract.rs", "docs/adr/0157-establish-the-oid4vp-reference-ingress.md" ]
 outer_obligation = "Invocation adapters must cap transport bytes before UTF-8 allocation; later Request Object retrieval must separately cap redirects, headers, decompression, body bytes and time and must authenticate the object before use."
-consumer_impact  = "The SDK retains only bounded untrusted syntax. It performs no HTTP, JAR verification, DCQL, credential selection, consent or response construction."
+consumer_impact  = "The SDK retains only bounded untrusted syntax before the separate retrieval and JAR transition. It performs no HTTP, DCQL, credential selection, consent or response construction."
 review_triggers  = [ "new invocation transport", "Request Object retrieval", "JAR verification", "DCQL parsing", "response construction", "limit change" ]
+
+[[boundaries]]
+id               = "oid4vp-request-uri-and-jar"
+package          = "identus-oid4vp"
+surface          = "runtime-neutral GET/POST Request URI construction, status/media/body response binding, compact signed JAR verification, and exact client-id plus optional wallet-nonce correlation"
+disposition      = "sdk-enforced"
+limits           = [ "RequestUriRetrievalLimits=explicit", "RequestObjectValidationLimits=explicit" ]
+evidence         = [ "crates/oid4vp/src/request_uri.rs", "crates/oid4vp/src/request_object.rs", "crates/oid4vp/src/request_object_json.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/request_uri_jar.rs", "docs/adr/0158-bind-oid4vp-request-uri-retrieval-and-signed-jar.md" ]
+outer_obligation = "Transport adapters cap pre-UTF-8 headers, redirects, decompression and time, execute HTTPS, generate nonce entropy, and authorize the supplied verification key for the exact client identifier through the selected trust framework."
+consumer_impact  = "The verified state proves the selected-key signature, protected type, client-id equality and optional wallet-nonce correlation only; it does not prove verifier trust, audience, freshness, OAuth/DCQL validity, consent or authorization."
+review_triggers  = [ "HTTP adapter", "JWE or JWS JSON", "client identifier prefix", "audience or clock validation", "DCQL parsing", "limit change" ]
 
 [[boundaries]]
 id               = "wallet-storage-vocabulary"

@@ -58,6 +58,10 @@ pub struct ReferencedAuthorizationRequest {
 }
 
 impl ReferencedAuthorizationRequest {
+    pub(crate) fn into_parts(self) -> (Zeroizing<String>, Zeroizing<String>, RequestUriMethod) {
+        (self.client_id, self.request_uri, self.method)
+    }
+
     /// Explicitly reveal the untrusted, verifier-controlled client identifier.
     pub fn expose_sensitive_client_id(&self) -> &str {
         &self.client_id
@@ -154,10 +158,10 @@ fn parse_reference(
                 request_uri = Some(value);
             }
             "request_uri_method" => {
-                method = if value.as_str() == "post" {
-                    RequestUriMethod::Post
-                } else {
-                    return Err(Oid4vpError::UnsupportedRequestUriMethod);
+                method = match value.as_str() {
+                    "get" => RequestUriMethod::Get,
+                    "post" => RequestUriMethod::Post,
+                    _ => return Err(Oid4vpError::UnsupportedRequestUriMethod),
                 };
             }
             "request" => return Err(Oid4vpError::UnsupportedTransport),

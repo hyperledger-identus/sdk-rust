@@ -9,7 +9,12 @@ publish.workspace      = true
 [dependencies]
 fluent-uri.workspace   = true
 identus-core.workspace = true
+identus-jose.workspace = true
+serde_json.workspace   = true
 zeroize.workspace      = true
+
+[dev-dependencies]
+identus-crypto = { workspace = true, features = [ "ed25519" ] }
 
 [features]
 default = [  ]

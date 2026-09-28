@@ -39,6 +39,13 @@ fn explicit_post_and_bounded_unknown_extensions_are_supported() {
 }
 
 #[test]
+fn explicit_get_is_supported_by_the_final_profile() {
+    let input = format!("{REFERENCE}&request_uri_method=get");
+    let request = referenced(&input);
+    assert_eq!(request.request_uri_method(), RequestUriMethod::Get);
+}
+
+#[test]
 fn decoded_duplicate_names_fail_closed() {
     let input = format!("{REFERENCE}&client%5fid=shadow");
     assert_eq!(
@@ -75,7 +82,7 @@ fn malformed_or_ambiguous_invocations_are_rejected() {
             Oid4vpError::UnsupportedParameter,
         ),
         (
-            "openid4vp:?client_id=x&request_uri=https%3A%2F%2Fv.example&request_uri_method=get",
+            "openid4vp:?client_id=x&request_uri=https%3A%2F%2Fv.example&request_uri_method=GET",
             Oid4vpError::UnsupportedRequestUriMethod,
         ),
         (

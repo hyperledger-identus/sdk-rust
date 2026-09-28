@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 396,
+  "change": "bind-oid4vp-request-uri-and-jar",
+  "branch": "codex/feat/issue-396",
+  "baseRef": "origin/develop",
+  "baseSha": "3512f31a660d536cdee7a585ae95e2c0a6129790",
+  "contractHeadSha": "e2479dbfc481e442d71108a85b26bfdd7a75f3ea",
+  "createdAt": "2026-09-28T06:04:54.751Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

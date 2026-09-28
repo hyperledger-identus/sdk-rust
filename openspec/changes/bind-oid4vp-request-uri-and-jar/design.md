@@ -58,6 +58,16 @@ Retrieval, response, compact, signature, header, JSON, and correlation failures
 map to additive `Oid4vpError` variants with stable static messages. No nested
 JOSE error rendering or verifier input crosses the public boundary.
 
+## Slice-size decomposition note
+
+The delivery can cross the repository's advisory file/line threshold because
+the mandatory OpenSpec, ADR, error fixture, boundary inventory, and negative
+test matrix are larger than the four focused production modules. Splitting
+retrieval from JAR would leave a public raw/unverified response handoff, repeat
+the same state and response contracts, and delay the first safe consumer
+transition. Further decomposition is therefore rejected for this slice; client
+trust, full request validation, DCQL, and response work remain separate issues.
+
 # Alternatives rejected
 
 - Performing HTTP in the crate couples TLS/runtime/platform policy.

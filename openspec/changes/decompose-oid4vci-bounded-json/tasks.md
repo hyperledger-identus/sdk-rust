@@ -8,7 +8,7 @@
       impact, shared-ingress invariant, and rollback boundary.
 - [x] 1.3 Pass research/constraint/planning checks, commit planning alone, and
       write the exact-head pre-implementation receipt for issue #403.
-- [ ] 1.4 Run the complete existing OID4VCI characterization and negative
+- [x] 1.4 Run the complete existing OID4VCI characterization and negative
       suite before moving implementation code.
 
 ## 2. Implementation

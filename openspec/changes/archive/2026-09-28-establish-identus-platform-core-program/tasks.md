@@ -19,8 +19,8 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run documentation/link/format, strict OpenSpec, factory, and clean
+- [x] 3.1 Run documentation/link/format, strict OpenSpec, factory, and clean
       diff review checks.
-- [ ] 3.2 Archive the completed OpenSpec change with preserved evidence.
-- [ ] 3.3 Open a signed/DCO issue-linked PR to `develop`, publish factory
+- [x] 3.2 Archive the completed OpenSpec change with preserved evidence.
+- [x] 3.3 Open a signed/DCO issue-linked PR to `develop`, publish factory
       metrics, and merge only after required CI is green.

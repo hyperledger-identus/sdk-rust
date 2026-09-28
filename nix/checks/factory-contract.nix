@@ -7,6 +7,7 @@
   findutils,
   gitMinimal,
   gnugrep,
+  nix,
   openspec,
   python3,
   nodejs_24,
@@ -23,6 +24,7 @@ stdenvNoCC.mkDerivation {
     findutils
     gitMinimal
     gnugrep
+    nix
     openspec
     python3
     nodejs_24
@@ -36,6 +38,7 @@ stdenvNoCC.mkDerivation {
     # cleanSource intentionally excludes .git. Git-backed local/hosted factory
     # runs additionally bind each golden to its preflight contractHeadSha.
     export SDK_ERROR_GOLDEN_SOURCE_SNAPSHOT=1
+    export SDK_SUPPORT_POLICY_NIX_INSTANTIATE=${nix}/bin/nix-instantiate
     patchShebangs scripts
     scripts/tests/factory-contract.sh
     node --test scripts/tests/factory-operations.mjs

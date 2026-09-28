@@ -8,10 +8,10 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Replace ambient parser discovery with explicit pinned injection.
-- [ ] 2.2 Separate parser-valid and parser-invalid fixture assertions.
-- [ ] 2.3 Repair the computed-import fixture without weakening rejection.
-- [ ] 2.4 Add the locked Nix parser to the factory-contract derivation.
+- [x] 2.1 Replace ambient parser discovery with explicit pinned injection.
+- [x] 2.2 Separate parser-valid and parser-invalid fixture assertions.
+- [x] 2.3 Repair the computed-import fixture without weakening rejection.
+- [x] 2.4 Add the locked Nix parser to the factory-contract derivation.
 
 ## 3. Review and delivery
 

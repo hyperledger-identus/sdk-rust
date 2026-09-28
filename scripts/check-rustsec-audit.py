@@ -63,9 +63,6 @@ def vulnerability_count(report: dict[str, Any]) -> int | None:
     count = vulnerabilities.get("count")
     if type(count) is int and count >= 0:
         return count
-    found = vulnerabilities.get("found")
-    if found is False:
-        return 0
     return None
 
 
@@ -87,6 +84,13 @@ def report_is_compatible(report: dict[str, Any]) -> bool:
         and found == (count > 0)
         and isinstance(entries, list)
         and len(entries) == count
+        and all(
+            isinstance(entry, dict)
+            and isinstance(entry.get("advisory"), dict)
+            and isinstance(entry["advisory"].get("id"), str)
+            and bool(entry["advisory"]["id"])
+            for entry in entries
+        )
         and isinstance(warnings, dict)
         and "yanked" not in warnings
     )

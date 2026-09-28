@@ -111,6 +111,23 @@ def main() -> int:
     assert inconsistent_result.returncode == 1
     assert inconsistent["advisories"]["status"] == "incompatible-tool"
 
+    invalid_count_result, invalid_count = classify(
+        json.dumps(
+            {
+                "database": {"advisory-count": 1},
+                "vulnerabilities": {
+                    "found": False,
+                    "count": "0",
+                    "list": [],
+                },
+                "warnings": {},
+            }
+        ).encode(),
+        0,
+    )
+    assert invalid_count_result.returncode == 1
+    assert invalid_count["advisories"]["status"] == "incompatible-tool"
+
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
         database = root / "db"

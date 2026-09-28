@@ -1,5 +1,5 @@
 [[modified_requirement]]
-capability = "oid4vp-authorization-request-invocation"
-requirement = "Reference invocation is exact and bounded"
+capability       = "oid4vp-authorization-request-invocation"
+requirement      = "Reference invocation is exact and bounded"
 canonical_sha256 = "00c38b522f5f13e731fccbb93d7388d44d9d9d1a30f7cf8b74e0a29ff249dc68"
-reason = "OpenID4VP 1.0 Final defines explicit case-sensitive get as valid, so the prior post-only explicit-method sentence and scenarios must be corrected while preserving the existing limits."
+reason           = "OpenID4VP 1.0 Final defines explicit case-sensitive get as valid, so the prior post-only explicit-method sentence and scenarios must be corrected while preserving the existing limits."

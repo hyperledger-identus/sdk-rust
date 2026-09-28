@@ -83,6 +83,10 @@ The workflow is loaded in the protected base context, checks out and verifies
 the event's exact base SHA, and executes only that revision's checker and policy
 configuration. It may fetch the exact pull-request head as Git objects for
 history validation, but must never check out or execute the head tree.
+Activation is a two-integration bootstrap: the first revision temporarily
+retains the legacy event so the old required context can report; the immediate
+canary proves the trusted event and removes the legacy trigger before unrelated
+work merges.
 
 ## Workflow security
 

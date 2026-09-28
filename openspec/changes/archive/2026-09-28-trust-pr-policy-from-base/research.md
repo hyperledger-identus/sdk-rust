@@ -78,8 +78,9 @@ base/head evaluation; #344 owns administrator hardening.
 ## Open questions and blockers
 
 None. The first natural hosted run of the new event necessarily occurs on the
-next pull request after merge and is recorded as follow-up evidence, not a
-planning blocker.
+next pull request after the bootstrap merge. That immediate canary removes the
+temporarily retained legacy event before unrelated integration and records the
+hosted evidence; this rollout constraint is not a planning blocker.
 
 ## Evidence commands
 

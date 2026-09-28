@@ -766,7 +766,7 @@ test("synchronization classification accepts a protected-base ancestor", () => {
   }
 });
 
-test("hosted workflow runs exact base policy over untrusted head objects", () => {
+test("hosted workflow bootstraps exact base policy over untrusted head objects", () => {
   const workflow = readFileSync(new URL("../../.github/workflows/pull-request-policy.yml", import.meta.url), "utf8");
   for (const pattern of [
     /pull_request_target:/u,
@@ -787,7 +787,8 @@ test("hosted workflow runs exact base policy over untrusted head objects", () =>
     /treeSha: \.commit\.tree\.sha/u,
   ]) assert.match(workflow, pattern);
   assert.match(workflow, /permissions:\n  contents: read\n  issues: read\n  pull-requests: read/u);
-  assert.doesNotMatch(workflow, /^\s+pull_request:\s*$/mu);
+  assert.match(workflow, /^\s+pull_request:\s*$/mu);
+  assert.match(workflow, /immediate canary removes it/u);
   assert.doesNotMatch(workflow, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/u);
   assert.doesNotMatch(workflow, /git (?:checkout|switch).*HEAD_SHA/u);
   assert.doesNotMatch(workflow, /persist-credentials: true/u);

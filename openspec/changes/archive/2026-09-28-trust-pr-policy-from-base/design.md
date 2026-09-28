@@ -28,7 +28,9 @@ persistence, identity guard, exact head-object fetch, and absence of a head
 checkout. Existing policy tests continue to exercise issue/body, contribution,
 signature, and synchronization-merge behavior. Hosted CI provides the
 end-to-end proof because the change's own PR must be judged by the pre-change
-base workflow; the new trust boundary becomes active for later PRs after merge.
+base workflow. The bootstrap therefore temporarily retains both events; an
+immediate canary removes the legacy event once the new trust boundary is owned
+by the protected base. No unrelated integration may land between them.
 
 ## Risks and mitigations
 

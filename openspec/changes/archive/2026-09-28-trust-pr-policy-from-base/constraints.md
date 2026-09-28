@@ -30,8 +30,10 @@ remain effective.
 This slice does not prevent a policy weakening that has already merged to the
 protected base. It does not yet require the proposed head policy to be at least
 as strict as the base policy; #339 owns that monotonicity decision. The PR that
-introduces this event change is still evaluated by the old base workflow, so
-natural end-to-end evidence begins with a later PR.
+introduces this event change is still evaluated by the old base workflow and
+temporarily retains that legacy trigger, so natural end-to-end evidence and
+legacy-trigger removal begin with an immediate canary PR. No unrelated PR may
+merge between the bootstrap and canary.
 
 ## Consumer and product impact
 

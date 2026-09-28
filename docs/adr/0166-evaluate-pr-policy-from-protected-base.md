@@ -25,13 +25,21 @@ Retain immutable third-party action pins, explicit read-only permissions, and
 no secrets. Policy monotonicity between the base and proposed head remains the
 separate #339 decision.
 
+Activation uses two integrations because the existing required
+`pull-request-policy` context is emitted only by the legacy event. The
+bootstrap integration adds `pull_request_target` while retaining
+`pull_request`; its immediate canary removes `pull_request` after the protected
+base owns the new event. No unrelated pull request may merge between those two
+steps.
+
 ## Consequences
 
 A pull request cannot pass by weakening its own checker, configuration, or
 workflow. The event has a more sensitive base-context token, so the no-head-
 execution and least-authority rules are permanent security invariants. The PR
 that introduces this change cannot naturally exercise its new base workflow;
-the next pull request supplies that hosted evidence.
+the next pull request supplies that hosted evidence and removes the temporary
+legacy trigger.
 
 ## Verification and rollback
 

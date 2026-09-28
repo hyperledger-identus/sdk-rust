@@ -60,7 +60,7 @@ def classify(raw: bytes, command_exit: int) -> tuple[subprocess.CompletedProcess
 def fake_audit(path: Path, *, version: str, probe_exit: int) -> Path:
     executable = path / "cargo-audit"
     executable.write_text(
-        "#!/usr/bin/env python3\n"
+        f"#!{sys.executable}\n"
         "import json, sys\n"
         f"version = {version!r}\n"
         f"probe_exit = {probe_exit!r}\n"
@@ -154,7 +154,7 @@ def main() -> int:
             capture_output=True,
             env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
         )
-        assert result.returncode == 0
+        assert result.returncode == 0, result.stderr.decode(errors="replace")
 
         incompatible = fake_audit(root, version="0.20.1", probe_exit=0)
         result = subprocess.run(

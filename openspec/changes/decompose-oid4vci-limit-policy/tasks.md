@@ -15,7 +15,7 @@
 
 - [x] 2.1 Move every existing numeric default and the configurable depth
       ceiling unchanged into one private policy module.
-- [ ] 2.2 Move limit types into offer, token, credential, and metadata modules
+- [x] 2.2 Move limit types into offer, token, credential, and metadata modules
       while preserving the private facade and crate-root public exports.
 - [ ] 2.3 Prove exact public signatures, defaults, validation predicates,
       errors, and compositions against the base inventory.

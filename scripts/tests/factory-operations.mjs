@@ -766,9 +766,17 @@ test("synchronization classification accepts a protected-base ancestor", () => {
   }
 });
 
-test("hosted workflow projects synchronization evidence from GitHub", () => {
+test("hosted workflow runs exact base policy over untrusted head objects", () => {
   const workflow = readFileSync(new URL("../../.github/workflows/pull-request-policy.yml", import.meta.url), "utf8");
   for (const pattern of [
+    /pull_request_target:/u,
+    /ref: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/u,
+    /persist-credentials: false/u,
+    /actual_base=\$\(git rev-parse --verify 'HEAD\^\{commit\}'\)/u,
+    /"\$actual_base" != "\$PR_BASE_SHA"/u,
+    /refs\/pull\/\$PR_NUMBER\/head:refs\/sdk-rust-policy\/pull-head/u,
+    /actual_head=\$\(git rev-parse --verify 'refs\/sdk-rust-policy\/pull-head\^\{commit\}'\)/u,
+    /"\$actual_head" != "\$HEAD_SHA"/u,
     /PR_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/u,
     /PR_BASE_REF: \$\{\{ github\.event\.pull_request\.base\.ref \}\}/u,
     /PR_HEAD_REF: \$\{\{ github\.event\.pull_request\.head\.ref \}\}/u,
@@ -778,6 +786,13 @@ test("hosted workflow projects synchronization evidence from GitHub", () => {
     /parentShas: \[\.parents\[\]\.sha\]/u,
     /treeSha: \.commit\.tree\.sha/u,
   ]) assert.match(workflow, pattern);
+  assert.match(workflow, /permissions:\n  contents: read\n  issues: read\n  pull-requests: read/u);
+  assert.doesNotMatch(workflow, /^\s+pull_request:\s*$/mu);
+  assert.doesNotMatch(workflow, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/u);
+  assert.doesNotMatch(workflow, /git (?:checkout|switch).*HEAD_SHA/u);
+  assert.doesNotMatch(workflow, /persist-credentials: true/u);
+  assert.doesNotMatch(workflow, /^\s+secrets:/mu);
+  assert.doesNotMatch(workflow, /^\s+id-token:\s+write\s*$/mu);
 });
 
 test("signature envelope policy fails closed on a malformed declaration", () => {

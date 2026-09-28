@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-29
+goal: Separate presentation values, requests, candidate/disclosure validation, and generated artifacts without changing public semantics.

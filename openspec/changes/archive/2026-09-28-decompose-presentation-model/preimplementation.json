@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 407,
+  "change": "decompose-presentation-model",
+  "branch": "codex/refactor/issue-407",
+  "baseRef": "origin/develop",
+  "baseSha": "f48d0be8ad6e8193fb1136fbf104fe1c533840f4",
+  "contractHeadSha": "6b1646351181a1e03938abeb7ff307961a8989cb",
+  "createdAt": "2026-09-28T18:16:43.677Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

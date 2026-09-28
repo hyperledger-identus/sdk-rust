@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 341,
+  "change": "trust-pr-policy-from-base",
+  "branch": "codex/fix/issue-341",
+  "baseRef": "origin/develop",
+  "baseSha": "612f6d1ca8ad49fe2f5fb669578c0b972465d124",
+  "contractHeadSha": "e89157e3a13f7920290608df96c8cfea90144c5d",
+  "createdAt": "2026-09-28T21:09:30.342Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

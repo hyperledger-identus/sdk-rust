@@ -79,11 +79,22 @@ after the workflow exists and has succeeded on `develop`.
 The `pull-request-policy` check requires a ready PR targeting `develop`, a
 corresponding issue reference and completed local review evidence. Missing,
 pending, cancelled or failing required checks block both human and agent merges.
+The workflow is loaded in the protected base context, checks out and verifies
+the event's exact base SHA, and executes only that revision's checker and policy
+configuration. It may fetch the exact pull-request head as Git objects for
+history validation, but must never check out or execute the head tree.
+Activation is a two-integration bootstrap: the first revision temporarily
+retains the legacy event so the old required context can report; the immediate
+canary proves the trusted event and removes the legacy trigger before unrelated
+work merges.
 
 ## Workflow security
 
 - declare minimal job permissions;
 - pin third-party actions to full commit SHAs;
+- for `pull_request_target`, disable persisted checkout credentials, expose no
+  secrets, and never build, install, import, source or execute pull-request
+  head content;
 - use dependency review and hardened runners where practical;
 - never expose publishing credentials to pull-request jobs;
 - generate attestations and SBOMs from the tagged source;

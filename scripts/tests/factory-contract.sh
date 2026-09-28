@@ -35,6 +35,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/constraints.py"
 "$repository_root/scripts/tests/openspec-archive.py"
 "$repository_root/scripts/tests/research-readiness.py"
+"$repository_root/scripts/tests/rustsec-audit.py"
 
 required_files=(
   AGENTS.md
@@ -131,6 +132,7 @@ required_files=(
   docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md
   docs/adr/0154-use-first-candidate-api-snapshots-as-semver-origin.md
   docs/adr/0155-qualify-staged-did-candidate-matrix.md
+  docs/adr/0160-separate-rustsec-advisory-and-yank-evidence.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
@@ -184,6 +186,7 @@ required_files=(
   scripts/check-constraints.py
   scripts/check-openspec-archive.py
   scripts/check-support-policy.py
+  scripts/check-rustsec-audit.py
   scripts/check-apollo-parity.py
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
@@ -213,6 +216,7 @@ required_files=(
   scripts/tests/openspec-archive.py
   scripts/tests/pr-policy.sh
   scripts/tests/research-readiness.py
+  scripts/tests/rustsec-audit.py
   scripts/tests/support-policy.py
   scripts/tests/ssi-upstream-backlog-live.py
   scripts/tests/oid4vci-conformance.py
@@ -311,6 +315,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-openspec-archive.py" \
   "$fixture_root/scripts/check-pr-policy.sh" \
   "$fixture_root/scripts/check-research-readiness.py" \
+  "$fixture_root/scripts/check-rustsec-audit.py" \
   "$fixture_root/scripts/check-support-policy.py" \
   "$fixture_root/scripts/check-apollo-parity.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
@@ -340,6 +345,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/openspec-archive.py" \
   "$fixture_root/scripts/tests/pr-policy.sh" \
   "$fixture_root/scripts/tests/research-readiness.py" \
+  "$fixture_root/scripts/tests/rustsec-audit.py" \
   "$fixture_root/scripts/tests/support-policy.py" \
   "$fixture_root/scripts/tests/ssi-upstream-backlog-live.py" \
   "$fixture_root/scripts/tests/oid4vci-conformance.py" \

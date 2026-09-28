@@ -24,6 +24,13 @@
         optionals
         ;
       manifest = builtins.fromTOML (builtins.readFile ./gates.toml);
+      auditToolVersion =
+        if pkgs.cargo-audit.version == "0.22.2" then
+          "0.22.2"
+        else
+          throw "rust-audit requires cargo-audit 0.22.2";
+      auditChecker = ./../../scripts/check-rustsec-audit.py;
+      auditFixture = ./fixtures/rustsec-cvss4;
       cargoArgumentAttribute = {
         cargoBuild = "cargoExtraArgs";
         cargoClippy = "cargoClippyExtraArgs";
@@ -92,6 +99,26 @@
           }
           // optionalAttrs (gate.operation == "cargoAudit") {
             inherit (inputs) advisory-db;
+            cargoAuditExtraArgs = ''
+              --no-yanked --format json > rust-audit-raw.json || audit_exit=$?
+              ${pkgs.python3}/bin/python ${auditChecker} classify \
+                --command-exit "''${audit_exit:-0}" \
+                --expected-tool-version ${auditToolVersion} \
+                --advisory-db-revision ${inputs.advisory-db.rev} \
+                --output rust-audit-evidence.json \
+                < rust-audit-raw.json
+            '';
+            nativeBuildInputs = [ pkgs.python3 ];
+            preBuild = ''
+              ${pkgs.python3}/bin/python ${auditChecker} probe \
+                --cargo-audit ${pkgs.cargo-audit}/bin/cargo-audit \
+                --expected-tool-version ${auditToolVersion} \
+                --advisory-db ${auditFixture}/advisory-db \
+                --lockfile ${auditFixture}/Cargo.lock
+            '';
+            postInstall = ''
+              install -Dm444 rust-audit-evidence.json "$out/evidence.json"
+            '';
           }
         );
       generatedChecks = listToAttrs (

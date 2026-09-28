@@ -6,7 +6,7 @@
       exports, adapter authority, operation counts, and code-health signals.
 - [x] 1.2 Record private ownership, phase boundaries, compatibility, risks,
       non-goals, rollback, and testable capability delta.
-- [ ] 1.3 Pass research/constraint/strict readiness, commit planning only, and
+- [x] 1.3 Pass research/constraint/strict readiness, commit planning only, and
       bind an exact issue #438 preimplementation receipt.
 - [ ] 1.4 Run the pre-change focused suite and add the exact test-only operation
       transcript before production movement.

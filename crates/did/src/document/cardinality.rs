@@ -25,8 +25,9 @@ impl<T> OneOrMany<T> {
     /// Construct the array representation, rejecting an empty array.
     ///
     /// This representation helper intentionally does not apply a DID domain
-    /// collection ceiling. Validated owners such as [`DidDocument`] and
-    /// [`Service`] enforce [`MAX_DOCUMENT_ITEMS`] before they are returned.
+    /// collection ceiling. Validated owners such as [`crate::DidDocument`] and
+    /// [`crate::Service`] enforce [`super::MAX_DOCUMENT_ITEMS`] before they are
+    /// returned.
     pub fn try_many(values: Vec<T>) -> Result<Self, Error> {
         if values.is_empty() {
             return Err(invalid(DocumentError::EmptyValue));

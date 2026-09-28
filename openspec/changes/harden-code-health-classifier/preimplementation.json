@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 301,
+  "change": "harden-code-health-classifier",
+  "branch": "codex/refactor/issue-301",
+  "baseRef": "origin/develop",
+  "baseSha": "2d133c2c537534d9208575614ecefad351f8b40d",
+  "contractHeadSha": "b553ffbcf1b674be9d8905effabe6a87a045839d",
+  "createdAt": "2026-09-28T19:35:47.941Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

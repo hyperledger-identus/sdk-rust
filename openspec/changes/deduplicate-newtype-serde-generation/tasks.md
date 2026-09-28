@@ -6,7 +6,7 @@
       expansion/runtime tests, output-safety contract, and code-health entry.
 - [x] 1.2 Record the routine research decision, constraint impact, ADR, design,
       and capability delta.
-- [ ] 1.3 Pass strict planning readiness, commit planning alone, and write the
+- [x] 1.3 Pass strict planning readiness, commit planning alone, and write the
       exact-head pre-implementation receipt for issue #402.
 
 ## 2. Implementation

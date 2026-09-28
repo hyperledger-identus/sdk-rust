@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-28
+goal: Separate OID4VCI resource-limit policy from lifecycle-owned public types without changing effective limits.

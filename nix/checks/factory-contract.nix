@@ -8,6 +8,7 @@
   gitMinimal,
   gnugrep,
   nix,
+  openssh,
   openspec,
   python3,
   nodejs_24,
@@ -25,6 +26,7 @@ stdenvNoCC.mkDerivation {
     gitMinimal
     gnugrep
     nix
+    openssh
     openspec
     python3
     nodejs_24

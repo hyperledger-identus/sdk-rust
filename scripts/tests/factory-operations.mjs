@@ -68,6 +68,7 @@ import {
   preparePiPackageCache,
 } from "../factory-tools/pi-package-cache.mjs";
 import { validatePlanningPaths } from "../factory-tools/preflight.mjs";
+import { resolvePrePushBase } from "../git-hooks/local-policy.mjs";
 import {
   isWithinManagedRoot,
   parseRemoteBranchHead,
@@ -76,6 +77,49 @@ import {
 } from "../worktree-lifecycle.mjs";
 
 const sha = "a".repeat(40);
+const zeroSha = "0".repeat(40);
+
+function fixtureGit(repository, args, options = {}) {
+  return execFileSync("git", args, {
+    cwd: repository,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    ...options,
+  }).trim();
+}
+
+function createCommitGraphFixture() {
+  const repository = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pre-push-"));
+  execFileSync("git", ["-c", "init.defaultBranch=develop", "init", "-q", repository]);
+  fixtureGit(repository, ["config", "user.name", "Agent"]);
+  fixtureGit(repository, ["config", "user.email", "agent@example.com"]);
+  fixtureGit(repository, ["config", "commit.gpgsign", "false"]);
+  const tree = fixtureGit(repository, ["mktree"], { input: "" });
+  let sequence = 0;
+  const commit = (parent, { signed = false } = {}) => {
+    sequence += 1;
+    const args = ["commit-tree", tree];
+    if (parent !== null) args.push("-p", parent);
+    if (signed) args.push("-S");
+    args.push(
+      "-m",
+      `test(factory): fixture commit ${sequence}\n\nSigned-off-by: Agent <agent@example.com>`,
+    );
+    return fixtureGit(repository, args);
+  };
+  return { repository, commit };
+}
+
+function configureFixtureSshSigning(repository) {
+  const key = path.join(repository, "fixture-signing-key");
+  execFileSync("ssh-keygen", ["-q", "-t", "ed25519", "-N", "", "-C", "agent@example.com", "-f", key]);
+  const [kind, material] = readFileSync(`${key}.pub`, "utf8").trim().split(/\s+/u);
+  const allowedSigners = path.join(repository, "allowed-signers");
+  writeFileSync(allowedSigners, `agent@example.com namespaces="git" ${kind} ${material}\n`, { mode: 0o600 });
+  fixtureGit(repository, ["config", "gpg.format", "ssh"]);
+  fixtureGit(repository, ["config", "user.signingkey", key]);
+  fixtureGit(repository, ["config", "gpg.ssh.allowedSignersFile", allowedSigners]);
+}
 const metric = {
   schemaVersion: 1,
   repository: "hyperledger-identus/sdk-rust",
@@ -966,6 +1010,136 @@ test("local commit range verification reports the failure cause for an unverifia
     assert.match(outcome.errors.join("\n"), /local signature verification failed/u);
   } finally {
     rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("pre-push base selection distinguishes first push, fast-forward, and rebase", () => {
+  const { repository, commit } = createCommitGraphFixture();
+  try {
+    const sharedBase = commit(null);
+    fixtureGit(repository, ["update-ref", "refs/remotes/origin/develop", sharedBase]);
+    const remoteFeature = commit(sharedBase);
+    assert.deepEqual(resolvePrePushBase({ repository, localSha: remoteFeature, remoteSha: zeroSha }), {
+      ok: true,
+      errors: [],
+      base: sharedBase,
+      mode: "first-push",
+    });
+
+    const appendedFeature = commit(remoteFeature);
+    assert.deepEqual(resolvePrePushBase({ repository, localSha: appendedFeature, remoteSha: remoteFeature }), {
+      ok: true,
+      errors: [],
+      base: remoteFeature,
+      mode: "fast-forward",
+    });
+
+    const protectedAdvance = commit(sharedBase);
+    fixtureGit(repository, ["update-ref", "refs/remotes/origin/develop", protectedAdvance]);
+    const rebasedFeature = commit(protectedAdvance);
+    assert.deepEqual(resolvePrePushBase({ repository, localSha: rebasedFeature, remoteSha: appendedFeature }), {
+      ok: true,
+      errors: [],
+      base: protectedAdvance,
+      mode: "protected-base",
+    });
+
+    const mergedFeature = fixtureGit(repository, [
+      "commit-tree",
+      fixtureGit(repository, ["rev-parse", `${rebasedFeature}^{tree}`]),
+      "-p",
+      appendedFeature,
+      "-p",
+      protectedAdvance,
+      "-m",
+      "test(factory): merge protected fixture\n\nSigned-off-by: Agent <agent@example.com>",
+    ]);
+    assert.deepEqual(resolvePrePushBase({ repository, localSha: mergedFeature, remoteSha: appendedFeature }), {
+      ok: true,
+      errors: [],
+      base: protectedAdvance,
+      mode: "protected-base",
+    });
+  } finally {
+    rmSync(repository, { recursive: true, force: true });
+  }
+});
+
+test("pre-push base selection fails closed on unsafe graph evidence", () => {
+  const { repository, commit } = createCommitGraphFixture();
+  try {
+    const protectedBase = commit(null);
+    fixtureGit(repository, ["update-ref", "refs/remotes/origin/develop", protectedBase]);
+    const localHead = commit(protectedBase);
+    const unrelatedRemote = commit(null);
+
+    const unrelated = resolvePrePushBase({ repository, localSha: localHead, remoteSha: unrelatedRemote });
+    assert.equal(unrelated.ok, false);
+    assert.deepEqual(unrelated.errors, ["remote branch history is unrelated to current origin/develop"]);
+
+    const missingRemote = resolvePrePushBase({ repository, localSha: localHead, remoteSha: "f".repeat(40) });
+    assert.equal(missingRemote.ok, false);
+    assert.deepEqual(missingRemote.errors, ["remote branch head is missing or is not the exact commit object"]);
+
+    const siblingHead = commit(null);
+    const wrongBase = resolvePrePushBase({ repository, localSha: siblingHead, remoteSha: zeroSha });
+    assert.equal(wrongBase.ok, false);
+    assert.deepEqual(wrongBase.errors, ["outgoing head does not descend from current origin/develop"]);
+
+    assert.equal(resolvePrePushBase({ repository, localSha: "not-a-sha", remoteSha: zeroSha }).ok, false);
+    fixtureGit(repository, ["update-ref", "-d", "refs/remotes/origin/develop"]);
+    const missingBase = resolvePrePushBase({ repository, localSha: localHead, remoteSha: zeroSha });
+    assert.equal(missingBase.ok, false);
+    assert.deepEqual(missingBase.errors, ["current origin/develop is missing or invalid"]);
+  } finally {
+    rmSync(repository, { recursive: true, force: true });
+  }
+});
+
+test("rebased pre-push range verifies the signed feature commit and rejects an unsigned one", () => {
+  const { repository, commit } = createCommitGraphFixture();
+  try {
+    configureFixtureSshSigning(repository);
+    const sharedBase = commit(null);
+    const oldRemoteFeature = commit(sharedBase, { signed: true });
+    const protectedAdvance = commit(sharedBase);
+    fixtureGit(repository, ["update-ref", "refs/remotes/origin/develop", protectedAdvance]);
+
+    const signedFeature = commit(protectedAdvance, { signed: true });
+    const signedSelection = resolvePrePushBase({
+      repository,
+      localSha: signedFeature,
+      remoteSha: oldRemoteFeature,
+    });
+    assert.equal(signedSelection.ok, true);
+    assert.equal(signedSelection.base, protectedAdvance);
+    const signedResult = validateCommitRange({
+      repository,
+      base: signedSelection.base,
+      head: signedFeature,
+      verifySignature: true,
+    });
+    assert.equal(signedResult.ok, true);
+    assert.deepEqual(signedResult.errors, []);
+    assert.deepEqual(signedResult.commits.map(({ commit: candidate }) => candidate), [signedFeature]);
+
+    const unsignedFeature = commit(protectedAdvance);
+    const unsignedSelection = resolvePrePushBase({
+      repository,
+      localSha: unsignedFeature,
+      remoteSha: oldRemoteFeature,
+    });
+    assert.equal(unsignedSelection.ok, true);
+    const unsignedResult = validateCommitRange({
+      repository,
+      base: unsignedSelection.base,
+      head: unsignedFeature,
+      verifySignature: true,
+    });
+    assert.equal(unsignedResult.ok, false);
+    assert.match(unsignedResult.errors.join("\n"), /local signature verification failed/u);
+  } finally {
+    rmSync(repository, { recursive: true, force: true });
   }
 });
 

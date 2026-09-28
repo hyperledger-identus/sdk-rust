@@ -14,8 +14,8 @@ invalid-limits error. Defaults SHALL be finite.
 `CredentialOfferWithMetadata::try_create_jwt_credential_request` SHALL borrow
 that matched state, one `TokenResponseCore`, a zero-based offered Credential
 Configuration index, a non-empty ordered slice of
-`identus_jose::Oid4vciProofJwt`, and the limits. It SHALL succeed only when the
-index selects an ID from the matched offer, the Token Response has no
+`identus_oid4vci::Oid4vciProofJwt`, and the limits. It SHALL succeed only when
+the index selects an ID from the matched offer, the Token Response has no
 unvalidated Authorization Details, its token type is case-insensitively
 `Bearer`, its exact access token matches RFC 6750 `b64token`, the proof list and
 every compact proof are within bounds, and the resulting authorization/body

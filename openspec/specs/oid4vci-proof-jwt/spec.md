@@ -8,11 +8,13 @@ typed states that make no issuer-verification or trust claim.
 ## Requirements
 ### Requirement: Final-profile holder proof construction
 
-The JOSE capability SHALL provide a holder-side builder for the
+The OID4VCI capability SHALL provide a holder-side builder for the
 `openid4vci-proof+jwt` proof defined by OpenID4VCI 1.0 Final Appendix F.1. It
-SHALL require one accepted asymmetric algorithm, exactly one key reference, one
-non-empty bounded Credential Issuer audience and an explicit integer issuance
-time. The emitted protected `typ` SHALL equal `openid4vci-proof+jwt`.
+SHALL compose protocol-neutral compact and signature mechanics through the
+JOSE capability, require one accepted asymmetric algorithm, exactly one key
+reference, one non-empty bounded Credential Issuer audience and an explicit
+integer issuance time. The emitted protected `typ` SHALL equal
+`openid4vci-proof+jwt`.
 
 #### Scenario: identified holder input is canonical
 
@@ -98,9 +100,10 @@ target matrix.
 
 ### Requirement: Bounded Final-profile issuer parsing
 
-The JOSE capability SHALL parse the OpenID4VCI 1.0 Final
+The OID4VCI capability SHALL parse the OpenID4VCI 1.0 Final
 `openid4vci-proof+jwt` issuer profile through the existing `JwsLimits` and
-`Oid4vciProofJwtLimits`. It SHALL require exact protected `typ`, one accepted
+`Oid4vciProofJwtLimits`. It SHALL compose protocol-neutral compact parsing
+through the JOSE capability and require exact protected `typ`, one accepted
 asymmetric algorithm, exactly one `kid`, public `jwk`, or `x5c` reference, one
 non-empty bounded string `aud`, one integer `iat`, and optional bounded string
 `iss` and `nonce`. Known claim duplicates, wrong types, missing required

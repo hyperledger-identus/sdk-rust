@@ -23,7 +23,7 @@
 
 - [x] 3.1 Run moved profile/error tests plus workspace fmt, Clippy, docs, and
       tests.
-- [ ] 3.2 Run factory dependency, code-health, primary/MSRV, and portable target
+- [x] 3.2 Run factory dependency, code-health, primary/MSRV, and portable target
       evidence; perform a clean diff review.
-- [ ] 3.3 Open a signed/DCO issue-linked PR to `develop`, publish local factory
+- [x] 3.3 Open a signed/DCO issue-linked PR to `develop`, publish local factory
       metrics, and merge only after required CI is green.

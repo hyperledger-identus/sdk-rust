@@ -6,7 +6,7 @@
       caller, limit owner, error projection, and current code-health signal.
 - [x] 1.2 Record the semantic module map, reuse decisions, routine constraint
       impact, shared-ingress invariant, and rollback boundary.
-- [ ] 1.3 Pass research/constraint/planning checks, commit planning alone, and
+- [x] 1.3 Pass research/constraint/planning checks, commit planning alone, and
       write the exact-head pre-implementation receipt for issue #403.
 - [ ] 1.4 Run the complete existing OID4VCI characterization and negative
       suite before moving implementation code.

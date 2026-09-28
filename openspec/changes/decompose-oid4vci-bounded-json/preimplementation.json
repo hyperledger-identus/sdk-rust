@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 403,
+  "change": "decompose-oid4vci-bounded-json",
+  "branch": "codex/refactor/issue-403",
+  "baseRef": "origin/develop",
+  "baseSha": "21d9f652d050cfc029a821aa6f522aa162ff0226",
+  "contractHeadSha": "7b7428731b8b8f07efddddd463f3c11b4cbe1b05",
+  "createdAt": "2026-09-28T12:51:05.030Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

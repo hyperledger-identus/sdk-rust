@@ -4,8 +4,8 @@
 
 - [x] 1.1 Inventory public exports, values, result states, validation order,
       resource budgets, cleanup paths, internal consumers, and governance.
-- [x] 1.2 Record the private module map, minimal sibling visibility, duplicate
-      cleanup boundary, routine constraint impact, and rollback contract.
+- [x] 1.2 Record the private module map, minimal sibling visibility, behavioral
+      non-goals, routine constraint impact, and rollback contract.
 - [x] 1.3 Pass research/constraint/planning checks, commit planning alone, and
       write the exact-head pre-implementation receipt for issue #405.
 - [x] 1.4 Run the complete existing `identus-did` all-feature suite and capture
@@ -17,8 +17,8 @@
       while preserving exact syntax, limits, errors, and parse order.
 - [ ] 2.2 Move operation and document metadata with adjacent validation,
       rejection guards, and iterative cleanup intact.
-- [ ] 2.3 Move resolution and dereferencing envelopes, preserve state matrices,
-      and remove only the three characterized mechanical duplicates.
+- [ ] 2.3 Move resolution and dereferencing envelopes while preserving exact
+      construction, state matrices, serialization, and validation behavior.
 - [ ] 2.4 Prove public/wire/error/source equivalence and refresh code-health
       evidence without weakening unrelated ownership.
 

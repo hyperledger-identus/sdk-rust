@@ -19,8 +19,6 @@ tested, so this slice improves ownership without redesigning DID resolution.
 - Separate resolution and dereferencing result envelopes by lifecycle.
 - Isolate duplicate-name and bounded raw-JSON preflight in one private wire
   module.
-- Remove only mechanically duplicated documentation/serde annotations and the
-  second identical pure validation call in dereferencing construction.
 - Preserve errors, validation ordering, cleanup behavior, cache/cancellation
   contracts, object safety, runtime neutrality, public paths, and wire forms.
 

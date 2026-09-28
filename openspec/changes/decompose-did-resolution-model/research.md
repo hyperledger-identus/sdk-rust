@@ -62,12 +62,10 @@ error projections, iterative hostile-JSON cleanup, and standard failure
 construction remain owned by the same crate. No manifest, dependency, feature,
 lockfile, MSRV, unsafe-code, FFI, or target change is needed.
 
-The only non-move cleanups are duplicates with no distinct semantic effect:
-one repeated doc sentence, one repeated `#[serde(transparent)]`, and a second
-immediate call to the same pure `validate()` function after the first succeeds.
-Existing state-matrix and error-stability tests characterize the result; a
-focused regression will bind single validation at construction without
-weakening any accepted/rejected state.
+Exact-head inspection found no duplicated serde attribute, documentation
+sentence, or validation call in the current merged base. No incidental cleanup
+is therefore part of this slice; existing state-matrix and error-stability
+tests bind the ownership-only result.
 
 ## Security, privacy and maintenance evidence
 

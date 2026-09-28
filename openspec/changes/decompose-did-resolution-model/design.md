@@ -39,10 +39,9 @@ predicates and order, exact limits, error variants, and cleanup behavior remain
 equivalent. Raw result parsing remains size check, wire preflight, then serde
 and semantic validation. No resolver, cache, registry, or HTTP module changes.
 
-Three mechanical duplicates are removed: a repeated documentation sentence, a
-repeated transparent serde attribute, and the second consecutive pure
-dereferencing-result validation call. This does not change the first returned
-error, successful value, state invariant, allocation policy, or public surface.
+No incidental cleanup is included. Exact-head inspection confirmed the current
+base already contains single documentation, serde, and validation operations;
+the implementation is an ownership-only move.
 
 ## Characterization and ratchet
 

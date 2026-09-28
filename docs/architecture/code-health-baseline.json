@@ -54,15 +54,6 @@
     },
     {
       "disposition": "decompose",
-      "evidence": "Request, submission, candidate, and verification invariants have independent change axes; characterize before private decomposition.",
-      "id": "presentation-model-validation",
-      "locations": [
-        "crates/presentations/src/model.rs"
-      ],
-      "owner": "identus-presentations maintainers"
-    },
-    {
-      "disposition": "decompose",
       "evidence": "Document model and validation traversal are private-module candidates after characterization.",
       "id": "did-document-validation",
       "locations": [
@@ -109,7 +100,7 @@
       "owner": "identus-did resolution model"
     }
   ],
-  "population_projection_sha256": "a0dbac3fbe9bb4301901ba7ca242ea7cd0f9877f94cf8a80f1dff5138fb2676e",
+  "population_projection_sha256": "403932cb2351dc8fa61aab9c9202b8b87f697c2d47d0ec159bbbb46b4a2b6e97",
   "populations": {
     "external_test": {
       "authored_nonblank_lines": 30252,
@@ -122,12 +113,12 @@
       "functions": 357
     },
     "production": {
-      "authored_nonblank_lines": 36293,
-      "files": 187,
-      "functions": 2766
+      "authored_nonblank_lines": 36348,
+      "files": 191,
+      "functions": 2767
     }
   },
-  "revision": "2af5fdba5c255acf8eab8446de68ca2475428ccc",
+  "revision": "cf3935465caf319730857a554c42d9e0edff78a6",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -682,34 +673,34 @@
         "start_line": 680
       },
       {
+        "cognitive": 16,
+        "cyclomatic": 23,
+        "end_line": 183,
+        "name": "new",
+        "path": "crates/presentations/src/model/artifact.rs",
+        "population": "production",
+        "sloc": 57,
+        "start_line": 127
+      },
+      {
         "cognitive": 11,
         "cyclomatic": 16,
-        "end_line": 819,
+        "end_line": 244,
         "name": "validate_candidates",
-        "path": "crates/presentations/src/model.rs",
+        "path": "crates/presentations/src/model/selection.rs",
         "population": "production",
         "sloc": 43,
-        "start_line": 777
+        "start_line": 202
       },
       {
         "cognitive": 23,
         "cyclomatic": 27,
-        "end_line": 933,
+        "end_line": 358,
         "name": "new",
-        "path": "crates/presentations/src/model.rs",
+        "path": "crates/presentations/src/model/selection.rs",
         "population": "production",
         "sloc": 73,
-        "start_line": 861
-      },
-      {
-        "cognitive": 16,
-        "cyclomatic": 23,
-        "end_line": 1131,
-        "name": "new",
-        "path": "crates/presentations/src/model.rs",
-        "population": "production",
-        "sloc": 57,
-        "start_line": 1075
+        "start_line": 286
       },
       {
         "cognitive": 18,
@@ -740,12 +731,8 @@
       {
         "authored_nonblank_lines": 1083,
         "path": "crates/did/src/document.rs"
-      },
-      {
-        "authored_nonblank_lines": 1134,
-        "path": "crates/presentations/src/model.rs"
       }
     ]
   },
-  "source_fingerprint_sha256": "20ada25d63d52743bbf457fb17bd0e26ba665291daff2d37cedfe7b07204905f"
+  "source_fingerprint_sha256": "6f3107644684a6611321f03310afb6e31d0cc5c8c96a3b8511cd1f56a310b280"
 }

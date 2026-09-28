@@ -15,7 +15,7 @@
       and numeric serde expansion before removing duplication.
 - [x] 2.2 Extract one private scalar serde generator and delegate from the
       string and numeric category modules without changing emitted behavior.
-- [ ] 2.3 Refresh syntax-aware code-health evidence and retire the resolved
+- [x] 2.3 Refresh syntax-aware code-health evidence and retire the resolved
       duplicate disposition without weakening other signals.
 
 ## 3. Verification and delivery

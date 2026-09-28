@@ -135,40 +135,130 @@
         "crates/did/src/registry.rs"
       ],
       "owner": "identus-did resolution model"
-    },
-    {
-      "disposition": "deduplicate",
-      "evidence": "Shared token-generation shape needs a later focused slice with trybuild snapshots; excluded from issue #270 implementation.",
-      "id": "derive-serde-token-generation",
-      "locations": [
-        "crates/derive/src/num.rs",
-        "crates/derive/src/str.rs"
-      ],
-      "owner": "identus-derive maintainers"
     }
   ],
-  "population_projection_sha256": "1030e24d3da18d82f524dc163f3703bdc47508378d4855ce443ea1c739f66558",
+  "population_projection_sha256": "89edf6096b717cc5046dc95e5ec37e130c600169e759569deb9ce19a556a04ee",
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 24167,
-      "files": 73,
-      "functions": 1027
+      "authored_nonblank_lines": 30252,
+      "files": 94,
+      "functions": 1262
     },
     "inline_test": {
-      "authored_nonblank_lines": 3990,
-      "files": 32,
-      "functions": 331
+      "authored_nonblank_lines": 4834,
+      "files": 36,
+      "functions": 357
     },
     "production": {
-      "authored_nonblank_lines": 29161,
-      "files": 135,
-      "functions": 2224
+      "authored_nonblank_lines": 36093,
+      "files": 167,
+      "functions": 2753
     }
   },
-  "revision": "5dff6f38c861b858dd62dc8310246f7d485d3e92",
+  "revision": "a2bc3407c813ad305cca4b45547417712b6cf407",
   "schema_version": 2,
   "signals": {
     "functions": [
+      {
+        "cognitive": 18,
+        "cyclomatic": 20,
+        "end_line": 159,
+        "name": "cfg_truth_for_test",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 42,
+        "start_line": 118
+      },
+      {
+        "cognitive": 1,
+        "cyclomatic": 18,
+        "end_line": 260,
+        "name": "item_attributes",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 21,
+        "start_line": 240
+      },
+      {
+        "cognitive": 1,
+        "cyclomatic": 19,
+        "end_line": 316,
+        "name": "pat_attributes",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 22,
+        "start_line": 295
+      },
+      {
+        "cognitive": 1,
+        "cyclomatic": 42,
+        "end_line": 362,
+        "name": "expr_attributes",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 45,
+        "start_line": 318
+      },
+      {
+        "cognitive": 19,
+        "cyclomatic": 15,
+        "end_line": 637,
+        "name": "visit_module",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 62,
+        "start_line": 576
+      },
+      {
+        "cognitive": 15,
+        "cyclomatic": 17,
+        "end_line": 878,
+        "name": "apply_path_meta",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 58,
+        "start_line": 821
+      },
+      {
+        "cognitive": 16,
+        "cyclomatic": 10,
+        "end_line": 942,
+        "name": "project_lines",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 32,
+        "start_line": 911
+      },
+      {
+        "cognitive": 10,
+        "cyclomatic": 16,
+        "end_line": 1047,
+        "name": "resolve_module",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 66,
+        "start_line": 982
+      },
+      {
+        "cognitive": 24,
+        "cyclomatic": 28,
+        "end_line": 1128,
+        "name": "inherited_test_paths",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 80,
+        "start_line": 1049
+      },
+      {
+        "cognitive": 30,
+        "cyclomatic": 33,
+        "end_line": 1238,
+        "name": "classify",
+        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "population": "production",
+        "sloc": 109,
+        "start_line": 1130
+      },
       {
         "cognitive": 1,
         "cyclomatic": 20,
@@ -230,23 +320,13 @@
         "start_line": 39
       },
       {
-        "cognitive": 7,
-        "cyclomatic": 12,
-        "end_line": 125,
-        "name": "expand",
-        "path": "crates/derive/src/num.rs",
-        "population": "production",
-        "sloc": 119,
-        "start_line": 7
-      },
-      {
-        "cognitive": 7,
-        "cyclomatic": 15,
-        "end_line": 153,
+        "cognitive": 4,
+        "cyclomatic": 10,
+        "end_line": 107,
         "name": "expand",
         "path": "crates/derive/src/str.rs",
         "population": "production",
-        "sloc": 147,
+        "sloc": 101,
         "start_line": 7
       },
       {
@@ -321,13 +401,23 @@
       },
       {
         "cognitive": 21,
-        "cyclomatic": 22,
-        "end_line": 651,
+        "cyclomatic": 24,
+        "end_line": 792,
         "name": "validate",
         "path": "crates/did/src/document.rs",
         "population": "production",
+        "sloc": 56,
+        "start_line": 737
+      },
+      {
+        "cognitive": 18,
+        "cyclomatic": 11,
+        "end_line": 1025,
+        "name": "drop_did_document_json",
+        "path": "crates/did/src/document.rs",
+        "population": "production",
         "sloc": 54,
-        "start_line": 598
+        "start_line": 972
       },
       {
         "cognitive": 1,
@@ -362,212 +452,222 @@
       {
         "cognitive": 18,
         "cyclomatic": 28,
-        "end_line": 1126,
+        "end_line": 1136,
         "name": "validate_result",
         "path": "crates/did/src/registration.rs",
         "population": "production",
         "sloc": 75,
-        "start_line": 1052
+        "start_line": 1062
       },
       {
         "cognitive": 12,
         "cyclomatic": 16,
-        "end_line": 1241,
+        "end_line": 1251,
         "name": "validate_object_members",
         "path": "crates/did/src/registration.rs",
         "population": "production",
         "sloc": 37,
-        "start_line": 1205
+        "start_line": 1215
       },
       {
         "cognitive": 17,
         "cyclomatic": 40,
-        "end_line": 1321,
+        "end_line": 1392,
         "name": "validate_datetime",
         "path": "crates/did/src/resolution.rs",
         "population": "production",
         "sloc": 71,
-        "start_line": 1251
+        "start_line": 1322
       },
       {
         "cognitive": 4,
         "cyclomatic": 16,
-        "end_line": 246,
+        "end_line": 356,
         "name": "serialize",
         "path": "crates/jose/src/header.rs",
         "population": "production",
         "sloc": 28,
-        "start_line": 219
+        "start_line": 329
       },
       {
         "cognitive": 13,
-        "cyclomatic": 29,
-        "end_line": 386,
+        "cyclomatic": 31,
+        "end_line": 496,
         "name": "visit_map",
         "path": "crates/jose/src/header.rs",
         "population": "production",
         "sloc": 67,
-        "start_line": 320
+        "start_line": 430
       },
       {
-        "cognitive": 4,
-        "cyclomatic": 16,
-        "end_line": 601,
-        "name": "verify_signature",
-        "path": "crates/jose/src/oid4vci_verifier.rs",
+        "cognitive": 7,
+        "cyclomatic": 18,
+        "end_line": 232,
+        "name": "try_into_authorization_request",
+        "path": "crates/oid4vci/src/authorization_request.rs",
         "population": "production",
-        "sloc": 39,
-        "start_line": 563
+        "sloc": 60,
+        "start_line": 173
       },
       {
-        "cognitive": 6,
-        "cyclomatic": 19,
-        "end_line": 708,
-        "name": "resolve_did_key",
-        "path": "crates/jose/src/oid4vci_verifier.rs",
+        "cognitive": 21,
+        "cyclomatic": 25,
+        "end_line": 388,
+        "name": "try_into_authorization_response",
+        "path": "crates/oid4vci/src/authorization_response.rs",
         "population": "production",
-        "sloc": 35,
-        "start_line": 674
+        "sloc": 78,
+        "start_line": 311
+      },
+      {
+        "cognitive": 16,
+        "cyclomatic": 25,
+        "end_line": 465,
+        "name": "parse_query",
+        "path": "crates/oid4vci/src/authorization_response.rs",
+        "population": "production",
+        "sloc": 75,
+        "start_line": 391
       },
       {
         "cognitive": 12,
         "cyclomatic": 28,
-        "end_line": 542,
+        "end_line": 543,
         "name": "parse_credential_offer_object",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 85,
-        "start_line": 458
+        "start_line": 459
       },
       {
         "cognitive": 5,
         "cyclomatic": 25,
-        "end_line": 660,
+        "end_line": 661,
         "name": "parse_credential_issuer_metadata_object",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 80,
-        "start_line": 581
+        "start_line": 582
       },
       {
         "cognitive": 5,
-        "cyclomatic": 21,
-        "end_line": 731,
+        "cyclomatic": 23,
+        "end_line": 740,
         "name": "parse_authorization_server_metadata_object",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
-        "sloc": 70,
-        "start_line": 662
+        "sloc": 78,
+        "start_line": 663
       },
       {
         "cognitive": 3,
         "cyclomatic": 23,
-        "end_line": 806,
+        "end_line": 815,
         "name": "parse_token_response_object",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 74,
-        "start_line": 733
+        "start_line": 742
       },
       {
         "cognitive": 11,
         "cyclomatic": 18,
-        "end_line": 894,
+        "end_line": 903,
         "name": "parse_token_authorization_details_array",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 58,
-        "start_line": 837
+        "start_line": 846
       },
       {
         "cognitive": 5,
         "cyclomatic": 24,
-        "end_line": 959,
+        "end_line": 968,
         "name": "parse_token_authorization_detail",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 64,
-        "start_line": 896
+        "start_line": 905
       },
       {
         "cognitive": 3,
         "cyclomatic": 16,
-        "end_line": 1012,
+        "end_line": 1021,
         "name": "parse_token_error_response_object",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 52,
-        "start_line": 961
+        "start_line": 970
       },
       {
         "cognitive": 6,
         "cyclomatic": 21,
-        "end_line": 1150,
+        "end_line": 1159,
         "name": "parse_immediate_credential_response_object",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 59,
-        "start_line": 1092
+        "start_line": 1101
       },
       {
         "cognitive": 5,
         "cyclomatic": 19,
-        "end_line": 1203,
+        "end_line": 1212,
         "name": "parse_deferred_credential_response_object",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 52,
-        "start_line": 1152
+        "start_line": 1161
       },
       {
         "cognitive": 6,
         "cyclomatic": 17,
-        "end_line": 1537,
+        "end_line": 1546,
         "name": "parse_known_grants",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 50,
-        "start_line": 1488
+        "start_line": 1497
       },
       {
         "cognitive": 4,
         "cyclomatic": 16,
-        "end_line": 1589,
+        "end_line": 1598,
         "name": "parse_authorization_code_grant",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 51,
-        "start_line": 1539
+        "start_line": 1548
       },
       {
         "cognitive": 4,
         "cyclomatic": 19,
-        "end_line": 1645,
+        "end_line": 1654,
         "name": "parse_pre_authorized_code_grant",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 55,
-        "start_line": 1591
+        "start_line": 1600
       },
       {
         "cognitive": 8,
         "cyclomatic": 20,
-        "end_line": 1712,
+        "end_line": 1721,
         "name": "parse_transaction_code",
         "path": "crates/oid4vci/src/json.rs",
         "population": "production",
         "sloc": 66,
-        "start_line": 1647
+        "start_line": 1656
       },
       {
         "cognitive": 10,
         "cyclomatic": 21,
-        "end_line": 227,
+        "end_line": 290,
         "name": "try_create_jwt_credential_request_with_selector",
         "path": "crates/oid4vci/src/jwt_credential_request.rs",
         "population": "production",
-        "sloc": 68,
-        "start_line": 160
+        "sloc": 69,
+        "start_line": 222
       },
       {
         "cognitive": 10,
@@ -578,6 +678,36 @@
         "population": "production",
         "sloc": 75,
         "start_line": 152
+      },
+      {
+        "cognitive": 6,
+        "cyclomatic": 16,
+        "end_line": 564,
+        "name": "parse",
+        "path": "crates/oid4vci/src/proof_jwt_verifier.rs",
+        "population": "production",
+        "sloc": 36,
+        "start_line": 529
+      },
+      {
+        "cognitive": 4,
+        "cyclomatic": 16,
+        "end_line": 605,
+        "name": "verify_signature",
+        "path": "crates/oid4vci/src/proof_jwt_verifier.rs",
+        "population": "production",
+        "sloc": 39,
+        "start_line": 567
+      },
+      {
+        "cognitive": 6,
+        "cyclomatic": 19,
+        "end_line": 715,
+        "name": "resolve_did_key",
+        "path": "crates/oid4vci/src/proof_jwt_verifier.rs",
+        "population": "production",
+        "sloc": 36,
+        "start_line": 680
       },
       {
         "cognitive": 11,
@@ -632,19 +762,27 @@
     ],
     "modules": [
       {
-        "authored_nonblank_lines": 1154,
+        "authored_nonblank_lines": 1179,
+        "path": "crates/conformance/src/bin/code-health-classifier.rs"
+      },
+      {
+        "authored_nonblank_lines": 1083,
+        "path": "crates/did/src/document.rs"
+      },
+      {
+        "authored_nonblank_lines": 1163,
         "path": "crates/did/src/registration.rs"
       },
       {
-        "authored_nonblank_lines": 1282,
+        "authored_nonblank_lines": 1345,
         "path": "crates/did/src/resolution.rs"
       },
       {
-        "authored_nonblank_lines": 2074,
+        "authored_nonblank_lines": 2083,
         "path": "crates/oid4vci/src/json.rs"
       },
       {
-        "authored_nonblank_lines": 1182,
+        "authored_nonblank_lines": 1445,
         "path": "crates/oid4vci/src/limits.rs"
       },
       {
@@ -653,5 +791,5 @@
       }
     ]
   },
-  "source_fingerprint_sha256": "45131b8ad75ed2dfd601c154fde7fae35bd06c49e7f62a1d3ec5b9ca322c9cc5"
+  "source_fingerprint_sha256": "3be6ac994ecfa5d3350afb0ec9556c09b66dcae511a5e9c450a7017816a1fcfd"
 }

@@ -15,7 +15,8 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Pass focused, direct-host, pinned-Nix, factory, and diff checks.
-- [ ] 3.2 Record a distinct local review and archive the completed change.
-- [ ] 3.3 Open the issue-linked PR and verify the natural base-owned
-  contribution-policy monotonicity canary before merge.
+- [x] 3.1 Pass focused, direct-host, pinned-Nix, factory, and diff checks.
+- [x] 3.2 Record a distinct local review and prepare the completed change for
+  guarded archive.
+- [x] 3.3 Prepare the issue-linked PR; natural base-owned contribution-policy
+  monotonicity evidence remains a pre-merge gate.

@@ -119,13 +119,7 @@ pub(crate) fn validate_json(
     max_depth: usize,
     max_nodes: usize,
 ) -> Result<(), CredentialOfferError> {
-    let mut scanner = Scanner {
-        input,
-        cursor: 0,
-        max_depth,
-        max_nodes,
-        nodes: 0,
-    };
+    let mut scanner = Scanner::new(input, max_depth, max_nodes);
     scanner.skip_whitespace();
     if scanner.peek() != Some(b'{') {
         return Err(CredentialOfferError::InvalidEmbeddedJson);
@@ -138,30 +132,40 @@ pub(crate) fn validate_json(
     Ok(())
 }
 
+fn parse_root_object<T>(
+    input: &[u8],
+    max_depth: usize,
+    max_nodes: usize,
+    invalid: CredentialOfferError,
+    parse: impl FnOnce(&mut Scanner<'_>, usize) -> Result<T, CredentialOfferError>,
+) -> Result<T, CredentialOfferError> {
+    let mut scanner = Scanner::new(input, max_depth, max_nodes);
+    scanner.skip_whitespace();
+    scanner.visit_node()?;
+    let depth = scanner.enter_container(0)?;
+    if !scanner.consume_if(b'{') {
+        return Err(invalid);
+    }
+    let value = parse(&mut scanner, depth)?;
+    scanner.skip_whitespace();
+    if scanner.cursor != input.len() {
+        return Err(invalid);
+    }
+    Ok(value)
+}
+
 pub(crate) fn parse_credential_offer_fields(
     input: &[u8],
     transport_limits: CredentialOfferLimits,
     semantic_limits: CredentialOfferSemanticLimits,
 ) -> Result<CredentialOfferFields, CredentialOfferError> {
-    let mut scanner = Scanner {
+    parse_root_object(
         input,
-        cursor: 0,
-        max_depth: transport_limits.max_json_depth(),
-        max_nodes: transport_limits.max_json_nodes(),
-        nodes: 0,
-    };
-    scanner.skip_whitespace();
-    scanner.visit_node()?;
-    let depth = scanner.enter_container(0)?;
-    if !scanner.consume_if(b'{') {
-        return Err(CredentialOfferError::InvalidEmbeddedJson);
-    }
-    let fields = scanner.parse_credential_offer_object(depth, semantic_limits)?;
-    scanner.skip_whitespace();
-    if scanner.cursor != input.len() {
-        return Err(CredentialOfferError::InvalidEmbeddedJson);
-    }
-    Ok(fields)
+        transport_limits.max_json_depth(),
+        transport_limits.max_json_nodes(),
+        CredentialOfferError::InvalidEmbeddedJson,
+        |scanner, depth| scanner.parse_credential_offer_object(depth, semantic_limits),
+    )
 }
 
 pub(crate) fn parse_credential_offer_grant_fields(
@@ -169,100 +173,52 @@ pub(crate) fn parse_credential_offer_grant_fields(
     transport_limits: CredentialOfferLimits,
     grant_limits: CredentialOfferGrantLimits,
 ) -> Result<CredentialOfferGrantFields, CredentialOfferError> {
-    let mut scanner = Scanner {
+    parse_root_object(
         input,
-        cursor: 0,
-        max_depth: transport_limits.max_json_depth(),
-        max_nodes: transport_limits.max_json_nodes(),
-        nodes: 0,
-    };
-    scanner.skip_whitespace();
-    scanner.visit_node()?;
-    let depth = scanner.enter_container(0)?;
-    if !scanner.consume_if(b'{') {
-        return Err(CredentialOfferError::InvalidEmbeddedJson);
-    }
-    let fields = scanner.parse_offer_for_grants(depth, grant_limits)?;
-    scanner.skip_whitespace();
-    if scanner.cursor != input.len() {
-        return Err(CredentialOfferError::InvalidEmbeddedJson);
-    }
-    Ok(fields)
+        transport_limits.max_json_depth(),
+        transport_limits.max_json_nodes(),
+        CredentialOfferError::InvalidEmbeddedJson,
+        |scanner, depth| scanner.parse_offer_for_grants(depth, grant_limits),
+    )
 }
 
 pub(crate) fn parse_credential_issuer_metadata_fields(
     input: &[u8],
     limits: CredentialIssuerMetadataLimits,
 ) -> Result<CredentialIssuerMetadataFields, CredentialOfferError> {
-    let mut scanner = Scanner {
+    parse_root_object(
         input,
-        cursor: 0,
-        max_depth: limits.max_json_depth(),
-        max_nodes: limits.max_json_nodes(),
-        nodes: 0,
-    };
-    scanner.skip_whitespace();
-    scanner.visit_node()?;
-    let depth = scanner.enter_container(0)?;
-    if !scanner.consume_if(b'{') {
-        return Err(CredentialOfferError::InvalidMetadata);
-    }
-    let fields = scanner.parse_credential_issuer_metadata_object(depth, limits)?;
-    scanner.skip_whitespace();
-    if scanner.cursor != input.len() {
-        return Err(CredentialOfferError::InvalidMetadata);
-    }
-    Ok(fields)
+        limits.max_json_depth(),
+        limits.max_json_nodes(),
+        CredentialOfferError::InvalidMetadata,
+        |scanner, depth| scanner.parse_credential_issuer_metadata_object(depth, limits),
+    )
 }
 
 pub(crate) fn parse_authorization_server_metadata_fields(
     input: &[u8],
     limits: AuthorizationServerMetadataLimits,
 ) -> Result<AuthorizationServerMetadataFields, CredentialOfferError> {
-    let mut scanner = Scanner {
+    parse_root_object(
         input,
-        cursor: 0,
-        max_depth: limits.max_json_depth(),
-        max_nodes: limits.max_json_nodes(),
-        nodes: 0,
-    };
-    scanner.skip_whitespace();
-    scanner.visit_node()?;
-    let depth = scanner.enter_container(0)?;
-    if !scanner.consume_if(b'{') {
-        return Err(CredentialOfferError::InvalidAuthorizationServerMetadata);
-    }
-    let fields = scanner.parse_authorization_server_metadata_object(depth, limits)?;
-    scanner.skip_whitespace();
-    if scanner.cursor != input.len() {
-        return Err(CredentialOfferError::InvalidAuthorizationServerMetadata);
-    }
-    Ok(fields)
+        limits.max_json_depth(),
+        limits.max_json_nodes(),
+        CredentialOfferError::InvalidAuthorizationServerMetadata,
+        |scanner, depth| scanner.parse_authorization_server_metadata_object(depth, limits),
+    )
 }
 
 pub(crate) fn parse_token_response_fields(
     input: &[u8],
     limits: TokenResponseLimits,
 ) -> Result<TokenResponseFields, CredentialOfferError> {
-    let mut scanner = Scanner {
+    parse_root_object(
         input,
-        cursor: 0,
-        max_depth: limits.max_json_depth(),
-        max_nodes: limits.max_json_nodes(),
-        nodes: 0,
-    };
-    scanner.skip_whitespace();
-    scanner.visit_node()?;
-    let depth = scanner.enter_container(0)?;
-    if !scanner.consume_if(b'{') {
-        return Err(CredentialOfferError::InvalidTokenResponse);
-    }
-    let fields = scanner.parse_token_response_object(depth, limits)?;
-    scanner.skip_whitespace();
-    if scanner.cursor != input.len() {
-        return Err(CredentialOfferError::InvalidTokenResponse);
-    }
-    Ok(fields)
+        limits.max_json_depth(),
+        limits.max_json_nodes(),
+        CredentialOfferError::InvalidTokenResponse,
+        |scanner, depth| scanner.parse_token_response_object(depth, limits),
+    )
 }
 
 pub(crate) fn parse_token_authorization_details_fields(
@@ -270,150 +226,78 @@ pub(crate) fn parse_token_authorization_details_fields(
     token_limits: TokenResponseLimits,
     limits: TokenAuthorizationDetailsLimits,
 ) -> Result<TokenAuthorizationDetailsFields, CredentialOfferError> {
-    let mut scanner = Scanner {
+    parse_root_object(
         input,
-        cursor: 0,
-        max_depth: token_limits.max_json_depth(),
-        max_nodes: token_limits.max_json_nodes(),
-        nodes: 0,
-    };
-    scanner.skip_whitespace();
-    scanner.visit_node()?;
-    let depth = scanner.enter_container(0)?;
-    if !scanner.consume_if(b'{') {
-        return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
-    }
-    let fields = scanner.parse_token_authorization_details_object(depth, limits)?;
-    scanner.skip_whitespace();
-    if scanner.cursor != input.len() {
-        return Err(CredentialOfferError::InvalidTokenAuthorizationDetails);
-    }
-    Ok(fields)
+        token_limits.max_json_depth(),
+        token_limits.max_json_nodes(),
+        CredentialOfferError::InvalidTokenAuthorizationDetails,
+        |scanner, depth| scanner.parse_token_authorization_details_object(depth, limits),
+    )
 }
 
 pub(crate) fn parse_token_error_response_fields(
     input: &[u8],
     limits: TokenErrorResponseLimits,
 ) -> Result<TokenErrorResponseFields, CredentialOfferError> {
-    let mut scanner = Scanner {
+    parse_root_object(
         input,
-        cursor: 0,
-        max_depth: limits.max_json_depth(),
-        max_nodes: limits.max_json_nodes(),
-        nodes: 0,
-    };
-    scanner.skip_whitespace();
-    scanner.visit_node()?;
-    let depth = scanner.enter_container(0)?;
-    if !scanner.consume_if(b'{') {
-        return Err(CredentialOfferError::InvalidTokenErrorResponse);
-    }
-    let fields = scanner.parse_token_error_response_object(depth, limits)?;
-    scanner.skip_whitespace();
-    if scanner.cursor != input.len() {
-        return Err(CredentialOfferError::InvalidTokenErrorResponse);
-    }
-    Ok(fields)
+        limits.max_json_depth(),
+        limits.max_json_nodes(),
+        CredentialOfferError::InvalidTokenErrorResponse,
+        |scanner, depth| scanner.parse_token_error_response_object(depth, limits),
+    )
 }
 
 pub(crate) fn parse_credential_error_response_fields(
     input: &[u8],
     limits: CredentialErrorResponseLimits,
 ) -> Result<CredentialErrorResponseFields, CredentialOfferError> {
-    let mut scanner = Scanner {
+    parse_root_object(
         input,
-        cursor: 0,
-        max_depth: limits.max_json_depth(),
-        max_nodes: limits.max_json_nodes(),
-        nodes: 0,
-    };
-    scanner.skip_whitespace();
-    scanner.visit_node()?;
-    let depth = scanner.enter_container(0)?;
-    if !scanner.consume_if(b'{') {
-        return Err(CredentialOfferError::InvalidCredentialErrorResponse);
-    }
-    let fields = scanner.parse_credential_error_response_object(depth, limits)?;
-    scanner.skip_whitespace();
-    if scanner.cursor != input.len() {
-        return Err(CredentialOfferError::InvalidCredentialErrorResponse);
-    }
-    Ok(fields)
+        limits.max_json_depth(),
+        limits.max_json_nodes(),
+        CredentialOfferError::InvalidCredentialErrorResponse,
+        |scanner, depth| scanner.parse_credential_error_response_object(depth, limits),
+    )
 }
 
 pub(crate) fn parse_credential_nonce_response_fields(
     input: &[u8],
     limits: CredentialNonceResponseLimits,
 ) -> Result<CredentialNonceResponseFields, CredentialOfferError> {
-    let mut scanner = Scanner {
+    parse_root_object(
         input,
-        cursor: 0,
-        max_depth: limits.max_json_depth(),
-        max_nodes: limits.max_json_nodes(),
-        nodes: 0,
-    };
-    scanner.skip_whitespace();
-    scanner.visit_node()?;
-    let depth = scanner.enter_container(0)?;
-    if !scanner.consume_if(b'{') {
-        return Err(CredentialOfferError::InvalidCredentialNonceResponse);
-    }
-    let fields = scanner.parse_credential_nonce_response_object(depth, limits)?;
-    scanner.skip_whitespace();
-    if scanner.cursor != input.len() {
-        return Err(CredentialOfferError::InvalidCredentialNonceResponse);
-    }
-    Ok(fields)
+        limits.max_json_depth(),
+        limits.max_json_nodes(),
+        CredentialOfferError::InvalidCredentialNonceResponse,
+        |scanner, depth| scanner.parse_credential_nonce_response_object(depth, limits),
+    )
 }
 
 pub(crate) fn parse_immediate_credential_response_fields(
     input: &[u8],
     limits: ImmediateCredentialResponseLimits,
 ) -> Result<ImmediateCredentialResponseFields, CredentialOfferError> {
-    let mut scanner = Scanner {
+    parse_root_object(
         input,
-        cursor: 0,
-        max_depth: limits.max_json_depth(),
-        max_nodes: limits.max_json_nodes(),
-        nodes: 0,
-    };
-    scanner.skip_whitespace();
-    scanner.visit_node()?;
-    let depth = scanner.enter_container(0)?;
-    if !scanner.consume_if(b'{') {
-        return Err(CredentialOfferError::InvalidImmediateCredentialResponse);
-    }
-    let fields = scanner.parse_immediate_credential_response_object(depth, limits)?;
-    scanner.skip_whitespace();
-    if scanner.cursor != input.len() {
-        return Err(CredentialOfferError::InvalidImmediateCredentialResponse);
-    }
-    Ok(fields)
+        limits.max_json_depth(),
+        limits.max_json_nodes(),
+        CredentialOfferError::InvalidImmediateCredentialResponse,
+        |scanner, depth| scanner.parse_immediate_credential_response_object(depth, limits),
+    )
 }
 
 pub(crate) fn parse_deferred_credential_response_fields(
     input: &[u8],
     limits: DeferredCredentialResponseLimits,
 ) -> Result<DeferredCredentialResponseFields, CredentialOfferError> {
-    let mut scanner = Scanner {
+    parse_root_object(
         input,
-        cursor: 0,
-        max_depth: limits.max_json_depth(),
-        max_nodes: limits.max_json_nodes(),
-        nodes: 0,
-    };
-    scanner.skip_whitespace();
-    scanner.visit_node()?;
-    let depth = scanner.enter_container(0)?;
-    if !scanner.consume_if(b'{') {
-        return Err(CredentialOfferError::InvalidDeferredCredentialResponse);
-    }
-    let fields = scanner.parse_deferred_credential_response_object(depth, limits)?;
-    scanner.skip_whitespace();
-    if scanner.cursor != input.len() {
-        return Err(CredentialOfferError::InvalidDeferredCredentialResponse);
-    }
-    Ok(fields)
+        limits.max_json_depth(),
+        limits.max_json_nodes(),
+        CredentialOfferError::InvalidDeferredCredentialResponse,
+        |scanner, depth| scanner.parse_deferred_credential_response_object(depth, limits),
+    )
 }
 
 struct Scanner<'a> {
@@ -424,7 +308,17 @@ struct Scanner<'a> {
     nodes: usize,
 }
 
-impl Scanner<'_> {
+impl<'a> Scanner<'a> {
+    fn new(input: &'a [u8], max_depth: usize, max_nodes: usize) -> Self {
+        Self {
+            input,
+            cursor: 0,
+            max_depth,
+            max_nodes,
+            nodes: 0,
+        }
+    }
+
     fn parse_value(&mut self, depth: usize) -> Result<(), CredentialOfferError> {
         self.visit_node()?;
 

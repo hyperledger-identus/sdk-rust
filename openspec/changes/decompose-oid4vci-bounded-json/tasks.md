@@ -13,7 +13,7 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Single-own root-object admission and retain lexical/container,
+- [x] 2.1 Single-own root-object admission and retain lexical/container,
       duplicate, bounds, complete-input, and cleanup mechanics in `json.rs`.
 - [ ] 2.2 Move Credential Offer and metadata grammars to their named private
       modules without changing their fields, limits, or errors.

@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-29
+goal: Separate exact-store conformance scenario phases and evidence counting without changing public or adapter behavior.

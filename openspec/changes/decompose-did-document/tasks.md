@@ -2,9 +2,9 @@
 
 ## 1. Planning and characterization
 
-- [ ] 1.1 Inventory public exports, wire/cardinality behavior, JSON budgets,
+- [x] 1.1 Inventory public exports, wire/cardinality behavior, JSON budgets,
       verification/service validation, aggregate invariants, and cleanup paths.
-- [ ] 1.2 Record private module ownership, dependency direction, compatibility,
+- [x] 1.2 Record private module ownership, dependency direction, compatibility,
       non-goals, risk, and rollback.
 - [ ] 1.3 Commit planning alone, rebase it onto the merged issue #407
       `develop` tip, pass readiness, and write issue #408's exact-head receipt.

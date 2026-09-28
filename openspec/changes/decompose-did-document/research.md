@@ -76,8 +76,9 @@ validation-order, cleanup, manifest, or target drift blocks this slice.
 
 ## Evidence commands
 
-Planning inspected issue #408, Discussion #399, `document.rs`, `lib.rs`, DID
-document and hardening tests, code-health policy, and canonical specifications.
+Planning inspected `ef7d7d1ac42efb84192e9a3b6f01aeffb8d75f4f`, issue #408,
+Discussion #399, `document.rs`, `lib.rs`, DID document and hardening tests,
+code-health policy, and canonical specifications.
 Before implementation run `cargo test -p identus-did --all-features`. Afterward
 run the same suite, strict crate/workspace Clippy and formatting,
 public/error/source/factory contracts, exact code-health verification,

@@ -5,9 +5,18 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  parseContributionPolicy,
+  validateContributionPolicyMonotonicity,
+  validateContributionPolicyShape,
+} from "./contribution-policy-schema.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-export const policy = Object.freeze(JSON.parse(readFileSync(path.join(root, ".github/contribution-policy.json"), "utf8")));
+export const policy = Object.freeze(parseContributionPolicy(
+  readFileSync(path.join(root, ".github/contribution-policy.json"), "utf8"),
+));
+const policyShapeErrors = validateContributionPolicyShape(policy);
+if (policyShapeErrors.length > 0) throw new Error(`base contribution policy is invalid: ${policyShapeErrors.join("; ")}`);
 const types = new Set(policy.types);
 const scopes = new Set(policy.scopes);
 
@@ -168,6 +177,28 @@ function git(repository, args, options = {}) {
   });
 }
 
+export function readContributionPolicyAt({ repository = root, head }) {
+  if (!validSha(head)) throw new Error("proposed policy head must be an exact lowercase SHA");
+  const commit = git(repository, ["rev-parse", "--verify", `${head}^{commit}`]).trim();
+  if (commit !== head) throw new Error("proposed policy head is not the exact commit object");
+  const object = `${head}:.github/contribution-policy.json`;
+  const blob = git(repository, ["rev-parse", "--verify", object]).trim();
+  if (!validSha(blob) || git(repository, ["cat-file", "-t", blob]).trim() !== "blob") {
+    throw new Error("proposed contribution policy is not a Git blob");
+  }
+  const sizeText = git(repository, ["cat-file", "-s", blob]).trim();
+  if (!/^[0-9]+$/u.test(sizeText)) throw new Error("proposed contribution policy blob size is invalid");
+  const size = Number(sizeText);
+  if (!Number.isSafeInteger(size) || size > 64 * 1024) {
+    throw new Error("proposed contribution policy exceeds 65536 bytes");
+  }
+  const text = git(repository, ["cat-file", "blob", blob]);
+  if (Buffer.byteLength(text, "utf8") !== size) {
+    throw new Error("proposed contribution policy blob size changed while reading");
+  }
+  return parseContributionPolicy(text);
+}
+
 // A failed verify-commit still interleaves success-status lines with the failure cause; only the non-status lines explain the exit.
 const verifyCommitStatusLine = /^(?:Good "git" signature|(?:gpg: )?Good signature from|\[GNUPG:\] (?:NEWSIG|KEY_CONSIDERED|SIG_ID|GOODSIG|VALIDSIG|PLAINTEXT)\b)/u;
 
@@ -275,7 +306,14 @@ function main() {
     if (outcome.ok) process.stdout.write(`Hosted commit policy passed for ${records.length} commit(s).\n`);
     return;
   }
-  throw new Error("Usage: contribution-policy.mjs <pr|commits|hosted-commits>");
+  if (command === "policy-monotonicity") {
+    const proposed = readContributionPolicyAt({ head: requireEnv("HEAD_SHA") });
+    const outcome = validateContributionPolicyMonotonicity(policy, proposed);
+    report(outcome);
+    if (outcome.ok) process.stdout.write("Proposed contribution policy is identical or stronger than the protected base.\n");
+    return;
+  }
+  throw new Error("Usage: contribution-policy.mjs <pr|commits|hosted-commits|policy-monotonicity>");
 }
 
 if (path.resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) {

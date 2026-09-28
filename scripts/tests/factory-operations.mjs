@@ -20,7 +20,8 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { test } from "node:test";
-import { isGitHubSynchronizationMerge, localVerificationFailureDetail, parseConventionalSubject, policy, resolveSignatureEnvelopes, validateBranchName, validateCommitEvidence, validateCommitRange, validateHostedCommits, validatePullRequest, validateSignatureProvenance } from "../ci/contribution-policy.mjs";
+import { isGitHubSynchronizationMerge, localVerificationFailureDetail, parseConventionalSubject, policy, readContributionPolicyAt, resolveSignatureEnvelopes, validateBranchName, validateCommitEvidence, validateCommitRange, validateHostedCommits, validatePullRequest, validateSignatureProvenance } from "../ci/contribution-policy.mjs";
+import { parseContributionPolicy, validateContributionPolicyMonotonicity, validateContributionPolicyShape } from "../ci/contribution-policy-schema.mjs";
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
 import {
   exactIsoDate,
@@ -777,6 +778,7 @@ test("hosted workflow runs exact base policy over untrusted head objects", () =>
     /refs\/pull\/\$PR_NUMBER\/head:refs\/sdk-rust-policy\/pull-head/u,
     /actual_head=\$\(git rev-parse --verify 'refs\/sdk-rust-policy\/pull-head\^\{commit\}'\)/u,
     /"\$actual_head" != "\$HEAD_SHA"/u,
+    /run: node scripts\/ci\/contribution-policy\.mjs policy-monotonicity/u,
     /PR_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/u,
     /PR_BASE_REF: \$\{\{ github\.event\.pull_request\.base\.ref \}\}/u,
     /PR_HEAD_REF: \$\{\{ github\.event\.pull_request\.head\.ref \}\}/u,
@@ -793,6 +795,107 @@ test("hosted workflow runs exact base policy over untrusted head objects", () =>
   assert.doesNotMatch(workflow, /persist-credentials: true/u);
   assert.doesNotMatch(workflow, /^\s+secrets:/mu);
   assert.doesNotMatch(workflow, /^\s+id-token:\s+write\s*$/mu);
+});
+
+const cloneContributionPolicy = () => JSON.parse(JSON.stringify(policy));
+
+test("contribution policy equality and strict strengthening are monotonic", () => {
+  assert.deepEqual(validateContributionPolicyShape(policy), []);
+  assert.equal(validateContributionPolicyMonotonicity(policy, cloneContributionPolicy()).ok, true);
+
+  const stronger = cloneContributionPolicy();
+  stronger.types = stronger.types.slice(0, -1);
+  stronger.scopes = stronger.scopes.slice(0, -1);
+  stronger.commit.maxSubjectLength -= 1;
+  stronger.commit.maximumRange -= 1;
+  stronger.commit.signatureEnvelopes = stronger.commit.signatureEnvelopes.slice(0, -1);
+  stronger.bots["dependabot[bot]"].branchExempt = false;
+  stronger.bots["dependabot[bot]"].dcoAuthorNames = [];
+  delete stronger.bots["renovate[bot]"];
+  assert.deepEqual(validateContributionPolicyMonotonicity(policy, stronger), { ok: true, errors: [] });
+
+  const weakerBase = cloneContributionPolicy();
+  weakerBase.commit.requireScope = false;
+  const enforced = structuredClone(weakerBase);
+  enforced.commit.requireScope = true;
+  enforced.branch.formats.reverse();
+  enforced.branch.protected.reverse();
+  assert.deepEqual(validateContributionPolicyMonotonicity(weakerBase, enforced), { ok: true, errors: [] });
+});
+
+test("contribution policy rejects every version-one relaxation class", () => {
+  const mutations = [
+    ["types", (value) => value.types.push("relaxed-type")],
+    ["scopes", (value) => value.scopes.push("relaxed-scope")],
+    ["branch.formats", (value) => value.branch.formats.push("unsafe/{type}")],
+    ["branch.protected", (value) => value.branch.protected.pop()],
+    ["commit.maxSubjectLength", (value) => { value.commit.maxSubjectLength += 1; }],
+    ["commit.requireScope", (value) => { value.commit.requireScope = false; }],
+    ["commit.requireDco", (value) => { value.commit.requireDco = false; }],
+    ["commit.requireSignature", (value) => { value.commit.requireSignature = false; }],
+    ["commit.requireBreakingChangeFooter", (value) => { value.commit.requireBreakingChangeFooter = false; }],
+    ["commit.signatureEnvelopes", (value) => value.commit.signatureEnvelopes.push("-----BEGIN UNSAFE SIGNATURE-----")],
+    ["commit.maximumRange", (value) => { value.commit.maximumRange += 1; }],
+    ["bots.new-bot", (value) => { value.bots["new-bot"] = { branchExempt: true, dcoAuthorNames: [] }; }],
+    ["bots.dependabot[bot].dcoAuthorNames", (value) => value.bots["dependabot[bot]"].dcoAuthorNames.push("Alias")],
+  ];
+  for (const [field, mutate] of mutations) {
+    const proposed = cloneContributionPolicy();
+    mutate(proposed);
+    const outcome = validateContributionPolicyMonotonicity(policy, proposed);
+    assert.equal(outcome.ok, false, field);
+    assert.match(outcome.errors.join("\n"), new RegExp(field.replaceAll("[", "\\[").replaceAll("]", "\\]"), "u"));
+  }
+
+  const base = cloneContributionPolicy();
+  base.bots["dependabot[bot]"].branchExempt = false;
+  const proposed = structuredClone(base);
+  proposed.bots["dependabot[bot]"].branchExempt = true;
+  assert.match(validateContributionPolicyMonotonicity(base, proposed).errors.join("\n"), /branchExempt adds an exemption/u);
+});
+
+test("contribution policy shape and parser fail closed on ambiguity", () => {
+  const unknown = cloneContributionPolicy();
+  unknown.unreviewed = true;
+  assert.match(validateContributionPolicyShape(unknown).join("\n"), /unknown or missing top-level field/u);
+
+  const empty = cloneContributionPolicy();
+  empty.types = [];
+  assert.match(validateContributionPolicyShape(empty).join("\n"), /types must be a non-empty bounded array/u);
+
+  assert.throws(
+    () => parseContributionPolicy('{"schemaVersion":1,"schemaVersion":1}'),
+    /duplicate field/u,
+  );
+  assert.throws(() => parseContributionPolicy(" ".repeat(65_537)), /exceeds 65536 bytes/u);
+});
+
+test("exact-head contribution policy ingestion is bounded and does not require checkout", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-policy-object-"));
+  try {
+    execFileSync("git", ["-c", "init.defaultBranch=develop", "init", "-q", created]);
+    const identity = ["-c", "user.name=Agent", "-c", "user.email=agent@example.com", "-c", "commit.gpgsign=false"];
+    mkdirSync(path.join(created, ".github"));
+    writeFileSync(path.join(created, ".github", "contribution-policy.json"), `${JSON.stringify(policy)}\n`);
+    execFileSync("git", ["add", ".github/contribution-policy.json"], { cwd: created });
+    execFileSync("git", [...identity, "commit", "-q", "-m", "valid policy"], { cwd: created });
+    const validHead = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    assert.equal(JSON.stringify(readContributionPolicyAt({ repository: created, head: validHead })), JSON.stringify(policy));
+
+    rmSync(path.join(created, ".github", "contribution-policy.json"));
+    execFileSync("git", ["add", "-u"], { cwd: created });
+    execFileSync("git", [...identity, "commit", "-q", "-m", "missing policy"], { cwd: created });
+    const missingHead = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    assert.throws(() => readContributionPolicyAt({ repository: created, head: missingHead }), /Command failed/u);
+
+    writeFileSync(path.join(created, ".github", "contribution-policy.json"), "x".repeat(65_537));
+    execFileSync("git", ["add", ".github/contribution-policy.json"], { cwd: created });
+    execFileSync("git", [...identity, "commit", "-q", "-m", "oversized policy"], { cwd: created });
+    const oversizedHead = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    assert.throws(() => readContributionPolicyAt({ repository: created, head: oversizedHead }), /exceeds 65536 bytes/u);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
 });
 
 test("signature envelope policy fails closed on a malformed declaration", () => {

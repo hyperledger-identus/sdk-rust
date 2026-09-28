@@ -4,7 +4,7 @@
 
 - [x] 1.1 Reproduce and classify all six ambient-Nix failures.
 - [x] 1.2 Record deterministic parser ownership, limitations, and rollback.
-- [ ] 1.3 Pass readiness and bind the preimplementation receipt.
+- [x] 1.3 Pass readiness and bind the preimplementation receipt.
 
 ## 2. Implementation
 

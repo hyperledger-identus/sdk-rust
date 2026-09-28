@@ -1,8 +1,11 @@
 # Identus platform-core migration roadmap
 
-**Program owner:** sdk-rust issue #415  
-**Architecture:** ADR 0162, ADR 0163, ADR 0164  
-**Discussions:** [roadmap #424](https://github.com/hyperledger-identus/sdk-rust/discussions/424), [normalization #423](https://github.com/hyperledger-identus/sdk-rust/discussions/423)  
+**Program owner:** sdk-rust issue #415
+
+**Architecture:** ADR 0162, ADR 0163, ADR 0164
+
+**Discussions:** [roadmap #424](https://github.com/hyperledger-identus/sdk-rust/discussions/424), [normalization #423](https://github.com/hyperledger-identus/sdk-rust/discussions/423)
+
 **Status:** bootstrap; no language SDK retirement is authorized
 
 ## Outcome

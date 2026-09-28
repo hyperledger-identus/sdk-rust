@@ -1,8 +1,11 @@
 # Identus cross-SDK inventory
 
-**Snapshot date:** 2026-09-29  
-**Program:** [issue #415](https://github.com/hyperledger-identus/sdk-rust/issues/415)  
-**Discussion:** [cross-SDK normalization #423](https://github.com/hyperledger-identus/sdk-rust/discussions/423)  
+**Snapshot date:** 2026-09-29
+
+**Program:** [issue #415](https://github.com/hyperledger-identus/sdk-rust/issues/415)
+
+**Discussion:** [cross-SDK normalization #423](https://github.com/hyperledger-identus/sdk-rust/discussions/423)
+
 **Decision:** preliminary discovery; not a parity or support claim
 
 ## Evidence basis

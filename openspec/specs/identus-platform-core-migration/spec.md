@@ -118,4 +118,3 @@ closed and SHALL NOT be simulated.
 - **WHEN** reproducing a bug would expose secrets, accept invalid trust, weaken
   cryptography, bypass bounds, or corrupt persisted state
 - **THEN** the migration fails closed and documents an intentional break
-

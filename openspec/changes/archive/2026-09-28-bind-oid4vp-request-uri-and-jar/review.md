@@ -3,8 +3,8 @@
 Review status: completed
 Review date: 2026-09-28
 Base: develop@3512f31a660d536cdee7a585ae95e2c0a6129790
-Implementation head: 51254ef27f9bb81292a96f5e776f4efb31a84eee
-Reviewed head: 51254ef27f9bb81292a96f5e776f4efb31a84eee
+Implementation head: 1e8ad27e09cbff554e1b72327f4359ac1b292a30
+Reviewed head: 1e8ad27e09cbff554e1b72327f4359ac1b292a30
 Specification commit: e2479dbfc481e442d71108a85b26bfdd7a75f3ea
 Unresolved blockers: none
 

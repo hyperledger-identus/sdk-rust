@@ -308,31 +308,13 @@ fn validate_query(query: &Value, limits: DcqlLimits) -> Result<QueryCounts, Oid4
     let mut claim_queries = 0_usize;
 
     for credential in credentials {
-        let credential = credential
-            .as_object()
-            .ok_or(Oid4vpError::InvalidDcqlQuery)?;
-        let id = required_identifier(credential, "id", limits)?;
+        let (id, claim_count) = validate_credential_query(credential, limits)?;
         if !credential_ids.insert(id.to_owned()) {
             return Err(Oid4vpError::InvalidDcqlQuery);
         }
-        required_string(credential, "format", limits)?;
-        let metadata = credential
-            .get("meta")
-            .and_then(Value::as_object)
-            .ok_or(Oid4vpError::InvalidDcqlQuery)?;
-        if !metadata.is_empty() || credential.contains_key("trusted_authorities") {
-            return Err(Oid4vpError::InvalidDcqlQuery);
-        }
-
-        let claim_ids = validate_claims(credential, limits)?;
-        let credential_claim_count = credential
-            .get("claims")
-            .and_then(Value::as_array)
-            .map_or(0, Vec::len);
         claim_queries = claim_queries
-            .checked_add(credential_claim_count)
+            .checked_add(claim_count)
             .ok_or(Oid4vpError::DcqlQueryTooLarge)?;
-        validate_claim_sets(credential, &claim_ids, credential_claim_count, limits)?;
     }
     validate_credential_sets(object, &credential_ids, limits)?;
 
@@ -340,6 +322,36 @@ fn validate_query(query: &Value, limits: DcqlLimits) -> Result<QueryCounts, Oid4
         credential_queries: credentials.len(),
         claim_queries,
     })
+}
+
+fn validate_credential_query(
+    value: &Value,
+    limits: DcqlLimits,
+) -> Result<(&str, usize), Oid4vpError> {
+    let credential = value.as_object().ok_or(Oid4vpError::InvalidDcqlQuery)?;
+    let id = required_identifier(credential, "id", limits)?;
+    required_string(credential, "format", limits)?;
+    validate_empty_metadata(credential)?;
+
+    let claim_ids = validate_claims(credential, limits)?;
+    let claim_count = credential
+        .get("claims")
+        .and_then(Value::as_array)
+        .map_or(0, Vec::len);
+    validate_claim_sets(credential, &claim_ids, claim_count, limits)?;
+    Ok((id, claim_count))
+}
+
+fn validate_empty_metadata(credential: &Map<String, Value>) -> Result<(), Oid4vpError> {
+    let metadata = credential
+        .get("meta")
+        .and_then(Value::as_object)
+        .ok_or(Oid4vpError::InvalidDcqlQuery)?;
+    if !metadata.is_empty() || credential.contains_key("trusted_authorities") {
+        Err(Oid4vpError::InvalidDcqlQuery)
+    } else {
+        Ok(())
+    }
 }
 
 fn validate_claims(
@@ -353,42 +365,66 @@ fn validate_claims(
     let mut ids = BTreeSet::new();
     let mut paths = BTreeSet::new();
     for claim in claims {
-        let claim = claim.as_object().ok_or(Oid4vpError::InvalidDcqlQuery)?;
-        if let Some(id) = optional_identifier(claim, "id", limits)?
-            && !ids.insert(id.to_owned())
-        {
-            return Err(Oid4vpError::InvalidDcqlQuery);
-        }
-        let path = required_nonempty_array(claim, "path", limits)?;
-        if path.len() > limits.max_path_components() {
-            return Err(Oid4vpError::DcqlQueryTooLarge);
-        }
-        for component in path {
-            match component {
-                Value::String(key) if !key.is_empty() && key.len() <= limits.max_string_bytes() => {
-                }
-                Value::Number(index) if index.as_u64().is_some() => {}
-                Value::Null => {}
-                _ => return Err(Oid4vpError::InvalidDcqlQuery),
-            }
-        }
-        let path_key = serde_json::to_string(path).map_err(|_| Oid4vpError::InvalidDcqlQuery)?;
-        if !paths.insert(path_key) {
-            return Err(Oid4vpError::InvalidDcqlQuery);
-        }
-        if let Some(values) = claim.get("values") {
-            for value in nonempty_array(values, limits)? {
-                match value {
-                    Value::String(value) if value.len() <= limits.max_string_bytes() => {}
-                    Value::Number(value)
-                        if value.as_i64().is_some() || value.as_u64().is_some() => {}
-                    Value::Bool(_) => {}
-                    _ => return Err(Oid4vpError::InvalidDcqlQuery),
-                }
-            }
-        }
+        validate_claim(claim, limits, &mut ids, &mut paths)?;
     }
     Ok(ids)
+}
+
+fn validate_claim(
+    value: &Value,
+    limits: DcqlLimits,
+    ids: &mut BTreeSet<String>,
+    paths: &mut BTreeSet<String>,
+) -> Result<(), Oid4vpError> {
+    let claim = value.as_object().ok_or(Oid4vpError::InvalidDcqlQuery)?;
+    if let Some(id) = optional_identifier(claim, "id", limits)?
+        && !ids.insert(id.to_owned())
+    {
+        return Err(Oid4vpError::InvalidDcqlQuery);
+    }
+    let path = required_nonempty_array(claim, "path", limits)?;
+    validate_path(path, limits)?;
+    let path_key = serde_json::to_string(path).map_err(|_| Oid4vpError::InvalidDcqlQuery)?;
+    if !paths.insert(path_key) {
+        return Err(Oid4vpError::InvalidDcqlQuery);
+    }
+    if let Some(values) = claim.get("values") {
+        validate_claim_values(values, limits)?;
+    }
+    Ok(())
+}
+
+fn validate_path(path: &[Value], limits: DcqlLimits) -> Result<(), Oid4vpError> {
+    if path.len() > limits.max_path_components() {
+        return Err(Oid4vpError::DcqlQueryTooLarge);
+    }
+    for component in path {
+        let valid = match component {
+            Value::String(key) => !key.is_empty() && key.len() <= limits.max_string_bytes(),
+            Value::Number(index) => index.as_u64().is_some(),
+            Value::Null => true,
+            _ => false,
+        };
+        if !valid {
+            return Err(Oid4vpError::InvalidDcqlQuery);
+        }
+    }
+    Ok(())
+}
+
+fn validate_claim_values(value: &Value, limits: DcqlLimits) -> Result<(), Oid4vpError> {
+    for value in nonempty_array(value, limits)? {
+        let valid = match value {
+            Value::String(value) => value.len() <= limits.max_string_bytes(),
+            Value::Number(value) => value.as_i64().is_some() || value.as_u64().is_some(),
+            Value::Bool(_) => true,
+            _ => false,
+        };
+        if !valid {
+            return Err(Oid4vpError::InvalidDcqlQuery);
+        }
+    }
+    Ok(())
 }
 
 fn validate_claim_sets(
@@ -404,9 +440,10 @@ fn validate_claim_sets(
         return Err(Oid4vpError::InvalidDcqlQuery);
     }
     for option in nonempty_array(value, limits)? {
+        let mut option_ids = BTreeSet::new();
         for id in nonempty_array(option, limits)? {
             let id = id.as_str().ok_or(Oid4vpError::InvalidDcqlQuery)?;
-            if !claim_ids.contains(id) {
+            if !claim_ids.contains(id) || !option_ids.insert(id) {
                 return Err(Oid4vpError::InvalidDcqlQuery);
             }
         }
@@ -423,22 +460,47 @@ fn validate_credential_sets(
         return Ok(());
     };
     for set in nonempty_array(value, limits)? {
-        let set = set.as_object().ok_or(Oid4vpError::InvalidDcqlQuery)?;
-        if let Some(purpose) = set.get("purpose") {
-            match purpose {
-                Value::String(_) | Value::Object(_) => {}
-                Value::Number(value) if value.as_i64().is_some() || value.as_u64().is_some() => {}
-                _ => return Err(Oid4vpError::InvalidDcqlQuery),
-            }
-        }
-        for option in required_nonempty_array(set, "options", limits)? {
-            let mut option_ids = BTreeSet::new();
-            for id in nonempty_array(option, limits)? {
-                let id = id.as_str().ok_or(Oid4vpError::InvalidDcqlQuery)?;
-                if !credential_ids.contains(id) || !option_ids.insert(id) {
-                    return Err(Oid4vpError::InvalidDcqlQuery);
-                }
-            }
+        validate_credential_set(set, credential_ids, limits)?;
+    }
+    Ok(())
+}
+
+fn validate_credential_set(
+    value: &Value,
+    credential_ids: &BTreeSet<String>,
+    limits: DcqlLimits,
+) -> Result<(), Oid4vpError> {
+    let set = value.as_object().ok_or(Oid4vpError::InvalidDcqlQuery)?;
+    if set
+        .get("purpose")
+        .is_some_and(|value| !valid_purpose(value))
+    {
+        return Err(Oid4vpError::InvalidDcqlQuery);
+    }
+    for option in required_nonempty_array(set, "options", limits)? {
+        validate_credential_option(option, credential_ids, limits)?;
+    }
+    Ok(())
+}
+
+fn valid_purpose(value: &Value) -> bool {
+    match value {
+        Value::String(_) | Value::Object(_) => true,
+        Value::Number(value) => value.as_i64().is_some() || value.as_u64().is_some(),
+        _ => false,
+    }
+}
+
+fn validate_credential_option(
+    value: &Value,
+    credential_ids: &BTreeSet<String>,
+    limits: DcqlLimits,
+) -> Result<(), Oid4vpError> {
+    let mut option_ids = BTreeSet::new();
+    for id in nonempty_array(value, limits)? {
+        let id = id.as_str().ok_or(Oid4vpError::InvalidDcqlQuery)?;
+        if !credential_ids.contains(id) || !option_ids.insert(id) {
+            return Err(Oid4vpError::InvalidDcqlQuery);
         }
     }
     Ok(())

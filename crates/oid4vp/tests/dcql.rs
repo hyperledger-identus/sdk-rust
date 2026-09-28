@@ -225,6 +225,7 @@ fn sdk_facade_rejects_candidate_tolerance_and_reference_gaps() {
         json!({"credentials": [{"id": "pid", "format": "dc+sd-jwt", "meta": {}, "claims": []}]}),
         json!({"credentials": [{"id": "pid", "format": "dc+sd-jwt", "meta": {}, "claims": [{"path": []}]}]}),
         json!({"credentials": [{"id": "pid", "format": "dc+sd-jwt", "meta": {}, "claims": [{"path": ["age"], "values": []}]}]}),
+        json!({"credentials": [{"id": "pid", "format": "dc+sd-jwt", "meta": {}, "claims": [{"id": "age", "path": ["age"]}], "claim_sets": [["age", "age"]]}]}),
         json!({"credentials": [{"id": "pid", "format": "dc+sd-jwt", "meta": {}}], "credential_sets": [{"options": [["unknown"]]}]}),
         json!({"credentials": [{"id": "pid", "format": "dc+sd-jwt", "meta": {}}], "credential_sets": [{"options": [["pid"]], "purpose": true}]}),
     ];
@@ -275,6 +276,57 @@ fn resource_work_and_diagnostics_are_bounded_and_redacted() {
         )
         .unwrap_err(),
         Oid4vpError::DcqlQueryTooLarge
+    );
+
+    let bounded_query = json!({
+        "credentials": [{"id": "pid", "format": "dc+sd-jwt", "meta": {}}]
+    });
+    for limits in [
+        DcqlLimits::new(16_384, 2, 256, 32, 256, 65_536, 1).unwrap(),
+        DcqlLimits::new(16_384, 64, 2, 32, 256, 65_536, 1).unwrap(),
+    ] {
+        assert_eq!(
+            parse_query(bounded_query.clone(), limits).unwrap_err(),
+            Oid4vpError::DcqlQueryTooLarge
+        );
+    }
+
+    let short_path = DcqlLimits::new(16_384, 64, 256, 1, 256, 65_536, 1).unwrap();
+    assert_eq!(
+        parse_query(
+            json!({
+                "credentials": [{
+                    "id": "pid",
+                    "format": "dc+sd-jwt",
+                    "meta": {},
+                    "claims": [{"path": ["address", "country"]}]
+                }]
+            }),
+            short_path
+        )
+        .unwrap_err(),
+        Oid4vpError::DcqlQueryTooLarge
+    );
+
+    let one_credential = DcqlLimits::new(16_384, 64, 256, 32, 1, 65_536, 1).unwrap();
+    let query = parse_query(bounded_query, one_credential).expect("valid bounded query");
+    let too_many_credentials = [
+        JsonCredential {
+            id: "first",
+            format: "dc+sd-jwt",
+            claims: json!({}),
+            holder_bound: true,
+        },
+        JsonCredential {
+            id: "second",
+            format: "dc+sd-jwt",
+            claims: json!({}),
+            holder_bound: true,
+        },
+    ];
+    assert_eq!(
+        query.evaluate(&too_many_credentials).unwrap_err(),
+        Oid4vpError::DcqlWorkLimitExceeded
     );
 
     let tiny_work = DcqlLimits::new(16_384, 64, 256, 32, 4, 1, 4).unwrap();

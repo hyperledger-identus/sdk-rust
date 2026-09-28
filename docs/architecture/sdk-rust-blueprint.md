@@ -152,8 +152,13 @@ Credential Offer transport boundary without changing the quarantined
 `identus-openid4vc` umbrella marker.
 Issue #394 activates the separate unpublished experimental `identus-oid4vp`
 package for a bounded Final by-reference invocation boundary. It likewise does
-not activate the umbrella marker and makes no Request Object, DCQL, trust,
-selection, consent, response, certification or downstream-adoption claim.
+not activate the umbrella marker. Issue #396 adds runtime-neutral Request URI
+GET/POST construction, bounded response binding, and signed compact JAR
+verification through `identus-jose`, with exact protected type, client-id and
+optional wallet-nonce correlation. Neither slice claims HTTP execution,
+client-prefix key authorization, verifier trust, JWE, audience/freshness/full
+request validity, DCQL, selection, consent, response, certification or
+downstream adoption.
 
 The intended component portfolio below is a planning target. A crate enters
 the supported portfolio only through an accepted slice; inherited names do not
@@ -809,8 +814,13 @@ client identifier and HTTPS Request Object reference. It rejects decoded
 duplicates, product-specific endpoint variants, ambiguous/by-value transports,
 unsupported transaction data, unsafe references and unbounded inputs while
 retaining only redacted least-authority values plus GET/default or POST intent.
-HTTP retrieval, JAR verification, `typ`/audience/client-prefix validation,
-DCQL, credential selection, consent and response construction remain later
+Issue #396 consumes that reference into a bounded runtime-neutral GET/POST
+request, binds a successful correctly typed response, and validates a signed
+compact JAR using `identus-jose`. The verified transition enforces
+`typ=oauth-authz-req+jwt`, exact outer/inner client-id equality, and optional
+POST wallet-nonce correlation. HTTP execution, JWE, client-prefix key
+authorization/trust, audience/time/replay and full request validation, DCQL,
+credential selection, consent and response construction remain later
 independent slices. SIROS remains research-only under ADR 0156.
 
 ### B11 — formats and profiles

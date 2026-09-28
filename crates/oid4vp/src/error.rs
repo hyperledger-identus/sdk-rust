@@ -30,10 +30,39 @@ pub mod error_code {
     pub const UNSUPPORTED_REQUEST_URI_METHOD: ErrorCode =
         ErrorCode::new("oid4vp.unsupported_request_uri_method");
     pub const UNSAFE_REQUEST_URI: ErrorCode = ErrorCode::new("oid4vp.unsafe_request_uri");
+    pub const RETRIEVAL_METHOD_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vp.retrieval_method_mismatch");
+    pub const WALLET_METADATA_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.wallet_metadata_too_large");
+    pub const INVALID_WALLET_METADATA: ErrorCode = ErrorCode::new("oid4vp.invalid_wallet_metadata");
+    pub const WALLET_NONCE_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.wallet_nonce_too_large");
+    pub const INVALID_WALLET_NONCE: ErrorCode = ErrorCode::new("oid4vp.invalid_wallet_nonce");
+    pub const REQUEST_BODY_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.request_body_too_large");
+    pub const RESPONSE_CONTENT_TYPE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.response_content_type_too_large");
+    pub const RESPONSE_BODY_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.response_body_too_large");
+    pub const REQUEST_URI_HTTP_ERROR: ErrorCode = ErrorCode::new("oid4vp.request_uri_http_error");
+    pub const INVALID_REQUEST_OBJECT_MEDIA_TYPE: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_request_object_media_type");
+    pub const EMPTY_REQUEST_OBJECT: ErrorCode = ErrorCode::new("oid4vp.empty_request_object");
+    pub const UNSUPPORTED_ENCRYPTED_REQUEST_OBJECT: ErrorCode =
+        ErrorCode::new("oid4vp.unsupported_encrypted_request_object");
+    pub const INVALID_REQUEST_OBJECT: ErrorCode = ErrorCode::new("oid4vp.invalid_request_object");
+    pub const INVALID_REQUEST_OBJECT_TYPE: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_request_object_type");
+    pub const INVALID_REQUEST_OBJECT_SIGNATURE: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_request_object_signature");
+    pub const INVALID_REQUEST_OBJECT_PAYLOAD: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_request_object_payload");
+    pub const REQUEST_OBJECT_CLIENT_ID_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_client_id_mismatch");
+    pub const REQUEST_OBJECT_WALLET_NONCE_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_wallet_nonce_mismatch");
 }
 
 /// Public error categories for OID4VP invocation parsing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(usize)]
 pub enum Oid4vpError {
     InvalidLimits,
     InvocationTooLarge,
@@ -50,11 +79,29 @@ pub enum Oid4vpError {
     UnsupportedParameter,
     UnsupportedRequestUriMethod,
     UnsafeRequestUri,
+    RetrievalMethodMismatch,
+    WalletMetadataTooLarge,
+    InvalidWalletMetadata,
+    WalletNonceTooLarge,
+    InvalidWalletNonce,
+    RequestBodyTooLarge,
+    ResponseContentTypeTooLarge,
+    ResponseBodyTooLarge,
+    RequestUriHttpError,
+    InvalidRequestObjectMediaType,
+    EmptyRequestObject,
+    UnsupportedEncryptedRequestObject,
+    InvalidRequestObject,
+    InvalidRequestObjectType,
+    InvalidRequestObjectSignature,
+    InvalidRequestObjectPayload,
+    RequestObjectClientIdMismatch,
+    RequestObjectWalletNonceMismatch,
 }
 
 impl Oid4vpError {
     /// Ordered error inventory frozen by the v1 contract fixture.
-    pub const CONTRACT_VARIANTS: [Self; 15] = [
+    pub const CONTRACT_VARIANTS: [Self; 33] = [
         Self::InvalidLimits,
         Self::InvocationTooLarge,
         Self::InvalidInvocation,
@@ -70,87 +117,199 @@ impl Oid4vpError {
         Self::UnsupportedParameter,
         Self::UnsupportedRequestUriMethod,
         Self::UnsafeRequestUri,
+        Self::RetrievalMethodMismatch,
+        Self::WalletMetadataTooLarge,
+        Self::InvalidWalletMetadata,
+        Self::WalletNonceTooLarge,
+        Self::InvalidWalletNonce,
+        Self::RequestBodyTooLarge,
+        Self::ResponseContentTypeTooLarge,
+        Self::ResponseBodyTooLarge,
+        Self::RequestUriHttpError,
+        Self::InvalidRequestObjectMediaType,
+        Self::EmptyRequestObject,
+        Self::UnsupportedEncryptedRequestObject,
+        Self::InvalidRequestObject,
+        Self::InvalidRequestObjectType,
+        Self::InvalidRequestObjectSignature,
+        Self::InvalidRequestObjectPayload,
+        Self::RequestObjectClientIdMismatch,
+        Self::RequestObjectWalletNonceMismatch,
     ];
 
-    const fn contract(self) -> (identus_core::ErrorCode, ErrorKind, &'static str) {
+    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 33] = {
         use error_code as code;
-        match self {
-            Self::InvalidLimits => (
+        [
+            (
                 code::INVALID_LIMITS,
                 ErrorKind::InvalidInput,
                 "OID4VP resource limits are invalid",
             ),
-            Self::InvocationTooLarge => (
+            (
                 code::INVOCATION_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VP invocation exceeds its byte limit",
             ),
-            Self::InvalidInvocation => (
+            (
                 code::INVALID_INVOCATION,
                 ErrorKind::InvalidInput,
                 "OID4VP invocation is invalid",
             ),
-            Self::TooManyParameters => (
+            (
                 code::TOO_MANY_PARAMETERS,
                 ErrorKind::InvalidInput,
                 "OID4VP invocation has too many parameters",
             ),
-            Self::InvalidFormEncoding => (
+            (
                 code::INVALID_FORM_ENCODING,
                 ErrorKind::InvalidInput,
                 "OID4VP parameter encoding is invalid",
             ),
-            Self::ParameterNameTooLarge => (
+            (
                 code::PARAMETER_NAME_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VP parameter name exceeds its byte limit",
             ),
-            Self::ParameterValueTooLarge => (
+            (
                 code::PARAMETER_VALUE_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VP parameter value exceeds its byte limit",
             ),
-            Self::DuplicateParameter => (
+            (
                 code::DUPLICATE_PARAMETER,
                 ErrorKind::InvalidInput,
                 "OID4VP invocation contains a duplicate parameter",
             ),
-            Self::ClientIdTooLarge => (
+            (
                 code::CLIENT_ID_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VP client identifier exceeds its byte limit",
             ),
-            Self::RequestUriTooLarge => (
+            (
                 code::REQUEST_URI_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VP request URI exceeds its byte limit",
             ),
-            Self::MissingRequiredParameter => (
+            (
                 code::MISSING_REQUIRED_PARAMETER,
                 ErrorKind::InvalidInput,
                 "OID4VP invocation is missing a required parameter",
             ),
-            Self::UnsupportedTransport => (
+            (
                 code::UNSUPPORTED_TRANSPORT,
                 ErrorKind::Unsupported,
                 "OID4VP transport is not supported",
             ),
-            Self::UnsupportedParameter => (
+            (
                 code::UNSUPPORTED_PARAMETER,
                 ErrorKind::Unsupported,
                 "OID4VP parameter is not supported",
             ),
-            Self::UnsupportedRequestUriMethod => (
+            (
                 code::UNSUPPORTED_REQUEST_URI_METHOD,
                 ErrorKind::Unsupported,
                 "OID4VP request URI method is not supported",
             ),
-            Self::UnsafeRequestUri => (
+            (
                 code::UNSAFE_REQUEST_URI,
                 ErrorKind::InvalidInput,
                 "OID4VP request URI is unsafe",
             ),
-        }
+            (
+                code::RETRIEVAL_METHOD_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VP retrieval input does not match the requested method",
+            ),
+            (
+                code::WALLET_METADATA_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP wallet metadata exceeds its byte limit",
+            ),
+            (
+                code::INVALID_WALLET_METADATA,
+                ErrorKind::InvalidInput,
+                "OID4VP wallet metadata is invalid",
+            ),
+            (
+                code::WALLET_NONCE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP wallet nonce exceeds its byte limit",
+            ),
+            (
+                code::INVALID_WALLET_NONCE,
+                ErrorKind::InvalidInput,
+                "OID4VP wallet nonce is invalid",
+            ),
+            (
+                code::REQUEST_BODY_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP retrieval request body exceeds its byte limit",
+            ),
+            (
+                code::RESPONSE_CONTENT_TYPE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP response content type exceeds its byte limit",
+            ),
+            (
+                code::RESPONSE_BODY_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP response body exceeds its byte limit",
+            ),
+            (
+                code::REQUEST_URI_HTTP_ERROR,
+                ErrorKind::InvalidInput,
+                "OID4VP Request URI returned an HTTP error",
+            ),
+            (
+                code::INVALID_REQUEST_OBJECT_MEDIA_TYPE,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object media type is invalid",
+            ),
+            (
+                code::EMPTY_REQUEST_OBJECT,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object is empty",
+            ),
+            (
+                code::UNSUPPORTED_ENCRYPTED_REQUEST_OBJECT,
+                ErrorKind::Unsupported,
+                "Encrypted OID4VP Request Objects are not supported",
+            ),
+            (
+                code::INVALID_REQUEST_OBJECT,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object is invalid",
+            ),
+            (
+                code::INVALID_REQUEST_OBJECT_TYPE,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object type is invalid",
+            ),
+            (
+                code::INVALID_REQUEST_OBJECT_SIGNATURE,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object signature is invalid",
+            ),
+            (
+                code::INVALID_REQUEST_OBJECT_PAYLOAD,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object payload is invalid",
+            ),
+            (
+                code::REQUEST_OBJECT_CLIENT_ID_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object client identifier does not match",
+            ),
+            (
+                code::REQUEST_OBJECT_WALLET_NONCE_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object wallet nonce does not match",
+            ),
+        ]
+    };
+
+    const fn contract(self) -> (identus_core::ErrorCode, ErrorKind, &'static str) {
+        Self::CONTRACTS[self as usize]
     }
 
     /// Convert to the shared, stable and redaction-safe SDK error.

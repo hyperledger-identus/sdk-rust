@@ -58,6 +58,10 @@ pub struct ReferencedAuthorizationRequest {
 }
 
 impl ReferencedAuthorizationRequest {
+    pub(crate) fn into_parts(self) -> (Zeroizing<String>, Zeroizing<String>, RequestUriMethod) {
+        (self.client_id, self.request_uri, self.method)
+    }
+
     /// Explicitly reveal the untrusted, verifier-controlled client identifier.
     pub fn expose_sensitive_client_id(&self) -> &str {
         &self.client_id
@@ -100,10 +104,7 @@ fn parse_reference(
     limits: AuthorizationRequestInvocationLimits,
 ) -> Result<ReferencedAuthorizationRequest, Oid4vpError> {
     let mut names = Vec::<String>::new();
-    let mut client_id = None;
-    let mut request_uri = None;
-    let mut method = RequestUriMethod::Get;
-    let mut inline_transport = false;
+    let mut parts = ReferenceParts::default();
 
     for (index, pair) in query.split('&').enumerate() {
         if index == limits.max_parameter_pairs() {
@@ -132,56 +133,97 @@ fn parse_reference(
             };
         }
         names.push(name.to_string());
+        parts.absorb(&name, value, limits)?;
+    }
 
-        match name.as_str() {
+    parts.finish()
+}
+
+struct ReferenceParts {
+    client_id: Option<Zeroizing<String>>,
+    request_uri: Option<Zeroizing<String>>,
+    method: RequestUriMethod,
+    inline_transport: bool,
+}
+
+impl Default for ReferenceParts {
+    fn default() -> Self {
+        Self {
+            client_id: None,
+            request_uri: None,
+            method: RequestUriMethod::Get,
+            inline_transport: false,
+        }
+    }
+}
+
+impl ReferenceParts {
+    fn absorb(
+        &mut self,
+        name: &str,
+        value: Zeroizing<String>,
+        limits: AuthorizationRequestInvocationLimits,
+    ) -> Result<(), Oid4vpError> {
+        match name {
             "client_id" => {
-                if value.is_empty() {
-                    return Err(Oid4vpError::MissingRequiredParameter);
-                }
+                require_nonempty(&value)?;
                 if value.len() > limits.max_client_id_bytes() {
                     return Err(Oid4vpError::ClientIdTooLarge);
                 }
-                client_id = Some(value);
+                self.client_id = Some(value);
             }
             "request_uri" => {
-                if value.is_empty() {
-                    return Err(Oid4vpError::MissingRequiredParameter);
-                }
+                require_nonempty(&value)?;
                 if value.len() > limits.max_request_uri_bytes() {
                     return Err(Oid4vpError::RequestUriTooLarge);
                 }
                 validate_request_uri(&value)?;
-                request_uri = Some(value);
+                self.request_uri = Some(value);
             }
-            "request_uri_method" => {
-                method = if value.as_str() == "post" {
-                    RequestUriMethod::Post
-                } else {
-                    return Err(Oid4vpError::UnsupportedRequestUriMethod);
-                };
-            }
+            "request_uri_method" => self.method = parse_request_uri_method(&value)?,
             "request" => return Err(Oid4vpError::UnsupportedTransport),
             "transaction_data" => return Err(Oid4vpError::UnsupportedParameter),
             "response_type" | "dcql_query" | "scope" | "nonce" | "response_mode" => {
-                inline_transport = true;
+                self.inline_transport = true;
             }
             _ => {}
         }
+        Ok(())
     }
 
-    let client_id = client_id.ok_or(Oid4vpError::MissingRequiredParameter)?;
-    let Some(request_uri) = request_uri else {
-        return if inline_transport {
-            Err(Oid4vpError::UnsupportedTransport)
-        } else {
-            Err(Oid4vpError::MissingRequiredParameter)
+    fn finish(self) -> Result<ReferencedAuthorizationRequest, Oid4vpError> {
+        let client_id = self
+            .client_id
+            .ok_or(Oid4vpError::MissingRequiredParameter)?;
+        let Some(request_uri) = self.request_uri else {
+            return if self.inline_transport {
+                Err(Oid4vpError::UnsupportedTransport)
+            } else {
+                Err(Oid4vpError::MissingRequiredParameter)
+            };
         };
-    };
-    Ok(ReferencedAuthorizationRequest {
-        client_id,
-        request_uri,
-        method,
-    })
+        Ok(ReferencedAuthorizationRequest {
+            client_id,
+            request_uri,
+            method: self.method,
+        })
+    }
+}
+
+fn require_nonempty(value: &str) -> Result<(), Oid4vpError> {
+    if value.is_empty() {
+        Err(Oid4vpError::MissingRequiredParameter)
+    } else {
+        Ok(())
+    }
+}
+
+fn parse_request_uri_method(value: &str) -> Result<RequestUriMethod, Oid4vpError> {
+    match value {
+        "get" => Ok(RequestUriMethod::Get),
+        "post" => Ok(RequestUriMethod::Post),
+        _ => Err(Oid4vpError::UnsupportedRequestUriMethod),
+    }
 }
 
 fn validate_request_uri(value: &str) -> Result<(), Oid4vpError> {

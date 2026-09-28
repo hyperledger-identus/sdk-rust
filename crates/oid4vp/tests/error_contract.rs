@@ -23,7 +23,7 @@ macro_rules! case {
     };
 }
 
-const CASES: [Case; 15] = [
+const CASES: [Case; 33] = [
     case!(InvalidLimits, INVALID_LIMITS),
     case!(InvocationTooLarge, INVOCATION_TOO_LARGE),
     case!(InvalidInvocation, INVALID_INVOCATION),
@@ -39,6 +39,39 @@ const CASES: [Case; 15] = [
     case!(UnsupportedParameter, UNSUPPORTED_PARAMETER),
     case!(UnsupportedRequestUriMethod, UNSUPPORTED_REQUEST_URI_METHOD),
     case!(UnsafeRequestUri, UNSAFE_REQUEST_URI),
+    case!(RetrievalMethodMismatch, RETRIEVAL_METHOD_MISMATCH),
+    case!(WalletMetadataTooLarge, WALLET_METADATA_TOO_LARGE),
+    case!(InvalidWalletMetadata, INVALID_WALLET_METADATA),
+    case!(WalletNonceTooLarge, WALLET_NONCE_TOO_LARGE),
+    case!(InvalidWalletNonce, INVALID_WALLET_NONCE),
+    case!(RequestBodyTooLarge, REQUEST_BODY_TOO_LARGE),
+    case!(ResponseContentTypeTooLarge, RESPONSE_CONTENT_TYPE_TOO_LARGE),
+    case!(ResponseBodyTooLarge, RESPONSE_BODY_TOO_LARGE),
+    case!(RequestUriHttpError, REQUEST_URI_HTTP_ERROR),
+    case!(
+        InvalidRequestObjectMediaType,
+        INVALID_REQUEST_OBJECT_MEDIA_TYPE
+    ),
+    case!(EmptyRequestObject, EMPTY_REQUEST_OBJECT),
+    case!(
+        UnsupportedEncryptedRequestObject,
+        UNSUPPORTED_ENCRYPTED_REQUEST_OBJECT
+    ),
+    case!(InvalidRequestObject, INVALID_REQUEST_OBJECT),
+    case!(InvalidRequestObjectType, INVALID_REQUEST_OBJECT_TYPE),
+    case!(
+        InvalidRequestObjectSignature,
+        INVALID_REQUEST_OBJECT_SIGNATURE
+    ),
+    case!(InvalidRequestObjectPayload, INVALID_REQUEST_OBJECT_PAYLOAD),
+    case!(
+        RequestObjectClientIdMismatch,
+        REQUEST_OBJECT_CLIENT_ID_MISMATCH
+    ),
+    case!(
+        RequestObjectWalletNonceMismatch,
+        REQUEST_OBJECT_WALLET_NONCE_MISMATCH
+    ),
 ];
 
 #[test]

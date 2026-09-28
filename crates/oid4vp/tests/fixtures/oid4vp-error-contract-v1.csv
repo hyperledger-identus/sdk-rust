@@ -17,3 +17,21 @@ UnsupportedTransport,oid4vp.unsupported_transport,Unsupported,OID4VP transport i
 UnsupportedParameter,oid4vp.unsupported_parameter,Unsupported,OID4VP parameter is not supported
 UnsupportedRequestUriMethod,oid4vp.unsupported_request_uri_method,Unsupported,OID4VP request URI method is not supported
 UnsafeRequestUri,oid4vp.unsafe_request_uri,InvalidInput,OID4VP request URI is unsafe
+RetrievalMethodMismatch,oid4vp.retrieval_method_mismatch,InvalidInput,OID4VP retrieval input does not match the requested method
+WalletMetadataTooLarge,oid4vp.wallet_metadata_too_large,InvalidInput,OID4VP wallet metadata exceeds its byte limit
+InvalidWalletMetadata,oid4vp.invalid_wallet_metadata,InvalidInput,OID4VP wallet metadata is invalid
+WalletNonceTooLarge,oid4vp.wallet_nonce_too_large,InvalidInput,OID4VP wallet nonce exceeds its byte limit
+InvalidWalletNonce,oid4vp.invalid_wallet_nonce,InvalidInput,OID4VP wallet nonce is invalid
+RequestBodyTooLarge,oid4vp.request_body_too_large,InvalidInput,OID4VP retrieval request body exceeds its byte limit
+ResponseContentTypeTooLarge,oid4vp.response_content_type_too_large,InvalidInput,OID4VP response content type exceeds its byte limit
+ResponseBodyTooLarge,oid4vp.response_body_too_large,InvalidInput,OID4VP response body exceeds its byte limit
+RequestUriHttpError,oid4vp.request_uri_http_error,InvalidInput,OID4VP Request URI returned an HTTP error
+InvalidRequestObjectMediaType,oid4vp.invalid_request_object_media_type,InvalidInput,OID4VP Request Object media type is invalid
+EmptyRequestObject,oid4vp.empty_request_object,InvalidInput,OID4VP Request Object is empty
+UnsupportedEncryptedRequestObject,oid4vp.unsupported_encrypted_request_object,Unsupported,Encrypted OID4VP Request Objects are not supported
+InvalidRequestObject,oid4vp.invalid_request_object,InvalidInput,OID4VP Request Object is invalid
+InvalidRequestObjectType,oid4vp.invalid_request_object_type,InvalidInput,OID4VP Request Object type is invalid
+InvalidRequestObjectSignature,oid4vp.invalid_request_object_signature,InvalidInput,OID4VP Request Object signature is invalid
+InvalidRequestObjectPayload,oid4vp.invalid_request_object_payload,InvalidInput,OID4VP Request Object payload is invalid
+RequestObjectClientIdMismatch,oid4vp.request_object_client_id_mismatch,InvalidInput,OID4VP Request Object client identifier does not match
+RequestObjectWalletNonceMismatch,oid4vp.request_object_wallet_nonce_mismatch,InvalidInput,OID4VP Request Object wallet nonce does not match

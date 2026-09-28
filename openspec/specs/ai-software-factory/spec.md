@@ -269,3 +269,4 @@ OpenSpec output as a machine contract.
   resulting store validates
 - **THEN** `scripts/factory archive` reports that the named change was archived
   safely
+

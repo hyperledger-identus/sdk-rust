@@ -1,0 +1,17 @@
+[[modified_requirement]]
+capability = "oid4vci-proof-jwt"
+requirement = "Final-profile holder proof construction"
+canonical_sha256 = "f06240e937ffec4d8c5780649482f54bb7064f19c02a44a0b33b8a42b2c2de4d"
+reason = "Issue #398 intentionally moves profile ownership from the primitive JOSE capability to OID4VCI while preserving holder proof wire behavior and composing JOSE mechanics."
+
+[[modified_requirement]]
+capability = "oid4vci-proof-jwt"
+requirement = "Bounded Final-profile issuer parsing"
+canonical_sha256 = "54187e254b8ffe70c164f975281d9663b57f472748ebc720593faee612567fd0"
+reason = "Issue #398 intentionally moves profile parsing ownership from the primitive JOSE capability to OID4VCI while preserving bounded parsing/provider behavior and composing JOSE mechanics."
+
+[[modified_requirement]]
+capability = "oid4vci-jwt-credential-request"
+requirement = "Final JWT Credential Request construction is state-bound and bounded"
+canonical_sha256 = "124db9fe60a82e2dd4e2b03044355c29c9244e28d7109dcac8465fa128136b56"
+reason = "Issue #398 updates the public proof type owner from identus-jose to identus-oid4vci without changing credential request construction or wire behavior."

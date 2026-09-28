@@ -13,13 +13,13 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Move scalar values and raw-wire preflight to cohesive private owners
+- [x] 2.1 Move scalar values and raw-wire preflight to cohesive private owners
       while preserving exact syntax, limits, errors, and parse order.
-- [ ] 2.2 Move operation and document metadata with adjacent validation,
+- [x] 2.2 Move operation and document metadata with adjacent validation,
       rejection guards, and iterative cleanup intact.
-- [ ] 2.3 Move resolution and dereferencing envelopes while preserving exact
+- [x] 2.3 Move resolution and dereferencing envelopes while preserving exact
       construction, state matrices, serialization, and validation behavior.
-- [ ] 2.4 Prove public/wire/error/source equivalence and refresh code-health
+- [x] 2.4 Prove public/wire/error/source equivalence and refresh code-health
       evidence without weakening unrelated ownership.
 
 ## 3. Verification and delivery

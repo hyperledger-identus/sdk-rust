@@ -72,15 +72,6 @@
     },
     {
       "disposition": "decompose",
-      "evidence": "Value types, result models, validation, and wire preflight have independent internal change axes.",
-      "id": "did-resolution-model-and-wire",
-      "locations": [
-        "crates/did/src/resolution.rs"
-      ],
-      "owner": "identus-did maintainers"
-    },
-    {
-      "disposition": "decompose",
       "evidence": "Lifecycle modeling and recursive extension validation should become characterized private boundaries.",
       "id": "did-registration-model-and-validation",
       "locations": [
@@ -127,7 +118,7 @@
       "owner": "identus-did resolution model"
     }
   ],
-  "population_projection_sha256": "0e17e460fd26d8f2246dff799631c3e9263ab670a29066e7c69a7e8760b3da78",
+  "population_projection_sha256": "38fa54d66f35128bd32ff98b7bc7fcb1758e7a65000576dfea77d03a2f474597",
   "populations": {
     "external_test": {
       "authored_nonblank_lines": 30252,
@@ -140,12 +131,12 @@
       "functions": 357
     },
     "production": {
-      "authored_nonblank_lines": 36170,
-      "files": 176,
-      "functions": 2766
+      "authored_nonblank_lines": 36241,
+      "files": 182,
+      "functions": 2763
     }
   },
-  "revision": "6b34f1b571729c4f688e31434e832ce473b993cd",
+  "revision": "d3cdc6719fb040da2753dbfde9c3a784c85dafb2",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -462,12 +453,12 @@
       {
         "cognitive": 17,
         "cyclomatic": 40,
-        "end_line": 1392,
+        "end_line": 238,
         "name": "validate_datetime",
-        "path": "crates/did/src/resolution.rs",
+        "path": "crates/did/src/resolution/value.rs",
         "population": "production",
         "sloc": 71,
-        "start_line": 1322
+        "start_line": 168
       },
       {
         "cognitive": 4,
@@ -764,14 +755,10 @@
         "path": "crates/did/src/registration.rs"
       },
       {
-        "authored_nonblank_lines": 1345,
-        "path": "crates/did/src/resolution.rs"
-      },
-      {
         "authored_nonblank_lines": 1134,
         "path": "crates/presentations/src/model.rs"
       }
     ]
   },
-  "source_fingerprint_sha256": "d40aaa6e4a49112a691d9553eb15b58e8fa79cab0edabd4d049647654e953b9b"
+  "source_fingerprint_sha256": "ba8e6fd8b4e7b5decc5420860913d485c941a0399e2adb426cb71faeb721b446"
 }

@@ -1,0 +1,147 @@
+schema_version = 1
+program_issue  = 415
+snapshot_date  = "2026-09-29"
+status         = "preliminary"
+
+[vocabulary]
+dispositions = [
+  "move-to-rust",
+  "retain-platform",
+  "replace-upstream",
+  "deprecate",
+  "drop",
+  "defer",
+]
+test_authorities = [
+  "normative",
+  "identus-contract",
+  "consumer-regression",
+  "implementation-regression",
+  "exploratory",
+]
+deprecation_phases = [
+  "not-applicable",
+  "proposed",
+  "announced",
+  "available-replacement",
+  "default-off",
+  "removed",
+]
+legacy_bug_policies = [
+  "not-assessed",
+  "fix-and-document",
+  "preserve-profile",
+  "simulate-temporarily",
+  "reject-as-unsafe",
+]
+
+[[source]]
+repository = "sdk-ts"
+revision   = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+platform   = "browser-node"
+
+[[source]]
+repository = "sdk-swift"
+revision   = "ebbfdb666a3b0c9905dd443589e03ccf2ae8087b"
+platform   = "apple"
+
+[[source]]
+repository = "sdk-kmp"
+revision   = "5a8fda770bbbca84192979b2c8e6090ee94790e3"
+platform   = "android-jvm"
+
+[[capability]]
+id                = "foundation.crypto"
+legacy_modules    = [ "Apollo" ]
+target_owner      = "identus-crypto"
+disposition       = "move-to-rust"
+rust_state        = "first-release-train"
+binding_targets   = [ "wasm", "uniffi", "react-native" ]
+deprecation_phase = "not-applicable"
+legacy_bug_policy = "not-assessed"
+issue             = 415
+notes             = "Portable algorithms and derivation converge in Rust; key custody and secure hardware remain platform adapters."
+
+[[capability]]
+id                = "identity.did-core"
+legacy_modules    = [ "Castor" ]
+target_owner      = "identus-did"
+disposition       = "move-to-rust"
+rust_state        = "substantial-experimental"
+binding_targets   = [ "wasm", "uniffi", "react-native" ]
+deprecation_phase = "not-applicable"
+legacy_bug_policy = "not-assessed"
+issue             = 415
+notes             = "DID and DID URL values are the first non-secret canary; method-specific adapters remain separately owned."
+
+[[capability]]
+id                = "credentials.formats-and-presentations"
+legacy_modules    = [ "Pollux" ]
+target_owner      = "identus-credentials,identus-presentations"
+disposition       = "defer"
+rust_state        = "generic-contracts-partial"
+binding_targets   = [ "wasm", "uniffi", "react-native" ]
+deprecation_phase = "not-applicable"
+legacy_bug_policy = "not-assessed"
+issue             = 415
+notes             = "Inventory JWT VC, SD-JWT VC, AnonCreds, draft/final versions and engines before splitting dispositions."
+
+[[capability]]
+id                = "protocol.openid4vc"
+legacy_modules    = [ "Pollux", "plugins" ]
+target_owner      = "identus-oid4vci,identus-oid4vp,identus-openid4vc"
+disposition       = "move-to-rust"
+rust_state        = "active-bounded-implementation"
+binding_targets   = [ "wasm", "uniffi", "react-native" ]
+deprecation_phase = "not-applicable"
+legacy_bug_policy = "not-assessed"
+issue             = 415
+notes             = "Final-spec slices remain bounded; plugin host and transport stay at outer layers."
+
+[[capability]]
+id                = "messaging.didcomm-v2"
+legacy_modules    = [ "Mercury" ]
+target_owner      = "identus-messaging"
+disposition       = "defer"
+rust_state        = "placeholder"
+binding_targets   = [ "wasm", "uniffi", "react-native" ]
+deprecation_phase = "not-applicable"
+legacy_bug_policy = "not-assessed"
+issue             = 415
+notes             = "Inventory pack/unpack, routing, attachments, from_prior, engine versions and protocol use before implementation."
+
+[[capability]]
+id                = "wallet.storage"
+legacy_modules    = [ "Pluto" ]
+target_owner      = "identus-wallet"
+disposition       = "move-to-rust"
+rust_state        = "ports-and-conformance"
+binding_targets   = [ "wasm", "uniffi", "react-native" ]
+deprecation_phase = "not-applicable"
+legacy_bug_policy = "not-assessed"
+issue             = 415
+notes             = "Portable contracts and migration formats move to Rust; browser databases, CoreData and SQLDelight remain platform adapters."
+
+[[capability]]
+id                = "agent.protocol-workflows"
+legacy_modules    = [ "EdgeAgent" ]
+target_owner      = "identus-agent"
+disposition       = "defer"
+rust_state        = "placeholder"
+binding_targets   = [ "wasm", "uniffi", "react-native" ]
+deprecation_phase = "not-applicable"
+legacy_bug_policy = "not-assessed"
+issue             = 415
+notes             = "Split reusable state machines and ports from product/runtime orchestration before choosing sub-capability dispositions."
+
+[[capability]]
+id                = "platform.integration"
+legacy_modules    = [ "Pluto", "EdgeAgent", "package-runtime" ]
+target_owner      = "language-sdk"
+disposition       = "retain-platform"
+rust_state        = "outside-generic-core"
+binding_targets   = [  ]
+deprecation_phase = "not-applicable"
+legacy_bug_policy = "not-assessed"
+issue             = 415
+notes             = "Packaging, databases, secure hardware, networking, lifecycle, permissions and UI/consent remain cohesive platform responsibilities."

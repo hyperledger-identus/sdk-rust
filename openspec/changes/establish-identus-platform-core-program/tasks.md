@@ -9,13 +9,13 @@
 
 ## 2. Governance and program artifacts
 
-- [ ] 2.1 Accept ADRs for the authoritative Rust core, legacy repository
+- [x] 2.1 Accept ADRs for the authoritative Rust core, legacy repository
       disposition, and compatibility/deprecation/legacy-bug policy.
-- [ ] 2.2 Publish the cross-SDK inventory, capability registry schema, test
+- [x] 2.2 Publish the cross-SDK inventory, capability registry schema, test
       authority model, change ledger, and per-SDK roadmap.
-- [ ] 2.3 Create repository inventory and binding/conformance child issues;
+- [x] 2.3 Create repository inventory and binding/conformance child issues;
       link existing binding issues instead of duplicating them.
-- [ ] 2.4 Publish program and inventory/disposition GitHub discussions.
+- [x] 2.4 Publish program and inventory/disposition GitHub discussions.
 
 ## 3. Verification and delivery
 

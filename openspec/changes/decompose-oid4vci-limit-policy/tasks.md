@@ -17,7 +17,7 @@
       ceiling unchanged into one private policy module.
 - [x] 2.2 Move limit types into offer, token, credential, and metadata modules
       while preserving the private facade and crate-root public exports.
-- [ ] 2.3 Prove exact public signatures, defaults, validation predicates,
+- [x] 2.3 Prove exact public signatures, defaults, validation predicates,
       errors, and compositions against the base inventory.
 - [ ] 2.4 Refresh code-health evidence and remove the completed limits hotspot
       without weakening unrelated ownership or governance.

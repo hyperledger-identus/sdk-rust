@@ -160,10 +160,29 @@ class SupportPolicyTests(unittest.TestCase):
         if nix_instantiate is None:
             return None
         self.assertTrue(Path(nix_instantiate).is_file())
+        parser_home = self.fixture / ".nix-parser-home"
+        parser_home.mkdir()
+        parser_environment = os.environ.copy()
+        parser_environment.update(
+            {
+                "HOME": str(parser_home),
+                "XDG_CACHE_HOME": str(parser_home / "cache"),
+                "XDG_CONFIG_HOME": str(parser_home / "config"),
+                "XDG_STATE_HOME": str(parser_home / "state"),
+            }
+        )
         return subprocess.run(
-            [nix_instantiate, "--parse", str(self.fixture / relative)],
+            [
+                nix_instantiate,
+                "--option",
+                "use-xdg-base-directories",
+                "true",
+                "--parse",
+                str(self.fixture / relative),
+            ],
             check=False,
             capture_output=True,
+            env=parser_environment,
             text=True,
         )
 

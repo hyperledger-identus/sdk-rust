@@ -1,12 +1,13 @@
+// OID4VCI proof-profile conformance belongs to the protocol crate.
 use std::hint::black_box;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use identus_crypto::{JwkCurve, PublicKeyJwk};
-use identus_jose::{
-    JoseError, JwsAlgorithm, JwsKeyReference, JwsLimits, JwsSigner, OID4VCI_PROOF_JWT_TYPE,
-    Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtClientId,
-    Oid4vciProofJwtLimits, SignerFailure,
+use identus_jose::{JoseError, JwsAlgorithm, JwsKeyReference, JwsLimits, JwsSigner, SignerFailure};
+use identus_oid4vci::{
+    OID4VCI_PROOF_JWT_TYPE, Oid4vciProofError, Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims,
+    Oid4vciProofJwtClient, Oid4vciProofJwtClientId, Oid4vciProofJwtLimits,
 };
 use serde_json::{Value, json};
 
@@ -105,7 +106,7 @@ fn identified_client_payload_is_bounded_opaque_and_revalidated() {
     assert!(!format!("{client_id:?}").contains(canary));
     assert_eq!(
         Oid4vciProofJwtClientId::new("client-12", exact_limits),
-        Err(JoseError::InvalidProofClaims)
+        Err(Oid4vciProofError::InvalidProofClaims)
     );
 
     let roomy_limits = Oid4vciProofJwtLimits::new(JwsLimits::default(), 16).expect("roomy limits");
@@ -113,7 +114,7 @@ fn identified_client_payload_is_bounded_opaque_and_revalidated() {
         .expect("roomy identified client");
     assert_eq!(
         Oid4vciProofJwtClaims::new(client, "audience", 1, None, exact_limits),
-        Err(JoseError::InvalidProofClaims)
+        Err(Oid4vciProofError::InvalidProofClaims)
     );
 }
 
@@ -183,7 +184,7 @@ fn inline_public_jwk_is_bound_to_the_selected_algorithm_before_signing() {
             JwsKeyReference::Jwk(p256),
             identified_claims(limits),
         ),
-        Err(JoseError::InvalidVerificationKey)
+        Err(Oid4vciProofError::Jose(JoseError::InvalidVerificationKey))
     ));
 }
 
@@ -217,13 +218,13 @@ fn invalid_claims_and_fixed_output_bounds_precede_external_signing() {
     let default_limits = Oid4vciProofJwtLimits::default();
     assert!(matches!(
         Oid4vciProofJwtClient::identified("", default_limits),
-        Err(JoseError::InvalidProofClaims)
+        Err(Oid4vciProofError::InvalidProofClaims)
     ));
     let tiny_claim_limits =
         Oid4vciProofJwtLimits::new(JwsLimits::default(), 4).expect("tiny claim limit");
     assert!(matches!(
         Oid4vciProofJwtClient::identified("borrowed-client-too-large", tiny_claim_limits),
-        Err(JoseError::InvalidProofClaims)
+        Err(Oid4vciProofError::InvalidProofClaims)
     ));
     for invalid in [
         Oid4vciProofJwtClaims::new(
@@ -241,7 +242,10 @@ fn invalid_claims_and_fixed_output_bounds_precede_external_signing() {
             default_limits,
         ),
     ] {
-        assert!(matches!(invalid, Err(JoseError::InvalidProofClaims)));
+        assert!(matches!(
+            invalid,
+            Err(Oid4vciProofError::InvalidProofClaims)
+        ));
     }
 
     let builder = Oid4vciProofJwtBuilder::new(default_limits);
@@ -266,7 +270,7 @@ fn invalid_claims_and_fixed_output_bounds_precede_external_signing() {
 
     assert!(matches!(
         input.sign_with(&signer),
-        Err(JoseError::CompactTooLarge)
+        Err(Oid4vciProofError::Jose(JoseError::CompactTooLarge))
     ));
     assert!(signer.calls().is_empty());
 
@@ -288,7 +292,7 @@ fn invalid_claims_and_fixed_output_bounds_precede_external_signing() {
             key_id("key-1"),
             claims,
         ),
-        Err(JoseError::PayloadTooLarge)
+        Err(Oid4vciProofError::Jose(JoseError::PayloadTooLarge))
     ));
 }
 
@@ -313,7 +317,7 @@ fn algorithm_mismatch_and_diagnostics_do_not_leak_proof_values() {
     let signer = RecordingSigner::new(JwsAlgorithm::Es256);
     let error = input.sign_with(&signer).expect_err("algorithm mismatch");
 
-    assert_eq!(error, JoseError::AlgorithmMismatch);
+    assert_eq!(error, Oid4vciProofError::Jose(JoseError::AlgorithmMismatch));
     assert!(signer.calls().is_empty());
     for rendered in [claims_debug, input_debug, format!("{error:?} {error}")] {
         assert!(!rendered.contains(canary));

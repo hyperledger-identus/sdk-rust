@@ -4,10 +4,7 @@ use std::fmt;
 
 use identus_core::{CapabilityId, IdentusError};
 
-use crate::error_contract::{
-    ErrorContract, algorithm_key_registry_signing, compact_header, proof_key_evidence,
-    proof_policy_time_replay,
-};
+use crate::error_contract::{ErrorContract, algorithm_key_registry_signing, compact_header};
 
 /// Owning capability for JWS Compact errors.
 pub const CAPABILITY: CapabilityId = CapabilityId::new("jose");
@@ -72,63 +69,6 @@ pub mod error_code {
     pub const SIGNER_UNAVAILABLE: ErrorCode = ErrorCode::new("jose.signer_unavailable");
     /// Cryptographic signature verification failed.
     pub const SIGNATURE_INVALID: ErrorCode = ErrorCode::new("jose.signature_invalid");
-    /// OID4VCI proof claims violated the bounded profile.
-    pub const INVALID_PROOF_CLAIMS: ErrorCode = ErrorCode::new("jose.invalid_proof_claims");
-    /// The proof did not carry the exact OID4VCI protected type.
-    pub const INVALID_PROOF_TYPE: ErrorCode = ErrorCode::new("jose.invalid_proof_type");
-    /// The proof omitted its signing-key reference.
-    pub const MISSING_PROOF_KEY_REFERENCE: ErrorCode =
-        ErrorCode::new("jose.missing_proof_key_reference");
-    /// The selected proof key-reference form is not supported by this verifier.
-    pub const UNSUPPORTED_PROOF_KEY_REFERENCE: ErrorCode =
-        ErrorCode::new("jose.unsupported_proof_key_reference");
-    /// DID key dereferencing or projection failed.
-    pub const PROOF_KEY_RESOLUTION_FAILED: ErrorCode =
-        ErrorCode::new("jose.proof_key_resolution_failed");
-    /// The selected DID key was not authorized for authentication.
-    pub const PROOF_KEY_NOT_AUTHORIZED: ErrorCode = ErrorCode::new("jose.proof_key_not_authorized");
-    /// No certificate-key provider was supplied for an X.509 reference.
-    pub const X5C_PROVIDER_REQUIRED: ErrorCode = ErrorCode::new("jose.x5c_provider_required");
-    /// The certificate-key provider rejected the supplied chain.
-    pub const X5C_REJECTED: ErrorCode = ErrorCode::new("jose.x5c_rejected");
-    /// The certificate-key provider could not service the request.
-    pub const X5C_PROVIDER_UNAVAILABLE: ErrorCode = ErrorCode::new("jose.x5c_provider_unavailable");
-    /// OID4VCI proof trust evidence violated its bounded profile.
-    pub const INVALID_PROOF_EVIDENCE: ErrorCode = ErrorCode::new("jose.invalid_proof_evidence");
-    /// No trust-chain provider was supplied for a federation-bound proof.
-    pub const TRUST_CHAIN_PROVIDER_REQUIRED: ErrorCode =
-        ErrorCode::new("jose.trust_chain_provider_required");
-    /// The trust-chain provider rejected the supplied chain or key selection.
-    pub const TRUST_CHAIN_REJECTED: ErrorCode = ErrorCode::new("jose.trust_chain_rejected");
-    /// The trust-chain provider could not service the request.
-    pub const TRUST_CHAIN_PROVIDER_UNAVAILABLE: ErrorCode =
-        ErrorCode::new("jose.trust_chain_provider_unavailable");
-    /// No key-attestation validator was supplied for an attested proof.
-    pub const KEY_ATTESTATION_PROVIDER_REQUIRED: ErrorCode =
-        ErrorCode::new("jose.key_attestation_provider_required");
-    /// The key-attestation validator rejected the supplied evidence.
-    pub const KEY_ATTESTATION_REJECTED: ErrorCode = ErrorCode::new("jose.key_attestation_rejected");
-    /// The key-attestation validator could not service the request.
-    pub const KEY_ATTESTATION_PROVIDER_UNAVAILABLE: ErrorCode =
-        ErrorCode::new("jose.key_attestation_provider_unavailable");
-    /// Issuer proof policy inputs were invalid.
-    pub const INVALID_PROOF_POLICY: ErrorCode = ErrorCode::new("jose.invalid_proof_policy");
-    /// The proof issuer/client did not match policy.
-    pub const PROOF_CLIENT_MISMATCH: ErrorCode = ErrorCode::new("jose.proof_client_mismatch");
-    /// The proof audience did not match policy.
-    pub const PROOF_AUDIENCE_MISMATCH: ErrorCode = ErrorCode::new("jose.proof_audience_mismatch");
-    /// The proof nonce did not match policy.
-    pub const PROOF_NONCE_MISMATCH: ErrorCode = ErrorCode::new("jose.proof_nonce_mismatch");
-    /// The proof issuance time was older than policy permits.
-    pub const PROOF_STALE: ErrorCode = ErrorCode::new("jose.proof_stale");
-    /// The proof issuance time was too far in the future.
-    pub const PROOF_ISSUED_IN_FUTURE: ErrorCode = ErrorCode::new("jose.proof_issued_in_future");
-    /// The injected clock could not provide a trustworthy observation.
-    pub const PROOF_CLOCK_UNAVAILABLE: ErrorCode = ErrorCode::new("jose.proof_clock_unavailable");
-    /// The replay guard rejected a proof.
-    pub const PROOF_REPLAY_REJECTED: ErrorCode = ErrorCode::new("jose.proof_replay_rejected");
-    /// The replay guard could not service the request.
-    pub const PROOF_REPLAY_UNAVAILABLE: ErrorCode = ErrorCode::new("jose.proof_replay_unavailable");
 }
 
 /// A static reason that a bounded JWS Compact operation failed.
@@ -191,56 +131,6 @@ pub enum JoseError {
     SignerUnavailable,
     /// The selected signature did not verify.
     SignatureInvalid,
-    /// OID4VCI proof claims are empty, unbounded, or otherwise invalid.
-    InvalidProofClaims,
-    /// The protected `typ` is not exactly `openid4vci-proof+jwt`.
-    InvalidProofType,
-    /// No signing-key reference is present in the protected header.
-    MissingProofKeyReference,
-    /// The selected signing-key reference cannot be resolved by this profile.
-    UnsupportedProofKeyReference,
-    /// A DID key could not be resolved or projected safely.
-    ProofKeyResolutionFailed,
-    /// A DID key was not authorized by the exact authentication relationship.
-    ProofKeyNotAuthorized,
-    /// An X.509 reference requires an injected certificate-key provider.
-    X5cProviderRequired,
-    /// The certificate-key provider rejected the chain.
-    X5cRejected,
-    /// The certificate-key provider was unavailable.
-    X5cProviderUnavailable,
-    /// OID4VCI proof trust evidence is malformed or uses an ambiguous key source.
-    InvalidProofEvidence,
-    /// A federation-bound proof requires an injected trust-chain provider.
-    TrustChainProviderRequired,
-    /// The injected trust-chain provider rejected the chain.
-    TrustChainRejected,
-    /// The injected trust-chain provider was unavailable.
-    TrustChainProviderUnavailable,
-    /// An attested proof requires an injected key-attestation validator.
-    KeyAttestationProviderRequired,
-    /// The injected key-attestation validator rejected the evidence.
-    KeyAttestationRejected,
-    /// The injected key-attestation validator was unavailable.
-    KeyAttestationProviderUnavailable,
-    /// Caller-supplied proof policy is invalid.
-    InvalidProofPolicy,
-    /// The proof issuer/client mode does not match caller policy.
-    ProofClientMismatch,
-    /// The proof audience does not match caller policy.
-    ProofAudienceMismatch,
-    /// The proof nonce does not match caller policy.
-    ProofNonceMismatch,
-    /// The proof is older than the caller's accepted window.
-    ProofStale,
-    /// The proof issuance time is too far in the future.
-    ProofIssuedInFuture,
-    /// The injected wall clock was unavailable.
-    ProofClockUnavailable,
-    /// The caller-owned replay guard rejected the proof.
-    ProofReplayRejected,
-    /// The caller-owned replay guard was unavailable.
-    ProofReplayUnavailable,
 }
 
 macro_rules! define_jose_error_contracts {
@@ -287,31 +177,6 @@ define_jose_error_contracts! {
     SigningRejected => algorithm_key_registry_signing::SIGNING_REJECTED,
     SignerUnavailable => algorithm_key_registry_signing::SIGNER_UNAVAILABLE,
     SignatureInvalid => algorithm_key_registry_signing::SIGNATURE_INVALID,
-    InvalidProofClaims => proof_key_evidence::INVALID_PROOF_CLAIMS,
-    InvalidProofType => proof_key_evidence::INVALID_PROOF_TYPE,
-    MissingProofKeyReference => proof_key_evidence::MISSING_PROOF_KEY_REFERENCE,
-    UnsupportedProofKeyReference => proof_key_evidence::UNSUPPORTED_PROOF_KEY_REFERENCE,
-    ProofKeyResolutionFailed => proof_key_evidence::PROOF_KEY_RESOLUTION_FAILED,
-    ProofKeyNotAuthorized => proof_key_evidence::PROOF_KEY_NOT_AUTHORIZED,
-    X5cProviderRequired => proof_key_evidence::X5C_PROVIDER_REQUIRED,
-    X5cRejected => proof_key_evidence::X5C_REJECTED,
-    X5cProviderUnavailable => proof_key_evidence::X5C_PROVIDER_UNAVAILABLE,
-    InvalidProofEvidence => proof_key_evidence::INVALID_PROOF_EVIDENCE,
-    TrustChainProviderRequired => proof_key_evidence::TRUST_CHAIN_PROVIDER_REQUIRED,
-    TrustChainRejected => proof_key_evidence::TRUST_CHAIN_REJECTED,
-    TrustChainProviderUnavailable => proof_key_evidence::TRUST_CHAIN_PROVIDER_UNAVAILABLE,
-    KeyAttestationProviderRequired => proof_key_evidence::KEY_ATTESTATION_PROVIDER_REQUIRED,
-    KeyAttestationRejected => proof_key_evidence::KEY_ATTESTATION_REJECTED,
-    KeyAttestationProviderUnavailable => proof_key_evidence::KEY_ATTESTATION_PROVIDER_UNAVAILABLE,
-    InvalidProofPolicy => proof_policy_time_replay::INVALID_PROOF_POLICY,
-    ProofClientMismatch => proof_policy_time_replay::PROOF_CLIENT_MISMATCH,
-    ProofAudienceMismatch => proof_policy_time_replay::PROOF_AUDIENCE_MISMATCH,
-    ProofNonceMismatch => proof_policy_time_replay::PROOF_NONCE_MISMATCH,
-    ProofStale => proof_policy_time_replay::PROOF_STALE,
-    ProofIssuedInFuture => proof_policy_time_replay::PROOF_ISSUED_IN_FUTURE,
-    ProofClockUnavailable => proof_policy_time_replay::PROOF_CLOCK_UNAVAILABLE,
-    ProofReplayRejected => proof_policy_time_replay::PROOF_REPLAY_REJECTED,
-    ProofReplayUnavailable => proof_policy_time_replay::PROOF_REPLAY_UNAVAILABLE,
 }
 
 impl JoseError {

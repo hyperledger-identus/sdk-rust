@@ -10,18 +10,18 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Move OID4VCI proof construction and verifier modules/tests into
+- [x] 2.1 Move OID4VCI proof construction and verifier modules/tests into
       `identus-oid4vci` without semantic growth.
-- [ ] 2.2 Move profile-specific errors/contracts to the OID4VCI capability and
+- [x] 2.2 Move profile-specific errors/contracts to the OID4VCI capability and
       preserve static redacted bridges.
-- [ ] 2.3 Remove the JOSE DID dependency, add the OID4VCI DID dependency, and
+- [x] 2.3 Remove the JOSE DID dependency, add the OID4VCI DID dependency, and
       add a regression guard for the intended dependency direction.
-- [ ] 2.4 Update crate documentation, architecture documentation, and the
+- [x] 2.4 Update crate documentation, architecture documentation, and the
       dependency not-adopted ledger.
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run moved profile/error tests plus workspace fmt, Clippy, docs, and
+- [x] 3.1 Run moved profile/error tests plus workspace fmt, Clippy, docs, and
       tests.
 - [ ] 3.2 Run factory dependency, code-health, primary/MSRV, and portable target
       evidence; perform a clean diff review.

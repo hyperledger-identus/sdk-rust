@@ -178,7 +178,12 @@ impl ProtectedHeader {
         Self::with_key_reference_and_evidence(algorithm, type_, key_reference, None, None, limits)
     }
 
-    pub(crate) fn with_key_reference_and_evidence(
+    /// Construct a protected header with one exclusive public key reference
+    /// and bounded, untrusted extension evidence.
+    ///
+    /// The evidence is retained as syntax only. Certificate, attestation,
+    /// federation, profile, and trust validation belong to the caller.
+    pub fn with_key_reference_and_evidence(
         algorithm: &str,
         type_: Option<&str>,
         key_reference: Option<JwsKeyReference>,
@@ -202,6 +207,20 @@ impl ProtectedHeader {
             key_attestation,
             trust_chain,
         })
+    }
+
+    /// Validate bounded extension evidence without assigning protocol or trust
+    /// meaning to it.
+    pub fn validate_evidence(
+        key_attestation: Option<&str>,
+        trust_chain: Option<&[String]>,
+        limits: JwsLimits,
+    ) -> Result<(), JoseError> {
+        if valid_protected_evidence(key_attestation, trust_chain, limits) {
+            Ok(())
+        } else {
+            Err(JoseError::InvalidHeaderValue)
+        }
     }
 
     /// Case-sensitive algorithm identifier declared by the sender.

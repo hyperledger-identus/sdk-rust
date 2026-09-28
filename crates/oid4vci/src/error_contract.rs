@@ -11,6 +11,8 @@ pub(crate) mod issuer_authorization_server_metadata;
 pub(crate) mod offer_semantics_grants;
 pub(crate) mod offer_transport_json;
 pub(crate) mod pre_authorized_token_response;
+pub(crate) mod proof_key_evidence;
+pub(crate) mod proof_policy_time_replay;
 pub(crate) mod token_request_response_errors;
 
 #[derive(Clone, Copy)]

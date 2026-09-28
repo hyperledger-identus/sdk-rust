@@ -1,3 +1,4 @@
+// OID4VCI proof-profile conformance belongs to the protocol crate.
 use std::{
     future::Future,
     pin::pin,
@@ -12,13 +13,15 @@ use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use identus_core::{ClockError, UnixTimestampMillis, WallClock};
 use identus_crypto::{Ed25519PrivateKey, EncodeJwk, P256PrivateKey, PublicKeyJwk};
 use identus_jose::{
-    Ed25519Signer, JoseError, JwsAlgorithm, JwsKeyReference, JwsLimits,
+    Ed25519Signer, JoseError, JwsAlgorithm, JwsKeyReference, JwsLimits, SignatureSuiteRegistry,
+};
+use identus_oid4vci::{
     Oid4vciKeyAttestationFailure, Oid4vciKeyAttestationFuture, Oid4vciKeyAttestationInput,
-    Oid4vciKeyAttestationValidator, Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims,
-    Oid4vciProofJwtClient, Oid4vciProofJwtEvidence, Oid4vciProofJwtLimits, Oid4vciProofJwtNonce,
-    Oid4vciProofJwtPolicy, Oid4vciProofJwtVerifier, Oid4vciProofReplayFuture,
+    Oid4vciKeyAttestationValidator, Oid4vciProofError, Oid4vciProofJwtBuilder,
+    Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtEvidence, Oid4vciProofJwtLimits,
+    Oid4vciProofJwtNonce, Oid4vciProofJwtPolicy, Oid4vciProofJwtVerifier, Oid4vciProofReplayFuture,
     Oid4vciProofReplayGuard, Oid4vciProofReplayInput, Oid4vciTrustChainFailure,
-    Oid4vciTrustChainKeyFuture, Oid4vciTrustChainKeyProvider, SignatureSuiteRegistry,
+    Oid4vciTrustChainKeyFuture, Oid4vciTrustChainKeyProvider,
 };
 
 const PRIVATE_BYTES: [u8; 32] = [0x41; 32];
@@ -254,7 +257,7 @@ fn invalid_evidence_and_ambiguous_key_sources_fail_before_signing() {
         Oid4vciProofJwtEvidence::new(None, Some(Vec::new()), limits),
         Oid4vciProofJwtEvidence::new(None, Some(vec![ENTITY_CONFIGURATION.to_owned(); 9]), limits),
     ] {
-        assert_eq!(invalid, Err(JoseError::InvalidProofEvidence));
+        assert_eq!(invalid, Err(Oid4vciProofError::InvalidProofEvidence));
     }
 
     let result = Oid4vciProofJwtBuilder::default().prepare_with_evidence(
@@ -263,7 +266,10 @@ fn invalid_evidence_and_ambiguous_key_sources_fail_before_signing() {
         claims(),
         evidence(false, true),
     );
-    assert!(matches!(result, Err(JoseError::InvalidProofEvidence)));
+    assert!(matches!(
+        result,
+        Err(Oid4vciProofError::InvalidProofEvidence)
+    ));
 }
 
 #[test]
@@ -277,37 +283,37 @@ fn parser_rejects_malformed_duplicate_and_unknown_evidence_members() {
             raw_compact(&format!(
                 r#"{{"alg":"Ed25519","typ":"openid4vci-proof+jwt","kid":"{KEY_ID}","key_attestation":"bad"}}"#
             )),
-            JoseError::InvalidHeaderValue,
+            Oid4vciProofError::Jose(JoseError::InvalidHeaderValue),
         ),
         (
             raw_compact(&format!(
                 r#"{{"alg":"Ed25519","typ":"openid4vci-proof+jwt","kid":"{KEY_ID}","key_attestation":"A.A.A"}}"#
             )),
-            JoseError::InvalidHeaderValue,
+            Oid4vciProofError::Jose(JoseError::InvalidHeaderValue),
         ),
         (
             raw_compact(&format!(
                 r#"{{"alg":"Ed25519","typ":"openid4vci-proof+jwt","kid":"{KEY_ID}","trust_chain":[]}}"#
             )),
-            JoseError::InvalidHeaderValue,
+            Oid4vciProofError::Jose(JoseError::InvalidHeaderValue),
         ),
         (
             raw_compact(&format!(
                 r#"{{"alg":"Ed25519","typ":"openid4vci-proof+jwt","kid":"{KEY_ID}","key_attestation":"{ATTESTATION}","key_attestation":"{ATTESTATION}"}}"#
             )),
-            JoseError::DuplicateProtectedHeader,
+            Oid4vciProofError::Jose(JoseError::DuplicateProtectedHeader),
         ),
         (
             raw_compact(&format!(
                 r#"{{"alg":"Ed25519","typ":"openid4vci-proof+jwt","kid":"{KEY_ID}","trust_chain":["{ENTITY_CONFIGURATION}"],"unsupported":true}}"#
             )),
-            JoseError::UnknownProtectedHeader,
+            Oid4vciProofError::Jose(JoseError::UnknownProtectedHeader),
         ),
         (
             raw_compact(&format!(
                 r#"{{"alg":"Ed25519","typ":"openid4vci-proof+jwt","jwk":{public_jwk},"trust_chain":["{ENTITY_CONFIGURATION}"]}}"#
             )),
-            JoseError::InvalidProofEvidence,
+            Oid4vciProofError::InvalidProofEvidence,
         ),
     ];
     for (compact, expected) in cases {
@@ -342,17 +348,17 @@ fn trust_chain_missing_rejected_unavailable_and_wrong_keys_fail_closed() {
     let bare = Oid4vciProofJwtVerifier::new(Oid4vciProofJwtLimits::default(), &suites, None, None);
     assert_eq!(
         block_on(bare.verify_signature(bare.parse(&compact).unwrap())),
-        Err(JoseError::TrustChainProviderRequired)
+        Err(Oid4vciProofError::TrustChainProviderRequired)
     );
 
     for (failure, expected) in [
         (
             Oid4vciTrustChainFailure::Rejected,
-            JoseError::TrustChainRejected,
+            Oid4vciProofError::TrustChainRejected,
         ),
         (
             Oid4vciTrustChainFailure::Unavailable,
-            JoseError::TrustChainProviderUnavailable,
+            Oid4vciProofError::TrustChainProviderUnavailable,
         ),
     ] {
         let provider = RecordingTrustChainProvider::failing(failure);
@@ -376,7 +382,7 @@ fn trust_chain_missing_rejected_unavailable_and_wrong_keys_fail_closed() {
             .with_trust_chain_provider(&provider);
     assert_eq!(
         block_on(verifier.verify_signature(verifier.parse(&compact).unwrap())),
-        Err(JoseError::SignatureInvalid)
+        Err(Oid4vciProofError::Jose(JoseError::SignatureInvalid))
     );
 
     let wrong_algorithm = P256PrivateKey::from_slice(&[0x01; 32])
@@ -389,7 +395,7 @@ fn trust_chain_missing_rejected_unavailable_and_wrong_keys_fail_closed() {
             .with_trust_chain_provider(&provider);
     assert_eq!(
         block_on(verifier.verify_signature(verifier.parse(&compact).unwrap())),
-        Err(JoseError::InvalidVerificationKey)
+        Err(Oid4vciProofError::Jose(JoseError::InvalidVerificationKey))
     );
 }
 
@@ -424,17 +430,17 @@ fn attestation_requires_one_accepting_provider_after_a_valid_signature() {
     let verified = block_on(bare.verify_signature(bare.parse(&compact).unwrap())).unwrap();
     assert_eq!(
         block_on(bare.validate_trust(verified.clone())),
-        Err(JoseError::KeyAttestationProviderRequired)
+        Err(Oid4vciProofError::KeyAttestationProviderRequired)
     );
 
     for (failure, expected) in [
         (
             Oid4vciKeyAttestationFailure::Rejected,
-            JoseError::KeyAttestationRejected,
+            Oid4vciProofError::KeyAttestationRejected,
         ),
         (
             Oid4vciKeyAttestationFailure::Unavailable,
-            JoseError::KeyAttestationProviderUnavailable,
+            Oid4vciProofError::KeyAttestationProviderUnavailable,
         ),
     ] {
         let validator = RecordingAttestationValidator::failing(failure);
@@ -458,7 +464,7 @@ fn attestation_requires_one_accepting_provider_after_a_valid_signature() {
     let tampered = String::from_utf8(tampered).unwrap();
     assert_eq!(
         block_on(verifier.verify_signature(verifier.parse(&tampered).unwrap())),
-        Err(JoseError::SignatureInvalid)
+        Err(Oid4vciProofError::Jose(JoseError::SignatureInvalid))
     );
     assert_eq!(validator.calls.load(Ordering::SeqCst), 0);
 }

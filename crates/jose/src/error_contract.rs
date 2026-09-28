@@ -2,8 +2,6 @@ use identus_core::{ErrorCode, ErrorKind, IdentusError};
 
 pub(crate) mod algorithm_key_registry_signing;
 pub(crate) mod compact_header;
-pub(crate) mod proof_key_evidence;
-pub(crate) mod proof_policy_time_replay;
 
 #[derive(Clone, Copy)]
 pub(crate) struct ErrorContract {
@@ -36,7 +34,7 @@ mod tests {
 
     use crate::JoseError;
 
-    const GOLDEN: &str = include_str!("../tests/fixtures/jose-error-contract-v1.csv");
+    const GOLDEN: &str = include_str!("../tests/fixtures/jose-error-contract-v2.csv");
 
     fn fixture_variants() -> Vec<String> {
         let mut lines = GOLDEN.lines().filter(|line| !line.starts_with('#'));
@@ -61,8 +59,8 @@ mod tests {
             .collect();
         let unique: BTreeSet<_> = inventory.iter().collect();
 
-        assert_eq!(JoseError::CONTRACT_VARIANTS.len(), 51);
-        assert_eq!(unique.len(), 51);
+        assert_eq!(JoseError::CONTRACT_VARIANTS.len(), 26);
+        assert_eq!(unique.len(), 26);
         assert_eq!(inventory, fixture_variants());
     }
 }

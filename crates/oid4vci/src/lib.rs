@@ -73,6 +73,9 @@ mod oauth;
 mod pre_authorized_server;
 mod pre_authorized_token_http_response;
 mod pre_authorized_token_request;
+mod proof_error;
+mod proof_jwt;
+mod proof_jwt_verifier;
 mod semantic;
 mod token_error_response;
 mod token_http_response;
@@ -168,6 +171,21 @@ pub use pre_authorized_token_http_response::{
 pub use pre_authorized_token_request::{
     PreAuthorizedTokenRequest, TOKEN_REQUEST_HTTP_METHOD, TOKEN_REQUEST_MEDIA_TYPE,
 };
+pub use proof_error::{Oid4vciProofError, error_code as proof_error_code};
+pub use proof_jwt::{
+    DEFAULT_MAX_PROOF_CLAIM_STRING_BYTES, OID4VCI_PROOF_JWT_TYPE, Oid4vciProofJwt,
+    Oid4vciProofJwtBuilder, Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtClientId,
+    Oid4vciProofJwtEvidence, Oid4vciProofJwtLimits, Oid4vciProofSigningInput,
+};
+pub use proof_jwt_verifier::{
+    Oid4vciAuthorizedProofJwt, Oid4vciKeyAttestationFailure, Oid4vciKeyAttestationFuture,
+    Oid4vciKeyAttestationInput, Oid4vciKeyAttestationValidator, Oid4vciParsedProofJwt,
+    Oid4vciProofJwtNonce, Oid4vciProofJwtPolicy, Oid4vciProofJwtVerifier,
+    Oid4vciProofReplayFailure, Oid4vciProofReplayFuture, Oid4vciProofReplayGuard,
+    Oid4vciProofReplayInput, Oid4vciTrustChainFailure, Oid4vciTrustChainKeyFuture,
+    Oid4vciTrustChainKeyProvider, Oid4vciTrustedProofJwt, Oid4vciVerifiedProofJwt,
+    Oid4vciX5cKeyFailure, Oid4vciX5cKeyFuture, Oid4vciX5cKeyProvider,
+};
 pub use semantic::{CredentialConfigurationId, CredentialIssuerIdentifier, CredentialOffer};
 pub use token_error_response::{
     TokenEndpointErrorCode, TokenEndpointErrorKind, TokenErrorResponseCore, TokenErrorUri,
@@ -184,5 +202,5 @@ use identus_core::Component;
 /// Metadata for the `identus-oid4vci` crate.
 pub const COMPONENT: Component = Component {
     name: "identus-oid4vci",
-    summary: "Bounded OID4VCI Final protocol semantics.",
+    summary: "Bounded OID4VCI Final protocol semantics and proof policy.",
 };

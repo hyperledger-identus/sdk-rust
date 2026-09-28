@@ -173,8 +173,8 @@ reserve the final namespace automatically.
 | `identus-uniffi-did` | experimental versioned UniFFI value facade for bounded DID and DID URL parsing, including local Apple proof, ARM64 Android package proof and test-only x86_64 Android runtime proof | published/signed mobile distribution, ARM64 device execution, physical-device or compatibility-matrix support, or general binding umbrella |
 | `identus-wasm-did` | experimental versioned browser-native ESM/TypeScript value facade for bounded DID and DID URL parsing with Chromium/Firefox behavior evidence | publication, Node, React Native, bundler-specific policy, browser-version matrix, secrets or browser authority |
 | `identus-vc-core` | format-neutral credential/presentation envelopes, disclosure descriptors, staged verification evidence and status vocabulary | format codecs, trust policy, inventory/storage IDs |
-| `identus-jose` | bounded JWS compact codec and narrowly profiled builder/verifier APIs | general-purpose JOSE, JWE, custody |
-| `identus-oid4vci` | OID4VCI Final wire types, validation and resumable holder/issuer state contracts | wallet UI, browser launching, issuer policy |
+| `identus-jose` | bounded protocol-neutral JWS compact, protected-header and signature capabilities | protocol claims/policy, DID, general-purpose JOSE, JWE, custody |
+| `identus-oid4vci` | OID4VCI Final wire types, proof profile, validation and resumable holder/issuer state contracts | wallet UI, browser launching, ambient issuer trust policy |
 | `identus-oid4vp` | OID4VP Final, DCQL and response-state contracts | credential selection and consent UI |
 | `identus-siopv2` | SIOPv2 profile types and validation | relying-party trust policy |
 | `identus-conformance` | fixture schemas, provenance checks, architecture/dependency guards and reusable harnesses | product end-to-end tests |
@@ -198,12 +198,13 @@ crates.
                      ▼            ▼
                 identus-jose  identus-vc-core
                      │            │
-                     └──────┬─────┘
-                            ▼
-                    identus-did-core
-                       │          │
-                       ▼          ▼
-                identus-apollo  identus-ports
+                     ▼            ▼
+              identus-apollo  identus-did-core
+                                    │
+                                    ▼
+                              identus-ports
+
+identus-oid4vci -> identus-did-core for protocol-owned DID proof resolution
 
 identus-did-resolver-http -> identus-did-core + optional HTTP framework
 identus-conformance       -> dev/test edges only

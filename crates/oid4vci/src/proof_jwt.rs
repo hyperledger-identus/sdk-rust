@@ -1,15 +1,17 @@
 //! Holder-side construction of the OpenID4VCI 1.0 Final JWT key proof.
+//! This profile belongs to the OID4VCI protocol crate.
 
 use std::fmt;
+use std::io::{self, Write};
 
 use serde::Serialize;
 
-use crate::compact::encode_bounded_json;
-use crate::header::valid_protected_evidence;
-use crate::{
+use identus_jose::{
     JoseError, JwsAlgorithm, JwsKeyReference, JwsLimits, JwsSigner, JwsSigningInput,
     JwsVerificationKey, ProtectedHeader, UnverifiedCompactJws,
 };
+
+use crate::Oid4vciProofError;
 
 /// Required protected type for the OpenID4VCI JWT key proof.
 pub const OID4VCI_PROOF_JWT_TYPE: &str = "openid4vci-proof+jwt";
@@ -25,9 +27,12 @@ pub struct Oid4vciProofJwtLimits {
 
 impl Oid4vciProofJwtLimits {
     /// Combine compact JWS limits with a positive claim-string ceiling.
-    pub const fn new(jws: JwsLimits, max_claim_string_bytes: usize) -> Result<Self, JoseError> {
+    pub const fn new(
+        jws: JwsLimits,
+        max_claim_string_bytes: usize,
+    ) -> Result<Self, Oid4vciProofError> {
         if max_claim_string_bytes == 0 {
-            return Err(JoseError::InvalidLimits);
+            return Err(Oid4vciProofError::Jose(JoseError::InvalidLimits));
         }
         Ok(Self {
             jws,
@@ -70,13 +75,15 @@ impl Oid4vciProofJwtEvidence {
         key_attestation: Option<String>,
         trust_chain: Option<Vec<String>>,
         limits: Oid4vciProofJwtLimits,
-    ) -> Result<Self, JoseError> {
-        if !valid_protected_evidence(
+    ) -> Result<Self, Oid4vciProofError> {
+        if ProtectedHeader::validate_evidence(
             key_attestation.as_deref(),
             trust_chain.as_deref(),
             limits.jws(),
-        ) {
-            return Err(JoseError::InvalidProofEvidence);
+        )
+        .is_err()
+        {
+            return Err(Oid4vciProofError::InvalidProofEvidence);
         }
         Ok(Self {
             key_attestation,
@@ -105,13 +112,15 @@ impl Oid4vciProofJwtEvidence {
         self.trust_chain.as_deref()
     }
 
-    fn validate(&self, limits: Oid4vciProofJwtLimits) -> Result<(), JoseError> {
-        if !valid_protected_evidence(
+    fn validate(&self, limits: Oid4vciProofJwtLimits) -> Result<(), Oid4vciProofError> {
+        if ProtectedHeader::validate_evidence(
             self.key_attestation.as_deref(),
             self.trust_chain.as_deref(),
             limits.jws(),
-        ) {
-            return Err(JoseError::InvalidProofEvidence);
+        )
+        .is_err()
+        {
+            return Err(Oid4vciProofError::InvalidProofEvidence);
         }
         Ok(())
     }
@@ -141,7 +150,7 @@ impl fmt::Debug for Oid4vciProofJwtEvidence {
 /// Raw strings cannot bypass validation:
 ///
 /// ```compile_fail
-/// use identus_jose::Oid4vciProofJwtClient;
+/// use identus_oid4vci::Oid4vciProofJwtClient;
 ///
 /// let _ = Oid4vciProofJwtClient::Identified("unbounded".to_owned());
 /// ```
@@ -150,10 +159,13 @@ pub struct Oid4vciProofJwtClientId(String);
 
 impl Oid4vciProofJwtClientId {
     /// Validate and retain a client identifier under the supplied limits.
-    pub fn new(value: impl AsRef<str>, limits: Oid4vciProofJwtLimits) -> Result<Self, JoseError> {
+    pub fn new(
+        value: impl AsRef<str>,
+        limits: Oid4vciProofJwtLimits,
+    ) -> Result<Self, Oid4vciProofError> {
         let value = value.as_ref();
         if !valid_claim(value, limits) {
-            return Err(JoseError::InvalidProofClaims);
+            return Err(Oid4vciProofError::InvalidProofClaims);
         }
         Ok(Self(value.to_owned()))
     }
@@ -185,7 +197,7 @@ impl Oid4vciProofJwtClient {
     pub fn identified(
         client_id: impl AsRef<str>,
         limits: Oid4vciProofJwtLimits,
-    ) -> Result<Self, JoseError> {
+    ) -> Result<Self, Oid4vciProofError> {
         Oid4vciProofJwtClientId::new(client_id, limits).map(Self::Identified)
     }
 
@@ -225,7 +237,7 @@ impl Oid4vciProofJwtClaims {
         issued_at: i64,
         nonce: Option<String>,
         limits: Oid4vciProofJwtLimits,
-    ) -> Result<Self, JoseError> {
+    ) -> Result<Self, Oid4vciProofError> {
         let audience = audience.as_ref();
         if client
             .issuer()
@@ -235,7 +247,7 @@ impl Oid4vciProofJwtClaims {
                 .as_deref()
                 .is_some_and(|value| !valid_claim(value, limits))
         {
-            return Err(JoseError::InvalidProofClaims);
+            return Err(Oid4vciProofError::InvalidProofClaims);
         }
         let claims = Self {
             client,
@@ -252,7 +264,7 @@ impl Oid4vciProofJwtClaims {
         issued_at: i64,
         nonce: Option<String>,
         limits: Oid4vciProofJwtLimits,
-    ) -> Result<Self, JoseError> {
+    ) -> Result<Self, Oid4vciProofError> {
         let claims = Self {
             client,
             audience,
@@ -287,7 +299,7 @@ impl Oid4vciProofJwtClaims {
         self.nonce.as_deref()
     }
 
-    fn validate(&self, limits: Oid4vciProofJwtLimits) -> Result<(), JoseError> {
+    fn validate(&self, limits: Oid4vciProofJwtLimits) -> Result<(), Oid4vciProofError> {
         if self
             .client
             .issuer()
@@ -298,7 +310,7 @@ impl Oid4vciProofJwtClaims {
                 .as_deref()
                 .is_some_and(|value| !valid_claim(value, limits))
         {
-            return Err(JoseError::InvalidProofClaims);
+            return Err(Oid4vciProofError::InvalidProofClaims);
         }
         Ok(())
     }
@@ -333,7 +345,7 @@ impl Oid4vciProofJwtBuilder {
         algorithm: JwsAlgorithm,
         key_reference: JwsKeyReference,
         claims: Oid4vciProofJwtClaims,
-    ) -> Result<Oid4vciProofSigningInput, JoseError> {
+    ) -> Result<Oid4vciProofSigningInput, Oid4vciProofError> {
         self.prepare_with_evidence(
             algorithm,
             key_reference,
@@ -349,11 +361,11 @@ impl Oid4vciProofJwtBuilder {
         key_reference: JwsKeyReference,
         claims: Oid4vciProofJwtClaims,
         evidence: Oid4vciProofJwtEvidence,
-    ) -> Result<Oid4vciProofSigningInput, JoseError> {
+    ) -> Result<Oid4vciProofSigningInput, Oid4vciProofError> {
         claims.validate(self.limits)?;
         evidence.validate(self.limits)?;
         if evidence.trust_chain.is_some() && !matches!(key_reference, JwsKeyReference::KeyId(_)) {
-            return Err(JoseError::InvalidProofEvidence);
+            return Err(Oid4vciProofError::InvalidProofEvidence);
         }
         if let JwsKeyReference::Jwk(public_key) = &key_reference {
             JwsVerificationKey::new(algorithm, public_key)?;
@@ -366,11 +378,9 @@ impl Oid4vciProofJwtBuilder {
             evidence.trust_chain,
             self.limits.jws(),
         )?;
-        let payload = encode_bounded_json(
+        let payload = encode_bounded_claims(
             &WireClaims::from(&claims),
             self.limits.jws().max_payload_bytes(),
-            JoseError::PayloadTooLarge,
-            JoseError::InvalidProofClaims,
         )?;
         let input = JwsSigningInput::new(header, payload, self.limits.jws())?;
         Ok(Oid4vciProofSigningInput { input })
@@ -397,7 +407,7 @@ impl Oid4vciProofSigningInput {
     }
 
     /// Sign through an algorithm-bound external capability.
-    pub fn sign_with(&self, signer: &dyn JwsSigner) -> Result<Oid4vciProofJwt, JoseError> {
+    pub fn sign_with(&self, signer: &dyn JwsSigner) -> Result<Oid4vciProofJwt, Oid4vciProofError> {
         let compact = self.input.sign_with(signer)?;
         Ok(Oid4vciProofJwt { compact })
     }
@@ -465,6 +475,52 @@ impl<'a> From<&'a Oid4vciProofJwtClaims> for WireClaims<'a> {
             iat: value.issued_at,
             nonce: value.nonce.as_deref(),
         }
+    }
+}
+
+fn encode_bounded_claims<T: Serialize + ?Sized>(
+    value: &T,
+    maximum: usize,
+) -> Result<Vec<u8>, Oid4vciProofError> {
+    let mut writer = BoundedClaimsWriter::new(maximum);
+    if serde_json::to_writer(&mut writer, value).is_err() {
+        return Err(if writer.exceeded {
+            Oid4vciProofError::Jose(JoseError::PayloadTooLarge)
+        } else {
+            Oid4vciProofError::InvalidProofClaims
+        });
+    }
+    Ok(writer.bytes)
+}
+
+struct BoundedClaimsWriter {
+    bytes: Vec<u8>,
+    maximum: usize,
+    exceeded: bool,
+}
+
+impl BoundedClaimsWriter {
+    fn new(maximum: usize) -> Self {
+        Self {
+            bytes: Vec::with_capacity(maximum.min(1_024)),
+            maximum,
+            exceeded: false,
+        }
+    }
+}
+
+impl Write for BoundedClaimsWriter {
+    fn write(&mut self, input: &[u8]) -> io::Result<usize> {
+        if input.len() > self.maximum.saturating_sub(self.bytes.len()) {
+            self.exceeded = true;
+            return Err(io::Error::other("JSON value exceeds its byte limit"));
+        }
+        self.bytes.extend_from_slice(input);
+        Ok(input.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
     }
 }
 

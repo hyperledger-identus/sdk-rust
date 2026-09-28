@@ -1,7 +1,7 @@
 use identus_core::ErrorKind;
 
 use super::ErrorContract;
-use crate::error::error_code;
+use crate::proof_error::error_code;
 
 pub(crate) const INVALID_PROOF_POLICY: ErrorContract = ErrorContract::new(
     error_code::INVALID_PROOF_POLICY,

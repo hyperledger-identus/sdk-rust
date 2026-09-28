@@ -67,10 +67,11 @@ calling it unbounded SDK behavior.
 - `HexStr` and `Base64UrlStrNoPad` use fallible byte constructors that reject
   before canonical text would exceed 4,096 bytes; ADR 0129 records the source
   migration from the former blanket `From` implementations.
-- `JwsKeyReference::KeyId`/`X5c` and
+- `JwsKeyReference::KeyId`/`X5c` and the OID4VCI-owned
   `Oid4vciProofJwtClient::Identified` carry opaque validated payloads; raw
   strings or collections cannot directly inhabit those public alternatives,
-  and tighter builder limits are revalidated.
+  and tighter builder limits are revalidated at their respective module
+  boundaries.
 
 The broad “audit incomplete” wording is therefore retired. `SDK-LIM-007`
 remains, narrowed to the concrete outer-preallocation, caller-budgeted work,

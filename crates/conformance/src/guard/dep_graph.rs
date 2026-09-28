@@ -112,10 +112,20 @@ fn manifests_conform_to_layer_rules() {
                 ["identus-core", "identus-derive"],
                 "DID must retain its exact crypto-free internal dependency cone"
             ),
+            "identus-jose" => assert_eq!(
+                deps,
+                ["identus-core", "identus-crypto"],
+                "JOSE must retain its exact protocol-neutral core and crypto dependency cone"
+            ),
             "identus-oid4vci" => assert_eq!(
                 deps,
-                ["identus-core", "identus-crypto", "identus-jose"],
-                "OID4VCI must retain its exact core, feature-minimal crypto, and JOSE internal dependency cone"
+                [
+                    "identus-core",
+                    "identus-crypto",
+                    "identus-did",
+                    "identus-jose"
+                ],
+                "OID4VCI must retain its exact core, feature-minimal crypto, DID, and JOSE internal dependency cone"
             ),
             "identus-oid4vp" => assert_eq!(
                 deps,
@@ -175,7 +185,6 @@ fn wallet_conformance_is_an_inward_verification_leaf() {
 fn jose_is_reusable_below_protocol_semantics() {
     assert!(check_dep_edge("identus-jose", "identus-core").is_ok());
     assert!(check_dep_edge("identus-jose", "identus-crypto").is_ok());
-    assert!(check_dep_edge("identus-jose", "identus-did").is_ok());
     assert!(check_dep_edge("identus-openid4vc", "identus-jose").is_ok());
     assert!(check_dep_edge("identus-crypto", "identus-jose").is_err());
 }
@@ -184,6 +193,7 @@ fn jose_is_reusable_below_protocol_semantics() {
 fn oid4vci_protocol_retains_an_exact_inward_internal_cone() {
     assert!(check_dep_edge("identus-oid4vci", "identus-core").is_ok());
     assert!(check_dep_edge("identus-oid4vci", "identus-crypto").is_ok());
+    assert!(check_dep_edge("identus-oid4vci", "identus-did").is_ok());
     assert!(check_dep_edge("identus-oid4vci", "identus-jose").is_ok());
     assert!(check_dep_edge("identus-core", "identus-oid4vci").is_err());
     assert!(check_dep_edge("identus-crypto", "identus-oid4vci").is_err());

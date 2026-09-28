@@ -1,7 +1,4 @@
-use identus_jose::{
-    JwsAlgorithm, JwsKeyReference, JwsSigner, Oid4vciProofJwt, Oid4vciProofJwtBuilder,
-    Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtLimits, SignerFailure,
-};
+use identus_jose::{JwsAlgorithm, JwsKeyReference, JwsSigner, SignerFailure};
 use identus_oid4vci::{
     AuthorizationCodeTokenHttpResponseLimits, AuthorizationCodeTokenRequestLimits,
     AuthorizationCodeTokenResponseOutcome, AuthorizationRequestInputLimits,
@@ -9,7 +6,9 @@ use identus_oid4vci::{
     AuthorizationServerMetadataCore, AuthorizationServerMetadataLimits, CredentialIssuerMetadata,
     CredentialIssuerMetadataLimits, CredentialOffer, CredentialOfferError,
     CredentialOfferGrantLimits, CredentialOfferLimits, CredentialOfferSemanticLimits,
-    EmbeddedCredentialOffer, JwtCredentialRequestLimits, TokenAuthorizationDetailsLimits,
+    EmbeddedCredentialOffer, JwtCredentialRequestLimits, Oid4vciProofJwt, Oid4vciProofJwtBuilder,
+    Oid4vciProofJwtClaims, Oid4vciProofJwtClient, Oid4vciProofJwtLimits,
+    TokenAuthorizationDetailsLimits,
 };
 use serde_json::json;
 

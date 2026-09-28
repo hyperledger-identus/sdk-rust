@@ -5,9 +5,9 @@ engine_version                     = "0.0.25"
 classifier                         = "syn-ast-v1"
 classifier_protocol_version        = 2
 classifier_command                 = [ "cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--" ]
-baseline_revision                  = "d3cdc6719fb040da2753dbfde9c3a784c85dafb2"
-baseline_source_fingerprint_sha256 = "ba8e6fd8b4e7b5decc5420860913d485c941a0399e2adb426cb71faeb721b446"
-baseline_report_sha256             = "63f05b5c2dd3751fccc0a244b561c02a56b029ea1e6fcb9c9c9a491230ba2655"
+baseline_revision                  = "2af5fdba5c255acf8eab8446de68ca2475428ccc"
+baseline_source_fingerprint_sha256 = "20ada25d63d52743bbf457fb17bd0e26ba665291daff2d37cedfe7b07204905f"
+baseline_report_sha256             = "9e3f3702faef64135a1d0376b4edb84f4b4e3171458ec927cef04e36b47c2930"
 generated_exclusions               = [  ]
 
 [attention]
@@ -50,13 +50,6 @@ locations   = [ "crates/did/src/document.rs" ]
 disposition = "decompose"
 owner       = "identus-did maintainers"
 evidence    = "Document model and validation traversal are private-module candidates after characterization."
-
-[[hotspots]]
-id          = "did-registration-model-and-validation"
-locations   = [ "crates/did/src/registration.rs" ]
-disposition = "decompose"
-owner       = "identus-did maintainers"
-evidence    = "Lifecycle modeling and recursive extension validation should become characterized private boundaries."
 
 [[hotspots]]
 id          = "oid4vci-error-projection"

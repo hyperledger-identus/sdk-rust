@@ -17,7 +17,7 @@
 - [x] 2.2 Move identifiers, actions, jobs, and request models without API drift.
 - [x] 2.3 Move lifecycle/result validation and the registrar port without
       changing method, continuation, metadata, or runtime semantics.
-- [ ] 2.4 Prove public/error/source equivalence and refresh code-health evidence
+- [x] 2.4 Prove public/error/source equivalence and refresh code-health evidence
       without weakening unrelated ownership.
 
 ## 3. Verification and delivery

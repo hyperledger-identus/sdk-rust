@@ -71,15 +71,6 @@
       "owner": "identus-did maintainers"
     },
     {
-      "disposition": "decompose",
-      "evidence": "Lifecycle modeling and recursive extension validation should become characterized private boundaries.",
-      "id": "did-registration-model-and-validation",
-      "locations": [
-        "crates/did/src/registration.rs"
-      ],
-      "owner": "identus-did maintainers"
-    },
-    {
       "disposition": "defer-with-owner",
       "evidence": "Error architecture needs an independently characterized representative pilot.",
       "id": "oid4vci-error-projection",
@@ -118,7 +109,7 @@
       "owner": "identus-did resolution model"
     }
   ],
-  "population_projection_sha256": "38fa54d66f35128bd32ff98b7bc7fcb1758e7a65000576dfea77d03a2f474597",
+  "population_projection_sha256": "a0dbac3fbe9bb4301901ba7ca242ea7cd0f9877f94cf8a80f1dff5138fb2676e",
   "populations": {
     "external_test": {
       "authored_nonblank_lines": 30252,
@@ -131,12 +122,12 @@
       "functions": 357
     },
     "production": {
-      "authored_nonblank_lines": 36241,
-      "files": 182,
-      "functions": 2763
+      "authored_nonblank_lines": 36293,
+      "files": 187,
+      "functions": 2766
     }
   },
-  "revision": "d3cdc6719fb040da2753dbfde9c3a784c85dafb2",
+  "revision": "2af5fdba5c255acf8eab8446de68ca2475428ccc",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -431,24 +422,24 @@
         "start_line": 329
       },
       {
-        "cognitive": 18,
-        "cyclomatic": 28,
-        "end_line": 1136,
-        "name": "validate_result",
-        "path": "crates/did/src/registration.rs",
-        "population": "production",
-        "sloc": 75,
-        "start_line": 1062
-      },
-      {
         "cognitive": 12,
         "cyclomatic": 16,
-        "end_line": 1251,
+        "end_line": 209,
         "name": "validate_object_members",
-        "path": "crates/did/src/registration.rs",
+        "path": "crates/did/src/registration/public_data.rs",
         "population": "production",
         "sloc": 37,
-        "start_line": 1215
+        "start_line": 173
+      },
+      {
+        "cognitive": 18,
+        "cyclomatic": 28,
+        "end_line": 275,
+        "name": "validate_result",
+        "path": "crates/did/src/registration/result.rs",
+        "population": "production",
+        "sloc": 75,
+        "start_line": 201
       },
       {
         "cognitive": 17,
@@ -751,14 +742,10 @@
         "path": "crates/did/src/document.rs"
       },
       {
-        "authored_nonblank_lines": 1163,
-        "path": "crates/did/src/registration.rs"
-      },
-      {
         "authored_nonblank_lines": 1134,
         "path": "crates/presentations/src/model.rs"
       }
     ]
   },
-  "source_fingerprint_sha256": "ba8e6fd8b4e7b5decc5420860913d485c941a0399e2adb426cb71faeb721b446"
+  "source_fingerprint_sha256": "20ada25d63d52743bbf457fb17bd0e26ba665291daff2d37cedfe7b07204905f"
 }

@@ -6,112 +6,21 @@
 
 #![forbid(unsafe_code)]
 
+mod exact;
+mod list;
+
 use core::fmt;
 
 use identus_wallet::{
-    CredentialStore, DidStore, ProtocolStateStore, SecretStore, StatusCacheStore, StorageCursor,
-    StorageDeleteCondition, StorageDeleteOutcome, StorageError, StorageFuture, StoragePageRequest,
-    StoragePageSize, StorageWrite, StorageWriteCondition, StorageWriteOutcome,
+    CredentialStore, DidStore, ProtocolStateStore, SecretStore, StatusCacheStore,
+    StorageDeleteCondition, StorageDeleteOutcome, StorageFuture, StoragePageRequest, StorageWrite,
 };
+
+pub use exact::ExactStoreFixture;
+pub use list::ListStoreFixture;
 
 /// Maximum number of index entries accepted by one conformance fixture.
 pub const MAX_CONFORMANCE_INDEX_ENTRIES: usize = 4_096;
-
-/// Exact-key values used to exercise one consumer storage capability.
-pub struct ExactStoreFixture<Scope, Key, Value> {
-    scope: Scope,
-    isolated_scope: Scope,
-    key: Key,
-    missing_key: Key,
-    initial_value: Value,
-    replacement_value: Value,
-}
-
-impl<Scope, Key, Value> ExactStoreFixture<Scope, Key, Value> {
-    /// Construct a fixture whose scopes and keys are known to be distinct.
-    ///
-    /// Use a disposable namespace: a failing adapter may leave the primary
-    /// record behind because generic cleanup cannot safely override a failed
-    /// compare-and-swap contract.
-    #[must_use]
-    pub const fn new(
-        scope: Scope,
-        isolated_scope: Scope,
-        key: Key,
-        missing_key: Key,
-        initial_value: Value,
-        replacement_value: Value,
-    ) -> Self {
-        Self {
-            scope,
-            isolated_scope,
-            key,
-            missing_key,
-            initial_value,
-            replacement_value,
-        }
-    }
-}
-
-impl<Scope, Key, Value> fmt::Debug for ExactStoreFixture<Scope, Key, Value> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("ExactStoreFixture")
-            .finish_non_exhaustive()
-    }
-}
-
-/// A preseeded recovery-index fixture for a list-capable storage adapter.
-pub struct ListStoreFixture<Scope, Entry> {
-    scope: Scope,
-    expected_entries: Vec<Entry>,
-    page_size: StoragePageSize,
-}
-
-impl<Scope, Entry: PartialEq> ListStoreFixture<Scope, Entry> {
-    /// Validate expected entries and a page size that forces pagination.
-    pub fn new(
-        scope: Scope,
-        expected_entries: Vec<Entry>,
-        page_size: StoragePageSize,
-    ) -> Result<Self, ConformanceFixtureError> {
-        if !(2..=MAX_CONFORMANCE_INDEX_ENTRIES).contains(&expected_entries.len()) {
-            return Err(ConformanceFixtureError::InvalidExpectedEntryCount);
-        }
-        if page_size.get() >= expected_entries.len() {
-            return Err(ConformanceFixtureError::PageSizeDoesNotPaginate);
-        }
-        for (offset, entry) in expected_entries.iter().enumerate() {
-            if expected_entries[offset + 1..]
-                .iter()
-                .any(|candidate| candidate == entry)
-            {
-                return Err(ConformanceFixtureError::DuplicateExpectedEntry);
-            }
-        }
-        Ok(Self {
-            scope,
-            expected_entries,
-            page_size,
-        })
-    }
-
-    /// Return the number of entries the adapter was seeded with.
-    #[must_use]
-    pub fn expected_entry_count(&self) -> usize {
-        self.expected_entries.len()
-    }
-}
-
-impl<Scope, Entry> fmt::Debug for ListStoreFixture<Scope, Entry> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("ListStoreFixture")
-            .field("expected_entry_count", &self.expected_entries.len())
-            .field("page_size", &self.page_size.get())
-            .finish()
-    }
-}
 
 /// Static reasons why a caller-provided conformance fixture is invalid.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -230,432 +139,19 @@ impl StorageConformanceReport {
         self.observed_entries
     }
 
-    const fn combine(self, other: Self) -> Self {
+    const fn new(completed_operations: usize, observed_entries: usize) -> Self {
         Self {
-            completed_operations: self.completed_operations + other.completed_operations,
-            observed_entries: self.observed_entries + other.observed_entries,
+            completed_operations,
+            observed_entries,
         }
     }
-}
 
-trait ExactDriver: Sync {
-    type Scope: Send + Sync;
-    type Key: Send + Sync;
-    type Value: Send + Sync;
-
-    fn load<'a>(
-        &'a self,
-        scope: &'a Self::Scope,
-        key: &'a Self::Key,
-    ) -> StorageFuture<'a, Option<identus_wallet::Stored<Self::Value>>>;
-
-    fn write<'a>(
-        &'a self,
-        scope: &'a Self::Scope,
-        key: &'a Self::Key,
-        write: StorageWrite<Self::Value>,
-    ) -> StorageFuture<'a, identus_wallet::StorageWriteReceipt>;
-
-    fn delete<'a>(
-        &'a self,
-        scope: &'a Self::Scope,
-        key: &'a Self::Key,
-        condition: StorageDeleteCondition,
-    ) -> StorageFuture<'a, StorageDeleteOutcome>;
-}
-
-trait ListDriver: ExactDriver {
-    type IndexEntry: Send + Sync;
-
-    fn list<'a>(
-        &'a self,
-        scope: &'a Self::Scope,
-        request: StoragePageRequest,
-    ) -> StorageFuture<'a, identus_wallet::StoragePage<Self::IndexEntry>>;
-}
-
-async fn run_exact<D>(
-    driver: &D,
-    fixture: &ExactStoreFixture<D::Scope, D::Key, D::Value>,
-) -> Result<StorageConformanceReport, ConformanceFailure>
-where
-    D: ExactDriver + ?Sized,
-    D::Value: Clone + PartialEq,
-{
-    let mut operations = 0usize;
-
-    let missing = driver
-        .load(&fixture.scope, &fixture.missing_key)
-        .await
-        .map_err(|_| failure("missing-load", ConformanceFailureKind::OperationFailed))?;
-    operations += 1;
-    if missing.is_some() {
-        return Err(failure(
-            "missing-load",
-            ConformanceFailureKind::UnexpectedRecordPresence,
-        ));
-    }
-
-    let initial = driver
-        .load(&fixture.scope, &fixture.key)
-        .await
-        .map_err(|_| failure("clean-load", ConformanceFailureKind::OperationFailed))?;
-    operations += 1;
-    if initial.is_some() {
-        return Err(failure(
-            "clean-load",
-            ConformanceFailureKind::UnexpectedRecordPresence,
-        ));
-    }
-
-    let isolated = driver
-        .load(&fixture.isolated_scope, &fixture.key)
-        .await
-        .map_err(|_| {
-            failure(
-                "isolated-clean-load",
-                ConformanceFailureKind::OperationFailed,
-            )
-        })?;
-    operations += 1;
-    if isolated.is_some() {
-        return Err(failure(
-            "isolated-clean-load",
-            ConformanceFailureKind::ScopeIsolationViolation,
-        ));
-    }
-
-    let inserted = driver
-        .write(
-            &fixture.scope,
-            &fixture.key,
-            StorageWrite::new(
-                fixture.initial_value.clone(),
-                StorageWriteCondition::InsertOnly,
-            ),
+    const fn combine(self, other: Self) -> Self {
+        Self::new(
+            self.completed_operations + other.completed_operations,
+            self.observed_entries + other.observed_entries,
         )
-        .await
-        .map_err(|_| failure("insert-only", ConformanceFailureKind::OperationFailed))?;
-    operations += 1;
-    if inserted.outcome() != StorageWriteOutcome::Inserted {
-        return Err(failure(
-            "insert-only",
-            ConformanceFailureKind::WriteOutcomeMismatch,
-        ));
     }
-    let first_revision = inserted.revision().clone();
-
-    let loaded = required_load(driver, &fixture.scope, &fixture.key, "read-after-insert").await?;
-    operations += 1;
-    if loaded.value() != &fixture.initial_value {
-        return Err(failure(
-            "read-after-insert",
-            ConformanceFailureKind::ValueMismatch,
-        ));
-    }
-    if loaded.revision() != &first_revision {
-        return Err(failure(
-            "read-after-insert",
-            ConformanceFailureKind::RevisionMismatch,
-        ));
-    }
-
-    let isolated = driver
-        .load(&fixture.isolated_scope, &fixture.key)
-        .await
-        .map_err(|_| failure("scope-isolation", ConformanceFailureKind::OperationFailed))?;
-    operations += 1;
-    if isolated.is_some() {
-        return Err(failure(
-            "scope-isolation",
-            ConformanceFailureKind::ScopeIsolationViolation,
-        ));
-    }
-
-    expect_write_conflict(
-        driver,
-        &fixture.scope,
-        &fixture.key,
-        StorageWrite::new(
-            fixture.replacement_value.clone(),
-            StorageWriteCondition::InsertOnly,
-        ),
-        "duplicate-insert",
-    )
-    .await?;
-    operations += 1;
-
-    let preserved = required_load(
-        driver,
-        &fixture.scope,
-        &fixture.key,
-        "insert-conflict-preserves",
-    )
-    .await?;
-    operations += 1;
-    if preserved.value() != &fixture.initial_value || preserved.revision() != &first_revision {
-        return Err(failure(
-            "insert-conflict-preserves",
-            ConformanceFailureKind::ValueMismatch,
-        ));
-    }
-
-    let replaced = driver
-        .write(
-            &fixture.scope,
-            &fixture.key,
-            StorageWrite::new(
-                fixture.replacement_value.clone(),
-                StorageWriteCondition::Any,
-            ),
-        )
-        .await
-        .map_err(|_| failure("replace", ConformanceFailureKind::OperationFailed))?;
-    operations += 1;
-    if replaced.outcome() != StorageWriteOutcome::Replaced {
-        return Err(failure(
-            "replace",
-            ConformanceFailureKind::WriteOutcomeMismatch,
-        ));
-    }
-    let current_revision = replaced.revision().clone();
-    if current_revision == first_revision {
-        return Err(failure(
-            "replace",
-            ConformanceFailureKind::RevisionNotInvalidated,
-        ));
-    }
-
-    expect_write_conflict(
-        driver,
-        &fixture.scope,
-        &fixture.key,
-        StorageWrite::new(
-            fixture.initial_value.clone(),
-            StorageWriteCondition::IfRevision(first_revision.clone()),
-        ),
-        "stale-write",
-    )
-    .await?;
-    operations += 1;
-
-    let current = required_load(
-        driver,
-        &fixture.scope,
-        &fixture.key,
-        "stale-write-preserves",
-    )
-    .await?;
-    operations += 1;
-    if current.value() != &fixture.replacement_value || current.revision() != &current_revision {
-        return Err(failure(
-            "stale-write-preserves",
-            ConformanceFailureKind::ValueMismatch,
-        ));
-    }
-
-    expect_delete_conflict(
-        driver,
-        &fixture.scope,
-        &fixture.key,
-        StorageDeleteCondition::IfRevision(first_revision),
-        "stale-delete",
-    )
-    .await?;
-    operations += 1;
-
-    let current = required_load(
-        driver,
-        &fixture.scope,
-        &fixture.key,
-        "stale-delete-preserves",
-    )
-    .await?;
-    operations += 1;
-    if current.value() != &fixture.replacement_value || current.revision() != &current_revision {
-        return Err(failure(
-            "stale-delete-preserves",
-            ConformanceFailureKind::ValueMismatch,
-        ));
-    }
-
-    let deleted = driver
-        .delete(
-            &fixture.scope,
-            &fixture.key,
-            StorageDeleteCondition::IfRevision(current_revision),
-        )
-        .await
-        .map_err(|_| failure("current-delete", ConformanceFailureKind::OperationFailed))?;
-    operations += 1;
-    if deleted != StorageDeleteOutcome::Deleted {
-        return Err(failure(
-            "current-delete",
-            ConformanceFailureKind::DeleteOutcomeMismatch,
-        ));
-    }
-
-    let absent = driver
-        .load(&fixture.scope, &fixture.key)
-        .await
-        .map_err(|_| failure("read-after-delete", ConformanceFailureKind::OperationFailed))?;
-    operations += 1;
-    if absent.is_some() {
-        return Err(failure(
-            "read-after-delete",
-            ConformanceFailureKind::UnexpectedRecordPresence,
-        ));
-    }
-
-    let missing_delete = driver
-        .delete(&fixture.scope, &fixture.key, StorageDeleteCondition::Any)
-        .await
-        .map_err(|_| failure("missing-delete", ConformanceFailureKind::OperationFailed))?;
-    operations += 1;
-    if missing_delete != StorageDeleteOutcome::NotFound {
-        return Err(failure(
-            "missing-delete",
-            ConformanceFailureKind::DeleteOutcomeMismatch,
-        ));
-    }
-
-    Ok(StorageConformanceReport {
-        completed_operations: operations,
-        observed_entries: 0,
-    })
-}
-
-async fn required_load<'a, D: ExactDriver + ?Sized>(
-    driver: &'a D,
-    scope: &'a D::Scope,
-    key: &'a D::Key,
-    step: &'static str,
-) -> Result<identus_wallet::Stored<D::Value>, ConformanceFailure> {
-    driver
-        .load(scope, key)
-        .await
-        .map_err(|_| failure(step, ConformanceFailureKind::OperationFailed))?
-        .ok_or_else(|| failure(step, ConformanceFailureKind::UnexpectedRecordPresence))
-}
-
-async fn expect_write_conflict<D: ExactDriver + ?Sized>(
-    driver: &D,
-    scope: &D::Scope,
-    key: &D::Key,
-    write: StorageWrite<D::Value>,
-    step: &'static str,
-) -> Result<(), ConformanceFailure> {
-    match driver.write(scope, key, write).await {
-        Err(StorageError::Conflict) => Ok(()),
-        Err(_) => Err(failure(
-            step,
-            ConformanceFailureKind::UnexpectedStorageError,
-        )),
-        Ok(_) => Err(failure(step, ConformanceFailureKind::ExpectedConflict)),
-    }
-}
-
-async fn expect_delete_conflict<D: ExactDriver + ?Sized>(
-    driver: &D,
-    scope: &D::Scope,
-    key: &D::Key,
-    condition: StorageDeleteCondition,
-    step: &'static str,
-) -> Result<(), ConformanceFailure> {
-    match driver.delete(scope, key, condition).await {
-        Err(StorageError::Conflict) => Ok(()),
-        Err(_) => Err(failure(
-            step,
-            ConformanceFailureKind::UnexpectedStorageError,
-        )),
-        Ok(_) => Err(failure(step, ConformanceFailureKind::ExpectedConflict)),
-    }
-}
-
-async fn run_list<D>(
-    driver: &D,
-    fixture: &ListStoreFixture<D::Scope, D::IndexEntry>,
-) -> Result<StorageConformanceReport, ConformanceFailure>
-where
-    D: ListDriver + ?Sized,
-    D::IndexEntry: PartialEq,
-{
-    let mut operations = 0usize;
-    let mut observed = Vec::with_capacity(fixture.expected_entries.len());
-    let mut seen_cursors: Vec<StorageCursor> = Vec::new();
-    let mut cursor = None;
-    let max_pages = fixture.expected_entries.len() + 1;
-
-    loop {
-        if operations >= max_pages {
-            return Err(failure(
-                "list-termination",
-                ConformanceFailureKind::PaginationDidNotTerminate,
-            ));
-        }
-        let page = driver
-            .list(
-                &fixture.scope,
-                StoragePageRequest::new(fixture.page_size, cursor),
-            )
-            .await
-            .map_err(|_| failure("list-page", ConformanceFailureKind::OperationFailed))?;
-        operations += 1;
-        if page.len() > fixture.page_size.get() {
-            return Err(failure(
-                "list-page-bound",
-                ConformanceFailureKind::PageBoundExceeded,
-            ));
-        }
-        let (entries, next_cursor) = page.into_parts();
-        for entry in entries {
-            if observed.iter().any(|candidate| candidate == &entry) {
-                return Err(failure(
-                    "list-duplicate-entry",
-                    ConformanceFailureKind::DuplicateObservedEntry,
-                ));
-            }
-            observed.push(entry);
-            if observed.len() > fixture.expected_entries.len() {
-                return Err(failure(
-                    "list-membership",
-                    ConformanceFailureKind::IndexMembershipMismatch,
-                ));
-            }
-        }
-
-        let Some(next_cursor) = next_cursor else {
-            break;
-        };
-        if seen_cursors
-            .iter()
-            .any(|candidate| candidate == &next_cursor)
-        {
-            return Err(failure(
-                "list-cursor-progress",
-                ConformanceFailureKind::CursorDidNotProgress,
-            ));
-        }
-        seen_cursors.push(next_cursor.clone());
-        cursor = Some(next_cursor);
-    }
-
-    if observed.len() != fixture.expected_entries.len()
-        || fixture
-            .expected_entries
-            .iter()
-            .any(|expected| !observed.iter().any(|actual| actual == expected))
-    {
-        return Err(failure(
-            "list-membership",
-            ConformanceFailureKind::IndexMembershipMismatch,
-        ));
-    }
-
-    Ok(StorageConformanceReport {
-        completed_operations: operations,
-        observed_entries: observed.len(),
-    })
 }
 
 const fn failure(step: &'static str, kind: ConformanceFailureKind) -> ConformanceFailure {
@@ -670,7 +166,7 @@ struct StatusCacheDriver<'a, S: ?Sized>(&'a S);
 
 macro_rules! impl_exact_driver {
     ($wrapper:ident, $port:ident) => {
-        impl<S: $port + ?Sized> ExactDriver for $wrapper<'_, S> {
+        impl<S: $port + ?Sized> exact::ExactDriver for $wrapper<'_, S> {
             type Scope = S::Scope;
             type Key = S::Key;
             type Value = S::Value;
@@ -712,7 +208,7 @@ impl_exact_driver!(StatusCacheDriver, StatusCacheStore);
 
 macro_rules! impl_list_driver {
     ($wrapper:ident, $port:ident) => {
-        impl<S: $port + ?Sized> ListDriver for $wrapper<'_, S> {
+        impl<S: $port + ?Sized> list::ListDriver for $wrapper<'_, S> {
             type IndexEntry = S::IndexEntry;
 
             fn list<'a>(
@@ -743,7 +239,7 @@ where
     S::Value: Clone + PartialEq,
 {
     let driver = SecretDriver(store);
-    run_exact(&driver, fixture).await
+    exact::run(&driver, fixture).await
 }
 
 /// Check one credential store including its preseeded recovery index.
@@ -752,8 +248,8 @@ where
 /// preseeded through the consumer adapter's native setup API.
 pub async fn check_credential_store<S>(
     store: &S,
-    exact: &ExactStoreFixture<S::Scope, S::Key, S::Value>,
-    list: &ListStoreFixture<S::Scope, S::IndexEntry>,
+    exact_fixture: &ExactStoreFixture<S::Scope, S::Key, S::Value>,
+    list_fixture: &ListStoreFixture<S::Scope, S::IndexEntry>,
 ) -> Result<StorageConformanceReport, ConformanceFailure>
 where
     S: CredentialStore + ?Sized,
@@ -761,9 +257,9 @@ where
     S::IndexEntry: PartialEq,
 {
     let driver = CredentialDriver(store);
-    Ok(run_exact(&driver, exact)
+    Ok(exact::run(&driver, exact_fixture)
         .await?
-        .combine(run_list(&driver, list).await?))
+        .combine(list::run(&driver, list_fixture).await?))
 }
 
 /// Check one DID store including its preseeded recovery index.
@@ -772,8 +268,8 @@ where
 /// preseeded through the consumer adapter's native setup API.
 pub async fn check_did_store<S>(
     store: &S,
-    exact: &ExactStoreFixture<S::Scope, S::Key, S::Value>,
-    list: &ListStoreFixture<S::Scope, S::IndexEntry>,
+    exact_fixture: &ExactStoreFixture<S::Scope, S::Key, S::Value>,
+    list_fixture: &ListStoreFixture<S::Scope, S::IndexEntry>,
 ) -> Result<StorageConformanceReport, ConformanceFailure>
 where
     S: DidStore + ?Sized,
@@ -781,9 +277,9 @@ where
     S::IndexEntry: PartialEq,
 {
     let driver = DidDriver(store);
-    Ok(run_exact(&driver, exact)
+    Ok(exact::run(&driver, exact_fixture)
         .await?
-        .combine(run_list(&driver, list).await?))
+        .combine(list::run(&driver, list_fixture).await?))
 }
 
 /// Check one protocol-state store including its preseeded recovery index.
@@ -792,8 +288,8 @@ where
 /// preseeded through the consumer adapter's native setup API.
 pub async fn check_protocol_state_store<S>(
     store: &S,
-    exact: &ExactStoreFixture<S::Scope, S::Key, S::Value>,
-    list: &ListStoreFixture<S::Scope, S::IndexEntry>,
+    exact_fixture: &ExactStoreFixture<S::Scope, S::Key, S::Value>,
+    list_fixture: &ListStoreFixture<S::Scope, S::IndexEntry>,
 ) -> Result<StorageConformanceReport, ConformanceFailure>
 where
     S: ProtocolStateStore + ?Sized,
@@ -801,9 +297,9 @@ where
     S::IndexEntry: PartialEq,
 {
     let driver = ProtocolStateDriver(store);
-    Ok(run_exact(&driver, exact)
+    Ok(exact::run(&driver, exact_fixture)
         .await?
-        .combine(run_list(&driver, list).await?))
+        .combine(list::run(&driver, list_fixture).await?))
 }
 
 /// Check one exact-key status cache without requesting sweep authority.
@@ -819,7 +315,7 @@ where
     S::Value: Clone + PartialEq,
 {
     let driver = StatusCacheDriver(store);
-    run_exact(&driver, fixture).await
+    exact::run(&driver, fixture).await
 }
 
 #[cfg(test)]

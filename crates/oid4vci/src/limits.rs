@@ -1,11 +1,13 @@
 use crate::CredentialOfferError;
 
+mod policy;
+
+pub use policy::MAX_CONFIGURABLE_JSON_DEPTH;
+
 /// Highest supported caller-configured JSON container depth.
 ///
 /// This stays below the underlying JSON parser's recursion limit so every
 /// accepted policy can be enforced by the SDK's own deterministic boundary.
-pub const MAX_CONFIGURABLE_JSON_DEPTH: usize = 64;
-
 /// Resource limits for Credential Offer transport parsing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CredentialOfferLimits {
@@ -72,11 +74,11 @@ impl CredentialOfferLimits {
 impl Default for CredentialOfferLimits {
     fn default() -> Self {
         Self {
-            max_invocation_bytes: 32_768,
-            max_embedded_json_bytes: 16_384,
-            max_reference_uri_bytes: 2_048,
-            max_json_depth: 16,
-            max_json_nodes: 128,
+            max_invocation_bytes: policy::DEFAULT_OFFER_MAX_INVOCATION_BYTES,
+            max_embedded_json_bytes: policy::DEFAULT_OFFER_MAX_EMBEDDED_JSON_BYTES,
+            max_reference_uri_bytes: policy::DEFAULT_OFFER_MAX_REFERENCE_URI_BYTES,
+            max_json_depth: policy::DEFAULT_OFFER_MAX_JSON_DEPTH,
+            max_json_nodes: policy::DEFAULT_OFFER_MAX_JSON_NODES,
         }
     }
 }
@@ -128,9 +130,10 @@ impl CredentialOfferSemanticLimits {
 impl Default for CredentialOfferSemanticLimits {
     fn default() -> Self {
         Self {
-            max_credential_issuer_bytes: 2_048,
-            max_credential_configuration_id_bytes: 256,
-            max_credential_configuration_ids: 32,
+            max_credential_issuer_bytes: policy::DEFAULT_OFFER_SEMANTIC_MAX_ISSUER_BYTES,
+            max_credential_configuration_id_bytes:
+                policy::DEFAULT_OFFER_SEMANTIC_MAX_CONFIGURATION_ID_BYTES,
+            max_credential_configuration_ids: policy::DEFAULT_OFFER_SEMANTIC_MAX_CONFIGURATION_IDS,
         }
     }
 }
@@ -200,11 +203,14 @@ impl CredentialOfferGrantLimits {
 impl Default for CredentialOfferGrantLimits {
     fn default() -> Self {
         Self {
-            max_issuer_state_bytes: 2_048,
-            max_pre_authorized_code_bytes: 4_096,
-            max_authorization_server_bytes: 2_048,
-            max_transaction_code_description_bytes: 1_200,
-            max_transaction_code_length: 64,
+            max_issuer_state_bytes: policy::DEFAULT_OFFER_GRANT_MAX_ISSUER_STATE_BYTES,
+            max_pre_authorized_code_bytes:
+                policy::DEFAULT_OFFER_GRANT_MAX_PRE_AUTHORIZED_CODE_BYTES,
+            max_authorization_server_bytes:
+                policy::DEFAULT_OFFER_GRANT_MAX_AUTHORIZATION_SERVER_BYTES,
+            max_transaction_code_description_bytes:
+                policy::DEFAULT_OFFER_GRANT_MAX_TRANSACTION_DESCRIPTION_BYTES,
+            max_transaction_code_length: policy::DEFAULT_OFFER_GRANT_MAX_TRANSACTION_CODE_LENGTH,
         }
     }
 }
@@ -235,7 +241,7 @@ impl TransactionCodeInputLimits {
 impl Default for TransactionCodeInputLimits {
     fn default() -> Self {
         Self {
-            max_transaction_code_bytes: 256,
+            max_transaction_code_bytes: policy::DEFAULT_TRANSACTION_CODE_INPUT_MAX_BYTES,
         }
     }
 }
@@ -266,7 +272,7 @@ impl PreAuthorizedTokenRequestLimits {
 impl Default for PreAuthorizedTokenRequestLimits {
     fn default() -> Self {
         Self {
-            max_form_body_bytes: 16_384,
+            max_form_body_bytes: policy::DEFAULT_PRE_AUTHORIZED_TOKEN_REQUEST_MAX_FORM_BYTES,
         }
     }
 }
@@ -333,9 +339,11 @@ impl Default for PreAuthorizedTokenHttpResponseLimits {
         Self {
             success_response_limits: TokenResponseLimits::default(),
             error_response_limits: TokenErrorResponseLimits::default(),
-            max_content_type_bytes: 1_024,
-            max_cache_control_bytes: 1_024,
-            max_pragma_bytes: 1_024,
+            max_content_type_bytes:
+                policy::DEFAULT_PRE_AUTHORIZED_TOKEN_HTTP_MAX_CONTENT_TYPE_BYTES,
+            max_cache_control_bytes:
+                policy::DEFAULT_PRE_AUTHORIZED_TOKEN_HTTP_MAX_CACHE_CONTROL_BYTES,
+            max_pragma_bytes: policy::DEFAULT_PRE_AUTHORIZED_TOKEN_HTTP_MAX_PRAGMA_BYTES,
         }
     }
 }
@@ -376,8 +384,9 @@ impl AuthorizationCodeTokenRequestLimits {
 impl Default for AuthorizationCodeTokenRequestLimits {
     fn default() -> Self {
         Self {
-            max_token_endpoint_bytes: 2_048,
-            max_form_body_bytes: 16_384,
+            max_token_endpoint_bytes:
+                policy::DEFAULT_AUTHORIZATION_CODE_TOKEN_REQUEST_MAX_ENDPOINT_BYTES,
+            max_form_body_bytes: policy::DEFAULT_AUTHORIZATION_CODE_TOKEN_REQUEST_MAX_FORM_BYTES,
         }
     }
 }
@@ -444,9 +453,11 @@ impl Default for AuthorizationCodeTokenHttpResponseLimits {
         Self {
             success_response_limits: TokenResponseLimits::default(),
             error_response_limits: TokenErrorResponseLimits::default(),
-            max_content_type_bytes: 1_024,
-            max_cache_control_bytes: 1_024,
-            max_pragma_bytes: 1_024,
+            max_content_type_bytes:
+                policy::DEFAULT_AUTHORIZATION_CODE_TOKEN_HTTP_MAX_CONTENT_TYPE_BYTES,
+            max_cache_control_bytes:
+                policy::DEFAULT_AUTHORIZATION_CODE_TOKEN_HTTP_MAX_CACHE_CONTROL_BYTES,
+            max_pragma_bytes: policy::DEFAULT_AUTHORIZATION_CODE_TOKEN_HTTP_MAX_PRAGMA_BYTES,
         }
     }
 }
@@ -535,13 +546,13 @@ impl TokenResponseLimits {
 impl Default for TokenResponseLimits {
     fn default() -> Self {
         Self {
-            max_json_bytes: 65_536,
-            max_json_depth: 16,
-            max_json_nodes: 1_024,
-            max_access_token_bytes: 16_384,
-            max_token_type_bytes: 256,
-            max_refresh_token_bytes: 16_384,
-            max_scope_bytes: 4_096,
+            max_json_bytes: policy::DEFAULT_TOKEN_RESPONSE_MAX_JSON_BYTES,
+            max_json_depth: policy::DEFAULT_TOKEN_RESPONSE_MAX_JSON_DEPTH,
+            max_json_nodes: policy::DEFAULT_TOKEN_RESPONSE_MAX_JSON_NODES,
+            max_access_token_bytes: policy::DEFAULT_TOKEN_RESPONSE_MAX_ACCESS_TOKEN_BYTES,
+            max_token_type_bytes: policy::DEFAULT_TOKEN_RESPONSE_MAX_TOKEN_TYPE_BYTES,
+            max_refresh_token_bytes: policy::DEFAULT_TOKEN_RESPONSE_MAX_REFRESH_TOKEN_BYTES,
+            max_scope_bytes: policy::DEFAULT_TOKEN_RESPONSE_MAX_SCOPE_BYTES,
         }
     }
 }
@@ -611,11 +622,14 @@ impl TokenAuthorizationDetailsLimits {
 impl Default for TokenAuthorizationDetailsLimits {
     fn default() -> Self {
         Self {
-            max_authorization_details: 32,
-            max_type_bytes: 128,
-            max_credential_configuration_id_bytes: 256,
-            max_credential_identifiers_per_detail: 64,
-            max_credential_identifier_bytes: 2_048,
+            max_authorization_details: policy::DEFAULT_TOKEN_AUTHORIZATION_MAX_DETAILS,
+            max_type_bytes: policy::DEFAULT_TOKEN_AUTHORIZATION_MAX_TYPE_BYTES,
+            max_credential_configuration_id_bytes:
+                policy::DEFAULT_TOKEN_AUTHORIZATION_MAX_CONFIGURATION_ID_BYTES,
+            max_credential_identifiers_per_detail:
+                policy::DEFAULT_TOKEN_AUTHORIZATION_MAX_IDENTIFIERS_PER_DETAIL,
+            max_credential_identifier_bytes:
+                policy::DEFAULT_TOKEN_AUTHORIZATION_MAX_IDENTIFIER_BYTES,
         }
     }
 }
@@ -695,12 +709,12 @@ impl TokenErrorResponseLimits {
 impl Default for TokenErrorResponseLimits {
     fn default() -> Self {
         Self {
-            max_json_bytes: 32_768,
-            max_json_depth: 16,
-            max_json_nodes: 512,
-            max_error_code_bytes: 256,
-            max_error_description_bytes: 4_096,
-            max_error_uri_bytes: 2_048,
+            max_json_bytes: policy::DEFAULT_TOKEN_ERROR_MAX_JSON_BYTES,
+            max_json_depth: policy::DEFAULT_TOKEN_ERROR_MAX_JSON_DEPTH,
+            max_json_nodes: policy::DEFAULT_TOKEN_ERROR_MAX_JSON_NODES,
+            max_error_code_bytes: policy::DEFAULT_TOKEN_ERROR_MAX_CODE_BYTES,
+            max_error_description_bytes: policy::DEFAULT_TOKEN_ERROR_MAX_DESCRIPTION_BYTES,
+            max_error_uri_bytes: policy::DEFAULT_TOKEN_ERROR_MAX_URI_BYTES,
         }
     }
 }
@@ -771,11 +785,11 @@ impl CredentialErrorResponseLimits {
 impl Default for CredentialErrorResponseLimits {
     fn default() -> Self {
         Self {
-            max_json_bytes: 32_768,
-            max_json_depth: 16,
-            max_json_nodes: 512,
-            max_error_code_bytes: 256,
-            max_error_description_bytes: 4_096,
+            max_json_bytes: policy::DEFAULT_CREDENTIAL_ERROR_MAX_JSON_BYTES,
+            max_json_depth: policy::DEFAULT_CREDENTIAL_ERROR_MAX_JSON_DEPTH,
+            max_json_nodes: policy::DEFAULT_CREDENTIAL_ERROR_MAX_JSON_NODES,
+            max_error_code_bytes: policy::DEFAULT_CREDENTIAL_ERROR_MAX_CODE_BYTES,
+            max_error_description_bytes: policy::DEFAULT_CREDENTIAL_ERROR_MAX_DESCRIPTION_BYTES,
         }
     }
 }
@@ -817,7 +831,7 @@ impl Default for CredentialErrorHttpResponseLimits {
     fn default() -> Self {
         Self {
             response_limits: CredentialErrorResponseLimits::default(),
-            max_content_type_bytes: 1_024,
+            max_content_type_bytes: policy::DEFAULT_CREDENTIAL_ERROR_HTTP_MAX_CONTENT_TYPE_BYTES,
         }
     }
 }
@@ -879,10 +893,10 @@ impl CredentialNonceResponseLimits {
 impl Default for CredentialNonceResponseLimits {
     fn default() -> Self {
         Self {
-            max_json_bytes: 16_384,
-            max_json_depth: 16,
-            max_json_nodes: 256,
-            max_nonce_bytes: 4_096,
+            max_json_bytes: policy::DEFAULT_CREDENTIAL_NONCE_MAX_JSON_BYTES,
+            max_json_depth: policy::DEFAULT_CREDENTIAL_NONCE_MAX_JSON_DEPTH,
+            max_json_nodes: policy::DEFAULT_CREDENTIAL_NONCE_MAX_JSON_NODES,
+            max_nonce_bytes: policy::DEFAULT_CREDENTIAL_NONCE_MAX_NONCE_BYTES,
         }
     }
 }
@@ -932,8 +946,8 @@ impl Default for CredentialNonceHttpResponseLimits {
     fn default() -> Self {
         Self {
             response_limits: CredentialNonceResponseLimits::default(),
-            max_content_type_bytes: 1_024,
-            max_cache_control_bytes: 4_096,
+            max_content_type_bytes: policy::DEFAULT_CREDENTIAL_NONCE_HTTP_MAX_CONTENT_TYPE_BYTES,
+            max_cache_control_bytes: policy::DEFAULT_CREDENTIAL_NONCE_HTTP_MAX_CACHE_CONTROL_BYTES,
         }
     }
 }
@@ -994,10 +1008,10 @@ impl JwtCredentialRequestLimits {
 impl Default for JwtCredentialRequestLimits {
     fn default() -> Self {
         Self {
-            max_proofs: 16,
-            max_proof_bytes: 16_384,
-            max_json_body_bytes: 262_144,
-            max_authorization_bytes: 16_384,
+            max_proofs: policy::DEFAULT_JWT_CREDENTIAL_REQUEST_MAX_PROOFS,
+            max_proof_bytes: policy::DEFAULT_JWT_CREDENTIAL_REQUEST_MAX_PROOF_BYTES,
+            max_json_body_bytes: policy::DEFAULT_JWT_CREDENTIAL_REQUEST_MAX_JSON_BODY_BYTES,
+            max_authorization_bytes: policy::DEFAULT_JWT_CREDENTIAL_REQUEST_MAX_AUTHORIZATION_BYTES,
         }
     }
 }
@@ -1028,7 +1042,7 @@ impl DeferredCredentialRequestLimits {
 impl Default for DeferredCredentialRequestLimits {
     fn default() -> Self {
         Self {
-            max_json_body_bytes: 16_384,
+            max_json_body_bytes: policy::DEFAULT_DEFERRED_CREDENTIAL_REQUEST_MAX_JSON_BODY_BYTES,
         }
     }
 }
@@ -1108,12 +1122,13 @@ impl DeferredCredentialResponseLimits {
 impl Default for DeferredCredentialResponseLimits {
     fn default() -> Self {
         Self {
-            max_json_bytes: 32_768,
-            max_json_depth: 16,
-            max_json_nodes: 512,
-            max_response_members: 16,
-            max_transaction_id_bytes: 2_048,
-            max_interval_bytes: 128,
+            max_json_bytes: policy::DEFAULT_DEFERRED_CREDENTIAL_RESPONSE_MAX_JSON_BYTES,
+            max_json_depth: policy::DEFAULT_DEFERRED_CREDENTIAL_RESPONSE_MAX_JSON_DEPTH,
+            max_json_nodes: policy::DEFAULT_DEFERRED_CREDENTIAL_RESPONSE_MAX_JSON_NODES,
+            max_response_members: policy::DEFAULT_DEFERRED_CREDENTIAL_RESPONSE_MAX_MEMBERS,
+            max_transaction_id_bytes:
+                policy::DEFAULT_DEFERRED_CREDENTIAL_RESPONSE_MAX_TRANSACTION_ID_BYTES,
+            max_interval_bytes: policy::DEFAULT_DEFERRED_CREDENTIAL_RESPONSE_MAX_INTERVAL_BYTES,
         }
     }
 }
@@ -1224,15 +1239,19 @@ impl ImmediateCredentialResponseLimits {
 impl Default for ImmediateCredentialResponseLimits {
     fn default() -> Self {
         Self {
-            max_json_bytes: 1_048_576,
-            max_json_depth: 32,
-            max_json_nodes: 16_384,
-            max_response_members: 32,
-            max_credentials: 64,
-            max_credential_members: 32,
-            max_credential_bytes: 262_144,
-            max_total_credential_bytes: 786_432,
-            max_notification_id_bytes: 4_096,
+            max_json_bytes: policy::DEFAULT_IMMEDIATE_CREDENTIAL_RESPONSE_MAX_JSON_BYTES,
+            max_json_depth: policy::DEFAULT_IMMEDIATE_CREDENTIAL_RESPONSE_MAX_JSON_DEPTH,
+            max_json_nodes: policy::DEFAULT_IMMEDIATE_CREDENTIAL_RESPONSE_MAX_JSON_NODES,
+            max_response_members: policy::DEFAULT_IMMEDIATE_CREDENTIAL_RESPONSE_MAX_MEMBERS,
+            max_credentials: policy::DEFAULT_IMMEDIATE_CREDENTIAL_RESPONSE_MAX_CREDENTIALS,
+            max_credential_members:
+                policy::DEFAULT_IMMEDIATE_CREDENTIAL_RESPONSE_MAX_CREDENTIAL_MEMBERS,
+            max_credential_bytes:
+                policy::DEFAULT_IMMEDIATE_CREDENTIAL_RESPONSE_MAX_CREDENTIAL_BYTES,
+            max_total_credential_bytes:
+                policy::DEFAULT_IMMEDIATE_CREDENTIAL_RESPONSE_MAX_TOTAL_CREDENTIAL_BYTES,
+            max_notification_id_bytes:
+                policy::DEFAULT_IMMEDIATE_CREDENTIAL_RESPONSE_MAX_NOTIFICATION_ID_BYTES,
         }
     }
 }
@@ -1274,7 +1293,8 @@ impl Default for ImmediateCredentialHttpResponseLimits {
     fn default() -> Self {
         Self {
             response_limits: ImmediateCredentialResponseLimits::default(),
-            max_content_type_bytes: 1_024,
+            max_content_type_bytes:
+                policy::DEFAULT_IMMEDIATE_CREDENTIAL_HTTP_MAX_CONTENT_TYPE_BYTES,
         }
     }
 }
@@ -1325,7 +1345,7 @@ impl Default for DeferredCredentialHttpResponseLimits {
         Self {
             immediate_response_limits: ImmediateCredentialResponseLimits::default(),
             deferred_response_limits: DeferredCredentialResponseLimits::default(),
-            max_content_type_bytes: 1_024,
+            max_content_type_bytes: policy::DEFAULT_DEFERRED_CREDENTIAL_HTTP_MAX_CONTENT_TYPE_BYTES,
         }
     }
 }
@@ -1506,16 +1526,18 @@ impl CredentialIssuerMetadataLimits {
 impl Default for CredentialIssuerMetadataLimits {
     fn default() -> Self {
         Self {
-            max_json_bytes: 131_072,
-            max_json_depth: 16,
-            max_json_nodes: 1_024,
-            max_credential_issuer_bytes: 2_048,
-            max_credential_endpoint_bytes: 2_048,
-            max_authorization_server_bytes: 2_048,
-            max_authorization_servers: 16,
-            max_credential_configuration_id_bytes: 256,
-            max_credential_format_bytes: 128,
-            max_credential_configurations: 128,
+            max_json_bytes: policy::DEFAULT_ISSUER_METADATA_MAX_JSON_BYTES,
+            max_json_depth: policy::DEFAULT_ISSUER_METADATA_MAX_JSON_DEPTH,
+            max_json_nodes: policy::DEFAULT_ISSUER_METADATA_MAX_JSON_NODES,
+            max_credential_issuer_bytes: policy::DEFAULT_ISSUER_METADATA_MAX_ISSUER_BYTES,
+            max_credential_endpoint_bytes: policy::DEFAULT_ISSUER_METADATA_MAX_ENDPOINT_BYTES,
+            max_authorization_server_bytes:
+                policy::DEFAULT_ISSUER_METADATA_MAX_AUTHORIZATION_SERVER_BYTES,
+            max_authorization_servers: policy::DEFAULT_ISSUER_METADATA_MAX_AUTHORIZATION_SERVERS,
+            max_credential_configuration_id_bytes:
+                policy::DEFAULT_ISSUER_METADATA_MAX_CONFIGURATION_ID_BYTES,
+            max_credential_format_bytes: policy::DEFAULT_ISSUER_METADATA_MAX_FORMAT_BYTES,
+            max_credential_configurations: policy::DEFAULT_ISSUER_METADATA_MAX_CONFIGURATIONS,
         }
     }
 }
@@ -1604,13 +1626,14 @@ impl AuthorizationServerMetadataLimits {
 impl Default for AuthorizationServerMetadataLimits {
     fn default() -> Self {
         Self {
-            max_json_bytes: 131_072,
-            max_json_depth: 16,
-            max_json_nodes: 1_024,
-            max_issuer_bytes: 2_048,
-            max_endpoint_bytes: 2_048,
-            max_grant_type_bytes: 256,
-            max_grant_types: 32,
+            max_json_bytes: policy::DEFAULT_AUTHORIZATION_SERVER_METADATA_MAX_JSON_BYTES,
+            max_json_depth: policy::DEFAULT_AUTHORIZATION_SERVER_METADATA_MAX_JSON_DEPTH,
+            max_json_nodes: policy::DEFAULT_AUTHORIZATION_SERVER_METADATA_MAX_JSON_NODES,
+            max_issuer_bytes: policy::DEFAULT_AUTHORIZATION_SERVER_METADATA_MAX_ISSUER_BYTES,
+            max_endpoint_bytes: policy::DEFAULT_AUTHORIZATION_SERVER_METADATA_MAX_ENDPOINT_BYTES,
+            max_grant_type_bytes:
+                policy::DEFAULT_AUTHORIZATION_SERVER_METADATA_MAX_GRANT_TYPE_BYTES,
+            max_grant_types: policy::DEFAULT_AUTHORIZATION_SERVER_METADATA_MAX_GRANT_TYPES,
         }
     }
 }

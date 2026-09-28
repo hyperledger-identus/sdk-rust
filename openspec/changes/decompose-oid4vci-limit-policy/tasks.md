@@ -13,7 +13,7 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Move every existing numeric default and the configurable depth
+- [x] 2.1 Move every existing numeric default and the configurable depth
       ceiling unchanged into one private policy module.
 - [ ] 2.2 Move limit types into offer, token, credential, and metadata modules
       while preserving the private facade and crate-root public exports.

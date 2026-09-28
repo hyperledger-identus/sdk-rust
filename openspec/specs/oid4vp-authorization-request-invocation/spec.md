@@ -1,19 +1,27 @@
 # oid4vp-authorization-request-invocation Specification
 
 ## Purpose
-TBD - created by archiving change add-oid4vp-reference-invocation. Update Purpose after archive.
+Define exact bounded parsing for an OpenID4VP Authorization Request that
+references its Request Object by HTTPS URI, without granting transport or
+verifier authority.
 ## Requirements
 ### Requirement: Reference invocation is exact and bounded
 
 The SDK SHALL parse one bounded `openid4vp:?…` Authorization Request reference
 at the Final static `openid4vp:` authorization endpoint containing exactly one
 decoded non-empty `client_id`, exactly one decoded HTTPS `request_uri`, and at
-most one `request_uri_method` whose only supported explicit value is `post`.
+most one `request_uri_method` whose supported case-sensitive explicit values
+are `get` and `post`.
 
 #### Scenario: Final by-reference shape arrives
 
-- **WHEN** a bounded invocation carries `client_id` and `request_uri`
+- **WHEN** a bounded invocation carries `client_id` and `request_uri` without a method
 - **THEN** the result retains redacted owned values and reports GET retrieval
+
+#### Scenario: GET is requested explicitly
+
+- **WHEN** `request_uri_method=get` occurs once
+- **THEN** the result reports GET retrieval
 
 #### Scenario: POST capability negotiation is requested
 

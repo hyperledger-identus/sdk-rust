@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -152,17 +153,50 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn(expected, result.stderr)
 
-    def assert_nix_parses_if_available(self, relative: str) -> None:
-        nix_instantiate = shutil.which("nix-instantiate")
+    def run_configured_nix_parser(
+        self, relative: str
+    ) -> subprocess.CompletedProcess[str] | None:
+        nix_instantiate = os.environ.get("SDK_SUPPORT_POLICY_NIX_INSTANTIATE")
         if nix_instantiate is None:
-            return
-        result = subprocess.run(
-            [nix_instantiate, "--parse", str(self.fixture / relative)],
+            return None
+        self.assertTrue(Path(nix_instantiate).is_file())
+        parser_home = self.fixture / ".nix-parser-home"
+        parser_home.mkdir()
+        parser_environment = os.environ.copy()
+        parser_environment.update(
+            {
+                "HOME": str(parser_home),
+                "XDG_CACHE_HOME": str(parser_home / "cache"),
+                "XDG_CONFIG_HOME": str(parser_home / "config"),
+                "XDG_STATE_HOME": str(parser_home / "state"),
+            }
+        )
+        return subprocess.run(
+            [
+                nix_instantiate,
+                "--option",
+                "use-xdg-base-directories",
+                "true",
+                "--parse",
+                str(self.fixture / relative),
+            ],
             check=False,
             capture_output=True,
+            env=parser_environment,
             text=True,
         )
+
+    def assert_nix_parses_if_available(self, relative: str) -> None:
+        result = self.run_configured_nix_parser(relative)
+        if result is None:
+            return
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def assert_nix_rejects_if_available(self, relative: str) -> None:
+        result = self.run_configured_nix_parser(relative)
+        if result is None:
+            return
+        self.assertNotEqual(result.returncode, 0, result.stdout)
 
     def test_canonical_policy_passes(self) -> None:
         result = self.run_checker()
@@ -351,7 +385,7 @@ class SupportPolicyTests(unittest.TestCase):
             "        lint-nix = pkgs.callPackage ./lint-nix.nix { };",
             "        lint-nix = pkgs.lib.''mkForce'' pkgs.hello;",
         )
-        self.assert_nix_parses_if_available("nix/checks/default.nix")
+        self.assert_nix_rejects_if_available("nix/checks/default.nix")
         self.assert_fails("nix/checks/default.nix does not safely compose checks")
 
     def test_static_interpolated_priority_constructor_cannot_erase_gates(
@@ -371,7 +405,7 @@ class SupportPolicyTests(unittest.TestCase):
             "        lint-nix = pkgs.callPackage ./lint-nix.nix { };",
             r"""        lint-nix = pkgs.lib.''mkFor''\ce'' pkgs.hello;""",
         )
-        self.assert_nix_parses_if_available("nix/checks/default.nix")
+        self.assert_nix_rejects_if_available("nix/checks/default.nix")
         self.assert_fails("local Nix module graph uses computed attributes")
 
     def test_dynamic_priority_constructor_cannot_erase_generated_gates(self) -> None:
@@ -448,7 +482,7 @@ class SupportPolicyTests(unittest.TestCase):
 
     def test_deferred_per_system_computed_import_fails_closed(self) -> None:
         (self.fixture / "nix/direct.nix").write_text(
-            "{ perSystem = { ... }: { imports = localModules; }; }\n",
+            "{ perSystem = { localModules, ... }: { imports = localModules; }; }\n",
             encoding="utf-8",
         )
         self.replace(
@@ -1257,7 +1291,7 @@ in {
       };
       toolchain = stablePkgs.rust-bin.stable""",
         )
-        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_nix_rejects_if_available("nix/rust-toolchain.nix")
         self.assert_fails("does not bind canonical Crane providers")
 
     def test_indented_layout_input_binding_cannot_shadow_formal(self) -> None:
@@ -1272,7 +1306,7 @@ in {
       };
       toolchain = stablePkgs.rust-bin.stable""",
         )
-        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_nix_rejects_if_available("nix/rust-toolchain.nix")
         self.assert_fails("does not bind canonical Crane providers")
 
     def test_provider_result_cannot_have_trailing_composition(self) -> None:
@@ -1619,7 +1653,7 @@ in
             r"""      ''input''\s'' = { crane.mkLib = _: { overrideToolchain = _: { }; }; };
       toolchain = stablePkgs.rust-bin.stable""",
         )
-        self.assert_nix_parses_if_available("nix/rust-toolchain.nix")
+        self.assert_nix_rejects_if_available("nix/rust-toolchain.nix")
         self.assert_fails("local Nix module graph uses computed attributes")
 
     def test_quoted_trusted_root_binding_fails(self) -> None:

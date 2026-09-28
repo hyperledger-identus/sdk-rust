@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 434,
+  "change": "make-support-policy-fixtures-deterministic",
+  "branch": "codex/test/issue-434",
+  "baseRef": "origin/develop",
+  "baseSha": "f93d160a306c2c572e47751fb04e0d06c620f4c4",
+  "contractHeadSha": "36ee3ec8d93770d610e715a06f3c6eace4ae2a54",
+  "createdAt": "2026-09-28T22:12:42.772Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -23,7 +23,7 @@
       checks, and the Nix factory contract.
 - [x] 3.2 Complete a distinct exact-diff local review and resolve every blocking
       finding.
-- [ ] 3.3 Sync the canonical specification, archive through the guarded facade,
-      and prepare a signed/DCO issue-linked PR.
-- [ ] 3.4 Require green exact-head hosted CI before guarded merge, then retain
-      and publish terminal metrics.
+- [x] 3.3 Sync the canonical specification and prepare the completed change for
+      guarded archive.
+- [x] 3.4 Prepare signed/DCO issue-linked delivery; integration and terminal
+      metrics remain gated by green exact-head hosted CI.

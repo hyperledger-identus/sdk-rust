@@ -6,7 +6,7 @@
       factory contract, and Git graph semantics.
 - [x] 1.2 Record proposal, research, routine constraint impact, design, threat
       boundaries, rollback, and testable capability delta.
-- [ ] 1.3 Pass research/constraint/strict readiness, commit the planning-only
+- [x] 1.3 Pass research/constraint/strict readiness, commit the planning-only
       contract, and write the exact issue-bound preimplementation receipt.
 
 ## 2. Implementation

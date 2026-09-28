@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 333,
+  "change": "validate-rebased-pr-commits",
+  "branch": "codex/fix/issue-333",
+  "baseRef": "origin/develop",
+  "baseSha": "20e4f7ad6630cec476fbadf1b71bb2315aca7876",
+  "contractHeadSha": "be03194421e6b340f37375a5770d2d44457bc7fa",
+  "createdAt": "2026-09-28T22:46:25.154Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

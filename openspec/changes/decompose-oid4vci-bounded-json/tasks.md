@@ -19,7 +19,7 @@
       modules without changing their fields, limits, or errors.
 - [x] 2.3 Move token/nonce and credential-response grammars to their named
       private modules without changing retained secrets or errors.
-- [ ] 2.4 Refresh syntax-aware code-health evidence and retain a focused owner
+- [x] 2.4 Refresh syntax-aware code-health evidence and retain a focused owner
       for the separate `limits.rs` hotspot.
 
 ## 3. Verification and delivery

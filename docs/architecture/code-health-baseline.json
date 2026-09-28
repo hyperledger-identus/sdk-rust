@@ -89,14 +89,13 @@
       "owner": "identus-did maintainers"
     },
     {
-      "disposition": "defer-with-owner",
-      "evidence": "Issue #168 owns resource-bound semantics; code-health work must not modify them.",
-      "id": "oid4vci-json-and-limits",
+      "disposition": "decompose",
+      "evidence": "Issue #404 owns characterization and decomposition while issue #168 remains authoritative for resource-bound semantics.",
+      "id": "oid4vci-limits-policy-and-mechanics",
       "locations": [
-        "crates/oid4vci/src/json.rs",
         "crates/oid4vci/src/limits.rs"
       ],
-      "owner": "issue #168 / identus-oid4vci maintainers"
+      "owner": "issue #404 / identus-oid4vci maintainers"
     },
     {
       "disposition": "defer-with-owner",
@@ -137,7 +136,7 @@
       "owner": "identus-did resolution model"
     }
   ],
-  "population_projection_sha256": "89edf6096b717cc5046dc95e5ec37e130c600169e759569deb9ce19a556a04ee",
+  "population_projection_sha256": "5c7791209663991d6a5dcad4f45da0e82a040f7bcc174641e4567554a4fc139c",
   "populations": {
     "external_test": {
       "authored_nonblank_lines": 30252,
@@ -150,12 +149,12 @@
       "functions": 357
     },
     "production": {
-      "authored_nonblank_lines": 36093,
-      "files": 167,
-      "functions": 2753
+      "authored_nonblank_lines": 36029,
+      "files": 171,
+      "functions": 2766
     }
   },
-  "revision": "a2bc3407c813ad305cca4b45547417712b6cf407",
+  "revision": "8eed426fc00cef48d3e4a2000e1a08dc3c93d0bb",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -530,134 +529,134 @@
         "start_line": 391
       },
       {
-        "cognitive": 12,
-        "cyclomatic": 28,
-        "end_line": 543,
-        "name": "parse_credential_offer_object",
-        "path": "crates/oid4vci/src/json.rs",
+        "cognitive": 6,
+        "cyclomatic": 21,
+        "end_line": 172,
+        "name": "parse_immediate_credential_response_object",
+        "path": "crates/oid4vci/src/json/credential.rs",
         "population": "production",
-        "sloc": 85,
-        "start_line": 459
+        "sloc": 59,
+        "start_line": 114
+      },
+      {
+        "cognitive": 5,
+        "cyclomatic": 19,
+        "end_line": 225,
+        "name": "parse_deferred_credential_response_object",
+        "path": "crates/oid4vci/src/json/credential.rs",
+        "population": "production",
+        "sloc": 52,
+        "start_line": 174
       },
       {
         "cognitive": 5,
         "cyclomatic": 25,
-        "end_line": 661,
+        "end_line": 138,
         "name": "parse_credential_issuer_metadata_object",
-        "path": "crates/oid4vci/src/json.rs",
+        "path": "crates/oid4vci/src/json/metadata.rs",
         "population": "production",
         "sloc": 80,
-        "start_line": 582
+        "start_line": 59
       },
       {
         "cognitive": 5,
         "cyclomatic": 23,
-        "end_line": 740,
+        "end_line": 217,
         "name": "parse_authorization_server_metadata_object",
-        "path": "crates/oid4vci/src/json.rs",
+        "path": "crates/oid4vci/src/json/metadata.rs",
         "population": "production",
         "sloc": 78,
-        "start_line": 663
+        "start_line": 140
       },
       {
-        "cognitive": 3,
-        "cyclomatic": 23,
-        "end_line": 815,
-        "name": "parse_token_response_object",
-        "path": "crates/oid4vci/src/json.rs",
+        "cognitive": 12,
+        "cyclomatic": 28,
+        "end_line": 155,
+        "name": "parse_credential_offer_object",
+        "path": "crates/oid4vci/src/json/offer.rs",
         "population": "production",
-        "sloc": 74,
-        "start_line": 742
-      },
-      {
-        "cognitive": 11,
-        "cyclomatic": 18,
-        "end_line": 903,
-        "name": "parse_token_authorization_details_array",
-        "path": "crates/oid4vci/src/json.rs",
-        "population": "production",
-        "sloc": 58,
-        "start_line": 846
-      },
-      {
-        "cognitive": 5,
-        "cyclomatic": 24,
-        "end_line": 968,
-        "name": "parse_token_authorization_detail",
-        "path": "crates/oid4vci/src/json.rs",
-        "population": "production",
-        "sloc": 64,
-        "start_line": 905
-      },
-      {
-        "cognitive": 3,
-        "cyclomatic": 16,
-        "end_line": 1021,
-        "name": "parse_token_error_response_object",
-        "path": "crates/oid4vci/src/json.rs",
-        "population": "production",
-        "sloc": 52,
-        "start_line": 970
-      },
-      {
-        "cognitive": 6,
-        "cyclomatic": 21,
-        "end_line": 1159,
-        "name": "parse_immediate_credential_response_object",
-        "path": "crates/oid4vci/src/json.rs",
-        "population": "production",
-        "sloc": 59,
-        "start_line": 1101
-      },
-      {
-        "cognitive": 5,
-        "cyclomatic": 19,
-        "end_line": 1212,
-        "name": "parse_deferred_credential_response_object",
-        "path": "crates/oid4vci/src/json.rs",
-        "population": "production",
-        "sloc": 52,
-        "start_line": 1161
+        "sloc": 85,
+        "start_line": 71
       },
       {
         "cognitive": 6,
         "cyclomatic": 17,
-        "end_line": 1546,
+        "end_line": 243,
         "name": "parse_known_grants",
-        "path": "crates/oid4vci/src/json.rs",
+        "path": "crates/oid4vci/src/json/offer.rs",
         "population": "production",
         "sloc": 50,
-        "start_line": 1497
+        "start_line": 194
       },
       {
         "cognitive": 4,
         "cyclomatic": 16,
-        "end_line": 1598,
+        "end_line": 295,
         "name": "parse_authorization_code_grant",
-        "path": "crates/oid4vci/src/json.rs",
+        "path": "crates/oid4vci/src/json/offer.rs",
         "population": "production",
         "sloc": 51,
-        "start_line": 1548
+        "start_line": 245
       },
       {
         "cognitive": 4,
         "cyclomatic": 19,
-        "end_line": 1654,
+        "end_line": 351,
         "name": "parse_pre_authorized_code_grant",
-        "path": "crates/oid4vci/src/json.rs",
+        "path": "crates/oid4vci/src/json/offer.rs",
         "population": "production",
         "sloc": 55,
-        "start_line": 1600
+        "start_line": 297
       },
       {
         "cognitive": 8,
         "cyclomatic": 20,
-        "end_line": 1721,
+        "end_line": 418,
         "name": "parse_transaction_code",
-        "path": "crates/oid4vci/src/json.rs",
+        "path": "crates/oid4vci/src/json/offer.rs",
         "population": "production",
         "sloc": 66,
-        "start_line": 1656
+        "start_line": 353
+      },
+      {
+        "cognitive": 3,
+        "cyclomatic": 23,
+        "end_line": 166,
+        "name": "parse_token_response_object",
+        "path": "crates/oid4vci/src/json/token.rs",
+        "population": "production",
+        "sloc": 74,
+        "start_line": 93
+      },
+      {
+        "cognitive": 11,
+        "cyclomatic": 18,
+        "end_line": 254,
+        "name": "parse_token_authorization_details_array",
+        "path": "crates/oid4vci/src/json/token.rs",
+        "population": "production",
+        "sloc": 58,
+        "start_line": 197
+      },
+      {
+        "cognitive": 5,
+        "cyclomatic": 24,
+        "end_line": 319,
+        "name": "parse_token_authorization_detail",
+        "path": "crates/oid4vci/src/json/token.rs",
+        "population": "production",
+        "sloc": 64,
+        "start_line": 256
+      },
+      {
+        "cognitive": 3,
+        "cyclomatic": 16,
+        "end_line": 372,
+        "name": "parse_token_error_response_object",
+        "path": "crates/oid4vci/src/json/token.rs",
+        "population": "production",
+        "sloc": 52,
+        "start_line": 321
       },
       {
         "cognitive": 10,
@@ -778,10 +777,6 @@
         "path": "crates/did/src/resolution.rs"
       },
       {
-        "authored_nonblank_lines": 2083,
-        "path": "crates/oid4vci/src/json.rs"
-      },
-      {
         "authored_nonblank_lines": 1445,
         "path": "crates/oid4vci/src/limits.rs"
       },
@@ -791,5 +786,5 @@
       }
     ]
   },
-  "source_fingerprint_sha256": "3be6ac994ecfa5d3350afb0ec9556c09b66dcae511a5e9c450a7017816a1fcfd"
+  "source_fingerprint_sha256": "51138f0966835a9522639fa88ec16a39ae6437bef166f13ecb700a5444558274"
 }

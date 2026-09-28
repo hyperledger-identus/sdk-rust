@@ -5,9 +5,9 @@ engine_version                     = "0.0.25"
 classifier                         = "syn-ast-v1"
 classifier_protocol_version        = 2
 classifier_command                 = [ "cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--" ]
-baseline_revision                  = "a2bc3407c813ad305cca4b45547417712b6cf407"
-baseline_source_fingerprint_sha256 = "3be6ac994ecfa5d3350afb0ec9556c09b66dcae511a5e9c450a7017816a1fcfd"
-baseline_report_sha256             = "b8685766b7bf9cd27a2f7ec2738a524009780d4441477429cd995ccd15a65b6f"
+baseline_revision                  = "8eed426fc00cef48d3e4a2000e1a08dc3c93d0bb"
+baseline_source_fingerprint_sha256 = "51138f0966835a9522639fa88ec16a39ae6437bef166f13ecb700a5444558274"
+baseline_report_sha256             = "68192f79e5c2f5650aba1d28e7cdfb9a7db3265b98d01b22688c63fcb09c6336"
 generated_exclusions               = [  ]
 
 [attention]
@@ -66,11 +66,11 @@ owner       = "identus-did maintainers"
 evidence    = "Lifecycle modeling and recursive extension validation should become characterized private boundaries."
 
 [[hotspots]]
-id          = "oid4vci-json-and-limits"
-locations   = [ "crates/oid4vci/src/json.rs", "crates/oid4vci/src/limits.rs" ]
-disposition = "defer-with-owner"
-owner       = "issue #168 / identus-oid4vci maintainers"
-evidence    = "Issue #168 owns resource-bound semantics; code-health work must not modify them."
+id          = "oid4vci-limits-policy-and-mechanics"
+locations   = [ "crates/oid4vci/src/limits.rs" ]
+disposition = "decompose"
+owner       = "issue #404 / identus-oid4vci maintainers"
+evidence    = "Issue #404 owns characterization and decomposition while issue #168 remains authoritative for resource-bound semantics."
 
 [[hotspots]]
 id          = "oid4vci-error-projection"

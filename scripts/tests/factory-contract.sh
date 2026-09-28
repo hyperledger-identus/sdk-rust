@@ -174,6 +174,7 @@ required_files=(
   .githooks/pre-commit
   .githooks/pre-push
   scripts/ci/contribution-policy.mjs
+  scripts/ci/contribution-policy-schema.mjs
   scripts/ci/target-plan.mjs
   scripts/factory-tools/audit-pi.mjs
   scripts/factory-tools/delivery.mjs

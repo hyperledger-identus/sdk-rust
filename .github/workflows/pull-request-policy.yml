@@ -91,6 +91,11 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: node scripts/ci/contribution-policy.mjs pr
 
+      - name: Reject contribution policy relaxation
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/ci/contribution-policy.mjs policy-monotonicity
+
       - name: Validate exact hosted commit evidence
         env:
           GH_TOKEN: ${{ github.token }}

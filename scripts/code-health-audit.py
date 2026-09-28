@@ -38,6 +38,27 @@ CLASSIFIER_COMMAND = (
     "code-health-classifier",
     "--",
 )
+CLASSIFIER_SOURCE_ROOT = Path("crates/conformance/src/bin")
+CLASSIFIER_DEPENDENCIES = ("proc-macro2", "syn")
+
+
+def normalize_repository_path(path: Path, context: str) -> Path:
+    """Normalize a repository-relative path without consulting the filesystem."""
+    if path.is_absolute():
+        raise AuditError(f"{context} must be repository-relative")
+    parts: list[str] = []
+    for part in path.parts:
+        if part in {"", "."}:
+            continue
+        if part == "..":
+            if not parts:
+                raise AuditError(f"{context} escapes the repository")
+            parts.pop()
+            continue
+        parts.append(part)
+    if not parts:
+        raise AuditError(f"{context} is empty after normalization")
+    return Path(*parts)
 
 
 class AuditError(RuntimeError):
@@ -46,6 +67,64 @@ class AuditError(RuntimeError):
 
 def canonical_json(value: object) -> str:
     return json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+
+
+def classifier_source_sha256(root: Path) -> str:
+    paths = [root / CLASSIFIER_SOURCE_ROOT / "code-health-classifier.rs"]
+    paths.extend(
+        sorted((root / CLASSIFIER_SOURCE_ROOT / "code-health-classifier").glob("*.rs"))
+    )
+    if len(paths) < 2 or any(not path.is_file() for path in paths):
+        raise AuditError("classifier source set is missing or incomplete")
+    digest = hashlib.sha256()
+    for path in paths:
+        relative = path.relative_to(root).as_posix()
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def classifier_dependencies_sha256(root: Path) -> str:
+    with (root / "Cargo.lock").open("rb") as handle:
+        lock = tomllib.load(handle)
+    packages = lock.get("package")
+    if not isinstance(packages, list):
+        raise AuditError("Cargo.lock package set is invalid")
+    owners = [package for package in packages if package.get("name") == "identus-conformance"]
+    if len(owners) != 1 or not isinstance(owners[0].get("dependencies"), list):
+        raise AuditError("Cargo.lock lacks the unique classifier package")
+    direct = owners[0]["dependencies"]
+    selected = []
+    for name in CLASSIFIER_DEPENDENCIES:
+        references = [
+            reference
+            for reference in direct
+            if reference == name or reference.startswith(f"{name} ")
+        ]
+        if len(references) != 1:
+            raise AuditError(f"classifier must resolve exactly one direct {name} package")
+        words = references[0].split()
+        version = words[1] if len(words) > 1 else None
+        matches = [
+            package
+            for package in packages
+            if package.get("name") == name
+            and (version is None or package.get("version") == version)
+        ]
+        if len(matches) != 1:
+            raise AuditError(f"Cargo.lock must resolve exactly one {name} package")
+        package = matches[0]
+        selected.append(
+            {
+                "checksum": package.get("checksum"),
+                "name": name,
+                "source": package.get("source"),
+                "version": package.get("version"),
+            }
+        )
+    return hashlib.sha256(canonical_json(selected).encode("utf-8")).hexdigest()
 
 
 def working_tree_sources(root: Path) -> dict[Path, str]:
@@ -136,7 +215,11 @@ def cargo_target_roots(
             library_path = library.get("path", "src/lib.rs")
             if not isinstance(library_path, str):
                 raise AuditError(f"Cargo lib path is invalid: {manifest}")
-            roots.add(crate / library_path)
+            roots.add(
+                normalize_repository_path(
+                    crate / library_path, f"Cargo lib path in {manifest}"
+                )
+            )
         elif package.get("autolib", True) is not False:
             roots.add(crate / "src/lib.rs")
 
@@ -164,7 +247,11 @@ def cargo_target_roots(
                 continue
             if not isinstance(binary_path, str):
                 raise AuditError(f"Cargo bin target lacks a path or name: {manifest}")
-            roots.add(crate / binary_path)
+            roots.add(
+                normalize_repository_path(
+                    crate / binary_path, f"Cargo bin path in {manifest}"
+                )
+            )
 
         if package.get("autobins", True) is not False:
             roots.add(crate / "src/main.rs")
@@ -271,6 +358,8 @@ def load_config(root: Path) -> dict[str, object]:
         "classifier",
         "classifier_protocol_version",
         "classifier_command",
+        "classifier_dependencies_sha256",
+        "classifier_source_sha256",
         "baseline_revision",
         "baseline_source_fingerprint_sha256",
         "baseline_report_sha256",
@@ -311,7 +400,12 @@ def load_config(root: Path) -> dict[str, object]:
     for field in ("baseline_revision",):
         if not re.fullmatch(r"[0-9a-f]{40}", str(config.get(field, ""))):
             raise AuditError(f"{field} must be an exact Git SHA")
-    for field in ("baseline_source_fingerprint_sha256", "baseline_report_sha256"):
+    for field in (
+        "baseline_source_fingerprint_sha256",
+        "baseline_report_sha256",
+        "classifier_dependencies_sha256",
+        "classifier_source_sha256",
+    ):
         if not re.fullmatch(r"[0-9a-f]{64}", str(config.get(field, ""))):
             raise AuditError(f"{field} must be a SHA-256 digest")
     generated_config = config.get("generated_exclusions", [])
@@ -641,7 +735,11 @@ def build_report(
         "analyzer": {
             "classifier": config["classifier"],
             "classifier_command": config["classifier_command"],
+            "classifier_dependencies_sha256": config[
+                "classifier_dependencies_sha256"
+            ],
             "classifier_protocol_version": config["classifier_protocol_version"],
+            "classifier_source_sha256": config["classifier_source_sha256"],
             "contract_version": config["contract_version"],
             "engine": engine,
             "engine_version": config["engine_version"],
@@ -708,6 +806,27 @@ def require_nonnegative_int(value: object, context: str) -> None:
         raise AuditError(f"{context} must be a non-negative integer")
 
 
+def validate_migration_digests(
+    root: Path, config: dict[str, object], report: dict[str, object]
+) -> None:
+    path = root / "docs/architecture/code-health-v2-migration.md"
+    if not path.is_file():
+        return
+    document = path.read_text(encoding="utf-8")
+    expected = {
+        "source fingerprint": report["source_fingerprint_sha256"],
+        "per-file population projection digest": report[
+            "population_projection_sha256"
+        ],
+        "canonical v2 report digest": config["baseline_report_sha256"],
+    }
+    for label, digest in expected.items():
+        pattern = rf"{re.escape(label)} is\s+`([0-9a-f]{{64}})`"
+        match = re.search(pattern, document)
+        if match is None or match.group(1) != digest:
+            raise AuditError(f"migration document {label} is stale")
+
+
 def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[str, object]:
     raw = path.read_text(encoding="utf-8")
     try:
@@ -745,14 +864,23 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
         {
             "classifier",
             "classifier_command",
+            "classifier_dependencies_sha256",
             "classifier_protocol_version",
+            "classifier_source_sha256",
             "contract_version",
             "engine",
             "engine_version",
         },
         "analyzer",
     )
-    for field in ("classifier", "contract_version", "engine", "engine_version"):
+    for field in (
+        "classifier",
+        "classifier_dependencies_sha256",
+        "classifier_source_sha256",
+        "contract_version",
+        "engine",
+        "engine_version",
+    ):
         if not isinstance(analyzer.get(field), str) or not analyzer[field]:
             raise AuditError(f"report analyzer {field} must be a non-empty string")
         if analyzer.get(field) != config.get(field):
@@ -786,6 +914,7 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
         r"[0-9a-f]{64}", str(report.get("population_projection_sha256", ""))
     ):
         raise AuditError("report population projection must be SHA-256")
+    validate_migration_digests(root, config, report)
     if report.get("hotspots") != config.get("hotspots"):
         raise AuditError("report hotspot classifications are stale")
     populations = require_exact_keys(
@@ -837,6 +966,15 @@ def validate_report(root: Path, path: Path, policy_only: bool = False) -> dict[s
             raise AuditError("module signal path must be a string")
 
     if not policy_only:
+        if classifier_source_sha256(root) != config["classifier_source_sha256"]:
+            raise AuditError("classifier source does not match the policy-pinned digest")
+        if (
+            classifier_dependencies_sha256(root)
+            != config["classifier_dependencies_sha256"]
+        ):
+            raise AuditError(
+                "classifier dependencies do not match the policy-pinned digest"
+            )
         require_git_ancestor(root, report["revision"])
         sources = git_tree_sources(root, report["revision"])
         (

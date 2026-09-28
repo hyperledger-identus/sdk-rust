@@ -70,8 +70,15 @@ required_files=(
   docs/architecture/code-health.md
   docs/architecture/code-health.toml
   docs/architecture/code-health-baseline.json
+  docs/architecture/code-health-classifier-performance.json
   docs/architecture/code-health-v2-migration.md
   crates/conformance/src/bin/code-health-classifier.rs
+  crates/conformance/src/bin/code-health-classifier/cfg.rs
+  crates/conformance/src/bin/code-health-classifier/engine.rs
+  crates/conformance/src/bin/code-health-classifier/modules.rs
+  crates/conformance/src/bin/code-health-classifier/projection.rs
+  crates/conformance/src/bin/code-health-classifier/spans.rs
+  crates/conformance/src/bin/code-health-classifier/tests.rs
   docs/architecture/sdk-input-resource-boundaries.md
   docs/architecture/sdk-input-resource-boundaries.toml
   docs/architecture/source-distribution.md
@@ -145,6 +152,7 @@ required_files=(
   openspec/specs/sdk-support-policy/spec.md
   openspec/specs/crypto/spec.md
   openspec/specs/did-core/spec.md
+  scripts/benchmark-code-health-classifier.py
   scripts/benchmark-support-policy.py
   scripts/factory
   bootstrap.sh
@@ -304,6 +312,7 @@ copy_error_planning_golden \
   decompose-oid4vci-error-contracts oid4vci-error-contract-v1.csv 2026-09-18
 
 chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_root/scripts/check-factory.sh" \
+  "$fixture_root/scripts/benchmark-code-health-classifier.py" \
   "$fixture_root/scripts/benchmark-support-policy.py" \
   "$fixture_root/scripts/benchmark-crypto.sh" \
   "$fixture_root/scripts/coverage-crypto.sh" \

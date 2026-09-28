@@ -6,6 +6,7 @@
 
 | Module | Responsibility |
 | --- | --- |
+| `registration/identifier.rs` | Bounded opaque identifiers, stable failure codes, and redacted identifier diagnostics |
 | `registration/public_data.rs` | Bounded public JSON object, reserved/private-member policy, hostile-value validation, and iterative cleanup |
 | `registration/request.rs` | Opaque identifiers, secret policy, document mutations, action/job models, and create/update/deactivate/continue/cancel requests |
 | `registration/result.rs` | Failure classification, lifecycle state, result construction, and request/result consistency |
@@ -24,10 +25,11 @@ runtime change.
 
 ## Dependency direction
 
-`public_data` owns recursive JSON policy. `request` may use public data and
-document validation. `result` may use request identities plus public data and
-document metadata. `port` depends only on the public request/result vocabulary.
-No child depends on the facade and no generic helper framework is introduced.
+`identifier` owns scalar identifier syntax. `public_data` owns recursive JSON
+policy. `request` may use identifiers, public data, and document validation.
+`result` may use request identities plus public data and document metadata.
+`port` depends only on the public request/result vocabulary. No child depends
+on the facade and no generic helper framework is introduced.
 
 ## Characterization and ratchet
 

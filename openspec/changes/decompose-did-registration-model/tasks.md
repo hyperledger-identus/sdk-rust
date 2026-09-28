@@ -2,20 +2,20 @@
 
 ## 1. Planning and characterization
 
-- [ ] 1.1 Inventory public exports, validation order, budgets, cleanup paths,
+- [x] 1.1 Inventory public exports, validation order, budgets, cleanup paths,
       lifecycle invariants, port semantics, and internal consumers.
-- [ ] 1.2 Record private module ownership, dependency direction, compatibility,
+- [x] 1.2 Record private module ownership, dependency direction, compatibility,
       non-goals, risk, and rollback.
-- [ ] 1.3 Pass research/constraint/planning checks, commit planning alone, and
+- [x] 1.3 Pass research/constraint/planning checks, commit planning alone, and
       write the exact-head pre-implementation receipt for issue #406.
-- [ ] 1.4 Run the complete pre-move `identus-did` all-feature suite and capture
+- [x] 1.4 Run the complete pre-move `identus-did` all-feature suite and capture
       public/source invariants.
 
 ## 2. Implementation
 
-- [ ] 2.1 Move bounded public JSON policy with validation and cleanup intact.
-- [ ] 2.2 Move identifiers, actions, jobs, and request models without API drift.
-- [ ] 2.3 Move lifecycle/result validation and the registrar port without
+- [x] 2.1 Move bounded public JSON policy with validation and cleanup intact.
+- [x] 2.2 Move identifiers, actions, jobs, and request models without API drift.
+- [x] 2.3 Move lifecycle/result validation and the registrar port without
       changing method, continuation, metadata, or runtime semantics.
 - [ ] 2.4 Prove public/error/source equivalence and refresh code-health evidence
       without weakening unrelated ownership.

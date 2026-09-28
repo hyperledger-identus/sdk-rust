@@ -11,7 +11,7 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add positive compile evidence for validated and unvalidated string
+- [x] 2.1 Add positive compile evidence for validated and unvalidated string
       and numeric serde expansion before removing duplication.
 - [ ] 2.2 Extract one private scalar serde generator and delegate from the
       string and numeric category modules without changing emitted behavior.

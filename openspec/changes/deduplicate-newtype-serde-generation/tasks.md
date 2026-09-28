@@ -13,7 +13,7 @@
 
 - [x] 2.1 Add positive compile evidence for validated and unvalidated string
       and numeric serde expansion before removing duplication.
-- [ ] 2.2 Extract one private scalar serde generator and delegate from the
+- [x] 2.2 Extract one private scalar serde generator and delegate from the
       string and numeric category modules without changing emitted behavior.
 - [ ] 2.3 Refresh syntax-aware code-health evidence and retire the resolved
       duplicate disposition without weakening other signals.

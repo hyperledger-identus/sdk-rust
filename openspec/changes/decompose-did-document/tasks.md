@@ -21,7 +21,7 @@
       extension, duplicate, and cleanup behavior.
 - [x] 2.5 Move the document aggregate/builder without changing raw preflight,
       cross-resource validation, serde construction, or rejection cleanup.
-- [ ] 2.6 Prove public/wire/error/source equivalence and refresh code-health
+- [x] 2.6 Prove public/wire/error/source equivalence and refresh code-health
       evidence without weakening unrelated ownership.
 
 ## 3. Verification and delivery

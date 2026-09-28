@@ -5,7 +5,10 @@ use std::task::{Context, Poll, Wake, Waker};
 use std::time::Instant;
 
 use super::*;
-use identus_wallet::{StoragePage, StorageRevision, StorageWriteReceipt, Stored};
+use identus_wallet::{
+    StorageCursor, StorageError, StoragePage, StoragePageSize, StorageRevision,
+    StorageWriteCondition, StorageWriteOutcome, StorageWriteReceipt, Stored,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum ExactOperation {

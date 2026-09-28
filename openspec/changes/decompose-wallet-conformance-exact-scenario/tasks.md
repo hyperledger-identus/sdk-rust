@@ -13,9 +13,9 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Move exact and list scenario ownership behind private modules while
+- [x] 2.1 Move exact and list scenario ownership behind private modules while
       preserving crate-root paths and five public checker signatures.
-- [ ] 2.2 Decompose `run_exact` into named lifecycle phases with private
+- [x] 2.2 Decompose `run_exact` into named lifecycle phases with private
       aggregate evidence and unchanged revision/failure semantics.
 - [ ] 2.3 Prove public/source/failure equivalence and refresh canonical
       code-health evidence without weakening unrelated signals.

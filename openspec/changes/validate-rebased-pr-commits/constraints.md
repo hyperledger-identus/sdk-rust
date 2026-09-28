@@ -30,7 +30,9 @@ ancestry proof SHALL fail closed.
 The hook uses the contributor's fetched `origin/develop`; it does not fetch or
 claim that the local remote-tracking ref is server-current. Repository doctor
 and normal delivery synchronization remain responsible for refreshing it.
-Only the repository's fixed `develop` topology is supported.
+Only the repository's fixed `develop` topology is supported. The hermetic test
+derivation now includes nixpkgs-pinned OpenSSH to generate an ephemeral fixture;
+that test-only closure does not create an SDK dependency or platform promise.
 
 ## Consumer and product impact
 

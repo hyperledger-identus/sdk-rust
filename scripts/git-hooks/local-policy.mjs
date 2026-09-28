@@ -12,8 +12,85 @@ const zeroSha = /^0{40}$/u;
 const forbiddenPath = /(^|\/)(?:\.env(?:\..*)?|auth\.json|id_(?:rsa|ed25519)|.*\.(?:pem|key|p12))$/iu;
 const forbiddenAddedContent = /(?:-----BEGIN (?:RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----|github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{20,})/u;
 
+function gitAt(repository, args, options = {}) {
+  return execFileSync("git", args, {
+    cwd: repository,
+    encoding: "utf8",
+    maxBuffer: 16 * 1024 * 1024,
+    stdio: ["ignore", "pipe", "pipe"],
+    ...options,
+  });
+}
+
 function git(args, options = {}) {
-  return execFileSync("git", args, { cwd: root, encoding: "utf8", maxBuffer: 16 * 1024 * 1024, ...options });
+  return gitAt(root, args, options);
+}
+
+function exactCommit(repository, revision) {
+  try {
+    const commit = gitAt(repository, ["rev-parse", "--verify", `${revision}^{commit}`]).trim();
+    return /^[0-9a-f]{40}$/u.test(commit) ? commit : null;
+  } catch {
+    return null;
+  }
+}
+
+function isAncestor(repository, ancestor, descendant) {
+  try {
+    gitAt(repository, ["merge-base", "--is-ancestor", ancestor, descendant], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function hasCommonAncestor(repository, left, right) {
+  try {
+    return /^[0-9a-f]{40}$/u.test(gitAt(repository, ["merge-base", left, right]).trim());
+  } catch {
+    return false;
+  }
+}
+
+export function resolvePrePushBase({ repository = root, localSha, remoteSha }) {
+  const errors = [];
+  if (!/^[0-9a-f]{40}$/u.test(localSha ?? "")) errors.push("local push head must be an exact lowercase SHA");
+  const localHead = errors.length === 0 ? exactCommit(repository, localSha) : null;
+  if (errors.length === 0 && localHead !== localSha) errors.push("local push head is missing or is not the exact commit object");
+
+  const protectedBase = exactCommit(repository, "refs/remotes/origin/develop");
+  if (protectedBase === null) errors.push("current origin/develop is missing or invalid");
+  if (errors.length > 0) return { ok: false, errors, base: null, mode: null };
+  if (!isAncestor(repository, protectedBase, localHead)) {
+    return {
+      ok: false,
+      errors: ["outgoing head does not descend from current origin/develop"],
+      base: null,
+      mode: null,
+    };
+  }
+
+  if (zeroSha.test(remoteSha ?? "")) return { ok: true, errors: [], base: protectedBase, mode: "first-push" };
+  if (!/^[0-9a-f]{40}$/u.test(remoteSha ?? "")) {
+    return { ok: false, errors: ["remote branch head must be an exact lowercase SHA"], base: null, mode: null };
+  }
+  const remoteHead = exactCommit(repository, remoteSha);
+  if (remoteHead !== remoteSha) {
+    return { ok: false, errors: ["remote branch head is missing or is not the exact commit object"], base: null, mode: null };
+  }
+
+  if (isAncestor(repository, remoteHead, localHead) && isAncestor(repository, protectedBase, remoteHead)) {
+    return { ok: true, errors: [], base: remoteHead, mode: "fast-forward" };
+  }
+  if (!hasCommonAncestor(repository, remoteHead, protectedBase)) {
+    return {
+      ok: false,
+      errors: ["remote branch history is unrelated to current origin/develop"],
+      base: null,
+      mode: null,
+    };
+  }
+  return { ok: true, errors: [], base: protectedBase, mode: "protected-base" };
 }
 
 export function inspectStagedSecrets() {
@@ -51,9 +128,12 @@ function prePush() {
   for (const line of lines) {
     const [localRef, localSha, , remoteSha] = line.trim().split(/\s+/u);
     if (!localRef?.startsWith("refs/heads/") || zeroSha.test(localSha ?? "")) continue;
-    let base = remoteSha;
-    if (!base || zeroSha.test(base)) base = git(["merge-base", "HEAD", "origin/develop"]).trim();
-    const outcome = validateCommitRange({ repository: root, base, head: localSha, verifySignature: true });
+    const selection = resolvePrePushBase({ repository: root, localSha, remoteSha });
+    if (!selection.ok) {
+      errors.push(...selection.errors);
+      continue;
+    }
+    const outcome = validateCommitRange({ repository: root, base: selection.base, head: localSha, verifySignature: true });
     errors.push(...outcome.errors);
   }
   if (errors.length) return fail(errors);

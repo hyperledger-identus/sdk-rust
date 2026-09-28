@@ -11,15 +11,15 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add a fail-closed trusted pre-push base resolver for first-push,
+- [x] 2.1 Add a fail-closed trusted pre-push base resolver for first-push,
       fast-forward, rebased, stale, and unrelated graph states.
-- [ ] 2.2 Route the hook through the resolver without changing hosted policy or
+- [x] 2.2 Route the hook through the resolver without changing hosted policy or
       contribution evidence validation.
-- [ ] 2.3 Add hermetic graph and signed/unsigned rebase tests.
+- [x] 2.3 Add hermetic graph and signed/unsigned rebase tests.
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Pass focused Node tests, the complete operational suite, factory
+- [x] 3.1 Pass focused Node tests, the complete operational suite, factory
       checks, and the Nix factory contract.
 - [ ] 3.2 Complete a distinct exact-diff local review and resolve every blocking
       finding.

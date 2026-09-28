@@ -49,12 +49,14 @@ pre-network guard without weakening it.
 
 ## Compatibility and dependency evidence
 
-No Cargo, Nix, action, MSRV, target, feature, SDK API, wire format, crate, or
+No Cargo, action, MSRV, target, feature, SDK API, wire format, crate, or
 resolved dependency-cone change is required. The hook remains local and
-repository-owned. Ordinary fast-forward updates keep their current narrow
-range. First pushes and rebased pushes require the exact fetched protected base
-to be an ancestor of the local head; missing or unrelated evidence fails before
-network mutation.
+repository-owned. The hermetic factory-contract derivation adds the existing
+nixpkgs-pinned OpenSSH package solely for ephemeral signature fixtures; this is
+test tooling, not an SDK or supported-target dependency. Ordinary fast-forward
+updates keep their current narrow range. First pushes and rebased pushes require
+the exact fetched protected base to be an ancestor of the local head; missing
+or unrelated evidence fails before network mutation.
 
 ## Security, privacy and maintenance evidence
 

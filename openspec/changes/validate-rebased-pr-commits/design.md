@@ -38,8 +38,9 @@ Focused tests create temporary repositories with a fixed
   malformed/missing commit object fail closed.
 
 The signature fixture uses a temporary SSH key and repository-local allowed
-signers file when the test environment provides the already-pinned OpenSSH
-tooling. No generated key enters the repository.
+signers file. The factory derivation includes nixpkgs-pinned OpenSSH explicitly,
+so host and hermetic evidence exercise the same capability. No generated key
+enters the repository.
 
 ## Risks and mitigations
 

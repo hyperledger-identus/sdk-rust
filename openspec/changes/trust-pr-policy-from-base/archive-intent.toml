@@ -1,5 +1,0 @@
-[[modified_requirement]]
-capability       = "ai-software-factory"
-requirement      = "Pull-request integration policy is executable"
-canonical_sha256 = "2fbffe6d0e8378d826305af2e417ae4a0cfd1261e3fcdbcfc7413d6acab2084d"
-reason           = "Issue #341 intentionally strengthens the entire hosted policy trust boundary from PR-controlled execution to exact protected-base execution while retaining every existing contributor-facing requirement and scenario."

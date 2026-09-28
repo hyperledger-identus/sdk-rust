@@ -19,6 +19,6 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Run focused/full gates and an exact-diff security review.
-- [ ] 3.2 Archive the completed change, publish an issue-linked signed/DCO PR,
-  retain metrics, and merge only after exact-head protected CI is green.
+- [x] 3.1 Run focused/full gates and an exact-diff security review.
+- [x] 3.2 Prepare the completed change for archive and an issue-linked signed/DCO
+  PR; integration and metrics remain gated by exact-head protected CI.

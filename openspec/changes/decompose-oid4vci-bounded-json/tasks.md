@@ -15,9 +15,9 @@
 
 - [x] 2.1 Single-own root-object admission and retain lexical/container,
       duplicate, bounds, complete-input, and cleanup mechanics in `json.rs`.
-- [ ] 2.2 Move Credential Offer and metadata grammars to their named private
+- [x] 2.2 Move Credential Offer and metadata grammars to their named private
       modules without changing their fields, limits, or errors.
-- [ ] 2.3 Move token/nonce and credential-response grammars to their named
+- [x] 2.3 Move token/nonce and credential-response grammars to their named
       private modules without changing retained secrets or errors.
 - [ ] 2.4 Refresh syntax-aware code-health evidence and retain a focused owner
       for the separate `limits.rs` hotspot.

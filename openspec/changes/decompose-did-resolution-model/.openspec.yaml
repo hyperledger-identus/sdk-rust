@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-28
+goal: Separate DID resolution values, metadata, result envelopes, and wire preflight without changing public or runtime semantics.

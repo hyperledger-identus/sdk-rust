@@ -153,30 +153,30 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn(expected, result.stderr)
 
-    def assert_nix_parses_if_available(self, relative: str) -> None:
+    def run_configured_nix_parser(
+        self, relative: str
+    ) -> subprocess.CompletedProcess[str] | None:
         nix_instantiate = os.environ.get("SDK_SUPPORT_POLICY_NIX_INSTANTIATE")
         if nix_instantiate is None:
-            return
+            return None
         self.assertTrue(Path(nix_instantiate).is_file())
-        result = subprocess.run(
+        return subprocess.run(
             [nix_instantiate, "--parse", str(self.fixture / relative)],
             check=False,
             capture_output=True,
             text=True,
         )
+
+    def assert_nix_parses_if_available(self, relative: str) -> None:
+        result = self.run_configured_nix_parser(relative)
+        if result is None:
+            return
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def assert_nix_rejects_if_available(self, relative: str) -> None:
-        nix_instantiate = os.environ.get("SDK_SUPPORT_POLICY_NIX_INSTANTIATE")
-        if nix_instantiate is None:
+        result = self.run_configured_nix_parser(relative)
+        if result is None:
             return
-        self.assertTrue(Path(nix_instantiate).is_file())
-        result = subprocess.run(
-            [nix_instantiate, "--parse", str(self.fixture / relative)],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
         self.assertNotEqual(result.returncode, 0, result.stdout)
 
     def test_canonical_policy_passes(self) -> None:

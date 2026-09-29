@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 456,
+  "change": "isolate-did-resolution-datetime-grammar",
+  "branch": "codex/refactor/issue-456",
+  "baseRef": "origin/develop",
+  "baseSha": "eca0218779cb960ae4e4b982095fd878ebf5371a",
+  "contractHeadSha": "7aaa44681125beaa61e470000ee10e9440209496",
+  "createdAt": "2026-09-29T02:24:31.145Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -49,8 +49,8 @@ def main() -> None:
     run_text(
         replace_once(
             plan,
-            'id              = "quality-routing"\nissue           = 501\ntitle           = "risk-routed quality evidence declarations"\nstate           = "planned"\nblocked_by      = [ 420 ]',
-            'id              = "quality-routing"\nissue           = 501\ntitle           = "risk-routed quality evidence declarations"\nstate           = "planned"\nblocked_by      = [  ]',
+            'id               = "quality-routing"\nissue            = 501\ntitle            = "risk-routed quality evidence declarations"\nstate            = "planned"\nblocked_by       = [ 420 ]',
+            'id               = "quality-routing"\nissue            = 501\ntitle            = "risk-routed quality evidence declarations"\nstate            = "planned"\nblocked_by       = [  ]',
         ),
         roadmap,
         False,

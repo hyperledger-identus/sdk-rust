@@ -58,6 +58,7 @@ required_files=(
   docs/conformance/oid4vci-final-wallet-core.csv
   docs/conformance/oid4vci-final-wallet-core.md
   docs/release/crypto-candidate.toml
+  docs/release/did-candidate.lock
   docs/release/did-candidate.toml
   docs/release/release-trains.toml
   docs/release/0.1.0-rc.1.md
@@ -97,6 +98,7 @@ required_files=(
   nix/checks/rust-gates.nix
   nix/apps/crypto-candidate.nix
   nix/apps/default.nix
+  nix/apps/did-candidate.nix
   nix/apps/did-candidate-matrix-primary.nix
   nix/apps/did-candidate-matrix-msrv.nix
   openspec/config.yaml

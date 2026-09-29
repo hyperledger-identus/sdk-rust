@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import io
 import json
 import shutil
@@ -40,6 +41,7 @@ def copy_fixture(destination: Path) -> None:
         "Cargo.toml",
         "docs/release/release-trains.toml",
         "docs/release/did-candidate.toml",
+        "docs/release/did-candidate.lock",
         "docs/release/identus-did-0.1.0-rc.1.api.txt",
         "docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt",
         "docs/release/crypto-candidate.toml",
@@ -48,6 +50,7 @@ def copy_fixture(destination: Path) -> None:
         "docs/adr/0155-qualify-staged-did-candidate-matrix.md",
         ".github/workflows/nix-checks.yml",
         "nix/apps/default.nix",
+        "nix/apps/did-candidate.nix",
         "nix/apps/did-candidate-matrix-primary.nix",
         "nix/apps/did-candidate-matrix-msrv.nix",
         "scripts/prepare-did-candidate.py",
@@ -71,6 +74,23 @@ def replace(path: Path, old: str, new: str) -> None:
 
 def append(path: Path, text: str) -> None:
     path.write_text(path.read_text(encoding="utf-8") + text, encoding="utf-8")
+
+
+def replace_lock_and_rebind(root: Path, old: str, new: str) -> None:
+    lock = root / "docs/release/did-candidate.lock"
+    replace(lock, old, new)
+    rebind_lock_digest(root)
+
+
+def rebind_lock_digest(root: Path) -> None:
+    lock = root / "docs/release/did-candidate.lock"
+    digest = hashlib.sha256(lock.read_bytes()).hexdigest()
+    descriptor = root / "docs/release/did-candidate.toml"
+    replace(
+        descriptor,
+        'staged_lock_sha256       = "1f1d4206e2ced5bd74675d654876684536dd8f82bf79cd6de4c2fa67db904447"',
+        f'staged_lock_sha256       = "{digest}"',
+    )
 
 
 def move_cleanliness_step_after_msrv(root: Path) -> None:
@@ -125,6 +145,34 @@ def main() -> int:
         builder.require_local_command(["git", "status", "--porcelain"])
         builder.require_local_command(["cargo", "package", "--workspace"])
         builder.require_local_command(["cargo", "semver-checks", "--version"])
+        staged_lock = builder.staged_lock_path(ROOT, builder.load_toml(ROOT / builder.DESCRIPTOR))
+        installed_stage = boundary / "installed-stage"
+        installed_stage.mkdir()
+        installed_hash = builder.install_staged_lock(
+            ROOT, installed_stage, builder.load_toml(ROOT / builder.DESCRIPTOR)
+        )
+        if installed_hash != builder.sha256(staged_lock) or (
+            installed_stage / "Cargo.lock"
+        ).read_bytes() != staged_lock.read_bytes():
+            raise AssertionError("installed staged lock identity differs")
+        corrupted_stage = boundary / "corrupted-stage"
+        corrupted_stage.mkdir()
+        original_copyfile = builder.shutil.copyfile
+        try:
+            builder.shutil.copyfile = lambda _source, destination: Path(destination).write_bytes(
+                b"copy drift"
+            )
+            try:
+                builder.install_staged_lock(
+                    ROOT, corrupted_stage, builder.load_toml(ROOT / builder.DESCRIPTOR)
+                )
+            except builder.CandidateError as error:
+                if str(error) != "installed staged lock digest differs":
+                    raise
+            else:
+                raise AssertionError("corrupted staged lock copy was accepted")
+        finally:
+            builder.shutil.copyfile = original_copyfile
         for forbidden_command in (
             ["git", "push"], ["cargo", "publish"], ["gh", "release", "create"],
             ["cargo", "semver-checks", "check-release"],
@@ -339,6 +387,50 @@ def main() -> int:
                 "DID descriptor differs: compatibility_status",
             ),
             (
+                lambda root: (root / "docs/release/did-candidate.lock").unlink(),
+                "DID staged lock must be a regular repository file",
+            ),
+            (
+                lambda root: append(root / "docs/release/did-candidate.lock", "\n# drift\n"),
+                "DID staged lock digest differs",
+            ),
+            (
+                lambda root: replace_lock_and_rebind(
+                    root,
+                    'name = "identus-did"\nversion = "0.1.0-rc.1"',
+                    'name = "identus-did"\nversion = "0.1.0-rc.2"',
+                ),
+                "DID staged lock candidate package identity differs",
+            ),
+            (
+                lambda root: replace_lock_and_rebind(
+                    root,
+                    'source = "registry+https://github.com/rust-lang/crates.io-index"',
+                    'source = "git+https://example.invalid/dependency"',
+                ),
+                "DID staged lock contains a non-crates.io source",
+            ),
+            (
+                lambda root: replace_lock_and_rebind(
+                    root,
+                    'source = "registry+https://github.com/rust-lang/crates.io-index"\nchecksum = "31b698c5f9a010f6573133b09e0de5408834d0c82f8d7475a89fc1867a71cd90"',
+                    "",
+                ),
+                "DID staged lock registry package is missing source provenance",
+            ),
+            (
+                lambda root: (
+                    replace(
+                        root / "docs/release/did-candidate.lock",
+                        '[[package]]\nname = "identus-did"\nversion = "0.1.0-rc.1"',
+                        '[[package]]\nname = "identus-did"\nversion = "0.1.0-rc.0"\n\n'
+                        '[[package]]\nname = "identus-did"\nversion = "0.1.0-rc.1"',
+                    ),
+                    rebind_lock_digest(root),
+                ),
+                "DID staged lock contains a duplicate candidate package name",
+            ),
+            (
                 lambda root: replace(
                     root / "docs/release/did-candidate.toml",
                     'primary_rust_version = "1.98.1"',
@@ -468,6 +560,15 @@ def main() -> int:
                     root / "scripts/prepare-did-candidate.py", "\n# cargo publish\n",
                 ),
                 "candidate-only builder contains remote mutation capability",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    "lock_hash = install_staged_lock(root, stage, descriptor)",
+                    'run(["cargo", "generate-lockfile", "--manifest-path", '
+                    'str(stage / "Cargo.toml")], cwd=stage, env=env)',
+                ),
+                "DID candidate lock generation must stay inside extracted closure verification",
             ),
             (
                 lambda root: replace(

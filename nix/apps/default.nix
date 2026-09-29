@@ -48,6 +48,19 @@
           meta.description = "Prepare and verify the unpublished crypto candidate";
         };
 
+        did-candidate = {
+          type = "app";
+          program = "${pkgs.lib.getExe (
+            pkgs.callPackage ./did-candidate.nix {
+              cargoCyclonedx = pkgs.cargo-cyclonedx;
+              cargoPublicApi = pkgs.cargo-public-api;
+              cargoSemverChecks = pkgs.cargo-semver-checks;
+              inherit toolchain;
+            }
+          )}";
+          meta.description = "Prepare and verify the unpublished DID candidate";
+        };
+
         did-candidate-matrix-primary = {
           type = "app";
           program = "${pkgs.lib.getExe (

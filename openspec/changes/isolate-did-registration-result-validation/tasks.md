@@ -13,7 +13,7 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Introduce one private borrowed validator with cohesive lifecycle
+- [x] 2.1 Introduce one private borrowed validator with cohesive lifecycle
       methods while retaining exact fail-fast precedence.
 - [ ] 2.2 Prove public/source/error/value equivalence and remove the touched
       signal without weakening unrelated decisions.

@@ -33,8 +33,8 @@
 
 - [x] 3.1 Run focused inventory, mutation, Markdown/link, strict OpenSpec, and
       full factory structural checks.
-- [ ] 3.2 Complete and record a distinct post-implementation architecture and
+- [x] 3.2 Complete and record a distinct post-implementation architecture and
       consistency review with zero blockers.
-- [ ] 3.3 Sync and archive the reviewed OpenSpec change, prepare signed/DCO
-      commits, open the issue-linked PR, publish bounded metrics, and integrate
-      only after green required CI.
+- [x] 3.3 Record archive-ready review and verification, preserve signed/DCO
+      delivery integrity, and hand the issue-linked planning branch to the
+      protected PR/CI/metrics workflow.

@@ -13,7 +13,7 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Introduce one private owned preparation state while retaining the
+- [x] 2.1 Introduce one private owned preparation state while retaining the
       private result, exact phase/map order, errors, and resolver inputs.
 - [ ] 2.2 Prove public/source/error/value equivalence and remove the touched
       function signal without weakening unrelated signals.

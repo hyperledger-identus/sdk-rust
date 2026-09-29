@@ -116,11 +116,39 @@ struct PreparedRequest {
 
 impl PreparedRequest {
     fn new(did_url: &DidUrl, options: &DereferencingOptions) -> Result<Self, Failure> {
-        let mut accept = options.accept().cloned();
-        let mut expand_relative_urls = None;
-        let mut no_cache = None;
-        let mut version_id = None;
-        let mut version_time = None;
+        PreparedRequestBuilder::new(options)?
+            .apply_query(did_url.query())?
+            .build(did_url, options)
+    }
+
+    fn has_service_selector(&self) -> bool {
+        self.service.is_some() || self.service_type.is_some()
+    }
+}
+
+struct PreparedRequestBuilder {
+    accept: Option<MediaType>,
+    expand_relative_urls: Option<bool>,
+    no_cache: Option<bool>,
+    version_id: Option<VersionId>,
+    version_time: Option<DidResolutionDateTime>,
+    extensions: BTreeMap<String, Value>,
+    service: Option<String>,
+    service_type: Option<String>,
+    relative_ref: Option<String>,
+    custom_resource: bool,
+}
+
+enum ResolutionParameter {
+    ExpandRelativeUrls,
+    NoCache,
+    VersionId,
+    VersionTime,
+}
+
+impl PreparedRequestBuilder {
+    fn new(options: &DereferencingOptions) -> Result<Self, Failure> {
+        let accept = options.accept().cloned();
         let mut extensions = options.extensions().clone();
         if let Some(relationship) = options.verification_relationship() {
             insert_unique(
@@ -131,86 +159,142 @@ impl PreparedRequest {
             )?;
         }
 
-        let mut service = None;
-        let mut service_type = None;
-        let mut relative_ref = None;
-        let mut custom_resource = false;
+        Ok(Self {
+            accept,
+            expand_relative_urls: None,
+            no_cache: None,
+            version_id: None,
+            version_time: None,
+            extensions,
+            service: None,
+            service_type: None,
+            relative_ref: None,
+            custom_resource: false,
+        })
+    }
 
-        if let Some(query) = did_url.query() {
+    fn apply_query(mut self, query: Option<&str>) -> Result<Self, Failure> {
+        if let Some(query) = query {
             let parameters = parse_parameters(query)?;
             for (name, value) in parameters {
-                match name.as_str() {
-                    "accept" => {
-                        if accept.is_some() {
-                            return Err(Failure::InvalidDidUrl);
-                        }
-                        accept =
-                            Some(MediaType::try_new(value).map_err(|_| Failure::InvalidDidUrl)?);
-                    }
-                    "expandRelativeUrls" => {
-                        expand_relative_urls = Some(parse_bool(&value)?);
-                    }
-                    "noCache" => {
-                        no_cache = Some(parse_bool(&value)?);
-                    }
-                    "versionId" => {
-                        version_id =
-                            Some(VersionId::try_new(value).map_err(|_| Failure::InvalidDidUrl)?);
-                    }
-                    "versionTime" => {
-                        version_time = Some(
-                            DidResolutionDateTime::try_new(value)
-                                .map_err(|_| Failure::InvalidDidUrl)?,
-                        );
-                    }
-                    "service" => {
-                        let value = non_empty(value)?;
-                        insert_unique(
-                            &mut extensions,
-                            name,
-                            Value::String(value.clone()),
-                            Failure::InvalidDidUrl,
-                        )?;
-                        service = Some(value);
-                    }
-                    "serviceType" => {
-                        let value = non_empty(value)?;
-                        insert_unique(
-                            &mut extensions,
-                            name,
-                            Value::String(value.clone()),
-                            Failure::InvalidDidUrl,
-                        )?;
-                        service_type = Some(value);
-                    }
-                    "relativeRef" => {
-                        validate_relative_ref(&value)?;
-                        insert_unique(
-                            &mut extensions,
-                            name,
-                            Value::String(value.clone()),
-                            Failure::InvalidDidUrl,
-                        )?;
-                        relative_ref = Some(value);
-                    }
-                    "hl" => insert_unique(
-                        &mut extensions,
-                        name,
-                        Value::String(value),
-                        Failure::InvalidDidUrl,
-                    )?,
-                    _ => {
-                        custom_resource = true;
-                        insert_unique(
-                            &mut extensions,
-                            name,
-                            Value::String(value),
-                            Failure::InvalidDidUrl,
-                        )?;
-                    }
-                }
+                self.apply_parameter(name, value)?;
             }
         }
+        Ok(self)
+    }
+
+    fn apply_parameter(&mut self, name: String, value: String) -> Result<(), Failure> {
+        match name.as_str() {
+            "accept" => {
+                if self.accept.is_some() {
+                    return Err(Failure::InvalidDidUrl);
+                }
+                self.accept = Some(MediaType::try_new(value).map_err(|_| Failure::InvalidDidUrl)?);
+                Ok(())
+            }
+            "expandRelativeUrls" => {
+                self.apply_resolution_parameter(ResolutionParameter::ExpandRelativeUrls, value)
+            }
+            "noCache" => self.apply_resolution_parameter(ResolutionParameter::NoCache, value),
+            "versionId" => self.apply_resolution_parameter(ResolutionParameter::VersionId, value),
+            "versionTime" => {
+                self.apply_resolution_parameter(ResolutionParameter::VersionTime, value)
+            }
+            _ => self.apply_resource_parameter(name, value),
+        }
+    }
+
+    fn apply_resolution_parameter(
+        &mut self,
+        parameter: ResolutionParameter,
+        value: String,
+    ) -> Result<(), Failure> {
+        match parameter {
+            ResolutionParameter::ExpandRelativeUrls => {
+                self.expand_relative_urls = Some(parse_bool(&value)?);
+            }
+            ResolutionParameter::NoCache => self.no_cache = Some(parse_bool(&value)?),
+            ResolutionParameter::VersionId => {
+                self.version_id =
+                    Some(VersionId::try_new(value).map_err(|_| Failure::InvalidDidUrl)?);
+            }
+            ResolutionParameter::VersionTime => {
+                self.version_time = Some(
+                    DidResolutionDateTime::try_new(value).map_err(|_| Failure::InvalidDidUrl)?,
+                );
+            }
+        }
+        Ok(())
+    }
+
+    fn apply_resource_parameter(&mut self, name: String, value: String) -> Result<(), Failure> {
+        match name.as_str() {
+            "service" => {
+                let value = non_empty(value)?;
+                insert_unique(
+                    &mut self.extensions,
+                    name,
+                    Value::String(value.clone()),
+                    Failure::InvalidDidUrl,
+                )?;
+                self.service = Some(value);
+            }
+            "serviceType" => {
+                let value = non_empty(value)?;
+                insert_unique(
+                    &mut self.extensions,
+                    name,
+                    Value::String(value.clone()),
+                    Failure::InvalidDidUrl,
+                )?;
+                self.service_type = Some(value);
+            }
+            "relativeRef" => {
+                validate_relative_ref(&value)?;
+                insert_unique(
+                    &mut self.extensions,
+                    name,
+                    Value::String(value.clone()),
+                    Failure::InvalidDidUrl,
+                )?;
+                self.relative_ref = Some(value);
+            }
+            "hl" => insert_unique(
+                &mut self.extensions,
+                name,
+                Value::String(value),
+                Failure::InvalidDidUrl,
+            )?,
+            _ => {
+                self.custom_resource = true;
+                insert_unique(
+                    &mut self.extensions,
+                    name,
+                    Value::String(value),
+                    Failure::InvalidDidUrl,
+                )?;
+            }
+        }
+        Ok(())
+    }
+
+    fn build(
+        self,
+        did_url: &DidUrl,
+        options: &DereferencingOptions,
+    ) -> Result<PreparedRequest, Failure> {
+        let Self {
+            accept,
+            expand_relative_urls,
+            no_cache,
+            version_id,
+            version_time,
+            extensions,
+            service,
+            service_type,
+            relative_ref,
+            custom_resource,
+        } = self;
 
         let resolution = ResolutionOptions::new(
             accept,
@@ -234,17 +318,13 @@ impl PreparedRequest {
             return Err(Failure::InvalidOptions);
         }
 
-        Ok(Self {
+        Ok(PreparedRequest {
             resolution,
             service,
             service_type,
             relative_ref,
             custom_resource,
         })
-    }
-
-    fn has_service_selector(&self) -> bool {
-        self.service.is_some() || self.service_type.is_some()
     }
 }
 

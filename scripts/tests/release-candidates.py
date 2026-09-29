@@ -390,6 +390,22 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / ".github/workflows/nix-checks.yml",
+                    "printf '%s\\n' \"$dirty_paths\"",
+                    ': "$dirty_paths"',
+                ),
+                "slow workflow is missing DID matrix contract: printf",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
+                    "exit 1",
+                    "true",
+                ),
+                "slow workflow is missing DID matrix contract: exit 1",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
                     "path: ${{ runner.temp }}/did-matrix",
                     "path: artifacts/did-matrix",
                 ),

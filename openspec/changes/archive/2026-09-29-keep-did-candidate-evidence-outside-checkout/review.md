@@ -3,7 +3,7 @@
 Review status: completed
 Review date: 2026-09-29
 Base: develop@a320bc5186ce6b92f80559714928999799c21906
-Implementation head: 35132ba6e19e31140249dc9d6b2d9c0a4d651340
+Implementation head: 221d5fddf2dceab2c341373e5bae17ea9a279da0
 Specification commit: 9aec4cddf76a2193eb0a73e87e12e55c6b6fd4b0
 Unresolved blockers: none
 
@@ -37,12 +37,16 @@ dispatch is authorized by this change.
 
 ## Post-green discovery review
 
-An independent exact-head review found two workflow-observability gaps before
+The first independent exact-head review found two workflow-observability gaps before
 merge: structural policy did not prove that the clean-source step was ordered
 between compiler lanes, and the original one-line assertion hid porcelain
 diagnostics. The implementation now enforces the primary/boundary/MSRV order
 with a reorder mutation and emits a bounded Git status diagnostic on failure.
-Both findings are resolved.
+The follow-up exact-head review found that policy still did not require the
+diagnostic output or non-zero exit. Both are now explicit checker contracts
+with independent mutations. It also identified independently resolved lockfile
+drift as a separate final-M5 risk; issue #482 owns that deterministic staged-lock
+contract before #388 can run final evidence.
 
 ## Decision
 

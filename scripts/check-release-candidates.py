@@ -431,6 +431,8 @@ def validate(root: Path) -> list[str]:
         "Verify primary qualification preserved a clean checkout",
         "git status --porcelain --untracked-files=all",
         "primary DID candidate qualification dirtied the checkout",
+        "printf '%s\\n' \"$dirty_paths\"",
+        "exit 1",
         '--output "$RUNNER_TEMP/did-matrix/msrv"',
         "path: ${{ runner.temp }}/did-matrix",
         "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",

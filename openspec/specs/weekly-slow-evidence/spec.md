@@ -173,10 +173,12 @@ failure with exact SHA/run-attempt identity and seven-day retention.
 
 ### Requirement: Sequential candidate lanes preserve a clean source checkout
 
-When multiple candidate qualification lanes share one Git checkout, generated evidence SHALL be written outside that checkout. The workflow SHALL explicitly
-verify source cleanliness between lanes and SHALL retain the same bounded,
-attempt-scoped artifact identity and retention policy after relocating output.
-It SHALL NOT weaken the candidate builder's independent clean-source check.
+Sequential candidate qualification lanes that share one Git checkout SHALL write generated lane evidence outside that checkout when each lane requires clean source input. The workflow SHALL explicitly verify source
+cleanliness between lanes and SHALL retain the same bounded, attempt-scoped
+artifact identity and retention policy after relocating output. It SHALL NOT
+weaken the candidate builder's independent clean-source check. Later aggregation
+MAY download the immutable lane artifacts into its separate checkout because it
+does not execute a clean-source qualification lane.
 
 #### Scenario: Primary qualification completes before MSRV
 

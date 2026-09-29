@@ -87,9 +87,9 @@
   "population_projection_sha256": "2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80",
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 31258,
+      "authored_nonblank_lines": 31342,
       "files": 95,
-      "functions": 1302
+      "functions": 1305
     },
     "inline_test": {
       "authored_nonblank_lines": 5231,
@@ -97,12 +97,12 @@
       "functions": 371
     },
     "production": {
-      "authored_nonblank_lines": 37710,
+      "authored_nonblank_lines": 37749,
       "files": 204,
-      "functions": 2887
+      "functions": 2890
     }
   },
-  "revision": "d27e455901c501d9611abbe0065e6a9b7270dd57",
+  "revision": "cbb8849ab50f39f7b4f8b873a692ede9861b3394",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -305,16 +305,6 @@
         "population": "production",
         "sloc": 94,
         "start_line": 387
-      },
-      {
-        "cognitive": 8,
-        "cyclomatic": 20,
-        "end_line": 583,
-        "name": "dereference_services",
-        "path": "crates/did/src/dereference.rs",
-        "population": "production",
-        "sloc": 66,
-        "start_line": 518
       },
       {
         "cognitive": 13,
@@ -639,5 +629,5 @@
     ],
     "modules": []
   },
-  "source_fingerprint_sha256": "d91115abd76ec9f55eb0ce244322b071da966704756db28236be44e54d9046ec"
+  "source_fingerprint_sha256": "01951d27f9e5fd3ca63d7447965d01cefb7edeac743e2e46034c9d94ec37c675"
 }

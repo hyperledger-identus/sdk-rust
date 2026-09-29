@@ -482,6 +482,46 @@ async fn malformed_query_options_fail_closed_without_resolution() {
     }
 }
 
+#[tokio::test]
+async fn combined_query_faults_fail_before_resolution_across_phase_boundaries() {
+    let too_many_then_malformed = (0..MAX_RESOLUTION_QUERY_PARAMETERS)
+        .map(|index| format!("p{index}="))
+        .chain(std::iter::once("missing-equals".to_owned()))
+        .collect::<Vec<_>>()
+        .join("&");
+    let duplicate_then_invalid_value = "x=1&x=2&noCache=TRUE".to_owned();
+    let invalid_name_then_conflicting_versions =
+        "=value&versionId=1&versionTime=2020-12-20T19:17:47Z".to_owned();
+
+    for query in [
+        too_many_then_malformed,
+        duplicate_then_invalid_value,
+        invalid_name_then_conflicting_versions,
+    ] {
+        let resolver = Arc::new(RecordingResolver::new(success_result(
+            TEST_DID,
+            Some(APPLICATION_DID),
+        )));
+        let (status, headers, body) =
+            send(resolver.clone(), &format!("/did:example:123?{query}"), &[]).await;
+
+        assert_eq!(status, StatusCode::BAD_REQUEST, "query={query}");
+        assert_resolution_headers(&headers, APPLICATION_DID_RESOLUTION);
+        assert!(error_type(&body).ends_with("#INVALID_OPTIONS"));
+        assert!(resolver.calls().is_empty(), "query={query}");
+    }
+
+    let oversized_and_malformed =
+        format!("{}&missing-equals", "a".repeat(MAX_RESOLUTION_QUERY_BYTES));
+    assert_eq!(
+        decode_resolution_options(
+            Some(&oversized_and_malformed),
+            Representation::Document("not a media type"),
+        ),
+        Err(DidResolutionErrorKind::InternalError),
+    );
+}
+
 #[test]
 fn exact_query_resource_ceilings_are_accepted() {
     let exact_name = format!("{}=", "n".repeat(MAX_RESOLUTION_QUERY_NAME_BYTES));

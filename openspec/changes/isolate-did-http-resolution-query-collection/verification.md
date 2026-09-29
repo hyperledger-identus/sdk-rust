@@ -46,11 +46,11 @@
 | `did-resolver-http/src/lib.rs` module signal | 0 | 0 |
 
 The clean implementation report has source fingerprint
-`d494ab14a1bceee102633223961d5637062d34d03821fbf4d3ac577e19da584b`,
+`36cdda263f4d52ecdcea930fbf7c5125104b4ebcdff3fea3f74b5c832cbe0707`,
 population projection
 `1197fc9803b853694e3873db4eaad2b585148d2887c7a5a1e4c2cf27a3dc81c0`,
 and report digest
-`aa54f0050b0f43b17c49fcfd9523ac021a9252bb25ebb4fc31797c8dd2135431`.
+`044049bb2167d0447255e7596bbddfadd041d1d157b2fb882461af2d5ac69256`.
 The only remaining signal in the touched module is the pre-existing
 `negotiate` media-routing function.
 

@@ -13,7 +13,7 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Introduce the private closed member vocabulary and raw-field collector
+- [x] 2.1 Introduce the private closed member vocabulary and raw-field collector
       while retaining exact phase order, errors, values, and allocations.
 - [ ] 2.2 Prove public/source/error/value equivalence and remove the touched
       signal without weakening unrelated decisions.

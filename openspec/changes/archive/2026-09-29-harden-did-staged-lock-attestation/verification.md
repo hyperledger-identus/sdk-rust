@@ -2,9 +2,11 @@
 
 ## Exact revision
 
-Implementation evidence was collected from
-`3d0d3140537cba451677f55732cd8767f668dede` with a clean checkout. The final
-OpenSpec archive is documentation-only relative to that implementation.
+Initial implementation evidence was collected from
+`3d0d3140537cba451677f55732cd8767f668dede`. Discovery-review remediation and
+the final clean implementation evidence were collected from
+`cf0d8a79289773a5ad531e4aa9b5a30f5f171e32`. The final evidence-record update
+is documentation-only relative to that implementation.
 
 ## Focused gates
 
@@ -31,6 +33,8 @@ passed under pinned Rust/Cargo 1.98.1. The report recorded:
 - an empty diff between the tracked and proposed lockfiles.
 
 The proposal was emitted outside the repository and no tracked file changed.
+The remediated exact-revision refresh repeated this result at `cf0d8a7` after
+the output directory was reserved before resolution.
 
 ## Candidate evidence
 
@@ -45,12 +49,17 @@ subsequent discovery review demonstrated that Cargo consumed it without
 forwarding locked behavior to the external plugin. The remediated path invokes
 the pinned plugin directly with a closed `CARGO` wrapper that executes
 `cargo metadata --locked`; its focused wrapper test and a complete dirty-tree
-candidate precheck passed before the remediation commit.
+candidate precheck passed before the remediation commit. The complete clean
+candidate was then rerun at `cf0d8a7`; it recorded `sourceDirty=false`,
+`twoPassByteIdentical=true`, the descriptor-bound observed lock digest, and
+both public-API and CycloneDX evidence documents for both packages.
 
 ## Matrix evidence
 
-- Primary macOS matrix: Rust/Cargo 1.98.1, 8/8 rows passed in 199.973 seconds.
-- MSRV macOS matrix: Rust/Cargo 1.89.0, 8/8 rows passed in 33.437 seconds.
+- Primary macOS matrix at `cf0d8a7`: Rust/Cargo 1.98.1, 8/8 rows passed in
+  51.981 seconds.
+- MSRV macOS matrix at `cf0d8a7`: Rust/Cargo 1.89.0, 8/8 rows passed in
+  32.454 seconds.
 
 Both aggregates recorded clean sources and the exact descriptor-bound staged
 lock digest. The natural weekly slow lane remains the authority for the full

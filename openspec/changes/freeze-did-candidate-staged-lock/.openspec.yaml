@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-29
+goal: Bind every DID candidate build and matrix lane to one reviewed staged
+  dependency lock instead of resolving independently on each runner.

@@ -177,6 +177,22 @@ def literal_command(call: ast.Call) -> list[str] | None:
     return values
 
 
+def literal_string_argument(call: ast.Call, position: int) -> str | None:
+    if len(call.args) <= position:
+        return None
+    value = call.args[position]
+    return value.value if isinstance(value, ast.Constant) and isinstance(value.value, str) else None
+
+
+def command_string_literals(call: ast.Call) -> list[str]:
+    if not call.args or not isinstance(call.args[0], (ast.List, ast.Tuple)):
+        return []
+    return [
+        element.value for element in call.args[0].elts
+        if isinstance(element, ast.Constant) and isinstance(element.value, str)
+    ]
+
+
 def require_keys(value: dict[str, Any], expected: set[str], label: str, errors: list[str]) -> None:
     actual = set(value)
     if actual != expected:
@@ -456,7 +472,9 @@ def validate(root: Path) -> list[str]:
         "repositoryPolicy", "candidateSpecificScan", "os.replace", "candidate-receipt.json",
         "--matrix-toolchain", "--aggregate-matrix", "build_matrix_lane",
         "aggregate_matrix", "matrix receipt exceeds byte limit", "install_staged_lock",
-        "staged_lock_sha256",
+        "staged_lock_sha256", "--refresh-staged-lock", "refresh_staged_lock",
+        "generate_lockfile", "matrix lane lock differs from descriptor identity",
+        '"sha256": passes[0][1]',
     )
     for phrase in required_builder:
         if phrase not in builder:
@@ -477,27 +495,63 @@ def validate(root: Path) -> list[str]:
         for owner in ("assemble", "build_matrix_lane")
     ):
         errors.append("DID candidate builder must install the staged lock in archive and matrix paths")
-    generated_locks = [
-        call
-        for call in named_calls(builder_tree, "run")
-        if (literal_command(call) or [])[:2] == ["cargo", "generate-lockfile"]
+    generation_literals = [
+        node for node in ast.walk(builder_tree)
+        if isinstance(node, ast.Constant) and node.value == "generate-lockfile"
     ]
-    closure_generates = named_calls(
-        functions.get("verify_closure", ast.Module(body=[], type_ignores=[])), "run"
+    generation_function = functions.get(
+        "generate_lockfile", ast.Module(body=[], type_ignores=[])
     )
-    allowed_generate = [
-        call
-        for call in closure_generates
-        if (literal_command(call) or [])[:2] == ["cargo", "generate-lockfile"]
-        and any(
-            keyword.arg == "cwd"
-            and isinstance(keyword.value, ast.Name)
-            and keyword.value.id == "verify"
-            for keyword in call.keywords
-        )
+    privileged_runs = [
+        call for call in named_calls(builder_tree, "run")
+        if any(keyword.arg == "lock_generation_purpose" for keyword in call.keywords)
     ]
-    if len(generated_locks) != 1 or generated_locks != allowed_generate:
-        errors.append("DID candidate lock generation must stay inside extracted closure verification")
+    generation_runs = named_calls(generation_function, "run")
+    generation_calls = named_calls(builder_tree, "generate_lockfile")
+    allowed_callers = {
+        "verify_closure": "extracted-closure",
+        "refresh_staged_lock": "staged-refresh",
+    }
+    generation_call_contract = all(
+        len(named_calls(functions.get(owner, ast.Module(body=[], type_ignores=[])), "generate_lockfile")) == 1
+        and literal_string_argument(
+            named_calls(functions[owner], "generate_lockfile")[0], 2
+        ) == purpose
+        for owner, purpose in allowed_callers.items()
+    )
+    generation_run_contract = (
+        len(generation_runs) == 1
+        and (literal_command(generation_runs[0]) or [])[:3]
+        == ["cargo", "generate-lockfile", "--manifest-path"]
+        and any(
+            keyword.arg == "lock_generation_purpose"
+            and isinstance(keyword.value, ast.Name)
+            and keyword.value.id == "purpose"
+            for keyword in generation_runs[0].keywords
+        )
+    )
+    if (
+        len(generation_literals) != 1
+        or len(generation_calls) != 2
+        or not generation_call_contract
+        or not generation_run_contract
+        or privileged_runs != generation_runs
+    ):
+        errors.append(
+            "DID candidate lock generation must stay inside closed closure/refresh capabilities"
+        )
+    staged_operations = {
+        operation: [
+            call for call in named_calls(builder_tree, "run")
+            if (literal_command(call) or [])[:2] == ["cargo", operation]
+        ]
+        for operation in ("rustdoc", "cyclonedx")
+    }
+    if any(
+        len(calls) != 1 or "--locked" not in command_string_literals(calls[0])
+        for calls in staged_operations.values()
+    ):
+        errors.append("DID staged Cargo evidence operations must use --locked")
     forbidden_builder = (
         "cargo publish", "git tag", "gh release", "CARGO_REGISTRY_TOKEN",
         "CARGO_PUBLISH", "crates-io-auth-action",

@@ -145,6 +145,19 @@ def main() -> int:
         builder.require_local_command(["git", "status", "--porcelain"])
         builder.require_local_command(["cargo", "package", "--workspace"])
         builder.require_local_command(["cargo", "semver-checks", "--version"])
+        builder.require_local_command(
+            ["cargo", "generate-lockfile", "--manifest-path", "/tmp/Cargo.toml"],
+            lock_generation_purpose="staged-refresh",
+        )
+        variable_generation = ["cargo", "generate-lockfile", "--manifest-path", "/tmp/Cargo.toml"]
+        for runner in (builder.run, builder.run_stdout):
+            try:
+                runner(variable_generation, cwd=boundary, env={})
+            except builder.CandidateError as error:
+                if "closed purpose" not in str(error):
+                    raise
+            else:
+                raise AssertionError("ordinary variable-built lock generation was accepted")
         staged_lock = builder.staged_lock_path(ROOT, builder.load_toml(ROOT / builder.DESCRIPTOR))
         installed_stage = boundary / "installed-stage"
         installed_stage.mkdir()
@@ -275,7 +288,7 @@ def main() -> int:
 
         builder.run = aggregate_run
         lane_paths: list[Path] = []
-        lock_hash = "a" * 64
+        lock_hash = descriptor["staged_lock_sha256"]
         host_triples = {
             "linux": "x86_64-unknown-linux-gnu", "macos": "aarch64-apple-darwin",
         }
@@ -317,6 +330,20 @@ def main() -> int:
         result = json.loads(aggregate.read_text(encoding="utf-8"))
         if result["status"] != "passed" or result["laneCount"] != 4:
             raise AssertionError("valid closed matrix did not aggregate")
+        wrong_lock = json.loads(lane_paths[0].read_text(encoding="utf-8"))
+        wrong_lock["lock"]["sha256"] = "a" * 64
+        wrong_lock_path = boundary / "wrong-lock.json"
+        wrong_lock_path.write_text(json.dumps(wrong_lock), encoding="utf-8")
+        try:
+            builder.aggregate_matrix(
+                ROOT, boundary / "rejected-wrong-lock.json", revision,
+                [wrong_lock_path, *lane_paths[1:]],
+            )
+        except builder.CandidateError as error:
+            if "descriptor identity" not in str(error):
+                raise AssertionError(f"unexpected staged-lock rejection: {error}") from error
+        else:
+            raise AssertionError("descriptor/aggregate staged-lock mismatch was accepted")
         overclaim = json.loads(lane_paths[0].read_text(encoding="utf-8"))
         overclaim["rows"].append({
             "scope": "target", "package": "identus-did-resolver-http",
@@ -568,7 +595,39 @@ def main() -> int:
                     'run(["cargo", "generate-lockfile", "--manifest-path", '
                     'str(stage / "Cargo.toml")], cwd=stage, env=env)',
                 ),
-                "DID candidate lock generation must stay inside extracted closure verification",
+                "DID candidate lock generation must stay inside closed closure/refresh capabilities",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    'commands: list[list[str]] = []',
+                    'command = ["cargo", "generate-lockfile"]\n    run_stdout(command, cwd=verify, env=env)\n    commands: list[list[str]] = []',
+                ),
+                "DID candidate lock generation must stay inside closed closure/refresh capabilities",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    '"sha256": passes[0][1]',
+                    '"sha256": descriptor["staged_lock_sha256"]',
+                ),
+                'DID candidate builder is missing contract: "sha256": passes[0][1]',
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    '"--locked", "--all-features", "--lib", "--target-dir", str(api_target), "--",',
+                    '"--all-features", "--lib", "--target-dir", str(api_target), "--",',
+                ),
+                "DID staged Cargo evidence operations must use --locked",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    '"--locked", "--format", "json", "--spec-version", tools["cyclonedx_spec"],',
+                    '"--format", "json", "--spec-version", tools["cyclonedx_spec"],',
+                ),
+                "DID staged Cargo evidence operations must use --locked",
             ),
             (
                 lambda root: replace(

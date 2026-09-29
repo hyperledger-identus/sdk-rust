@@ -25,9 +25,9 @@ source population and projection remain unchanged by that protocol refinement.
 
 Every file has the same authored nonblank production/test population under
 both classifiers. The current protected baseline source fingerprint is
-`abf66d32446c22bf387df1301a3a35c3d71e405e3c762d1d2998bdd6de7175c1`.
+`0c190d272ea56e542e2af153e148591839ca9b62e70cfda1f85ef217b71411bb`.
 The v2 per-file population projection digest is
-`c424bf04a8116abec41c15acbdf1c611bbd5319ac447fd333306cb2bcda724e5`.
+`2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80`.
 
 The sole representation delta is intentional: v1 included blank lines in a
 file inherited wholly as inline test, while v2 reports only lines containing
@@ -72,9 +72,11 @@ nix develop --command python3 scripts/code-health-audit.py --verify-baseline
 ```
 
 The canonical v2 report digest is
-`d383b78ef4161fc9a0f69156e8c6561390083ec417d407be71fce31f86e77a92`.
+`aafedad49e8fb8696c5071aca898f9461aa9f48d675c47623692a8bff2e30d7f`.
 The baseline was most recently refreshed from protected
-`develop@e4afece895eb3814b5d9b8c945d6ba457c6ad1c1` after issue #438 removed
-the completed exact-store conformance hotspot. The historical v1/v2 migration
-method above remains unchanged; these three values bind the current canonical
-source population and report.
+`develop@7a95db2b40ee16b2ae14380eb438c6db239793cd` after issue #441 removed
+the final wallet-conformance list-traversal function signal. No production
+module exceeds 1,000 authored nonblank lines, and wallet conformance now has no
+governed function signal. The historical v1/v2 migration method above remains
+unchanged; these three values bind the current canonical source population and
+report.

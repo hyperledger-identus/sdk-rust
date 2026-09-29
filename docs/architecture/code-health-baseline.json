@@ -84,7 +84,7 @@
       "owner": "identus-did resolution model"
     }
   ],
-  "population_projection_sha256": "c424bf04a8116abec41c15acbdf1c611bbd5319ac447fd333306cb2bcda724e5",
+  "population_projection_sha256": "2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80",
   "populations": {
     "external_test": {
       "authored_nonblank_lines": 30603,
@@ -92,17 +92,17 @@
       "functions": 1276
     },
     "inline_test": {
-      "authored_nonblank_lines": 5109,
+      "authored_nonblank_lines": 5231,
       "files": 39,
-      "functions": 369
+      "functions": 371
     },
     "production": {
-      "authored_nonblank_lines": 37463,
+      "authored_nonblank_lines": 37489,
       "files": 204,
-      "functions": 2857
+      "functions": 2861
     }
   },
-  "revision": "e4afece895eb3814b5d9b8c945d6ba457c6ad1c1",
+  "revision": "7a95db2b40ee16b2ae14380eb438c6db239793cd",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -685,19 +685,9 @@
         "population": "production",
         "sloc": 73,
         "start_line": 286
-      },
-      {
-        "cognitive": 11,
-        "cyclomatic": 17,
-        "end_line": 153,
-        "name": "run",
-        "path": "crates/wallet-conformance/src/list.rs",
-        "population": "production",
-        "sloc": 82,
-        "start_line": 72
       }
     ],
     "modules": []
   },
-  "source_fingerprint_sha256": "abf66d32446c22bf387df1301a3a35c3d71e405e3c762d1d2998bdd6de7175c1"
+  "source_fingerprint_sha256": "0c190d272ea56e542e2af153e148591839ca9b62e70cfda1f85ef217b71411bb"
 }

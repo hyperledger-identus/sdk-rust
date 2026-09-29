@@ -50,10 +50,29 @@ async coordinator. It is not a forwarding-only helper chain, moved production
 code, generated implementation, waiver, or weaker threshold.
 
 The canonical baseline cannot safely pin a feature-branch commit because
-protected delivery uses squash merge. After the implementation PR merges, a
-second issue-linked closeout PR will generate and pin the report from the
-durable protected squash, remove only the completed list disposition, archive
-the OpenSpec change, and close #441.
+protected delivery uses squash merge. The implementation therefore merged
+first, and the issue-linked closeout generates and pins its report from the
+durable protected squash before archiving this change.
+
+## Protected implementation evidence
+
+- PR #442 passed DCO, pull-request policy, every file-hygiene check, and the
+  exact-head fast gate in 7m47s before guarded merge.
+- The guarded squash merge produced protected
+  `develop@7a95db2b40ee16b2ae14380eb438c6db239793cd`.
+- A canonical v2 report generated from that exact protected revision has
+  source fingerprint
+  `0c190d272ea56e542e2af153e148591839ca9b62e70cfda1f85ef217b71411bb`,
+  population projection
+  `2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80`,
+  and report digest
+  `aafedad49e8fb8696c5071aca898f9461aa9f48d675c47623692a8bff2e30d7f`.
+- The refreshed report has no production module above 1,000 authored nonblank
+  lines and no wallet-conformance function signal. Every unrelated hotspot
+  disposition remains unchanged.
+- PR #442 metrics are retained in the private v2 store and published on the
+  merged PR. The one failed/retried metadata check records the initial
+  non-closing issue reference; no code or post-CI push was required.
 
 ## Local gates
 

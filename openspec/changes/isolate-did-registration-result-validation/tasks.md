@@ -6,7 +6,7 @@
       public entry points, callers, tests, dependencies, and health signal.
 - [x] 1.2 Record private phase ownership, alternatives, compatibility,
       resource/security invariants, risks, and rollback.
-- [ ] 1.3 Pass research/constraint/strict readiness, commit planning only, and
+- [x] 1.3 Pass research/constraint/strict readiness, commit planning only, and
       bind an exact issue #459 preimplementation receipt.
 - [ ] 1.4 Run the pre-change focused suite and bind a combined-fault matrix
       before production movement.

@@ -87,9 +87,9 @@
   "population_projection_sha256": "2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80",
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 30785,
+      "authored_nonblank_lines": 30878,
       "files": 95,
-      "functions": 1277
+      "functions": 1279
     },
     "inline_test": {
       "authored_nonblank_lines": 5231,
@@ -97,12 +97,12 @@
       "functions": 371
     },
     "production": {
-      "authored_nonblank_lines": 37533,
+      "authored_nonblank_lines": 37577,
       "files": 204,
-      "functions": 2866
+      "functions": 2872
     }
   },
-  "revision": "a33b48ead4bb1c37d63f26775c0f47c77564b4fe",
+  "revision": "9146d1e60ef3eb0f1000be0c21895baca9ba8316",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -657,16 +657,6 @@
         "start_line": 680
       },
       {
-        "cognitive": 16,
-        "cyclomatic": 23,
-        "end_line": 183,
-        "name": "new",
-        "path": "crates/presentations/src/model/artifact.rs",
-        "population": "production",
-        "sloc": 57,
-        "start_line": 127
-      },
-      {
         "cognitive": 11,
         "cyclomatic": 16,
         "end_line": 244,
@@ -679,5 +669,5 @@
     ],
     "modules": []
   },
-  "source_fingerprint_sha256": "aff2b1239416166e84c0d405c056943ae56d7f9b49a9033f32717d8a5ea16b49"
+  "source_fingerprint_sha256": "ed058bdd63c240414d159500c6626c2401f91e241c32d0cc2908f069214e3205"
 }

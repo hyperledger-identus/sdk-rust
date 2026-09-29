@@ -1602,6 +1602,105 @@ fn generated_presentation_rejects_request_format_and_binding_mismatches() {
 }
 
 #[test]
+fn generated_presentation_reports_the_first_validation_phase_failure() {
+    let (first_request, first_plan) = multi_selection_fixture(1, "example");
+    let second_request = PresentationRequest::new(
+        entity("https://another-verifier.example"),
+        first_request.purpose().cloned(),
+        first_request.challenge().cloned(),
+        first_request.queries().to_vec(),
+    )
+    .unwrap();
+
+    assert_eq!(
+        GeneratedPresentation::new(&second_request, first_plan.clone(), Vec::new()),
+        Err(PresentationError::InvalidGeneratedArtifacts),
+        "artifact cardinality precedes exact-request plan validation"
+    );
+    assert_eq!(
+        GeneratedPresentation::new(
+            &second_request,
+            first_plan,
+            vec![artifact(
+                "other-format",
+                vec![binding("query", "unknown")],
+                vec![1],
+            )],
+        ),
+        Err(PresentationError::DisclosureRequestMismatch),
+        "exact-request plan validation precedes payload and binding validation"
+    );
+
+    let payload_size = MAX_GENERATED_PRESENTATION_BYTES / 17 + 1;
+    let (request, plan) = multi_selection_fixture(17, "example");
+    let over_budget_unknown = (0..17)
+        .map(|index| {
+            artifact(
+                "other-format",
+                vec![binding("query", &format!("unknown-{index}"))],
+                vec![index as u8; payload_size],
+            )
+        })
+        .collect();
+    assert_eq!(
+        GeneratedPresentation::new(&request, plan, over_budget_unknown),
+        Err(PresentationError::ArtifactPayloadBudgetExceeded),
+        "aggregate payload validation precedes per-binding validation"
+    );
+
+    let (request, plan) = multi_selection_fixture(1, "example");
+    assert_eq!(
+        GeneratedPresentation::new(
+            &request,
+            plan,
+            vec![artifact(
+                "other-format",
+                vec![binding("query", "unknown")],
+                vec![1],
+            )],
+        ),
+        Err(PresentationError::UnknownArtifactSelection),
+        "selection lookup precedes format and coverage validation"
+    );
+
+    let (request, plan) = multi_selection_fixture(2, "example");
+    assert_eq!(
+        GeneratedPresentation::new(
+            &request,
+            plan,
+            vec![
+                artifact(
+                    "other-format",
+                    vec![binding("query", "credential-0")],
+                    vec![1],
+                ),
+                artifact(
+                    "other-format",
+                    vec![binding("query", "credential-0")],
+                    vec![2],
+                ),
+            ],
+        ),
+        Err(PresentationError::ArtifactFormatMismatch),
+        "format validation precedes duplicate and coverage validation"
+    );
+
+    let (request, plan) = multi_selection_fixture(2, "example");
+    assert_eq!(
+        GeneratedPresentation::new(
+            &request,
+            plan,
+            vec![
+                artifact("example", vec![binding("query", "credential-0")], vec![1],),
+                artifact("example", vec![binding("query", "credential-0")], vec![2],),
+            ],
+        ),
+        Err(PresentationError::DuplicateGeneratedArtifactBinding),
+        "duplicate validation precedes final plan coverage"
+    );
+}
+
+#[test]
 fn artifact_and_receipt_debug_redact_all_correlating_values() {
     let query_canary = "artifact-query-canary";
     let handle_canary = "artifact-handle-canary";

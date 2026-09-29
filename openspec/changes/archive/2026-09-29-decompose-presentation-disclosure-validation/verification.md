@@ -63,6 +63,24 @@ The canonical baseline cannot pin a feature-branch commit because protected
 delivery uses squash merge. The implementation must merge first; a distinct
 closeout will generate and pin the report from the durable protected squash.
 
+## Protected implementation evidence
+
+- PR #445 passed DCO, pull-request policy, every file-hygiene check, and the
+  exact-head fast gate in 7m48s before guarded merge.
+- The guarded squash merge produced protected
+  `develop@a33b48ead4bb1c37d63f26775c0f47c77564b4fe`.
+- The canonical v2 report generated from that exact protected revision has
+  source fingerprint
+  `aff2b1239416166e84c0d405c056943ae56d7f9b49a9033f32717d8a5ea16b49`,
+  population projection
+  `2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80`,
+  and report digest
+  `f922df6c36ad6340e82d7a90f982a70d5958d9952b1d30c43905887f7e60a5eb`.
+- The refreshed report contains no `PresentationDisclosurePlan::new` function
+  signal and no presentation module signal. Every unrelated hotspot and
+  disposition remains unchanged.
+- PR #445 required no post-CI push, rerun, or retry.
+
 ## Local gates
 
 - Focused presentation tests: passed.
@@ -75,4 +93,3 @@ closeout will generate and pin the report from the durable protected squash.
 - Source distribution, factory contract, OpenSpec, formatting, diff, and Nix
   flake evaluation gates: passed.
 - Canonical Nix `rust-test` gate: passed.
-

@@ -306,103 +306,88 @@ struct ResponseFields {
     issuer: Option<Zeroizing<String>>,
 }
 
-impl AuthorizationRequest {
-    /// Consume this request and correlate an already-extracted callback query.
-    pub fn try_into_authorization_response(
-        self,
-        query: &str,
-        limits: AuthorizationResponseLimits,
-    ) -> Result<AuthorizationResponseOutcome, CredentialOfferError> {
-        let expected_state = self.authorization_request_input().state().as_str();
-        let metadata = self
-            .authorization_request_input()
-            .credential_offer_with_authorization_code_server()
-            .authorization_server_metadata();
-        let issuer_supported = metadata.effective_authorization_response_iss_parameter_supported();
-        let expected_issuer = metadata.issuer().as_str();
-        let query_len = query.len();
-        let fields = parse_query(query, limits)?;
-
-        if fields.state.as_ref().map(|value| value.as_str()) != Some(expected_state) {
-            return Err(CredentialOfferError::AuthorizationResponseStateMismatch);
+impl ResponseFields {
+    fn insert(&mut self, name: &str, value: Zeroizing<String>) {
+        match name {
+            "code" => self.code = Some(value),
+            "error" => self.error = Some(value),
+            "error_description" => self.error_description = Some(value),
+            "error_uri" => self.error_uri = Some(value),
+            "state" => self.state = Some(value),
+            "iss" => self.issuer = Some(value),
+            _ => {}
         }
-        let issuer_identification = if issuer_supported {
-            if fields.issuer.as_ref().map(|value| value.as_str()) != Some(expected_issuer) {
-                return Err(CredentialOfferError::AuthorizationResponseIssuerMismatch);
-            }
-            AuthorizationResponseIssuerIdentification::VerifiedRfc9207
-        } else {
-            if fields.issuer.is_some() {
-                return Err(CredentialOfferError::AuthorizationResponseIssuerMismatch);
-            }
-            AuthorizationResponseIssuerIdentification::NotAdvertised
-        };
+    }
 
-        match (fields.code, fields.error) {
-            (Some(code), None)
-                if fields.error_description.is_none() && fields.error_uri.is_none() =>
-            {
-                if code.is_empty() || !is_vschar(&code) {
-                    return Err(CredentialOfferError::InvalidAuthorizationCode);
-                }
-                Ok(AuthorizationResponseOutcome::Authorized(
-                    CorrelatedAuthorizationCode {
-                        request: Box::new(self),
-                        code,
-                        issuer_identification,
-                    },
-                ))
+    fn into_branch(self) -> Result<ResponseBranch, CredentialOfferError> {
+        match (self.code, self.error) {
+            (Some(code), None) if self.error_description.is_none() && self.error_uri.is_none() => {
+                Ok(ResponseBranch::Authorized(code))
             }
-            (None, Some(error)) => {
-                if error.is_empty() || !is_nqschar(&error) {
-                    return Err(CredentialOfferError::InvalidAuthorizationEndpointErrorCode);
-                }
-                if fields
-                    .error_description
-                    .as_ref()
-                    .is_some_and(|value| value.is_empty() || !is_nqschar(value))
-                {
-                    return Err(CredentialOfferError::InvalidAuthorizationErrorDescription);
-                }
-                if fields.error_uri.as_ref().is_some_and(|value| {
-                    value.is_empty()
-                        || !is_uri_reference_chars(value)
-                        || UriRef::parse(value.as_str()).is_err()
-                }) {
-                    return Err(CredentialOfferError::InvalidAuthorizationErrorUri);
-                }
-                Ok(AuthorizationResponseOutcome::Error(
-                    AuthorizationErrorResponse {
-                        response_len: query_len,
-                        error: AuthorizationEndpointErrorCode { value: error },
-                        error_description: fields.error_description,
-                        error_uri: fields
-                            .error_uri
-                            .map(|value| AuthorizationErrorUri { value }),
-                        issuer_identification,
-                    },
-                ))
-            }
+            (None, Some(error)) => Ok(ResponseBranch::Error {
+                error,
+                description: self.error_description,
+                uri: self.error_uri,
+            }),
             _ => Err(CredentialOfferError::InvalidAuthorizationResponse),
         }
     }
 }
 
-fn parse_query(
-    query: &str,
+enum ResponseBranch {
+    Authorized(Zeroizing<String>),
+    Error {
+        error: Zeroizing<String>,
+        description: Option<Zeroizing<String>>,
+        uri: Option<Zeroizing<String>>,
+    },
+}
+
+struct DecodedAuthorizationResponse {
+    response_len: usize,
+    fields: ResponseFields,
+}
+
+struct BoundedAuthorizationResponseQuery<'a> {
+    query: &'a str,
     limits: AuthorizationResponseLimits,
-) -> Result<ResponseFields, CredentialOfferError> {
-    if query.is_empty() || query.starts_with('?') || query.contains('#') {
-        return Err(CredentialOfferError::InvalidAuthorizationResponse);
-    }
-    if query.len() > limits.max_query_bytes() {
-        return Err(CredentialOfferError::AuthorizationResponseTooLarge);
+    names: BTreeSet<String>,
+    fields: ResponseFields,
+}
+
+impl<'a> BoundedAuthorizationResponseQuery<'a> {
+    fn new(query: &'a str, limits: AuthorizationResponseLimits) -> Self {
+        Self {
+            query,
+            limits,
+            names: BTreeSet::new(),
+            fields: ResponseFields::default(),
+        }
     }
 
-    let mut names = BTreeSet::new();
-    let mut fields = ResponseFields::default();
-    for (index, field) in query.split('&').enumerate() {
-        if index == limits.max_parameters() {
+    fn decode(mut self) -> Result<DecodedAuthorizationResponse, CredentialOfferError> {
+        self.validate_envelope()?;
+        for (index, field) in self.query.split('&').enumerate() {
+            self.decode_field(index, field)?;
+        }
+        Ok(DecodedAuthorizationResponse {
+            response_len: self.query.len(),
+            fields: self.fields,
+        })
+    }
+
+    fn validate_envelope(&self) -> Result<(), CredentialOfferError> {
+        if self.query.is_empty() || self.query.starts_with('?') || self.query.contains('#') {
+            return Err(CredentialOfferError::InvalidAuthorizationResponse);
+        }
+        if self.query.len() > self.limits.max_query_bytes() {
+            return Err(CredentialOfferError::AuthorizationResponseTooLarge);
+        }
+        Ok(())
+    }
+
+    fn decode_field(&mut self, index: usize, field: &str) -> Result<(), CredentialOfferError> {
+        if index == self.limits.max_parameters() {
             return Err(CredentialOfferError::TooManyAuthorizationResponseParameters);
         }
         if field.is_empty() {
@@ -411,55 +396,198 @@ fn parse_query(
         let (encoded_name, encoded_value) = field
             .split_once('=')
             .ok_or(CredentialOfferError::InvalidAuthorizationResponse)?;
-        let name = decode_component(
-            encoded_name,
-            limits.max_name_bytes(),
-            CredentialOfferError::InvalidAuthorizationResponseEncoding,
-            CredentialOfferError::AuthorizationResponseComponentTooLarge,
-        )?;
-        if name.is_empty() {
-            return Err(CredentialOfferError::InvalidAuthorizationResponse);
-        }
-        if !names.insert(name.to_string()) {
+        let name = decode_response_parameter_name(encoded_name, self.limits)?;
+        if !self.names.insert(name.to_string()) {
             return Err(CredentialOfferError::DuplicateAuthorizationResponseParameter);
         }
-        let (maximum, too_large) = match name.as_str() {
-            "code" => (
-                limits.max_code_bytes(),
-                CredentialOfferError::AuthorizationCodeTooLarge,
-            ),
-            "error" => (
-                limits.max_error_bytes(),
-                CredentialOfferError::AuthorizationEndpointErrorCodeTooLarge,
-            ),
-            "error_description" => (
-                limits.max_error_description_bytes(),
-                CredentialOfferError::AuthorizationErrorDescriptionTooLarge,
-            ),
-            "error_uri" => (
-                limits.max_error_uri_bytes(),
-                CredentialOfferError::AuthorizationErrorUriTooLarge,
-            ),
-            _ => (
-                limits.max_value_bytes(),
-                CredentialOfferError::AuthorizationResponseComponentTooLarge,
-            ),
-        };
-        let value = decode_component(
-            encoded_value,
-            maximum,
-            CredentialOfferError::InvalidAuthorizationResponseEncoding,
-            too_large,
-        )?;
-        match name.as_str() {
-            "code" => fields.code = Some(value),
-            "error" => fields.error = Some(value),
-            "error_description" => fields.error_description = Some(value),
-            "error_uri" => fields.error_uri = Some(value),
-            "state" => fields.state = Some(value),
-            "iss" => fields.issuer = Some(value),
-            _ => {}
+        let value = decode_response_parameter_value(name.as_str(), encoded_value, self.limits)?;
+        self.fields.insert(name.as_str(), value);
+        Ok(())
+    }
+}
+
+struct AuthorizationResponseCorrelator {
+    request: AuthorizationRequest,
+    response: DecodedAuthorizationResponse,
+}
+
+impl AuthorizationResponseCorrelator {
+    fn correlate(self) -> Result<AuthorizationResponseOutcome, CredentialOfferError> {
+        self.verify_state()?;
+        let issuer_identification = self.verify_issuer()?;
+        let response_len = self.response.response_len;
+        match self.response.fields.into_branch()? {
+            ResponseBranch::Authorized(code) => {
+                validate_authorization_code(&code)?;
+                Ok(AuthorizationResponseOutcome::Authorized(
+                    CorrelatedAuthorizationCode {
+                        request: Box::new(self.request),
+                        code,
+                        issuer_identification,
+                    },
+                ))
+            }
+            ResponseBranch::Error {
+                error,
+                description,
+                uri,
+            } => build_error_outcome(response_len, error, description, uri, issuer_identification),
         }
     }
-    Ok(fields)
+
+    fn verify_state(&self) -> Result<(), CredentialOfferError> {
+        let expected = self.request.authorization_request_input().state().as_str();
+        if self
+            .response
+            .fields
+            .state
+            .as_ref()
+            .map(|value| value.as_str())
+            != Some(expected)
+        {
+            return Err(CredentialOfferError::AuthorizationResponseStateMismatch);
+        }
+        Ok(())
+    }
+
+    fn verify_issuer(
+        &self,
+    ) -> Result<AuthorizationResponseIssuerIdentification, CredentialOfferError> {
+        let metadata = self
+            .request
+            .authorization_request_input()
+            .credential_offer_with_authorization_code_server()
+            .authorization_server_metadata();
+        if metadata.effective_authorization_response_iss_parameter_supported() {
+            if self
+                .response
+                .fields
+                .issuer
+                .as_ref()
+                .map(|value| value.as_str())
+                != Some(metadata.issuer().as_str())
+            {
+                return Err(CredentialOfferError::AuthorizationResponseIssuerMismatch);
+            }
+            Ok(AuthorizationResponseIssuerIdentification::VerifiedRfc9207)
+        } else if self.response.fields.issuer.is_some() {
+            Err(CredentialOfferError::AuthorizationResponseIssuerMismatch)
+        } else {
+            Ok(AuthorizationResponseIssuerIdentification::NotAdvertised)
+        }
+    }
+}
+
+impl AuthorizationRequest {
+    /// Consume this request and correlate an already-extracted callback query.
+    pub fn try_into_authorization_response(
+        self,
+        query: &str,
+        limits: AuthorizationResponseLimits,
+    ) -> Result<AuthorizationResponseOutcome, CredentialOfferError> {
+        let response = BoundedAuthorizationResponseQuery::new(query, limits).decode()?;
+        AuthorizationResponseCorrelator {
+            request: self,
+            response,
+        }
+        .correlate()
+    }
+}
+
+fn decode_response_parameter_name(
+    encoded_name: &str,
+    limits: AuthorizationResponseLimits,
+) -> Result<Zeroizing<String>, CredentialOfferError> {
+    let name = decode_component(
+        encoded_name,
+        limits.max_name_bytes(),
+        CredentialOfferError::InvalidAuthorizationResponseEncoding,
+        CredentialOfferError::AuthorizationResponseComponentTooLarge,
+    )?;
+    if name.is_empty() {
+        return Err(CredentialOfferError::InvalidAuthorizationResponse);
+    }
+    Ok(name)
+}
+
+fn decode_response_parameter_value(
+    name: &str,
+    encoded_value: &str,
+    limits: AuthorizationResponseLimits,
+) -> Result<Zeroizing<String>, CredentialOfferError> {
+    let (maximum, too_large) = response_parameter_limit(name, limits);
+    let value = decode_component(
+        encoded_value,
+        maximum,
+        CredentialOfferError::InvalidAuthorizationResponseEncoding,
+        too_large,
+    )?;
+    Ok(value)
+}
+
+fn response_parameter_limit(
+    name: &str,
+    limits: AuthorizationResponseLimits,
+) -> (usize, CredentialOfferError) {
+    match name {
+        "code" => (
+            limits.max_code_bytes(),
+            CredentialOfferError::AuthorizationCodeTooLarge,
+        ),
+        "error" => (
+            limits.max_error_bytes(),
+            CredentialOfferError::AuthorizationEndpointErrorCodeTooLarge,
+        ),
+        "error_description" => (
+            limits.max_error_description_bytes(),
+            CredentialOfferError::AuthorizationErrorDescriptionTooLarge,
+        ),
+        "error_uri" => (
+            limits.max_error_uri_bytes(),
+            CredentialOfferError::AuthorizationErrorUriTooLarge,
+        ),
+        _ => (
+            limits.max_value_bytes(),
+            CredentialOfferError::AuthorizationResponseComponentTooLarge,
+        ),
+    }
+}
+
+fn validate_authorization_code(code: &str) -> Result<(), CredentialOfferError> {
+    if code.is_empty() || !is_vschar(code) {
+        return Err(CredentialOfferError::InvalidAuthorizationCode);
+    }
+    Ok(())
+}
+
+fn build_error_outcome(
+    response_len: usize,
+    error: Zeroizing<String>,
+    description: Option<Zeroizing<String>>,
+    uri: Option<Zeroizing<String>>,
+    issuer_identification: AuthorizationResponseIssuerIdentification,
+) -> Result<AuthorizationResponseOutcome, CredentialOfferError> {
+    if error.is_empty() || !is_nqschar(&error) {
+        return Err(CredentialOfferError::InvalidAuthorizationEndpointErrorCode);
+    }
+    if description
+        .as_ref()
+        .is_some_and(|value| value.is_empty() || !is_nqschar(value))
+    {
+        return Err(CredentialOfferError::InvalidAuthorizationErrorDescription);
+    }
+    if uri.as_ref().is_some_and(|value| {
+        value.is_empty() || !is_uri_reference_chars(value) || UriRef::parse(value.as_str()).is_err()
+    }) {
+        return Err(CredentialOfferError::InvalidAuthorizationErrorUri);
+    }
+    Ok(AuthorizationResponseOutcome::Error(
+        AuthorizationErrorResponse {
+            response_len,
+            error: AuthorizationEndpointErrorCode { value: error },
+            error_description: description,
+            error_uri: uri.map(|value| AuthorizationErrorUri { value }),
+            issuer_identification,
+        },
+    ))
 }

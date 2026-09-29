@@ -87,9 +87,9 @@
   "population_projection_sha256": "2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80",
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 30603,
+      "authored_nonblank_lines": 30785,
       "files": 95,
-      "functions": 1276
+      "functions": 1277
     },
     "inline_test": {
       "authored_nonblank_lines": 5231,
@@ -97,12 +97,12 @@
       "functions": 371
     },
     "production": {
-      "authored_nonblank_lines": 37489,
+      "authored_nonblank_lines": 37533,
       "files": 204,
-      "functions": 2861
+      "functions": 2866
     }
   },
-  "revision": "7a95db2b40ee16b2ae14380eb438c6db239793cd",
+  "revision": "a33b48ead4bb1c37d63f26775c0f47c77564b4fe",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -675,19 +675,9 @@
         "population": "production",
         "sloc": 43,
         "start_line": 202
-      },
-      {
-        "cognitive": 23,
-        "cyclomatic": 27,
-        "end_line": 358,
-        "name": "new",
-        "path": "crates/presentations/src/model/selection.rs",
-        "population": "production",
-        "sloc": 73,
-        "start_line": 286
       }
     ],
     "modules": []
   },
-  "source_fingerprint_sha256": "0c190d272ea56e542e2af153e148591839ca9b62e70cfda1f85ef217b71411bb"
+  "source_fingerprint_sha256": "aff2b1239416166e84c0d405c056943ae56d7f9b49a9033f32717d8a5ea16b49"
 }

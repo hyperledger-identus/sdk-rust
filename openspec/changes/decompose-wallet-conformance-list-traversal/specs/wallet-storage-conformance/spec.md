@@ -19,9 +19,10 @@ MUST remain private behind the existing list-capable checker functions.
 #### Scenario: Adapter violates a pagination invariant
 
 - **WHEN** the adapter fails, exceeds the page bound, duplicates an entry,
-  returns wrong membership, repeats a cursor, or fails to terminate
+  returns wrong membership, repeats a cursor, or keeps returning continued
+  pages beyond the expected membership
 - **THEN** the scenario fails at the existing static list step with the existing
-  closed failure kind and priority
+  closed failure kind and priority reachable through validated page values
 - **AND** no scope, entry, cursor, or adapter error enters diagnostics.
 
 #### Scenario: Evidence remains resource bounded

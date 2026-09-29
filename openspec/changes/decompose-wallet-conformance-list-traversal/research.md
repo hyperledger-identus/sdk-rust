@@ -38,8 +38,17 @@ Issue #441, the #438 archived receipt, ADR 0115, and the canonical
 dependency-boundary, and spec-driven delivery contracts are authoritative.
 Current tests cover success, repeated cursors, invalid fixtures, aggregate
 counts, and diagnostic redaction. They do not independently bind overlong
-pages, duplicate returned entries, excess/wrong membership, or unique-cursor
-nontermination.
+pages, duplicate returned entries, or excess/wrong membership.
+
+Characterization established that the `list-termination` branch cannot be
+reached by a value created through the public `StoragePage` constructor. A
+page with a continuation must contain at least one entry. Before a traversal
+can exceed the fixture-derived page limit, each such entry therefore either
+duplicates an observation or makes the observed cardinality exceed the
+fixture. Those earlier checks deterministically return
+`DuplicateObservedEntry` or `IndexMembershipMismatch`. The redundant private
+branch may be removed; the public `PaginationDidNotTerminate` variant remains
+for source compatibility.
 
 No external protocol or library research is required. This is private SDK test
 kit maintenance with no algorithm, dependency, serialization, or interop
@@ -67,10 +76,12 @@ unsafe, native, FFI, target, serialization, or wire change is needed.
 
 Scopes, entries, cursors, and adapter errors remain absent from diagnostics.
 The evidence state is bounded by the validated fixture cardinality: observed
-entries cannot grow past the expected count, cursor history cannot pass the
-fixture-derived request bound, and the page is rejected before its entries are
-retained when it exceeds the caller-selected size. It uses static dispatch and
-does not add callback tables, trait objects, executors, or synchronization.
+entries cannot grow past the expected count, every continued page must add an
+entry, and duplicate/excess checks therefore bound cursor history without a
+second counter-derived termination branch. The page is rejected before its
+entries are retained when it exceeds the caller-selected size. The design uses
+static dispatch and does not add callback tables, trait objects, executors, or
+synchronization.
 
 Test faults and transcripts use closed categories and counters only. They must
 not add `Debug`, `Hash`, `Ord`, serde, formatting, or cloning requirements to

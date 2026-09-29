@@ -8,13 +8,12 @@
 - completed successful list calls;
 - observed unique entries;
 - previously accepted continuation cursors;
-- the fixture-derived maximum page count.
 
 The coordinator creates the exact `StoragePageRequest`, awaits the consumer
 port, maps operational failure to `list-page`, records the completed call, and
 passes the returned page to the evidence owner. The owner checks page size,
-entry uniqueness/cardinality, cursor progress, termination allowance, final
-membership, and constructs the unchanged report.
+entry uniqueness/cardinality, cursor progress, final membership, and
+constructs the unchanged report.
 
 No public namespace, trait, callback, heap scenario graph, runtime, executor,
 or dependency is introduced. The fixture and driver remain in the existing
@@ -24,16 +23,20 @@ private `list` module.
 
 The refactor preserves this order exactly:
 
-1. reject a request when the completed-call count has reached `max_pages`;
-2. call the adapter with the current cursor;
-3. increment completed operations only after a successful port result;
-4. reject page-size overflow before retaining entries;
-5. inspect entries in returned order, rejecting duplicates before retention
+1. call the adapter with the current cursor;
+2. increment completed operations only after a successful port result;
+3. reject page-size overflow before retaining entries;
+4. inspect entries in returned order, rejecting duplicates before retention
    and excess membership immediately after retention;
-6. accept absence of a next cursor as termination;
-7. reject a repeated cursor before retaining it; otherwise retain it and make
+5. accept absence of a next cursor as termination;
+6. reject a repeated cursor before retaining it; otherwise retain it and make
    it the next request cursor;
-8. after termination, prove exact unordered membership and emit the report.
+7. after termination, prove exact unordered membership and emit the report.
+
+The prior pre-request `max_pages` branch is unreachable for constructible
+`StoragePage` values: every continued page contains an entry, so duplicate or
+excess membership fails first. Removing that redundant private branch does not
+change observable behavior for any consumer-returnable page.
 
 The owner may expose small intention-revealing methods such as
 `require_next_page`, `accept_page`, and `finish`; it must not scatter each
@@ -51,7 +54,10 @@ faults. Tests bind each current static projection:
 | duplicate returned entry | `list-duplicate-entry` | `DuplicateObservedEntry` |
 | excess or wrong final set | `list-membership` | `IndexMembershipMismatch` |
 | repeated continuation | `list-cursor-progress` | `CursorDidNotProgress` |
-| unique continuation beyond bound | `list-termination` | `PaginationDidNotTerminate` |
+
+`list-termination` is excluded from the executable fault matrix because the
+validated page type makes that state unconstructible. The proof above and the
+unchanged public failure variant document the compatibility decision.
 
 A closed request transcript proves page size, first/continuation distinction,
 call count, and termination ordering without retaining cursor bytes or entries.

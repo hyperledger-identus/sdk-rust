@@ -87,9 +87,9 @@
   "population_projection_sha256": "cfc603629e9ba2b2e33f9feb3d18b262a0618080ebfaaeebae892438598d2e53",
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 31440,
+      "authored_nonblank_lines": 31483,
       "files": 95,
-      "functions": 1307
+      "functions": 1308
     },
     "inline_test": {
       "authored_nonblank_lines": 5231,
@@ -97,12 +97,12 @@
       "functions": 371
     },
     "production": {
-      "authored_nonblank_lines": 37899,
+      "authored_nonblank_lines": 37947,
       "files": 204,
-      "functions": 2905
+      "functions": 2911
     }
   },
-  "revision": "87fe079e26b2f7026bf89b2aef11d99617236545",
+  "revision": "ae7c7ef5f9777bb050bc547eb0f4023b14aca5b2",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -397,16 +397,6 @@
         "start_line": 329
       },
       {
-        "cognitive": 13,
-        "cyclomatic": 31,
-        "end_line": 496,
-        "name": "visit_map",
-        "path": "crates/jose/src/header.rs",
-        "population": "production",
-        "sloc": 67,
-        "start_line": 430
-      },
-      {
         "cognitive": 6,
         "cyclomatic": 21,
         "end_line": 172,
@@ -599,5 +589,5 @@
     ],
     "modules": []
   },
-  "source_fingerprint_sha256": "447498639b8c2a7c4fd8b75b7d624cc5a046d984d9852f41133bbfa1ee2932ff"
+  "source_fingerprint_sha256": "de1895419b3f20d05fcd41daad2f53cd6a873e5e5234f4348c8aedbd097c8428"
 }

@@ -79,6 +79,11 @@ def append(path: Path, text: str) -> None:
 def replace_lock_and_rebind(root: Path, old: str, new: str) -> None:
     lock = root / "docs/release/did-candidate.lock"
     replace(lock, old, new)
+    rebind_lock_digest(root)
+
+
+def rebind_lock_digest(root: Path) -> None:
+    lock = root / "docs/release/did-candidate.lock"
     digest = hashlib.sha256(lock.read_bytes()).hexdigest()
     descriptor = root / "docs/release/did-candidate.toml"
     replace(
@@ -146,8 +151,28 @@ def main() -> int:
         installed_hash = builder.install_staged_lock(
             ROOT, installed_stage, builder.load_toml(ROOT / builder.DESCRIPTOR)
         )
-        if installed_hash != builder.sha256(staged_lock):
+        if installed_hash != builder.sha256(staged_lock) or (
+            installed_stage / "Cargo.lock"
+        ).read_bytes() != staged_lock.read_bytes():
             raise AssertionError("installed staged lock identity differs")
+        corrupted_stage = boundary / "corrupted-stage"
+        corrupted_stage.mkdir()
+        original_copyfile = builder.shutil.copyfile
+        try:
+            builder.shutil.copyfile = lambda _source, destination: Path(destination).write_bytes(
+                b"copy drift"
+            )
+            try:
+                builder.install_staged_lock(
+                    ROOT, corrupted_stage, builder.load_toml(ROOT / builder.DESCRIPTOR)
+                )
+            except builder.CandidateError as error:
+                if str(error) != "installed staged lock digest differs":
+                    raise
+            else:
+                raise AssertionError("corrupted staged lock copy was accepted")
+        finally:
+            builder.shutil.copyfile = original_copyfile
         for forbidden_command in (
             ["git", "push"], ["cargo", "publish"], ["gh", "release", "create"],
             ["cargo", "semver-checks", "check-release"],
@@ -386,6 +411,26 @@ def main() -> int:
                 "DID staged lock contains a non-crates.io source",
             ),
             (
+                lambda root: replace_lock_and_rebind(
+                    root,
+                    'source = "registry+https://github.com/rust-lang/crates.io-index"\nchecksum = "31b698c5f9a010f6573133b09e0de5408834d0c82f8d7475a89fc1867a71cd90"',
+                    "",
+                ),
+                "DID staged lock registry package is missing source provenance",
+            ),
+            (
+                lambda root: (
+                    replace(
+                        root / "docs/release/did-candidate.lock",
+                        '[[package]]\nname = "identus-did"\nversion = "0.1.0-rc.1"',
+                        '[[package]]\nname = "identus-did"\nversion = "0.1.0-rc.0"\n\n'
+                        '[[package]]\nname = "identus-did"\nversion = "0.1.0-rc.1"',
+                    ),
+                    rebind_lock_digest(root),
+                ),
+                "DID staged lock contains a duplicate candidate package name",
+            ),
+            (
                 lambda root: replace(
                     root / "docs/release/did-candidate.toml",
                     'primary_rust_version = "1.98.1"',
@@ -520,9 +565,10 @@ def main() -> int:
                 lambda root: replace(
                     root / "scripts/prepare-did-candidate.py",
                     "lock_hash = install_staged_lock(root, stage, descriptor)",
-                    'run(["cargo", "generate-lockfile"], cwd=stage, env=env)',
+                    'run(["cargo", "generate-lockfile", "--manifest-path", '
+                    'str(stage / "Cargo.toml")], cwd=stage, env=env)',
                 ),
-                "DID candidate builder resolves the staged lock during evidence execution",
+                "DID candidate lock generation must stay inside extracted closure verification",
             ),
             (
                 lambda root: replace(

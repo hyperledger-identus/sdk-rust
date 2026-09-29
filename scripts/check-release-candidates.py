@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import re
 import sys
@@ -87,6 +88,7 @@ EXPECTED_STAGED_IDENTUS = {
     "identus-did": (VERSION, None),
     "identus-did-resolver-http": (VERSION, None),
 }
+EXPECTED_STAGED_PATH_PACKAGES = {"identus-did", "identus-did-resolver-http"}
 EXPECTED_MATRIX = {
     "schema_version": 1,
     "primary_rust_version": "1.98.1",
@@ -152,6 +154,27 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: source.read(65536), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def named_calls(node: ast.AST, name: str) -> list[ast.Call]:
+    return [
+        candidate
+        for candidate in ast.walk(node)
+        if isinstance(candidate, ast.Call)
+        and isinstance(candidate.func, ast.Name)
+        and candidate.func.id == name
+    ]
+
+
+def literal_command(call: ast.Call) -> list[str] | None:
+    if not call.args or not isinstance(call.args[0], (ast.List, ast.Tuple)):
+        return None
+    values: list[str] = []
+    for element in call.args[0].elts:
+        if not isinstance(element, ast.Constant) or not isinstance(element.value, str):
+            break
+        values.append(element.value)
+    return values
 
 
 def require_keys(value: dict[str, Any], expected: set[str], label: str, errors: list[str]) -> None:
@@ -286,8 +309,13 @@ def validate(root: Path) -> list[str]:
                     errors.append("DID staged lock contains a non-crates.io source")
                 if not re.fullmatch(r"[0-9a-f]{64}", str(package.get("checksum", ""))):
                     errors.append("DID staged lock registry checksum is invalid")
+            elif name not in EXPECTED_STAGED_PATH_PACKAGES:
+                errors.append("DID staged lock registry package is missing source provenance")
             if isinstance(name, str) and name.startswith("identus-"):
-                observed_identus[name] = (version, source)
+                if name in observed_identus:
+                    errors.append("DID staged lock contains a duplicate candidate package name")
+                else:
+                    observed_identus[name] = (version, source)
         if observed_identus != EXPECTED_STAGED_IDENTUS:
             errors.append("DID staged lock candidate package identity differs")
     tools = descriptor.get("tools")
@@ -433,10 +461,43 @@ def validate(root: Path) -> list[str]:
     for phrase in required_builder:
         if phrase not in builder:
             errors.append(f"DID candidate builder is missing contract: {phrase}")
-    if builder.count("install_staged_lock(") != 3:
+    try:
+        builder_tree = ast.parse(builder)
+    except SyntaxError:
+        errors.append("DID candidate builder is not valid Python")
+        builder_tree = ast.Module(body=[], type_ignores=[])
+    functions = {
+        node.name: node
+        for node in ast.walk(builder_tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    install_calls = named_calls(builder_tree, "install_staged_lock")
+    if len(install_calls) != 2 or any(
+        len(named_calls(functions.get(owner, ast.Module(body=[], type_ignores=[])), "install_staged_lock")) != 1
+        for owner in ("assemble", "build_matrix_lane")
+    ):
         errors.append("DID candidate builder must install the staged lock in archive and matrix paths")
-    if 'run(["cargo", "generate-lockfile"], cwd=stage' in builder:
-        errors.append("DID candidate builder resolves the staged lock during evidence execution")
+    generated_locks = [
+        call
+        for call in named_calls(builder_tree, "run")
+        if (literal_command(call) or [])[:2] == ["cargo", "generate-lockfile"]
+    ]
+    closure_generates = named_calls(
+        functions.get("verify_closure", ast.Module(body=[], type_ignores=[])), "run"
+    )
+    allowed_generate = [
+        call
+        for call in closure_generates
+        if (literal_command(call) or [])[:2] == ["cargo", "generate-lockfile"]
+        and any(
+            keyword.arg == "cwd"
+            and isinstance(keyword.value, ast.Name)
+            and keyword.value.id == "verify"
+            for keyword in call.keywords
+        )
+    ]
+    if len(generated_locks) != 1 or generated_locks != allowed_generate:
+        errors.append("DID candidate lock generation must stay inside extracted closure verification")
     forbidden_builder = (
         "cargo publish", "git tag", "gh release", "CARGO_REGISTRY_TOKEN",
         "CARGO_PUBLISH", "crates-io-auth-action",

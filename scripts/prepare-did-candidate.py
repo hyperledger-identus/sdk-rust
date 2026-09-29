@@ -431,6 +431,8 @@ def verify_closure(
         "",
     ]
     (verify / "Cargo.toml").write_text("\n".join(manifest), encoding="utf-8")
+    # Extracted packages form a distinct patched workspace, so its closure-local
+    # lock is not the staged source lock compared across candidate lanes.
     run(["cargo", "generate-lockfile"], cwd=verify, env=env)
     commands: list[list[str]] = []
     for profile in descriptor["profiles"]:

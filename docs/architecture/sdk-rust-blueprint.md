@@ -70,7 +70,8 @@ Dependencies point downward only. Therefore SDK crates must not depend on:
 - `midnight-*`, `compact-runtime`, Cardano/PRISM ledger clients or chain
   transaction types;
 - Oxid, Lace ID Portal or another product repository;
-- UI, wallet database, cloud-agent or AI-agent runtime frameworks;
+- UI, wallet database, cloud-agent or AI-agent product frameworks (the bounded,
+  executor-neutral protocol runtime kernel in ADR 0171 remains in scope);
 - a consumer's trust, disclosure, consent or custody policy.
 
 Chain- and product-specific behavior enters through typed ports or adapter

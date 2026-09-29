@@ -1,5 +1,6 @@
-schema_version = 1
+schema_version = 2
 program_issue  = 417
+correction_issue = 497
 snapshot_date  = "2026-09-29"
 status         = "preliminary"
 
@@ -9,6 +10,17 @@ revision   = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
 package    = "@hyperledger/identus-sdk"
 version    = "8.1.4"
 license    = "Apache-2.0"
+
+[ownership]
+canonical_contract       = "sdk-rust"
+language_adapter_policy  = "versioned-compatibility-only"
+private_workspace_policy = "port-or-qualified-rust-dependency"
+did_domain_owner         = "sdk-rust"
+
+[quality]
+required_classes = [ "property", "fuzz", "benchmark", "differential" ]
+authority        = "engineering-not-normative"
+policy_issue     = 501
 
 [precedence]
 order = [
@@ -99,7 +111,7 @@ known_consumers    = [ "all SDK-TS DID and messaging flows" ]
 compatibility_risk = "medium"
 rust_state         = "mature"
 target_owner       = "identus-did"
-typescript_owner   = "idiomatic TypeScript DTO facade"
+typescript_owner   = "versioned compatibility facade and package ergonomics"
 disposition        = "move-to-rust"
 decision_basis     = [ "non-secret existing Rust value model", "selected first WASM canary" ]
 follow_up_issue    = 417
@@ -118,7 +130,7 @@ known_consumers    = [ "DID resolution", "credential verification", "DIDComm res
 compatibility_risk = "high"
 rust_state         = "substantial"
 target_owner       = "identus-did"
-typescript_owner   = "facade and platform serialization ergonomics"
+typescript_owner   = "versioned compatibility facade and platform serialization ergonomics"
 disposition        = "move-to-rust"
 decision_basis     = [ "portable semantic model", "method-specific extensions remain adapters" ]
 follow_up_issue    = 420
@@ -130,16 +142,16 @@ source_aliases     = [ "Castor" ]
 source_paths       = [ "packages/lib/sdk/src/castor/methods/peer", "packages/lib/sdk/src/castor/resolver/PeerDIDResolver.ts" ]
 public_surface     = [ "PeerDID", "PeerDIDCreate", "PeerDIDResolver" ]
 dependency_basis   = [ "multiformats@^13.4.2" ]
-standard_basis     = [ "peer DID method specification, exact version unresolved" ]
+standard_basis     = [ "DIF Peer DID Method Specification draft for explicitly selected numalgos" ]
 test_authority     = "implementation-regression"
 test_paths         = [ "packages/lib/sdk/tests/castor" ]
 known_consumers    = [ "DIDComm connection workflows" ]
 compatibility_risk = "high"
 rust_state         = "absent"
-target_owner       = "identus-did-method-peer"
-typescript_owner   = "compatibility facade until replacement exists"
-disposition        = "defer"
-decision_basis     = [ "method/version and reusable crate boundary require a dedicated decision" ]
+target_owner       = "identus-did peer-method module or focused Rust crate"
+typescript_owner   = "thin compatibility and host adapter during migration"
+disposition        = "move-to-rust"
+decision_basis     = [ "peer DID is required by portable pairwise messaging", "did-peer 0.7.5 and VCX supply qualified dependency or differential-oracle evidence", "exact numalgos and dependency boundary remain issue 493 decisions" ]
 follow_up_issue    = 493
 
 [[capability]]
@@ -155,10 +167,10 @@ test_paths         = [ "packages/lib/sdk/tests/castor" ]
 known_consumers    = [ "Identus Cloud Agent integrations" ]
 compatibility_risk = "high"
 rust_state         = "outside-core"
-target_owner       = "method-specific adapter repository"
-typescript_owner   = "Prism facade and network adapter during transition"
-disposition        = "defer"
-decision_basis     = [ "chain-specific operations do not belong in the generic core", "neoprism supplies separate Rust evidence" ]
+target_owner       = "identus-did contracts plus a focused portable Prism method crate"
+typescript_owner   = "thin compatibility facade and host network adapter during transition"
+disposition        = "move-to-rust"
+decision_basis     = [ "portable DID domain, protobuf codec, and deterministic method semantics belong in Rust", "Cardano observation, submission, indexer persistence, and node composition remain downstream", "neoprism supplies extraction and differential evidence" ]
 follow_up_issue    = 493
 
 [[capability]]
@@ -206,7 +218,7 @@ source_aliases     = [ "Pollux", "OEA plugin" ]
 source_paths       = [ "packages/lib/sdk/src/pollux/models/SDJWTVerifiableCredential.ts", "packages/lib/sdk/src/pollux/utils/jwt/SDJWT.ts", "packages/lib/sdk/src/plugins/internal/oea/sdjwt" ]
 public_surface     = [ "SDJWTCredential", "SDJWT", "SD-JWT credential workflow tasks" ]
 dependency_basis   = [ "@sd-jwt/sd-jwt-vc@^0.7.1" ]
-standard_basis     = [ "RFC 9901", "current SD-JWT VC profile, exact revision unresolved" ]
+standard_basis     = [ "RFC 9901", "draft-ietf-oauth-sd-jwt-vc-19" ]
 test_authority     = "implementation-regression"
 test_paths         = [ "packages/lib/sdk/tests/pollux", "packages/lib/sdk/tests/plugins" ]
 known_consumers    = [ "OEA selective-disclosure workflows" ]
@@ -215,7 +227,7 @@ rust_state         = "partial"
 target_owner       = "identus-credentials behind an Identus-owned facade"
 typescript_owner   = "facade and compatibility adapter"
 disposition        = "replace-upstream"
-decision_basis     = [ "donor dependency predates the stable base RFC", "current Rust engines require exact profile and target assessment" ]
+decision_basis     = [ "donor dependency predates the stable base RFC", "dc+sd-jwt is the current profile media type", "legacy vc+sd-jwt is a bounded compatibility-adapter question, not a second canonical core", "current Rust engines require exact profile and target assessment" ]
 follow_up_issue    = 489
 
 [[capability]]
@@ -301,36 +313,36 @@ source_aliases     = [ "Mercury", "DIDComm plugin" ]
 source_paths       = [ "packages/lib/sdk/src/mercury", "packages/wasm/didcomm" ]
 public_surface     = [ "DIDCommProtocol", "DIDCommDIDResolver", "DIDCommSecretsResolver", "ForwardMessage" ]
 dependency_basis   = [ "elribonazo/didcomm-rust@9c4fcdfc2b82f02549acc7ae6b2b86d2f1611d13" ]
-standard_basis     = [ "DIDComm Messaging v2, exact profile unresolved" ]
+standard_basis     = [ "DIF DIDComm Messaging v2.1" ]
 test_authority     = "consumer-regression-candidate"
 test_paths         = [ "packages/lib/sdk/tests/mercury", "packages/lib/sdk/tests/agent/didcomm", "integration-tests/e2e-tests" ]
 known_consumers    = [ "mediator", "issue-credential", "presentation", "basic-message" ]
 compatibility_risk = "critical"
 rust_state         = "placeholder"
-target_owner       = "identus-messaging facade over a qualified engine"
+target_owner       = "identus-messaging DIDComm v2.1 facade over a qualified engine"
 typescript_owner   = "secret resolution, transport, and runtime adapters"
 disposition        = "replace-upstream"
 decision_basis     = [ "embedded fork is not an approved SDK-Rust dependency", "version, engine, JOSE, attachment, and target evidence require a dedicated decision" ]
 follow_up_issue    = 491
 
 [[capability]]
-id                 = "messaging.didcomm-protocols"
+id                 = "messaging.didcomm-application-protocols"
 outcome            = "Model and execute mediation, pickup, issue-credential, presentation, out-of-band, and basic-message interactions."
 source_aliases     = [ "DIDComm plugin", "Edge Agent" ]
 source_paths       = [ "packages/lib/sdk/src/plugins/internal/didcomm/connection", "packages/lib/sdk/src/plugins/internal/didcomm/protocols", "packages/lib/sdk/src/plugins/internal/didcomm/tasks" ]
 public_surface     = [ "mediation", "message pickup", "issue-credential", "out-of-band", "basic-message tasks" ]
 dependency_basis   = [ "DIDComm engine", "Cloud Agent and Mediator contracts" ]
-standard_basis     = [ "Aries RFCs and DIDComm protocol profiles, exact set unresolved" ]
+standard_basis     = [ "independently pinned DIDComm application protocol specifications and PIURIs" ]
 test_authority     = "identus-contract-candidate"
 test_paths         = [ "packages/lib/sdk/tests/agent/protocols", "integration-tests/e2e-tests" ]
 known_consumers    = [ "Cloud Agent and Mediator deployments" ]
 compatibility_risk = "critical"
 rust_state         = "placeholder"
-target_owner       = "protocol-specific state machines"
-typescript_owner   = "scheduler, transport, lifecycle, and product orchestration"
-disposition        = "defer"
-decision_basis     = [ "separate portable state transitions from runtime jobs before choosing ownership" ]
-follow_up_issue    = 419
+target_owner       = "versioned protocol-specific Rust state machines"
+typescript_owner   = "thin host executor, product workflow, consent, and lifecycle adapters"
+disposition        = "move-to-rust"
+decision_basis     = [ "portable protocol messages and deterministic state belong in Rust", "each engine-independent protocol version and role requires a catalog record and bounded issue", "host effects compose through the portable runtime" ]
+follow_up_issue    = 500
 
 [[capability]]
 id                 = "wallet.storage-contracts"
@@ -402,11 +414,11 @@ test_paths         = [ "packages/lib/sdk/tests/agent", "packages/lib/sdk/tests/p
 known_consumers    = [ "wallet agent applications" ]
 compatibility_risk = "critical"
 rust_state         = "placeholder"
-target_owner       = "capability-specific protocol state machines"
-typescript_owner   = "workflow composition and platform scheduling"
-disposition        = "defer"
-decision_basis     = [ "split state semantics from orchestration before moving any code" ]
-follow_up_issue    = 418
+target_owner       = "capability-specific versioned Rust protocol state machines"
+typescript_owner   = "product workflow and compatibility composition"
+disposition        = "move-to-rust"
+decision_basis     = [ "deterministic protocol state is portable reusable behavior", "product workflow remains outside generic state machines" ]
+follow_up_issue    = 500
 
 [[capability]]
 id                 = "agent.runtime-orchestration"
@@ -420,12 +432,12 @@ test_authority     = "consumer-regression-candidate"
 test_paths         = [ "packages/lib/sdk/tests/agent", "integration-tests/e2e-tests" ]
 known_consumers    = [ "browser and Node wallet applications" ]
 compatibility_risk = "high"
-rust_state         = "outside-core"
-target_owner       = "language-sdk"
-typescript_owner   = "agent runtime orchestration"
-disposition        = "retain-platform"
-decision_basis     = [ "runtime lifecycle and application policy should remain idiomatic TypeScript" ]
-follow_up_issue    = 417
+rust_state         = "placeholder"
+target_owner       = "portable effect-driven Rust agent runtime"
+typescript_owner   = "thin host executor, consent, product policy, and lifecycle adapter"
+disposition        = "move-to-rust"
+decision_basis     = [ "dispatch, correlation, cancellation, checkpoint, and typed-effect semantics are reusable", "async executor, I/O, UI, custody, and deployment remain injected host responsibilities" ]
+follow_up_issue    = 498
 
 [[capability]]
 id                 = "platform.typescript-plugin-host"
@@ -458,12 +470,12 @@ test_authority     = "implementation-regression"
 test_paths         = [ "packages/lib/sdk/tests/plugins/oidc", "packages/lib/sdk/tests/agent" ]
 known_consumers    = [ "browser and Node applications" ]
 compatibility_risk = "high"
-rust_state         = "outside-core"
-target_owner       = "language-sdk"
-typescript_owner   = "network transport, redirect, callback, timeout, and cancellation policy"
-disposition        = "retain-platform"
-decision_basis     = [ "Rust core accepts bounded inputs and injected responses rather than owning browser networking" ]
-follow_up_issue    = 417
+rust_state         = "partial"
+target_owner       = "identus-ports transport contracts plus selected target adapters"
+typescript_owner   = "thin fetch/WebSocket host adapter, platform I/O policy, and migration facade"
+disposition        = "move-to-rust"
+decision_basis     = [ "Rust owns protocol request/response semantics, correlation, bounds, and transport ports", "concrete browser and Node I/O may be Rust/WASM, native Rust, or thin TypeScript after a target-specific ADR" ]
+follow_up_issue    = 499
 
 [[capability]]
 id                 = "platform.npm-packaging"
@@ -485,11 +497,11 @@ decision_basis     = [ "Rust bindings must integrate without replacing the langu
 follow_up_issue    = 417
 
 [[capability]]
-id                 = "bindings.wasm-did-values"
-outcome            = "Expose bounded DID and DID URL value parsing to browser and Node TypeScript consumers through an opt-in WASM facade."
+id                 = "bindings.wasm-did"
+outcome            = "Expose the portable DID domain and service capabilities to browser and Node TypeScript consumers through phased WASM facades."
 source_aliases     = [ "Castor" ]
 source_paths       = [ "packages/lib/sdk/src/castor/parser/DIDUrlParser.ts", "packages/lib/sdk/src/castor/index.ts" ]
-public_surface     = [ "DID and DID URL TypeScript facade" ]
+public_surface     = [ "DID and DID URL canary", "future DID documents, services, resolver, dereferencer, registrar, and method facades" ]
 dependency_basis   = [ "existing experimental identus-wasm-did package" ]
 standard_basis     = [ "W3C DID Core", "SDK-Rust binding policy" ]
 test_authority     = "identus-contract-candidate"
@@ -498,7 +510,7 @@ known_consumers    = [ "proposed SDK-TS canary consumers" ]
 compatibility_risk = "medium"
 rust_state         = "substantial"
 target_owner       = "identus-wasm-did"
-typescript_owner   = "opt-in facade, package loading, error mapping, and rollback"
+typescript_owner   = "thin opt-in facade, package loading, versioned compatibility mapping, and rollback"
 disposition        = "move-to-rust"
-decision_basis     = [ "non-secret existing binding", "narrowest reversible cross-SDK proof" ]
+decision_basis     = [ "non-secret existing value binding is the first canary", "all portable DID domain and service semantics remain Rust-owned", "later surfaces are independent bounded slices rather than one binding rewrite" ]
 follow_up_issue    = 492

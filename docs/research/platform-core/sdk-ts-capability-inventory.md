@@ -7,11 +7,14 @@
 **Published package:**
 [`@hyperledger/identus-sdk@8.1.4`](https://www.npmjs.com/package/@hyperledger/identus-sdk/v/8.1.4)
 
-**Decision:** ADR 0169; SDK-TS is the first discovery baseline, not normative
-authority
+**Decision:** ADR 0169, clarified by ADRs 0170–0172; SDK-TS is the first
+discovery baseline, not normative authority
 
 **Machine-readable evidence:**
 [`identus-platform-ts-capabilities.toml`](../../architecture/identus-platform-ts-capabilities.toml)
+
+**Adoption roadmap:**
+[`platform-core-adoption-milestones.md`](../../roadmap/platform-core-adoption-milestones.md)
 
 ## Executive result
 
@@ -22,13 +25,13 @@ browser and Node adapters, an agent runtime, and an npm plugin host.
 
 The inventory identifies 24 cohesive responsibilities:
 
-- 10 are preliminary `move-to-rust` candidates because SDK-Rust already owns or
+- 16 are preliminary `move-to-rust` candidates because SDK-Rust already owns or
   should own the portable semantics;
 - 3 are `replace-upstream` candidates whose donor engines are evidence but not
   approved dependencies;
-- 6 remain `defer` until their standard/profile, ownership, or wire contract is
+- 2 remain `defer` until their standard/profile, ownership, or wire contract is
   resolved; and
-- 5 remain TypeScript platform responsibilities.
+- 3 remain TypeScript platform responsibilities.
 
 These counts are planning evidence, not implementation authorization. Every
 deviation is resolved independently through the authority order in ADR 0169.
@@ -49,11 +52,11 @@ coverage, correctness, or compatibility.
 
 | Surface | SDK-TS evidence | Rust migration consequence |
 |---|---|---|
-| Root package | ESM, CommonJS, declarations | Rust-backed behavior must preserve idiomatic TypeScript DTOs and errors |
+| Root package | ESM, CommonJS, declarations | SDK-Rust owns canonical portable contracts; versioned TypeScript adapters preserve only reviewed migration compatibility |
 | Plugin exports | `anoncreds`, `didcomm`, `oidc`, `dif`, `oea` | Plugin host and subpath layout remain TypeScript-owned |
 | Runtime | ES2022 plus DOM; Node 20/LTS guidance | Browser and Node are distinct canary targets |
 | Browser policy | last two Chrome, Firefox, Safari, and Edge versions | WASM proof needs bundler and real browser evidence, not compilation alone |
-| Private workspace packages | domain, protobuf, AnonCreds WASM, DIDComm WASM, JWE WASM | Private bundling does not make an engine suitable for SDK-Rust |
+| Private workspace packages | domain, protobuf, AnonCreds WASM, DIDComm WASM, JWE WASM | Protobuf remains relevant to Prism DID; other portable packages are ported or replaced by qualified Rust crates, while build/configuration and host integration stay TypeScript-owned |
 | Distribution | npm trusted publishing and `tsup` bundles | Rust release and npm binding trains stay separately versioned |
 | License | Apache-2.0 repository | Third-party dependency licenses remain candidate-specific gates |
 
@@ -67,8 +70,8 @@ are source aliases for migration traceability, not SDK-Rust target modules.
 | key operations | Ed25519, secp256k1, X25519, sign/verify/ECDH | `identus-crypto`; move portable operations | custody and raw secrets remain outside general bindings |
 | HD derivation | mnemonic, seed, derivation paths | `identus-crypto`; move | accepted vectors outrank donor implementation |
 | DID syntax and documents | DID/DID URL parser and document types | `identus-did`; move | DID Core semantics, not donor object shape, govern |
-| peer DID | creation and resolution | defer | pin method version and adapter ownership first |
-| Prism DID | long-form construction and resolution | defer to method-specific adapter decision | generic SDK-Rust must remain chain-neutral |
+| peer DID | creation and resolution | Rust-owned peer-method module or focused crate | pin supported numalgos; qualify `did-peer` or use it as a differential oracle |
+| Prism DID | long-form construction and resolution | portable DID/protobuf semantics move to Rust | Cardano observation, submission, indexing and service composition remain downstream |
 | DID resolution | method and HTTP resolvers | generic Rust contracts plus injected adapters | preserve Rust cancellation/cache/resource semantics |
 | JWT VC | credentials, presentations, JWT utilities | `identus-credentials`; move by selected profile | pin the VC profile and JOSE contract per slice |
 | SD-JWT | issuance, disclosure and presentation | replace donor dependency behind owned facade | RFC 9901 plus current VC profile; evaluate current Rust engines |
@@ -76,16 +79,16 @@ are source aliases for migration traceability, not SDK-Rust target modules.
 | credential status | revocation and status checks | portable verification in Rust | fetch/cache/privacy policy remains injected |
 | presentation exchange | definitions, requests and verification | defer | pin PE version and decide overlap with DCQL |
 | OID4VCI wallet | offer through credential acquisition | continue `identus-oid4vci` | current bounded Final Rust core outranks narrower donor behavior |
-| DIDComm engine | pack/unpack, routing, secret resolution | qualify current engine behind owned facade | pin DIDComm version/profile; embedded fork is not selected |
-| DIDComm protocols | mediation, pickup, issue, present, OOB, basic message | split portable state from orchestration | Cloud Agent/Mediator behavior needs contract evidence |
+| DIDComm engine | pack/unpack, routing, secret resolution | qualify current engine behind owned facade | pin DIDComm Messaging v2.1; embedded fork is not selected |
+| DIDComm application protocols | mediation, pickup, issue, present, OOB, basic message | independently versioned Rust protocol modules | each protocol has its own profile, roles, state schema and service evidence |
 | wallet storage contracts | repositories, models, relationships | move portable contracts to `identus-wallet` | browser database and reactive runtime stay TypeScript-owned |
 | backup format | version 0.0.1 export/restore and JWE | defer | wire, encryption and cross-SDK migration evidence required |
-| reusable protocol state | connections and task state | defer | isolate deterministic state machines first |
-| agent runtime | jobs, events, fetch and lifecycle | retain TypeScript | application policy and scheduling are platform responsibilities |
+| reusable protocol state | connections and task state | move bounded, versioned state machines to Rust | separate protocol state from executor and product policy |
+| agent runtime | jobs, events, effects and lifecycle | own a small executor-neutral Rust kernel | host executors, storage, transports and product policy remain adapters |
 | plugin host | registration and optional plugin exports | retain TypeScript | Rust exposes capabilities, not a TypeScript plugin framework |
-| browser/Node networking | fetch, WebSocket, redirects and callbacks | retain TypeScript | Rust accepts bounded inputs and injected responses |
+| browser/Node networking | fetch, WebSocket, redirects and callbacks | Rust owns ports/contracts and selected portable adapters | an ADR decides each concrete adapter; TypeScript remains a thin host where required |
 | npm packaging | ESM/CJS/types/subpaths | retain TypeScript | package compatibility remains a canary gate |
-| DID value WASM facade | proposed opt-in DID/DID URL path | first canary | non-secret, narrow, observable, and immediately reversible |
+| DID WASM facade | proposed opt-in DID/DID URL path | first slice of full DID-domain migration | value parsing is the reversible canary; DID documents, services and selected methods follow through explicit slices |
 
 ## Dependency and engine evidence
 
@@ -113,7 +116,7 @@ No Rust dependency is activated by this inventory.
 | backup fixtures | `identus-contract-candidate` | cross-SDK bytes/JSON, version, encryption and migration contract |
 | Cloud Agent/Mediator E2E | `identus-contract-candidate` | immutable service versions and expected wire/error behavior |
 | ordinary unit tests | `implementation-regression` | evidence of public behavior before promotion |
-| property, fuzz, benchmark and differential tests | `exploratory` | retained as quality evidence, never normative by themselves |
+| property, fuzz, benchmark and differential tests | required engineering evidence | risk-routed per milestone under issue #501; never normative by themselves |
 
 Issue [#420](https://github.com/hyperledger-identus/sdk-rust/issues/420)
 owns exact fixture provenance and promotion. A passing legacy suite or coverage
@@ -149,11 +152,12 @@ This is how “latest SDK” remains useful without becoming normative.
 ## First canary recommendation
 
 Use bounded DID and DID URL value parsing through the existing experimental
-`identus-wasm-did` surface. The canary is opt-in and excludes resolution,
-method operations, keys, storage, networking, and agent orchestration. Its exit
-evidence must include:
+`identus-wasm-did` surface as the first reversible slice. The destination is
+the complete generic DID domain and services in SDK-Rust; the canary itself is
+opt-in and excludes resolution, method operations, keys, storage, networking,
+and agent orchestration. Its exit evidence must include:
 
-- stable TypeScript DTO and error mapping;
+- canonical Rust DTO/error semantics plus a documented TypeScript migration adapter;
 - ESM, CommonJS, declarations, bundler, browser, and Node checks;
 - shared positive, negative, boundary, and differential vectors;
 - package-size and parse-latency baselines;
@@ -161,24 +165,21 @@ evidence must include:
 - route-level observability; and
 - immediate fallback to the existing TypeScript implementation.
 
-The canary proves the migration mechanism, not retirement of SDK-TS.
+The canary proves the migration mechanism, not completion of DID migration or
+retirement of SDK-TS.
 
 ## Follow-up order
 
-1. assess current RFC 9901 and SD-JWT VC Rust engines under
-   [#489](https://github.com/hyperledger-identus/sdk-rust/issues/489);
-2. refresh the AnonCreds 1.0 engine/adapter decision under
-   [#490](https://github.com/hyperledger-identus/sdk-rust/issues/490);
-3. select a DIDComm version, engine, and protocol boundary under
-   [#491](https://github.com/hyperledger-identus/sdk-rust/issues/491);
-4. resolve peer/Prism adapter ownership under
-   [#493](https://github.com/hyperledger-identus/sdk-rust/issues/493),
-   Presentation Exchange/DCQL responsibilities under
-   [#494](https://github.com/hyperledger-identus/sdk-rust/issues/494), and the
-   backup wire contract under
-   [#495](https://github.com/hyperledger-identus/sdk-rust/issues/495);
-5. build the shared vector catalog under #420;
-6. specify and execute the reversible SDK-TS DID/DID URL canary under
-   [#492](https://github.com/hyperledger-identus/sdk-rust/issues/492);
-7. use SDK-Swift discovery to challenge the normalized inventory; and
-8. inspect SDK-KMP last for required compatibility, not target architecture.
+Execution follows evidence-gated milestones A0–A9 in the
+[platform-core adoption roadmap](../../roadmap/platform-core-adoption-milestones.md).
+After this A0 contract correction, A1 builds shared vectors, the consumer
+change ledger, adapter/error mapping rules, and the risk-routed quality policy
+under issues #420, #492 and #501. Only then do A2 and A3 independently advance
+DID and credential-format capabilities. DIDComm core, the agent kernel,
+application protocols, host bindings, language-SDK migration and reference
+services follow their declared dependency edges rather than one large parity
+program.
+
+SDK-Swift discovery challenges each normalized capability before its adoption
+slice. SDK-KMP is inspected last for required compatibility evidence, not as a
+source of target architecture.

@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "identus-platform-core-migration"
+requirement      = "SDK-TS inventory is implementation-ready evidence"
+canonical_sha256 = "788721e3e67d567e4725fc346f81bce22173448266bbd2a3b4d0ba4471366cd3"
+reason           = "Remove the incorrect constraint that Rust preserve TypeScript DTO/error shapes and replace it with a canonical Rust contract plus explicit versioned migration-adapter rule."

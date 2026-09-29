@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-30
+goal: Correct SDK-TS capability ownership so SDK-Rust owns canonical reusable contracts, portable agent and DID semantics, and versioned protocol and quality obligations.

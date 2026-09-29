@@ -13,6 +13,9 @@
   `1fc523da26dfb3666117d883b128ac72a7f7105e`
 - Production implementation commit:
   `ec0838fd3d1a416cbf1fabf616fe3cb59d7e93dc`
+- Protected implementation squash:
+  `629aeb46f75be9c5f6b22aa0649e04f951f420de`
+- Implementation PR: #478
 
 ## Behavioral compatibility
 
@@ -66,9 +69,20 @@ The only remaining signal in the touched module is the pre-existing
 - Nix WASM, Android ARM64, iOS ARM64, Rust 1.89 MSRV, and Rust 1.98 etalon
   checks: passed.
 
-## Remaining delivery evidence
+## Protected delivery evidence
 
-Synchronize the final protected baseline after prerequisite factory and JOSE
-PRs land, refresh exact-head report identity, then require green hosted CI,
-guarded merge, metrics publication, canonical baseline rebinding, archive, and
-Discussion #399 closeout.
+- PR #478 merged normally into protected `develop` as squash
+  `629aeb46f75be9c5f6b22aa0649e04f951f420de` after its exact-head required
+  checks passed.
+- The canonical v2 report is regenerated from that protected squash. Its source
+  fingerprint is
+  `36cdda263f4d52ecdcea930fbf7c5125104b4ebcdff3fea3f74b5c832cbe0707`,
+  population projection is
+  `1197fc9803b853694e3873db4eaad2b585148d2887c7a5a1e4c2cf27a3dc81c0`,
+  and report digest is
+  `d0dac39a629448e48a83f034036b01272264e88c8b9cc2ecef4e6fdea6a5f036`.
+  `decode_resolution_options` is absent while the unrelated `negotiate`
+  disposition remains visible.
+- This closeout promotes the reviewed ownership requirement, archives the
+  complete planning and review record, and changes no production source,
+  public API, dependency, wire behavior, error, limit, or allocation policy.

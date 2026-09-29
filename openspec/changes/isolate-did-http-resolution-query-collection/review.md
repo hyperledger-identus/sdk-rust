@@ -4,6 +4,12 @@ Review date: 2026-09-29
 Review scope: production implementation `ec0838fd3d1a416cbf1fabf616fe3cb59d7e93dc`
 Review result: passed
 
+Protected-source closeout review date: 2026-09-29
+Protected implementation: `629aeb46f75be9c5f6b22aa0649e04f951f420de`
+Closeout result: passed; the regenerated canonical report removes only the
+owned decoder signal, preserves the unrelated media-negotiation signal, and
+the closeout diff contains evidence and specification changes only.
+
 ## Architecture and cohesion
 
 `ResolutionQueryFields` is one private partial-state owner for decoded query

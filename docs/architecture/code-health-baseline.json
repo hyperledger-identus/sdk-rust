@@ -84,7 +84,7 @@
       "owner": "identus-did resolution model"
     }
   ],
-  "population_projection_sha256": "cfc603629e9ba2b2e33f9feb3d18b262a0618080ebfaaeebae892438598d2e53",
+  "population_projection_sha256": "1197fc9803b853694e3873db4eaad2b585148d2887c7a5a1e4c2cf27a3dc81c0",
   "populations": {
     "external_test": {
       "authored_nonblank_lines": 31483,
@@ -92,17 +92,17 @@
       "functions": 1308
     },
     "inline_test": {
-      "authored_nonblank_lines": 5231,
+      "authored_nonblank_lines": 5267,
       "files": 39,
-      "functions": 371
+      "functions": 373
     },
     "production": {
-      "authored_nonblank_lines": 37947,
+      "authored_nonblank_lines": 37967,
       "files": 204,
-      "functions": 2911
+      "functions": 2914
     }
   },
-  "revision": "ae7c7ef5f9777bb050bc547eb0f4023b14aca5b2",
+  "revision": "629aeb46f75be9c5f6b22aa0649e04f951f420de",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -277,24 +277,14 @@
         "start_line": 7
       },
       {
-        "cognitive": 13,
-        "cyclomatic": 32,
-        "end_line": 215,
-        "name": "decode_resolution_options",
-        "path": "crates/did-resolver-http/src/lib.rs",
-        "population": "production",
-        "sloc": 78,
-        "start_line": 138
-      },
-      {
         "cognitive": 12,
         "cyclomatic": 19,
-        "end_line": 312,
+        "end_line": 334,
         "name": "negotiate",
         "path": "crates/did-resolver-http/src/lib.rs",
         "population": "production",
         "sloc": 47,
-        "start_line": 266
+        "start_line": 288
       },
       {
         "cognitive": 28,
@@ -589,5 +579,5 @@
     ],
     "modules": []
   },
-  "source_fingerprint_sha256": "de1895419b3f20d05fcd41daad2f53cd6a873e5e5234f4348c8aedbd097c8428"
+  "source_fingerprint_sha256": "36cdda263f4d52ecdcea930fbf7c5125104b4ebcdff3fea3f74b5c832cbe0707"
 }

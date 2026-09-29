@@ -875,6 +875,193 @@ fn disclosure_plan_collection_is_non_empty_bounded_and_unique() {
 }
 
 #[test]
+fn disclosure_plan_reports_the_first_validation_phase_failure() {
+    let first_claim = claim(&["first"], PresentationClaimIntent::Reveal, true);
+    let first_request = request(vec![unrestricted_query(
+        "query",
+        "example",
+        vec![first_claim],
+    )]);
+    let candidates = PresentationCandidateSet::new(
+        &first_request,
+        vec![candidate(
+            "query",
+            "credential",
+            "example",
+            vec![path(&["first"])],
+        )],
+    )
+    .unwrap();
+    let second_request = request(vec![unrestricted_query(
+        "query",
+        "example",
+        vec![claim(&["second"], PresentationClaimIntent::Reveal, true)],
+    )]);
+    let duplicate = selection(
+        "query",
+        "credential",
+        vec![selected_claim(&["second"], PresentationClaimIntent::Reveal)],
+    );
+
+    assert_eq!(
+        PresentationDisclosurePlan::new(&second_request, &candidates, Vec::new()),
+        Err(PresentationError::InvalidDisclosureSelections),
+        "selection cardinality precedes exact-request candidate validation"
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &second_request,
+            &candidates,
+            vec![duplicate.clone(), duplicate],
+        ),
+        Err(PresentationError::CandidateRequestMismatch),
+        "candidate validation precedes duplicate selection detection"
+    );
+
+    let duplicate_unknown = selection("unknown", "missing", Vec::new());
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &first_request,
+            &candidates,
+            vec![duplicate_unknown.clone(), duplicate_unknown],
+        ),
+        Err(PresentationError::DuplicateDisclosureSelection),
+        "duplicate selection detection precedes per-selection validation"
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &first_request,
+            &candidates,
+            vec![selection("unknown", "missing", Vec::new())],
+        ),
+        Err(PresentationError::UnknownSelectionQuery),
+        "query lookup precedes candidate lookup"
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &first_request,
+            &candidates,
+            vec![selection(
+                "query",
+                "missing",
+                vec![selected_claim(
+                    &["unrequested"],
+                    PresentationClaimIntent::Predicate,
+                )],
+            )],
+        ),
+        Err(PresentationError::UnknownSelectionCandidate),
+        "candidate lookup precedes claim validation"
+    );
+
+    let claims_request = request(vec![unrestricted_query(
+        "claims",
+        "example",
+        vec![
+            claim(&["required"], PresentationClaimIntent::Reveal, true),
+            claim(&["optional"], PresentationClaimIntent::Predicate, false),
+        ],
+    )]);
+    let claims_candidates = PresentationCandidateSet::new(
+        &claims_request,
+        vec![candidate(
+            "claims",
+            "credential",
+            "example",
+            vec![path(&["required"])],
+        )],
+    )
+    .unwrap();
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &claims_request,
+            &claims_candidates,
+            vec![selection(
+                "claims",
+                "credential",
+                vec![selected_claim(
+                    &["unrequested"],
+                    PresentationClaimIntent::Reveal,
+                )],
+            )],
+        ),
+        Err(PresentationError::SelectionUnrequestedClaim),
+        "requested-path lookup precedes intent, availability, and required claims"
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &claims_request,
+            &claims_candidates,
+            vec![selection(
+                "claims",
+                "credential",
+                vec![selected_claim(
+                    &["optional"],
+                    PresentationClaimIntent::Reveal,
+                )],
+            )],
+        ),
+        Err(PresentationError::SelectionClaimIntentMismatch),
+        "intent validation precedes availability and required claims"
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &claims_request,
+            &claims_candidates,
+            vec![selection(
+                "claims",
+                "credential",
+                vec![selected_claim(
+                    &["optional"],
+                    PresentationClaimIntent::Predicate,
+                )],
+            )],
+        ),
+        Err(PresentationError::SelectionUnavailableClaim),
+        "claim availability precedes required-claim coverage"
+    );
+
+    let coverage_request = request(vec![
+        unrestricted_query(
+            "first",
+            "example",
+            vec![claim(&["required"], PresentationClaimIntent::Reveal, true)],
+        ),
+        unrestricted_query("second", "example", Vec::new()),
+    ]);
+    let coverage_candidates = PresentationCandidateSet::new(
+        &coverage_request,
+        vec![
+            candidate("first", "one", "example", vec![path(&["required"])]),
+            candidate("second", "one", "example", Vec::new()),
+            candidate("second", "two", "example", Vec::new()),
+        ],
+    )
+    .unwrap();
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &coverage_request,
+            &coverage_candidates,
+            vec![selection("first", "one", Vec::new())],
+        ),
+        Err(PresentationError::SelectionMissingRequiredClaim),
+        "per-selection validation precedes final query coverage"
+    );
+    assert_eq!(
+        PresentationDisclosurePlan::new(
+            &coverage_request,
+            &coverage_candidates,
+            vec![
+                selection("second", "one", Vec::new()),
+                selection("second", "two", Vec::new()),
+            ],
+        ),
+        Err(PresentationError::MissingQuerySelection),
+        "query coverage follows request order"
+    );
+}
+
+#[test]
 fn disclosure_plan_rejects_unknown_query_candidate_and_claim_mismatches() {
     let required = path(&["required"]);
     let optional = path(&["optional"]);

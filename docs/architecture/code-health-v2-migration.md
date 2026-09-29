@@ -25,9 +25,9 @@ source population and projection remain unchanged by that protocol refinement.
 
 Every file has the same authored nonblank production/test population under
 both classifiers. The current protected baseline source fingerprint is
-`de1895419b3f20d05fcd41daad2f53cd6a873e5e5234f4348c8aedbd097c8428`.
+`36cdda263f4d52ecdcea930fbf7c5125104b4ebcdff3fea3f74b5c832cbe0707`.
 The v2 per-file population projection digest is
-`cfc603629e9ba2b2e33f9feb3d18b262a0618080ebfaaeebae892438598d2e53`.
+`1197fc9803b853694e3873db4eaad2b585148d2887c7a5a1e4c2cf27a3dc81c0`.
 
 The sole representation delta is intentional: v1 included blank lines in a
 file inherited wholly as inline test, while v2 reports only lines containing
@@ -72,12 +72,13 @@ nix develop --command python3 scripts/code-health-audit.py --verify-baseline
 ```
 
 The canonical v2 report digest is
-`a8e5a0dae1e010b41c8fd2ace3339930bddb4d192d111126a525c2072891f226`.
+`d0dac39a629448e48a83f034036b01272264e88c8b9cc2ecef4e6fdea6a5f036`.
 The baseline was most recently refreshed from protected
-`develop@ae7c7ef5f9777bb050bc547eb0f4023b14aca5b2` after issue #470 isolated
-JOSE protected-header field collection behind one private owner. No production
-module exceeds 1,000 authored nonblank lines, and neither the former
-`visit_map` hotspot nor a replacement collector has a governed function
-signal. The historical v1/v2 migration method above remains
+`develop@629aeb46f75be9c5f6b22aa0649e04f951f420de` after issue #473 isolated
+DID HTTP resolution-query field collection behind one private owner. No
+production module exceeds 1,000 authored nonblank lines, and neither the former
+`decode_resolution_options` hotspot nor a replacement collector has a governed
+function signal. The unrelated `negotiate` media-routing signal remains
+visible. The historical v1/v2 migration method above remains
 unchanged; these three values bind the current canonical source population and
 report.

@@ -17,7 +17,7 @@
       phase order, errors, values, bounds, resolver calls, and allocations.
 - [x] 2.2 Prove public/source/error/value equivalence and remove the touched
       signal without weakening unrelated decisions.
-- [ ] 2.3 Merge implementation, then rebind canonical evidence to the protected
+- [x] 2.3 Merge implementation, then rebind canonical evidence to the protected
       squash commit and preserve unrelated hotspot dispositions.
 
 ## 3. Verification and delivery
@@ -26,5 +26,5 @@
       code-health, factory, portable-target, and relevant Nix gates.
 - [x] 3.2 Perform a distinct exact-diff architecture/security/Rust review and
       resolve every blocking finding.
-- [ ] 3.3 Deliver implementation and evidence closeout as signed/DCO
+- [x] 3.3 Deliver implementation and evidence closeout as signed/DCO
       issue-linked PRs; archive, merge, and metrics require green exact-head CI.

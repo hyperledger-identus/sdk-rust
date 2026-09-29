@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 447,
+  "change": "validate-oid4vp-final-routing",
+  "branch": "codex/feat/issue-447",
+  "baseRef": "origin/develop",
+  "baseSha": "a5a54d6fac55912cd79d1f6112311375c96ccac3",
+  "contractHeadSha": "492e14bdcb019b7d21f9c56258cf5ecd772ef7be",
+  "createdAt": "2026-09-29T13:54:24.425Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

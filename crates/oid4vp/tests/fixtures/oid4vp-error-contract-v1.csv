@@ -41,3 +41,14 @@ InvalidDcqlQuery,oid4vp.invalid_dcql_query,InvalidInput,OID4VP DCQL query is inv
 DcqlQueryTooLarge,oid4vp.dcql_query_too_large,InvalidInput,OID4VP DCQL query exceeds its resource limits
 DcqlWorkLimitExceeded,oid4vp.dcql_work_limit_exceeded,InvalidInput,OID4VP DCQL evaluation exceeds its work limits
 InvalidDcqlCredential,oid4vp.invalid_dcql_credential,InvalidInput,OID4VP DCQL credential descriptor is invalid
+MissingResponseType,oid4vp.missing_response_type,InvalidInput,OID4VP Authorization Request is missing response_type
+UnsupportedResponseType,oid4vp.unsupported_response_type,Unsupported,OID4VP Authorization Request response_type is not supported
+MissingResponseMode,oid4vp.missing_response_mode,InvalidInput,OID4VP Authorization Request is missing response_mode
+UnsupportedResponseMode,oid4vp.unsupported_response_mode,Unsupported,OID4VP Authorization Request response_mode is not supported
+MissingAuthorizationNonce,oid4vp.missing_authorization_nonce,InvalidInput,OID4VP Authorization Request is missing nonce
+InvalidAuthorizationNonce,oid4vp.invalid_authorization_nonce,InvalidInput,OID4VP Authorization Request nonce is invalid
+AuthorizationNonceTooLarge,oid4vp.authorization_nonce_too_large,InvalidInput,OID4VP Authorization Request nonce exceeds its byte limit
+MissingResponseUri,oid4vp.missing_response_uri,InvalidInput,OID4VP direct-post request is missing response_uri
+ConflictingResponseDestination,oid4vp.conflicting_response_destination,InvalidInput,OID4VP direct-post request has a conflicting response destination
+ResponseUriTooLarge,oid4vp.response_uri_too_large,InvalidInput,OID4VP response URI exceeds its byte limit
+UnsafeResponseUri,oid4vp.unsafe_response_uri,InvalidInput,OID4VP response URI is unsafe

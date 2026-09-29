@@ -166,8 +166,8 @@ path           = "crates/oid4vp"
 layer          = "protocol-semantics"
 classification = "implemented"
 public_api     = "experimental"
-owner_issue    = "#429"
-summary        = "Bounded OpenID4VP 1.0 by-reference invocation, runtime-neutral GET/POST retrieval, signed compact JAR verification, and bounded DCQL selection through a private engine; no HTTP runtime, client-prefix trust, JWE, consent or response construction."
+owner_issue    = "#487"
+summary        = "Bounded OpenID4VP 1.0 by-reference invocation, runtime-neutral GET/POST retrieval, signed compact JAR verification, bounded DCQL selection through a private engine, and composed vp_token/direct_post request routing; no HTTP runtime, client-prefix trust, JWE, consent or response construction."
 
 [[packages]]
 name           = "identus-wallet"

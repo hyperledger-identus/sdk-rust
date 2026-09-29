@@ -129,9 +129,27 @@ pub struct VerifiedRequestObject {
     wallet_nonce: Option<Zeroizing<String>>,
 }
 
+pub(crate) struct VerifiedRequestObjectParts {
+    pub(crate) protected_header: ProtectedHeader,
+    pub(crate) algorithm: JwsAlgorithm,
+    pub(crate) payload: Zeroizing<Vec<u8>>,
+    pub(crate) client_id: Zeroizing<String>,
+    pub(crate) wallet_nonce: Option<Zeroizing<String>>,
+}
+
 impl VerifiedRequestObject {
     pub(crate) fn into_sensitive_payload(self) -> Zeroizing<Vec<u8>> {
         self.payload
+    }
+
+    pub(crate) fn into_parts(self) -> VerifiedRequestObjectParts {
+        VerifiedRequestObjectParts {
+            protected_header: self.protected_header,
+            algorithm: self.algorithm,
+            payload: self.payload,
+            client_id: self.client_id,
+            wallet_nonce: self.wallet_nonce,
+        }
     }
 
     /// Exact algorithm accepted by the selected signature suite and key.

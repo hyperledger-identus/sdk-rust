@@ -157,10 +157,13 @@ GET/POST construction, bounded response binding, and signed compact JAR
 verification through `identus-jose`, with exact protected type, client-id and
 optional wallet-nonce correlation. Issue #429 adds strict bounded DCQL
 validation and selection through private exact `siros-dcql 0.3.0` without
-exporting candidate types. These slices do not claim HTTP execution,
-client-prefix key authorization, verifier trust, JWE, audience/freshness/full
-request validity, format metadata policy, consent, response, certification or
-downstream adoption.
+exporting candidate types. Issue #447 composes JAR and DCQL evidence with one
+bounded Final `response_type=vp_token`, `response_mode=direct_post`, nonce, and
+HTTPS `response_uri` state. Issue #487 owns the next bounded direct-post
+response-construction slice. These slices do not claim HTTP execution,
+client-prefix key authorization, verifier trust, JWE, audience/freshness
+policy, broader response profiles, format metadata policy, consent, response
+construction, certification or downstream adoption.
 
 The intended component portfolio below is a planning target. A crate enters
 the supported portfolio only through an accepted slice; inherited names do not
@@ -824,7 +827,14 @@ compact JAR using `identus-jose`. The verified transition enforces
 POST wallet-nonce correlation. HTTP execution, JWE, client-prefix key
 authorization/trust, audience/time/replay and full request validation, DCQL,
 credential selection, consent and response construction remain later
-independent slices. SIROS remains research-only under ADR 0156.
+independent slices. Issue #429 adopts exact `siros-dcql 0.3.0` privately behind
+strict SDK-owned Final validation and bounded selection under ADR 0165. The
+issue #447 slice then consumes the same bounded request map into a composed
+`vp_token`/HTTPS `direct_post` routing state while preserving signature and
+DCQL evidence. Issue #487 owns bounded response construction as the explicit
+successor. HTTP execution, verifier trust, consent, credential
+verification, redirects, `direct_post.jwt`, SIOPv2, DC API, JWE and response
+construction remain separate capabilities.
 
 ### B11 — formats and profiles
 

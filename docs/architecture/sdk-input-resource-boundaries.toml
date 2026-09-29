@@ -389,6 +389,17 @@ consumer_impact  = "The result proves DCQL structure and exact-format selection 
 review_triggers  = [ "format metadata policy", "trusted-authority policy", "scope expansion", "candidate version", "limit change", "response construction" ]
 
 [[boundaries]]
+id               = "oid4vp-authorization-request-routing"
+package          = "identus-oid4vp"
+surface          = "signature-proven and DCQL-valid OpenID4VP Final vp_token/direct_post request semantics with bounded nonce and HTTPS response URI"
+disposition      = "sdk-enforced"
+limits           = [ "AuthorizationRequestValidationLimits=explicit", "DcqlLimits=explicit" ]
+evidence         = [ "crates/oid4vp/src/authorization_request.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/authorization_request.rs", "crates/oid4vp/tests/error_contract.rs", "docs/adr/0168-compose-oid4vp-final-direct-post-routing.md" ]
+outer_obligation = "Transport adapters own DNS, private-address policy, TLS, redirects, decompression, timeout, execution and SSRF defense; consumers own verifier-key authorization, trust, consent, credential verification and response construction."
+consumer_impact  = "The composed state proves narrow request and routing syntax plus JAR/DCQL evidence only; it confers no network authority, verifier trust, credential authenticity, consent or response safety."
+review_triggers  = [ "new response type or mode", "redirect support", "encrypted response", "HTTP adapter", "nonce or URI limit change", "response construction" ]
+
+[[boundaries]]
 id               = "wallet-storage-vocabulary"
 package          = "identus-wallet"
 surface          = "storage revisions, cursors, page sizes/pages and write/delete conditions"

@@ -115,11 +115,18 @@ impl VerifiedRequestObject {
 
 impl ValidatedDcqlQuery {
     fn parse(payload: Zeroizing<Vec<u8>>, limits: DcqlLimits) -> Result<Self, Oid4vpError> {
-        let Value::Object(mut request) = serde_json::from_slice(payload.as_slice())
+        let Value::Object(request) = serde_json::from_slice(payload.as_slice())
             .map_err(|_| Oid4vpError::InvalidDcqlQuery)?
         else {
             return Err(Oid4vpError::InvalidDcqlQuery);
         };
+        Self::from_request_map(request, limits)
+    }
+
+    pub(crate) fn from_request_map(
+        mut request: Map<String, Value>,
+        limits: DcqlLimits,
+    ) -> Result<Self, Oid4vpError> {
         if request.contains_key("scope") {
             return Err(Oid4vpError::UnsupportedDcqlScope);
         }

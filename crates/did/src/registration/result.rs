@@ -204,75 +204,128 @@ fn validate_result(
     state: &DidRegistrationState,
     document_metadata: &DidDocumentMetadata,
 ) -> Result<(), Error> {
-    if job.is_some_and(|job| job.method() != method) {
-        return Err(invalid(RegistrationError::JobMismatch));
+    RegistrationResultValidator {
+        method,
+        job,
+        state,
+        document_metadata,
     }
-    match (state, job) {
-        (
-            DidRegistrationState::Finished {
-                did,
-                document,
-                secret_handles,
-            },
-            None,
-        ) => {
-            if secret_handles.len() > MAX_REGISTRATION_ITEMS {
-                return Err(invalid(RegistrationError::TooManyItems));
-            }
-            if did.method() != method.as_str()
-                || document
-                    .as_ref()
-                    .is_some_and(|document| document.id() != did)
-            {
-                return Err(invalid(RegistrationError::MethodOrDidMismatch));
-            }
-            if let Some(document) = document {
-                validate_public_document(document)?;
-            }
-        }
-        (DidRegistrationState::Failed { did, .. }, None) => {
-            if did
-                .as_ref()
-                .is_some_and(|did| did.method() != method.as_str())
-            {
-                return Err(invalid(RegistrationError::MethodOrDidMismatch));
-            }
-        }
-        (DidRegistrationState::Action { did, action }, Some(job)) => {
-            if did
-                .as_ref()
-                .is_some_and(|did| did.method() != method.as_str())
-                || !matches!(job.continuation(), RegistrationContinuation::Action(id) if id == action.id())
-            {
-                return Err(invalid(RegistrationError::ActionMismatch));
-            }
-        }
-        (
-            DidRegistrationState::Wait {
-                did,
-                retry_after_millis,
-            },
-            Some(job),
-        ) => {
-            if did
-                .as_ref()
-                .is_some_and(|did| did.method() != method.as_str())
-                || !matches!(job.continuation(), RegistrationContinuation::Wait)
-                || retry_after_millis.is_some_and(|value| value > MAX_REGISTRATION_WAIT_MILLIS)
-            {
-                return Err(invalid(RegistrationError::InvalidState));
-            }
-        }
-        _ => return Err(invalid(RegistrationError::InvalidState)),
-    }
-    if let Some(did) = state.did()
-        && document_metadata.validate_for(did).is_err()
-    {
-        return Err(invalid(RegistrationError::MethodOrDidMismatch));
-    }
-    RegistrationPublicData::new(document_metadata.extensions().clone())?;
-    Ok(())
+    .validate()
 }
+
+struct RegistrationResultValidator<'a> {
+    method: &'a DidMethod,
+    job: Option<&'a RegistrationJob>,
+    state: &'a DidRegistrationState,
+    document_metadata: &'a DidDocumentMetadata,
+}
+
+impl RegistrationResultValidator<'_> {
+    fn validate(&self) -> Result<(), Error> {
+        self.validate_job_method()?;
+        self.validate_state()?;
+        self.validate_document_metadata()
+    }
+
+    fn validate_job_method(&self) -> Result<(), Error> {
+        if self.job.is_some_and(|job| job.method() != self.method) {
+            return Err(invalid(RegistrationError::JobMismatch));
+        }
+        Ok(())
+    }
+
+    fn validate_state(&self) -> Result<(), Error> {
+        match (self.state, self.job) {
+            (
+                DidRegistrationState::Finished {
+                    did,
+                    document,
+                    secret_handles,
+                },
+                None,
+            ) => self.validate_finished(did, document.as_deref(), secret_handles),
+            (DidRegistrationState::Failed { did, .. }, None) => self.validate_failed(did.as_ref()),
+            (DidRegistrationState::Action { did, action }, Some(job)) => {
+                self.validate_action(did.as_ref(), action, job)
+            }
+            (
+                DidRegistrationState::Wait {
+                    did,
+                    retry_after_millis,
+                },
+                Some(job),
+            ) => self.validate_wait(did.as_ref(), *retry_after_millis, job),
+            _ => Err(invalid(RegistrationError::InvalidState)),
+        }
+    }
+
+    fn validate_finished(
+        &self,
+        did: &Did,
+        document: Option<&DidDocument>,
+        secret_handles: &[RegistrationSecretHandle],
+    ) -> Result<(), Error> {
+        if secret_handles.len() > MAX_REGISTRATION_ITEMS {
+            return Err(invalid(RegistrationError::TooManyItems));
+        }
+        if did.method() != self.method.as_str()
+            || document.is_some_and(|document| document.id() != did)
+        {
+            return Err(invalid(RegistrationError::MethodOrDidMismatch));
+        }
+        if let Some(document) = document {
+            validate_public_document(document)?;
+        }
+        Ok(())
+    }
+
+    fn validate_failed(&self, did: Option<&Did>) -> Result<(), Error> {
+        if did.is_some_and(|did| did.method() != self.method.as_str()) {
+            return Err(invalid(RegistrationError::MethodOrDidMismatch));
+        }
+        Ok(())
+    }
+
+    fn validate_action(
+        &self,
+        did: Option<&Did>,
+        action: &RegistrationAction,
+        job: &RegistrationJob,
+    ) -> Result<(), Error> {
+        if did.is_some_and(|did| did.method() != self.method.as_str())
+            || !matches!(job.continuation(), RegistrationContinuation::Action(id) if id == action.id())
+        {
+            return Err(invalid(RegistrationError::ActionMismatch));
+        }
+        Ok(())
+    }
+
+    fn validate_wait(
+        &self,
+        did: Option<&Did>,
+        retry_after_millis: Option<u64>,
+        job: &RegistrationJob,
+    ) -> Result<(), Error> {
+        if did.is_some_and(|did| did.method() != self.method.as_str())
+            || !matches!(job.continuation(), RegistrationContinuation::Wait)
+            || retry_after_millis.is_some_and(|value| value > MAX_REGISTRATION_WAIT_MILLIS)
+        {
+            return Err(invalid(RegistrationError::InvalidState));
+        }
+        Ok(())
+    }
+
+    fn validate_document_metadata(&self) -> Result<(), Error> {
+        if let Some(did) = self.state.did()
+            && self.document_metadata.validate_for(did).is_err()
+        {
+            return Err(invalid(RegistrationError::MethodOrDidMismatch));
+        }
+        RegistrationPublicData::new(self.document_metadata.extensions().clone())?;
+        Ok(())
+    }
+}
+
 const fn invalid(reason: RegistrationError) -> Error {
     Error::InvalidRegistration(reason)
 }

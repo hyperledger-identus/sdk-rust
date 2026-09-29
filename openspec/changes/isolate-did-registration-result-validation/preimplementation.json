@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 459,
+  "change": "isolate-did-registration-result-validation",
+  "branch": "codex/refactor/issue-459",
+  "baseRef": "origin/develop",
+  "baseSha": "f7a0d58b534a0af2a5cd135fa2bab71f77195991",
+  "contractHeadSha": "9904e8acd1d44afdeef4220313ed54fd6be0058f",
+  "createdAt": "2026-09-29T03:11:03.048Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

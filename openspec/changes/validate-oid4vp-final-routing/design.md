@@ -69,6 +69,20 @@ payload scanner and `DcqlLimits` continues to own query/evaluation work. The
 transition accepts the two later policies explicitly so changing routing does
 not silently alter DCQL costs.
 
+## Slice-size decomposition note
+
+The complete base-to-implementation change crosses the factory's advisory
+file/line threshold because it includes mandatory OpenSpec/ADR evidence, the
+versioned error fixture, architecture inventories, and a clean-room negative
+matrix. Production behavior remains one 244-line routing module plus small
+private seams in five existing modules; no production module crosses the
+1,000-line threshold and the exact-head code-health audit reports no new
+OID4VP function or module signal. Splitting enums/limits/errors from the
+consuming state would create an unusable public half-capability, while splitting
+DCQL composition would temporarily preserve the duplicate-state hazard this
+issue exists to close. The route is therefore kept as one cohesive review unit;
+response construction and every additional response mode remain separate.
+
 # Alternatives rejected
 
 - Extending `ValidatedDcqlQuery` with routing would discard signature lineage

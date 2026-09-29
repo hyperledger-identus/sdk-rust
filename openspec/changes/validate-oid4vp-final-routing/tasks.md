@@ -15,7 +15,7 @@
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Run focused, workspace, factory, dependency, MSRV, and portable compile gates.
-- [ ] 3.2 Complete and record one distinct exact-diff architecture/security review.
+- [x] 3.1 Run focused, workspace, factory, dependency, MSRV, and portable compile gates.
+- [x] 3.2 Complete and record one distinct exact-diff architecture/security review.
 - [ ] 3.3 Complete verification, readiness, archive, and immutable receipt.
 - [ ] 3.4 Prepare the signed/DCO issue-linked PR and publish factory metrics.

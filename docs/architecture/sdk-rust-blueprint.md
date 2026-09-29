@@ -159,7 +159,8 @@ optional wallet-nonce correlation. Issue #429 adds strict bounded DCQL
 validation and selection through private exact `siros-dcql 0.3.0` without
 exporting candidate types. Issue #447 composes JAR and DCQL evidence with one
 bounded Final `response_type=vp_token`, `response_mode=direct_post`, nonce, and
-HTTPS `response_uri` state. These slices do not claim HTTP execution,
+HTTPS `response_uri` state. Issue #487 owns the next bounded direct-post
+response-construction slice. These slices do not claim HTTP execution,
 client-prefix key authorization, verifier trust, JWE, audience/freshness
 policy, broader response profiles, format metadata policy, consent, response
 construction, certification or downstream adoption.
@@ -830,7 +831,8 @@ independent slices. Issue #429 adopts exact `siros-dcql 0.3.0` privately behind
 strict SDK-owned Final validation and bounded selection under ADR 0165. Issue
 #447 then consumes the same bounded request map into a composed
 `vp_token`/HTTPS `direct_post` routing state while preserving signature and
-DCQL evidence. HTTP execution, verifier trust, consent, credential
+DCQL evidence. Issue #487 owns bounded response construction as the explicit
+successor. HTTP execution, verifier trust, consent, credential
 verification, redirects, `direct_post.jwt`, SIOPv2, DC API, JWE and response
 construction remain separate capabilities.
 

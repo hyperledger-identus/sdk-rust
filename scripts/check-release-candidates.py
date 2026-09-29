@@ -487,8 +487,12 @@ def validate(root: Path) -> list[str]:
         'Path(command[3]) != cwd / "Cargo.toml"',
         "'metadata', '--locked', *sys.argv[2:]",
         'cyclonedx_env = env | {"CARGO": str(locked_cargo)}',
+        "release evidence staged lock digest differs",
+        "Rustdoc changed the staged lock",
         "public API extraction changed the staged lock",
         "CycloneDX changed the staged lock",
+        "archive installed staged lock digest differs",
+        "matrix installed staged lock digest differs",
         "output.mkdir(mode=0o700)", "reserved output was modified during refresh",
         "shutil.rmtree(output)",
     )

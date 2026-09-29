@@ -77,3 +77,5 @@ unbound CycloneDX wrapper environment, and non-exclusive refresh output.
 It also rejects removal of the public-API lock postcondition, restoration of
 the unused prefix-form Cargo allowlist at runtime, and regression from bounded
 recursive refresh cleanup to empty-directory-only cleanup.
+Final mutations additionally reject removal of the descriptor anchor, Rustdoc
+postcondition, and archive or matrix installed-lock rejection branches.

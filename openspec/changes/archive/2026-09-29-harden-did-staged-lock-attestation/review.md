@@ -63,6 +63,12 @@ accepted and remediated before merge:
    a retry with the same output path is therefore not blocked by partial
    evidence owned by the failed invocation.
 
+The final exact-head review found two assertion-coverage gaps. Both were
+accepted: release evidence now anchors the staged lock to the descriptor before
+tool execution and checks it immediately after Rustdoc, while the archive and
+matrix installed-lock rejection branches are named in offline policy and
+covered by mutations. No blocking finding remains.
+
 ## Architecture and maintainability
 
 The changes remain within the existing DID release-candidate policy owner and

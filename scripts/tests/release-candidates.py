@@ -691,6 +691,22 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / "scripts/prepare-did-candidate.py",
+                    "release evidence staged lock digest differs",
+                    "release evidence lock accepted",
+                ),
+                "DID candidate builder is missing contract: release evidence staged lock digest differs",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    "Rustdoc changed the staged lock",
+                    "Rustdoc completed",
+                ),
+                "DID candidate builder is missing contract: Rustdoc changed the staged lock",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
                     "public API extraction changed the staged lock",
                     "public API extraction completed",
                 ),
@@ -711,6 +727,22 @@ def main() -> int:
                     "output.rmdir()",
                 ),
                 "DID candidate builder is missing contract: shutil.rmtree(output)",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    "archive installed staged lock digest differs",
+                    "archive installed staged lock accepted",
+                ),
+                "DID candidate builder is missing contract: archive installed staged lock digest differs",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    "matrix installed staged lock digest differs",
+                    "matrix installed staged lock accepted",
+                ),
+                "DID candidate builder is missing contract: matrix installed staged lock digest differs",
             ),
             (
                 lambda root: replace(

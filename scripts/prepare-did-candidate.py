@@ -643,6 +643,9 @@ def release_evidence(
     initialize_api: bool,
 ) -> tuple[dict[str, str], list[dict[str, Any]]]:
     tools = descriptor["tools"]
+    expected_lock = descriptor["staged_lock_sha256"]
+    if sha256(stage / "Cargo.lock") != expected_lock:
+        raise CandidateError("release evidence staged lock digest differs")
     versions = {
         "cargoPublicApi": require_subcommand_version(
             ["cargo", "public-api", "--version"], tools["cargo_public_api"], root, env
@@ -669,6 +672,8 @@ def release_evidence(
             "--locked", "--all-features", "--lib", "--target-dir", str(api_target), "--",
             "-Z", "unstable-options", "--output-format", "json",
         ], cwd=stage, env=api_env)
+        if sha256(stage / "Cargo.lock") != expected_lock:
+            raise CandidateError(f"Rustdoc changed the staged lock: {name}")
         api_json = api_target / "doc" / f"{name.replace('-', '_')}.json"
         require_bounded_evidence(api_json, descriptor)
         lock_before = sha256(stage / "Cargo.lock")

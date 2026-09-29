@@ -1,7 +1,7 @@
-schema_version = 1
-program_issue  = 415
-snapshot_date  = "2026-09-29"
-status         = "sdk-ts-inventoried"
+schema_version    = 1
+program_issue     = 415
+snapshot_date     = "2026-09-29"
+status            = "sdk-ts-inventoried"
 normalization_adr = 169
 
 [vocabulary]

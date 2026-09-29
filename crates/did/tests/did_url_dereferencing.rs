@@ -449,6 +449,98 @@ fn service_and_type_selection_are_conjunctive_and_filter_documents() {
 }
 
 #[test]
+fn service_selection_failure_precedes_representation_routing() {
+    let did = "did:prism:abc123";
+    let unsupported = DereferencingOptions::builder()
+        .accept(MediaType::parse("application/pdf").unwrap())
+        .build()
+        .unwrap();
+
+    for (selector, expected) in [
+        ("%23bad%20space", DidResolutionErrorKind::InvalidDidUrl),
+        ("missing", DidResolutionErrorKind::NotFound),
+        ("files", DidResolutionErrorKind::RepresentationNotSupported),
+    ] {
+        let resolver = Arc::new(RecordingResolver::new(did, success(did)));
+        let result = dereference(
+            resolver.clone(),
+            &format!("did:prism:abc123?service={selector}"),
+            &unsupported,
+        );
+
+        assert_eq!(error_kind(&result), Some(expected), "{selector}");
+        assert_eq!(resolver.calls.load(Ordering::SeqCst), 1, "{selector}");
+    }
+}
+
+#[test]
+fn service_output_routing_matrix_is_characterized_before_decomposition() {
+    let did = "did:prism:abc123";
+    let resolver = Arc::new(RecordingResolver::new(did, success(did)));
+
+    let selected = dereference(
+        resolver.clone(),
+        "did:prism:abc123?serviceType=Shared",
+        &DereferencingOptions::empty(),
+    );
+    let selected = selected.content().unwrap().to_did_document().unwrap();
+    let selected_ids: Vec<_> = selected
+        .services()
+        .unwrap()
+        .iter()
+        .map(|service| service.id().as_str())
+        .collect();
+    assert_eq!(
+        selected_ids,
+        ["did:prism:abc123#files", "did:prism:abc123#profile"]
+    );
+
+    let mapped = dereference(
+        resolver.clone(),
+        "did:prism:abc123?service=mapped",
+        &DereferencingOptions::empty(),
+    );
+    let mapped = mapped.content().unwrap().to_did_document().unwrap();
+    assert_eq!(
+        mapped.services().unwrap()[0].id().as_str(),
+        "did:prism:abc123#mapped"
+    );
+
+    let uri_list = DereferencingOptions::builder()
+        .accept(MediaType::parse("text/uri-list").unwrap())
+        .build()
+        .unwrap();
+    let mapped_uri = dereference(
+        resolver.clone(),
+        "did:prism:abc123?service=mapped",
+        &uri_list,
+    );
+    assert_eq!(
+        error_kind(&mapped_uri),
+        Some(DidResolutionErrorKind::NotFound)
+    );
+
+    let did_json = DereferencingOptions::builder()
+        .accept(MediaType::parse("application/did+json").unwrap())
+        .build()
+        .unwrap();
+    let forced = dereference(
+        resolver.clone(),
+        "did:prism:abc123?service=files#proof",
+        &did_json,
+    );
+    assert_eq!(
+        forced.metadata().content_type().unwrap().as_str(),
+        "text/uri-list"
+    );
+    assert_eq!(
+        forced.content().unwrap().as_value(),
+        &json!(["https://wallet.example/api/v1/#proof"])
+    );
+    assert_eq!(resolver.calls.load(Ordering::SeqCst), 4);
+}
+
+#[test]
 fn uri_list_skips_endpoint_maps_and_rejects_unknown_representations() {
     let did = "did:prism:abc123";
     let resolver = Arc::new(RecordingResolver::new(did, success(did)));

@@ -8,7 +8,7 @@
       resource/security invariants, risks, and rollback.
 - [x] 1.3 Pass research/constraint/strict readiness, commit planning only, and
       bind an exact issue #461 preimplementation receipt.
-- [ ] 1.4 Run the pre-change focused suite and bind a compact service-selection
+- [x] 1.4 Run the pre-change focused suite and bind a compact service-selection
       and output-routing precedence matrix before movement.
 
 ## 2. Implementation

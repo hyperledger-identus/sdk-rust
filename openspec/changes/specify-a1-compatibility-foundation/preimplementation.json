@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 506,
+  "change": "specify-a1-compatibility-foundation",
+  "branch": "codex/docs/issue-506",
+  "baseRef": "origin/develop",
+  "baseSha": "1a638af6cd5985dc3a85f1e4b23b379158da7eb4",
+  "contractHeadSha": "fda21b5139be318ceadd77a366377bbc91b7711b",
+  "createdAt": "2026-09-29T18:43:53.574Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

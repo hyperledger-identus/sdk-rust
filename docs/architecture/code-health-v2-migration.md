@@ -25,7 +25,7 @@ source population and projection remain unchanged by that protocol refinement.
 
 Every file has the same authored nonblank production/test population under
 both classifiers. The current protected baseline source fingerprint is
-`447498639b8c2a7c4fd8b75b7d624cc5a046d984d9852f41133bbfa1ee2932ff`.
+`de1895419b3f20d05fcd41daad2f53cd6a873e5e5234f4348c8aedbd097c8428`.
 The v2 per-file population projection digest is
 `cfc603629e9ba2b2e33f9feb3d18b262a0618080ebfaaeebae892438598d2e53`.
 
@@ -72,12 +72,12 @@ nix develop --command python3 scripts/code-health-audit.py --verify-baseline
 ```
 
 The canonical v2 report digest is
-`6567e914eaf4f8687a2c1919d2db83e56ed82db3f65c375661042905c1ecb9a6`.
+`a8e5a0dae1e010b41c8fd2ace3339930bddb4d192d111126a525c2072891f226`.
 The baseline was most recently refreshed from protected
-`develop@87fe079e26b2f7026bf89b2aef11d99617236545` after issue #467 isolated
-bounded OID4VCI Authorization Request assembly behind one private owner. No
-production module exceeds 1,000 authored nonblank lines, and neither
-`try_into_authorization_request` nor a replacement assembly method has a
-governed function signal. The historical v1/v2 migration method above remains
+`develop@ae7c7ef5f9777bb050bc547eb0f4023b14aca5b2` after issue #470 isolated
+JOSE protected-header field collection behind one private owner. No production
+module exceeds 1,000 authored nonblank lines, and neither the former
+`visit_map` hotspot nor a replacement collector has a governed function
+signal. The historical v1/v2 migration method above remains
 unchanged; these three values bind the current canonical source population and
 report.

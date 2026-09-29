@@ -83,4 +83,3 @@ proof blocked by the A1 completion receipt.
 - **WHEN** the A1 planning package merges
 - **THEN** no consumer adoption or target support is claimed and implementation
   proceeds only through the four child issues
-

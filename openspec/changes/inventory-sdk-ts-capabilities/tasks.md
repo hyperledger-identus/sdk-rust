@@ -9,7 +9,7 @@
       public consumer evidence.
 - [x] 1.3 Complete research, constraints, design, delta requirements, and a
       distinct preimplementation semantic review.
-- [ ] 1.4 Pass research/constraint/strict readiness, commit planning only, and
+- [x] 1.4 Pass research/constraint/strict readiness, commit planning only, and
       record the factory preflight receipt.
 
 ## 2. Inventory and architecture

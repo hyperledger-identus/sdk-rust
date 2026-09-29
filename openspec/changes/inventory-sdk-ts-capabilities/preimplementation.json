@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 417,
+  "change": "inventory-sdk-ts-capabilities",
+  "branch": "codex/docs/issue-417",
+  "baseRef": "origin/develop",
+  "baseSha": "29f9c13c9fe1e3a2218534e8331d7a8739df9011",
+  "contractHeadSha": "24361e8d76f6cc840c3a3209b431f51f2e642dc0",
+  "createdAt": "2026-09-29T15:11:58.209Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

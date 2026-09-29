@@ -8,7 +8,7 @@
       compatibility, resource/security invariants, risks, and rollback.
 - [x] 1.3 Pass research/constraint/strict readiness, commit planning only, and
       bind an exact issue #456 preimplementation receipt.
-- [ ] 1.4 Run the pre-change focused suite and bind a compact lexical/calendar
+- [x] 1.4 Run the pre-change focused suite and bind a compact lexical/calendar
       boundary and public-entry-point characterization before movement.
 
 ## 2. Implementation

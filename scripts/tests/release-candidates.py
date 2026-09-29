@@ -624,8 +624,8 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / "scripts/prepare-did-candidate.py",
-                    '"--locked", "--format", "json", "--spec-version", tools["cyclonedx_spec"],',
-                    '"--format", "json", "--spec-version", tools["cyclonedx_spec"],',
+                    '"cargo", "--locked", "cyclonedx", "--manifest-path",',
+                    '"cargo", "cyclonedx", "--manifest-path",',
                 ),
                 "DID staged Cargo evidence operations must use --locked",
             ),

@@ -541,11 +541,14 @@ def validate(root: Path) -> list[str]:
             "DID candidate lock generation must stay inside closed closure/refresh capabilities"
         )
     staged_operations = {
-        operation: [
+        "rustdoc": [
             call for call in named_calls(builder_tree, "run")
-            if (literal_command(call) or [])[:2] == ["cargo", operation]
-        ]
-        for operation in ("rustdoc", "cyclonedx")
+            if (literal_command(call) or [])[:2] == ["cargo", "rustdoc"]
+        ],
+        "cyclonedx": [
+            call for call in named_calls(builder_tree, "run")
+            if (literal_command(call) or [])[:3] == ["cargo", "--locked", "cyclonedx"]
+        ],
     }
     if any(
         len(calls) != 1 or "--locked" not in command_string_literals(calls[0])

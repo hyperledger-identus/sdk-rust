@@ -65,6 +65,11 @@ def require_local_command(
     if executable == "cargo" and len(command) >= 2 and command[1] in ALLOWED_CARGO_OPERATIONS:
         return
     if (
+        executable == "cargo" and len(command) >= 3 and command[1] == "--locked"
+        and command[2] in ALLOWED_CARGO_OPERATIONS
+    ):
+        return
+    if (
         Path(command[0]).resolve() == Path(sys.executable).resolve()
         and len(command) == 3
         and Path(command[1]).name == "check-release-candidates.py"
@@ -659,8 +664,9 @@ def release_evidence(
 
         override = f"{name}-candidate"
         run([
-            "cargo", "cyclonedx", "--manifest-path", str(stage / package["path"] / "Cargo.toml"),
-            "--locked", "--format", "json", "--spec-version", tools["cyclonedx_spec"],
+            "cargo", "--locked", "cyclonedx", "--manifest-path",
+            str(stage / package["path"] / "Cargo.toml"),
+            "--format", "json", "--spec-version", tools["cyclonedx_spec"],
             "--all-features", "--override-filename", override,
         ], cwd=stage, env=env)
         matches = sorted((stage / package["path"]).glob(f"{override}*.json"))

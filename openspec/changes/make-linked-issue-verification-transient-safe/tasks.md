@@ -5,7 +5,7 @@
 - [x] 1.1 Record the exact failure, policy invariants, retry classification,
       alternatives, constraints, tests, and rollback.
 - [x] 1.2 Pass research, constraint, and strict OpenSpec readiness.
-- [ ] 1.3 Commit planning and persist the exact issue #474 preimplementation receipt.
+- [x] 1.3 Commit planning and persist the exact issue #474 preimplementation receipt.
 
 ## 2. Implementation
 

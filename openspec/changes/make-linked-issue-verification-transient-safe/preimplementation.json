@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 474,
+  "change": "make-linked-issue-verification-transient-safe",
+  "branch": "codex/fix/issue-474",
+  "baseRef": "origin/develop",
+  "baseSha": "90f1c5f0dd51ca4d49615acbb2a4e85a1a079c7e",
+  "contractHeadSha": "6577482b4b0058f0fbf0a51f082bc7d8e90e92de",
+  "createdAt": "2026-09-29T05:38:17.350Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -87,9 +87,9 @@
   "population_projection_sha256": "2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80",
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 30970,
+      "authored_nonblank_lines": 31258,
       "files": 95,
-      "functions": 1282
+      "functions": 1302
     },
     "inline_test": {
       "authored_nonblank_lines": 5231,
@@ -97,12 +97,12 @@
       "functions": 371
     },
     "production": {
-      "authored_nonblank_lines": 37667,
+      "authored_nonblank_lines": 37710,
       "files": 204,
-      "functions": 2879
+      "functions": 2887
     }
   },
-  "revision": "094735f0995dc2914f92e4106d11ddfa189f7399",
+  "revision": "d27e455901c501d9611abbe0065e6a9b7270dd57",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -397,16 +397,6 @@
         "start_line": 173
       },
       {
-        "cognitive": 18,
-        "cyclomatic": 28,
-        "end_line": 275,
-        "name": "validate_result",
-        "path": "crates/did/src/registration/result.rs",
-        "population": "production",
-        "sloc": 75,
-        "start_line": 201
-      },
-      {
         "cognitive": 4,
         "cyclomatic": 16,
         "end_line": 356,
@@ -649,5 +639,5 @@
     ],
     "modules": []
   },
-  "source_fingerprint_sha256": "1b218c5e705000136a42ee30e265d8d66a67886060114ce2f39925b96e4134de"
+  "source_fingerprint_sha256": "d91115abd76ec9f55eb0ce244322b071da966704756db28236be44e54d9046ec"
 }

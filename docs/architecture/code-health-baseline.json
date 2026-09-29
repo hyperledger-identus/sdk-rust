@@ -87,9 +87,9 @@
   "population_projection_sha256": "2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80",
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 31342,
+      "authored_nonblank_lines": 31400,
       "files": 95,
-      "functions": 1305
+      "functions": 1306
     },
     "inline_test": {
       "authored_nonblank_lines": 5231,
@@ -97,12 +97,12 @@
       "functions": 371
     },
     "production": {
-      "authored_nonblank_lines": 37749,
+      "authored_nonblank_lines": 37863,
       "files": 204,
-      "functions": 2890
+      "functions": 2903
     }
   },
-  "revision": "cbb8849ab50f39f7b4f8b873a692ede9861b3394",
+  "revision": "e42a9dcabc824dbae71f99639a794c05356ce8f7",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -417,26 +417,6 @@
         "start_line": 173
       },
       {
-        "cognitive": 21,
-        "cyclomatic": 25,
-        "end_line": 388,
-        "name": "try_into_authorization_response",
-        "path": "crates/oid4vci/src/authorization_response.rs",
-        "population": "production",
-        "sloc": 78,
-        "start_line": 311
-      },
-      {
-        "cognitive": 16,
-        "cyclomatic": 25,
-        "end_line": 465,
-        "name": "parse_query",
-        "path": "crates/oid4vci/src/authorization_response.rs",
-        "population": "production",
-        "sloc": 75,
-        "start_line": 391
-      },
-      {
         "cognitive": 6,
         "cyclomatic": 21,
         "end_line": 172,
@@ -629,5 +609,5 @@
     ],
     "modules": []
   },
-  "source_fingerprint_sha256": "01951d27f9e5fd3ca63d7447965d01cefb7edeac743e2e46034c9d94ec37c675"
+  "source_fingerprint_sha256": "e005c014c24d829626949ed9c70f927f0aac8f6b517315ecc0bafcdca9afd84d"
 }

@@ -25,7 +25,7 @@ source population and projection remain unchanged by that protocol refinement.
 
 Every file has the same authored nonblank production/test population under
 both classifiers. The current protected baseline source fingerprint is
-`01951d27f9e5fd3ca63d7447965d01cefb7edeac743e2e46034c9d94ec37c675`.
+`e005c014c24d829626949ed9c70f927f0aac8f6b517315ecc0bafcdca9afd84d`.
 The v2 per-file population projection digest is
 `2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80`.
 
@@ -72,12 +72,12 @@ nix develop --command python3 scripts/code-health-audit.py --verify-baseline
 ```
 
 The canonical v2 report digest is
-`89200c46c04b7bca0d84dbfbce246a9d55e034cdc8462e8bed444e45200587b4`.
+`23d17c60f949b6c1dc942907ebc62ff6feb52e2a5a5b24c3fc96e2710e9c2d58`.
 The baseline was most recently refreshed from protected
-`develop@cbb8849ab50f39f7b4f8b873a692ede9861b3394` after issue #461 isolated
-DID service selection and output routing in a private borrowed context.
+`develop@e42a9dcabc824dbae71f99639a794c05356ce8f7` after issue #464 separated
+bounded OID4VCI authorization-response decoding from request correlation.
 No production module exceeds 1,000 authored nonblank lines, and neither
-`dereference_services` nor a replacement context method has a governed
-function signal. The historical v1/v2 migration method above remains
-unchanged; these three values bind the current canonical source population and
-report.
+`try_into_authorization_response`, `parse_query`, nor a replacement owner
+method has a governed function signal. The historical v1/v2 migration method
+above remains unchanged; these three values bind the current canonical source
+population and report.

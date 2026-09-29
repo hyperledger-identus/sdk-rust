@@ -336,6 +336,11 @@ fn combined_faults_preserve_decode_correlation_branch_and_grammar_priority() {
         ),
         (
             request(Some(true), true),
+            "code=first&%63ode=%GG&state=wrong&iss=https%3A%2F%2Fwrong.example",
+            CredentialOfferError::DuplicateAuthorizationResponseParameter,
+        ),
+        (
+            request(Some(true), true),
             "code=%0A&error=bad%22code&state=wrong&iss=https%3A%2F%2Fwrong.example",
             CredentialOfferError::AuthorizationResponseStateMismatch,
         ),

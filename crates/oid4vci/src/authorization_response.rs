@@ -390,10 +390,17 @@ impl<'a> BoundedAuthorizationResponseQuery<'a> {
         if index == self.limits.max_parameters() {
             return Err(CredentialOfferError::TooManyAuthorizationResponseParameters);
         }
-        let (name, value) = decode_response_parameter(field, self.limits)?;
+        if field.is_empty() {
+            return Err(CredentialOfferError::InvalidAuthorizationResponse);
+        }
+        let (encoded_name, encoded_value) = field
+            .split_once('=')
+            .ok_or(CredentialOfferError::InvalidAuthorizationResponse)?;
+        let name = decode_response_parameter_name(encoded_name, self.limits)?;
         if !self.names.insert(name.to_string()) {
             return Err(CredentialOfferError::DuplicateAuthorizationResponseParameter);
         }
+        let value = decode_response_parameter_value(name.as_str(), encoded_value, self.limits)?;
         self.fields.insert(name.as_str(), value);
         Ok(())
     }
@@ -487,16 +494,10 @@ impl AuthorizationRequest {
     }
 }
 
-fn decode_response_parameter(
-    field: &str,
+fn decode_response_parameter_name(
+    encoded_name: &str,
     limits: AuthorizationResponseLimits,
-) -> Result<(Zeroizing<String>, Zeroizing<String>), CredentialOfferError> {
-    if field.is_empty() {
-        return Err(CredentialOfferError::InvalidAuthorizationResponse);
-    }
-    let (encoded_name, encoded_value) = field
-        .split_once('=')
-        .ok_or(CredentialOfferError::InvalidAuthorizationResponse)?;
+) -> Result<Zeroizing<String>, CredentialOfferError> {
     let name = decode_component(
         encoded_name,
         limits.max_name_bytes(),
@@ -506,14 +507,22 @@ fn decode_response_parameter(
     if name.is_empty() {
         return Err(CredentialOfferError::InvalidAuthorizationResponse);
     }
-    let (maximum, too_large) = response_parameter_limit(name.as_str(), limits);
+    Ok(name)
+}
+
+fn decode_response_parameter_value(
+    name: &str,
+    encoded_value: &str,
+    limits: AuthorizationResponseLimits,
+) -> Result<Zeroizing<String>, CredentialOfferError> {
+    let (maximum, too_large) = response_parameter_limit(name, limits);
     let value = decode_component(
         encoded_value,
         maximum,
         CredentialOfferError::InvalidAuthorizationResponseEncoding,
         too_large,
     )?;
-    Ok((name, value))
+    Ok(value)
 }
 
 fn response_parameter_limit(

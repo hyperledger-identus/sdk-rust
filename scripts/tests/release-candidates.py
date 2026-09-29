@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import io
 import json
 import shutil
@@ -40,6 +41,7 @@ def copy_fixture(destination: Path) -> None:
         "Cargo.toml",
         "docs/release/release-trains.toml",
         "docs/release/did-candidate.toml",
+        "docs/release/did-candidate.lock",
         "docs/release/identus-did-0.1.0-rc.1.api.txt",
         "docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt",
         "docs/release/crypto-candidate.toml",
@@ -48,6 +50,7 @@ def copy_fixture(destination: Path) -> None:
         "docs/adr/0155-qualify-staged-did-candidate-matrix.md",
         ".github/workflows/nix-checks.yml",
         "nix/apps/default.nix",
+        "nix/apps/did-candidate.nix",
         "nix/apps/did-candidate-matrix-primary.nix",
         "nix/apps/did-candidate-matrix-msrv.nix",
         "scripts/prepare-did-candidate.py",
@@ -71,6 +74,18 @@ def replace(path: Path, old: str, new: str) -> None:
 
 def append(path: Path, text: str) -> None:
     path.write_text(path.read_text(encoding="utf-8") + text, encoding="utf-8")
+
+
+def replace_lock_and_rebind(root: Path, old: str, new: str) -> None:
+    lock = root / "docs/release/did-candidate.lock"
+    replace(lock, old, new)
+    digest = hashlib.sha256(lock.read_bytes()).hexdigest()
+    descriptor = root / "docs/release/did-candidate.toml"
+    replace(
+        descriptor,
+        'staged_lock_sha256       = "1f1d4206e2ced5bd74675d654876684536dd8f82bf79cd6de4c2fa67db904447"',
+        f'staged_lock_sha256       = "{digest}"',
+    )
 
 
 def move_cleanliness_step_after_msrv(root: Path) -> None:
@@ -125,6 +140,14 @@ def main() -> int:
         builder.require_local_command(["git", "status", "--porcelain"])
         builder.require_local_command(["cargo", "package", "--workspace"])
         builder.require_local_command(["cargo", "semver-checks", "--version"])
+        staged_lock = builder.staged_lock_path(ROOT, builder.load_toml(ROOT / builder.DESCRIPTOR))
+        installed_stage = boundary / "installed-stage"
+        installed_stage.mkdir()
+        installed_hash = builder.install_staged_lock(
+            ROOT, installed_stage, builder.load_toml(ROOT / builder.DESCRIPTOR)
+        )
+        if installed_hash != builder.sha256(staged_lock):
+            raise AssertionError("installed staged lock identity differs")
         for forbidden_command in (
             ["git", "push"], ["cargo", "publish"], ["gh", "release", "create"],
             ["cargo", "semver-checks", "check-release"],
@@ -339,6 +362,30 @@ def main() -> int:
                 "DID descriptor differs: compatibility_status",
             ),
             (
+                lambda root: (root / "docs/release/did-candidate.lock").unlink(),
+                "DID staged lock must be a regular repository file",
+            ),
+            (
+                lambda root: append(root / "docs/release/did-candidate.lock", "\n# drift\n"),
+                "DID staged lock digest differs",
+            ),
+            (
+                lambda root: replace_lock_and_rebind(
+                    root,
+                    'name = "identus-did"\nversion = "0.1.0-rc.1"',
+                    'name = "identus-did"\nversion = "0.1.0-rc.2"',
+                ),
+                "DID staged lock candidate package identity differs",
+            ),
+            (
+                lambda root: replace_lock_and_rebind(
+                    root,
+                    'source = "registry+https://github.com/rust-lang/crates.io-index"',
+                    'source = "git+https://example.invalid/dependency"',
+                ),
+                "DID staged lock contains a non-crates.io source",
+            ),
+            (
                 lambda root: replace(
                     root / "docs/release/did-candidate.toml",
                     'primary_rust_version = "1.98.1"',
@@ -468,6 +515,14 @@ def main() -> int:
                     root / "scripts/prepare-did-candidate.py", "\n# cargo publish\n",
                 ),
                 "candidate-only builder contains remote mutation capability",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    "lock_hash = install_staged_lock(root, stage, descriptor)",
+                    'run(["cargo", "generate-lockfile"], cwd=stage, env=env)',
+                ),
+                "DID candidate builder resolves the staged lock during evidence execution",
             ),
             (
                 lambda root: replace(

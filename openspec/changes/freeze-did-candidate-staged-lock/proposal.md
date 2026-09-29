@@ -15,6 +15,8 @@ M5 evidence for a reason unrelated to the reviewed SDK revision.
 - Bind its path and SHA-256 to the DID candidate descriptor.
 - Verify and copy that lock into every staged build before invoking Cargo with
   `--locked`; matrix lanes may no longer resolve independently.
+- Add a pinned DID candidate Nix app parallel to the existing crypto app so
+  complete archive/API/SBOM evidence never depends on ambient tools.
 - Extend offline structure and mutation tests for missing, modified, stale, or
   bypassed staged locks.
 - Record the frozen lock identity in lane and aggregate evidence unchanged.

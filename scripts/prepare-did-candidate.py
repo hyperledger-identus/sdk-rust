@@ -127,6 +127,34 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def staged_lock_path(root: Path, descriptor: dict[str, Any]) -> Path:
+    relative = Path(str(descriptor.get("staged_lock", "")))
+    expected = Path("docs/release/did-candidate.lock")
+    if relative != expected or relative.is_absolute() or ".." in relative.parts:
+        raise CandidateError("staged lock path differs")
+    candidate = root / relative
+    if candidate.is_symlink() or not candidate.is_file():
+        raise CandidateError("staged lock must be a regular repository file")
+    if candidate.stat().st_size == 0 or candidate.stat().st_size > 262144:
+        raise CandidateError("staged lock has an invalid byte size")
+    expected_digest = descriptor.get("staged_lock_sha256")
+    if not isinstance(expected_digest, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_digest):
+        raise CandidateError("staged lock descriptor digest is invalid")
+    if sha256(candidate) != expected_digest:
+        raise CandidateError("staged lock digest differs")
+    return candidate
+
+
+def install_staged_lock(root: Path, stage: Path, descriptor: dict[str, Any]) -> str:
+    source = staged_lock_path(root, descriptor)
+    destination = stage / "Cargo.lock"
+    shutil.copyfile(source, destination)
+    digest = sha256(destination)
+    if digest != descriptor["staged_lock_sha256"]:
+        raise CandidateError("installed staged lock digest differs")
+    return digest
+
+
 def source_revision(root: Path, requested: str | None, allow_dirty: bool) -> tuple[str, bool]:
     env = os.environ.copy()
     head = run(["git", "rev-parse", "HEAD"], cwd=root, env=env).strip()
@@ -251,8 +279,10 @@ def create_stage(root: Path, parent: Path, descriptor: dict[str, Any]) -> Path:
     return stage
 
 
-def assemble(stage: Path, descriptor: dict[str, Any], env: dict[str, str]) -> dict[str, Path]:
-    run(["cargo", "generate-lockfile", "--manifest-path", str(stage / "Cargo.toml")], cwd=stage, env=env)
+def assemble(
+    root: Path, stage: Path, descriptor: dict[str, Any], env: dict[str, str]
+) -> dict[str, Path]:
+    install_staged_lock(root, stage, descriptor)
     run([
         "cargo", "package", "--workspace", "--locked", "--no-verify", "--allow-dirty",
         "--manifest-path", str(stage / "Cargo.toml"),
@@ -668,8 +698,7 @@ def build_matrix_lane(
         )
         host = matrix_host(descriptor, run(["rustc", "-vV"], cwd=root, env=env))
         stage = create_stage(root, scratch / "candidate", descriptor)
-        run(["cargo", "generate-lockfile"], cwd=stage, env=env)
-        lock = stage / "Cargo.lock"
+        lock_hash = install_staged_lock(root, stage, descriptor)
         rows: list[dict[str, Any]] = []
         host_operation = host[f"{toolchain_class}_operation"]
         for package in host["packages"]:
@@ -713,7 +742,7 @@ def build_matrix_lane(
                 "class": toolchain_class, "rustVersion": expected_version,
                 "rustc": rustc, "cargo": cargo,
             },
-            "lock": {"file": "Cargo.lock", "sha256": sha256(lock)},
+            "lock": {"file": "Cargo.lock", "sha256": lock_hash},
             "rows": rows,
             "unsupported": unsupported,
             "limitations": [
@@ -927,7 +956,7 @@ def build(
         passes: list[dict[str, Path]] = []
         for pass_name in ("first", "second"):
             stage = create_stage(root, scratch / pass_name, descriptor)
-            passes.append(assemble(stage, descriptor, env))
+            passes.append(assemble(root, stage, descriptor, env))
         for name in PACKAGE_ORDER:
             if sha256(passes[0][name]) != sha256(passes[1][name]):
                 raise CandidateError(f"two-pass archive bytes differ: {name}")
@@ -957,6 +986,10 @@ def build(
                 "publication": descriptor["publication"],
                 "sourceRevision": revision,
                 "sourceDirty": dirty,
+                "stagedLock": {
+                    "file": descriptor["staged_lock"],
+                    "sha256": descriptor["staged_lock_sha256"],
+                },
                 "tools": {"rustc": rustc, "cargo": cargo, **evidence_tools},
                 "compatibility": {
                     "status": descriptor["compatibility_status"],

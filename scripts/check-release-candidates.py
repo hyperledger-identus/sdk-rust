@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
 import sys
 import tomllib
@@ -12,12 +13,14 @@ from typing import Any
 
 INDEX = Path("docs/release/release-trains.toml")
 DID_DESCRIPTOR = Path("docs/release/did-candidate.toml")
+DID_STAGED_LOCK = Path("docs/release/did-candidate.lock")
 CRYPTO_DESCRIPTOR = Path("docs/release/crypto-candidate.toml")
 BUILDER = Path("scripts/prepare-did-candidate.py")
 ADR = Path("docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md")
 MATRIX_ADR = Path("docs/adr/0155-qualify-staged-did-candidate-matrix.md")
 MATRIX_PRIMARY_APP = Path("nix/apps/did-candidate-matrix-primary.nix")
 MATRIX_MSRV_APP = Path("nix/apps/did-candidate-matrix-msrv.nix")
+DID_CANDIDATE_APP = Path("nix/apps/did-candidate.nix")
 APPS = Path("nix/apps/default.nix")
 SLOW_WORKFLOW = Path(".github/workflows/nix-checks.yml")
 VERSION = "0.1.0-rc.1"
@@ -30,7 +33,8 @@ INDEX_KEYS = {"schema_version", "trains"}
 TRAIN_KEYS = {"id", "lifecycle", "primary_package", "descriptor", "tag", "packages"}
 DESCRIPTOR_KEYS = {
     "schema_version", "candidate", "version", "rust_version",
-    "preparation_rust_version", "baseline_revision", "repository", "homepage",
+    "preparation_rust_version", "baseline_revision", "staged_lock",
+    "staged_lock_sha256", "repository", "homepage",
     "license", "max_archive_bytes", "max_archive_members", "max_expansion_ratio",
     "max_evidence_bytes", "publication", "release_tag", "compatibility_status",
     "tools", "matrix", "matrix_hosts", "matrix_targets", "profiles", "packages",
@@ -76,6 +80,12 @@ EXPECTED_PROFILES = (
 EXPECTED_INTERNAL = {
     "identus-did": {"identus-core", "identus-derive"},
     "identus-did-resolver-http": {"identus-core", "identus-did"},
+}
+EXPECTED_STAGED_IDENTUS = {
+    "identus-core": (VERSION, "registry+https://github.com/rust-lang/crates.io-index"),
+    "identus-derive": (VERSION, "registry+https://github.com/rust-lang/crates.io-index"),
+    "identus-did": (VERSION, None),
+    "identus-did-resolver-http": (VERSION, None),
 }
 EXPECTED_MATRIX = {
     "schema_version": 1,
@@ -134,6 +144,14 @@ def read(path: Path, errors: list[str]) -> str:
     except OSError as error:
         errors.append(f"cannot read {path}: {error}")
         return ""
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(65536), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def require_keys(value: dict[str, Any], expected: set[str], label: str, errors: list[str]) -> None:
@@ -217,6 +235,8 @@ def validate(root: Path) -> list[str]:
         "rust_version": "1.89.0",
         "preparation_rust_version": "1.98.1",
         "baseline_revision": "96cf5f577b5f3585461d34589aad465297693af0",
+        "staged_lock": DID_STAGED_LOCK.as_posix(),
+        "staged_lock_sha256": "1f1d4206e2ced5bd74675d654876684536dd8f82bf79cd6de4c2fa67db904447",
         "repository": "https://github.com/hyperledger-identus/sdk-rust",
         "homepage": "https://hyperledger-identus.github.io/sdk-rust/",
         "license": "Apache-2.0",
@@ -233,6 +253,43 @@ def validate(root: Path) -> list[str]:
             errors.append(f"DID descriptor differs: {field}")
     if not re.fullmatch(r"[0-9a-f]{40}", str(descriptor.get("baseline_revision", ""))):
         errors.append("DID descriptor baseline_revision must be a full lowercase SHA")
+    staged_lock = root / DID_STAGED_LOCK
+    if staged_lock.is_symlink() or not staged_lock.is_file():
+        errors.append("DID staged lock must be a regular repository file")
+    elif staged_lock.stat().st_size == 0 or staged_lock.stat().st_size > 262144:
+        errors.append("DID staged lock has an invalid byte size")
+    else:
+        if sha256(staged_lock) != descriptor.get("staged_lock_sha256"):
+            errors.append("DID staged lock digest differs")
+        lock = load_toml(staged_lock, errors)
+        if set(lock) != {"version", "package"} or lock.get("version") != 4:
+            errors.append("DID staged lock shape or format differs")
+        lock_packages = lock.get("package")
+        if not isinstance(lock_packages, list):
+            errors.append("DID staged lock packages must be an array")
+            lock_packages = []
+        observed_identus: dict[str, tuple[Any, Any]] = {}
+        identities: set[tuple[Any, Any, Any]] = set()
+        for position, package in enumerate(lock_packages):
+            if not isinstance(package, dict):
+                errors.append(f"DID staged lock package {position} is malformed")
+                continue
+            name = package.get("name")
+            version = package.get("version")
+            source = package.get("source")
+            identity = (name, version, source)
+            if identity in identities:
+                errors.append("DID staged lock contains a duplicate package identity")
+            identities.add(identity)
+            if source is not None:
+                if source != "registry+https://github.com/rust-lang/crates.io-index":
+                    errors.append("DID staged lock contains a non-crates.io source")
+                if not re.fullmatch(r"[0-9a-f]{64}", str(package.get("checksum", ""))):
+                    errors.append("DID staged lock registry checksum is invalid")
+            if isinstance(name, str) and name.startswith("identus-"):
+                observed_identus[name] = (version, source)
+        if observed_identus != EXPECTED_STAGED_IDENTUS:
+            errors.append("DID staged lock candidate package identity differs")
     tools = descriptor.get("tools")
     if not isinstance(tools, dict):
         errors.append("DID descriptor tools must be a table")
@@ -370,11 +427,16 @@ def validate(root: Path) -> list[str]:
         "release_evidence", "public-api", "cyclonedx",
         "repositoryPolicy", "candidateSpecificScan", "os.replace", "candidate-receipt.json",
         "--matrix-toolchain", "--aggregate-matrix", "build_matrix_lane",
-        "aggregate_matrix", "matrix receipt exceeds byte limit",
+        "aggregate_matrix", "matrix receipt exceeds byte limit", "install_staged_lock",
+        "staged_lock_sha256",
     )
     for phrase in required_builder:
         if phrase not in builder:
             errors.append(f"DID candidate builder is missing contract: {phrase}")
+    if builder.count("install_staged_lock(") != 3:
+        errors.append("DID candidate builder must install the staged lock in archive and matrix paths")
+    if 'run(["cargo", "generate-lockfile"], cwd=stage' in builder:
+        errors.append("DID candidate builder resolves the staged lock during evidence execution")
     forbidden_builder = (
         "cargo publish", "git tag", "gh release", "CARGO_REGISTRY_TOKEN",
         "CARGO_PUBLISH", "crates-io-auth-action",
@@ -410,13 +472,19 @@ def validate(root: Path) -> list[str]:
 
     primary_app = read(root / MATRIX_PRIMARY_APP, errors)
     msrv_app = read(root / MATRIX_MSRV_APP, errors)
+    candidate_app = read(root / DID_CANDIDATE_APP, errors)
     apps = read(root / APPS, errors)
     for source, label, phrases in (
         (primary_app, "primary matrix app", ("toolchain", "--matrix-toolchain primary")),
         (msrv_app, "MSRV matrix app", ("msrvToolchain", "--matrix-toolchain msrv")),
         (
+            candidate_app, "candidate app",
+            ("cargoCyclonedx", "cargoPublicApi", "cargoSemverChecks", "toolchain",
+             "prepare-did-candidate.py"),
+        ),
+        (
             apps, "matrix app registration",
-            ("did-candidate-matrix-primary", "did-candidate-matrix-msrv"),
+            ("did-candidate =", "did-candidate-matrix-primary", "did-candidate-matrix-msrv"),
         ),
     ):
         for phrase in phrases:

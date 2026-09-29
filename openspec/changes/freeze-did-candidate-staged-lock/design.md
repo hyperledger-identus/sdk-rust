@@ -24,6 +24,13 @@ lock, wrong descriptor digest, modified bytes, invalid lock shape/source, and
 reintroduction of matrix-lane generation. Lane/aggregate receipt schemas do not
 change: their existing lock hash becomes the descriptor-bound hash.
 
+## Pinned complete-candidate app
+
+Expose one `did-candidate` Nix app with the same pinned compiler,
+`cargo-public-api`, `cargo-semver-checks`, and `cargo-cyclonedx` inputs as the
+established crypto candidate app. This makes full archive/API/SBOM validation a
+repository-owned command; the existing primary/MSRV matrix apps remain narrow.
+
 ## Update procedure
 
 An intentional dependency change regenerates the lock once under the pinned

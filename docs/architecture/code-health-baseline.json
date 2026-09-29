@@ -64,15 +64,6 @@
       "owner": "issue #271 / ADR 0116"
     },
     {
-      "disposition": "decompose",
-      "evidence": "Scenario orchestration and evidence projection have separate change axes; excluded from issue #270 implementation.",
-      "id": "wallet-conformance-run-exact",
-      "locations": [
-        "crates/wallet-conformance/src/lib.rs::run_exact"
-      ],
-      "owner": "identus-wallet-conformance maintainers"
-    },
-    {
       "disposition": "document-exception",
       "evidence": "Similar tokens retain different normative ownership, bounds, error types, and change cadence.",
       "id": "did-oid-http-token-grammar",
@@ -93,127 +84,127 @@
       "owner": "identus-did resolution model"
     }
   ],
-  "population_projection_sha256": "f383a26031ea9601e15a68aff5759aa8dfce6d72c33d562de2a37248538f91b0",
+  "population_projection_sha256": "c424bf04a8116abec41c15acbdf1c611bbd5319ac447fd333306cb2bcda724e5",
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 30252,
-      "files": 94,
-      "functions": 1262
+      "authored_nonblank_lines": 30603,
+      "files": 95,
+      "functions": 1276
     },
     "inline_test": {
-      "authored_nonblank_lines": 4834,
-      "files": 36,
-      "functions": 357
+      "authored_nonblank_lines": 5109,
+      "files": 39,
+      "functions": 369
     },
     "production": {
-      "authored_nonblank_lines": 36406,
-      "files": 196,
-      "functions": 2767
+      "authored_nonblank_lines": 37463,
+      "files": 204,
+      "functions": 2857
     }
   },
-  "revision": "125e8caa0ecb9e9024a74dc479f998d12c5051a0",
+  "revision": "e4afece895eb3814b5d9b8c945d6ba457c6ad1c1",
   "schema_version": 2,
   "signals": {
     "functions": [
       {
         "cognitive": 18,
         "cyclomatic": 20,
-        "end_line": 159,
+        "end_line": 115,
         "name": "cfg_truth_for_test",
-        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "path": "crates/conformance/src/bin/code-health-classifier/cfg.rs",
         "population": "production",
-        "sloc": 42,
-        "start_line": 118
-      },
-      {
-        "cognitive": 1,
-        "cyclomatic": 18,
-        "end_line": 260,
-        "name": "item_attributes",
-        "path": "crates/conformance/src/bin/code-health-classifier.rs",
-        "population": "production",
-        "sloc": 21,
-        "start_line": 240
-      },
-      {
-        "cognitive": 1,
-        "cyclomatic": 19,
-        "end_line": 316,
-        "name": "pat_attributes",
-        "path": "crates/conformance/src/bin/code-health-classifier.rs",
-        "population": "production",
-        "sloc": 22,
-        "start_line": 295
-      },
-      {
-        "cognitive": 1,
-        "cyclomatic": 42,
-        "end_line": 362,
-        "name": "expr_attributes",
-        "path": "crates/conformance/src/bin/code-health-classifier.rs",
-        "population": "production",
-        "sloc": 45,
-        "start_line": 318
-      },
-      {
-        "cognitive": 19,
-        "cyclomatic": 15,
-        "end_line": 637,
-        "name": "visit_module",
-        "path": "crates/conformance/src/bin/code-health-classifier.rs",
-        "population": "production",
-        "sloc": 62,
-        "start_line": 576
-      },
-      {
-        "cognitive": 15,
-        "cyclomatic": 17,
-        "end_line": 878,
-        "name": "apply_path_meta",
-        "path": "crates/conformance/src/bin/code-health-classifier.rs",
-        "population": "production",
-        "sloc": 58,
-        "start_line": 821
-      },
-      {
-        "cognitive": 16,
-        "cyclomatic": 10,
-        "end_line": 942,
-        "name": "project_lines",
-        "path": "crates/conformance/src/bin/code-health-classifier.rs",
-        "population": "production",
-        "sloc": 32,
-        "start_line": 911
-      },
-      {
-        "cognitive": 10,
-        "cyclomatic": 16,
-        "end_line": 1047,
-        "name": "resolve_module",
-        "path": "crates/conformance/src/bin/code-health-classifier.rs",
-        "population": "production",
-        "sloc": 66,
-        "start_line": 982
-      },
-      {
-        "cognitive": 24,
-        "cyclomatic": 28,
-        "end_line": 1128,
-        "name": "inherited_test_paths",
-        "path": "crates/conformance/src/bin/code-health-classifier.rs",
-        "population": "production",
-        "sloc": 80,
-        "start_line": 1049
+        "sloc": 44,
+        "start_line": 72
       },
       {
         "cognitive": 30,
         "cyclomatic": 33,
-        "end_line": 1238,
+        "end_line": 196,
         "name": "classify",
-        "path": "crates/conformance/src/bin/code-health-classifier.rs",
+        "path": "crates/conformance/src/bin/code-health-classifier/engine.rs",
         "population": "production",
         "sloc": 109,
-        "start_line": 1130
+        "start_line": 88
+      },
+      {
+        "cognitive": 19,
+        "cyclomatic": 15,
+        "end_line": 160,
+        "name": "visit_module",
+        "path": "crates/conformance/src/bin/code-health-classifier/modules.rs",
+        "population": "production",
+        "sloc": 62,
+        "start_line": 99
+      },
+      {
+        "cognitive": 14,
+        "cyclomatic": 17,
+        "end_line": 400,
+        "name": "apply_path_meta",
+        "path": "crates/conformance/src/bin/code-health-classifier/modules.rs",
+        "population": "production",
+        "sloc": 52,
+        "start_line": 349
+      },
+      {
+        "cognitive": 10,
+        "cyclomatic": 16,
+        "end_line": 480,
+        "name": "resolve_module",
+        "path": "crates/conformance/src/bin/code-health-classifier/modules.rs",
+        "population": "production",
+        "sloc": 66,
+        "start_line": 415
+      },
+      {
+        "cognitive": 24,
+        "cyclomatic": 28,
+        "end_line": 571,
+        "name": "inherited_test_paths_with_work",
+        "path": "crates/conformance/src/bin/code-health-classifier/modules.rs",
+        "population": "production",
+        "sloc": 85,
+        "start_line": 487
+      },
+      {
+        "cognitive": 16,
+        "cyclomatic": 10,
+        "end_line": 60,
+        "name": "project_lines_with_work",
+        "path": "crates/conformance/src/bin/code-health-classifier/projection.rs",
+        "population": "production",
+        "sloc": 35,
+        "start_line": 26
+      },
+      {
+        "cognitive": 1,
+        "cyclomatic": 18,
+        "end_line": 71,
+        "name": "item_attributes",
+        "path": "crates/conformance/src/bin/code-health-classifier/spans.rs",
+        "population": "production",
+        "sloc": 21,
+        "start_line": 51
+      },
+      {
+        "cognitive": 1,
+        "cyclomatic": 19,
+        "end_line": 127,
+        "name": "pat_attributes",
+        "path": "crates/conformance/src/bin/code-health-classifier/spans.rs",
+        "population": "production",
+        "sloc": 22,
+        "start_line": 106
+      },
+      {
+        "cognitive": 1,
+        "cyclomatic": 42,
+        "end_line": 173,
+        "name": "expr_attributes",
+        "path": "crates/conformance/src/bin/code-health-classifier/spans.rs",
+        "population": "production",
+        "sloc": 45,
+        "start_line": 129
       },
       {
         "cognitive": 1,
@@ -696,32 +687,17 @@
         "start_line": 286
       },
       {
-        "cognitive": 18,
-        "cyclomatic": 45,
-        "end_line": 526,
-        "name": "run_exact",
-        "path": "crates/wallet-conformance/src/lib.rs",
-        "population": "production",
-        "sloc": 250,
-        "start_line": 277
-      },
-      {
         "cognitive": 11,
         "cyclomatic": 17,
-        "end_line": 659,
-        "name": "run_list",
-        "path": "crates/wallet-conformance/src/lib.rs",
+        "end_line": 153,
+        "name": "run",
+        "path": "crates/wallet-conformance/src/list.rs",
         "population": "production",
-        "sloc": 85,
-        "start_line": 575
+        "sloc": 82,
+        "start_line": 72
       }
     ],
-    "modules": [
-      {
-        "authored_nonblank_lines": 1179,
-        "path": "crates/conformance/src/bin/code-health-classifier.rs"
-      }
-    ]
+    "modules": []
   },
-  "source_fingerprint_sha256": "86868a1d7baaa194cd2eb7511ab1dda62d6a51f24a0292166321175aae9e6bdb"
+  "source_fingerprint_sha256": "abf66d32446c22bf387df1301a3a35c3d71e405e3c762d1d2998bdd6de7175c1"
 }

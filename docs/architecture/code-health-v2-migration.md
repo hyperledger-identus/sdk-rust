@@ -24,10 +24,10 @@ source population and projection remain unchanged by that protocol refinement.
 | Production authored nonblank lines | 29,161 | 29,161 | 0 |
 
 Every file has the same authored nonblank production/test population under
-both classifiers. The source fingerprint is
-`86868a1d7baaa194cd2eb7511ab1dda62d6a51f24a0292166321175aae9e6bdb`.
+both classifiers. The current protected baseline source fingerprint is
+`abf66d32446c22bf387df1301a3a35c3d71e405e3c762d1d2998bdd6de7175c1`.
 The v2 per-file population projection digest is
-`f383a26031ea9601e15a68aff5759aa8dfce6d72c33d562de2a37248538f91b0`.
+`c424bf04a8116abec41c15acbdf1c611bbd5319ac447fd333306cb2bcda724e5`.
 
 The sole representation delta is intentional: v1 included blank lines in a
 file inherited wholly as inline test, while v2 reports only lines containing
@@ -72,4 +72,9 @@ nix develop --command python3 scripts/code-health-audit.py --verify-baseline
 ```
 
 The canonical v2 report digest is
-`3da85015831da6cd6615466960319ae80e48b355d758c5713fef0edef5faa982`.
+`d383b78ef4161fc9a0f69156e8c6561390083ec417d407be71fce31f86e77a92`.
+The baseline was most recently refreshed from protected
+`develop@e4afece895eb3814b5d9b8c945d6ba457c6ad1c1` after issue #438 removed
+the completed exact-store conformance hotspot. The historical v1/v2 migration
+method above remains unchanged; these three values bind the current canonical
+source population and report.

@@ -7,6 +7,9 @@
 - Planning commit: `831a50ca9dfd374a3ff2799cfde60fd8ec69c4b1`
 - Preimplementation receipt commit: `d1e422d`
 - Reviewed implementation head so far: `8cf91531677926b31962c79c4166d4817be05d10`
+- Implementation PR: #439, exact head
+  `0d82014718a8604b6812c698ead323198a4f85ef`
+- Protected squash commit: `e4afece895eb3814b5d9b8c945d6ba457c6ad1c1`
 
 ## Behavioral compatibility
 
@@ -49,3 +52,22 @@ protected delivery uses squash merge. The implementation PR therefore carries
 this exact-head comparison. A second issue-linked closeout PR will generate and
 pin the canonical report from the protected squash commit, remove the completed
 hotspot disposition, archive the OpenSpec change, and close #438.
+
+## Protected implementation evidence
+
+- PR #439 passed DCO, pull-request policy, every file-hygiene check, and the
+  exact-head fast gate in 7m49s before guarded merge.
+- The guarded squash merge produced protected
+  `develop@e4afece895eb3814b5d9b8c945d6ba457c6ad1c1`.
+- A canonical v2 report generated from that exact protected revision has source
+  fingerprint
+  `abf66d32446c22bf387df1301a3a35c3d71e405e3c762d1d2998bdd6de7175c1`,
+  population projection
+  `c424bf04a8116abec41c15acbdf1c611bbd5319ac447fd333306cb2bcda724e5`,
+  and report digest
+  `d383b78ef4161fc9a0f69156e8c6561390083ec417d407be71fce31f86e77a92`.
+- The refreshed report contains no production module above 1,000 authored
+  nonblank lines and no exact-scenario function signal. It truthfully retains
+  the list traversal at 82 SLOC / cognitive 11 / cyclomatic 17.
+- Only the completed `wallet-conformance-run-exact` disposition is removed;
+  all unrelated hotspot decisions remain byte-for-byte unchanged.

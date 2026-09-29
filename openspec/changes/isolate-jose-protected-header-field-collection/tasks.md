@@ -22,9 +22,9 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run focused/workspace tests, strict Clippy/format/docs, public/source,
+- [x] 3.1 Run focused/workspace tests, strict Clippy/format/docs, public/source,
       code-health, factory, portable-target, and relevant Nix gates.
-- [ ] 3.2 Perform a distinct exact-diff architecture/security/Rust review and
+- [x] 3.2 Perform a distinct exact-diff architecture/security/Rust review and
       resolve every blocking finding.
 - [ ] 3.3 Deliver implementation and evidence closeout as signed/DCO
       issue-linked PRs; archive, merge, and metrics require green exact-head CI.

@@ -23,6 +23,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/support-policy.py"
 "$repository_root/scripts/tests/apollo-parity.py"
 "$repository_root/scripts/tests/platform-ts-capabilities.py"
+"$repository_root/scripts/tests/a1-compatibility-plan.py"
 "$repository_root/scripts/tests/crypto-benchmark.py"
 "$repository_root/scripts/tests/crypto-coverage.py"
 "$repository_root/scripts/tests/source-distribution.py"
@@ -69,7 +70,11 @@ required_files=(
   docs/architecture/sdk-support-policy.toml
   docs/architecture/apollo-crypto-parity.toml
   docs/architecture/identus-platform-ts-capabilities.toml
+  docs/architecture/a1-compatibility-contracts.md
   docs/architecture/portable-agent-runtime.md
+  docs/roadmap/a1-shared-compatibility-foundation.md
+  docs/roadmap/a1-shared-compatibility-foundation.toml
+  docs/research/platform-core/a1-evidence-source-audit.md
   docs/roadmap/platform-core-adoption-milestones.md
   docs/roadmap/platform-core-adoption-milestones.toml
   docs/architecture/code-health.md
@@ -148,6 +153,7 @@ required_files=(
   docs/adr/0170-make-rust-contracts-canonical-and-language-adapters-transitional.md
   docs/adr/0171-own-a-portable-effect-driven-agent-runtime.md
   docs/adr/0172-version-didcomm-engine-and-application-protocols-separately.md
+  docs/adr/0173-sequence-a1-through-versioned-evidence-contracts.md
   docs/adr/0160-separate-rustsec-advisory-and-yank-evidence.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
@@ -208,6 +214,7 @@ required_files=(
   scripts/check-rustsec-audit.py
   scripts/check-apollo-parity.py
   scripts/check-platform-ts-capabilities.py
+  scripts/check-a1-compatibility-plan.py
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
   scripts/check-crypto-benchmark.py
@@ -245,6 +252,7 @@ required_files=(
   scripts/tests/weekly-slow-live.py
   scripts/tests/apollo-parity.py
   scripts/tests/platform-ts-capabilities.py
+  scripts/tests/a1-compatibility-plan.py
   scripts/tests/crypto-benchmark.py
   scripts/tests/crypto-coverage.py
   scripts/tests/source-distribution.py
@@ -343,6 +351,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-support-policy.py" \
   "$fixture_root/scripts/check-apollo-parity.py" \
   "$fixture_root/scripts/check-platform-ts-capabilities.py" \
+  "$fixture_root/scripts/check-a1-compatibility-plan.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/check-oid4vci-conformance.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog-live.py" \
@@ -377,6 +386,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/weekly-slow-live.py"
 chmod +x "$fixture_root/scripts/tests/apollo-parity.py"
 chmod +x "$fixture_root/scripts/tests/platform-ts-capabilities.py"
+chmod +x "$fixture_root/scripts/tests/a1-compatibility-plan.py"
 chmod +x "$fixture_root/scripts/ci/"*.mjs "$fixture_root/scripts/factory-tools/"*.mjs \
   "$fixture_root/scripts/git-hooks/"*.mjs "$fixture_root/scripts/worktree-lifecycle.mjs" \
   "$fixture_root/.githooks/commit-msg" "$fixture_root/.githooks/pre-commit" \

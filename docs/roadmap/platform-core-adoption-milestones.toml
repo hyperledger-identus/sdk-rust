@@ -22,12 +22,12 @@ non_claims        = [ "feature implementation", "dependency adoption", "target s
 id                = "A1"
 title             = "shared compatibility foundation"
 state             = "planned"
-owner_issue       = 420
-supporting_issues = [ 492, 501 ]
+owner_issue       = 504
+supporting_issues = [ 420, 422, 501, 505 ]
 depends_on        = [ "A0" ]
 deliverables      = [ "cross-language vector catalog", "consumer change ledger", "adapter and error mapping contract", "risk-routed evidence declaration" ]
-exit_evidence     = [ "versioned provenance packet", "offline catalog validation", "Rust and SDK-TS DID harnesses consume identical vectors" ]
-adoption_proof    = "the SDK-TS DID value adapter consumes the same versioned packet as Rust tests"
+exit_evidence     = [ "versioned DID provenance packet", "four offline contract validators", "combined cross-record graph validation" ]
+adoption_proof    = "the A1 contracts form an immutable consumer-ready DID packet without mutating a language SDK"
 quality           = [ "property", "fuzz", "benchmark", "differential" ]
 non_claims        = [ "all future vectors complete", "SDK-TS default switch", "binding publication" ]
 

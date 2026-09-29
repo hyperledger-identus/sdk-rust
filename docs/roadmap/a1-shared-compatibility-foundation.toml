@@ -1,0 +1,75 @@
+schema_version   = 1
+status           = "implementation-ready"
+program_issue    = 497
+parent_issue     = 504
+github_milestone = 5
+title            = "A1 — Shared compatibility foundation"
+ordering         = "dependency"
+planning_adr     = 173
+openspec_change  = "specify-a1-compatibility-foundation"
+quality_classes  = [ "property", "fuzz", "benchmark", "differential" ]
+root_issues      = [ 420, 505 ]
+closure_order    = [ 420, 505, 501, 422, 504 ]
+stop_before      = [ "sdk-ts mutation", "peer DID implementation", "credential format implementation", "DIDComm implementation", "agent runtime implementation", "host networking implementation" ]
+
+[[capability]]
+id              = "vector-catalog"
+issue           = 420
+title           = "cross-language source-of-truth vector catalog"
+state           = "planned"
+blocked_by      = [  ]
+completion_needs = [  ]
+planned_paths   = [ "docs/conformance/cross-language-vector-catalog.toml", "docs/conformance/fixtures/did/v1", "scripts/check-cross-language-vectors.py" ]
+deliverables    = [ "versioned schema", "offline validator", "mutation tests", "generic DID and DID URL seed packet", "Rust selector receipt" ]
+acceptance      = [ "authority and redistribution explicit", "payload hashes valid", "donor revisions pinned", "no private data", "all selectors exact" ]
+non_claims      = [ "all future vectors complete", "peer DID selected", "consumer migrated" ]
+
+[[capability]]
+id              = "adapter-mappings"
+issue           = 505
+title           = "canonical Rust-to-language DTO and error mappings"
+state           = "planned"
+blocked_by      = [  ]
+completion_needs = [  ]
+planned_paths   = [ "docs/architecture/language-adapter-mappings.toml", "scripts/check-language-adapter-mappings.py" ]
+deliverables    = [ "versioned schema", "offline validator", "mutation tests", "DID value mappings", "DID error mappings" ]
+acceptance      = [ "Rust side canonical", "language revision pinned", "compatibility window explicit", "lossy behavior explicit", "rollback and removal gate present" ]
+non_claims      = [ "language binding implemented", "legacy DTO copied into Rust", "SDK-TS default switched" ]
+
+[[capability]]
+id              = "quality-routing"
+issue           = 501
+title           = "risk-routed quality evidence declarations"
+state           = "planned"
+blocked_by      = [ 420 ]
+completion_needs = [ 420 ]
+planned_paths   = [ "docs/architecture/quality-evidence-declarations.toml", "scripts/check-quality-evidence-declarations.py" ]
+deliverables    = [ "four-class schema", "offline validator", "mutation tests", "DID seed declaration", "target and risk routing" ]
+acceptance      = [ "each class exact or reviewed not-applicable", "selectors and artifacts named", "thresholds or measurement-only rationale present", "vector references resolve" ]
+non_claims      = [ "every slice needs every harness", "generic CI URL is evidence", "new target supported" ]
+
+[[capability]]
+id              = "change-ledger"
+issue           = 422
+title           = "consumer-visible change ledger enforcement"
+state           = "planned"
+blocked_by      = [ 420, 505 ]
+completion_needs = [ 420, 505 ]
+planned_paths   = [ "docs/architecture/identus-platform-change-ledger.toml", "scripts/check-platform-change-ledger.py" ]
+deliverables    = [ "schema version 2", "offline validator", "deterministic renderer", "mutation tests", "cross-record references" ]
+acceptance      = [ "all consumer change classes represented", "dangling references rejected", "migration and rollback mandatory for breaks", "empty governance state remains honest" ]
+non_claims      = [ "governance change is runtime change", "release notes published", "consumer migration completed" ]
+
+[closeout]
+issue         = 504
+blocked_by    = [ 420, 422, 501, 505 ]
+deliverables  = [ "combined graph validator", "A1 evidence comment", "protected CI receipt", "archived OpenSpec" ]
+acceptance    = [ "all four sub-issues closed", "all references resolve", "DID seed packet coherent", "roadmap and GitHub hierarchy agree" ]
+non_claims    = [ "SDK-TS consumes Rust", "A2 complete", "release or support promised" ]
+
+[downstream]
+issue       = 492
+milestone   = "A2"
+blocked_by  = [ 420, 422, 501, 505 ]
+outcome     = "versioned SDK-TS DID adapter consumes the same immutable packet as Rust"
+stop_reason = "consumer mutation is an adoption proof, not compatibility infrastructure"

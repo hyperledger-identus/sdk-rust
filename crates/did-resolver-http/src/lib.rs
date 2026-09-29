@@ -84,6 +84,77 @@ enum Representation {
     ResolutionResult,
 }
 
+#[derive(Default)]
+struct ResolutionQueryFields {
+    names: BTreeSet<String>,
+    expand_relative_urls: Option<bool>,
+    no_cache: Option<bool>,
+    version_id: Option<VersionId>,
+    version_time: Option<DidResolutionDateTime>,
+    extensions: BTreeMap<String, serde_json::Value>,
+}
+
+impl ResolutionQueryFields {
+    fn read_parameter(&mut self, parameter: &str) -> Result<(), DidResolutionErrorKind> {
+        let (raw_name, raw_value) = parameter
+            .split_once('=')
+            .ok_or(DidResolutionErrorKind::InvalidOptions)?;
+        let name = percent_decode_query_component(raw_name, MAX_RESOLUTION_QUERY_NAME_BYTES)?;
+        let value = percent_decode_query_component(raw_value, MAX_RESOLUTION_QUERY_VALUE_BYTES)?;
+        if name.is_empty()
+            || name.chars().any(char::is_control)
+            || value.chars().any(char::is_control)
+            || !self.names.insert(name.clone())
+        {
+            return Err(DidResolutionErrorKind::InvalidOptions);
+        }
+        self.apply(name, value)
+    }
+
+    fn apply(&mut self, name: String, value: String) -> Result<(), DidResolutionErrorKind> {
+        match name.as_str() {
+            "accept" => return Err(DidResolutionErrorKind::InvalidOptions),
+            "expandRelativeUrls" => self.expand_relative_urls = Some(parse_query_bool(&value)?),
+            "noCache" => self.no_cache = Some(parse_query_bool(&value)?),
+            "versionId" => {
+                self.version_id = Some(
+                    VersionId::try_new(value)
+                        .map_err(|_| DidResolutionErrorKind::InvalidOptions)?,
+                );
+            }
+            "versionTime" => {
+                self.version_time = Some(
+                    DidResolutionDateTime::try_new(value)
+                        .map_err(|_| DidResolutionErrorKind::InvalidOptions)?,
+                );
+            }
+            _ => {
+                self.extensions
+                    .insert(name, serde_json::Value::String(value));
+            }
+        }
+        Ok(())
+    }
+
+    fn into_options(
+        self,
+        accept: Option<DidMediaType>,
+    ) -> Result<ResolutionOptions, DidResolutionErrorKind> {
+        if self.version_id.is_some() && self.version_time.is_some() {
+            return Err(DidResolutionErrorKind::InvalidOptions);
+        }
+        ResolutionOptions::new(
+            accept,
+            self.expand_relative_urls,
+            self.no_cache,
+            self.version_id,
+            self.version_time,
+            self.extensions,
+        )
+        .map_err(|_| DidResolutionErrorKind::InvalidOptions)
+    }
+}
+
 /// Build a state-closed router containing the fixed `GET /{did}` route.
 ///
 /// Consumers choose the externally visible endpoint by nesting this router at
@@ -154,64 +225,15 @@ fn decode_resolution_options(
         return Err(DidResolutionErrorKind::InvalidOptions);
     }
 
-    let mut names = BTreeSet::new();
-    let mut expand_relative_urls = None;
-    let mut no_cache = None;
-    let mut version_id = None;
-    let mut version_time = None;
-    let mut extensions = BTreeMap::new();
+    let mut fields = ResolutionQueryFields::default();
 
     for (index, parameter) in query.split('&').enumerate() {
         if index >= MAX_RESOLUTION_QUERY_PARAMETERS {
             return Err(DidResolutionErrorKind::InvalidOptions);
         }
-        let (raw_name, raw_value) = parameter
-            .split_once('=')
-            .ok_or(DidResolutionErrorKind::InvalidOptions)?;
-        let name = percent_decode_query_component(raw_name, MAX_RESOLUTION_QUERY_NAME_BYTES)?;
-        let value = percent_decode_query_component(raw_value, MAX_RESOLUTION_QUERY_VALUE_BYTES)?;
-        if name.is_empty()
-            || name.chars().any(char::is_control)
-            || value.chars().any(char::is_control)
-            || !names.insert(name.clone())
-        {
-            return Err(DidResolutionErrorKind::InvalidOptions);
-        }
-
-        match name.as_str() {
-            "accept" => return Err(DidResolutionErrorKind::InvalidOptions),
-            "expandRelativeUrls" => expand_relative_urls = Some(parse_query_bool(&value)?),
-            "noCache" => no_cache = Some(parse_query_bool(&value)?),
-            "versionId" => {
-                version_id = Some(
-                    VersionId::try_new(value)
-                        .map_err(|_| DidResolutionErrorKind::InvalidOptions)?,
-                );
-            }
-            "versionTime" => {
-                version_time = Some(
-                    DidResolutionDateTime::try_new(value)
-                        .map_err(|_| DidResolutionErrorKind::InvalidOptions)?,
-                );
-            }
-            _ => {
-                extensions.insert(name, serde_json::Value::String(value));
-            }
-        }
+        fields.read_parameter(parameter)?;
     }
-
-    if version_id.is_some() && version_time.is_some() {
-        return Err(DidResolutionErrorKind::InvalidOptions);
-    }
-    ResolutionOptions::new(
-        accept,
-        expand_relative_urls,
-        no_cache,
-        version_id,
-        version_time,
-        extensions,
-    )
-    .map_err(|_| DidResolutionErrorKind::InvalidOptions)
+    fields.into_options(accept)
 }
 
 fn percent_decode_query_component(

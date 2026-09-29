@@ -6,7 +6,7 @@
       bounds, retained values, resolver calls, public exports, and health signal.
 - [x] 1.2 Record the private query-field boundary, alternatives, compatibility,
       resource/security invariants, risks, rollback, and stop/go rule.
-- [ ] 1.3 Pass research/constraint/strict readiness, commit planning only, and
+- [x] 1.3 Pass research/constraint/strict readiness, commit planning only, and
       bind an exact issue #473 preimplementation receipt.
 - [ ] 1.4 Run the pre-change focused suite and bind a compact combined-fault
       phase-priority and resolver-non-invocation matrix before movement.

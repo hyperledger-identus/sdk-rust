@@ -25,8 +25,8 @@
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Prove candidate preparation plus local primary/MSRV lanes report the
+- [x] 4.1 Prove candidate preparation plus local primary/MSRV lanes report the
       exact descriptor lock hash; run Nix, factory, OpenSpec, and lint gates.
-- [ ] 4.2 Complete architecture/security/compatibility review and prepare the
+- [x] 4.2 Complete architecture/security/compatibility review and prepare the
       issue-linked PR; exact-head CI, discovery review, merge, metrics, #388
       update, and worktree closeout remain delivery steps.

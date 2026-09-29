@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-29
+goal: Close staged-lock attestation gaps and provide one explicit review-only
+  refresh path before final DID release-candidate evidence.

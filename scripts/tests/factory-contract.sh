@@ -215,6 +215,7 @@ required_files=(
   scripts/prepare-did-candidate.py
   scripts/publish-release-train.py
   scripts/check-pr-policy.sh
+  scripts/ci/verify-repository-issue.sh
   scripts/check-research-readiness.py
   scripts/tests/factory-contract.sh
   scripts/tests/error-golden.py
@@ -224,6 +225,7 @@ required_files=(
   scripts/tests/constraints.py
   scripts/tests/openspec-archive.py
   scripts/tests/pr-policy.sh
+  scripts/tests/repository-issue-verification.sh
   scripts/tests/research-readiness.py
   scripts/tests/rustsec-audit.py
   scripts/tests/support-policy.py
@@ -399,6 +401,7 @@ done < <(find "$repository_root/openspec/specs" -mindepth 2 -maxdepth 2 \
   -type f -path '*/oid4vci-*/spec.md' | sort)
 
 "$repository_root/scripts/tests/pr-policy.sh"
+"$repository_root/scripts/tests/repository-issue-verification.sh"
 
 change_root="$fixture_root/openspec/changes/example-change"
 mkdir -p "$change_root/specs/example-capability" "$fixture_root/.pi/chains"

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 470,
+  "change": "isolate-jose-protected-header-field-collection",
+  "branch": "codex/refactor/issue-470",
+  "baseRef": "origin/develop",
+  "baseSha": "3b5c91d384756fd0ef1ee36ef3e66f051f5950ba",
+  "contractHeadSha": "45f86b33e27afc7bdbebccbf6aff6c57cbbe7f08",
+  "createdAt": "2026-09-29T04:59:43.876Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

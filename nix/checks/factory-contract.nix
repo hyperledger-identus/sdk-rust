@@ -7,6 +7,7 @@
   findutils,
   gitMinimal,
   gnugrep,
+  jq,
   nix,
   openssh,
   openspec,
@@ -25,6 +26,7 @@ stdenvNoCC.mkDerivation {
     findutils
     gitMinimal
     gnugrep
+    jq
     nix
     openssh
     openspec

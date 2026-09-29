@@ -13,7 +13,7 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Introduce one private service-dereferencing context while retaining
+- [x] 2.1 Introduce one private service-dereferencing context while retaining
       exact selection, media-routing, errors, results, order, and allocations.
 - [ ] 2.2 Prove public/source/error/value equivalence and remove the touched
       signal without weakening unrelated decisions.

@@ -165,76 +165,94 @@ fn validate_version_id(value: &str) -> Result<(), Error> {
     Ok(())
 }
 
+struct ParsedDateTime {
+    year_mod_400: u16,
+    month: u8,
+    day: u8,
+    hour: u8,
+    minute: u8,
+    second: u8,
+}
+
+impl ParsedDateTime {
+    fn parse(value: &str) -> Option<Self> {
+        let bytes = value.as_bytes();
+        if bytes.len() < 20
+            || bytes.len() > MAX_DID_RESOLUTION_DATETIME_BYTES
+            || !bytes.is_ascii()
+            || bytes.last() != Some(&b'Z')
+        {
+            return None;
+        }
+
+        let year_start = usize::from(bytes.first() == Some(&b'-'));
+        let year_end = bytes[year_start..].iter().position(|byte| *byte == b'-')? + year_start;
+        let year = &bytes[year_start..year_end];
+        if year.len() < 4
+            || !year.iter().all(u8::is_ascii_digit)
+            || (year.len() > 4 && year.first() == Some(&b'0'))
+        {
+            return None;
+        }
+
+        let &[
+            b'-',
+            month_tens,
+            month_units,
+            b'-',
+            day_tens,
+            day_units,
+            b'T',
+            hour_tens,
+            hour_units,
+            b':',
+            minute_tens,
+            minute_units,
+            b':',
+            second_tens,
+            second_units,
+            b'Z',
+        ] = &bytes[year_end..]
+        else {
+            return None;
+        };
+
+        Some(Self {
+            year_mod_400: year.iter().fold(0_u16, |value, byte| {
+                (value * 10 + u16::from(byte - b'0')) % 400
+            }),
+            month: parse_two_digits(month_tens, month_units)?,
+            day: parse_two_digits(day_tens, day_units)?,
+            hour: parse_two_digits(hour_tens, hour_units)?,
+            minute: parse_two_digits(minute_tens, minute_units)?,
+            second: parse_two_digits(second_tens, second_units)?,
+        })
+    }
+
+    fn is_calendar_valid(&self) -> bool {
+        const MONTH_DAYS: [u8; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        if !(1..=12).contains(&self.month) {
+            return false;
+        }
+
+        let leap = self.year_mod_400.is_multiple_of(4)
+            && (!self.year_mod_400.is_multiple_of(100) || self.year_mod_400 == 0);
+        let max_day = MONTH_DAYS[usize::from(self.month - 1)] + u8::from(leap && self.month == 2);
+        let valid_time = (self.hour < 24 && self.minute < 60 && self.second < 60)
+            || (self.hour == 24 && self.minute == 0 && self.second == 0);
+        self.day != 0 && self.day <= max_day && valid_time
+    }
+}
+
+fn parse_two_digits(tens: u8, units: u8) -> Option<u8> {
+    (tens.is_ascii_digit() && units.is_ascii_digit()).then(|| (tens - b'0') * 10 + units - b'0')
+}
+
 fn validate_datetime(value: &str) -> Result<(), Error> {
-    let bytes = value.as_bytes();
-    if bytes.len() < 20
-        || bytes.len() > MAX_DID_RESOLUTION_DATETIME_BYTES
-        || !bytes.is_ascii()
-        || bytes.last() != Some(&b'Z')
-    {
-        return Err(Error::InvalidResolution(ResolutionError::InvalidDateTime));
-    }
-
-    let year_start = usize::from(bytes.first() == Some(&b'-'));
-    let Some(year_end) = bytes[year_start..]
-        .iter()
-        .position(|byte| *byte == b'-')
-        .map(|offset| year_start + offset)
-    else {
-        return Err(Error::InvalidResolution(ResolutionError::InvalidDateTime));
-    };
-    let year = &bytes[year_start..year_end];
-    if year.len() < 4
-        || !year.iter().all(u8::is_ascii_digit)
-        || (year.len() > 4 && year.first() == Some(&b'0'))
-    {
-        return Err(Error::InvalidResolution(ResolutionError::InvalidDateTime));
-    }
-
-    let date_time_tail = &bytes[year_end..];
-    if date_time_tail.len() != 16
-        || date_time_tail[0] != b'-'
-        || date_time_tail[3] != b'-'
-        || date_time_tail[6] != b'T'
-        || date_time_tail[9] != b':'
-        || date_time_tail[12] != b':'
-        || date_time_tail[15] != b'Z'
-        || date_time_tail
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| ![0, 3, 6, 9, 12, 15].contains(index))
-            .any(|(_, byte)| !byte.is_ascii_digit())
-    {
-        return Err(Error::InvalidResolution(ResolutionError::InvalidDateTime));
-    }
-
-    let number = |start: usize, end: usize| -> u32 {
-        date_time_tail[start..end]
-            .iter()
-            .fold(0, |value, byte| value * 10 + u32::from(byte - b'0'))
-    };
-    let month = number(1, 3);
-    let day = number(4, 6);
-    let hour = number(7, 9);
-    let minute = number(10, 12);
-    let second = number(13, 15);
-    let year_mod_400 = year.iter().fold(0_u16, |value, byte| {
-        (value * 10 + u16::from(byte - b'0')) % 400
-    });
-    let leap = year_mod_400 % 4 == 0 && (year_mod_400 % 100 != 0 || year_mod_400 == 0);
-    let max_day = match month {
-        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        4 | 6 | 9 | 11 => 30,
-        2 if leap => 29,
-        2 => 28,
-        _ => 0,
-    };
-    let valid_time =
-        hour <= 23 && minute <= 59 && second <= 59 || hour == 24 && minute == 0 && second == 0;
-    if day == 0 || day > max_day || !valid_time {
-        return Err(Error::InvalidResolution(ResolutionError::InvalidDateTime));
-    }
-    Ok(())
+    ParsedDateTime::parse(value)
+        .filter(ParsedDateTime::is_calendar_valid)
+        .map(|_| ())
+        .ok_or(Error::InvalidResolution(ResolutionError::InvalidDateTime))
 }
 fn validate_media_type(value: &str) -> Result<(), Error> {
     let bytes = value.as_bytes();

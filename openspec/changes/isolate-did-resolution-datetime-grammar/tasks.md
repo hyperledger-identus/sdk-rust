@@ -13,7 +13,7 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Introduce one private parsed value and calendar validator while
+- [x] 2.1 Introduce one private parsed value and calendar validator while
       retaining the exact bounded grammar, error, spelling, and allocation.
 - [ ] 2.2 Prove public/source/error/value equivalence and remove the touched
       function signal without weakening unrelated signals.

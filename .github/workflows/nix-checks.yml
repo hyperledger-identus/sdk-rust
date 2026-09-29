@@ -251,20 +251,29 @@ jobs:
       - name: Qualify staged DID sources with the primary compiler
         run: >-
           nix run .#did-candidate-matrix-primary --
-          --output artifacts/did-matrix/primary
+          --output "$RUNNER_TEMP/did-matrix/primary"
           --revision "$GITHUB_SHA"
+
+      - name: Verify primary qualification preserved a clean checkout
+        run: |
+          dirty_paths="$(git status --porcelain --untracked-files=all)"
+          if test -n "$dirty_paths"; then
+            echo "::error::primary DID candidate qualification dirtied the checkout"
+            printf '%s\n' "$dirty_paths"
+            exit 1
+          fi
 
       - name: Qualify staged DID sources with the MSRV
         run: >-
           nix run .#did-candidate-matrix-msrv --
-          --output artifacts/did-matrix/msrv
+          --output "$RUNNER_TEMP/did-matrix/msrv"
           --revision "$GITHUB_SHA"
 
       - name: Upload bounded DID matrix lanes
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: did-matrix-${{ matrix.host }}-${{ github.sha }}-${{ github.run_attempt }}
-          path: artifacts/did-matrix
+          path: ${{ runner.temp }}/did-matrix
           if-no-files-found: error
           retention-days: 7
 

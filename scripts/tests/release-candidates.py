@@ -73,6 +73,32 @@ def append(path: Path, text: str) -> None:
     path.write_text(path.read_text(encoding="utf-8") + text, encoding="utf-8")
 
 
+def move_cleanliness_step_after_msrv(root: Path) -> None:
+    path = root / ".github/workflows/nix-checks.yml"
+    source = path.read_text(encoding="utf-8")
+    cleanliness = """      - name: Verify primary qualification preserved a clean checkout
+        run: |
+          dirty_paths="$(git status --porcelain --untracked-files=all)"
+          if test -n "$dirty_paths"; then
+            echo "::error::primary DID candidate qualification dirtied the checkout"
+            printf '%s\\n' "$dirty_paths"
+            exit 1
+          fi
+
+"""
+    msrv = """      - name: Qualify staged DID sources with the MSRV
+        run: >-
+          nix run .#did-candidate-matrix-msrv --
+          --output "$RUNNER_TEMP/did-matrix/msrv"
+          --revision "$GITHUB_SHA"
+
+"""
+    if cleanliness not in source or msrv not in source:
+        raise AssertionError("fixture DID lane boundary not found")
+    source = source.replace(cleanliness, "", 1).replace(msrv, msrv + cleanliness, 1)
+    path.write_text(source, encoding="utf-8")
+
+
 def require_rejection(checker, fixture: Path, mutation, expected: str) -> None:
     mutation(fixture)
     errors = checker.validate(fixture)
@@ -340,6 +366,50 @@ def main() -> int:
                     root / ".github/workflows/nix-checks.yml", "\npull_request:\n",
                 ),
                 "slow workflow must not gain a pull_request trigger",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
+                    '--output "$RUNNER_TEMP/did-matrix/primary"',
+                    "--output artifacts/did-matrix/primary",
+                ),
+                "slow workflow writes DID matrix evidence inside the checkout",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
+                    "git status --porcelain --untracked-files=all",
+                    "git diff --quiet",
+                ),
+                "slow workflow is missing DID matrix contract: git status --porcelain",
+            ),
+            (
+                move_cleanliness_step_after_msrv,
+                "slow workflow must verify checkout cleanliness between DID lanes",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
+                    "printf '%s\\n' \"$dirty_paths\"",
+                    ': "$dirty_paths"',
+                ),
+                "slow workflow is missing DID matrix contract: printf",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
+                    "exit 1",
+                    "true",
+                ),
+                "slow workflow is missing DID matrix contract: exit 1",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
+                    "path: ${{ runner.temp }}/did-matrix",
+                    "path: artifacts/did-matrix",
+                ),
+                "slow workflow is missing DID matrix contract: path: ${{ runner.temp }}/did-matrix",
             ),
             (
                 lambda root: replace(

@@ -33,6 +33,5 @@
 - [x] 3.1 Validate inventory schema/vocabulary, TOML, Markdown, links,
       OpenSpec, factory, and clean-diff evidence.
 - [x] 3.2 Complete and record a distinct post-implementation semantic review.
-- [ ] 3.3 Archive the OpenSpec change, open a signed/DCO issue-linked PR to
-      `develop`, publish bounded factory metrics, and merge only after required
-      CI and discovery review are green.
+- [x] 3.3 Prepare the validated OpenSpec archive and signed/DCO issue-linked
+      delivery handoff. PR metrics and merge remain protected delivery gates.

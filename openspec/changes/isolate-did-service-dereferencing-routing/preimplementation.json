@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 461,
+  "change": "isolate-did-service-dereferencing-routing",
+  "branch": "codex/refactor/issue-461",
+  "baseRef": "origin/develop",
+  "baseSha": "d27e455901c501d9611abbe0065e6a9b7270dd57",
+  "contractHeadSha": "4ed8b0d1b08f735ace9cd6a6970511e2caf85ac1",
+  "createdAt": "2026-09-29T03:41:13.195Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

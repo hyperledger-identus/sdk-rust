@@ -522,63 +522,105 @@ fn dereference_services(
     resolved_content_type: Option<&MediaType>,
     prepared: &PreparedRequest,
 ) -> DidUrlDereferencingResult {
-    let service_id = match prepared
-        .service
-        .as_deref()
-        .map(|value| expand_service_id(document, value))
-        .transpose()
-    {
-        Ok(value) => value,
-        Err(failure) => return failure_result(failure),
-    };
+    ServiceDereferencing {
+        did_url,
+        document,
+        content_metadata,
+        resolved_content_type,
+        prepared,
+    }
+    .dereference()
+}
 
-    let services: Vec<Service> = document
-        .services()
-        .unwrap_or_default()
-        .iter()
-        .filter(|service| {
-            service_id
-                .as_deref()
-                .is_none_or(|target| service.id().as_str() == target)
-                && prepared.service_type.as_deref().is_none_or(|target| {
-                    service
-                        .service_types()
-                        .as_slice()
-                        .iter()
-                        .any(|value| value == target)
-                })
-        })
-        .cloned()
-        .collect();
-    if services.is_empty() {
-        return standard_failure(DidResolutionErrorKind::NotFound);
+struct ServiceDereferencing<'a> {
+    did_url: &'a DidUrl,
+    document: &'a DidDocument,
+    content_metadata: DidUrlContentMetadata,
+    resolved_content_type: Option<&'a MediaType>,
+    prepared: &'a PreparedRequest,
+}
+
+impl ServiceDereferencing<'_> {
+    fn dereference(self) -> DidUrlDereferencingResult {
+        let services = match self.select_services() {
+            Ok(services) if services.is_empty() => {
+                return standard_failure(DidResolutionErrorKind::NotFound);
+            }
+            Ok(services) => services,
+            Err(failure) => return failure_result(failure),
+        };
+        self.route(services)
     }
 
-    let force_uri = prepared.relative_ref.is_some() || did_url.fragment().is_some();
-    match prepared.resolution.accept().map(MediaType::as_str) {
-        None if force_uri => endpoint_result(did_url, &services, prepared, content_metadata),
-        None => filtered_document_result(
-            document,
-            services,
-            content_metadata,
-            resolved_content_type.cloned(),
-        ),
-        Some(value) if is_uri_list(value) => {
-            endpoint_result(did_url, &services, prepared, content_metadata)
-        }
-        Some(value) if is_did_document_media_type(value) => {
-            if force_uri {
-                endpoint_result(did_url, &services, prepared, content_metadata)
-            } else {
-                filtered_document_result(
-                    document,
-                    services,
-                    content_metadata,
-                    prepared.resolution.accept().cloned(),
-                )
+    fn select_services(&self) -> Result<Vec<Service>, Failure> {
+        let service_id = self
+            .prepared
+            .service
+            .as_deref()
+            .map(|value| expand_service_id(self.document, value))
+            .transpose()?;
+
+        Ok(self
+            .document
+            .services()
+            .unwrap_or_default()
+            .iter()
+            .filter(|service| {
+                service_id
+                    .as_deref()
+                    .is_none_or(|target| service.id().as_str() == target)
+                    && self.prepared.service_type.as_deref().is_none_or(|target| {
+                        service
+                            .service_types()
+                            .as_slice()
+                            .iter()
+                            .any(|value| value == target)
+                    })
+            })
+            .cloned()
+            .collect())
+    }
+
+    fn route(self, services: Vec<Service>) -> DidUrlDereferencingResult {
+        let force_uri = self.prepared.relative_ref.is_some() || self.did_url.fragment().is_some();
+        match self.prepared.resolution.accept().map(MediaType::as_str) {
+            None if force_uri => endpoint_result(
+                self.did_url,
+                &services,
+                self.prepared,
+                self.content_metadata,
+            ),
+            None => filtered_document_result(
+                self.document,
+                services,
+                self.content_metadata,
+                self.resolved_content_type.cloned(),
+            ),
+            Some(value) if is_uri_list(value) => endpoint_result(
+                self.did_url,
+                &services,
+                self.prepared,
+                self.content_metadata,
+            ),
+            Some(value) if is_did_document_media_type(value) => {
+                if force_uri {
+                    endpoint_result(
+                        self.did_url,
+                        &services,
+                        self.prepared,
+                        self.content_metadata,
+                    )
+                } else {
+                    filtered_document_result(
+                        self.document,
+                        services,
+                        self.content_metadata,
+                        self.prepared.resolution.accept().cloned(),
+                    )
+                }
             }
+            Some(_) => standard_failure(DidResolutionErrorKind::RepresentationNotSupported),
         }
-        Some(_) => standard_failure(DidResolutionErrorKind::RepresentationNotSupported),
     }
 }
 

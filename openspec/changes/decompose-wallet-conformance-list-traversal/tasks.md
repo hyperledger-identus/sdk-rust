@@ -6,7 +6,7 @@
       exports, adapter authority, successful counts, and code-health signal.
 - [x] 1.2 Record the deterministic evidence boundary, alternatives,
       compatibility, resource/security invariants, risks, and rollback.
-- [ ] 1.3 Pass research/constraint/strict readiness, commit planning only, and
+- [x] 1.3 Pass research/constraint/strict readiness, commit planning only, and
       bind an exact issue #441 preimplementation receipt.
 - [ ] 1.4 Run the pre-change focused suite and add the closed request/failure
       characterization before production movement.

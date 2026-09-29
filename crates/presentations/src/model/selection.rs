@@ -281,6 +281,111 @@ pub struct PresentationDisclosurePlan {
     selections: Vec<PresentationCredentialSelection>,
 }
 
+struct DisclosurePlanValidator<'a> {
+    request: &'a PresentationRequest,
+    candidates: &'a PresentationCandidateSet,
+    selections: &'a [PresentationCredentialSelection],
+}
+
+impl<'a> DisclosurePlanValidator<'a> {
+    const fn new(
+        request: &'a PresentationRequest,
+        candidates: &'a PresentationCandidateSet,
+        selections: &'a [PresentationCredentialSelection],
+    ) -> Self {
+        Self {
+            request,
+            candidates,
+            selections,
+        }
+    }
+
+    fn validate(&self) -> Result<(), PresentationError> {
+        self.reject_duplicate_selections()?;
+        for selection in self.selections {
+            self.validate_selection(selection)?;
+        }
+        self.validate_query_coverage()
+    }
+
+    fn reject_duplicate_selections(&self) -> Result<(), PresentationError> {
+        if self
+            .selections
+            .iter()
+            .enumerate()
+            .any(|(index, selection)| {
+                self.selections[..index].iter().any(|previous| {
+                    previous.query_id() == selection.query_id()
+                        && previous.credential_handle() == selection.credential_handle()
+                })
+            })
+        {
+            return Err(PresentationError::DuplicateDisclosureSelection);
+        }
+        Ok(())
+    }
+
+    fn validate_selection(
+        &self,
+        selection: &PresentationCredentialSelection,
+    ) -> Result<(), PresentationError> {
+        let query = self
+            .request
+            .query(selection.query_id())
+            .ok_or(PresentationError::UnknownSelectionQuery)?;
+        let candidate = self
+            .candidates
+            .candidate(selection.query_id(), selection.credential_handle())
+            .ok_or(PresentationError::UnknownSelectionCandidate)?;
+
+        for selected_claim in selection.selected_claims() {
+            let requested_claim = query
+                .claims()
+                .iter()
+                .find(|claim| claim.path() == selected_claim.path())
+                .ok_or(PresentationError::SelectionUnrequestedClaim)?;
+            if requested_claim.intent() != selected_claim.intent() {
+                return Err(PresentationError::SelectionClaimIntentMismatch);
+            }
+            if !candidate
+                .satisfiable_claims()
+                .iter()
+                .any(|path| path == selected_claim.path())
+            {
+                return Err(PresentationError::SelectionUnavailableClaim);
+            }
+        }
+
+        if query.claims().iter().any(|requested_claim| {
+            requested_claim.required()
+                && !selection.selected_claims().iter().any(|selected_claim| {
+                    selected_claim.path() == requested_claim.path()
+                        && selected_claim.intent() == requested_claim.intent()
+                })
+        }) {
+            return Err(PresentationError::SelectionMissingRequiredClaim);
+        }
+        Ok(())
+    }
+
+    fn validate_query_coverage(&self) -> Result<(), PresentationError> {
+        for query in self.request.queries() {
+            let count = self
+                .selections
+                .iter()
+                .filter(|selection| selection.query_id() == query.id())
+                .count();
+            if count == 0 {
+                return Err(PresentationError::MissingQuerySelection);
+            }
+            if !query.multiple() && count != 1 {
+                return Err(PresentationError::QueryMultiplicityExceeded);
+            }
+        }
+        Ok(())
+    }
+}
+
 impl PresentationDisclosurePlan {
     /// Validate and retain already-made credential and claim selections.
     pub fn new(
@@ -292,64 +397,7 @@ impl PresentationDisclosurePlan {
             return Err(PresentationError::InvalidDisclosureSelections);
         }
         candidates.validate_against(request)?;
-        if selections.iter().enumerate().any(|(index, selection)| {
-            selections[..index].iter().any(|previous| {
-                previous.query_id() == selection.query_id()
-                    && previous.credential_handle() == selection.credential_handle()
-            })
-        }) {
-            return Err(PresentationError::DuplicateDisclosureSelection);
-        }
-
-        for selection in &selections {
-            let query = request
-                .query(selection.query_id())
-                .ok_or(PresentationError::UnknownSelectionQuery)?;
-            let candidate = candidates
-                .candidate(selection.query_id(), selection.credential_handle())
-                .ok_or(PresentationError::UnknownSelectionCandidate)?;
-
-            for selected_claim in selection.selected_claims() {
-                let requested_claim = query
-                    .claims()
-                    .iter()
-                    .find(|claim| claim.path() == selected_claim.path())
-                    .ok_or(PresentationError::SelectionUnrequestedClaim)?;
-                if requested_claim.intent() != selected_claim.intent() {
-                    return Err(PresentationError::SelectionClaimIntentMismatch);
-                }
-                if !candidate
-                    .satisfiable_claims()
-                    .iter()
-                    .any(|path| path == selected_claim.path())
-                {
-                    return Err(PresentationError::SelectionUnavailableClaim);
-                }
-            }
-
-            if query.claims().iter().any(|requested_claim| {
-                requested_claim.required()
-                    && !selection.selected_claims().iter().any(|selected_claim| {
-                        selected_claim.path() == requested_claim.path()
-                            && selected_claim.intent() == requested_claim.intent()
-                    })
-            }) {
-                return Err(PresentationError::SelectionMissingRequiredClaim);
-            }
-        }
-
-        for query in request.queries() {
-            let count = selections
-                .iter()
-                .filter(|selection| selection.query_id() == query.id())
-                .count();
-            if count == 0 {
-                return Err(PresentationError::MissingQuerySelection);
-            }
-            if !query.multiple() && count != 1 {
-                return Err(PresentationError::QueryMultiplicityExceeded);
-            }
-        }
+        DisclosurePlanValidator::new(request, candidates, &selections).validate()?;
 
         Ok(Self {
             request: request.clone(),

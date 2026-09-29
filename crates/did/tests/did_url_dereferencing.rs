@@ -249,6 +249,44 @@ fn malformed_duplicate_and_colliding_parameters_fail_before_resolution() {
 }
 
 #[test]
+fn request_preparation_reports_the_first_observable_failure_without_resolving() {
+    let did = "did:prism:abc123";
+    let constrained = DereferencingOptions::builder()
+        .accept(MediaType::parse("application/did+json").unwrap())
+        .verification_relationship(VerificationRelationshipName::parse("assertionMethod").unwrap())
+        .build()
+        .unwrap();
+
+    for url in [
+        "did:prism:abc123?=malformed",
+        "did:prism:abc123?relativeRef=child&noCache=maybe",
+        "did:prism:abc123?accept=application%2Fdid%2Bjson&relativeRef=child",
+    ] {
+        let resolver = Arc::new(RecordingResolver::new(did, success(did)));
+        let result = dereference(resolver.clone(), url, &constrained);
+
+        assert_eq!(
+            error_kind(&result),
+            Some(DidResolutionErrorKind::InvalidDidUrl),
+            "query parsing and parameter application must precede cross-field rejection: {url}"
+        );
+        assert_eq!(resolver.calls.load(Ordering::SeqCst), 0, "{url}");
+    }
+
+    let resolver = Arc::new(RecordingResolver::new(did, success(did)));
+    let result = dereference(
+        resolver.clone(),
+        "did:prism:abc123?relativeRef=child",
+        &DereferencingOptions::empty(),
+    );
+    assert_eq!(
+        error_kind(&result),
+        Some(DidResolutionErrorKind::InvalidOptions)
+    );
+    assert_eq!(resolver.calls.load(Ordering::SeqCst), 0);
+}
+
+#[test]
 fn fragments_match_exact_verification_methods_and_services() {
     let did = "did:prism:abc123";
     let resolver = Arc::new(RecordingResolver::new(did, success(did)));

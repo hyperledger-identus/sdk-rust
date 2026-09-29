@@ -13,18 +13,18 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Introduce private bounded query-decoder and request-correlator owners
+- [x] 2.1 Introduce private bounded query-decoder and request-correlator owners
       while retaining exact phase order, errors, values, and allocations.
-- [ ] 2.2 Prove public/source/error/value equivalence and remove both touched
+- [x] 2.2 Prove public/source/error/value equivalence and remove both touched
       signals without weakening unrelated decisions.
 - [ ] 2.3 Merge implementation, then rebind canonical evidence to the protected
       squash commit and preserve unrelated hotspot dispositions.
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run focused/workspace tests, strict Clippy/format/docs, public/source,
+- [x] 3.1 Run focused/workspace tests, strict Clippy/format/docs, public/source,
       code-health, factory, portable-target, and relevant Nix gates.
-- [ ] 3.2 Perform a distinct exact-diff architecture/security/Rust review and
+- [x] 3.2 Perform a distinct exact-diff architecture/security/Rust review and
       resolve every blocking finding.
 - [ ] 3.3 Deliver implementation and evidence closeout as signed/DCO
       issue-linked PRs; archive, merge, and metrics require green exact-head CI.

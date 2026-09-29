@@ -327,6 +327,66 @@ fn validates_success_and_error_grammars() {
 }
 
 #[test]
+fn combined_faults_preserve_decode_correlation_branch_and_grammar_priority() {
+    let cases = [
+        (
+            request(Some(true), true),
+            "code=%GG&state=wrong&iss=https%3A%2F%2Fwrong.example&error=bad%22code",
+            CredentialOfferError::InvalidAuthorizationResponseEncoding,
+        ),
+        (
+            request(Some(true), true),
+            "code=first&%63ode=%GG&state=wrong&iss=https%3A%2F%2Fwrong.example",
+            CredentialOfferError::DuplicateAuthorizationResponseParameter,
+        ),
+        (
+            request(Some(true), true),
+            "code=%0A&error=bad%22code&state=wrong&iss=https%3A%2F%2Fwrong.example",
+            CredentialOfferError::AuthorizationResponseStateMismatch,
+        ),
+        (
+            request(Some(true), true),
+            "code=%0A&error=bad%22code&state=state+value&iss=https%3A%2F%2Fwrong.example",
+            CredentialOfferError::AuthorizationResponseIssuerMismatch,
+        ),
+        (
+            request(None, false),
+            "code=%0A&error=bad%22code&state=state+value",
+            CredentialOfferError::InvalidAuthorizationResponse,
+        ),
+        (
+            request(None, false),
+            "code=%0A&state=state+value",
+            CredentialOfferError::InvalidAuthorizationCode,
+        ),
+        (
+            request(None, false),
+            "error=bad%22code&error_description=%0A&error_uri=http%3A%2F%2F%5B&state=state+value",
+            CredentialOfferError::InvalidAuthorizationEndpointErrorCode,
+        ),
+        (
+            request(None, false),
+            "error=bad&error_description=%0A&error_uri=http%3A%2F%2F%5B&state=state+value",
+            CredentialOfferError::InvalidAuthorizationErrorDescription,
+        ),
+        (
+            request(None, false),
+            "error=bad&error_description=details&error_uri=http%3A%2F%2F%5B&state=state+value",
+            CredentialOfferError::InvalidAuthorizationErrorUri,
+        ),
+    ];
+
+    for (request, query, expected) in cases {
+        assert_response_error(
+            request,
+            query,
+            AuthorizationResponseLimits::default(),
+            expected,
+        );
+    }
+}
+
+#[test]
 fn response_diagnostics_are_static_unique_redacted_contracts() {
     let cases = [
         (

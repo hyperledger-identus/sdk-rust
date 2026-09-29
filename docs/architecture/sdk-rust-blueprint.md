@@ -135,7 +135,7 @@ accepted product commitment.
 | --- | --- | --- |
 | `identus-core` | validated value/error foundations | audit construction, serialization and error contracts |
 | `identus-derive` | validated-newtype derivation support | harden macro diagnostics and compiler-version tests |
-| `identus-crypto` | chain-neutral algorithms, HD derivation and published vectors | reconcile namespace/API under Apollo issue #9; retain vector evidence |
+| `identus-crypto` | chain-neutral algorithms, HD derivation and published vectors | retain Apollo comparison evidence under issue #9 without inheriting its component name |
 | `identus-did` | initial generic DID types | converge against DID Core issue #5; do not infer a chain method |
 | `identus-adapters-entropy` | system entropy adapter | retain as the first ports implementation and review runtime/target support |
 | `identus-conformance` | dependency-layer and workspace guards | expand with provenance and architecture evidence |
@@ -172,8 +172,8 @@ reserve the final namespace automatically.
 | Crate | Responsibility | Explicit exclusions |
 | --- | --- | --- |
 | `identus-ports` | time, entropy, HTTP, secure-key/signing, storage transaction and cancellation contracts | production storage, platform keychain, browser or cloud runtime |
-| `identus-apollo` | validated encodings, public-key/JWK conversion, curve utilities and HD derivation required by SSI formats | custody, JOSE protocol, Midnight Jubjub suite |
-| `identus-did-core` | DID/DID URL, document, verification relationships, services, resolution/dereference/registration contracts and metadata | DID method ledger behavior, HTTP server/client |
+| `identus-crypto` | validated encodings, public-key/JWK conversion, curve utilities and HD derivation required by SSI formats | custody, JOSE protocol, Midnight Jubjub suite |
+| `identus-did` | DID/DID URL, document, verification relationships, services, resolution/dereference/registration contracts and metadata | DID method ledger behavior, HTTP server/client |
 | `identus-did-resolver-http` | optional Axum binding for the W3C DID Resolution HTTP interface over any resolver | chain resolver implementation |
 | `identus-uniffi-did` | experimental versioned UniFFI value facade for bounded DID and DID URL parsing, including local Apple proof, ARM64 Android package proof and test-only x86_64 Android runtime proof | published/signed mobile distribution, ARM64 device execution, physical-device or compatibility-matrix support, or general binding umbrella |
 | `identus-wasm-did` | experimental versioned browser-native ESM/TypeScript value facade for bounded DID and DID URL parsing with Chromium/Firefox behavior evidence | publication, Node, React Native, bundler-specific policy, browser-version matrix, secrets or browser authority |
@@ -204,14 +204,14 @@ crates.
                 identus-jose  identus-vc-core
                      │            │
                      ▼            ▼
-              identus-apollo  identus-did-core
+              identus-crypto  identus-did
                                     │
                                     ▼
                               identus-ports
 
-identus-oid4vci -> identus-did-core for protocol-owned DID proof resolution
+identus-oid4vci -> identus-did for protocol-owned DID proof resolution
 
-identus-did-resolver-http -> identus-did-core + optional HTTP framework
+identus-did-resolver-http -> identus-did + optional HTTP framework
 identus-conformance       -> dev/test edges only
 ```
 
@@ -293,7 +293,7 @@ cancellation. Ship deterministic in-memory test implementations only.
 **Exit:** two unrelated consumers can implement the ports without framework or
 runtime coupling.
 
-### B04 — Apollo convergence (`#9`)
+### B04 — crypto convergence with Apollo compatibility evidence (`#9`)
 
 Harden the selected baseline's validated newtype, crypto and derivation work,
 then reconcile it with NeoPRISM's Rust `lib/apollo` and the existing Kotlin
@@ -301,6 +301,10 @@ Multiplatform Apollo behavior. Apollo supplies compatibility behavior and
 vectors; it is not a Rust source port. Preserve published vectors and the
 explicitly profiled PRISM legacy verification path without deciding the final
 crate brand or Apollo repository lifecycle in the component implementation.
+
+Apollo is a provenance and compatibility label only. No SDK-Rust crate, module,
+public type, or capability boundary uses that name; ADR 0169 governs this
+target-naming rule for all historical language-SDK component labels.
 
 **Exit:** stable/wasm gates pass, sensitive material is zeroized/redacted, and
 neoprism plus KMP differential vectors pass. Midnight Jubjub remains outside.

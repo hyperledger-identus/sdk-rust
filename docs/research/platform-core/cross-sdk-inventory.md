@@ -6,7 +6,8 @@
 
 **Discussion:** [cross-SDK normalization #423](https://github.com/hyperledger-identus/sdk-rust/discussions/423)
 
-**Decision:** preliminary discovery; not a parity or support claim
+**Decision:** preliminary discovery; not a parity or support claim. SDK-TS is
+the first detailed discovery baseline under ADR 0169, not normative authority.
 
 ## Evidence basis
 
@@ -22,7 +23,10 @@ worktrees and uncommitted changes were not touched.
 Line and file counts scope the work only. They do not measure correctness,
 coverage, maintainability, or migration difficulty.
 
-## Historical module map
+## Historical source-alias map
+
+These labels locate donor evidence only. They are not SDK-Rust crates, modules,
+capability IDs, types, or target ownership boundaries.
 
 | Historical name | Intended responsibility | TS evidence | Swift evidence | KMP evidence | Preliminary Rust direction |
 |---|---|---|---|---|---|
@@ -47,6 +51,12 @@ ecosystem responsibilities. Move portable crypto, DID, credential, protocol,
 and reusable workflow semantics behind WASM or another deliberately selected
 adapter. The existing `identus-wasm-did` package is the safest canary; it does
 not yet prove npm publication, Node, bundlers, or production support.
+
+The exact 8.1.4 inventory and deviation rules are published in the
+[SDK-TS capability inventory](sdk-ts-capability-inventory.md). Discovery starts
+with SDK-TS because it is current, while final standards, accepted Identus
+profiles, qualified Rust upstreams, and reviewed compatibility evidence decide
+each deviation.
 
 ### sdk-swift
 
@@ -108,9 +118,9 @@ Every inventory issue must answer:
 The authority rules are defined by ADR 0164. No coverage percentage or passing
 legacy suite by itself establishes source of truth.
 
-## Known gaps before execution
+## Remaining gaps before execution
 
-- Exact public symbol/API inventories and package export maps.
+- Exact SDK-Swift and SDK-KMP public symbol/API inventories and package maps.
 - Published-version and downstream-consumer usage evidence.
 - Test fixture provenance and contradiction reports.
 - Persistence schemas, migration/backup compatibility, and data ownership.

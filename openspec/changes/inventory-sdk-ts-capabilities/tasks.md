@@ -14,25 +14,25 @@
 
 ## 2. Inventory and architecture
 
-- [ ] 2.1 Add ADR 0169 for SDK-TS-led discovery, normalized target taxonomy,
+- [x] 2.1 Add ADR 0169 for SDK-TS-led discovery, normalized target taxonomy,
       legacy-name exclusion, and standards/upstream precedence.
-- [ ] 2.2 Publish the exact SDK-TS package/runtime/API/dependency/test/consumer
+- [x] 2.2 Publish the exact SDK-TS package/runtime/API/dependency/test/consumer
       report and machine-readable capability inventory.
-- [ ] 2.3 Update the family registry, cross-SDK report, and roadmap to make
+- [x] 2.3 Update the family registry, cross-SDK report, and roadmap to make
       SDK-Swift the next comparison and SDK-KMP the final compatibility audit.
-- [ ] 2.4 Classify every SDK-TS capability, test family, platform
+- [x] 2.4 Classify every SDK-TS capability, test family, platform
       responsibility, compatibility risk, and preliminary disposition.
-- [ ] 2.5 Create bounded gap issues for current SD-JWT, AnonCreds 1.0, DIDComm,
+- [x] 2.5 Create bounded gap issues for current SD-JWT, AnonCreds 1.0, DIDComm,
       shared vectors, and any other unresolved implementation decision without
       activating those capabilities.
-- [ ] 2.6 Create the reversible SDK-TS DID/DID URL WASM canary issue with
+- [x] 2.6 Create the reversible SDK-TS DID/DID URL WASM canary issue with
       package/runtime, shared-vector, consumer, rollback, and naming gates.
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Validate inventory schema/vocabulary, TOML, Markdown, links,
+- [x] 3.1 Validate inventory schema/vocabulary, TOML, Markdown, links,
       OpenSpec, factory, and clean-diff evidence.
-- [ ] 3.2 Complete and record a distinct post-implementation semantic review.
+- [x] 3.2 Complete and record a distinct post-implementation semantic review.
 - [ ] 3.3 Archive the OpenSpec change, open a signed/DCO issue-linked PR to
       `develop`, publish bounded factory metrics, and merge only after required
       CI and discovery review are green.

@@ -2,7 +2,7 @@
 
 **Program owner:** sdk-rust issue #415
 
-**Architecture:** ADR 0162, ADR 0163, ADR 0164
+**Architecture:** ADR 0162, ADR 0163, ADR 0164, ADR 0169
 
 **Discussions:** [roadmap #424](https://github.com/hyperledger-identus/sdk-rust/discussions/424), [normalization #423](https://github.com/hyperledger-identus/sdk-rust/discussions/423)
 
@@ -32,11 +32,18 @@ not the number of repositories archived or lines moved to Rust.
 Phases overlap across SDKs only when their binding and evidence dependencies are
 independent. A failed canary blocks that surface, not the whole initiative.
 
+Discovery order is SDK-TS, SDK-Swift, then SDK-KMP. This order reflects release
+currency and reduces missed capabilities; it does not make an implementation
+normative. Each deviation follows ADR 0169's standard/profile/upstream/
+compatibility precedence. Historical Apollo, Castor, Pollux, Mercury, Pluto,
+and Edge Agent names remain source aliases only and cannot become SDK-Rust
+component boundaries.
+
 ## sdk-ts milestones
 
 | Milestone | Deliverable | Stop/go gate |
 |---|---|---|
-| TS0 inventory | export/API map, runtime matrix, package/plugin map, dependency and test-authority report | every capability has a preliminary disposition |
+| TS0 inventory | exact 8.1.4 report and machine-readable capability map, runtime/package/plugin/dependency/test evidence, deviation rules | every capability has a preliminary disposition and unresolved decision issue |
 | TS1 browser DID canary | optional facade route to `identus-wasm-did`; shared DID vectors; npm/bundler/browser/Node decision | no public/wire/error regression; explicit unsupported runtimes |
 | TS2 facade contract | TypeScript DTO/error/versioning and WASM ownership/resource rules | generated/manual API is reviewed and rollback works |
 | TS3 crypto and DID wave | Rust-backed portable crypto/DID semantics; JS custody/browser adapters stay outside | authoritative vectors plus real consumer rehearsal |
@@ -119,14 +126,19 @@ responsibility remains.
 ## First execution backlog
 
 1. Complete exact sdk-ts inventory and select its DID canary ([#417](https://github.com/hyperledger-identus/sdk-rust/issues/417)).
-2. Complete exact sdk-swift inventory and select its UniFFI DID canary ([#421](https://github.com/hyperledger-identus/sdk-rust/issues/421)).
-3. Complete exact sdk-kmp inventory and select its UniFFI DID canary ([#416](https://github.com/hyperledger-identus/sdk-rust/issues/416)).
-4. Build the shared cross-language test-vector catalog and provenance rules ([#420](https://github.com/hyperledger-identus/sdk-rust/issues/420)).
-5. Define binding DTO/error/version and async/ownership contracts under #163.
-6. Refresh React Native qualification under #223 without mixing UniFFI lines.
-7. Enforce the capability/change ledgers and render release/migration evidence ([#422](https://github.com/hyperledger-identus/sdk-rust/issues/422)).
-8. Discover cloud-agent reusable capabilities as a separate service program ([#418](https://github.com/hyperledger-identus/sdk-rust/issues/418)).
-9. Discover mediator reusable capabilities as a separate service program ([#419](https://github.com/hyperledger-identus/sdk-rust/issues/419)).
+2. Qualify SDK-TS deviations independently: SD-JWT (#489), AnonCreds 1.0
+   (#490), DIDComm (#491), DID method adapters (#493), Presentation Exchange
+   (#494), and backup format (#495).
+3. Execute the opt-in SDK-TS DID/DID URL canary (#492) after its binding and
+   shared-vector prerequisites pass.
+4. Complete exact sdk-swift inventory and select its UniFFI DID canary ([#421](https://github.com/hyperledger-identus/sdk-rust/issues/421)).
+5. Complete exact sdk-kmp inventory and select its UniFFI DID canary ([#416](https://github.com/hyperledger-identus/sdk-rust/issues/416)).
+6. Build the shared cross-language test-vector catalog and provenance rules ([#420](https://github.com/hyperledger-identus/sdk-rust/issues/420)).
+7. Define binding DTO/error/version and async/ownership contracts under #163.
+8. Refresh React Native qualification under #223 without mixing UniFFI lines.
+9. Enforce the capability/change ledgers and render release/migration evidence ([#422](https://github.com/hyperledger-identus/sdk-rust/issues/422)).
+10. Discover cloud-agent reusable capabilities as a separate service program ([#418](https://github.com/hyperledger-identus/sdk-rust/issues/418)).
+11. Discover mediator reusable capabilities as a separate service program ([#419](https://github.com/hyperledger-identus/sdk-rust/issues/419)).
 
 The inventory issues may run in parallel. Canary implementation waits for the
 relevant inventory, binding contract, and test-authority output.

@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-29
+goal: Inventory sdk-ts as the primary language-SDK discovery baseline, normalize its behavior into responsibility-based capabilities, and select a reversible Rust-backed canary.

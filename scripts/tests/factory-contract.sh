@@ -22,6 +22,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/weekly-slow-live.py"
 "$repository_root/scripts/tests/support-policy.py"
 "$repository_root/scripts/tests/apollo-parity.py"
+"$repository_root/scripts/tests/platform-ts-capabilities.py"
 "$repository_root/scripts/tests/crypto-benchmark.py"
 "$repository_root/scripts/tests/crypto-coverage.py"
 "$repository_root/scripts/tests/source-distribution.py"
@@ -67,6 +68,7 @@ required_files=(
   docs/architecture/first-language-binding-slice.md
   docs/architecture/sdk-support-policy.toml
   docs/architecture/apollo-crypto-parity.toml
+  docs/architecture/identus-platform-ts-capabilities.toml
   docs/architecture/code-health.md
   docs/architecture/code-health.toml
   docs/architecture/code-health-baseline.json
@@ -199,6 +201,7 @@ required_files=(
   scripts/check-support-policy.py
   scripts/check-rustsec-audit.py
   scripts/check-apollo-parity.py
+  scripts/check-platform-ts-capabilities.py
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
   scripts/check-crypto-benchmark.py
@@ -235,6 +238,7 @@ required_files=(
   scripts/tests/oid4vci-conformance.py
   scripts/tests/weekly-slow-live.py
   scripts/tests/apollo-parity.py
+  scripts/tests/platform-ts-capabilities.py
   scripts/tests/crypto-benchmark.py
   scripts/tests/crypto-coverage.py
   scripts/tests/source-distribution.py
@@ -332,6 +336,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-rustsec-audit.py" \
   "$fixture_root/scripts/check-support-policy.py" \
   "$fixture_root/scripts/check-apollo-parity.py" \
+  "$fixture_root/scripts/check-platform-ts-capabilities.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/check-oid4vci-conformance.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog-live.py" \
@@ -365,6 +370,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/oid4vci-conformance.py" \
   "$fixture_root/scripts/tests/weekly-slow-live.py"
 chmod +x "$fixture_root/scripts/tests/apollo-parity.py"
+chmod +x "$fixture_root/scripts/tests/platform-ts-capabilities.py"
 chmod +x "$fixture_root/scripts/ci/"*.mjs "$fixture_root/scripts/factory-tools/"*.mjs \
   "$fixture_root/scripts/git-hooks/"*.mjs "$fixture_root/scripts/worktree-lifecycle.mjs" \
   "$fixture_root/.githooks/commit-msg" "$fixture_root/.githooks/pre-commit" \

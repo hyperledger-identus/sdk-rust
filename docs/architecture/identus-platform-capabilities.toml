@@ -1,7 +1,8 @@
-schema_version = 1
-program_issue  = 415
-snapshot_date  = "2026-09-29"
-status         = "preliminary"
+schema_version    = 1
+program_issue     = 415
+snapshot_date     = "2026-09-29"
+status            = "sdk-ts-inventoried"
+normalization_adr = 169
 
 [vocabulary]
 dispositions = [
@@ -52,7 +53,7 @@ platform   = "android-jvm"
 
 [[capability]]
 id                = "foundation.crypto"
-legacy_modules    = [ "Apollo" ]
+source_aliases    = [ "Apollo" ]
 target_owner      = "identus-crypto"
 disposition       = "move-to-rust"
 rust_state        = "first-release-train"
@@ -64,7 +65,7 @@ notes             = "Portable algorithms and derivation converge in Rust; key cu
 
 [[capability]]
 id                = "identity.did-core"
-legacy_modules    = [ "Castor" ]
+source_aliases    = [ "Castor" ]
 target_owner      = "identus-did"
 disposition       = "move-to-rust"
 rust_state        = "substantial-experimental"
@@ -76,7 +77,7 @@ notes             = "DID and DID URL values are the first non-secret canary; met
 
 [[capability]]
 id                = "credentials.formats-and-presentations"
-legacy_modules    = [ "Pollux" ]
+source_aliases    = [ "Pollux" ]
 target_owner      = "identus-credentials,identus-presentations"
 disposition       = "defer"
 rust_state        = "generic-contracts-partial"
@@ -88,7 +89,7 @@ notes             = "Inventory JWT VC, SD-JWT VC, AnonCreds, draft/final version
 
 [[capability]]
 id                = "protocol.openid4vc"
-legacy_modules    = [ "Pollux", "plugins" ]
+source_aliases    = [ "Pollux", "plugins" ]
 target_owner      = "identus-oid4vci,identus-oid4vp,identus-openid4vc"
 disposition       = "move-to-rust"
 rust_state        = "active-bounded-implementation"
@@ -100,7 +101,7 @@ notes             = "Final-spec slices remain bounded; plugin host and transport
 
 [[capability]]
 id                = "messaging.didcomm-v2"
-legacy_modules    = [ "Mercury" ]
+source_aliases    = [ "Mercury" ]
 target_owner      = "identus-messaging"
 disposition       = "defer"
 rust_state        = "placeholder"
@@ -112,7 +113,7 @@ notes             = "Inventory pack/unpack, routing, attachments, from_prior, en
 
 [[capability]]
 id                = "wallet.storage"
-legacy_modules    = [ "Pluto" ]
+source_aliases    = [ "Pluto" ]
 target_owner      = "identus-wallet"
 disposition       = "move-to-rust"
 rust_state        = "ports-and-conformance"
@@ -124,7 +125,7 @@ notes             = "Portable contracts and migration formats move to Rust; brow
 
 [[capability]]
 id                = "agent.protocol-workflows"
-legacy_modules    = [ "EdgeAgent" ]
+source_aliases    = [ "EdgeAgent" ]
 target_owner      = "identus-agent"
 disposition       = "defer"
 rust_state        = "placeholder"
@@ -136,7 +137,7 @@ notes             = "Split reusable state machines and ports from product/runtim
 
 [[capability]]
 id                = "platform.integration"
-legacy_modules    = [ "Pluto", "EdgeAgent", "package-runtime" ]
+source_aliases    = [ "Pluto", "EdgeAgent", "package-runtime" ]
 target_owner      = "language-sdk"
 disposition       = "retain-platform"
 rust_state        = "outside-generic-core"

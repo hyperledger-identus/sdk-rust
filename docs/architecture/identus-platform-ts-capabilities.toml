@@ -1,0 +1,504 @@
+schema_version = 1
+program_issue  = 417
+snapshot_date  = "2026-09-29"
+status         = "preliminary"
+
+[source]
+repository = "https://github.com/hyperledger-identus/sdk-ts"
+revision   = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+package    = "@hyperledger/identus-sdk"
+version    = "8.1.4"
+license    = "Apache-2.0"
+
+[precedence]
+order = [
+  "standard-or-security",
+  "identus-profile",
+  "maintained-rust-upstream",
+  "identus-contract-or-consumer",
+  "cross-sdk-interoperability",
+  "donor-precedent",
+]
+decision_adr = 169
+
+[vocabulary]
+dispositions = [
+  "move-to-rust",
+  "retain-platform",
+  "replace-upstream",
+  "defer",
+  "deprecate",
+  "drop",
+]
+test_authorities = [
+  "normative-candidate",
+  "identus-contract-candidate",
+  "consumer-regression-candidate",
+  "implementation-regression",
+  "exploratory",
+]
+compatibility_risks = [ "low", "medium", "high", "critical" ]
+rust_states = [
+  "mature",
+  "substantial",
+  "partial",
+  "placeholder",
+  "absent",
+  "outside-core",
+]
+
+[[capability]]
+id                 = "crypto.key-operations"
+outcome            = "Generate, import, export, sign, verify, and derive shared secrets with supported key types."
+source_aliases     = [ "Apollo" ]
+source_paths       = [ "packages/lib/sdk/src/apollo/Apollo.ts", "packages/lib/sdk/src/apollo/utils" ]
+public_surface     = [ "Apollo", "PrivateKey", "PublicKey", "KeyPair", "Ed25519", "secp256k1", "X25519" ]
+dependency_basis   = [ "@hyperledger/identus-apollo@^1.4.5", "elliptic@^6.5.4" ]
+standard_basis     = [ "algorithm-specific standards", "accepted Apollo parity vectors" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/apollo" ]
+known_consumers    = [ "sdk-ts root API", "identity-portal", "lace-kyc" ]
+compatibility_risk = "high"
+rust_state         = "mature"
+target_owner       = "identus-crypto"
+typescript_owner   = "key-custody adapters and ergonomic facade"
+disposition        = "move-to-rust"
+decision_basis     = [ "SDK-Rust already owns the portable algorithms", "raw secret custody remains outside value bindings" ]
+follow_up_issue    = 415
+
+[[capability]]
+id                 = "crypto.hd-derivation"
+outcome            = "Derive deterministic keys and paths from mnemonic or seed material."
+source_aliases     = [ "Apollo" ]
+source_paths       = [ "packages/lib/sdk/src/apollo/utils/derivation", "packages/lib/sdk/src/apollo/Apollo.ts" ]
+public_surface     = [ "DerivationPath", "createPrivateKey", "createSeed" ]
+dependency_basis   = [ "@scure/bip39@^1.1.1", "@hyperledger/identus-apollo@^1.4.5" ]
+standard_basis     = [ "BIP-0032", "BIP-0039", "CIP-0003 where explicitly profiled" ]
+test_authority     = "normative-candidate"
+test_paths         = [ "packages/lib/sdk/tests/apollo" ]
+known_consumers    = [ "wallet key creation", "Prism key path allocation" ]
+compatibility_risk = "critical"
+rust_state         = "mature"
+target_owner       = "identus-crypto"
+typescript_owner   = "secret-source and custody adapters"
+disposition        = "move-to-rust"
+decision_basis     = [ "existing SDK-Rust parity evidence is stronger than donor structure", "vector provenance remains governed by issue 420" ]
+follow_up_issue    = 420
+
+[[capability]]
+id                 = "did.syntax"
+outcome            = "Parse and serialize DID and DID URL values with stable component semantics."
+source_aliases     = [ "Castor", "Domain" ]
+source_paths       = [ "packages/lib/sdk/src/castor/parser/DIDUrlParser.ts", "packages/shared/domain/src" ]
+public_surface     = [ "DID", "DIDUrl", "DIDUrlParser" ]
+dependency_basis   = [ "@hyperledger/identus-domain@0.1.2" ]
+standard_basis     = [ "W3C DID Core" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/castor" ]
+known_consumers    = [ "all SDK-TS DID and messaging flows" ]
+compatibility_risk = "medium"
+rust_state         = "mature"
+target_owner       = "identus-did"
+typescript_owner   = "idiomatic TypeScript DTO facade"
+disposition        = "move-to-rust"
+decision_basis     = [ "non-secret existing Rust value model", "selected first WASM canary" ]
+follow_up_issue    = 417
+
+[[capability]]
+id                 = "did.document"
+outcome            = "Represent DID documents, verification methods, services, and relationships."
+source_aliases     = [ "Castor", "Domain" ]
+source_paths       = [ "packages/lib/sdk/src/castor/types", "packages/shared/domain/src" ]
+public_surface     = [ "DIDDocument", "VerificationMethod", "Service" ]
+dependency_basis   = [ "@hyperledger/identus-domain@0.1.2", "multiformats@^13.4.2" ]
+standard_basis     = [ "W3C DID Core", "controlled identifier documents" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/castor" ]
+known_consumers    = [ "DID resolution", "credential verification", "DIDComm resolution" ]
+compatibility_risk = "high"
+rust_state         = "substantial"
+target_owner       = "identus-did"
+typescript_owner   = "facade and platform serialization ergonomics"
+disposition        = "move-to-rust"
+decision_basis     = [ "portable semantic model", "method-specific extensions remain adapters" ]
+follow_up_issue    = 420
+
+[[capability]]
+id                 = "did.method.peer"
+outcome            = "Create and resolve peer DIDs required by pairwise messaging relationships."
+source_aliases     = [ "Castor" ]
+source_paths       = [ "packages/lib/sdk/src/castor/methods/peer", "packages/lib/sdk/src/castor/resolver/PeerDIDResolver.ts" ]
+public_surface     = [ "PeerDID", "PeerDIDCreate", "PeerDIDResolver" ]
+dependency_basis   = [ "multiformats@^13.4.2" ]
+standard_basis     = [ "peer DID method specification, exact version unresolved" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/castor" ]
+known_consumers    = [ "DIDComm connection workflows" ]
+compatibility_risk = "high"
+rust_state         = "absent"
+target_owner       = "identus-did-method-peer"
+typescript_owner   = "compatibility facade until replacement exists"
+disposition        = "defer"
+decision_basis     = [ "method/version and reusable crate boundary require a dedicated decision" ]
+follow_up_issue    = 493
+
+[[capability]]
+id                 = "did.method.prism"
+outcome            = "Construct long-form Prism DIDs and resolve Prism identifiers through configured infrastructure."
+source_aliases     = [ "Castor" ]
+source_paths       = [ "packages/lib/sdk/src/castor/did/prismDID", "packages/lib/sdk/src/castor/methods/prism", "packages/lib/sdk/src/castor/resolver/PrismDIDResolver.ts" ]
+public_surface     = [ "LongFormPrismDID", "PrismDIDResolver", "PrismDIDMethodId" ]
+dependency_basis   = [ "@hyperledger/identus-protos@0.1.2" ]
+standard_basis     = [ "Prism DID method profile" ]
+test_authority     = "consumer-regression-candidate"
+test_paths         = [ "packages/lib/sdk/tests/castor" ]
+known_consumers    = [ "Identus Cloud Agent integrations" ]
+compatibility_risk = "high"
+rust_state         = "outside-core"
+target_owner       = "method-specific adapter repository"
+typescript_owner   = "Prism facade and network adapter during transition"
+disposition        = "defer"
+decision_basis     = [ "chain-specific operations do not belong in the generic core", "neoprism supplies separate Rust evidence" ]
+follow_up_issue    = 493
+
+[[capability]]
+id                 = "did.resolution"
+outcome            = "Resolve identifiers through composable method and HTTP resolver contracts."
+source_aliases     = [ "Castor" ]
+source_paths       = [ "packages/lib/sdk/src/castor/resolver" ]
+public_surface     = [ "DIDResolver", "DIDResolverHttpProxy" ]
+dependency_basis   = [ "did-resolver@^4.1.0" ]
+standard_basis     = [ "W3C DID Resolution" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/castor" ]
+known_consumers    = [ "JWT verification", "DIDComm", "agent workflows" ]
+compatibility_risk = "high"
+rust_state         = "substantial"
+target_owner       = "identus-did and identus-did-resolver-http"
+typescript_owner   = "fetch policy and runtime adapters"
+disposition        = "move-to-rust"
+decision_basis     = [ "generic cancellation, cache, and resolver semantics are already Rust-owned", "network policy remains injected" ]
+follow_up_issue    = 420
+
+[[capability]]
+id                 = "credentials.jwt-vc"
+outcome            = "Parse, represent, issue, and verify JWT-encoded credentials and presentations."
+source_aliases     = [ "Pollux", "OEA plugin" ]
+source_paths       = [ "packages/lib/sdk/src/pollux/models/JWTVerifiableCredential.ts", "packages/lib/sdk/src/pollux/utils/jwt", "packages/lib/sdk/src/plugins/internal/oea/jwt" ]
+public_surface     = [ "JWTCredential", "JWT", "JWT credential workflow tasks" ]
+dependency_basis   = [ "did-jwt@^8.0.4" ]
+standard_basis     = [ "selected JWT VC profile", "JOSE standards" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/pollux", "packages/lib/sdk/tests/plugins" ]
+known_consumers    = [ "OID4VCI", "DIDComm issue-credential", "presentation workflows" ]
+compatibility_risk = "high"
+rust_state         = "partial"
+target_owner       = "identus-credentials"
+typescript_owner   = "ergonomic facade and workflow integration"
+disposition        = "move-to-rust"
+decision_basis     = [ "portable format semantics belong in Rust", "exact VC profile must be pinned per feature issue" ]
+follow_up_issue    = 420
+
+[[capability]]
+id                 = "credentials.sd-jwt"
+outcome            = "Issue, present, and verify selectively disclosed JWT claims and the selected VC profile."
+source_aliases     = [ "Pollux", "OEA plugin" ]
+source_paths       = [ "packages/lib/sdk/src/pollux/models/SDJWTVerifiableCredential.ts", "packages/lib/sdk/src/pollux/utils/jwt/SDJWT.ts", "packages/lib/sdk/src/plugins/internal/oea/sdjwt" ]
+public_surface     = [ "SDJWTCredential", "SDJWT", "SD-JWT credential workflow tasks" ]
+dependency_basis   = [ "@sd-jwt/sd-jwt-vc@^0.7.1" ]
+standard_basis     = [ "RFC 9901", "current SD-JWT VC profile, exact revision unresolved" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/pollux", "packages/lib/sdk/tests/plugins" ]
+known_consumers    = [ "OEA selective-disclosure workflows" ]
+compatibility_risk = "critical"
+rust_state         = "partial"
+target_owner       = "identus-credentials behind an Identus-owned facade"
+typescript_owner   = "facade and compatibility adapter"
+disposition        = "replace-upstream"
+decision_basis     = [ "donor dependency predates the stable base RFC", "current Rust engines require exact profile and target assessment" ]
+follow_up_issue    = 489
+
+[[capability]]
+id                 = "credentials.anoncreds-v1"
+outcome            = "Issue, store, present, and verify AnonCreds 1.0 credentials with revocation support."
+source_aliases     = [ "Pollux", "AnonCreds plugin" ]
+source_paths       = [ "packages/lib/sdk/src/plugins/internal/anoncreds", "packages/wasm/anoncreds" ]
+public_surface     = [ "AnonCreds plugin", "credential issue", "presentation request and verify" ]
+dependency_basis   = [ "input-output-hk/anoncreds-rs@08fbc3f7afb2d2bbd5c72d4b6aadd70b77f4bef6" ]
+standard_basis     = [ "AnonCreds 1.0", "current reference implementation" ]
+test_authority     = "consumer-regression-candidate"
+test_paths         = [ "packages/lib/sdk/tests/plugins/anoncreds", "integration-tests/e2e-tests" ]
+known_consumers    = [ "Cloud Agent AnonCreds issuance and proof flows" ]
+compatibility_risk = "critical"
+rust_state         = "absent"
+target_owner       = "identus-credentials facade over a qualified engine"
+typescript_owner   = "facade, ledger/VDR, and runtime packaging adapters"
+disposition        = "replace-upstream"
+decision_basis     = [ "embedded donor revision is compatibility evidence only", "engine, VDR, secret, native, and target boundaries require a fresh decision" ]
+follow_up_issue    = 490
+
+[[capability]]
+id                 = "credentials.status"
+outcome            = "Evaluate credential status and revocation evidence with explicit network policy."
+source_aliases     = [ "DIF plugin", "OEA plugin" ]
+source_paths       = [ "packages/lib/sdk/src/plugins/internal/dif/IsCredentialRevoked.ts", "packages/lib/sdk/src/plugins/internal/oea/tasks/HandleRevocation.ts" ]
+public_surface     = [ "IsCredentialRevoked", "HandleRevocation" ]
+dependency_basis   = [ "fetch/runtime adapters" ]
+standard_basis     = [ "W3C Bitstring Status List", "format-specific revocation profiles" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/plugins" ]
+known_consumers    = [ "presentation verification" ]
+compatibility_risk = "high"
+rust_state         = "partial"
+target_owner       = "identus-credentials"
+typescript_owner   = "network and cache policy adapters"
+disposition        = "move-to-rust"
+decision_basis     = [ "portable validation belongs in Rust", "retrieval remains explicitly injected and bounded" ]
+follow_up_issue    = 420
+
+[[capability]]
+id                 = "presentations.exchange"
+outcome            = "Construct and evaluate presentation definitions, submissions, and format constraints."
+source_aliases     = [ "DIF plugin" ]
+source_paths       = [ "packages/lib/sdk/src/plugins/internal/dif" ]
+public_surface     = [ "CreatePresentationDefinition", "PresentationRequest", "PresentationVerify" ]
+dependency_basis   = [ "@sinclair/typebox@^0.32.31", "jsonld@^9.0.0" ]
+standard_basis     = [ "DIF Presentation Exchange, exact version unresolved" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/plugins/dif" ]
+known_consumers    = [ "credential presentation flows" ]
+compatibility_risk = "high"
+rust_state         = "partial"
+target_owner       = "identus-presentations"
+typescript_owner   = "facade and UI query construction"
+disposition        = "defer"
+decision_basis     = [ "protocol version and overlap with DCQL must be decided explicitly" ]
+follow_up_issue    = 494
+
+[[capability]]
+id                 = "openid4vc.issuance-wallet"
+outcome            = "Execute wallet-side credential offer, authorization, token, proof, and credential flows."
+source_aliases     = [ "OIDC plugin" ]
+source_paths       = [ "packages/lib/sdk/src/plugins/internal/oidc" ]
+public_surface     = [ "OIDCConnection", "OIDC plugin", "authorization and credential tasks" ]
+dependency_basis   = [ "did-jwt@^8.0.4", "fetch/runtime adapters" ]
+standard_basis     = [ "OpenID4VCI 1.0 Final" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/plugins/oidc" ]
+known_consumers    = [ "OID4VCI wallet integrations" ]
+compatibility_risk = "high"
+rust_state         = "substantial"
+target_owner       = "identus-oid4vci"
+typescript_owner   = "browser redirects, callback, fetch, and consent integration"
+disposition        = "move-to-rust"
+decision_basis     = [ "SDK-Rust Final-spec bounded core is newer and more complete", "do not regress to donor flow semantics" ]
+follow_up_issue    = 417
+
+[[capability]]
+id                 = "messaging.didcomm-v2"
+outcome            = "Pack, unpack, route, and resolve secrets for DIDComm v2 messages."
+source_aliases     = [ "Mercury", "DIDComm plugin" ]
+source_paths       = [ "packages/lib/sdk/src/mercury", "packages/wasm/didcomm" ]
+public_surface     = [ "DIDCommProtocol", "DIDCommDIDResolver", "DIDCommSecretsResolver", "ForwardMessage" ]
+dependency_basis   = [ "elribonazo/didcomm-rust@9c4fcdfc2b82f02549acc7ae6b2b86d2f1611d13" ]
+standard_basis     = [ "DIDComm Messaging v2, exact profile unresolved" ]
+test_authority     = "consumer-regression-candidate"
+test_paths         = [ "packages/lib/sdk/tests/mercury", "packages/lib/sdk/tests/agent/didcomm", "integration-tests/e2e-tests" ]
+known_consumers    = [ "mediator", "issue-credential", "presentation", "basic-message" ]
+compatibility_risk = "critical"
+rust_state         = "placeholder"
+target_owner       = "identus-messaging facade over a qualified engine"
+typescript_owner   = "secret resolution, transport, and runtime adapters"
+disposition        = "replace-upstream"
+decision_basis     = [ "embedded fork is not an approved SDK-Rust dependency", "version, engine, JOSE, attachment, and target evidence require a dedicated decision" ]
+follow_up_issue    = 491
+
+[[capability]]
+id                 = "messaging.didcomm-protocols"
+outcome            = "Model and execute mediation, pickup, issue-credential, presentation, out-of-band, and basic-message interactions."
+source_aliases     = [ "DIDComm plugin", "Edge Agent" ]
+source_paths       = [ "packages/lib/sdk/src/plugins/internal/didcomm/connection", "packages/lib/sdk/src/plugins/internal/didcomm/protocols", "packages/lib/sdk/src/plugins/internal/didcomm/tasks" ]
+public_surface     = [ "mediation", "message pickup", "issue-credential", "out-of-band", "basic-message tasks" ]
+dependency_basis   = [ "DIDComm engine", "Cloud Agent and Mediator contracts" ]
+standard_basis     = [ "Aries RFCs and DIDComm protocol profiles, exact set unresolved" ]
+test_authority     = "identus-contract-candidate"
+test_paths         = [ "packages/lib/sdk/tests/agent/protocols", "integration-tests/e2e-tests" ]
+known_consumers    = [ "Cloud Agent and Mediator deployments" ]
+compatibility_risk = "critical"
+rust_state         = "placeholder"
+target_owner       = "protocol-specific state machines"
+typescript_owner   = "scheduler, transport, lifecycle, and product orchestration"
+disposition        = "defer"
+decision_basis     = [ "separate portable state transitions from runtime jobs before choosing ownership" ]
+follow_up_issue    = 419
+
+[[capability]]
+id                 = "wallet.storage-contracts"
+outcome            = "Persist and query credentials, DIDs, keys, messages, settings, links, and issuance metadata through portable repository contracts."
+source_aliases     = [ "Pluto" ]
+source_paths       = [ "packages/lib/sdk/src/pluto/models", "packages/lib/sdk/src/pluto/repositories" ]
+public_surface     = [ "Pluto", "repositories", "persistent models and relationships" ]
+dependency_basis   = [ "@trust0/ridb-core@^1.7.40" ]
+standard_basis     = [ "Identus persistence contract" ]
+test_authority     = "consumer-regression-candidate"
+test_paths         = [ "packages/lib/sdk/tests/pluto" ]
+known_consumers    = [ "agent and plugin repositories" ]
+compatibility_risk = "critical"
+rust_state         = "substantial"
+target_owner       = "identus-wallet"
+typescript_owner   = "database adapter and reactive query integration"
+disposition        = "move-to-rust"
+decision_basis     = [ "portable repository semantics and migrations belong in the core", "physical database remains platform-owned" ]
+follow_up_issue    = 420
+
+[[capability]]
+id                 = "wallet.storage-browser"
+outcome            = "Provide browser and Node persistence, query reactivity, encryption integration, and runtime lifecycle."
+source_aliases     = [ "Pluto" ]
+source_paths       = [ "packages/lib/sdk/src/pluto/store", "packages/lib/sdk/src/pluto/collections" ]
+public_surface     = [ "Store", "collections", "Pluto initialization" ]
+dependency_basis   = [ "@trust0/ridb@^1.5.47", "@trust0/ridb-core@^1.7.40" ]
+standard_basis     = [ "platform integration contract" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/pluto" ]
+known_consumers    = [ "browser and Node wallet applications" ]
+compatibility_risk = "critical"
+rust_state         = "outside-core"
+target_owner       = "language-sdk"
+typescript_owner   = "browser and Node storage adapter"
+disposition        = "retain-platform"
+decision_basis     = [ "database and runtime lifecycle are platform responsibilities" ]
+follow_up_issue    = 417
+
+[[capability]]
+id                 = "wallet.backup-format"
+outcome            = "Export and restore versioned wallet data while preserving relationships and cryptographic protection."
+source_aliases     = [ "Pluto", "Edge Agent" ]
+source_paths       = [ "packages/lib/sdk/src/pluto/backup", "packages/lib/sdk/src/edge-agent/Agent.Backup.ts", "packages/wasm/jwe" ]
+public_surface     = [ "BackupManager", "backup version 0.0.1", "Agent backup and restore" ]
+dependency_basis   = [ "identus-jwe WASM workspace package" ]
+standard_basis     = [ "Identus backup wire contract" ]
+test_authority     = "identus-contract-candidate"
+test_paths         = [ "packages/lib/sdk/tests/pluto", "integration-tests/e2e-tests" ]
+known_consumers    = [ "wallet backup and recovery" ]
+compatibility_risk = "critical"
+rust_state         = "partial"
+target_owner       = "identus-wallet"
+typescript_owner   = "filesystem/download, platform storage, and UX integration"
+disposition        = "defer"
+decision_basis     = [ "wire format, encryption, migration, and cross-SDK fixture authority must be proven first" ]
+follow_up_issue    = 495
+
+[[capability]]
+id                 = "agent.protocol-state"
+outcome            = "Provide reusable connection and credential workflow state transitions independent of runtime scheduling."
+source_aliases     = [ "Edge Agent", "plugins" ]
+source_paths       = [ "packages/lib/sdk/src/edge-agent/connections", "packages/lib/sdk/src/plugins/internal" ]
+public_surface     = [ "Connection", "ConnectionsManager", "protocol tasks" ]
+dependency_basis   = [ "SDK-TS plugin and task abstractions" ]
+standard_basis     = [ "selected protocol profiles and Identus contracts" ]
+test_authority     = "consumer-regression-candidate"
+test_paths         = [ "packages/lib/sdk/tests/agent", "packages/lib/sdk/tests/plugins", "integration-tests/e2e-tests" ]
+known_consumers    = [ "wallet agent applications" ]
+compatibility_risk = "critical"
+rust_state         = "placeholder"
+target_owner       = "capability-specific protocol state machines"
+typescript_owner   = "workflow composition and platform scheduling"
+disposition        = "defer"
+decision_basis     = [ "split state semantics from orchestration before moving any code" ]
+follow_up_issue    = 418
+
+[[capability]]
+id                 = "agent.runtime-orchestration"
+outcome            = "Coordinate jobs, events, fetch, lifecycle, user interaction, and plugin workflows in browser and Node runtimes."
+source_aliases     = [ "Edge Agent" ]
+source_paths       = [ "packages/lib/sdk/src/edge-agent/Agent.ts", "packages/lib/sdk/src/edge-agent/Agent.MessageEvents.ts", "packages/lib/sdk/src/edge-agent/helpers", "packages/lib/sdk/src/edge-agent/connections/JobManager.ts" ]
+public_surface     = [ "Agent", "Agent events", "JobManager", "RunProtocol" ]
+dependency_basis   = [ "browser and Node runtime APIs" ]
+standard_basis     = [ "platform integration contract" ]
+test_authority     = "consumer-regression-candidate"
+test_paths         = [ "packages/lib/sdk/tests/agent", "integration-tests/e2e-tests" ]
+known_consumers    = [ "browser and Node wallet applications" ]
+compatibility_risk = "high"
+rust_state         = "outside-core"
+target_owner       = "language-sdk"
+typescript_owner   = "agent runtime orchestration"
+disposition        = "retain-platform"
+decision_basis     = [ "runtime lifecycle and application policy should remain idiomatic TypeScript" ]
+follow_up_issue    = 417
+
+[[capability]]
+id                 = "platform.typescript-plugin-host"
+outcome            = "Register, compose, and expose optional capability plugins through TypeScript package subpaths."
+source_aliases     = [ "plugins" ]
+source_paths       = [ "packages/lib/sdk/src/plugins/Plugin.ts", "packages/lib/sdk/src/plugins/PluginManager.ts", "packages/lib/sdk/src/plugins/types.ts" ]
+public_surface     = [ "Plugin", "PluginManager", "five plugin subpath exports" ]
+dependency_basis   = [ "TypeScript runtime and npm package exports" ]
+standard_basis     = [ "SDK-TS extension contract" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/plugins" ]
+known_consumers    = [ "applications importing optional plugin subpaths" ]
+compatibility_risk = "high"
+rust_state         = "outside-core"
+target_owner       = "language-sdk"
+typescript_owner   = "plugin host, registration, and subpath exports"
+disposition        = "retain-platform"
+decision_basis     = [ "plugin composition and package exports are TypeScript ecosystem responsibilities" ]
+follow_up_issue    = 417
+
+[[capability]]
+id                 = "platform.browser-node-networking"
+outcome            = "Provide fetch, WebSocket, callback, redirect, and environment-specific network integration."
+source_aliases     = [ "Edge Agent", "OIDC plugin" ]
+source_paths       = [ "packages/lib/sdk/src/edge-agent/helpers/FetchApi.ts", "packages/lib/sdk/src/plugins/internal/oidc/connection" ]
+public_surface     = [ "FetchApi", "ProcessCallbackUrl", "OIDCConnection" ]
+dependency_basis   = [ "isows@^1.0.3", "ws@^8.21.1", "DOM fetch APIs" ]
+standard_basis     = [ "platform integration contract", "protocol-specific redirect contracts" ]
+test_authority     = "implementation-regression"
+test_paths         = [ "packages/lib/sdk/tests/plugins/oidc", "packages/lib/sdk/tests/agent" ]
+known_consumers    = [ "browser and Node applications" ]
+compatibility_risk = "high"
+rust_state         = "outside-core"
+target_owner       = "language-sdk"
+typescript_owner   = "network transport, redirect, callback, timeout, and cancellation policy"
+disposition        = "retain-platform"
+decision_basis     = [ "Rust core accepts bounded inputs and injected responses rather than owning browser networking" ]
+follow_up_issue    = 417
+
+[[capability]]
+id                 = "platform.npm-packaging"
+outcome            = "Publish ESM, CommonJS, declarations, plugin subpaths, and bundled private workspace packages for supported runtimes."
+source_aliases     = [ "package runtime" ]
+source_paths       = [ "packages/lib/sdk/package.json", "packages/lib/sdk/tsup.config.ts", "packages/lib/sdk/tsup.types.config.ts" ]
+public_surface     = [ "@hyperledger/identus-sdk root export", "plugin subpath exports", "ESM", "CommonJS", "TypeScript declarations" ]
+dependency_basis   = [ "npm trusted publishing", "tsup@^8.4.0", "TypeScript@^5.8.3" ]
+standard_basis     = [ "SDK support policy" ]
+test_authority     = "consumer-regression-candidate"
+test_paths         = [ ".github/workflows", "packages/lib/sdk", "integration-tests" ]
+known_consumers    = [ "browser bundlers", "Node.js", "identity-portal", "lace-kyc" ]
+compatibility_risk = "critical"
+rust_state         = "outside-core"
+target_owner       = "language-sdk"
+typescript_owner   = "npm publication and runtime compatibility"
+disposition        = "retain-platform"
+decision_basis     = [ "Rust bindings must integrate without replacing the language package contract" ]
+follow_up_issue    = 417
+
+[[capability]]
+id                 = "bindings.wasm-did-values"
+outcome            = "Expose bounded DID and DID URL value parsing to browser and Node TypeScript consumers through an opt-in WASM facade."
+source_aliases     = [ "Castor" ]
+source_paths       = [ "packages/lib/sdk/src/castor/parser/DIDUrlParser.ts", "packages/lib/sdk/src/castor/index.ts" ]
+public_surface     = [ "DID and DID URL TypeScript facade" ]
+dependency_basis   = [ "existing experimental identus-wasm-did package" ]
+standard_basis     = [ "W3C DID Core", "SDK-Rust binding policy" ]
+test_authority     = "identus-contract-candidate"
+test_paths         = [ "packages/lib/sdk/tests/castor", "SDK-Rust DID vectors" ]
+known_consumers    = [ "proposed SDK-TS canary consumers" ]
+compatibility_risk = "medium"
+rust_state         = "substantial"
+target_owner       = "identus-wasm-did"
+typescript_owner   = "opt-in facade, package loading, error mapping, and rollback"
+disposition        = "move-to-rust"
+decision_basis     = [ "non-secret existing binding", "narrowest reversible cross-SDK proof" ]
+follow_up_issue    = 492

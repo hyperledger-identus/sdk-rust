@@ -9,13 +9,13 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add a tested, bounded, fail-closed repository-issue verifier.
-- [ ] 2.2 Replace the workflow's inline GraphQL lookup with the verifier.
-- [ ] 2.3 Prove transient recovery and permanent/exhausted/identity rejection.
+- [x] 2.1 Add a tested, bounded, fail-closed repository-issue verifier.
+- [x] 2.2 Replace the workflow's inline GraphQL lookup with the verifier.
+- [x] 2.3 Prove transient recovery and permanent/exhausted/identity rejection.
 
 ## 3. Review and delivery
 
-- [ ] 3.1 Run focused shell, factory, hygiene, and workflow validation gates.
-- [ ] 3.2 Complete exact-diff architecture/security/process review.
+- [x] 3.1 Run focused shell, factory, hygiene, and workflow validation gates.
+- [x] 3.2 Complete exact-diff architecture/security/process review.
 - [ ] 3.3 Deliver the signed/DCO issue-linked PR, green exact-head CI, metrics,
       protected merge, and PR #472 resynchronization.

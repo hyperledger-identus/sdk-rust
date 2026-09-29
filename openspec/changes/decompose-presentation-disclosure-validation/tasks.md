@@ -13,7 +13,7 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Introduce one private borrowed validation owner while retaining the
+- [x] 2.1 Introduce one private borrowed validation owner while retaining the
       public constructor and exact phase/iteration order.
 - [ ] 2.2 Prove public/source/error/value equivalence and remove the touched
       function signal without weakening unrelated signals.

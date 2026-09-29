@@ -30,16 +30,23 @@ def run_text(text: str, should_pass: bool) -> None:
         run(root, should_pass)
 
 
+def replace_once(text: str, before: str, after: str) -> str:
+    count = text.count(before)
+    if count != 1:
+        raise AssertionError(f"mutation source must occur exactly once: {before!r}; found {count}")
+    return text.replace(before, after, 1)
+
+
 def main() -> None:
     original = SOURCE.read_text(encoding="utf-8")
     run_text(original, True)
-    run_text(original.replace('id = "did.syntax"', 'id = "castor.syntax"', 1), False)
-    run_text(original.replace('"standard-or-security",', '"donor-precedent",', 1), False)
+    run_text(replace_once(original, '"did.syntax"', '"castor.syntax"'), False)
+    run_text(replace_once(original, '"standard-or-security",', '"donor-precedent",'), False)
     run_text(
-        original.replace(
-            'revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"',
-            'revision = "main"',
-            1,
+        replace_once(
+            original,
+            '"4bf86ebf69d5e96616a148e4c973f831f95fa38e"',
+            '"main"',
         ),
         False,
     )

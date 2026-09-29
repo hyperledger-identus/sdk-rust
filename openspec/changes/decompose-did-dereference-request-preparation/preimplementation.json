@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 452,
+  "change": "decompose-did-dereference-request-preparation",
+  "branch": "codex/refactor/issue-452",
+  "baseRef": "origin/develop",
+  "baseSha": "9288221dfe5288a4fbe78b57ba4d06057d9f181d",
+  "contractHeadSha": "227388e98c9082e707575e8a40ab65ab3c2cf4fb",
+  "createdAt": "2026-09-29T01:44:15.381Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

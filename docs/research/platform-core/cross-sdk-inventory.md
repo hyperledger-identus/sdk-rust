@@ -53,10 +53,11 @@ adapter. The existing `identus-wasm-did` package is the safest canary; it does
 not yet prove npm publication, Node, bundlers, or production support.
 
 The exact 8.1.4 inventory and deviation rules are published in the
-[SDK-TS capability inventory](sdk-ts-capability-inventory.md). Discovery starts
-with SDK-TS because it is current, while final standards, accepted Identus
-profiles, qualified Rust upstreams, and reviewed compatibility evidence decide
-each deviation.
+[SDK-TS capability inventory](sdk-ts-capability-inventory.md), and delivery is
+split by the [platform-core adoption roadmap](../../roadmap/platform-core-adoption-milestones.md).
+Discovery starts with SDK-TS because it is current, while final standards,
+accepted Identus profiles, qualified Rust upstreams, and reviewed compatibility
+evidence decide each deviation.
 
 ### sdk-swift
 
@@ -90,15 +91,15 @@ evidence.
 |---|---|---|---|
 | crypto primitives and HD derivation | mature first release train | `move-to-rust` | expand consumer/vector evidence; keep secret custody out of value APIs |
 | generic DID syntax/documents/resolution/registration | substantial | `move-to-rust` | normalize method-specific behavior and canary existing bindings |
-| Prism/peer DID adapters | outside or incomplete | `defer` | decide generic adapter versus donor/product repository ownership |
+| Prism/peer DID adapters | outside or incomplete | `move-to-rust` through bounded method slices | own generic DID, service, peer and portable Prism semantics in Rust; keep Cardano effects and service composition downstream |
 | credential/presentation models and verification states | partial generic core | `move-to-rust` | inventory formats and authoritative vectors before engines |
 | AnonCreds | no full owned implementation | `replace-upstream` candidate | assess maintained Rust engine behind Identus facade and exact target support |
-| SD-JWT VC/JWT VC | incomplete | `defer` pending format inventory | normalize draft/final versions, fixtures, and upstream candidates |
+| SD-JWT VC/JWT VC | incomplete | `replace-upstream`/`move-to-rust` by format | RFC 9901 is the SD-JWT base; pin the independently evolving VC profile and bound any legacy adapter |
 | OID4VCI/OID4VP | active bounded implementation | `move-to-rust` | continue Final-spec slices; map language plugin/API compatibility |
-| DIDComm v2 | placeholder/reference decisions | `defer` | inventory pack/unpack/routing/protocol scope and current engines |
+| DIDComm v2 | placeholder/reference decisions | `replace-upstream` engine plus Rust-owned protocols | pin DIDComm Messaging v2.1 core; version each application protocol independently |
 | wallet storage contracts | ports and conformance exist | `move-to-rust` for contracts; `retain-platform` for adapters | map schema, migrations, encryption, concurrency and backup |
-| edge-agent protocols/state machines | placeholder | `defer` | split reusable protocol state from product/runtime orchestration |
-| browser/Node, Apple, Android/JVM integration | outside generic core | `retain-platform` | define narrow ports and package/runtime support matrices |
+| edge-agent protocols/state machines | placeholder | `move-to-rust` by bounded protocol | use a small executor-neutral effect kernel; keep product policy and concrete effects outside core |
+| browser/Node, Apple, Android/JVM integration | outside generic core | Rust ports plus selected adapters; platform hosts retained | decide concrete adapters separately and prove package/runtime support matrices |
 | legacy or draft-only features | not normalized | `deprecate`/`drop` candidate | require consumer and normative evidence before any port |
 
 ## Test normalization questions

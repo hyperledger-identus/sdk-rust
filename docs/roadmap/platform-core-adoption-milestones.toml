@@ -1,0 +1,136 @@
+schema_version  = 1
+program_issue   = 497
+status          = "target"
+ordering        = "dependency"
+quality_issue   = 501
+quality_classes = [ "property", "fuzz", "benchmark", "differential" ]
+
+[[milestone]]
+id                = "A0"
+title             = "contract correction"
+state             = "in-progress"
+owner_issue       = 497
+supporting_issues = [  ]
+depends_on        = [  ]
+deliverables      = [ "canonical ownership ADRs", "corrected SDK inventories", "portable runtime design", "validated adoption roadmap" ]
+exit_evidence     = [ "offline ownership checks", "OpenSpec archive", "green protected CI" ]
+adoption_proof    = "machine inventories reject donor-shaped ownership and incomplete milestone records"
+quality           = [ "property", "fuzz", "benchmark", "differential" ]
+non_claims        = [ "feature implementation", "dependency adoption", "target support", "consumer migration" ]
+
+[[milestone]]
+id                = "A1"
+title             = "shared compatibility foundation"
+state             = "planned"
+owner_issue       = 420
+supporting_issues = [ 492, 501 ]
+depends_on        = [ "A0" ]
+deliverables      = [ "cross-language vector catalog", "consumer change ledger", "adapter and error mapping contract", "risk-routed evidence declaration" ]
+exit_evidence     = [ "versioned provenance packet", "offline catalog validation", "Rust and SDK-TS DID harnesses consume identical vectors" ]
+adoption_proof    = "the SDK-TS DID value adapter consumes the same versioned packet as Rust tests"
+quality           = [ "property", "fuzz", "benchmark", "differential" ]
+non_claims        = [ "all future vectors complete", "SDK-TS default switch", "binding publication" ]
+
+[[milestone]]
+id                = "A2"
+title             = "portable DID platform"
+state             = "planned"
+owner_issue       = 493
+supporting_issues = [ 420, 492, 501 ]
+depends_on        = [ "A1" ]
+deliverables      = [ "generic DID domain and service binding sequence", "peer DID decision and slices", "bounded Prism portable semantics decision" ]
+exit_evidence     = [ "DID Core and method vectors", "target binding receipts", "consumer compatibility and rollback packet" ]
+adoption_proof    = "SDK-TS DID facade and one native binding use Rust without duplicated DID semantics"
+quality           = [ "property", "fuzz", "benchmark", "differential" ]
+non_claims        = [ "Cardano client in SDK-Rust", "all DID methods supported", "automatic consumer migration" ]
+
+[[milestone]]
+id                = "A3"
+title             = "credential format engines"
+state             = "planned"
+owner_issue       = 489
+supporting_issues = [ 420, 490, 501 ]
+depends_on        = [ "A1" ]
+deliverables      = [ "RFC 9901 base engine", "pinned SD-JWT VC profile", "bounded legacy media-type adapter", "qualified AnonCreds 1.0 facade" ]
+exit_evidence     = [ "official and cross-language vectors", "dependency and target receipts", "format-specific security review" ]
+adoption_proof    = "shared cross-language issuance and presentation vectors pass for each delivered format"
+quality           = [ "property", "fuzz", "benchmark", "differential" ]
+non_claims        = [ "one engine for both formats", "draft profile permanence", "unqualified legacy behavior" ]
+
+[[milestone]]
+id                = "A4"
+title             = "DIDComm v2.1 core"
+state             = "planned"
+owner_issue       = 491
+supporting_issues = [ 419, 420, 501 ]
+depends_on        = [ "A1", "A2" ]
+deliverables      = [ "qualified DIDComm engine facade", "pack and unpack", "routing and attachments", "DID and secret resolver ports" ]
+exit_evidence     = [ "DIDComm v2.1 vectors", "resource and secret review", "host and portable target receipts" ]
+adoption_proof    = "an immutable existing agent or Mediator endpoint interoperates with the exact engine capabilities"
+quality           = [ "property", "fuzz", "benchmark", "differential" ]
+non_claims        = [ "application protocols included", "Mediator replacement", "transport implementation mandated" ]
+
+[[milestone]]
+id                = "A5"
+title             = "portable agent kernel"
+state             = "planned"
+owner_issue       = 498
+supporting_issues = [ 499, 501 ]
+depends_on        = [ "A1", "A4" ]
+deliverables      = [ "bounded event and instance model", "deterministic transition and typed effect contract", "versioned checkpoint contract", "reference executor" ]
+exit_evidence     = [ "multi-executor fixture", "recovery and cancellation invariants", "runtime QoS baseline" ]
+adoption_proof    = "one protocol fixture produces identical results in reference, native-async, and WASM-shaped executors"
+quality           = [ "property", "fuzz", "benchmark", "differential" ]
+non_claims        = [ "product agent framework", "mandatory Tokio", "storage or transport implementation" ]
+
+[[milestone]]
+id                = "A6"
+title             = "DIDComm application protocols"
+state             = "planned"
+owner_issue       = 500
+supporting_issues = [ 418, 419, 420, 501 ]
+depends_on        = [ "A4", "A5" ]
+deliverables      = [ "versioned protocol catalog", "bounded protocol state machines", "typed runtime effects", "service compatibility profiles" ]
+exit_evidence     = [ "per-protocol vectors", "role and state-schema receipts", "pinned existing-service E2E" ]
+adoption_proof    = "selected Cloud Agent and Mediator issue, present, revoke, and mediation or pickup flows pass at pinned versions"
+quality           = [ "property", "fuzz", "benchmark", "differential" ]
+non_claims        = [ "all DIDComm protocols", "one umbrella release", "service deprecation" ]
+
+[[milestone]]
+id                = "A7"
+title             = "host and language adapters"
+state             = "planned"
+owner_issue       = 499
+supporting_issues = [ 492, 498, 501, 502 ]
+depends_on        = [ "A2", "A3", "A4", "A5" ]
+deliverables      = [ "browser and Node transport ADR", "consumer-required WASM and UniFFI surfaces", "thin TypeScript and Swift hosts" ]
+exit_evidence     = [ "runtime and bundler matrix", "mobile package and runtime receipts", "adapter compatibility and rollback packet" ]
+adoption_proof    = "named browser, Node, iOS, and Android canaries pass only for explicitly selected targets"
+quality           = [ "property", "fuzz", "benchmark", "differential" ]
+non_claims        = [ "every target supported", "React Native implied", "language DTOs canonical" ]
+
+[[milestone]]
+id                = "A8"
+title             = "language SDK adoption"
+state             = "planned"
+owner_issue       = 502
+supporting_issues = [ 416, 421, 492, 501 ]
+depends_on        = [ "A2", "A3", "A6", "A7" ]
+deliverables      = [ "SDK-TS capability migrations", "SDK-Swift parity and deviation migrations", "SDK-KMP compatibility plan", "versioned deprecation ledger" ]
+exit_evidence     = [ "released-language compatibility suites", "named consumer rehearsals", "observability and rollback receipts" ]
+adoption_proof    = "released-language APIs route selected capabilities through Rust with measured fallback and deprecation evidence"
+quality           = [ "property", "fuzz", "benchmark", "differential" ]
+non_claims        = [ "repository deletion by date", "historical modules reproduced in Rust", "KMP behavior normative" ]
+
+[[milestone]]
+id                = "A9"
+title             = "composable reference services"
+state             = "planned"
+owner_issue       = 418
+supporting_issues = [ 419, 498, 500, 501 ]
+depends_on        = [ "A6", "A7", "A8" ]
+deliverables      = [ "reference edge-agent composition", "reference mediator composition", "persistence and tenancy adapters", "operational migration plan" ]
+exit_evidence     = [ "protocol and data migration parity", "security and operations review", "CPU RAM latency throughput and recovery baselines" ]
+adoption_proof    = "operational persistence tenancy QoS consumer and rollback parity supports a separate deprecation decision"
+quality           = [ "property", "fuzz", "benchmark", "differential" ]
+non_claims        = [ "automatic Cloud Agent deprecation", "automatic Mediator deprecation", "production deployment authorization" ]

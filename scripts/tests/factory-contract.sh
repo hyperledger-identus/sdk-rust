@@ -69,6 +69,9 @@ required_files=(
   docs/architecture/sdk-support-policy.toml
   docs/architecture/apollo-crypto-parity.toml
   docs/architecture/identus-platform-ts-capabilities.toml
+  docs/architecture/portable-agent-runtime.md
+  docs/roadmap/platform-core-adoption-milestones.md
+  docs/roadmap/platform-core-adoption-milestones.toml
   docs/architecture/code-health.md
   docs/architecture/code-health.toml
   docs/architecture/code-health-baseline.json
@@ -142,6 +145,9 @@ required_files=(
   docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md
   docs/adr/0154-use-first-candidate-api-snapshots-as-semver-origin.md
   docs/adr/0155-qualify-staged-did-candidate-matrix.md
+  docs/adr/0170-make-rust-contracts-canonical-and-language-adapters-transitional.md
+  docs/adr/0171-own-a-portable-effect-driven-agent-runtime.md
+  docs/adr/0172-version-didcomm-engine-and-application-protocols-separately.md
   docs/adr/0160-separate-rustsec-advisory-and-yank-evidence.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml

@@ -60,8 +60,16 @@ population projection
 and report digest
 `9bf7917397be95fb34d466da25dcc48440093bf6465875c78b77cf054e540963`.
 
-Canonical evidence must be regenerated and rebound after the implementation
-is squash-merged to protected `develop`.
+The implementation was squash-merged to protected
+`develop@094735f0995dc2914f92e4106d11ddfa189f7399`. The canonical report was
+regenerated from that immutable revision and has source fingerprint
+`1b218c5e705000136a42ee30e265d8d66a67886060114ce2f39925b96e4134de`,
+population projection
+`2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80`,
+and report digest
+`b03d789f82ac590e444dfbf025d0cc895afdd99d5d0450e8447c787ad53dbb90`.
+The protected report has no `validate_datetime`, replacement-helper, or
+`resolution/value.rs` module signal.
 
 ## Local gates
 
@@ -75,3 +83,4 @@ is squash-merged to protected `develop`.
 - Source distribution, factory contract, OpenSpec, formatting, diff, and Nix
   flake evaluation gates: passed.
 - Rust 1.89 MSRV and canonical Nix `rust-test` gates: passed.
+- Implementation PR #457 exact-head CI and protected guarded merge: passed.

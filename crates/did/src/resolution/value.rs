@@ -185,15 +185,7 @@ impl ParsedDateTime {
             return None;
         }
 
-        let year_start = usize::from(bytes.first() == Some(&b'-'));
-        let year_end = bytes[year_start..].iter().position(|byte| *byte == b'-')? + year_start;
-        let year = &bytes[year_start..year_end];
-        if year.len() < 4
-            || !year.iter().all(u8::is_ascii_digit)
-            || (year.len() > 4 && year.first() == Some(&b'0'))
-        {
-            return None;
-        }
+        let (year, date_time_tail) = split_year(bytes)?;
 
         let &[
             b'-',
@@ -212,7 +204,7 @@ impl ParsedDateTime {
             second_tens,
             second_units,
             b'Z',
-        ] = &bytes[year_end..]
+        ] = date_time_tail
         else {
             return None;
         };
@@ -242,6 +234,19 @@ impl ParsedDateTime {
             || (self.hour == 24 && self.minute == 0 && self.second == 0);
         self.day != 0 && self.day <= max_day && valid_time
     }
+}
+
+fn split_year(bytes: &[u8]) -> Option<(&[u8], &[u8])> {
+    let year_start = usize::from(bytes.first() == Some(&b'-'));
+    let year_end = bytes[year_start..].iter().position(|byte| *byte == b'-')? + year_start;
+    let year = &bytes[year_start..year_end];
+    if year.len() < 4
+        || !year.iter().all(u8::is_ascii_digit)
+        || (year.len() > 4 && year.first() == Some(&b'0'))
+    {
+        return None;
+    }
+    Some((year, &bytes[year_end..]))
 }
 
 fn parse_two_digits(tens: u8, units: u8) -> Option<u8> {

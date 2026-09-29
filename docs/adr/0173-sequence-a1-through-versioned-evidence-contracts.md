@@ -35,7 +35,7 @@ contracts:
 - #422 owns the consumer-visible change ledger and depends on #420 and #505;
 - #501 owns risk-routed property, fuzz, benchmark, and differential evidence.
 
-#420 and #505 may proceed in parallel. #501 may design concurrently but binds
+Issues #420 and #505 may proceed in parallel. #501 may design concurrently but binds
 its first concrete declaration to #420's DID packet. #422 consumes stable IDs
 from #420 and #505. The downstream SDK-TS DID canary #492 is blocked by all
 four and is not an A1 sub-issue.

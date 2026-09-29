@@ -15,7 +15,7 @@
 
 - [x] 2.1 Introduce the private closed member vocabulary and raw-field collector
       while retaining exact phase order, errors, values, and allocations.
-- [ ] 2.2 Prove public/source/error/value equivalence and remove the touched
+- [x] 2.2 Prove public/source/error/value equivalence and remove the touched
       signal without weakening unrelated decisions.
 - [ ] 2.3 Merge implementation, then rebind canonical evidence to the protected
       squash commit and preserve unrelated hotspot dispositions.

@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-29
+goal: Validate one bounded OpenID4VP 1.0 Final authorization-request and
+  direct-post routing state without importing transport or wallet policy.

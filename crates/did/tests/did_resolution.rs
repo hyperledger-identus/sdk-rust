@@ -499,6 +499,68 @@ fn deterministic_scalar_property_matrices_preserve_constructor_and_serde_equival
     }
 }
 
+fn assert_datetime_rejected_by_every_entry(value: &str) {
+    let expected = Err(Error::InvalidResolution(ResolutionError::InvalidDateTime));
+    assert_eq!(DidResolutionDateTime::parse(value), expected);
+    assert_eq!(DidResolutionDateTime::try_new(value.to_owned()), expected);
+    assert_eq!(value.parse::<DidResolutionDateTime>(), expected);
+    assert_eq!(DidResolutionDateTime::try_from(value.to_owned()), expected);
+    assert!(serde_json::from_value::<DidResolutionDateTime>(value.into()).is_err());
+}
+
+#[test]
+fn datetime_lexical_and_calendar_boundaries_are_characterized_before_decomposition() {
+    let valid = "-123456-02-29T24:00:00Z";
+    let parsed = DidResolutionDateTime::parse(valid).unwrap();
+    assert_eq!(
+        DidResolutionDateTime::try_new(valid.to_owned()).unwrap(),
+        parsed
+    );
+    assert_eq!(valid.parse::<DidResolutionDateTime>().unwrap(), parsed);
+    assert_eq!(
+        DidResolutionDateTime::try_from(valid.to_owned()).unwrap(),
+        parsed
+    );
+    assert_eq!(
+        serde_json::from_value::<DidResolutionDateTime>(valid.into()).unwrap(),
+        parsed
+    );
+
+    let canonical = b"2024-12-31T23:59:59Z";
+    for index in [4, 7, 10, 13, 16, 19] {
+        let mut malformed = canonical.to_vec();
+        malformed[index] = b'X';
+        assert_datetime_rejected_by_every_entry(std::str::from_utf8(&malformed).unwrap());
+    }
+    for index in [0, 1, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18] {
+        let mut malformed = canonical.to_vec();
+        malformed[index] = b'x';
+        assert_datetime_rejected_by_every_entry(std::str::from_utf8(&malformed).unwrap());
+    }
+
+    for invalid in [
+        "",
+        "2024-12-31T23:59:59z",
+        "2024-12-31t23:59:59Z",
+        "2024-12-31T23:59:59é",
+        "+2024-12-31T23:59:59Z",
+        "-202-12-31T23:59:59Z",
+        "-02024-12-31T23:59:59Z",
+        "2024-00-31T23:59:59Z",
+        "2024-13-31T23:59:59Z",
+        "2024-01-00T23:59:59Z",
+        "2024-04-31T23:59:59Z",
+        "1900-02-29T23:59:59Z",
+        "2024-12-31T25:00:00Z",
+        "2024-12-31T23:60:00Z",
+        "2024-12-31T23:59:60Z",
+        "2024-12-31T24:00:01Z",
+        "2024-12-31T24:01:00Z",
+    ] {
+        assert_datetime_rejected_by_every_entry(invalid);
+    }
+}
+
 fn assert_wire_reason(input: &str, reason: ResolutionError) {
     assert_eq!(
         DidResolutionResult::from_json_str(input),

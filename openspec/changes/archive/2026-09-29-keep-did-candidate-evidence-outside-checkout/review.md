@@ -35,6 +35,15 @@ Local and PR gates cannot prove native scheduled runner execution. The next
 natural or authorized slow run supplies that evidence to #388; no rerun or
 dispatch is authorized by this change.
 
+## Post-green discovery review
+
+An independent exact-head review found two workflow-observability gaps before
+merge: structural policy did not prove that the clean-source step was ordered
+between compiler lanes, and the original one-line assertion hid porcelain
+diagnostics. The implementation now enforces the primary/boundary/MSRV order
+with a reorder mutation and emits a bounded Git status diagnostic on failure.
+Both findings are resolved.
+
 ## Decision
 
 The repair is the narrowest cohesive fix: it removes evidence/source coupling

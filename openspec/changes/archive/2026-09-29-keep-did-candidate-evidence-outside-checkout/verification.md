@@ -12,7 +12,8 @@ Environment: aarch64-darwin with repository-pinned Nix/Rust tools
   train contract.
 - `python3 scripts/tests/release-candidates.py`: passed all mutation cases,
   including checkout-local primary output, missing clean-source assertion, and
-  checkout-local upload regressions.
+  checkout-local upload regressions. A post-green review addition also proves
+  that moving the assertion after MSRV is rejected.
 - `nix develop --command actionlint .github/workflows/nix-checks.yml`: passed.
 - `git diff --check`: passed.
 

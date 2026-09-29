@@ -430,6 +430,7 @@ def validate(root: Path) -> list[str]:
         '--output "$RUNNER_TEMP/did-matrix/primary"',
         "Verify primary qualification preserved a clean checkout",
         "git status --porcelain --untracked-files=all",
+        "primary DID candidate qualification dirtied the checkout",
         '--output "$RUNNER_TEMP/did-matrix/msrv"',
         "path: ${{ runner.temp }}/did-matrix",
         "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
@@ -441,6 +442,16 @@ def validate(root: Path) -> list[str]:
             errors.append(f"slow workflow is missing DID matrix contract: {phrase}")
     if "--output artifacts/did-matrix/" in workflow:
         errors.append("slow workflow writes DID matrix evidence inside the checkout")
+    ordered_boundary = (
+        '--output "$RUNNER_TEMP/did-matrix/primary"',
+        "Verify primary qualification preserved a clean checkout",
+        '--output "$RUNNER_TEMP/did-matrix/msrv"',
+    )
+    boundary_positions = tuple(workflow.find(phrase) for phrase in ordered_boundary)
+    if all(position >= 0 for position in boundary_positions) and boundary_positions != tuple(
+        sorted(boundary_positions)
+    ):
+        errors.append("slow workflow must verify checkout cleanliness between DID lanes")
     if "pull_request:" in workflow:
         errors.append("slow workflow must not gain a pull_request trigger")
     return errors

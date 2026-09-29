@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 441,
+  "change": "decompose-wallet-conformance-list-traversal",
+  "branch": "codex/refactor/issue-441",
+  "baseRef": "origin/develop",
+  "baseSha": "5031e7178bee1b031e9f7e84e677d03f95e936d3",
+  "contractHeadSha": "215e3025e7de1d04595bb7f9be3f22853fa27518",
+  "createdAt": "2026-09-29T00:08:58.543Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

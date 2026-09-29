@@ -1,6 +1,8 @@
 use core::fmt;
 
-use identus_wallet::{StorageCursor, StorageFuture, StoragePageRequest, StoragePageSize};
+use identus_wallet::{
+    StorageCursor, StorageFuture, StoragePage, StoragePageRequest, StoragePageSize,
+};
 
 use crate::{
     ConformanceFailure, ConformanceFailureKind, ConformanceFixtureError,
@@ -69,6 +71,87 @@ pub(super) trait ListDriver: ExactDriver {
     ) -> StorageFuture<'a, identus_wallet::StoragePage<Self::IndexEntry>>;
 }
 
+struct ListEvidence<Entry> {
+    operations: usize,
+    observed: Vec<Entry>,
+    seen_cursors: Vec<StorageCursor>,
+}
+
+impl<Entry: PartialEq> ListEvidence<Entry> {
+    fn new(expected_count: usize) -> Self {
+        Self {
+            operations: 0,
+            observed: Vec::with_capacity(expected_count),
+            seen_cursors: Vec::new(),
+        }
+    }
+
+    fn accept_page(
+        &mut self,
+        page: StoragePage<Entry>,
+        page_size: StoragePageSize,
+        expected_count: usize,
+    ) -> Result<Option<StorageCursor>, ConformanceFailure> {
+        self.operations += 1;
+        if page.len() > page_size.get() {
+            return Err(failure(
+                "list-page-bound",
+                ConformanceFailureKind::PageBoundExceeded,
+            ));
+        }
+        let (entries, next_cursor) = page.into_parts();
+        for entry in entries {
+            if self.observed.iter().any(|candidate| candidate == &entry) {
+                return Err(failure(
+                    "list-duplicate-entry",
+                    ConformanceFailureKind::DuplicateObservedEntry,
+                ));
+            }
+            self.observed.push(entry);
+            if self.observed.len() > expected_count {
+                return Err(failure(
+                    "list-membership",
+                    ConformanceFailureKind::IndexMembershipMismatch,
+                ));
+            }
+        }
+
+        if next_cursor.as_ref().is_some_and(|next_cursor| {
+            self.seen_cursors
+                .iter()
+                .any(|candidate| candidate == next_cursor)
+        }) {
+            return Err(failure(
+                "list-cursor-progress",
+                ConformanceFailureKind::CursorDidNotProgress,
+            ));
+        }
+        self.seen_cursors.extend(next_cursor.iter().cloned());
+        Ok(next_cursor)
+    }
+
+    fn finish(
+        self,
+        expected_entries: &[Entry],
+    ) -> Result<StorageConformanceReport, ConformanceFailure> {
+        if self.observed.len() != expected_entries.len()
+            || expected_entries
+                .iter()
+                .any(|expected| !self.observed.iter().any(|actual| actual == expected))
+        {
+            return Err(failure(
+                "list-membership",
+                ConformanceFailureKind::IndexMembershipMismatch,
+            ));
+        }
+
+        Ok(StorageConformanceReport::new(
+            self.operations,
+            self.observed.len(),
+        ))
+    }
+}
+
 pub(super) async fn run<D>(
     driver: &D,
     fixture: &ListStoreFixture<D::Scope, D::IndexEntry>,
@@ -77,19 +160,10 @@ where
     D: ListDriver + ?Sized,
     D::IndexEntry: PartialEq,
 {
-    let mut operations = 0usize;
-    let mut observed = Vec::with_capacity(fixture.expected_entries.len());
-    let mut seen_cursors: Vec<StorageCursor> = Vec::new();
+    let mut evidence = ListEvidence::new(fixture.expected_entries.len());
     let mut cursor = None;
-    let max_pages = fixture.expected_entries.len() + 1;
 
     loop {
-        if operations >= max_pages {
-            return Err(failure(
-                "list-termination",
-                ConformanceFailureKind::PaginationDidNotTerminate,
-            ));
-        }
         let page = driver
             .list(
                 &fixture.scope,
@@ -97,57 +171,13 @@ where
             )
             .await
             .map_err(|_| failure("list-page", ConformanceFailureKind::OperationFailed))?;
-        operations += 1;
-        if page.len() > fixture.page_size.get() {
-            return Err(failure(
-                "list-page-bound",
-                ConformanceFailureKind::PageBoundExceeded,
-            ));
-        }
-        let (entries, next_cursor) = page.into_parts();
-        for entry in entries {
-            if observed.iter().any(|candidate| candidate == &entry) {
-                return Err(failure(
-                    "list-duplicate-entry",
-                    ConformanceFailureKind::DuplicateObservedEntry,
-                ));
-            }
-            observed.push(entry);
-            if observed.len() > fixture.expected_entries.len() {
-                return Err(failure(
-                    "list-membership",
-                    ConformanceFailureKind::IndexMembershipMismatch,
-                ));
-            }
-        }
-
-        let Some(next_cursor) = next_cursor else {
+        let Some(next_cursor) =
+            evidence.accept_page(page, fixture.page_size, fixture.expected_entries.len())?
+        else {
             break;
         };
-        if seen_cursors
-            .iter()
-            .any(|candidate| candidate == &next_cursor)
-        {
-            return Err(failure(
-                "list-cursor-progress",
-                ConformanceFailureKind::CursorDidNotProgress,
-            ));
-        }
-        seen_cursors.push(next_cursor.clone());
         cursor = Some(next_cursor);
     }
 
-    if observed.len() != fixture.expected_entries.len()
-        || fixture
-            .expected_entries
-            .iter()
-            .any(|expected| !observed.iter().any(|actual| actual == expected))
-    {
-        return Err(failure(
-            "list-membership",
-            ConformanceFailureKind::IndexMembershipMismatch,
-        ));
-    }
-
-    Ok(StorageConformanceReport::new(operations, observed.len()))
+    evidence.finish(&fixture.expected_entries)
 }

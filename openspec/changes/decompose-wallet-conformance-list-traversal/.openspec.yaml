@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-29
+goal: Characterize list traversal failures and separate async adapter orchestration from bounded deterministic evidence without changing public behavior.

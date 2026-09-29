@@ -22,19 +22,36 @@ enum ExactOperation {
     DeleteAny,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ListFault {
+    OperationFailed,
+    OversizedPage,
+    DuplicateEntry,
+    WrongMembership,
+    ExcessEntry,
+    RepeatCursor,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct ListRequestEvidence {
+    continuation: bool,
+    page_size: usize,
+}
+
 #[derive(Default)]
 struct MemoryState {
     records: BTreeMap<(String, String), (String, u64)>,
     indexes: BTreeMap<String, Vec<String>>,
     next_revision: u64,
     exact_operations: Vec<ExactOperation>,
+    list_requests: Vec<ListRequestEvidence>,
 }
 
 #[derive(Default)]
 struct MemoryStore {
     state: Mutex<MemoryState>,
     reuse_replaced_revision: bool,
-    repeat_cursor: bool,
+    list_fault: Option<ListFault>,
     corrupt_revision_on_operation: Option<usize>,
 }
 
@@ -58,9 +75,9 @@ impl MemoryStore {
         }
     }
 
-    fn with_repeated_cursor(scope: &str, entries: &[&str]) -> Self {
+    fn with_list_fault(scope: &str, entries: &[&str], list_fault: ListFault) -> Self {
         Self {
-            repeat_cursor: true,
+            list_fault: Some(list_fault),
             ..Self::with_index(scope, entries)
         }
     }
@@ -77,6 +94,14 @@ impl MemoryStore {
             .lock()
             .expect("test memory state is available")
             .exact_operations
+            .clone()
+    }
+
+    fn list_requests(&self) -> Vec<ListRequestEvidence> {
+        self.state
+            .lock()
+            .expect("test memory state is available")
+            .list_requests
             .clone()
     }
 
@@ -197,7 +222,19 @@ impl MemoryStore {
         scope: &str,
         request: StoragePageRequest,
     ) -> Result<StoragePage<String>, StorageError> {
-        let state = self.state.lock().map_err(|_| StorageError::Internal)?;
+        let mut state = self.state.lock().map_err(|_| StorageError::Internal)?;
+        state.list_requests.push(ListRequestEvidence {
+            continuation: request.cursor().is_some(),
+            page_size: request.size().get(),
+        });
+        let call = state.list_requests.len();
+        if self.list_fault == Some(ListFault::OperationFailed) {
+            return Err(StorageError::Internal);
+        }
+        if let Some(entries) = synthetic_fault_page(self.list_fault, call) {
+            let (entries, cursor) = entries;
+            return StoragePage::new(entries, cursor.map(encode_cursor).transpose()?);
+        }
         let entries = state.indexes.get(scope).map(Vec::as_slice).unwrap_or(&[]);
         let start = request.cursor().map_or(Ok(0), decode_cursor)?;
         if start > entries.len() {
@@ -208,7 +245,7 @@ impl MemoryStore {
             .min(entries.len());
         let page_entries = entries[start..end].to_vec();
         let next_cursor = if end < entries.len() {
-            if self.repeat_cursor {
+            if self.list_fault == Some(ListFault::RepeatCursor) {
                 request
                     .cursor()
                     .cloned()
@@ -222,6 +259,34 @@ impl MemoryStore {
         };
         StoragePage::new(page_entries, next_cursor)
     }
+}
+
+fn synthetic_fault_page(
+    fault: Option<ListFault>,
+    call: usize,
+) -> Option<(Vec<String>, Option<usize>)> {
+    let values = match fault? {
+        ListFault::OversizedPage => (vec!["alpha", "beta"], None),
+        ListFault::DuplicateEntry => match call {
+            1 => (vec!["alpha"], Some(1)),
+            _ => (vec!["alpha"], None),
+        },
+        ListFault::WrongMembership => match call {
+            1 => (vec!["alpha"], Some(1)),
+            2 => (vec!["beta"], Some(2)),
+            _ => (vec!["delta"], None),
+        },
+        ListFault::ExcessEntry => match call {
+            1 => (vec!["alpha"], Some(1)),
+            2 => (vec!["beta"], Some(2)),
+            3 => (vec!["gamma"], Some(3)),
+            _ => (vec!["delta"], None),
+        },
+        ListFault::OperationFailed | ListFault::RepeatCursor => {
+            return None;
+        }
+    };
+    Some((values.0.into_iter().map(str::to_owned).collect(), values.1))
 }
 
 fn encode_revision(revision: u64) -> Result<StorageRevision, StorageError> {
@@ -369,6 +434,23 @@ fn all_five_production_ports_pass_the_same_contract() {
     .expect("credential");
     assert_eq!(report.completed_operations(), 19);
     assert_eq!(report.observed_entries(), 3);
+    assert_eq!(
+        credential.list_requests(),
+        [
+            ListRequestEvidence {
+                continuation: false,
+                page_size: 1,
+            },
+            ListRequestEvidence {
+                continuation: true,
+                page_size: 1,
+            },
+            ListRequestEvidence {
+                continuation: true,
+                page_size: 1,
+            },
+        ]
+    );
 
     let did = MemoryStore::with_index("index", &["alpha", "beta", "gamma"]);
     let report = block_on(check_did_store(&did, &exact_fixture(), &list_fixture())).expect("did");
@@ -458,12 +540,56 @@ fn revision_mismatch_failure_projection_remains_step_specific() {
 }
 
 #[test]
-fn repeated_cursor_fails_before_unbounded_work() {
-    let store = MemoryStore::with_repeated_cursor("index", &["alpha", "beta", "gamma"]);
-    let error = block_on(check_did_store(&store, &exact_fixture(), &list_fixture()))
-        .expect_err("repeated cursor must fail");
-    assert_eq!(error.step(), "list-cursor-progress");
-    assert_eq!(error.kind(), ConformanceFailureKind::CursorDidNotProgress);
+fn list_failures_preserve_exact_projection_and_request_bound() {
+    for (fault, step, kind, completed_requests) in [
+        (
+            ListFault::OperationFailed,
+            "list-page",
+            ConformanceFailureKind::OperationFailed,
+            1,
+        ),
+        (
+            ListFault::OversizedPage,
+            "list-page-bound",
+            ConformanceFailureKind::PageBoundExceeded,
+            1,
+        ),
+        (
+            ListFault::DuplicateEntry,
+            "list-duplicate-entry",
+            ConformanceFailureKind::DuplicateObservedEntry,
+            2,
+        ),
+        (
+            ListFault::WrongMembership,
+            "list-membership",
+            ConformanceFailureKind::IndexMembershipMismatch,
+            3,
+        ),
+        (
+            ListFault::ExcessEntry,
+            "list-membership",
+            ConformanceFailureKind::IndexMembershipMismatch,
+            4,
+        ),
+        (
+            ListFault::RepeatCursor,
+            "list-cursor-progress",
+            ConformanceFailureKind::CursorDidNotProgress,
+            2,
+        ),
+    ] {
+        let store = MemoryStore::with_list_fault("index", &["alpha", "beta", "gamma"], fault);
+        let error = block_on(check_did_store(&store, &exact_fixture(), &list_fixture()))
+            .expect_err("fault must fail closed");
+        assert_eq!(error.step(), step, "fault: {fault:?}");
+        assert_eq!(error.kind(), kind, "fault: {fault:?}");
+        assert_eq!(
+            store.list_requests().len(),
+            completed_requests,
+            "fault: {fault:?}"
+        );
+    }
 }
 
 #[test]

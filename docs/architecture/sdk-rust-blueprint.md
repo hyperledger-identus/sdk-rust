@@ -828,8 +828,8 @@ POST wallet-nonce correlation. HTTP execution, JWE, client-prefix key
 authorization/trust, audience/time/replay and full request validation, DCQL,
 credential selection, consent and response construction remain later
 independent slices. Issue #429 adopts exact `siros-dcql 0.3.0` privately behind
-strict SDK-owned Final validation and bounded selection under ADR 0165. Issue
-#447 then consumes the same bounded request map into a composed
+strict SDK-owned Final validation and bounded selection under ADR 0165. The
+issue #447 slice then consumes the same bounded request map into a composed
 `vp_token`/HTTPS `direct_post` routing state while preserving signature and
 DCQL evidence. Issue #487 owns bounded response construction as the explicit
 successor. HTTP execution, verifier trust, consent, credential

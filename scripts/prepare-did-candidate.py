@@ -33,7 +33,7 @@ EXTERNAL_DEPENDENCIES = (
 )
 ALLOWED_SUFFIXES = {".rs", ".md"}
 ALLOWED_CARGO_OPERATIONS = frozenset({
-    "check", "cyclonedx", "package", "public-api", "rustdoc", "test",
+    "check", "package", "public-api", "rustdoc", "test",
 })
 LOCK_GENERATION_PURPOSES = frozenset({"extracted-closure", "staged-refresh"})
 SHA = re.compile(r"^[0-9a-f]{40}$")
@@ -44,7 +44,7 @@ class CandidateError(RuntimeError):
 
 
 def require_local_command(
-    command: list[str], *, lock_generation_purpose: str | None = None
+    command: list[str], *, cwd: Path, lock_generation_purpose: str | None = None
 ) -> None:
     if not command:
         raise CandidateError("empty candidate command")
@@ -57,10 +57,15 @@ def require_local_command(
         return
     if executable == "cargo" and command[1:] == ["semver-checks", "--version"]:
         return
-    generation_operation = "generate" + "-lockfile"
-    if executable == "cargo" and command[1:] == [generation_operation, "--manifest-path", command[-1]]:
+    if (
+        executable == "cargo"
+        and len(command) == 4
+        and command[1:3] == ["generate-lockfile", "--manifest-path"]
+    ):
         if lock_generation_purpose not in LOCK_GENERATION_PURPOSES:
             raise CandidateError("candidate lock generation requires an explicit closed purpose")
+        if Path(command[3]) != cwd / "Cargo.toml":
+            raise CandidateError("candidate lock generation manifest path differs from its workspace")
         return
     if executable == "cargo" and len(command) >= 2 and command[1] in ALLOWED_CARGO_OPERATIONS:
         return
@@ -68,6 +73,8 @@ def require_local_command(
         executable == "cargo" and len(command) >= 3 and command[1] == "--locked"
         and command[2] in ALLOWED_CARGO_OPERATIONS
     ):
+        return
+    if executable == "cargo-cyclonedx" and len(command) >= 2 and command[1] == "cyclonedx":
         return
     if (
         Path(command[0]).resolve() == Path(sys.executable).resolve()
@@ -82,7 +89,9 @@ def run(
     command: list[str], *, cwd: Path, env: dict[str, str],
     lock_generation_purpose: str | None = None,
 ) -> str:
-    require_local_command(command, lock_generation_purpose=lock_generation_purpose)
+    require_local_command(
+        command, cwd=cwd, lock_generation_purpose=lock_generation_purpose
+    )
     result = subprocess.run(
         command, cwd=cwd, env=env, check=False, text=True,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -94,7 +103,7 @@ def run(
 
 
 def run_stdout(command: list[str], *, cwd: Path, env: dict[str, str]) -> str:
-    require_local_command(command)
+    require_local_command(command, cwd=cwd)
     result = subprocess.run(
         command, cwd=cwd, env=env, check=False, text=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -173,10 +182,30 @@ def install_staged_lock(root: Path, stage: Path, descriptor: dict[str, Any]) -> 
     source = staged_lock_path(root, descriptor)
     destination = stage / "Cargo.lock"
     shutil.copyfile(source, destination)
-    digest = sha256(destination)
-    if digest != descriptor["staged_lock_sha256"]:
-        raise CandidateError("installed staged lock digest differs")
-    return digest
+    return sha256(destination)
+
+
+def create_locked_metadata_cargo(parent: Path, env: dict[str, str]) -> Path:
+    real_cargo = shutil.which("cargo", path=env.get("PATH"))
+    if real_cargo is None:
+        raise CandidateError("cannot locate pinned Cargo for locked metadata")
+    parent.mkdir(parents=True, exist_ok=True)
+    wrapper = parent / "cargo-metadata-locked.py"
+    wrapper.write_text(
+        "\n".join([
+            f"#!{sys.executable}",
+            "import os",
+            "import sys",
+            f"REAL_CARGO = {real_cargo!r}",
+            "if len(sys.argv) < 2 or sys.argv[1] != 'metadata':",
+            "    raise SystemExit('locked Cargo wrapper accepts metadata only')",
+            "os.execv(REAL_CARGO, [REAL_CARGO, 'metadata', '--locked', *sys.argv[2:]])",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    wrapper.chmod(0o500)
+    return wrapper
 
 
 def staged_lock_identities(path: Path, descriptor: dict[str, Any]) -> list[dict[str, Any]]:
@@ -628,13 +657,16 @@ def release_evidence(
             tools["cargo_semver_checks"], root, env,
         ),
         "cargoCyclonedx": require_subcommand_version(
-            ["cargo", "cyclonedx", "--version"], tools["cargo_cyclonedx"], root, env
+            ["cargo-cyclonedx", "cyclonedx", "--version"],
+            tools["cargo_cyclonedx"], root, env,
         ),
         "cyclonedxSpec": tools["cyclonedx_spec"],
     }
     evidence: list[dict[str, Any]] = []
     api_target = stage / "target/public-api"
     api_env = env | {"RUSTC_BOOTSTRAP": "1"}
+    locked_cargo = create_locked_metadata_cargo(stage / "target/release-tools", env)
+    cyclonedx_env = env | {"CARGO": str(locked_cargo)}
     for package in descriptor["packages"]:
         name = package["name"]
         run([
@@ -663,12 +695,15 @@ def release_evidence(
         })
 
         override = f"{name}-candidate"
+        lock_before = sha256(stage / "Cargo.lock")
         run([
-            "cargo", "--locked", "cyclonedx", "--manifest-path",
+            "cargo-cyclonedx", "cyclonedx", "--manifest-path",
             str(stage / package["path"] / "Cargo.toml"),
             "--format", "json", "--spec-version", tools["cyclonedx_spec"],
             "--all-features", "--override-filename", override,
-        ], cwd=stage, env=env)
+        ], cwd=stage, env=cyclonedx_env)
+        if sha256(stage / "Cargo.lock") != lock_before:
+            raise CandidateError(f"CycloneDX changed the staged lock: {name}")
         matches = sorted((stage / package["path"]).glob(f"{override}*.json"))
         if len(matches) != 1:
             raise CandidateError(f"expected one CycloneDX document for {name}; found {len(matches)}")
@@ -787,6 +822,8 @@ def build_matrix_lane(
         host = matrix_host(descriptor, run(["rustc", "-vV"], cwd=root, env=env))
         stage = create_stage(root, scratch / "candidate", descriptor)
         lock_hash = install_staged_lock(root, stage, descriptor)
+        if lock_hash != descriptor["staged_lock_sha256"]:
+            raise CandidateError("matrix installed staged lock digest differs")
         rows: list[dict[str, Any]] = []
         host_operation = host[f"{toolchain_class}_operation"]
         for package in host["packages"]:
@@ -1044,53 +1081,60 @@ def refresh_staged_lock(
         raise CandidateError(f"output already exists: {output}")
     output_parent = output.resolve().parent
     output_parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="identus-did-lock-refresh-") as temporary:
-        scratch = Path(temporary)
-        require_vcs_independent_build_scratch(root, scratch)
-        env = sanitized_environment(scratch / "cargo-home")
-        expected_tool = descriptor["preparation_rust_version"]
-        rustc = require_tool_version(
-            "rustc", run(["rustc", "--version"], cwd=root, env=env), expected_tool
-        )
-        cargo = require_tool_version(
-            "cargo", run(["cargo", "--version"], cwd=root, env=env), expected_tool
-        )
-        stage = create_stage(root, scratch / "refresh", descriptor)
-        generate_lockfile(stage, env, "staged-refresh")
-        proposed = stage / "Cargo.lock"
-        current = staged_lock_path(root, descriptor)
-        current_identities = staged_lock_identities(current, descriptor)
-        proposed_identities = staged_lock_identities(proposed, descriptor)
-        current_keys = identity_keys(current_identities)
-        proposed_keys = identity_keys(proposed_identities)
-        current_hash = sha256(current)
-        proposed_hash = sha256(proposed)
-        report = {
-            "schemaVersion": 1,
-            "candidate": descriptor["candidate"],
-            "sourceRevision": revision,
-            "sourceDirty": False,
-            "tools": {"rustc": rustc, "cargo": cargo},
-            "currentLockSha256": current_hash,
-            "proposedLockSha256": proposed_hash,
-            "status": "unchanged" if current_hash == proposed_hash else "changed",
-            "added": [render_identity(row) for row in sorted(proposed_keys - current_keys)],
-            "removed": [render_identity(row) for row in sorted(current_keys - proposed_keys)],
-            "limitations": [
-                "review-only; repository lock and descriptor remain unchanged",
-                "registry state at refresh time is an input to proposed resolution",
-            ],
-        }
-        staged_output = Path(tempfile.mkdtemp(prefix=f".{output.name}.tmp-", dir=output_parent))
-        try:
-            shutil.copyfile(proposed, staged_output / "did-candidate.lock")
-            write_json_atomic(
-                staged_output / "refresh-report.json", report, descriptor["max_evidence_bytes"]
+    try:
+        output.mkdir(mode=0o700)
+    except FileExistsError as error:
+        raise CandidateError(f"output already exists: {output}") from error
+    try:
+        with tempfile.TemporaryDirectory(prefix="identus-did-lock-refresh-") as temporary:
+            scratch = Path(temporary)
+            require_vcs_independent_build_scratch(root, scratch)
+            env = sanitized_environment(scratch / "cargo-home")
+            expected_tool = descriptor["preparation_rust_version"]
+            rustc = require_tool_version(
+                "rustc", run(["rustc", "--version"], cwd=root, env=env), expected_tool
             )
-            os.replace(staged_output, output)
-        finally:
-            if staged_output.exists():
-                shutil.rmtree(staged_output)
+            cargo = require_tool_version(
+                "cargo", run(["cargo", "--version"], cwd=root, env=env), expected_tool
+            )
+            stage = create_stage(root, scratch / "refresh", descriptor)
+            generate_lockfile(stage, env, "staged-refresh")
+            proposed = stage / "Cargo.lock"
+            current = staged_lock_path(root, descriptor)
+            current_identities = staged_lock_identities(current, descriptor)
+            proposed_identities = staged_lock_identities(proposed, descriptor)
+            current_keys = identity_keys(current_identities)
+            proposed_keys = identity_keys(proposed_identities)
+            current_hash = sha256(current)
+            proposed_hash = sha256(proposed)
+            report = {
+                "schemaVersion": 1,
+                "candidate": descriptor["candidate"],
+                "sourceRevision": revision,
+                "sourceDirty": False,
+                "tools": {"rustc": rustc, "cargo": cargo},
+                "currentLockSha256": current_hash,
+                "proposedLockSha256": proposed_hash,
+                "status": "unchanged" if current_hash == proposed_hash else "changed",
+                "added": [render_identity(row) for row in sorted(proposed_keys - current_keys)],
+                "removed": [render_identity(row) for row in sorted(current_keys - proposed_keys)],
+                "limitations": [
+                    "review-only; repository lock and descriptor remain unchanged",
+                    "registry state at refresh time is an input to proposed resolution",
+                ],
+            }
+            if any(output.iterdir()):
+                raise CandidateError(f"reserved output was modified during refresh: {output}")
+            shutil.copyfile(proposed, output / "did-candidate.lock")
+            write_json_atomic(
+                output / "refresh-report.json", report, descriptor["max_evidence_bytes"]
+            )
+    except Exception:
+        try:
+            output.rmdir()
+        except OSError:
+            pass
+        raise
     return output / "refresh-report.json"
 
 
@@ -1128,6 +1172,8 @@ def build(
                 raise CandidateError(f"two-pass archive bytes differ: {name}")
         if passes[0][1] != passes[1][1]:
             raise CandidateError("two-pass installed staged lock digests differ")
+        if passes[0][1] != descriptor["staged_lock_sha256"]:
+            raise CandidateError("archive installed staged lock digest differs")
         for package in descriptor["packages"]:
             inspect_archive(passes[0][0][package["name"]], package, descriptor)
         commands = verify_closure(passes[0][0], scratch, descriptor, env)

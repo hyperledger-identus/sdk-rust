@@ -193,6 +193,23 @@ def command_string_literals(call: ast.Call) -> list[str]:
     ]
 
 
+def command_tokens(call: ast.Call) -> list[str | None]:
+    if not call.args or not isinstance(call.args[0], (ast.List, ast.Tuple)):
+        return []
+    return [
+        element.value
+        if isinstance(element, ast.Constant) and isinstance(element.value, str)
+        else None
+        for element in call.args[0].elts
+    ]
+
+
+def cargo_option_precedes_separator(call: ast.Call, option: str) -> bool:
+    tokens = command_tokens(call)
+    separator = tokens.index("--") if "--" in tokens else len(tokens)
+    return option in tokens[2:separator]
+
+
 def require_keys(value: dict[str, Any], expected: set[str], label: str, errors: list[str]) -> None:
     actual = set(value)
     if actual != expected:
@@ -475,6 +492,12 @@ def validate(root: Path) -> list[str]:
         "staged_lock_sha256", "--refresh-staged-lock", "refresh_staged_lock",
         "generate_lockfile", "matrix lane lock differs from descriptor identity",
         '"sha256": passes[0][1]',
+        'command[1:3] == ["generate-lockfile", "--manifest-path"]',
+        'Path(command[3]) != cwd / "Cargo.toml"',
+        "'metadata', '--locked', *sys.argv[2:]",
+        'cyclonedx_env = env | {"CARGO": str(locked_cargo)}',
+        "CycloneDX changed the staged lock",
+        "output.mkdir(mode=0o700)", "reserved output was modified during refresh",
     )
     for phrase in required_builder:
         if phrase not in builder:
@@ -507,6 +530,12 @@ def validate(root: Path) -> list[str]:
         if any(keyword.arg == "lock_generation_purpose" for keyword in call.keywords)
     ]
     generation_runs = named_calls(generation_function, "run")
+    direct_generation_runs = [
+        call
+        for runner in ("run", "run_stdout")
+        for call in named_calls(builder_tree, runner)
+        if (literal_command(call) or [])[:2] == ["cargo", "generate-lockfile"]
+    ]
     generation_calls = named_calls(builder_tree, "generate_lockfile")
     allowed_callers = {
         "verify_closure": "extracted-closure",
@@ -531,11 +560,12 @@ def validate(root: Path) -> list[str]:
         )
     )
     if (
-        len(generation_literals) != 1
+        len(generation_literals) != 2
         or len(generation_calls) != 2
         or not generation_call_contract
         or not generation_run_contract
         or privileged_runs != generation_runs
+        or direct_generation_runs != generation_runs
     ):
         errors.append(
             "DID candidate lock generation must stay inside closed closure/refresh capabilities"
@@ -547,12 +577,25 @@ def validate(root: Path) -> list[str]:
         ],
         "cyclonedx": [
             call for call in named_calls(builder_tree, "run")
-            if (literal_command(call) or [])[:3] == ["cargo", "--locked", "cyclonedx"]
+            if (literal_command(call) or [])[:2] == ["cargo-cyclonedx", "cyclonedx"]
         ],
     }
-    if any(
-        len(calls) != 1 or "--locked" not in command_string_literals(calls[0])
-        for calls in staged_operations.values()
+    rustdoc_calls = staged_operations["rustdoc"]
+    cyclonedx_calls = staged_operations["cyclonedx"]
+    cyclonedx_env_bound = (
+        len(cyclonedx_calls) == 1
+        and any(
+            keyword.arg == "env"
+            and isinstance(keyword.value, ast.Name)
+            and keyword.value.id == "cyclonedx_env"
+            for keyword in cyclonedx_calls[0].keywords
+        )
+    )
+    if (
+        len(rustdoc_calls) != 1
+        or not cargo_option_precedes_separator(rustdoc_calls[0], "--locked")
+        or len(cyclonedx_calls) != 1
+        or not cyclonedx_env_bound
     ):
         errors.append("DID staged Cargo evidence operations must use --locked")
     forbidden_builder = (

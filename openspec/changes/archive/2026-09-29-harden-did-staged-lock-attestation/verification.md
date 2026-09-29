@@ -40,9 +40,12 @@ the staged lock digest above, and the Rustdoc and CycloneDX evidence.
 
 The first candidate run on `d1b2cc70f3d575e25ca3b2b6ef466bf945475172`
 correctly exposed that `cargo-cyclonedx` does not accept subcommand-local
-`--locked`. The implementation was corrected to Cargo's global
-`cargo --locked cyclonedx` form, committed as `3d0d314`, and the complete
-candidate was rerun successfully.
+`--locked`. A global Cargo option made the command pass at `3d0d314`, but the
+subsequent discovery review demonstrated that Cargo consumed it without
+forwarding locked behavior to the external plugin. The remediated path invokes
+the pinned plugin directly with a closed `CARGO` wrapper that executes
+`cargo metadata --locked`; its focused wrapper test and a complete dirty-tree
+candidate precheck passed before the remediation commit.
 
 ## Matrix evidence
 
@@ -56,6 +59,7 @@ cross-platform matrix; this change does not dispatch or rerun it.
 ## Mutation evidence
 
 The mutation suite rejected variable-built lock generation, ordinary runtime
-generation through both command runners, aggregate/descriptor digest drift,
-descriptor-echoed archive receipts, and missing locked Rustdoc or CycloneDX
-execution.
+generation through both command runners, purpose-owned manifest escape,
+aggregate/descriptor digest drift, descriptor-echoed archive receipts,
+post-separator Rustdoc locking, an unlocked CycloneDX metadata wrapper,
+unbound CycloneDX wrapper environment, and non-exclusive refresh output.

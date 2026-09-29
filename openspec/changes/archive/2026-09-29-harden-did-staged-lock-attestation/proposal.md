@@ -15,7 +15,8 @@ than an executable, review-oriented path.
 - Bind every matrix lane hash directly to the descriptor digest before
   aggregation.
 - Carry the digest returned by staged-lock installation into candidate output.
-- Require `--locked` for Rustdoc and CycloneDX staged-workspace operations.
+- Require demonstrably locked resolution for Rustdoc and CycloneDX
+  staged-workspace operations.
 - Combine runtime command rejection with AST checks around two explicit lock
   generation purposes: extracted-package closure verification and local
   staged-lock refresh.

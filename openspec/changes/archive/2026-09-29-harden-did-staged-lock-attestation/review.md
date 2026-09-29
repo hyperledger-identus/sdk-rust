@@ -2,10 +2,12 @@
 
 ## Scope
 
-Reviewed `f44bda2cd2ee0aac404e4c38d4c51a36a6e437e6..3d0d3140537cba451677f55732cd8767f668dede`
-independently from the implementation pass, including the release builder,
+Reviewed the complete PR from base
+`f44bda2cd2ee0aac404e4c38d4c51a36a6e437e6`, including the release builder,
 static policy checker, mutation suite, OpenSpec contract, and generated
-candidate evidence.
+candidate evidence. A separate Claude discovery review then challenged the
+first locally reviewed implementation and every concrete claim was reproduced
+or rejected against the pinned tools before remediation.
 
 ## Findings
 
@@ -16,14 +18,37 @@ No blocking finding remains.
   paths.
 - Per-lane, aggregate, archive-pass, and receipt digests derive from observed
   installed bytes rather than descriptor echoing.
-- Rustdoc and CycloneDX use Cargo locked mode; the latter uses the verified
-  global Cargo option required by the plugin.
+- Rustdoc places Cargo `--locked` before the rustdoc separator. The pinned
+  cargo-cyclonedx runs directly and its internal Cargo metadata call is forced
+  through a metadata-only wrapper that injects `--locked`; a postcondition
+  independently rejects any staged-lock byte change.
 - Refresh is opt-in, pinned, review-only, external-output-only, exact-HEAD, and
   clean-worktree guarded. It cannot be selected with candidate or matrix mode.
 - The path simplification preserves symlink, regular-file, size, and digest
   checks while removing redundant resolution logic.
 - Mutations exercise both static and runtime bypasses and the relevant digest
   and locked-mode failure boundaries.
+
+## Discovery review disposition
+
+The external review produced five actionable findings:
+
+1. **Accepted:** `cargo --locked cyclonedx` consumed the option before the
+   external plugin, while cargo-cyclonedx 0.5.9 invoked unlocked metadata. The
+   direct-plugin metadata wrapper and digest postcondition above replace it.
+2. **Accepted as defense-in-depth:** per-pass digest validation made the
+   cross-pass mismatch branch logically redundant. Validation now occurs after
+   both observed digests are compared, so a one-pass copy fault and a repeated
+   wrong copy have distinct fail-closed checks while the receipt still derives
+   from observed installed bytes.
+3. **Accepted:** the AST gate was position-blind. It now requires Rustdoc's
+   `--locked` before `--` and verifies the CycloneDX call's closed environment.
+4. **Accepted:** the generation guard compared its last argument to itself and
+   split a literal to satisfy its checker. It now uses an explicit command
+   shape and requires the manifest to equal the purpose-owned workspace path.
+5. **Accepted:** the refresh output name could be occupied during resolution.
+   The absent directory is now atomically reserved before the long operation,
+   and unexpected contents fail closed rather than being replaced.
 
 ## Architecture and maintainability
 
@@ -36,7 +61,6 @@ modules in this slice would weaken review locality.
 
 ## Residual evidence boundary
 
-Linux exact-head CI, the independent discovery review, protected merge, and
-the next natural weekly slow run are delivery evidence, not local
-implementation prerequisites. No manual slow workflow dispatch is authorized
-by issue #484.
+Linux exact-head CI, protected merge, and the next natural weekly slow run are
+delivery evidence, not local implementation prerequisites. No manual slow
+workflow dispatch is authorized by issue #484.

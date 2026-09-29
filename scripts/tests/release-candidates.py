@@ -142,14 +142,40 @@ def main() -> int:
         external = boundary / "external"
         external.mkdir()
         builder.require_vcs_independent_build_scratch(repository, external)
-        builder.require_local_command(["git", "status", "--porcelain"])
-        builder.require_local_command(["cargo", "package", "--workspace"])
-        builder.require_local_command(["cargo", "semver-checks", "--version"])
+        builder.require_local_command(["git", "status", "--porcelain"], cwd=boundary)
+        builder.require_local_command(["cargo", "package", "--workspace"], cwd=boundary)
         builder.require_local_command(
-            ["cargo", "generate-lockfile", "--manifest-path", "/tmp/Cargo.toml"],
+            ["cargo", "semver-checks", "--version"], cwd=boundary
+        )
+        builder.require_local_command(
+            ["cargo-cyclonedx", "cyclonedx", "--version"], cwd=boundary
+        )
+        builder.require_local_command(
+            [
+                "cargo", "generate-lockfile", "--manifest-path",
+                str(boundary / "Cargo.toml"),
+            ],
+            cwd=boundary,
             lock_generation_purpose="staged-refresh",
         )
-        variable_generation = ["cargo", "generate-lockfile", "--manifest-path", "/tmp/Cargo.toml"]
+        try:
+            builder.require_local_command(
+                [
+                    "cargo", "generate-lockfile", "--manifest-path",
+                    str(boundary / "other" / "Cargo.toml"),
+                ],
+                cwd=boundary,
+                lock_generation_purpose="staged-refresh",
+            )
+        except builder.CandidateError as error:
+            if "manifest path differs" not in str(error):
+                raise
+        else:
+            raise AssertionError("lock generation escaped its purpose-owned workspace")
+        variable_generation = [
+            "cargo", "generate-lockfile", "--manifest-path",
+            str(boundary / "Cargo.toml"),
+        ]
         for runner in (builder.run, builder.run_stdout):
             try:
                 runner(variable_generation, cwd=boundary, env={})
@@ -175,23 +201,48 @@ def main() -> int:
             builder.shutil.copyfile = lambda _source, destination: Path(destination).write_bytes(
                 b"copy drift"
             )
-            try:
-                builder.install_staged_lock(
-                    ROOT, corrupted_stage, builder.load_toml(ROOT / builder.DESCRIPTOR)
-                )
-            except builder.CandidateError as error:
-                if str(error) != "installed staged lock digest differs":
-                    raise
-            else:
-                raise AssertionError("corrupted staged lock copy was accepted")
+            corrupted_hash = builder.install_staged_lock(
+                ROOT, corrupted_stage, builder.load_toml(ROOT / builder.DESCRIPTOR)
+            )
+            if corrupted_hash == builder.sha256(staged_lock):
+                raise AssertionError("corrupted staged lock copy echoed descriptor identity")
         finally:
             builder.shutil.copyfile = original_copyfile
+        fake_bin = boundary / "fake-bin"
+        fake_bin.mkdir()
+        locked_log = boundary / "locked-cargo-arguments.json"
+        fake_cargo = fake_bin / "cargo"
+        fake_cargo.write_text(
+            "\n".join([
+                f"#!{builder.sys.executable}",
+                "import json",
+                "import sys",
+                "from pathlib import Path",
+                f"Path({str(locked_log)!r}).write_text(json.dumps(sys.argv[1:]))",
+                "",
+            ]),
+            encoding="utf-8",
+        )
+        fake_cargo.chmod(0o500)
+        wrapper_env = {"PATH": str(fake_bin)}
+        locked_cargo = builder.create_locked_metadata_cargo(
+            boundary / "release-tools", wrapper_env
+        )
+        builder.subprocess.run(
+            [str(locked_cargo), "metadata", "--format-version", "1"],
+            env=wrapper_env,
+            check=True,
+        )
+        if json.loads(locked_log.read_text(encoding="utf-8")) != [
+            "metadata", "--locked", "--format-version", "1",
+        ]:
+            raise AssertionError("CycloneDX Cargo wrapper did not inject locked metadata")
         for forbidden_command in (
             ["git", "push"], ["cargo", "publish"], ["gh", "release", "create"],
             ["cargo", "semver-checks", "check-release"],
         ):
             try:
-                builder.require_local_command(forbidden_command)
+                builder.require_local_command(forbidden_command, cwd=boundary)
             except builder.CandidateError:
                 pass
             else:
@@ -617,17 +668,33 @@ def main() -> int:
                 lambda root: replace(
                     root / "scripts/prepare-did-candidate.py",
                     '"--locked", "--all-features", "--lib", "--target-dir", str(api_target), "--",',
-                    '"--all-features", "--lib", "--target-dir", str(api_target), "--",',
+                    '"--all-features", "--lib", "--target-dir", str(api_target), "--", "--locked",',
                 ),
                 "DID staged Cargo evidence operations must use --locked",
             ),
             (
                 lambda root: replace(
                     root / "scripts/prepare-did-candidate.py",
-                    '"cargo", "--locked", "cyclonedx", "--manifest-path",',
-                    '"cargo", "cyclonedx", "--manifest-path",',
+                    "'metadata', '--locked', *sys.argv[2:]",
+                    "'metadata', *sys.argv[2:]",
+                ),
+                "DID candidate builder is missing contract: 'metadata', '--locked', *sys.argv[2:]",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    "], cwd=stage, env=cyclonedx_env)",
+                    "], cwd=stage, env=env)",
                 ),
                 "DID staged Cargo evidence operations must use --locked",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    "output.mkdir(mode=0o700)",
+                    "output.mkdir(mode=0o700, exist_ok=True)",
+                ),
+                "DID candidate builder is missing contract: output.mkdir(mode=0o700)",
             ),
             (
                 lambda root: replace(

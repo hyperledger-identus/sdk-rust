@@ -18,9 +18,9 @@ including variable-built lists.
 
 Offline AST policy requires exactly one privileged subprocess call in that
 helper and permits helper calls only in `verify_closure` and
-`refresh_staged_lock`. It validates closed literal purposes and caller-specific
-workspace names. This combines execution-time completeness with static review
-of the escape hatch.
+`refresh_staged_lock`. It validates closed literal purposes and exact
+purpose-owned manifest paths. This combines execution-time completeness with
+static review of the escape hatch.
 
 ## Explicit refresh mode
 
@@ -34,16 +34,22 @@ format, sources, checksums, and candidate identities, then writes:
 - `refresh-report.json`: source revision, tool identities, current/proposed
   hashes, status, and sorted added/removed closed dependency identities.
 
-The mode never copies output into the repository or changes the descriptor.
+The mode reserves the absent output directory before network resolution, then
+rejects any unexpected content before publishing its two files. It never
+copies output into the repository or changes the descriptor.
 No-drift output is still useful: it proves the current reviewed resolution can
 be reproduced at that time.
 
 ## Locked staged commands
 
-Archive package, profile checks/tests, matrix checks/tests, Rustdoc JSON, and
-CycloneDX operate with `--locked`. `cargo-public-api` consumes an already
-generated JSON file and does not resolve the staged workspace. Extracted
-closure checks/tests remain locked against their distinct generated lock.
+Archive package, profile checks/tests, matrix checks/tests, and Rustdoc JSON
+operate with Cargo `--locked`. Cargo-cyclonedx 0.5.9 has no locked CLI option,
+so the pinned binary runs directly with `CARGO` set to a generated
+metadata-only wrapper. That wrapper accepts only `metadata`, injects
+`--locked`, and the caller also proves the staged lock digest is unchanged.
+`cargo-public-api` consumes an already generated JSON file and does not resolve
+the staged workspace. Extracted closure checks/tests remain locked against
+their distinct generated lock.
 
 ## Path and rollback behavior
 

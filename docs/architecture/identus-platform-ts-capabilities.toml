@@ -1,8 +1,8 @@
-schema_version = 2
-program_issue  = 417
+schema_version   = 2
+program_issue    = 417
 correction_issue = 497
-snapshot_date  = "2026-09-29"
-status         = "preliminary"
+snapshot_date    = "2026-09-29"
+status           = "preliminary"
 
 [source]
 repository = "https://github.com/hyperledger-identus/sdk-ts"

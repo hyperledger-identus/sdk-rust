@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 480,
+  "change": "keep-did-candidate-evidence-outside-checkout",
+  "branch": "codex/fix/issue-480",
+  "baseRef": "origin/develop",
+  "baseSha": "a320bc5186ce6b92f80559714928999799c21906",
+  "contractHeadSha": "9aec4cddf76a2193eb0a73e87e12e55c6b6fd4b0",
+  "createdAt": "2026-09-29T08:13:25.814Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

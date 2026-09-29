@@ -4,7 +4,7 @@
 
 - [x] 1.1 Record #480 failure evidence, alternatives, constraints, design,
       rollback, and verification boundary.
-- [ ] 1.2 Pass research, constraint, and strict OpenSpec readiness; commit the
+- [x] 1.2 Pass research, constraint, and strict OpenSpec readiness; commit the
       planning-only contract and persist immutable preimplementation evidence.
 
 ## 2. Workflow repair

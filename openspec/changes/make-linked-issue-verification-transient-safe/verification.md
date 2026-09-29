@@ -17,7 +17,9 @@ Verification date: 2026-09-29
 - `scripts/tests/factory-contract.sh`: passed, including fixture execution of
   the new verifier contract.
 - The Nix factory derivation declares `jq`, and its isolated contract build
-  passes; failed positive fixtures print their captured diagnostic.
+  passes; runtime fake executables bind the active absolute Bash path for
+  Linux-chroot/macOS parity, and failed positive fixtures print their captured
+  diagnostic.
 - `scripts/factory check`: passed.
 - `shellcheck` for the implementation and test: passed in the pinned Nix
   development environment.

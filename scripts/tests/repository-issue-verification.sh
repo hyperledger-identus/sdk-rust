@@ -15,8 +15,8 @@ stderr_file="$fixture_root/stderr"
 mkdir -p "$fake_bin"
 trap 'rm -rf "$fixture_root"' EXIT
 
-cat >"$fake_bin/gh" <<'EOF'
-#!/usr/bin/env bash
+printf '#!%s\n' "$(command -v bash)" >"$fake_bin/gh"
+cat >>"$fake_bin/gh" <<'EOF'
 set -euo pipefail
 
 count=0

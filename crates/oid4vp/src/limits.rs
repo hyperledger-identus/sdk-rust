@@ -233,6 +233,48 @@ impl Default for RequestObjectValidationLimits {
     }
 }
 
+/// Resource limits for Final Authorization Request routing validation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AuthorizationRequestValidationLimits {
+    max_nonce_bytes: usize,
+    max_response_uri_bytes: usize,
+}
+
+impl AuthorizationRequestValidationLimits {
+    /// Construct a positive routing resource policy.
+    pub const fn new(
+        max_nonce_bytes: usize,
+        max_response_uri_bytes: usize,
+    ) -> Result<Self, Oid4vpError> {
+        if max_nonce_bytes == 0 || max_response_uri_bytes == 0 {
+            return Err(Oid4vpError::InvalidLimits);
+        }
+        Ok(Self {
+            max_nonce_bytes,
+            max_response_uri_bytes,
+        })
+    }
+
+    /// Maximum UTF-8 bytes in the authorization nonce.
+    pub const fn max_nonce_bytes(self) -> usize {
+        self.max_nonce_bytes
+    }
+
+    /// Maximum UTF-8 bytes in the direct-post response URI.
+    pub const fn max_response_uri_bytes(self) -> usize {
+        self.max_response_uri_bytes
+    }
+}
+
+impl Default for AuthorizationRequestValidationLimits {
+    fn default() -> Self {
+        Self {
+            max_nonce_bytes: 256,
+            max_response_uri_bytes: 4_096,
+        }
+    }
+}
+
 /// Resource and work limits for one DCQL query evaluation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DcqlLimits {

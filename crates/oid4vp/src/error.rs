@@ -65,6 +65,23 @@ pub mod error_code {
     pub const DCQL_WORK_LIMIT_EXCEEDED: ErrorCode =
         ErrorCode::new("oid4vp.dcql_work_limit_exceeded");
     pub const INVALID_DCQL_CREDENTIAL: ErrorCode = ErrorCode::new("oid4vp.invalid_dcql_credential");
+    pub const MISSING_RESPONSE_TYPE: ErrorCode = ErrorCode::new("oid4vp.missing_response_type");
+    pub const UNSUPPORTED_RESPONSE_TYPE: ErrorCode =
+        ErrorCode::new("oid4vp.unsupported_response_type");
+    pub const MISSING_RESPONSE_MODE: ErrorCode = ErrorCode::new("oid4vp.missing_response_mode");
+    pub const UNSUPPORTED_RESPONSE_MODE: ErrorCode =
+        ErrorCode::new("oid4vp.unsupported_response_mode");
+    pub const MISSING_AUTHORIZATION_NONCE: ErrorCode =
+        ErrorCode::new("oid4vp.missing_authorization_nonce");
+    pub const INVALID_AUTHORIZATION_NONCE: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_authorization_nonce");
+    pub const AUTHORIZATION_NONCE_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.authorization_nonce_too_large");
+    pub const MISSING_RESPONSE_URI: ErrorCode = ErrorCode::new("oid4vp.missing_response_uri");
+    pub const CONFLICTING_RESPONSE_DESTINATION: ErrorCode =
+        ErrorCode::new("oid4vp.conflicting_response_destination");
+    pub const RESPONSE_URI_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.response_uri_too_large");
+    pub const UNSAFE_RESPONSE_URI: ErrorCode = ErrorCode::new("oid4vp.unsafe_response_uri");
 }
 
 /// Public error categories for OID4VP invocation parsing.
@@ -110,11 +127,22 @@ pub enum Oid4vpError {
     DcqlQueryTooLarge,
     DcqlWorkLimitExceeded,
     InvalidDcqlCredential,
+    MissingResponseType,
+    UnsupportedResponseType,
+    MissingResponseMode,
+    UnsupportedResponseMode,
+    MissingAuthorizationNonce,
+    InvalidAuthorizationNonce,
+    AuthorizationNonceTooLarge,
+    MissingResponseUri,
+    ConflictingResponseDestination,
+    ResponseUriTooLarge,
+    UnsafeResponseUri,
 }
 
 impl Oid4vpError {
     /// Ordered error inventory frozen by the v1 contract fixture.
-    pub const CONTRACT_VARIANTS: [Self; 39] = [
+    pub const CONTRACT_VARIANTS: [Self; 50] = [
         Self::InvalidLimits,
         Self::InvocationTooLarge,
         Self::InvalidInvocation,
@@ -154,9 +182,20 @@ impl Oid4vpError {
         Self::DcqlQueryTooLarge,
         Self::DcqlWorkLimitExceeded,
         Self::InvalidDcqlCredential,
+        Self::MissingResponseType,
+        Self::UnsupportedResponseType,
+        Self::MissingResponseMode,
+        Self::UnsupportedResponseMode,
+        Self::MissingAuthorizationNonce,
+        Self::InvalidAuthorizationNonce,
+        Self::AuthorizationNonceTooLarge,
+        Self::MissingResponseUri,
+        Self::ConflictingResponseDestination,
+        Self::ResponseUriTooLarge,
+        Self::UnsafeResponseUri,
     ];
 
-    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 39] = {
+    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 50] = {
         use error_code as code;
         [
             (
@@ -353,6 +392,61 @@ impl Oid4vpError {
                 code::INVALID_DCQL_CREDENTIAL,
                 ErrorKind::InvalidInput,
                 "OID4VP DCQL credential descriptor is invalid",
+            ),
+            (
+                code::MISSING_RESPONSE_TYPE,
+                ErrorKind::InvalidInput,
+                "OID4VP Authorization Request is missing response_type",
+            ),
+            (
+                code::UNSUPPORTED_RESPONSE_TYPE,
+                ErrorKind::Unsupported,
+                "OID4VP Authorization Request response_type is not supported",
+            ),
+            (
+                code::MISSING_RESPONSE_MODE,
+                ErrorKind::InvalidInput,
+                "OID4VP Authorization Request is missing response_mode",
+            ),
+            (
+                code::UNSUPPORTED_RESPONSE_MODE,
+                ErrorKind::Unsupported,
+                "OID4VP Authorization Request response_mode is not supported",
+            ),
+            (
+                code::MISSING_AUTHORIZATION_NONCE,
+                ErrorKind::InvalidInput,
+                "OID4VP Authorization Request is missing nonce",
+            ),
+            (
+                code::INVALID_AUTHORIZATION_NONCE,
+                ErrorKind::InvalidInput,
+                "OID4VP Authorization Request nonce is invalid",
+            ),
+            (
+                code::AUTHORIZATION_NONCE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP Authorization Request nonce exceeds its byte limit",
+            ),
+            (
+                code::MISSING_RESPONSE_URI,
+                ErrorKind::InvalidInput,
+                "OID4VP direct-post request is missing response_uri",
+            ),
+            (
+                code::CONFLICTING_RESPONSE_DESTINATION,
+                ErrorKind::InvalidInput,
+                "OID4VP direct-post request has a conflicting response destination",
+            ),
+            (
+                code::RESPONSE_URI_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP response URI exceeds its byte limit",
+            ),
+            (
+                code::UNSAFE_RESPONSE_URI,
+                ErrorKind::InvalidInput,
+                "OID4VP response URI is unsafe",
             ),
         ]
     };

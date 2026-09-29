@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 467,
+  "change": "isolate-oid4vci-authorization-request-assembly",
+  "branch": "codex/refactor/issue-467",
+  "baseRef": "origin/develop",
+  "baseSha": "6e4183a8e02ef0f2ed9984279d91e0660a36125f",
+  "contractHeadSha": "2333d3981813cce3fa2c70330c7c93177ada4241",
+  "createdAt": "2026-09-29T04:28:33.777Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 482,
+  "change": "freeze-did-candidate-staged-lock",
+  "branch": "codex/fix/issue-482",
+  "baseRef": "origin/develop",
+  "baseSha": "7c7c8e9a02bebd65d63c00631208283778f12fe4",
+  "contractHeadSha": "c39b0c8e2c597094d7a97b07064f5bc4d849d627",
+  "createdAt": "2026-09-29T09:54:59.340Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

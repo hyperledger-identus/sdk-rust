@@ -4,7 +4,7 @@
 
 - [x] 1.1 Record #482 current behavior, official Cargo evidence, candidates,
       constraints, design, threats, update/rollback boundary, and commands.
-- [ ] 1.2 Pass research, constraint, and strict OpenSpec readiness; commit the
+- [x] 1.2 Pass research, constraint, and strict OpenSpec readiness; commit the
       planning-only contract and persist immutable preimplementation evidence.
 
 ## 2. Frozen staged lock

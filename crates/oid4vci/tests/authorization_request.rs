@@ -273,6 +273,51 @@ fn positive_limits_and_exact_output_boundaries_are_enforced() {
 }
 
 #[test]
+fn combined_faults_preserve_query_details_and_final_size_priority() {
+    let details = r#"[{"type":"openid_credential","credential_configuration_id":"UniversityDegreeCredential"}]"#;
+    let query_first = AuthorizationRequestLimits::new(1, 4, 256, 4_096, 1).expect("limits");
+
+    assert!(matches!(
+        construct(
+            &format!("{ISSUER}/authorize?state=existing"),
+            false,
+            None,
+            query_first,
+        ),
+        Err(CredentialOfferError::AuthorizationEndpointQueryParameterCollision)
+    ));
+
+    let count_first = AuthorizationRequestLimits::new(1, 1, 256, 4_096, 1).expect("limits");
+    assert!(matches!(
+        construct(
+            &format!("{ISSUER}/authorize?x=one&y=two"),
+            false,
+            None,
+            count_first,
+        ),
+        Err(CredentialOfferError::TooManyAuthorizationEndpointQueryParameters)
+    ));
+
+    let details_first = AuthorizationRequestLimits::new(1, 4, 256, 4_096, 1).expect("limits");
+    assert!(matches!(
+        construct(
+            &format!("{ISSUER}/authorize?tenant=one"),
+            false,
+            None,
+            details_first,
+        ),
+        Err(CredentialOfferError::AuthorizationDetailsTooLarge)
+    ));
+
+    let final_size =
+        AuthorizationRequestLimits::new(details.len(), 1, 1, 1, 1).expect("final-size limits");
+    assert!(matches!(
+        construct(&format!("{ISSUER}/authorize"), false, None, final_size),
+        Err(CredentialOfferError::AuthorizationRequestUriTooLarge)
+    ));
+}
+
+#[test]
 fn debug_and_errors_are_static_and_redacted() {
     let request = construct(
         &format!("{ISSUER}/authorize"),

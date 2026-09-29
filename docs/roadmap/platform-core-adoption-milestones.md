@@ -40,7 +40,7 @@ cannot skip a predecessor contract or proof.
 | ID | Outcome | Primary issues | Exit adoption proof |
 | --- | --- | --- | --- |
 | A0 | Correct canonical ownership, adapters, DID/DIDComm/runtime boundaries, quality rules, and this roadmap | #497 | offline inventories reject donor-shaped ownership and incomplete milestone records |
-| A1 | Shared compatibility foundation: vector catalog, change ledger, adapter/error mapping rules, and risk-routed evidence plan | #420, #501 | first SDK-TS DID adapter consumes the same versioned packet as Rust tests |
+| A1 | Shared compatibility foundation: vector catalog, change ledger, adapter/error mapping rules, and risk-routed evidence plan | #504 with #420, #422, #501, #505 | four versioned contracts form one immutable, consumer-ready DID packet |
 | A2 | Portable DID platform: complete generic DID domain/service binding sequence, peer DID, and separately bounded Prism portable semantics | #492, #493 | SDK-TS DID facade and one native binding use Rust without duplicated DID semantics |
 | A3 | Credential format engines: RFC 9901 base, pinned SD-JWT VC profile, bounded legacy adapter, and independently qualified AnonCreds 1.0 facade | #489, #490 | shared cross-language issuance/presentation vectors pass for each delivered format |
 | A4 | DIDComm v2.1 core: qualified engine facade, DID/secret ports, pack/unpack/routing, attachment/resource/error contracts | #491 | immutable existing agent/Mediator endpoint interoperates with exact engine capabilities |
@@ -94,9 +94,11 @@ protocol implementation belongs here.
 ### A1 — shared compatibility foundation
 
 Complete the language-neutral vector/provenance catalog under #420. Add a
-versioned adapter mapping record for Rust-to-language DTO/error compatibility,
-the consumer-visible change ledger, and the four-class evidence declaration
-under #501. Seed it with the DID canary; do not wait for every future protocol.
+versioned adapter mapping record under #505 for Rust-to-language DTO/error
+compatibility, the consumer-visible change ledger under #422, and the
+four-class evidence declaration under #501. Issue #504 owns the combined
+milestone receipt. Seed the four contracts with a generic DID/DID URL packet;
+do not wait for every future protocol and do not mutate SDK-TS inside A1.
 
 ### A2 — portable DID platform
 
@@ -162,10 +164,11 @@ tenancy, deployment, operations, security, QoS, consumer, and rollback parity.
 
 The next implementation milestone should be A1, not peer DID or the agent
 runtime directly. It creates the shared vector and adapter evidence every
-later adoption slice needs. Within A1, use #492's existing bounded DID values
-as the first concrete packet. In parallel, research-only work may continue on
-issues #489, #491, #493, #498, and #499 without activating dependencies or
-APIs.
+later adoption slice needs. Within A1, use the existing bounded Rust DID values
+as the first concrete packet. Keep #492 as the first downstream SDK-TS adoption
+proof, blocked by all four A1 contracts. In parallel, research-only work may
+continue on issues #489, #491, #493, #498, and #499 without activating
+dependencies or APIs.
 
 ## Non-claims
 

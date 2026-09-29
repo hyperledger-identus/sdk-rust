@@ -41,7 +41,11 @@ required_files=(
   docs/architecture/sdk-support-policy.toml
   docs/architecture/apollo-crypto-parity.toml
   docs/architecture/identus-platform-ts-capabilities.toml
+  docs/architecture/a1-compatibility-contracts.md
   docs/architecture/portable-agent-runtime.md
+  docs/roadmap/a1-shared-compatibility-foundation.md
+  docs/roadmap/a1-shared-compatibility-foundation.toml
+  docs/research/platform-core/a1-evidence-source-audit.md
   docs/roadmap/platform-core-adoption-milestones.md
   docs/roadmap/platform-core-adoption-milestones.toml
   docs/architecture/code-health.md
@@ -101,6 +105,7 @@ required_files=(
   docs/adr/0170-make-rust-contracts-canonical-and-language-adapters-transitional.md
   docs/adr/0171-own-a-portable-effect-driven-agent-runtime.md
   docs/adr/0172-version-didcomm-engine-and-application-protocols-separately.md
+  docs/adr/0173-sequence-a1-through-versioned-evidence-contracts.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   nix/apps/crypto-candidate.nix
@@ -153,6 +158,7 @@ required_files=(
   scripts/check-support-policy.py
   scripts/check-apollo-parity.py
   scripts/check-platform-ts-capabilities.py
+  scripts/check-a1-compatibility-plan.py
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
   scripts/check-crypto-benchmark.py
@@ -189,6 +195,7 @@ required_files=(
   scripts/tests/weekly-slow-live.py
   scripts/tests/apollo-parity.py
   scripts/tests/platform-ts-capabilities.py
+  scripts/tests/a1-compatibility-plan.py
   scripts/tests/crypto-benchmark.py
   scripts/tests/crypto-coverage.py
   scripts/tests/source-distribution.py
@@ -212,7 +219,7 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in bootstrap.sh scripts/factory scripts/benchmark-code-health-classifier.py scripts/benchmark-support-policy.py scripts/benchmark-crypto.sh scripts/coverage-crypto.sh scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-input-resource-boundaries.py scripts/check-constraints.py scripts/check-error-golden.py scripts/check-crypto-benchmark.py scripts/report-crypto-coverage.py scripts/code-health-audit.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-rustsec-audit.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-platform-ts-capabilities.py scripts/check-ssi-upstream-backlog.py scripts/check-oid4vci-conformance.py scripts/check-ssi-upstream-backlog-live.py scripts/check-uniffi-did-android.sh scripts/check-weekly-slow-live.py scripts/check-source-distribution.py scripts/check-crypto-candidate.py scripts/check-release-train.py scripts/check-release-candidates.py scripts/prepare-crypto-candidate.py scripts/prepare-did-candidate.py scripts/publish-release-train.py scripts/ci/contribution-policy.mjs scripts/ci/target-plan.mjs scripts/factory-tools/audit-pi.mjs scripts/factory-tools/delivery.mjs scripts/factory-tools/metrics.mjs scripts/factory-tools/pi-session-harvest.mjs scripts/factory-tools/strict-json.mjs scripts/factory-tools/supervisor.mjs scripts/factory-tools/pi-package-cache.mjs scripts/factory-tools/pi-policy.mjs scripts/factory-tools/preflight.mjs scripts/git-hooks/configure.mjs scripts/git-hooks/local-policy.mjs scripts/worktree-lifecycle.mjs scripts/tests/bootstrap-inventory.py scripts/tests/input-resource-boundaries.py scripts/tests/constraints.py scripts/tests/error-golden.py scripts/tests/crypto-benchmark.py scripts/tests/crypto-coverage.py scripts/tests/code-health-audit.py scripts/tests/source-distribution.py scripts/tests/crypto-candidate.py scripts/tests/release-train.py scripts/tests/release-candidates.py scripts/tests/factory-contract.sh scripts/tests/factory-operations.mjs scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/rustsec-audit.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py scripts/tests/platform-ts-capabilities.py scripts/tests/ssi-upstream-backlog.py scripts/tests/oid4vci-conformance.py scripts/tests/ssi-upstream-backlog-live.py scripts/tests/weekly-slow-live.py .githooks/commit-msg .githooks/pre-commit .githooks/pre-push; do
+for executable_path in bootstrap.sh scripts/factory scripts/benchmark-code-health-classifier.py scripts/benchmark-support-policy.py scripts/benchmark-crypto.sh scripts/coverage-crypto.sh scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-input-resource-boundaries.py scripts/check-constraints.py scripts/check-error-golden.py scripts/check-crypto-benchmark.py scripts/report-crypto-coverage.py scripts/code-health-audit.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-rustsec-audit.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-platform-ts-capabilities.py scripts/check-a1-compatibility-plan.py scripts/check-ssi-upstream-backlog.py scripts/check-oid4vci-conformance.py scripts/check-ssi-upstream-backlog-live.py scripts/check-uniffi-did-android.sh scripts/check-weekly-slow-live.py scripts/check-source-distribution.py scripts/check-crypto-candidate.py scripts/check-release-train.py scripts/check-release-candidates.py scripts/prepare-crypto-candidate.py scripts/prepare-did-candidate.py scripts/publish-release-train.py scripts/ci/contribution-policy.mjs scripts/ci/target-plan.mjs scripts/factory-tools/audit-pi.mjs scripts/factory-tools/delivery.mjs scripts/factory-tools/metrics.mjs scripts/factory-tools/pi-session-harvest.mjs scripts/factory-tools/strict-json.mjs scripts/factory-tools/supervisor.mjs scripts/factory-tools/pi-package-cache.mjs scripts/factory-tools/pi-policy.mjs scripts/factory-tools/preflight.mjs scripts/git-hooks/configure.mjs scripts/git-hooks/local-policy.mjs scripts/worktree-lifecycle.mjs scripts/tests/bootstrap-inventory.py scripts/tests/input-resource-boundaries.py scripts/tests/constraints.py scripts/tests/error-golden.py scripts/tests/crypto-benchmark.py scripts/tests/crypto-coverage.py scripts/tests/code-health-audit.py scripts/tests/source-distribution.py scripts/tests/crypto-candidate.py scripts/tests/release-train.py scripts/tests/release-candidates.py scripts/tests/factory-contract.sh scripts/tests/factory-operations.mjs scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/rustsec-audit.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py scripts/tests/platform-ts-capabilities.py scripts/tests/a1-compatibility-plan.py scripts/tests/ssi-upstream-backlog.py scripts/tests/oid4vci-conformance.py scripts/tests/ssi-upstream-backlog-live.py scripts/tests/weekly-slow-live.py .githooks/commit-msg .githooks/pre-commit .githooks/pre-push; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi
@@ -269,6 +276,12 @@ fi
 if [[ -x "$factory_root/scripts/check-platform-ts-capabilities.py" && -f "$factory_root/docs/architecture/identus-platform-ts-capabilities.toml" ]]; then
   if ! "$factory_root/scripts/check-platform-ts-capabilities.py" "$factory_root"; then
     report_failure "SDK-TS capability-inventory validation failed"
+  fi
+fi
+
+if [[ -x "$factory_root/scripts/check-a1-compatibility-plan.py" && -f "$factory_root/docs/roadmap/a1-shared-compatibility-foundation.toml" ]]; then
+  if ! "$factory_root/scripts/check-a1-compatibility-plan.py" "$factory_root"; then
+    report_failure "A1 compatibility-plan validation failed"
   fi
 fi
 

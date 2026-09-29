@@ -17,5 +17,5 @@
 
 - [x] 3.1 Run focused shell, factory, hygiene, and workflow validation gates.
 - [x] 3.2 Complete exact-diff architecture/security/process review.
-- [ ] 3.3 Deliver the signed/DCO issue-linked PR, green exact-head CI, metrics,
+- [x] 3.3 Deliver the signed/DCO issue-linked PR, green exact-head CI, metrics,
       protected merge, and PR #472 resynchronization.

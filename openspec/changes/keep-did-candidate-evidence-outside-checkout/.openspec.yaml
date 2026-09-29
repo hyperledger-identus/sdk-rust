@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-29
+goal: Keep staged DID candidate evidence outside the Git checkout so the primary
+  lane cannot invalidate the MSRV lane's clean-source precondition.

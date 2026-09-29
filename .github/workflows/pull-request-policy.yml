@@ -75,13 +75,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.policy.outputs.issue-number }}
-        run: |
-          issue_url=$(gh issue view "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --json url --jq .url)
-          expected_url="https://github.com/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER"
-          if [[ "$issue_url" != "$expected_url" ]]; then
-            printf 'pull-request-policy: #%s is not a repository issue\n' "$ISSUE_NUMBER" >&2
-            exit 1
-          fi
+        run: scripts/ci/verify-repository-issue.sh
 
       - name: Validate contribution metadata
         env:

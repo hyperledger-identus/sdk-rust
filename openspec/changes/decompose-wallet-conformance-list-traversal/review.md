@@ -4,7 +4,7 @@
 
 - Base: `5031e7178bee1b031e9f7e84e677d03f95e936d3`
 - Reviewed implementation:
-  `f05a4cba05512f7d6190d5bdd608317c12242f99`
+  `0f2b2df7eeedbe173d307bd52445ef77fb4d87f8`
 - Production scope: `crates/wallet-conformance/src/list.rs`
 - Characterization scope: `crates/wallet-conformance/src/tests.rs`
 

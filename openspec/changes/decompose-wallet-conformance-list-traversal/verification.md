@@ -6,9 +6,9 @@
 - Exact protected develop base:
   `5031e7178bee1b031e9f7e84e677d03f95e936d3`
 - Planning commit: `215e3025e7de1d04595bb7f9be3f22853fa27518`
-- Preimplementation receipt commit: `09ca5c4`
+- Preimplementation receipt commit: `8ff4a98`
 - Reviewed implementation head:
-  `f05a4cba05512f7d6190d5bdd608317c12242f99`
+  `0f2b2df7eeedbe173d307bd52445ef77fb4d87f8`
 
 ## Behavioral compatibility
 

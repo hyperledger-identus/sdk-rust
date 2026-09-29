@@ -25,7 +25,7 @@ source population and projection remain unchanged by that protocol refinement.
 
 Every file has the same authored nonblank production/test population under
 both classifiers. The current protected baseline source fingerprint is
-`1b218c5e705000136a42ee30e265d8d66a67886060114ce2f39925b96e4134de`.
+`d91115abd76ec9f55eb0ce244322b071da966704756db28236be44e54d9046ec`.
 The v2 per-file population projection digest is
 `2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80`.
 
@@ -72,12 +72,12 @@ nix develop --command python3 scripts/code-health-audit.py --verify-baseline
 ```
 
 The canonical v2 report digest is
-`b03d789f82ac590e444dfbf025d0cc895afdd99d5d0450e8447c787ad53dbb90`.
+`5b2d94d29a26875bf2c81857100e358b5709e14673587a43b1417f3fe669b7c9`.
 The baseline was most recently refreshed from protected
-`develop@094735f0995dc2914f92e4106d11ddfa189f7399` after issue #456 isolated
-DID resolution datetime lexical parsing from Gregorian calendar validation.
+`develop@d27e455901c501d9611abbe0065e6a9b7270dd57` after issue #459 isolated
+ordered DID registration result-state validation in a private borrowed owner.
 No production module exceeds 1,000 authored nonblank lines, and neither
-`validate_datetime` nor a replacement helper has a governed function signal.
-The unrelated `dereference_services` signal is unchanged. The historical
+`validate_result` nor a replacement validator method has a governed function
+signal. The unrelated `dereference_services` signal is unchanged. The historical
 v1/v2 migration method above remains unchanged; these three values bind the
 current canonical source population and report.

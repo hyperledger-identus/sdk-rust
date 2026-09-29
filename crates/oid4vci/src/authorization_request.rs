@@ -174,7 +174,32 @@ impl CredentialOfferWithAuthorizationRequestInput {
         self,
         limits: AuthorizationRequestLimits,
     ) -> Result<AuthorizationRequest, CredentialOfferError> {
-        let server = self.credential_offer_with_authorization_code_server();
+        let (request_uri, issuer_state_present) =
+            AuthorizationRequestAssembly::prepare(&self, limits)?.render()?;
+
+        Ok(AuthorizationRequest {
+            input: self,
+            request_uri,
+            issuer_state_present,
+        })
+    }
+}
+
+struct AuthorizationRequestAssembly<'a> {
+    input: &'a CredentialOfferWithAuthorizationRequestInput,
+    limits: AuthorizationRequestLimits,
+    endpoint: &'a str,
+    existing_query: Option<&'a str>,
+    authorization_details: Zeroizing<String>,
+    issuer_state: Option<&'a str>,
+}
+
+impl<'a> AuthorizationRequestAssembly<'a> {
+    fn prepare(
+        input: &'a CredentialOfferWithAuthorizationRequestInput,
+        limits: AuthorizationRequestLimits,
+    ) -> Result<Self, CredentialOfferError> {
+        let server = input.credential_offer_with_authorization_code_server();
         let matched = server.credential_offer_with_metadata();
         let metadata = matched.credential_issuer_metadata();
         let endpoint = server
@@ -191,7 +216,7 @@ impl CredentialOfferWithAuthorizationRequestInput {
 
         let include_locations = metadata.advertised_authorization_servers().is_some();
         let authorization_details = build_authorization_details(
-            self.selected_credential_configuration().as_str(),
+            input.selected_credential_configuration().as_str(),
             include_locations.then(|| metadata.credential_issuer().as_str()),
             limits.max_authorization_details_bytes(),
         )?;
@@ -200,8 +225,28 @@ impl CredentialOfferWithAuthorizationRequestInput {
             .authorization_code()
             .and_then(|grant| grant.issuer_state())
             .map(|state| state.as_str());
+
+        Ok(Self {
+            input,
+            limits,
+            endpoint,
+            existing_query,
+            authorization_details,
+            issuer_state,
+        })
+    }
+
+    fn render(self) -> Result<(Zeroizing<String>, bool), CredentialOfferError> {
+        let Self {
+            input,
+            limits,
+            endpoint,
+            existing_query,
+            authorization_details,
+            issuer_state,
+        } = self;
         let issuer_state_present = issuer_state.is_some();
-        let parameters = request_parameters(&self, &authorization_details, issuer_state);
+        let parameters = request_parameters(input, &authorization_details, issuer_state);
         let query_len =
             query_len(&parameters).ok_or(CredentialOfferError::AuthorizationRequestUriTooLarge)?;
         let request_uri_len = endpoint
@@ -224,11 +269,7 @@ impl CredentialOfferWithAuthorizationRequestInput {
         }
         debug_assert_eq!(request_uri.len(), request_uri_len);
 
-        Ok(AuthorizationRequest {
-            input: self,
-            request_uri,
-            issuer_state_present,
-        })
+        Ok((request_uri, issuer_state_present))
     }
 }
 

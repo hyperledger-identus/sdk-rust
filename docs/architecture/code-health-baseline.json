@@ -84,12 +84,12 @@
       "owner": "identus-did resolution model"
     }
   ],
-  "population_projection_sha256": "2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80",
+  "population_projection_sha256": "cfc603629e9ba2b2e33f9feb3d18b262a0618080ebfaaeebae892438598d2e53",
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 31400,
+      "authored_nonblank_lines": 31440,
       "files": 95,
-      "functions": 1306
+      "functions": 1307
     },
     "inline_test": {
       "authored_nonblank_lines": 5231,
@@ -97,12 +97,12 @@
       "functions": 371
     },
     "production": {
-      "authored_nonblank_lines": 37863,
+      "authored_nonblank_lines": 37899,
       "files": 204,
-      "functions": 2903
+      "functions": 2905
     }
   },
-  "revision": "e42a9dcabc824dbae71f99639a794c05356ce8f7",
+  "revision": "87fe079e26b2f7026bf89b2aef11d99617236545",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -407,16 +407,6 @@
         "start_line": 430
       },
       {
-        "cognitive": 7,
-        "cyclomatic": 18,
-        "end_line": 232,
-        "name": "try_into_authorization_request",
-        "path": "crates/oid4vci/src/authorization_request.rs",
-        "population": "production",
-        "sloc": 60,
-        "start_line": 173
-      },
-      {
         "cognitive": 6,
         "cyclomatic": 21,
         "end_line": 172,
@@ -609,5 +599,5 @@
     ],
     "modules": []
   },
-  "source_fingerprint_sha256": "e005c014c24d829626949ed9c70f927f0aac8f6b517315ecc0bafcdca9afd84d"
+  "source_fingerprint_sha256": "447498639b8c2a7c4fd8b75b7d624cc5a046d984d9852f41133bbfa1ee2932ff"
 }

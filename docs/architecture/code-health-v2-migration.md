@@ -25,9 +25,9 @@ source population and projection remain unchanged by that protocol refinement.
 
 Every file has the same authored nonblank production/test population under
 both classifiers. The current protected baseline source fingerprint is
-`e005c014c24d829626949ed9c70f927f0aac8f6b517315ecc0bafcdca9afd84d`.
+`447498639b8c2a7c4fd8b75b7d624cc5a046d984d9852f41133bbfa1ee2932ff`.
 The v2 per-file population projection digest is
-`2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80`.
+`cfc603629e9ba2b2e33f9feb3d18b262a0618080ebfaaeebae892438598d2e53`.
 
 The sole representation delta is intentional: v1 included blank lines in a
 file inherited wholly as inline test, while v2 reports only lines containing
@@ -72,12 +72,12 @@ nix develop --command python3 scripts/code-health-audit.py --verify-baseline
 ```
 
 The canonical v2 report digest is
-`23d17c60f949b6c1dc942907ebc62ff6feb52e2a5a5b24c3fc96e2710e9c2d58`.
+`6567e914eaf4f8687a2c1919d2db83e56ed82db3f65c375661042905c1ecb9a6`.
 The baseline was most recently refreshed from protected
-`develop@e42a9dcabc824dbae71f99639a794c05356ce8f7` after issue #464 separated
-bounded OID4VCI authorization-response decoding from request correlation.
-No production module exceeds 1,000 authored nonblank lines, and neither
-`try_into_authorization_response`, `parse_query`, nor a replacement owner
-method has a governed function signal. The historical v1/v2 migration method
-above remains unchanged; these three values bind the current canonical source
-population and report.
+`develop@87fe079e26b2f7026bf89b2aef11d99617236545` after issue #467 isolated
+bounded OID4VCI Authorization Request assembly behind one private owner. No
+production module exceeds 1,000 authored nonblank lines, and neither
+`try_into_authorization_request` nor a replacement assembly method has a
+governed function signal. The historical v1/v2 migration method above remains
+unchanged; these three values bind the current canonical source population and
+report.

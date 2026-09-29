@@ -8,7 +8,7 @@
       resource/security invariants, risks, rollback, and stop/go rule.
 - [x] 1.3 Pass research/constraint/strict readiness, commit planning only, and
       bind an exact issue #473 preimplementation receipt.
-- [ ] 1.4 Run the pre-change focused suite and bind a compact combined-fault
+- [x] 1.4 Run the pre-change focused suite and bind a compact combined-fault
       phase-priority and resolver-non-invocation matrix before movement.
 
 ## 2. Implementation

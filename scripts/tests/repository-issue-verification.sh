@@ -74,7 +74,11 @@ assert_success() {
   local mode=$1
   local expected_attempts=$2
   : >"$counter_file"
-  run_verifier "$mode" >/dev/null 2>"$stderr_file"
+  if ! run_verifier "$mode" >/dev/null 2>"$stderr_file"; then
+    printf 'repository-issue-verification test: rejected %s\n' "$mode" >&2
+    cat "$stderr_file" >&2
+    exit 1
+  fi
   grep -qx "$expected_attempts" "$counter_file"
 }
 

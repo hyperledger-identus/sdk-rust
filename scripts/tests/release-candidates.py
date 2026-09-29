@@ -343,6 +343,30 @@ def main() -> int:
             ),
             (
                 lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
+                    '--output "$RUNNER_TEMP/did-matrix/primary"',
+                    "--output artifacts/did-matrix/primary",
+                ),
+                "slow workflow writes DID matrix evidence inside the checkout",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
+                    "git status --porcelain --untracked-files=all",
+                    "git diff --quiet",
+                ),
+                "slow workflow is missing DID matrix contract: git status --porcelain",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
+                    "path: ${{ runner.temp }}/did-matrix",
+                    "path: artifacts/did-matrix",
+                ),
+                "slow workflow is missing DID matrix contract: path: ${{ runner.temp }}/did-matrix",
+            ),
+            (
+                lambda root: replace(
                     root / "docs/release/did-candidate.toml",
                     'api_baseline           = "docs/release/identus-did-0.1.0-rc.1.api.txt"',
                     'api_baseline           = "docs/release/missing.api.txt"',

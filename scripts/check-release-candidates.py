@@ -177,6 +177,30 @@ def literal_command(call: ast.Call) -> list[str] | None:
     return values
 
 
+def literal_string_argument(call: ast.Call, position: int) -> str | None:
+    if len(call.args) <= position:
+        return None
+    value = call.args[position]
+    return value.value if isinstance(value, ast.Constant) and isinstance(value.value, str) else None
+
+
+def command_tokens(call: ast.Call) -> list[str | None]:
+    if not call.args or not isinstance(call.args[0], (ast.List, ast.Tuple)):
+        return []
+    return [
+        element.value
+        if isinstance(element, ast.Constant) and isinstance(element.value, str)
+        else None
+        for element in call.args[0].elts
+    ]
+
+
+def cargo_option_precedes_separator(call: ast.Call, option: str) -> bool:
+    tokens = command_tokens(call)
+    separator = tokens.index("--") if "--" in tokens else len(tokens)
+    return option in tokens[2:separator]
+
+
 def require_keys(value: dict[str, Any], expected: set[str], label: str, errors: list[str]) -> None:
     actual = set(value)
     if actual != expected:
@@ -456,7 +480,21 @@ def validate(root: Path) -> list[str]:
         "repositoryPolicy", "candidateSpecificScan", "os.replace", "candidate-receipt.json",
         "--matrix-toolchain", "--aggregate-matrix", "build_matrix_lane",
         "aggregate_matrix", "matrix receipt exceeds byte limit", "install_staged_lock",
-        "staged_lock_sha256",
+        "staged_lock_sha256", "--refresh-staged-lock", "refresh_staged_lock",
+        "generate_lockfile", "matrix lane lock differs from descriptor identity",
+        '"sha256": passes[0][1]',
+        'command[1:3] == ["generate-lockfile", "--manifest-path"]',
+        'Path(command[3]) != cwd / "Cargo.toml"',
+        "'metadata', '--locked', *sys.argv[2:]",
+        'cyclonedx_env = env | {"CARGO": str(locked_cargo)}',
+        "release evidence staged lock digest differs",
+        "Rustdoc changed the staged lock",
+        "public API extraction changed the staged lock",
+        "CycloneDX changed the staged lock",
+        "archive installed staged lock digest differs",
+        "matrix installed staged lock digest differs",
+        "output.mkdir(mode=0o700)", "reserved output was modified during refresh",
+        "shutil.rmtree(output)",
     )
     for phrase in required_builder:
         if phrase not in builder:
@@ -477,27 +515,86 @@ def validate(root: Path) -> list[str]:
         for owner in ("assemble", "build_matrix_lane")
     ):
         errors.append("DID candidate builder must install the staged lock in archive and matrix paths")
-    generated_locks = [
-        call
-        for call in named_calls(builder_tree, "run")
-        if (literal_command(call) or [])[:2] == ["cargo", "generate-lockfile"]
+    generation_literals = [
+        node for node in ast.walk(builder_tree)
+        if isinstance(node, ast.Constant) and node.value == "generate-lockfile"
     ]
-    closure_generates = named_calls(
-        functions.get("verify_closure", ast.Module(body=[], type_ignores=[])), "run"
+    generation_function = functions.get(
+        "generate_lockfile", ast.Module(body=[], type_ignores=[])
     )
-    allowed_generate = [
-        call
-        for call in closure_generates
-        if (literal_command(call) or [])[:2] == ["cargo", "generate-lockfile"]
-        and any(
-            keyword.arg == "cwd"
-            and isinstance(keyword.value, ast.Name)
-            and keyword.value.id == "verify"
-            for keyword in call.keywords
-        )
+    privileged_runs = [
+        call for call in named_calls(builder_tree, "run")
+        if any(keyword.arg == "lock_generation_purpose" for keyword in call.keywords)
     ]
-    if len(generated_locks) != 1 or generated_locks != allowed_generate:
-        errors.append("DID candidate lock generation must stay inside extracted closure verification")
+    generation_runs = named_calls(generation_function, "run")
+    direct_generation_runs = [
+        call
+        for runner in ("run", "run_stdout")
+        for call in named_calls(builder_tree, runner)
+        if (literal_command(call) or [])[:2] == ["cargo", "generate-lockfile"]
+    ]
+    generation_calls = named_calls(builder_tree, "generate_lockfile")
+    allowed_callers = {
+        "verify_closure": "extracted-closure",
+        "refresh_staged_lock": "staged-refresh",
+    }
+    generation_call_contract = all(
+        len(named_calls(functions.get(owner, ast.Module(body=[], type_ignores=[])), "generate_lockfile")) == 1
+        and literal_string_argument(
+            named_calls(functions[owner], "generate_lockfile")[0], 2
+        ) == purpose
+        for owner, purpose in allowed_callers.items()
+    )
+    generation_run_contract = (
+        len(generation_runs) == 1
+        and (literal_command(generation_runs[0]) or [])[:3]
+        == ["cargo", "generate-lockfile", "--manifest-path"]
+        and any(
+            keyword.arg == "lock_generation_purpose"
+            and isinstance(keyword.value, ast.Name)
+            and keyword.value.id == "purpose"
+            for keyword in generation_runs[0].keywords
+        )
+    )
+    if (
+        len(generation_literals) != 2
+        or len(generation_calls) != 2
+        or not generation_call_contract
+        or not generation_run_contract
+        or privileged_runs != generation_runs
+        or direct_generation_runs != generation_runs
+    ):
+        errors.append(
+            "DID candidate lock generation must stay inside closed closure/refresh capabilities"
+        )
+    staged_operations = {
+        "rustdoc": [
+            call for call in named_calls(builder_tree, "run")
+            if (literal_command(call) or [])[:2] == ["cargo", "rustdoc"]
+        ],
+        "cyclonedx": [
+            call for call in named_calls(builder_tree, "run")
+            if (literal_command(call) or [])[:2] == ["cargo-cyclonedx", "cyclonedx"]
+        ],
+    }
+    rustdoc_calls = staged_operations["rustdoc"]
+    cyclonedx_calls = staged_operations["cyclonedx"]
+    cyclonedx_env_bound = (
+        len(cyclonedx_calls) == 1
+        and any(
+            keyword.arg == "env"
+            and isinstance(keyword.value, ast.Name)
+            and keyword.value.id == "cyclonedx_env"
+            for keyword in cyclonedx_calls[0].keywords
+        )
+    )
+    if (
+        len(rustdoc_calls) != 1
+        or not cargo_option_precedes_separator(rustdoc_calls[0], "--locked")
+        or len(cyclonedx_calls) != 1
+        or not cyclonedx_env_bound
+    ):
+        errors.append("DID staged Cargo evidence operations must use --locked")
     forbidden_builder = (
         "cargo publish", "git tag", "gh release", "CARGO_REGISTRY_TOKEN",
         "CARGO_PUBLISH", "crates-io-auth-action",

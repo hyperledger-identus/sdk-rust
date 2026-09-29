@@ -33,9 +33,9 @@ EXTERNAL_DEPENDENCIES = (
 )
 ALLOWED_SUFFIXES = {".rs", ".md"}
 ALLOWED_CARGO_OPERATIONS = frozenset({
-    "check", "cyclonedx", "generate-lockfile", "package", "public-api", "rustdoc",
-    "test",
+    "check", "package", "public-api", "rustdoc", "test",
 })
+LOCK_GENERATION_PURPOSES = frozenset({"extracted-closure", "staged-refresh"})
 SHA = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -43,7 +43,9 @@ class CandidateError(RuntimeError):
     pass
 
 
-def require_local_command(command: list[str]) -> None:
+def require_local_command(
+    command: list[str], *, cwd: Path, lock_generation_purpose: str | None = None
+) -> None:
     if not command:
         raise CandidateError("empty candidate command")
     executable = Path(command[0]).name
@@ -55,7 +57,19 @@ def require_local_command(command: list[str]) -> None:
         return
     if executable == "cargo" and command[1:] == ["semver-checks", "--version"]:
         return
+    if (
+        executable == "cargo"
+        and len(command) == 4
+        and command[1:3] == ["generate-lockfile", "--manifest-path"]
+    ):
+        if lock_generation_purpose not in LOCK_GENERATION_PURPOSES:
+            raise CandidateError("candidate lock generation requires an explicit closed purpose")
+        if Path(command[3]) != cwd / "Cargo.toml":
+            raise CandidateError("candidate lock generation manifest path differs from its workspace")
+        return
     if executable == "cargo" and len(command) >= 2 and command[1] in ALLOWED_CARGO_OPERATIONS:
+        return
+    if executable == "cargo-cyclonedx" and len(command) >= 2 and command[1] == "cyclonedx":
         return
     if (
         Path(command[0]).resolve() == Path(sys.executable).resolve()
@@ -66,8 +80,13 @@ def require_local_command(command: list[str]) -> None:
     raise CandidateError(f"candidate command is not allowlisted: {executable}")
 
 
-def run(command: list[str], *, cwd: Path, env: dict[str, str]) -> str:
-    require_local_command(command)
+def run(
+    command: list[str], *, cwd: Path, env: dict[str, str],
+    lock_generation_purpose: str | None = None,
+) -> str:
+    require_local_command(
+        command, cwd=cwd, lock_generation_purpose=lock_generation_purpose
+    )
     result = subprocess.run(
         command, cwd=cwd, env=env, check=False, text=True,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -79,7 +98,7 @@ def run(command: list[str], *, cwd: Path, env: dict[str, str]) -> str:
 
 
 def run_stdout(command: list[str], *, cwd: Path, env: dict[str, str]) -> str:
-    require_local_command(command)
+    require_local_command(command, cwd=cwd)
     result = subprocess.run(
         command, cwd=cwd, env=env, check=False, text=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -90,6 +109,15 @@ def run_stdout(command: list[str], *, cwd: Path, env: dict[str, str]) -> str:
             f"command failed ({result.returncode}): {rendered}\n{result.stdout}{result.stderr}"
         )
     return result.stdout
+
+
+def generate_lockfile(workspace: Path, env: dict[str, str], purpose: str) -> None:
+    run(
+        ["cargo", "generate-lockfile", "--manifest-path", str(workspace / "Cargo.toml")],
+        cwd=workspace,
+        env=env,
+        lock_generation_purpose=purpose,
+    )
 
 
 def load_toml(path: Path) -> dict[str, Any]:
@@ -130,7 +158,7 @@ def sha256(path: Path) -> str:
 def staged_lock_path(root: Path, descriptor: dict[str, Any]) -> Path:
     relative = Path(str(descriptor.get("staged_lock", "")))
     expected = Path("docs/release/did-candidate.lock")
-    if relative != expected or relative.is_absolute() or ".." in relative.parts:
+    if relative != expected:
         raise CandidateError("staged lock path differs")
     candidate = root / relative
     if candidate.is_symlink() or not candidate.is_file():
@@ -149,10 +177,91 @@ def install_staged_lock(root: Path, stage: Path, descriptor: dict[str, Any]) -> 
     source = staged_lock_path(root, descriptor)
     destination = stage / "Cargo.lock"
     shutil.copyfile(source, destination)
-    digest = sha256(destination)
-    if digest != descriptor["staged_lock_sha256"]:
-        raise CandidateError("installed staged lock digest differs")
-    return digest
+    return sha256(destination)
+
+
+def create_locked_metadata_cargo(parent: Path, env: dict[str, str]) -> Path:
+    real_cargo = shutil.which("cargo", path=env.get("PATH"))
+    if real_cargo is None:
+        raise CandidateError("cannot locate pinned Cargo for locked metadata")
+    parent.mkdir(parents=True, exist_ok=True)
+    wrapper = parent / "cargo-metadata-locked.py"
+    wrapper.write_text(
+        "\n".join([
+            f"#!{sys.executable}",
+            "import os",
+            "import sys",
+            f"REAL_CARGO = {real_cargo!r}",
+            "if len(sys.argv) < 2 or sys.argv[1] != 'metadata':",
+            "    raise SystemExit('locked Cargo wrapper accepts metadata only')",
+            "os.execv(REAL_CARGO, [REAL_CARGO, 'metadata', '--locked', *sys.argv[2:]])",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    wrapper.chmod(0o500)
+    return wrapper
+
+
+def staged_lock_identities(path: Path, descriptor: dict[str, Any]) -> list[dict[str, Any]]:
+    if path.is_symlink() or not path.is_file():
+        raise CandidateError("staged lock must be a regular file")
+    if path.stat().st_size == 0 or path.stat().st_size > 262144:
+        raise CandidateError("staged lock has an invalid byte size")
+    lock = load_toml(path)
+    if set(lock) != {"version", "package"} or lock.get("version") != 4:
+        raise CandidateError("staged lock shape or format differs")
+    packages = lock.get("package")
+    if not isinstance(packages, list):
+        raise CandidateError("staged lock packages must be an array")
+    expected_identus = {
+        name: (descriptor["version"], None) for name in PACKAGE_ORDER
+    }
+    for package in descriptor["packages"]:
+        for name in package["candidate_dependencies"] + package["published_dependencies"]:
+            if name not in expected_identus:
+                expected_identus[name] = (
+                    descriptor["version"],
+                    "registry+https://github.com/rust-lang/crates.io-index",
+                )
+    identities: list[dict[str, Any]] = []
+    seen: set[tuple[Any, Any, Any]] = set()
+    observed_identus: dict[str, tuple[Any, Any]] = {}
+    for package in packages:
+        if not isinstance(package, dict):
+            raise CandidateError("staged lock package is malformed")
+        name = package.get("name")
+        version = package.get("version")
+        source = package.get("source")
+        checksum = package.get("checksum")
+        if not isinstance(name, str) or not isinstance(version, str):
+            raise CandidateError("staged lock package identity is malformed")
+        identity = (name, version, source)
+        if identity in seen:
+            raise CandidateError("staged lock contains a duplicate package identity")
+        seen.add(identity)
+        if source is not None:
+            if source != "registry+https://github.com/rust-lang/crates.io-index":
+                raise CandidateError("staged lock contains a non-crates.io source")
+            if not isinstance(checksum, str) or not re.fullmatch(r"[0-9a-f]{64}", checksum):
+                raise CandidateError("staged lock registry checksum is invalid")
+        elif name not in PACKAGE_ORDER:
+            raise CandidateError("staged lock registry package is missing source provenance")
+        if name.startswith("identus-"):
+            if name in observed_identus:
+                raise CandidateError("staged lock contains a duplicate candidate package name")
+            observed_identus[name] = (version, source)
+        identities.append({
+            "name": name, "version": version, "source": source, "checksum": checksum,
+        })
+    if observed_identus != expected_identus:
+        raise CandidateError("staged lock candidate package identity differs")
+    return sorted(
+        identities,
+        key=lambda item: (
+            item["name"], item["version"], item["source"] or "", item["checksum"] or "",
+        ),
+    )
 
 
 def source_revision(root: Path, requested: str | None, allow_dirty: bool) -> tuple[str, bool]:
@@ -281,8 +390,8 @@ def create_stage(root: Path, parent: Path, descriptor: dict[str, Any]) -> Path:
 
 def assemble(
     root: Path, stage: Path, descriptor: dict[str, Any], env: dict[str, str]
-) -> dict[str, Path]:
-    install_staged_lock(root, stage, descriptor)
+) -> tuple[dict[str, Path], str]:
+    lock_hash = install_staged_lock(root, stage, descriptor)
     run([
         "cargo", "package", "--workspace", "--locked", "--no-verify", "--allow-dirty",
         "--manifest-path", str(stage / "Cargo.toml"),
@@ -294,7 +403,7 @@ def assemble(
         if not archive.is_file():
             raise CandidateError(f"Cargo did not create expected archive: {archive.name}")
         archives[name] = archive
-    return archives
+    return archives, lock_hash
 
 
 def safe_members(archive: Path, prefix: str, descriptor: dict[str, Any]) -> list[tarfile.TarInfo]:
@@ -433,7 +542,7 @@ def verify_closure(
     (verify / "Cargo.toml").write_text("\n".join(manifest), encoding="utf-8")
     # Extracted packages form a distinct patched workspace, so its closure-local
     # lock is not the staged source lock compared across candidate lanes.
-    run(["cargo", "generate-lockfile"], cwd=verify, env=env)
+    generate_lockfile(verify, env, "extracted-closure")
     commands: list[list[str]] = []
     for profile in descriptor["profiles"]:
         for operation in ("check", "test"):
@@ -534,6 +643,9 @@ def release_evidence(
     initialize_api: bool,
 ) -> tuple[dict[str, str], list[dict[str, Any]]]:
     tools = descriptor["tools"]
+    expected_lock = descriptor["staged_lock_sha256"]
+    if sha256(stage / "Cargo.lock") != expected_lock:
+        raise CandidateError("release evidence staged lock digest differs")
     versions = {
         "cargoPublicApi": require_subcommand_version(
             ["cargo", "public-api", "--version"], tools["cargo_public_api"], root, env
@@ -543,26 +655,34 @@ def release_evidence(
             tools["cargo_semver_checks"], root, env,
         ),
         "cargoCyclonedx": require_subcommand_version(
-            ["cargo", "cyclonedx", "--version"], tools["cargo_cyclonedx"], root, env
+            ["cargo-cyclonedx", "cyclonedx", "--version"],
+            tools["cargo_cyclonedx"], root, env,
         ),
         "cyclonedxSpec": tools["cyclonedx_spec"],
     }
     evidence: list[dict[str, Any]] = []
     api_target = stage / "target/public-api"
     api_env = env | {"RUSTC_BOOTSTRAP": "1"}
+    locked_cargo = create_locked_metadata_cargo(stage / "target/release-tools", env)
+    cyclonedx_env = env | {"CARGO": str(locked_cargo)}
     for package in descriptor["packages"]:
         name = package["name"]
         run([
             "cargo", "rustdoc", "--manifest-path", str(stage / package["path"] / "Cargo.toml"),
-            "--all-features", "--lib", "--target-dir", str(api_target), "--",
+            "--locked", "--all-features", "--lib", "--target-dir", str(api_target), "--",
             "-Z", "unstable-options", "--output-format", "json",
         ], cwd=stage, env=api_env)
+        if sha256(stage / "Cargo.lock") != expected_lock:
+            raise CandidateError(f"Rustdoc changed the staged lock: {name}")
         api_json = api_target / "doc" / f"{name.replace('-', '_')}.json"
         require_bounded_evidence(api_json, descriptor)
+        lock_before = sha256(stage / "Cargo.lock")
         api = run_stdout([
             "cargo", "public-api", "--rustdoc-json", str(api_json),
             "-sss", "--color=never",
         ], cwd=stage, env=env)
+        if sha256(stage / "Cargo.lock") != lock_before:
+            raise CandidateError(f"public API extraction changed the staged lock: {name}")
         api_bytes = api.encode("utf-8")
         if not api.strip() or len(api_bytes) > descriptor["max_evidence_bytes"]:
             raise CandidateError(f"public API evidence has invalid byte size: {name}")
@@ -578,11 +698,15 @@ def release_evidence(
         })
 
         override = f"{name}-candidate"
+        lock_before = sha256(stage / "Cargo.lock")
         run([
-            "cargo", "cyclonedx", "--manifest-path", str(stage / package["path"] / "Cargo.toml"),
+            "cargo-cyclonedx", "cyclonedx", "--manifest-path",
+            str(stage / package["path"] / "Cargo.toml"),
             "--format", "json", "--spec-version", tools["cyclonedx_spec"],
             "--all-features", "--override-filename", override,
-        ], cwd=stage, env=env)
+        ], cwd=stage, env=cyclonedx_env)
+        if sha256(stage / "Cargo.lock") != lock_before:
+            raise CandidateError(f"CycloneDX changed the staged lock: {name}")
         matches = sorted((stage / package["path"]).glob(f"{override}*.json"))
         if len(matches) != 1:
             raise CandidateError(f"expected one CycloneDX document for {name}; found {len(matches)}")
@@ -701,6 +825,8 @@ def build_matrix_lane(
         host = matrix_host(descriptor, run(["rustc", "-vV"], cwd=root, env=env))
         stage = create_stage(root, scratch / "candidate", descriptor)
         lock_hash = install_staged_lock(root, stage, descriptor)
+        if lock_hash != descriptor["staged_lock_sha256"]:
+            raise CandidateError("matrix installed staged lock digest differs")
         rows: list[dict[str, Any]] = []
         host_operation = host[f"{toolchain_class}_operation"]
         for package in host["packages"]:
@@ -901,6 +1027,8 @@ def aggregate_matrix(
         lock_hash = lane.get("lock", {}).get("sha256")
         if not isinstance(lock_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", lock_hash):
             raise CandidateError("matrix lane lock hash is invalid")
+        if lock_hash != descriptor["staged_lock_sha256"]:
+            raise CandidateError("matrix lane lock differs from descriptor identity")
         lock_hashes.add(lock_hash)
         lanes.append(lane)
     if identities != expected_identities:
@@ -930,6 +1058,89 @@ def aggregate_matrix(
     return output
 
 
+def identity_keys(identities: list[dict[str, Any]]) -> set[tuple[Any, ...]]:
+    return {
+        (row["name"], row["version"], row["source"], row["checksum"])
+        for row in identities
+    }
+
+
+def render_identity(identity: tuple[Any, ...]) -> dict[str, Any]:
+    return dict(zip(("name", "version", "source", "checksum"), identity, strict=True))
+
+
+def refresh_staged_lock(
+    root: Path, output: Path, requested: str | None,
+) -> Path:
+    run(
+        [sys.executable, str(root / "scripts/check-release-candidates.py"), str(root)],
+        cwd=root,
+        env=os.environ.copy(),
+    )
+    descriptor = load_toml(root / DESCRIPTOR)
+    revision, _ = source_revision(root, requested, False)
+    require_vcs_independent_build_scratch(root, output)
+    if output.exists():
+        raise CandidateError(f"output already exists: {output}")
+    output_parent = output.resolve().parent
+    output_parent.mkdir(parents=True, exist_ok=True)
+    try:
+        output.mkdir(mode=0o700)
+    except FileExistsError as error:
+        raise CandidateError(f"output already exists: {output}") from error
+    try:
+        with tempfile.TemporaryDirectory(prefix="identus-did-lock-refresh-") as temporary:
+            scratch = Path(temporary)
+            require_vcs_independent_build_scratch(root, scratch)
+            env = sanitized_environment(scratch / "cargo-home")
+            expected_tool = descriptor["preparation_rust_version"]
+            rustc = require_tool_version(
+                "rustc", run(["rustc", "--version"], cwd=root, env=env), expected_tool
+            )
+            cargo = require_tool_version(
+                "cargo", run(["cargo", "--version"], cwd=root, env=env), expected_tool
+            )
+            stage = create_stage(root, scratch / "refresh", descriptor)
+            generate_lockfile(stage, env, "staged-refresh")
+            proposed = stage / "Cargo.lock"
+            current = staged_lock_path(root, descriptor)
+            current_identities = staged_lock_identities(current, descriptor)
+            proposed_identities = staged_lock_identities(proposed, descriptor)
+            current_keys = identity_keys(current_identities)
+            proposed_keys = identity_keys(proposed_identities)
+            current_hash = sha256(current)
+            proposed_hash = sha256(proposed)
+            report = {
+                "schemaVersion": 1,
+                "candidate": descriptor["candidate"],
+                "sourceRevision": revision,
+                "sourceDirty": False,
+                "tools": {"rustc": rustc, "cargo": cargo},
+                "currentLockSha256": current_hash,
+                "proposedLockSha256": proposed_hash,
+                "status": "unchanged" if current_hash == proposed_hash else "changed",
+                "added": [render_identity(row) for row in sorted(proposed_keys - current_keys)],
+                "removed": [render_identity(row) for row in sorted(current_keys - proposed_keys)],
+                "limitations": [
+                    "review-only; repository lock and descriptor remain unchanged",
+                    "registry state at refresh time is an input to proposed resolution",
+                ],
+            }
+            if any(output.iterdir()):
+                raise CandidateError(f"reserved output was modified during refresh: {output}")
+            shutil.copyfile(proposed, output / "did-candidate.lock")
+            write_json_atomic(
+                output / "refresh-report.json", report, descriptor["max_evidence_bytes"]
+            )
+    except Exception as error:
+        try:
+            shutil.rmtree(output)
+        except OSError as cleanup_error:
+            error.add_note(f"failed to remove reserved refresh output: {cleanup_error}")
+        raise
+    return output / "refresh-report.json"
+
+
 def build(
     root: Path, output: Path, requested: str | None, allow_dirty: bool, initialize_api: bool
 ) -> Path:
@@ -955,21 +1166,25 @@ def build(
         expected_tool = descriptor["preparation_rust_version"]
         rustc = require_tool_version("rustc", run(["rustc", "--version"], cwd=root, env=env), expected_tool)
         cargo = require_tool_version("cargo", run(["cargo", "--version"], cwd=root, env=env), expected_tool)
-        passes: list[dict[str, Path]] = []
+        passes: list[tuple[dict[str, Path], str]] = []
         for pass_name in ("first", "second"):
             stage = create_stage(root, scratch / pass_name, descriptor)
             passes.append(assemble(root, stage, descriptor, env))
         for name in PACKAGE_ORDER:
-            if sha256(passes[0][name]) != sha256(passes[1][name]):
+            if sha256(passes[0][0][name]) != sha256(passes[1][0][name]):
                 raise CandidateError(f"two-pass archive bytes differ: {name}")
+        if passes[0][1] != passes[1][1]:
+            raise CandidateError("two-pass installed staged lock digests differ")
+        if passes[0][1] != descriptor["staged_lock_sha256"]:
+            raise CandidateError("archive installed staged lock digest differs")
         for package in descriptor["packages"]:
-            inspect_archive(passes[0][package["name"]], package, descriptor)
-        commands = verify_closure(passes[0], scratch, descriptor, env)
+            inspect_archive(passes[0][0][package["name"]], package, descriptor)
+        commands = verify_closure(passes[0][0], scratch, descriptor, env)
         staged_output = Path(tempfile.mkdtemp(prefix=f".{output.name}.tmp-", dir=output_parent))
         try:
             archive_receipts = []
             for name in PACKAGE_ORDER:
-                source = passes[0][name]
+                source = passes[0][0][name]
                 destination = staged_output / source.name
                 shutil.copyfile(source, destination)
                 archive_receipts.append({
@@ -990,7 +1205,7 @@ def build(
                 "sourceDirty": dirty,
                 "stagedLock": {
                     "file": descriptor["staged_lock"],
-                    "sha256": descriptor["staged_lock_sha256"],
+                    "sha256": passes[0][1],
                 },
                 "tools": {"rustc": rustc, "cargo": cargo, **evidence_tools},
                 "compatibility": {
@@ -1040,6 +1255,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--initialize-api", action="store_true")
     parser.add_argument("--matrix-toolchain", choices=("primary", "msrv"))
     parser.add_argument("--aggregate-matrix", action="store_true")
+    parser.add_argument("--refresh-staged-lock", action="store_true")
     parser.add_argument("--lane-receipt", action="append", type=Path, default=[])
     return parser.parse_args()
 
@@ -1049,7 +1265,14 @@ def main() -> int:
     try:
         root = arguments.root.resolve()
         output = arguments.output.resolve()
-        if arguments.aggregate_matrix:
+        if arguments.refresh_staged_lock:
+            if (
+                arguments.aggregate_matrix or arguments.matrix_toolchain
+                or arguments.allow_dirty or arguments.initialize_api or arguments.lane_receipt
+            ):
+                raise CandidateError("refresh mode does not accept build or matrix options")
+            receipt = refresh_staged_lock(root, output, arguments.revision)
+        elif arguments.aggregate_matrix:
             if arguments.matrix_toolchain or arguments.allow_dirty or arguments.initialize_api:
                 raise CandidateError("aggregate mode does not accept lane/build options")
             receipt = aggregate_matrix(

@@ -17,6 +17,10 @@
   `11f1676f046e096a8cbcfa95429c2117efedf44f`
 - Reviewed source head after precedence correction:
   `0d4af96c2b3b9a96d287d7fca3993bd6af886160`
+- Exact implementation PR head:
+  `61f59b191bbb83bbd382133867f8828bfa00481f`
+- Protected implementation squash:
+  `e42a9dcabc824dbae71f99639a794c05356ce8f7`
 
 ## Behavioral compatibility
 
@@ -69,8 +73,19 @@ population projection
 and report digest
 `93fecfaca1f83285423b9b6a4845f3c5db935b2abf34bcf33e2a1c5e49f5542d`.
 
-Canonical evidence must be regenerated and rebound after the implementation
-is squash-merged to protected `develop`.
+The canonical report regenerated from protected
+`develop@e42a9dcabc824dbae71f99639a794c05356ce8f7` preserves that source
+fingerprint and population projection. Its immutable report digest is
+`23d17c60f949b6c1dc942907ebc62ff6feb52e2a5a5b24c3fc96e2710e9c2d58`.
+
+## Hosted delivery
+
+- Implementation PR #466 merged through the guarded protected-branch path at
+  exact head `61f59b191bbb83bbd382133867f8828bfa00481f`.
+- DCO, pull-request policy, file hygiene, and the fast Rust lane passed; the
+  critical Rust lane completed in 7 minutes 55 seconds with no retry or
+  post-CI push.
+- Bounded v2 delivery metrics are retained locally and published on PR #466.
 
 ## Local gates
 

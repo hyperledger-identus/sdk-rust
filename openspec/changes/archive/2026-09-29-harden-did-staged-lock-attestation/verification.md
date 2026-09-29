@@ -4,9 +4,11 @@
 
 Initial implementation evidence was collected from
 `3d0d3140537cba451677f55732cd8767f668dede`. Discovery-review remediation and
-the final clean implementation evidence were collected from
-`cf0d8a79289773a5ad531e4aa9b5a30f5f171e32`. The final evidence-record update
-is documentation-only relative to that implementation.
+the first remediated clean implementation evidence was collected from
+`cf0d8a79289773a5ad531e4aa9b5a30f5f171e32`. A second exact-head review then
+identified and closed the public-API digest bracket, unused allowlist/helper,
+and failed-refresh cleanup gaps. The final exact revision is recorded by the
+protected PR and hosted CI evidence.
 
 ## Focused gates
 
@@ -72,3 +74,6 @@ generation through both command runners, purpose-owned manifest escape,
 aggregate/descriptor digest drift, descriptor-echoed archive receipts,
 post-separator Rustdoc locking, an unlocked CycloneDX metadata wrapper,
 unbound CycloneDX wrapper environment, and non-exclusive refresh output.
+It also rejects removal of the public-API lock postcondition, restoration of
+the unused prefix-form Cargo allowlist at runtime, and regression from bounded
+recursive refresh cleanup to empty-directory-only cleanup.

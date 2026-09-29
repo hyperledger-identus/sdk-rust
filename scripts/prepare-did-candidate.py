@@ -69,11 +69,6 @@ def require_local_command(
         return
     if executable == "cargo" and len(command) >= 2 and command[1] in ALLOWED_CARGO_OPERATIONS:
         return
-    if (
-        executable == "cargo" and len(command) >= 3 and command[1] == "--locked"
-        and command[2] in ALLOWED_CARGO_OPERATIONS
-    ):
-        return
     if executable == "cargo-cyclonedx" and len(command) >= 2 and command[1] == "cyclonedx":
         return
     if (
@@ -676,10 +671,13 @@ def release_evidence(
         ], cwd=stage, env=api_env)
         api_json = api_target / "doc" / f"{name.replace('-', '_')}.json"
         require_bounded_evidence(api_json, descriptor)
+        lock_before = sha256(stage / "Cargo.lock")
         api = run_stdout([
             "cargo", "public-api", "--rustdoc-json", str(api_json),
             "-sss", "--color=never",
         ], cwd=stage, env=env)
+        if sha256(stage / "Cargo.lock") != lock_before:
+            raise CandidateError(f"public API extraction changed the staged lock: {name}")
         api_bytes = api.encode("utf-8")
         if not api.strip() or len(api_bytes) > descriptor["max_evidence_bytes"]:
             raise CandidateError(f"public API evidence has invalid byte size: {name}")
@@ -1129,11 +1127,11 @@ def refresh_staged_lock(
             write_json_atomic(
                 output / "refresh-report.json", report, descriptor["max_evidence_bytes"]
             )
-    except Exception:
+    except Exception as error:
         try:
-            output.rmdir()
-        except OSError:
-            pass
+            shutil.rmtree(output)
+        except OSError as cleanup_error:
+            error.add_note(f"failed to remove reserved refresh output: {cleanup_error}")
         raise
     return output / "refresh-report.json"
 

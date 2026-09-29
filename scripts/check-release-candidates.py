@@ -184,15 +184,6 @@ def literal_string_argument(call: ast.Call, position: int) -> str | None:
     return value.value if isinstance(value, ast.Constant) and isinstance(value.value, str) else None
 
 
-def command_string_literals(call: ast.Call) -> list[str]:
-    if not call.args or not isinstance(call.args[0], (ast.List, ast.Tuple)):
-        return []
-    return [
-        element.value for element in call.args[0].elts
-        if isinstance(element, ast.Constant) and isinstance(element.value, str)
-    ]
-
-
 def command_tokens(call: ast.Call) -> list[str | None]:
     if not call.args or not isinstance(call.args[0], (ast.List, ast.Tuple)):
         return []
@@ -496,8 +487,10 @@ def validate(root: Path) -> list[str]:
         'Path(command[3]) != cwd / "Cargo.toml"',
         "'metadata', '--locked', *sys.argv[2:]",
         'cyclonedx_env = env | {"CARGO": str(locked_cargo)}',
+        "public API extraction changed the staged lock",
         "CycloneDX changed the staged lock",
         "output.mkdir(mode=0o700)", "reserved output was modified during refresh",
+        "shutil.rmtree(output)",
     )
     for phrase in required_builder:
         if phrase not in builder:

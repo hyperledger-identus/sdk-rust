@@ -239,7 +239,7 @@ def main() -> int:
             raise AssertionError("CycloneDX Cargo wrapper did not inject locked metadata")
         for forbidden_command in (
             ["git", "push"], ["cargo", "publish"], ["gh", "release", "create"],
-            ["cargo", "semver-checks", "check-release"],
+            ["cargo", "semver-checks", "check-release"], ["cargo", "--locked", "test"],
         ):
             try:
                 builder.require_local_command(forbidden_command, cwd=boundary)
@@ -691,10 +691,26 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / "scripts/prepare-did-candidate.py",
+                    "public API extraction changed the staged lock",
+                    "public API extraction completed",
+                ),
+                "DID candidate builder is missing contract: public API extraction changed the staged lock",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
                     "output.mkdir(mode=0o700)",
                     "output.mkdir(mode=0o700, exist_ok=True)",
                 ),
                 "DID candidate builder is missing contract: output.mkdir(mode=0o700)",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-did-candidate.py",
+                    "shutil.rmtree(output)",
+                    "output.rmdir()",
+                ),
+                "DID candidate builder is missing contract: shutil.rmtree(output)",
             ),
             (
                 lambda root: replace(

@@ -50,6 +50,19 @@ The external review produced five actionable findings:
    The absent directory is now atomically reserved before the long operation,
    and unexpected contents fail closed rather than being replaced.
 
+The exact-head follow-up review produced four additional findings, all
+accepted and remediated before merge:
+
+1. Public-API rendering now brackets the staged lock with observed digests,
+   even though the pinned tool receives an existing Rustdoc JSON document.
+2. The unused prefix-form Cargo allowlist was removed so the runtime command
+   boundary accepts only command shapes that are actually used.
+3. A leftover unused AST string helper was removed.
+4. Failed refreshes recursively remove the output directory reserved by that
+   invocation, while surfacing any cleanup failure on the original exception;
+   a retry with the same output path is therefore not blocked by partial
+   evidence owned by the failed invocation.
+
 ## Architecture and maintainability
 
 The changes remain within the existing DID release-candidate policy owner and

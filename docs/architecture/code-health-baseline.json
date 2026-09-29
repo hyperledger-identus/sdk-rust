@@ -87,9 +87,9 @@
   "population_projection_sha256": "2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80",
   "populations": {
     "external_test": {
-      "authored_nonblank_lines": 30912,
+      "authored_nonblank_lines": 30970,
       "files": 95,
-      "functions": 1280
+      "functions": 1282
     },
     "inline_test": {
       "authored_nonblank_lines": 5231,
@@ -97,12 +97,12 @@
       "functions": 371
     },
     "production": {
-      "authored_nonblank_lines": 37650,
+      "authored_nonblank_lines": 37667,
       "files": 204,
-      "functions": 2878
+      "functions": 2879
     }
   },
-  "revision": "eca0218779cb960ae4e4b982095fd878ebf5371a",
+  "revision": "094735f0995dc2914f92e4106d11ddfa189f7399",
   "schema_version": 2,
   "signals": {
     "functions": [
@@ -407,16 +407,6 @@
         "start_line": 201
       },
       {
-        "cognitive": 17,
-        "cyclomatic": 40,
-        "end_line": 238,
-        "name": "validate_datetime",
-        "path": "crates/did/src/resolution/value.rs",
-        "population": "production",
-        "sloc": 71,
-        "start_line": 168
-      },
-      {
         "cognitive": 4,
         "cyclomatic": 16,
         "end_line": 356,
@@ -659,5 +649,5 @@
     ],
     "modules": []
   },
-  "source_fingerprint_sha256": "e6ab173f16fd83a95661c1436c69886defd0c8dce6f7a86ce5505bfa0f14d593"
+  "source_fingerprint_sha256": "1b218c5e705000136a42ee30e265d8d66a67886060114ce2f39925b96e4134de"
 }

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 484,
+  "change": "harden-did-staged-lock-attestation",
+  "branch": "codex/fix/issue-484",
+  "baseRef": "origin/develop",
+  "baseSha": "f44bda2cd2ee0aac404e4c38d4c51a36a6e437e6",
+  "contractHeadSha": "37c8efd064082a19020091fcef3ad01a08b494ed",
+  "createdAt": "2026-09-29T11:23:34.102Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

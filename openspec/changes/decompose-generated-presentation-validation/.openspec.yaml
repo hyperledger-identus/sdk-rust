@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-29
+goal: Separate generated-presentation construction from deterministic artifact correlation and coverage validation without changing presentation semantics.
+

@@ -122,6 +122,98 @@ pub struct GeneratedPresentation {
     artifacts: Vec<PresentationArtifact>,
 }
 
+struct GeneratedPresentationValidator<'a> {
+    request: &'a PresentationRequest,
+    plan: &'a PresentationDisclosurePlan,
+    artifacts: &'a [PresentationArtifact],
+}
+
+impl<'a> GeneratedPresentationValidator<'a> {
+    const fn new(
+        request: &'a PresentationRequest,
+        plan: &'a PresentationDisclosurePlan,
+        artifacts: &'a [PresentationArtifact],
+    ) -> Self {
+        Self {
+            request,
+            plan,
+            artifacts,
+        }
+    }
+
+    fn validate(&self) -> Result<(), PresentationError> {
+        self.validate_payload_budget()?;
+        self.validate_artifact_bindings()?;
+        self.validate_plan_coverage()
+    }
+
+    fn validate_payload_budget(&self) -> Result<(), PresentationError> {
+        let total_bytes = self.artifacts.iter().try_fold(0_usize, |total, artifact| {
+            total.checked_add(artifact.as_bytes().len())
+        });
+        if total_bytes.is_none_or(|total| total > MAX_GENERATED_PRESENTATION_BYTES) {
+            return Err(PresentationError::ArtifactPayloadBudgetExceeded);
+        }
+        Ok(())
+    }
+
+    fn validate_artifact_bindings(&self) -> Result<(), PresentationError> {
+        for (artifact_index, artifact) in self.artifacts.iter().enumerate() {
+            for binding in artifact.bindings() {
+                self.validate_binding(artifact_index, artifact, binding)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn validate_binding(
+        &self,
+        artifact_index: usize,
+        artifact: &PresentationArtifact,
+        binding: &PresentationArtifactBinding,
+    ) -> Result<(), PresentationError> {
+        let selection = self
+            .plan
+            .as_slice()
+            .iter()
+            .find(|selection| {
+                selection.query_id() == binding.query_id()
+                    && selection.credential_handle() == binding.credential_handle()
+            })
+            .ok_or(PresentationError::UnknownArtifactSelection)?;
+        let query = self
+            .request
+            .query(selection.query_id())
+            .ok_or(PresentationError::UnknownArtifactSelection)?;
+        if artifact.format() != query.format() {
+            return Err(PresentationError::ArtifactFormatMismatch);
+        }
+        if self.artifacts[..artifact_index].iter().any(|previous| {
+            previous.bindings().iter().any(|previous_binding| {
+                previous_binding.query_id() == binding.query_id()
+                    && previous_binding.credential_handle() == binding.credential_handle()
+            })
+        }) {
+            return Err(PresentationError::DuplicateGeneratedArtifactBinding);
+        }
+        Ok(())
+    }
+
+    fn validate_plan_coverage(&self) -> Result<(), PresentationError> {
+        if self.plan.as_slice().iter().any(|selection| {
+            !self.artifacts.iter().any(|artifact| {
+                artifact.bindings().iter().any(|binding| {
+                    binding.query_id() == selection.query_id()
+                        && binding.credential_handle() == selection.credential_handle()
+                })
+            })
+        }) {
+            return Err(PresentationError::MissingArtifactSelection);
+        }
+        Ok(())
+    }
+}
+
 impl GeneratedPresentation {
     /// Validate exact request, format, uniqueness and plan coverage invariants.
     pub fn new(
@@ -133,51 +225,7 @@ impl GeneratedPresentation {
             return Err(PresentationError::InvalidGeneratedArtifacts);
         }
         plan.validate_against(request)?;
-
-        let total_bytes = artifacts.iter().try_fold(0_usize, |total, artifact| {
-            total.checked_add(artifact.as_bytes().len())
-        });
-        if total_bytes.is_none_or(|total| total > MAX_GENERATED_PRESENTATION_BYTES) {
-            return Err(PresentationError::ArtifactPayloadBudgetExceeded);
-        }
-
-        for (artifact_index, artifact) in artifacts.iter().enumerate() {
-            for binding in artifact.bindings() {
-                let selection = plan
-                    .as_slice()
-                    .iter()
-                    .find(|selection| {
-                        selection.query_id() == binding.query_id()
-                            && selection.credential_handle() == binding.credential_handle()
-                    })
-                    .ok_or(PresentationError::UnknownArtifactSelection)?;
-                let query = request
-                    .query(selection.query_id())
-                    .ok_or(PresentationError::UnknownArtifactSelection)?;
-                if artifact.format() != query.format() {
-                    return Err(PresentationError::ArtifactFormatMismatch);
-                }
-                if artifacts[..artifact_index].iter().any(|previous| {
-                    previous.bindings().iter().any(|previous_binding| {
-                        previous_binding.query_id() == binding.query_id()
-                            && previous_binding.credential_handle() == binding.credential_handle()
-                    })
-                }) {
-                    return Err(PresentationError::DuplicateGeneratedArtifactBinding);
-                }
-            }
-        }
-
-        if plan.as_slice().iter().any(|selection| {
-            !artifacts.iter().any(|artifact| {
-                artifact.bindings().iter().any(|binding| {
-                    binding.query_id() == selection.query_id()
-                        && binding.credential_handle() == selection.credential_handle()
-                })
-            })
-        }) {
-            return Err(PresentationError::MissingArtifactSelection);
-        }
+        GeneratedPresentationValidator::new(request, &plan, &artifacts).validate()?;
 
         Ok(Self { plan, artifacts })
     }

@@ -6,7 +6,7 @@
       values, public exports, tests, dependencies, and both health signals.
 - [x] 1.2 Record the two private owners, alternatives, compatibility,
       resource/security invariants, risks, and rollback.
-- [ ] 1.3 Pass research/constraint/strict readiness, commit planning only, and
+- [x] 1.3 Pass research/constraint/strict readiness, commit planning only, and
       bind an exact issue #464 preimplementation receipt.
 - [ ] 1.4 Run the pre-change focused suite and bind a compact combined-fault
       query/correlation/branch/grammar priority matrix before movement.

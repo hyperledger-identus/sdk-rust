@@ -6,7 +6,7 @@
       exports, test coverage, dependencies, and code-health signal.
 - [x] 1.2 Record the private validation boundary, alternatives, compatibility,
       resource/security invariants, risks, and rollback.
-- [ ] 1.3 Pass research/constraint/strict readiness, commit planning only, and
+- [x] 1.3 Pass research/constraint/strict readiness, commit planning only, and
       bind an exact issue #450 preimplementation receipt.
 - [ ] 1.4 Run the pre-change focused suite and bind a compact multi-fault
       validation-priority matrix before production movement.
@@ -28,4 +28,3 @@
       resolve every blocking finding.
 - [ ] 3.3 Deliver implementation and evidence closeout as signed/DCO
       issue-linked PRs; archive, merge, and metrics require green exact-head CI.
-

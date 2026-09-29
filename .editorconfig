@@ -21,6 +21,10 @@ indent_size = unset
 [*.stderr]
 indent_size = unset
 
+[docs/release/did-candidate.lock]
+# Cargo generates dependency arrays with one-space indentation.
+indent_size = 1
+
 [fuzz/corpus/**]
 insert_final_newline = false
 trim_trailing_whitespace = false

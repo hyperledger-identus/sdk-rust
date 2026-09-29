@@ -478,9 +478,15 @@ def validate(root: Path) -> list[str]:
         (primary_app, "primary matrix app", ("toolchain", "--matrix-toolchain primary")),
         (msrv_app, "MSRV matrix app", ("msrvToolchain", "--matrix-toolchain msrv")),
         (
-            candidate_app, "candidate app",
-            ("cargoCyclonedx", "cargoPublicApi", "cargoSemverChecks", "toolchain",
-             "prepare-did-candidate.py"),
+            candidate_app,
+            "candidate app",
+            (
+                "cargoCyclonedx",
+                "cargoPublicApi",
+                "cargoSemverChecks",
+                "toolchain",
+                "prepare-did-candidate.py",
+            ),
         ),
         (
             apps, "matrix app registration",

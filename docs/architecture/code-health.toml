@@ -7,9 +7,9 @@ classifier_protocol_version        = 2
 classifier_command                 = [ "cargo", "run", "--quiet", "--locked", "-p", "identus-conformance", "--bin", "code-health-classifier", "--" ]
 classifier_source_sha256           = "607a9a81b0ff289aeb90691c2067bbe5db08973aef733910f1dd9b2ed6ac0017"
 classifier_dependencies_sha256     = "bc9684c06a8598c630ae022b966eb35ea871dc68a4a98e1bbe0f455c2e41a3f6"
-baseline_revision                  = "9146d1e60ef3eb0f1000be0c21895baca9ba8316"
-baseline_source_fingerprint_sha256 = "ed058bdd63c240414d159500c6626c2401f91e241c32d0cc2908f069214e3205"
-baseline_report_sha256             = "ebff3f21b73d5a203acf1e893662ef83e67a26f47833c0e26f94b6b6a88748ed"
+baseline_revision                  = "eca0218779cb960ae4e4b982095fd878ebf5371a"
+baseline_source_fingerprint_sha256 = "e6ab173f16fd83a95661c1436c69886defd0c8dce6f7a86ce5505bfa0f14d593"
+baseline_report_sha256             = "d25175fcbcf3dbe2004648ae109cd313842c9659f629566f50950c000093b082"
 generated_exclusions               = [  ]
 
 [attention]

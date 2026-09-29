@@ -68,9 +68,16 @@ population projection
 and report digest
 `990b65d7c1e77e070ad38beb4534be7d06cb3d41e7bff35ed3d4713b559120eb`.
 
-The canonical baseline cannot pin a feature-branch commit because protected
-delivery uses squash merge. The implementation must merge first; a distinct
-closeout will generate and pin the report from the durable protected squash.
+The implementation was squash-merged to protected
+`develop@eca0218779cb960ae4e4b982095fd878ebf5371a`. The canonical report was
+regenerated from that immutable revision and now has source fingerprint
+`e6ab173f16fd83a95661c1436c69886defd0c8dce6f7a86ce5505bfa0f14d593`,
+population projection
+`2757e495e1d40accbae481bdb00dba835584f6a9de01c0c4fed2d24b4f9deb80`,
+and report digest
+`d25175fcbcf3dbe2004648ae109cd313842c9659f629566f50950c000093b082`.
+The protected report has no `PreparedRequest::new` or replacement-helper
+signal, no module signal, and retains `dereference_services` at 66 / 8 / 20.
 
 ## Local gates
 
@@ -84,3 +91,4 @@ closeout will generate and pin the report from the durable protected squash.
 - Source distribution, factory contract, OpenSpec, formatting, diff, and Nix
   flake evaluation gates: passed.
 - Canonical Nix `rust-test` gate: passed.
+- Implementation PR #454 exact-head CI and protected guarded merge: passed.

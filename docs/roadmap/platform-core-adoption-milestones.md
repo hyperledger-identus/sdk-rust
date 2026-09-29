@@ -164,7 +164,8 @@ The next implementation milestone should be A1, not peer DID or the agent
 runtime directly. It creates the shared vector and adapter evidence every
 later adoption slice needs. Within A1, use #492's existing bounded DID values
 as the first concrete packet. In parallel, research-only work may continue on
-#489, #491, #493, #498, and #499 without activating dependencies or APIs.
+issues #489, #491, #493, #498, and #499 without activating dependencies or
+APIs.
 
 ## Non-claims
 

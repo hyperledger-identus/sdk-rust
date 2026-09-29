@@ -207,6 +207,51 @@ fn rejects_invalid_closed_protected_headers() {
 }
 
 #[test]
+fn protected_header_combined_faults_preserve_collection_and_finalization_priority() {
+    let coordinate = URL_SAFE_NO_PAD.encode([7; 32]);
+    let valid_jwk = format!(r#"{{"kty":"OKP","crv":"Ed25519","x":"{coordinate}"}}"#);
+    let cases = [
+        (
+            r#"{"alg":"EdDSA","alg":"ES256","unsupported":{}}"#.to_owned(),
+            JoseError::DuplicateProtectedHeader,
+        ),
+        (
+            r#"{"alg":"EdDSA","unsupported":{},"alg":"ES256"}"#.to_owned(),
+            JoseError::UnknownProtectedHeader,
+        ),
+        (
+            r#"{"alg":7,"unsupported":{}}"#.to_owned(),
+            JoseError::InvalidHeaderValue,
+        ),
+        (
+            r#"{"unsupported":{},"alg":7}"#.to_owned(),
+            JoseError::UnknownProtectedHeader,
+        ),
+        (
+            format!(r#"{{"kid":"key-1","jwk":{valid_jwk}}}"#),
+            JoseError::MissingAlgorithm,
+        ),
+        (
+            format!(r#"{{"alg":"EdDSA","kid":"key-1","jwk":{valid_jwk},"unsupported":{{}}}}"#),
+            JoseError::UnknownProtectedHeader,
+        ),
+        (
+            format!(r#"{{"alg":"EdDSA","kid":"key-1","jwk":{valid_jwk}}}"#),
+            JoseError::AmbiguousKeyReference,
+        ),
+    ];
+
+    for (header, expected) in cases {
+        let compact = compact_from_raw(header.as_bytes(), b"payload", b"signature");
+        assert_eq!(
+            UnverifiedCompactJws::parse(&compact, JwsLimits::default()),
+            Err(expected),
+            "unexpected precedence for {header}"
+        );
+    }
+}
+
+#[test]
 fn protected_headers_round_trip_one_exclusive_public_key_reference() {
     let jwk = PublicKeyJwk::new_okp(JwkCurve::Ed25519, [7; 32]).expect("public JWK");
     let references = [

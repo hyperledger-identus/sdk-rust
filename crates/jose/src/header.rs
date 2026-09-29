@@ -420,6 +420,95 @@ impl<'de> Deserialize<'de> for RawProtectedHeader {
 
 struct RawProtectedHeaderVisitor;
 
+enum ProtectedHeaderMember {
+    Algorithm,
+    Type,
+    KeyId,
+    Jwk,
+    X5c,
+    KeyAttestation,
+    TrustChain,
+}
+
+impl ProtectedHeaderMember {
+    fn from_name(name: &str) -> Option<Self> {
+        match name {
+            "alg" => Some(Self::Algorithm),
+            "typ" => Some(Self::Type),
+            "kid" => Some(Self::KeyId),
+            "jwk" => Some(Self::Jwk),
+            "x5c" => Some(Self::X5c),
+            "key_attestation" => Some(Self::KeyAttestation),
+            "trust_chain" => Some(Self::TrustChain),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Default)]
+struct RawProtectedHeaderFields {
+    algorithm: Option<String>,
+    type_: Option<String>,
+    key_id: Option<String>,
+    jwk: Option<PublicKeyJwk>,
+    x5c: Option<Vec<String>>,
+    key_attestation: Option<String>,
+    trust_chain: Option<Vec<String>>,
+}
+
+impl RawProtectedHeaderFields {
+    fn read<'de, M>(&mut self, member: ProtectedHeaderMember, map: &mut M) -> Result<(), M::Error>
+    where
+        M: MapAccess<'de>,
+    {
+        match member {
+            ProtectedHeaderMember::Algorithm => read_string(map, &mut self.algorithm),
+            ProtectedHeaderMember::Type => read_string(map, &mut self.type_),
+            ProtectedHeaderMember::KeyId => read_string(map, &mut self.key_id),
+            ProtectedHeaderMember::Jwk => {
+                read_unique_value(map, &mut self.jwk, |value: PublicKeyJwk| value)
+            }
+            ProtectedHeaderMember::X5c => {
+                read_unique_value(map, &mut self.x5c, |value: BoundedX5c| value.0)
+            }
+            ProtectedHeaderMember::KeyAttestation => read_string(map, &mut self.key_attestation),
+            ProtectedHeaderMember::TrustChain => {
+                read_unique_value(map, &mut self.trust_chain, |value: BoundedTrustChain| {
+                    value.0
+                })
+            }
+        }
+    }
+
+    fn finish<E>(self) -> Result<RawProtectedHeader, E>
+    where
+        E: serde::de::Error,
+    {
+        let algorithm = self
+            .algorithm
+            .ok_or_else(|| E::custom(MISSING_ALGORITHM_MARKER))?;
+        if usize::from(self.key_id.is_some())
+            + usize::from(self.jwk.is_some())
+            + usize::from(self.x5c.is_some())
+            > 1
+        {
+            return Err(E::custom(AMBIGUOUS_KEY_REFERENCE_MARKER));
+        }
+        let key_reference = self
+            .key_id
+            .map(|value| JwsKeyReference::KeyId(JwsKeyId(value)))
+            .or_else(|| self.jwk.map(JwsKeyReference::Jwk))
+            .or_else(|| self.x5c.map(|value| JwsKeyReference::X5c(JwsX5c(value))));
+        Ok(RawProtectedHeader {
+            algorithm,
+            type_: self.type_,
+            key_reference,
+            key_attestation: self.key_attestation,
+            trust_chain: self.trust_chain,
+        })
+    }
+}
+
 impl<'de> Visitor<'de> for RawProtectedHeaderVisitor {
     type Value = RawProtectedHeader;
 
@@ -431,68 +520,13 @@ impl<'de> Visitor<'de> for RawProtectedHeaderVisitor {
     where
         M: MapAccess<'de>,
     {
-        let mut algorithm = None;
-        let mut type_ = None;
-        let mut key_id = None;
-        let mut jwk = None;
-        let mut x5c = None;
-        let mut key_attestation = None;
-        let mut trust_chain = None;
+        let mut fields = RawProtectedHeaderFields::default();
         while let Some(key) = map.next_key::<String>()? {
-            match key.as_str() {
-                "alg" => read_string(&mut map, &mut algorithm)?,
-                "typ" => read_string(&mut map, &mut type_)?,
-                "kid" => read_string(&mut map, &mut key_id)?,
-                "jwk" => {
-                    if jwk.is_some() {
-                        return Err(M::Error::custom(DUPLICATE_MARKER));
-                    }
-                    jwk = Some(
-                        map.next_value::<PublicKeyJwk>()
-                            .map_err(|_| M::Error::custom(INVALID_VALUE_MARKER))?,
-                    );
-                }
-                "x5c" => {
-                    if x5c.is_some() {
-                        return Err(M::Error::custom(DUPLICATE_MARKER));
-                    }
-                    x5c = Some(
-                        map.next_value::<BoundedX5c>()
-                            .map_err(|_| M::Error::custom(INVALID_VALUE_MARKER))?
-                            .0,
-                    );
-                }
-                "key_attestation" => read_string(&mut map, &mut key_attestation)?,
-                "trust_chain" => {
-                    if trust_chain.is_some() {
-                        return Err(M::Error::custom(DUPLICATE_MARKER));
-                    }
-                    trust_chain = Some(
-                        map.next_value::<BoundedTrustChain>()
-                            .map_err(|_| M::Error::custom(INVALID_VALUE_MARKER))?
-                            .0,
-                    );
-                }
-                _ => return Err(M::Error::custom(UNKNOWN_MARKER)),
-            }
+            let member = ProtectedHeaderMember::from_name(&key)
+                .ok_or_else(|| M::Error::custom(UNKNOWN_MARKER))?;
+            fields.read(member, &mut map)?;
         }
-        let algorithm = algorithm.ok_or_else(|| M::Error::custom(MISSING_ALGORITHM_MARKER))?;
-        if usize::from(key_id.is_some()) + usize::from(jwk.is_some()) + usize::from(x5c.is_some())
-            > 1
-        {
-            return Err(M::Error::custom(AMBIGUOUS_KEY_REFERENCE_MARKER));
-        }
-        let key_reference = key_id
-            .map(|value| JwsKeyReference::KeyId(JwsKeyId(value)))
-            .or_else(|| jwk.map(JwsKeyReference::Jwk))
-            .or_else(|| x5c.map(|value| JwsKeyReference::X5c(JwsX5c(value))));
-        Ok(RawProtectedHeader {
-            algorithm,
-            type_,
-            key_reference,
-            key_attestation,
-            trust_chain,
-        })
+        fields.finish()
     }
 }
 
@@ -592,6 +626,26 @@ impl<'de> Visitor<'de> for BoundedTrustChainVisitor {
         }
         Ok(BoundedTrustChain(values))
     }
+}
+
+fn read_unique_value<'de, M, T, U>(
+    map: &mut M,
+    target: &mut Option<U>,
+    transform: impl FnOnce(T) -> U,
+) -> Result<(), M::Error>
+where
+    M: MapAccess<'de>,
+    T: Deserialize<'de>,
+{
+    if target.is_some() {
+        return Err(M::Error::custom(DUPLICATE_MARKER));
+    }
+    *target = Some(
+        map.next_value::<T>()
+            .map_err(|_| M::Error::custom(INVALID_VALUE_MARKER))
+            .map(transform)?,
+    );
+    Ok(())
 }
 
 fn read_string<'de, M>(map: &mut M, target: &mut Option<String>) -> Result<(), M::Error>

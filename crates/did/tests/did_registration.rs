@@ -75,6 +75,34 @@ fn finished(method_name: &str, did: Did) -> DidRegistrationResult {
     .unwrap()
 }
 
+fn registration_result(
+    method_name: &str,
+    job: Option<RegistrationJob>,
+    state: DidRegistrationState,
+    document_metadata: DidDocumentMetadata,
+) -> Result<DidRegistrationResult, Error> {
+    DidRegistrationResult::new(
+        method(method_name),
+        job,
+        state,
+        RegistrationPublicData::empty(),
+        document_metadata,
+    )
+}
+
+fn assert_registration_result_error(
+    method_name: &str,
+    job: Option<RegistrationJob>,
+    state: DidRegistrationState,
+    document_metadata: DidDocumentMetadata,
+    expected: RegistrationError,
+) {
+    assert_eq!(
+        registration_result(method_name, job, state, document_metadata).unwrap_err(),
+        Error::InvalidRegistration(expected)
+    );
+}
+
 fn hostile_depth_json() -> Value {
     let mut value = Value::Null;
     for _ in 0..32_768 {
@@ -687,6 +715,282 @@ fn result_construction_enforces_terminal_job_and_nonterminal_correlation() {
             RegistrationError::PrivateMaterial
         ))
     ));
+}
+
+#[test]
+fn result_state_job_shape_matrix_is_exhaustive_before_decomposition() {
+    let did = || Did::parse("did:prism:123").unwrap();
+    let wait_job = || {
+        RegistrationJob::new(
+            method("prism"),
+            RegistrationJobId::parse("wait-job").unwrap(),
+            RegistrationContinuation::Wait,
+        )
+    };
+    let action_id = || RegistrationActionId::parse("sign-1").unwrap();
+    let action_job = || {
+        RegistrationJob::new(
+            method("prism"),
+            RegistrationJobId::parse("action-job").unwrap(),
+            RegistrationContinuation::Action(action_id()),
+        )
+    };
+    let action_state = || DidRegistrationState::Action {
+        did: Some(did()),
+        action: RegistrationAction::new(
+            action_id(),
+            RegistrationOperationName::parse("signPayload").unwrap(),
+            RegistrationPublicData::empty(),
+        ),
+    };
+    let finished_state = || DidRegistrationState::Finished {
+        did: did(),
+        document: None,
+        secret_handles: Vec::new(),
+    };
+    let failed_state = || DidRegistrationState::Failed {
+        did: Some(did()),
+        code: RegistrationFailureCode::standard(DidRegistrationErrorKind::InternalError),
+    };
+    let wait_state = || DidRegistrationState::Wait {
+        did: Some(did()),
+        retry_after_millis: Some(MAX_REGISTRATION_WAIT_MILLIS),
+    };
+
+    assert!(
+        registration_result(
+            "prism",
+            None,
+            finished_state(),
+            DidDocumentMetadata::empty(),
+        )
+        .is_ok()
+    );
+    assert_registration_result_error(
+        "prism",
+        Some(wait_job()),
+        finished_state(),
+        DidDocumentMetadata::empty(),
+        RegistrationError::InvalidState,
+    );
+    assert!(
+        registration_result("prism", None, failed_state(), DidDocumentMetadata::empty(),).is_ok()
+    );
+    assert_registration_result_error(
+        "prism",
+        Some(wait_job()),
+        failed_state(),
+        DidDocumentMetadata::empty(),
+        RegistrationError::InvalidState,
+    );
+    assert_registration_result_error(
+        "prism",
+        None,
+        action_state(),
+        DidDocumentMetadata::empty(),
+        RegistrationError::InvalidState,
+    );
+    assert!(
+        registration_result(
+            "prism",
+            Some(action_job()),
+            action_state(),
+            DidDocumentMetadata::empty(),
+        )
+        .is_ok()
+    );
+    assert_registration_result_error(
+        "prism",
+        None,
+        wait_state(),
+        DidDocumentMetadata::empty(),
+        RegistrationError::InvalidState,
+    );
+    assert!(
+        registration_result(
+            "prism",
+            Some(wait_job()),
+            wait_state(),
+            DidDocumentMetadata::empty(),
+        )
+        .is_ok()
+    );
+}
+
+#[test]
+fn result_combined_fault_precedence_is_characterized_before_decomposition() {
+    let prism_did = || Did::parse("did:prism:123").unwrap();
+    let midnight_did = || Did::parse("did:midnight:123").unwrap();
+    let wait_job = |method_name: &str| {
+        RegistrationJob::new(
+            method(method_name),
+            RegistrationJobId::parse("wait-job").unwrap(),
+            RegistrationContinuation::Wait,
+        )
+    };
+    let action_id = || RegistrationActionId::parse("sign-1").unwrap();
+    let action_state = |did: Did| DidRegistrationState::Action {
+        did: Some(did),
+        action: RegistrationAction::new(
+            action_id(),
+            RegistrationOperationName::parse("signPayload").unwrap(),
+            RegistrationPublicData::empty(),
+        ),
+    };
+    let invalid_metadata = || {
+        DidDocumentMetadata::builder()
+            .canonical_id(midnight_did())
+            .extensions(BTreeMap::from([("secretKey".to_owned(), json!("bytes"))]))
+            .build()
+            .unwrap()
+    };
+
+    assert_registration_result_error(
+        "prism",
+        Some(wait_job("midnight")),
+        DidRegistrationState::Finished {
+            did: midnight_did(),
+            document: None,
+            secret_handles: Vec::new(),
+        },
+        invalid_metadata(),
+        RegistrationError::JobMismatch,
+    );
+
+    assert_registration_result_error(
+        "prism",
+        Some(wait_job("prism")),
+        DidRegistrationState::Finished {
+            did: midnight_did(),
+            document: None,
+            secret_handles: (0..=MAX_REGISTRATION_ITEMS)
+                .map(|index| RegistrationSecretHandle::parse(&format!("handle-{index}")).unwrap())
+                .collect(),
+        },
+        invalid_metadata(),
+        RegistrationError::InvalidState,
+    );
+
+    assert_registration_result_error(
+        "prism",
+        None,
+        DidRegistrationState::Finished {
+            did: midnight_did(),
+            document: None,
+            secret_handles: (0..=MAX_REGISTRATION_ITEMS)
+                .map(|index| RegistrationSecretHandle::parse(&format!("handle-{index}")).unwrap())
+                .collect(),
+        },
+        invalid_metadata(),
+        RegistrationError::TooManyItems,
+    );
+
+    let mismatched_private_document = DidDocument::builder(prism_did())
+        .extensions(BTreeMap::from([(
+            "privateKeyBase58".to_owned(),
+            json!("bytes"),
+        )]))
+        .build()
+        .unwrap();
+    assert_registration_result_error(
+        "prism",
+        None,
+        DidRegistrationState::Finished {
+            did: midnight_did(),
+            document: Some(Box::new(mismatched_private_document)),
+            secret_handles: Vec::new(),
+        },
+        invalid_metadata(),
+        RegistrationError::MethodOrDidMismatch,
+    );
+
+    let private_document = DidDocument::builder(prism_did())
+        .extensions(BTreeMap::from([(
+            "privateKeyBase58".to_owned(),
+            json!("bytes"),
+        )]))
+        .build()
+        .unwrap();
+    assert_registration_result_error(
+        "prism",
+        None,
+        DidRegistrationState::Finished {
+            did: prism_did(),
+            document: Some(Box::new(private_document)),
+            secret_handles: Vec::new(),
+        },
+        invalid_metadata(),
+        RegistrationError::PrivateMaterial,
+    );
+
+    assert_registration_result_error(
+        "prism",
+        None,
+        DidRegistrationState::Failed {
+            did: Some(midnight_did()),
+            code: RegistrationFailureCode::standard(DidRegistrationErrorKind::InternalError),
+        },
+        invalid_metadata(),
+        RegistrationError::MethodOrDidMismatch,
+    );
+
+    assert_registration_result_error(
+        "prism",
+        Some(wait_job("prism")),
+        action_state(midnight_did()),
+        invalid_metadata(),
+        RegistrationError::ActionMismatch,
+    );
+
+    let action_job = RegistrationJob::new(
+        method("prism"),
+        RegistrationJobId::parse("action-job").unwrap(),
+        RegistrationContinuation::Action(RegistrationActionId::parse("other-action").unwrap()),
+    );
+    assert_registration_result_error(
+        "prism",
+        Some(action_job),
+        action_state(prism_did()),
+        invalid_metadata(),
+        RegistrationError::ActionMismatch,
+    );
+
+    assert_registration_result_error(
+        "prism",
+        Some(wait_job("prism")),
+        DidRegistrationState::Wait {
+            did: Some(midnight_did()),
+            retry_after_millis: Some(MAX_REGISTRATION_WAIT_MILLIS + 1),
+        },
+        invalid_metadata(),
+        RegistrationError::InvalidState,
+    );
+
+    assert_registration_result_error(
+        "prism",
+        Some(wait_job("prism")),
+        DidRegistrationState::Wait {
+            did: Some(prism_did()),
+            retry_after_millis: None,
+        },
+        invalid_metadata(),
+        RegistrationError::MethodOrDidMismatch,
+    );
+
+    let private_metadata = DidDocumentMetadata::builder()
+        .extensions(BTreeMap::from([("secretKey".to_owned(), json!("bytes"))]))
+        .build()
+        .unwrap();
+    assert_registration_result_error(
+        "prism",
+        Some(wait_job("prism")),
+        DidRegistrationState::Wait {
+            did: Some(prism_did()),
+            retry_after_millis: None,
+        },
+        private_metadata,
+        RegistrationError::PrivateMaterial,
+    );
 }
 
 #[test]

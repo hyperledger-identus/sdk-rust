@@ -8,7 +8,7 @@
       resource/security invariants, risks, and rollback.
 - [x] 1.3 Pass research/constraint/strict readiness, commit planning only, and
       bind an exact issue #459 preimplementation receipt.
-- [ ] 1.4 Run the pre-change focused suite and bind a combined-fault matrix
+- [x] 1.4 Run the pre-change focused suite and bind a combined-fault matrix
       before production movement.
 
 ## 2. Implementation

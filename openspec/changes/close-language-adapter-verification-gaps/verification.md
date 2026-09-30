@@ -22,7 +22,9 @@ The implementation content at
 
 ## Mutation coverage
 
-Negative evidence covers closed and malformed tables, invalid Rust API paths,
+Negative evidence covers closed and malformed tables, required seed identity,
+provenance shapes, lifecycle states, licenses, consumer ownership, redaction,
+selectors, field/error/loss/unsupported record invariants, invalid Rust API paths,
 duplicated crate prefixes, stable-code/path confusion, broad version windows,
 opposite and `both` directions inside one-way mappings, absent or malformed
 losses, unsupported/loss mismatch, weakened byte ceilings, traversal, parent
@@ -30,6 +32,9 @@ and leaf symlinks, missing, duplicated, computed, invalid-UTF-8, and oversized
 bound sources, plus unknown, ambiguous, wrong-capability, wrong-target, and
 malformed vector catalogs. Every validator failure is asserted to omit a Python
 traceback.
+
+Cross-catalog mutations also prove that successful vectors cannot evidence
+error mappings and stable-error vectors cannot evidence value mappings.
 
 Positive evidence covers the four canonical SDK-TS records, deterministic
 checked-in rendering, repeated shared vector use, and an additive Swift record

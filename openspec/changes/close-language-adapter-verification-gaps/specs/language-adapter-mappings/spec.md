@@ -74,8 +74,10 @@ schema with additional immutable revisions and differential evidence.
 
 Every vector ID referenced by a mapping SHALL resolve exactly once in the
 canonical cross-language catalog, match the mapping capability, and include the
-mapping language target. Multiple mappings MAY reference the same catalog
-vector because the mapping is a consumer of shared evidence, not its owner.
+mapping language target. A value mapping SHALL reference successful outcomes;
+an error mapping SHALL reference outcomes matching one of its stable Rust error
+codes. Multiple mappings MAY reference the same catalog vector because the
+mapping is a consumer of shared evidence, not its owner.
 
 #### Scenario: an additive Swift mapping reuses DID evidence
 

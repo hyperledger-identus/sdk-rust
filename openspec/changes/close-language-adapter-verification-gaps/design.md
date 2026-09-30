@@ -82,7 +82,8 @@ Schema v1 carries one `language_version` and one immutable
 `language_revision`. Therefore its supported interval is exactly that patch:
 lower bound equals the pinned version and exclusive upper bound increments its
 patch by one. The four seed records change from `>=8.1.4,<10.0.0` to
-`>=8.1.4,<8.1.5`.
+`>=8.1.4,<8.1.5`. Semantic-version components use canonical decimal spelling;
+leading-zero aliases cannot enter the rendered compatibility contract.
 
 A wider interval needs a future schema capable of naming additional pinned
 revisions plus differential evidence. Version negotiation and deprecation
@@ -93,9 +94,10 @@ remain unchanged.
 Load the canonical catalog with bounded standard-library TOML parsing. Count
 its vector IDs and retain each vector's capability and targets. Every mapping
 reference must resolve exactly once, match the mapping capability, and include
-the mapping language target. Duplicate vector references across mappings are
-allowed because mappings consume shared evidence; duplicate mapping IDs remain
-invalid.
+the mapping language target. Value mappings consume `success` vectors; error
+mappings consume vectors whose expected outcome is one of their declared stable
+Rust codes. Duplicate vector references across mappings are allowed because
+mappings consume shared evidence; duplicate mapping IDs remain invalid.
 
 This removes the stale deferral that predated #508. The catalog's own checker
 continues to own packet, provenance, selector, and supersession integrity.

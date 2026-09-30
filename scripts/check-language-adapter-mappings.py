@@ -40,9 +40,13 @@ REQUIRED_IDS = {
 }
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
 SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
-SEMVER_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
+SEMVER_COMPONENT = r"(?:0|[1-9][0-9]*)"
+SEMVER_PATTERN = re.compile(
+    rf"^{SEMVER_COMPONENT}\.{SEMVER_COMPONENT}\.{SEMVER_COMPONENT}$"
+)
 VERSION_WINDOW_PATTERN = re.compile(
-    r"^>=([0-9]+\.[0-9]+\.[0-9]+),<([0-9]+\.[0-9]+\.[0-9]+)$"
+    rf"^>=({SEMVER_COMPONENT}\.{SEMVER_COMPONENT}\.{SEMVER_COMPONENT}),"
+    rf"<({SEMVER_COMPONENT}\.{SEMVER_COMPONENT}\.{SEMVER_COMPONENT})$"
 )
 STABLE_CODE_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9_-]*)+$")
 SELECTOR_PATTERN = re.compile(r"^[A-Za-z0-9_@./:<>?=-]+$")
@@ -101,7 +105,7 @@ def version_tuple(value: str) -> tuple[int, int, int]:
 
 def load_vector_catalog(
     root: Path, errors: list[str]
-) -> dict[str, list[tuple[object, object]]]:
+) -> dict[str, list[tuple[object, object, object]]]:
     path = root / VECTOR_CATALOG
     try:
         metadata = path.stat()
@@ -115,7 +119,7 @@ def load_vector_catalog(
     if not isinstance(document, dict) or not isinstance(document.get("vectors"), list):
         errors.append("vector catalog must contain a vectors array")
         return {}
-    found: dict[str, list[tuple[object, object]]] = {}
+    found: dict[str, list[tuple[object, object, object]]] = {}
     for index, vector in enumerate(document["vectors"], start=1):
         if not isinstance(vector, dict):
             errors.append(f"vector catalog entry {index} must be a table")
@@ -125,7 +129,7 @@ def load_vector_catalog(
             errors.append(f"vector catalog entry {index} has an invalid id")
             continue
         found.setdefault(identifier, []).append(
-            (vector.get("capability"), vector.get("targets"))
+            (vector.get("capability"), vector.get("targets"), vector.get("expected"))
         )
     return found
 
@@ -316,7 +320,7 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
                     f"{identifier}.vector_ids entry {vector} must resolve exactly once in the canonical catalog"
                 )
                 continue
-            vector_capability, vector_targets = matches[0]
+            vector_capability, vector_targets, vector_expected = matches[0]
             if vector_capability != mapping.get("capability"):
                 errors.append(
                     f"{identifier}.vector_ids entry {vector} has the wrong capability"
@@ -324,6 +328,19 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
             if not isinstance(vector_targets, list) or mapping.get("language") not in vector_targets:
                 errors.append(
                     f"{identifier}.vector_ids entry {vector} does not target {mapping.get('language')}"
+                )
+            expected_outcomes = (
+                {"success"}
+                if kind == "value"
+                else {
+                    item.get("rust_code")
+                    for item in mapping.get("errors", [])
+                    if isinstance(item, dict)
+                }
+            )
+            if vector_expected not in expected_outcomes:
+                errors.append(
+                    f"{identifier}.vector_ids entry {vector} has an outcome incompatible with {kind} mapping evidence"
                 )
         for selector_field in ("rust_selectors", "language_selectors"):
             selectors = strings(mapping.get(selector_field), f"{identifier}.{selector_field}", errors)

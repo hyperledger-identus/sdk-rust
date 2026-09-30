@@ -170,6 +170,157 @@ def main() -> None:
     run(prefix + 'mappings = [ "invalid" ]\n', rendered, False)
     run("schema_version = [", rendered, False)
     run(replace_first(registry, "errors = [  ]", 'errors = [ "invalid" ]'), rendered, False)
+    for mutation in (
+        replace_once(registry, 'canonical_owner  = "sdk-rust"', 'canonical_owner  = "sdk-ts"'),
+        replace_first(
+            registry,
+            'canonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"',
+            'canonical_revision = "develop"',
+        ),
+        replace_first(registry, 'language_version = "8.1.4"', 'language_version = "8.1"'),
+        replace_first(registry, 'language_license = "Apache-2.0"', 'language_license = "MIT"'),
+        replace_first(registry, 'kind = "value"', 'kind = "error"'),
+        replace_first(
+            registry,
+            'id = "did-url.value.typescript.legacy-v1"',
+            'id = "did.value.typescript.legacy-v1"',
+        ),
+        replace_first(
+            registry,
+            'id = "did.value.typescript.legacy-v1"',
+            'id = "did.value.typescript.renamed-v1"',
+        ),
+        replace_first(registry, "max_input_bytes = 2048", "max_input_bytes = 0"),
+        replace_first(
+            registry,
+            'canonical_bound_symbol = "MAX_DID_BYTES"',
+            'canonical_bound_symbol = "MAX_UNKNOWN_BYTES"',
+        ),
+        replace_first(registry, 'redaction = "caller-input"', 'redaction = "caller-output"'),
+        replace_first(
+            registry,
+            'async_ownership = "not-applicable"',
+            'async_ownership = "typescript"',
+        ),
+        replace_first(
+            registry,
+            'language_path = "packages/shared/domain/src/models/DID.ts"',
+            'language_path = "../DID.ts"',
+        ),
+        replace_first(
+            registry,
+            'fallback = "No parser fallback; reject values refused by identus-did."',
+            'fallback = ""',
+        ),
+        replace_first(
+            registry,
+            'removal_gate = "All supported SDK-TS consumers use the Rust-backed additive DID facade and its migration window has elapsed."',
+            'removal_gate = ""',
+        ),
+        replace_first(
+            registry,
+            'rust_code               = "did.invalid_did"',
+            'rust_code               = "legacy invalid did"',
+        ),
+        replace_first(registry, "preserve_rust_code      = true", "preserve_rust_code      = false"),
+        replace_first(registry, "redact_input            = true", "redact_input            = false"),
+    ):
+        run(mutation, rendered, False)
+    for mutation in (
+        replace_once(registry, "schema_version   = 1", "schema_version   = 2"),
+        replace_once(registry, 'registry_version = "1.0.0"', 'registry_version = "v1"'),
+        replace_once(registry, 'status           = "active"', 'status           = "planned"'),
+        replace_once(registry, "owner_issue      = 505", "owner_issue      = 999"),
+        replace_first(registry, 'capability = "did.syntax"', 'capability = "DID syntax"'),
+        replace_first(registry, 'owner_issue = 505', 'owner_issue = 999'),
+        replace_first(registry, 'state = "active"', 'state = "unknown"'),
+        replace_first(registry, 'canonical_crate = "identus-did"', 'canonical_crate = "did"'),
+        replace_first(
+            registry,
+            'canonical_rust_path = "identus_did::Did"',
+            'canonical_rust_path = "other_crate::Did"',
+        ),
+        replace_first(registry, 'language = "typescript"', 'language = "javascript"'),
+        replace_first(
+            registry,
+            'language_revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"',
+            'language_revision = "main"',
+        ),
+        replace_first(registry, 'direction = "bidirectional"', 'direction = "sideways"'),
+        replace_first(
+            registry,
+            'compatibility_class = "deprecated"',
+            'compatibility_class = "unknown"',
+        ),
+        replace_first(registry, 'fidelity = "lossless"', 'fidelity = "unknown"'),
+        replace_first(
+            registry,
+            'deprecation_phase = "transitional"',
+            'deprecation_phase = "unknown"',
+        ),
+        replace_first(registry, 'consumers = [ "sdk-ts" ]', 'consumers = [ "other-sdk" ]'),
+        replace_first(registry, '"did.syntax.valid-basic"', '"invalid vector id"'),
+        replace_first(
+            registry,
+            'rust_selectors = [ "identus_did::Did",',
+            'rust_selectors = [ "identus did",',
+        ),
+        replace_first(registry, 'sensitive_fields = [  ]', 'sensitive_fields = [ "x", "x" ]'),
+        replace_first(
+            registry,
+            'cancellation_ownership = "not-applicable"',
+            'cancellation_ownership = "typescript"',
+        ),
+        replace_first(
+            registry,
+            'rust      = "serialized"\nlanguage  = "uuid"',
+            'rust      = "serialized"\nunknown   = true\nlanguage  = "uuid"',
+        ),
+        replace_first(registry, 'transform = "identity"', 'transform = ""'),
+        replace_first(registry, 'direction = "both"', 'direction = "sideways"'),
+        replace_first(registry, "required  = true", 'required  = "true"'),
+        replace_first(
+            registry,
+            'rust_code               = "did.invalid_did"\nlanguage_class',
+            'rust_code               = "did.invalid_did"\nunknown                 = true\nlanguage_class',
+        ),
+        replace_first(
+            registry,
+            'language_message_stable = false',
+            'language_message_stable = true',
+        ),
+        replace_first(
+            registry,
+            'id          = "did-url.raw-query-round-trip"\ndistinction',
+            'id          = "did-url.raw-query-round-trip"\nunknown     = true\ndistinction',
+        ),
+        replace_first(
+            registry,
+            'id          = "did-url.empty-query-presence"',
+            'id          = "did-url.raw-query-round-trip"',
+        ),
+        replace_first(
+            registry,
+            'id           = "did-url.raw-query-round-trip"\nreason',
+            'id           = "did-url.raw-query-round-trip"\nunknown      = true\nreason',
+        ),
+        replace_first(
+            registry,
+            'id           = "did-url.empty-query-presence"',
+            'id           = "did-url.raw-query-round-trip"',
+        ),
+        replace_first(
+            registry,
+            'stable_error = "adapter.unsupported_lossy_mapping"',
+            'stable_error = "invalid error"',
+        ),
+        replace_first(
+            registry,
+            'deprecation_phase = "transitional"',
+            'deprecation_phase = "removed"',
+        ),
+    ):
+        run(mutation, rendered, False)
 
     # Cargo identity, Rust API identity, and stable error codes remain distinct.
     run(
@@ -194,6 +345,11 @@ def main() -> None:
     # Exact-patch evidence and enclosing direction are non-weakenable.
     run(
         replace_first(registry, 'version_window = ">=8.1.4,<8.1.5"', 'version_window = ">=8.1.4,<10.0.0"'),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(registry, 'version_window = ">=8.1.4,<8.1.5"', 'version_window = ">=8.1.4,<8.01.5"'),
         rendered,
         False,
     )
@@ -366,6 +522,28 @@ def main() -> None:
         'targets            = [ "rust", "swift", "kotlin" ]',
     )
     run(registry, rendered, False, catalog=before + vector + after)
+    run(
+        replace_first(
+            registry,
+            '"did.syntax.valid-basic",',
+            '"did.syntax.valid-basic",\n  "did.syntax.over-max-bytes",',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        mutate_mapping(
+            registry,
+            "did.error.invalid-did.typescript.legacy-v1",
+            lambda section: replace_first(
+                section,
+                '"did.syntax.invalid-prefix",',
+                '"did.syntax.invalid-prefix",\n  "did.syntax.valid-basic",',
+            ),
+        ),
+        rendered,
+        False,
+    )
 
     # Shared catalog evidence and a second canonical source path are additive.
     first_mapping = registry.index("[[mappings]]")
@@ -390,6 +568,17 @@ def main() -> None:
             raise AssertionError(f"rendered review surface is missing {required!r}")
     if "identus-did::identus_did" in rendered:
         raise AssertionError("rendered Rust API must not duplicate the Cargo package")
+    run(registry, rendered + "\n", False, check_rendered=True)
+    run(
+        registry,
+        rendered.replace(
+            "Validated immutable DID preserving the exact serialized value",
+            "Validated immutable DID with changed review semantics",
+            1,
+        ),
+        False,
+        check_rendered=True,
+    )
     print("language-adapter-mappings-tests: mutation suite passed")
 
 

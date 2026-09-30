@@ -47,3 +47,28 @@ This contract validates declared metadata; it does not generate or execute a
 language adapter. Runtime binding behavior remains a later issue and must use
 the stable registry plus canonical vectors rather than infer compatibility from
 the SDK-TS DTO shape.
+
+## Independent discovery review
+
+Claude Code reviewed PR #511 at `14827c51297ae8d3916c2ac188065f325fa096b4`
+and found no active registry-data error or containment vulnerability. It raised
+four gate-quality findings:
+
+1. Mutation evidence did not exercise enough pre-existing schema rules.
+2. Vector resolution did not correlate catalog outcomes with mapping kind.
+3. A syntactically valid canonical revision is not proven to exist or match the
+   working source in a Git-independent Nix input.
+4. Compatibility versions admitted non-canonical leading-zero spellings.
+
+Findings 1, 2, and 4 were accepted and remediated in #510. The mutation suite
+now covers the closed schema, provenance shape, mapping kinds, redaction,
+ownership, direction, loss, error, resource, lifecycle, deterministic-render,
+and vector-outcome rules. Value mappings require `success`; error mappings
+require a declared stable Rust error code. Semver components are canonical.
+
+Finding 3 is valid research input but is not a blocker for this frozen offline
+contract: a Git-object lookup would make identical validation depend on whether
+`.git` is present, while Nix source inputs intentionally omit it. The current
+record therefore treats the full SHA as immutable provenance and validates the
+working bound independently. A follow-up issue owns a Git-independent content
+binding design rather than silently adding an environment-sensitive check.

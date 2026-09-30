@@ -13,21 +13,21 @@
 
 ## 2. Mapping implementation
 
-- [ ] 2.1 Add the versioned language-neutral mapping registry and four
+- [x] 2.1 Add the versioned language-neutral mapping registry and four
       SDK-TS DID seed records.
-- [ ] 2.2 Add strict offline validation and mutation tests.
-- [ ] 2.3 Add deterministic human documentation generation and drift checks.
-- [ ] 2.4 Integrate the registry, renderer, and checks into the factory
+- [x] 2.2 Add strict offline validation and mutation tests.
+- [x] 2.3 Add deterministic human documentation generation and drift checks.
+- [x] 2.4 Integrate the registry, renderer, and checks into the factory
       contract.
 
 ## 3. Verification and closeout
 
-- [ ] 3.1 Run focused validator, mutation, and renderer tests.
-- [ ] 3.2 Run OpenSpec readiness and repository factory gates.
+- [x] 3.1 Run focused validator, mutation, and renderer tests.
+- [x] 3.2 Run OpenSpec readiness and repository factory gates.
 - [ ] 3.3 Perform a fresh-diff architecture/security review, archive the
       change, publish metrics, and close issue #505 through a protected PR.
 
 ## 4. Explicit stop boundary
 
-- [ ] 4.1 Confirm no consumer repository, language adapter implementation,
+- [x] 4.1 Confirm no consumer repository, language adapter implementation,
       public Rust DTO/error, binding, release, or target-support claim changed.

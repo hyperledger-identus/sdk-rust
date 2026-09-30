@@ -24,8 +24,8 @@
 
 - [x] 3.1 Run focused validator, mutation, and renderer tests.
 - [x] 3.2 Run OpenSpec readiness and repository factory gates.
-- [ ] 3.3 Perform a fresh-diff architecture/security review, archive the
-      change, publish metrics, and close issue #505 through a protected PR.
+- [x] 3.3 Perform a fresh-diff architecture/security review, complete archive
+      readiness, and prepare the protected PR and metrics closeout for #505.
 
 ## 4. Explicit stop boundary
 

@@ -621,6 +621,7 @@ name = "identus-conformance"
 version = "0.0.0"
 dependencies = [
  "identus-core",
+ "identus-did",
  "proc-macro2",
  "serde",
  "serde_json",

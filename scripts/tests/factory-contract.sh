@@ -25,6 +25,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/platform-ts-capabilities.py"
 "$repository_root/scripts/tests/a1-compatibility-plan.py"
 "$repository_root/scripts/tests/language-adapter-mappings.py"
+"$repository_root/scripts/tests/cross-language-vectors.py"
 "$repository_root/scripts/tests/crypto-benchmark.py"
 "$repository_root/scripts/tests/crypto-coverage.py"
 "$repository_root/scripts/tests/source-distribution.py"
@@ -74,6 +75,9 @@ required_files=(
   docs/architecture/a1-compatibility-contracts.md
   docs/architecture/language-adapter-mappings.md
   docs/architecture/language-adapter-mappings.toml
+  docs/conformance/cross-language-vector-catalog.md
+  docs/conformance/cross-language-vector-catalog.toml
+  docs/conformance/fixtures/did/v1/vectors.json
   docs/architecture/portable-agent-runtime.md
   docs/roadmap/a1-shared-compatibility-foundation.md
   docs/roadmap/a1-shared-compatibility-foundation.toml
@@ -219,6 +223,7 @@ required_files=(
   scripts/check-platform-ts-capabilities.py
   scripts/check-a1-compatibility-plan.py
   scripts/check-language-adapter-mappings.py
+  scripts/check-cross-language-vectors.py
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
   scripts/check-crypto-benchmark.py
@@ -258,6 +263,7 @@ required_files=(
   scripts/tests/platform-ts-capabilities.py
   scripts/tests/a1-compatibility-plan.py
   scripts/tests/language-adapter-mappings.py
+  scripts/tests/cross-language-vectors.py
   scripts/tests/crypto-benchmark.py
   scripts/tests/crypto-coverage.py
   scripts/tests/source-distribution.py
@@ -358,6 +364,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-platform-ts-capabilities.py" \
   "$fixture_root/scripts/check-a1-compatibility-plan.py" \
   "$fixture_root/scripts/check-language-adapter-mappings.py" \
+  "$fixture_root/scripts/check-cross-language-vectors.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/check-oid4vci-conformance.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog-live.py" \
@@ -394,6 +401,7 @@ chmod +x "$fixture_root/scripts/tests/apollo-parity.py"
 chmod +x "$fixture_root/scripts/tests/platform-ts-capabilities.py"
 chmod +x "$fixture_root/scripts/tests/a1-compatibility-plan.py"
 chmod +x "$fixture_root/scripts/tests/language-adapter-mappings.py"
+chmod +x "$fixture_root/scripts/tests/cross-language-vectors.py"
 chmod +x "$fixture_root/scripts/ci/"*.mjs "$fixture_root/scripts/factory-tools/"*.mjs \
   "$fixture_root/scripts/git-hooks/"*.mjs "$fixture_root/scripts/worktree-lifecycle.mjs" \
   "$fixture_root/.githooks/commit-msg" "$fixture_root/.githooks/pre-commit" \

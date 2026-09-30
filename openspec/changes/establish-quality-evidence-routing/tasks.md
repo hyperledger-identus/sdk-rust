@@ -31,13 +31,13 @@
 
 - [x] 4.1 Run focused validator, renderer-drift, mutation, selector, and
       quality-plan tests.
-- [ ] 4.2 Run OpenSpec readiness, repository factory, diff, signature, and
+- [x] 4.2 Run OpenSpec readiness, repository factory, diff, signature, and
       proportionate Nix gates.
-- [ ] 4.3 Perform a distinct architecture/security review and prepare archive,
+- [x] 4.3 Perform a distinct architecture/security review and prepare archive,
       metrics, and protected-PR closeout for issue #501.
 
 ## 5. Explicit stop boundary
 
-- [ ] 5.1 Confirm no test campaign was dispatched, no CI schedule or required
+- [x] 5.1 Confirm no test campaign was dispatched, no CI schedule or required
       status changed, no consumer changed, and no release/support claim was
       activated.

@@ -7,7 +7,7 @@
 - [x] 1.2 Decide authority, provenance, licensing, packet, mutation,
       supersession, and offline-validation rules.
 - [x] 1.3 Specify the bounded DID/DID URL seed and explicit stop boundary.
-- [ ] 1.4 Commit this planning packet and bind an exact preimplementation
+- [x] 1.4 Commit this planning packet and bind an exact preimplementation
       receipt to issue #420.
 
 ## 2. Catalog implementation

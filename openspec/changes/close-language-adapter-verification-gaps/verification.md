@@ -37,6 +37,10 @@ Additional verification mutations cover scalar error metadata before vector
 outcome correlation, cross-crate bound substitution, a symlinked vector catalog,
 and the exact invalid-UTF-8 diagnostic classification.
 
+The final mutation set additionally covers DID-to-DID-URL same-crate bound
+substitution, boolean schema versions, float issue numbers, duplicate field and
+stable-error identities, and removed/transitional lifecycle contradictions.
+
 Cross-catalog mutations also prove that successful vectors cannot evidence
 error mappings and stable-error vectors cannot evidence value mappings.
 

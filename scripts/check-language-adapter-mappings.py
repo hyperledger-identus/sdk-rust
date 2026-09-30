@@ -66,6 +66,12 @@ DIRECTION_MATRIX = {
     "rust-to-language": {"rust-to-language"},
     "language-to-rust": {"language-to-rust"},
 }
+LIFECYCLE_MATRIX = {
+    "planned": {"none"},
+    "active": {"none", "transitional", "announced", "removal-ready"},
+    "deprecated": {"announced", "removal-ready"},
+    "removed": {"removed"},
+}
 
 
 def exact_keys(value: object, expected: set[str], label: str, errors: list[str]) -> bool:
@@ -105,7 +111,7 @@ def version_tuple(value: str) -> tuple[int, int, int]:
 
 def load_vector_catalog(
     root: Path, errors: list[str]
-) -> dict[str, list[tuple[object, object, object]]]:
+) -> dict[str, list[tuple[object, object, object, object]]]:
     path = root
     try:
         for part in VECTOR_CATALOG.parts:
@@ -127,7 +133,7 @@ def load_vector_catalog(
     if not isinstance(document, dict) or not isinstance(document.get("vectors"), list):
         errors.append("vector catalog must contain a vectors array")
         return {}
-    found: dict[str, list[tuple[object, object, object]]] = {}
+    found: dict[str, list[tuple[object, object, object, object]]] = {}
     for index, vector in enumerate(document["vectors"], start=1):
         if not isinstance(vector, dict):
             errors.append(f"vector catalog entry {index} must be a table")
@@ -137,7 +143,12 @@ def load_vector_catalog(
             errors.append(f"vector catalog entry {index} has an invalid id")
             continue
         found.setdefault(identifier, []).append(
-            (vector.get("capability"), vector.get("targets"), vector.get("expected"))
+            (
+                vector.get("capability"),
+                vector.get("targets"),
+                vector.get("expected"),
+                vector.get("source_locator"),
+            )
         )
     return found
 
@@ -221,11 +232,15 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
     if not exact_keys(document, TOP_KEYS, "registry", errors):
         return [], errors
     assert isinstance(document, dict)
-    if document.get("schema_version") != 1:
+    if type(document.get("schema_version")) is not int or document.get("schema_version") != 1:
         errors.append("schema_version must equal 1")
     if not isinstance(document.get("registry_version"), str) or not SEMVER_PATTERN.fullmatch(document["registry_version"]):
         errors.append("registry_version must be semantic x.y.z")
-    if document.get("status") != "active" or document.get("owner_issue") != 505:
+    if (
+        document.get("status") != "active"
+        or type(document.get("owner_issue")) is not int
+        or document.get("owner_issue") != 505
+    ):
         errors.append("registry must be active and owned by issue 505")
     if document.get("canonical_owner") != "sdk-rust":
         errors.append("canonical_owner must remain sdk-rust")
@@ -250,7 +265,7 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
             seen.add(identifier)
         if not isinstance(mapping.get("capability"), str) or not ID_PATTERN.fullmatch(mapping["capability"]):
             errors.append(f"{identifier}.capability must be a stable dotted ID")
-        if mapping.get("owner_issue") != 505:
+        if type(mapping.get("owner_issue")) is not int or mapping.get("owner_issue") != 505:
             errors.append(f"{identifier}.owner_issue must equal 505")
         if mapping.get("state") not in STATES:
             errors.append(f"{identifier}.state is invalid")
@@ -332,6 +347,7 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
         vectors = strings(mapping.get("vector_ids"), f"{identifier}.vector_ids", errors)
         if any(not ID_PATTERN.fullmatch(vector) for vector in vectors):
             errors.append(f"{identifier}.vector_ids contains an invalid stable ID")
+        bound_has_vector_evidence = False
         for vector in vectors:
             if not ID_PATTERN.fullmatch(vector):
                 continue
@@ -341,7 +357,7 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
                     f"{identifier}.vector_ids entry {vector} must resolve exactly once in the canonical catalog"
                 )
                 continue
-            vector_capability, vector_targets, vector_expected = matches[0]
+            vector_capability, vector_targets, vector_expected, vector_locator = matches[0]
             if vector_capability != mapping.get("capability"):
                 errors.append(
                     f"{identifier}.vector_ids entry {vector} has the wrong capability"
@@ -366,6 +382,17 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
                 errors.append(
                     f"{identifier}.vector_ids entry {vector} has an outcome incompatible with {kind} mapping evidence"
                 )
+            bound_symbol = mapping.get("canonical_bound_symbol")
+            if isinstance(bound_symbol, str) and isinstance(vector_locator, str):
+                if re.search(
+                    rf"(?<![A-Z0-9_]){re.escape(bound_symbol)}(?![A-Z0-9_])",
+                    vector_locator,
+                ):
+                    bound_has_vector_evidence = True
+        if not bound_has_vector_evidence:
+            errors.append(
+                f"{identifier}.canonical_bound_symbol must be named by referenced vector evidence"
+            )
         for selector_field in ("rust_selectors", "language_selectors"):
             selectors = strings(mapping.get(selector_field), f"{identifier}.{selector_field}", errors)
             if any(not SELECTOR_PATTERN.fullmatch(selector) for selector in selectors):
@@ -400,12 +427,24 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
         assert isinstance(errors_map, list)
         assert isinstance(losses, list)
         assert isinstance(unsupported, list)
+        rust_fields: set[str] = set()
+        language_fields: set[str] = set()
         for item_index, item in enumerate(fields, start=1):
             item_label = f"{identifier}.fields[{item_index}]"
             if not exact_keys(item, FIELD_KEYS, item_label, errors):
                 continue
             for field in ("rust", "language", "transform"):
                 text(item.get(field), f"{item_label}.{field}", errors)
+            rust_field = item.get("rust")
+            language_field = item.get("language")
+            if isinstance(rust_field, str) and rust_field:
+                if rust_field in rust_fields:
+                    errors.append(f"{identifier}: duplicate Rust field {rust_field}")
+                rust_fields.add(rust_field)
+            if isinstance(language_field, str) and language_field:
+                if language_field in language_fields:
+                    errors.append(f"{identifier}: duplicate language field {language_field}")
+                language_fields.add(language_field)
             field_direction = item.get("direction")
             if field_direction not in FIELD_DIRECTIONS or not isinstance(item.get("required"), bool):
                 errors.append(f"{item_label}: direction/required is invalid")
@@ -413,12 +452,18 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
                 errors.append(
                     f"{item_label}.direction exceeds enclosing mapping direction"
                 )
+        error_codes: set[str] = set()
         for item_index, item in enumerate(errors_map, start=1):
             item_label = f"{identifier}.errors[{item_index}]"
             if not exact_keys(item, ERROR_KEYS, item_label, errors):
                 continue
-            if not STABLE_CODE_PATTERN.fullmatch(str(item.get("rust_code", ""))):
+            rust_code = item.get("rust_code")
+            if not STABLE_CODE_PATTERN.fullmatch(str(rust_code or "")):
                 errors.append(f"{item_label}.rust_code is invalid")
+            elif isinstance(rust_code, str):
+                if rust_code in error_codes:
+                    errors.append(f"{identifier}: duplicate Rust error code {rust_code}")
+                error_codes.add(rust_code)
             text(item.get("language_class"), f"{item_label}.language_class", errors)
             if item.get("language_message_stable") is not False:
                 errors.append(f"{item_label}.language_message_stable must be false")
@@ -467,8 +512,10 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
             errors.append(f"{identifier}: lossless mapping cannot declare losses or unsupported cases")
         if fidelity == "lossy" and not losses:
             errors.append(f"{identifier}: lossy mapping requires at least one loss record")
-        if mapping.get("state") == "active" and mapping.get("deprecation_phase") == "removed":
-            errors.append(f"{identifier}: active mapping cannot be removed")
+        state = mapping.get("state")
+        phase = mapping.get("deprecation_phase")
+        if state in LIFECYCLE_MATRIX and phase not in LIFECYCLE_MATRIX[state]:
+            errors.append(f"{identifier}: state and deprecation phase are incoherent")
 
     missing = REQUIRED_IDS - seen
     if missing:

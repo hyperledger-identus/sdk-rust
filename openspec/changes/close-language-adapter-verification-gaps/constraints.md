@@ -23,6 +23,11 @@ regular file, and resolve the declared public constant exactly once. The vector
 catalog follows the same containment rule. A validation error is bounded
 diagnostic data, never a traceback.
 
+The selected constant must also appear in referenced vector provenance. Schema
+and owner numbers are exact TOML integers; mapping field and stable-error
+identities are unique; and state/deprecation combinations follow a closed
+lifecycle matrix.
+
 Cargo package identity, Rust API path, and public stable error code are distinct
 concepts. Human rendering cannot concatenate them into a fabricated Rust path.
 

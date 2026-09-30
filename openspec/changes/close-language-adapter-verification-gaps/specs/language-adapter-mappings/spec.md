@@ -52,12 +52,33 @@ bounded regular file under the declared Cargo package's source tree, and
 resolve its named literal public Rust bound exactly once. The canonical vector
 catalog SHALL meet the same repository-containment and no-symlink rule. Invalid
 evidence SHALL fail with bounded diagnostics rather than an uncaught exception.
+The selected bound symbol SHALL also be named by at least one referenced
+canonical vector's source locator, preventing an unrelated constant in the same
+crate from weakening the mapped API's policy.
 
 #### Scenario: a parent directory redirects to a fake constant
 
 - **WHEN** any component of a canonical bound path is a symlink outside the
   repository
 - **THEN** validation rejects the path before reading or accepting its value
+
+#### Scenario: a DID mapping borrows the DID URL ceiling
+
+- **WHEN** the DID mapping selects `MAX_DID_URL_BYTES` even though its vectors
+  evidence `MAX_DID_BYTES`
+- **THEN** validation rejects the same-crate bound substitution
+
+### Requirement: Mapping records remain unique and type exact
+
+Schema and owner integers SHALL be actual TOML integers rather than booleans or
+floats. Rust and language field identities SHALL each be unique within a value
+mapping, stable Rust error codes SHALL be unique within an error mapping, and
+mapping state SHALL permit only its documented deprecation phases.
+
+#### Scenario: removed state retains a transitional phase
+
+- **WHEN** a mapping declares `state = "removed"` with a non-removed phase
+- **THEN** validation fails rather than rendering contradictory lifecycle data
 
 ### Requirement: Version windows do not exceed pinned evidence
 

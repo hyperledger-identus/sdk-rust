@@ -83,3 +83,12 @@ fixed. Outcome correlation now fails safely for malformed error tables; bound
 sources must remain below the declared Cargo package source; catalog loading
 uses the no-symlink containment rule; and exception order preserves the bounded
 unreadable-evidence diagnostic.
+
+The next exact-head verification review at
+`ee24ad37d9c9b5d0af7dc32f0fd53e702bcff222` found five additional schema
+integrity blockers: same-crate bound substitution, boolean/float numeric
+coercion, duplicate Rust field and error identities, and incomplete lifecycle
+coherence. All were reproduced and corrected. A selected bound must now be
+named by referenced vector provenance; schema/owner values use exact integer
+types; Rust and language fields plus stable Rust error codes are unique; and a
+closed lifecycle matrix governs state/phase combinations.

@@ -37,7 +37,9 @@ resolve the candidate strictly and require it to remain under the resolved
 root, be a regular file, and stay below the repository's existing 2 MiB source
 evidence ceiling. The path must also remain below the source tree derived from
 its declared `identus-*` Cargo package, preventing an unrelated crate constant
-from satisfying a stronger bound.
+from satisfying a stronger bound. At least one referenced vector source locator
+must name the selected constant, preventing a stronger unrelated constant in
+the same crate from substituting for the mapped API's boundary.
 
 The named bound remains an uppercase identifier and must resolve exactly once
 to a literal public Rust `usize` constant. Missing, ambiguous, computed,
@@ -77,6 +79,16 @@ The DID URL record declares its raw-query and absent-versus-empty losses. The
 two error mappings each declare that the legacy `InvalidDIDString` class
 coalesces canonical failure identities, with stable Rust code preservation as
 the mitigation.
+
+## Type, identity, and lifecycle closure
+
+TOML boolean and float values compare equal to Python integers in some cases,
+so schema and owner numbers use exact integer type checks before equality.
+Field records are unique by both Rust and language identity. Error records are
+unique by stable Rust code; the legacy class may repeat because coalescing is a
+declared loss. Lifecycle compatibility is closed: planned maps to `none`, active
+maps to non-removed phases, deprecated maps to announced/removal-ready, and
+removed maps only to `removed`.
 
 ## Evidence-bounded version window
 

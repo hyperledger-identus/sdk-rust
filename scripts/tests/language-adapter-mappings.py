@@ -65,6 +65,16 @@ def replace_error_tables_with_scalar(section: str) -> str:
     )
 
 
+def duplicate_first_nested_table(section: str, table: str) -> str:
+    marker = f"[[mappings.{table}]]"
+    start = section.index(marker)
+    end = section.find("\n[[", start + len(marker))
+    if end == -1:
+        end = len(section)
+    block = section[start:end].rstrip()
+    return section.rstrip() + "\n\n" + block + "\n"
+
+
 def catalog_vector_section(value: str, identifier: str) -> tuple[str, str, str]:
     marker = f'[[vectors]]\nid                 = "{identifier}"'
     start = value.index(marker)
@@ -244,6 +254,27 @@ def main() -> None:
         replace_first(registry, "redact_input            = true", "redact_input            = false"),
     ):
         run(mutation, rendered, False)
+    run(replace_once(registry, "schema_version   = 1", "schema_version   = true"), rendered, False)
+    run(replace_once(registry, "owner_issue      = 505", "owner_issue      = 505.0"), rendered, False)
+    run(
+        mutate_mapping(
+            registry,
+            "did.value.typescript.legacy-v1",
+            lambda section: duplicate_first_nested_table(section, "fields"),
+        ),
+        rendered,
+        False,
+    )
+    run(
+        mutate_mapping(
+            registry,
+            "did.error.invalid-did.typescript.legacy-v1",
+            lambda section: duplicate_first_nested_table(section, "errors"),
+        ),
+        rendered,
+        False,
+    )
+    run(replace_first(registry, 'state = "active"', 'state = "removed"'), rendered, False)
     for mutation in (
         replace_once(registry, "schema_version   = 1", "schema_version   = 2"),
         replace_once(registry, 'registry_version = "1.0.0"', 'registry_version = "v1"'),
@@ -532,6 +563,15 @@ def main() -> None:
         wrong_crate_registry, "max_input_bytes = 2048", "max_input_bytes = 8192"
     )
     run(wrong_crate_registry, rendered, False)
+    same_crate_registry = replace_first(
+        registry,
+        'canonical_bound_symbol = "MAX_DID_BYTES"',
+        'canonical_bound_symbol = "MAX_DID_URL_BYTES"',
+    )
+    same_crate_registry = replace_first(
+        same_crate_registry, "max_input_bytes = 2048", "max_input_bytes = 4096"
+    )
+    run(same_crate_registry, rendered, False)
 
     # Vector references resolve exactly once with matching capability and target language.
     run(replace_first(registry, '"did.syntax.valid-basic"', '"did.syntax.unknown"'), rendered, False)
@@ -589,7 +629,12 @@ def main() -> None:
     first_mapping = registry.index("[[mappings]]")
     second_mapping = registry.index("[[mappings]]", first_mapping + 1)
     additional = registry[first_mapping:second_mapping]
-    additional = replace_once(additional, 'id = "did.value.typescript.legacy-v1"', 'id = "did.value.swift.legacy-v1"')
+    additional = replace_once(additional, 'id = "did.value.typescript.legacy-v1"', 'id = "uri.value.swift.legacy-v1"')
+    additional = replace_once(
+        additional,
+        'canonical_rust_path = "identus_did::Did"',
+        'canonical_rust_path = "identus_did::Uri"',
+    )
     additional = replace_once(additional, 'language = "typescript"', 'language = "swift"')
     additional = replace_once(additional, 'language_target = "node-and-browser"', 'language_target = "ios"')
     additional = replace_once(additional, 'consumers = [ "sdk-ts" ]', 'consumers = [ "sdk-swift" ]')
@@ -598,7 +643,35 @@ def main() -> None:
         'canonical_bound_path = "crates/did/src/did.rs"\ncanonical_bound_symbol = "MAX_DID_BYTES"',
         'canonical_bound_path = "crates/did/src/uri.rs"\ncanonical_bound_symbol = "MAX_URI_BYTES"',
     )
-    run(registry.rstrip() + "\n\n" + additional, rendered, True)
+    additional, vector_count = re.subn(
+        r'vector_ids = \[\n.*?\n\]',
+        'vector_ids = [ "uri.syntax.max-bytes" ]',
+        additional,
+        count=1,
+        flags=re.DOTALL,
+    )
+    if vector_count != 1:
+        raise AssertionError("additive mapping vector fixture must be replaced once")
+    additional = replace_once(
+        additional,
+        'rust_selectors = [ "identus_did::Did",',
+        'rust_selectors = [ "identus_did::Uri",',
+    )
+    synthetic_vector = """
+
+[[vectors]]
+id             = "uri.syntax.max-bytes"
+capability     = "did.syntax"
+targets        = [ "rust", "swift" ]
+expected       = "success"
+source_locator = "MAX_URI_BYTES; additive second-source fixture"
+"""
+    run(
+        registry.rstrip() + "\n\n" + additional,
+        rendered,
+        True,
+        catalog=catalog.rstrip() + synthetic_vector,
+    )
 
     result = subprocess.run([str(CHECKER), str(ROOT), "--render"], capture_output=True, text=True, check=False)
     if result.returncode != 0 or result.stdout != rendered:

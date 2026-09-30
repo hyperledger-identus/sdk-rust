@@ -36,7 +36,6 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | `method` | `method` | identity | both | true |
 | `method_specific_id` | `methodId` | rename | both | true |
 
-
 ## `did-url.value.typescript.legacy-v1`
 
 - Canonical: `identus-did::DidUrl` at `edf03abcc963d37703daa61192940394bdc553ca` (unreleased-workspace-0.0.0).
@@ -68,7 +67,6 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | `did-url.empty-query-presence` | The legacy shape cannot distinguish an absent query from an explicitly empty query. | Reject reverse conversion and require the additive exact-value facade. | `adapter.unsupported_lossy_mapping` |
 | `did-url.empty-fragment-presence` | The legacy string cannot distinguish an absent fragment from an explicitly empty fragment. | Reject reverse conversion and require the additive exact-value facade. | `adapter.unsupported_lossy_mapping` |
 
-
 ## `did.error.invalid-did.typescript.legacy-v1`
 
 - Canonical: `identus-did::did.invalid_did` at `edf03abcc963d37703daa61192940394bdc553ca` (unreleased-workspace-0.0.0).
@@ -88,7 +86,6 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | Rust code | Legacy class | Stable message | Preserve code | Redact input |
 | --- | --- | --- | --- | --- |
 | `did.invalid_did` | `CastorError.InvalidDIDString` | false | true | true |
-
 
 ## `did.error.invalid-did-url.typescript.legacy-v1`
 

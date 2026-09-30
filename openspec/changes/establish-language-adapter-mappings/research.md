@@ -38,6 +38,10 @@ The first seed uses SDK-TS 8.1.4 at immutable revision
 - `packages/lib/sdk/src/castor/parser/DIDUrlParser.ts` also uses
   `InvalidDIDString`, conflating canonical invalid-DID and invalid-DID-URL
   categories.
+- `packages/lib/sdk/tests/castor/DIDParser.test.ts` names the positive donor
+  selector `should test valid DIDs`; the DID URL parser tests exercise path,
+  query-map, and fragment projections. These selectors are evidence locators,
+  not Rust API names or normative DTO requirements.
 
 The source is Apache-2.0. Its DTOs and error class are consumer-regression
 evidence, not normative or canonical Rust design.
@@ -101,6 +105,11 @@ Unknown fields, unpinned sources, incomplete field/error coverage, undeclared
 loss, missing version/deprecation/removal windows, vague selectors, or absent
 rollback/observability fail validation. Deterministic rendering keeps the
 review document synchronized with the machine registry.
+
+Validator mutation evidence is isolated from rendering evidence: invalid
+registry mutations run through validation with `--render`, so a stale checked-in
+Markdown file cannot mask a missing rejection rule. A separate negative test
+proves that normal validation rejects rendered-document drift.
 
 Maintenance, release, and security posture are unchanged: no published crate,
 release train, unsafe surface, or supported target changes. Rollback removes

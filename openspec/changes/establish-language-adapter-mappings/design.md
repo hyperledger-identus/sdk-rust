@@ -43,7 +43,9 @@ weakened bounds/redaction, invalid selectors, or incoherent version windows.
 The same tool renders deterministic Markdown to
 `docs/architecture/language-adapter-mappings.md`; normal checking fails if the
 checked-in rendering drifts. Mutation tests alter every critical invariant and
-exercise render determinism. Vector IDs are syntax-checked locally; parent
+exercise render determinism. Registry mutations use the render-only execution
+path so their expected failure must come from schema validation rather than an
+unrelated stale-Markdown check. Vector IDs are syntax-checked locally; parent
 #504 later validates their cross-catalog resolution.
 
 ## Evolution

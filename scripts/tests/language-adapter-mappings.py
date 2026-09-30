@@ -21,7 +21,13 @@ def replace_once(value: str, before: str, after: str) -> str:
     return value.replace(before, after, 1)
 
 
-def run(registry: str, rendered: str, should_pass: bool) -> None:
+def replace_first(value: str, before: str, after: str) -> str:
+    if before not in value:
+        raise AssertionError(f"mutation source is missing: {before!r}")
+    return value.replace(before, after, 1)
+
+
+def run(registry: str, rendered: str, should_pass: bool, *, check_rendered: bool = False) -> None:
     with tempfile.TemporaryDirectory(prefix="language-adapter-mappings-") as temporary:
         root = Path(temporary)
         registry_target = root / "docs/architecture/language-adapter-mappings.toml"
@@ -29,7 +35,10 @@ def run(registry: str, rendered: str, should_pass: bool) -> None:
         registry_target.parent.mkdir(parents=True)
         registry_target.write_text(registry, encoding="utf-8")
         rendered_target.write_text(rendered, encoding="utf-8")
-        result = subprocess.run([str(CHECKER), str(root)], capture_output=True, text=True, check=False)
+        command = [str(CHECKER), str(root)]
+        if not check_rendered:
+            command.append("--render")
+        result = subprocess.run(command, capture_output=True, text=True, check=False)
         if (result.returncode == 0) != should_pass:
             raise AssertionError(
                 f"expected pass={should_pass}, got {result.returncode}\nstdout={result.stdout}\nstderr={result.stderr}"
@@ -40,6 +49,7 @@ def main() -> None:
     registry = REGISTRY.read_text(encoding="utf-8")
     rendered = RENDERED.read_text(encoding="utf-8")
     run(registry, rendered, True)
+    run(registry, rendered, True, check_rendered=True)
     run(
         replace_once(
             registry,
@@ -113,7 +123,67 @@ def main() -> None:
         rendered,
         False,
     )
-    run(registry, rendered + "\n", False)
+    run(replace_first(registry, "max_input_bytes = 2048", "max_input_bytes = 0"), rendered, False)
+    run(
+        replace_first(registry, 'redaction = "caller-input"', 'redaction = "caller-output"'),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(
+            registry,
+            'async_ownership = "not-applicable"',
+            'async_ownership = "typescript"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(
+            registry,
+            'language_path = "packages/shared/domain/src/models/DID.ts"',
+            'language_path = "../DID.ts"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(
+            registry,
+            'fidelity = "lossy"\nversion_window = ">=8.1.4,<10.0.0"',
+            'fidelity = "lossless"\nversion_window = ">=8.1.4,<10.0.0"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'fallback = "No parser fallback; reject values refused by identus-did."',
+            'fallback = ""',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'removal_gate = "All supported SDK-TS consumers use the Rust-backed additive DID facade and its migration window has elapsed."',
+            'removal_gate = ""',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'rust_code               = "did.invalid_did"',
+            'rust_code               = "legacy invalid did"',
+        ),
+        rendered,
+        False,
+    )
+    run(registry, rendered + "\n", False, check_rendered=True)
 
     result = subprocess.run([str(CHECKER), str(ROOT), "--render"], capture_output=True, text=True, check=False)
     if result.returncode != 0 or result.stdout != rendered:

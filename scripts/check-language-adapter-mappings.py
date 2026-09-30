@@ -298,7 +298,11 @@ def render(document: dict[str, object], mappings: list[dict[str, object]]) -> st
             for item in unsupported:
                 lines.append(f"| `{item['id']}` | {escape(item['reason'])} | {escape(item['behavior'])} | `{item['stable_error']}` |")
             lines.append("")
-    return "\n".join(lines).rstrip() + "\n"
+    compacted: list[str] = []
+    for line in lines:
+        if line or not compacted or compacted[-1]:
+            compacted.append(line)
+    return "\n".join(compacted).rstrip() + "\n"
 
 
 def main() -> int:

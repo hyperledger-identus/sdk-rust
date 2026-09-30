@@ -14,8 +14,9 @@ serde_json.workspace   = true
 syn.workspace          = true
 
 [dev-dependencies]
-syn.workspace  = true
-toml.workspace = true
+identus-did.workspace = true
+syn.workspace         = true
+toml.workspace        = true
 
 [lints]
 workspace = true

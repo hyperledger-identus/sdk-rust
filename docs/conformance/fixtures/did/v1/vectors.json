@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 1,
+  "packetId": "did.syntax.v1",
+  "capability": "did.syntax",
+  "cases": [
+    {
+      "id": "did.syntax.valid-basic",
+      "operation": "did.parse",
+      "input": { "literal": "did:example:123456789abcdefghi" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "did:example:123456789abcdefghi",
+          "method": "example",
+          "methodSpecificId": "123456789abcdefghi"
+        }
+      }
+    },
+    {
+      "id": "did.syntax.valid-colon-segments",
+      "operation": "did.parse",
+      "input": { "literal": "did:method1:a:b::c%2Fd" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "did:method1:a:b::c%2Fd",
+          "method": "method1",
+          "methodSpecificId": "a:b::c%2Fd"
+        }
+      }
+    },
+    {
+      "id": "did.syntax.valid-percent-case",
+      "operation": "did.parse",
+      "input": { "literal": "did:example:a%2fb%2Fc" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "did:example:a%2fb%2Fc",
+          "method": "example",
+          "methodSpecificId": "a%2fb%2Fc"
+        }
+      }
+    },
+    {
+      "id": "did-url.syntax.valid-components",
+      "operation": "did-url.parse",
+      "input": { "literal": "did:example:123/a:b/@c/%2F?version=1/2?ok#key-1/path?part" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "did:example:123/a:b/@c/%2F?version=1/2?ok#key-1/path?part",
+          "did": "did:example:123",
+          "method": "example",
+          "methodSpecificId": "123",
+          "path": "/a:b/@c/%2F",
+          "query": "version=1/2?ok",
+          "fragment": "key-1/path?part"
+        }
+      }
+    },
+    {
+      "id": "did-url.syntax.empty-query",
+      "operation": "did-url.parse",
+      "input": { "literal": "did:example:123?" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "did:example:123?",
+          "did": "did:example:123",
+          "method": "example",
+          "methodSpecificId": "123",
+          "path": "",
+          "query": "",
+          "fragment": null
+        }
+      }
+    },
+    {
+      "id": "did-url.syntax.empty-fragment",
+      "operation": "did-url.parse",
+      "input": { "literal": "did:example:123#" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "did:example:123#",
+          "did": "did:example:123",
+          "method": "example",
+          "methodSpecificId": "123",
+          "path": "",
+          "query": null,
+          "fragment": ""
+        }
+      }
+    },
+    {
+      "id": "did.syntax.consumer-shared-basic",
+      "operation": "did.parse",
+      "input": { "literal": "did:aaaaaa:aa:aaa" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "did:aaaaaa:aa:aaa",
+          "method": "aaaaaa",
+          "methodSpecificId": "aa:aaa"
+        }
+      }
+    },
+    {
+      "id": "did.syntax.consumer-shared-percent",
+      "operation": "did.parse",
+      "input": { "literal": "did:prism01:b2.-_%11:b4._-%11" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "did:prism01:b2.-_%11:b4._-%11",
+          "method": "prism01",
+          "methodSpecificId": "b2.-_%11:b4._-%11"
+        }
+      }
+    },
+    {
+      "id": "did.syntax.invalid-prefix",
+      "operation": "did.parse",
+      "input": { "literal": "DID:example:123" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.syntax.invalid-method",
+      "operation": "did.parse",
+      "input": { "literal": "did:Example:123" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.syntax.trailing-colon",
+      "operation": "did.parse",
+      "input": { "literal": "did:example:123:" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.syntax.missing-method",
+      "operation": "did.parse",
+      "input": { "literal": "did::123" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.syntax.missing-method-specific-id",
+      "operation": "did.parse",
+      "input": { "literal": "did:example:" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.syntax.invalid-percent",
+      "operation": "did.parse",
+      "input": { "literal": "did:example:%GG" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.syntax.non-ascii",
+      "operation": "did.parse",
+      "input": { "literal": "did:example:ümlaut" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.syntax.url-delimiter",
+      "operation": "did.parse",
+      "input": { "literal": "did:example:123/path" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did-url.syntax.invalid-percent",
+      "operation": "did-url.parse",
+      "input": { "literal": "did:example:123/%XZ" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did_url",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did-url.syntax.space",
+      "operation": "did-url.parse",
+      "input": { "literal": "did:example:123/a b" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did_url",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.syntax.max-bytes",
+      "operation": "did.parse",
+      "input": {
+        "generated": { "prefix": "did:example:", "repeat": "a", "count": 2036, "suffix": "" }
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": { "method": "example" }
+      }
+    },
+    {
+      "id": "did.syntax.over-max-bytes",
+      "operation": "did.parse",
+      "input": {
+        "generated": { "prefix": "did:example:", "repeat": "a", "count": 2037, "suffix": "" }
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did-url.syntax.max-bytes",
+      "operation": "did-url.parse",
+      "input": {
+        "generated": { "prefix": "did:example:a/", "repeat": "a", "count": 4082, "suffix": "" }
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": { "did": "did:example:a", "method": "example" }
+      }
+    },
+    {
+      "id": "did-url.syntax.over-max-bytes",
+      "operation": "did-url.parse",
+      "input": {
+        "generated": { "prefix": "did:example:a/", "repeat": "a", "count": 4083, "suffix": "" }
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_did_url",
+        "redacted": true,
+        "fields": {}
+      }
+    }
+  ]
+}

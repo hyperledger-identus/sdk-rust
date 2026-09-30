@@ -12,21 +12,21 @@
 
 ## 2. Catalog implementation
 
-- [ ] 2.1 Add the versioned catalog and explanatory documentation.
-- [ ] 2.2 Add the immutable DID/DID URL packet with positive, negative,
+- [x] 2.1 Add the versioned catalog and explanatory documentation.
+- [x] 2.2 Add the immutable DID/DID URL packet with positive, negative,
       boundary, redaction, and consumer-regression cases.
-- [ ] 2.3 Add the strict offline validator and mutation tests.
-- [ ] 2.4 Add a Rust conformance loader/test without a production dependency.
-- [ ] 2.5 Integrate all records and checks into the factory contract.
+- [x] 2.3 Add the strict offline validator and mutation tests.
+- [x] 2.4 Add a Rust conformance loader/test without a production dependency.
+- [x] 2.5 Integrate all records and checks into the factory contract.
 
 ## 3. Verification and closeout
 
-- [ ] 3.1 Run focused validator, mutation, and Rust packet tests.
-- [ ] 3.2 Run OpenSpec readiness and repository factory gates.
+- [x] 3.1 Run focused validator, mutation, and Rust packet tests.
+- [x] 3.2 Run OpenSpec readiness and repository factory gates.
 - [ ] 3.3 Perform a fresh-diff architecture/security review, archive the
       change, publish metrics, and close issue #420 through a protected PR.
 
 ## 4. Explicit stop boundary
 
-- [ ] 4.1 Confirm no consumer repository, language adapter, DID method,
+- [x] 4.1 Confirm no consumer repository, language adapter, DID method,
       credential/protocol engine, release, or target-support claim changed.

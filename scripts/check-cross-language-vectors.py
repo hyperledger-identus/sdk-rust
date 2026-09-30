@@ -46,6 +46,11 @@ SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 DIGEST_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 SEMVER_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 SELECTOR_PATTERN = re.compile(r"^[A-Za-z0-9_.:/?=@%+ -]+$")
+CONSUMER_SELECTORS = {
+    "sdk-ts.did-parser": "DIDParser.test.ts:should test valid DIDs",
+    "sdk-swift.did-parser": "DIDParserTests.swift:testValidDIDs",
+    "sdk-kmp.did-parser": "DIDParserTest.kt:it_should_test_valid_DIDs",
+}
 
 
 def exact_keys(value: object, expected: set[str], label: str, errors: list[str]) -> bool:
@@ -111,8 +116,8 @@ def validate_input(value: object, label: str, errors: list[str]) -> str | None:
         return None
     if "literal" in value:
         literal = value["literal"]
-        if not isinstance(literal, str):
-            errors.append(f"{label}.literal must be text")
+        if not isinstance(literal, str) or not literal:
+            errors.append(f"{label}.literal must be non-empty text")
             return None
         return literal
     generated = value["generated"]
@@ -175,11 +180,28 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
         fields = expected.get("fields")
         if not isinstance(fields, dict) or set(fields) - FIELD_KEYS:
             errors.append(f"{identifier}.expected.fields has unknown fields or is not an object")
-        elif not all(value is None or isinstance(value, str) for value in fields.values()):
-            errors.append(f"{identifier}.expected.fields values must be text or null")
+        else:
+            allowed_fields = (
+                {"serialized", "method", "methodSpecificId"}
+                if operation == "did.parse"
+                else FIELD_KEYS
+            )
+            if set(fields) - allowed_fields:
+                errors.append(f"{identifier}.expected.fields contains fields unsupported by {operation}")
+            for field, value in fields.items():
+                nullable = operation == "did-url.parse" and field in {"query", "fragment"}
+                empty_allowed = operation == "did-url.parse" and field in {"path", "query", "fragment"}
+                if value is None and not nullable:
+                    errors.append(f"{identifier}.expected.fields.{field} cannot be null")
+                elif not isinstance(value, str) and value is not None:
+                    errors.append(f"{identifier}.expected.fields.{field} must be text")
+                elif isinstance(value, str) and not value and not empty_allowed:
+                    errors.append(f"{identifier}.expected.fields.{field} cannot be empty")
         if kind == "success":
             if expected.get("errorCode") is not None or expected.get("redacted") is not None:
                 errors.append(f"{identifier}: success must use null errorCode and redacted")
+            if not fields:
+                errors.append(f"{identifier}: success must assert at least one parsed field")
         elif kind == "error":
             required_code = "did.invalid_did" if operation == "did.parse" else "did.invalid_did_url"
             if expected.get("errorCode") != required_code or expected.get("redacted") is not True or fields:
@@ -326,8 +348,9 @@ def main() -> int:
         selected_sources = string_array(vector.get("source_ids"), f"{identifier}.source_ids", errors)
         if set(selected_sources) - source_ids:
             errors.append(f"{identifier}.source_ids contains unknown sources")
-        if vector.get("authority") == "consumer-regression" and not any(item.startswith("sdk-") for item in selected_sources):
-            errors.append(f"{identifier}: consumer-regression requires a pinned consumer source")
+        consumer_sources = set(selected_sources) & set(CONSUMER_SELECTORS)
+        if vector.get("authority") == "consumer-regression" and not consumer_sources:
+            errors.append(f"{identifier}: consumer-regression requires a pinned non-Rust consumer source")
         for field in ("capability", "source_locator", "operation", "expected", "profile_scope", "resource_class", "rust_selector", "limitations"):
             nonempty_string(vector.get(field), f"{identifier}.{field}", errors)
         if vector.get("operation") not in OPERATIONS:
@@ -343,6 +366,9 @@ def main() -> int:
             errors.append(f"{identifier}.rust_selector is invalid")
         if any(not SELECTOR_PATTERN.fullmatch(selector) for selector in selectors):
             errors.append(f"{identifier}.language_selectors contains an invalid selector")
+        expected_selectors = {CONSUMER_SELECTORS[source] for source in consumer_sources}
+        if set(selectors) != expected_selectors:
+            errors.append(f"{identifier}.language_selectors must match its pinned consumer sources")
         if vector.get("owner_issue") != 420 or not isinstance(vector.get("active"), bool):
             errors.append(f"{identifier}: owner_issue must be 420 and active must be boolean")
         string_array(vector.get("supersedes"), f"{identifier}.supersedes", errors, allow_empty=True)
@@ -359,6 +385,8 @@ def main() -> int:
         for previous in vector.get("supersedes", []):
             if previous not in vector_ids or previous == identifier:
                 errors.append(f"{identifier}: supersedes must reference another local vector")
+            elif vector_by_id[previous].get("replaced_by") != identifier or vector_by_id[previous].get("active") is not False:
+                errors.append(f"{identifier}: superseded vector must point back and be inactive")
         replacement = vector.get("replaced_by")
         if replacement:
             if replacement not in vector_ids or identifier not in vector_by_id.get(str(replacement), {}).get("supersedes", []):

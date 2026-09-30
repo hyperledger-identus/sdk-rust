@@ -147,7 +147,10 @@ fn portable_did_packet_matches_identus_did() {
                 assert!(case.expected.redacted.is_none());
             }
             ("did.parse", "error") => {
-                let error = Did::parse(&input).unwrap_err().to_identus_error();
+                let local_error = Did::parse(&input).unwrap_err();
+                assert!(!local_error.to_string().contains(&input));
+                assert!(!format!("{local_error:?}").contains(&input));
+                let error = local_error.to_identus_error();
                 assert_eq!(
                     error.code().as_str(),
                     case.expected.error_code.as_deref().expect("error code")
@@ -156,7 +159,10 @@ fn portable_did_packet_matches_identus_did() {
                 assert!(!error.to_string().contains(&input));
             }
             ("did-url.parse", "error") => {
-                let error = DidUrl::parse(&input).unwrap_err().to_identus_error();
+                let local_error = DidUrl::parse(&input).unwrap_err();
+                assert!(!local_error.to_string().contains(&input));
+                assert!(!format!("{local_error:?}").contains(&input));
+                let error = local_error.to_identus_error();
                 assert_eq!(
                     error.code().as_str(),
                     case.expected.error_code.as_deref().expect("error code")

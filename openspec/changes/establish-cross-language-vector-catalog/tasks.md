@@ -23,8 +23,8 @@
 
 - [x] 3.1 Run focused validator, mutation, and Rust packet tests.
 - [x] 3.2 Run OpenSpec readiness and repository factory gates.
-- [ ] 3.3 Perform a fresh-diff architecture/security review, archive the
-      change, publish metrics, and close issue #420 through a protected PR.
+- [x] 3.3 Perform a fresh-diff architecture/security review and prepare the
+      archive, metrics, and protected-PR closeout for issue #420.
 
 ## 4. Explicit stop boundary
 

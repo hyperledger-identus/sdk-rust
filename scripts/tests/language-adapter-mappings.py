@@ -65,6 +65,33 @@ def replace_error_tables_with_scalar(section: str) -> str:
     )
 
 
+def replace_error_tables_with_empty(section: str) -> str:
+    without_errors = remove_nested_tables(section, "errors")
+    return replace_once(
+        without_errors,
+        "fields = [  ]\nunsupported = [  ]",
+        "fields = [  ]\nerrors = [  ]\nunsupported = [  ]",
+    )
+
+
+def replace_loss_tables_with_empty(section: str) -> str:
+    without_losses = remove_nested_tables(section, "losses")
+    return replace_once(
+        without_losses,
+        "fields = [  ]\nunsupported = [  ]",
+        "fields = [  ]\nlosses = [  ]\nunsupported = [  ]",
+    )
+
+
+def replace_field_tables_with_empty(section: str) -> str:
+    without_fields = remove_nested_tables(section, "fields")
+    return replace_once(
+        without_fields,
+        "errors = [  ]\nlosses = [  ]",
+        "fields = [  ]\nerrors = [  ]\nlosses = [  ]",
+    )
+
+
 def duplicate_first_nested_table(section: str, table: str) -> str:
     marker = f"[[mappings.{table}]]"
     start = section.index(marker)
@@ -130,6 +157,7 @@ def run(
     catalog: str | None = None,
     check_rendered: bool = False,
     setup: Callable[[Path], None] | None = None,
+    expect_diagnostic: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     with tempfile.TemporaryDirectory(prefix="language-adapter-mappings-") as temporary:
         root = Path(temporary)
@@ -156,6 +184,11 @@ def run(
         if (result.returncode == 0) != should_pass:
             raise AssertionError(
                 f"expected pass={should_pass}, got {result.returncode}\n"
+                f"stdout={result.stdout}\nstderr={result.stderr}"
+            )
+        if expect_diagnostic is not None and expect_diagnostic not in result.stderr:
+            raise AssertionError(
+                f"expected diagnostic {expect_diagnostic!r}\n"
                 f"stdout={result.stdout}\nstderr={result.stderr}"
             )
         return result
@@ -197,6 +230,27 @@ def main() -> None:
         ),
         rendered,
         False,
+        expect_diagnostic="fields/errors/losses/unsupported must be arrays",
+    )
+    run(
+        mutate_mapping(
+            registry,
+            "did.value.typescript.legacy-v1",
+            replace_field_tables_with_empty,
+        ),
+        rendered,
+        False,
+        expect_diagnostic="value mapping requires fields and forbids error mappings",
+    )
+    run(
+        mutate_mapping(
+            registry,
+            "did.error.invalid-did.typescript.legacy-v1",
+            replace_error_tables_with_empty,
+        ),
+        rendered,
+        False,
+        expect_diagnostic="error mapping requires errors and forbids field mappings",
     )
     for mutation in (
         replace_once(registry, 'canonical_owner  = "sdk-rust"', 'canonical_owner  = "sdk-ts"'),
@@ -434,10 +488,23 @@ def main() -> None:
         mutate_mapping(
             registry,
             "did.error.invalid-did.typescript.legacy-v1",
-            lambda section: remove_nested_tables(section, "losses"),
+            replace_loss_tables_with_empty,
         ),
         rendered,
         False,
+        expect_diagnostic="lossy mapping requires at least one loss record",
+    )
+    run(
+        mutate_mapping(
+            registry,
+            "did-url.value.typescript.legacy-v1",
+            lambda section: replace_first(
+                section, 'fidelity = "lossy"', 'fidelity = "lossless"'
+            ),
+        ),
+        rendered,
+        False,
+        expect_diagnostic="lossless mapping cannot declare losses or unsupported cases",
     )
     run(
         replace_first(

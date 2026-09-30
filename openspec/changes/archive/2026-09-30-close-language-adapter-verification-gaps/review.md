@@ -92,3 +92,15 @@ coherence. All were reproduced and corrected. A selected bound must now be
 named by referenced vector provenance; schema/owner values use exact integer
 types; Rust and language fields plus stable Rust error codes are unique; and a
 closed lifecycle matrix governs state/phase combinations.
+
+The final independent verification at
+`c6f520251fdc4f1e3840ac9226061098fbe119d1` reported no blocking correctness,
+security, test, documentation, or release-risk finding. It independently ran
+the focused checker, mutation suite, full factory gate, factory-contract suite,
+diff hygiene, and signature/DCO inspection. Its useful non-blocking observation
+that some negative cases asserted only exit status was accepted: the final
+suite now asserts the intended diagnostics for malformed error tables, empty
+value/error records, and lossless/lossy invariants. The suggested history
+rewrite for an `Assisted-by` trailer was not adopted because SDK-Rust governance
+requires verified signatures and DCO trailers, both already satisfied, and
+does not require that additional trailer.

@@ -40,6 +40,16 @@ and the exact invalid-UTF-8 diagnostic classification.
 The final mutation set additionally covers DID-to-DID-URL same-crate bound
 substitution, boolean schema versions, float issue numbers, duplicate field and
 stable-error identities, and removed/transitional lifecycle contradictions.
+Key semantic mutations additionally assert the exact bounded diagnostic rather
+than accepting failure through an earlier unrelated rule.
+
+## Final reviewed candidate
+
+Independent verification at
+`c6f520251fdc4f1e3840ac9226061098fbe119d1` found no blocking issue and
+independently passed the checker, mutation suite, factory/factory-contract
+gates, `git diff --check`, and signed/DCO history inspection. Hosted `fast`,
+pull-request-policy, DCO, and file-hygiene checks also passed at that exact head.
 
 Cross-catalog mutations also prove that successful vectors cannot evidence
 error mappings and stable-error vectors cannot evidence value mappings.

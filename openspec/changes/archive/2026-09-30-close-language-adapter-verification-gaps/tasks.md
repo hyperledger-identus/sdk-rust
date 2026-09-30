@@ -32,9 +32,9 @@
       including a second source path and an additive fifth mapping.
 - [x] 3.3 Run focused validator/mutations, full factory, `git diff --check`, and
       local Nix flake evidence.
-- [ ] 3.4 Complete a distinct local review, sync the canonical spec, and archive
+- [x] 3.4 Complete a distinct local review, sync the canonical spec, and archive
       through the guarded factory command.
-- [ ] 3.5 Open a signed/DCO replacement PR to `develop`, obtain green exact-head
+- [x] 3.5 Open a signed/DCO replacement PR to `develop`, obtain green exact-head
       fast CI and one fresh independent discovery review, then close draft #509
       as superseded only if no blocker remains.
 

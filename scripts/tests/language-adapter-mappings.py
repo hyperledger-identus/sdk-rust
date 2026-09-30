@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -12,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "scripts/check-language-adapter-mappings.py"
 REGISTRY = ROOT / "docs/architecture/language-adapter-mappings.toml"
 RENDERED = ROOT / "docs/architecture/language-adapter-mappings.md"
+BOUND_SOURCE = ROOT / "crates/did/src/did.rs"
 
 
 def replace_once(value: str, before: str, after: str) -> str:
@@ -35,10 +37,15 @@ def run(registry: str, rendered: str, should_pass: bool, *, check_rendered: bool
         registry_target.parent.mkdir(parents=True)
         registry_target.write_text(registry, encoding="utf-8")
         rendered_target.write_text(rendered, encoding="utf-8")
+        bound_target = root / "crates/did/src/did.rs"
+        bound_target.parent.mkdir(parents=True)
+        shutil.copy2(BOUND_SOURCE, bound_target)
         command = [str(CHECKER), str(root)]
         if not check_rendered:
             command.append("--render")
         result = subprocess.run(command, capture_output=True, text=True, check=False)
+        if "Traceback (most recent call last)" in result.stderr:
+            raise AssertionError(f"validator must return diagnostics, not a traceback:\n{result.stderr}")
         if (result.returncode == 0) != should_pass:
             raise AssertionError(
                 f"expected pass={should_pass}, got {result.returncode}\nstdout={result.stdout}\nstderr={result.stderr}"
@@ -125,6 +132,34 @@ def main() -> None:
     )
     run(replace_first(registry, "max_input_bytes = 2048", "max_input_bytes = 0"), rendered, False)
     run(
+        replace_first(registry, "max_input_bytes = 2048", "max_input_bytes = 1048576"),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(
+            registry,
+            'version_window = ">=8.1.4,<10.0.0"',
+            'version_window = "nonsense-window"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(registry, 'language_version = "8.1.4"', 'language_version = "10.0.0"'),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(
+            registry,
+            'canonical_bound_symbol = "MAX_DID_BYTES"',
+            'canonical_bound_symbol = "MAX_UNKNOWN_BYTES"',
+        ),
+        rendered,
+        False,
+    )
+    run(
         replace_first(registry, 'redaction = "caller-input"', 'redaction = "caller-output"'),
         rendered,
         False,
@@ -165,6 +200,9 @@ def main() -> None:
         rendered,
         False,
     )
+    prefix = registry[: registry.index("[[mappings]]")]
+    run(prefix + 'mappings = [ "invalid" ]\n', rendered, False)
+    run(replace_first(registry, "errors = [  ]", 'errors = [ "invalid" ]'), rendered, False)
     run(
         replace_once(
             registry,
@@ -184,6 +222,33 @@ def main() -> None:
         False,
     )
     run(registry, rendered + "\n", False, check_rendered=True)
+    run(
+        replace_first(
+            registry,
+            "Validated immutable DID preserving the exact serialized value, method, and method-specific identifier.",
+            "Validated immutable DID with deliberately changed review semantics.",
+        ),
+        rendered,
+        False,
+        check_rendered=True,
+    )
+
+    first_mapping = registry.index("[[mappings]]")
+    second_mapping = registry.index("[[mappings]]", first_mapping + 1)
+    additional = registry[first_mapping:second_mapping]
+    additional = replace_once(
+        additional,
+        'id = "did.value.typescript.legacy-v1"',
+        'id = "did.value.swift.legacy-v1"',
+    )
+    additional = replace_once(
+        additional, 'language = "typescript"', 'language = "swift"'
+    )
+    additional = replace_once(
+        additional, 'consumers = [ "sdk-ts" ]', 'consumers = [ "sdk-swift" ]'
+    )
+    additional = additional.replace('"did.syntax.', '"did-swift.syntax.')
+    run(registry.rstrip() + "\n\n" + additional, rendered, True)
 
     result = subprocess.run([str(CHECKER), str(ROOT), "--render"], capture_output=True, text=True, check=False)
     if result.returncode != 0 or result.stdout != rendered:

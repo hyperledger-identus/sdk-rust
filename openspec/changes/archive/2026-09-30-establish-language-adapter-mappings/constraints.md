@@ -27,14 +27,19 @@ Field mappings, error mappings, derived constants, ignored fields, and
 unsupported cases are explicit. A lossy mapping must name the lost information
 and deterministic failure or migration behavior. Language error strings are
 never stable identifiers. An adapter cannot weaken Rust resource bounds or
-redaction. Unknown registry fields fail closed.
+redaction. The mapping's byte limit resolves to a named public Rust constant;
+its declared value may be stricter but not larger. Supported language windows
+use a machine-checked ordered semantic-version interval containing the pinned
+language version. Unknown registry fields fail closed.
 
 ## Introduced or changed limitations
 
 The first records cover only the pinned SDK-TS 8.1.4 DID, DID URL, and legacy
 invalid-string error surface. They describe compatibility but do not implement
 or test SDK-TS. Swift/Kotlin DTOs, FFI, WASM, React Native, browser/Node
-networking, and protocol/runtime mappings remain future records.
+networking, and protocol/runtime mappings remain future records. The four
+records are mandatory seeds, not a closed allowlist; conforming future records
+do not require validator code changes.
 
 The DID URL legacy mapping is intentionally lossy. It cannot promise raw query
 round trips, duplicate/order preservation, or absent-versus-empty query and

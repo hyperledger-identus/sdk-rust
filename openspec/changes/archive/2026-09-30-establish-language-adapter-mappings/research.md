@@ -111,6 +111,16 @@ registry mutations run through validation with `--render`, so a stale checked-in
 Markdown file cannot mask a missing rejection rule. A separate negative test
 proves that normal validation rejects rendered-document drift.
 
+Independent discovery review additionally challenged the validator with an
+out-of-window language version, a weakened byte ceiling, malformed table
+entries, an additive fifth language record, and changes to previously omitted
+human-review fields. The resulting contract resolves byte ceilings to public
+Rust constants, parses the closed version-window grammar, diagnoses malformed
+values without tracebacks, treats the four DID records as required seeds rather
+than an exhaustive allowlist, and renders every governed mapping field. The
+redundant lossy-error check was removed because the per-error invariant already
+requires canonical-code preservation for every valid error record.
+
 Maintenance, release, and security posture are unchanged: no published crate,
 release train, unsafe surface, or supported target changes. Rollback removes
 the pre-merge files; after stable IDs merge it uses explicit replacement and

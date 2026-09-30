@@ -47,8 +47,9 @@ compatibility identifier.
 Every active mapping SHALL record its source revision, supported version
 window, deprecation phase, consumers, vector evidence, exact selectors,
 migration action, replacement, observability, fallback, rollback, and removal
-gate. Stable mapping IDs SHALL only evolve through explicit versioning or
-replacement.
+gate. The window SHALL use an ordered `>=x.y.z,<x.y.z` interval containing the
+pinned language version. Stable mapping IDs SHALL only evolve through explicit
+versioning or replacement.
 
 #### Scenario: the last supported consumer adopts the canonical shape
 
@@ -56,11 +57,24 @@ replacement.
 - **THEN** the legacy mapping may enter removal through its declared migration
   and rollback process rather than disappearing silently
 
+### Requirement: Adapter bounds cannot weaken Rust policy
+
+Every mapping SHALL resolve its input ceiling to a named literal public Rust
+`usize` constant in repository source. The adapter ceiling MAY be stricter and
+SHALL NOT exceed that canonical value.
+
+#### Scenario: an adapter raises its accepted DID size
+
+- **WHEN** the declared adapter ceiling exceeds `MAX_DID_BYTES`
+- **THEN** validation fails before the mapping can be accepted
+
 ### Requirement: Registry and human view remain deterministic
 
 The machine registry SHALL use a closed versioned schema and fail on unknown or
 incoherent metadata. The repository SHALL retain a deterministic human-readable
-rendering, and validation SHALL fail when it drifts from the registry.
+rendering of every governed field, and validation SHALL fail when it drifts
+from the registry. Required seed records SHALL NOT prevent additional
+schema-conforming language mappings.
 
 #### Scenario: a registry field changes without regenerating documentation
 

@@ -39,6 +39,11 @@ rejects unknown fields, malformed IDs or revisions, noncanonical Rust sides,
 missing direction/compatibility/fidelity/lifecycle metadata, incomplete
 field/error coverage, lossy mappings without explicit unsupported behavior,
 weakened bounds/redaction, invalid selectors, or incoherent version windows.
+The version-window grammar is the closed interval form `>=x.y.z,<x.y.z`; its
+bounds must be ordered and contain the pinned language version. Every mapping
+also resolves its declared byte ceiling to a literal public Rust `usize`
+constant in a repository-relative source file, and the adapter ceiling may be
+equal or stricter but never larger.
 
 The same tool renders deterministic Markdown to
 `docs/architecture/language-adapter-mappings.md`; normal checking fails if the
@@ -47,6 +52,13 @@ exercise render determinism. Registry mutations use the render-only execution
 path so their expected failure must come from schema validation rather than an
 unrelated stale-Markdown check. Vector IDs are syntax-checked locally; parent
 #504 later validates their cross-catalog resolution.
+
+The four DID records are a required seed rather than an exhaustive registry.
+Additional Swift, Kotlin, or TypeScript records are accepted when they satisfy
+the same closed schema and uniqueness rules. Malformed outer or nested values
+produce bounded diagnostics rather than Python tracebacks. The human rendering
+includes every governed registry field so any accepted semantic edit changes
+the deterministic review artifact.
 
 ## Evolution
 

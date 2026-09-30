@@ -16,6 +16,7 @@ TOP_KEYS = {"schema_version", "registry_version", "status", "owner_issue", "cano
 MAPPING_KEYS = {
     "id", "capability", "owner_issue", "state", "kind", "canonical_crate", "canonical_module",
     "canonical_symbol", "canonical_version_origin", "canonical_revision", "canonical_description",
+    "canonical_bound_path", "canonical_bound_symbol",
     "language", "language_package", "language_target", "language_version", "language_revision",
     "language_path", "language_license", "language_symbol", "language_shape_state", "direction",
     "compatibility_class", "fidelity", "version_window", "deprecation_phase", "version_negotiation",
@@ -36,8 +37,12 @@ REQUIRED_IDS = {
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
 SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 SEMVER_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
+VERSION_WINDOW_PATTERN = re.compile(
+    r"^>=([0-9]+\.[0-9]+\.[0-9]+),<([0-9]+\.[0-9]+\.[0-9]+)$"
+)
 STABLE_CODE_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9_-]*)+$")
 SELECTOR_PATTERN = re.compile(r"^[A-Za-z0-9_@./:<>?=-]+$")
+CONST_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*$")
 STATES = {"planned", "active", "deprecated", "removed"}
 KINDS = {"value", "error"}
 LANGUAGES = {"typescript", "swift", "kotlin"}
@@ -79,7 +84,48 @@ def strings(value: object, label: str, errors: list[str], *, allow_empty: bool =
     return value
 
 
-def validate_registry(document: object) -> tuple[list[dict[str, object]], list[str]]:
+def version_tuple(value: str) -> tuple[int, int, int]:
+    major, minor, patch = value.split(".")
+    return int(major), int(minor), int(patch)
+
+
+def canonical_bound(
+    root: Path, mapping: dict[str, object], identifier: str, errors: list[str]
+) -> int | None:
+    path_value = mapping.get("canonical_bound_path")
+    symbol_value = mapping.get("canonical_bound_symbol")
+    if (
+        not isinstance(path_value, str)
+        or not path_value.strip()
+        or Path(path_value).is_absolute()
+        or ".." in Path(path_value).parts
+    ):
+        errors.append(f"{identifier}.canonical_bound_path must be repository-relative")
+        return None
+    if not isinstance(symbol_value, str) or not CONST_PATTERN.fullmatch(symbol_value):
+        errors.append(f"{identifier}.canonical_bound_symbol must be an uppercase Rust constant")
+        return None
+    source = root / path_value
+    try:
+        if source.is_symlink() or not source.is_file():
+            raise OSError("source is missing or symlinked")
+        content = source.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as error:
+        errors.append(f"{identifier}.canonical_bound_path cannot be read: {error}")
+        return None
+    pattern = re.compile(
+        rf"(?m)^pub const {re.escape(symbol_value)}\s*:\s*usize\s*=\s*([0-9][0-9_]*)\s*;"
+    )
+    matches = pattern.findall(content)
+    if len(matches) != 1:
+        errors.append(
+            f"{identifier}.canonical_bound_symbol must resolve exactly once to a literal public usize constant"
+        )
+        return None
+    return int(matches[0].replace("_", ""))
+
+
+def validate_registry(document: object, root: Path) -> tuple[list[dict[str, object]], list[str]]:
     errors: list[str] = []
     if not exact_keys(document, TOP_KEYS, "registry", errors):
         return [], errors
@@ -98,6 +144,7 @@ def validate_registry(document: object) -> tuple[list[dict[str, object]], list[s
         errors.append("mappings must be a non-empty array of tables")
         return [], errors
     seen: set[str] = set()
+    vector_owners: dict[str, str] = {}
     for index, mapping in enumerate(mappings, start=1):
         label = f"mappings[{index}]"
         if not exact_keys(mapping, MAPPING_KEYS, label, errors):
@@ -133,7 +180,8 @@ def validate_registry(document: object) -> tuple[list[dict[str, object]], list[s
             errors.append(f"{identifier}.canonical_revision must be a full lowercase Git SHA")
         if mapping.get("language") not in LANGUAGES:
             errors.append(f"{identifier}.language is invalid")
-        if not SEMVER_PATTERN.fullmatch(str(mapping.get("language_version", ""))):
+        language_version = str(mapping.get("language_version", ""))
+        if not SEMVER_PATTERN.fullmatch(language_version):
             errors.append(f"{identifier}.language_version must be semantic x.y.z")
         if not SHA_PATTERN.fullmatch(str(mapping.get("language_revision", ""))):
             errors.append(f"{identifier}.language_revision must be a full lowercase Git SHA")
@@ -149,6 +197,24 @@ def validate_registry(document: object) -> tuple[list[dict[str, object]], list[s
         fidelity = mapping.get("fidelity")
         if fidelity not in FIDELITIES:
             errors.append(f"{identifier}.fidelity is invalid")
+        version_window = mapping.get("version_window")
+        window_match = (
+            VERSION_WINDOW_PATTERN.fullmatch(version_window)
+            if isinstance(version_window, str)
+            else None
+        )
+        if window_match is None:
+            errors.append(
+                f"{identifier}.version_window must use canonical >=x.y.z,<x.y.z syntax"
+            )
+        elif SEMVER_PATTERN.fullmatch(language_version):
+            lower = version_tuple(window_match.group(1))
+            upper = version_tuple(window_match.group(2))
+            selected = version_tuple(language_version)
+            if lower >= upper or not lower <= selected < upper:
+                errors.append(
+                    f"{identifier}.version_window must be ordered and contain language_version"
+                )
         if mapping.get("deprecation_phase") not in DEPRECATION_PHASES:
             errors.append(f"{identifier}.deprecation_phase is invalid")
         consumers = strings(mapping.get("consumers"), f"{identifier}.consumers", errors)
@@ -157,6 +223,13 @@ def validate_registry(document: object) -> tuple[list[dict[str, object]], list[s
         vectors = strings(mapping.get("vector_ids"), f"{identifier}.vector_ids", errors)
         if any(not ID_PATTERN.fullmatch(vector) for vector in vectors):
             errors.append(f"{identifier}.vector_ids contains an invalid stable ID")
+        for vector in vectors:
+            if not ID_PATTERN.fullmatch(vector):
+                continue
+            previous = vector_owners.get(vector)
+            if previous is not None:
+                errors.append(f"vector {vector} is claimed by both {previous} and {identifier}")
+            vector_owners[vector] = str(identifier)
         for selector_field in ("rust_selectors", "language_selectors"):
             selectors = strings(mapping.get(selector_field), f"{identifier}.{selector_field}", errors)
             if any(not SELECTOR_PATTERN.fullmatch(selector) for selector in selectors):
@@ -164,6 +237,16 @@ def validate_registry(document: object) -> tuple[list[dict[str, object]], list[s
         limit = mapping.get("max_input_bytes")
         if not isinstance(limit, int) or isinstance(limit, bool) or limit <= 0:
             errors.append(f"{identifier}.max_input_bytes must be a positive integer")
+        rust_limit = canonical_bound(root, mapping, str(identifier), errors)
+        if (
+            isinstance(limit, int)
+            and not isinstance(limit, bool)
+            and rust_limit is not None
+            and limit > rust_limit
+        ):
+            errors.append(
+                f"{identifier}.max_input_bytes cannot exceed canonical Rust bound {rust_limit}"
+            )
         if mapping.get("redaction") != "caller-input":
             errors.append(f"{identifier}.redaction must preserve caller-input redaction")
         strings(mapping.get("sensitive_fields"), f"{identifier}.sensitive_fields", errors, allow_empty=True)
@@ -220,20 +303,12 @@ def validate_registry(document: object) -> tuple[list[dict[str, object]], list[s
             errors.append(f"{identifier}: lossless mapping cannot declare unsupported cases")
         if fidelity == "lossy" and kind == "value" and not unsupported:
             errors.append(f"{identifier}: lossy value mapping requires unsupported behavior")
-        if fidelity == "lossy" and kind == "error" and not all(item.get("preserve_rust_code") is True for item in errors_map):
-            errors.append(f"{identifier}: lossy error mapping must preserve the canonical code")
         if mapping.get("state") == "active" and mapping.get("deprecation_phase") == "removed":
             errors.append(f"{identifier}: active mapping cannot be removed")
 
-    if seen != REQUIRED_IDS:
-        errors.append(f"seed mapping IDs differ: missing={sorted(REQUIRED_IDS - seen)}, extra={sorted(seen - REQUIRED_IDS)}")
-    vector_owners: dict[str, str] = {}
-    for mapping in mappings:
-        for vector in mapping.get("vector_ids", []):
-            previous = vector_owners.get(vector)
-            if previous is not None:
-                errors.append(f"vector {vector} is claimed by both {previous} and {mapping.get('id')}")
-            vector_owners[vector] = str(mapping.get("id"))
+    missing = REQUIRED_IDS - seen
+    if missing:
+        errors.append(f"required seed mapping IDs are missing: {sorted(missing)}")
     return mappings, errors
 
 
@@ -248,6 +323,8 @@ def render(document: dict[str, object], mappings: list[dict[str, object]]) -> st
         "<!-- Generated by scripts/check-language-adapter-mappings.py; edit the TOML registry. -->",
         "",
         f"Registry version: `{document['registry_version']}`<br>",
+        f"Schema version: `{document['schema_version']}`<br>",
+        f"Status: `{document['status']}`<br>",
         f"Canonical owner: `{document['canonical_owner']}`<br>",
         f"Owner issue: [#{document['owner_issue']}](https://github.com/hyperledger-identus/sdk-rust/issues/{document['owner_issue']})",
         "",
@@ -266,10 +343,17 @@ def render(document: dict[str, object], mappings: list[dict[str, object]]) -> st
                 "",
                 f"## `{mapping['id']}`",
                 "",
-                f"- Canonical: `{mapping['canonical_crate']}::{mapping['canonical_symbol']}` at `{mapping['canonical_revision']}` ({mapping['canonical_version_origin']}).",
-                f"- Language source: `{mapping['language_package']}` {mapping['language_version']} at `{mapping['language_revision']}`, `{mapping['language_path']}`.",
-                f"- Compatibility: {mapping['compatibility_class']}, {mapping['direction']}, {mapping['fidelity']}; window `{mapping['version_window']}`.",
-                f"- Resource policy: at most {mapping['max_input_bytes']} bytes; redaction `{mapping['redaction']}`.",
+                f"- Record: capability `{mapping['capability']}`, owner [#{mapping['owner_issue']}](https://github.com/hyperledger-identus/sdk-rust/issues/{mapping['owner_issue']}), state `{mapping['state']}`, kind `{mapping['kind']}`.",
+                f"- Canonical: `{mapping['canonical_crate']}::{mapping['canonical_module']}::{mapping['canonical_symbol']}` at `{mapping['canonical_revision']}` ({mapping['canonical_version_origin']}).",
+                f"- Canonical semantics: {mapping['canonical_description']}",
+                f"- Canonical bound: `{mapping['canonical_bound_symbol']}` in `{mapping['canonical_bound_path']}`.",
+                f"- Language source: `{mapping['language']}` package `{mapping['language_package']}`, target `{mapping['language_target']}`, symbol `{mapping['language_symbol']}`, version `{mapping['language_version']}` at `{mapping['language_revision']}`, path `{mapping['language_path']}`.",
+                f"- Language evidence: license `{mapping['language_license']}`; shape state `{mapping['language_shape_state']}`.",
+                f"- Compatibility: {mapping['compatibility_class']}, {mapping['direction']}, {mapping['fidelity']}; window `{mapping['version_window']}`; phase `{mapping['deprecation_phase']}`.",
+                f"- Version negotiation: {mapping['version_negotiation']}",
+                f"- Consumers: {', '.join(f'`{item}`' for item in mapping['consumers'])}.",
+                f"- Resource policy: at most {mapping['max_input_bytes']} bytes; redaction `{mapping['redaction']}`; sensitive fields: {', '.join(f'`{item}`' for item in mapping['sensitive_fields']) or 'none'}.",
+                f"- Ownership: async `{mapping['async_ownership']}`; cancellation `{mapping['cancellation_ownership']}`.",
                 f"- Migration: {mapping['migration_action']}",
                 f"- Replacement: {mapping['replacement']}",
                 f"- Observability: {mapping['observability']}",
@@ -277,6 +361,8 @@ def render(document: dict[str, object], mappings: list[dict[str, object]]) -> st
                 f"- Rollback: {mapping['rollback']}",
                 f"- Removal gate: {mapping['removal_gate']}",
                 f"- Vectors: {', '.join(f'`{item}`' for item in mapping['vector_ids'])}.",
+                f"- Rust selectors: {', '.join(f'`{item}`' for item in mapping['rust_selectors'])}.",
+                f"- Language selectors: {', '.join(f'`{item}`' for item in mapping['language_selectors'])}.",
                 "",
             ]
         )
@@ -309,14 +395,17 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("root", nargs="?", default=".")
     parser.add_argument("--render", action="store_true")
+    parser.add_argument("--write", action="store_true")
     args = parser.parse_args()
+    if args.render and args.write:
+        parser.error("--render and --write are mutually exclusive")
     root = Path(args.root).resolve()
     try:
         document = tomllib.loads((root / REGISTRY).read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as error:
         print(f"language-adapter-mappings: cannot load {REGISTRY}: {error}", file=sys.stderr)
         return 1
-    mappings, errors = validate_registry(document)
+    mappings, errors = validate_registry(document, root)
     if errors:
         for error in errors:
             print(f"language-adapter-mappings: {error}", file=sys.stderr)
@@ -325,6 +414,14 @@ def main() -> int:
     rendered = render(document, mappings)
     if args.render:
         print(rendered, end="")
+        return 0
+    if args.write:
+        try:
+            (root / RENDERED).write_text(rendered, encoding="utf-8")
+        except OSError as error:
+            print(f"language-adapter-mappings: cannot write {RENDERED}: {error}", file=sys.stderr)
+            return 1
+        print(f"language-adapter-mappings: wrote {RENDERED}")
         return 0
     try:
         checked_in = (root / RENDERED).read_text(encoding="utf-8")

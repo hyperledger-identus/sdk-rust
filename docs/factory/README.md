@@ -64,6 +64,9 @@ Before implementation, the change must contain:
 - `specs/<capability>/spec.md` with testable normative scenarios;
 - `design.md` recording implementation decisions and trade-offs;
 - `tasks.md` with ordered, parseable checkboxes;
+- stable quality-evidence declaration IDs for changed capabilities, or an
+  issue-owned pending declaration ID that the change will add; do not copy the
+  property, fuzz, benchmark or differential obligations into free-form prose;
 - a semantic review with zero uncleared blockers.
 
 Run `scripts/factory research-ready <change>` and `scripts/factory
@@ -92,6 +95,7 @@ Run the repository facade directly, through `just`, or as a Nix app:
 ./scripts/factory audit
 ./scripts/factory backlog-live
 ./scripts/factory plan --base <sha> --head <sha>
+./scripts/factory quality-plan [capability]
 ./scripts/factory delivery pr-preflight --title <title> --body-file <file> \
   --head-ref <branch> --base-ref develop --draft false
 ./scripts/factory delivery merge-pr --pr N --expect-head <sha> \
@@ -127,6 +131,7 @@ nix run .#factory -- check
 | `audit` | enters the pinned Nix shell once when needed, then validates bounded tracked Pi policy and the effective pinned runtime |
 | `backlog-live` | explicitly resolves canonical roadmap issue ownership through GitHub before supervisor work selection; it is read-only and outside offline required CI |
 | `plan` | derives one immutable required fast lane plus risk-routed slow evidence available locally or through external orchestration |
+| `quality-plan` | validates the closed property/fuzz/benchmark/differential registry and renders deterministic, non-executing evidence routes, optionally for one capability |
 | `delivery` | preflights file-backed PR metadata against both hosted policy layers and guards exact-head protected squash merges with private receipts |
 | `worktrees` | audits or explicitly mutates only canonical bounded issue worktrees |
 | `metrics` | validates, retains, renders or explicitly publishes privacy-bounded exact-head v1/v2 metrics; publication defaults to the recorded PR, then its issue |
@@ -134,6 +139,14 @@ nix run .#factory -- check
 | `ready` | requires the named active change and every task to be complete |
 | `receipt` | runs readiness, then prints immutable branch/head/base identifiers |
 | `archive` | snapshots matching archives, rejects a known dated-destination collision, runs readiness and preservation preflight, archives through pinned OpenSpec, then proves exactly one new regular requested archive, mandatory artifacts and the resulting store before reporting success |
+
+`docs/architecture/quality-evidence-declarations.toml` is the single source
+for property, fuzz, benchmark and differential obligations. Each declaration
+records a stable ID, accountable owner, executable route or bounded
+not-applicable rationale, cadence, targets, freshness, budget, and debt state.
+The checked-in `quality-evidence-plan.md` is deterministic output. Issue,
+OpenSpec, and pull-request receipts reference declaration IDs instead of
+duplicating mutable commands or policy prose.
 
 `./bootstrap.sh --pi` additionally prepares a verified, content-addressed Pi
 project-package cache outside all registered working trees. Exact harness

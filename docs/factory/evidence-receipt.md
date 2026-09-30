@@ -28,6 +28,7 @@ Focused commands passed:
 Repository commands passed:
 Commands not run and why:
 Coverage/conformance evidence:
+Quality evidence declaration IDs:
 Local review context and result:
 Local review findings resolved:
 Semantic review:

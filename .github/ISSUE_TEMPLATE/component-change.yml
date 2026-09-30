@@ -105,6 +105,15 @@ body:
       required: true
 
   - type: input
+    id: quality_declarations
+    attributes:
+      label: Quality evidence declaration IDs
+      description: Reference stable registry IDs; use pending:<proposed-id> owned by this issue only when this change will add the declaration. Do not duplicate obligation prose.
+      placeholder: did.syntax.quality.v1
+    validations:
+      required: true
+
+  - type: input
     id: openspec
     attributes:
       label: Proposed OpenSpec change

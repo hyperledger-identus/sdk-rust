@@ -1,0 +1,333 @@
+schema_version   = 1
+registry_version = "1.0.0"
+status           = "active"
+owner_issue      = 505
+canonical_owner  = "sdk-rust"
+
+[[mappings]]
+id = "did.value.typescript.legacy-v1"
+capability = "did.syntax"
+owner_issue = 505
+state = "active"
+kind = "value"
+canonical_crate = "identus-did"
+canonical_rust_path = "identus_did::Did"
+canonical_version_origin = "unreleased-workspace-0.0.0"
+canonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"
+canonical_description = "Validated immutable DID preserving the exact serialized value, method, and method-specific identifier."
+canonical_bound_path = "crates/did/src/did.rs"
+canonical_bound_symbol = "MAX_DID_BYTES"
+language = "typescript"
+language_package = "@hyperledger/identus-sdk"
+language_target = "node-and-browser"
+language_version = "8.1.4"
+language_revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+language_path = "packages/shared/domain/src/models/DID.ts"
+language_license = "Apache-2.0"
+language_symbol = "DID"
+language_shape_state = "legacy"
+direction = "bidirectional"
+compatibility_class = "deprecated"
+fidelity = "lossless"
+version_window = ">=8.1.4,<8.1.5"
+deprecation_phase = "transitional"
+version_negotiation = "npm-package-version"
+consumers = [ "sdk-ts" ]
+vector_ids = [
+  "did.syntax.valid-basic",
+  "did.syntax.valid-colon-segments",
+  "did.syntax.valid-percent-case",
+  "did.syntax.consumer-shared-basic",
+  "did.syntax.consumer-shared-percent",
+  "did.syntax.max-bytes",
+]
+rust_selectors = [ "identus_did::Did", "cross_language_did_vectors::portable_did_packet_matches_identus_did" ]
+language_selectors = [ "packages/lib/sdk/tests/castor/DIDParser.test.ts" ]
+max_input_bytes = 2048
+redaction = "caller-input"
+sensitive_fields = [  ]
+async_ownership = "not-applicable"
+cancellation_ownership = "not-applicable"
+migration_action = "Construct the Rust value first, then project the legacy DTO until SDK-TS exposes a canonical-value facade."
+replacement = "SDK-TS additive DID facade backed by the serialized Rust value and stable error code."
+observability = "Record mapping ID, direction, result class, and stable Rust error code without input values."
+fallback = "No parser fallback; reject values refused by identus-did."
+rollback = "Restore the prior SDK-TS parser while retaining this mapping record as historical evidence."
+removal_gate = "All supported SDK-TS consumers use the Rust-backed additive DID facade and its migration window has elapsed."
+errors = [  ]
+losses = [  ]
+unsupported = [  ]
+
+[[mappings.fields]]
+rust      = "serialized"
+language  = "uuid"
+transform = "identity"
+direction = "both"
+required  = true
+
+[[mappings.fields]]
+rust      = "literal:did"
+language  = "schema"
+transform = "derived-constant"
+direction = "rust-to-language"
+required  = true
+
+[[mappings.fields]]
+rust      = "method"
+language  = "method"
+transform = "identity"
+direction = "both"
+required  = true
+
+[[mappings.fields]]
+rust      = "method_specific_id"
+language  = "methodId"
+transform = "rename"
+direction = "both"
+required  = true
+
+[[mappings]]
+id = "did-url.value.typescript.legacy-v1"
+capability = "did.syntax"
+owner_issue = 505
+state = "active"
+kind = "value"
+canonical_crate = "identus-did"
+canonical_rust_path = "identus_did::DidUrl"
+canonical_version_origin = "unreleased-workspace-0.0.0"
+canonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"
+canonical_description = "Validated immutable DID URL preserving exact serialization and absent-versus-empty query and fragment state."
+canonical_bound_path = "crates/did/src/did.rs"
+canonical_bound_symbol = "MAX_DID_URL_BYTES"
+language = "typescript"
+language_package = "@hyperledger/identus-sdk"
+language_target = "node-and-browser"
+language_version = "8.1.4"
+language_revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+language_path = "packages/shared/domain/src/models/DIDUrl.ts"
+language_license = "Apache-2.0"
+language_symbol = "DIDUrl"
+language_shape_state = "legacy"
+direction = "rust-to-language"
+compatibility_class = "deprecated"
+fidelity = "lossy"
+version_window = ">=8.1.4,<8.1.5"
+deprecation_phase = "transitional"
+version_negotiation = "npm-package-version"
+consumers = [ "sdk-ts" ]
+vector_ids = [
+  "did-url.syntax.valid-components",
+  "did-url.syntax.empty-query",
+  "did-url.syntax.empty-fragment",
+  "did-url.syntax.max-bytes",
+]
+rust_selectors = [ "identus_did::DidUrl", "cross_language_did_vectors::portable_did_packet_matches_identus_did" ]
+language_selectors = [ "packages/lib/sdk/tests/castor/DIDUrlParser.test.ts" ]
+max_input_bytes = 4096
+redaction = "caller-input"
+sensitive_fields = [  ]
+async_ownership = "not-applicable"
+cancellation_ownership = "not-applicable"
+migration_action = "Use Rust as the parser and source of truth; reject unsupported reverse projection and introduce an additive exact-value facade."
+replacement = "SDK-TS additive DID URL facade preserving serialized, raw query, and presence state."
+observability = "Record mapping ID, direction, unsupported-case ID, and stable Rust error code without URL values."
+fallback = "No lossy reverse fallback and no alternate parser after identus-did rejection."
+rollback = "Restore the prior SDK-TS parser while retaining unsupported-case telemetry and this historical mapping."
+removal_gate = "All supported SDK-TS consumers use the exact-value facade and no named unsupported legacy round trip remains."
+errors = [  ]
+
+[[mappings.fields]]
+rust      = "did"
+language  = "did"
+transform = "nested-did-mapping"
+direction = "rust-to-language"
+required  = true
+
+[[mappings.fields]]
+rust      = "path"
+language  = "path"
+transform = "split-path-segments"
+direction = "rust-to-language"
+required  = true
+
+[[mappings.fields]]
+rust      = "query"
+language  = "parameters"
+transform = "parse-to-map"
+direction = "rust-to-language"
+required  = false
+
+[[mappings.fields]]
+rust      = "fragment"
+language  = "fragment"
+transform = "optional-to-string"
+direction = "rust-to-language"
+required  = false
+
+[[mappings.losses]]
+id          = "did-url.raw-query-round-trip"
+distinction = "Raw query ordering, duplicate names, and exact encoding are preserved by Rust but not by the legacy TypeScript Map."
+consequence = "Reverse conversion cannot reproduce the canonical serialized DID URL."
+mitigation  = "Reject reverse conversion and require the additive exact-value facade."
+
+[[mappings.losses]]
+id          = "did-url.empty-query-presence"
+distinction = "Rust distinguishes an absent query from an explicitly empty query while the legacy shape does not."
+consequence = "The legacy value cannot round-trip query presence."
+mitigation  = "Reject reverse conversion and require the additive exact-value facade."
+
+[[mappings.losses]]
+id          = "did-url.empty-fragment-presence"
+distinction = "Rust distinguishes an absent fragment from an explicitly empty fragment while the legacy shape does not."
+consequence = "The legacy value cannot round-trip fragment presence."
+mitigation  = "Reject reverse conversion and require the additive exact-value facade."
+
+[[mappings.unsupported]]
+id           = "did-url.raw-query-round-trip"
+reason       = "A TypeScript Map cannot preserve raw query ordering or duplicate names."
+behavior     = "Reject reverse conversion and require the additive exact-value facade."
+stable_error = "adapter.unsupported_lossy_mapping"
+
+[[mappings.unsupported]]
+id           = "did-url.empty-query-presence"
+reason       = "The legacy shape cannot distinguish an absent query from an explicitly empty query."
+behavior     = "Reject reverse conversion and require the additive exact-value facade."
+stable_error = "adapter.unsupported_lossy_mapping"
+
+[[mappings.unsupported]]
+id           = "did-url.empty-fragment-presence"
+reason       = "The legacy string cannot distinguish an absent fragment from an explicitly empty fragment."
+behavior     = "Reject reverse conversion and require the additive exact-value facade."
+stable_error = "adapter.unsupported_lossy_mapping"
+
+[[mappings]]
+id = "did.error.invalid-did.typescript.legacy-v1"
+capability = "did.syntax"
+owner_issue = 505
+state = "active"
+kind = "error"
+canonical_crate = "identus-did"
+canonical_rust_path = "identus_did::Error::to_identus_error"
+canonical_version_origin = "unreleased-workspace-0.0.0"
+canonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"
+canonical_description = "Stable public invalid-DID code with InvalidInput kind, did capability, and redacted caller input."
+canonical_bound_path = "crates/did/src/did.rs"
+canonical_bound_symbol = "MAX_DID_BYTES"
+language = "typescript"
+language_package = "@hyperledger/identus-sdk"
+language_target = "node-and-browser"
+language_version = "8.1.4"
+language_revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+language_path = "packages/shared/domain/src/models/errors/Castor.ts"
+language_license = "Apache-2.0"
+language_symbol = "CastorError.InvalidDIDString"
+language_shape_state = "legacy"
+direction = "rust-to-language"
+compatibility_class = "deprecated"
+fidelity = "lossy"
+version_window = ">=8.1.4,<8.1.5"
+deprecation_phase = "transitional"
+version_negotiation = "npm-package-version"
+consumers = [ "sdk-ts" ]
+vector_ids = [
+  "did.syntax.invalid-prefix",
+  "did.syntax.invalid-method",
+  "did.syntax.trailing-colon",
+  "did.syntax.missing-method",
+  "did.syntax.missing-method-specific-id",
+  "did.syntax.invalid-percent",
+  "did.syntax.non-ascii",
+  "did.syntax.url-delimiter",
+  "did.syntax.over-max-bytes",
+]
+rust_selectors = [ "identus_did::Error::to_identus_error", "cross_language_did_vectors::portable_did_packet_matches_identus_did" ]
+language_selectors = [ "packages/shared/domain/src/models/errors/Castor.ts:InvalidDIDString" ]
+max_input_bytes = 2048
+redaction = "caller-input"
+sensitive_fields = [ "rejected-input" ]
+async_ownership = "not-applicable"
+cancellation_ownership = "not-applicable"
+migration_action = "Expose the stable Rust code beside the legacy class, then migrate callers from class/message matching to the code."
+replacement = "SDK-TS adapter error carrying did.invalid_did with a redacted legacy class facade."
+observability = "Record did.invalid_did and mapping ID; never record rejected input or the donor message."
+fallback = "No fallback parser and no raw input in the legacy error."
+rollback = "Retain InvalidDIDString while disabling the Rust adapter; keep stable-code telemetry disabled with it."
+removal_gate = "All supported consumers match did.invalid_did rather than the legacy class or message."
+fields = [  ]
+unsupported = [  ]
+
+[[mappings.losses]]
+id          = "did.error.legacy-class-coalescing"
+distinction = "Multiple canonical DID failures may surface through the same legacy InvalidDIDString class."
+consequence = "Legacy class matching cannot preserve the canonical error identity."
+mitigation  = "Preserve the stable Rust error code beside the redacted legacy class."
+
+[[mappings.errors]]
+rust_code               = "did.invalid_did"
+language_class          = "CastorError.InvalidDIDString"
+language_message_stable = false
+preserve_rust_code      = true
+redact_input            = true
+
+[[mappings]]
+id = "did.error.invalid-did-url.typescript.legacy-v1"
+capability = "did.syntax"
+owner_issue = 505
+state = "active"
+kind = "error"
+canonical_crate = "identus-did"
+canonical_rust_path = "identus_did::Error::to_identus_error"
+canonical_version_origin = "unreleased-workspace-0.0.0"
+canonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"
+canonical_description = "Stable public invalid-DID-URL code with InvalidInput kind, did capability, and redacted caller input."
+canonical_bound_path = "crates/did/src/did.rs"
+canonical_bound_symbol = "MAX_DID_URL_BYTES"
+language = "typescript"
+language_package = "@hyperledger/identus-sdk"
+language_target = "node-and-browser"
+language_version = "8.1.4"
+language_revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+language_path = "packages/lib/sdk/src/castor/parser/DIDUrlParser.ts"
+language_license = "Apache-2.0"
+language_symbol = "CastorError.InvalidDIDString"
+language_shape_state = "legacy"
+direction = "rust-to-language"
+compatibility_class = "deprecated"
+fidelity = "lossy"
+version_window = ">=8.1.4,<8.1.5"
+deprecation_phase = "transitional"
+version_negotiation = "npm-package-version"
+consumers = [ "sdk-ts" ]
+vector_ids = [
+  "did-url.syntax.invalid-percent",
+  "did-url.syntax.space",
+  "did-url.syntax.over-max-bytes",
+]
+rust_selectors = [ "identus_did::Error::to_identus_error", "cross_language_did_vectors::portable_did_packet_matches_identus_did" ]
+language_selectors = [ "packages/lib/sdk/src/castor/parser/DIDUrlParser.ts" ]
+max_input_bytes = 4096
+redaction = "caller-input"
+sensitive_fields = [ "rejected-input" ]
+async_ownership = "not-applicable"
+cancellation_ownership = "not-applicable"
+migration_action = "Expose the distinct stable Rust code beside the shared legacy class, then migrate callers from class/message matching."
+replacement = "SDK-TS adapter error carrying did.invalid_did_url with a redacted legacy class facade."
+observability = "Record did.invalid_did_url and mapping ID; never record rejected input or the donor message."
+fallback = "No fallback parser and no raw input in the legacy error."
+rollback = "Retain InvalidDIDString while disabling the Rust adapter; keep stable-code telemetry disabled with it."
+removal_gate = "All supported consumers distinguish did.invalid_did_url from did.invalid_did by stable code."
+fields = [  ]
+unsupported = [  ]
+
+[[mappings.losses]]
+id          = "did-url.error.legacy-class-coalescing"
+distinction = "Canonical DID and DID URL failures share the legacy InvalidDIDString class."
+consequence = "Legacy class matching cannot distinguish did.invalid_did_url from did.invalid_did."
+mitigation  = "Preserve the stable Rust error code beside the redacted legacy class."
+
+[[mappings.errors]]
+rust_code               = "did.invalid_did_url"
+language_class          = "CastorError.InvalidDIDString"
+language_message_stable = false
+preserve_rust_code      = true
+redact_input            = true

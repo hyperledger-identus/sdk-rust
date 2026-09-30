@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 510,
+  "change": "close-language-adapter-verification-gaps",
+  "branch": "codex/fix/issue-510",
+  "baseRef": "origin/develop",
+  "baseSha": "644993c859b87e2da16612fcdf7cf1868cfe5981",
+  "contractHeadSha": "d173b559c1f6df2db4663e2c683e72eff5d5c061",
+  "createdAt": "2026-09-30T09:45:43.492Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -87,7 +87,7 @@ def main() -> int:
 
         omitted_budget = replace_once(
             baseline,
-            'budget             = "Exhaust ASCII bytes 0..127 in each grammar position and verify exact 2,048-byte DID and 4,096-byte DID URL limits."\n',
+            'budget = "Exhaust ASCII bytes 0..127 in each grammar position and verify exact 2,048-byte DID and 4,096-byte DID URL limits."\n',
             "",
         )
         expect_failure(
@@ -101,8 +101,8 @@ def main() -> int:
 
         absent_rationale = replace_once(
             baseline,
-            'rationale          = "No A1 consumer has declared a DID syntax latency or throughput objective; add a benchmark only with a stable fixture, comparable environment, statistic, sample budget, and threshold."',
-            'rationale          = ""',
+            'rationale         = "No A1 consumer has declared a DID syntax latency or throughput objective; add a benchmark only with a stable fixture, comparable environment, statistic, sample budget, and threshold."',
+            'rationale         = ""',
         )
         expect_failure(
             source_root,
@@ -115,8 +115,8 @@ def main() -> int:
 
         stale_receipt = replace_once(
             baseline,
-            'recorded_at        = "2026-09-29"',
-            'recorded_at        = "2026-09-01"',
+            'recorded_at = "2026-09-29"',
+            'recorded_at = "2026-09-01"',
         )
         expect_failure(
             source_root,
@@ -129,25 +129,25 @@ def main() -> int:
 
         unowned_debt = replace_once(
             baseline,
-            'class             = "fuzz"\ndisposition       = "satisfied"',
-            'class             = "fuzz"\ndisposition       = "required"',
+            'class = "fuzz"\ndisposition = "satisfied"',
+            'class = "fuzz"\ndisposition = "required"',
         )
         for before, after in (
-            ('freshness          = "max-age-days"', 'freshness          = "pending"'),
-            ("freshness_days     = 8", "freshness_days     = 0"),
-            ('receipt_kind       = "github-run"', 'receipt_kind       = "none"'),
+            ('freshness = "max-age-days"', 'freshness = "pending"'),
+            ("freshness_days = 8", "freshness_days = 0"),
+            ('receipt_kind = "github-run"', 'receipt_kind = "none"'),
             (
-                'receipt            = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/36517752658"',
-                'receipt            = ""',
+                'receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/36517752658"',
+                'receipt = ""',
             ),
             (
-                'evidence_revision  = "d27e455901c501d9611abbe0065e6a9b7270dd57"',
-                'evidence_revision  = ""',
+                'evidence_revision = "d27e455901c501d9611abbe0065e6a9b7270dd57"',
+                'evidence_revision = ""',
             ),
-            ('recorded_at        = "2026-09-29"', 'recorded_at        = ""'),
+            ('recorded_at = "2026-09-29"', 'recorded_at = ""'),
             (
-                'debt_status        = "none"\ndebt_issue         = 0\nrationale          = ""\ndetails            = [\n  "harness=',
-                'debt_status        = "open"\ndebt_issue         = 0\nrationale          = ""\ndetails            = [\n  "harness=',
+                'debt_status = "none"\ndebt_issue = 0\nrationale = ""\ndetails = [\n  "harness=',
+                'debt_status = "open"\ndebt_issue = 0\nrationale = ""\ndetails = [\n  "harness=',
             ),
         ):
             unowned_debt = replace_once(unowned_debt, before, after)
@@ -192,13 +192,13 @@ def main() -> int:
         second_declaration = baseline[declaration_offset:]
         second_declaration = replace_once(
             second_declaration,
-            'id           = "did.syntax.quality.v1"',
-            'id           = "example.portable.quality.v1"',
+            'id = "did.syntax.quality.v1"',
+            'id = "example.portable.quality.v1"',
         )
         second_declaration = replace_once(
             second_declaration,
-            'capability   = "did.syntax"',
-            'capability   = "example.portable"',
+            'capability = "did.syntax"',
+            'capability = "example.portable"',
         )
         additive = baseline.rstrip() + "\n\n" + second_declaration
         (fixture_root / REGISTRY).write_text(additive, encoding="utf-8")

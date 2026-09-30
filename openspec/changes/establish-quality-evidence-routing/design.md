@@ -73,7 +73,7 @@ validation will resolve quality IDs from consumer-visible changes.
 
 The factory issue template and evidence receipt request stable quality
 declaration IDs. OpenSpec planning guidance requires those IDs or an explicit
-`not-yet-created` value owned by the current issue. The registry remains the
+`pending:<proposed-id>` value owned by the current issue. The registry remains the
 single source for commands, rationale, and lane routing; templates do not copy
 the four obligation bodies.
 

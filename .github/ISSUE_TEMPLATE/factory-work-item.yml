@@ -43,6 +43,14 @@ body:
       description: List focused gates, exact-head evidence, target routing and required review.
     validations:
       required: true
+  - type: input
+    id: quality_declarations
+    attributes:
+      label: Quality evidence declaration IDs
+      description: Reference stable registry IDs; use pending:<proposed-id> owned by this issue only when the declaration will be added here. Do not duplicate obligation prose.
+      placeholder: did.syntax.quality.v1
+    validations:
+      required: true
   - type: checkboxes
     id: contract
     attributes:

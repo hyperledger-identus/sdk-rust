@@ -1,0 +1,169 @@
+schema_version   = 1
+registry_version = "1.0.0"
+status           = "active"
+owner_issue      = 501
+evaluated_at     = "2026-09-30"
+allowed_classes  = [ "property", "fuzz", "benchmark", "differential" ]
+allowed_lanes    = [ "focused", "fast", "slow", "release", "none" ]
+allowed_cadences = [ "on-change", "per-pull-request", "weekly-or-manual", "per-candidate", "not-applicable" ]
+
+[[declarations]]
+id           = "did.syntax.quality.v1"
+capability   = "did.syntax"
+slice        = "A1 shared compatibility foundation"
+owner        = "SDK-Rust DID maintainers"
+owner_issue  = 501
+risk         = "Malformed or divergent DID syntax handling can break portable identity flows or exhaust bounded parser resources."
+targets      = [ "package:identus-did", "host:rust", "consumer:portable-sdk" ]
+vector_ids   = [
+  "did.syntax.valid-basic",
+  "did.syntax.valid-colon-segments",
+  "did.syntax.valid-percent-case",
+  "did-url.syntax.valid-components",
+  "did-url.syntax.empty-query",
+  "did-url.syntax.empty-fragment",
+  "did.syntax.consumer-shared-basic",
+  "did.syntax.consumer-shared-percent",
+  "did.syntax.invalid-prefix",
+  "did.syntax.invalid-method",
+  "did.syntax.trailing-colon",
+  "did.syntax.missing-method",
+  "did.syntax.missing-method-specific-id",
+  "did.syntax.invalid-percent",
+  "did.syntax.non-ascii",
+  "did.syntax.url-delimiter",
+  "did-url.syntax.invalid-percent",
+  "did-url.syntax.space",
+  "did.syntax.max-bytes",
+  "did.syntax.over-max-bytes",
+  "did-url.syntax.max-bytes",
+  "did-url.syntax.over-max-bytes",
+]
+limitations  = "Lexical DID and DID URL syntax only; DID method semantics, resolution, and dereferencing are outside this declaration."
+active       = true
+supersedes   = []
+replaced_by  = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk               = "Grammar drift, boundary disagreement, or inconsistent serialization may accept invalid identifiers or reject portable ones."
+selectors          = [
+  "crates/did/tests/did_syntax.rs#generic_did_ascii_grammar_is_exhaustive",
+  "crates/did/tests/did_syntax.rs#did_url_ascii_component_grammar_is_exhaustive",
+  "crates/did/tests/did_syntax.rs#serde_and_native_boundaries_are_equivalent",
+  "crates/did/tests/did_syntax.rs#exact_byte_limits_are_enforced",
+]
+command            = "cargo test -p identus-did --test did_syntax"
+lane               = "focused"
+cadence            = "on-change"
+targets            = [ "package:identus-did", "host:rust" ]
+freshness          = "source-bound"
+freshness_days     = 0
+budget             = "Exhaust ASCII bytes 0..127 in each grammar position and verify exact 2,048-byte DID and 4,096-byte DID URL limits."
+receipt_kind       = "source"
+receipt            = "source:crates/did/tests/did_syntax.rs"
+evidence_revision  = "d3543e3eec42dd519c57a7250950c01fa628145a"
+recorded_at        = "2026-09-30"
+artifact           = ""
+owner              = "SDK-Rust DID maintainers"
+owner_issue        = 501
+debt_status        = "none"
+debt_issue         = 0
+rationale          = ""
+details            = [
+  "invariant=DID and DID URL lexical grammar, native and serde boundaries, and byte limits agree",
+  "domain=all ASCII bytes in each grammar position plus exact configured byte boundaries",
+  "cases=deterministic exhaustive loops and explicit boundary fixtures",
+]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk               = "Unexpected byte sequences may trigger parser panics, excessive allocation, or disagreement between borrowed and owned forms."
+selectors          = [
+  "fuzz/fuzz_targets/did.rs#fuzz_target!",
+  "fuzz/fuzz_targets/did_url.rs#fuzz_target!",
+  "scripts/fuzz-did.sh#-max_len=8192",
+  ".github/workflows/did-fuzz.yml#Run bounded nightly soak",
+]
+command            = "nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all"
+lane               = "slow"
+cadence            = "weekly-or-manual"
+targets            = [ "package:identus-did", "host:linux", "sanitizer:address" ]
+freshness          = "max-age-days"
+freshness_days     = 8
+budget             = "Run each DID and DID URL fuzz target for 300 seconds with max_len=8192, timeout=5, and rss_limit_mb=1024."
+receipt_kind       = "github-run"
+receipt            = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/36517752658"
+evidence_revision  = "d27e455901c501d9611abbe0065e6a9b7270dd57"
+recorded_at        = "2026-09-29"
+artifact           = "did-fuzz-artifacts-<sha>-<attempt> on failure"
+owner              = "SDK-Rust DID maintainers"
+owner_issue        = 501
+debt_status        = "none"
+debt_issue         = 0
+rationale          = ""
+details            = [
+  "harness=libFuzzer DID and DID URL parse/round-trip targets",
+  "corpus=fuzz/corpus/did and fuzz/corpus/did_url",
+  "seed=libFuzzer-managed reproducible failing inputs",
+  "bounds=max_len=8192;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "not-applicable"
+risk               = "A benchmark without a named consumer performance goal, stable fixture, comparable environment, and regression threshold would create misleading evidence."
+selectors          = []
+command            = ""
+lane               = "none"
+cadence            = "not-applicable"
+targets            = []
+freshness          = "not-applicable"
+freshness_days     = 0
+budget             = ""
+receipt_kind       = "none"
+receipt            = ""
+evidence_revision  = ""
+recorded_at        = ""
+artifact           = ""
+owner              = "SDK-Rust DID maintainers"
+owner_issue        = 501
+debt_status        = "none"
+debt_issue         = 0
+rationale          = "No A1 consumer has declared a DID syntax latency or throughput objective; add a benchmark only with a stable fixture, comparable environment, statistic, sample budget, and threshold."
+details            = []
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk               = "Rust syntax behavior may diverge from the portable A1 packet consumed by TypeScript, Swift, and Kotlin adapters."
+selectors          = [
+  "crates/conformance/tests/cross_language_did_vectors.rs#portable_did_packet_matches_identus_did",
+  "docs/conformance/cross-language-vector-catalog.toml#did.syntax.valid-basic",
+]
+command            = "cargo test -p identus-conformance --test cross_language_did_vectors"
+lane               = "fast"
+cadence            = "per-pull-request"
+targets            = [ "package:identus-conformance", "host:rust", "consumer:portable-sdk" ]
+freshness          = "source-bound"
+freshness_days     = 0
+budget             = "Evaluate all 22 immutable DID syntax packet cases without network access or an unpublished consumer dependency."
+receipt_kind       = "source"
+receipt            = "source:crates/conformance/tests/cross_language_did_vectors.rs"
+evidence_revision  = "d3543e3eec42dd519c57a7250950c01fa628145a"
+recorded_at        = "2026-09-30"
+artifact           = "docs/conformance/fixtures/did/v1/vectors.json"
+owner              = "SDK-Rust conformance maintainers"
+owner_issue        = 501
+debt_status        = "none"
+debt_issue         = 0
+rationale          = ""
+details            = [
+  "oracle=did.syntax.v1 portable packet and W3C DID Core syntax authority",
+  "oracle-revision=72ebf6603594fe3b2b93f9d1a9cd9dc40bf8708f6bc8a7b4370ee9b9f173679a",
+  "normalization=compare accept/reject and canonical parsed component expectations, not foreign DTO or error shapes",
+  "deviations=none for the lexical syntax packet",
+]

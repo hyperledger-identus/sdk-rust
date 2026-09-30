@@ -51,6 +51,11 @@ run_slow_live() {
   "$factory_root/scripts/check-weekly-slow-live.py" "$@"
 }
 
+run_quality_plan() {
+  "$factory_root/scripts/check-quality-evidence-declarations.py" \
+    "$factory_root" --plan "$@"
+}
+
 validate_all() {
   run_openspec validate --all --strict --no-interactive
 }
@@ -281,6 +286,8 @@ Commands:
                       Audit roadmap ownership against live GitHub issue state
   slow-live [options] Audit native scheduled slow-run freshness and health
   plan [options]      Derive immutable fast/slow target routing from exact SHAs
+  quality-plan [capability]
+                      Render declared quality evidence without executing it
   delivery pr-preflight --title T --body-file FILE --head-ref REF --base-ref REF --draft true|false
                       Apply hosted PR metadata policy to file-backed inputs
   metrics [options]   Validate, store, render or publish bounded work metrics
@@ -334,6 +341,9 @@ case "$command_name" in
     ;;
   plan)
     node "$factory_root/scripts/ci/target-plan.mjs" "$@"
+    ;;
+  quality-plan)
+    run_quality_plan "$@"
     ;;
   delivery)
     node "$factory_root/scripts/factory-tools/delivery.mjs" "$@"

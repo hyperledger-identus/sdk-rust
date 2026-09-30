@@ -11,8 +11,7 @@ owner_issue = 505
 state = "active"
 kind = "value"
 canonical_crate = "identus-did"
-canonical_module = "identus_did::did"
-canonical_symbol = "Did"
+canonical_rust_path = "identus_did::Did"
 canonical_version_origin = "unreleased-workspace-0.0.0"
 canonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"
 canonical_description = "Validated immutable DID preserving the exact serialized value, method, and method-specific identifier."
@@ -30,7 +29,7 @@ language_shape_state = "legacy"
 direction = "bidirectional"
 compatibility_class = "deprecated"
 fidelity = "lossless"
-version_window = ">=8.1.4,<10.0.0"
+version_window = ">=8.1.4,<8.1.5"
 deprecation_phase = "transitional"
 version_negotiation = "npm-package-version"
 consumers = [ "sdk-ts" ]
@@ -56,6 +55,7 @@ fallback = "No parser fallback; reject values refused by identus-did."
 rollback = "Restore the prior SDK-TS parser while retaining this mapping record as historical evidence."
 removal_gate = "All supported SDK-TS consumers use the Rust-backed additive DID facade and its migration window has elapsed."
 errors = [  ]
+losses = [  ]
 unsupported = [  ]
 
 [[mappings.fields]]
@@ -93,8 +93,7 @@ owner_issue = 505
 state = "active"
 kind = "value"
 canonical_crate = "identus-did"
-canonical_module = "identus_did::did"
-canonical_symbol = "DidUrl"
+canonical_rust_path = "identus_did::DidUrl"
 canonical_version_origin = "unreleased-workspace-0.0.0"
 canonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"
 canonical_description = "Validated immutable DID URL preserving exact serialization and absent-versus-empty query and fragment state."
@@ -112,7 +111,7 @@ language_shape_state = "legacy"
 direction = "rust-to-language"
 compatibility_class = "deprecated"
 fidelity = "lossy"
-version_window = ">=8.1.4,<10.0.0"
+version_window = ">=8.1.4,<8.1.5"
 deprecation_phase = "transitional"
 version_negotiation = "npm-package-version"
 consumers = [ "sdk-ts" ]
@@ -165,6 +164,24 @@ transform = "optional-to-string"
 direction = "rust-to-language"
 required  = false
 
+[[mappings.losses]]
+id          = "did-url.raw-query-round-trip"
+distinction = "Raw query ordering, duplicate names, and exact encoding are preserved by Rust but not by the legacy TypeScript Map."
+consequence = "Reverse conversion cannot reproduce the canonical serialized DID URL."
+mitigation  = "Reject reverse conversion and require the additive exact-value facade."
+
+[[mappings.losses]]
+id          = "did-url.empty-query-presence"
+distinction = "Rust distinguishes an absent query from an explicitly empty query while the legacy shape does not."
+consequence = "The legacy value cannot round-trip query presence."
+mitigation  = "Reject reverse conversion and require the additive exact-value facade."
+
+[[mappings.losses]]
+id          = "did-url.empty-fragment-presence"
+distinction = "Rust distinguishes an absent fragment from an explicitly empty fragment while the legacy shape does not."
+consequence = "The legacy value cannot round-trip fragment presence."
+mitigation  = "Reject reverse conversion and require the additive exact-value facade."
+
 [[mappings.unsupported]]
 id           = "did-url.raw-query-round-trip"
 reason       = "A TypeScript Map cannot preserve raw query ordering or duplicate names."
@@ -190,8 +207,7 @@ owner_issue = 505
 state = "active"
 kind = "error"
 canonical_crate = "identus-did"
-canonical_module = "identus_did::error"
-canonical_symbol = "did.invalid_did"
+canonical_rust_path = "identus_did::Error::to_identus_error"
 canonical_version_origin = "unreleased-workspace-0.0.0"
 canonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"
 canonical_description = "Stable public invalid-DID code with InvalidInput kind, did capability, and redacted caller input."
@@ -209,7 +225,7 @@ language_shape_state = "legacy"
 direction = "rust-to-language"
 compatibility_class = "deprecated"
 fidelity = "lossy"
-version_window = ">=8.1.4,<10.0.0"
+version_window = ">=8.1.4,<8.1.5"
 deprecation_phase = "transitional"
 version_negotiation = "npm-package-version"
 consumers = [ "sdk-ts" ]
@@ -240,6 +256,12 @@ removal_gate = "All supported consumers match did.invalid_did rather than the le
 fields = [  ]
 unsupported = [  ]
 
+[[mappings.losses]]
+id          = "did.error.legacy-class-coalescing"
+distinction = "Multiple canonical DID failures may surface through the same legacy InvalidDIDString class."
+consequence = "Legacy class matching cannot preserve the canonical error identity."
+mitigation  = "Preserve the stable Rust error code beside the redacted legacy class."
+
 [[mappings.errors]]
 rust_code               = "did.invalid_did"
 language_class          = "CastorError.InvalidDIDString"
@@ -254,8 +276,7 @@ owner_issue = 505
 state = "active"
 kind = "error"
 canonical_crate = "identus-did"
-canonical_module = "identus_did::error"
-canonical_symbol = "did.invalid_did_url"
+canonical_rust_path = "identus_did::Error::to_identus_error"
 canonical_version_origin = "unreleased-workspace-0.0.0"
 canonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"
 canonical_description = "Stable public invalid-DID-URL code with InvalidInput kind, did capability, and redacted caller input."
@@ -273,7 +294,7 @@ language_shape_state = "legacy"
 direction = "rust-to-language"
 compatibility_class = "deprecated"
 fidelity = "lossy"
-version_window = ">=8.1.4,<10.0.0"
+version_window = ">=8.1.4,<8.1.5"
 deprecation_phase = "transitional"
 version_negotiation = "npm-package-version"
 consumers = [ "sdk-ts" ]
@@ -297,6 +318,12 @@ rollback = "Retain InvalidDIDString while disabling the Rust adapter; keep stabl
 removal_gate = "All supported consumers distinguish did.invalid_did_url from did.invalid_did by stable code."
 fields = [  ]
 unsupported = [  ]
+
+[[mappings.losses]]
+id          = "did-url.error.legacy-class-coalescing"
+distinction = "Canonical DID and DID URL failures share the legacy InvalidDIDString class."
+consequence = "Legacy class matching cannot distinguish did.invalid_did_url from did.invalid_did."
+mitigation  = "Preserve the stable Rust error code beside the redacted legacy class."
 
 [[mappings.errors]]
 rust_code               = "did.invalid_did_url"

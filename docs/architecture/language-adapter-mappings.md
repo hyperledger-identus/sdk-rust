@@ -18,12 +18,13 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 ## `did.value.typescript.legacy-v1`
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
-- Canonical: `identus-did::identus_did::did::Did` at `edf03abcc963d37703daa61192940394bdc553ca` (unreleased-workspace-0.0.0).
+- Cargo package: `identus-did`.
+- Rust API: `identus_did::Did` at `edf03abcc963d37703daa61192940394bdc553ca` (unreleased-workspace-0.0.0).
 - Canonical semantics: Validated immutable DID preserving the exact serialized value, method, and method-specific identifier.
 - Canonical bound: `MAX_DID_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `DID`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/shared/domain/src/models/DID.ts`.
 - Language evidence: license `Apache-2.0`; shape state `legacy`.
-- Compatibility: deprecated, bidirectional, lossless; window `>=8.1.4,<10.0.0`; phase `transitional`.
+- Compatibility: deprecated, bidirectional, lossless; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
 - Resource policy: at most 2048 bytes; redaction `caller-input`; sensitive fields: none.
@@ -50,12 +51,13 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 ## `did-url.value.typescript.legacy-v1`
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
-- Canonical: `identus-did::identus_did::did::DidUrl` at `edf03abcc963d37703daa61192940394bdc553ca` (unreleased-workspace-0.0.0).
+- Cargo package: `identus-did`.
+- Rust API: `identus_did::DidUrl` at `edf03abcc963d37703daa61192940394bdc553ca` (unreleased-workspace-0.0.0).
 - Canonical semantics: Validated immutable DID URL preserving exact serialization and absent-versus-empty query and fragment state.
 - Canonical bound: `MAX_DID_URL_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `DIDUrl`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/shared/domain/src/models/DIDUrl.ts`.
 - Language evidence: license `Apache-2.0`; shape state `legacy`.
-- Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<10.0.0`; phase `transitional`.
+- Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
 - Resource policy: at most 4096 bytes; redaction `caller-input`; sensitive fields: none.
@@ -79,6 +81,14 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | `query` | `parameters` | parse-to-map | rust-to-language | false |
 | `fragment` | `fragment` | optional-to-string | rust-to-language | false |
 
+### Losses
+
+| ID | Lost distinction | Consequence | Mitigation |
+| --- | --- | --- | --- |
+| `did-url.raw-query-round-trip` | Raw query ordering, duplicate names, and exact encoding are preserved by Rust but not by the legacy TypeScript Map. | Reverse conversion cannot reproduce the canonical serialized DID URL. | Reject reverse conversion and require the additive exact-value facade. |
+| `did-url.empty-query-presence` | Rust distinguishes an absent query from an explicitly empty query while the legacy shape does not. | The legacy value cannot round-trip query presence. | Reject reverse conversion and require the additive exact-value facade. |
+| `did-url.empty-fragment-presence` | Rust distinguishes an absent fragment from an explicitly empty fragment while the legacy shape does not. | The legacy value cannot round-trip fragment presence. | Reject reverse conversion and require the additive exact-value facade. |
+
 ### Unsupported legacy round trips
 
 | Case | Reason | Required behavior | Stable adapter error |
@@ -90,12 +100,13 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 ## `did.error.invalid-did.typescript.legacy-v1`
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `error`.
-- Canonical: `identus-did::identus_did::error::did.invalid_did` at `edf03abcc963d37703daa61192940394bdc553ca` (unreleased-workspace-0.0.0).
+- Cargo package: `identus-did`.
+- Rust API: `identus_did::Error::to_identus_error` at `edf03abcc963d37703daa61192940394bdc553ca` (unreleased-workspace-0.0.0).
 - Canonical semantics: Stable public invalid-DID code with InvalidInput kind, did capability, and redacted caller input.
 - Canonical bound: `MAX_DID_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `CastorError.InvalidDIDString`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/shared/domain/src/models/errors/Castor.ts`.
 - Language evidence: license `Apache-2.0`; shape state `legacy`.
-- Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<10.0.0`; phase `transitional`.
+- Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
 - Resource policy: at most 2048 bytes; redaction `caller-input`; sensitive fields: `rejected-input`.
@@ -116,15 +127,22 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | --- | --- | --- | --- | --- |
 | `did.invalid_did` | `CastorError.InvalidDIDString` | false | true | true |
 
+### Losses
+
+| ID | Lost distinction | Consequence | Mitigation |
+| --- | --- | --- | --- |
+| `did.error.legacy-class-coalescing` | Multiple canonical DID failures may surface through the same legacy InvalidDIDString class. | Legacy class matching cannot preserve the canonical error identity. | Preserve the stable Rust error code beside the redacted legacy class. |
+
 ## `did.error.invalid-did-url.typescript.legacy-v1`
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `error`.
-- Canonical: `identus-did::identus_did::error::did.invalid_did_url` at `edf03abcc963d37703daa61192940394bdc553ca` (unreleased-workspace-0.0.0).
+- Cargo package: `identus-did`.
+- Rust API: `identus_did::Error::to_identus_error` at `edf03abcc963d37703daa61192940394bdc553ca` (unreleased-workspace-0.0.0).
 - Canonical semantics: Stable public invalid-DID-URL code with InvalidInput kind, did capability, and redacted caller input.
 - Canonical bound: `MAX_DID_URL_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `CastorError.InvalidDIDString`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/lib/sdk/src/castor/parser/DIDUrlParser.ts`.
 - Language evidence: license `Apache-2.0`; shape state `legacy`.
-- Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<10.0.0`; phase `transitional`.
+- Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
 - Resource policy: at most 4096 bytes; redaction `caller-input`; sensitive fields: `rejected-input`.
@@ -144,3 +162,9 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | Rust code | Legacy class | Stable message | Preserve code | Redact input |
 | --- | --- | --- | --- | --- |
 | `did.invalid_did_url` | `CastorError.InvalidDIDString` | false | true | true |
+
+### Losses
+
+| ID | Lost distinction | Consequence | Mitigation |
+| --- | --- | --- | --- |
+| `did-url.error.legacy-class-coalescing` | Canonical DID and DID URL failures share the legacy InvalidDIDString class. | Legacy class matching cannot distinguish did.invalid_did_url from did.invalid_did. | Preserve the stable Rust error code beside the redacted legacy class. |

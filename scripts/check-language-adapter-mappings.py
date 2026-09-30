@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import stat
 import sys
 import tomllib
 from pathlib import Path
@@ -12,10 +13,12 @@ from pathlib import Path
 
 REGISTRY = Path("docs/architecture/language-adapter-mappings.toml")
 RENDERED = Path("docs/architecture/language-adapter-mappings.md")
+VECTOR_CATALOG = Path("docs/conformance/cross-language-vector-catalog.toml")
+MAX_EVIDENCE_BYTES = 2 * 1024 * 1024
 TOP_KEYS = {"schema_version", "registry_version", "status", "owner_issue", "canonical_owner", "mappings"}
 MAPPING_KEYS = {
-    "id", "capability", "owner_issue", "state", "kind", "canonical_crate", "canonical_module",
-    "canonical_symbol", "canonical_version_origin", "canonical_revision", "canonical_description",
+    "id", "capability", "owner_issue", "state", "kind", "canonical_crate", "canonical_rust_path",
+    "canonical_version_origin", "canonical_revision", "canonical_description",
     "canonical_bound_path", "canonical_bound_symbol",
     "language", "language_package", "language_target", "language_version", "language_revision",
     "language_path", "language_license", "language_symbol", "language_shape_state", "direction",
@@ -23,10 +26,11 @@ MAPPING_KEYS = {
     "consumers", "vector_ids", "rust_selectors", "language_selectors", "max_input_bytes",
     "redaction", "sensitive_fields", "async_ownership", "cancellation_ownership", "migration_action",
     "replacement", "observability", "fallback", "rollback", "removal_gate", "fields", "errors",
-    "unsupported"
+    "losses", "unsupported"
 }
 FIELD_KEYS = {"rust", "language", "transform", "direction", "required"}
 ERROR_KEYS = {"rust_code", "language_class", "language_message_stable", "preserve_rust_code", "redact_input"}
+LOSS_KEYS = {"id", "distinction", "consequence", "mitigation"}
 UNSUPPORTED_KEYS = {"id", "reason", "behavior", "stable_error"}
 REQUIRED_IDS = {
     "did.value.typescript.legacy-v1",
@@ -43,6 +47,7 @@ VERSION_WINDOW_PATTERN = re.compile(
 STABLE_CODE_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9_-]*)+$")
 SELECTOR_PATTERN = re.compile(r"^[A-Za-z0-9_@./:<>?=-]+$")
 CONST_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*$")
+RUST_PATH_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_][A-Za-z0-9_]*)+$")
 STATES = {"planned", "active", "deprecated", "removed"}
 KINDS = {"value", "error"}
 LANGUAGES = {"typescript", "swift", "kotlin"}
@@ -52,6 +57,11 @@ COMPATIBILITY_CLASSES = {"additive", "fixed", "behavioral", "deprecated", "break
 FIDELITIES = {"lossless", "lossy"}
 DEPRECATION_PHASES = {"none", "transitional", "announced", "removal-ready", "removed"}
 OWNERSHIP = {"not-applicable", "rust", "language", "adapter"}
+DIRECTION_MATRIX = {
+    "bidirectional": FIELD_DIRECTIONS,
+    "rust-to-language": {"rust-to-language"},
+    "language-to-rust": {"language-to-rust"},
+}
 
 
 def exact_keys(value: object, expected: set[str], label: str, errors: list[str]) -> bool:
@@ -89,29 +99,85 @@ def version_tuple(value: str) -> tuple[int, int, int]:
     return int(major), int(minor), int(patch)
 
 
+def load_vector_catalog(
+    root: Path, errors: list[str]
+) -> dict[str, list[tuple[object, object]]]:
+    path = root / VECTOR_CATALOG
+    try:
+        metadata = path.stat()
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > MAX_EVIDENCE_BYTES:
+            errors.append("vector catalog must be a bounded regular file")
+            return {}
+        document = tomllib.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError):
+        errors.append("vector catalog cannot be read as bounded TOML")
+        return {}
+    if not isinstance(document, dict) or not isinstance(document.get("vectors"), list):
+        errors.append("vector catalog must contain a vectors array")
+        return {}
+    found: dict[str, list[tuple[object, object]]] = {}
+    for index, vector in enumerate(document["vectors"], start=1):
+        if not isinstance(vector, dict):
+            errors.append(f"vector catalog entry {index} must be a table")
+            continue
+        identifier = vector.get("id")
+        if not isinstance(identifier, str) or not ID_PATTERN.fullmatch(identifier):
+            errors.append(f"vector catalog entry {index} has an invalid id")
+            continue
+        found.setdefault(identifier, []).append(
+            (vector.get("capability"), vector.get("targets"))
+        )
+    return found
+
+
 def canonical_bound(
     root: Path, mapping: dict[str, object], identifier: str, errors: list[str]
 ) -> int | None:
     path_value = mapping.get("canonical_bound_path")
     symbol_value = mapping.get("canonical_bound_symbol")
+    if not isinstance(path_value, str) or not path_value.strip():
+        errors.append(f"{identifier}.canonical_bound_path must be a safe repository-relative path")
+        return None
+    relative = Path(path_value)
     if (
-        not isinstance(path_value, str)
-        or not path_value.strip()
-        or Path(path_value).is_absolute()
-        or ".." in Path(path_value).parts
+        relative.is_absolute()
+        or not relative.parts
+        or any(part in {"", ".", ".."} for part in relative.parts)
+        or "\\" in path_value
     ):
-        errors.append(f"{identifier}.canonical_bound_path must be repository-relative")
+        errors.append(f"{identifier}.canonical_bound_path must be a safe repository-relative path")
         return None
     if not isinstance(symbol_value, str) or not CONST_PATTERN.fullmatch(symbol_value):
         errors.append(f"{identifier}.canonical_bound_symbol must be an uppercase Rust constant")
         return None
-    source = root / path_value
+
+    source = root
     try:
-        if source.is_symlink() or not source.is_file():
-            raise OSError("source is missing or symlinked")
-        content = source.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError) as error:
-        errors.append(f"{identifier}.canonical_bound_path cannot be read: {error}")
+        for part in relative.parts:
+            source /= part
+            if source.is_symlink():
+                errors.append(
+                    f"{identifier}.canonical_bound_path must not contain symlink components"
+                )
+                return None
+        resolved_root = root.resolve(strict=True)
+        resolved_source = source.resolve(strict=True)
+        resolved_source.relative_to(resolved_root)
+        metadata = resolved_source.stat()
+        if not stat.S_ISREG(metadata.st_mode):
+            errors.append(f"{identifier}.canonical_bound_path must name a regular file")
+            return None
+        if metadata.st_size > MAX_EVIDENCE_BYTES:
+            errors.append(
+                f"{identifier}.canonical_bound_path exceeds {MAX_EVIDENCE_BYTES} bytes"
+            )
+            return None
+        content = resolved_source.read_text(encoding="utf-8")
+    except ValueError:
+        errors.append(f"{identifier}.canonical_bound_path resolves outside the repository")
+        return None
+    except (OSError, UnicodeDecodeError):
+        errors.append(f"{identifier}.canonical_bound_path cannot be read safely")
         return None
     pattern = re.compile(
         rf"(?m)^pub const {re.escape(symbol_value)}\s*:\s*usize\s*=\s*([0-9][0-9_]*)\s*;"
@@ -143,8 +209,8 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
     if not isinstance(mappings, list) or not mappings:
         errors.append("mappings must be a non-empty array of tables")
         return [], errors
+    vector_catalog = load_vector_catalog(root, errors)
     seen: set[str] = set()
-    vector_owners: dict[str, str] = {}
     for index, mapping in enumerate(mappings, start=1):
         label = f"mappings[{index}]"
         if not exact_keys(mapping, MAPPING_KEYS, label, errors):
@@ -167,10 +233,27 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
         if kind not in KINDS:
             errors.append(f"{identifier}.kind is invalid")
 
-        if not str(mapping.get("canonical_crate", "")).startswith("identus-"):
+        canonical_crate = mapping.get("canonical_crate")
+        if not isinstance(canonical_crate, str) or not canonical_crate.startswith("identus-"):
             errors.append(f"{identifier}.canonical_crate must be an identus-* crate")
+        canonical_rust_path = mapping.get("canonical_rust_path")
+        if not isinstance(canonical_rust_path, str) or not RUST_PATH_PATTERN.fullmatch(
+            canonical_rust_path
+        ):
+            errors.append(f"{identifier}.canonical_rust_path must be an exact Rust API path")
+        elif isinstance(canonical_crate, str):
+            path_parts = canonical_rust_path.split("::")
+            expected_prefix = canonical_crate.replace("-", "_")
+            if path_parts[0] != expected_prefix:
+                errors.append(
+                    f"{identifier}.canonical_rust_path must begin with {expected_prefix}"
+                )
+            elif len(path_parts) > 1 and path_parts[1] == expected_prefix:
+                errors.append(
+                    f"{identifier}.canonical_rust_path must not duplicate its crate prefix"
+                )
         for field in (
-            "canonical_module", "canonical_symbol", "canonical_version_origin", "canonical_description",
+            "canonical_version_origin", "canonical_description",
             "language_package", "language_target", "language_symbol", "language_shape_state",
             "version_window", "version_negotiation", "migration_action", "replacement", "observability",
             "fallback", "rollback", "removal_gate",
@@ -211,9 +294,10 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
             lower = version_tuple(window_match.group(1))
             upper = version_tuple(window_match.group(2))
             selected = version_tuple(language_version)
-            if lower >= upper or not lower <= selected < upper:
+            exact_upper = (selected[0], selected[1], selected[2] + 1)
+            if lower != selected or upper != exact_upper:
                 errors.append(
-                    f"{identifier}.version_window must be ordered and contain language_version"
+                    f"{identifier}.version_window must equal the pinned language_version patch interval"
                 )
         if mapping.get("deprecation_phase") not in DEPRECATION_PHASES:
             errors.append(f"{identifier}.deprecation_phase is invalid")
@@ -226,10 +310,21 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
         for vector in vectors:
             if not ID_PATTERN.fullmatch(vector):
                 continue
-            previous = vector_owners.get(vector)
-            if previous is not None:
-                errors.append(f"vector {vector} is claimed by both {previous} and {identifier}")
-            vector_owners[vector] = str(identifier)
+            matches = vector_catalog.get(vector, [])
+            if len(matches) != 1:
+                errors.append(
+                    f"{identifier}.vector_ids entry {vector} must resolve exactly once in the canonical catalog"
+                )
+                continue
+            vector_capability, vector_targets = matches[0]
+            if vector_capability != mapping.get("capability"):
+                errors.append(
+                    f"{identifier}.vector_ids entry {vector} has the wrong capability"
+                )
+            if not isinstance(vector_targets, list) or mapping.get("language") not in vector_targets:
+                errors.append(
+                    f"{identifier}.vector_ids entry {vector} does not target {mapping.get('language')}"
+                )
         for selector_field in ("rust_selectors", "language_selectors"):
             selectors = strings(mapping.get(selector_field), f"{identifier}.{selector_field}", errors)
             if any(not SELECTOR_PATTERN.fullmatch(selector) for selector in selectors):
@@ -255,18 +350,28 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
 
         fields = mapping.get("fields")
         errors_map = mapping.get("errors")
+        losses = mapping.get("losses")
         unsupported = mapping.get("unsupported")
-        if not isinstance(fields, list) or not isinstance(errors_map, list) or not isinstance(unsupported, list):
-            errors.append(f"{identifier}: fields/errors/unsupported must be arrays")
+        if not all(isinstance(value, list) for value in (fields, errors_map, losses, unsupported)):
+            errors.append(f"{identifier}: fields/errors/losses/unsupported must be arrays")
             continue
+        assert isinstance(fields, list)
+        assert isinstance(errors_map, list)
+        assert isinstance(losses, list)
+        assert isinstance(unsupported, list)
         for item_index, item in enumerate(fields, start=1):
             item_label = f"{identifier}.fields[{item_index}]"
             if not exact_keys(item, FIELD_KEYS, item_label, errors):
                 continue
             for field in ("rust", "language", "transform"):
                 text(item.get(field), f"{item_label}.{field}", errors)
-            if item.get("direction") not in FIELD_DIRECTIONS or not isinstance(item.get("required"), bool):
+            field_direction = item.get("direction")
+            if field_direction not in FIELD_DIRECTIONS or not isinstance(item.get("required"), bool):
                 errors.append(f"{item_label}: direction/required is invalid")
+            elif field_direction not in DIRECTION_MATRIX.get(str(mapping.get("direction")), set()):
+                errors.append(
+                    f"{item_label}.direction exceeds enclosing mapping direction"
+                )
         for item_index, item in enumerate(errors_map, start=1):
             item_label = f"{identifier}.errors[{item_index}]"
             if not exact_keys(item, ERROR_KEYS, item_label, errors):
@@ -278,6 +383,20 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
                 errors.append(f"{item_label}.language_message_stable must be false")
             if item.get("preserve_rust_code") is not True or item.get("redact_input") is not True:
                 errors.append(f"{item_label} must preserve Rust code and redact input")
+        loss_ids: set[str] = set()
+        for item_index, item in enumerate(losses, start=1):
+            item_label = f"{identifier}.losses[{item_index}]"
+            if not exact_keys(item, LOSS_KEYS, item_label, errors):
+                continue
+            loss_id = item.get("id")
+            if not isinstance(loss_id, str) or not ID_PATTERN.fullmatch(loss_id):
+                errors.append(f"{item_label}.id is invalid")
+            elif loss_id in loss_ids:
+                errors.append(f"{identifier}: duplicate loss id {loss_id}")
+            else:
+                loss_ids.add(loss_id)
+            for field in ("distinction", "consequence", "mitigation"):
+                text(item.get(field), f"{item_label}.{field}", errors)
         unsupported_ids: set[str] = set()
         for item_index, item in enumerate(unsupported, start=1):
             item_label = f"{identifier}.unsupported[{item_index}]"
@@ -290,6 +409,10 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
                 errors.append(f"{identifier}: duplicate unsupported id {unsupported_id}")
             else:
                 unsupported_ids.add(unsupported_id)
+                if unsupported_id not in loss_ids:
+                    errors.append(
+                        f"{item_label}.id must reference a declared loss"
+                    )
             text(item.get("reason"), f"{item_label}.reason", errors)
             text(item.get("behavior"), f"{item_label}.behavior", errors)
             if not STABLE_CODE_PATTERN.fullmatch(str(item.get("stable_error", ""))):
@@ -299,10 +422,10 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
             errors.append(f"{identifier}: value mapping requires fields and forbids error mappings")
         if kind == "error" and (fields or not errors_map):
             errors.append(f"{identifier}: error mapping requires errors and forbids field mappings")
-        if fidelity == "lossless" and unsupported:
-            errors.append(f"{identifier}: lossless mapping cannot declare unsupported cases")
-        if fidelity == "lossy" and kind == "value" and not unsupported:
-            errors.append(f"{identifier}: lossy value mapping requires unsupported behavior")
+        if fidelity == "lossless" and (losses or unsupported):
+            errors.append(f"{identifier}: lossless mapping cannot declare losses or unsupported cases")
+        if fidelity == "lossy" and not losses:
+            errors.append(f"{identifier}: lossy mapping requires at least one loss record")
         if mapping.get("state") == "active" and mapping.get("deprecation_phase") == "removed":
             errors.append(f"{identifier}: active mapping cannot be removed")
 
@@ -344,7 +467,8 @@ def render(document: dict[str, object], mappings: list[dict[str, object]]) -> st
                 f"## `{mapping['id']}`",
                 "",
                 f"- Record: capability `{mapping['capability']}`, owner [#{mapping['owner_issue']}](https://github.com/hyperledger-identus/sdk-rust/issues/{mapping['owner_issue']}), state `{mapping['state']}`, kind `{mapping['kind']}`.",
-                f"- Canonical: `{mapping['canonical_crate']}::{mapping['canonical_module']}::{mapping['canonical_symbol']}` at `{mapping['canonical_revision']}` ({mapping['canonical_version_origin']}).",
+                f"- Cargo package: `{mapping['canonical_crate']}`.",
+                f"- Rust API: `{mapping['canonical_rust_path']}` at `{mapping['canonical_revision']}` ({mapping['canonical_version_origin']}).",
                 f"- Canonical semantics: {mapping['canonical_description']}",
                 f"- Canonical bound: `{mapping['canonical_bound_symbol']}` in `{mapping['canonical_bound_path']}`.",
                 f"- Language source: `{mapping['language']}` package `{mapping['language_package']}`, target `{mapping['language_target']}`, symbol `{mapping['language_symbol']}`, version `{mapping['language_version']}` at `{mapping['language_revision']}`, path `{mapping['language_path']}`.",
@@ -377,6 +501,15 @@ def render(document: dict[str, object], mappings: list[dict[str, object]]) -> st
             lines.extend(["### Errors", "", "| Rust code | Legacy class | Stable message | Preserve code | Redact input |", "| --- | --- | --- | --- | --- |"])
             for item in errors_map:
                 lines.append(f"| `{item['rust_code']}` | `{escape(item['language_class'])}` | {str(item['language_message_stable']).lower()} | {str(item['preserve_rust_code']).lower()} | {str(item['redact_input']).lower()} |")
+            lines.append("")
+        losses = mapping["losses"]
+        if losses:
+            lines.extend(["### Losses", "", "| ID | Lost distinction | Consequence | Mitigation |", "| --- | --- | --- | --- |"])
+            for item in losses:
+                lines.append(
+                    f"| `{item['id']}` | {escape(item['distinction'])} | "
+                    f"{escape(item['consequence'])} | {escape(item['mitigation'])} |"
+                )
             lines.append("")
         unsupported = mapping["unsupported"]
         if unsupported:

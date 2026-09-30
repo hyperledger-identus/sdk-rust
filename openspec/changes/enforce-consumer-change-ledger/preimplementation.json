@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 422,
+  "change": "enforce-consumer-change-ledger",
+  "branch": "codex/docs/issue-422",
+  "baseRef": "origin/develop",
+  "baseSha": "fb1c7011897ba766f82ea5957feaeb95df179418",
+  "contractHeadSha": "31dd014ac7ab83654041ceb079bef6aff75ecd3c",
+  "createdAt": "2026-09-30T15:58:15.901Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

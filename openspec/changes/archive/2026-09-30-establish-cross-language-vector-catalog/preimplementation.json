@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 420,
+  "change": "establish-cross-language-vector-catalog",
+  "branch": "codex/feat/issue-420",
+  "baseRef": "origin/develop",
+  "baseSha": "edf03abcc963d37703daa61192940394bdc553ca",
+  "contractHeadSha": "d58fedbc8790abcbbf7c84bae6fefaae72ef9800",
+  "createdAt": "2026-09-30T05:17:41.941Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -1,0 +1,572 @@
+schema_version  = 1
+catalog_version = "1.0.0"
+status          = "active"
+owner_issue     = 420
+
+[[sources]]
+id             = "w3c.did-core-v1"
+kind           = "standard"
+url            = "https://www.w3.org/TR/2022/REC-did-core-20220719/"
+version        = "W3C Recommendation 2022-07-19"
+section        = "3.1 DID Syntax; 3.2 DID URL Syntax"
+authorship     = "W3C Decentralized Identifier Working Group"
+license        = "W3C-Document-License"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "sdk-rust.did-syntax"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-rust"
+revision       = "edf03abcc963d37703daa61192940394bdc553ca"
+path           = "crates/did/tests/did_syntax.rs"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
+[[sources]]
+id             = "sdk-ts.did-parser"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-ts"
+revision       = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+path           = "packages/lib/sdk/tests/castor/DIDParser.test.ts"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
+[[sources]]
+id             = "sdk-swift.did-parser"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-swift"
+revision       = "ebbfdb666a3b0c9905dd443589e03ccf2ae8087b"
+path           = "EdgeAgentSDK/Castor/Tests/DIDParserTests.swift"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
+[[sources]]
+id             = "sdk-kmp.did-parser"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-kmp"
+revision       = "5a8fda770bbbca84192979b2c8e6090ee94790e3"
+path           = "sdk/src/commonTest/kotlin/org/hyperledger/identus/walletsdk/castor/DIDParserTest.kt"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
+[[packets]]
+id             = "did.syntax.v1"
+capability     = "did.syntax"
+schema_version = 1
+path           = "docs/conformance/fixtures/did/v1/vectors.json"
+sha256         = "72ebf6603594fe3b2b93f9d1a9cd9dc40bf8708f6bc8a7b4370ee9b9f173679a"
+authorship     = "SDK-Rust clean-room curation from public sources"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[vectors]]
+id                 = "did.syntax.valid-basic"
+packet             = "did.syntax.v1"
+case               = "did.syntax.valid-basic"
+capability         = "did.syntax"
+authority          = "normative"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.1; accepts_w3c_and_consumer_shaped_dids"
+operation          = "did.parse"
+expected           = "success"
+profile_scope      = "W3C DID Core generic syntax"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Lexical syntax only; no DID method semantics."
+
+[[vectors]]
+id                 = "did.syntax.valid-colon-segments"
+packet             = "did.syntax.v1"
+case               = "did.syntax.valid-colon-segments"
+capability         = "did.syntax"
+authority          = "normative"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.1 method-specific-id grammar"
+operation          = "did.parse"
+expected           = "success"
+profile_scope      = "W3C DID Core generic syntax"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Lexical syntax only."
+
+[[vectors]]
+id                 = "did.syntax.valid-percent-case"
+packet             = "did.syntax.v1"
+case               = "did.syntax.valid-percent-case"
+capability         = "did.syntax"
+authority          = "normative"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.1 pct-encoded grammar"
+operation          = "did.parse"
+expected           = "success"
+profile_scope      = "W3C DID Core generic syntax"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Percent escapes are validated and case-preserved, not decoded."
+
+[[vectors]]
+id                 = "did-url.syntax.valid-components"
+packet             = "did.syntax.v1"
+case               = "did-url.syntax.valid-components"
+capability         = "did.syntax"
+authority          = "normative"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.2; did_url_exposes_borrowed_components"
+operation          = "did-url.parse"
+expected           = "success"
+profile_scope      = "W3C DID URL generic syntax"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "No dereferencing semantics."
+
+[[vectors]]
+id                 = "did-url.syntax.empty-query"
+packet             = "did.syntax.v1"
+case               = "did-url.syntax.empty-query"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "did_url_preserves_absent_and_empty_components"
+operation          = "did-url.parse"
+expected           = "success"
+profile_scope      = "SDK-Rust DID URL value contract"
+boundary           = "boundary"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Adapters may need an additive shape to preserve the distinction."
+
+[[vectors]]
+id                 = "did-url.syntax.empty-fragment"
+packet             = "did.syntax.v1"
+case               = "did-url.syntax.empty-fragment"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "did_url_preserves_absent_and_empty_components"
+operation          = "did-url.parse"
+expected           = "success"
+profile_scope      = "SDK-Rust DID URL value contract"
+boundary           = "boundary"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Adapters may need an additive shape to preserve the distinction."
+
+[[vectors]]
+id                 = "did.syntax.consumer-shared-basic"
+packet             = "did.syntax.v1"
+case               = "did.syntax.consumer-shared-basic"
+capability         = "did.syntax"
+authority          = "consumer-regression"
+source_ids         = [ "sdk-ts.did-parser", "sdk-swift.did-parser", "sdk-kmp.did-parser" ]
+source_locator     = "shared DID parser positive case"
+operation          = "did.parse"
+expected           = "success"
+profile_scope      = "Pinned Identus language-SDK compatibility"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [ "DIDParser.test.ts:should test valid DIDs", "DIDParserTests.swift:testValidDIDs", "DIDParserTest.kt:it_should_test_valid_DIDs" ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Copied consumer behavior; does not override the standard."
+
+[[vectors]]
+id                 = "did.syntax.consumer-shared-percent"
+packet             = "did.syntax.v1"
+case               = "did.syntax.consumer-shared-percent"
+capability         = "did.syntax"
+authority          = "consumer-regression"
+source_ids         = [ "sdk-ts.did-parser", "sdk-swift.did-parser", "sdk-kmp.did-parser" ]
+source_locator     = "shared DID parser punctuation and percent case"
+operation          = "did.parse"
+expected           = "success"
+profile_scope      = "Pinned Identus language-SDK compatibility"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [ "DIDParser.test.ts:should test valid DIDs", "DIDParserTests.swift:testValidDIDs", "DIDParserTest.kt:it_should_test_valid_DIDs" ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Copied consumer behavior; does not override the standard."
+
+[[vectors]]
+id                 = "did.syntax.invalid-prefix"
+packet             = "did.syntax.v1"
+case               = "did.syntax.invalid-prefix"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.1 exact scheme; rejects_malformed_bare_dids_without_reflecting_input"
+operation          = "did.parse"
+expected           = "did.invalid_did"
+profile_scope      = "W3C syntax plus SDK stable error"
+boundary           = "negative"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Stable error is an Identus contract."
+
+[[vectors]]
+id                 = "did.syntax.invalid-method"
+packet             = "did.syntax.v1"
+case               = "did.syntax.invalid-method"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.1 method-name grammar"
+operation          = "did.parse"
+expected           = "did.invalid_did"
+profile_scope      = "W3C syntax plus SDK stable error"
+boundary           = "negative"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Stable error is an Identus contract."
+
+[[vectors]]
+id                 = "did.syntax.trailing-colon"
+packet             = "did.syntax.v1"
+case               = "did.syntax.trailing-colon"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.1 method-specific-id grammar"
+operation          = "did.parse"
+expected           = "did.invalid_did"
+profile_scope      = "W3C syntax plus SDK stable error"
+boundary           = "negative"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Stable error is an Identus contract."
+
+[[vectors]]
+id                 = "did.syntax.missing-method"
+packet             = "did.syntax.v1"
+case               = "did.syntax.missing-method"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.1 method-name grammar"
+operation          = "did.parse"
+expected           = "did.invalid_did"
+profile_scope      = "W3C syntax plus SDK stable error"
+boundary           = "negative"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Stable error is an Identus contract."
+
+[[vectors]]
+id                 = "did.syntax.missing-method-specific-id"
+packet             = "did.syntax.v1"
+case               = "did.syntax.missing-method-specific-id"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.1 method-specific-id grammar"
+operation          = "did.parse"
+expected           = "did.invalid_did"
+profile_scope      = "W3C syntax plus SDK stable error"
+boundary           = "negative"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Stable error is an Identus contract."
+
+[[vectors]]
+id                 = "did.syntax.invalid-percent"
+packet             = "did.syntax.v1"
+case               = "did.syntax.invalid-percent"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.1 pct-encoded grammar"
+operation          = "did.parse"
+expected           = "did.invalid_did"
+profile_scope      = "W3C syntax plus SDK stable error"
+boundary           = "negative"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Stable error is an Identus contract."
+
+[[vectors]]
+id                 = "did.syntax.non-ascii"
+packet             = "did.syntax.v1"
+case               = "did.syntax.non-ascii"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.1 ASCII grammar"
+operation          = "did.parse"
+expected           = "did.invalid_did"
+profile_scope      = "W3C syntax plus SDK stable error"
+boundary           = "negative"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Unicode must be percent-encoded."
+
+[[vectors]]
+id                 = "did.syntax.url-delimiter"
+packet             = "did.syntax.v1"
+case               = "did.syntax.url-delimiter"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "sdk-rust.did-syntax" ]
+source_locator     = "bare DID versus DID URL boundary"
+operation          = "did.parse"
+expected           = "did.invalid_did"
+profile_scope      = "SDK-Rust distinct value types"
+boundary           = "negative"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "A DID URL remains valid through the DID URL parser."
+
+[[vectors]]
+id                 = "did-url.syntax.invalid-percent"
+packet             = "did.syntax.v1"
+case               = "did-url.syntax.invalid-percent"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.2 pct-encoded grammar"
+operation          = "did-url.parse"
+expected           = "did.invalid_did_url"
+profile_scope      = "W3C syntax plus SDK stable error"
+boundary           = "negative"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Stable error is an Identus contract."
+
+[[vectors]]
+id                 = "did-url.syntax.space"
+packet             = "did.syntax.v1"
+case               = "did-url.syntax.space"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-syntax" ]
+source_locator     = "DID Core 3.2 path grammar"
+operation          = "did-url.parse"
+expected           = "did.invalid_did_url"
+profile_scope      = "W3C syntax plus SDK stable error"
+boundary           = "negative"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Stable error is an Identus contract."
+
+[[vectors]]
+id                 = "did.syntax.max-bytes"
+packet             = "did.syntax.v1"
+case               = "did.syntax.max-bytes"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "sdk-rust.did-syntax" ]
+source_locator     = "MAX_DID_BYTES; exact_byte_limits_are_enforced"
+operation          = "did.parse"
+expected           = "success"
+profile_scope      = "SDK-Rust resource policy"
+boundary           = "boundary"
+resource_class     = "max-accepted-bytes"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "2048-byte SDK policy, not a W3C limit."
+
+[[vectors]]
+id                 = "did.syntax.over-max-bytes"
+packet             = "did.syntax.v1"
+case               = "did.syntax.over-max-bytes"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "sdk-rust.did-syntax" ]
+source_locator     = "MAX_DID_BYTES; exact_byte_limits_are_enforced"
+operation          = "did.parse"
+expected           = "did.invalid_did"
+profile_scope      = "SDK-Rust resource policy"
+boundary           = "boundary"
+resource_class     = "first-rejected-byte"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "2049-byte SDK policy, not a W3C limit."
+
+[[vectors]]
+id                 = "did-url.syntax.max-bytes"
+packet             = "did.syntax.v1"
+case               = "did-url.syntax.max-bytes"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "sdk-rust.did-syntax" ]
+source_locator     = "MAX_DID_URL_BYTES; exact_byte_limits_are_enforced"
+operation          = "did-url.parse"
+expected           = "success"
+profile_scope      = "SDK-Rust resource policy"
+boundary           = "boundary"
+resource_class     = "max-accepted-bytes"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "4096-byte SDK policy, not a W3C limit."
+
+[[vectors]]
+id                 = "did-url.syntax.over-max-bytes"
+packet             = "did.syntax.v1"
+case               = "did-url.syntax.over-max-bytes"
+capability         = "did.syntax"
+authority          = "identus-contract"
+source_ids         = [ "sdk-rust.did-syntax" ]
+source_locator     = "MAX_DID_URL_BYTES; exact_byte_limits_are_enforced"
+operation          = "did-url.parse"
+expected           = "did.invalid_did_url"
+profile_scope      = "SDK-Rust resource policy"
+boundary           = "boundary"
+resource_class     = "first-rejected-byte"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "cross_language_did_vectors::portable_did_packet_matches_identus_did"
+language_selectors = [  ]
+owner_issue        = 420
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "4097-byte SDK policy, not a W3C limit."

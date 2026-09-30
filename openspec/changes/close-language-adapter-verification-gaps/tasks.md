@@ -8,7 +8,7 @@
       cross-language checker, and landed vector catalog.
 - [x] 1.3 Decide containment, identity, direction, loss, version-window,
       fixture, and cross-catalog contracts with no open blocker.
-- [ ] 1.4 Commit the planning-only packet and write the issue #510 preflight
+- [x] 1.4 Commit the planning-only packet and write the issue #510 preflight
       receipt before implementation.
 
 ## 2. Registry and validator

@@ -106,14 +106,22 @@ def version_tuple(value: str) -> tuple[int, int, int]:
 def load_vector_catalog(
     root: Path, errors: list[str]
 ) -> dict[str, list[tuple[object, object, object]]]:
-    path = root / VECTOR_CATALOG
+    path = root
     try:
-        metadata = path.stat()
+        for part in VECTOR_CATALOG.parts:
+            path /= part
+            if path.is_symlink():
+                errors.append("vector catalog must not contain symlink components")
+                return {}
+        resolved_root = root.resolve(strict=True)
+        resolved_path = path.resolve(strict=True)
+        resolved_path.relative_to(resolved_root)
+        metadata = resolved_path.stat()
         if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > MAX_EVIDENCE_BYTES:
             errors.append("vector catalog must be a bounded regular file")
             return {}
-        document = tomllib.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError):
+        document = tomllib.loads(resolved_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError, tomllib.TOMLDecodeError):
         errors.append("vector catalog cannot be read as bounded TOML")
         return {}
     if not isinstance(document, dict) or not isinstance(document.get("vectors"), list):
@@ -151,6 +159,16 @@ def canonical_bound(
     ):
         errors.append(f"{identifier}.canonical_bound_path must be a safe repository-relative path")
         return None
+    canonical_crate = mapping.get("canonical_crate")
+    if isinstance(canonical_crate, str) and canonical_crate.startswith("identus-"):
+        crate_source = Path("crates") / canonical_crate.removeprefix("identus-") / "src"
+        try:
+            relative.relative_to(crate_source)
+        except ValueError:
+            errors.append(
+                f"{identifier}.canonical_bound_path must remain under declared Cargo package source {crate_source}"
+            )
+            return None
     if not isinstance(symbol_value, str) or not CONST_PATTERN.fullmatch(symbol_value):
         errors.append(f"{identifier}.canonical_bound_symbol must be an uppercase Rust constant")
         return None
@@ -177,10 +195,13 @@ def canonical_bound(
             )
             return None
         content = resolved_source.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        errors.append(f"{identifier}.canonical_bound_path cannot be read safely")
+        return None
     except ValueError:
         errors.append(f"{identifier}.canonical_bound_path resolves outside the repository")
         return None
-    except (OSError, UnicodeDecodeError):
+    except OSError:
         errors.append(f"{identifier}.canonical_bound_path cannot be read safely")
         return None
     pattern = re.compile(
@@ -329,14 +350,17 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
                 errors.append(
                     f"{identifier}.vector_ids entry {vector} does not target {mapping.get('language')}"
                 )
+            declared_errors = mapping.get("errors")
             expected_outcomes = (
                 {"success"}
                 if kind == "value"
                 else {
                     item.get("rust_code")
-                    for item in mapping.get("errors", [])
+                    for item in declared_errors
                     if isinstance(item, dict)
                 }
+                if isinstance(declared_errors, list)
+                else set()
             )
             if vector_expected not in expected_outcomes:
                 errors.append(

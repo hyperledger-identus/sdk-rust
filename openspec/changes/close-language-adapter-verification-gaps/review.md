@@ -72,3 +72,14 @@ contract: a Git-object lookup would make identical validation depend on whether
 record therefore treats the full SHA as immutable provenance and validates the
 working bound independently. A follow-up issue owns a Git-independent content
 binding design rather than silently adding an environment-sensitive check.
+
+A fresh verification review at remediated head
+`b6f257a18f40994875c4bf6d90cd524734f36e34` found four additional blockers:
+scalar error metadata could reach outcome correlation before its type guard; a
+mapping could borrow an unrelated crate's bound; the vector catalog could be a
+symlink; and invalid UTF-8 was misclassified as outside-root resolution because
+`UnicodeDecodeError` is a `ValueError` subclass. All four were reproduced and
+fixed. Outcome correlation now fails safely for malformed error tables; bound
+sources must remain below the declared Cargo package source; catalog loading
+uses the no-symlink containment rule; and exception order preserves the bounded
+unreadable-evidence diagnostic.

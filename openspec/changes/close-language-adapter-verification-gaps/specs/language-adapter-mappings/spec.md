@@ -48,9 +48,10 @@ unsupported ID SHALL resolve to a declared loss.
 
 Every canonical source path SHALL be repository-relative, free of traversal
 and symlink components, resolve strictly inside the repository root, name a
-bounded regular file, and resolve its named literal public Rust bound exactly
-once. Invalid evidence SHALL fail with bounded diagnostics rather than an
-uncaught exception.
+bounded regular file under the declared Cargo package's source tree, and
+resolve its named literal public Rust bound exactly once. The canonical vector
+catalog SHALL meet the same repository-containment and no-symlink rule. Invalid
+evidence SHALL fail with bounded diagnostics rather than an uncaught exception.
 
 #### Scenario: a parent directory redirects to a fake constant
 

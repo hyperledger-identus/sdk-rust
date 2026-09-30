@@ -33,6 +33,10 @@ bound sources, plus unknown, ambiguous, wrong-capability, wrong-target, and
 malformed vector catalogs. Every validator failure is asserted to omit a Python
 traceback.
 
+Additional verification mutations cover scalar error metadata before vector
+outcome correlation, cross-crate bound substitution, a symlinked vector catalog,
+and the exact invalid-UTF-8 diagnostic classification.
+
 Cross-catalog mutations also prove that successful vectors cannot evidence
 error mappings and stable-error vectors cannot evidence value mappings.
 

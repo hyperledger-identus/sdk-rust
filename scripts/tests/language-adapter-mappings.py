@@ -56,6 +56,15 @@ def remove_nested_tables(section: str, table: str) -> str:
     return result
 
 
+def replace_error_tables_with_scalar(section: str) -> str:
+    without_errors = remove_nested_tables(section, "errors")
+    return replace_once(
+        without_errors,
+        "fields = [  ]\nunsupported = [  ]",
+        "fields = [  ]\nerrors = 5\nunsupported = [  ]",
+    )
+
+
 def catalog_vector_section(value: str, identifier: str) -> tuple[str, str, str]:
     marker = f'[[vectors]]\nid                 = "{identifier}"'
     start = value.index(marker)
@@ -170,6 +179,15 @@ def main() -> None:
     run(prefix + 'mappings = [ "invalid" ]\n', rendered, False)
     run("schema_version = [", rendered, False)
     run(replace_first(registry, "errors = [  ]", 'errors = [ "invalid" ]'), rendered, False)
+    run(
+        mutate_mapping(
+            registry,
+            "did.error.invalid-did.typescript.legacy-v1",
+            replace_error_tables_with_scalar,
+        ),
+        rendered,
+        False,
+    )
     for mutation in (
         replace_once(registry, 'canonical_owner  = "sdk-rust"', 'canonical_owner  = "sdk-ts"'),
         replace_first(
@@ -419,24 +437,24 @@ def main() -> None:
     symlink_registry = replace_first(
         registry,
         'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "linked/did.rs"',
+        'canonical_bound_path = "crates/did/src/linked/did.rs"',
     )
     run(
         symlink_registry,
         rendered,
         False,
-        setup=lambda root: (root / "linked").symlink_to(
+        setup=lambda root: (root / "crates/did/src/linked").symlink_to(
             ROOT / "crates/did/src", target_is_directory=True
         ),
     )
     leaf_symlink_registry = replace_first(
         registry,
         'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "evidence/link.rs"',
+        'canonical_bound_path = "crates/did/src/evidence/link.rs"',
     )
 
     def leaf_symlink(root: Path) -> None:
-        target = root / "evidence/link.rs"
+        target = root / "crates/did/src/evidence/link.rs"
         target.parent.mkdir(parents=True)
         target.symlink_to(ROOT / "crates/did/src/did.rs")
 
@@ -444,13 +462,13 @@ def main() -> None:
     missing_registry = replace_first(
         registry,
         'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "evidence/missing.rs"',
+        'canonical_bound_path = "crates/did/src/evidence/missing.rs"',
     )
     run(missing_registry, rendered, False)
     duplicate_registry = replace_first(
         registry,
         'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "evidence/duplicate.rs"',
+        'canonical_bound_path = "crates/did/src/evidence/duplicate.rs"',
     )
     run(
         duplicate_registry,
@@ -458,47 +476,62 @@ def main() -> None:
         False,
         setup=lambda root: write_source(
             root,
-            "evidence/duplicate.rs",
+            "crates/did/src/evidence/duplicate.rs",
             "pub const MAX_DID_BYTES: usize = 2048;\npub const MAX_DID_BYTES: usize = 2048;\n",
         ),
     )
     computed_registry = replace_first(
         registry,
         'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "evidence/computed.rs"',
+        'canonical_bound_path = "crates/did/src/evidence/computed.rs"',
     )
     run(
         computed_registry,
         rendered,
         False,
         setup=lambda root: write_source(
-            root, "evidence/computed.rs", "pub const MAX_DID_BYTES: usize = 2 * 1024;\n"
+            root,
+            "crates/did/src/evidence/computed.rs",
+            "pub const MAX_DID_BYTES: usize = 2 * 1024;\n",
         ),
     )
     invalid_utf8_registry = replace_first(
         registry,
         'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "evidence/invalid-utf8.rs"',
+        'canonical_bound_path = "crates/did/src/evidence/invalid-utf8.rs"',
     )
 
     def invalid_utf8(root: Path) -> None:
-        target = root / "evidence/invalid-utf8.rs"
+        target = root / "crates/did/src/evidence/invalid-utf8.rs"
         target.parent.mkdir(parents=True)
         target.write_bytes(b"pub const MAX_DID_BYTES: usize = 2048;\n\xff")
 
-    run(invalid_utf8_registry, rendered, False, setup=invalid_utf8)
+    invalid_utf8_result = run(
+        invalid_utf8_registry, rendered, False, setup=invalid_utf8
+    )
+    if "cannot be read safely" not in invalid_utf8_result.stderr:
+        raise AssertionError("invalid UTF-8 must be classified as unreadable evidence")
     oversized_registry = replace_first(
         registry,
         'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "evidence/oversized.rs"',
+        'canonical_bound_path = "crates/did/src/evidence/oversized.rs"',
     )
 
     def oversized(root: Path) -> None:
-        target = root / "evidence/oversized.rs"
+        target = root / "crates/did/src/evidence/oversized.rs"
         target.parent.mkdir(parents=True)
         target.write_bytes(b"pub const MAX_DID_BYTES: usize = 2048;\n" + b" " * (2 * 1024 * 1024))
 
     run(oversized_registry, rendered, False, setup=oversized)
+    wrong_crate_registry = replace_first(
+        registry,
+        'canonical_bound_path = "crates/did/src/did.rs"\ncanonical_bound_symbol = "MAX_DID_BYTES"',
+        'canonical_bound_path = "crates/core/src/url.rs"\ncanonical_bound_symbol = "MAX_URL_BYTES"',
+    )
+    wrong_crate_registry = replace_first(
+        wrong_crate_registry, "max_input_bytes = 2048", "max_input_bytes = 8192"
+    )
+    run(wrong_crate_registry, rendered, False)
 
     # Vector references resolve exactly once with matching capability and target language.
     run(replace_first(registry, '"did.syntax.valid-basic"', '"did.syntax.unknown"'), rendered, False)
@@ -509,6 +542,13 @@ def main() -> None:
     )
     run(registry, rendered, False, catalog=ambiguous_catalog)
     run(registry, rendered, False, catalog="schema_version = [")
+
+    def symlink_catalog(root: Path) -> None:
+        target = root / "docs/conformance/cross-language-vector-catalog.toml"
+        target.unlink()
+        target.symlink_to(CATALOG)
+
+    run(registry, rendered, False, setup=symlink_catalog)
     wrong_capability_catalog = replace_first(
         catalog,
         'id                 = "did.syntax.valid-basic"\npacket             = "did.syntax.v1"\ncase               = "did.syntax.valid-basic"\ncapability         = "did.syntax"',

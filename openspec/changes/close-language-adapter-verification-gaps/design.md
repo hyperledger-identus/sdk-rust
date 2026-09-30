@@ -35,7 +35,9 @@ repository-relative, contain no `..`, and remain under the root lexically. Walk
 each path component from the root and reject any symlink before reading. Then
 resolve the candidate strictly and require it to remain under the resolved
 root, be a regular file, and stay below the repository's existing 2 MiB source
-evidence ceiling.
+evidence ceiling. The path must also remain below the source tree derived from
+its declared `identus-*` Cargo package, preventing an unrelated crate constant
+from satisfying a stronger bound.
 
 The named bound remains an uppercase identifier and must resolve exactly once
 to a literal public Rust `usize` constant. Missing, ambiguous, computed,
@@ -92,7 +94,8 @@ remain unchanged.
 ## Cross-catalog resolution
 
 Load the canonical catalog with bounded standard-library TOML parsing. Count
-its vector IDs and retain each vector's capability and targets. Every mapping
+its vector IDs and retain each vector's capability and targets. Reject a catalog
+reached through any symlink component or outside-root resolution. Every mapping
 reference must resolve exactly once, match the mapping capability, and include
 the mapping language target. Value mappings consume `success` vectors; error
 mappings consume vectors whose expected outcome is one of their declared stable

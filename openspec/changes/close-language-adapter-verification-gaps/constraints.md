@@ -18,8 +18,10 @@ issue-first, spec-driven correction after a blocking review. `SDK-LIM-005` and
 
 Every repository source path named by a language mapping must be relative,
 resolve inside the repository, contain no symlink component below the resolved
-root, name a bounded regular file, and resolve the declared public constant
-exactly once. A validation error is bounded diagnostic data, never a traceback.
+root, remain under the declared Cargo package's source tree, name a bounded
+regular file, and resolve the declared public constant exactly once. The vector
+catalog follows the same containment rule. A validation error is bounded
+diagnostic data, never a traceback.
 
 Cargo package identity, Rust API path, and public stable error code are distinct
 concepts. Human rendering cannot concatenate them into a fabricated Rust path.

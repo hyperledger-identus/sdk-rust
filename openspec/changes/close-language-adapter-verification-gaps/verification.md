@@ -1,0 +1,43 @@
+# Verification
+
+## Local evidence
+
+The implementation content at
+`546602f588153b68e74609ecd4302665a6246fab` passed:
+
+- `python3 scripts/check-language-adapter-mappings.py`
+  - `4 canonical mappings passed`
+- `python3 scripts/tests/language-adapter-mappings.py`
+  - mutation suite passed
+- `scripts/factory check`
+  - `105 passed, 0 failed`
+- `/nix/var/nix/profiles/default/bin/nix flake check`
+  - all 38 compatible `aarch64-darwin` checks passed
+  - `x86_64-linux` was reported as incompatible and remains hosted/scheduled
+    evidence rather than a local emulation claim
+- `git diff --check`
+  - passed
+- signed-commit verification
+  - good signature and DCO trailer on every issue #510 commit
+
+## Mutation coverage
+
+Negative evidence covers closed and malformed tables, invalid Rust API paths,
+duplicated crate prefixes, stable-code/path confusion, broad version windows,
+opposite and `both` directions inside one-way mappings, absent or malformed
+losses, unsupported/loss mismatch, weakened byte ceilings, traversal, parent
+and leaf symlinks, missing, duplicated, computed, invalid-UTF-8, and oversized
+bound sources, plus unknown, ambiguous, wrong-capability, wrong-target, and
+malformed vector catalogs. Every validator failure is asserted to omit a Python
+traceback.
+
+Positive evidence covers the four canonical SDK-TS records, deterministic
+checked-in rendering, repeated shared vector use, and an additive Swift record
+whose bound is discovered in `crates/did/src/uri.rs` rather than a hardcoded DID
+fixture path.
+
+## Hosted evidence still required
+
+The replacement PR must pass the exact-head `fast` lane and one fresh
+independent discovery review before merge. Draft #509 remains non-mergeable and
+will be closed as superseded only after the replacement candidate is ready.

@@ -129,16 +129,35 @@ def main() -> int:
 
         unowned_debt = replace_once(
             baseline,
-            'debt_status        = "none"\ndebt_issue         = 0\nrationale          = ""\ndetails            = [\n  "invariant=',
-            'debt_status        = "open"\ndebt_issue         = 502\nrationale          = ""\ndetails            = [\n  "invariant=',
+            'class             = "fuzz"\ndisposition       = "satisfied"',
+            'class             = "fuzz"\ndisposition       = "required"',
         )
+        for before, after in (
+            ('freshness          = "max-age-days"', 'freshness          = "pending"'),
+            ("freshness_days     = 8", "freshness_days     = 0"),
+            ('receipt_kind       = "github-run"', 'receipt_kind       = "none"'),
+            (
+                'receipt            = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/36517752658"',
+                'receipt            = ""',
+            ),
+            (
+                'evidence_revision  = "d27e455901c501d9611abbe0065e6a9b7270dd57"',
+                'evidence_revision  = ""',
+            ),
+            ('recorded_at        = "2026-09-29"', 'recorded_at        = ""'),
+            (
+                'debt_status        = "none"\ndebt_issue         = 0\nrationale          = ""\ndetails            = [\n  "harness=',
+                'debt_status        = "open"\ndebt_issue         = 0\nrationale          = ""\ndetails            = [\n  "harness=',
+            ),
+        ):
+            unowned_debt = replace_once(unowned_debt, before, after)
         expect_failure(
             source_root,
             fixture_root,
             baseline,
-            "unowned debt",
+            "unowned required evidence debt",
             unowned_debt,
-            "must not retain unowned or open debt",
+            "required evidence must have open debt with a positive debt issue",
         )
 
         missing_selector = replace_once(

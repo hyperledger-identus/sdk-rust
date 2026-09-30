@@ -7,7 +7,7 @@
 - [x] 1.2 Decide declaration shape, dispositions, receipts, freshness, debt,
       lifecycle, and deterministic lane rules.
 - [x] 1.3 Specify the DID seed and the non-executing factory plan boundary.
-- [ ] 1.4 Commit this planning packet and bind an exact preimplementation
+- [x] 1.4 Commit this planning packet and bind an exact preimplementation
       receipt to issue #501.
 
 ## 2. Registry and validation

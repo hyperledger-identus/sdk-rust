@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 501,
+  "change": "establish-quality-evidence-routing",
+  "branch": "codex/feat/issue-501",
+  "baseRef": "origin/develop",
+  "baseSha": "d3543e3eec42dd519c57a7250950c01fa628145a",
+  "contractHeadSha": "ef4e540904999c75ef49937e4de7c3730c4b5726",
+  "createdAt": "2026-09-30T14:09:25.311Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

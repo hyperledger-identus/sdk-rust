@@ -8,7 +8,7 @@
       migration, observability, rollback, and removal rules.
 - [x] 1.3 Specify four bounded DID value/error seed records and the explicit
       consumer-implementation stop boundary.
-- [ ] 1.4 Commit this planning packet and bind an exact preimplementation
+- [x] 1.4 Commit this planning packet and bind an exact preimplementation
       receipt to issue #505.
 
 ## 2. Mapping implementation

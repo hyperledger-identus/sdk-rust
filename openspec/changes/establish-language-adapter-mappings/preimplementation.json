@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 505,
+  "change": "establish-language-adapter-mappings",
+  "branch": "codex/feat/issue-505",
+  "baseRef": "origin/develop",
+  "baseSha": "edf03abcc963d37703daa61192940394bdc553ca",
+  "contractHeadSha": "826d6e17a36a224f7156c015ce7c9d46bad20079",
+  "createdAt": "2026-09-30T05:17:41.941Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

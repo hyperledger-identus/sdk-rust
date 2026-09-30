@@ -1,0 +1,260 @@
+#!/usr/bin/env python3
+"""Mutation tests for canonical language-adapter mapping validation."""
+
+from __future__ import annotations
+
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2]
+CHECKER = ROOT / "scripts/check-language-adapter-mappings.py"
+REGISTRY = ROOT / "docs/architecture/language-adapter-mappings.toml"
+RENDERED = ROOT / "docs/architecture/language-adapter-mappings.md"
+BOUND_SOURCE = ROOT / "crates/did/src/did.rs"
+
+
+def replace_once(value: str, before: str, after: str) -> str:
+    count = value.count(before)
+    if count != 1:
+        raise AssertionError(f"mutation source must occur exactly once: {before!r}; found {count}")
+    return value.replace(before, after, 1)
+
+
+def replace_first(value: str, before: str, after: str) -> str:
+    if before not in value:
+        raise AssertionError(f"mutation source is missing: {before!r}")
+    return value.replace(before, after, 1)
+
+
+def run(registry: str, rendered: str, should_pass: bool, *, check_rendered: bool = False) -> None:
+    with tempfile.TemporaryDirectory(prefix="language-adapter-mappings-") as temporary:
+        root = Path(temporary)
+        registry_target = root / "docs/architecture/language-adapter-mappings.toml"
+        rendered_target = root / "docs/architecture/language-adapter-mappings.md"
+        registry_target.parent.mkdir(parents=True)
+        registry_target.write_text(registry, encoding="utf-8")
+        rendered_target.write_text(rendered, encoding="utf-8")
+        bound_target = root / "crates/did/src/did.rs"
+        bound_target.parent.mkdir(parents=True)
+        shutil.copy2(BOUND_SOURCE, bound_target)
+        command = [str(CHECKER), str(root)]
+        if not check_rendered:
+            command.append("--render")
+        result = subprocess.run(command, capture_output=True, text=True, check=False)
+        if "Traceback (most recent call last)" in result.stderr:
+            raise AssertionError(f"validator must return diagnostics, not a traceback:\n{result.stderr}")
+        if (result.returncode == 0) != should_pass:
+            raise AssertionError(
+                f"expected pass={should_pass}, got {result.returncode}\nstdout={result.stdout}\nstderr={result.stderr}"
+            )
+
+
+def main() -> None:
+    registry = REGISTRY.read_text(encoding="utf-8")
+    rendered = RENDERED.read_text(encoding="utf-8")
+    run(registry, rendered, True)
+    run(registry, rendered, True, check_rendered=True)
+    run(
+        replace_once(
+            registry,
+            'schema_version   = 1\nregistry_version = "1.0.0"',
+            'schema_version   = 1\nunknown          = true\nregistry_version = "1.0.0"',
+        ),
+        rendered,
+        False,
+    )
+    run(replace_once(registry, 'canonical_owner  = "sdk-rust"', 'canonical_owner  = "sdk-ts"'), rendered, False)
+    run(
+        replace_once(
+            registry,
+            'canonical_symbol = "Did"\ncanonical_version_origin = "unreleased-workspace-0.0.0"\ncanonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"',
+            'canonical_symbol = "Did"\ncanonical_version_origin = "unreleased-workspace-0.0.0"\ncanonical_revision = "develop"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'language_version = "8.1.4"\nlanguage_revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"\nlanguage_path = "packages/shared/domain/src/models/DID.ts"',
+            'language_version = "8.1"\nlanguage_revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"\nlanguage_path = "packages/shared/domain/src/models/DID.ts"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'id = "did-url.value.typescript.legacy-v1"\ncapability = "did.syntax"\nowner_issue = 505\nstate = "active"\nkind = "value"',
+            'id = "did-url.value.typescript.legacy-v1"\ncapability = "did.syntax"\nowner_issue = 505\nstate = "active"\nkind = "error"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'id = "did-url.value.typescript.legacy-v1"\ncapability = "did.syntax"',
+            'id = "did.value.typescript.legacy-v1"\ncapability = "did.syntax"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            '"did-url.syntax.valid-components",',
+            '"did.syntax.valid-basic",',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'rust_code               = "did.invalid_did"\nlanguage_class          = "CastorError.InvalidDIDString"\nlanguage_message_stable = false\npreserve_rust_code      = true',
+            'rust_code               = "did.invalid_did"\nlanguage_class          = "CastorError.InvalidDIDString"\nlanguage_message_stable = false\npreserve_rust_code      = false',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'id           = "did-url.raw-query-round-trip"\nreason       = "A TypeScript Map cannot preserve raw query ordering or duplicate names."',
+            'id           = "did-url.raw-query-round-trip"\nunknown      = true\nreason       = "A TypeScript Map cannot preserve raw query ordering or duplicate names."',
+        ),
+        rendered,
+        False,
+    )
+    run(replace_first(registry, "max_input_bytes = 2048", "max_input_bytes = 0"), rendered, False)
+    run(
+        replace_first(registry, "max_input_bytes = 2048", "max_input_bytes = 1048576"),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(
+            registry,
+            'version_window = ">=8.1.4,<10.0.0"',
+            'version_window = "nonsense-window"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(registry, 'language_version = "8.1.4"', 'language_version = "10.0.0"'),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(
+            registry,
+            'canonical_bound_symbol = "MAX_DID_BYTES"',
+            'canonical_bound_symbol = "MAX_UNKNOWN_BYTES"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(registry, 'redaction = "caller-input"', 'redaction = "caller-output"'),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(
+            registry,
+            'async_ownership = "not-applicable"',
+            'async_ownership = "typescript"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(
+            registry,
+            'language_path = "packages/shared/domain/src/models/DID.ts"',
+            'language_path = "../DID.ts"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_first(
+            registry,
+            'fidelity = "lossy"\nversion_window = ">=8.1.4,<10.0.0"',
+            'fidelity = "lossless"\nversion_window = ">=8.1.4,<10.0.0"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'fallback = "No parser fallback; reject values refused by identus-did."',
+            'fallback = ""',
+        ),
+        rendered,
+        False,
+    )
+    prefix = registry[: registry.index("[[mappings]]")]
+    run(prefix + 'mappings = [ "invalid" ]\n', rendered, False)
+    run(replace_first(registry, "errors = [  ]", 'errors = [ "invalid" ]'), rendered, False)
+    run(
+        replace_once(
+            registry,
+            'removal_gate = "All supported SDK-TS consumers use the Rust-backed additive DID facade and its migration window has elapsed."',
+            'removal_gate = ""',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'rust_code               = "did.invalid_did"',
+            'rust_code               = "legacy invalid did"',
+        ),
+        rendered,
+        False,
+    )
+    run(registry, rendered + "\n", False, check_rendered=True)
+    run(
+        replace_first(
+            registry,
+            "Validated immutable DID preserving the exact serialized value, method, and method-specific identifier.",
+            "Validated immutable DID with deliberately changed review semantics.",
+        ),
+        rendered,
+        False,
+        check_rendered=True,
+    )
+
+    first_mapping = registry.index("[[mappings]]")
+    second_mapping = registry.index("[[mappings]]", first_mapping + 1)
+    additional = registry[first_mapping:second_mapping]
+    additional = replace_once(
+        additional,
+        'id = "did.value.typescript.legacy-v1"',
+        'id = "did.value.swift.legacy-v1"',
+    )
+    additional = replace_once(
+        additional, 'language = "typescript"', 'language = "swift"'
+    )
+    additional = replace_once(
+        additional, 'consumers = [ "sdk-ts" ]', 'consumers = [ "sdk-swift" ]'
+    )
+    additional = additional.replace('"did.syntax.', '"did-swift.syntax.')
+    run(registry.rstrip() + "\n\n" + additional, rendered, True)
+
+    result = subprocess.run([str(CHECKER), str(ROOT), "--render"], capture_output=True, text=True, check=False)
+    if result.returncode != 0 or result.stdout != rendered:
+        raise AssertionError("render output must be deterministic and equal the checked-in Markdown")
+    print("language-adapter-mappings-tests: mutation suite passed")
+
+
+if __name__ == "__main__":
+    main()

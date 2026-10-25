@@ -5,7 +5,7 @@
 - [x] 1.1 Audit the schema-v1 registry and Git-less factory boundary.
 - [x] 1.2 Compare raw file, normalized declaration, and shared-manifest designs.
 - [x] 1.3 Select the shared exact-byte manifest and record threats/limitations.
-- [ ] 1.4 Commit the planning packet and bind an exact issue #512 preflight receipt.
+- [x] 1.4 Commit the planning packet and bind an exact issue #512 preflight receipt.
 
 ## 2. Schema and implementation
 

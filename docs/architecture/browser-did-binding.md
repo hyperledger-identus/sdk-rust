@@ -91,6 +91,13 @@ browser behavior families. Hosted slow workflow job
 independently passed both families in pinned Chromium 152.0.7977.64 and Firefox
 154.0.1 with ChromeDriver 152.0.7977.64 and GeckoDriver 0.37.1.
 
+The slow command supplies the exact Nix browser executable to WebDriver through
+a generated, temporary capabilities file. This prevents a hosted runner's
+preinstalled browser from silently replacing the Nix-pinned Chromium or Firefox
+while the pinned driver remains unchanged. The selected browser and driver
+versions are printed before execution so a compatibility regression fails with
+reviewable identities.
+
 ## Integration and limitation contract
 
 - The default initializer must resolve before any exported call.

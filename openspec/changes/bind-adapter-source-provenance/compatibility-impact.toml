@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 512
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "This change strengthens repository-local provenance evidence and its offline validator without changing a Rust API, wire or error contract, persisted representation, ABI, supported target, runtime requirement, security behavior, release state, or downstream consumer implementation."
+ledger_ids     = [  ]

@@ -239,6 +239,9 @@ test("file-backed pull request preflight applies both hosted policy layers", () 
       "- Local review: passed by a focused review",
       "- Constraint impact: routine",
       "- Limitations: none",
+      "- Compatibility disposition: behavior-neutral",
+      "- Change-ledger IDs: none",
+      "- OpenSpec `compatibility-impact.toml`: present",
     ].join("\n");
     const filler = "x".repeat(60_000);
     const body = `${metadata}\n${filler}`;
@@ -303,6 +306,9 @@ test("local pull request preflight does not write hosted workflow outputs", () =
       "- Local review: completed",
       "- Constraint impact: routine",
       "- Limitations: none",
+      "- Compatibility disposition: behavior-neutral",
+      "- Change-ledger IDs: none",
+      "- OpenSpec `compatibility-impact.toml`: present",
     ].join("\n"));
     writeFileSync(outputFile, "unchanged\n");
     const previous = process.env.GITHUB_OUTPUT;
@@ -342,6 +348,9 @@ test("pull request preflight rejects either hosted policy layer without exposing
       "- Local review: completed",
       "- Constraint impact: routine",
       "- Limitations: none",
+      "- Compatibility disposition: behavior-neutral",
+      "- Change-ledger IDs: none",
+      "- OpenSpec `compatibility-impact.toml`: present",
     ].join("\n"));
     const options = {
       title: "fix(factory): preflight pull request metadata",

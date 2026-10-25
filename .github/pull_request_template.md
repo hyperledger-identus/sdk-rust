@@ -48,6 +48,9 @@
 - Serialized/wire behavior:
 - Feature/MSRV/target impact:
 - Migration or rollback:
+- Compatibility disposition: <!-- consumer-visible or behavior-neutral -->
+- Change-ledger IDs: <!-- stable IDs or none -->
+- OpenSpec `compatibility-impact.toml`: present/grandfathered/not applicable
 
 ## Constraints and limitations
 
@@ -94,6 +97,7 @@ factory receipt:
 - [ ] tests, negative cases and docs updated
 - [ ] provenance/license recorded
 - [ ] public/wire compatibility reviewed
+- [ ] compatibility impact and stable change-ledger IDs recorded
 - [ ] targets and limitations are not represented as effective promises
 - [ ] no chain or product dependency in generic crates
 - [ ] no raw secret material in logs/errors/serialization/FFI

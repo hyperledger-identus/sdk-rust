@@ -25,7 +25,9 @@ owns deprecation and legacy-bug states.
 ## Cross-record graph
 
 Every canonical record names nonempty `vector_ids` and
-`quality_declaration_ids`. A language-adapter migration uses
+`quality_declaration_ids`. Evidence-selector needles must be stable IDs cited
+by that same record; free-form substrings cannot masquerade as exact evidence.
+A language-adapter migration uses
 `mapping_disposition = "required"` and nonempty `mapping_ids`; a Rust-only
 record uses `mapping_disposition = "not-applicable"`, an empty mapping list,
 and a reviewed rationale. The synthetic DID fixture supplies all three ID
@@ -76,13 +78,14 @@ oracle. Review must correct a false behavior-neutral claim. This #422 change
 declares `behavior-neutral`/`governance` because it introduces evidence
 infrastructure only.
 
-Activation is forward-only. The implementation records its merge revision as
-the policy activation revision. A change whose durable preimplementation
-`contractHeadSha` predates that revision is grandfathered for OpenSpec-file
-shape, while its eventual PR preflight must still provide the same explicit
-impact, rationale, and ledger-ID decision. A later contract is never exempt.
-This avoids rewriting an in-flight historical change while preventing a new
-change from omitting the declaration.
+Activation is forward-only. The implementation records its durable planning
+revision and archive-date boundary as the policy activation identity, plus a closed list containing the
+single already-active release change whose preimplementation receipt predates
+that revision. This explicit exception remains deterministic in Git-less Nix
+source builds. Every other active and later change requires the declaration;
+the activation change itself can never be grandfathered. This avoids
+rewriting one in-flight historical change while preventing a new change from
+omitting the declaration.
 
 ## Validation and rendering
 
@@ -115,7 +118,11 @@ The ledger checker joins the central factory structural check. The OpenSpec
 contract validator requires `compatibility-impact.toml` for qualifying new
 changes and cross-checks its ledger IDs. PR metadata carries the same decision
 for every candidate, including a grandfathered in-flight change. Existing
-archives remain historical and are not retrofitted.
+archives remain historical and are not retrofitted. Archived changes that
+carry the forward-only declaration remain validated, so archiving cannot make
+a newly governed decision disappear from hosted evidence. Every archive on or
+after the activation date must retain the declaration, and every ledger-owning
+issue must resolve to one, closing omission in the final hosted tree.
 
 This slice stops after repository metadata, validation, deterministic
 rendering, templates, factory wiring, tests, and closeout evidence. It does not

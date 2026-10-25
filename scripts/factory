@@ -56,6 +56,11 @@ run_quality_plan() {
     "$factory_root" --plan "$@"
 }
 
+run_change_plan() {
+  "$factory_root/scripts/check-platform-change-ledger.py" \
+    "$factory_root" "$@"
+}
+
 validate_all() {
   run_openspec validate --all --strict --no-interactive
 }
@@ -288,6 +293,8 @@ Commands:
   plan [options]      Derive immutable fast/slow target routing from exact SHAs
   quality-plan [capability]
                       Render declared quality evidence without executing it
+  change-plan [--write]
+                      Validate or update deterministic migration/release evidence
   delivery pr-preflight --title T --body-file FILE --head-ref REF --base-ref REF --draft true|false
                       Apply hosted PR metadata policy to file-backed inputs
   metrics [options]   Validate, store, render or publish bounded work metrics
@@ -344,6 +351,9 @@ case "$command_name" in
     ;;
   quality-plan)
     run_quality_plan "$@"
+    ;;
+  change-plan)
+    run_change_plan "$@"
     ;;
   delivery)
     node "$factory_root/scripts/factory-tools/delivery.mjs" "$@"

@@ -25,6 +25,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/platform-ts-capabilities.py"
 "$repository_root/scripts/tests/a1-compatibility-plan.py"
 "$repository_root/scripts/tests/language-adapter-mappings.py"
+"$repository_root/scripts/tests/platform-change-ledger.py"
 "$repository_root/scripts/tests/cross-language-vectors.py"
 "$repository_root/scripts/tests/quality-evidence-declarations.py"
 "$repository_root/scripts/tests/crypto-benchmark.py"
@@ -76,6 +77,8 @@ required_files=(
   docs/architecture/a1-compatibility-contracts.md
   docs/architecture/language-adapter-mappings.md
   docs/architecture/language-adapter-mappings.toml
+  docs/architecture/identus-platform-change-ledger.md
+  docs/architecture/identus-platform-change-ledger.toml
   docs/architecture/quality-evidence-declarations.toml
   docs/architecture/quality-evidence-plan.md
   docs/conformance/cross-language-vector-catalog.md
@@ -180,6 +183,7 @@ required_files=(
   openspec/specs/sdk-support-policy/spec.md
   openspec/specs/crypto/spec.md
   openspec/specs/did-core/spec.md
+  openspec/specs/unpublished-crypto-candidate/spec.md
   scripts/benchmark-code-health-classifier.py
   scripts/benchmark-support-policy.py
   scripts/factory
@@ -228,6 +232,7 @@ required_files=(
   scripts/check-platform-ts-capabilities.py
   scripts/check-a1-compatibility-plan.py
   scripts/check-language-adapter-mappings.py
+  scripts/check-platform-change-ledger.py
   scripts/check-cross-language-vectors.py
   scripts/check-quality-evidence-declarations.py
   scripts/fuzz-did.sh
@@ -270,6 +275,8 @@ required_files=(
   scripts/tests/platform-ts-capabilities.py
   scripts/tests/a1-compatibility-plan.py
   scripts/tests/language-adapter-mappings.py
+  scripts/tests/platform-change-ledger.py
+  scripts/tests/fixtures/platform-change-ledger/ledger.toml
   scripts/tests/cross-language-vectors.py
   scripts/tests/quality-evidence-declarations.py
   scripts/tests/crypto-benchmark.py
@@ -297,6 +304,13 @@ for relative_path in "${required_files[@]}"; do
       ;;
   esac
 done
+
+# Preserve the one explicitly grandfathered active change so the minimal
+# Git-less fixture exercises the same closed impact-policy exception as the
+# repository instead of weakening the canonical ledger.
+mkdir -p "$fixture_root/openspec/changes"
+cp -R "$repository_root/openspec/changes/activate-first-crate-release-train" \
+  "$fixture_root/openspec/changes/activate-first-crate-release-train"
 
 # The resource inventory intentionally points at implementation evidence beyond
 # the minimal synthetic factory fixture. Copy that exact bounded evidence set so
@@ -372,6 +386,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-platform-ts-capabilities.py" \
   "$fixture_root/scripts/check-a1-compatibility-plan.py" \
   "$fixture_root/scripts/check-language-adapter-mappings.py" \
+  "$fixture_root/scripts/check-platform-change-ledger.py" \
   "$fixture_root/scripts/check-cross-language-vectors.py" \
   "$fixture_root/scripts/check-quality-evidence-declarations.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
@@ -410,6 +425,7 @@ chmod +x "$fixture_root/scripts/tests/apollo-parity.py"
 chmod +x "$fixture_root/scripts/tests/platform-ts-capabilities.py"
 chmod +x "$fixture_root/scripts/tests/a1-compatibility-plan.py"
 chmod +x "$fixture_root/scripts/tests/language-adapter-mappings.py"
+chmod +x "$fixture_root/scripts/tests/platform-change-ledger.py"
 chmod +x "$fixture_root/scripts/tests/cross-language-vectors.py"
 chmod +x "$fixture_root/scripts/tests/quality-evidence-declarations.py"
 chmod +x "$fixture_root/scripts/ci/"*.mjs "$fixture_root/scripts/factory-tools/"*.mjs \
@@ -531,6 +547,14 @@ None.
 ## Evidence commands
 
 The factory contract test is the evidence.
+EOF
+cat >"$change_root/compatibility-impact.toml" <<'EOF'
+schema_version = 1
+issue          = 1
+disposition    = "behavior-neutral"
+scope          = "test-only"
+rationale      = "This synthetic factory fixture exercises archive preservation without changing a supported SDK consumer contract."
+ledger_ids     = []
 EOF
 : >"$fixture_root/.pi/chains/afk.yaml"
 

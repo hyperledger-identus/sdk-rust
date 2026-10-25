@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 422
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "This change adds closed repository evidence, offline validation, deterministic rendering, and authoring templates without changing a public API, wire format, error contract, persisted representation, ABI, supported target, runtime requirement, security behavior, or downstream consumer implementation."
+ledger_ids     = [  ]

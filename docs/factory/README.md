@@ -132,6 +132,7 @@ nix run .#factory -- check
 | `backlog-live` | explicitly resolves canonical roadmap issue ownership through GitHub before supervisor work selection; it is read-only and outside offline required CI |
 | `plan` | derives one immutable required fast lane plus risk-routed slow evidence available locally or through external orchestration |
 | `quality-plan` | validates the closed property/fuzz/benchmark/differential registry and renders deterministic, non-executing evidence routes, optionally for one capability |
+| `change-plan` | validates the closed consumer-change ledger and its OpenSpec impact declarations, or updates deterministic release/migration evidence with `--write` |
 | `delivery` | preflights file-backed PR metadata against both hosted policy layers and guards exact-head protected squash merges with private receipts |
 | `worktrees` | audits or explicitly mutates only canonical bounded issue worktrees |
 | `metrics` | validates, retains, renders or explicitly publishes privacy-bounded exact-head v1/v2 metrics; publication defaults to the recorded PR, then its issue |
@@ -147,6 +148,14 @@ not-applicable rationale, cadence, targets, freshness, budget, and debt state.
 The checked-in `quality-evidence-plan.md` is deterministic output. Issue,
 OpenSpec, and pull-request receipts reference declaration IDs instead of
 duplicating mutable commands or policy prose.
+
+`docs/architecture/identus-platform-change-ledger.toml` is the canonical
+consumer-change record. Qualifying OpenSpec changes declare either
+`consumer-visible` impact with stable ledger IDs or a bounded
+`behavior-neutral` scope with no IDs. The checked-in
+`identus-platform-change-ledger.md` is deterministic output; validation never
+executes stored selectors or commands and never authorizes release,
+deprecation, or migration.
 
 `./bootstrap.sh --pi` additionally prepares a verified, content-addressed Pi
 project-package cache outside all registered working trees. Exact harness

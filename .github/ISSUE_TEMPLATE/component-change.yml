@@ -114,6 +114,15 @@ body:
       required: true
 
   - type: input
+    id: compatibility_impact
+    attributes:
+      label: Compatibility impact and ledger IDs
+      description: State consumer-visible:<ledger-id(s)> or behavior-neutral:<governance|documentation|test-only|internal-refactor|tooling>. The OpenSpec declaration remains authoritative.
+      placeholder: behavior-neutral:documentation
+    validations:
+      required: true
+
+  - type: input
     id: openspec
     attributes:
       label: Proposed OpenSpec change

@@ -51,6 +51,14 @@ body:
       placeholder: did.syntax.quality.v1
     validations:
       required: true
+  - type: input
+    id: compatibility_impact
+    attributes:
+      label: Compatibility impact and ledger IDs
+      description: State consumer-visible:<ledger-id(s)> or behavior-neutral:<governance|documentation|test-only|internal-refactor|tooling>.
+      placeholder: behavior-neutral:tooling
+    validations:
+      required: true
   - type: checkboxes
     id: contract
     attributes:

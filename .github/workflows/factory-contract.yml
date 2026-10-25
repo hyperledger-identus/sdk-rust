@@ -55,6 +55,10 @@ jobs:
           env -u SDK_ERROR_GOLDEN_SOURCE_SNAPSHOT
           python3 scripts/check-error-golden.py .
 
+      - name: Verify merge-ready consumer change records
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/check-platform-change-ledger.py . --merge-ready
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
 

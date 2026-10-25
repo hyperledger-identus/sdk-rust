@@ -1,9 +1,14 @@
-schema_version = 1
-program_issue  = 415
-status         = "active-empty"
+schema_version                    = 2
+registry_version                  = "2.0.0"
+program_issue                     = 415
+owner_issue                       = 422
+status                            = "active-empty"
+impact_policy_activation_issue    = 422
+impact_policy_activation_date     = "2026-10-25"
+impact_policy_activation_revision = "31dd014ac7ab83654041ceb079bef6aff75ecd3c"
+grandfathered_changes             = [ "activate-first-crate-release-train" ]
 
-[vocabulary]
-change_classes = [
+allowed_change_classes = [
   "additive",
   "fix",
   "behavioral",
@@ -11,7 +16,7 @@ change_classes = [
   "breaking",
   "security",
 ]
-release_note_classes = [
+allowed_release_note_classes = [
   "added",
   "changed",
   "deprecated",
@@ -19,7 +24,7 @@ release_note_classes = [
   "fixed",
   "security",
 ]
-compatibility = [
+allowed_compatibility = [
   "compatible",
   "source-break",
   "abi-break",
@@ -28,13 +33,44 @@ compatibility = [
   "behavior-break",
   "runtime-requirement-break",
 ]
+allowed_visibility = [
+  "public-api",
+  "wire",
+  "error",
+  "persistence",
+  "abi",
+  "target-support",
+  "runtime-requirement",
+  "behavior",
+  "security",
+]
+allowed_lifecycle_states = [
+  "proposed",
+  "active",
+  "superseded",
+  "removed",
+]
+allowed_deprecation_phases = [
+  "not-applicable",
+  "proposed",
+  "announced",
+  "available-replacement",
+  "default-off",
+  "removed",
+]
+allowed_legacy_bug_policies = [
+  "not-applicable",
+  "fix-and-document",
+  "preserve-profile",
+  "simulate-temporarily",
+  "reject-as-unsafe",
+]
+allowed_mapping_dispositions = [
+  "required",
+  "not-applicable",
+]
 
-# Add one [[change]] record in the same PR as each consumer-visible migration.
-# Required fields:
-# id, capability, class, release_note_class, compatibility, affected_packages,
-# old_behavior, new_behavior, migration_action, replacement, first_version,
-# last_compatible_version, compatibility_window, deprecation_phase,
-# legacy_bug_policy, tests, issue, pull_request, rollback, and evidence.
-#
-# The ledger deliberately starts without change records because this bootstrap
-# changes governance only and no consumer-visible runtime/package behavior.
+# This empty list is an assertion: issue #422 changes governance and tooling,
+# not a consumer-visible SDK contract. Synthetic proof records live only under
+# scripts/tests/fixtures and can never be rendered as canonical release advice.
+changes = [  ]

@@ -47,7 +47,43 @@ done
 
 run_browser() {
   local browser="$1"
-  wasm-pack test --headless "--$browser" tests/wasm-did-browser --locked
+  local browser_binary
+  local capabilities="$evidence_root/webdriver-$browser.json"
+  local driver_arg
+  local driver_binary
+
+  case "$browser" in
+    chrome)
+      browser_binary="$(command -v chromium || command -v chromium-browser || command -v google-chrome || true)"
+      if [[ -z "$browser_binary" && -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]]; then
+        browser_binary="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      fi
+      test -n "$browser_binary"
+      driver_binary="${CHROMEDRIVER:-$(command -v chromedriver)}"
+      driver_arg="--chromedriver"
+      test -x "$driver_binary"
+      printf '{"goog:chromeOptions":{"binary":"%s"}}\n' "$browser_binary" > "$capabilities"
+      "$browser_binary" --version
+      "$driver_binary" --version
+      ;;
+    firefox)
+      browser_binary="$(command -v firefox || true)"
+      if [[ -z "$browser_binary" && -x "/Applications/Firefox.app/Contents/MacOS/firefox" ]]; then
+        browser_binary="/Applications/Firefox.app/Contents/MacOS/firefox"
+      fi
+      test -n "$browser_binary"
+      driver_binary="${GECKODRIVER:-$(command -v geckodriver)}"
+      driver_arg="--geckodriver"
+      test -x "$driver_binary"
+      printf '{"moz:firefoxOptions":{"binary":"%s"}}\n' "$browser_binary" > "$capabilities"
+      "$browser_binary" --version
+      "$driver_binary" --version | sed -n '1p'
+      ;;
+  esac
+
+  WASM_BINDGEN_TEST_WEBDRIVER_JSON="$capabilities" \
+    wasm-pack test --headless "--$browser" "$driver_arg" "$driver_binary" \
+      tests/wasm-did-browser --locked
 }
 
 case "$mode" in

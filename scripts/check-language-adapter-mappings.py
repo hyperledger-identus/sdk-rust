@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
 import stat
 import sys
@@ -15,11 +16,18 @@ REGISTRY = Path("docs/architecture/language-adapter-mappings.toml")
 RENDERED = Path("docs/architecture/language-adapter-mappings.md")
 VECTOR_CATALOG = Path("docs/conformance/cross-language-vector-catalog.toml")
 MAX_EVIDENCE_BYTES = 2 * 1024 * 1024
-TOP_KEYS = {"schema_version", "registry_version", "status", "owner_issue", "canonical_owner", "mappings"}
+TOP_KEYS = {
+    "schema_version", "registry_version", "status", "owner_issue", "canonical_owner",
+    "canonical_sources", "mappings",
+}
+SOURCE_KEYS = {
+    "id", "owner_issue", "state", "canonical_crate", "canonical_revision", "path",
+    "file_mode", "byte_length", "sha256", "git_object_format", "git_blob_oid",
+}
 MAPPING_KEYS = {
     "id", "capability", "owner_issue", "state", "kind", "canonical_crate", "canonical_rust_path",
-    "canonical_version_origin", "canonical_revision", "canonical_description",
-    "canonical_bound_path", "canonical_bound_symbol",
+    "canonical_version_origin", "canonical_source_id", "canonical_description",
+    "canonical_bound_symbol",
     "language", "language_package", "language_target", "language_version", "language_revision",
     "language_path", "language_license", "language_symbol", "language_shape_state", "direction",
     "compatibility_class", "fidelity", "version_window", "deprecation_phase", "version_negotiation",
@@ -40,6 +48,7 @@ REQUIRED_IDS = {
 }
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
 SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 SEMVER_COMPONENT = r"(?:0|[1-9][0-9]*)"
 SEMVER_PATTERN = re.compile(
     rf"^{SEMVER_COMPONENT}\.{SEMVER_COMPONENT}\.{SEMVER_COMPONENT}$"
@@ -153,10 +162,64 @@ def load_vector_catalog(
     return found
 
 
+def canonical_source_bytes(
+    root: Path, source_record: dict[str, object], identifier: str, errors: list[str]
+) -> bytes | None:
+    path_value = source_record.get("path")
+    label = f"canonical source {identifier}"
+    if not isinstance(path_value, str) or not path_value.strip():
+        errors.append(f"{label}.path must be a safe repository-relative path")
+        return None
+    relative = Path(path_value)
+    if (
+        relative.is_absolute()
+        or not relative.parts
+        or any(part in {"", ".", ".."} for part in relative.parts)
+        or "\\" in path_value
+    ):
+        errors.append(f"{label}.path must be a safe repository-relative path")
+        return None
+    canonical_crate = source_record.get("canonical_crate")
+    if isinstance(canonical_crate, str) and canonical_crate.startswith("identus-"):
+        crate_source = Path("crates") / canonical_crate.removeprefix("identus-") / "src"
+        try:
+            relative.relative_to(crate_source)
+        except ValueError:
+            errors.append(f"{label}.path must remain under declared Cargo package source {crate_source}")
+            return None
+    source_path = root
+    try:
+        for part in relative.parts:
+            source_path /= part
+            if source_path.is_symlink():
+                errors.append(f"{label}.path must not contain symlink components")
+                return None
+        resolved_root = root.resolve(strict=True)
+        resolved_source = source_path.resolve(strict=True)
+        resolved_source.relative_to(resolved_root)
+        metadata = resolved_source.stat()
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > MAX_EVIDENCE_BYTES:
+            errors.append(f"{label}.path must be a bounded regular file")
+            return None
+        actual_mode = "100755" if metadata.st_mode & 0o111 else "100644"
+        if source_record.get("file_mode") != actual_mode:
+            errors.append(f"{label}.file_mode does not match the source executable bit")
+        return resolved_source.read_bytes()
+    except ValueError:
+        errors.append(f"{label}.path resolves outside the repository")
+    except OSError:
+        errors.append(f"{label}.path cannot be read safely")
+    return None
+
+
 def canonical_bound(
-    root: Path, mapping: dict[str, object], identifier: str, errors: list[str]
+    root: Path,
+    mapping: dict[str, object],
+    source_record: dict[str, object],
+    identifier: str,
+    errors: list[str],
 ) -> int | None:
-    path_value = mapping.get("canonical_bound_path")
+    path_value = source_record.get("path")
     symbol_value = mapping.get("canonical_bound_symbol")
     if not isinstance(path_value, str) or not path_value.strip():
         errors.append(f"{identifier}.canonical_bound_path must be a safe repository-relative path")
@@ -170,7 +233,7 @@ def canonical_bound(
     ):
         errors.append(f"{identifier}.canonical_bound_path must be a safe repository-relative path")
         return None
-    canonical_crate = mapping.get("canonical_crate")
+    canonical_crate = source_record.get("canonical_crate")
     if isinstance(canonical_crate, str) and canonical_crate.startswith("identus-"):
         crate_source = Path("crates") / canonical_crate.removeprefix("identus-") / "src"
         try:
@@ -227,13 +290,67 @@ def canonical_bound(
     return int(matches[0].replace("_", ""))
 
 
+def validate_sources(
+    document: dict[str, object], root: Path, errors: list[str]
+) -> dict[str, dict[str, object]]:
+    records = document.get("canonical_sources")
+    if not isinstance(records, list) or not records:
+        errors.append("canonical_sources must be a non-empty array of tables")
+        return {}
+    sources: dict[str, dict[str, object]] = {}
+    for index, record in enumerate(records, start=1):
+        label = f"canonical_sources[{index}]"
+        if not exact_keys(record, SOURCE_KEYS, label, errors):
+            continue
+        assert isinstance(record, dict)
+        identifier = record.get("id")
+        if not isinstance(identifier, str) or not ID_PATTERN.fullmatch(identifier):
+            errors.append(f"{label}.id must be a stable dotted ID")
+            continue
+        if identifier in sources:
+            errors.append(f"duplicate canonical source id: {identifier}")
+            continue
+        sources[identifier] = record
+        if type(record.get("owner_issue")) is not int or record.get("owner_issue") != 512:
+            errors.append(f"canonical source {identifier}.owner_issue must equal 512")
+        if record.get("state") != "active":
+            errors.append(f"canonical source {identifier}.state must equal active")
+        crate = record.get("canonical_crate")
+        if not isinstance(crate, str) or not crate.startswith("identus-"):
+            errors.append(f"canonical source {identifier}.canonical_crate must be an identus-* crate")
+        if not SHA_PATTERN.fullmatch(str(record.get("canonical_revision", ""))):
+            errors.append(f"canonical source {identifier}.canonical_revision must be a full lowercase Git SHA")
+        if record.get("file_mode") != "100644":
+            errors.append(f"canonical source {identifier}.file_mode must equal 100644")
+        length = record.get("byte_length")
+        if type(length) is not int or not 0 < length <= MAX_EVIDENCE_BYTES:
+            errors.append(f"canonical source {identifier}.byte_length must be a positive bounded integer")
+        if not SHA256_PATTERN.fullmatch(str(record.get("sha256", ""))):
+            errors.append(f"canonical source {identifier}.sha256 must be a lowercase SHA-256 digest")
+        if record.get("git_object_format") != "sha1":
+            errors.append(f"canonical source {identifier}.git_object_format must equal sha1")
+        if not SHA_PATTERN.fullmatch(str(record.get("git_blob_oid", ""))):
+            errors.append(f"canonical source {identifier}.git_blob_oid must be a lowercase SHA-1 object ID")
+        payload = canonical_source_bytes(root, record, identifier, errors)
+        if payload is None:
+            continue
+        if length != len(payload):
+            errors.append(f"canonical source {identifier}.byte_length does not match exact source bytes")
+        if record.get("sha256") != hashlib.sha256(payload).hexdigest():
+            errors.append(f"canonical source {identifier}.sha256 does not match exact source bytes")
+        blob = b"blob " + str(len(payload)).encode("ascii") + b"\0" + payload
+        if record.get("git_blob_oid") != hashlib.sha1(blob).hexdigest():
+            errors.append(f"canonical source {identifier}.git_blob_oid does not match exact Git blob bytes")
+    return sources
+
+
 def validate_registry(document: object, root: Path) -> tuple[list[dict[str, object]], list[str]]:
     errors: list[str] = []
     if not exact_keys(document, TOP_KEYS, "registry", errors):
         return [], errors
     assert isinstance(document, dict)
-    if type(document.get("schema_version")) is not int or document.get("schema_version") != 1:
-        errors.append("schema_version must equal 1")
+    if type(document.get("schema_version")) is not int or document.get("schema_version") != 2:
+        errors.append("schema_version must equal 2")
     if not isinstance(document.get("registry_version"), str) or not SEMVER_PATTERN.fullmatch(document["registry_version"]):
         errors.append("registry_version must be semantic x.y.z")
     if (
@@ -245,12 +362,14 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
     if document.get("canonical_owner") != "sdk-rust":
         errors.append("canonical_owner must remain sdk-rust")
 
+    sources = validate_sources(document, root, errors)
     mappings = document.get("mappings")
     if not isinstance(mappings, list) or not mappings:
         errors.append("mappings must be a non-empty array of tables")
         return [], errors
     vector_catalog = load_vector_catalog(root, errors)
     seen: set[str] = set()
+    used_sources: set[str] = set()
     for index, mapping in enumerate(mappings, start=1):
         label = f"mappings[{index}]"
         if not exact_keys(mapping, MAPPING_KEYS, label, errors):
@@ -299,8 +418,14 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
             "fallback", "rollback", "removal_gate",
         ):
             text(mapping.get(field), f"{identifier}.{field}", errors)
-        if not SHA_PATTERN.fullmatch(str(mapping.get("canonical_revision", ""))):
-            errors.append(f"{identifier}.canonical_revision must be a full lowercase Git SHA")
+        source_id = mapping.get("canonical_source_id")
+        source_record = sources.get(source_id) if isinstance(source_id, str) else None
+        if source_record is None:
+            errors.append(f"{identifier}.canonical_source_id must reference a declared canonical source")
+        else:
+            used_sources.add(source_id)
+            if source_record.get("canonical_crate") != canonical_crate:
+                errors.append(f"{identifier}.canonical_source_id crate must match canonical_crate")
         if mapping.get("language") not in LANGUAGES:
             errors.append(f"{identifier}.language is invalid")
         language_version = str(mapping.get("language_version", ""))
@@ -400,7 +525,11 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
         limit = mapping.get("max_input_bytes")
         if not isinstance(limit, int) or isinstance(limit, bool) or limit <= 0:
             errors.append(f"{identifier}.max_input_bytes must be a positive integer")
-        rust_limit = canonical_bound(root, mapping, str(identifier), errors)
+        rust_limit = (
+            canonical_bound(root, mapping, source_record, str(identifier), errors)
+            if source_record is not None
+            else None
+        )
         if (
             isinstance(limit, int)
             and not isinstance(limit, bool)
@@ -520,6 +649,9 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
     missing = REQUIRED_IDS - seen
     if missing:
         errors.append(f"required seed mapping IDs are missing: {sorted(missing)}")
+    unused_sources = set(sources) - used_sources
+    if unused_sources:
+        errors.append(f"canonical sources are unused: {sorted(unused_sources)}")
     return mappings, errors
 
 
@@ -528,6 +660,11 @@ def escape(value: object) -> str:
 
 
 def render(document: dict[str, object], mappings: list[dict[str, object]]) -> str:
+    sources = {
+        source["id"]: source
+        for source in document["canonical_sources"]
+        if isinstance(source, dict)
+    }
     lines = [
         "# Language adapter mappings",
         "",
@@ -539,9 +676,24 @@ def render(document: dict[str, object], mappings: list[dict[str, object]]) -> st
         f"Canonical owner: `{document['canonical_owner']}`<br>",
         f"Owner issue: [#{document['owner_issue']}](https://github.com/hyperledger-identus/sdk-rust/issues/{document['owner_issue']})",
         "",
+        "## Canonical sources",
+        "",
+        "| Source | Cargo package | Revision | Path | Bytes | SHA-256 | Git blob |",
+        "| --- | --- | --- | --- | ---: | --- | --- |",
+    ]
+    for source in document["canonical_sources"]:
+        lines.append(
+            f"| `{source['id']}` | `{source['canonical_crate']}` | `{source['canonical_revision']}` | "
+            f"`{source['path']}` | {source['byte_length']} | `{source['sha256']}` | "
+            f"`{source['git_object_format']}:{source['git_blob_oid']}` |"
+        )
+    lines.extend([
+        "",
+        "## Mappings",
+        "",
         "| Mapping | Kind | Language surface | Direction | Fidelity | Phase |",
         "| --- | --- | --- | --- | --- | --- |",
-    ]
+    ])
     for mapping in mappings:
         lines.append(
             f"| `{escape(mapping['id'])}` | {mapping['kind']} | `{escape(mapping['language_package'])}` "
@@ -549,6 +701,7 @@ def render(document: dict[str, object], mappings: list[dict[str, object]]) -> st
             f"{mapping['deprecation_phase']} |"
         )
     for mapping in mappings:
+        source = sources[mapping["canonical_source_id"]]
         lines.extend(
             [
                 "",
@@ -556,9 +709,9 @@ def render(document: dict[str, object], mappings: list[dict[str, object]]) -> st
                 "",
                 f"- Record: capability `{mapping['capability']}`, owner [#{mapping['owner_issue']}](https://github.com/hyperledger-identus/sdk-rust/issues/{mapping['owner_issue']}), state `{mapping['state']}`, kind `{mapping['kind']}`.",
                 f"- Cargo package: `{mapping['canonical_crate']}`.",
-                f"- Rust API: `{mapping['canonical_rust_path']}` at `{mapping['canonical_revision']}` ({mapping['canonical_version_origin']}).",
+                f"- Rust API: `{mapping['canonical_rust_path']}` from source `{mapping['canonical_source_id']}` at `{source['canonical_revision']}` ({mapping['canonical_version_origin']}).",
                 f"- Canonical semantics: {mapping['canonical_description']}",
-                f"- Canonical bound: `{mapping['canonical_bound_symbol']}` in `{mapping['canonical_bound_path']}`.",
+                f"- Canonical bound: `{mapping['canonical_bound_symbol']}` in `{source['path']}`.",
                 f"- Language source: `{mapping['language']}` package `{mapping['language_package']}`, target `{mapping['language_target']}`, symbol `{mapping['language_symbol']}`, version `{mapping['language_version']}` at `{mapping['language_revision']}`, path `{mapping['language_path']}`.",
                 f"- Language evidence: license `{mapping['language_license']}`; shape state `{mapping['language_shape_state']}`.",
                 f"- Compatibility: {mapping['compatibility_class']}, {mapping['direction']}, {mapping['fidelity']}; window `{mapping['version_window']}`; phase `{mapping['deprecation_phase']}`.",

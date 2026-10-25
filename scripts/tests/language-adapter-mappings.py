@@ -116,13 +116,13 @@ def materialize_bound_sources(root: Path, registry: str) -> None:
         document = tomllib.loads(registry)
     except tomllib.TOMLDecodeError:
         return
-    mappings = document.get("mappings") if isinstance(document, dict) else None
-    if not isinstance(mappings, list):
+    sources = document.get("canonical_sources") if isinstance(document, dict) else None
+    if not isinstance(sources, list):
         return
-    for mapping in mappings:
-        if not isinstance(mapping, dict):
+    for source_record in sources:
+        if not isinstance(source_record, dict):
             continue
-        raw = mapping.get("canonical_bound_path")
+        raw = source_record.get("path")
         if not isinstance(raw, str):
             continue
         relative = Path(raw)
@@ -212,12 +212,22 @@ def main() -> None:
     run(
         replace_once(
             registry,
-            'schema_version   = 1\nregistry_version = "1.0.0"',
-            'schema_version   = 1\nunknown          = true\nregistry_version = "1.0.0"',
+            'schema_version   = 2\nregistry_version = "2.0.0"',
+            'schema_version   = 2\nunknown          = true\nregistry_version = "2.0.0"',
         ),
         rendered,
         False,
     )
+    for mutation in (
+        replace_once(
+            registry,
+            'id                 = "did.source.identus-did.v1"',
+            'id                 = "invalid source id"',
+        ),
+        replace_once(registry, "owner_issue        = 512", "owner_issue        = 999"),
+        replace_once(registry, 'state              = "active"', 'state              = "planned"'),
+    ):
+        run(mutation, rendered, False)
     prefix = registry[: registry.index("[[mappings]]")]
     run(prefix + 'mappings = [ "invalid" ]\n', rendered, False)
     run("schema_version = [", rendered, False)
@@ -256,7 +266,7 @@ def main() -> None:
         replace_once(registry, 'canonical_owner  = "sdk-rust"', 'canonical_owner  = "sdk-ts"'),
         replace_first(
             registry,
-            'canonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"',
+            'canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"',
             'canonical_revision = "develop"',
         ),
         replace_first(registry, 'language_version = "8.1.4"', 'language_version = "8.1"'),
@@ -308,8 +318,76 @@ def main() -> None:
         replace_first(registry, "redact_input            = true", "redact_input            = false"),
     ):
         run(mutation, rendered, False)
-    run(replace_once(registry, "schema_version   = 1", "schema_version   = true"), rendered, False)
+    run(replace_once(registry, "schema_version   = 2", "schema_version   = true"), rendered, False)
     run(replace_once(registry, "owner_issue      = 505", "owner_issue      = 505.0"), rendered, False)
+
+    # Canonical sources are closed, content-addressed, shared, and fully consumed.
+    source_start = registry.index("[[canonical_sources]]")
+    source_end = registry.index("[[mappings]]")
+    source_block = registry[source_start:source_end]
+    run(
+        replace_once(
+            registry,
+            'file_mode          = "100644"',
+            'unknown            = true\nfile_mode          = "100644"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        registry,
+        rendered,
+        False,
+        setup=lambda root: (root / "crates/did/src/did.rs").write_bytes(
+            (root / "crates/did/src/did.rs").read_bytes() + b"\n"
+        ),
+    )
+    run(replace_once(registry, 'file_mode          = "100644"', 'file_mode          = "100755"'), rendered, False)
+    run(replace_once(registry, "byte_length        = 12528", "byte_length        = 12527"), rendered, False)
+    run(
+        replace_once(
+            registry,
+            'sha256             = "8d85e03603c7e1d8d114681e6820b49266beed5110f5983d076e4fa57508ad79"',
+            'sha256             = "0d85e03603c7e1d8d114681e6820b49266beed5110f5983d076e4fa57508ad79"',
+        ),
+        rendered,
+        False,
+    )
+    run(replace_once(registry, 'git_object_format  = "sha1"', 'git_object_format  = "sha256"'), rendered, False)
+    run(
+        replace_once(
+            registry,
+            'git_blob_oid       = "6cbdc95ffdc04adf349ccb675688799ab6ef9c83"',
+            'git_blob_oid       = "0cbdc95ffdc04adf349ccb675688799ab6ef9c83"',
+        ),
+        rendered,
+        False,
+    )
+    run(registry[:source_end] + source_block + registry[source_end:], rendered, False)
+    unused_source = replace_once(
+        source_block,
+        'id                 = "did.source.identus-did.v1"',
+        'id                 = "did.source.identus-did.unused-v1"',
+    )
+    run(registry[:source_end] + unused_source + registry[source_end:], rendered, False)
+    run(
+        replace_first(
+            registry,
+            'canonical_source_id = "did.source.identus-did.v1"',
+            'canonical_source_id = "did.source.missing.v1"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'canonical_crate    = "identus-did"',
+            'canonical_crate    = "identus-core"',
+        ),
+        rendered,
+        False,
+    )
     run(
         mutate_mapping(
             registry,
@@ -330,8 +408,8 @@ def main() -> None:
     )
     run(replace_first(registry, 'state = "active"', 'state = "removed"'), rendered, False)
     for mutation in (
-        replace_once(registry, "schema_version   = 1", "schema_version   = 2"),
-        replace_once(registry, 'registry_version = "1.0.0"', 'registry_version = "v1"'),
+        replace_once(registry, "schema_version   = 2", "schema_version   = 1"),
+        replace_once(registry, 'registry_version = "2.0.0"', 'registry_version = "v1"'),
         replace_once(registry, 'status           = "active"', 'status           = "planned"'),
         replace_once(registry, "owner_issue      = 505", "owner_issue      = 999"),
         replace_first(registry, 'capability = "did.syntax"', 'capability = "DID syntax"'),
@@ -528,27 +606,25 @@ def main() -> None:
     # Canonical bounds are literal, unique, bounded, and cannot escape via symlinks.
     run(replace_first(registry, "max_input_bytes = 2048", "max_input_bytes = 2049"), rendered, False)
     run(
-        replace_first(registry, 'canonical_bound_path = "crates/did/src/did.rs"', 'canonical_bound_path = "../did.rs"'),
+        replace_first(registry, 'path               = "crates/did/src/did.rs"', 'path               = "../did.rs"'),
         rendered,
         False,
     )
     symlink_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/linked/did.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/linked/did.rs"',
     )
-    run(
-        symlink_registry,
-        rendered,
-        False,
-        setup=lambda root: (root / "crates/did/src/linked").symlink_to(
-            ROOT / "crates/did/src", target_is_directory=True
-        ),
-    )
+    def directory_symlink(root: Path) -> None:
+        target = root / "crates/did/src/linked"
+        target.parent.mkdir(parents=True)
+        target.symlink_to(ROOT / "crates/did/src", target_is_directory=True)
+
+    run(symlink_registry, rendered, False, setup=directory_symlink)
     leaf_symlink_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/link.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/link.rs"',
     )
 
     def leaf_symlink(root: Path) -> None:
@@ -559,14 +635,14 @@ def main() -> None:
     run(leaf_symlink_registry, rendered, False, setup=leaf_symlink)
     missing_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/missing.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/missing.rs"',
     )
     run(missing_registry, rendered, False)
     duplicate_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/duplicate.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/duplicate.rs"',
     )
     run(
         duplicate_registry,
@@ -580,8 +656,8 @@ def main() -> None:
     )
     computed_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/computed.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/computed.rs"',
     )
     run(
         computed_registry,
@@ -595,8 +671,8 @@ def main() -> None:
     )
     invalid_utf8_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/invalid-utf8.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/invalid-utf8.rs"',
     )
 
     def invalid_utf8(root: Path) -> None:
@@ -611,8 +687,8 @@ def main() -> None:
         raise AssertionError("invalid UTF-8 must be classified as unreadable evidence")
     oversized_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/oversized.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/oversized.rs"',
     )
 
     def oversized(root: Path) -> None:
@@ -623,8 +699,8 @@ def main() -> None:
     run(oversized_registry, rendered, False, setup=oversized)
     wrong_crate_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"\ncanonical_bound_symbol = "MAX_DID_BYTES"',
-        'canonical_bound_path = "crates/core/src/url.rs"\ncanonical_bound_symbol = "MAX_URL_BYTES"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/core/src/url.rs"',
     )
     wrong_crate_registry = replace_first(
         wrong_crate_registry, "max_input_bytes = 2048", "max_input_bytes = 8192"
@@ -692,53 +768,19 @@ def main() -> None:
         False,
     )
 
-    # Shared catalog evidence and a second canonical source path are additive.
-    first_mapping = registry.index("[[mappings]]")
-    second_mapping = registry.index("[[mappings]]", first_mapping + 1)
-    additional = registry[first_mapping:second_mapping]
-    additional = replace_once(additional, 'id = "did.value.typescript.legacy-v1"', 'id = "uri.value.swift.legacy-v1"')
-    additional = replace_once(
-        additional,
-        'canonical_rust_path = "identus_did::Did"',
-        'canonical_rust_path = "identus_did::Uri"',
+    # A source move preserves both content identities while making the path change explicit.
+    moved_registry = replace_once(
+        registry,
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/moved.rs"',
     )
-    additional = replace_once(additional, 'language = "typescript"', 'language = "swift"')
-    additional = replace_once(additional, 'language_target = "node-and-browser"', 'language_target = "ios"')
-    additional = replace_once(additional, 'consumers = [ "sdk-ts" ]', 'consumers = [ "sdk-swift" ]')
-    additional = replace_once(
-        additional,
-        'canonical_bound_path = "crates/did/src/did.rs"\ncanonical_bound_symbol = "MAX_DID_BYTES"',
-        'canonical_bound_path = "crates/did/src/uri.rs"\ncanonical_bound_symbol = "MAX_URI_BYTES"',
-    )
-    additional, vector_count = re.subn(
-        r'vector_ids = \[\n.*?\n\]',
-        'vector_ids = [ "uri.syntax.max-bytes" ]',
-        additional,
-        count=1,
-        flags=re.DOTALL,
-    )
-    if vector_count != 1:
-        raise AssertionError("additive mapping vector fixture must be replaced once")
-    additional = replace_once(
-        additional,
-        'rust_selectors = [ "identus_did::Did",',
-        'rust_selectors = [ "identus_did::Uri",',
-    )
-    synthetic_vector = """
 
-[[vectors]]
-id             = "uri.syntax.max-bytes"
-capability     = "did.syntax"
-targets        = [ "rust", "swift" ]
-expected       = "success"
-source_locator = "MAX_URI_BYTES; additive second-source fixture"
-"""
-    run(
-        registry.rstrip() + "\n\n" + additional,
-        rendered,
-        True,
-        catalog=catalog.rstrip() + synthetic_vector,
-    )
+    def moved_source(root: Path) -> None:
+        target = root / "crates/did/src/evidence/moved.rs"
+        target.parent.mkdir(parents=True)
+        shutil.copy2(ROOT / "crates/did/src/did.rs", target)
+
+    run(moved_registry, rendered, True, setup=moved_source)
 
     result = subprocess.run([str(CHECKER), str(ROOT), "--render"], capture_output=True, text=True, check=False)
     if result.returncode != 0 or result.stdout != rendered:

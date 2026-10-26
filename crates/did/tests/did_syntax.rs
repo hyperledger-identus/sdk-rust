@@ -2,7 +2,8 @@ use std::hint::black_box;
 
 use identus_core::ErrorKind;
 use identus_did::{
-    Did, DidSyntaxError, DidUrl, Error, MAX_DID_BYTES, MAX_DID_URL_BYTES, MAX_DID_URL_SUFFIX_BYTES,
+    Did, DidSyntaxError, DidUrl, Error, MAX_DID_BYTES, MAX_DID_METHOD_BYTES, MAX_DID_URL_BYTES,
+    MAX_DID_URL_SUFFIX_BYTES,
 };
 
 #[test]
@@ -190,6 +191,32 @@ fn exact_byte_limits_are_enforced() {
     let oversized_embedded_did = format!("{prefix}{}", "a".repeat(MAX_DID_BYTES));
     assert!(matches!(
         DidUrl::parse(&oversized_embedded_did),
+        Err(Error::InvalidDidUrl(DidSyntaxError::TooLong))
+    ));
+}
+
+#[test]
+fn embedded_method_uses_the_independent_method_ceiling() {
+    let at_limit = format!("did:{}:a", "a".repeat(MAX_DID_METHOD_BYTES));
+    assert_eq!(
+        Did::parse(&at_limit).unwrap().method().len(),
+        MAX_DID_METHOD_BYTES
+    );
+    assert_eq!(
+        DidUrl::parse(&format!("{at_limit}/path"))
+            .unwrap()
+            .method()
+            .len(),
+        MAX_DID_METHOD_BYTES
+    );
+
+    let one_over = format!("did:{}:a", "a".repeat(MAX_DID_METHOD_BYTES + 1));
+    assert!(matches!(
+        Did::parse(&one_over),
+        Err(Error::InvalidDid(DidSyntaxError::TooLong))
+    ));
+    assert!(matches!(
+        DidUrl::parse(&format!("{one_over}/path")),
         Err(Error::InvalidDidUrl(DidSyntaxError::TooLong))
     ));
 }

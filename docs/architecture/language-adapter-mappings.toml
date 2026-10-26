@@ -12,10 +12,10 @@ canonical_crate    = "identus-did"
 canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"
 path               = "crates/did/src/did.rs"
 file_mode          = "100644"
-byte_length        = 12913
-sha256             = "568dadee264a0de57f891bbf12cc42d4a642f7e23f66f42c031ed17aebea7522"
+byte_length        = 13148
+sha256             = "d8642568f200296c6efae854da6bcace17126444cf5f38199f88eeb5a5e715d4"
 git_object_format  = "sha1"
-git_blob_oid       = "8fc6ace0c30c78d636023819f3d2f905797a866c"
+git_blob_oid       = "831bb159401c8b54771f2785a77d00e5343275ef"
 
 [[mappings]]
 id = "did.value.typescript.legacy-v1"

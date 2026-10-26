@@ -97,7 +97,8 @@ The DID Core capability SHALL provide an immutable owned `DidMethod` value for
 the W3C method-name grammar. It SHALL accept non-empty lowercase ASCII letters
 and digits up to 2,042 bytes. That ceiling SHALL remain independent when the
 enclosing DID budget changes, so state-bearing method-specific identifiers do
-not widen the generic method-name surface. Validation SHALL check the byte
+not widen the generic method-name surface. The method component parsed by
+`Did` and `DidUrl` SHALL enforce the same ceiling. Validation SHALL check the byte
 ceiling before traversing method characters and SHALL NOT retain or render
 rejected caller input in validator-produced errors.
 
@@ -110,7 +111,7 @@ rejected caller input in validator-produced errors.
 #### Scenario: One-over method is rejected before grammar traversal
 
 - **WHEN** a method name exceeds 2,042 bytes, including one whose later byte also violates the grammar
-- **THEN** every validated construction path SHALL reject it as over-limit
+- **THEN** standalone, bare-DID, and DID-URL construction paths SHALL reject it as over-limit
 - **AND** validator-produced `Debug`, `Display`, serde and stable error output SHALL NOT contain caller-controlled rejection text
 
 #### Scenario: Existing method consumers remain compatible

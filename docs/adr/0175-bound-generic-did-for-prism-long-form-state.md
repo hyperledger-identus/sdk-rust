@@ -49,7 +49,8 @@ decode, work, and semantic bounds.
 `MAX_DID_METHOD_BYTES` remains 2,042. ADR 0093's derivation from
 `MAX_DID_BYTES` is superseded, but its owned validated-newtype decision remains
 in force. Embedded state expands the method-specific identifier, not the
-method name.
+method name. Generic `Did` and `DidUrl` parsing enforces the same independent
+method-component ceiling as `DidMethod`.
 
 ### Treat cache capacity as independent retention policy
 

@@ -7,7 +7,10 @@ use std::{fmt, str::FromStr};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
-use crate::error::{DidSyntaxError, Error};
+use crate::{
+    error::{DidSyntaxError, Error},
+    method::MAX_DID_METHOD_BYTES,
+};
 
 /// Maximum accepted byte length of a bare [`Did`].
 ///
@@ -24,6 +27,8 @@ pub const MAX_DID_URL_BYTES: usize = 139_264;
 /// This keeps path, query, and fragment work independently bounded when the
 /// embedded DID is much smaller than [`MAX_DID_BYTES`].
 pub const MAX_DID_URL_SUFFIX_BYTES: usize = 8_192;
+
+const _: () = assert!(MAX_DID_URL_BYTES == MAX_DID_BYTES + MAX_DID_URL_SUFFIX_BYTES);
 
 const DID_PREFIX: &[u8] = b"did:";
 
@@ -322,6 +327,9 @@ fn parse_did(
     }
     if cursor == method_start {
         return Err(DidSyntaxError::MissingMethod);
+    }
+    if cursor - method_start > MAX_DID_METHOD_BYTES {
+        return Err(DidSyntaxError::TooLong);
     }
     if cursor == bytes.len() {
         return Err(DidSyntaxError::MissingMethodSpecificId);

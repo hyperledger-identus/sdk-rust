@@ -403,11 +403,12 @@ impl CachingDidResolver {
 
         let key = match DidResolutionCacheKey::for_resolution(did, options) {
             Ok(key) => key,
-            Err(_) => {
+            Err(Error::InvalidCache(CacheError::KeyTooLarge)) => {
                 return self
                     .resolve_upstream(did, options, DidResolutionCacheStatus::KeyBudgetBypass)
                     .await;
             }
+            Err(_) => return self.infrastructure_failure(did, options).await,
         };
         let now = match self.clock.now() {
             Ok(now) => now,

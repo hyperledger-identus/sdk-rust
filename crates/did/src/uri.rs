@@ -6,7 +6,7 @@ use fluent_uri::{ParseErrorKind, Uri as ParsedUri};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
 use crate::{
-    Did, DidUrl,
+    Did, DidUrl, MAX_DID_URL_BYTES,
     error::{Error, UriSyntaxError},
 };
 
@@ -14,6 +14,8 @@ use crate::{
 ///
 /// RFC 3986 does not impose this value; it is an SDK resource policy.
 pub const MAX_URI_BYTES: usize = 139_264;
+
+const _: () = assert!(MAX_DID_URL_BYTES <= MAX_URI_BYTES);
 
 /// An immutable, syntactically valid absolute RFC 3986 URI.
 ///

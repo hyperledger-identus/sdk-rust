@@ -93,7 +93,7 @@ ADR 0174 is the reviewed foundational exception required by ADR 0110's
 consumer-evidence gate. The two credible usage paths are NeoPRISM's measured
 SDK-backed node and an independently composed resolver/indexing service using
 the public VDR/indexer ports; neither is claimed as completed adoption. Issue
-#522 must turn both shapes into public-surface proofs before implementation is
+SDK issue #522 must turn both shapes into public-surface proofs before implementation is
 accepted.
 
 The package names intentionally differ from NeoPRISM's existing

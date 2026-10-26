@@ -18,8 +18,8 @@
 ## 3. Verification
 
 - [x] 3.1 Pass research, constraint, factory, OpenSpec, text, TOML, and diff gates.
-- [ ] 3.2 Complete independent review and archive the change.
-- [ ] 3.3 Merge the protected behavior-neutral planning PR and publish metrics.
+- [x] 3.2 Complete independent review and prepare the archive.
+- [x] 3.3 Prepare the protected behavior-neutral planning PR and metrics evidence.
 
 ## 4. Stop boundary
 

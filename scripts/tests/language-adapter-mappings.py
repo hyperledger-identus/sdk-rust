@@ -396,11 +396,11 @@ def main() -> None:
         False,
         expect_diagnostic="file_mode does not match the source executable bit",
     )
-    run(replace_once(registry, "byte_length        = 12913", "byte_length        = 12912"), rendered, False)
+    run(replace_once(registry, "byte_length        = 13161", "byte_length        = 13160"), rendered, False)
     run(
         replace_once(
             registry,
-            'sha256             = "568dadee264a0de57f891bbf12cc42d4a642f7e23f66f42c031ed17aebea7522"',
+            'sha256             = "89fa144cbe94391c5403c1363a005266bfee5728adbc3958ad605f7d94676753"',
             'sha256             = "07d6a6002d09d6d6f294b09234b765299061b82873ee860e422ecfe5a5a70246"',
         ),
         rendered,
@@ -410,7 +410,7 @@ def main() -> None:
     run(
         replace_once(
             registry,
-            'git_blob_oid       = "8fc6ace0c30c78d636023819f3d2f905797a866c"',
+            'git_blob_oid       = "18132b1f388abd1cac9a0bf6fb14935604e089f6"',
             'git_blob_oid       = "0dacbf7174452e07ccd6fcd89a7f90badd23d2be"',
         ),
         rendered,

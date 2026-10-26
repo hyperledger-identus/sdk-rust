@@ -219,6 +219,16 @@ fn embedded_method_uses_the_independent_method_ceiling() {
         DidUrl::parse(&format!("{one_over}/path")),
         Err(Error::InvalidDidUrl(DidSyntaxError::TooLong))
     ));
+
+    let one_over_with_late_invalid = format!("did:{}A:x", "a".repeat(MAX_DID_METHOD_BYTES));
+    assert!(matches!(
+        Did::parse(&one_over_with_late_invalid),
+        Err(Error::InvalidDid(DidSyntaxError::TooLong))
+    ));
+    assert!(matches!(
+        DidUrl::parse(&format!("{one_over_with_late_invalid}/path")),
+        Err(Error::InvalidDidUrl(DidSyntaxError::TooLong))
+    ));
 }
 
 #[test]

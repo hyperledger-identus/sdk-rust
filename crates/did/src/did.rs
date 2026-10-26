@@ -320,6 +320,9 @@ fn parse_did(
     let mut cursor = DID_PREFIX.len();
     let method_start = cursor;
     while cursor < bytes.len() && bytes[cursor] != b':' {
+        if cursor - method_start >= MAX_DID_METHOD_BYTES {
+            return Err(DidSyntaxError::TooLong);
+        }
         if !is_method_char(bytes[cursor]) {
             return Err(DidSyntaxError::InvalidMethodCharacter);
         }
@@ -327,9 +330,6 @@ fn parse_did(
     }
     if cursor == method_start {
         return Err(DidSyntaxError::MissingMethod);
-    }
-    if cursor - method_start > MAX_DID_METHOD_BYTES {
-        return Err(DidSyntaxError::TooLong);
     }
     if cursor == bytes.len() {
         return Err(DidSyntaxError::MissingMethodSpecificId);

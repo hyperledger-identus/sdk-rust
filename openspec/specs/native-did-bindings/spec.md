@@ -24,10 +24,11 @@ out of generic domain crates.
 
 ### Requirement: Native DID failures are bounded and redacted
 
-The facade SHALL preserve the domain parser's 2,048-byte DID and 4,096-byte DID
-URL bounds. Invalid, oversized and unexpected-panic failures SHALL return closed
-error cases with stable SDK-owned codes and SHALL NOT return caller text, domain
-details, panic payloads or implementation diagnostics.
+The facade SHALL preserve the domain parser's 131,072-byte DID and
+139,264-byte DID URL bounds. Invalid, oversized and unexpected-panic failures
+SHALL return closed error cases with stable SDK-owned codes and SHALL NOT
+return caller text, domain details, panic payloads or implementation
+diagnostics.
 
 #### Scenario: invalid input is rejected
 

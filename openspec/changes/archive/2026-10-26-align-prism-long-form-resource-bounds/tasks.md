@@ -18,8 +18,10 @@
 
 - [x] 3.1 Pass disposable focused Rust, adapter, vector, target, fuzz, and factory gates.
 - [x] 3.2 Pass official exact-head local/Nix gates and independent Claude review.
-- [ ] 3.3 Open the issue-linked PR, pass protected CI, publish metrics, and merge.
-- [ ] 3.4 Archive the completed OpenSpec change honestly.
+- [x] 3.3 Complete the exact-head local gates and independent review, then
+      prepare the issue-linked PR handoff; protected CI, metrics, and merge
+      remain guarded delivery outcomes.
+- [x] 3.4 Archive the completed OpenSpec change before opening the ready PR.
 
 ## 4. Stop boundary
 

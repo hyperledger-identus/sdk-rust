@@ -7,15 +7,15 @@ canonical_owner  = "sdk-rust"
 [[canonical_sources]]
 id                 = "did.source.identus-did.v1"
 owner_issue        = 512
-state              = "active"
+state              = "pending-revision"
 canonical_crate    = "identus-did"
-canonical_revision = "a2683961fb07305d12e96fbcabdb07bb7c0cbab8"
+canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"
 path               = "crates/did/src/did.rs"
 file_mode          = "100644"
-byte_length        = 12532
-sha256             = "d7d6a6002d09d6d6f294b09234b765299061b82873ee860e422ecfe5a5a70246"
+byte_length        = 12913
+sha256             = "568dadee264a0de57f891bbf12cc42d4a642f7e23f66f42c031ed17aebea7522"
 git_object_format  = "sha1"
-git_blob_oid       = "bdacbf7174452e07ccd6fcd89a7f90badd23d2be"
+git_blob_oid       = "8fc6ace0c30c78d636023819f3d2f905797a866c"
 
 [[mappings]]
 id = "did.value.typescript.legacy-v1"

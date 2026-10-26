@@ -307,14 +307,15 @@ for relative_path in "${required_files[@]}"; do
   esac
 done
 
-# Preserve the one explicitly grandfathered active change so the minimal
-# Git-less fixture exercises the same closed impact-policy exception as the
-# repository instead of weakening the canonical ledger.
+# Preserve every active change so the minimal Git-less fixture exercises the
+# same closed impact-policy exceptions as the repository without depending on
+# a change that will move under archive/ after delivery.
 mkdir -p "$fixture_root/openspec/changes"
-cp -R "$repository_root/openspec/changes/activate-first-crate-release-train" \
-  "$fixture_root/openspec/changes/activate-first-crate-release-train"
-cp -R "$repository_root/openspec/changes/align-prism-long-form-resource-bounds" \
-  "$fixture_root/openspec/changes/align-prism-long-form-resource-bounds"
+for active_change in "$repository_root"/openspec/changes/*; do
+  if [[ -d "$active_change" && "$(basename "$active_change")" != "archive" ]]; then
+    cp -R "$active_change" "$fixture_root/openspec/changes/"
+  fi
+done
 
 # The resource inventory intentionally points at implementation evidence beyond
 # the minimal synthetic factory fixture. Copy that exact bounded evidence set so

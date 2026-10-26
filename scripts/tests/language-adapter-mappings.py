@@ -263,7 +263,9 @@ def main() -> None:
             'id                 = "invalid source id"',
         ),
         replace_once(registry, "owner_issue        = 512", "owner_issue        = 999"),
-        replace_once(registry, 'state              = "active"', 'state              = "planned"'),
+        replace_once(
+            registry, 'state              = "pending-revision"', 'state              = "planned"'
+        ),
     ):
         run(mutation, rendered, False)
     prefix = registry[: registry.index("[[mappings]]")]
@@ -304,7 +306,7 @@ def main() -> None:
         replace_once(registry, 'canonical_owner  = "sdk-rust"', 'canonical_owner  = "sdk-ts"'),
         replace_first(
             registry,
-            'canonical_revision = "a2683961fb07305d12e96fbcabdb07bb7c0cbab8"',
+            'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
             'canonical_revision = "develop"',
         ),
         replace_first(registry, 'language_version = "8.1.4"', 'language_version = "8.1"'),
@@ -394,11 +396,11 @@ def main() -> None:
         False,
         expect_diagnostic="file_mode does not match the source executable bit",
     )
-    run(replace_once(registry, "byte_length        = 12532", "byte_length        = 12531"), rendered, False)
+    run(replace_once(registry, "byte_length        = 12913", "byte_length        = 12912"), rendered, False)
     run(
         replace_once(
             registry,
-            'sha256             = "d7d6a6002d09d6d6f294b09234b765299061b82873ee860e422ecfe5a5a70246"',
+            'sha256             = "568dadee264a0de57f891bbf12cc42d4a642f7e23f66f42c031ed17aebea7522"',
             'sha256             = "07d6a6002d09d6d6f294b09234b765299061b82873ee860e422ecfe5a5a70246"',
         ),
         rendered,
@@ -408,7 +410,7 @@ def main() -> None:
     run(
         replace_once(
             registry,
-            'git_blob_oid       = "bdacbf7174452e07ccd6fcd89a7f90badd23d2be"',
+            'git_blob_oid       = "8fc6ace0c30c78d636023819f3d2f905797a866c"',
             'git_blob_oid       = "0dacbf7174452e07ccd6fcd89a7f90badd23d2be"',
         ),
         rendered,
@@ -926,6 +928,9 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         'path               = "crates/did/src/did.rs"',
         'path               = "crates/did/src/evidence/moved.rs"',
     )
+    active_moved_registry = replace_once(
+        moved_registry, 'state              = "pending-revision"', 'state              = "active"'
+    )
 
     def moved_source(root: Path) -> None:
         original = root / "crates/did/src/did.rs"
@@ -948,22 +953,20 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "a2683961fb07305d12e96fbcabdb07bb7c0cbab8"',
+                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
                 f'canonical_revision = "{revision}"',
             ),
             encoding="utf-8",
         )
 
     run(
-        moved_registry,
+        active_moved_registry,
         rendered,
         False,
         setup=moved_source,
         expect_diagnostic="canonical_revision path must resolve to git_blob_oid",
     )
-    pending_moved_registry = replace_once(
-        moved_registry, 'state              = "active"', 'state              = "pending-revision"'
-    )
+    pending_moved_registry = moved_registry
     first_commit_args = lambda root: [
         "--pr-base",
         subprocess.run(
@@ -975,7 +978,7 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         ).stdout.strip(),
     ]
     run(
-        moved_registry,
+        active_moved_registry,
         rendered,
         False,
         setup=moved_source,
@@ -1066,16 +1069,14 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "a2683961fb07305d12e96fbcabdb07bb7c0cbab8"',
+                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
                 f'canonical_revision = "{revision}"',
             ),
             encoding="utf-8",
         )
 
     run(
-        replace_once(
-            registry, 'state              = "active"', 'state              = "pending-revision"'
-        ),
+        registry,
         rendered,
         False,
         setup=unchanged_pending,
@@ -1090,7 +1091,9 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
 
     run(
-        registry,
+        replace_once(
+            registry, 'state              = "pending-revision"', 'state              = "active"'
+        ),
         rendered,
         False,
         setup=unrelated_git_history,
@@ -1124,14 +1127,16 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "a2683961fb07305d12e96fbcabdb07bb7c0cbab8"',
+                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
                 f'canonical_revision = "{revision}"',
             ),
             encoding="utf-8",
         )
 
     run(
-        registry,
+        replace_once(
+            registry, 'state              = "pending-revision"', 'state              = "active"'
+        ),
         rendered,
         False,
         setup=feature_only_active_revision,
@@ -1162,7 +1167,7 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "a2683961fb07305d12e96fbcabdb07bb7c0cbab8"',
+                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
                 f'canonical_revision = "{side}"',
             ),
             encoding="utf-8",

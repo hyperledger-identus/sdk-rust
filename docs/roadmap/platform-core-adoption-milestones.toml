@@ -34,15 +34,15 @@ non_claims        = [ "all future vectors complete", "SDK-TS default switch", "b
 [[milestone]]
 id                = "A2"
 title             = "portable DID platform"
-state             = "planned"
+state             = "in-progress"
 owner_issue       = 493
-supporting_issues = [ 420, 492, 501 ]
+supporting_issues = [ 420, 492, 501, 524, 521, 522, 523 ]
 depends_on        = [ "A1" ]
-deliverables      = [ "generic DID domain and service binding sequence", "peer DID decision and slices", "bounded Prism portable semantics decision" ]
-exit_evidence     = [ "DID Core and method vectors", "target binding receipts", "consumer compatibility and rollback packet" ]
-adoption_proof    = "SDK-TS DID facade and one native binding use Rust without duplicated DID semantics"
+deliverables      = [ "generic DID domain and service binding sequence", "versioned peer DID numalgo 4 and numalgo 2 compatibility profiles", "portable PRISM CRUD and state reduction", "PRISM-specific VDR and deterministic bounded indexing" ]
+exit_evidence     = [ "DID Core and method vectors", "property fuzz benchmark and differential receipts", "target binding receipts", "SDK-TS and NeoPRISM compatibility and rollback packets" ]
+adoption_proof    = "SDK-TS DID facade and a measured NeoPRISM path use Rust without duplicated covered DID semantics"
 quality           = [ "property", "fuzz", "benchmark", "differential" ]
-non_claims        = [ "Cardano client in SDK-Rust", "all DID methods supported", "automatic consumer migration" ]
+non_claims        = [ "concrete Cardano client in portable method crates", "database or node runtime adoption", "all DID methods supported", "automatic consumer migration" ]
 
 [[milestone]]
 id                = "A3"

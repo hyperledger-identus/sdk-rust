@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import os
 import re
 import shutil
 import subprocess
@@ -17,6 +19,8 @@ CHECKER = ROOT / "scripts/check-language-adapter-mappings.py"
 REGISTRY = ROOT / "docs/architecture/language-adapter-mappings.toml"
 RENDERED = ROOT / "docs/architecture/language-adapter-mappings.md"
 CATALOG = ROOT / "docs/conformance/cross-language-vector-catalog.toml"
+os.environ["GIT_CONFIG_GLOBAL"] = os.devnull
+os.environ["GIT_CONFIG_SYSTEM"] = os.devnull
 
 
 def replace_once(value: str, before: str, after: str) -> str:
@@ -116,13 +120,13 @@ def materialize_bound_sources(root: Path, registry: str) -> None:
         document = tomllib.loads(registry)
     except tomllib.TOMLDecodeError:
         return
-    mappings = document.get("mappings") if isinstance(document, dict) else None
-    if not isinstance(mappings, list):
+    sources = document.get("canonical_sources") if isinstance(document, dict) else None
+    if not isinstance(sources, list):
         return
-    for mapping in mappings:
-        if not isinstance(mapping, dict):
+    for source_record in sources:
+        if not isinstance(source_record, dict):
             continue
-        raw = mapping.get("canonical_bound_path")
+        raw = source_record.get("path")
         if not isinstance(raw, str):
             continue
         relative = Path(raw)
@@ -158,6 +162,7 @@ def run(
     check_rendered: bool = False,
     setup: Callable[[Path], None] | None = None,
     expect_diagnostic: str | None = None,
+    argument_factory: Callable[[Path], list[str]] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     with tempfile.TemporaryDirectory(prefix="language-adapter-mappings-") as temporary:
         root = Path(temporary)
@@ -176,6 +181,8 @@ def run(
         if setup is not None:
             setup(root)
         command = [str(CHECKER), str(root)]
+        if argument_factory is not None:
+            command.extend(argument_factory(root))
         if not check_rendered:
             command.append("--render")
         result = subprocess.run(command, capture_output=True, text=True, check=False)
@@ -200,6 +207,37 @@ def write_source(root: Path, relative: str, content: str) -> None:
     target.write_text(content, encoding="utf-8")
 
 
+def bind_source_evidence(
+    registry: str, identifier: str, relative: str, payload: bytes, mode: str = "100644"
+) -> str:
+    marker = f'[[canonical_sources]]\nid                 = "{identifier}"'
+    start = registry.index(marker)
+    end = registry.find("\n[[canonical_sources]]", start + len(marker))
+    mapping_start = registry.find("\n[[mappings]]", start + len(marker))
+    if end == -1 or (mapping_start != -1 and mapping_start < end):
+        end = mapping_start
+    if end == -1:
+        end = len(registry)
+    section = registry[start:end]
+    blob = b"blob " + str(len(payload)).encode("ascii") + b"\0" + payload
+    replacements = {
+        "path": relative,
+        "file_mode": mode,
+        "byte_length": str(len(payload)),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "git_blob_oid": hashlib.sha1(blob).hexdigest(),
+    }
+    for field, value in replacements.items():
+        quote = field != "byte_length"
+        rendered = f'"{value}"' if quote else value
+        section, count = re.subn(
+            rf"(?m)^{field}\s*=\s*.*$", f"{field:<19}= {rendered}", section, count=1
+        )
+        if count != 1:
+            raise AssertionError(f"source evidence field missing: {field}")
+    return registry[:start] + section + registry[end:]
+
+
 def main() -> None:
     registry = REGISTRY.read_text(encoding="utf-8")
     rendered = RENDERED.read_text(encoding="utf-8")
@@ -212,12 +250,22 @@ def main() -> None:
     run(
         replace_once(
             registry,
-            'schema_version   = 1\nregistry_version = "1.0.0"',
-            'schema_version   = 1\nunknown          = true\nregistry_version = "1.0.0"',
+            'schema_version   = 2\nregistry_version = "2.0.0"',
+            'schema_version   = 2\nunknown          = true\nregistry_version = "2.0.0"',
         ),
         rendered,
         False,
     )
+    for mutation in (
+        replace_once(
+            registry,
+            'id                 = "did.source.identus-did.v1"',
+            'id                 = "invalid source id"',
+        ),
+        replace_once(registry, "owner_issue        = 512", "owner_issue        = 999"),
+        replace_once(registry, 'state              = "active"', 'state              = "planned"'),
+    ):
+        run(mutation, rendered, False)
     prefix = registry[: registry.index("[[mappings]]")]
     run(prefix + 'mappings = [ "invalid" ]\n', rendered, False)
     run("schema_version = [", rendered, False)
@@ -256,7 +304,7 @@ def main() -> None:
         replace_once(registry, 'canonical_owner  = "sdk-rust"', 'canonical_owner  = "sdk-ts"'),
         replace_first(
             registry,
-            'canonical_revision = "edf03abcc963d37703daa61192940394bdc553ca"',
+            'canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"',
             'canonical_revision = "develop"',
         ),
         replace_first(registry, 'language_version = "8.1.4"', 'language_version = "8.1"'),
@@ -308,8 +356,105 @@ def main() -> None:
         replace_first(registry, "redact_input            = true", "redact_input            = false"),
     ):
         run(mutation, rendered, False)
-    run(replace_once(registry, "schema_version   = 1", "schema_version   = true"), rendered, False)
+    run(replace_once(registry, "schema_version   = 2", "schema_version   = true"), rendered, False)
     run(replace_once(registry, "owner_issue      = 505", "owner_issue      = 505.0"), rendered, False)
+
+    # Canonical sources are closed, content-addressed, shared, and fully consumed.
+    source_start = registry.index("[[canonical_sources]]")
+    source_end = registry.index("[[mappings]]")
+    source_block = registry[source_start:source_end]
+    run(
+        replace_once(
+            registry,
+            'file_mode          = "100644"',
+            'unknown            = true\nfile_mode          = "100644"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        registry,
+        rendered,
+        False,
+        setup=lambda root: (root / "crates/did/src/did.rs").write_bytes(
+            (root / "crates/did/src/did.rs").read_bytes() + b"\n"
+        ),
+        expect_diagnostic="byte_length does not match exact source bytes",
+    )
+    run(
+        registry,
+        rendered,
+        False,
+        setup=lambda root: os.chmod(root / "crates/did/src/did.rs", 0o755),
+        expect_diagnostic="file_mode does not match the source executable bit",
+    )
+    run(
+        replace_once(registry, 'file_mode          = "100644"', 'file_mode          = "100755"'),
+        rendered,
+        False,
+        expect_diagnostic="file_mode does not match the source executable bit",
+    )
+    run(replace_once(registry, "byte_length        = 12528", "byte_length        = 12527"), rendered, False)
+    run(
+        replace_once(
+            registry,
+            'sha256             = "8d85e03603c7e1d8d114681e6820b49266beed5110f5983d076e4fa57508ad79"',
+            'sha256             = "0d85e03603c7e1d8d114681e6820b49266beed5110f5983d076e4fa57508ad79"',
+        ),
+        rendered,
+        False,
+    )
+    run(replace_once(registry, 'git_object_format  = "sha1"', 'git_object_format  = "sha256"'), rendered, False)
+    run(
+        replace_once(
+            registry,
+            'git_blob_oid       = "6cbdc95ffdc04adf349ccb675688799ab6ef9c83"',
+            'git_blob_oid       = "0cbdc95ffdc04adf349ccb675688799ab6ef9c83"',
+        ),
+        rendered,
+        False,
+    )
+    run(registry[:source_end] + source_block + registry[source_end:], rendered, False)
+    unused_source = replace_once(
+        source_block,
+        'id                 = "did.source.identus-did.v1"',
+        'id                 = "did.source.identus-did.unused-v1"',
+    )
+    unused_registry = registry[:source_end] + unused_source + registry[source_end:]
+    unused_payload = b"pub const UNUSED_BOUND: usize = 1;\n"
+    unused_registry = bind_source_evidence(
+        unused_registry,
+        "did.source.identus-did.unused-v1",
+        "crates/did/src/evidence/unused.rs",
+        unused_payload,
+    )
+    run(
+        unused_registry,
+        rendered,
+        False,
+        setup=lambda root: write_source(
+            root, "crates/did/src/evidence/unused.rs", unused_payload.decode()
+        ),
+        expect_diagnostic="canonical sources are unused",
+    )
+    run(
+        replace_first(
+            registry,
+            'canonical_source_id = "did.source.identus-did.v1"',
+            'canonical_source_id = "did.source.missing.v1"',
+        ),
+        rendered,
+        False,
+    )
+    run(
+        replace_once(
+            registry,
+            'canonical_crate    = "identus-did"',
+            'canonical_crate    = "identus-core"',
+        ),
+        rendered,
+        False,
+    )
     run(
         mutate_mapping(
             registry,
@@ -330,8 +475,8 @@ def main() -> None:
     )
     run(replace_first(registry, 'state = "active"', 'state = "removed"'), rendered, False)
     for mutation in (
-        replace_once(registry, "schema_version   = 1", "schema_version   = 2"),
-        replace_once(registry, 'registry_version = "1.0.0"', 'registry_version = "v1"'),
+        replace_once(registry, "schema_version   = 2", "schema_version   = 1"),
+        replace_once(registry, 'registry_version = "2.0.0"', 'registry_version = "v1"'),
         replace_once(registry, 'status           = "active"', 'status           = "planned"'),
         replace_once(registry, "owner_issue      = 505", "owner_issue      = 999"),
         replace_first(registry, 'capability = "did.syntax"', 'capability = "DID syntax"'),
@@ -528,27 +673,25 @@ def main() -> None:
     # Canonical bounds are literal, unique, bounded, and cannot escape via symlinks.
     run(replace_first(registry, "max_input_bytes = 2048", "max_input_bytes = 2049"), rendered, False)
     run(
-        replace_first(registry, 'canonical_bound_path = "crates/did/src/did.rs"', 'canonical_bound_path = "../did.rs"'),
+        replace_first(registry, 'path               = "crates/did/src/did.rs"', 'path               = "../did.rs"'),
         rendered,
         False,
     )
     symlink_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/linked/did.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/linked/did.rs"',
     )
-    run(
-        symlink_registry,
-        rendered,
-        False,
-        setup=lambda root: (root / "crates/did/src/linked").symlink_to(
-            ROOT / "crates/did/src", target_is_directory=True
-        ),
-    )
+    def directory_symlink(root: Path) -> None:
+        target = root / "crates/did/src/linked"
+        target.parent.mkdir(parents=True)
+        target.symlink_to(ROOT / "crates/did/src", target_is_directory=True)
+
+    run(symlink_registry, rendered, False, setup=directory_symlink)
     leaf_symlink_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/link.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/link.rs"',
     )
 
     def leaf_symlink(root: Path) -> None:
@@ -559,14 +702,19 @@ def main() -> None:
     run(leaf_symlink_registry, rendered, False, setup=leaf_symlink)
     missing_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/missing.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/missing.rs"',
     )
     run(missing_registry, rendered, False)
-    duplicate_registry = replace_first(
+    duplicate_payload = (
+        b"pub const MAX_DID_BYTES: usize = 2048;\n"
+        b"pub const MAX_DID_BYTES: usize = 2048;\n"
+    )
+    duplicate_registry = bind_source_evidence(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/duplicate.rs"',
+        "did.source.identus-did.v1",
+        "crates/did/src/evidence/duplicate.rs",
+        duplicate_payload,
     )
     run(
         duplicate_registry,
@@ -575,13 +723,16 @@ def main() -> None:
         setup=lambda root: write_source(
             root,
             "crates/did/src/evidence/duplicate.rs",
-            "pub const MAX_DID_BYTES: usize = 2048;\npub const MAX_DID_BYTES: usize = 2048;\n",
+            duplicate_payload.decode(),
         ),
+        expect_diagnostic="must resolve exactly once to a literal public usize constant",
     )
-    computed_registry = replace_first(
+    computed_payload = b"pub const MAX_DID_BYTES: usize = 2 * 1024;\n"
+    computed_registry = bind_source_evidence(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/computed.rs"',
+        "did.source.identus-did.v1",
+        "crates/did/src/evidence/computed.rs",
+        computed_payload,
     )
     run(
         computed_registry,
@@ -590,13 +741,14 @@ def main() -> None:
         setup=lambda root: write_source(
             root,
             "crates/did/src/evidence/computed.rs",
-            "pub const MAX_DID_BYTES: usize = 2 * 1024;\n",
+            computed_payload.decode(),
         ),
+        expect_diagnostic="must resolve exactly once to a literal public usize constant",
     )
     invalid_utf8_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/invalid-utf8.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/invalid-utf8.rs"',
     )
 
     def invalid_utf8(root: Path) -> None:
@@ -607,12 +759,12 @@ def main() -> None:
     invalid_utf8_result = run(
         invalid_utf8_registry, rendered, False, setup=invalid_utf8
     )
-    if "cannot be read safely" not in invalid_utf8_result.stderr:
+    if "not valid UTF-8" not in invalid_utf8_result.stderr:
         raise AssertionError("invalid UTF-8 must be classified as unreadable evidence")
     oversized_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"',
-        'canonical_bound_path = "crates/did/src/evidence/oversized.rs"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/oversized.rs"',
     )
 
     def oversized(root: Path) -> None:
@@ -623,8 +775,8 @@ def main() -> None:
     run(oversized_registry, rendered, False, setup=oversized)
     wrong_crate_registry = replace_first(
         registry,
-        'canonical_bound_path = "crates/did/src/did.rs"\ncanonical_bound_symbol = "MAX_DID_BYTES"',
-        'canonical_bound_path = "crates/core/src/url.rs"\ncanonical_bound_symbol = "MAX_URL_BYTES"',
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/core/src/url.rs"',
     )
     wrong_crate_registry = replace_first(
         wrong_crate_registry, "max_input_bytes = 2048", "max_input_bytes = 8192"
@@ -692,24 +844,33 @@ def main() -> None:
         False,
     )
 
-    # Shared catalog evidence and a second canonical source path are additive.
+    # A second mapping may bind a distinct, fully evidenced canonical source.
     first_mapping = registry.index("[[mappings]]")
     second_mapping = registry.index("[[mappings]]", first_mapping + 1)
     additional = registry[first_mapping:second_mapping]
-    additional = replace_once(additional, 'id = "did.value.typescript.legacy-v1"', 'id = "uri.value.swift.legacy-v1"')
+    additional = replace_once(
+        additional,
+        'id = "did.value.typescript.legacy-v1"',
+        'id = "uri.value.swift.legacy-v1"',
+    )
     additional = replace_once(
         additional,
         'canonical_rust_path = "identus_did::Did"',
         'canonical_rust_path = "identus_did::Uri"',
     )
-    additional = replace_once(additional, 'language = "typescript"', 'language = "swift"')
-    additional = replace_once(additional, 'language_target = "node-and-browser"', 'language_target = "ios"')
-    additional = replace_once(additional, 'consumers = [ "sdk-ts" ]', 'consumers = [ "sdk-swift" ]')
     additional = replace_once(
         additional,
-        'canonical_bound_path = "crates/did/src/did.rs"\ncanonical_bound_symbol = "MAX_DID_BYTES"',
-        'canonical_bound_path = "crates/did/src/uri.rs"\ncanonical_bound_symbol = "MAX_URI_BYTES"',
+        'canonical_source_id = "did.source.identus-did.v1"',
+        'canonical_source_id = "uri.source.identus-did.v1"',
     )
+    additional = replace_once(
+        additional, 'canonical_bound_symbol = "MAX_DID_BYTES"', 'canonical_bound_symbol = "MAX_URI_BYTES"'
+    )
+    additional = replace_once(additional, 'language = "typescript"', 'language = "swift"')
+    additional = replace_once(
+        additional, 'language_target = "node-and-browser"', 'language_target = "ios"'
+    )
+    additional = replace_once(additional, 'consumers = [ "sdk-ts" ]', 'consumers = [ "sdk-swift" ]')
     additional, vector_count = re.subn(
         r'vector_ids = \[\n.*?\n\]',
         'vector_ids = [ "uri.syntax.max-bytes" ]',
@@ -724,6 +885,19 @@ def main() -> None:
         'rust_selectors = [ "identus_did::Did",',
         'rust_selectors = [ "identus_did::Uri",',
     )
+    second_source = source_block.replace(
+        'id                 = "did.source.identus-did.v1"',
+        'id                 = "uri.source.identus-did.v1"',
+        1,
+    )
+    with_second_source = registry[:source_end] + second_source + registry[source_end:]
+    uri_payload = (ROOT / "crates/did/src/uri.rs").read_bytes()
+    with_second_source = bind_source_evidence(
+        with_second_source,
+        "uri.source.identus-did.v1",
+        "crates/did/src/uri.rs",
+        uri_payload,
+    )
     synthetic_vector = """
 
 [[vectors]]
@@ -734,10 +908,266 @@ expected       = "success"
 source_locator = "MAX_URI_BYTES; additive second-source fixture"
 """
     run(
-        registry.rstrip() + "\n\n" + additional,
+        with_second_source.rstrip() + "\n\n" + additional,
         rendered,
         True,
         catalog=catalog.rstrip() + synthetic_vector,
+    )
+
+    # A source move must rotate to a revision where the new path resolves to the blob.
+    moved_registry = replace_once(
+        registry,
+        'path               = "crates/did/src/did.rs"',
+        'path               = "crates/did/src/evidence/moved.rs"',
+    )
+
+    def moved_source(root: Path) -> None:
+        original = root / "crates/did/src/did.rs"
+        original.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / "crates/did/src/did.rs", original)
+        subprocess.run(["git", "init", "-q", "-b", "master"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.name", "fixture"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=root, check=True)
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
+        revision = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        target = root / "crates/did/src/evidence/moved.rs"
+        target.parent.mkdir(parents=True)
+        shutil.copy2(ROOT / "crates/did/src/did.rs", target)
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "move source"], cwd=root, check=True)
+        registry_path = root / "docs/architecture/language-adapter-mappings.toml"
+        registry_path.write_text(
+            replace_once(
+                registry_path.read_text(encoding="utf-8"),
+                'canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"',
+                f'canonical_revision = "{revision}"',
+            ),
+            encoding="utf-8",
+        )
+
+    run(
+        moved_registry,
+        rendered,
+        False,
+        setup=moved_source,
+        expect_diagnostic="canonical_revision path must resolve to git_blob_oid",
+    )
+    pending_moved_registry = replace_once(
+        moved_registry, 'state              = "active"', 'state              = "pending-revision"'
+    )
+    first_commit_args = lambda root: [
+        "--pr-base",
+        subprocess.run(
+            ["git", "rev-list", "--max-parents=0", "HEAD"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip(),
+    ]
+    run(
+        moved_registry,
+        rendered,
+        False,
+        setup=moved_source,
+        argument_factory=first_commit_args,
+        expect_diagnostic="changed from PR base and must use pending-revision",
+    )
+    run(
+        pending_moved_registry,
+        rendered,
+        True,
+        setup=moved_source,
+        argument_factory=first_commit_args,
+    )
+    run(
+        pending_moved_registry,
+        rendered,
+        False,
+        setup=moved_source,
+        argument_factory=lambda root: [
+            "--pr-base",
+            subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip(),
+        ],
+        expect_diagnostic="pending revision must equal the PR base",
+    )
+    run(
+        pending_moved_registry,
+        rendered,
+        True,
+        setup=moved_source,
+        argument_factory=lambda _root: ["--develop-head"],
+    )
+
+    def pending_head_mismatch(root: Path) -> None:
+        moved_source(root)
+        target = root / "crates/did/src/evidence/moved.rs"
+        payload = target.read_bytes() + b"\n"
+        target.write_bytes(payload)
+        registry_path = root / "docs/architecture/language-adapter-mappings.toml"
+        registry_path.write_text(
+            bind_source_evidence(
+                registry_path.read_text(encoding="utf-8"),
+                "did.source.identus-did.v1",
+                "crates/did/src/evidence/moved.rs",
+                payload,
+            ),
+            encoding="utf-8",
+        )
+
+    run(
+        pending_moved_registry,
+        rendered,
+        False,
+        setup=pending_head_mismatch,
+        expect_diagnostic="pending revision must match the HEAD path blob",
+    )
+
+    def expired_pending(root: Path) -> None:
+        moved_source(root)
+        marker = root / "after-squash.txt"
+        marker.write_text("next change\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "later change"], cwd=root, check=True)
+
+    run(
+        pending_moved_registry,
+        rendered,
+        False,
+        setup=expired_pending,
+        argument_factory=lambda _root: ["--develop-head"],
+        expect_diagnostic="pending revision expired",
+    )
+    def unchanged_pending(root: Path) -> None:
+        subprocess.run(["git", "init", "-q", "-b", "master"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.name", "fixture"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=root, check=True)
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
+        revision = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        registry_path = root / "docs/architecture/language-adapter-mappings.toml"
+        registry_path.write_text(
+            replace_once(
+                registry_path.read_text(encoding="utf-8"),
+                'canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"',
+                f'canonical_revision = "{revision}"',
+            ),
+            encoding="utf-8",
+        )
+
+    run(
+        replace_once(
+            registry, 'state              = "active"', 'state              = "pending-revision"'
+        ),
+        rendered,
+        False,
+        setup=unchanged_pending,
+        expect_diagnostic="pending revision must represent changed source bytes",
+    )
+
+    def unrelated_git_history(root: Path) -> None:
+        subprocess.run(["git", "init", "-q", "-b", "master"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.name", "fixture"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=root, check=True)
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
+
+    run(
+        registry,
+        rendered,
+        False,
+        setup=unrelated_git_history,
+        argument_factory=lambda root: [
+            "--pr-base",
+            subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip(),
+        ],
+        expect_diagnostic="canonical_revision must name an ancestor commit",
+    )
+
+    def feature_only_active_revision(root: Path) -> None:
+        subprocess.run(["git", "init", "-q", "-b", "master"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.name", "fixture"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=root, check=True)
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "base"], cwd=root, check=True)
+        marker = root / "feature-only.txt"
+        marker.write_text("feature\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "feature"], cwd=root, check=True)
+        revision = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        registry_path = root / "docs/architecture/language-adapter-mappings.toml"
+        registry_path.write_text(
+            replace_once(
+                registry_path.read_text(encoding="utf-8"),
+                'canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"',
+                f'canonical_revision = "{revision}"',
+            ),
+            encoding="utf-8",
+        )
+
+    run(
+        registry,
+        rendered,
+        False,
+        setup=feature_only_active_revision,
+        argument_factory=first_commit_args,
+        expect_diagnostic="active revision must be reachable from the PR base",
+    )
+
+    def non_ancestor_revision(root: Path) -> None:
+        subprocess.run(["git", "init", "-q", "-b", "master"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.name", "fixture"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=root, check=True)
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "base"], cwd=root, check=True)
+        subprocess.run(["git", "checkout", "-qb", "side"], cwd=root, check=True)
+        marker = root / "side.txt"
+        marker.write_text("side\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "side"], cwd=root, check=True)
+        side = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        subprocess.run(["git", "checkout", "-q", "master"], cwd=root, check=True)
+        marker = root / "main.txt"
+        marker.write_text("main\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "main"], cwd=root, check=True)
+        registry_path = root / "docs/architecture/language-adapter-mappings.toml"
+        registry_path.write_text(
+            replace_once(
+                registry_path.read_text(encoding="utf-8"),
+                'canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"',
+                f'canonical_revision = "{side}"',
+            ),
+            encoding="utf-8",
+        )
+
+    run(
+        registry,
+        rendered,
+        False,
+        setup=non_ancestor_revision,
+        expect_diagnostic="canonical_revision must name an ancestor commit",
     )
 
     result = subprocess.run([str(CHECKER), str(ROOT), "--render"], capture_output=True, text=True, check=False)

@@ -59,6 +59,16 @@ jobs:
         if: github.event_name == 'pull_request'
         run: python3 scripts/check-platform-change-ledger.py . --merge-ready
 
+      - name: Verify canonical source transition against PR base
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 scripts/check-language-adapter-mappings.py . --pr-base "$PR_BASE_SHA"
+
+      - name: Verify canonical source transition on develop
+        if: github.event_name == 'push'
+        run: python3 scripts/check-language-adapter-mappings.py . --develop-head
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
 

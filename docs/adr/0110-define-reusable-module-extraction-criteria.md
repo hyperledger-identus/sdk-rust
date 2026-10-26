@@ -12,6 +12,11 @@
   `78e0656f860c0e569df2edb25d087c42561c51a5`; NeoPRISM main
   `d4608fe3d662ebaf425c4a6380f6d241cffe74c3`; NeoPRISM beta
   `faead035915b1f51bec20f76fa17a9c404b71acd`
+- **Partial supersession:** ADR 0174 supersedes this ADR's blanket PRISM clause
+  in the Ownership gate and its initial `lib/did-prism` and PRISM indexer/VDR
+  disposition rows, but only for portable, effect-isolated behavior. Every
+  other reusable-module hard gate and the downstream disposition of concrete
+  Cardano, database, service, and node-runtime effects remain in force.
 
 ## Context
 

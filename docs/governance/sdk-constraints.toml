@@ -41,16 +41,16 @@ id               = "SDK-ARCH-001"
 kind             = "hard"
 category         = "architecture"
 state            = "effective"
-summary          = "Generic SDK crates remain chain-neutral and product-neutral."
-scope            = "All workspace normal, development, build and target-scoped dependencies."
+summary          = "Generic SDK crates and every SDK dependency cone remain chain-neutral and product-neutral; focused protocol or DID-method crates may own portable, effect-isolated semantics."
+scope            = "All workspace normal, development, build and target-scoped dependencies, including method-specific crates."
 canonical_source = "docs/architecture/sdk-rust-blueprint.md#2-repository-boundary"
 authority        = "Accepted SDK blueprint and governance."
-rationale        = "Reusable SSI foundations must not import Midnight, Cardano or wallet-product policy."
-consumer_impact  = "Oxid, midnight-identity, NeoPRISM and other consumers integrate through ports and downstream adapters."
-enforcement      = [ "identus-conformance dependency boundary", "Cargo lockfile/source checks" ]
+rationale        = "Reusable SSI foundations must not import Midnight, Cardano or wallet-product policy. A standards-named crate is not itself a chain dependency when its core is deterministic and effects remain behind ports."
+consumer_impact  = "Oxid, midnight-identity, NeoPRISM and other consumers integrate through ports and downstream adapters; method-specific portable behavior may be selected without a chain client or product runtime."
+enforcement      = [ "identus-conformance dependency boundary (the planned identus-prism-* family remains fail-closed until its crates and exact graph/effect checks land atomically)", "Cargo lockfile/source checks" ]
 owner            = "SDK maintainers"
-review_triggers  = [ "new chain dependency", "product policy proposed in an SDK crate" ]
-activation       = "Already effective through the SDK blueprint."
+review_triggers  = [ "new chain dependency", "product policy proposed in an SDK crate", "method crate gains a concrete network, storage, service or runtime implementation" ]
+activation       = "Already effective through the SDK blueprint; planned PRISM package identities remain denied until #521/#522 introduce their crates and replacement graph/effect enforcement in one change."
 rollback         = "Requires a product-boundary ADR and migration plan for every affected consumer."
 
 [[entries]]

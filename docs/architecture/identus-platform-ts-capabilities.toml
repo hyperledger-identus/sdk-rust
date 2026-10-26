@@ -148,11 +148,11 @@ test_paths         = [ "packages/lib/sdk/tests/castor" ]
 known_consumers    = [ "DIDComm connection workflows" ]
 compatibility_risk = "high"
 rust_state         = "absent"
-target_owner       = "identus-did peer-method module or focused Rust crate"
+target_owner       = "identus-did-peer"
 typescript_owner   = "thin compatibility and host adapter during migration"
 disposition        = "move-to-rust"
-decision_basis     = [ "peer DID is required by portable pairwise messaging", "did-peer 0.7.5 and VCX supply qualified dependency or differential-oracle evidence", "exact numalgos and dependency boundary remain issue 493 decisions" ]
-follow_up_issue    = 493
+decision_basis     = [ "peer DID is required by portable pairwise messaging", "ADR 0174 selects explicit numalgo-4 and numalgo-2-compat profiles", "did-peer 0.7.5 and VCX remain qualified differential oracles" ]
+follow_up_issue    = 523
 
 [[capability]]
 id                 = "did.method.prism"
@@ -167,11 +167,11 @@ test_paths         = [ "packages/lib/sdk/tests/castor" ]
 known_consumers    = [ "Identus Cloud Agent integrations" ]
 compatibility_risk = "high"
 rust_state         = "outside-core"
-target_owner       = "identus-did contracts plus a focused portable Prism method crate"
+target_owner       = "identus-prism-did with separately selectable identus-prism-vdr and identus-prism-indexer capabilities"
 typescript_owner   = "thin compatibility facade and host network adapter during transition"
 disposition        = "move-to-rust"
 decision_basis     = [ "portable DID domain, protobuf codec, and deterministic method semantics belong in Rust", "Cardano observation, submission, indexer persistence, and node composition remain downstream", "neoprism supplies extraction and differential evidence" ]
-follow_up_issue    = 493
+follow_up_issue    = 521
 
 [[capability]]
 id                 = "did.resolution"

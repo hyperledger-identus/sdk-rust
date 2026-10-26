@@ -62,6 +62,7 @@ COMMITMENTS = {"Foundation", "Committed", "Planned", "Conditional"}
 DELIVERY_STATUSES = {"delivered", "in_progress", "specified", "queued", "conditional"}
 SOURCE_REPOSITORIES = {
     "sdk-rust",
+    "sdk-ts",
     "apollo",
     "neoprism",
     "midnight-identity",
@@ -140,6 +141,8 @@ def validate(path: Path) -> list[str]:
 
         if values["issue"] == "#20" and values["delivery_status"] not in {"queued", "conditional"}:
             failures.append(f"{identifier}: program issue #20 cannot own active component delivery")
+        if identifier == "IDR-040" and values["issue"] == "#20":
+            failures.append("IDR-040: focused specification owner cannot be program issue #20")
         if values["commitment"] == "Conditional" and values["delivery_status"] != "conditional":
             failures.append(f"{identifier}: Conditional commitment must have conditional delivery_status")
         if values["delivery_status"] == "conditional" and values["commitment"] != "Conditional":

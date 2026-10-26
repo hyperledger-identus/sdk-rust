@@ -71,6 +71,18 @@ class BacklogContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("program issue #20 cannot own active component delivery", result.stderr)
 
+    def test_did_methods_require_a_focused_specification_owner(self) -> None:
+        rows = [row.copy() for row in self.rows]
+        did_methods = next(row for row in rows if row["id"] == "IDR-040")
+        did_methods["issue"] = "#20"
+        did_methods["delivery_status"] = "queued"
+        result = self.run_checker(rows)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "IDR-040: focused specification owner cannot be program issue #20",
+            result.stderr,
+        )
+
     def test_empty_required_field_fails_without_crashing(self) -> None:
         rows = [row.copy() for row in self.rows]
         rows[0]["issue"] = ""

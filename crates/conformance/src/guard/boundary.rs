@@ -38,7 +38,9 @@ fn denied_identity(identity: &str) -> Option<&'static str> {
     let matches_family =
         |exact: &str| identity == exact || identity.starts_with(&format!("{exact}-"));
 
-    if matches_family("midnight") {
+    if matches_family("identus-apollo") {
+        Some("Apollo")
+    } else if matches_family("midnight") {
         Some("Midnight")
     } else if matches_family("compact-runtime") {
         Some("Compact runtime")
@@ -48,7 +50,8 @@ fn denied_identity(identity: &str) -> Option<&'static str> {
         || matches_family("blockfrost")
     {
         Some("Cardano")
-    } else if matches_family("prism")
+    } else if matches_family("identus-prism")
+        || matches_family("prism")
         || matches_family("neoprism")
         || identity == "identus-did-prism"
         || identity.starts_with("identus-did-prism-")
@@ -413,6 +416,74 @@ fn renamed_package_and_normalized_identity_are_enforced() {
     let violations = direct_dependency_violations(&manifest, &root, &root);
     assert_eq!(violations.len(), 1);
     assert!(violations[0].contains("package `Identus_Did_Prism_Ledger`"));
+}
+
+#[test]
+fn planned_sdk_prism_packages_remain_denied_until_implementation() {
+    let root = workspace_root();
+    for declaration in [
+        r#"identus-prism-did = "1""#,
+        r#"neutral = { package = "identus-prism-vdr", version = "1" }"#,
+        r#"neutral = { git = "https://example.test/identus-prism-indexer.git" }"#,
+        r#"neutral = { package = "Identus_Prism_Cardano", version = "1" }"#,
+    ] {
+        let manifest: toml::Value = toml::from_str(&format!("[dependencies]\n{declaration}"))
+            .expect("valid synthetic manifest");
+        let violations = direct_dependency_violations(&manifest, &root, &root);
+        assert!(!violations.is_empty(), "{declaration} was not enforced");
+        assert!(
+            violations
+                .iter()
+                .all(|violation| violation.contains("prohibited PRISM")),
+            "unexpected violations for {declaration}: {violations:?}"
+        );
+    }
+
+    let lockfile: toml::Value = toml::from_str(
+        r#"
+            version = 4
+            [[package]]
+            name = "identus-prism-did"
+            version = "0.0.0"
+            [[package]]
+            name = "identus-prism-vdr"
+            version = "0.0.0"
+            [[package]]
+            name = "identus-prism-indexer"
+            version = "0.0.0"
+        "#,
+    )
+    .expect("valid synthetic lockfile");
+    assert_eq!(lockfile_violations(&lockfile).len(), 3);
+}
+
+#[test]
+fn identus_apollo_package_identity_is_denied() {
+    let root = workspace_root();
+    for package in ["identus-apollo", "identus-apollo-core"] {
+        let manifest: toml::Value = toml::from_str(&format!(
+            "[dependencies]\ncrypto = {{ package = \"{package}\", version = \"1\" }}"
+        ))
+        .expect("valid synthetic manifest");
+        let violations = direct_dependency_violations(&manifest, &root, &root);
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.contains("prohibited Apollo family")),
+            "{package} was not enforced: {violations:?}"
+        );
+    }
+
+    let lockfile: toml::Value = toml::from_str(
+        r#"
+            version = 4
+            [[package]]
+            name = "identus-apollo"
+            version = "0.0.0"
+        "#,
+    )
+    .expect("valid synthetic lockfile");
+    assert_eq!(lockfile_violations(&lockfile).len(), 1);
 }
 
 #[test]

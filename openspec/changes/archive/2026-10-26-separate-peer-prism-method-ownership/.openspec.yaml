@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-26
+goal: Separate peer DID and PRISM method ownership into cohesive SDK-Rust capabilities before A2 implementation.

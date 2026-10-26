@@ -12,6 +12,10 @@
   `78e0656f860c0e569df2edb25d087c42561c51a5`; NeoPRISM main
   `d4608fe3d662ebaf425c4a6380f6d241cffe74c3`; NeoPRISM beta
   `faead035915b1f51bec20f76fa17a9c404b71acd`
+- **Partial supersession:** ADR 0174 supersedes only this ADR's initial
+  disposition of portable PRISM method, VDR, and deterministic indexing
+  behavior. The reusable-module hard gates and the disposition of concrete
+  Cardano, database, service, and node-runtime effects remain in force.
 
 ## Context
 
@@ -45,7 +49,7 @@ strength.
 
 | Gate | Required evidence |
 | --- | --- |
-| Ownership | The candidate owns a named standards- or domain-defined capability used beyond one chain or product. PRISM/Cardano/Midnight operations, product policy, custody, consent, trust, UI, deployment, and concrete product storage remain downstream. |
+| Ownership | The candidate owns a named standards- or domain-defined capability used beyond one chain or product. Portable method semantics may qualify under ADR 0174; concrete Cardano/Midnight operations, product policy, custody, consent, trust, UI, deployment, and product storage remain downstream. |
 | Cohesion | It has one primary responsibility, one dominant reason to change, and a shared invariant. It is independently useful and testable; it is not a `utils`, `common`, or umbrella dumping ground. |
 | Orthogonality | Consumers can select the capability without unrelated protocols, runtimes, chains, or storage. A split must reduce coupling; types that share an invariant and change, test, and release together may remain together. |
 | Dependency direction | It depends only on lower generic SDK layers, minimal ports, and separately accepted narrow engines. No cycle, upward edge, consumer repository, moving Git reference, or cross-repository path dependency is allowed. |
@@ -129,8 +133,9 @@ pinned replacement is proven and preserves an explicit rollback path.
 | `lib/apollo` | `adapt`; refresh the existing thin facade against current `identus-crypto`, retain only evidenced compatibility DTOs, and extract only a demonstrated SDK gap or reusable fixture |
 | `lib/did-core` | `adapt`; produce a compile- and fixture-driven map to `identus-did` before proposing any source movement |
 | `lib/did-resolver-http` | Existing source classification remains `extract`, but the action is comparison with the already implemented `identus-did-resolver-http`; port only missing normative behavior or fixtures |
-| `lib/did-prism` | Method/operation/protobuf behavior remains downstream; a standard-neutral primitive requires its own passing assessment |
-| PRISM indexer, ledger, submitter, `lib/node-storage`, and node binaries | `remain-downstream` because they own Cardano integration, node orchestration, concrete databases, migrations, executors, or deployment |
+| `lib/did-prism` | Superseded by ADR 0174: portable method syntax, protobuf, CRUD, validation, state reduction, and document projection are `adapt` candidates for `identus-prism-did`; concrete effects remain downstream |
+| PRISM indexer and VDR logic | Superseded by ADR 0174: deterministic bounded indexing and PRISM-specific VDR semantics are `adapt` candidates behind effect ports |
+| PRISM ledger/submitter adapters, `lib/node-storage`, SQL/migrations, services, and node binaries | `remain-downstream` because they own concrete Cardano integration, node orchestration, databases, executors, product policy, or deployment |
 | Historical generic tests/vectors | `conformance-only` with exact provenance unless their implementation independently passes all gates |
 | Generic-looking helpers without a named capability | `reject` as standalone SDK modules |
 

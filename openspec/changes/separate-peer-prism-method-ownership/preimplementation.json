@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 493,
+  "change": "separate-peer-prism-method-ownership",
+  "branch": "codex/docs/issue-493",
+  "baseRef": "origin/develop",
+  "baseSha": "e0e99650517446532692bbd250a45bbd694a3cc9",
+  "contractHeadSha": "944a9b492b701ac08e313f9b5c0bec9edaebc8b9",
+  "createdAt": "2026-10-26T16:00:47.880Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -2,5 +2,5 @@ schema_version = 1
 issue          = 493
 disposition    = "behavior-neutral"
 scope          = "tooling"
-rationale      = "This planning change updates capability ownership, source decisions, dependency order, implementation issues, and the dependency-boundary classifier so distinctly named SDK-owned PRISM crates remain workspace-local while NeoPRISM package identities stay prohibited. It does not change public Rust APIs, wire formats, error contracts, persisted representations, ABIs, supported targets, runtime requirements, releases, or downstream consumers."
+rationale      = "This planning change updates capability ownership, source decisions, dependency order, and implementation issues while keeping the entire planned identus-prism-* family fail-closed. Issues #521 and #522 must replace that temporary deny atomically with exact workspace-identity, dependency-direction, and transitive effect-cone enforcement when the real crates enter the workspace. It does not change public Rust APIs, wire formats, error contracts, persisted representations, ABIs, supported targets, runtime requirements, releases, or downstream consumers."
 ledger_ids     = [  ]

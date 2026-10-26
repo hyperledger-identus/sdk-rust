@@ -53,16 +53,18 @@ consumer responsibilities.
 
 ## 2. Repository boundary
 
-The SDK is Layer 1 of the three-layer component model:
+The SDK is Layer 1 of the component model. A portable, effect-isolated DID
+method may live in that layer without making the generic SDK depend on it:
 
 ```text
 applications: Oxid, Lace ID Portal, wallets and agents
                          │
                          ▼
-chain families: midnight-identity, neoprism/did:prism, future chains
+chain operations: midnight-identity, NeoPRISM Cardano adapters, future chains
                          │
                          ▼
 Identus SDK-Rust: generic SSI models, protocols, ports and evidence
+                  + independently selectable portable DID methods
 ```
 
 Dependencies point downward only. Therefore SDK crates must not depend on:
@@ -74,8 +76,11 @@ Dependencies point downward only. Therefore SDK crates must not depend on:
   executor-neutral protocol runtime kernel in ADR 0171 remains in scope);
 - a consumer's trust, disclosure, consent or custody policy.
 
-Chain- and product-specific behavior enters through typed ports or adapter
-crates outside this repository.
+Portable method grammar, validation, deterministic state reduction, document
+projection, bounded traversal and effect-neutral indexing may enter through
+independently selectable method crates under ADR 0174. Chain clients,
+transactions, persistence, networking, service composition and product
+behavior remain behind typed ports or adapter crates outside this repository.
 
 The `identus-conformance` suite enforces this boundary across direct normal,
 development, build and target-scoped Cargo declarations, renamed packages,

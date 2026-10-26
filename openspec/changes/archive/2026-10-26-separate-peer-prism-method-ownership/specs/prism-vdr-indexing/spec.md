@@ -28,8 +28,15 @@ orchestration.
 #### Scenario: crate dependency direction is validated
 
 - **WHEN** the method, VDR, and indexer crates enter the workspace
-- **THEN** a machine guard permits only indexer-to-VDR, VDR-to-method, and
-  method-to-generic inward edges and rejects every generic-to-method edge
+- **THEN** the existing family deny is replaced atomically by a machine guard
+  that permits only indexer-to-VDR, VDR-to-method, and method-to-generic inward
+  edges, rejects every generic-to-method edge, and rejects prohibited effects
+  throughout each transitive dependency cone
+
+#### Scenario: method packages are planned but absent
+
+- **WHEN** the method, VDR, and indexer crates have not entered the workspace
+- **THEN** the dependency guard rejects the complete `identus-prism-*` family
 
 ### Requirement: ancestry and replay work are bounded
 

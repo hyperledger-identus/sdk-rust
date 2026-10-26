@@ -169,6 +169,7 @@ required_files=(
   docs/adr/0171-own-a-portable-effect-driven-agent-runtime.md
   docs/adr/0172-version-didcomm-engine-and-application-protocols-separately.md
   docs/adr/0173-sequence-a1-through-versioned-evidence-contracts.md
+  docs/adr/0174-separate-peer-and-prism-did-method-ownership.md
   docs/adr/0160-separate-rustsec-advisory-and-yank-evidence.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml

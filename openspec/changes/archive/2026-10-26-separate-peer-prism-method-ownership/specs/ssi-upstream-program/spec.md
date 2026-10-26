@@ -16,9 +16,9 @@ bounded, target-qualified, and useful outside one node composition. This does
 not make the generic SDK layer depend on that method or move concrete chain,
 storage, service, or runtime effects into the portable crate.
 
-The canonical SSI backlog SHALL identify issue #493 as the specification owner
-for IDR-040. Implementation SHALL proceed through its focused child issues in
-their recorded dependency order rather than through program issue #20.
+The canonical SSI backlog SHALL identify a focused specification owner for
+IDR-040 rather than program issue #20. Implementation SHALL proceed through
+focused child issues in their recorded dependency order.
 
 #### Scenario: Generic behavior is found in a consumer
 
@@ -28,10 +28,12 @@ their recorded dependency order rather than through program issue #20.
 
 #### Scenario: Source behavior is chain- or product-specific
 
-- **WHEN** behavior depends on Midnight, Compact, concrete PRISM/Cardano
-  ledger operations, product policy, custody, UI or deployment
-- **THEN** it is classified `remain-downstream` and excluded from the generic
-  SDK dependency graph
+- **WHEN** behavior depends on Midnight, Compact, a Cardano client, concrete
+  PRISM/Cardano ledger operations, product policy, custody, UI, deployment or
+  concrete persistence
+- **THEN** it is classified `remain-downstream` and excluded from the portable
+  SDK dependency graph; a separate accepted ADR may define an independently
+  reusable adapter but cannot move the concrete effect into a portable core
 
 #### Scenario: portable method behavior is found in a chain node
 
@@ -53,11 +55,3 @@ their recorded dependency order rather than through program issue #20.
 - **WHEN** SDK-TS, NeoPRISM, or a Rust peer library contains candidate behavior
 - **THEN** the exact revision is used as compatibility evidence and does not
   become normative architecture or an automatic dependency
-
-#### Scenario: Source behavior owns a concrete effect
-
-- **WHEN** behavior depends on Midnight, Compact, a Cardano client, product
-  policy, custody, UI, deployment, or concrete persistence
-- **THEN** the concrete effect remains downstream; a separate accepted ADR may
-  define an independently reusable adapter capability but cannot move the
-  effect into a portable core crate

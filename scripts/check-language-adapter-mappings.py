@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import re
 import stat
+import subprocess
 import sys
 import tomllib
 from pathlib import Path
@@ -60,8 +61,10 @@ VERSION_WINDOW_PATTERN = re.compile(
 STABLE_CODE_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9_-]*)+$")
 SELECTOR_PATTERN = re.compile(r"^[A-Za-z0-9_@./:<>?=-]+$")
 CONST_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*$")
+CRATE_PATTERN = re.compile(r"^identus-[a-z0-9]+(?:-[a-z0-9]+)*$")
 RUST_PATH_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_][A-Za-z0-9_]*)+$")
 STATES = {"planned", "active", "deprecated", "removed"}
+SOURCE_STATES = {"active", "pending-revision"}
 KINDS = {"value", "error"}
 LANGUAGES = {"typescript", "swift", "kotlin"}
 DIRECTIONS = {"bidirectional", "rust-to-language", "language-to-rust"}
@@ -198,13 +201,18 @@ def canonical_source_bytes(
         resolved_source = source_path.resolve(strict=True)
         resolved_source.relative_to(resolved_root)
         metadata = resolved_source.stat()
-        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > MAX_EVIDENCE_BYTES:
+        if not stat.S_ISREG(metadata.st_mode):
             errors.append(f"{label}.path must be a bounded regular file")
             return None
-        actual_mode = "100755" if metadata.st_mode & 0o111 else "100644"
+        with resolved_source.open("rb") as source:
+            payload = source.read(MAX_EVIDENCE_BYTES + 1)
+        if len(payload) > MAX_EVIDENCE_BYTES:
+            errors.append(f"{label}.path must be a bounded regular file")
+            return None
+        actual_mode = "100755" if metadata.st_mode & stat.S_IXUSR else "100644"
         if source_record.get("file_mode") != actual_mode:
             errors.append(f"{label}.file_mode does not match the source executable bit")
-        return resolved_source.read_bytes()
+        return payload
     except ValueError:
         errors.append(f"{label}.path resolves outside the repository")
     except OSError:
@@ -213,70 +221,19 @@ def canonical_source_bytes(
 
 
 def canonical_bound(
-    root: Path,
     mapping: dict[str, object],
-    source_record: dict[str, object],
+    payload: bytes,
     identifier: str,
     errors: list[str],
 ) -> int | None:
-    path_value = source_record.get("path")
     symbol_value = mapping.get("canonical_bound_symbol")
-    if not isinstance(path_value, str) or not path_value.strip():
-        errors.append(f"{identifier}.canonical_bound_path must be a safe repository-relative path")
-        return None
-    relative = Path(path_value)
-    if (
-        relative.is_absolute()
-        or not relative.parts
-        or any(part in {"", ".", ".."} for part in relative.parts)
-        or "\\" in path_value
-    ):
-        errors.append(f"{identifier}.canonical_bound_path must be a safe repository-relative path")
-        return None
-    canonical_crate = source_record.get("canonical_crate")
-    if isinstance(canonical_crate, str) and canonical_crate.startswith("identus-"):
-        crate_source = Path("crates") / canonical_crate.removeprefix("identus-") / "src"
-        try:
-            relative.relative_to(crate_source)
-        except ValueError:
-            errors.append(
-                f"{identifier}.canonical_bound_path must remain under declared Cargo package source {crate_source}"
-            )
-            return None
     if not isinstance(symbol_value, str) or not CONST_PATTERN.fullmatch(symbol_value):
         errors.append(f"{identifier}.canonical_bound_symbol must be an uppercase Rust constant")
         return None
-
-    source = root
     try:
-        for part in relative.parts:
-            source /= part
-            if source.is_symlink():
-                errors.append(
-                    f"{identifier}.canonical_bound_path must not contain symlink components"
-                )
-                return None
-        resolved_root = root.resolve(strict=True)
-        resolved_source = source.resolve(strict=True)
-        resolved_source.relative_to(resolved_root)
-        metadata = resolved_source.stat()
-        if not stat.S_ISREG(metadata.st_mode):
-            errors.append(f"{identifier}.canonical_bound_path must name a regular file")
-            return None
-        if metadata.st_size > MAX_EVIDENCE_BYTES:
-            errors.append(
-                f"{identifier}.canonical_bound_path exceeds {MAX_EVIDENCE_BYTES} bytes"
-            )
-            return None
-        content = resolved_source.read_text(encoding="utf-8")
+        content = payload.decode("utf-8")
     except UnicodeDecodeError:
-        errors.append(f"{identifier}.canonical_bound_path cannot be read safely")
-        return None
-    except ValueError:
-        errors.append(f"{identifier}.canonical_bound_path resolves outside the repository")
-        return None
-    except OSError:
-        errors.append(f"{identifier}.canonical_bound_path cannot be read safely")
+        errors.append(f"{identifier}.canonical source bytes are not valid UTF-8")
         return None
     pattern = re.compile(
         rf"(?m)^pub const {re.escape(symbol_value)}\s*:\s*usize\s*=\s*([0-9][0-9_]*)\s*;"
@@ -290,14 +247,111 @@ def canonical_bound(
     return int(matches[0].replace("_", ""))
 
 
+def validate_git_provenance(
+    root: Path,
+    source_record: dict[str, object],
+    identifier: str,
+    errors: list[str],
+    *,
+    pr_base: str | None = None,
+    develop_head: bool = False,
+) -> None:
+    """Bind a declared revision to its path/blob when local Git metadata exists."""
+    if not (root / ".git").exists():
+        return
+    revision = str(source_record.get("canonical_revision", ""))
+    path = str(source_record.get("path", ""))
+    expected_blob = str(source_record.get("git_blob_oid", ""))
+    try:
+        commit = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--verify", f"{revision}^{{commit}}"],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        ancestor = subprocess.run(
+            ["git", "-C", str(root), "merge-base", "--is-ancestor", revision, "HEAD"],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        blob = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", f"{revision}:{path}"],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        head_blob = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", f"HEAD:{path}"],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        errors.append(f"canonical source {identifier}.canonical_revision cannot be verified locally")
+        return
+    if commit.returncode != 0 and pr_base is None and not develop_head:
+        # Exported or synthetic repositories can carry .git without the pinned
+        # history. Their mandatory baseline remains exact offline content.
+        return
+    if commit.returncode != 0 or ancestor.returncode != 0:
+        errors.append(
+            f"canonical source {identifier}.canonical_revision must name an ancestor commit"
+        )
+    state = source_record.get("state")
+    if state == "active" and (blob.returncode != 0 or blob.stdout.strip() != expected_blob):
+        errors.append(
+            f"canonical source {identifier}.canonical_revision path must resolve to git_blob_oid"
+        )
+    if state == "pending-revision":
+        if head_blob.returncode != 0 or head_blob.stdout.strip() != expected_blob:
+            errors.append(
+                f"canonical source {identifier} pending revision must match the HEAD path blob"
+            )
+        if blob.returncode == 0 and blob.stdout.strip() == expected_blob:
+            errors.append(
+                f"canonical source {identifier} pending revision must represent changed source bytes"
+            )
+    if pr_base is not None:
+        revision_in_base = subprocess.run(
+            ["git", "-C", str(root), "merge-base", "--is-ancestor", revision, pr_base],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        base_blob = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", f"{pr_base}:{path}"],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        source_changed = base_blob.returncode != 0 or base_blob.stdout.strip() != expected_blob
+        if state == "active" and revision_in_base.returncode != 0:
+            errors.append(
+                f"canonical source {identifier} active revision must be reachable from the PR base"
+            )
+        if state == "active" and source_changed:
+            errors.append(
+                f"canonical source {identifier} changed from PR base and must use pending-revision"
+            )
+        if state == "pending-revision" and revision != pr_base:
+            errors.append(
+                f"canonical source {identifier} pending revision must equal the PR base"
+            )
+    if develop_head and state == "pending-revision":
+        parent = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "HEAD^"],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        if parent.returncode != 0 or revision != parent.stdout.strip():
+            errors.append(
+                f"canonical source {identifier} pending revision expired; activate the squash revision"
+            )
+
+
 def validate_sources(
-    document: dict[str, object], root: Path, errors: list[str]
-) -> dict[str, dict[str, object]]:
+    document: dict[str, object],
+    root: Path,
+    errors: list[str],
+    *,
+    pr_base: str | None = None,
+    develop_head: bool = False,
+) -> tuple[dict[str, dict[str, object]], dict[str, bytes]]:
     records = document.get("canonical_sources")
     if not isinstance(records, list) or not records:
         errors.append("canonical_sources must be a non-empty array of tables")
-        return {}
+        return {}, {}
     sources: dict[str, dict[str, object]] = {}
+    payloads: dict[str, bytes] = {}
+    paths: set[str] = set()
     for index, record in enumerate(records, start=1):
         label = f"canonical_sources[{index}]"
         if not exact_keys(record, SOURCE_KEYS, label, errors):
@@ -313,15 +367,22 @@ def validate_sources(
         sources[identifier] = record
         if type(record.get("owner_issue")) is not int or record.get("owner_issue") != 512:
             errors.append(f"canonical source {identifier}.owner_issue must equal 512")
-        if record.get("state") != "active":
-            errors.append(f"canonical source {identifier}.state must equal active")
+        if record.get("state") not in SOURCE_STATES:
+            errors.append(
+                f"canonical source {identifier}.state must be active or pending-revision"
+            )
         crate = record.get("canonical_crate")
-        if not isinstance(crate, str) or not crate.startswith("identus-"):
+        if not isinstance(crate, str) or not CRATE_PATTERN.fullmatch(crate):
             errors.append(f"canonical source {identifier}.canonical_crate must be an identus-* crate")
         if not SHA_PATTERN.fullmatch(str(record.get("canonical_revision", ""))):
             errors.append(f"canonical source {identifier}.canonical_revision must be a full lowercase Git SHA")
-        if record.get("file_mode") != "100644":
-            errors.append(f"canonical source {identifier}.file_mode must equal 100644")
+        if record.get("file_mode") not in {"100644", "100755"}:
+            errors.append(f"canonical source {identifier}.file_mode must be a regular Git file mode")
+        path = record.get("path")
+        if isinstance(path, str):
+            if path in paths:
+                errors.append(f"duplicate canonical source path: {path}")
+            paths.add(path)
         length = record.get("byte_length")
         if type(length) is not int or not 0 < length <= MAX_EVIDENCE_BYTES:
             errors.append(f"canonical source {identifier}.byte_length must be a positive bounded integer")
@@ -334,6 +395,7 @@ def validate_sources(
         payload = canonical_source_bytes(root, record, identifier, errors)
         if payload is None:
             continue
+        payloads[identifier] = payload
         if length != len(payload):
             errors.append(f"canonical source {identifier}.byte_length does not match exact source bytes")
         if record.get("sha256") != hashlib.sha256(payload).hexdigest():
@@ -341,10 +403,19 @@ def validate_sources(
         blob = b"blob " + str(len(payload)).encode("ascii") + b"\0" + payload
         if record.get("git_blob_oid") != hashlib.sha1(blob).hexdigest():
             errors.append(f"canonical source {identifier}.git_blob_oid does not match exact Git blob bytes")
-    return sources
+        validate_git_provenance(
+            root, record, identifier, errors, pr_base=pr_base, develop_head=develop_head
+        )
+    return sources, payloads
 
 
-def validate_registry(document: object, root: Path) -> tuple[list[dict[str, object]], list[str]]:
+def validate_registry(
+    document: object,
+    root: Path,
+    *,
+    pr_base: str | None = None,
+    develop_head: bool = False,
+) -> tuple[list[dict[str, object]], list[str]]:
     errors: list[str] = []
     if not exact_keys(document, TOP_KEYS, "registry", errors):
         return [], errors
@@ -362,7 +433,9 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
     if document.get("canonical_owner") != "sdk-rust":
         errors.append("canonical_owner must remain sdk-rust")
 
-    sources = validate_sources(document, root, errors)
+    sources, source_payloads = validate_sources(
+        document, root, errors, pr_base=pr_base, develop_head=develop_head
+    )
     mappings = document.get("mappings")
     if not isinstance(mappings, list) or not mappings:
         errors.append("mappings must be a non-empty array of tables")
@@ -526,8 +599,8 @@ def validate_registry(document: object, root: Path) -> tuple[list[dict[str, obje
         if not isinstance(limit, int) or isinstance(limit, bool) or limit <= 0:
             errors.append(f"{identifier}.max_input_bytes must be a positive integer")
         rust_limit = (
-            canonical_bound(root, mapping, source_record, str(identifier), errors)
-            if source_record is not None
+            canonical_bound(mapping, source_payloads[source_id], str(identifier), errors)
+            if source_record is not None and source_id in source_payloads
             else None
         )
         if (
@@ -678,14 +751,16 @@ def render(document: dict[str, object], mappings: list[dict[str, object]]) -> st
         "",
         "## Canonical sources",
         "",
-        "| Source | Cargo package | Revision | Path | Bytes | SHA-256 | Git blob |",
-        "| --- | --- | --- | --- | ---: | --- | --- |",
+        "| Source | State | Cargo package | Revision | Path | Bytes | SHA-256 | Git blob |",
+        "| --- | --- | --- | --- | --- | ---: | --- | --- |",
     ]
     for source in document["canonical_sources"]:
         lines.append(
-            f"| `{source['id']}` | `{source['canonical_crate']}` | `{source['canonical_revision']}` | "
-            f"`{source['path']}` | {source['byte_length']} | `{source['sha256']}` | "
-            f"`{source['git_object_format']}:{source['git_blob_oid']}` |"
+            f"| `{escape(source['id'])}` | `{escape(source['state'])}` | "
+            f"`{escape(source['canonical_crate'])}` | "
+            f"`{escape(source['canonical_revision'])}` | `{escape(source['path'])}` | "
+            f"{source['byte_length']} | `{escape(source['sha256'])}` | "
+            f"`{escape(source['git_object_format'])}:{escape(source['git_blob_oid'])}` |"
         )
     lines.extend([
         "",
@@ -770,16 +845,24 @@ def main() -> int:
     parser.add_argument("root", nargs="?", default=".")
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--write", action="store_true")
+    parser.add_argument("--pr-base")
+    parser.add_argument("--develop-head", action="store_true")
     args = parser.parse_args()
     if args.render and args.write:
         parser.error("--render and --write are mutually exclusive")
+    if args.pr_base and args.develop_head:
+        parser.error("--pr-base and --develop-head are mutually exclusive")
+    if args.pr_base and not SHA_PATTERN.fullmatch(args.pr_base):
+        parser.error("--pr-base must be a full lowercase Git SHA")
     root = Path(args.root).resolve()
     try:
         document = tomllib.loads((root / REGISTRY).read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as error:
         print(f"language-adapter-mappings: cannot load {REGISTRY}: {error}", file=sys.stderr)
         return 1
-    mappings, errors = validate_registry(document, root)
+    mappings, errors = validate_registry(
+        document, root, pr_base=args.pr_base, develop_head=args.develop_head
+    )
     if errors:
         for error in errors:
             print(f"language-adapter-mappings: {error}", file=sys.stderr)

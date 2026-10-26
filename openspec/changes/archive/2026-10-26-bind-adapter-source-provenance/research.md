@@ -43,7 +43,7 @@ provenance evidence, not a new runtime protocol.
 | Shared exact-byte manifest | schema v2 at `5da04223c1c4e029cb368870877e56d699d40388` | `adopt` | Deduplicates identity and validates in Git-less inputs. | Exact-byte churn becomes operationally dominant. |
 | Per-mapping SHA-256 | local schema-v1 extension | `not-adopt` | Repeats revision, path, and digest across mappings. | Mappings cease to share canonical files. |
 | Normalized declaration digest | unversioned concept | `not-adopt` | Parser and macro semantics add coupling and incomplete assurance. | A stable compiler-owned digest becomes available. |
-| Mandatory `git cat-file` | Git 2.x | `not-adopt` | Fails in source archives without `.git`. | Mandatory inputs acquire verified Git objects. |
+| Mandatory `git cat-file` | Git 2.x | `not-adopt` | Fails in source archives without `.git`; local Git verification is additive instead. | Mandatory inputs acquire verified Git objects. |
 | Python SHA-256 plus Git blob hash | Python 3.14 runtime | `adopt` | Exact, offline, and dependency-free. | The factory runtime or Git object format changes. |
 
 The selected manifest stores one source ID, owner, state, Cargo package, full
@@ -58,6 +58,11 @@ Mappings replace repeated revision/path fields with one
 `canonical_source_id`; canonical API and bound-symbol fields remain mapping
 semantics. A source move changes the shared path once. A content or formatting
 edit rotates hashes once. No unrelated source file affects the record.
+Because protected delivery squash-merges PRs, a source-changing PR uses the
+explicit `pending-revision` transition: its prior revision remains an ancestor,
+its new `HEAD` path must match the recorded blob, and an immediate follow-up
+activates the resulting squash commit. This avoids predicting a future commit
+ID or retaining a discarded feature-branch commit.
 
 The current version, revision, feature surface, Rust 1.89.0 MSRV, Rust 1.98.1
 etalon, tiered targets, public and wire compatibility, ABI, persistence, and
@@ -84,7 +89,8 @@ commits remain authority.
 
 Offline validation cannot independently prove that a remote commit tree
 contained the asserted blob. It proves that checked bytes match the reviewed
-SHA-256 and Git-blob identities stored with that revision/path assertion.
+SHA-256 and Git-blob identities. A local Git checkout additionally proves an
+active revision/path/blob assertion or the bounded squash-transition state.
 
 ## Rejected or deferred candidates
 

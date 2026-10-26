@@ -17,6 +17,8 @@ disagree.
   object ID, and SHA-256 content digest.
 - Compute both content identities with the Python standard library so Git-less
   Nix and source archives apply the same mandatory validation.
+- When local Git metadata exists, validate active revision/path/blob identity
+  and a bounded `pending-revision` transition compatible with squash merges.
 - Make each mapping reference one canonical-source ID and keep symbol/bound
   validation scoped to that source.
 - Render the source identity separately from mapping semantics and add mutation

@@ -10,9 +10,9 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 ## Canonical sources
 
-| Source | Cargo package | Revision | Path | Bytes | SHA-256 | Git blob |
-| --- | --- | --- | --- | ---: | --- | --- |
-| `did.source.identus-did.v1` | `identus-did` | `5da04223c1c4e029cb368870877e56d699d40388` | `crates/did/src/did.rs` | 12528 | `8d85e03603c7e1d8d114681e6820b49266beed5110f5983d076e4fa57508ad79` | `sha1:6cbdc95ffdc04adf349ccb675688799ab6ef9c83` |
+| Source | State | Cargo package | Revision | Path | Bytes | SHA-256 | Git blob |
+| --- | --- | --- | --- | --- | ---: | --- | --- |
+| `did.source.identus-did.v1` | `active` | `identus-did` | `5da04223c1c4e029cb368870877e56d699d40388` | `crates/did/src/did.rs` | 12528 | `8d85e03603c7e1d8d114681e6820b49266beed5110f5983d076e4fa57508ad79` | `sha1:6cbdc95ffdc04adf349ccb675688799ab6ef9c83` |
 
 ## Mappings
 

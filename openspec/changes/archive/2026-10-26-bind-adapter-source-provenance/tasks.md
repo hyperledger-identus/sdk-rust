@@ -17,7 +17,7 @@
 
 - [x] 3.1 Add focused positive and mutation tests for every source field and drift class.
 - [x] 3.2 Run factory, OpenSpec, diff, and proportionate Nix gates.
-- [ ] 3.3 Complete independent review, archive, protected PR, and metrics evidence.
+- [x] 3.3 Complete independent review, archive, protected PR, and metrics evidence.
 
 ## 4. Stop boundary
 

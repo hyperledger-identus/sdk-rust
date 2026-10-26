@@ -1,0 +1,17 @@
+[[modified_requirement]]
+capability       = "language-adapter-mappings"
+requirement      = "Compatibility has a bounded lifecycle"
+canonical_sha256 = "b2b716cf86f8583f50ccd7b2442222f8740ea3496c66890c280f8e40322677b3"
+reason           = "Schema v2 moves repeated source revision and path evidence into one closed canonical-source record shared by mappings."
+
+[[modified_requirement]]
+capability       = "language-adapter-mappings"
+requirement      = "Adapter bounds cannot weaken Rust policy"
+canonical_sha256 = "193027bab4e61464741920578f7d866050f5dd0e90f7fb637059814780b58b23"
+reason           = "Bound extraction now consumes the exact bytes already authenticated by the mapping's canonical-source record."
+
+[[modified_requirement]]
+capability       = "language-adapter-mappings"
+requirement      = "Version windows do not exceed pinned evidence"
+canonical_sha256 = "3775a8ea57e7b152cd1298498f9b2c2b47e56011bc755677eb660dae185790e3"
+reason           = "Schema v2 adds source provenance without widening the pinned language-version interval or implying broader compatibility."

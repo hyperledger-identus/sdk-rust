@@ -12,7 +12,7 @@
 - [x] 2.1 Prototype literal DID/DID URL limits and independent method-name policy.
 - [x] 2.2 Prototype observable oversized cache-key bypass under both failure modes.
 - [x] 2.3 Prototype native, WASM, UniFFI, fuzz, vector, adapter, and architecture updates.
-- [ ] 2.4 Apply the validated prototype to a fresh issue branch from merged `develop`.
+- [x] 2.4 Apply the validated prototype to a fresh issue branch from merged `develop`.
 
 ## 3. Verification
 

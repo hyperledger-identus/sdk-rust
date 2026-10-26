@@ -400,9 +400,20 @@ def main() -> int:
             raise AssertionError(f"render drift was not rejected:\n{result.stderr}")
         run(source_root, fixture_root, "--write")
 
-        empty_report = (source_root / REPORT).read_text(encoding="utf-8")
+        empty_ledger = replace_once(
+            prefix,
+            'status                            = "active"',
+            'status                            = "active-empty"',
+        ) + "changes = [  ]\n"
+        baseline_path.write_text(empty_ledger, encoding="utf-8")
+        result = run(source_root, fixture_root, "--write", "--skip-impacts")
+        if result.returncode != 0:
+            raise AssertionError(f"empty fixture failed:\n{result.stderr}")
+        empty_report = (fixture_root / REPORT).read_text(encoding="utf-8")
         if empty_report.count("No consumer-visible changes are recorded.") != 5:
             raise AssertionError("canonical empty report must state the empty condition in all views")
+        baseline_path.write_text(baseline, encoding="utf-8")
+        run(source_root, fixture_root, "--write")
 
         report_path.unlink()
         os.symlink(baseline_path, report_path)

@@ -58,7 +58,7 @@ id             = "did.syntax.v1"
 capability     = "did.syntax"
 schema_version = 1
 path           = "docs/conformance/fixtures/did/v1/vectors.json"
-sha256         = "72ebf6603594fe3b2b93f9d1a9cd9dc40bf8708f6bc8a7b4370ee9b9f173679a"
+sha256         = "9513cd093e1afae9f1f6a2c29161d1c45110f4467abe7b334f2f94be12822898"
 authorship     = "SDK-Rust clean-room curation from public sources"
 license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
@@ -500,7 +500,7 @@ active             = true
 supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
-limitations        = "2048-byte SDK policy, not a W3C limit."
+limitations        = "131072-byte SDK policy, not a W3C limit."
 
 [[vectors]]
 id                 = "did.syntax.over-max-bytes"
@@ -523,7 +523,7 @@ active             = true
 supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
-limitations        = "2049-byte SDK policy, not a W3C limit."
+limitations        = "131073-byte SDK policy, not a W3C limit."
 
 [[vectors]]
 id                 = "did-url.syntax.max-bytes"
@@ -546,7 +546,7 @@ active             = true
 supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
-limitations        = "4096-byte SDK policy, not a W3C limit."
+limitations        = "139264-byte SDK policy, not a W3C limit."
 
 [[vectors]]
 id                 = "did-url.syntax.over-max-bytes"
@@ -569,4 +569,4 @@ active             = true
 supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
-limitations        = "4097-byte SDK policy, not a W3C limit."
+limitations        = "139265-byte SDK policy, not a W3C limit."

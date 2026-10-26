@@ -13,7 +13,7 @@ use crate::{
 /// Maximum accepted byte length of a [`Uri`].
 ///
 /// RFC 3986 does not impose this value; it is an SDK resource policy.
-pub const MAX_URI_BYTES: usize = 4_096;
+pub const MAX_URI_BYTES: usize = 139_264;
 
 /// An immutable, syntactically valid absolute RFC 3986 URI.
 ///

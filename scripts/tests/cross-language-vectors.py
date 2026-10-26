@@ -80,7 +80,16 @@ def main() -> None:
         False,
     )
     run(replace_once(catalog, 'case               = "did.syntax.valid-basic"', 'case               = "did.syntax.missing"'), packet, False)
-    run(replace_once(catalog, 'sha256         = "72ebf6603594fe3b2b93f9d1a9cd9dc40bf8708f6bc8a7b4370ee9b9f173679a"', 'sha256         = "' + "0" * 64 + '"'), packet, False)
+    packet_digest = hashlib.sha256(PACKET.read_bytes()).hexdigest()
+    run(
+        replace_once(
+            catalog,
+            f'sha256         = "{packet_digest}"',
+            'sha256         = "' + "0" * 64 + '"',
+        ),
+        packet,
+        False,
+    )
     run(
         replace_first(
             catalog,
@@ -105,7 +114,7 @@ def main() -> None:
         False,
     )
     run_packet_mutation(catalog, replace_once(packet, '"schemaVersion": 1,', '"schemaVersion": 1,\n  "unknown": true,'))
-    run_packet_mutation(catalog, replace_once(packet, '"count": 2036', '"count": 10001'))
+    run_packet_mutation(catalog, replace_once(packet, '"count": 131060', '"count": 262145'))
     run_packet_mutation(
         catalog,
         replace_once(

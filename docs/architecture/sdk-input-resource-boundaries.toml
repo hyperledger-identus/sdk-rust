@@ -85,7 +85,7 @@ id               = "did-syntax-and-uri"
 package          = "identus-did"
 surface          = "DID, DID URL, DID method and URI syntax values"
 disposition      = "sdk-enforced"
-limits           = [ "MAX_DID_BYTES=2048", "MAX_DID_URL_BYTES=4096", "MAX_DID_METHOD_BYTES=2042", "MAX_URI_BYTES=4096" ]
+limits           = [ "MAX_DID_BYTES=131072", "MAX_DID_URL_BYTES=139264", "MAX_DID_METHOD_BYTES=2042", "MAX_URI_BYTES=139264" ]
 evidence         = [ "crates/did/src/did.rs", "crates/did/src/method.rs", "crates/did/src/uri.rs" ]
 outer_obligation = "Owned String and serde paths may allocate before typed syntax validation."
 consumer_impact  = "Typed syntax retention and grammar work are bounded; bound enclosing wire bytes first."

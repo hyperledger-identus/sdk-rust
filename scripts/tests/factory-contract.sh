@@ -170,6 +170,7 @@ required_files=(
   docs/adr/0172-version-didcomm-engine-and-application-protocols-separately.md
   docs/adr/0173-sequence-a1-through-versioned-evidence-contracts.md
   docs/adr/0174-separate-peer-and-prism-did-method-ownership.md
+  docs/adr/0175-bound-generic-did-for-prism-long-form-state.md
   docs/adr/0160-separate-rustsec-advisory-and-yank-evidence.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
@@ -312,6 +313,8 @@ done
 mkdir -p "$fixture_root/openspec/changes"
 cp -R "$repository_root/openspec/changes/activate-first-crate-release-train" \
   "$fixture_root/openspec/changes/activate-first-crate-release-train"
+cp -R "$repository_root/openspec/changes/align-prism-long-form-resource-bounds" \
+  "$fixture_root/openspec/changes/align-prism-long-form-resource-bounds"
 
 # The resource inventory intentionally points at implementation evidence beyond
 # the minimal synthetic factory fixture. Copy that exact bounded evidence set so

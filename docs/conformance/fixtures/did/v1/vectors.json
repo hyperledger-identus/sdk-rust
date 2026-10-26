@@ -249,7 +249,7 @@
       "id": "did.syntax.max-bytes",
       "operation": "did.parse",
       "input": {
-        "generated": { "prefix": "did:example:", "repeat": "a", "count": 2036, "suffix": "" }
+        "generated": { "prefix": "did:example:", "repeat": "a", "count": 131060, "suffix": "" }
       },
       "expected": {
         "kind": "success",
@@ -262,7 +262,7 @@
       "id": "did.syntax.over-max-bytes",
       "operation": "did.parse",
       "input": {
-        "generated": { "prefix": "did:example:", "repeat": "a", "count": 2037, "suffix": "" }
+        "generated": { "prefix": "did:example:", "repeat": "a", "count": 131061, "suffix": "" }
       },
       "expected": {
         "kind": "error",
@@ -275,7 +275,7 @@
       "id": "did-url.syntax.max-bytes",
       "operation": "did-url.parse",
       "input": {
-        "generated": { "prefix": "did:example:a/", "repeat": "a", "count": 4082, "suffix": "" }
+        "generated": { "prefix": "did:example:a/", "repeat": "a", "count": 139250, "suffix": "" }
       },
       "expected": {
         "kind": "success",
@@ -288,7 +288,7 @@
       "id": "did-url.syntax.over-max-bytes",
       "operation": "did-url.parse",
       "input": {
-        "generated": { "prefix": "did:example:a/", "repeat": "a", "count": 4083, "suffix": "" }
+        "generated": { "prefix": "did:example:a/", "repeat": "a", "count": 139251, "suffix": "" }
       },
       "expected": {
         "kind": "error",

@@ -12,12 +12,12 @@ use crate::error::{DidSyntaxError, Error};
 /// Maximum accepted byte length of a bare [`Did`].
 ///
 /// W3C DID Core does not impose this value; it is an SDK resource policy.
-pub const MAX_DID_BYTES: usize = 2_048;
+pub const MAX_DID_BYTES: usize = 131_072;
 
 /// Maximum accepted byte length of a [`DidUrl`].
 ///
 /// W3C DID Core does not impose this value; it is an SDK resource policy.
-pub const MAX_DID_URL_BYTES: usize = 4_096;
+pub const MAX_DID_URL_BYTES: usize = 139_264;
 
 const DID_PREFIX: &[u8] = b"did:";
 

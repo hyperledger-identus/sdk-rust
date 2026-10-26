@@ -203,6 +203,15 @@ mod tests {
 
     #[test]
     fn sdk_resource_limits_remain_at_the_wrapper_edge() {
+        let long_form_prefix = format!("did:prism:{}:", "0".repeat(64));
+        let long_form = format!(
+            "{long_form_prefix}{}",
+            "A".repeat(100_000 - long_form_prefix.len())
+        );
+        let accepted = parse_did(long_form.clone()).unwrap();
+        assert_eq!(accepted.value, long_form);
+        assert_eq!(accepted.method, "prism");
+
         let oversized_did = format!("did:example:{}", "a".repeat(MAX_DID_BYTES));
         assert_eq!(
             parse_did(oversized_did).unwrap_err().code(),

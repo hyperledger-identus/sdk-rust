@@ -11,15 +11,14 @@
 
 use identus_derive::Newtype;
 
-use crate::{MAX_DID_BYTES, error::Error};
+use crate::error::Error;
 
 /// Maximum accepted byte length of a standalone [`DidMethod`].
 ///
-/// This is the largest method that can fit in a maximum-size bare DID after
-/// accounting for `did:`, the method separator and a one-byte method-specific
-/// identifier. W3C DID Core does not impose this value; it is an SDK resource
-/// policy aligned with [`MAX_DID_BYTES`].
-pub const MAX_DID_METHOD_BYTES: usize = MAX_DID_BYTES - 6;
+/// W3C DID Core does not impose this value. The SDK preserves the original
+/// standalone method-name ceiling independently from the larger enclosing DID
+/// budget required by methods with embedded state.
+pub const MAX_DID_METHOD_BYTES: usize = 2_042;
 
 /// A validated DID method name (e.g. `"key"`, `"web"`, `"prism"`).
 ///
@@ -159,7 +158,7 @@ mod tests {
     fn maximum_method_remains_compatible_with_did_registration() {
         let method = "a".repeat(MAX_DID_METHOD_BYTES);
         let did = Did::parse(&format!("did:{method}:x")).unwrap();
-        assert_eq!(did.as_str().len(), MAX_DID_BYTES);
+        assert_eq!(did.as_str().len(), MAX_DID_METHOD_BYTES + 6);
         assert_eq!(DidMethod::parse(did.method()).unwrap().as_str(), method);
 
         let request = DeactivateRegistrationRequest::new(

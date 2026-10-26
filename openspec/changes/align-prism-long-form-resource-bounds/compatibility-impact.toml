@@ -1,6 +1,6 @@
 schema_version = 1
 issue          = 524
-disposition    = "behavior-neutral"
-scope          = "documentation"
-rationale      = "This preimplementation contract records the proposed consumer-visible resource policy without activating it. Implementation must change this declaration to consumer-visible and bind its canonical ledger record before readiness or archive."
-ledger_ids     = [  ]
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "This change expands public DID and DID URL lexical ceilings, decouples the public method-name constant, and makes oversized normalized cache identities observably bypass retention. Existing accepted inputs remain compatible, while adapters and consumers can now observe newly accepted values and a new cache status."
+ledger_ids     = [ "did.syntax.long-form-resource-policy.v1" ]

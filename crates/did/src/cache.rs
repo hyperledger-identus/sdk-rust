@@ -40,6 +40,9 @@ impl DidResolutionCacheKey {
     /// Derive a bounded key from a validated DID and all result-affecting
     /// options except the `noCache` control.
     pub fn for_resolution(did: &Did, options: &ResolutionOptions) -> Result<Self, Error> {
+        if did.as_str().len() > MAX_DID_RESOLUTION_CACHE_KEY_BYTES {
+            return Err(invalid(CacheError::KeyTooLarge));
+        }
         #[derive(Serialize)]
         #[serde(rename_all = "camelCase")]
         struct Wire<'a> {
@@ -288,6 +291,8 @@ pub enum DidResolutionCacheStatus {
     Disabled,
     /// `noCache: true` requested direct resolution.
     RequestedBypass,
+    /// The valid request exceeded the generic cache-key retention budget.
+    KeyBudgetBypass,
     /// A valid fresh entry was served.
     Hit,
     /// An ordinary miss was resolved and stored.
@@ -396,12 +401,16 @@ impl CachingDidResolver {
                 .await;
         }
 
-        let now = match self.clock.now() {
-            Ok(now) => now,
-            Err(_) => return self.infrastructure_failure(did, options).await,
-        };
         let key = match DidResolutionCacheKey::for_resolution(did, options) {
             Ok(key) => key,
+            Err(_) => {
+                return self
+                    .resolve_upstream(did, options, DidResolutionCacheStatus::KeyBudgetBypass)
+                    .await;
+            }
+        };
+        let now = match self.clock.now() {
+            Ok(now) => now,
             Err(_) => return self.infrastructure_failure(did, options).await,
         };
 

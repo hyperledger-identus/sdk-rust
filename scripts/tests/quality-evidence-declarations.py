@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -52,6 +53,26 @@ def replace_once(content: str, before: str, after: str) -> str:
     if content.count(before) != 1:
         raise AssertionError(f"mutation anchor must occur exactly once: {before!r}")
     return content.replace(before, after, 1)
+
+
+def obligation_block(content: str, class_name: str, disposition: str) -> str:
+    marker = "[[declarations.obligations]]"
+    needle = f'class = "{class_name}"\ndisposition = "{disposition}"'
+    candidates = [marker + part for part in content.split(marker)[1:] if needle in part]
+    if len(candidates) != 1:
+        raise AssertionError(
+            f"expected one {class_name}/{disposition} obligation, found {len(candidates)}"
+        )
+    return candidates[0]
+
+
+def replace_field(block: str, key: str, value: str) -> str:
+    updated, count = re.subn(
+        rf"(?m)^{re.escape(key)}\s*=.*$", f"{key} = {value}", block, count=1
+    )
+    if count != 1:
+        raise AssertionError(f"expected one field in obligation: {key}")
+    return updated
 
 
 def expect_failure(
@@ -113,11 +134,9 @@ def main() -> int:
             "must explain the bounded omission",
         )
 
-        stale_receipt = replace_once(
-            baseline,
-            'recorded_at = "2026-09-29"',
-            'recorded_at = "2026-09-01"',
-        )
+        satisfied_fuzz = obligation_block(baseline, "fuzz", "satisfied")
+        stale_fuzz = replace_field(satisfied_fuzz, "recorded_at", '"2026-09-01"')
+        stale_receipt = replace_once(baseline, satisfied_fuzz, stale_fuzz)
         expect_failure(
             source_root,
             fixture_root,
@@ -127,30 +146,16 @@ def main() -> int:
             "receipt is stale",
         )
 
-        unowned_debt = replace_once(
-            baseline,
-            'class = "fuzz"\ndisposition = "satisfied"',
-            'class = "fuzz"\ndisposition = "required"',
-        )
-        for before, after in (
-            ('freshness = "max-age-days"', 'freshness = "pending"'),
-            ("freshness_days = 8", "freshness_days = 0"),
-            ('receipt_kind = "github-run"', 'receipt_kind = "none"'),
-            (
-                'receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/36517752658"',
-                'receipt = ""',
-            ),
-            (
-                'evidence_revision = "d27e455901c501d9611abbe0065e6a9b7270dd57"',
-                'evidence_revision = ""',
-            ),
-            ('recorded_at = "2026-09-29"', 'recorded_at = ""'),
-            (
-                'debt_status = "none"\ndebt_issue = 0\nrationale = ""\ndetails = [\n  "harness=',
-                'debt_status = "open"\ndebt_issue = 0\nrationale = ""\ndetails = [\n  "harness=',
-            ),
-        ):
-            unowned_debt = replace_once(unowned_debt, before, after)
+        unowned_fuzz = replace_field(satisfied_fuzz, "disposition", '"required"')
+        unowned_fuzz = replace_field(unowned_fuzz, "freshness", '"pending"')
+        unowned_fuzz = replace_field(unowned_fuzz, "freshness_days", "0")
+        unowned_fuzz = replace_field(unowned_fuzz, "receipt_kind", '"none"')
+        unowned_fuzz = replace_field(unowned_fuzz, "receipt", '""')
+        unowned_fuzz = replace_field(unowned_fuzz, "evidence_revision", '""')
+        unowned_fuzz = replace_field(unowned_fuzz, "recorded_at", '""')
+        unowned_fuzz = replace_field(unowned_fuzz, "debt_status", '"open"')
+        unowned_fuzz = replace_field(unowned_fuzz, "debt_issue", "0")
+        unowned_debt = replace_once(baseline, satisfied_fuzz, unowned_fuzz)
         expect_failure(
             source_root,
             fixture_root,

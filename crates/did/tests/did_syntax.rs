@@ -314,17 +314,38 @@ fn did_url_ascii_component_grammar_is_exhaustive() {
 #[test]
 #[ignore = "manual release-mode throughput diagnostic"]
 fn parser_throughput_diagnostic() {
-    const ITERATIONS: u64 = 500_000;
-    const VALUE: &str =
-        "did:midnight:undeployed:network:holder_1/credentials/active?limit=20#key-1";
+    let prefix = "did:prism:state/credentials/active?limit=20#key-1";
+    let cases = [
+        ("ordinary", prefix.to_owned(), 500_000_u64),
+        (
+            "40KiB",
+            format!("{prefix}{}", "a".repeat(40 * 1_024 - prefix.len())),
+            5_000,
+        ),
+        (
+            "100KiB",
+            format!("{prefix}{}", "a".repeat(100 * 1_024 - prefix.len())),
+            2_000,
+        ),
+        (
+            "maximum",
+            format!("{prefix}{}", "a".repeat(MAX_DID_URL_BYTES - prefix.len())),
+            1_000,
+        ),
+    ];
 
-    let started = std::time::Instant::now();
-    for _ in 0..ITERATIONS {
-        black_box(DidUrl::parse(black_box(VALUE)).unwrap());
+    for (label, value, iterations) in cases {
+        let started = std::time::Instant::now();
+        for _ in 0..iterations {
+            black_box(DidUrl::parse(black_box(&value)).unwrap());
+        }
+        let elapsed = started.elapsed();
+        let scanned_mib = value.len() as f64 * iterations as f64 / (1_024.0 * 1_024.0);
+        eprintln!(
+            "DID URL parser diagnostic ({label}, {} bytes): {iterations} parses in {elapsed:?} ({:.0} parses/s, {:.1} MiB/s)",
+            value.len(),
+            iterations as f64 / elapsed.as_secs_f64(),
+            scanned_mib / elapsed.as_secs_f64(),
+        );
     }
-    let elapsed = started.elapsed();
-    let parses_per_second = ITERATIONS as f64 / elapsed.as_secs_f64();
-    eprintln!(
-        "DID URL parser diagnostic: {ITERATIONS} parses in {elapsed:?} ({parses_per_second:.0} parses/s)"
-    );
 }

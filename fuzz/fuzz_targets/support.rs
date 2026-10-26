@@ -4,7 +4,7 @@
 
 use std::{fmt::Display, str::FromStr, sync::Once};
 
-use identus_did::{Did, DidUrl};
+use identus_did::{Did, DidUrl, MAX_DID_BYTES, MAX_DID_URL_BYTES};
 use serde_json::{from_str, to_string};
 
 static DID_BOUNDARY_PROBE: Once = Once::new();
@@ -12,9 +12,10 @@ static DID_URL_BOUNDARY_PROBE: Once = Once::new();
 
 pub(crate) fn assert_did_resource_boundaries() {
     DID_BOUNDARY_PROBE.call_once(|| {
-        let exact = format!("did:example:{}", "a".repeat(2_036));
-        let over = format!("did:example:{}", "a".repeat(2_037));
-        assert!(exact.len() == 2_048, "DID exact-limit probe drifted");
+        let prefix = "did:example:";
+        let exact = format!("{prefix}{}", "a".repeat(MAX_DID_BYTES - prefix.len()));
+        let over = format!("{exact}a");
+        assert!(exact.len() == MAX_DID_BYTES, "DID exact-limit probe drifted");
         assert!(Did::parse(&exact).is_ok(), "DID exact limit became invalid");
         assert!(
             Did::parse(&over).is_err(),
@@ -25,9 +26,10 @@ pub(crate) fn assert_did_resource_boundaries() {
 
 pub(crate) fn assert_did_url_resource_boundaries() {
     DID_URL_BOUNDARY_PROBE.call_once(|| {
-        let exact = format!("did:example:a/{}", "b".repeat(4_082));
-        let over = format!("did:example:a/{}", "b".repeat(4_083));
-        assert!(exact.len() == 4_096, "DID URL exact-limit probe drifted");
+        let prefix = "did:example:a/";
+        let exact = format!("{prefix}{}", "b".repeat(MAX_DID_URL_BYTES - prefix.len()));
+        let over = format!("{exact}b");
+        assert!(exact.len() == MAX_DID_URL_BYTES, "DID URL exact-limit probe drifted");
         assert!(
             DidUrl::parse(&exact).is_ok(),
             "DID URL exact limit became invalid"

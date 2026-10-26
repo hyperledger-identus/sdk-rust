@@ -307,15 +307,55 @@ for relative_path in "${required_files[@]}"; do
   esac
 done
 
-# Preserve every active change so the minimal Git-less fixture exercises the
-# same closed impact-policy exceptions as the repository without depending on
-# a change that will move under archive/ after delivery.
+# Preserve every active change and archived consumer-visible impact declaration
+# so the minimal Git-less fixture retains ledger ownership after delivery
+# without duplicating unrelated archived planning artifacts.
 mkdir -p "$fixture_root/openspec/changes"
 for active_change in "$repository_root"/openspec/changes/*; do
   if [[ -d "$active_change" && "$(basename "$active_change")" != "archive" ]]; then
     cp -R "$active_change" "$fixture_root/openspec/changes/"
   fi
 done
+impact_has_ledger_ids() {
+  python3 - "$1" <<'PY'
+import sys
+import tomllib
+
+with open(sys.argv[1], "rb") as impact_file:
+    ledger_ids = tomllib.load(impact_file).get("ledger_ids")
+raise SystemExit(0 if isinstance(ledger_ids, list) and bool(ledger_ids) else 1)
+PY
+}
+
+multiline_impact="$fixture_root/multiline-impact.toml"
+cat >"$multiline_impact" <<'EOF'
+ledger_ids = [
+  "did.syntax.multiline-fixture.v1",
+]
+EOF
+if ! impact_has_ledger_ids "$multiline_impact"; then
+  printf 'factory-contract test: multiline ledger IDs were not detected\n' >&2
+  exit 1
+fi
+rm "$multiline_impact"
+
+if [[ -d "$repository_root/openspec/changes/archive" ]]; then
+  mkdir -p "$fixture_root/openspec/changes/archive"
+  for archived_change in "$repository_root"/openspec/changes/archive/*; do
+    archived_impact="$archived_change/compatibility-impact.toml"
+    if [[ -d "$archived_change" ]] &&
+      [[ -f "$archived_impact" ]] &&
+      impact_has_ledger_ids "$archived_impact"; then
+      archived_target="$fixture_root/openspec/changes/archive/$(basename "$archived_change")"
+      mkdir -p "$archived_target"
+      for impact_file in preimplementation.json compatibility-impact.toml; do
+        if [[ -f "$archived_change/$impact_file" ]]; then
+          cp "$archived_change/$impact_file" "$archived_target/$impact_file"
+        fi
+      done
+    fi
+  done
+fi
 
 # The resource inventory intentionally points at implementation evidence beyond
 # the minimal synthetic factory fixture. Copy that exact bounded evidence set so

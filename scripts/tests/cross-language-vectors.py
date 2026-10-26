@@ -114,7 +114,14 @@ def main() -> None:
         False,
     )
     run_packet_mutation(catalog, replace_once(packet, '"schemaVersion": 1,', '"schemaVersion": 1,\n  "unknown": true,'))
-    run_packet_mutation(catalog, replace_once(packet, '"count": 131060', '"count": 262145'))
+    run_packet_mutation(
+        catalog,
+        replace_once(
+            packet,
+            '"generated": { "prefix": "did:example:", "repeat": "a", "count": 131060, "suffix": "" }',
+            '"generated": { "prefix": "did:example:", "repeat": "a", "count": 262145, "suffix": "" }',
+        ),
+    )
     run_packet_mutation(
         catalog,
         replace_once(

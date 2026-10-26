@@ -275,7 +275,7 @@
       "id": "did-url.syntax.max-bytes",
       "operation": "did-url.parse",
       "input": {
-        "generated": { "prefix": "did:example:a/", "repeat": "a", "count": 139250, "suffix": "" }
+        "generated": { "prefix": "did:example:a/", "repeat": "a", "count": 8191, "suffix": "" }
       },
       "expected": {
         "kind": "success",
@@ -288,7 +288,7 @@
       "id": "did-url.syntax.over-max-bytes",
       "operation": "did-url.parse",
       "input": {
-        "generated": { "prefix": "did:example:a/", "repeat": "a", "count": 139251, "suffix": "" }
+        "generated": { "prefix": "did:example:a/", "repeat": "a", "count": 8192, "suffix": "" }
       },
       "expected": {
         "kind": "error",

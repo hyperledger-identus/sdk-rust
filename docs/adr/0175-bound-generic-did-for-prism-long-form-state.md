@@ -29,7 +29,8 @@ contribute roughly 25.4 MB to native output before other document content.
 ### Use finite literal generic lexical ceilings
 
 `MAX_DID_BYTES` becomes the literal public value 131,072.
-`MAX_DID_URL_BYTES` and `MAX_URI_BYTES` become 139,264. The latter envelope is
+`MAX_DID_URL_BYTES` and `MAX_URI_BYTES` become 139,264. A DID URL independently
+caps the path/query/fragment suffix at 8,192 bytes, so the latter envelope is
 a 128 KiB DID plus an 8 KiB relative/query/fragment allowance. DID document
 verification and service IDs use `Uri`, and the existing `From<DidUrl>`
 conversion is infallible; matching ceilings prevent it from constructing a

@@ -19,6 +19,12 @@ pub const MAX_DID_BYTES: usize = 131_072;
 /// W3C DID Core does not impose this value; it is an SDK resource policy.
 pub const MAX_DID_URL_BYTES: usize = 139_264;
 
+/// Maximum accepted byte length after the embedded bare DID in a [`DidUrl`].
+///
+/// This keeps path, query, and fragment work independently bounded when the
+/// embedded DID is much smaller than [`MAX_DID_BYTES`].
+pub const MAX_DID_URL_SUFFIX_BYTES: usize = 8_192;
+
 const DID_PREFIX: &[u8] = b"did:";
 
 #[derive(Clone, Copy, Debug)]
@@ -351,6 +357,9 @@ fn parse_did_url(bytes: &[u8]) -> Result<DidUrlParts, DidSyntaxError> {
     }
     let did = parse_did(bytes, MAX_DID_URL_BYTES, true)?;
     if did.did_end > MAX_DID_BYTES {
+        return Err(DidSyntaxError::TooLong);
+    }
+    if bytes.len() - did.did_end > MAX_DID_URL_SUFFIX_BYTES {
         return Err(DidSyntaxError::TooLong);
     }
     let mut cursor = did.did_end;

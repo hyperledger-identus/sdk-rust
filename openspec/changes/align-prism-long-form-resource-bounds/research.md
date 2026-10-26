@@ -100,6 +100,12 @@ large DID URLs parse successfully but fail projection, while the infallible
 `From<DidUrl> for Uri` conversion would construct a value that its own parser
 rejects. The URI ceiling must therefore be at least the DID URL ceiling.
 
+The larger total envelope must not give a short DID a 136 KiB suffix. Existing
+dereferencing accepts parameters such as `relativeRef` and can project them
+across bounded service collections, so suffix size multiplies allocation and
+validation work. An independent 8 KiB combined path/query/fragment ceiling
+preserves the intended state-bearing allowance while bounding that work.
+
 WASM and UniFFI allocate foreign-language strings before Rust validation, so
 their outer runtimes still own preallocation. Each facade nevertheless needs a
 100 KB PRISM-shaped acceptance canary and one-over rejection through the shared

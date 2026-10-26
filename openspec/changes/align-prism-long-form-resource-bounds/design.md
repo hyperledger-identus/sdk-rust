@@ -6,7 +6,10 @@
 139,264-byte ceiling before the existing single-pass grammar traversal. Literal
 public constants preserve architecture-checker resolution and make generated
 adapter contracts unambiguous. DID URL parsing still enforces the embedded bare
-DID ceiling separately.
+DID ceiling separately and caps the combined path/query/fragment suffix at
+8,192 bytes. The independent suffix budget prevents short DIDs from turning the
+larger state-bearing envelope into dereferencing parameter and output
+amplification.
 
 `DidMethod` retains its 2,042-byte ceiling. The constant and specification no
 longer derive from `MAX_DID_BYTES`; a large state-bearing method-specific ID

@@ -6,7 +6,8 @@
 
 `Did` SHALL reject input larger than 131,072 bytes and `DidUrl` SHALL reject
 input larger than 139,264 bytes before scanning or allocation. A DID URL SHALL
-also enforce the embedded bare-DID ceiling independently. Validation SHALL
+also enforce the embedded bare-DID ceiling and an 8,192-byte maximum for the
+combined path, query, and fragment suffix independently. Validation SHALL
 perform one linear ASCII byte pass without regex, URL or external DID parser
 dependencies. Successful values SHALL cache byte offsets so method,
 method-specific identifier, DID, path, query and fragment reads return borrowed
@@ -28,6 +29,11 @@ unused protocol semantics or unresolved unsafe reach.
 
 - **WHEN** a syntactically valid PRISM-shaped DID is no larger than 128,075 bytes
 - **THEN** generic DID parsing SHALL accept it without claiming method validity or decoding its embedded state
+
+#### Scenario: short DIDs do not inherit the state-bearing suffix budget
+
+- **WHEN** a syntactically valid DID URL has a short embedded DID and more than 8,192 bytes of path, query, and fragment suffix
+- **THEN** it SHALL be rejected as too long before traversing the suffix grammar
 
 #### Scenario: repeated component access does not allocate
 

@@ -941,6 +941,7 @@ pub const identus_did::MAX_DID_RESOLUTION_WIRE_LIVE_KEY_BYTES: usize
 pub const identus_did::MAX_DID_RESOLUTION_WIRE_NODES: usize
 pub const identus_did::MAX_DID_RESOLUTION_WIRE_OBJECT_MEMBERS: usize
 pub const identus_did::MAX_DID_URL_BYTES: usize
+pub const identus_did::MAX_DID_URL_SUFFIX_BYTES: usize
 pub const identus_did::MAX_DOCUMENT_ITEMS: usize
 pub const identus_did::MAX_EXTENSION_DEPTH: usize
 pub const identus_did::MAX_EXTENSION_NODES: usize

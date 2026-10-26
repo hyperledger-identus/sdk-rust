@@ -4,7 +4,9 @@
 
 use std::{fmt::Display, str::FromStr, sync::Once};
 
-use identus_did::{Did, DidUrl, MAX_DID_BYTES, MAX_DID_URL_BYTES};
+use identus_did::{
+    Did, DidUrl, MAX_DID_BYTES, MAX_DID_URL_BYTES, MAX_DID_URL_SUFFIX_BYTES,
+};
 use serde_json::{from_str, to_string};
 
 static DID_BOUNDARY_PROBE: Once = Once::new();
@@ -26,8 +28,9 @@ pub(crate) fn assert_did_resource_boundaries() {
 
 pub(crate) fn assert_did_url_resource_boundaries() {
     DID_URL_BOUNDARY_PROBE.call_once(|| {
-        let prefix = "did:example:a/";
-        let exact = format!("{prefix}{}", "b".repeat(MAX_DID_URL_BYTES - prefix.len()));
+        let prefix = "did:example:";
+        let did = format!("{prefix}{}", "a".repeat(MAX_DID_BYTES - prefix.len()));
+        let exact = format!("{did}/{}", "b".repeat(MAX_DID_URL_SUFFIX_BYTES - 1));
         let over = format!("{exact}b");
         assert!(exact.len() == MAX_DID_URL_BYTES, "DID URL exact-limit probe drifted");
         assert!(

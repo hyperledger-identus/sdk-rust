@@ -1,7 +1,9 @@
 use std::hint::black_box;
 
 use identus_core::ErrorKind;
-use identus_did::{Did, DidSyntaxError, DidUrl, Error, MAX_DID_BYTES, MAX_DID_URL_BYTES};
+use identus_did::{
+    Did, DidSyntaxError, DidUrl, Error, MAX_DID_BYTES, MAX_DID_URL_BYTES, MAX_DID_URL_SUFFIX_BYTES,
+};
 
 #[test]
 fn accepts_w3c_and_consumer_shaped_dids() {
@@ -173,6 +175,18 @@ fn exact_byte_limits_are_enforced() {
         Err(Error::InvalidDidUrl(DidSyntaxError::TooLong))
     ));
 
+    let short_did = "did:example:a";
+    let at_suffix_limit = format!("{short_did}/{}", "a".repeat(MAX_DID_URL_SUFFIX_BYTES - 1));
+    assert_eq!(
+        at_suffix_limit.len() - short_did.len(),
+        MAX_DID_URL_SUFFIX_BYTES
+    );
+    assert!(DidUrl::parse(&at_suffix_limit).is_ok());
+    assert!(matches!(
+        DidUrl::parse(&format!("{at_suffix_limit}a")),
+        Err(Error::InvalidDidUrl(DidSyntaxError::TooLong))
+    ));
+
     let oversized_embedded_did = format!("{prefix}{}", "a".repeat(MAX_DID_BYTES));
     assert!(matches!(
         DidUrl::parse(&oversized_embedded_did),
@@ -315,6 +329,12 @@ fn did_url_ascii_component_grammar_is_exhaustive() {
 #[ignore = "manual release-mode throughput diagnostic"]
 fn parser_throughput_diagnostic() {
     let prefix = "did:prism:state/credentials/active?limit=20#key-1";
+    let did_prefix = "did:prism:";
+    let maximum_did = format!(
+        "{did_prefix}{}",
+        "a".repeat(MAX_DID_BYTES - did_prefix.len())
+    );
+    let maximum = format!("{maximum_did}/{}", "a".repeat(MAX_DID_URL_SUFFIX_BYTES - 1));
     let cases = [
         ("ordinary", prefix.to_owned(), 500_000_u64),
         (
@@ -327,11 +347,7 @@ fn parser_throughput_diagnostic() {
             format!("{prefix}{}", "a".repeat(100 * 1_024 - prefix.len())),
             2_000,
         ),
-        (
-            "maximum",
-            format!("{prefix}{}", "a".repeat(MAX_DID_URL_BYTES - prefix.len())),
-            1_000,
-        ),
+        ("maximum", maximum, 1_000),
     ];
 
     for (label, value, iterations) in cases {

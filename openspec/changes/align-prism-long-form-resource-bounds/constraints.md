@@ -16,6 +16,8 @@ ceiling is superseded; its validated-newtype ownership remains unchanged.
 
 - `MAX_DID_BYTES` is the literal public value 131,072.
 - `MAX_DID_URL_BYTES` is the literal public value 139,264.
+- `MAX_DID_URL_SUFFIX_BYTES` is the literal public value 8,192 and bounds the
+  combined path, query, and fragment bytes independently of bare-DID length.
 - `MAX_URI_BYTES` is the literal public value 139,264 so every valid `DidUrl`
   remains a valid `Uri` after the existing infallible conversion.
 - `MAX_DID_METHOD_BYTES` remains independently fixed at 2,042.

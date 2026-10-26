@@ -1,53 +1,53 @@
 [[modified_requirement]]
-capability        = "did-core"
-requirement       = "Bounded single-pass parsing and component views"
-canonical_sha256  = "50a9c362844113ba0a3f464a6ac45de79a59178151c787b5b9833c00ec0502ba"
-reason            = "Replace the old 2 KiB and 4 KiB lexical ceilings with measured finite envelopes while preserving the parser and candidate-replacement rules."
+capability       = "did-core"
+requirement      = "Bounded single-pass parsing and component views"
+canonical_sha256 = "50a9c362844113ba0a3f464a6ac45de79a59178151c787b5b9833c00ec0502ba"
+reason           = "Replace the old 2 KiB and 4 KiB lexical ceilings with measured finite envelopes while preserving the parser and candidate-replacement rules."
 
 [[modified_requirement]]
-capability        = "did-core"
-requirement       = "Bounded normalized DID resolution cache identity"
-canonical_sha256  = "1855cd090192f7e1ae0ee25fa861815ee24777a7b3ab71f8cb12f2a2bcc52f7a"
-reason            = "Make a valid request above the independent cache retention budget an explicit observable bypass rather than a failure-mode-dependent outcome."
+capability       = "did-core"
+requirement      = "Bounded normalized DID resolution cache identity"
+canonical_sha256 = "1855cd090192f7e1ae0ee25fa861815ee24777a7b3ab71f8cb12f2a2bcc52f7a"
+reason           = "Make a valid request above the independent cache retention budget an explicit observable bypass rather than a failure-mode-dependent outcome."
 
 [[modified_requirement]]
-capability        = "did-core"
-requirement       = "Bounded absolute URI value"
-canonical_sha256  = "abafee2105f1c1dc084ef485e5606f66b19defae93281164b3a50cb445f393c9"
-reason            = "Raise the URI envelope with DID URL so infallible conversions remain valid and long-form-prefixed DID document identifiers can be projected."
+capability       = "did-core"
+requirement      = "Bounded absolute URI value"
+canonical_sha256 = "abafee2105f1c1dc084ef485e5606f66b19defae93281164b3a50cb445f393c9"
+reason           = "Raise the URI envelope with DID URL so infallible conversions remain valid and long-form-prefixed DID document identifiers can be projected."
 
 [[modified_requirement]]
-capability        = "did-core"
-requirement       = "Bounded standalone DID method value"
-canonical_sha256  = "f47be6ce1f82b87fab1b7b8929b09303c2e85542d3f229abb8f71b60d345c1b2"
-reason            = "Preserve the existing method-name ceiling independently instead of deriving it from the newly enlarged enclosing DID budget."
+capability       = "did-core"
+requirement      = "Bounded standalone DID method value"
+canonical_sha256 = "f47be6ce1f82b87fab1b7b8929b09303c2e85542d3f229abb8f71b60d345c1b2"
+reason           = "Preserve the existing method-name ceiling independently instead of deriving it from the newly enlarged enclosing DID budget."
 
 [[modified_requirement]]
-capability        = "did-core"
-requirement       = "Opt-in caching resolver policy"
-canonical_sha256  = "4bf9203b6c8182fbf90d5b26f7bfda5cb7f10cda2314b2bf48a41615b9d2b22a"
-reason            = "Classify an oversized normalized cache identity as an intentional pre-infrastructure bypass under both cache failure modes."
+capability       = "did-core"
+requirement      = "Opt-in caching resolver policy"
+canonical_sha256 = "4bf9203b6c8182fbf90d5b26f7bfda5cb7f10cda2314b2bf48a41615b9d2b22a"
+reason           = "Classify an oversized normalized cache identity as an intentional pre-infrastructure bypass under both cache failure modes."
 
 [[modified_requirement]]
-capability        = "did-core"
-requirement       = "Redaction-safe cache observability and concurrency"
-canonical_sha256  = "0a645744cc73148547e1a37ada2f5a450c74ec0ff071cfc58d9e6627cf0cf938"
-reason            = "Add the redaction-safe key-budget-bypass outcome to the exhaustive observable cache status contract."
+capability       = "did-core"
+requirement      = "Redaction-safe cache observability and concurrency"
+canonical_sha256 = "0a645744cc73148547e1a37ada2f5a450c74ec0ff071cfc58d9e6627cf0cf938"
+reason           = "Add the redaction-safe key-budget-bypass outcome to the exhaustive observable cache status contract."
 
 [[modified_requirement]]
-capability        = "did-core"
-requirement       = "Independently evidenced URI recognition"
-canonical_sha256  = "785a246b7611bf4affa6efb0be79fafbabae51e7e2dad2b6ac9cdc67c0cfb18b"
-reason            = "Align the independent URI-oracle evidence requirement with the raised finite URI ceiling used by infallible DID URL conversion."
+capability       = "did-core"
+requirement      = "Independently evidenced URI recognition"
+canonical_sha256 = "785a246b7611bf4affa6efb0be79fafbabae51e7e2dad2b6ac9cdc67c0cfb18b"
+reason           = "Align the independent URI-oracle evidence requirement with the raised finite URI ceiling used by infallible DID URL conversion."
 
 [[modified_requirement]]
-capability        = "native-did-bindings"
-requirement       = "Native DID failures are bounded and redacted"
-canonical_sha256  = "4c574b62491182981aadb392aa82340713f46772e9da1466eb14440bf830a8b3"
-reason            = "Keep the native facade contract aligned with the enlarged finite limits enforced by its generic DID domain dependency."
+capability       = "native-did-bindings"
+requirement      = "Native DID failures are bounded and redacted"
+canonical_sha256 = "4c574b62491182981aadb392aa82340713f46772e9da1466eb14440bf830a8b3"
+reason           = "Keep the native facade contract aligned with the enlarged finite limits enforced by its generic DID domain dependency."
 
 [[modified_requirement]]
-capability        = "browser-did-bindings"
-requirement       = "Browser failures remain bounded and redacted"
-canonical_sha256  = "73f72eb4dbcfcbcef7dcb494af6f3a3b13d7851e965b44e33d22c627a3a3238d"
-reason            = "Keep the browser facade contract aligned with the enlarged finite limits enforced by its generic DID domain dependency."
+capability       = "browser-did-bindings"
+requirement      = "Browser failures remain bounded and redacted"
+canonical_sha256 = "73f72eb4dbcfcbcef7dcb494af6f3a3b13d7851e965b44e33d22c627a3a3238d"
+reason           = "Keep the browser facade contract aligned with the enlarged finite limits enforced by its generic DID domain dependency."

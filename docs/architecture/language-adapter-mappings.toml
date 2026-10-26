@@ -7,15 +7,15 @@ canonical_owner  = "sdk-rust"
 [[canonical_sources]]
 id                 = "did.source.identus-did.v1"
 owner_issue        = 512
-state              = "active"
+state              = "pending-revision"
 canonical_crate    = "identus-did"
-canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"
+canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"
 path               = "crates/did/src/did.rs"
 file_mode          = "100644"
-byte_length        = 12528
-sha256             = "8d85e03603c7e1d8d114681e6820b49266beed5110f5983d076e4fa57508ad79"
+byte_length        = 13161
+sha256             = "89fa144cbe94391c5403c1363a005266bfee5728adbc3958ad605f7d94676753"
 git_object_format  = "sha1"
-git_blob_oid       = "6cbdc95ffdc04adf349ccb675688799ab6ef9c83"
+git_blob_oid       = "18132b1f388abd1cac9a0bf6fb14935604e089f6"
 
 [[mappings]]
 id = "did.value.typescript.legacy-v1"
@@ -55,7 +55,7 @@ vector_ids = [
 ]
 rust_selectors = [ "identus_did::Did", "cross_language_did_vectors::portable_did_packet_matches_identus_did" ]
 language_selectors = [ "packages/lib/sdk/tests/castor/DIDParser.test.ts" ]
-max_input_bytes = 2048
+max_input_bytes = 131072
 redaction = "caller-input"
 sensitive_fields = [  ]
 async_ownership = "not-applicable"
@@ -134,7 +134,7 @@ vector_ids = [
 ]
 rust_selectors = [ "identus_did::DidUrl", "cross_language_did_vectors::portable_did_packet_matches_identus_did" ]
 language_selectors = [ "packages/lib/sdk/tests/castor/DIDUrlParser.test.ts" ]
-max_input_bytes = 4096
+max_input_bytes = 139264
 redaction = "caller-input"
 sensitive_fields = [  ]
 async_ownership = "not-applicable"
@@ -252,7 +252,7 @@ vector_ids = [
 ]
 rust_selectors = [ "identus_did::Error::to_identus_error", "cross_language_did_vectors::portable_did_packet_matches_identus_did" ]
 language_selectors = [ "packages/shared/domain/src/models/errors/Castor.ts:InvalidDIDString" ]
-max_input_bytes = 2048
+max_input_bytes = 131072
 redaction = "caller-input"
 sensitive_fields = [ "rejected-input" ]
 async_ownership = "not-applicable"
@@ -314,7 +314,7 @@ vector_ids = [
 ]
 rust_selectors = [ "identus_did::Error::to_identus_error", "cross_language_did_vectors::portable_did_packet_matches_identus_did" ]
 language_selectors = [ "packages/lib/sdk/src/castor/parser/DIDUrlParser.ts" ]
-max_input_bytes = 4096
+max_input_bytes = 139264
 redaction = "caller-input"
 sensitive_fields = [ "rejected-input" ]
 async_ownership = "not-applicable"

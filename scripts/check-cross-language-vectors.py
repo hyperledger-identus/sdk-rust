@@ -51,6 +51,7 @@ CONSUMER_SELECTORS = {
     "sdk-swift.did-parser": "DIDParserTests.swift:testValidDIDs",
     "sdk-kmp.did-parser": "DIDParserTest.kt:it_should_test_valid_DIDs",
 }
+MAX_GENERATED_REPEAT = 262_144
 
 
 def exact_keys(value: object, expected: set[str], label: str, errors: list[str]) -> bool:
@@ -133,8 +134,10 @@ def validate_input(value: object, label: str, errors: list[str]) -> str | None:
     if len(repeated) != 1:
         errors.append(f"{label}.generated.repeat must be exactly one ASCII character")
         return None
-    if not isinstance(count, int) or isinstance(count, bool) or not 0 <= count <= 10_000:
-        errors.append(f"{label}.generated.count must be an integer from 0 through 10000")
+    if not isinstance(count, int) or isinstance(count, bool) or not 0 <= count <= MAX_GENERATED_REPEAT:
+        errors.append(
+            f"{label}.generated.count must be an integer from 0 through {MAX_GENERATED_REPEAT}"
+        )
         return None
     return prefix + repeated * count + suffix
 

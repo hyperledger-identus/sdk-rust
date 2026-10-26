@@ -1,7 +1,10 @@
 use std::hint::black_box;
 
 use identus_core::ErrorKind;
-use identus_did::{Did, DidSyntaxError, DidUrl, Error, MAX_DID_BYTES, MAX_DID_URL_BYTES};
+use identus_did::{
+    Did, DidSyntaxError, DidUrl, Error, MAX_DID_BYTES, MAX_DID_METHOD_BYTES, MAX_DID_URL_BYTES,
+    MAX_DID_URL_SUFFIX_BYTES,
+};
 
 #[test]
 fn accepts_w3c_and_consumer_shaped_dids() {
@@ -173,9 +176,57 @@ fn exact_byte_limits_are_enforced() {
         Err(Error::InvalidDidUrl(DidSyntaxError::TooLong))
     ));
 
+    let short_did = "did:example:a";
+    let at_suffix_limit = format!("{short_did}/{}", "a".repeat(MAX_DID_URL_SUFFIX_BYTES - 1));
+    assert_eq!(
+        at_suffix_limit.len() - short_did.len(),
+        MAX_DID_URL_SUFFIX_BYTES
+    );
+    assert!(DidUrl::parse(&at_suffix_limit).is_ok());
+    assert!(matches!(
+        DidUrl::parse(&format!("{at_suffix_limit}a")),
+        Err(Error::InvalidDidUrl(DidSyntaxError::TooLong))
+    ));
+
     let oversized_embedded_did = format!("{prefix}{}", "a".repeat(MAX_DID_BYTES));
     assert!(matches!(
         DidUrl::parse(&oversized_embedded_did),
+        Err(Error::InvalidDidUrl(DidSyntaxError::TooLong))
+    ));
+}
+
+#[test]
+fn embedded_method_uses_the_independent_method_ceiling() {
+    let at_limit = format!("did:{}:a", "a".repeat(MAX_DID_METHOD_BYTES));
+    assert_eq!(
+        Did::parse(&at_limit).unwrap().method().len(),
+        MAX_DID_METHOD_BYTES
+    );
+    assert_eq!(
+        DidUrl::parse(&format!("{at_limit}/path"))
+            .unwrap()
+            .method()
+            .len(),
+        MAX_DID_METHOD_BYTES
+    );
+
+    let one_over = format!("did:{}:a", "a".repeat(MAX_DID_METHOD_BYTES + 1));
+    assert!(matches!(
+        Did::parse(&one_over),
+        Err(Error::InvalidDid(DidSyntaxError::TooLong))
+    ));
+    assert!(matches!(
+        DidUrl::parse(&format!("{one_over}/path")),
+        Err(Error::InvalidDidUrl(DidSyntaxError::TooLong))
+    ));
+
+    let one_over_with_late_invalid = format!("did:{}A:x", "a".repeat(MAX_DID_METHOD_BYTES));
+    assert!(matches!(
+        Did::parse(&one_over_with_late_invalid),
+        Err(Error::InvalidDid(DidSyntaxError::TooLong))
+    ));
+    assert!(matches!(
+        DidUrl::parse(&format!("{one_over_with_late_invalid}/path")),
         Err(Error::InvalidDidUrl(DidSyntaxError::TooLong))
     ));
 }
@@ -314,17 +365,40 @@ fn did_url_ascii_component_grammar_is_exhaustive() {
 #[test]
 #[ignore = "manual release-mode throughput diagnostic"]
 fn parser_throughput_diagnostic() {
-    const ITERATIONS: u64 = 500_000;
-    const VALUE: &str =
-        "did:midnight:undeployed:network:holder_1/credentials/active?limit=20#key-1";
-
-    let started = std::time::Instant::now();
-    for _ in 0..ITERATIONS {
-        black_box(DidUrl::parse(black_box(VALUE)).unwrap());
-    }
-    let elapsed = started.elapsed();
-    let parses_per_second = ITERATIONS as f64 / elapsed.as_secs_f64();
-    eprintln!(
-        "DID URL parser diagnostic: {ITERATIONS} parses in {elapsed:?} ({parses_per_second:.0} parses/s)"
+    let prefix = "did:prism:state/credentials/active?limit=20#key-1";
+    let did_prefix = "did:prism:";
+    let maximum_did = format!(
+        "{did_prefix}{}",
+        "a".repeat(MAX_DID_BYTES - did_prefix.len())
     );
+    let maximum = format!("{maximum_did}/{}", "a".repeat(MAX_DID_URL_SUFFIX_BYTES - 1));
+    let cases = [
+        ("ordinary", prefix.to_owned(), 500_000_u64),
+        (
+            "40KiB",
+            format!("{prefix}{}", "a".repeat(40 * 1_024 - prefix.len())),
+            5_000,
+        ),
+        (
+            "100KiB",
+            format!("{prefix}{}", "a".repeat(100 * 1_024 - prefix.len())),
+            2_000,
+        ),
+        ("maximum", maximum, 1_000),
+    ];
+
+    for (label, value, iterations) in cases {
+        let started = std::time::Instant::now();
+        for _ in 0..iterations {
+            black_box(DidUrl::parse(black_box(&value)).unwrap());
+        }
+        let elapsed = started.elapsed();
+        let scanned_mib = value.len() as f64 * iterations as f64 / (1_024.0 * 1_024.0);
+        eprintln!(
+            "DID URL parser diagnostic ({label}, {} bytes): {iterations} parses in {elapsed:?} ({:.0} parses/s, {:.1} MiB/s)",
+            value.len(),
+            iterations as f64 / elapsed.as_secs_f64(),
+            scanned_mib / elapsed.as_secs_f64(),
+        );
+    }
 }

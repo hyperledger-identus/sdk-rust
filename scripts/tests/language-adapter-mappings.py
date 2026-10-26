@@ -263,7 +263,9 @@ def main() -> None:
             'id                 = "invalid source id"',
         ),
         replace_once(registry, "owner_issue        = 512", "owner_issue        = 999"),
-        replace_once(registry, 'state              = "active"', 'state              = "planned"'),
+        replace_once(
+            registry, 'state              = "pending-revision"', 'state              = "planned"'
+        ),
     ):
         run(mutation, rendered, False)
     prefix = registry[: registry.index("[[mappings]]")]
@@ -304,7 +306,7 @@ def main() -> None:
         replace_once(registry, 'canonical_owner  = "sdk-rust"', 'canonical_owner  = "sdk-ts"'),
         replace_first(
             registry,
-            'canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"',
+            'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
             'canonical_revision = "develop"',
         ),
         replace_first(registry, 'language_version = "8.1.4"', 'language_version = "8.1"'),
@@ -320,7 +322,7 @@ def main() -> None:
             'id = "did.value.typescript.legacy-v1"',
             'id = "did.value.typescript.renamed-v1"',
         ),
-        replace_first(registry, "max_input_bytes = 2048", "max_input_bytes = 0"),
+        replace_first(registry, "max_input_bytes = 131072", "max_input_bytes = 0"),
         replace_first(
             registry,
             'canonical_bound_symbol = "MAX_DID_BYTES"',
@@ -394,12 +396,12 @@ def main() -> None:
         False,
         expect_diagnostic="file_mode does not match the source executable bit",
     )
-    run(replace_once(registry, "byte_length        = 12528", "byte_length        = 12527"), rendered, False)
+    run(replace_once(registry, "byte_length        = 13161", "byte_length        = 13160"), rendered, False)
     run(
         replace_once(
             registry,
-            'sha256             = "8d85e03603c7e1d8d114681e6820b49266beed5110f5983d076e4fa57508ad79"',
-            'sha256             = "0d85e03603c7e1d8d114681e6820b49266beed5110f5983d076e4fa57508ad79"',
+            'sha256             = "89fa144cbe94391c5403c1363a005266bfee5728adbc3958ad605f7d94676753"',
+            'sha256             = "07d6a6002d09d6d6f294b09234b765299061b82873ee860e422ecfe5a5a70246"',
         ),
         rendered,
         False,
@@ -408,8 +410,8 @@ def main() -> None:
     run(
         replace_once(
             registry,
-            'git_blob_oid       = "6cbdc95ffdc04adf349ccb675688799ab6ef9c83"',
-            'git_blob_oid       = "0cbdc95ffdc04adf349ccb675688799ab6ef9c83"',
+            'git_blob_oid       = "18132b1f388abd1cac9a0bf6fb14935604e089f6"',
+            'git_blob_oid       = "0dacbf7174452e07ccd6fcd89a7f90badd23d2be"',
         ),
         rendered,
         False,
@@ -671,7 +673,11 @@ def main() -> None:
     )
 
     # Canonical bounds are literal, unique, bounded, and cannot escape via symlinks.
-    run(replace_first(registry, "max_input_bytes = 2048", "max_input_bytes = 2049"), rendered, False)
+    run(
+        replace_first(registry, "max_input_bytes = 131072", "max_input_bytes = 131073"),
+        rendered,
+        False,
+    )
     run(
         replace_first(registry, 'path               = "crates/did/src/did.rs"', 'path               = "../did.rs"'),
         rendered,
@@ -754,7 +760,7 @@ def main() -> None:
     def invalid_utf8(root: Path) -> None:
         target = root / "crates/did/src/evidence/invalid-utf8.rs"
         target.parent.mkdir(parents=True)
-        target.write_bytes(b"pub const MAX_DID_BYTES: usize = 2048;\n\xff")
+        target.write_bytes(b"pub const MAX_DID_BYTES: usize = 131072;\n\xff")
 
     invalid_utf8_result = run(
         invalid_utf8_registry, rendered, False, setup=invalid_utf8
@@ -770,7 +776,9 @@ def main() -> None:
     def oversized(root: Path) -> None:
         target = root / "crates/did/src/evidence/oversized.rs"
         target.parent.mkdir(parents=True)
-        target.write_bytes(b"pub const MAX_DID_BYTES: usize = 2048;\n" + b" " * (2 * 1024 * 1024))
+        target.write_bytes(
+            b"pub const MAX_DID_BYTES: usize = 131072;\n" + b" " * (2 * 1024 * 1024)
+        )
 
     run(oversized_registry, rendered, False, setup=oversized)
     wrong_crate_registry = replace_first(
@@ -779,7 +787,7 @@ def main() -> None:
         'path               = "crates/core/src/url.rs"',
     )
     wrong_crate_registry = replace_first(
-        wrong_crate_registry, "max_input_bytes = 2048", "max_input_bytes = 8192"
+        wrong_crate_registry, "max_input_bytes = 131072", "max_input_bytes = 8192"
     )
     run(wrong_crate_registry, rendered, False)
     same_crate_registry = replace_first(
@@ -788,7 +796,7 @@ def main() -> None:
         'canonical_bound_symbol = "MAX_DID_URL_BYTES"',
     )
     same_crate_registry = replace_first(
-        same_crate_registry, "max_input_bytes = 2048", "max_input_bytes = 4096"
+        same_crate_registry, "max_input_bytes = 131072", "max_input_bytes = 4096"
     )
     run(same_crate_registry, rendered, False)
 
@@ -920,6 +928,9 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         'path               = "crates/did/src/did.rs"',
         'path               = "crates/did/src/evidence/moved.rs"',
     )
+    active_moved_registry = replace_once(
+        moved_registry, 'state              = "pending-revision"', 'state              = "active"'
+    )
 
     def moved_source(root: Path) -> None:
         original = root / "crates/did/src/did.rs"
@@ -942,22 +953,20 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"',
+                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
                 f'canonical_revision = "{revision}"',
             ),
             encoding="utf-8",
         )
 
     run(
-        moved_registry,
+        active_moved_registry,
         rendered,
         False,
         setup=moved_source,
         expect_diagnostic="canonical_revision path must resolve to git_blob_oid",
     )
-    pending_moved_registry = replace_once(
-        moved_registry, 'state              = "active"', 'state              = "pending-revision"'
-    )
+    pending_moved_registry = moved_registry
     first_commit_args = lambda root: [
         "--pr-base",
         subprocess.run(
@@ -969,7 +978,7 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         ).stdout.strip(),
     ]
     run(
-        moved_registry,
+        active_moved_registry,
         rendered,
         False,
         setup=moved_source,
@@ -1060,16 +1069,14 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"',
+                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
                 f'canonical_revision = "{revision}"',
             ),
             encoding="utf-8",
         )
 
     run(
-        replace_once(
-            registry, 'state              = "active"', 'state              = "pending-revision"'
-        ),
+        registry,
         rendered,
         False,
         setup=unchanged_pending,
@@ -1084,7 +1091,9 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
 
     run(
-        registry,
+        replace_once(
+            registry, 'state              = "pending-revision"', 'state              = "active"'
+        ),
         rendered,
         False,
         setup=unrelated_git_history,
@@ -1118,14 +1127,16 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"',
+                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
                 f'canonical_revision = "{revision}"',
             ),
             encoding="utf-8",
         )
 
     run(
-        registry,
+        replace_once(
+            registry, 'state              = "pending-revision"', 'state              = "active"'
+        ),
         rendered,
         False,
         setup=feature_only_active_revision,
@@ -1156,7 +1167,7 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "5da04223c1c4e029cb368870877e56d699d40388"',
+                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
                 f'canonical_revision = "{side}"',
             ),
             encoding="utf-8",

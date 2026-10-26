@@ -1,9 +1,10 @@
 use std::{collections::BTreeMap, hint::black_box, time::Instant};
 
 use identus_did::{
-    ContextEntry, ContextObject, Did, DidDocument, DocumentError, Error, MAX_DID_DOCUMENT_BYTES,
-    MAX_DOCUMENT_ITEMS, MAX_EXTENSION_DEPTH, MAX_EXTENSION_NODES, MAX_URI_BYTES, OneOrMany,
-    Service, ServiceEndpoint, Uri, UriSyntaxError, VerificationMethod, VerificationRelationship,
+    ContextEntry, ContextObject, Did, DidDocument, DidUrl, DocumentError, Error, MAX_DID_BYTES,
+    MAX_DID_DOCUMENT_BYTES, MAX_DID_URL_BYTES, MAX_DID_URL_SUFFIX_BYTES, MAX_DOCUMENT_ITEMS,
+    MAX_EXTENSION_DEPTH, MAX_EXTENSION_NODES, MAX_URI_BYTES, OneOrMany, Service, ServiceEndpoint,
+    Uri, UriSyntaxError, VerificationMethod, VerificationRelationship,
 };
 use serde_json::{Value, json};
 
@@ -122,6 +123,20 @@ fn uri_accepts_generic_absolute_schemes_and_preserves_allocation() {
     let pointer = did.as_str().as_ptr();
     let uri = Uri::from(did);
     assert_eq!(uri.as_str().as_ptr(), pointer);
+
+    let prefix = "did:prism:";
+    let did = format!("{prefix}{}", "a".repeat(MAX_DID_BYTES - prefix.len()));
+    let long_did_url = DidUrl::parse(&format!(
+        "{did}/{}",
+        "a".repeat(MAX_DID_URL_SUFFIX_BYTES - 1)
+    ))
+    .unwrap();
+    let long_uri = Uri::from(long_did_url);
+    assert_eq!(long_uri.as_str().len(), MAX_DID_URL_BYTES);
+    assert_eq!(
+        long_uri.to_did_url().unwrap().as_str().len(),
+        MAX_DID_URL_BYTES
+    );
 }
 
 #[test]
@@ -588,4 +603,37 @@ fn document_parse_throughput_diagnostic() {
     eprintln!(
         "scanned and parsed {ITERATIONS} representative DID documents in {elapsed:?} ({per_second:.0} documents/s)"
     );
+}
+
+#[test]
+#[ignore = "manual release-mode performance diagnostic"]
+fn uri_parse_throughput_diagnostic() {
+    let prefix = "did:prism:a/";
+    let cases = [
+        (
+            "ordinary",
+            "https://example.com/path".to_owned(),
+            500_000_u64,
+        ),
+        (
+            "maximum",
+            format!("{prefix}{}", "a".repeat(MAX_URI_BYTES - prefix.len())),
+            1_000,
+        ),
+    ];
+
+    for (label, value, iterations) in cases {
+        let started = Instant::now();
+        for _ in 0..iterations {
+            black_box(Uri::parse(black_box(&value)).unwrap());
+        }
+        let elapsed = started.elapsed();
+        let scanned_mib = value.len() as f64 * iterations as f64 / (1_024.0 * 1_024.0);
+        eprintln!(
+            "URI parser diagnostic ({label}, {} bytes): {iterations} parses in {elapsed:?} ({:.0} parses/s, {:.1} MiB/s)",
+            value.len(),
+            iterations as f64 / elapsed.as_secs_f64(),
+            scanned_mib / elapsed.as_secs_f64(),
+        );
+    }
 }

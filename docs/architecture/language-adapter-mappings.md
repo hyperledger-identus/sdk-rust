@@ -12,7 +12,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 | Source | State | Cargo package | Revision | Path | Bytes | SHA-256 | Git blob |
 | --- | --- | --- | --- | --- | ---: | --- | --- |
-| `did.source.identus-did.v1` | `active` | `identus-did` | `5da04223c1c4e029cb368870877e56d699d40388` | `crates/did/src/did.rs` | 12528 | `8d85e03603c7e1d8d114681e6820b49266beed5110f5983d076e4fa57508ad79` | `sha1:6cbdc95ffdc04adf349ccb675688799ab6ef9c83` |
+| `did.source.identus-did.v1` | `pending-revision` | `identus-did` | `ee972c49bbec75582eba213ac85903f146dfc2c4` | `crates/did/src/did.rs` | 13161 | `89fa144cbe94391c5403c1363a005266bfee5728adbc3958ad605f7d94676753` | `sha1:18132b1f388abd1cac9a0bf6fb14935604e089f6` |
 
 ## Mappings
 
@@ -27,7 +27,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
 - Cargo package: `identus-did`.
-- Rust API: `identus_did::Did` from source `did.source.identus-did.v1` at `5da04223c1c4e029cb368870877e56d699d40388` (unreleased-workspace-0.0.0).
+- Rust API: `identus_did::Did` from source `did.source.identus-did.v1` at `ee972c49bbec75582eba213ac85903f146dfc2c4` (unreleased-workspace-0.0.0).
 - Canonical semantics: Validated immutable DID preserving the exact serialized value, method, and method-specific identifier.
 - Canonical bound: `MAX_DID_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `DID`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/shared/domain/src/models/DID.ts`.
@@ -35,7 +35,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: deprecated, bidirectional, lossless; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
-- Resource policy: at most 2048 bytes; redaction `caller-input`; sensitive fields: none.
+- Resource policy: at most 131072 bytes; redaction `caller-input`; sensitive fields: none.
 - Ownership: async `not-applicable`; cancellation `not-applicable`.
 - Migration: Construct the Rust value first, then project the legacy DTO until SDK-TS exposes a canonical-value facade.
 - Replacement: SDK-TS additive DID facade backed by the serialized Rust value and stable error code.
@@ -60,7 +60,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
 - Cargo package: `identus-did`.
-- Rust API: `identus_did::DidUrl` from source `did.source.identus-did.v1` at `5da04223c1c4e029cb368870877e56d699d40388` (unreleased-workspace-0.0.0).
+- Rust API: `identus_did::DidUrl` from source `did.source.identus-did.v1` at `ee972c49bbec75582eba213ac85903f146dfc2c4` (unreleased-workspace-0.0.0).
 - Canonical semantics: Validated immutable DID URL preserving exact serialization and absent-versus-empty query and fragment state.
 - Canonical bound: `MAX_DID_URL_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `DIDUrl`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/shared/domain/src/models/DIDUrl.ts`.
@@ -68,7 +68,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
-- Resource policy: at most 4096 bytes; redaction `caller-input`; sensitive fields: none.
+- Resource policy: at most 139264 bytes; redaction `caller-input`; sensitive fields: none.
 - Ownership: async `not-applicable`; cancellation `not-applicable`.
 - Migration: Use Rust as the parser and source of truth; reject unsupported reverse projection and introduce an additive exact-value facade.
 - Replacement: SDK-TS additive DID URL facade preserving serialized, raw query, and presence state.
@@ -109,7 +109,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `error`.
 - Cargo package: `identus-did`.
-- Rust API: `identus_did::Error::to_identus_error` from source `did.source.identus-did.v1` at `5da04223c1c4e029cb368870877e56d699d40388` (unreleased-workspace-0.0.0).
+- Rust API: `identus_did::Error::to_identus_error` from source `did.source.identus-did.v1` at `ee972c49bbec75582eba213ac85903f146dfc2c4` (unreleased-workspace-0.0.0).
 - Canonical semantics: Stable public invalid-DID code with InvalidInput kind, did capability, and redacted caller input.
 - Canonical bound: `MAX_DID_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `CastorError.InvalidDIDString`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/shared/domain/src/models/errors/Castor.ts`.
@@ -117,7 +117,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
-- Resource policy: at most 2048 bytes; redaction `caller-input`; sensitive fields: `rejected-input`.
+- Resource policy: at most 131072 bytes; redaction `caller-input`; sensitive fields: `rejected-input`.
 - Ownership: async `not-applicable`; cancellation `not-applicable`.
 - Migration: Expose the stable Rust code beside the legacy class, then migrate callers from class/message matching to the code.
 - Replacement: SDK-TS adapter error carrying did.invalid_did with a redacted legacy class facade.
@@ -145,7 +145,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `error`.
 - Cargo package: `identus-did`.
-- Rust API: `identus_did::Error::to_identus_error` from source `did.source.identus-did.v1` at `5da04223c1c4e029cb368870877e56d699d40388` (unreleased-workspace-0.0.0).
+- Rust API: `identus_did::Error::to_identus_error` from source `did.source.identus-did.v1` at `ee972c49bbec75582eba213ac85903f146dfc2c4` (unreleased-workspace-0.0.0).
 - Canonical semantics: Stable public invalid-DID-URL code with InvalidInput kind, did capability, and redacted caller input.
 - Canonical bound: `MAX_DID_URL_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `CastorError.InvalidDIDString`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/lib/sdk/src/castor/parser/DIDUrlParser.ts`.
@@ -153,7 +153,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
-- Resource policy: at most 4096 bytes; redaction `caller-input`; sensitive fields: `rejected-input`.
+- Resource policy: at most 139264 bytes; redaction `caller-input`; sensitive fields: `rejected-input`.
 - Ownership: async `not-applicable`; cancellation `not-applicable`.
 - Migration: Expose the distinct stable Rust code beside the shared legacy class, then migrate callers from class/message matching.
 - Replacement: SDK-TS adapter error carrying did.invalid_did_url with a redacted legacy class facade.

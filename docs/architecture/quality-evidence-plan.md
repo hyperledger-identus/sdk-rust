@@ -27,9 +27,9 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `property`
 
 - Command: `cargo test -p identus-did --test did_syntax`
-- Budget: Exhaust ASCII bytes 0..127 in each grammar position and verify exact 2,048-byte DID and 4,096-byte DID URL limits.
+- Budget: Exhaust ASCII bytes 0..127 in each grammar position and verify exact 131,072-byte DID and 139,264-byte DID URL limits.
 - Receipt: `source:crates/did/tests/did_syntax.rs`
-- Evidence revision: `d3543e3eec42dd519c57a7250950c01fa628145a`
+- Evidence revision: `a2683961fb07305d12e96fbcabdb07bb7c0cbab8`
 
 ### `fuzz`
 
@@ -47,4 +47,4 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo test -p identus-conformance --test cross_language_did_vectors`
 - Budget: Evaluate all 22 immutable DID syntax packet cases without network access or an unpublished consumer dependency.
 - Receipt: `source:crates/conformance/tests/cross_language_did_vectors.rs`
-- Evidence revision: `d3543e3eec42dd519c57a7250950c01fa628145a`
+- Evidence revision: `a2683961fb07305d12e96fbcabdb07bb7c0cbab8`

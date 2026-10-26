@@ -591,6 +591,33 @@ fn backend_and_clock_failures_follow_explicit_policy() {
 }
 
 #[test]
+fn valid_request_larger_than_cache_key_budget_bypasses_every_failure_mode() {
+    let prefix = "did:prism:";
+    let did = Did::parse(&format!(
+        "{prefix}{}",
+        "a".repeat(MAX_DID_RESOLUTION_CACHE_KEY_BYTES - prefix.len() + 1)
+    ))
+    .unwrap();
+    let options = ResolutionOptions::empty();
+
+    for mode in [CacheFailureMode::Bypass, CacheFailureMode::FailClosed] {
+        let resolver = Arc::new(FixedResolver::new(success(&did, "origin", None)));
+        let cache = Arc::new(MemoryCache::new(16));
+        let clock = Arc::new(FakeClock::at(1));
+        let caching = compose(resolver.clone(), cache.clone(), clock.clone(), policy(mode));
+
+        let observed = block_on(caching.resolve_with_cache_status(&did, &options));
+
+        assert_eq!(observed.status(), DidResolutionCacheStatus::KeyBudgetBypass);
+        assert_eq!(observed.result(), &success(&did, "origin", None));
+        assert_eq!(resolver.calls.load(Ordering::SeqCst), 1);
+        assert_eq!(clock.reads.load(Ordering::SeqCst), 0);
+        assert_eq!(cache.lookups.load(Ordering::SeqCst), 0);
+        assert_eq!(cache.stores.load(Ordering::SeqCst), 0);
+    }
+}
+
+#[test]
 fn store_invalidation_key_and_disabled_paths_follow_policy() {
     let did = Did::parse("did:prism:failure-paths").unwrap();
     let options = ResolutionOptions::empty();
@@ -662,7 +689,7 @@ fn store_invalidation_key_and_disabled_paths_follow_policy() {
     );
     assert_eq!(
         block_on(key_bypass.resolve_with_cache_status(&did, &oversized)).status(),
-        DidResolutionCacheStatus::BackendBypass
+        DidResolutionCacheStatus::KeyBudgetBypass
     );
     assert_eq!(key_bypass_resolver.calls.load(Ordering::SeqCst), 1);
     let key_closed = compose(
@@ -673,7 +700,7 @@ fn store_invalidation_key_and_disabled_paths_follow_policy() {
     );
     assert_eq!(
         block_on(key_closed.resolve_with_cache_status(&did, &oversized)).status(),
-        DidResolutionCacheStatus::FailedClosed
+        DidResolutionCacheStatus::KeyBudgetBypass
     );
 
     let disabled_cache = Arc::new(MemoryCache::new(16));

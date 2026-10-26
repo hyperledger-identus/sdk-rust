@@ -20,10 +20,10 @@ dependencies out of generic domain crates.
 
 ### Requirement: Browser failures remain bounded and redacted
 
-The facade SHALL preserve the domain parser's 2,048-byte DID and 4,096-byte DID
-URL ceilings. Invalid and oversized input SHALL throw a closed SDK-owned error
-with a stable constant code and SHALL NOT expose caller text, parser details or
-implementation diagnostics.
+The facade SHALL preserve the domain parser's 131,072-byte DID and
+139,264-byte DID URL ceilings. Invalid and oversized input SHALL throw a closed
+SDK-owned error with a stable constant code and SHALL NOT expose caller text,
+parser details or implementation diagnostics.
 
 #### Scenario: invalid browser input is rejected
 

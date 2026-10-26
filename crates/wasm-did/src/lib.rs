@@ -206,4 +206,15 @@ mod tests {
             INVALID_DID_URL_CODE
         );
     }
+
+    #[test]
+    fn prism_shaped_long_form_value_crosses_the_wasm_boundary() {
+        let prefix = format!("did:prism:{}:", "0".repeat(64));
+        let long_form = format!("{prefix}{}", "A".repeat(100_000 - prefix.len()));
+
+        let accepted = parse_did(&long_form).unwrap();
+
+        assert_eq!(accepted.value, long_form);
+        assert_eq!(accepted.method, "prism");
+    }
 }

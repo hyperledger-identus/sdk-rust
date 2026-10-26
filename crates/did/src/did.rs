@@ -7,17 +7,28 @@ use std::{fmt, str::FromStr};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
-use crate::error::{DidSyntaxError, Error};
+use crate::{
+    error::{DidSyntaxError, Error},
+    method::MAX_DID_METHOD_BYTES,
+};
 
 /// Maximum accepted byte length of a bare [`Did`].
 ///
 /// W3C DID Core does not impose this value; it is an SDK resource policy.
-pub const MAX_DID_BYTES: usize = 2_048;
+pub const MAX_DID_BYTES: usize = 131_072;
 
 /// Maximum accepted byte length of a [`DidUrl`].
 ///
 /// W3C DID Core does not impose this value; it is an SDK resource policy.
-pub const MAX_DID_URL_BYTES: usize = 4_096;
+pub const MAX_DID_URL_BYTES: usize = 139_264;
+
+/// Maximum accepted byte length after the embedded bare DID in a [`DidUrl`].
+///
+/// This keeps path, query, and fragment work independently bounded when the
+/// embedded DID is much smaller than [`MAX_DID_BYTES`].
+pub const MAX_DID_URL_SUFFIX_BYTES: usize = 8_192;
+
+const _: () = assert!(MAX_DID_URL_BYTES == MAX_DID_BYTES + MAX_DID_URL_SUFFIX_BYTES);
 
 const DID_PREFIX: &[u8] = b"did:";
 
@@ -309,6 +320,9 @@ fn parse_did(
     let mut cursor = DID_PREFIX.len();
     let method_start = cursor;
     while cursor < bytes.len() && bytes[cursor] != b':' {
+        if cursor - method_start >= MAX_DID_METHOD_BYTES {
+            return Err(DidSyntaxError::TooLong);
+        }
         if !is_method_char(bytes[cursor]) {
             return Err(DidSyntaxError::InvalidMethodCharacter);
         }
@@ -351,6 +365,9 @@ fn parse_did_url(bytes: &[u8]) -> Result<DidUrlParts, DidSyntaxError> {
     }
     let did = parse_did(bytes, MAX_DID_URL_BYTES, true)?;
     if did.did_end > MAX_DID_BYTES {
+        return Err(DidSyntaxError::TooLong);
+    }
+    if bytes.len() - did.did_end > MAX_DID_URL_SUFFIX_BYTES {
         return Err(DidSyntaxError::TooLong);
     }
     let mut cursor = did.did_end;

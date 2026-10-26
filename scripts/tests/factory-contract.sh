@@ -170,6 +170,7 @@ required_files=(
   docs/adr/0172-version-didcomm-engine-and-application-protocols-separately.md
   docs/adr/0173-sequence-a1-through-versioned-evidence-contracts.md
   docs/adr/0174-separate-peer-and-prism-did-method-ownership.md
+  docs/adr/0175-bound-generic-did-for-prism-long-form-state.md
   docs/adr/0160-separate-rustsec-advisory-and-yank-evidence.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
@@ -306,12 +307,55 @@ for relative_path in "${required_files[@]}"; do
   esac
 done
 
-# Preserve the one explicitly grandfathered active change so the minimal
-# Git-less fixture exercises the same closed impact-policy exception as the
-# repository instead of weakening the canonical ledger.
+# Preserve every active change and archived consumer-visible impact declaration
+# so the minimal Git-less fixture retains ledger ownership after delivery
+# without duplicating unrelated archived planning artifacts.
 mkdir -p "$fixture_root/openspec/changes"
-cp -R "$repository_root/openspec/changes/activate-first-crate-release-train" \
-  "$fixture_root/openspec/changes/activate-first-crate-release-train"
+for active_change in "$repository_root"/openspec/changes/*; do
+  if [[ -d "$active_change" && "$(basename "$active_change")" != "archive" ]]; then
+    cp -R "$active_change" "$fixture_root/openspec/changes/"
+  fi
+done
+impact_has_ledger_ids() {
+  python3 - "$1" <<'PY'
+import sys
+import tomllib
+
+with open(sys.argv[1], "rb") as impact_file:
+    ledger_ids = tomllib.load(impact_file).get("ledger_ids")
+raise SystemExit(0 if isinstance(ledger_ids, list) and bool(ledger_ids) else 1)
+PY
+}
+
+multiline_impact="$fixture_root/multiline-impact.toml"
+cat >"$multiline_impact" <<'EOF'
+ledger_ids = [
+  "did.syntax.multiline-fixture.v1",
+]
+EOF
+if ! impact_has_ledger_ids "$multiline_impact"; then
+  printf 'factory-contract test: multiline ledger IDs were not detected\n' >&2
+  exit 1
+fi
+rm "$multiline_impact"
+
+if [[ -d "$repository_root/openspec/changes/archive" ]]; then
+  mkdir -p "$fixture_root/openspec/changes/archive"
+  for archived_change in "$repository_root"/openspec/changes/archive/*; do
+    archived_impact="$archived_change/compatibility-impact.toml"
+    if [[ -d "$archived_change" ]] &&
+      [[ -f "$archived_impact" ]] &&
+      impact_has_ledger_ids "$archived_impact"; then
+      archived_target="$fixture_root/openspec/changes/archive/$(basename "$archived_change")"
+      mkdir -p "$archived_target"
+      for impact_file in preimplementation.json compatibility-impact.toml; do
+        if [[ -f "$archived_change/$impact_file" ]]; then
+          cp "$archived_change/$impact_file" "$archived_target/$impact_file"
+        fi
+      done
+    fi
+  done
+fi
 
 # The resource inventory intentionally points at implementation evidence beyond
 # the minimal synthetic factory fixture. Copy that exact bounded evidence set so
@@ -464,7 +508,7 @@ while IFS= read -r spec_file; do
   mkdir -p "$fixture_root/$(dirname "$relative_spec")"
   cp "$spec_file" "$fixture_root/$relative_spec"
 done < <(find "$repository_root/openspec/specs" -mindepth 2 -maxdepth 2 \
-  -type f -path '*/oid4vci-*/spec.md' | sort)
+  -type f -name spec.md | sort)
 
 "$repository_root/scripts/tests/pr-policy.sh"
 "$repository_root/scripts/tests/repository-issue-verification.sh"

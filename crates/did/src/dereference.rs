@@ -8,7 +8,7 @@ use crate::{
     DereferencedContent, DereferencingOptions, DidDocument, DidResolutionDateTime,
     DidResolutionError, DidResolutionErrorKind, DidResolver, DidUrl, DidUrlContentMetadata,
     DidUrlDereferencer, DidUrlDereferencingFuture, DidUrlDereferencingMetadata,
-    DidUrlDereferencingResult, MAX_DID_URL_BYTES, MediaType, ResolutionOptions, Service,
+    DidUrlDereferencingResult, MAX_DID_URL_SUFFIX_BYTES, MediaType, ResolutionOptions, Service,
     ServiceEndpoint, ServiceEndpointValue, Uri, VerificationMethod, VerificationRelationship,
     VersionId,
 };
@@ -384,7 +384,8 @@ const fn hex_value(byte: u8) -> Option<u8> {
 }
 
 fn is_safe_parameter_text(value: &str) -> bool {
-    value.len() <= MAX_DID_URL_BYTES && value.chars().all(|character| !character.is_control())
+    value.len() <= MAX_DID_URL_SUFFIX_BYTES
+        && value.chars().all(|character| !character.is_control())
 }
 
 fn parse_bool(value: &str) -> Result<bool, Failure> {
@@ -770,7 +771,7 @@ fn resolve_relative_ref(base: &Uri, relative: &str) -> Result<Uri, Failure> {
 }
 
 fn validate_relative_ref(relative: &str) -> Result<(), Failure> {
-    if relative.len() > MAX_DID_URL_BYTES || relative.starts_with("//") {
+    if relative.len() > MAX_DID_URL_SUFFIX_BYTES || relative.starts_with("//") {
         return Err(Failure::InvalidOptions);
     }
     let before_fragment = relative

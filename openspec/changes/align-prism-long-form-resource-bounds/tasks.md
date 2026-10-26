@@ -5,7 +5,7 @@
 - [x] 1.1 Pin normative, donor, consumer, and wire-model revisions.
 - [x] 1.2 Measure bounded ASCII, Unicode, context, and projection-amplification cases.
 - [x] 1.3 Record ADR 0175 and the OpenSpec resource-policy delta.
-- [ ] 1.4 Bind an exact issue #524 preimplementation receipt after #493 merges.
+- [x] 1.4 Bind an exact issue #524 preimplementation receipt after #493 merges.
 
 ## 2. Implementation
 

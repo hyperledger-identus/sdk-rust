@@ -467,7 +467,7 @@ while IFS= read -r spec_file; do
   mkdir -p "$fixture_root/$(dirname "$relative_spec")"
   cp "$spec_file" "$fixture_root/$relative_spec"
 done < <(find "$repository_root/openspec/specs" -mindepth 2 -maxdepth 2 \
-  -type f -path '*/oid4vci-*/spec.md' | sort)
+  -type f -name spec.md | sort)
 
 "$repository_root/scripts/tests/pr-policy.sh"
 "$repository_root/scripts/tests/repository-issue-verification.sh"

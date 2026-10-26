@@ -70,9 +70,9 @@ allowed_mapping_dispositions = [
   "not-applicable",
 ]
 
-# This empty list is an assertion: issue #422 changes governance and tooling,
-# not a consumer-visible SDK contract. Synthetic proof records live only under
-# scripts/tests/fixtures and can never be rendered as canonical release advice.
+# Issue #422 changed governance and tooling without adding a consumer-visible
+# SDK contract. Synthetic proof records remain confined to scripts/tests/fixtures;
+# the records below are canonical consumer-visible changes added afterward.
 [[changes]]
 id                                = "did.syntax.long-form-resource-policy.v1"
 capability                        = "did.syntax"

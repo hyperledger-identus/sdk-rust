@@ -1,10 +1,10 @@
 use std::{collections::BTreeMap, hint::black_box, time::Instant};
 
 use identus_did::{
-    ContextEntry, ContextObject, Did, DidDocument, DidUrl, DocumentError, Error,
-    MAX_DID_DOCUMENT_BYTES, MAX_DID_URL_BYTES, MAX_DOCUMENT_ITEMS, MAX_EXTENSION_DEPTH,
-    MAX_EXTENSION_NODES, MAX_URI_BYTES, OneOrMany, Service, ServiceEndpoint, Uri, UriSyntaxError,
-    VerificationMethod, VerificationRelationship,
+    ContextEntry, ContextObject, Did, DidDocument, DidUrl, DocumentError, Error, MAX_DID_BYTES,
+    MAX_DID_DOCUMENT_BYTES, MAX_DID_URL_BYTES, MAX_DID_URL_SUFFIX_BYTES, MAX_DOCUMENT_ITEMS,
+    MAX_EXTENSION_DEPTH, MAX_EXTENSION_NODES, MAX_URI_BYTES, OneOrMany, Service, ServiceEndpoint,
+    Uri, UriSyntaxError, VerificationMethod, VerificationRelationship,
 };
 use serde_json::{Value, json};
 
@@ -124,10 +124,11 @@ fn uri_accepts_generic_absolute_schemes_and_preserves_allocation() {
     let uri = Uri::from(did);
     assert_eq!(uri.as_str().as_ptr(), pointer);
 
-    let prefix = "did:prism:a/";
+    let prefix = "did:prism:";
+    let did = format!("{prefix}{}", "a".repeat(MAX_DID_BYTES - prefix.len()));
     let long_did_url = DidUrl::parse(&format!(
-        "{prefix}{}",
-        "a".repeat(MAX_DID_URL_BYTES - prefix.len())
+        "{did}/{}",
+        "a".repeat(MAX_DID_URL_SUFFIX_BYTES - 1)
     ))
     .unwrap();
     let long_uri = Uri::from(long_did_url);

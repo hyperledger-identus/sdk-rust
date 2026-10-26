@@ -34,7 +34,7 @@ non_claims        = [ "all future vectors complete", "SDK-TS default switch", "b
 [[milestone]]
 id                = "A2"
 title             = "portable DID platform"
-state             = "in-progress"
+state             = "planned"
 owner_issue       = 493
 supporting_issues = [ 420, 492, 501, 524, 521, 522, 523 ]
 depends_on        = [ "A1" ]

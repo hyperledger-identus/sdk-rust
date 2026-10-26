@@ -70,8 +70,8 @@ def main() -> None:
         original,
         replace_once(
             roadmap,
-            'title             = "portable DID platform"\nstate             = "in-progress"\nowner_issue       = 493\nsupporting_issues = [ 420, 492, 501, 524, 521, 522, 523 ]\ndepends_on        = [ "A1" ]',
-            'title             = "portable DID platform"\nstate             = "in-progress"\nowner_issue       = 493\nsupporting_issues = [ 420, 492, 501, 524, 521, 522, 523 ]\ndepends_on        = [ "A9" ]',
+            'title             = "portable DID platform"\nstate             = "planned"\nowner_issue       = 493\nsupporting_issues = [ 420, 492, 501, 524, 521, 522, 523 ]\ndepends_on        = [ "A1" ]',
+            'title             = "portable DID platform"\nstate             = "planned"\nowner_issue       = 493\nsupporting_issues = [ 420, 492, 501, 524, 521, 522, 523 ]\ndepends_on        = [ "A9" ]',
         ),
         False,
     )

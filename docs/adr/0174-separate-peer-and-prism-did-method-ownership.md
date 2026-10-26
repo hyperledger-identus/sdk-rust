@@ -95,12 +95,12 @@ adoption. The dependency chain is `identus-prism-indexer` ->
 generic SDK crate may depend on a PRISM crate. Each crate has its own feature,
 target, benchmark, fuzz/property, release, and rollback evidence.
 
-These are reserved workspace names, not current registry-ownership claims.
-Issues #521 and #522 must verify crates.io availability and release authority
-before enabling publication; an unavailable name requires a superseding
-naming decision before any public package contract is activated. Workspace
-manifests may use the normal path-plus-version publication pattern only after
-that evidence exists.
+These are planned names, not current workspace or registry-ownership claims.
+The SDK-ARCH-001 guard continues to deny the entire `identus-prism-*` family
+until #521/#522 introduce actual crates together with exact dependency-graph
+and transitive effect-cone enforcement. Those issues must also verify crates.io
+availability and release authority before enabling publication; an unavailable
+name requires a superseding naming decision before public activation.
 
 The current generic 2,048-byte DID ceiling is not large enough for a PRISM
 long-form identifier at the pinned method limits. Issue #524 therefore gates

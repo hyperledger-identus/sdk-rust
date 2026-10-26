@@ -108,7 +108,7 @@ def main() -> int:
 
         omitted_budget = replace_once(
             baseline,
-            'budget = "Exhaust ASCII bytes 0..127 in each grammar position and verify exact 2,048-byte DID and 4,096-byte DID URL limits."\n',
+            'budget = "Exhaust ASCII bytes 0..127 in each grammar position and verify exact 131,072-byte DID and 139,264-byte DID URL limits."\n',
             "",
         )
         expect_failure(

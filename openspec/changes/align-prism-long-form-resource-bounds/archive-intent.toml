@@ -39,3 +39,15 @@ capability        = "did-core"
 requirement       = "Independently evidenced URI recognition"
 canonical_sha256  = "785a246b7611bf4affa6efb0be79fafbabae51e7e2dad2b6ac9cdc67c0cfb18b"
 reason            = "Align the independent URI-oracle evidence requirement with the raised finite URI ceiling used by infallible DID URL conversion."
+
+[[modified_requirement]]
+capability        = "native-did-bindings"
+requirement       = "Native DID failures are bounded and redacted"
+canonical_sha256  = "4c574b62491182981aadb392aa82340713f46772e9da1466eb14440bf830a8b3"
+reason            = "Keep the native facade contract aligned with the enlarged finite limits enforced by its generic DID domain dependency."
+
+[[modified_requirement]]
+capability        = "browser-did-bindings"
+requirement       = "Browser failures remain bounded and redacted"
+canonical_sha256  = "73f72eb4dbcfcbcef7dcb494af6f3a3b13d7851e965b44e33d22c627a3a3238d"
+reason            = "Keep the browser facade contract aligned with the enlarged finite limits enforced by its generic DID domain dependency."

@@ -17,7 +17,8 @@ profile through the other profile's API.
 
 #### Scenario: an unsupported or disabled algorithm is received
 
-- **WHEN** a peer DID selects numalgo 0, 1, 3, or a disabled profile
+- **WHEN** a peer DID selects numalgo 0, 1, 3, any unknown or malformed
+  algorithm identifier, or a disabled profile
 - **THEN** the method rejects it before unbounded decoding or allocation work
 
 ### Requirement: peer DID remains bounded and custody-neutral

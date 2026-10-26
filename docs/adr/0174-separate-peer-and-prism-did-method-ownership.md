@@ -6,8 +6,9 @@
   [#493](https://github.com/hyperledger-identus/sdk-rust/issues/493#issuecomment-6420422983)
 - **Related:** ADRs 0110, 0162, 0164, 0169, and 0170; issues #5, #20,
   #420, #492, #521, #522, #523, #524, and NeoPRISM #321
-- **Constraint impact:** material; changes the initial NeoPRISM disposition in
-  ADR 0110 while preserving its reusable-module gates
+- **Constraint impact:** material; supersedes ADR 0110's blanket PRISM clause
+  in the Ownership gate and its initial method/indexer/VDR disposition rows
+  for portable effect-isolated behavior while preserving every other gate
 
 ## Context
 
@@ -88,6 +89,13 @@ than NeoPRISM repository boundaries:
    process, deployment, and node-lifecycle adapters remain in NeoPRISM until a
    separately justified adapter issue proves independent demand and targets.
 
+ADR 0174 is the reviewed foundational exception required by ADR 0110's
+consumer-evidence gate. The two credible usage paths are NeoPRISM's measured
+SDK-backed node and an independently composed resolver/indexing service using
+the public VDR/indexer ports; neither is claimed as completed adoption. Issue
+#522 must turn both shapes into public-surface proofs before implementation is
+accepted.
+
 The package names intentionally differ from NeoPRISM's existing
 `identus-did-prism*` packages so both paths can coexist during measured
 adoption. The dependency chain is `identus-prism-indexer` ->
@@ -102,11 +110,14 @@ and transitive effect-cone enforcement. Those issues must also verify crates.io
 availability and release authority before enabling publication; an unavailable
 name requires a superseding naming decision before public activation.
 
-The current generic 2,048-byte DID ceiling is not large enough for a PRISM
-long-form identifier at the pinned method limits. Issue #524 therefore gates
-the method implementation: it must derive finite generic DID/DID URL and
+The current generic 2,048-byte DID ceiling is not known to cover either PRISM
+long-form identifiers at the pinned method limits or useful peer numalgo-4
+documents. Issue #524 therefore gates #521 and supplies the generic resource
+policy consumed by #523: it must derive finite generic DID/DID URL and
 method-operation budgets, retain denial-of-service protection, and keep PRISM
-encoding separate from the unrelated bounded crypto text codec.
+encoding separate from the unrelated bounded crypto text codec. Issue #523
+must either fit its explicit peer profile within those measured limits or add
+separately evidenced bounds before implementation.
 
 ### Adoption is SDK-first and measured
 

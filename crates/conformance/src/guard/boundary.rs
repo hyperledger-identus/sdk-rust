@@ -38,7 +38,7 @@ fn denied_identity(identity: &str) -> Option<&'static str> {
     let matches_family =
         |exact: &str| identity == exact || identity.starts_with(&format!("{exact}-"));
 
-    if identity == "identus-apollo" {
+    if matches_family("identus-apollo") {
         Some("Apollo")
     } else if matches_family("midnight") {
         Some("Midnight")
@@ -460,20 +460,19 @@ fn planned_sdk_prism_packages_remain_denied_until_implementation() {
 #[test]
 fn identus_apollo_package_identity_is_denied() {
     let root = workspace_root();
-    let manifest: toml::Value = toml::from_str(
-        r#"
-            [dependencies]
-            crypto = { package = "identus-apollo", version = "1" }
-        "#,
-    )
-    .expect("valid synthetic manifest");
-    let violations = direct_dependency_violations(&manifest, &root, &root);
-    assert!(
-        violations
-            .iter()
-            .any(|violation| violation.contains("prohibited Apollo family")),
-        "identus-apollo was not enforced: {violations:?}"
-    );
+    for package in ["identus-apollo", "identus-apollo-core"] {
+        let manifest: toml::Value = toml::from_str(&format!(
+            "[dependencies]\ncrypto = {{ package = \"{package}\", version = \"1\" }}"
+        ))
+        .expect("valid synthetic manifest");
+        let violations = direct_dependency_violations(&manifest, &root, &root);
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.contains("prohibited Apollo family")),
+            "{package} was not enforced: {violations:?}"
+        );
+    }
 
     let lockfile: toml::Value = toml::from_str(
         r#"

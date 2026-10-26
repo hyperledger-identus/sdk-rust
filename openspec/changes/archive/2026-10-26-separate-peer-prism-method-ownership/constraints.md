@@ -10,11 +10,12 @@ https://github.com/hyperledger-identus/sdk-rust/issues/493#issuecomment-64204229
 
 ## Existing entries affected
 
-ADR 0110's reusable-module hard gates remain mandatory. ADR 0174 supersedes
-only its initial source disposition for portable PRISM method, VDR, and
-deterministic indexing behavior. Generic layering, provenance, cohesion,
-effect-isolation, safety, target, dependency, consumer-evidence, and release
-independence gates remain unchanged.
+ADR 0110's reusable-module hard gates remain mandatory except that ADR 0174
+supersedes its blanket PRISM clause in the Ownership gate and its initial
+`lib/did-prism` and PRISM indexer/VDR disposition rows for portable,
+effect-isolated behavior. Generic layering, provenance, cohesion, safety,
+target, dependency, consumer-evidence, and release-independence gates remain
+unchanged; concrete Cardano and runtime effects remain downstream.
 
 SDK-ARCH-001 is clarified rather than waived: a standards-named method crate
 is not a chain dependency when its dependency cone remains chain-neutral and

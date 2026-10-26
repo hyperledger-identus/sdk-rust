@@ -171,6 +171,7 @@ pub identus_did::DidResolutionCacheStatus::BackendBypass
 pub identus_did::DidResolutionCacheStatus::Disabled
 pub identus_did::DidResolutionCacheStatus::FailedClosed
 pub identus_did::DidResolutionCacheStatus::Hit
+pub identus_did::DidResolutionCacheStatus::KeyBudgetBypass
 pub identus_did::DidResolutionCacheStatus::MissNotStored
 pub identus_did::DidResolutionCacheStatus::MissStored
 pub identus_did::DidResolutionCacheStatus::RefreshNotStored

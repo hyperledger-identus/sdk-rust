@@ -41,6 +41,35 @@ fn sdk_owned_prism_identity(identity: &str) -> bool {
     )
 }
 
+fn prohibited_prism_effect(identity: &str) -> bool {
+    matches!(
+        normalize_identity(identity).as_str(),
+        "blockfrost"
+            | "diesel"
+            | "hyper"
+            | "oura"
+            | "pallas"
+            | "postgres"
+            | "reqwest"
+            | "rusqlite"
+            | "sea-orm"
+            | "sqlx"
+            | "tokio-postgres"
+            | "tower-http"
+    )
+}
+
+fn prism_dependency_direction_is_allowed(owner: &str, dependency: &str) -> bool {
+    let owner = normalize_identity(owner);
+    let dependency = normalize_identity(dependency);
+    match owner.as_str() {
+        "identus-prism-indexer" => dependency == "identus-prism-vdr",
+        "identus-prism-vdr" => dependency == "identus-prism-did",
+        "identus-prism-did" | "identus-core" | "identus-crypto" | "identus-did" => false,
+        _ => true,
+    }
+}
+
 fn denied_identity(identity: &str) -> Option<&'static str> {
     let identity = normalize_identity(identity);
     let matches_family =
@@ -97,6 +126,9 @@ fn denied_source(source: &str) -> Option<&'static str> {
         .rsplit(|character| ['/', ':'].contains(&character))
         .next()
         .unwrap_or_default();
+    if sdk_owned_prism_identity(repository) {
+        return Some("reserved SDK PRISM repository identity");
+    }
     denied_identity(repository)
 }
 
@@ -241,6 +273,10 @@ fn direct_dependency_violations(
     repository_root: &Path,
 ) -> Vec<String> {
     let mut violations = cargo_override_source_violations(manifest);
+    let owner = manifest
+        .get("package")
+        .and_then(|package| package.get("name"))
+        .and_then(toml::Value::as_str);
     let canonical_root = repository_root.canonicalize().unwrap_or_else(|error| {
         panic!(
             "failed to canonicalize repository root {}: {error}",
@@ -276,6 +312,21 @@ fn direct_dependency_violations(
                 "{}: SDK-owned PRISM package `{}` must use a workspace path beneath crates/",
                 dependency.section, dependency.package
             ));
+        }
+        if let Some(owner) = owner {
+            if sdk_owned_prism && !prism_dependency_direction_is_allowed(owner, &dependency.package)
+            {
+                violations.push(format!(
+                    "{}: package `{owner}` cannot depend on SDK PRISM package `{}`",
+                    dependency.section, dependency.package
+                ));
+            }
+            if sdk_owned_prism_identity(owner) && prohibited_prism_effect(&dependency.package) {
+                violations.push(format!(
+                    "{}: SDK PRISM package `{owner}` cannot own concrete effect dependency `{}`",
+                    dependency.section, dependency.package
+                ));
+            }
         }
 
         if let Some(git) = &dependency.git
@@ -339,19 +390,17 @@ fn lockfile_violations(lockfile: &toml::Value) -> Vec<String> {
                 "Cargo.lock package `{name}` matches prohibited {family} family"
             ));
         }
-        if let Some(source) = fields.get("source").and_then(toml::Value::as_str)
-            && let Some(denied) = denied_source(source)
-        {
-            violations.push(format!(
-                "Cargo.lock package `{name}` references prohibited {denied}: {source}"
-            ));
-        }
-        if sdk_owned_prism_identity(name)
-            && fields.get("source").and_then(toml::Value::as_str).is_some()
-        {
-            violations.push(format!(
-                "Cargo.lock SDK-owned PRISM package `{name}` must resolve from the workspace"
-            ));
+        if let Some(source) = fields.get("source").and_then(toml::Value::as_str) {
+            if let Some(denied) = denied_source(source) {
+                violations.push(format!(
+                    "Cargo.lock package `{name}` references prohibited {denied}: {source}"
+                ));
+            }
+            if sdk_owned_prism_identity(name) {
+                violations.push(format!(
+                    "Cargo.lock SDK-owned PRISM package `{name}` must resolve from the workspace"
+                ));
+            }
         }
     }
 
@@ -478,7 +527,7 @@ fn external_prism_family_and_normalized_identity_are_enforced() {
 }
 
 #[test]
-fn sdk_owned_prism_names_cannot_resolve_from_registry_or_git() {
+fn sdk_owned_prism_workspace_names_cannot_resolve_from_registry_or_git() {
     let root = workspace_root();
     for declaration in [
         r#"method = { package = "identus-prism-did", version = "1" }"#,
@@ -515,6 +564,56 @@ fn sdk_owned_prism_names_cannot_resolve_from_registry_or_git() {
     let violations = direct_dependency_violations(&misplaced, &root, &root);
     assert_eq!(violations.len(), 1);
     assert!(violations[0].contains("is not beneath crates/"));
+
+    let foreign_alias: toml::Value = toml::from_str(
+        r#"
+            [dependencies]
+            neutral = { git = "https://github.com/example/identus-prism-did.git" }
+        "#,
+    )
+    .expect("valid synthetic manifest");
+    let violations = direct_dependency_violations(&foreign_alias, &root, &root);
+    assert_eq!(violations.len(), 1);
+    assert!(violations[0].contains("reserved SDK PRISM repository identity"));
+}
+
+#[test]
+fn sdk_prism_dependency_direction_and_effects_are_enforced() {
+    let root = workspace_root();
+    for (owner, dependency, allowed) in [
+        ("identus-prism-indexer", "identus-prism-vdr", true),
+        ("identus-prism-indexer", "identus-prism-did", false),
+        ("identus-prism-vdr", "identus-prism-did", true),
+        ("identus-prism-did", "identus-prism-vdr", false),
+        ("identus-did", "identus-prism-did", false),
+        ("identus-crypto", "identus-prism-did", false),
+        ("identus-core", "identus-prism-did", false),
+    ] {
+        let manifest: toml::Value = toml::from_str(&format!(
+            "[package]\nname = \"{owner}\"\nversion = \"0.0.0\"\n[dependencies]\n{dependency} = {{ path = \"crates/did\" }}"
+        ))
+        .expect("valid synthetic manifest");
+        let violations = direct_dependency_violations(&manifest, &root, &root);
+        assert_eq!(
+            violations.is_empty(),
+            allowed,
+            "edge {owner} -> {dependency}"
+        );
+    }
+
+    for effect in ["sqlx", "reqwest", "tokio-postgres", "oura", "blockfrost"] {
+        let manifest: toml::Value = toml::from_str(&format!(
+            "[package]\nname = \"identus-prism-indexer\"\nversion = \"0.0.0\"\n[dependencies]\n{effect} = \"1\""
+        ))
+        .expect("valid synthetic manifest");
+        let violations = direct_dependency_violations(&manifest, &root, &root);
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.contains("cannot own concrete effect dependency")),
+            "effect {effect} was not enforced: {violations:?}"
+        );
+    }
 }
 
 #[test]

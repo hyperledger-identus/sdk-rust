@@ -64,6 +64,16 @@ evidence. It SHALL NOT own Midnight or Compact runtime behavior, concrete
 PRISM/Cardano ledger integration, wallet/product policy, trust decisions,
 consent, custody, UI, deployment or concrete product storage.
 
+Method-specific behavior MAY be SDK-owned when it forms a cohesive,
+independently selectable capability that is deterministic, effect-isolated,
+bounded, target-qualified, and useful outside one node composition. This does
+not make the generic SDK layer depend on that method or move concrete chain,
+storage, service, or runtime effects into the portable crate.
+
+The canonical SSI backlog SHALL identify issue #493 as the specification owner
+for IDR-040. Implementation SHALL proceed through its focused child issues in
+their recorded dependency order rather than through program issue #20.
+
 #### Scenario: Generic behavior is found in a consumer
 
 - **WHEN** equivalent behavior is useful to at least two independent consumers
@@ -76,16 +86,6 @@ consent, custody, UI, deployment or concrete product storage.
   ledger operations, product policy, custody, UI or deployment
 - **THEN** it is classified `remain-downstream` and excluded from the generic
   SDK dependency graph
-
-Method-specific behavior MAY be SDK-owned when it forms a cohesive,
-independently selectable capability that is deterministic, effect-isolated,
-bounded, target-qualified, and useful outside one node composition. This does
-not make the generic SDK layer depend on that method or move concrete chain,
-storage, service, or runtime effects into the portable crate.
-
-The canonical SSI backlog SHALL identify issue #493 as the specification owner
-for IDR-040. Implementation SHALL proceed through its focused child issues in
-their recorded dependency order rather than through program issue #20.
 
 #### Scenario: portable method behavior is found in a chain node
 
@@ -112,8 +112,9 @@ their recorded dependency order rather than through program issue #20.
 
 - **WHEN** behavior depends on Midnight, Compact, a Cardano client, product
   policy, custody, UI, deployment, or concrete persistence
-- **THEN** it remains downstream unless a separate accepted ADR proves an
-  independently reusable adapter boundary
+- **THEN** the concrete effect remains downstream; a separate accepted ADR may
+  define an independently reusable adapter capability but cannot move the
+  effect into a portable core crate
 
 ### Requirement: Source evidence is immutable and classified
 

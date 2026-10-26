@@ -5,7 +5,7 @@
 - **Decision authority:** maintainer direction recorded on issue
   [#493](https://github.com/hyperledger-identus/sdk-rust/issues/493#issuecomment-6420422983)
 - **Related:** ADRs 0110, 0162, 0164, 0169, and 0170; issues #5, #20,
-  #420, #492, #524, and NeoPRISM #321
+  #420, #492, #521, #522, #523, #524, and NeoPRISM #321
 - **Constraint impact:** material; changes the initial NeoPRISM disposition in
   ADR 0110 while preserving its reusable-module gates
 
@@ -94,6 +94,13 @@ adoption. The dependency chain is `identus-prism-indexer` ->
 `identus-prism-vdr` -> `identus-prism-did` -> generic DID/crypto layers. No
 generic SDK crate may depend on a PRISM crate. Each crate has its own feature,
 target, benchmark, fuzz/property, release, and rollback evidence.
+
+These are reserved workspace names, not current registry-ownership claims.
+Issues #521 and #522 must verify crates.io availability and release authority
+before enabling publication; an unavailable name requires a superseding
+naming decision before any public package contract is activated. Workspace
+manifests may use the normal path-plus-version publication pattern only after
+that evidence exists.
 
 The current generic 2,048-byte DID ceiling is not large enough for a PRISM
 long-form identifier at the pinned method limits. Issue #524 therefore gates

@@ -62,6 +62,7 @@ COMMITMENTS = {"Foundation", "Committed", "Planned", "Conditional"}
 DELIVERY_STATUSES = {"delivered", "in_progress", "specified", "queued", "conditional"}
 SOURCE_REPOSITORIES = {
     "sdk-rust",
+    "sdk-ts",
     "apollo",
     "neoprism",
     "midnight-identity",

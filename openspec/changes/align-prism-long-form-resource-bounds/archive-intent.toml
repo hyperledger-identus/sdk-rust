@@ -1,0 +1,23 @@
+[[modified_requirement]]
+capability        = "did-core"
+requirement       = "Bounded single-pass parsing and component views"
+canonical_sha256  = "50a9c362844113ba0a3f464a6ac45de79a59178151c787b5b9833c00ec0502ba"
+reason            = "Replace the old 2 KiB and 4 KiB lexical ceilings with measured finite envelopes while preserving the parser and candidate-replacement rules."
+
+[[modified_requirement]]
+capability        = "did-core"
+requirement       = "Bounded normalized DID resolution cache identity"
+canonical_sha256  = "1855cd090192f7e1ae0ee25fa861815ee24777a7b3ab71f8cb12f2a2bcc52f7a"
+reason            = "Make a valid request above the independent cache retention budget an explicit observable bypass rather than a failure-mode-dependent outcome."
+
+[[modified_requirement]]
+capability        = "did-core"
+requirement       = "Bounded absolute URI value"
+canonical_sha256  = "abafee2105f1c1dc084ef485e5606f66b19defae93281164b3a50cb445f393c9"
+reason            = "Raise the URI envelope with DID URL so infallible conversions remain valid and long-form-prefixed DID document identifiers can be projected."
+
+[[modified_requirement]]
+capability        = "did-core"
+requirement       = "Bounded standalone DID method value"
+canonical_sha256  = "f47be6ce1f82b87fab1b7b8929b09303c2e85542d3f229abb8f71b60d345c1b2"
+reason            = "Preserve the existing method-name ceiling independently instead of deriving it from the newly enlarged enclosing DID budget."

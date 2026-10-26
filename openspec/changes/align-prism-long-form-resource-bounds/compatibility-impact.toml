@@ -1,6 +1,6 @@
 schema_version = 1
 issue          = 524
 disposition    = "behavior-neutral"
-scope          = "planning"
+scope          = "documentation"
 rationale      = "This preimplementation contract records the proposed consumer-visible resource policy without activating it. Implementation must change this declaration to consumer-visible and bind its canonical ledger record before readiness or archive."
 ledger_ids     = [  ]

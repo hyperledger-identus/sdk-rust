@@ -433,9 +433,13 @@ fn validate_projection_fragment(fragment: &str) -> Result<(), Error> {
 }
 
 fn reject_secret_members(value: &Value) -> Result<(), Error> {
+    reject_secret_members_in_context(value, false)
+}
+
+fn reject_secret_members_in_context(value: &Value, jwk_context: bool) -> Result<(), Error> {
     match value {
         Value::Object(object) => {
-            if object.contains_key("kty")
+            if (jwk_context || object.contains_key("kty"))
                 && PRIVATE_JWK_MEMBERS
                     .iter()
                     .any(|member| object.contains_key(*member))
@@ -456,12 +460,12 @@ fn reject_secret_members(value: &Value) -> Result<(), Error> {
                 {
                     return Err(Error::InvalidInputDocument);
                 }
-                reject_secret_members(value)?;
+                reject_secret_members_in_context(value, normalized.ends_with("jwk"))?;
             }
         }
         Value::Array(values) => {
             for value in values {
-                reject_secret_members(value)?;
+                reject_secret_members_in_context(value, false)?;
             }
         }
         Value::Null | Value::Bool(_) | Value::Number(_) | Value::String(_) => {}
@@ -664,6 +668,8 @@ mod tests {
             r#"{"extension":{"secret_key":"secret"}}"#,
             r#"{"extension":[{"mnemonic":"words"}]}"#,
             r#"{"extension":{"jwk":{"kty":"oct","k":"c2VjcmV0"}}}"#,
+            r#"{"extension":{"jwk":{"d":"private-scalar"}}}"#,
+            r#"{"extension":{"publicKeyJwk":{"d":"private-scalar"}}}"#,
         ] {
             assert_eq!(
                 InputDocument::from_json_str(input),

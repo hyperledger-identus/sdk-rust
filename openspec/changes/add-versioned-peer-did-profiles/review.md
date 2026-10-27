@@ -17,7 +17,8 @@ from blocking delivery.
 - Profile-specific raw DID and fixed multihash ceilings reject oversized input
   before delimiter scanning or base58 decoding.
 - Numalgo-2 rejects oversized retained service strings before serialization,
-  and numalgo-4 rejects recognized private JWK members before public retention.
+  and numalgo-4 rejects private JWK members before public retention, including
+  explicitly JWK-named extension objects that omit `kty`.
 - Numalgo-4 parsing retains the exact validated identity-defining JSON bytes,
   so accepted noncanonical inputs recreate the same long and short forms.
 - Both profiles preflight aggregate DID-document projection growth before

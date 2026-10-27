@@ -29,7 +29,8 @@ borrowed slices. Private prost decoding supplies typed fields, but re-encoding
 is never used for inbound signature verification, operation hashes or DID
 suffix derivation.
 
-Construction takes typed validated inputs, produces deterministic protobuf
+Construction takes typed candidates, revalidates every public enum payload at
+the enclosing service or operation boundary, produces deterministic protobuf
 bytes, and returns unsigned bytes for an external signer. The final envelope
 constructor validates the key identifier and signature size before encoding.
 The crate never owns a secret key or random generator.
@@ -59,9 +60,11 @@ in protocol state but omitted from DID document verification methods.
 ## Deterministic state
 
 State keeps insertion-ordered vectors of historical keys and services. Each
-entry has chain-neutral addition/removal metadata. With active maxima of 50,
-linear lookup is simpler and more auditable than a hash or persistent-map
-dependency. Removed identifiers remain tombstoned and cannot be reused.
+entry retains its validated value and active/tombstone state; ledger position,
+wall-clock time and transaction metadata remain owned by the outer history
+adapter. With active maxima of 50, linear lookup is simpler and more auditable
+than a hash or persistent-map dependency. Removed identifiers remain
+tombstoned and cannot be reused.
 
 An update validates its previous-operation hash and active master signature,
 clones the state, applies every action in wire order, validates final active
@@ -77,8 +80,12 @@ come from `identus-crypto`; services and contexts use generic DID domain types.
 The DID Core context is first and is not duplicated. Deactivated resolution
 uses the generic standards-shaped result and method metadata.
 
-Native projection has a method-owned output budget derived from the maximum
-identifier repetition. It does not widen generic hostile JSON re-ingress.
+Native projection has a 32 MiB method-owned output budget. Its preflight counts
+one document controller, three controller occurrences per projected method and
+one per service, then adds the complete 96,000-byte operation budget for other
+method-owned content. The supported maximum long-form shape contributes
+25,454,850 bytes to that conservative estimate. This does not widen generic
+hostile JSON re-ingress.
 
 ## Extension boundary
 

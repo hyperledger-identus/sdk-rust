@@ -75,7 +75,7 @@ Do not copy these donor edges:
 | Apollo crypto/hash/JWK | replace with `identus-crypto` |
 | donor DID document model | replace with `identus-did` |
 | `rust-protobuf` | replace with private `prost 0.14.4` messages |
-| `chrono` and Cardano cursor | chain-neutral ordered metadata |
+| `chrono` and Cardano cursor | exclude; ordering is preserved by signed action order and state insertion order, while ledger metadata remains adapter-owned |
 | `regex` | bounded ASCII validators |
 | `im-rc` | insertion-ordered bounded vectors and clone-then-commit |
 | `enum_dispatch` | ordinary enums and direct matches |
@@ -105,17 +105,23 @@ generated protobuf structs.
 ## Security, privacy and maintenance evidence
 
 All wire lengths, collection cardinalities, UTF-8 amplification, JSON shape
-and projection amplification are bounded before expensive work. Duplicate
+and projection amplification are bounded before expensive work. The 96,000-byte
+operation ceiling derives a 128,075-byte long-form DID; at the maximum 49
+document keys and 50 services, 198 controller occurrences plus one operation
+budget estimate 25,454,850 bytes. A 32 MiB native projection ceiling preserves
+finite headroom without changing generic 256 KiB document or 512 KiB
+resolution-result JSON ingress. Duplicate
 security-relevant protobuf fields and JSON names fail closed. Signature and
 hash verification use exact inbound operation bytes. Errors and `Debug` never
 reflect DIDs, endpoints, key bytes, signatures or opaque payloads.
 
 The candidate adds no unsafe code, native code, build script in consumer
 builds, network access or secret ownership. `identus-crypto`, `prost`,
-`base64`, `fluent-uri`, `serde` and `serde_json` are the supply-chain surface;
-exact feature and resolved-package evidence must be captured from the final
-lockfile. Private generated files are reproducible maintainer artifacts with
-pinned source digests.
+`base64`, `fluent-uri`, `serde` and `serde_json` are the direct supply-chain
+surface; the existing `identus-crypto` hex feature supplies canonical digest
+text through its bounded `hex` dependency. Exact feature and resolved-package
+evidence must be captured from the final lockfile. Private generated files are
+reproducible maintainer artifacts with pinned source digests.
 
 The maintenance, release and security posture is one independently versioned
 crate owned by SDK-Rust. A focused revert is the rollback before publication.
@@ -174,20 +180,19 @@ mode is deferred unless immutable ledger evidence proves it necessary.
 
 ## Open questions and blockers
 
-No implementation blocker remains. The historical Preprod packet pins two
-exact signed create operations and their public ledger positions. During
-implementation, confirm duplicate singular-field behavior against those fixtures before
-  offering any compatibility mode; strict parsing remains the default.
-- Freeze the exact private protobuf source digest and deterministic generated
-  output command.
-- Derive the projection/output byte budget and decoded-allocation accounting
-  from executable maximum-profile fixtures.
+No research or implementation-design blocker remains. The historical Preprod
+packet pins two exact signed create operations and their public ledger
+positions; strict duplicate-field rejection has been confirmed against both.
+The four imported protobuf sources and private Rust projection are digest-pinned, and the
+executable projection budget is recorded above. Remaining work is delivery
+evidence: exact post-#524 preflight, official Nix/slow lanes, independent review
+and protected CI.
 
-These are implementation tasks rather than research blockers. The reconsideration trigger for the
-finite profile is a later normative PRISM revision or attributable historical
-operation that exceeds a chosen limit without violating an explicit protocol
-limit. The trigger for replacing the local scanner is an audited crate that
-preserves exact ranges, rejects duplicates and passes all supported targets.
+The reconsideration trigger for the finite profile is a later normative PRISM
+revision or attributable historical operation that exceeds a chosen limit
+without violating an explicit protocol limit. The trigger for replacing the
+local scanner is an audited crate that preserves exact ranges, rejects
+duplicates and passes all supported targets.
 
 ## Evidence commands
 

@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "scripts/check-cross-language-vectors.py"
 CATALOG = ROOT / "docs/conformance/cross-language-vector-catalog.toml"
 PACKET = ROOT / "docs/conformance/fixtures/did/v1/vectors.json"
+PRISM_PACKET = ROOT / "docs/conformance/fixtures/did-prism/v1/vectors.json"
 
 
 def replace_once(text: str, before: str, after: str) -> str:
@@ -38,6 +39,9 @@ def run(catalog: str, packet: str, should_pass: bool) -> None:
         packet_target.parent.mkdir(parents=True)
         catalog_target.write_text(catalog, encoding="utf-8")
         packet_target.write_text(packet, encoding="utf-8")
+        prism_target = root / "docs/conformance/fixtures/did-prism/v1/vectors.json"
+        prism_target.parent.mkdir(parents=True)
+        shutil.copy2(PRISM_PACKET, prism_target)
         result = subprocess.run([str(CHECKER), str(root)], capture_output=True, text=True, check=False)
         if (result.returncode == 0) != should_pass:
             raise AssertionError(
@@ -69,7 +73,7 @@ def main() -> None:
         False,
     )
     run(replace_once(catalog, 'revision       = "edf03abcc963d37703daa61192940394bdc553ca"', 'revision       = "develop"'), packet, False)
-    run(replace_once(catalog, 'public_data    = true', 'public_data    = false'), packet, False)
+    run(replace_first(catalog, 'public_data    = true', 'public_data    = false'), packet, False)
     run(
         replace_first(
             catalog,
@@ -148,6 +152,9 @@ def main() -> None:
         catalog_target.parent.mkdir(parents=True)
         packet_target.parent.mkdir(parents=True)
         catalog_target.write_text(catalog, encoding="utf-8")
+        prism_target = root / "docs/conformance/fixtures/did-prism/v1/vectors.json"
+        prism_target.parent.mkdir(parents=True)
+        shutil.copy2(PRISM_PACKET, prism_target)
         external = root / "outside.json"
         shutil.copy2(PACKET, external)
         packet_target.symlink_to(external)

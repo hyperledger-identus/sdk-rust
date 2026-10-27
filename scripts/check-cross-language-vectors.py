@@ -34,12 +34,21 @@ PACKET_DOCUMENT_KEYS = {"schemaVersion", "packetId", "capability", "cases"}
 CASE_KEYS = {"id", "operation", "input", "expected"}
 EXPECTED_KEYS = {"kind", "errorCode", "redacted", "fields"}
 GENERATED_KEYS = {"prefix", "repeat", "count", "suffix"}
-FIELD_KEYS = {"serialized", "did", "method", "methodSpecificId", "path", "query", "fragment"}
+FIELD_KEYS = {
+    "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment",
+    "operationKind", "operationId", "operationHash", "canonicalDid",
+}
 AUTHORITIES = {
     "normative", "identus-contract", "consumer-regression", "implementation-regression", "exploratory"
 }
 TARGETS = {"rust", "typescript", "swift", "kotlin"}
-OPERATIONS = {"did.parse", "did-url.parse"}
+OPERATIONS = {
+    "did.parse",
+    "did-url.parse",
+    "did-prism.envelope.parse",
+    "did-prism.signed-create.verify",
+    "did-prism.state.reduce",
+}
 BOUNDARIES = {"positive", "negative", "boundary", "mutation"}
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
 SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
@@ -184,11 +193,14 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
         if not isinstance(fields, dict) or set(fields) - FIELD_KEYS:
             errors.append(f"{identifier}.expected.fields has unknown fields or is not an object")
         else:
-            allowed_fields = (
-                {"serialized", "method", "methodSpecificId"}
-                if operation == "did.parse"
-                else FIELD_KEYS
-            )
+            if operation == "did.parse":
+                allowed_fields = {"serialized", "method", "methodSpecificId"}
+            elif operation == "did-url.parse":
+                allowed_fields = {
+                    "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment"
+                }
+            else:
+                allowed_fields = {"operationKind", "operationId", "operationHash", "canonicalDid"}
             if set(fields) - allowed_fields:
                 errors.append(f"{identifier}.expected.fields contains fields unsupported by {operation}")
             for field, value in fields.items():
@@ -206,7 +218,13 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
             if not fields:
                 errors.append(f"{identifier}: success must assert at least one parsed field")
         elif kind == "error":
-            required_code = "did.invalid_did" if operation == "did.parse" else "did.invalid_did_url"
+            required_code = {
+                "did.parse": "did.invalid_did",
+                "did-url.parse": "did.invalid_did_url",
+                "did-prism.envelope.parse": "did-prism.invalid_wire",
+                "did-prism.signed-create.verify": "did-prism.invalid_operation",
+                "did-prism.state.reduce": "did-prism.invalid_state",
+            }[operation]
             if expected.get("errorCode") != required_code or expected.get("redacted") is not True or fields:
                 errors.append(f"{identifier}: error expectation must use {required_code}, redacted=true, and empty fields")
         else:
@@ -372,8 +390,13 @@ def main() -> int:
         expected_selectors = {CONSUMER_SELECTORS[source] for source in consumer_sources}
         if set(selectors) != expected_selectors:
             errors.append(f"{identifier}.language_selectors must match its pinned consumer sources")
-        if vector.get("owner_issue") != 420 or not isinstance(vector.get("active"), bool):
-            errors.append(f"{identifier}: owner_issue must be 420 and active must be boolean")
+        if (
+            not isinstance(vector.get("owner_issue"), int)
+            or isinstance(vector.get("owner_issue"), bool)
+            or vector.get("owner_issue", 0) <= 0
+            or not isinstance(vector.get("active"), bool)
+        ):
+            errors.append(f"{identifier}: owner_issue must be positive and active must be boolean")
         string_array(vector.get("supersedes"), f"{identifier}.supersedes", errors, allow_empty=True)
         if not isinstance(vector.get("replaced_by"), str):
             errors.append(f"{identifier}.replaced_by must be text")

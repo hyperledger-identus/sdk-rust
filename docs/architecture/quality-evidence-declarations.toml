@@ -2,7 +2,7 @@ schema_version   = 1
 registry_version = "1.0.0"
 status           = "active"
 owner_issue      = 501
-evaluated_at     = "2026-09-30"
+evaluated_at     = "2026-10-26"
 allowed_classes  = [ "property", "fuzz", "benchmark", "differential" ]
 allowed_lanes    = [ "focused", "fast", "slow", "release", "none" ]
 allowed_cadences = [ "on-change", "per-pull-request", "weekly-or-manual", "per-candidate", "not-applicable" ]
@@ -95,9 +95,9 @@ freshness = "max-age-days"
 freshness_days = 8
 budget = "Run each DID and DID URL fuzz target for 300 seconds with max_len=8192, timeout=5, and rss_limit_mb=1024."
 receipt_kind = "github-run"
-receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/36517752658"
-evidence_revision = "d27e455901c501d9611abbe0065e6a9b7270dd57"
-recorded_at = "2026-09-29"
+receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/39364833087"
+evidence_revision = "fb1c7011897ba766f82ea5957feaeb95df179418"
+recorded_at = "2026-10-20"
 artifact = "did-fuzz-artifacts-<sha>-<attempt> on failure"
 owner = "SDK-Rust DID maintainers"
 owner_issue = 501
@@ -166,4 +166,154 @@ details = [
   "oracle-revision=72ebf6603594fe3b2b93f9d1a9cd9dc40bf8708f6bc8a7b4370ee9b9f173679a",
   "normalization=compare accept/reject and canonical parsed component expectations, not foreign DTO or error shapes",
   "deviations=none for the lexical syntax packet",
+]
+
+[[declarations]]
+id = "did.prism.quality.v1"
+capability = "did.prism"
+slice = "Portable chain-neutral PRISM DID method"
+owner = "SDK-Rust PRISM DID maintainers"
+owner_issue = 521
+risk = "Wire reconstruction, invalid key profiles, non-atomic updates or unstable projection can split PRISM history and expose unauthorized DID state."
+targets = [ "package:identus-prism-did", "host:rust", "target:wasm32-unknown-unknown" ]
+vector_ids = [
+  "did.prism.preprod.signed-create",
+  "did.prism.preprod.signed-create-second",
+  "did.prism.wire.duplicate-envelope-field",
+  "did.prism.state.atomic-rollback",
+]
+limitations = "The declaration covers portable DID operations and projection only; Cardano indexing, VDR payload semantics, persistence and downstream adoption remain separate capabilities."
+active = true
+supersedes = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Long ordered action sequences and historical churn may violate rollback, identifier reservation, active-count or master-key invariants."
+selectors = [
+  "crates/prism-did/src/state.rs#property_generated_state_traces_preserve_atomic_invariants",
+]
+command = "cargo test -p identus-prism-did property"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-prism-did", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Generate deterministic create/update/deactivate traces covering ordered rollback, tombstones, active-only 50-item limits and final master-key invariants."
+receipt_kind = "source"
+receipt = "source:crates/prism-did/src/state.rs"
+evidence_revision = "5c5a90d9f3f22c39f76fbde19239ee451f9fec3f"
+recorded_at = "2026-10-26"
+artifact = ""
+owner = "SDK-Rust PRISM DID maintainers"
+owner_issue = 521
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Every accepted trace preserves history linkage, identifier reservation, active limits and at least one active master key",
+  "domain=Bounded create, ordered update-action and deactivate sequences with valid and invalid identifiers, keys, services and contexts",
+  "cases=Deterministic generated traces plus shrinking-ready operation constructors",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "required"
+risk = "Malformed protobuf, base64url or nested JSON inputs may trigger panics, allocation amplification, parser disagreement or signature confusion."
+selectors = [
+  "crates/prism-did/src/wire.rs#rejects_malformed_and_oversized_inputs",
+  "fuzz/fuzz_targets/prism_operation.rs#fuzz_target!",
+  "fuzz/fuzz_targets/prism_did.rs#fuzz_target!",
+  "scripts/fuzz-did-prism.sh#-max_len=139264",
+  ".github/workflows/did-fuzz.yml#Run bounded PRISM DID soak",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-did-prism.sh soak all"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-prism-did", "host:linux", "sanitizer:address" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Bound raw inputs at the public envelope and identifier ceilings, five seconds per case, 1024 MiB RSS and 300 seconds per target."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust PRISM DID maintainers"
+owner_issue = 521
+debt_status = "open"
+debt_issue = 521
+rationale = ""
+details = [
+  "harness=Planned libFuzzer targets for exact envelope, long-form syntax, typed create/update decoding and state traces",
+  "corpus=Pinned PRISM specification examples, donor negatives and public Preprod signed envelopes",
+  "seed=libFuzzer-managed reproducible failing inputs with checked-in regression promotion",
+  "bounds=max_len=139264;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "required"
+risk = "Exact-byte scanning, typed decoding and clone-then-commit reduction may introduce material latency or allocation regressions on portable targets."
+selectors = [
+  "crates/prism-did/benches/directional.rs#did-prism-benchmark",
+]
+command = "cargo bench -p identus-prism-did"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-prism-did", "host:linux" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Measure ordinary and maximum-profile parse, signature verification, projection and state transition paths with fixed fixtures and allocation observations."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust PRISM DID maintainers"
+owner_issue = 521
+debt_status = "open"
+debt_issue = 521
+rationale = ""
+details = [
+  "operation=Exact envelope parse, create verification, update reduction and DID document projection",
+  "fixture=Historical Preprod envelope plus deterministic ordinary and maximum-profile operations",
+  "environment=Pinned Linux Nix toolchain with isolated benchmark process",
+  "statistic=Median wall time with allocation count and peak retained bytes where available",
+  "samples=At least 100 measured iterations after warm-up per stable fixture",
+  "threshold=Directional baseline in this slice; regression thresholds require the first accepted source-bound baseline",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "Portable operation hashes, signature verification, state semantics or document projection may diverge from the public ledger and pinned method behavior."
+selectors = [
+  "crates/prism-did/src/state.rs#verifies_pinned_preprod_signed_create_envelope",
+  "docs/conformance/fixtures/did-prism/preprod-2026-09-10.json#5873d42d38408e10f5e9dc624c0fc18fbf4b5a7871046501eb7f7e4997f11360",
+]
+command = "cargo test -p identus-prism-did verifies_pinned_preprod"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-prism-did", "host:rust", "network:preprod-fixture" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Verify both pinned public Preprod create envelopes and compare exact operation ID, DID suffix, signature and projected document evidence offline."
+receipt_kind = "source"
+receipt = "source:crates/prism-did/src/state.rs"
+evidence_revision = "5f4ea13c1635db5466d5fcae353d0897f09abdf5"
+recorded_at = "2026-10-26"
+artifact = "docs/conformance/fixtures/did-prism/preprod-2026-09-10.json"
+owner = "SDK-Rust PRISM DID maintainers"
+owner_issue = 521
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=Public Cardano Preprod operation facts reproduced by NeoPRISM 0.14.2 and the pinned donor revision",
+  "oracle-revision=04a43c3ff8afde4218011e58bd02b246e4d9ab6194e356467dd2319aba5015f9",
+  "normalization=Compare exact signed bytes, nested operation hash, signature result and semantic projection rather than donor DTO shapes",
+  "deviations=Active-count correction, missing-action rejection, duplicate singular-field rejection and exact-byte signature verification are explicit SDK hardening",
 ]

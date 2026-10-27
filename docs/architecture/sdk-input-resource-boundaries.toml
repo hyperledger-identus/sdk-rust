@@ -103,6 +103,17 @@ consumer_impact  = "Accepted typed structures, including inline ContextObject va
 review_triggers  = [ "new DID JSON surface", "open JSON field", "collection or recursion limit change", "new owned fallible boundary", "iterative cleanup regression" ]
 
 [[boundaries]]
+id               = "did-prism-operation-profile"
+package          = "identus-prism-did"
+surface          = "canonical and long-form identifiers, exact protobuf envelopes, typed DID operations, key/service/context collections, service endpoint JSON and native DID-document projection"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_CONTEXTS=127", "MAX_ID_CHARACTERS=50", "MAX_LONG_FORM_DID_BYTES=128075", "MAX_OPERATION_BYTES=96000", "MAX_PROJECTED_DOCUMENT_BYTES=33554432", "MAX_SERVICES=50", "MAX_SERVICE_ENDPOINT_BYTES=1200", "MAX_SERVICE_ENDPOINT_CHARACTERS=300", "MAX_SIGNATURE_BYTES=128", "MAX_SIGNED_OPERATION_BYTES=131072", "MAX_SIGNED_WITH_BYTES=50", "MAX_TYPE_CHARACTERS=100", "MAX_VERIFICATION_METHODS=50" ]
+evidence         = [ "crates/prism-did/src/limits.rs", "crates/prism-did/src/operation.rs", "crates/prism-did/src/projection.rs", "crates/prism-did/src/syntax.rs", "crates/prism-did/src/wire.rs" ]
+outer_obligation = "Callers own the borrowed or allocated envelope, identifier and protobuf bytes before entry; the SDK rejects aggregate wire bytes before typed decoding and bounds nested endpoint JSON before parsing."
+consumer_impact  = "Accepted method syntax, exact signed bytes, typed operation collections, key identifiers, service values, nested JSON retention and native projection stay within the declared finite profile. Generic hostile JSON ingress remains independently bounded."
+review_triggers  = [ "PRISM protobuf revision", "method-profile limit change", "new operation variant", "new retained JSON or byte field", "long-form encoding change" ]
+
+[[boundaries]]
 id               = "did-resolution-results-json"
 package          = "identus-did"
 surface          = "DID resolution/dereferencing results, metadata and open JSON content"

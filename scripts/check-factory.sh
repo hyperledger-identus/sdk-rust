@@ -174,8 +174,10 @@ required_files=(
   scripts/check-language-adapter-mappings.py
   scripts/check-platform-change-ledger.py
   scripts/check-cross-language-vectors.py
+  scripts/check-did-prism-proto.py
   scripts/check-quality-evidence-declarations.py
   scripts/fuzz-did.sh
+  scripts/fuzz-did-prism.sh
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
   scripts/check-crypto-benchmark.py
@@ -322,6 +324,12 @@ fi
 if [[ -x "$factory_root/scripts/check-cross-language-vectors.py" && -f "$factory_root/docs/conformance/cross-language-vector-catalog.toml" ]]; then
   if ! "$factory_root/scripts/check-cross-language-vectors.py" "$factory_root"; then
     report_failure "cross-language vector-catalog validation failed"
+  fi
+fi
+
+if [[ -x "$factory_root/scripts/check-did-prism-proto.py" && -d "$factory_root/crates/prism-did/proto" ]]; then
+  if ! "$factory_root/scripts/check-did-prism-proto.py" "$factory_root"; then
+    report_failure "pinned PRISM protobuf validation failed"
   fi
 fi
 

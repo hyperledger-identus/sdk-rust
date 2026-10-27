@@ -84,8 +84,12 @@ required_files=(
   docs/conformance/cross-language-vector-catalog.md
   docs/conformance/cross-language-vector-catalog.toml
   docs/conformance/fixtures/did/v1/vectors.json
+  docs/conformance/fixtures/did-prism/preprod-2026-09-10.json
+  docs/conformance/fixtures/did-prism/v1/vectors.json
   fuzz/fuzz_targets/did.rs
   fuzz/fuzz_targets/did_url.rs
+  fuzz/fuzz_targets/prism_did.rs
+  fuzz/fuzz_targets/prism_operation.rs
   docs/architecture/portable-agent-runtime.md
   docs/roadmap/a1-shared-compatibility-foundation.md
   docs/roadmap/a1-shared-compatibility-foundation.toml
@@ -171,6 +175,7 @@ required_files=(
   docs/adr/0173-sequence-a1-through-versioned-evidence-contracts.md
   docs/adr/0174-separate-peer-and-prism-did-method-ownership.md
   docs/adr/0175-bound-generic-did-for-prism-long-form-state.md
+  docs/adr/0176-allow-only-in-tree-portable-prism-method-package.md
   docs/adr/0160-separate-rustsec-advisory-and-yank-evidence.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
@@ -236,8 +241,10 @@ required_files=(
   scripts/check-language-adapter-mappings.py
   scripts/check-platform-change-ledger.py
   scripts/check-cross-language-vectors.py
+  scripts/check-did-prism-proto.py
   scripts/check-quality-evidence-declarations.py
   scripts/fuzz-did.sh
+  scripts/fuzz-did-prism.sh
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
   scripts/check-crypto-benchmark.py
@@ -296,6 +303,11 @@ required_files=(
   .github/workflows/nix-checks.yml
   .github/workflows/publish-crates.yml
   .github/workflows/pull-request-policy.yml
+  crates/prism-did/proto/prism.proto
+  crates/prism-did/proto/prism-ssi.proto
+  crates/prism-did/proto/prism-storage.proto
+  crates/prism-did/proto/prism-version.proto
+  crates/prism-did/src/proto.rs
 )
 
 for relative_path in "${required_files[@]}"; do
@@ -433,6 +445,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-language-adapter-mappings.py" \
   "$fixture_root/scripts/check-platform-change-ledger.py" \
   "$fixture_root/scripts/check-cross-language-vectors.py" \
+  "$fixture_root/scripts/check-did-prism-proto.py" \
   "$fixture_root/scripts/check-quality-evidence-declarations.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/check-oid4vci-conformance.py" \

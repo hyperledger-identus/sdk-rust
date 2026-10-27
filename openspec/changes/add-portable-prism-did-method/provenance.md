@@ -15,6 +15,8 @@
 | --- | --- | --- |
 | `lib/did-prism/proto/prism.proto` | `412163eef867771e78418e25dd8a761c7a8ef2c390b190e82b413d0a0c7b8fdd` | adapt DID envelope tags; keep VDR tags opaque |
 | `lib/did-prism/proto/prism-ssi.proto` | `dd365637988fdf61ec80038ba6f6ab1dfafb6556288fa368e2d0607fdbb78609` | pin and generate private prost messages |
+| `lib/did-prism/proto/prism-storage.proto` | `958e1c8d13caa06b9a27539a1b37995b96c55f7d3c4f5d7d8db6de5b20a1053e` | pin imported VDR tags; keep payload semantics out of #521 |
+| `lib/did-prism/proto/prism-version.proto` | `481ef353a57345a06afca7928de94cd5fefa522d46c1000e66a4bceb0de31f4d` | pin imported protocol-version tag; keep payload opaque |
 | `lib/did-prism/src/did/mod.rs` | `d5c9d97bfbe65155597c4af9480a8314d6ddc8580c3d20500c6737c3866494ec` | adapt short/long syntax; replace donor DID types |
 | `lib/did-prism/src/did/operation/ssi.rs` | `f7925bc376b7d74d274d468f45106a1ce9ffe7f6b5c606a0256065f5fc721857` | adapt operation rules; correct recorded deviations |
 | `lib/did-prism/src/did/did_doc.rs` | `21f7c30f0a89de35c86cd41c1b05204c948b700ecccfc5d2ddad40b53caefda1` | adapt projection to `identus-did` |

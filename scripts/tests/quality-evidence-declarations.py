@@ -194,22 +194,24 @@ def main() -> int:
         )
 
         declaration_offset = baseline.index("[[declarations]]")
-        second_declaration = baseline[declaration_offset:]
-        second_declaration = replace_once(
-            second_declaration,
+        next_declaration_offset = baseline.index("[[declarations]]", declaration_offset + 1)
+        additive_declaration = baseline[declaration_offset:next_declaration_offset]
+        additive_declaration = replace_once(
+            additive_declaration,
             'id = "did.syntax.quality.v1"',
             'id = "example.portable.quality.v1"',
         )
-        second_declaration = replace_once(
-            second_declaration,
+        additive_declaration = replace_once(
+            additive_declaration,
             'capability = "did.syntax"',
             'capability = "example.portable"',
         )
-        additive = baseline.rstrip() + "\n\n" + second_declaration
+        additive = baseline.rstrip() + "\n\n" + additive_declaration
         (fixture_root / REGISTRY).write_text(additive, encoding="utf-8")
         result = run_checker(source_root, fixture_root, "--render")
         (fixture_root / REGISTRY).write_text(baseline, encoding="utf-8")
-        if result.returncode != 0 or "Declaration count: `2`" not in result.stdout:
+        expected_count = baseline.count("[[declarations]]") + 1
+        if result.returncode != 0 or f"Declaration count: `{expected_count}`" not in result.stdout:
             raise AssertionError(f"additive declaration was not accepted:\n{result.stderr}")
 
         drifted_plan = (fixture_root / PLAN).read_text(encoding="utf-8") + "\nmanual edit\n"

@@ -5,20 +5,25 @@ Decision status: directed
 Decision reference: https://github.com/hyperledger-identus/sdk-rust/issues/521
 Constraint blockers: none
 
-Prerequisite issue #524 merged as PR #527 before this implementation gate.
+Prerequisite issue #524 merged as PR #527 before the exact preimplementation receipt.
 
 ## Existing entries affected
 
 The generic DID, method registry, crypto, input-resource, reusable-module,
-dependency-boundary, error, naming, unsafe-code and target constraints remain
-in force. Issue #524 changes only the generic lexical envelope; it does not
-authorize method semantics or wider JSON/crypto/HTTP limits. No existing
-entry is weakened.
+error, naming, unsafe-code and target constraints remain in force. Issue #524
+changes only the generic lexical envelope; it does not authorize method
+semantics or wider JSON/crypto/HTTP limits. ADR 0176 narrowly changes the
+dependency-boundary name rule: the exact source-less in-tree
+`identus-prism-did` package is allowed, while registry/Git/prefixed PRISM and
+all chain, donor and product families remain prohibited.
 
 ## Introduced or changed constraints
 
 - Raw `PrismOperation` is at most 96,000 bytes; a signed envelope is at most
   131,072 bytes. Bounds are checked before protobuf allocation.
+- A long-form identifier is at most 128,075 bytes. Native document projection
+  uses a separate 32 MiB preflight budget derived from actual projected key and
+  service counts plus the complete operation budget.
 - Key and service identifiers contain at most 50 ASCII fragment characters.
 - Service type wire text contains at most 100 ASCII grammar characters.
 - Service endpoint wire text contains at most 300 Unicode scalar values and
@@ -55,6 +60,8 @@ Dependencies and targets additionally require:
   but VDR payload semantics belong to issue #522.
 - Local long-form resolution is complete in this slice. Short-form published
   resolution needs ordered history supplied by a chain-neutral port.
+- Generic DID-document and resolution-result JSON ingress remains at 256 KiB
+  and 512 KiB; the larger native projection budget is not a permissive parser.
 
 ## Consumer and product impact
 

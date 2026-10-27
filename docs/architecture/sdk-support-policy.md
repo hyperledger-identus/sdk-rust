@@ -22,8 +22,9 @@ evidence runs from protected `develop`, which is the GitHub default branch;
 manual dispatch and local reproduction remain available. Reserved `main` stays
 minimal and explicitly protected. Browser WASM,
 Android ARM64 and iOS ARM64 are compile-checked for `identus-derive`,
-`identus-core`, `identus-crypto`, `identus-did`, `identus-jose` and
-`identus-oid4vci` and `identus-adapters-entropy`, with the entropy adapter's `getrandom` backend
+`identus-core`, `identus-crypto`, `identus-did`, `identus-jose`,
+`identus-oid4vci`, `identus-oid4vp`, `identus-prism-did` and
+`identus-adapters-entropy`, with the entropy adapter's `getrandom` backend
 explicitly selected. Windows and WASI are planned without a compatibility
 promise.
 

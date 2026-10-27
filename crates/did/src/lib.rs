@@ -79,6 +79,7 @@ pub use resolution::{
 };
 pub use uri::{MAX_URI_BYTES, Uri};
 pub use version::Version;
+pub use wire_json::{JsonWireError, JsonWireLimits, validate_unique_object_names};
 
 /// Metadata for the `identus-did` crate.
 pub const COMPONENT: Component = Component {

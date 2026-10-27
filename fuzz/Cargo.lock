@@ -484,6 +484,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-did-peer"
+version = "0.0.0"
+dependencies = [
+ "base64",
+ "bs58",
+ "identus-core",
+ "identus-did",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+]
+
+[[package]]
 name = "identus-jose"
 version = "0.0.0"
 dependencies = [
@@ -536,6 +549,7 @@ dependencies = [
  "hex",
  "identus-crypto",
  "identus-did",
+ "identus-did-peer",
  "identus-jose",
  "identus-prism-did",
  "identus-prism-indexer",

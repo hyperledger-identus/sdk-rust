@@ -4,6 +4,46 @@ status          = "active"
 owner_issue     = 420
 
 [[sources]]
+id             = "dif.peer-did-method"
+kind           = "standard"
+url            = "https://github.com/decentralized-identity/peer-did-method-spec"
+version        = "c6a1f4c079cb4816ce88a1ea33991fcf17b3f4c8"
+section        = "Method 2: multiple inception key without doc; services"
+authorship     = "Decentralized Identity Foundation contributors"
+license        = "Apache-2.0"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "did-methods.peer-numalgo4"
+kind           = "standard"
+url            = "https://github.com/decentralized-identity/did-methods"
+version        = "90850c3e700c4714afd7e91816c4530e4631ebb3"
+section        = "peer DID method algorithm 4"
+authorship     = "Decentralized Identity Foundation contributors"
+license        = "Apache-2.0"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "rust.did-peer-numalgo2"
+kind           = "repository"
+url            = "https://crates.io/crates/did-peer/0.7.5"
+revision       = "3bca5b6358d05b07773ee6445834427b0411d083"
+path           = "crates/affinidi-did-resolver-methods/did-peer/src"
+authorship     = "Affinidi contributors"
+license        = "Apache-2.0"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "rust.did-peer-numalgo4"
+kind           = "repository"
+url            = "https://github.com/decentralized-identity/peer-did-method-spec"
+revision       = "1c95404a7b6787001a86ce7e5a36254c9688ac0f"
+path           = "implementations/rust"
+authorship     = "peer DID contributors"
+license        = "Apache-2.0"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
 id             = "w3c.did-core-v1"
 kind           = "standard"
 url            = "https://www.w3.org/TR/2022/REC-did-core-20220719/"
@@ -104,6 +144,18 @@ license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 
 [[packets]]
+id             = "did.peer.profiles.v1"
+capability     = "did.peer.profiles"
+schema_version = 1
+path           = "docs/conformance/fixtures/did-peer/v1/vectors.json"
+sha256         = "660fe414bc5fc7066ba3424226e2150d40759e4cef0657e6cffc3ae7ef48b530"
+authorship     = "SDK-Rust clean-room curation from the pinned peer DID specification and public Rust oracle vectors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[packets]]
 id             = "did.syntax.v1"
 capability     = "did.syntax"
 schema_version = 1
@@ -150,6 +202,52 @@ license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 public_data    = true
 targets        = [ "rust" ]
+
+[[vectors]]
+id                 = "did.peer.numalgo4.reference-minimal"
+packet             = "did.peer.profiles.v1"
+case               = "did.peer.numalgo4.reference-minimal"
+capability         = "did.peer.profiles"
+authority          = "normative"
+source_ids         = [ "did-methods.peer-numalgo4", "rust.did-peer-numalgo4" ]
+source_locator     = "numalgo4 reference implementation minimal JSON vector"
+operation          = "did-peer.numalgo4.create"
+expected           = "success"
+profile_scope      = "Current numalgo-4 short and long form"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "numalgo4::tests::matches_reference_implementation_minimal_vector"
+language_selectors = [  ]
+owner_issue        = 523
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The vector proves exact numalgo-4 encoding and hash linkage; it does not define foreign DTO or error shapes."
+
+[[vectors]]
+id                 = "did.peer.numalgo2.affinidi-compat"
+packet             = "did.peer.profiles.v1"
+case               = "did.peer.numalgo2.affinidi-compat"
+capability         = "did.peer.profiles"
+authority          = "implementation-regression"
+source_ids         = [ "dif.peer-did-method", "rust.did-peer-numalgo2" ]
+source_locator     = "did-peer 0.7.5 numalgo-2 compatibility example"
+operation          = "did-peer.numalgo2.parse-resolve"
+expected           = "success"
+profile_scope      = "Explicit legacy numalgo-2 compatibility profile"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "numalgo2_compat::tests::parses_affinidi_numalgo2_compatibility_vector"
+language_selectors = [  ]
+owner_issue        = 523
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Compatibility profile only; historical numalgo 0, 1 and 3 remain unsupported."
 
 [[vectors]]
 id                 = "did.syntax.valid-basic"

@@ -51,6 +51,8 @@ OPERATIONS = {
     "did-prism.state.reduce",
     "crypto.secp256k1.verify",
     "did-prism-vdr.operation.parse",
+    "did-peer.numalgo4.create",
+    "did-peer.numalgo2.parse-resolve",
 }
 BOUNDARIES = {"positive", "negative", "boundary", "mutation"}
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
@@ -202,6 +204,8 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 allowed_fields = {
                     "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment"
                 }
+            elif operation in {"did-peer.numalgo4.create", "did-peer.numalgo2.parse-resolve"}:
+                allowed_fields = {"did"}
             else:
                 allowed_fields = {"operationKind", "operationId", "operationHash", "canonicalDid"}
             if set(fields) - allowed_fields:
@@ -230,6 +234,8 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 "did-prism.state.reduce": "did-prism.invalid_state",
                 "crypto.secp256k1.verify": "crypto.signature_invalid",
                 "did-prism-vdr.operation.parse": "did-prism-vdr.invalid_operation",
+                "did-peer.numalgo4.create": "did-peer.invalid_input_document",
+                "did-peer.numalgo2.parse-resolve": "did-peer.malformed_encoding",
             }[operation]
             if expected.get("errorCode") != required_code or expected.get("redacted") is not True or fields:
                 errors.append(f"{identifier}: error expectation must use {required_code}, redacted=true, and empty fields")

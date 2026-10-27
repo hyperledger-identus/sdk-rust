@@ -48,6 +48,9 @@ jobs:
       - name: Run bounded PRISM VDR and indexer soak
         run: nix develop .#fuzz --command ./scripts/fuzz-prism-vdr-indexer.sh soak all
 
+      - name: Run bounded peer DID soak
+        run: nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak
+
       - name: Preserve failing inputs
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

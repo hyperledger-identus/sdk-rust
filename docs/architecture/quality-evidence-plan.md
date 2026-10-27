@@ -64,42 +64,38 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
-| `property` | `required` | `focused` | `on-change` | `pending` | #487 |
-| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #487 |
-| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #487 |
-| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #487 |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #487 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #487 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #487 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #487 |
 
 ### `property`
 
 - Command: `cargo test -p identus-oid4vp direct_post_property`
 - Budget: Generate bounded request rules and result collections across required, optional, single and multiple profiles and round-trip every accepted form.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #487
+- Receipt: `source:crates/oid4vp/tests/direct_post_response.rs`
+- Evidence revision: `83dc91a27dbffd9dac66a7c6e93e37c3ad390397`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response`
 - Budget: Run the direct-post response parser/constructor for 300 seconds with max_len=65536, timeout=5 and rss_limit_mb=1024.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #487
+- Receipt: `source:fuzz/fuzz_targets/direct_post_response.rs`
+- Evidence revision: `83dc91a27dbffd9dac66a7c6e93e37c3ad390397`
 
 ### `benchmark`
 
 - Command: `cargo bench -p identus-oid4vp --bench direct_post_response`
 - Budget: Measure ordinary and maximum-profile response validation, JSON assembly and form encoding with retained-byte observations.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #487
+- Receipt: `source:crates/oid4vp/benches/direct_post_response.rs`
+- Evidence revision: `83dc91a27dbffd9dac66a7c6e93e37c3ad390397`
 
 ### `differential`
 
 - Command: `cargo test -p identus-oid4vp --test direct_post_response packet_executes_full_invocation_jar_dcql_and_response_lineage`
 - Budget: Reproduce the attributed Final response shape and round-trip its form body through an independent strict decoder.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #487
+- Receipt: `source:docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json`
+- Evidence revision: `83dc91a27dbffd9dac66a7c6e93e37c3ad390397`
 
 ## `did.syntax.quality.v1`
 

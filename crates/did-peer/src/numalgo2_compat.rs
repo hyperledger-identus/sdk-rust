@@ -6,7 +6,7 @@
 
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use identus_did::{
-    Did, DidDocument, JsonWireError, JsonWireLimits, MAX_DID_BYTES, Uri,
+    Did, DidDocument, JsonWireError, JsonWireLimits, MAX_DID_BYTES, MAX_DID_DOCUMENT_BYTES, Uri,
     validate_unique_object_names,
 };
 use serde::{Deserialize, Serialize};
@@ -252,6 +252,7 @@ impl PeerDid {
 
     /// Resolve locally into the generic DID document model.
     pub fn resolve(&self) -> Result<DidDocument, Error> {
+        self.preflight_projection()?;
         let mut verification_methods = Vec::with_capacity(self.keys.len());
         let mut authentication = Vec::new();
         let mut assertion_method = Vec::new();
@@ -312,6 +313,76 @@ impl PeerDid {
         let bytes = serde_json::to_vec(&Value::Object(document)).map_err(|_| Error::Projection)?;
         DidDocument::from_json_slice(&bytes).map_err(|_| Error::Projection)
     }
+
+    fn preflight_projection(&self) -> Result<(), Error> {
+        let did_repetitions = self.keys.iter().try_fold(1_usize, |count, key| {
+            count
+                .checked_add(if key.purpose == Purpose::Verification {
+                    4
+                } else {
+                    3
+                })
+                .ok_or(Error::ResourceLimit)
+        })?;
+        let did_repetitions = did_repetitions
+            .checked_add(self.services.len())
+            .ok_or(Error::ResourceLimit)?;
+        let mut projected_bytes = self
+            .did
+            .as_str()
+            .len()
+            .checked_mul(did_repetitions)
+            .and_then(|bytes| {
+                bytes.checked_add(
+                    2_048 + (self.keys.len() + self.services.len()).saturating_mul(512),
+                )
+            })
+            .ok_or(Error::ResourceLimit)?;
+        for key in &self.keys {
+            projected_bytes = projected_bytes
+                .checked_add(key.multibase.len())
+                .ok_or(Error::ResourceLimit)?;
+        }
+        for service in &self.services {
+            projected_bytes = projected_bytes
+                .checked_add(json_string_encoded_len(&service.type_))
+                .and_then(|bytes| {
+                    bytes.checked_add(service.id.as_deref().map_or(0, json_string_encoded_len))
+                })
+                .ok_or(Error::ResourceLimit)?;
+            match &service.endpoint {
+                ServiceEndpoint::Uri(uri) => {
+                    projected_bytes = projected_bytes
+                        .checked_add(json_string_encoded_len(uri))
+                        .ok_or(Error::ResourceLimit)?;
+                }
+                ServiceEndpoint::Map(endpoint) => {
+                    for value in std::iter::once(&endpoint.uri)
+                        .chain(endpoint.accept.iter())
+                        .chain(endpoint.routing_keys.iter())
+                    {
+                        projected_bytes = projected_bytes
+                            .checked_add(json_string_encoded_len(value))
+                            .ok_or(Error::ResourceLimit)?;
+                    }
+                }
+            }
+        }
+        if projected_bytes > MAX_DID_DOCUMENT_BYTES {
+            return Err(Error::ResourceLimit);
+        }
+        Ok(())
+    }
+}
+
+fn json_string_encoded_len(value: &str) -> usize {
+    value.chars().fold(2_usize, |length, character| {
+        length.saturating_add(match character {
+            '"' | '\\' | '\u{0008}' | '\t' | '\n' | '\u{000c}' | '\r' => 2,
+            '\u{0000}'..='\u{001f}' => 6,
+            _ => character.len_utf8(),
+        })
+    })
 }
 
 fn validate_counts(keys: usize, services: usize) -> Result<(), Error> {
@@ -516,6 +587,26 @@ mod tests {
         };
         assert_eq!(
             PeerDid::create(vec![key], vec![service]),
+            Err(Error::ResourceLimit)
+        );
+    }
+
+    #[test]
+    fn rejects_aggregate_projection_growth_before_building_document() {
+        let key = PublicKey::new(Purpose::Verification, VERIFICATION_KEY).expect("key");
+        let services = (0..10)
+            .map(|_| Service {
+                type_: "DIDCommMessaging".into(),
+                endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
+                    uri: "https://example.com/didcomm".into(),
+                    accept: vec!["a".repeat(8_000)],
+                    routing_keys: vec![],
+                }),
+                id: None,
+            })
+            .collect();
+        assert_eq!(
+            PeerDid::create(vec![key], services),
             Err(Error::ResourceLimit)
         );
     }

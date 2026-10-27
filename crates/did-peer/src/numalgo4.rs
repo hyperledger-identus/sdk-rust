@@ -1,7 +1,10 @@
 //! Current peer DID numalgo-4 short/long-form profile.
 
 use bs58::{decode, encode};
-use identus_did::{Did, DidDocument, JsonWireError, JsonWireLimits, validate_unique_object_names};
+use identus_did::{
+    Did, DidDocument, JsonWireError, JsonWireLimits, MAX_DID_DOCUMENT_BYTES,
+    validate_unique_object_names,
+};
 use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 use std::fmt;
@@ -289,6 +292,7 @@ fn contextualize(
     subject: &Did,
     counterpart: Option<&Did>,
 ) -> Result<DidDocument, Error> {
+    preflight_projection(input, subject, counterpart)?;
     let mut object = input
         .as_object()
         .cloned()
@@ -309,6 +313,123 @@ fn contextualize(
     }
     let bytes = serde_json::to_vec(&Value::Object(object)).map_err(|_| Error::Projection)?;
     DidDocument::from_json_slice(&bytes).map_err(|_| Error::Projection)
+}
+
+fn preflight_projection(
+    input: &Value,
+    subject: &Did,
+    counterpart: Option<&Did>,
+) -> Result<(), Error> {
+    let mut projected_bytes = serde_json::to_vec(input)
+        .map_err(|_| Error::Projection)?
+        .len()
+        .checked_add(subject.as_str().len() + 8)
+        .ok_or(Error::ResourceLimit)?;
+
+    if let Some(methods) = input.get("verificationMethod") {
+        projected_bytes = projected_bytes
+            .checked_add(projection_method_growth(methods, subject, false)?)
+            .ok_or(Error::ResourceLimit)?;
+    }
+    for name in [
+        "authentication",
+        "assertionMethod",
+        "keyAgreement",
+        "capabilityInvocation",
+        "capabilityDelegation",
+    ] {
+        if let Some(values) = input.get(name) {
+            projected_bytes = projected_bytes
+                .checked_add(projection_method_growth(values, subject, true)?)
+                .ok_or(Error::ResourceLimit)?;
+        }
+    }
+    if let Some(services) = input.get("service") {
+        let services = services.as_array().ok_or(Error::InvalidInputDocument)?;
+        if services.len() > 128 {
+            return Err(Error::ResourceLimit);
+        }
+        for service in services {
+            let fragment = service
+                .as_object()
+                .and_then(|service| service.get("id"))
+                .and_then(Value::as_str)
+                .ok_or(Error::InvalidInputDocument)?;
+            validate_projection_fragment(fragment)?;
+            projected_bytes = projected_bytes
+                .checked_add(subject.as_str().len())
+                .ok_or(Error::ResourceLimit)?;
+        }
+    }
+    if let Some(counterpart) = counterpart {
+        let alias_growth = match input.get("alsoKnownAs") {
+            Some(Value::Array(values)) if values.len() >= 128 => return Err(Error::ResourceLimit),
+            Some(Value::Array(values)) if values.is_empty() => counterpart.as_str().len() + 2,
+            Some(Value::Array(_)) => counterpart.as_str().len() + 3,
+            Some(_) => return Err(Error::InvalidInputDocument),
+            None => counterpart.as_str().len() + 19,
+        };
+        projected_bytes = projected_bytes
+            .checked_add(alias_growth)
+            .ok_or(Error::ResourceLimit)?;
+    }
+    if projected_bytes > MAX_DID_DOCUMENT_BYTES {
+        return Err(Error::ResourceLimit);
+    }
+    Ok(())
+}
+
+fn projection_method_growth(
+    value: &Value,
+    subject: &Did,
+    allow_references: bool,
+) -> Result<usize, Error> {
+    let values = value.as_array().ok_or(Error::InvalidInputDocument)?;
+    if values.len() > 128 {
+        return Err(Error::ResourceLimit);
+    }
+    let mut growth = 0_usize;
+    for value in values {
+        if allow_references && let Some(fragment) = value.as_str() {
+            validate_projection_fragment(fragment)?;
+            growth = growth
+                .checked_add(subject.as_str().len())
+                .ok_or(Error::ResourceLimit)?;
+            continue;
+        }
+        let method = value.as_object().ok_or(Error::InvalidInputDocument)?;
+        let fragment = method
+            .get("id")
+            .and_then(Value::as_str)
+            .ok_or(Error::InvalidInputDocument)?;
+        validate_projection_fragment(fragment)?;
+        growth = growth
+            .checked_add(subject.as_str().len())
+            .ok_or(Error::ResourceLimit)?;
+        match method.get("controller") {
+            None => {
+                growth = growth
+                    .checked_add(subject.as_str().len() + 16)
+                    .ok_or(Error::ResourceLimit)?;
+            }
+            Some(Value::String(controller)) if controller.starts_with('#') => {
+                validate_projection_fragment(controller)?;
+                growth = growth
+                    .checked_add(subject.as_str().len())
+                    .ok_or(Error::ResourceLimit)?;
+            }
+            Some(_) => {}
+        }
+    }
+    Ok(growth)
+}
+
+fn validate_projection_fragment(fragment: &str) -> Result<(), Error> {
+    if fragment.starts_with('#') && fragment.len() >= 2 {
+        Ok(())
+    } else {
+        Err(Error::InvalidInputDocument)
+    }
 }
 
 fn reject_secret_members(value: &Value) -> Result<(), Error> {
@@ -560,6 +681,23 @@ mod tests {
         let input = format!(r#"{{"alsoKnownAs":[{aliases}]}}"#);
         let input = InputDocument::from_json_str(&input).expect("input is valid before projection");
         assert_eq!(LongForm::create(input), Err(Error::ResourceLimit));
+    }
+
+    #[test]
+    fn rejects_projection_growth_before_expanding_fragments() {
+        let references = (0..16)
+            .map(|index| format!("\"#key-{index}\""))
+            .collect::<Vec<_>>()
+            .join(",");
+        let input =
+            serde_json::from_str::<Value>(&format!(r#"{{"authentication":[{references}]}}"#))
+                .expect("input");
+        let oversized_subject = Did::parse(&format!("did:peer:4{}", "a".repeat(20_000)))
+            .expect("syntactically valid DID");
+        assert_eq!(
+            contextualize(&input, &oversized_subject, None),
+            Err(Error::ResourceLimit)
+        );
     }
 
     #[test]

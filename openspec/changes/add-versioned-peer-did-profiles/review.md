@@ -20,6 +20,8 @@ from blocking delivery.
   and numalgo-4 rejects recognized private JWK members before public retention.
 - Numalgo-4 parsing retains the exact validated identity-defining JSON bytes,
   so accepted noncanonical inputs recreate the same long and short forms.
+- Both profiles preflight aggregate DID-document projection growth before
+  expanding repeated DIDs or local references and return `ResourceLimit`.
 - The exact 16 KiB decoded input ceiling round-trips. The profile ceiling is
   intentionally below the generic DID limit because large base58 conversion is
   super-linear; the measured exact-boundary test completes in about 2.3 seconds

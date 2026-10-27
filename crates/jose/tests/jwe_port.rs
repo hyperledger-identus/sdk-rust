@@ -41,6 +41,12 @@ fn compact_with_header(header: &serde_json::Value) -> String {
     )
 }
 
+fn compact_with_segment(compact: &str, index: usize, value: &str) -> String {
+    let mut segments: Vec<_> = compact.split('.').collect();
+    segments[index] = value;
+    segments.join(".")
+}
+
 fn valid_compact() -> String {
     compact_with_header(&valid_header())
 }
@@ -201,17 +207,24 @@ fn compact_header_and_segment_profile_rejects_each_independent_defect() {
     unknown["typ"] = serde_json::json!("JWT");
     cases.push(("unknown protected member", compact_with_header(&unknown)));
 
-    let duplicate = br#"{"alg":"ECDH-ES","alg":"ECDH-ES","enc":"A128GCM","epk":{"kty":"EC","crv":"P-256","x":"AA","y":"AA"}}"#;
+    let valid_header_json = serde_json::to_string(&valid_header()).expect("header");
+    let duplicate = format!(
+        "{{\"alg\":\"ECDH-ES\",{}",
+        valid_header_json.strip_prefix('{').expect("object")
+    );
     cases.push((
         "duplicate protected member",
-        compact_from_parts(duplicate, &[1_u8; 12], &[2_u8; 4], &[3_u8; 16]),
+        compact_from_parts(duplicate.as_bytes(), &[1_u8; 12], &[2_u8; 4], &[3_u8; 16]),
     ));
 
-    let mut oversized = valid_header();
-    oversized["padding"] = serde_json::json!("x".repeat(4_096));
+    let oversized = format!(
+        "{}{}",
+        " ".repeat(4_097),
+        serde_json::to_string(&valid_header()).expect("header")
+    );
     cases.push((
         "oversized protected header",
-        compact_with_header(&oversized),
+        compact_from_parts(oversized.as_bytes(), &[1_u8; 12], &[2_u8; 4], &[3_u8; 16]),
     ));
 
     let header = serde_json::to_vec(&valid_header()).expect("header");
@@ -227,6 +240,19 @@ fn compact_header_and_segment_profile_rejects_each_independent_defect() {
         (
             "short authentication tag",
             compact_from_parts(&header, &[1_u8; 12], &[2_u8; 4], &[3_u8; 15]),
+        ),
+    ]);
+
+    let valid = valid_compact();
+    cases.extend([
+        (
+            "non-empty encrypted key",
+            compact_with_segment(&valid, 1, "AAAA"),
+        ),
+        ("sixth compact segment", format!("{valid}.AAAA")),
+        (
+            "forbidden base64url character",
+            compact_with_segment(&valid, 2, "AQEBAQEBAQEBAQEB+"),
         ),
     ]);
 

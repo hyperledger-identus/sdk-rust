@@ -82,6 +82,7 @@ required_files=(
   docs/architecture/quality-evidence-declarations.toml
   docs/architecture/quality-evidence-plan.md
   docs/architecture/oid4vp-encrypted-response-boundary.md
+  docs/architecture/siopv2-protocol-core.md
   docs/architecture/did-peer-quality-baseline.md
   docs/architecture/prism-vdr-indexer-quality-baseline.md
   docs/conformance/cross-language-vector-catalog.md
@@ -93,6 +94,7 @@ required_files=(
   docs/conformance/fixtures/crypto/v1/vectors.json
   docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json
   docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json
+  docs/conformance/fixtures/siopv2/v1/vectors.json
   crates/crypto/examples/crypto_baseline.rs
   crates/crypto/tests/curves.rs
   crates/crypto/tests/secp256k1_compat.rs
@@ -211,6 +213,7 @@ required_files=(
   openspec/specs/sdk-support-policy/spec.md
   openspec/specs/crypto/spec.md
   openspec/specs/did-core/spec.md
+  openspec/specs/siopv2-protocol-core/spec.md
   openspec/specs/unpublished-crypto-candidate/spec.md
   scripts/benchmark-code-health-classifier.py
   scripts/benchmark-support-policy.py
@@ -268,6 +271,7 @@ required_files=(
   scripts/fuzz-did-prism.sh
   scripts/fuzz-crypto.sh
   scripts/fuzz-oid4vp.sh
+  scripts/fuzz-siopv2.sh
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
   scripts/check-crypto-benchmark.py

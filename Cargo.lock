@@ -863,6 +863,7 @@ dependencies = [
  "identus-core",
  "identus-crypto",
  "identus-jose",
+ "identus-openid4vc",
  "serde",
  "serde_json",
  "siros-dcql",
@@ -873,7 +874,10 @@ dependencies = [
 name = "identus-openid4vc"
 version = "0.0.0"
 dependencies = [
+ "fluent-uri",
  "identus-core",
+ "serde_json",
+ "zeroize",
 ]
 
 [[package]]
@@ -918,6 +922,22 @@ dependencies = [
  "identus-crypto",
  "identus-prism-did",
  "prost",
+]
+
+[[package]]
+name = "identus-siopv2"
+version = "0.0.0"
+dependencies = [
+ "fluent-uri",
+ "identus-core",
+ "identus-crypto",
+ "identus-did",
+ "identus-jose",
+ "identus-openid4vc",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "zeroize",
 ]
 
 [[package]]

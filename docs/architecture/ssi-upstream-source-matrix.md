@@ -50,7 +50,7 @@ repository record of the SDK-owned rows.
 | Oxid | `crates/identity/domain` | `adapt` | `IDR-005`, `IDR-006` | Port consumer-shaped DID/JWK/document fixtures; Midnight network types remain downstream |
 | Oxid | `crates/credential/domain` | `adapt` | `IDR-007`, `IDR-009`, `IDR-010`, `IDR-027` | Generalize holder envelopes, private-material handles and staged verification without wallet IDs or trust policy |
 | Oxid | `crates/presentation/domain` | `adapt` | `IDR-008`, `IDR-009` | Generalize request, candidate, disclosure and state vocabulary without consent/UI policy |
-| Oxid | `crates/protocol/domain`, `crates/adapters/openid4vci`, `crates/adapters/openid4vp`, `crates/adapters/siopv2` | `conformance-only` | `IDR-023`, `IDR-024`, `IDR-025`, `IDR-026`, `IDR-031` | Preserve holder-side wire/state and negative fixtures; SDK engines cannot import wallet orchestration |
+| Oxid | `crates/protocol/domain`, `crates/adapters/openid4vci`, `crates/adapters/openid4vp`, `crates/adapters/siopv2`; SIOPv2 evidence pinned at `3ceea617557dce795a247fdd9c6180a873f1611e` | `conformance-only` | `IDR-023`, `IDR-024`, `IDR-025`, `IDR-026`, `IDR-031` | Preserve holder-side wire/state and negative fixtures; SDK engines cannot import wallet orchestration, loopback policy, storage, UI or custody |
 | Oxid | `crates/platform/ports` | `adapt` | `IDR-004`, `IDR-010` | Consider clock/random contracts; QR, screen privacy and platform UI ports remain product-owned |
 | Oxid | application services, custody, storage adapters, trust decisions, UI and composition | `remain-downstream` | none | Product policy and implementation stay in Oxid behind thin SDK adapters |
 

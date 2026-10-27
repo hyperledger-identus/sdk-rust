@@ -41,6 +41,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and bounded caller presentations into a deterministic plain direct-post success envelope.
 
+### `siopv2.did-authentication.draft13.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive experimental crate validates the pinned SIOPv2 draft-13 DID-subject direct_post profile, plans a self-issued ID Token through injected JOSE ports and exposes deterministic caller-driven lifecycle transitions while shared bounded request retrieval moves behind identus-openid4vc.
+
 ## Migration actions
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
@@ -75,6 +79,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 `unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. No migration action required.
 
+### `siopv2.did-authentication.draft13.v1`
+
+`unreleased` → `unreleased` for oxid, sdk-rust-adopters. No migration action required.
+
 ## Compatibility windows
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
@@ -106,6 +114,10 @@ Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
 ### `oid4vp.direct-post-response.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `siopv2.did-authentication.draft13.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
@@ -143,6 +155,10 @@ Fallback: Consumers continue constructing error forms in their existing adapter 
 
 Fallback: Consumers continue assembling responses in their existing adapter until they explicitly adopt the experimental SDK transition. Rollback: Remove the additive response transition and private retained metadata before publication; existing request validation remains available. Removal gate: Not applicable.
 
+### `siopv2.did-authentication.draft13.v1`
+
+Fallback: Consumers retain their existing SIOPv2 implementation until a separately qualified adapter accepts the experimental SDK profile. Rollback: Remove the additive SIOPv2 crate and shared delegation before publication; existing OID4VP behavior and downstream implementations remain unchanged. Removal gate: Not applicable.
+
 ## Limitations
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
@@ -176,3 +192,7 @@ Visibility: behavior, public-api, security, target-support, wire. Only plain Ope
 ### `oid4vp.direct-post-response.v1`
 
 Visibility: behavior, public-api, security, target-support, wire. Only plain OpenID4VP 1.0 Final direct_post success construction is included; no HTTP execution, presentation generation or verification, consent, trust, replay defense, signing, encryption, direct_post.jwt, SIOPv2, DC API, HAIP, persistence, consumer mutation or publication is claimed.
+
+### `siopv2.did-authentication.draft13.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. Draft 13 is not Final. The first profile excludes transport, storage, trust, custody, UI, DID resolution, JWK-thumbprint subjects, self-attested claims, discovery, federation, authorization code, encrypted tokens, OpenID4VP presentation and certification.

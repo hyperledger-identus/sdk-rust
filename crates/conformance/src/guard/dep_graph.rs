@@ -129,8 +129,18 @@ fn manifests_conform_to_layer_rules() {
             ),
             "identus-oid4vp" => assert_eq!(
                 deps,
-                ["identus-core", "identus-jose"],
-                "OID4VP must retain its exact core and JOSE internal dependency cone"
+                ["identus-core", "identus-jose", "identus-openid4vc"],
+                "OID4VP must retain its exact core, JOSE, and shared retrieval internal dependency cone"
+            ),
+            "identus-siopv2" => assert_eq!(
+                deps,
+                [
+                    "identus-core",
+                    "identus-did",
+                    "identus-jose",
+                    "identus-openid4vc"
+                ],
+                "SIOPv2 must retain its exact core, DID, JOSE, and shared retrieval internal dependency cone"
             ),
             "identus-prism-did" => assert_eq!(
                 deps,

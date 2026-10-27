@@ -153,6 +153,16 @@ authorship     = "OpenID Foundation Digital Credentials Protocols Working Group"
 license        = "OpenID-Document-License"
 redistribution = "derived-cases-allowed"
 
+[[sources]]
+id             = "openid.siopv2-draft13"
+kind           = "standard"
+url            = "https://openid.net/specs/openid-connect-self-issued-v2-1_0.html"
+version        = "SIOPv2 draft 13, 2023-11-28"
+section        = "5 Self-Issued ID Token; 8.2 Cross-Device Self-Issued OP"
+authorship     = "OpenID Foundation AB/Connect Working Group"
+license        = "OpenID-Document-License"
+redistribution = "derived-cases-allowed"
+
 [[packets]]
 id             = "did.peer.profiles.v1"
 capability     = "did.peer.profiles"
@@ -232,6 +242,18 @@ schema_version = 1
 path           = "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json"
 sha256         = "5917136af22ba4341a1f7fc71e58be69ee96eceedf83558a0617ea69f11c3b74"
 authorship     = "SDK-Rust clean-room curation from OpenID4VP 1.0 Final sections 8.3 and 8.3.1"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[packets]]
+id             = "siopv2.did-authentication.draft13.v1"
+capability     = "siopv2.did-authentication"
+schema_version = 1
+path           = "docs/conformance/fixtures/siopv2/v1/vectors.json"
+sha256         = "bb0bc7451aed5fd286c2fe0b5440661ced536fc6c295b2edbbe870afeba7133e"
+authorship     = "SDK-Rust clean-room curation from SIOPv2 draft 13"
 license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 public_data    = true
@@ -374,6 +396,29 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "Lexical syntax only; no DID method semantics."
+
+[[vectors]]
+id                 = "siopv2.did-authentication.draft13-ed25519"
+packet             = "siopv2.did-authentication.draft13.v1"
+case               = "siopv2.did-authentication.draft13-ed25519"
+capability         = "siopv2.did-authentication"
+authority          = "normative"
+source_ids         = [ "openid.siopv2-draft13" ]
+source_locator     = "SIOPv2 draft 13 sections 5 and 8.2; clean-room deterministic Ed25519 case"
+operation          = "siopv2.did-authentication.roundtrip"
+expected           = "success"
+profile_scope      = "Draft-13 DID-subject subject_signed_id_token direct_post profile"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "e2e::complete_did_subject_flow_round_trips_through_an_independent_verifier"
+language_selectors = [  ]
+owner_issue        = 514
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Experimental SIOPv2 draft-13 DID-subject profile only; the vector proves no transport, trust, storage, custody or certification behavior."
 
 [[vectors]]
 id                 = "did.syntax.valid-colon-segments"

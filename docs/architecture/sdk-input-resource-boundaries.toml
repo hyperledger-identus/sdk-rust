@@ -466,6 +466,28 @@ consumer_impact  = "The SDK validates query identity, required DCQL alternatives
 review_triggers  = [ "new presentation JSON type", "direct_post.jwt", "encryption", "HTTP adapter", "state grammar", "response limit change" ]
 
 [[boundaries]]
+id               = "openid4vc-request-retrieval"
+package          = "identus-openid4vc"
+surface          = "runtime-neutral HTTPS Request URI GET/POST preparation, optional wallet metadata/nonce form encoding, and status/media/body response binding to one opaque compact request object"
+disposition      = "sdk-enforced"
+limits           = [ "RequestRetrievalLimits=explicit" ]
+evidence         = [ "crates/openid4vc/src/lib.rs", "crates/openid4vc/tests/retrieval.rs", "docs/adr/0182-pin-siopv2-draft13-behind-identus-protocol-boundaries.md" ]
+outer_obligation = "Protocol invocation adapters bound the outer client and URI before construction; transport adapters own DNS, address policy, TLS, redirects, decompression, timeout, execution and response-byte preallocation."
+consumer_impact  = "The SDK prepares inert request data and bounds a response after transport allocation; it does not execute HTTP, verify JAR, interpret claims, authorize a key, establish trust or retry."
+review_triggers  = [ "new retrieval method", "HTTP adapter", "redirect policy", "decompression", "media type", "limit change" ]
+
+[[boundaries]]
+id               = "siopv2-draft13-protocol-core"
+package          = "identus-siopv2"
+surface          = "bounded compact JAR parsing and caller-authorized verification, duplicate-aware draft-13 request claims, DID-subject ID Token planning, exact direct-post encoding and pure lifecycle events"
+disposition      = "sdk-enforced"
+limits           = [ "Siopv2Limits=explicit" ]
+evidence         = [ "crates/siopv2/src/limits.rs", "crates/siopv2/src/request.rs", "crates/siopv2/src/response.rs", "crates/siopv2/src/flow.rs", "crates/siopv2/tests/e2e.rs", "fuzz/fuzz_targets/siopv2.rs" ]
+outer_obligation = "Callers own request retrieval, RP-key authorization and trust, durable nonce/replay storage, DID resolution, key custody, user authentication, consent, transport execution, retry policy and unknown-outcome recovery."
+consumer_impact  = "The experimental core proves the pinned draft-13 syntax, selected-key signature and exact response construction only; it confers no RP trust, durable replay defense, user consent, delivery or certification."
+review_triggers  = [ "new SIOPv2 draft or Final", "new subject type", "self-attested claim", "new response mode", "transport adapter", "storage", "limit change" ]
+
+[[boundaries]]
 id               = "wallet-storage-vocabulary"
 package          = "identus-wallet"
 surface          = "storage revisions, cursors, page sizes/pages and write/delete conditions"

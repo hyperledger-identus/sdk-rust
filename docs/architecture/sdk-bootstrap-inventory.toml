@@ -182,10 +182,10 @@ summary        = "Quarantined seed marker; DIDComm remains a conditional compone
 name           = "identus-openid4vc"
 path           = "crates/openid4vc"
 layer          = "protocol-semantics"
-classification = "placeholder"
-public_api     = "none"
-owner_issue    = "#7"
-summary        = "Quarantined seed marker; accepted OpenID protocols will use focused crates."
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#514"
+summary        = "Bounded runtime-neutral OpenID request-object GET/POST retrieval request and response-binding primitives shared without protocol claims, transport execution, trust, or retry policy."
 
 [[packages]]
 name           = "identus-oid4vci"
@@ -204,6 +204,15 @@ classification = "implemented"
 public_api     = "experimental"
 owner_issue    = "#487"
 summary        = "Bounded OpenID4VP 1.0 by-reference invocation, runtime-neutral GET/POST retrieval, signed compact JAR verification, bounded DCQL selection through a private engine, composed vp_token/direct_post routing, and deterministic bounded plain direct-post success construction; no HTTP runtime, client-prefix trust, JWE, consent or presentation generation."
+
+[[packages]]
+name           = "identus-siopv2"
+path           = "crates/siopv2"
+layer          = "protocol-semantics"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#514"
+summary        = "Bounded experimental SIOPv2 draft-13 signed-request verification, DID-subject ID Token planning through injected JOSE signers, exact direct-post response data, and pure caller-driven lifecycle transitions."
 
 [[packages]]
 name           = "identus-wallet"

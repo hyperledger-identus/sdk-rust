@@ -105,6 +105,23 @@ fn get_is_runtime_neutral_and_binds_a_signed_request_object() {
 }
 
 #[test]
+fn shared_retrieval_preserves_the_existing_oid4vp_client_identifier_policy() {
+    let AuthorizationRequestInvocation::Referenced(reference) =
+        AuthorizationRequestInvocation::parse(
+            "openid4vp:?client_id=a%09b&request_uri=https%3A%2F%2Fverifier.example%2Frequest",
+            AuthorizationRequestInvocationLimits::default(),
+        )
+        .expect("established OID4VP invocation");
+    assert_eq!(reference.expose_sensitive_client_id(), "a\tb");
+    reference
+        .prepare_retrieval(
+            RequestUriRetrievalInput::get(),
+            RequestUriRetrievalLimits::default(),
+        )
+        .expect("shared retrieval must not tighten the protocol-owned policy");
+}
+
+#[test]
 fn post_encodes_metadata_and_correlates_the_wallet_nonce() {
     let request = reference(RequestUriMethod::Post)
         .prepare_retrieval(

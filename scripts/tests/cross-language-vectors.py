@@ -22,6 +22,7 @@ OID4VP_DIRECT_POST_PACKET = ROOT / "docs/conformance/fixtures/oid4vp-direct-post
 OID4VP_ENCRYPTED_DIRECT_POST_PACKET = (
     ROOT / "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json"
 )
+SIOPV2_PACKET = ROOT / "docs/conformance/fixtures/siopv2/v1/vectors.json"
 
 
 def replace_once(text: str, before: str, after: str) -> str:
@@ -69,6 +70,9 @@ def run(catalog: str, packet: str, should_pass: bool, *, crypto_packet: str | No
         )
         oid4vp_encrypted_direct_post_target.parent.mkdir(parents=True)
         shutil.copy2(OID4VP_ENCRYPTED_DIRECT_POST_PACKET, oid4vp_encrypted_direct_post_target)
+        siopv2_target = root / "docs/conformance/fixtures/siopv2/v1/vectors.json"
+        siopv2_target.parent.mkdir(parents=True)
+        shutil.copy2(SIOPV2_PACKET, siopv2_target)
         result = subprocess.run([str(CHECKER), str(root)], capture_output=True, text=True, check=False)
         if (result.returncode == 0) != should_pass:
             raise AssertionError(
@@ -222,6 +226,9 @@ def main() -> None:
         )
         oid4vp_encrypted_direct_post_target.parent.mkdir(parents=True)
         shutil.copy2(OID4VP_ENCRYPTED_DIRECT_POST_PACKET, oid4vp_encrypted_direct_post_target)
+        siopv2_target = root / "docs/conformance/fixtures/siopv2/v1/vectors.json"
+        siopv2_target.parent.mkdir(parents=True)
+        shutil.copy2(SIOPV2_PACKET, siopv2_target)
         external = root / "outside.json"
         shutil.copy2(PACKET, external)
         packet_target.symlink_to(external)

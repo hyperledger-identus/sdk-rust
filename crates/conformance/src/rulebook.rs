@@ -154,6 +154,10 @@ pub(crate) const LAYER_RULES: &[LayerRule] = &[
                 name: "identus-oid4vp",
                 proc_macro: false,
             },
+            Member {
+                name: "identus-siopv2",
+                proc_macro: false,
+            },
         ],
         allowed_target_layers: &[
             Layer::Foundation,

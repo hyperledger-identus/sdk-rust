@@ -115,6 +115,47 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
+id                                = "siopv2.did-authentication.draft13.v1"
+capability                        = "siopv2.did-authentication"
+lifecycle_state                   = "active"
+issue                             = 514
+pull_request                      = 542
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-oid4vp", "identus-openid4vc", "identus-siopv2" ]
+affected_consumers                = [ "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes bounded DID, JOSE and OID4VP capabilities but no reusable SIOPv2 protocol core; Oxid owns a product-specific implementation."
+new_behavior                      = "The additive experimental crate validates the pinned SIOPv2 draft-13 DID-subject direct_post profile, plans a self-issued ID Token through injected JOSE ports and exposes deterministic caller-driven lifecycle transitions while shared bounded request retrieval moves behind identus-openid4vc."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = "No published SDK API is replaced; existing OID4VP retrieval names remain available through compatibility re-exports."
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The Rust-native protocol core intentionally does not preserve Oxid, SDK-TS, Swift, KMP or third-party DTO and error shapes; downstream adapters own migration contracts."
+vector_ids                        = [ "siopv2.did-authentication.draft13-ed25519" ]
+quality_declaration_ids           = [ "siopv2.did-authentication.quality.v1" ]
+observability                     = "Record only stable profile, transition, algorithm and result categories plus bounded counts or lengths; never record request objects, tokens, nonces, state, DIDs, redirect values, keys or dependency diagnostics."
+fallback                          = "Consumers retain their existing SIOPv2 implementation until a separately qualified adapter accepts the experimental SDK profile."
+rollback                          = "Remove the additive SIOPv2 crate and shared delegation before publication; existing OID4VP behavior and downstream implementations remain unchanged."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#siopv2.did-authentication.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#siopv2.did-authentication.draft13-ed25519" ]
+evidence_artifacts                = [ "docs/architecture/siopv2-protocol-core.md", "openspec/specs/siopv2-protocol-core/spec.md" ]
+limitations                       = "Draft 13 is not Final. The first profile excludes transport, storage, trust, custody, UI, DID resolution, JWK-thumbprint subjects, self-attested claims, discovery, federation, authorization code, encrypted tokens, OpenID4VP presentation and certification."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "oid4vp.direct-post-response.error.v1"
 capability                        = "oid4vp.direct-post-response"
 lifecycle_state                   = "active"

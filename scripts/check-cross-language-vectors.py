@@ -54,6 +54,7 @@ OPERATIONS = {
     "did-peer.numalgo4.create",
     "did-peer.numalgo2.parse-resolve",
     "oid4vp.direct-post-response.construct",
+    "siopv2.did-authentication.roundtrip",
 }
 BOUNDARIES = {"positive", "negative", "boundary", "mutation"}
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
@@ -207,7 +208,10 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 }
             elif operation in {"did-peer.numalgo4.create", "did-peer.numalgo2.parse-resolve"}:
                 allowed_fields = {"did"}
-            elif operation == "oid4vp.direct-post-response.construct":
+            elif operation in {
+                "oid4vp.direct-post-response.construct",
+                "siopv2.did-authentication.roundtrip",
+            }:
                 allowed_fields = {"serialized"}
             else:
                 allowed_fields = {"operationKind", "operationId", "operationHash", "canonicalDid"}

@@ -23,7 +23,7 @@
 
 ## 3. Indexer capability
 
-- [ ] 3.1 Add `identus-prism-indexer` scaffold and ordered batch values.
+- [x] 3.1 Add `identus-prism-indexer` scaffold and ordered batch values.
 - [ ] 3.2 Add pure full-batch planning and deterministic mutation output.
 - [ ] 3.3 Add atomic cursor compare-and-set commit/replay contract.
 - [ ] 3.4 Add in-memory and NeoPRISM-shaped conformance adapters.

@@ -116,6 +116,15 @@ owner_issue    = "#522"
 summary        = "Bounded PRISM storage payloads, VDR-key authorization, terminal entry state and effect-neutral local-first ancestry traversal."
 
 [[packages]]
+name           = "identus-prism-indexer"
+path           = "crates/prism-indexer"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#522"
+summary        = "Complete bounded PRISM transaction batches and canonical replay transition digests."
+
+[[packages]]
 name           = "identus-trust"
 path           = "crates/trust"
 layer          = "domain-primitives"

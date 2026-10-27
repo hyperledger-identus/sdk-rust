@@ -1,0 +1,17 @@
+[package]
+name                   = "identus-prism-indexer"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+publish.workspace      = true
+
+[dependencies]
+identus-core.workspace = true
+identus-crypto = { workspace = true, default-features = false, features = [ "hash" ] }
+identus-prism-did.workspace = true
+identus-prism-vdr.workspace = true
+sha2.workspace = true
+
+[lints]
+workspace = true

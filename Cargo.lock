@@ -885,6 +885,7 @@ dependencies = [
 name = "identus-prism-indexer"
 version = "0.0.0"
 dependencies = [
+ "hex",
  "identus-core",
  "identus-crypto",
  "identus-prism-did",

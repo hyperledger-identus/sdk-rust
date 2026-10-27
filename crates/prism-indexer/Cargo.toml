@@ -13,6 +13,9 @@ identus-prism-did.workspace = true
 identus-prism-vdr.workspace = true
 sha2.workspace = true
 
+[dev-dependencies]
+hex.workspace = true
+
 [[bench]]
 name    = "directional"
 harness = false

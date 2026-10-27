@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "packetId": "did.prism.vdr-indexing.portable-core.v1",
+  "capability": "did.prism.vdr-indexing",
+  "cases": [
+    {
+      "id": "did.prism.vdr-indexing.empty-nonce",
+      "operation": "did-prism-vdr.operation.parse",
+      "input": {
+        "literal": "0a057664722d301240010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101011a2c3a2a0a201313131313131313131313131313131313131313131313131313131313131313a2060576616c7565"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "operationKind": "createVdrEntry",
+          "operationHash": "c988e266125183403a30a20a3c7f915935beae4ec92c2afb47bf9849f9aa2734"
+        }
+      }
+    },
+    {
+      "id": "did.prism.vdr-indexing.transition-digest",
+      "operation": "did-prism-indexer.transition.digest",
+      "input": {
+        "literal": "tx-vector|before|after|0|0a057664722d301240010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101011a2c3a2a0a201313131313131313131313131313131313131313131313131313131313131313a2060576616c7565"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "operationKind": "transactionDigest",
+          "operationHash": "f771dfd3438a3fa39e2481d346d53d27df10ec962d74aad5fd77dd01813d6718"
+        }
+      }
+    }
+  ]
+}

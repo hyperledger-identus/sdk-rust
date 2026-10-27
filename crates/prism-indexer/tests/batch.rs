@@ -83,6 +83,38 @@ fn framing_and_order_change_the_digest() {
 }
 
 #[test]
+fn canonical_transition_digest_matches_the_portable_vector() {
+    let identity = TransactionIdentity::new(b"tx-vector".to_vec()).unwrap();
+    let signed = SignedPrismOperation::parse(
+        &hex::decode(concat!(
+            "0a057664722d301240",
+            "0101010101010101010101010101010101010101010101010101010101010101",
+            "0101010101010101010101010101010101010101010101010101010101010101",
+            "1a2c3a2a0a201313131313131313131313131313131313131313131313131313",
+            "131313131313a2060576616c7565"
+        ))
+        .unwrap(),
+    )
+    .unwrap();
+    let batch = TransactionBatch::new(
+        identity.clone(),
+        1,
+        Cursor::new(b"before".to_vec()).unwrap(),
+        Cursor::new(b"after".to_vec()).unwrap(),
+        vec![IncomingRecord {
+            transaction_identity: identity,
+            operation_index: 0,
+            signed_operation: signed,
+        }],
+    )
+    .unwrap();
+    assert_eq!(
+        hex::encode(batch.transition_digest().as_bytes()),
+        "f771dfd3438a3fa39e2481d346d53d27df10ec962d74aad5fd77dd01813d6718"
+    );
+}
+
+#[test]
 fn rejects_incomplete_and_cross_transaction_records() {
     let identity = TransactionIdentity::new(b"transaction-a".to_vec()).unwrap();
     let other = TransactionIdentity::new(b"transaction-b".to_vec()).unwrap();

@@ -93,6 +93,16 @@ authorship     = "Hyperledger Identus contributors"
 license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 
+[[sources]]
+id             = "neoprism.did-prism-indexer"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/neoprism"
+revision       = "a2ddbc5a8a316841e2c8df3831e7904fef01c356"
+path           = "lib/did-prism-indexer"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
 [[packets]]
 id             = "did.syntax.v1"
 capability     = "did.syntax"
@@ -124,6 +134,18 @@ schema_version = 1
 path           = "docs/conformance/fixtures/crypto/v1/vectors.json"
 sha256         = "d357c46c0369e5597c89203d92332b94dbf9684fb28b120bbe3241cdb55e09cb"
 authorship     = "SDK-Rust curation from the published Identus JVM compatibility suite"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust" ]
+
+[[packets]]
+id             = "did.prism.vdr-indexing.portable-core.v1"
+capability     = "did.prism.vdr-indexing"
+schema_version = 1
+path           = "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
+sha256         = "cdba1301eea87ecc1536ab6b2768c41c1971fb430c0ba51764b31a12fc852aeb"
+authorship     = "SDK-Rust clean-room curation from the pinned PRISM storage schema and NeoPRISM indexing donor"
 license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 public_data    = true
@@ -726,3 +748,49 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "This packet pins one public verification case; the Rust suite retains all 50 JVM vectors and the separate bitcoin-transcode regression."
+
+[[vectors]]
+id                 = "did.prism.vdr-indexing.empty-nonce"
+packet             = "did.prism.vdr-indexing.portable-core.v1"
+case               = "did.prism.vdr-indexing.empty-nonce"
+capability         = "did.prism.vdr-indexing"
+authority          = "implementation-regression"
+source_ids         = [ "prism.did-method-spec", "neoprism.did-prism-indexer" ]
+source_locator     = "Pinned prism-storage.proto default nonce semantics and SDK duplicate-aware parser"
+operation          = "did-prism-vdr.operation.parse"
+expected           = "success"
+profile_scope      = "Bounded exact-wire create-storage parsing with the schema-default empty nonce"
+boundary           = "boundary"
+resource_class     = "schema-default-compatibility"
+targets            = [ "rust" ]
+rust_selector      = "vdr::accepts_the_schema_default_empty_nonce"
+language_selectors = [  ]
+owner_issue        = 522
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Portable storage payload semantics only; no Cardano observation, persistence, or service runtime is represented."
+
+[[vectors]]
+id                 = "did.prism.vdr-indexing.transition-digest"
+packet             = "did.prism.vdr-indexing.portable-core.v1"
+case               = "did.prism.vdr-indexing.transition-digest"
+capability         = "did.prism.vdr-indexing"
+authority          = "identus-contract"
+source_ids         = [ "neoprism.did-prism-indexer" ]
+source_locator     = "SDK-owned identus.prism-indexer.transition.v1 canonical tagged transcript"
+operation          = "did-prism-indexer.transition.digest"
+expected           = "success"
+profile_scope      = "One complete ordered transaction with bounded identity and cursors"
+boundary           = "positive"
+resource_class     = "canonical-replay-digest"
+targets            = [ "rust" ]
+rust_selector      = "batch::canonical_transition_digest_matches_the_portable_vector"
+language_selectors = [  ]
+owner_issue        = 522
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The digest is an SDK idempotency contract, not a Cardano transaction hash or persistence schema."

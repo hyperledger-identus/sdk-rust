@@ -23,13 +23,13 @@
 
 - [x] 4.1 Add official, negative, boundary, redaction and contract vectors.
 - [x] 4.2 Add property, fuzz, benchmark and dependency evidence.
-- [ ] 4.3 Run focused/workspace, MSRV, rustdoc, native and portable target gates.
-- [ ] 4.4 Activate `oid4vp.direct-post-response.quality.v1` and ledger mappings.
+- [x] 4.3 Run focused/workspace, MSRV, rustdoc, native and portable target gates.
+- [x] 4.4 Activate `oid4vp.direct-post-response.quality.v1` and ledger mappings.
 
 ## 5. Review and delivery
 
-- [ ] 5.1 Run exact-head Claude CLI review or immediate Codex CLI fallback.
-- [ ] 5.2 Resolve actionable blocker/high/medium findings and rerun gates.
+- [x] 5.1 Run exact-head Claude CLI review or immediate Codex CLI fallback.
+- [x] 5.2 Resolve actionable blocker/high/medium findings and rerun gates.
 - [ ] 5.3 Archive OpenSpec, publish metrics and deliver the issue-linked PR.
 
 ## 6. Stop boundary

@@ -21,7 +21,8 @@ engine, HTTP client, or product policy framework.
 ## Decision
 
 1. Implement the transition inside `identus-oid4vp` with SDK-owned Rust types
-   and no new dependency.
+   and no new crate in the resolved graph; declare the already-resolved
+   `serde` parser interface directly rather than relying on transitive access.
 2. Consume `ValidatedAuthorizationRequest` so destination, optional state and
    DCQL response rules cannot be independently substituted.
 3. Retain bounded optional state, ordered private query/cardinality rules, and
@@ -36,9 +37,9 @@ engine, HTTP client, or product policy framework.
    JSON-object `vp_token` and exact state when present.
 7. Return an inert, redaction-safe envelope. Callers own HTTP and every network
    security policy.
-8. Defer protocol-error responses, `direct_post.jwt`, JWE, SIOPv2, DC API,
-   HAIP, presentation generation, credential verification, trust, consent,
-   replay and consumer adapters.
+8. Defer protocol-error responses to issue #532 and defer `direct_post.jwt`,
+   JWE, SIOPv2, DC API, HAIP, presentation generation, credential
+   verification, trust, consent, replay and consumer adapters.
 9. Prefer Claude CLI for exact-head review, but immediately use Codex CLI on
    any Claude availability, authentication, quota, or session-limit failure.
 

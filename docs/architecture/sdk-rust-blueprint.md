@@ -846,7 +846,8 @@ issue #447 slice then consumes the same bounded request map into a composed
 DCQL evidence. Issue #487 consumes that state with bounded caller-selected
 presentation strings or objects, enforces the retained DCQL coverage and
 cardinality rules, and produces a deterministic form-encoded plain
-`direct_post` success envelope with exact state return. HTTP execution,
+`direct_post` success envelope with exact state return. Issue #532 owns the
+separately bounded plain protocol-error response successor. HTTP execution,
 verifier trust, consent, credential or presentation verification,
 presentation generation, redirects, `direct_post.jwt`, SIOPv2, DC API and JWE
 remain separate capabilities.

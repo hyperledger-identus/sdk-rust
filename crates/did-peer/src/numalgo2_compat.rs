@@ -21,6 +21,8 @@ pub const MAX_ELEMENTS: usize = 32;
 pub const MAX_KEY_BYTES: usize = 128;
 /// Maximum decoded compact JSON bytes accepted for one service.
 pub const MAX_SERVICE_BYTES: usize = 16 * 1_024;
+/// Maximum endpoint maps retained by one compact service.
+pub const MAX_SERVICE_ENDPOINTS: usize = 32;
 /// Maximum total characters accepted by the compatibility DID parser.
 pub const MAX_COMPAT_DID_BYTES: usize = MAX_DID_BYTES;
 
@@ -104,6 +106,8 @@ pub enum ServiceEndpoint {
     Uri(String),
     /// One DIDComm endpoint map.
     Map(ServiceEndpointMap),
+    /// Multiple DIDComm endpoint maps accepted by the compatibility profile.
+    Maps(Vec<ServiceEndpointMap>),
 }
 
 /// Compact DIDComm endpoint fields, serialized in the pinned `uri`, `a`, `r`
@@ -357,12 +361,14 @@ impl PeerDid {
                         .ok_or(Error::ResourceLimit)?;
                 }
                 ServiceEndpoint::Map(endpoint) => {
-                    for value in std::iter::once(&endpoint.uri)
-                        .chain(endpoint.accept.iter())
-                        .chain(endpoint.routing_keys.iter())
-                    {
+                    projected_bytes = projected_bytes
+                        .checked_add(projected_endpoint_map_bytes(endpoint)?)
+                        .ok_or(Error::ResourceLimit)?;
+                }
+                ServiceEndpoint::Maps(endpoints) => {
+                    for endpoint in endpoints {
                         projected_bytes = projected_bytes
-                            .checked_add(json_string_encoded_len(value))
+                            .checked_add(projected_endpoint_map_bytes(endpoint)?)
                             .ok_or(Error::ResourceLimit)?;
                     }
                 }
@@ -383,6 +389,17 @@ fn json_string_encoded_len(value: &str) -> usize {
             _ => character.len_utf8(),
         })
     })
+}
+
+fn projected_endpoint_map_bytes(endpoint: &ServiceEndpointMap) -> Result<usize, Error> {
+    std::iter::once(&endpoint.uri)
+        .chain(endpoint.accept.iter())
+        .chain(endpoint.routing_keys.iter())
+        .try_fold(0_usize, |bytes, value| {
+            bytes
+                .checked_add(json_string_encoded_len(value))
+                .ok_or(Error::ResourceLimit)
+        })
 }
 
 fn validate_counts(keys: usize, services: usize) -> Result<(), Error> {
@@ -423,49 +440,63 @@ fn validate_service(service: &Service) -> Result<(), Error> {
         .len()
         .checked_add(service.id.as_deref().map_or(0, str::len))
         .ok_or(Error::ResourceLimit)?;
-    let endpoint_uri = match &service.endpoint {
+    match &service.endpoint {
         ServiceEndpoint::Uri(uri) if uri.is_empty() || uri.len() > 8_192 => {
             return Err(Error::InvalidInputDocument);
-        }
-        ServiceEndpoint::Map(endpoint)
-            if endpoint.uri.is_empty()
-                || endpoint.uri.len() > 8_192
-                || endpoint.accept.len() > 32
-                || endpoint.routing_keys.len() > 32 =>
-        {
-            return Err(Error::ResourceLimit);
         }
         ServiceEndpoint::Uri(uri) => {
             retained_string_bytes = retained_string_bytes
                 .checked_add(uri.len())
                 .ok_or(Error::ResourceLimit)?;
-            uri
+            Uri::parse(uri).map_err(|_| Error::InvalidInputDocument)?;
         }
         ServiceEndpoint::Map(endpoint) => {
-            retained_string_bytes = retained_string_bytes
-                .checked_add(endpoint.uri.len())
-                .ok_or(Error::ResourceLimit)?;
-            for value in endpoint.accept.iter().chain(&endpoint.routing_keys) {
-                retained_string_bytes = retained_string_bytes
-                    .checked_add(value.len())
-                    .ok_or(Error::ResourceLimit)?;
-                if retained_string_bytes > MAX_SERVICE_BYTES {
-                    return Err(Error::ResourceLimit);
-                }
-            }
-            &endpoint.uri
+            validate_endpoint_map(endpoint, &mut retained_string_bytes)?;
         }
-    };
+        ServiceEndpoint::Maps(endpoints) => {
+            if endpoints.is_empty() || endpoints.len() > MAX_SERVICE_ENDPOINTS {
+                return Err(Error::ResourceLimit);
+            }
+            for endpoint in endpoints {
+                validate_endpoint_map(endpoint, &mut retained_string_bytes)?;
+            }
+        }
+    }
     if retained_string_bytes > MAX_SERVICE_BYTES {
         return Err(Error::ResourceLimit);
     }
-    Uri::parse(endpoint_uri).map_err(|_| Error::InvalidInputDocument)?;
     if service
         .id
         .as_deref()
         .is_some_and(|id| !id.starts_with('#') || id.len() < 2 || id.len() > 256)
     {
         return Err(Error::InvalidInputDocument);
+    }
+    Ok(())
+}
+
+fn validate_endpoint_map(
+    endpoint: &ServiceEndpointMap,
+    retained_string_bytes: &mut usize,
+) -> Result<(), Error> {
+    if endpoint.uri.is_empty()
+        || endpoint.uri.len() > 8_192
+        || endpoint.accept.len() > 32
+        || endpoint.routing_keys.len() > 32
+    {
+        return Err(Error::ResourceLimit);
+    }
+    Uri::parse(&endpoint.uri).map_err(|_| Error::InvalidInputDocument)?;
+    for value in std::iter::once(&endpoint.uri)
+        .chain(endpoint.accept.iter())
+        .chain(endpoint.routing_keys.iter())
+    {
+        *retained_string_bytes = retained_string_bytes
+            .checked_add(value.len())
+            .ok_or(Error::ResourceLimit)?;
+        if *retained_string_bytes > MAX_SERVICE_BYTES {
+            return Err(Error::ResourceLimit);
+        }
     }
     Ok(())
 }
@@ -489,6 +520,18 @@ fn expand_service_endpoint(value: &ServiceEndpoint) -> Value {
             "accept": endpoint.accept,
             "routingKeys": endpoint.routing_keys,
         }),
+        ServiceEndpoint::Maps(endpoints) => Value::Array(
+            endpoints
+                .iter()
+                .map(|endpoint| {
+                    json!({
+                        "uri": endpoint.uri,
+                        "accept": endpoint.accept,
+                        "routingKeys": endpoint.routing_keys,
+                    })
+                })
+                .collect(),
+        ),
     }
 }
 
@@ -526,6 +569,31 @@ mod tests {
         let document = parsed.resolve().expect("resolve");
         assert_eq!(document.id(), peer.did());
         assert_eq!(document.verification_methods().expect("methods").len(), 2);
+    }
+
+    #[test]
+    fn creates_parses_and_resolves_multiple_endpoint_maps() {
+        let key = PublicKey::new(Purpose::Verification, VERIFICATION_KEY).expect("key");
+        let endpoint = |uri: &str| ServiceEndpointMap {
+            uri: uri.into(),
+            accept: vec!["didcomm/v2".into()],
+            routing_keys: vec![],
+        };
+        let service = Service {
+            type_: "DIDCommMessaging".into(),
+            endpoint: ServiceEndpoint::Maps(vec![
+                endpoint("https://one.example/didcomm"),
+                endpoint("https://two.example/didcomm"),
+            ]),
+            id: None,
+        };
+        let peer = PeerDid::create(vec![key], vec![service]).expect("create");
+        let parsed = PeerDid::parse(peer.did().as_str()).expect("parse");
+        assert_eq!(parsed, peer);
+        assert_eq!(
+            parsed.resolve().expect("resolve").services().unwrap().len(),
+            1
+        );
     }
 
     #[test]

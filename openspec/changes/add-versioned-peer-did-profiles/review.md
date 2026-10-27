@@ -23,6 +23,8 @@ from blocking delivery.
   so accepted noncanonical inputs recreate the same long and short forms.
 - Both profiles preflight aggregate DID-document projection growth before
   expanding repeated DIDs or local references and return `ResourceLimit`.
+- Numalgo-2 retains the pinned compatibility profile's bounded one-or-many
+  endpoint-map shape; JWK context is preserved through nested arrays.
 - The exact 16 KiB decoded input ceiling round-trips. The profile ceiling is
   intentionally below the generic DID limit because large base58 conversion is
   super-linear; the measured exact-boundary test completes in about 2.3 seconds

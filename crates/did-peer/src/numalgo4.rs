@@ -465,7 +465,7 @@ fn reject_secret_members_in_context(value: &Value, jwk_context: bool) -> Result<
         }
         Value::Array(values) => {
             for value in values {
-                reject_secret_members_in_context(value, false)?;
+                reject_secret_members_in_context(value, jwk_context)?;
             }
         }
         Value::Null | Value::Bool(_) | Value::Number(_) | Value::String(_) => {}
@@ -670,6 +670,7 @@ mod tests {
             r#"{"extension":{"jwk":{"kty":"oct","k":"c2VjcmV0"}}}"#,
             r#"{"extension":{"jwk":{"d":"private-scalar"}}}"#,
             r#"{"extension":{"publicKeyJwk":{"d":"private-scalar"}}}"#,
+            r#"{"extension":{"jwk":[{"d":"private-scalar"}]}}"#,
         ] {
             assert_eq!(
                 InputDocument::from_json_str(input),

@@ -12,6 +12,16 @@ pub enum ErrorKind {
     IncompleteTransaction,
     /// Record or aggregate byte capacity was exceeded.
     ResourceLimitExceeded,
+    /// A signed PRISM operation is unsupported, malformed, or invalid.
+    InvalidOperation,
+    /// Required committed DID or VDR state is absent.
+    MissingState,
+    /// A caller-provided read port failed.
+    LookupFailed,
+    /// The same transaction identity or cursor conflicts with committed state.
+    Conflict,
+    /// The caller-provided atomic commit port failed.
+    CommitFailed,
 }
 
 /// A redacted indexer construction failure.
@@ -55,6 +65,11 @@ impl fmt::Display for Error {
             ErrorKind::InvalidBoundaryValue => "invalid PRISM indexer boundary value",
             ErrorKind::IncompleteTransaction => "incomplete PRISM transaction batch",
             ErrorKind::ResourceLimitExceeded => "PRISM indexer resource limit exceeded",
+            ErrorKind::InvalidOperation => "invalid PRISM operation in transaction batch",
+            ErrorKind::MissingState => "required PRISM state is missing",
+            ErrorKind::LookupFailed => "PRISM indexer lookup failed",
+            ErrorKind::Conflict => "PRISM indexer transition conflicts with committed state",
+            ErrorKind::CommitFailed => "PRISM indexer commit failed",
         })
     }
 }

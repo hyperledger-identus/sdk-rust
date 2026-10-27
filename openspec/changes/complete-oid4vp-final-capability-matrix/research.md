@@ -113,8 +113,9 @@ but its draft-13 limitation remains explicit.
 
 ## E2E and knowledge evidence
 
-One clean-room reference test will execute representative invocation through
-JAR verification, DCQL selection, and plain/protected response construction.
+The existing clean-room reference tests execute representative invocation
+through JAR verification, DCQL selection, and plain/protected response
+construction and are bound into the machine matrix as durable evidence.
 Two adapter canaries will deserialize independent TypeScript- and Swift-shaped
 fixtures at the test boundary and drive the same Rust-native protocol API.
 The tests prove adapter feasibility and protocol lineage, not foreign DTO or

@@ -20,18 +20,20 @@ unknown enums, missing section groups, unsafe/missing evidence paths,
 incomplete implemented/partial rows, missing required owners, and an IDR-024
 delivered state while gaps remain. It prints a deterministic summary.
 
-Unit tests create temporary repositories and exercise success plus each
-fail-closed class. `scripts/check-factory.sh` and the factory fixture include
-the new artifacts.
+Unit tests create temporary repositories and exercise success plus
+security-sensitive and semantic fail-closed classes, including unsafe paths,
+evidence-kind substitution, required-row downgrade, enum/provenance mutation,
+and roadmap-state mutation. `scripts/check-factory.sh` and the factory fixture
+include the new artifacts.
 
 ## Reference harness and adapters
 
-The Rust integration test remains the executable protocol harness. It runs
-the versioned clean-room packets through public crate APIs. Two test-only
+The existing Rust integration test remains the executable protocol harness. It
+runs the versioned clean-room packets through public crate APIs. Two test-only
 serde input structures model representative camelCase TypeScript and Swift
-adapter boundaries, translate immediately into SDK-native inputs, and assert
-the same response lineage and error categories. These structures are not
-exported and claim no donor compatibility.
+adapter boundaries, translate immediately into the same SDK-native retrieval
+envelope, and exercise no foreign public DTO. These structures are not exported
+and claim no donor compatibility or error-model parity.
 
 ## Knowledge report
 

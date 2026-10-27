@@ -5,7 +5,8 @@
 ### Requirement: OpenID4VP completion is evidence based
 
 IDR-024 SHALL become delivered only from a reviewed, machine-checked Final
-matrix with no unowned required gap and explicit accepted limitations.
+matrix whose pinned required capability set contains no non-implemented row.
+Official OpenID certification remains a separate release and product gate.
 
 #### Scenario: a required capability is missing
 

@@ -41,7 +41,7 @@ trust, presentation authenticity, consent, privacy, and product readiness.
 
 #### Scenario: the matrix contains no required gaps
 
-- **WHEN** every required row is implemented or has an explicitly accepted
-  bounded profile limitation with no missing owner work
+- **WHEN** every member of the pinned required capability set has status
+  `implemented`
 - **THEN** the report may recommend IDR-024 delivery
 - **AND** it still does not claim certification or downstream adoption

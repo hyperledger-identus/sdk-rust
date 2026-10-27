@@ -256,8 +256,16 @@ fn direct_dependency_violations(
         });
 
     for dependency in dependency_declarations(manifest) {
+        let allowed_location = match (dependency.workspace, dependency.path.as_deref()) {
+            (true, None) => true,
+            (false, Some(path)) => manifest_dir
+                .join(path)
+                .canonicalize()
+                .is_ok_and(|path| path.starts_with(&canonical_crates)),
+            _ => false,
+        };
         let allowed_in_tree_method = dependency.git.is_none()
-            && (dependency.workspace || dependency.path.is_some())
+            && allowed_location
             && ALLOWED_IN_TREE_METHOD_PACKAGES
                 .contains(&normalize_identity(&dependency.package).as_str());
         for (field, identity) in [
@@ -462,6 +470,20 @@ fn external_or_expanded_prism_method_packages_remain_prohibited() {
     )
     .expect("valid external lockfile");
     assert_eq!(lockfile_violations(&registry_lock).len(), 1);
+
+    let local_outside_crates: toml::Value = toml::from_str(
+        r#"
+            [dependencies]
+            identus-prism-did = { path = "." }
+        "#,
+    )
+    .expect("valid local manifest");
+    let violations = direct_dependency_violations(&local_outside_crates, &root, &root);
+    assert!(
+        violations
+            .iter()
+            .any(|violation| violation.contains("matches prohibited PRISM family"))
+    );
 }
 
 #[test]

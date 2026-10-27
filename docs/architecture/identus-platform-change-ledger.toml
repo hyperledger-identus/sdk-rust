@@ -74,6 +74,47 @@ allowed_mapping_dispositions = [
 # change. Subsequent issue-owned records are added only with connected vector,
 # quality and OpenSpec impact evidence.
 [[changes]]
+id                                = "did.peer.profiles.v1"
+capability                        = "did.peer.profiles"
+lifecycle_state                   = "active"
+issue                             = 523
+pull_request                      = 531
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-did", "identus-did-peer" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-swift", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes generic DID values but no independently selectable peer DID method implementation."
+new_behavior                      = "The additive identus-did-peer crate creates, parses and locally resolves bounded numalgo-4 current-profile and explicit numalgo-2 compatibility DIDs from caller-owned public material."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The Rust-native method crate deliberately does not preserve SDK-TS, Swift or KMP DTO and error shapes; language-specific migration adapters remain separate work."
+vector_ids                        = [ "did.peer.numalgo2.affinidi-compat", "did.peer.numalgo4.reference-minimal" ]
+quality_declaration_ids           = [ "did.peer.profiles.quality.v1" ]
+observability                     = "Record stable profile and result categories without logging DIDs, input documents, services, key material or encoded payloads."
+fallback                          = "Consumers retain their existing peer DID implementation until an explicit adapter or canary adopts the additive crate."
+rollback                          = "Remove the additive package dependency before publication; generic SDK-Rust DID behavior remains unchanged."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#did.peer.profiles.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.peer.numalgo4.reference-minimal" ]
+evidence_artifacts                = [ "docs/architecture/did-peer-quality-baseline.md", "docs/conformance/fixtures/did-peer/v1/vectors.json" ]
+limitations                       = "No custody, private keys, key generation, networking, persistence, DIDComm engine, agent runtime, language adapter, consumer mutation, publication or historical numalgo 0, 1 and 3 support is included. The 300-second Linux fuzz receipt remains issue-owned slow-lane evidence until a successful immutable run is attached."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "crypto.secp256k1.rustcrypto-security-stack.v1"
 capability                        = "crypto.secp256k1"
 lifecycle_state                   = "active"

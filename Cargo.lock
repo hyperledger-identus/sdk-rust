@@ -791,6 +791,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-did-peer"
+version = "0.0.0"
+dependencies = [
+ "base64",
+ "bs58",
+ "identus-core",
+ "identus-did",
+ "k256",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+]
+
+[[package]]
 name = "identus-did-resolver-http"
 version = "0.0.0"
 dependencies = [

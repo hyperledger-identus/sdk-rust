@@ -622,3 +622,158 @@ details = [
   "normalization=Compare exact wire semantics, source order and SDK-owned replay digest rather than donor DTO, async, SQL or Cardano types",
   "deviations=Invalid operations fail the complete batch instead of being silently ignored; persistence and source effects remain downstream",
 ]
+
+[[declarations]]
+id = "did.peer.profiles.quality.v1"
+capability = "did.peer.profiles"
+slice = "Bounded numalgo-4 and explicit numalgo-2 compatibility profiles"
+owner = "SDK-Rust peer DID maintainers"
+owner_issue = 523
+risk = "Ambiguous encodings, malformed public material, secret-bearing input or unbounded projection can split peer DID identity state or expose private material in public identifiers."
+targets = [
+  "package:identus-did-peer",
+  "host:rust",
+  "target:wasm32-unknown-unknown",
+  "target:aarch64-apple-ios",
+  "target:aarch64-linux-android",
+]
+vector_ids = [
+  "did.peer.numalgo4.reference-minimal",
+  "did.peer.numalgo2.affinidi-compat",
+]
+limitations = "Effect-free public-material construction, parsing and local resolution only; no custody, private keys, networking, persistence, DIDComm engine, language bindings or historical numalgo 0, 1 and 3 support is claimed."
+active = true
+supersedes = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Supported purpose combinations or input sizes may fail round-trip, hash-linkage or local-resolution invariants."
+selectors = [
+  "crates/did-peer/src/numalgo2_compat.rs#property_each_supported_purpose_round_trips",
+  "crates/did-peer/src/numalgo4.rs#property_generated_input_sizes_preserve_short_long_linkage",
+]
+command = "cargo test -p identus-did-peer property"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-did-peer", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Exercise every supported numalgo-2 purpose and deterministic numalgo-4 JSON sizes from zero through 512 bytes."
+receipt_kind = "source"
+receipt = "source:docs/architecture/did-peer-quality-baseline.md"
+evidence_revision = "fcf7083d712baa1c4ff45c2933b7bec48c44531e"
+recorded_at = "2026-10-27"
+artifact = ""
+owner = "SDK-Rust peer DID maintainers"
+owner_issue = 523
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Every accepted value recreates, reparses and resolves while retaining its profile and short/long linkage",
+  "domain=All supported purpose codes plus deterministic input-document sizes",
+  "cases=Numalgo-2 V, E, A, I and D plus numalgo-4 sizes 0 through 512",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "required"
+risk = "Malformed UTF-8, multibase, compact service JSON or nested input documents may panic, allocate excessively, disagree across parsers or retain secret-shaped fields."
+selectors = [
+  "fuzz/fuzz_targets/peer_did.rs#fuzz_target!",
+  "scripts/fuzz-did-peer.sh#-max_total_time=300",
+  ".github/workflows/did-fuzz.yml#Run bounded peer DID soak",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-did-peer", "host:linux", "sanitizer:address" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Run both peer DID profiles for 300 seconds with 131072-byte inputs, five seconds per case and 1024 MiB RSS."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust peer DID maintainers"
+owner_issue = 523
+debt_status = "open"
+debt_issue = 523
+rationale = ""
+details = [
+  "harness=One libFuzzer target routes arbitrary bytes through both parsers, creation, hash linkage and local resolution",
+  "corpus=Pinned numalgo-4 reference and numalgo-2 compatibility vectors",
+  "seed=libFuzzer-managed reproducible failures with checked-in regression promotion",
+  "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "Base58, JSON scanning, hashing or generic DID-document projection may introduce material latency before portable adoption."
+selectors = [
+  "crates/did-peer/benches/directional.rs#did-peer-benchmark",
+  "docs/architecture/did-peer-quality-baseline.md#Directional benchmark",
+]
+command = "cargo bench -p identus-did-peer --bench directional"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-did-peer", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure numalgo-4 create, numalgo-4 parse/resolve and numalgo-2 parse/resolve over 101 samples."
+receipt_kind = "source"
+receipt = "source:docs/architecture/did-peer-quality-baseline.md"
+evidence_revision = "fcf7083d712baa1c4ff45c2933b7bec48c44531e"
+recorded_at = "2026-10-27"
+artifact = "docs/architecture/did-peer-quality-baseline.md"
+owner = "SDK-Rust peer DID maintainers"
+owner_issue = 523
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=Profile creation, exact parsing, hash verification and local generic-document projection",
+  "fixture=Pinned deterministic numalgo-4 document and numalgo-2 public key material",
+  "environment=Rust 1.98.1 on Apple Silicon macOS; Linux comparison remains directional",
+  "statistic=Median wall time in nanoseconds per iteration",
+  "samples=101 measured samples after 500 warm-up iterations",
+  "threshold=Order-of-magnitude advisory baseline; no cross-host release threshold",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "SDK-Rust profile output may diverge from the pinned numalgo-4 reference or established numalgo-2 Rust compatibility behavior."
+selectors = [
+  "crates/did-peer/tests/conformance.rs#portable_peer_did_packet_matches_both_profiles",
+  "docs/conformance/cross-language-vector-catalog.toml#did.peer.numalgo4.reference-minimal",
+  "docs/conformance/cross-language-vector-catalog.toml#did.peer.numalgo2.affinidi-compat",
+]
+command = "cargo test -p identus-did-peer --test conformance"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-did-peer", "host:rust", "consumer:portable-sdk" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Compare exact numalgo-4 output and numalgo-2 parse/create/resolve behavior against two pinned public oracle cases."
+receipt_kind = "source"
+receipt = "source:docs/conformance/fixtures/did-peer/v1/vectors.json"
+evidence_revision = "fcf7083d712baa1c4ff45c2933b7bec48c44531e"
+recorded_at = "2026-10-27"
+artifact = "docs/conformance/fixtures/did-peer/v1/vectors.json"
+owner = "SDK-Rust peer DID maintainers"
+owner_issue = 523
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=Pinned peer DID numalgo-4 reference implementation and did-peer 0.7.5 numalgo-2 vector",
+  "oracle-revision=1c95404a7b6787001a86ce7e5a36254c9688ac0f;3bca5b6358d05b07773ee6445834427b0411d083",
+  "normalization=Compare exact DID text and resolved semantic counts rather than foreign DTO or error shapes",
+  "deviations=Numalgo-2 is explicitly compatibility-only; unsupported historical algorithms fail closed",
+]

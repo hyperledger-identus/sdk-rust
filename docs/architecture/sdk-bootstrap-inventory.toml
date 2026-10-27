@@ -98,6 +98,15 @@ owner_issue    = "#5"
 summary        = "Bounded generic DID values, documents with narrow canonical public-key carriers, resolution, dereferencing, registration and caching without key or chain semantics."
 
 [[packages]]
+name           = "identus-did-peer"
+path           = "crates/did-peer"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#523"
+summary        = "Bounded effect-free peer DID numalgo-4 current and numalgo-2 compatibility profiles over canonical generic DID values."
+
+[[packages]]
 name           = "identus-prism-did"
 path           = "crates/prism-did"
 layer          = "domain-primitives"

@@ -2,25 +2,42 @@ use std::{collections::BTreeSet, fmt};
 
 use serde::de::{self, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor};
 
-#[derive(Clone, Copy)]
-pub(crate) struct JsonWireLimits {
-    pub(crate) max_depth: usize,
-    pub(crate) max_nodes: usize,
-    pub(crate) max_object_members: usize,
-    pub(crate) max_live_key_bytes: usize,
+/// Finite limits for duplicate-aware JSON wire preflight.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct JsonWireLimits {
+    /// Maximum nested container depth.
+    pub max_depth: usize,
+    /// Maximum values visited across the complete input.
+    pub max_nodes: usize,
+    /// Maximum members in any one object.
+    pub max_object_members: usize,
+    /// Maximum decoded object-name bytes retained along the active path.
+    pub max_live_key_bytes: usize,
 }
 
+/// Stable duplicate-aware JSON wire-preflight failure categories.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum JsonWireError {
+#[non_exhaustive]
+pub enum JsonWireError {
+    /// An object repeats a name after JSON escape decoding.
     DuplicateName,
+    /// Container nesting exceeds the configured depth.
     TooDeep,
+    /// Aggregate JSON values exceed the configured work limit.
     TooManyNodes,
+    /// One object has too many members.
     TooManyMembers,
+    /// Active decoded object names exceed the configured byte limit.
     TooManyLiveKeyBytes,
+    /// JSON syntax or trailing bytes are invalid.
     Malformed,
 }
 
-pub(crate) fn validate_unique_object_names(
+/// Validate complete JSON bytes without materializing their values.
+///
+/// This reusable DID-layer preflight rejects duplicate decoded object names and
+/// bounds traversal before a method crate deserializes an embedded document.
+pub fn validate_unique_object_names(
     input: &[u8],
     limits: JsonWireLimits,
 ) -> Result<(), JsonWireError> {

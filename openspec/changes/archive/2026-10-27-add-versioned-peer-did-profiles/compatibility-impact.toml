@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 523
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The additive identus-did-peer crate exposes bounded public creation, parsing and local resolution APIs for two explicit peer DID profiles."
+ledger_ids     = [ "did.peer.profiles.v1" ]

@@ -1,0 +1,11 @@
+[[modified_requirement]]
+capability       = "peer-did-method"
+requirement      = "peer DID profiles are explicit and independently evidenced"
+canonical_sha256 = "1bf71b50f1f8856ec285e9825bc6c127afec71efc37646c5e560649536eb0d54"
+reason           = "Replace the architecture-only profile statement with executable long/short numalgo-4 behavior, explicit numalgo-2 compatibility behavior and cross-profile rejection."
+
+[[modified_requirement]]
+capability       = "peer-did-method"
+requirement      = "peer DID remains bounded and custody-neutral"
+canonical_sha256 = "454830298db18d704f09a8801aed56d78de724c75d73ca70473b2c2e98745ca8"
+reason           = "Make raw, decoded, collection, JSON and projection limits plus custody/effect exclusions part of the executable profile contract."

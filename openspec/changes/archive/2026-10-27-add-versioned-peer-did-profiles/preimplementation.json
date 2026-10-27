@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 523,
+  "change": "add-versioned-peer-did-profiles",
+  "branch": "codex/feat/issue-523",
+  "baseRef": "origin/develop",
+  "baseSha": "faf9f1253e3c7cb9976705dd6e92526adfc646e4",
+  "contractHeadSha": "cbd3c58723d9cad7d09f4f1f41d111b01a8c6cbe",
+  "createdAt": "2026-10-27T07:51:19.145Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

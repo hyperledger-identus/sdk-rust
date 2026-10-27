@@ -13,6 +13,10 @@ Status: `active`
 
 State: `active`. Class: `security` / `security`. Target: `unreleased`. The same SDK wrappers, methods and byte behavior use advisory-clean k256 and p256 0.14; their exposed tuple fields consequently have the corresponding 0.14 upstream type identities.
 
+### `did.peer.profiles.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-peer crate creates, parses and locally resolves bounded numalgo-4 current-profile and explicit numalgo-2 compatibility DIDs from caller-owned public material.
+
 ### `did.prism.portable-method.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-prism-did crate constructs and validates exact bounded PRISM operations, authenticates and reduces DID state, and projects generic DID documents under a separate native output budget without chain coupling.
@@ -30,6 +34,10 @@ State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 `0.1.0-rc.1` → `unreleased` for sdk-rust-adopters. Prefer identus-crypto from_slice, to_public_key and encoding methods; direct tuple-field consumers update their k256 or p256 dependency and imports to 0.14 when adopting the next candidate.
+
+### `did.peer.profiles.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
 
 ### `did.prism.portable-method.v1`
 
@@ -49,6 +57,10 @@ State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic 
 
 Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The migration is declared on the release-candidate line before stable 0.1.0; the next candidate carries the advisory-clean type identities.
 
+### `did.peer.profiles.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
 ### `did.prism.portable-method.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
@@ -67,6 +79,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `0
 
 Fallback: Delay consumer adoption while migrating to SDK byte boundaries; do not publish a new security-current candidate that restores the rejected 0.13 closure. Rollback: Move forward to another advisory-clean curve family or SDK-owned opaque boundary; never restore the advisory-affected dependency closure as a release state. Removal gate: Not applicable; this is a security remediation and candidate source migration, not a deprecated compatibility facade.
 
+### `did.peer.profiles.v1`
+
+Fallback: Consumers retain their existing peer DID implementation until an explicit adapter or canary adopts the additive crate. Rollback: Remove the additive package dependency before publication; generic SDK-Rust DID behavior remains unchanged. Removal gate: Not applicable.
+
 ### `did.prism.portable-method.v1`
 
 Fallback: Consumers remain on their existing PRISM implementation until this experimental crate and their own canary are accepted. Rollback: Remove the additive dependency or revert the consuming adapter; existing SDK-Rust crates retain their previous behavior. Removal gate: Not applicable.
@@ -84,6 +100,10 @@ Fallback: Bypass cache retention for valid oversized identities; do not truncate
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 Visibility: public-api, security. Wire values and SDK-owned methods remain compatible, but direct construction or access through the four public tuple fields is source-incompatible until the consumer adopts RustCrypto 0.14 or the SDK byte boundary.
+
+### `did.peer.profiles.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. No custody, private keys, key generation, networking, persistence, DIDComm engine, agent runtime, language adapter, consumer mutation, publication or historical numalgo 0, 1 and 3 support is included. The 300-second Linux fuzz receipt remains issue-owned slow-lane evidence until a successful immutable run is attached.
 
 ### `did.prism.portable-method.v1`
 

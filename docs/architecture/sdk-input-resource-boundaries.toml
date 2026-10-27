@@ -103,6 +103,17 @@ consumer_impact  = "Accepted typed structures, including inline ContextObject va
 review_triggers  = [ "new DID JSON surface", "open JSON field", "collection or recursion limit change", "new owned fallible boundary", "iterative cleanup regression" ]
 
 [[boundaries]]
+id               = "did-peer-method-profiles"
+package          = "identus-did-peer"
+surface          = "peer DID numalgo-4 short/long forms, construction input documents, numalgo-2 purpose keys and compact services"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_COMPAT_DID_BYTES=131072", "MAX_ENCODED_DOCUMENT_BYTES=24576", "MAX_ELEMENTS=32", "MAX_INPUT_DOCUMENT_BYTES=16384", "MAX_INPUT_DOCUMENT_DEPTH=32", "MAX_INPUT_DOCUMENT_NODES=4096", "MAX_INPUT_LIVE_KEY_BYTES=65536", "MAX_INPUT_OBJECT_MEMBERS=128", "MAX_KEY_BYTES=128", "MAX_LONG_FORM_BYTES=24635", "MAX_SERVICE_BYTES=16384", "MAX_SERVICE_ENDPOINTS=32", "MAX_SHORT_FORM_BYTES=58" ]
+evidence         = [ "crates/did-peer/src/numalgo4.rs", "crates/did-peer/src/numalgo2_compat.rs" ]
+outer_obligation = "Callers own raw JSON, DID strings, public-key strings and service values before entry; profile dispatch and encoded-size checks precede proportional decoding."
+consumer_impact  = "Accepted encoded/decoded documents, keys, services, element counts and generic DID projection remain within the declared finite method profile."
+review_triggers  = [ "peer DID draft revision", "new numalgo", "new key codec or purpose", "resource limit change", "new retained JSON field" ]
+
+[[boundaries]]
 id               = "did-prism-operation-profile"
 package          = "identus-prism-did"
 surface          = "canonical and long-form identifiers, exact protobuf envelopes, typed DID operations, key/service/context collections, service endpoint JSON and native DID-document projection"

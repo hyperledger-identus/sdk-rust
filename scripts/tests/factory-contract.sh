@@ -81,10 +81,12 @@ required_files=(
   docs/architecture/identus-platform-change-ledger.toml
   docs/architecture/quality-evidence-declarations.toml
   docs/architecture/quality-evidence-plan.md
+  docs/architecture/did-peer-quality-baseline.md
   docs/architecture/prism-vdr-indexer-quality-baseline.md
   docs/conformance/cross-language-vector-catalog.md
   docs/conformance/cross-language-vector-catalog.toml
   docs/conformance/fixtures/did/v1/vectors.json
+  docs/conformance/fixtures/did-peer/v1/vectors.json
   docs/conformance/fixtures/did-prism/preprod-2026-09-10.json
   docs/conformance/fixtures/did-prism/v1/vectors.json
   docs/conformance/fixtures/crypto/v1/vectors.json
@@ -95,6 +97,7 @@ required_files=(
   docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json
   fuzz/fuzz_targets/did.rs
   fuzz/fuzz_targets/did_url.rs
+  fuzz/fuzz_targets/peer_did.rs
   fuzz/fuzz_targets/prism_did.rs
   fuzz/fuzz_targets/prism_operation.rs
   fuzz/fuzz_targets/prism_vdr.rs
@@ -319,6 +322,7 @@ required_files=(
   crates/prism-did/proto/prism-storage.proto
   crates/prism-did/proto/prism-version.proto
   crates/prism-did/src/proto.rs
+  scripts/fuzz-did-peer.sh
   scripts/fuzz-prism-vdr-indexer.sh
 )
 

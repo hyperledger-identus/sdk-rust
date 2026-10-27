@@ -30,7 +30,10 @@ generic credential or document format.
 Root traversal receives a lookup trait for previously committed VDR nodes and
 a bounded batch-local map. It walks the local map first, then the immutable
 lookup snapshot, records visited hashes and terminates on root, missing parent,
-cycle or depth exhaustion. The lookup cannot mutate state.
+cycle or depth exhaustion. The lookup also supplies the committed current head
+for the resolved root. Update/deactivate predecessors must equal that head after
+earlier batch-local operations are applied; a second child of an old head is a
+stale fork and rejects the transaction. The lookup cannot mutate state.
 
 Authorization uses the owner DID derived directly from create or from the
 resolved root for update/deactivate. The caller supplies the materialized DID
@@ -60,9 +63,14 @@ memory. Any invalid record fails the batch before persistence. A successful plan
 atomic commit trait together with expected/next cursors. The adapter must either
 commit all mutations and advance the cursor or change nothing.
 
-Commit outcomes distinguish applied, exact replay and cursor conflict. Exact
-replay is success without duplicate mutations. A cursor conflict with different
-content fails deterministically and is never automatically retried by the SDK.
+Planning computes a domain-separated SHA-256 transition digest over the exact
+ordered signed records, their indices, transaction identity, expected cursor
+and next cursor. Commit outcomes distinguish applied, exact replay and cursor
+conflict. The adapter checks exact transition-digest equality first, so an
+ambiguous-response replay succeeds even though its expected cursor became
+stale. A nonmatching transition then uses expected-cursor compare-and-set;
+different content or a genuinely stale cursor fails deterministically and is
+never automatically retried by the SDK.
 
 ## Backpressure, cancellation and retry
 

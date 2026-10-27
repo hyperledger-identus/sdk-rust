@@ -83,15 +83,23 @@ and any complete transaction above the profile rather than split it.
 
 #### Scenario: the same committed batch is replayed
 
-- **WHEN** expected cursor, next cursor and deterministic batch identity match
-  an already committed batch
+- **WHEN** a domain-separated digest over transaction identity, expected and
+  next cursors, contiguous indices and complete exact ordered signed records
+  matches an already committed transition
 - **THEN** the commit reports exact replay without duplicating mutations
 
 #### Scenario: a conflicting batch is replayed
 
-- **WHEN** the expected cursor is stale or the batch identity differs from the
-  already committed transition
+- **WHEN** no exact transition digest matches and the expected cursor is stale,
+  or the same transaction identity carries different ordered content
 - **THEN** the commit reports a cursor conflict and the SDK does not retry it
+
+#### Scenario: an exact replay carries a stale expected cursor
+
+- **WHEN** the complete transition digest matches the prior commit but its
+  expected cursor is stale because that commit already advanced the cursor
+- **THEN** exact replay wins before cursor comparison and returns idempotent
+  success
 
 ### Requirement: cancellation and scheduling remain caller-owned
 
@@ -127,6 +135,12 @@ batch-local state before authorizing later storage operations.
   different purpose, or signature verification fails
 - **THEN** the complete transaction is rejected before the atomic commit port
   is invoked
+
+#### Scenario: a storage update forks a stale predecessor
+
+- **WHEN** update or deactivation names a root-reachable predecessor that is
+  not the current committed-plus-batch-local head for that root
+- **THEN** the complete transaction is rejected before commit
 
 #### Scenario: a DID update precedes storage in the same transaction
 

@@ -29,6 +29,9 @@ crypto, error, target, unsafe-code and release constraints remain unchanged.
   channel. Batch capacity is the SDK backpressure boundary.
 - A child root lookup checks batch-local predecessors before an immutable store
   snapshot and terminates on missing parents, cycles or depth exhaustion.
+- Update/deactivate must reference the current head of the resolved root after
+  earlier operations in the same transaction. Root-reachable but stale
+  predecessors are rejected as forks.
 - One batch carries exactly one bounded transaction identity, a declared
   operation count and contiguous zero-based indices. The source adapter owns
   authoritative boundary extraction; the SDK rejects inconsistent or oversized
@@ -37,8 +40,9 @@ crypto, error, target, unsafe-code and release constraints remain unchanged.
   exact ordered position using an active secp256k1 VDR key and the exact nested
   operation bytes. Same-transaction DID changes update batch-local state first.
 - Cursor advance and mutations commit atomically using an expected-cursor
-  compare-and-set contract. Replay of the same committed batch is idempotent;
-  conflicting replay fails closed.
+  compare-and-set contract. A domain-separated digest binds the complete exact
+  ordered transition. Exact digest replay is checked before stale-cursor
+  conflict; changed content and other conflicting replay fail closed.
 - Public errors and `Debug` output omit payload bytes, DIDs, transaction IDs,
   signatures, keys, cursors supplied by an adapter and repository diagnostics.
 - The implementation uses no unsafe code, native dependency, network client,

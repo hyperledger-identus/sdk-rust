@@ -123,6 +123,12 @@ deterministically. Candidate
 plans are fully computed before commit, preventing partial persistence after a
 late validation error.
 
+The donor's root traversal is not sufficient as an update-state check: a
+root-reachable predecessor may no longer be the current entry head. SDK-Rust
+adds an explicit committed plus batch-local head invariant and rejects forks.
+Replay identity is a domain-separated digest of the complete exact ordered
+transition, not the opaque transaction label alone.
+
 Public errors expose stable categories and bounded indices, never raw payloads,
 DIDs, keys, signatures or adapter diagnostics. The SDK owns neither secrets
 nor personal-data storage. Maintenance posture is two narrow independently

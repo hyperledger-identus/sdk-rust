@@ -36,9 +36,13 @@ the complete transaction when it exceeds the profile. The source adapter owns
 extraction of the authoritative transaction boundary; the SDK verifies the
 declared boundary before planning.
 
-The commit request contains expected cursor, next cursor, deterministic batch
-identity and the complete ordered mutation set. An adapter returns applied,
-exact replay or cursor conflict and guarantees all-or-nothing visibility.
+The commit request contains expected cursor, next cursor, a domain-separated
+SHA-256 transition digest over the complete ordered signed records and cursor
+transition, and the complete ordered mutation set. An adapter first compares
+the transition digest with the previously committed transition: an exact match
+is replay success even though its expected cursor is now stale. Otherwise it
+performs expected-cursor compare-and-set and reports conflict on mismatch. It
+guarantees all-or-nothing visibility.
 
 Before a VDR mutation is planned, the indexer supplies the owner DID state at
 that exact ordered position. It begins with a caller-provided snapshot and
@@ -49,6 +53,11 @@ operation bytes. A deactivated owner, missing/revoked/wrong-purpose key or bad
 signature rejects the complete transaction. The protobuf comment naming an
 issuing key is treated as stale donor text; the dedicated VDR key enforced by
 NeoPRISM's processor and represented by `KeyUsage::Vdr` is the SDK profile.
+
+Root resolution alone is insufficient for updates and deactivation. The VDR
+lookup snapshot also supplies the current head for each root. A predecessor
+must equal that head, after applying earlier operations in the same transaction;
+otherwise the operation is a stale fork and rejects the complete transaction.
 
 Default limits and absolute maxima are public typed configuration. The initial
 profile will cap operation/object bytes at the already accepted PRISM envelope
@@ -78,6 +87,8 @@ a thin adapter around its current source and repository implementations.
 - Copy donor repository types: leaks UUID, Cardano, SQL and string-error shape.
 - Trust a caller-provided vector as a transaction: cannot prove completeness;
   the typed transaction header and contiguous operation indices are required.
+- Treat any root-reachable predecessor as current: admits stale forks after an
+  entry has already advanced.
 
 ## Review fallback
 

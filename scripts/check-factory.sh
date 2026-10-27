@@ -51,6 +51,7 @@ required_files=(
   docs/conformance/cross-language-vector-catalog.md
   docs/conformance/cross-language-vector-catalog.toml
   docs/conformance/fixtures/did/v1/vectors.json
+  docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json
   fuzz/fuzz_targets/did.rs
   fuzz/fuzz_targets/did_url.rs
   docs/architecture/portable-agent-runtime.md

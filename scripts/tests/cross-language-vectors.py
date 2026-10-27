@@ -16,6 +16,7 @@ CATALOG = ROOT / "docs/conformance/cross-language-vector-catalog.toml"
 PACKET = ROOT / "docs/conformance/fixtures/did/v1/vectors.json"
 PRISM_PACKET = ROOT / "docs/conformance/fixtures/did-prism/v1/vectors.json"
 CRYPTO_PACKET = ROOT / "docs/conformance/fixtures/crypto/v1/vectors.json"
+PRISM_VDR_INDEXING_PACKET = ROOT / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
 
 
 def replace_once(text: str, before: str, after: str) -> str:
@@ -49,6 +50,9 @@ def run(catalog: str, packet: str, should_pass: bool, *, crypto_packet: str | No
             CRYPTO_PACKET.read_text(encoding="utf-8") if crypto_packet is None else crypto_packet,
             encoding="utf-8",
         )
+        prism_vdr_indexing_target = root / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
+        prism_vdr_indexing_target.parent.mkdir(parents=True)
+        shutil.copy2(PRISM_VDR_INDEXING_PACKET, prism_vdr_indexing_target)
         result = subprocess.run([str(CHECKER), str(root)], capture_output=True, text=True, check=False)
         if (result.returncode == 0) != should_pass:
             raise AssertionError(
@@ -188,6 +192,9 @@ def main() -> None:
         crypto_target = root / "docs/conformance/fixtures/crypto/v1/vectors.json"
         crypto_target.parent.mkdir(parents=True)
         shutil.copy2(CRYPTO_PACKET, crypto_target)
+        prism_vdr_indexing_target = root / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
+        prism_vdr_indexing_target.parent.mkdir(parents=True)
+        shutil.copy2(PRISM_VDR_INDEXING_PACKET, prism_vdr_indexing_target)
         external = root / "outside.json"
         shutil.copy2(PACKET, external)
         packet_target.symlink_to(external)

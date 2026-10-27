@@ -75,7 +75,8 @@ The compatibility module name prevents accidental use as the current profile.
 
 The direct and resolved dependency cone is captured from the implementation
 lockfile. Expected direct versions and features are workspace `base64 0.22`,
-`bs58 0.5.1` with `alloc`, `serde/serde_json 1`, and `sha2 0.10`; no oracle
+`bs58 0.5.1` with `alloc`, `serde/serde_json 1`, `sha2 0.10`, and the existing
+advisory-clean `k256 0.14` for SEC1 public-point validation; no oracle
 package is reachable. Public and wire compatibility are profile-specific. The
 public facade boundary uses SDK-owned Rust values and stable errors. MSRV is
 1.89 and target evidence covers native, `wasm32-unknown-unknown`, iOS and

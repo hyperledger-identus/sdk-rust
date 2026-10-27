@@ -798,6 +798,7 @@ dependencies = [
  "bs58",
  "identus-core",
  "identus-did",
+ "k256",
  "serde",
  "serde_json",
  "sha2 0.10.9",

@@ -37,6 +37,8 @@ from blocking delivery.
 - Numalgo-2 applies one shared 4,096-node compact-service JSON budget during
   creation and parsing, preserving create/parse closure for every accepted
   service array; truncated elements retain the malformed-encoding category.
+- Numalgo-2 validates compressed secp256k1 material as an actual SEC1 curve
+  point through the workspace-governed `k256` dependency, not by length alone.
 - The exact 16 KiB decoded input ceiling round-trips. The profile ceiling is
   intentionally below the generic DID limit because large base58 conversion is
   super-linear; the measured exact-boundary test completes in about 2.3 seconds

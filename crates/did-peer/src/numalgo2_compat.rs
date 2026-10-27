@@ -469,7 +469,10 @@ fn validate_key(multibase: &str) -> Result<(&'static str, &'static str), Error> 
     match bytes.as_slice() {
         [0xed, 0x01, key @ ..] if key.len() == 32 => Ok(("Multikey", "Ed25519")),
         [0xec, 0x01, key @ ..] if key.len() == 32 => Ok(("Multikey", "X25519")),
-        [0xe7, 0x01, key @ ..] if key.len() == 33 => Ok(("Multikey", "secp256k1")),
+        [0xe7, 0x01, key @ ..] if key.len() == 33 => {
+            k256::PublicKey::from_sec1_bytes(key).map_err(|_| Error::MalformedEncoding)?;
+            Ok(("Multikey", "secp256k1"))
+        }
         _ => Err(Error::UnsupportedCodec),
     }
 }
@@ -697,6 +700,32 @@ mod tests {
             PublicKey::new(Purpose::Verification, "z1111"),
             Err(Error::UnsupportedCodec)
         );
+    }
+
+    #[test]
+    fn validates_secp256k1_points_not_only_their_length() {
+        let mut invalid = vec![0xe7, 0x01];
+        invalid.extend_from_slice(&[0; 33]);
+        assert_eq!(
+            PublicKey::new(
+                Purpose::Verification,
+                format!("z{}", bs58::encode(invalid).into_string())
+            ),
+            Err(Error::MalformedEncoding)
+        );
+
+        let generator = [
+            0x02, 0x79, 0xbe, 0x66, 0x7e, 0xf9, 0xdc, 0xbb, 0xac, 0x55, 0xa0, 0x62, 0x95, 0xce,
+            0x87, 0x0b, 0x07, 0x02, 0x9b, 0xfc, 0xdb, 0x2d, 0xce, 0x28, 0xd9, 0x59, 0xf2, 0x81,
+            0x5b, 0x16, 0xf8, 0x17, 0x98,
+        ];
+        let mut valid = vec![0xe7, 0x01];
+        valid.extend_from_slice(&generator);
+        PublicKey::new(
+            Purpose::Verification,
+            format!("z{}", bs58::encode(valid).into_string()),
+        )
+        .expect("valid compressed secp256k1 point");
     }
 
     #[test]

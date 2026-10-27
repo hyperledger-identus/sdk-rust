@@ -36,13 +36,20 @@ the complete transaction when it exceeds the profile. The source adapter owns
 extraction of the authoritative transaction boundary; the SDK verifies the
 declared boundary before planning.
 
-The commit request contains expected cursor, next cursor, a domain-separated
+After structural batch validation, the indexer computes a domain-separated
 SHA-256 transition digest over the complete ordered signed records and cursor
-transition, and the complete ordered mutation set. An adapter first compares
-the transition digest with the previously committed transition: an exact match
-is replay success even though its expected cursor is now stale. Otherwise it
-performs expected-cursor compare-and-set and reports conflict on mismatch. It
-guarantees all-or-nothing visibility.
+transition. Before reading mutable DID/VDR snapshots or planning, it probes the
+store's immutable committed-transition receipt by digest. An exact receipt is
+replay success, which keeps an ambiguous-acknowledgement retry reachable even
+after state advanced. An absent receipt proceeds to normal planning.
+
+The commit request contains the same digest and the complete ordered mutation
+set. Atomically, the adapter first compares that digest with the previously
+committed transition: an exact match is replay success even though its expected
+cursor is now stale. Otherwise it performs expected-cursor compare-and-set and
+reports conflict on mismatch. It guarantees all-or-nothing visibility. The
+read-only probe is an optimization/correctness path for retries; the atomic
+commit check remains the race-closing authority.
 
 Before a VDR mutation is planned, the indexer supplies the owner DID state at
 that exact ordered position. It begins with a caller-provided snapshot and

@@ -127,7 +127,10 @@ The donor's root traversal is not sufficient as an update-state check: a
 root-reachable predecessor may no longer be the current entry head. SDK-Rust
 adds an explicit committed plus batch-local head invariant and rejects forks.
 Replay identity is a domain-separated digest of the complete exact ordered
-transition, not the opaque transaction label alone.
+transition, not the opaque transaction label alone. A committed-receipt probe
+must run before state-dependent planning; otherwise an ambiguous retry can be
+rejected as a duplicate create or stale predecessor after its first commit.
+The atomic commit repeats the digest check to close the probe/commit race.
 
 Public errors expose stable categories and bounded indices, never raw payloads,
 DIDs, keys, signatures or adapter diagnostics. The SDK owns neither secrets

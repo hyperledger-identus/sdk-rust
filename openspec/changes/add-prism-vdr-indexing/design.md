@@ -63,14 +63,20 @@ memory. Any invalid record fails the batch before persistence. A successful plan
 atomic commit trait together with expected/next cursors. The adapter must either
 commit all mutations and advance the cursor or change nothing.
 
-Planning computes a domain-separated SHA-256 transition digest over the exact
-ordered signed records, their indices, transaction identity, expected cursor
-and next cursor. Commit outcomes distinguish applied, exact replay and cursor
-conflict. The adapter checks exact transition-digest equality first, so an
-ambiguous-response replay succeeds even though its expected cursor became
-stale. A nonmatching transition then uses expected-cursor compare-and-set;
-different content or a genuinely stale cursor fails deterministically and is
-never automatically retried by the SDK.
+Immediately after structural batch validation, the indexer computes a
+domain-separated SHA-256 transition digest over the exact ordered signed
+records, their indices, transaction identity, expected cursor and next cursor.
+It probes an immutable committed-transition receipt by digest before loading
+current DID/VDR state. An exact receipt returns replay success without planning,
+so duplicate creates or stale predecessors caused by the prior successful
+commit cannot mask an ambiguous-response retry.
+
+When the probe is absent, normal planning proceeds and the commit request
+carries the same digest. Commit outcomes distinguish applied, exact replay and
+cursor conflict. Atomically, the adapter checks exact digest equality first to
+close the race between probe and commit, then applies expected-cursor
+compare-and-set. Different content or a genuinely stale cursor fails
+deterministically and is never automatically retried by the SDK.
 
 ## Backpressure, cancellation and retry
 

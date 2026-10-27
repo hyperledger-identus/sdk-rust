@@ -9,6 +9,7 @@
 - [x] 1.5 Record exact issue #522 preimplementation receipt.
 - [x] 1.6 Address independent Codex planning review: authorization, transaction completeness and bounded-work consistency.
 - [x] 1.7 Address independent Codex replay/head review: exact-content replay ordering and stale-fork rejection.
+- [x] 1.8 Address independent Codex retry review: pre-planning replay probe plus atomic race closure.
 
 ## 2. VDR capability
 

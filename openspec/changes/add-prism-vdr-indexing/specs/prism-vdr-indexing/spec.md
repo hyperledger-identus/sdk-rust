@@ -63,6 +63,13 @@ compare the expected cursor and make the complete ordered mutation set plus the
 next cursor visible atomically. Batch capacity SHALL be the SDK backpressure
 boundary; the SDK SHALL NOT own an internal channel.
 
+After structural batch validation and before reading mutable DID/VDR state, the
+indexer SHALL compute the complete transition digest and query a read-only
+committed-transition receipt. An exact receipt SHALL return replay success
+without state-dependent planning. When no receipt exists, normal planning SHALL
+continue and the atomic commit SHALL repeat digest equality before cursor
+comparison to close the probe/commit race.
+
 A batch SHALL represent one complete transaction and carry a bounded opaque
 transaction identity, a declared operation count and records with the same
 identity and contiguous zero-based indices. The source adapter SHALL own
@@ -100,6 +107,20 @@ and any complete transaction above the profile rather than split it.
   expected cursor is stale because that commit already advanced the cursor
 - **THEN** exact replay wins before cursor comparison and returns idempotent
   success
+
+#### Scenario: state has advanced before an ambiguous retry
+
+- **WHEN** the first commit succeeded without acknowledgement and current state
+  would make replanning fail as duplicate or stale
+- **THEN** the pre-planning committed-transition probe recognizes the exact
+  digest and returns replay success without state-dependent validation
+
+#### Scenario: a matching transition commits after the replay probe
+
+- **WHEN** the read-only probe sees no receipt but the same transition commits
+  before this caller reaches atomic commit
+- **THEN** the commit's digest-first check returns exact replay before cursor
+  conflict
 
 ### Requirement: cancellation and scheduling remain caller-owned
 

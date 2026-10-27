@@ -90,6 +90,7 @@ required_files=(
   docs/conformance/fixtures/did-prism/preprod-2026-09-10.json
   docs/conformance/fixtures/did-prism/v1/vectors.json
   docs/conformance/fixtures/crypto/v1/vectors.json
+  docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json
   crates/crypto/examples/crypto_baseline.rs
   crates/crypto/tests/curves.rs
   crates/crypto/tests/secp256k1_compat.rs
@@ -259,6 +260,7 @@ required_files=(
   scripts/fuzz-did.sh
   scripts/fuzz-did-prism.sh
   scripts/fuzz-crypto.sh
+  scripts/fuzz-oid4vp.sh
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
   scripts/check-crypto-benchmark.py

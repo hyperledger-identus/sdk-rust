@@ -14,11 +14,11 @@ serde_json.workspace   = true
 syn.workspace          = true
 
 [dev-dependencies]
-hex.workspace                = true
-identus-did.workspace        = true
-identus-prism-did.workspace  = true
-syn.workspace                = true
-toml.workspace               = true
+hex.workspace               = true
+identus-did.workspace       = true
+identus-prism-did.workspace = true
+syn.workspace               = true
+toml.workspace              = true
 
 [lints]
 workspace = true

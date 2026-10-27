@@ -323,6 +323,7 @@ disposition = "satisfied"
 risk = "Bounded metadata, key sets and compact outputs may bypass deterministic selection, algorithm closure, independent bounds, request lineage or response-only form invariants."
 selectors = [
   "crates/jose/tests/jwe_port.rs#bounded_request_matrix_preserves_only_explicitly_revealed_values",
+  "crates/jose/tests/jwe_port.rs#compact_header_and_segment_profile_rejects_each_independent_defect",
   "crates/oid4vp/tests/encrypted_direct_post_response.rs#metadata_rejects_private_ambiguous_and_unsupported_keys",
   "crates/oid4vp/tests/encrypted_direct_post_response.rs#stop_boundaries_precede_encryption_and_plain_mode_cannot_use_protected_constructor",
 ]
@@ -332,7 +333,7 @@ cadence = "on-change"
 targets = [ "package:identus-jose", "package:identus-oid4vp", "host:rust" ]
 freshness = "source-bound"
 freshness_days = 0
-budget = "Exercise deterministic key-identifier and plaintext boundaries, required and optional metadata, wrong-mode constructors, private or ambiguous keys, unsupported algorithms, presentation lineage and compact segment grammar."
+budget = "Exercise deterministic key-identifier and plaintext boundaries, required and optional metadata, wrong-mode constructors, private or ambiguous keys, unsupported algorithms, presentation lineage, every compact-header rule and segment grammar."
 receipt_kind = "source"
 receipt = "source:crates/oid4vp/tests/encrypted_direct_post_response.rs"
 evidence_revision = "dd1996086d72510ae9e9c806886823614a8a1567"

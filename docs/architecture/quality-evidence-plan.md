@@ -117,7 +117,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `property`
 
 - Command: `cargo test -p identus-jose --test jwe_port && cargo test -p identus-oid4vp --test encrypted_direct_post_response`
-- Budget: Exercise deterministic key-identifier and plaintext boundaries, required and optional metadata, wrong-mode constructors, private or ambiguous keys, unsupported algorithms, presentation lineage and compact segment grammar.
+- Budget: Exercise deterministic key-identifier and plaintext boundaries, required and optional metadata, wrong-mode constructors, private or ambiguous keys, unsupported algorithms, presentation lineage, every compact-header rule and segment grammar.
 - Receipt: `source:crates/oid4vp/tests/encrypted_direct_post_response.rs`
 - Evidence revision: `dd1996086d72510ae9e9c806886823614a8a1567`
 

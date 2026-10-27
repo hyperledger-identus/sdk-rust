@@ -27,6 +27,10 @@ const PACKET: &str =
     include_str!("../../../docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json");
 
 fn compact_response(key_id: &str) -> String {
+    compact_response_with_ciphertext(key_id, b"ciphertext")
+}
+
+fn compact_response_with_ciphertext(key_id: &str, ciphertext: &[u8]) -> String {
     let point = P256PrivateKey::from_slice(&[0x24; 32])
         .expect("ephemeral key")
         .to_public_key()
@@ -46,7 +50,7 @@ fn compact_response(key_id: &str) -> String {
         "{}..{}.{}.{}",
         URL_SAFE_NO_PAD.encode(serde_json::to_vec(&header).expect("header")),
         URL_SAFE_NO_PAD.encode([1_u8; 12]),
-        URL_SAFE_NO_PAD.encode(b"ciphertext"),
+        URL_SAFE_NO_PAD.encode(ciphertext),
         URL_SAFE_NO_PAD.encode([2_u8; 16])
     )
 }
@@ -175,9 +179,27 @@ struct RecordingEncrypter {
 
 struct WrongKeyIdEncrypter;
 
+struct FailingEncrypter;
+
+struct OversizedEncrypter;
+
 impl JweEncrypter for WrongKeyIdEncrypter {
     fn encrypt(&self, _request: JweEncryptionRequest) -> Result<CompactJwe, JweEncryptionError> {
         CompactJwe::new(compact_response("different-key"), 8_192)
+    }
+}
+
+impl JweEncrypter for FailingEncrypter {
+    fn encrypt(&self, _request: JweEncryptionRequest) -> Result<CompactJwe, JweEncryptionError> {
+        Err(JweEncryptionError::EncryptionRejected)
+    }
+}
+
+impl JweEncrypter for OversizedEncrypter {
+    fn encrypt(&self, request: JweEncryptionRequest) -> Result<CompactJwe, JweEncryptionError> {
+        let key_id = request.recipient().expose_key_id().unwrap_or("missing");
+        let compact = compact_response_with_ciphertext(key_id, &[0x55; 900]);
+        CompactJwe::new(compact, 8_192)
     }
 }
 
@@ -451,4 +473,86 @@ fn stop_boundaries_precede_encryption_and_plain_mode_cannot_use_protected_constr
             .unwrap_err(),
         Oid4vpError::ResponseEncryptionFailed
     );
+
+    assert_eq!(
+        validated(&encrypted_request(), jwe_limits)
+            .into_encrypted_direct_post_response(
+                vec![result(response_limits)],
+                response_limits,
+                jwe_limits,
+                &FailingEncrypter,
+            )
+            .unwrap_err(),
+        Oid4vpError::ResponseEncryptionFailed
+    );
+    assert_eq!(
+        validated(&encrypted_request(), jwe_limits)
+            .into_encrypted_direct_post_response(
+                vec![result(response_limits)],
+                response_limits,
+                jwe_limits,
+                &OversizedEncrypter,
+            )
+            .unwrap_err(),
+        Oid4vpError::ResponseEncryptionFailed
+    );
+
+    let mut no_key_id = encrypted_request();
+    no_key_id["client_metadata"]["jwks"]["keys"][0]
+        .as_object_mut()
+        .expect("key object")
+        .remove("kid");
+    assert_eq!(
+        validated(&no_key_id, jwe_limits)
+            .into_encrypted_direct_post_response(
+                vec![result(response_limits)],
+                response_limits,
+                jwe_limits,
+                &WrongKeyIdEncrypter,
+            )
+            .unwrap_err(),
+        Oid4vpError::ResponseEncryptionFailed
+    );
+
+    let plaintext_limits = JweLimits::new(32, 1_024, 64).expect("limits");
+    let encrypter = RecordingEncrypter::new();
+    assert_eq!(
+        validated(&encrypted_request(), plaintext_limits)
+            .into_encrypted_direct_post_response(
+                vec![result(response_limits)],
+                response_limits,
+                plaintext_limits,
+                &encrypter,
+            )
+            .unwrap_err(),
+        Oid4vpError::ResponseJsonTooLarge
+    );
+    assert_eq!(encrypter.calls.load(Ordering::SeqCst), 0);
+}
+
+#[test]
+fn absent_state_stays_absent_from_plaintext_and_response_evidence() {
+    let jwe_limits = JweLimits::new(4_096, 1_024, 64).expect("limits");
+    let response_limits = DirectPostResponseLimits::default();
+    let mut request = encrypted_request();
+    request
+        .as_object_mut()
+        .expect("request object")
+        .remove("state");
+    let encrypter = RecordingEncrypter::new();
+    let response = validated(&request, jwe_limits)
+        .into_encrypted_direct_post_response(
+            vec![result(response_limits)],
+            response_limits,
+            jwe_limits,
+            &encrypter,
+        )
+        .expect("response");
+
+    let seen = encrypter.seen.lock().expect("seen");
+    assert_eq!(
+        seen.as_ref().expect("request captured").plaintext,
+        br#"{"vp_token":{"degree":["eyJ2cCI6dHJ1ZX0"]}}"#
+    );
+    assert!(!response.state_present());
 }

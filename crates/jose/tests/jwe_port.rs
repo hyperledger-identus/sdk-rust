@@ -5,12 +5,12 @@ use identus_jose::{
     JweKeyManagementAlgorithm, JweLimits, JweRecipientPublicKey,
 };
 
-fn valid_compact() -> String {
+fn valid_header() -> serde_json::Value {
     let point = P256PrivateKey::from_slice(&[9; 32])
         .expect("private key")
         .to_public_key()
         .encode_uncompressed();
-    let header = serde_json::json!({
+    serde_json::json!({
         "alg": "ECDH-ES",
         "enc": "A128GCM",
         "epk": {
@@ -19,14 +19,30 @@ fn valid_compact() -> String {
             "x": URL_SAFE_NO_PAD.encode(&point[1..33]),
             "y": URL_SAFE_NO_PAD.encode(&point[33..65])
         }
-    });
+    })
+}
+
+fn compact_from_parts(header: &[u8], iv: &[u8], ciphertext: &[u8], tag: &[u8]) -> String {
     format!(
         "{}..{}.{}.{}",
-        URL_SAFE_NO_PAD.encode(serde_json::to_vec(&header).expect("header")),
-        URL_SAFE_NO_PAD.encode([1_u8; 12]),
-        URL_SAFE_NO_PAD.encode([2_u8; 4]),
-        URL_SAFE_NO_PAD.encode([3_u8; 16])
+        URL_SAFE_NO_PAD.encode(header),
+        URL_SAFE_NO_PAD.encode(iv),
+        URL_SAFE_NO_PAD.encode(ciphertext),
+        URL_SAFE_NO_PAD.encode(tag)
     )
+}
+
+fn compact_with_header(header: &serde_json::Value) -> String {
+    compact_from_parts(
+        &serde_json::to_vec(header).expect("header"),
+        &[1_u8; 12],
+        &[2_u8; 4],
+        &[3_u8; 16],
+    )
+}
+
+fn valid_compact() -> String {
+    compact_with_header(&valid_header())
 }
 
 fn recipient(limits: JweLimits) -> JweRecipientPublicKey {
@@ -136,6 +152,91 @@ fn compact_direct_key_agreement_grammar_is_exact() {
         CompactJwe::new("a..c.d.e".to_owned(), 4).unwrap_err(),
         JweEncryptionError::CompactTooLarge
     );
+}
+
+#[test]
+fn compact_header_and_segment_profile_rejects_each_independent_defect() {
+    let mut cases = Vec::new();
+
+    for (name, pointer, value) in [
+        (
+            "key-management algorithm",
+            "/alg",
+            serde_json::json!("RSA-OAEP"),
+        ),
+        (
+            "content encryption algorithm",
+            "/enc",
+            serde_json::json!("A256GCM"),
+        ),
+        ("ephemeral key type", "/epk/kty", serde_json::json!("OKP")),
+        ("ephemeral curve", "/epk/crv", serde_json::json!("P-384")),
+        (
+            "short x coordinate",
+            "/epk/x",
+            serde_json::json!(URL_SAFE_NO_PAD.encode([0_u8; 31])),
+        ),
+        (
+            "off-curve point",
+            "/epk/y",
+            serde_json::json!(URL_SAFE_NO_PAD.encode([0_u8; 32])),
+        ),
+        ("empty key identifier", "/kid", serde_json::json!("")),
+        (
+            "non-printable key identifier",
+            "/kid",
+            serde_json::json!("bad key"),
+        ),
+    ] {
+        let mut header = valid_header();
+        if pointer == "/kid" {
+            header["kid"] = value;
+        } else {
+            *header.pointer_mut(pointer).expect("header pointer") = value;
+        }
+        cases.push((name, compact_with_header(&header)));
+    }
+
+    let mut unknown = valid_header();
+    unknown["typ"] = serde_json::json!("JWT");
+    cases.push(("unknown protected member", compact_with_header(&unknown)));
+
+    let duplicate = br#"{"alg":"ECDH-ES","alg":"ECDH-ES","enc":"A128GCM","epk":{"kty":"EC","crv":"P-256","x":"AA","y":"AA"}}"#;
+    cases.push((
+        "duplicate protected member",
+        compact_from_parts(duplicate, &[1_u8; 12], &[2_u8; 4], &[3_u8; 16]),
+    ));
+
+    let mut oversized = valid_header();
+    oversized["padding"] = serde_json::json!("x".repeat(4_096));
+    cases.push((
+        "oversized protected header",
+        compact_with_header(&oversized),
+    ));
+
+    let header = serde_json::to_vec(&valid_header()).expect("header");
+    cases.extend([
+        (
+            "short initialization vector",
+            compact_from_parts(&header, &[1_u8; 11], &[2_u8; 4], &[3_u8; 16]),
+        ),
+        (
+            "empty ciphertext",
+            compact_from_parts(&header, &[1_u8; 12], &[], &[3_u8; 16]),
+        ),
+        (
+            "short authentication tag",
+            compact_from_parts(&header, &[1_u8; 12], &[2_u8; 4], &[3_u8; 15]),
+        ),
+    ]);
+
+    for (name, compact) in cases {
+        assert_eq!(
+            CompactJwe::new(compact, 16_384).unwrap_err(),
+            JweEncryptionError::InvalidCompactStructure,
+            "{name}"
+        );
+    }
 }
 
 #[test]

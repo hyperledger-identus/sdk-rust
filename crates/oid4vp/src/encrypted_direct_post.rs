@@ -67,6 +67,9 @@ impl ValidatedAuthorizationRequest {
         let compact = encrypter
             .encrypt(request)
             .map_err(|_| Oid4vpError::ResponseEncryptionFailed)?;
+        if compact.len() > jwe_limits.max_compact_bytes() {
+            return Err(Oid4vpError::ResponseEncryptionFailed);
+        }
         let compact = CompactJwe::new(
             compact.expose_sensitive_compact().to_owned(),
             jwe_limits.max_compact_bytes(),
@@ -191,8 +194,7 @@ fn validate_encrypted_form_upper_bound(
 ) -> Result<(), Oid4vpError> {
     let maximum = jwe_limits
         .max_compact_bytes()
-        .checked_mul(3)
-        .and_then(|value| value.checked_add("response=".len()))
+        .checked_add("response=".len())
         .ok_or(Oid4vpError::DirectPostFormTooLarge)?;
     if maximum > response_limits.max_form_body_bytes() {
         return Err(Oid4vpError::DirectPostFormTooLarge);

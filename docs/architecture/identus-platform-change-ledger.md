@@ -31,7 +31,7 @@ State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic 
 
 ### `oid4vp.direct-post-response.encrypted.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive SDK surface validates one bounded P-256 ECDH-ES verifier recipient and A128GCM policy, constructs request-bound Final response plaintext, invokes an SDK-owned JWE port once, validates opaque compact output and emits a response-only form.
+State: `proposed`. Class: `breaking` / `changed`. Target: `unreleased`. The pre-release SDK adds a non-exhaustive DirectPostJwt mode, validates one bounded P-256 ECDH-ES verifier recipient and A128GCM policy, returns metadata-specific validation categories, makes the plain constructor reject protected mode, invokes an SDK-owned JWE port once, validates opaque compact output and emits a response-only form.
 
 ### `oid4vp.direct-post-response.error.v1`
 
@@ -65,7 +65,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `oid4vp.direct-post-response.encrypted.v1`
 
-`unreleased` → `unreleased` for sdk-rust-adopters. No migration action required.
+`unreleased` → `unreleased` for sdk-rust-adopters. Before adopting this unreleased API, make AuthorizationResponseMode matches forward-compatible and handle ResponseModeMismatch plus direct_post.jwt metadata validation errors.
 
 ### `oid4vp.direct-post-response.error.v1`
 
@@ -99,7 +99,7 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `0
 
 ### `oid4vp.direct-post-response.encrypted.v1`
 
-Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started.
 
 ### `oid4vp.direct-post-response.error.v1`
 
@@ -167,7 +167,7 @@ Visibility: behavior, public-api. The lexical envelope does not guarantee transp
 
 ### `oid4vp.direct-post-response.encrypted.v1`
 
-Visibility: behavior, public-api, security, wire. No production JWE engine, HTTP delivery, transport retry, wallet authentication, consent, trust, presentation verification, automatic error fallback, language adapter, persisted migration or downstream adoption is included; the first profile is one compact P-256 ECDH-ES/A128GCM recipient only.
+Visibility: behavior, public-api, security, wire. The enum, validation-category and constructor behavior changes are pre-release source/behavior breaks. No production JWE engine, HTTP delivery, transport retry, wallet authentication, consent, trust, presentation verification, automatic error fallback, language adapter, persisted migration or downstream adoption is included; the first profile is one compact P-256 ECDH-ES/A128GCM recipient only.
 
 ### `oid4vp.direct-post-response.error.v1`
 

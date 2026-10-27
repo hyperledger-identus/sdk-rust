@@ -52,7 +52,7 @@ in ADR 0181.
 
 ```text
 invocation → request_uri envelope → signed JAR → metadata/key selection
-  → DCQL selection → response JSON → JWE port → compact envelope → form decode
+  → DCQL selection → response JSON → JWE port → compact envelope → exact form
 ```
 
 Every arrow through the port boundary is covered by the versioned
@@ -92,6 +92,9 @@ specified profile defines their semantics and limits.
 | One public P-256 recipient | Supported |
 | Direct `ECDH-ES` + `A128GCM` | Supported boundary |
 | Compact JWE and response-only form | Supported boundary |
+| JWK selection | `alg=ECDH-ES` required; optional `use=enc`; optional `key_ops` must contain `deriveKey` or `deriveBits` |
+| JWK key identifier | Optional, non-empty printable ASCII without spaces, at most the configured bound |
+| Multiple eligible recipients | Rejected as ambiguous; unsupported public keys are skipped, private members reject the request |
 | Built-in cryptographic engine | Deferred to a separately qualified adapter |
 | X25519/P-384, key wrap, CBC-HMAC, compression, multiple recipients | Not supported |
 | HTTP, trust, consent, presentation verification, wallet authentication | Outside this crate |

@@ -34,7 +34,7 @@ optional bounded `kid`. `JweEncryptionRequest` owns that key, exact algorithm
 enums, zeroizing plaintext and maximum compact bytes. `JweEncrypter` returns
 `CompactJwe`, whose constructor validates five non-empty/allowed compact
 segments as applicable and the caller's bound. Errors map to one static
-`EncryptionFailed` category at the protocol boundary.
+`ResponseEncryptionFailed` category at the protocol boundary.
 
 The trait is synchronous because the operation is CPU/randomness only. HSM or
 remote key services are not required for public-recipient encryption; an
@@ -43,8 +43,9 @@ or motivate a separate capability.
 
 ## OID4VP metadata and transition
 
-The verified request parser retains a bounded `client_metadata` object only for
-`direct_post.jwt`. The parser rejects duplicate members before serde, limits
+The verified request parser consumes bounded `client_metadata` only for
+`direct_post.jwt` and retains the selected SDK-owned encryption plan rather than
+the source object. The parser rejects duplicate members before serde, limits
 object/array/string/node/depth work, and admits one supported public key after
 deterministic selection. `encrypted_response_enc_values_supported` is optional;
 absence selects A128GCM and presence must include exactly one supported choice
@@ -59,7 +60,8 @@ mode puts those members in the plaintext JSON, calls the port, then emits only
 
 - official/clean-room metadata and response examples;
 - negative keys, algorithms, use/operations, private members, ambiguity,
-  duplicate JSON, malformed points, mode mismatch and output limits;
+  generic duplicate JSON scanning, malformed adapter points, mode mismatch and
+  output limits;
 - deterministic boundary matrices for key identifiers, plaintext, metadata,
   compact grammar, wrong-mode constructors and resource limits;
 - fuzz targets for metadata selection and returned compact material;

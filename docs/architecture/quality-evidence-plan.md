@@ -71,7 +71,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo test -p identus-prism-did property`
 - Budget: Generate deterministic create/update/deactivate traces covering ordered rollback, tombstones, active-only 50-item limits and final master-key invariants.
 - Receipt: `source:crates/prism-did/src/state.rs`
-- Evidence revision: `15069b68c52ba27de00c9e88bb321bc394430f88`
+- Evidence revision: `5ce2deaf9ca61642fc8b81ee4baa593bababe98f`
 
 ### `fuzz`
 
@@ -94,4 +94,4 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo test -p identus-prism-did verifies_pinned_preprod && cargo test -p identus-conformance --test cross_language_prism_vectors`
 - Budget: Verify both pinned public Preprod create envelopes and compare exact operation ID, DID suffix, signature and projected document evidence offline.
 - Receipt: `source:crates/conformance/tests/cross_language_prism_vectors.rs`
-- Evidence revision: `15069b68c52ba27de00c9e88bb321bc394430f88`
+- Evidence revision: `5ce2deaf9ca61642fc8b81ee4baa593bababe98f`

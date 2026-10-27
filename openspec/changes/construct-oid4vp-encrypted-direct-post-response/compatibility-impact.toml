@@ -3,5 +3,5 @@ issue          = 535
 disposition    = "consumer-visible"
 scope          = "consumer-contract"
 rationale      = "The additive JOSE port and OID4VP transition expose a bounded encrypted-response capability without changing existing plain direct-post behavior or leaking an engine API."
-ledger_ids     = [ "oid4vp.encrypted-direct-post-response.v1" ]
+ledger_ids     = [ "oid4vp.direct-post-response.encrypted.v1" ]
 

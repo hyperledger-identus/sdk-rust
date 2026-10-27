@@ -76,9 +76,9 @@ allowed_mapping_dispositions = [
 [[changes]]
 id                                = "did.prism.portable-method.v1"
 capability                        = "did.prism"
-lifecycle_state                   = "proposed"
+lifecycle_state                   = "active"
 issue                             = 521
-pull_request                      = 0
+pull_request                      = 528
 change_class                      = "additive"
 release_note_class                = "added"
 visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
@@ -117,9 +117,9 @@ replaced_by                       = ""
 [[changes]]
 id                                = "did.syntax.long-form-resource-policy.v1"
 capability                        = "did.syntax"
-lifecycle_state                   = "proposed"
+lifecycle_state                   = "active"
 issue                             = 524
-pull_request                      = 0
+pull_request                      = 527
 change_class                      = "behavioral"
 release_note_class                = "changed"
 visibility                        = [ "behavior", "public-api" ]

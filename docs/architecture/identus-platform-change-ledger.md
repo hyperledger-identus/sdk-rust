@@ -11,11 +11,11 @@ Status: `active`
 
 ### `did.prism.portable-method.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-prism-did crate constructs and validates exact bounded PRISM operations, authenticates and reduces DID state, and projects generic DID documents under a separate native output budget without chain coupling.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-prism-did crate constructs and validates exact bounded PRISM operations, authenticates and reduces DID state, and projects generic DID documents under a separate native output budget without chain coupling.
 
 ### `did.syntax.long-form-resource-policy.v1`
 
-State: `proposed`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic DID and URI values admit the measured finite long-form envelope while the independent method and cache limits remain bounded; a valid oversized cache identity bypasses retention observably.
+State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic DID and URI values admit the measured finite long-form envelope while the independent method and cache limits remain bounded; a valid oversized cache identity bypasses retention observably.
 
 ## Migration actions
 

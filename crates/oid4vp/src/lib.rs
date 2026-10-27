@@ -5,7 +5,7 @@
 //! a signed compact JAR through [`identus_jose`], and validates/evaluates DCQL
 //! through a bounded SDK-owned facade, then composes one narrow Final
 //! `vp_token`/`direct_post` request state and bounded mutually exclusive plain
-//! success or explicit protocol-error responses.
+//! success, explicit protocol-error, or engine-neutral encrypted responses.
 //! It does not execute HTTP, authorize a verifier key, record consent, create
 //! presentations, verify credentials, or translate internal failures into wire
 //! errors.
@@ -15,6 +15,7 @@
 mod authorization_request;
 mod dcql;
 mod direct_post;
+mod encrypted_direct_post;
 mod error;
 mod invocation;
 mod limits;
@@ -34,6 +35,7 @@ pub use direct_post::{
     DIRECT_POST_HTTP_METHOD, DIRECT_POST_MEDIA_TYPE, DirectPostErrorCode, DirectPostErrorDetails,
     DirectPostErrorResponse, DirectPostPresentation, DirectPostQueryResult, DirectPostResponse,
 };
+pub use encrypted_direct_post::EncryptedDirectPostResponse;
 pub use error::{CAPABILITY, Oid4vpError, error_code};
 pub use invocation::{
     AuthorizationRequestInvocation, ReferencedAuthorizationRequest, RequestUriMethod,
@@ -54,5 +56,5 @@ use identus_core::Component;
 /// Metadata for the `identus-oid4vp` crate.
 pub const COMPONENT: Component = Component {
     name: "identus-oid4vp",
-    summary: "Bounded OID4VP Final ingress, signed JAR, DCQL, and direct-post routing.",
+    summary: "Bounded OID4VP Final ingress, JAR, DCQL, and direct-post responses.",
 };

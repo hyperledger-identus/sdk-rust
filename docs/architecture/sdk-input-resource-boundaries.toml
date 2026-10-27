@@ -345,6 +345,17 @@ consumer_impact  = "Validated JOSE decoding, native key-reference construction, 
 review_triggers  = [ "new JOSE serialization", "new header collection", "new signature suite" ]
 
 [[boundaries]]
+id               = "jose-jwe-encryption-port"
+package          = "identus-jose"
+surface          = "P-256 ECDH-ES/A128GCM recipient, plaintext, compact JWE and injected encrypter"
+disposition      = "sdk-enforced"
+limits           = [ "DEFAULT_MAX_JWE_PLAINTEXT_BYTES=65536", "DEFAULT_MAX_COMPACT_JWE_BYTES=131072", "DEFAULT_MAX_JWE_KEY_ID_BYTES=2048" ]
+evidence         = [ "crates/jose/src/jwe.rs", "crates/jose/tests/jwe_port.rs", "docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md" ]
+outer_obligation = "Callers bound transport allocation before typed entry; injected engines own randomness, cryptographic work, side-channel posture and any external execution budget."
+consumer_impact  = "Typed public keys, plaintext and compact output are independently bounded and redaction-safe; no production engine or engine QoS is implied."
+review_triggers  = [ "production JWE engine", "new algorithm", "new recipient shape", "limit change", "remote encryption operation" ]
+
+[[boundaries]]
 id               = "jose-direct-retained-enum-construction"
 package          = "identus-jose"
 surface          = "opaque retained JwsKeyReference KeyId/X5c public enum payloads"

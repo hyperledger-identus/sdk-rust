@@ -23,7 +23,7 @@ macro_rules! case {
     };
 }
 
-const CASES: [Case; 68] = [
+const CASES: [Case; 70] = [
     case!(InvalidLimits, INVALID_LIMITS),
     case!(InvocationTooLarge, INVOCATION_TOO_LARGE),
     case!(InvalidInvocation, INVALID_INVOCATION),
@@ -119,6 +119,8 @@ const CASES: [Case; 68] = [
         DirectPostErrorFormTooLarge,
         DIRECT_POST_ERROR_FORM_TOO_LARGE
     ),
+    case!(ResponseModeMismatch, RESPONSE_MODE_MISMATCH),
+    case!(ResponseEncryptionFailed, RESPONSE_ENCRYPTION_FAILED),
 ];
 
 #[test]
@@ -159,7 +161,7 @@ fn local_and_shared_diagnostics_are_static_and_redacted() {
         }
         assert!(matches!(
             public.kind(),
-            ErrorKind::InvalidInput | ErrorKind::Unsupported
+            ErrorKind::InvalidInput | ErrorKind::Unsupported | ErrorKind::Crypto
         ));
     }
 }

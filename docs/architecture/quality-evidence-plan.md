@@ -141,7 +141,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `differential`
 
 - Command: `cargo test -p identus-oid4vp --test encrypted_direct_post_response`
-- Budget: Reproduce the attributed Final encrypted-response shape, assert the exact SDK port request, and decrypt one isolated P-256/A128GCM oracle artifact outside the production dependency graph.
+- Budget: Reproduce the attributed Final encrypted-response shape and assert the exact SDK port request, compact-header profile, selected key identifier, plaintext members and response-only form outside any production engine claim.
 - Receipt: `pending`
 - Evidence revision: `pending`
 - Delivery debt: #535

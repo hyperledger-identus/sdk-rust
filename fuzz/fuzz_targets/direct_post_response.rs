@@ -4,16 +4,17 @@ use identus_crypto::PublicKeyJwk;
 use identus_jose::{JwsAlgorithm, JwsVerificationKey, SignatureSuiteRegistry};
 use identus_oid4vp::{
     AuthorizationRequestInvocation, AuthorizationRequestInvocationLimits,
-    AuthorizationRequestValidationLimits, DcqlLimits, DirectPostErrorCode,
-    DirectPostErrorDetails, DirectPostErrorResponseLimits, DirectPostPresentation,
-    DirectPostQueryResult, DirectPostResponseLimits, REQUEST_OBJECT_MEDIA_TYPE,
-    RequestObjectValidationLimits, RequestUriRetrievalInput, RequestUriRetrievalLimits,
+    AuthorizationRequestValidationLimits, DcqlLimits, DirectPostErrorCode, DirectPostErrorDetails,
+    DirectPostErrorResponseLimits, DirectPostPresentation, DirectPostQueryResult,
+    DirectPostResponseLimits, REQUEST_OBJECT_MEDIA_TYPE, RequestObjectValidationLimits,
+    RequestUriRetrievalInput, RequestUriRetrievalLimits,
 };
 use libfuzzer_sys::fuzz_target;
 
 const REFERENCE: &str = "openid4vp:?client_id=decentralized_identifier%3Adid%3Aexample%3Averifier&request_uri=https%3A%2F%2Fverifier.example%2Frequest";
 const REQUEST_OBJECT: &str = "eyJhbGciOiJFZDI1NTE5IiwidHlwIjoib2F1dGgtYXV0aHotcmVxK2p3dCIsImtpZCI6ImRpZDpleGFtcGxlOnZlcmlmaWVyI2tleS0xIn0.eyJjbGllbnRfaWQiOiJkZWNlbnRyYWxpemVkX2lkZW50aWZpZXI6ZGlkOmV4YW1wbGU6dmVyaWZpZXIiLCJyZXNwb25zZV90eXBlIjoidnBfdG9rZW4iLCJyZXNwb25zZV9tb2RlIjoiZGlyZWN0X3Bvc3QiLCJub25jZSI6ImZyZXNoLW5vbmNlXzEiLCJyZXNwb25zZV91cmkiOiJodHRwczovL3ZlcmlmaWVyLmV4YW1wbGUvcmVzcG9uc2UiLCJzdGF0ZSI6InN0YXRlLTEyMyIsImRjcWxfcXVlcnkiOnsiY3JlZGVudGlhbHMiOlt7ImlkIjoiZGVncmVlIiwiZm9ybWF0IjoiZGMrc2Qtand0IiwibWV0YSI6e319XX19.daneYuPWoerhkVN0-BMpQvCmb6u-R3XPEnBwjmnh4RI_hSuSvWEz7Vf8hhD_nkuwYQL8qpr2pniNBoxp9xgKCg";
-const PUBLIC_JWK: &str = r#"{"kty":"OKP","crv":"Ed25519","x":"4v4qObcyZkKCfW2C1JdiLNbCl_54Jw6qQ2sB8Ia288s"}"#;
+const PUBLIC_JWK: &str =
+    r#"{"kty":"OKP","crv":"Ed25519","x":"4v4qObcyZkKCfW2C1JdiLNbCl_54Jw6qQ2sB8Ia288s"}"#;
 
 fuzz_target!(|data: &[u8]| {
     let Some((&kind, value)) = data.split_first() else {

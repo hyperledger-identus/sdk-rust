@@ -10,8 +10,8 @@ use serde::de::{DeserializeSeed, Error as _, MapAccess, SeqAccess, Visitor};
 use zeroize::{Zeroize, Zeroizing};
 
 use crate::{
-    DirectPostErrorResponseLimits, DirectPostResponseLimits, Oid4vpError,
-    ValidatedAuthorizationRequest,
+    AuthorizationResponseMode, DirectPostErrorResponseLimits, DirectPostResponseLimits,
+    Oid4vpError, ValidatedAuthorizationRequest,
     dcql::{DcqlResponseQueryRule, DcqlResponseRules},
 };
 
@@ -331,11 +331,14 @@ impl ValidatedAuthorizationRequest {
         results: Vec<DirectPostQueryResult>,
         limits: DirectPostResponseLimits,
     ) -> Result<DirectPostResponse, Oid4vpError> {
+        if self.response_mode() != AuthorizationResponseMode::DirectPost {
+            return Err(Oid4vpError::ResponseModeMismatch);
+        }
         if results.len() > limits.max_query_results() {
             return Err(Oid4vpError::TooManyQueryResults);
         }
         validate_result_limits(&results, limits)?;
-        let (target, state, query) = self.into_direct_post_parts();
+        let (target, state, query, _mode, _encryption_plan) = self.into_direct_post_parts();
         let ordered = validate_results(query.response_rules(), &results)?;
         let vp_token = serialize_vp_token(query.response_rules(), &ordered, limits)?;
         let form_body = serialize_form(
@@ -364,7 +367,7 @@ impl ValidatedAuthorizationRequest {
         limits: DirectPostErrorResponseLimits,
     ) -> Result<DirectPostErrorResponse, Oid4vpError> {
         validate_retained_error_details(&details, limits)?;
-        let (target, state, _query) = self.into_direct_post_parts();
+        let (target, state, _query, _mode, _encryption_plan) = self.into_direct_post_parts();
         let description_present = details.description.is_some();
         let error_uri_present = details.uri.is_some();
         let form_body = serialize_error_form(
@@ -435,7 +438,7 @@ const fn is_uri_reference_char(byte: u8) -> bool {
     matches!(byte, 0x21 | 0x23..=0x5b | 0x5d..=0x7e)
 }
 
-fn validate_result_limits(
+pub(crate) fn validate_result_limits(
     results: &[DirectPostQueryResult],
     limits: DirectPostResponseLimits,
 ) -> Result<(), Oid4vpError> {
@@ -518,7 +521,7 @@ impl fmt::Debug for DirectPostResponse {
     }
 }
 
-fn validate_results<'a>(
+pub(crate) fn validate_results<'a>(
     rules: &DcqlResponseRules,
     results: &'a [DirectPostQueryResult],
 ) -> Result<BTreeMap<&'a str, &'a DirectPostQueryResult>, Oid4vpError> {
@@ -575,7 +578,7 @@ fn validate_cardinality(
     }
 }
 
-fn serialize_vp_token(
+pub(crate) fn serialize_vp_token(
     rules: &DcqlResponseRules,
     results: &BTreeMap<&str, &DirectPostQueryResult>,
     limits: DirectPostResponseLimits,
@@ -689,7 +692,7 @@ fn serialize_error_form(
     Ok(output)
 }
 
-fn pair_len(name: &str, value: &str) -> Option<usize> {
+pub(crate) fn pair_len(name: &str, value: &str) -> Option<usize> {
     encoded_len(name)?
         .checked_add(1)?
         .checked_add(encoded_len(value)?)
@@ -705,7 +708,7 @@ fn encoded_len(value: &str) -> Option<usize> {
     })
 }
 
-fn append_pair(output: &mut String, name: &str, value: &str) {
+pub(crate) fn append_pair(output: &mut String, name: &str, value: &str) {
     append_encoded(output, name);
     output.push('=');
     append_encoded(output, value);

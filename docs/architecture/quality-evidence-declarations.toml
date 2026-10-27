@@ -311,7 +311,7 @@ owner       = "SDK-Rust OID4VP and JOSE maintainers"
 owner_issue = 535
 risk        = "Encrypted response construction can select an attacker-controlled or ambiguous key, detach plaintext from verified request lineage, expose sensitive response material, accept malformed compact output, or amplify hostile metadata."
 targets     = [ "package:identus-jose", "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
-vector_ids  = [ "oid4vp.direct-post-response.final-string-state" ]
+vector_ids  = [ "oid4vp.encrypted-direct-post-response.final-p256-a128gcm" ]
 limitations = "This declaration covers Final direct_post.jwt metadata selection, bounded SDK-owned P-256 ECDH-ES/A128GCM port input, opaque compact-output validation and response-only form construction; it does not prove a production JWE engine, HTTP delivery, wallet authentication, consent, trust, presentation verification or foreign DTO shape."
 active      = true
 supersedes  = [  ]
@@ -419,7 +419,7 @@ class = "differential"
 disposition = "required"
 risk = "The SDK metadata interpretation, plaintext members or response-only form may diverge from OpenID4VP Final and a conforming independent compact-JWE implementation."
 selectors = [
-  "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json#oid4vp.direct-post-response.final-string-state",
+  "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json#oid4vp.encrypted-direct-post-response.final-p256-a128gcm",
   "docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md#Decision",
 ]
 command = "cargo test -p identus-oid4vp --test encrypted_direct_post_response"
@@ -428,7 +428,7 @@ cadence = "per-pull-request"
 targets = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
 freshness = "pending"
 freshness_days = 0
-budget = "Reproduce the attributed Final encrypted-response shape, assert the exact SDK port request, and decrypt one isolated P-256/A128GCM oracle artifact outside the production dependency graph."
+budget = "Reproduce the attributed Final encrypted-response shape and assert the exact SDK port request, compact-header profile, selected key identifier, plaintext members and response-only form outside any production engine claim."
 receipt_kind = "none"
 receipt = ""
 evidence_revision = ""
@@ -440,8 +440,8 @@ debt_status = "open"
 debt_issue = 535
 rationale = ""
 details = [
-  "oracle=OpenID4VP 1.0 Final sections 8.3 and 8.3.1 plus isolated jose-rs 0.10.0 P-256 ECDH-ES/A128GCM qualification",
-  "oracle-revision=Final 2025-07-09 with current errata and exact jose-rs 0.10.0 retrieved 2026-10-27",
+  "oracle=OpenID4VP 1.0 Final sections 8.3 and 8.3.1 plus the isolated jose-rs 0.10.0 portability and public-recipient API qualification recorded in issue #535 research",
+  "oracle-revision=Final 2025-07-09 with current errata and exact jose-rs 0.10.0 retrieved 2026-10-27; cryptographic oracle execution is deferred with the production adapter",
   "normalization=Compare selected public-key bytes, algorithms, bounded plaintext members, compact segment grammar and decoded form names rather than library DTOs or randomized ciphertext bytes",
   "deviations=Production SDK exposes only an engine-neutral port; the isolated oracle is test evidence and not a workspace dependency",
 ]

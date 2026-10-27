@@ -41,8 +41,9 @@ A canonical short DID is `did:prism:` plus a lowercase 64-hex SHA-256 digest.
 A long form appends `:` and unpadded base64url of a create operation. Decoding
 uses a private bounded base64url path rather than the crypto text codec. The
 decoded operation must be a valid create operation, and its first digest must
-equal the short-form suffix. Local resolution consumes this initial state
-without HTTP or a ledger lookup.
+equal the short-form suffix. Construction also proves that the initial state
+projects through the generic DID document limits, so every accepted long form
+is locally resolvable without HTTP or a ledger lookup.
 
 ## Domain validation
 
@@ -53,6 +54,10 @@ JSON names, maps into `identus-did::ServiceEndpoint`, and requires generic URI
 validation. Contexts are unique absolute URIs and cannot repeat the SDK-added
 DID Core context. Validated URI text is preserved exactly so projection and
 history replay cannot rewrite signed protocol values.
+
+Variant-specific constructors (`ServiceType::one` and `ServiceEndpoint::uri`)
+reject wire text for any other representation; polymorphic wire parsing stays
+explicit in `parse_wire`.
 
 Supported public key curves are secp256k1, Ed25519 and X25519 through
 `identus-crypto`. Master and VDR operation keys must be secp256k1. Unknown key

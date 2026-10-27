@@ -45,7 +45,10 @@ impl ServiceType {
 
     /// Construct one validated service-type token.
     pub fn one(value: impl Into<String>) -> Result<Self, Error> {
-        parse_service_type(&value.into())
+        match parse_service_type(&value.into())? {
+            Self::One(value) => Ok(Self::One(value)),
+            Self::Many(_) => Err(OperationError::InvalidValue.into()),
+        }
     }
 
     /// Construct a validated non-empty ordered service-type set.
@@ -66,7 +69,12 @@ impl ServiceEndpoint {
 
     /// Construct one absolute-URI endpoint while preserving its exact text.
     pub fn uri(value: &str) -> Result<Self, Error> {
-        parse_service_endpoint(value)
+        match parse_service_endpoint(value)? {
+            Self::One(ServiceEndpointValue::Uri(value)) => {
+                Ok(Self::One(ServiceEndpointValue::Uri(value)))
+            }
+            _ => Err(OperationError::InvalidValue.into()),
+        }
     }
 
     /// Construct a bounded endpoint from one JSON object.
@@ -534,6 +542,8 @@ mod tests {
             CreateDidOperation::new(vec![master(&private, "master")], vec![invalid], Vec::new(),)
                 .is_err()
         );
+        assert!(ServiceType::one(r#"["LinkedDomains"]"#).is_err());
+        assert!(ServiceEndpoint::uri(r#"{"uri":"https://example.com"}"#).is_err());
     }
 
     #[test]

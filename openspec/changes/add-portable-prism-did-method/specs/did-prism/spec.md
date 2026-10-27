@@ -7,7 +7,8 @@
 The SDK SHALL provide immutable canonical and long-form `did:prism` values.
 The canonical suffix SHALL be a lowercase 64-hex SHA-256 digest. A long form
 SHALL contain unpadded base64url initial state whose decoded bytes are a valid
-bounded create operation and whose digest equals the canonical suffix.
+bounded, projectable create operation and whose digest equals the canonical
+suffix.
 
 #### Scenario: local long-form identity is self-certifying
 

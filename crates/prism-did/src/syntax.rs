@@ -7,7 +7,7 @@ use identus_crypto::HexStr;
 use identus_did::Did;
 
 use crate::{
-    CreateDidOperation, Error, MAX_OPERATION_BYTES, OperationKind, RawPrismOperation, SyntaxError,
+    Error, MAX_OPERATION_BYTES, OperationKind, PrismDidState, RawPrismOperation, SyntaxError,
 };
 
 const PREFIX: &str = "did:prism:";
@@ -111,12 +111,12 @@ impl LongFormPrismDid {
         if initial_state.operation_kind() != OperationKind::CreateDid {
             return Err(Error::InvalidSyntax(SyntaxError::InvalidLongForm));
         }
-        CreateDidOperation::parse(&initial_state)?;
         let expected = HexStr::try_from_bytes(initial_state.operation_hash().as_bytes())
             .expect("a SHA-256 digest fits the bounded crypto hex codec");
         if suffix != expected.as_str() {
             return Err(Error::InvalidSyntax(SyntaxError::InitialStateHashMismatch));
         }
+        PrismDidState::from_initial_state(&initial_state)?;
         let canonical = CanonicalPrismDid::parse(&format!("{PREFIX}{suffix}"))?;
         Ok(Self {
             did,
@@ -130,7 +130,7 @@ impl LongFormPrismDid {
         if initial_state.operation_kind() != OperationKind::CreateDid {
             return Err(Error::InvalidSyntax(SyntaxError::InvalidLongForm));
         }
-        CreateDidOperation::parse(&initial_state)?;
+        PrismDidState::from_initial_state(&initial_state)?;
         let canonical = CanonicalPrismDid::from_digest(initial_state.operation_hash().as_array());
         let encoded = URL_SAFE_NO_PAD.encode(initial_state.as_bytes());
         let did = Did::parse(&format!("{canonical}:{encoded}"))
@@ -274,10 +274,42 @@ const fn decoded_len_upper_bound(encoded_len: usize) -> usize {
 
 #[cfg(test)]
 mod tests {
+    use prost::Message;
+
     use super::*;
 
     fn raw_create() -> RawPrismOperation {
         RawPrismOperation::parse(&hex::decode("0a3f0a3d123b0a076d61737465723010014a2e0a09736563703235366b31122102e45998e18117113835b972b43784fb6b6470b722cb2dc171c5fba00265bc80ee").unwrap()).unwrap()
+    }
+
+    fn unprojectable_create() -> RawPrismOperation {
+        let endpoint = format!(r#"{{"x":[{}]}}"#, vec!["0"; 100].join(","));
+        let create = crate::proto::CreateDid {
+            did_data: Some(crate::proto::DidCreationData {
+                public_keys: vec![crate::proto::PublicKey {
+                    id: "master".to_owned(),
+                    usage: crate::proto::KeyUsage::Master as i32,
+                    key_data: Some(crate::proto::public_key::KeyData::Compressed(
+                        crate::proto::CompressedEcKeyData {
+                            curve: "secp256k1".to_owned(),
+                            data: hex::decode(
+                                "02e45998e18117113835b972b43784fb6b6470b722cb2dc171c5fba00265bc80ee",
+                            )
+                            .unwrap(),
+                        },
+                    )),
+                }],
+                services: (0..crate::MAX_SERVICES)
+                    .map(|index| crate::proto::Service {
+                        id: format!("service-{index}"),
+                        r#type: "LinkedDomains".to_owned(),
+                        service_endpoint: endpoint.clone(),
+                    })
+                    .collect(),
+                context: Vec::new(),
+            }),
+        };
+        RawPrismOperation::from_payload(OperationKind::CreateDid, &create.encode_to_vec()).unwrap()
     }
 
     #[test]
@@ -381,6 +413,22 @@ mod tests {
             Err(Error::InvalidOperation(
                 crate::OperationError::MissingMasterKey
             ))
+        );
+    }
+
+    #[test]
+    fn long_form_rejects_initial_state_that_cannot_project() {
+        let raw = unprojectable_create();
+        let canonical = CanonicalPrismDid::from_digest(raw.operation_hash().as_array());
+        let encoded = URL_SAFE_NO_PAD.encode(raw.as_bytes());
+
+        assert_eq!(
+            LongFormPrismDid::from_initial_state(raw),
+            Err(Error::InvalidState(crate::StateError::InvalidCandidate))
+        );
+        assert_eq!(
+            LongFormPrismDid::parse(&format!("{canonical}:{encoded}")),
+            Err(Error::InvalidState(crate::StateError::InvalidCandidate))
         );
     }
 }

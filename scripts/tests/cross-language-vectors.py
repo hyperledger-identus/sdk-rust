@@ -15,6 +15,7 @@ CHECKER = ROOT / "scripts/check-cross-language-vectors.py"
 CATALOG = ROOT / "docs/conformance/cross-language-vector-catalog.toml"
 PACKET = ROOT / "docs/conformance/fixtures/did/v1/vectors.json"
 PRISM_PACKET = ROOT / "docs/conformance/fixtures/did-prism/v1/vectors.json"
+CRYPTO_PACKET = ROOT / "docs/conformance/fixtures/crypto/v1/vectors.json"
 
 
 def replace_once(text: str, before: str, after: str) -> str:
@@ -30,7 +31,7 @@ def replace_first(text: str, before: str, after: str) -> str:
     return text.replace(before, after, 1)
 
 
-def run(catalog: str, packet: str, should_pass: bool) -> None:
+def run(catalog: str, packet: str, should_pass: bool, *, crypto_packet: str | None = None) -> None:
     with tempfile.TemporaryDirectory(prefix="cross-language-vectors-") as temporary:
         root = Path(temporary)
         catalog_target = root / "docs/conformance/cross-language-vector-catalog.toml"
@@ -42,6 +43,12 @@ def run(catalog: str, packet: str, should_pass: bool) -> None:
         prism_target = root / "docs/conformance/fixtures/did-prism/v1/vectors.json"
         prism_target.parent.mkdir(parents=True)
         shutil.copy2(PRISM_PACKET, prism_target)
+        crypto_target = root / "docs/conformance/fixtures/crypto/v1/vectors.json"
+        crypto_target.parent.mkdir(parents=True)
+        crypto_target.write_text(
+            CRYPTO_PACKET.read_text(encoding="utf-8") if crypto_packet is None else crypto_packet,
+            encoding="utf-8",
+        )
         result = subprocess.run([str(CHECKER), str(root)], capture_output=True, text=True, check=False)
         if (result.returncode == 0) != should_pass:
             raise AssertionError(
@@ -59,10 +66,33 @@ def run_packet_mutation(catalog: str, packet: str) -> None:
     run(catalog_for_packet(catalog, packet), packet, False)
 
 
+def catalog_for_crypto_packet(catalog: str, packet: str) -> str:
+    old_digest = hashlib.sha256(CRYPTO_PACKET.read_bytes()).hexdigest()
+    new_digest = hashlib.sha256(packet.encode()).hexdigest()
+    return replace_once(catalog, f'sha256         = "{old_digest}"', f'sha256         = "{new_digest}"')
+
+
 def main() -> None:
     catalog = CATALOG.read_text(encoding="utf-8")
     packet = PACKET.read_text(encoding="utf-8")
+    crypto_packet = CRYPTO_PACKET.read_text(encoding="utf-8")
     run(catalog, packet, True)
+    negative_crypto_packet = replace_once(
+        crypto_packet,
+        '"kind": "success",\n        "errorCode": null,\n        "redacted": null,\n        "fields": {\n          "operationKind": "verified"\n        }',
+        '"kind": "error",\n        "errorCode": "crypto.signature_invalid",\n        "redacted": true,\n        "fields": {}',
+    )
+    negative_crypto_catalog = replace_once(
+        catalog_for_crypto_packet(catalog, negative_crypto_packet),
+        'operation          = "crypto.secp256k1.verify"\nexpected           = "success"',
+        'operation          = "crypto.secp256k1.verify"\nexpected           = "crypto.signature_invalid"',
+    )
+    run(
+        negative_crypto_catalog,
+        packet,
+        True,
+        crypto_packet=negative_crypto_packet,
+    )
     run(
         replace_first(
             catalog,
@@ -155,6 +185,9 @@ def main() -> None:
         prism_target = root / "docs/conformance/fixtures/did-prism/v1/vectors.json"
         prism_target.parent.mkdir(parents=True)
         shutil.copy2(PRISM_PACKET, prism_target)
+        crypto_target = root / "docs/conformance/fixtures/crypto/v1/vectors.json"
+        crypto_target.parent.mkdir(parents=True)
+        shutil.copy2(CRYPTO_PACKET, crypto_target)
         external = root / "outside.json"
         shutil.copy2(PACKET, external)
         packet_target.symlink_to(external)

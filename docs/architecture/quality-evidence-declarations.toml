@@ -125,6 +125,7 @@ class = "differential"
 disposition = "satisfied"
 risk = "RustCrypto verification behavior may diverge from signatures produced by the JVM PRISM implementation or its bitcoin-transcode compatibility path."
 selectors = [
+  "crates/crypto/tests/secp256k1_compat.rs#crypto_packet_jvm_compat_case_verifies",
   "crates/crypto/tests/secp256k1_compat.rs#test_secp256k1_apollo_test_cases",
   "crates/crypto/tests/secp256k1_compat.rs#secp256k1_bitcoin_transcode_fallback_verifies_reversed_signature",
   "docs/conformance/cross-language-vector-catalog.toml#crypto.secp256k1.jvm-compat",

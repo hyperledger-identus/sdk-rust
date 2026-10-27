@@ -73,9 +73,10 @@ derivation     = [ "hash", "dep:bip39", "dep:hmac", "dep:zeroize", "secp256k1", 
 cardano-bip32  = [ "dep:ed25519-bip32", "dep:zeroize" ]
 
 [dev-dependencies]
-hex      = { workspace = true }
-k256     = { workspace = true }
-trybuild = { workspace = true }
+hex        = { workspace = true }
+k256       = { workspace = true }
+serde_json = { workspace = true }
+trybuild   = { workspace = true }
 
 [[example]]
 name = "crypto_baseline"

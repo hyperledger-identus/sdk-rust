@@ -152,6 +152,15 @@ impl PeerDid {
             if json.len() > MAX_SERVICE_BYTES {
                 return Err(Error::ResourceLimit);
             }
+            let encoded_len = base64::encoded_len(json.len(), false).ok_or(Error::ResourceLimit)?;
+            let next_len = value
+                .len()
+                .checked_add(2)
+                .and_then(|length| length.checked_add(encoded_len))
+                .ok_or(Error::ResourceLimit)?;
+            if next_len > MAX_COMPAT_DID_BYTES {
+                return Err(Error::ResourceLimit);
+            }
             value.push_str(".S");
             value.push_str(&URL_SAFE_NO_PAD.encode(json));
         }
@@ -668,6 +677,26 @@ mod tests {
                 endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
                     uri: "https://example.com/didcomm".into(),
                     accept: vec!["a".repeat(8_000)],
+                    routing_keys: vec![],
+                }),
+                id: None,
+            })
+            .collect();
+        assert_eq!(
+            PeerDid::create(vec![key], services),
+            Err(Error::ResourceLimit)
+        );
+    }
+
+    #[test]
+    fn rejects_total_did_growth_before_encoding_the_next_service() {
+        let key = PublicKey::new(Purpose::Verification, VERIFICATION_KEY).expect("key");
+        let services = (0..8)
+            .map(|index| Service {
+                type_: "DIDCommMessaging".into(),
+                endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
+                    uri: format!("https://example.com/{index}"),
+                    accept: vec!["a".repeat(16_000)],
                     routing_keys: vec![],
                 }),
                 id: None,

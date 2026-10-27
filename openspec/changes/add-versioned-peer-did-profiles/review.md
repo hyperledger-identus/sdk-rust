@@ -25,6 +25,8 @@ from blocking delivery.
   expanding repeated DIDs or local references and return `ResourceLimit`.
 - Numalgo-2 retains the pinned compatibility profile's bounded one-or-many
   endpoint-map shape; JWK context is preserved through nested arrays.
+- Numalgo-2 preflights aggregate DID length before base64-encoding and appending
+  each compact service.
 - The exact 16 KiB decoded input ceiling round-trips. The profile ceiling is
   intentionally below the generic DID limit because large base58 conversion is
   super-linear; the measured exact-boundary test completes in about 2.3 seconds

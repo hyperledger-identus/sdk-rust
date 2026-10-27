@@ -15,7 +15,7 @@
     let
       # Like `craneLib.cleanCargoSource ./../..` but also keeps trybuild
       # `.stderr` fixtures, the six immutable error goldens, the bounded
-      # OID4VCI interoperability packet and the shared DID/peer/crypto vector packets,
+      # OID4VCI interoperability packet and the shared DID/peer/crypto/OID4VP vector packets,
       # which the default cargo source filter strips. Keep every exception
       # path-scoped so planning evidence and unrelated data files do not enter
       # Rust build sources.
@@ -40,6 +40,7 @@
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did-prism/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/crypto/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json" sourcePath
+          || pkgs.lib.hasSuffix "/docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json" sourcePath
           || pkgs.lib.hasPrefix oid4vciInteropRoot sourcePath;
       };
       cargoArtifacts = craneLib.buildDepsOnly {
@@ -86,6 +87,8 @@
           test "$(find "$src/docs/conformance/fixtures/crypto/v1" -type f | wc -l)" -eq 1
           test -f "$src/docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
           test "$(find "$src/docs/conformance/fixtures/did-prism-vdr-indexing/v1" -type f | wc -l)" -eq 1
+          test -f "$src/docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+          test "$(find "$src/docs/conformance/fixtures/oid4vp-direct-post/v1" -type f | wc -l)" -eq 1
           if find "$src/openspec/changes" -type f \
             \( -name credentials-error-contract-v1.csv \
               -o -name presentations-error-contract-v1.csv \

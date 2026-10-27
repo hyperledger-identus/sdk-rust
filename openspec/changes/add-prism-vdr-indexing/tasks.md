@@ -26,11 +26,11 @@
 - [x] 3.1 Add `identus-prism-indexer` scaffold and ordered batch values.
 - [x] 3.2 Add pure full-batch planning and deterministic mutation output.
 - [x] 3.3 Add atomic cursor compare-and-set commit/replay contract.
-- [ ] 3.4 Add in-memory and NeoPRISM-shaped conformance adapters.
+- [x] 3.4 Add in-memory and NeoPRISM-shaped conformance adapters.
 
 ## 4. Architecture and quality
 
-- [ ] 4.1 Replace the complete-family deny with the exact dependency graph guard.
+- [x] 4.1 Replace the complete-family deny with the exact dependency graph guard.
 - [ ] 4.2 Activate `did.prism.vdr-indexing.quality.v1` and add compatibility/change-ledger records.
 - [ ] 4.3 Capture dependency cone and native/WASM/iOS/Android evidence.
 - [ ] 4.4 Capture directional benchmarks and 300-second Linux fuzz evidence.

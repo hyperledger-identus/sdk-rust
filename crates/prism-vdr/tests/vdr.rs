@@ -7,8 +7,8 @@ use identus_prism_did::{
     PrismPublicKeyMaterial, RawPrismOperation, SignedPrismOperation,
 };
 use identus_prism_vdr::{
-    EntrySnapshot, ErrorKind, LookupError, MAX_VDR_DATA_BYTES, TraversalBudget, VdrData, VdrLookup,
-    VdrNode, VdrOperation, resolve_entry,
+    EntrySnapshot, ErrorKind, LookupError, MAX_ANCESTRY_DEPTH, MAX_VDR_DATA_BYTES, TraversalBudget,
+    VdrData, VdrLookup, VdrNode, VdrOperation, resolve_entry,
 };
 
 #[derive(Default)]
@@ -379,4 +379,46 @@ fn rejects_cycles_terminal_entries_and_exhausted_work() {
     )
     .unwrap_err();
     assert_eq!(error.kind(), ErrorKind::ResourceLimitExceeded);
+}
+
+#[test]
+fn property_generated_ancestry_lengths_preserve_root_and_head() {
+    for node_count in 1..=MAX_ANCESTRY_DEPTH {
+        let owner = CanonicalPrismDid::from_digest(&[0x55; 32]);
+        let root = sha256(0_u64.to_be_bytes());
+        let mut previous = root;
+        let mut nodes = HashMap::from([(
+            root,
+            VdrNode {
+                operation_hash: root,
+                predecessor: None,
+                owner: Some(owner.clone()),
+            },
+        )]);
+        for position in 1..node_count {
+            let hash = sha256((position as u64).to_be_bytes());
+            nodes.insert(
+                hash,
+                VdrNode {
+                    operation_hash: hash,
+                    predecessor: Some(previous),
+                    owner: None,
+                },
+            );
+            previous = hash;
+        }
+        let entries = HashMap::from([(
+            root,
+            EntrySnapshot {
+                head: previous,
+                terminal: false,
+            },
+        )]);
+        let mut budget = TraversalBudget::default();
+        let resolved =
+            resolve_entry(previous, &nodes, &entries, &Lookup::default(), &mut budget).unwrap();
+        assert_eq!(resolved.root, root);
+        assert_eq!(resolved.head, previous);
+        assert_eq!(resolved.owner, owner);
+    }
 }

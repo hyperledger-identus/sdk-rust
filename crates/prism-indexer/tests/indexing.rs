@@ -28,6 +28,19 @@ struct InMemoryStore(Mutex<State>);
 
 struct FailingLookup;
 
+#[derive(Clone)]
+struct NeoPrismMetadata {
+    tx_id: [u8; 32],
+    prism_block_index: u32,
+    operation_index: u32,
+}
+
+#[derive(Clone)]
+struct NeoPrismRecord {
+    metadata: NeoPrismMetadata,
+    signed_operation: SignedPrismOperation,
+}
+
 impl DidStateLookup for FailingLookup {
     fn did_state(&self, _: &CanonicalPrismDid) -> Result<Option<PrismDidState>, LookupError> {
         Err(LookupError)
@@ -205,6 +218,46 @@ fn batch(
     .unwrap()
 }
 
+fn neoprism_shaped_batch(
+    expected_cursor: &[u8],
+    next_cursor: &[u8],
+    mut records: Vec<NeoPrismRecord>,
+) -> Result<TransactionBatch, &'static str> {
+    let first = records.first().ok_or("empty NeoPRISM transaction")?;
+    let tx_id = first.metadata.tx_id;
+    if records.iter().any(|record| record.metadata.tx_id != tx_id) {
+        return Err("mixed NeoPRISM transaction identities");
+    }
+    records.sort_by_key(|record| {
+        (
+            record.metadata.prism_block_index,
+            record.metadata.operation_index,
+        )
+    });
+    let identity = TransactionIdentity::new(tx_id.to_vec()).map_err(|_| "invalid identity")?;
+    let incoming = records
+        .into_iter()
+        .enumerate()
+        .map(|(index, record)| {
+            let operation_index = u16::try_from(index).map_err(|_| "too many operations")?;
+            Ok(IncomingRecord {
+                transaction_identity: identity.clone(),
+                operation_index,
+                signed_operation: record.signed_operation,
+            })
+        })
+        .collect::<Result<Vec<_>, &'static str>>()?;
+    let count = u16::try_from(incoming.len()).map_err(|_| "too many operations")?;
+    TransactionBatch::new(
+        identity,
+        count,
+        Cursor::new(expected_cursor.to_vec()).map_err(|_| "invalid expected cursor")?,
+        Cursor::new(next_cursor.to_vec()).map_err(|_| "invalid next cursor")?,
+        incoming,
+    )
+    .map_err(|_| "invalid complete transaction")
+}
+
 #[test]
 fn plans_same_transaction_did_and_vdr_then_replays_without_commit() {
     let (create_did, create_storage, _) = fixture();
@@ -291,4 +344,42 @@ fn preserves_vdr_traversal_failure_categories() {
     );
     let bounded = plan_transaction(&batch, &cyclic).unwrap_err();
     assert_eq!(bounded.kind(), IndexerErrorKind::Conflict);
+}
+
+#[test]
+fn neoprism_shaped_metadata_maps_to_one_complete_ordered_batch() {
+    let (create_did, create_storage, _) = fixture();
+    let tx_id = [7; 32];
+    let records = vec![
+        NeoPrismRecord {
+            metadata: NeoPrismMetadata {
+                tx_id,
+                prism_block_index: 1,
+                operation_index: 0,
+            },
+            signed_operation: create_storage,
+        },
+        NeoPrismRecord {
+            metadata: NeoPrismMetadata {
+                tx_id,
+                prism_block_index: 0,
+                operation_index: 0,
+            },
+            signed_operation: create_did,
+        },
+    ];
+    let batch = neoprism_shaped_batch(b"slot-41", b"slot-42", records).unwrap();
+    assert_eq!(batch.identity().as_bytes(), tx_id);
+    assert_eq!(batch.records().len(), 2);
+    assert_eq!(batch.records()[0].operation_index, 0);
+    assert_eq!(batch.records()[1].operation_index, 1);
+
+    let store = InMemoryStore::default();
+    assert_eq!(
+        index_transaction(&batch, &store).unwrap(),
+        IndexOutcome::Applied
+    );
+    let state = store.0.lock().unwrap();
+    assert_eq!(state.dids.len(), 1);
+    assert_eq!(state.entries.len(), 1);
 }

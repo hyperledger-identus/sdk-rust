@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use identus_prism_did::{RawPrismOperation, SignedPrismOperation};
 use identus_prism_indexer::{
     Cursor, ErrorKind, IncomingRecord, TransactionBatch, TransactionIdentity,
@@ -92,4 +94,41 @@ fn rejects_incomplete_and_cross_transaction_records() {
         vec![record(&other, 0, 1)],
     );
     assert_eq!(result.unwrap_err().kind(), ErrorKind::IncompleteTransaction);
+}
+
+#[test]
+fn property_exhaustive_four_record_orders_are_bounded_and_domain_separated() {
+    let identity = TransactionIdentity::new(b"transaction-property".to_vec()).unwrap();
+    let before = Cursor::new(b"before".to_vec()).unwrap();
+    let after = Cursor::new(b"after".to_vec()).unwrap();
+    let mut digests = HashSet::new();
+    let mut cases = 0;
+    for a in 0..4_u8 {
+        for b in 0..4_u8 {
+            for c in 0..4_u8 {
+                for d in 0..4_u8 {
+                    let order = [a, b, c, d];
+                    if order.iter().copied().collect::<HashSet<_>>().len() != order.len() {
+                        continue;
+                    }
+                    let records = order
+                        .into_iter()
+                        .enumerate()
+                        .map(|(index, marker)| record(&identity, index as u16, marker + 1))
+                        .collect();
+                    let batch = TransactionBatch::new(
+                        identity.clone(),
+                        4,
+                        before.clone(),
+                        after.clone(),
+                        records,
+                    )
+                    .unwrap();
+                    assert!(digests.insert(batch.transition_digest()));
+                    cases += 1;
+                }
+            }
+        }
+    }
+    assert_eq!(cases, 24);
 }

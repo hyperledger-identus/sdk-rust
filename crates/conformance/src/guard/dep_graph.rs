@@ -132,6 +132,26 @@ fn manifests_conform_to_layer_rules() {
                 ["identus-core", "identus-jose"],
                 "OID4VP must retain its exact core and JOSE internal dependency cone"
             ),
+            "identus-prism-did" => assert_eq!(
+                deps,
+                ["identus-core", "identus-crypto", "identus-did"],
+                "PRISM DID must retain its exact generic DID and crypto dependency cone"
+            ),
+            "identus-prism-vdr" => assert_eq!(
+                deps,
+                ["identus-core", "identus-crypto", "identus-prism-did"],
+                "PRISM VDR must depend inward on the method crate and generic foundations only"
+            ),
+            "identus-prism-indexer" => assert_eq!(
+                deps,
+                [
+                    "identus-core",
+                    "identus-crypto",
+                    "identus-prism-did",
+                    "identus-prism-vdr"
+                ],
+                "PRISM indexer must depend inward on VDR, method and generic foundations only"
+            ),
             "identus-wallet-conformance" => assert_eq!(
                 deps,
                 ["identus-wallet"],
@@ -205,6 +225,17 @@ fn oid4vp_protocol_retains_an_exact_inward_internal_cone() {
     assert!(check_dep_edge("identus-oid4vp", "identus-jose").is_ok());
     assert!(check_dep_edge("identus-core", "identus-oid4vp").is_err());
     assert!(check_dep_edge("identus-jose", "identus-oid4vp").is_err());
+}
+
+#[test]
+fn prism_method_family_retains_its_exact_inward_graph() {
+    assert!(check_dep_edge("identus-prism-vdr", "identus-prism-did").is_ok());
+    assert!(check_dep_edge("identus-prism-indexer", "identus-prism-vdr").is_ok());
+    assert!(check_dep_edge("identus-prism-indexer", "identus-prism-did").is_ok());
+    assert!(check_dep_edge("identus-prism-did", "identus-prism-vdr").is_err());
+    assert!(check_dep_edge("identus-prism-vdr", "identus-prism-indexer").is_err());
+    assert!(check_dep_edge("identus-did", "identus-prism-did").is_err());
+    assert!(check_dep_edge("identus-crypto", "identus-prism-vdr").is_err());
 }
 
 #[test]

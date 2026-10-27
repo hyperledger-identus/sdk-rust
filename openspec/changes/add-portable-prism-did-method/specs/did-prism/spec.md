@@ -75,6 +75,16 @@ update SHALL retain at least one active master key.
 - **WHEN** more than 50 and no more than 4,096 lifetime identifiers exist but no more than 50 are active
 - **THEN** the state SHALL remain valid while retaining all tombstones
 
+#### Scenario: retained history exceeds the portable profile
+
+- **WHEN** a valid non-terminal operation would retire more than 4,096 key or service identifiers
+- **THEN** reduction SHALL return a distinct resource-limit result that history adapters treat as a resolution failure rather than an invalid operation to skip
+
+#### Scenario: terminal deactivation ignores retired-history capacity
+
+- **WHEN** a valid deactivation extends state whose retired-identifier budget is full
+- **THEN** the state SHALL deactivate and discard active values and obsolete tombstones
+
 #### Scenario: one failed action rolls back earlier actions
 
 - **WHEN** an earlier action succeeds and a later action in the same update fails

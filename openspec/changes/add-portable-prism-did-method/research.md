@@ -137,6 +137,10 @@ rather than simulated; source-compatible fixes use the compatibility ledger.
 - NeoPRISM checks endpoint bytes against a character limit, rejecting valid
   bounded Unicode values.
 - Its hash-map iteration does not define stable document ordering.
+- The PRISM draft has no lifetime retained-identifier limit. SDK-Rust caps
+  non-terminal retired key and service IDs at 4,096 per kind and reports a
+  distinct resource-limit failure; adapters must fail resolution rather than
+  skip the valid ledger operation. Terminal deactivation discards tombstones.
 
 The SDK preserves bounded tombstones and no-ID-reuse semantics while correcting
 these deviations with property tests and executable differential wire vectors.

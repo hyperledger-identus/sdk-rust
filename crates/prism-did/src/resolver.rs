@@ -24,7 +24,10 @@ pub type PrismDidHistoryFuture<'a> =
 /// Implementations may observe a ledger, database, snapshot, or test fixture,
 /// but those dependencies remain outside this crate. `None` means the
 /// canonical DID is not known. Operational failures are deliberately mapped
-/// to a generic resolution error at the public resolver boundary.
+/// to a generic resolution error at the public resolver boundary. In
+/// particular, [`crate::StateError::ResourceLimitExceeded`] means valid ledger
+/// history is outside this SDK profile and MUST fail resolution; an adapter
+/// must not skip that operation as invalid and continue from stale state.
 pub trait PrismDidHistory: Send + Sync {
     /// Load the state selected by the generic resolution options.
     fn resolve<'a>(

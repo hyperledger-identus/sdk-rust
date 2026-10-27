@@ -167,7 +167,13 @@ impl PrismDidState {
     fn reduce_deactivation(&mut self, raw: &RawPrismOperation) -> Result<(), Error> {
         let operation = DeactivateDidOperation::parse(raw)?;
         self.check_history(operation.did(), operation.previous_operation_hash())?;
-        self.retire_all_active_identifiers()?;
+        // Deactivation is terminal, so no later operation can reuse an active
+        // identifier. Retaining or expanding tombstones here would only make
+        // a valid final ledger operation depend on a local resource profile.
+        self.public_keys.clear();
+        self.services.clear();
+        self.retired_public_key_ids.clear();
+        self.retired_service_ids.clear();
         self.contexts.clear();
         self.last_operation_hash = raw.operation_hash();
         self.deactivated = true;
@@ -202,7 +208,7 @@ impl PrismDidState {
             }
             UpdateAction::RemoveKey(id) => {
                 if self.retired_public_key_ids.len() >= MAX_RETIRED_IDENTIFIERS_PER_KIND {
-                    return Err(StateError::InvalidCandidate.into());
+                    return Err(StateError::ResourceLimitExceeded.into());
                 }
                 let index = self
                     .public_keys
@@ -226,7 +232,7 @@ impl PrismDidState {
             }
             UpdateAction::RemoveService(id) => {
                 if self.retired_service_ids.len() >= MAX_RETIRED_IDENTIFIERS_PER_KIND {
-                    return Err(StateError::InvalidCandidate.into());
+                    return Err(StateError::ResourceLimitExceeded.into());
                 }
                 let index = self
                     .services
@@ -255,30 +261,6 @@ impl PrismDidState {
             }
             UpdateAction::PatchContext(contexts) => self.contexts = contexts,
         }
-        Ok(())
-    }
-
-    fn retire_all_active_identifiers(&mut self) -> Result<(), Error> {
-        if self
-            .retired_public_key_ids
-            .len()
-            .saturating_add(self.public_keys.len())
-            > MAX_RETIRED_IDENTIFIERS_PER_KIND
-            || self
-                .retired_service_ids
-                .len()
-                .saturating_add(self.services.len())
-                > MAX_RETIRED_IDENTIFIERS_PER_KIND
-        {
-            return Err(StateError::InvalidCandidate.into());
-        }
-        self.retired_public_key_ids
-            .extend(self.public_keys.drain(..).map(|key| key.id().to_owned()));
-        self.retired_service_ids.extend(
-            self.services
-                .drain(..)
-                .map(|service| service.id().to_owned()),
-        );
         Ok(())
     }
 }
@@ -649,9 +631,57 @@ mod tests {
 
         assert_eq!(
             state.apply_signed(&remove),
-            Err(Error::InvalidState(StateError::InvalidCandidate))
+            Err(Error::InvalidState(StateError::ResourceLimitExceeded))
         );
         assert_eq!(state, before);
+    }
+
+    #[test]
+    fn retired_key_budget_fails_atomically() {
+        let mut state = initial_state();
+        state.retired_public_key_ids = (0..MAX_RETIRED_IDENTIFIERS_PER_KIND)
+            .map(|index| format!("retired-key-{index}"))
+            .collect();
+        let remove = signed_update(
+            &state,
+            vec![action(proto::update_did_action::Action::RemoveKey(
+                proto::RemoveKeyAction {
+                    key_id: "master".to_owned(),
+                },
+            ))],
+        );
+        let before = state.clone();
+
+        assert_eq!(
+            state.apply_signed(&remove),
+            Err(Error::InvalidState(StateError::ResourceLimitExceeded))
+        );
+        assert_eq!(state, before);
+    }
+
+    #[test]
+    fn deactivation_succeeds_when_retired_identifier_budgets_are_full() {
+        let mut state = initial_state();
+        state.retired_public_key_ids = (0..MAX_RETIRED_IDENTIFIERS_PER_KIND)
+            .map(|index| format!("retired-key-{index}"))
+            .collect();
+        state.retired_service_ids = (0..MAX_RETIRED_IDENTIFIERS_PER_KIND)
+            .map(|index| format!("retired-service-{index}"))
+            .collect();
+        let deactivate = proto::DeactivateDid {
+            previous_operation_hash: state.last_operation_hash().to_vec(),
+            id: state.did().suffix().to_owned(),
+        };
+
+        state
+            .apply_signed(&signed(6, &deactivate.encode_to_vec()))
+            .unwrap();
+
+        assert!(state.is_deactivated());
+        assert_eq!(state.active_public_keys().count(), 0);
+        assert_eq!(state.active_services().count(), 0);
+        assert!(state.retired_public_key_ids.is_empty());
+        assert!(state.retired_service_ids.is_empty());
     }
 
     #[test]

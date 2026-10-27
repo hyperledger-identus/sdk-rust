@@ -80,6 +80,8 @@ pub enum StateError {
     IdentifierConflict,
     /// The candidate state violates a final active-state invariant.
     InvalidCandidate,
+    /// Valid history exceeds the SDK's finite retained-state profile.
+    ResourceLimitExceeded,
 }
 
 /// Rich local PRISM method failure with a stable redacted bridge.
@@ -159,6 +161,7 @@ impl fmt::Display for StateError {
             Self::Deactivated => "PRISM DID state is deactivated",
             Self::IdentifierConflict => "PRISM state identifier conflicts with its history",
             Self::InvalidCandidate => "PRISM candidate state violates an invariant",
+            Self::ResourceLimitExceeded => "PRISM state exceeds its resource limit",
         })
     }
 }

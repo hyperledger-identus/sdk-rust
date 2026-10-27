@@ -11,6 +11,14 @@ import { validateBranchName } from "../ci/contribution-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const shaPattern = /^[0-9a-f]{40}$/u;
+const planningEvidencePaths = new Set([
+  "docs/architecture/identus-platform-change-ledger.md",
+  "docs/architecture/identus-platform-change-ledger.toml",
+  "docs/architecture/quality-evidence-declarations.toml",
+  "docs/architecture/quality-evidence-plan.md",
+]);
+const ledgerPath = "docs/architecture/identus-platform-change-ledger.toml";
+const qualityPath = "docs/architecture/quality-evidence-declarations.toml";
 
 function git(args) {
   return execFileSync("git", args, { cwd: root, encoding: "utf8", maxBuffer: 8 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] }).trim();
@@ -50,15 +58,53 @@ function branchAndIssue(expectedIssue) {
 export function validatePlanningPaths(change, changed) {
   if (changed.length === 0) fail("planning contract diff is empty");
   const changePrefix = `openspec/changes/${change}/`;
-  const invalid = changed.filter((candidate) => !candidate.startsWith(changePrefix) && !candidate.startsWith("docs/adr/"));
+  const invalid = changed.filter((candidate) =>
+    !candidate.startsWith(changePrefix)
+    && !candidate.startsWith("docs/adr/")
+    && !planningEvidencePaths.has(candidate)
+  );
   if (invalid.length) fail(`implementation changed before preflight: ${invalid.join(", ")}`);
   if (!changed.some((candidate) => candidate.startsWith(changePrefix))) fail("planning diff does not contain the named OpenSpec change");
   return changed;
 }
 
-function validatePlanningDiff(change, baseSha, contractHeadSha) {
+export function validateAddedPlanningRegistry(relative, patch, issue) {
+  const lines = patch.split("\n");
+  if (lines.some((line) => line.startsWith("-") && !line.startsWith("---"))) {
+    fail(`planning registry may only add issue-owned records: ${relative}`);
+  }
+  const added = lines
+    .filter((line) => line.startsWith("+") && !line.startsWith("+++"))
+    .map((line) => line.slice(1))
+    .join("\n");
+  const marker = relative === ledgerPath ? "[[changes]]" : "[[declarations]]";
+  const owner = relative === ledgerPath ? "issue" : "owner_issue";
+  const records = added.split(marker);
+  if (records.shift()?.trim() || records.length === 0) {
+    fail(`planning registry additions must be complete records: ${relative}`);
+  }
+  const ownerPattern = new RegExp(`^${owner}\\s*=\\s*${issue}$`, "mu");
+  if (records.some((record) => !ownerPattern.test(record))) {
+    fail(`planning registry record is not owned by issue #${issue}: ${relative}`);
+  }
+}
+
+function validatePlanningDiff(change, issue, baseSha, contractHeadSha) {
   const changed = git(["diff", "--name-only", `${baseSha}...${contractHeadSha}`]).split("\n").filter(Boolean);
-  return validatePlanningPaths(change, changed);
+  validatePlanningPaths(change, changed);
+  for (const relative of [ledgerPath, qualityPath]) {
+    if (changed.includes(relative)) {
+      const patch = git(["diff", "--unified=0", `${baseSha}...${contractHeadSha}`, "--", relative]);
+      validateAddedPlanningRegistry(relative, patch, issue);
+    }
+  }
+  if (changed.includes("docs/architecture/identus-platform-change-ledger.md") && !changed.includes(ledgerPath)) {
+    fail("rendered consumer ledger changed without its canonical registry");
+  }
+  if (changed.includes("docs/architecture/quality-evidence-plan.md") && !changed.includes(qualityPath)) {
+    fail("rendered quality plan changed without its canonical registry");
+  }
+  return changed;
 }
 
 export async function validateReceipt(change, issue) {
@@ -81,7 +127,7 @@ export async function validateReceipt(change, issue) {
   if (receipt.branch !== branch) fail(`receipt branch ${receipt.branch} does not match ${branch}`);
   try { git(["merge-base", "--is-ancestor", receipt.baseSha, receipt.contractHeadSha]); } catch { fail("receipt contract head does not descend from its base"); }
   try { git(["merge-base", "--is-ancestor", receipt.contractHeadSha, "HEAD"]); } catch { fail("current head does not descend from the preflighted contract head"); }
-  validatePlanningDiff(change, receipt.baseSha, receipt.contractHeadSha);
+  validatePlanningDiff(change, issue, receipt.baseSha, receipt.contractHeadSha);
   return receipt;
 }
 
@@ -92,7 +138,7 @@ async function createReceipt(change, issue) {
   const baseSha = git(["rev-parse", baseRef]);
   const contractHeadSha = git(["rev-parse", "HEAD"]);
   try { git(["merge-base", "--is-ancestor", baseSha, contractHeadSha]); } catch { fail("contract head must descend from current origin/develop; refresh the issue branch"); }
-  validatePlanningDiff(change, baseSha, contractHeadSha);
+  validatePlanningDiff(change, issue, baseSha, contractHeadSha);
   for (const command of ["research-ready", "constraints-ready", "validate"]) {
     execFileSync(path.join(root, "scripts/factory"), [command, change], { cwd: root, stdio: "inherit" });
   }

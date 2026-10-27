@@ -67,7 +67,7 @@ import {
   parseExactNpmSource,
   preparePiPackageCache,
 } from "../factory-tools/pi-package-cache.mjs";
-import { validatePlanningPaths } from "../factory-tools/preflight.mjs";
+import { validateAddedPlanningRegistry, validatePlanningPaths } from "../factory-tools/preflight.mjs";
 import { resolvePrePushBase } from "../git-hooks/local-policy.mjs";
 import {
   isWithinManagedRoot,
@@ -2100,7 +2100,44 @@ test("metric file ingestion rejects duplicate, oversized and symlinked payloads"
 
 test("preflight accepts only the named planning path before implementation", () => {
   assert.doesNotThrow(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md"]));
+  assert.doesNotThrow(() => validatePlanningPaths("bounded-change", [
+    "openspec/changes/bounded-change/proposal.md",
+    "docs/adr/0181-bounded-change.md",
+    "docs/architecture/identus-platform-change-ledger.toml",
+    "docs/architecture/identus-platform-change-ledger.md",
+    "docs/architecture/quality-evidence-declarations.toml",
+    "docs/architecture/quality-evidence-plan.md",
+  ]));
   assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "crates/core/src/lib.rs"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "Cargo.toml"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "docs/architecture/unrelated.md"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "docs/conformance/fixtures/bounded-change/v1/vectors.json"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "docs/conformance/fixtures/another-change/v1/vectors.json"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "docs/conformance/fixtures/did-prism/preprod-2026-09-10.json"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/another-change/proposal.md"]), /implementation changed/u);
+});
+
+test("preflight registry evidence is additive and issue-owned", () => {
+  assert.doesNotThrow(() => validateAddedPlanningRegistry(
+    "docs/architecture/identus-platform-change-ledger.toml",
+    "+++ b/ledger.toml\n+[[changes]]\n+id = \"example.v1\"\n+issue = 536\n",
+    536,
+  ));
+  assert.doesNotThrow(() => validateAddedPlanningRegistry(
+    "docs/architecture/quality-evidence-declarations.toml",
+    "+++ b/quality.toml\n+[[declarations]]\n+id = \"example.quality.v1\"\n+owner_issue = 536\n+[[declarations.obligations]]\n+owner_issue = 536\n",
+    536,
+  ));
+  assert.throws(() => validateAddedPlanningRegistry(
+    "docs/architecture/identus-platform-change-ledger.toml",
+    "--- a/ledger.toml\n+++ b/ledger.toml\n-old_behavior = \"before\"\n+old_behavior = \"after\"\n",
+    536,
+  ), /may only add/u);
+  assert.throws(() => validateAddedPlanningRegistry(
+    "docs/architecture/quality-evidence-declarations.toml",
+    "+++ b/quality.toml\n+[[declarations]]\n+id = \"foreign.quality.v1\"\n+owner_issue = 535\n",
+    536,
+  ), /not owned/u);
 });
 
 test("worktree porcelain parser retains safety-relevant state", () => {

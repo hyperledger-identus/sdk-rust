@@ -107,6 +107,15 @@ owner_issue    = "#521"
 summary        = "Portable chain-neutral PRISM DID method syntax, exact signed operations, authenticated state reduction and deterministic generic DID document projection."
 
 [[packages]]
+name           = "identus-prism-vdr"
+path           = "crates/prism-vdr"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#522"
+summary        = "Bounded PRISM storage payloads, VDR-key authorization, terminal entry state and effect-neutral local-first ancestry traversal."
+
+[[packages]]
 name           = "identus-trust"
 path           = "crates/trust"
 layer          = "domain-primitives"

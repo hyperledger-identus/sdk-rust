@@ -882,6 +882,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-prism-vdr"
+version = "0.0.0"
+dependencies = [
+ "identus-core",
+ "identus-crypto",
+ "identus-prism-did",
+ "prost",
+]
+
+[[package]]
 name = "identus-trust"
 version = "0.0.0"
 dependencies = [

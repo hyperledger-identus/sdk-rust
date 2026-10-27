@@ -16,9 +16,9 @@
 
 ## 2. VDR capability
 
-- [ ] 2.1 Add `identus-prism-vdr` scaffold, finite limits and redacted errors.
-- [ ] 2.2 Add typed create/update/deactivate payload decoding.
-- [ ] 2.3 Add bounded batch-local/store root traversal with cycle detection.
+- [x] 2.1 Add `identus-prism-vdr` scaffold, finite limits and redacted errors.
+- [x] 2.2 Add typed create/update/deactivate payload decoding.
+- [x] 2.3 Add bounded batch-local/store root traversal with cycle detection.
 - [ ] 2.4 Add donor/spec/negative/property/fuzz evidence.
 
 ## 3. Indexer capability

@@ -95,6 +95,10 @@ pub(crate) const LAYER_RULES: &[LayerRule] = &[
                 proc_macro: false,
             },
             Member {
+                name: "identus-prism-vdr",
+                proc_macro: false,
+            },
+            Member {
                 name: "identus-trust",
                 proc_macro: false,
             },

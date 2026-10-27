@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-10-27
-- Issue: https://github.com/hyperledger-identus/sdk-rust/issues/522
+- Issue: [#522](https://github.com/hyperledger-identus/sdk-rust/issues/522)
 - Supersedes: the implementation detail left open by ADR 0174
 
 ## Context

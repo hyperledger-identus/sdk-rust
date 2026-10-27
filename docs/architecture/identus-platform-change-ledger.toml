@@ -117,9 +117,9 @@ replaced_by                       = ""
 [[changes]]
 id                                = "oid4vp.direct-post-response.error.v1"
 capability                        = "oid4vp.direct-post-response"
-lifecycle_state                   = "proposed"
+lifecycle_state                   = "active"
 issue                             = 532
-pull_request                      = 0
+pull_request                      = 534
 change_class                      = "additive"
 release_note_class                = "added"
 visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]

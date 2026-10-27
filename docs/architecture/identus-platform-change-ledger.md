@@ -31,7 +31,7 @@ State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic 
 
 ### `oid4vp.direct-post-response.error.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and explicit typed protocol-error values into a bounded plain direct-post error envelope.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and explicit typed protocol-error values into a bounded plain direct-post error envelope.
 
 ### `oid4vp.direct-post-response.v1`
 

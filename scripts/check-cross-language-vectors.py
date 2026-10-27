@@ -48,6 +48,7 @@ OPERATIONS = {
     "did-prism.envelope.parse",
     "did-prism.signed-create.verify",
     "did-prism.state.reduce",
+    "crypto.secp256k1.verify",
 }
 BOUNDARIES = {"positive", "negative", "boundary", "mutation"}
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")

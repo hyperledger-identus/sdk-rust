@@ -10,10 +10,13 @@ runtime. The findings now block every honest audit and the bounded fuzz lanes.
 ## What changes
 
 - Upgrade `k256` and `p256` to 0.14 and accept the corresponding RustCrypto
-  trait/encoding migration only behind the existing `identus-crypto` facade.
+  trait/encoding migration behind the existing `identus-crypto` facade.
 - Resolve Tokio to 1.54.1 or newer within the accepted 1.x contract.
-- Preserve every public SDK type, byte encoding, signature behavior, JVM
+- Preserve every SDK-owned method, byte encoding, signature behavior, JVM
   compatibility fallback, feature boundary, target claim, and test vector.
+- Record the unavoidable source migration for the four release-candidate tuple
+  fields that expose RustCrypto 0.13 key types; the next candidate exposes the
+  corresponding 0.14 types and directs consumers toward SDK byte boundaries.
 - Require clean root and standalone-fuzz `cargo audit --deny warnings` evidence.
 
 ## Capability
@@ -25,9 +28,9 @@ runtime. The findings now block every honest audit and the bounded fuzz lanes.
 
 ## Non-goals
 
-No new algorithm, API redesign, RustSec suppression, target expansion, Tokio
-runtime ownership, downstream mutation, publication, or unrelated dependency
-refresh belongs to this change.
+No new algorithm, broader API redesign, RustSec suppression, target expansion,
+Tokio runtime ownership, downstream mutation, publication, or unrelated
+dependency refresh belongs to this change.
 
 ## Delivery
 

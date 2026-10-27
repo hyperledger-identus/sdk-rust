@@ -2,10 +2,156 @@ schema_version   = 1
 registry_version = "1.0.0"
 status           = "active"
 owner_issue      = 501
-evaluated_at     = "2026-10-26"
+evaluated_at     = "2026-10-27"
 allowed_classes  = [ "property", "fuzz", "benchmark", "differential" ]
 allowed_lanes    = [ "focused", "fast", "slow", "release", "none" ]
 allowed_cadences = [ "on-change", "per-pull-request", "weekly-or-manual", "per-candidate", "not-applicable" ]
+
+[[declarations]]
+id = "crypto.quality.v1"
+capability = "crypto.secp256k1"
+slice = "RustCrypto advisory remediation"
+owner = "SDK-Rust cryptography maintainers"
+owner_issue = 525
+risk = "A curve-family security upgrade can silently change key encodings, signature acceptance, target portability or cross-implementation verification behavior."
+targets = [ "package:identus-crypto", "host:rust", "consumer:portable-sdk" ]
+vector_ids = [ "crypto.secp256k1.jvm-compat" ]
+limitations = "This declaration proves the existing SDK cryptographic facade across the RustCrypto 0.14 migration; it does not make upstream tuple-field types stable or add a new algorithm claim."
+active = true
+supersedes = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Key parsing, public-key derivation, encoding and signing round trips may disagree after the coordinated curve-family upgrade."
+selectors = [
+  "crates/crypto/tests/curves.rs#secp256k1_compressed_uncompressed_roundtrip",
+  "crates/crypto/tests/curves.rs#p256_fixed_signature_preserves_der_api_and_rejects_tampering",
+]
+command = "cargo test -p identus-crypto --all-features --test curves"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-crypto", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Exercise deterministic lifecycle and exact encoding round trips for every supported curve with tamper rejection."
+receipt_kind = "source"
+receipt = "source:crates/crypto/tests/curves.rs"
+evidence_revision = "67c30d599a538b873646a6e857809f2106391bb1"
+recorded_at = "2026-10-27"
+artifact = ""
+owner = "SDK-Rust cryptography maintainers"
+owner_issue = 525
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=SDK key bytes, public derivation, encodings and signature verification remain mutually consistent",
+  "domain=Ed25519, X25519, secp256k1 and P-256 lifecycle surfaces with deterministic inputs",
+  "cases=Compressed and uncompressed SEC1, DER and fixed-width signatures, JWK and tamper rejection",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "satisfied"
+risk = "Malformed public JWK or COSE values can trigger parser panics, excessive allocation or invalid curve-point acceptance."
+selectors = [
+  "fuzz/fuzz_targets/crypto_support.rs#fuzz_public_jwk",
+  "fuzz/fuzz_targets/crypto_support.rs#fuzz_public_cose",
+  "scripts/fuzz-crypto.sh#max_total_time",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak all"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-crypto", "host:linux", "sanitizer:address" ]
+freshness = "max-age-days"
+freshness_days = 8
+budget = "Run public JWK and COSE fuzz targets for 300 seconds each with max_len=8192, timeout=5 and rss_limit_mb=1024."
+receipt_kind = "github-run"
+receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/39196675834"
+evidence_revision = "fb1c7011897ba766f82ea5957feaeb95df179418"
+recorded_at = "2026-10-19"
+artifact = "crypto-fuzz-artifacts-<sha>-<attempt> on failure"
+owner = "SDK-Rust cryptography maintainers"
+owner_issue = 525
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "harness=libFuzzer public JWK and COSE parse and round-trip targets",
+  "corpus=fuzz/corpus/public_jwk and fuzz/corpus/public_cose",
+  "seed=libFuzzer-managed reproducible failing inputs",
+  "bounds=max_len=8192;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "A curve-family upgrade can cause material signing, verification or key-derivation regressions even while functional vectors pass."
+selectors = [
+  "scripts/benchmark-crypto.sh#samples",
+  "crates/crypto/examples/crypto_baseline.rs#main",
+]
+command = "./scripts/benchmark-crypto.sh --samples 20 --output artifacts/crypto-baseline.json"
+lane = "release"
+cadence = "per-candidate"
+targets = [ "package:identus-crypto", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure 20 samples for the maintained representative crypto operations and validate the bounded baseline artifact."
+receipt_kind = "source"
+receipt = "source:scripts/benchmark-crypto.sh"
+evidence_revision = "67c30d599a538b873646a6e857809f2106391bb1"
+recorded_at = "2026-10-27"
+artifact = "artifacts/crypto-baseline.json"
+owner = "SDK-Rust cryptography maintainers"
+owner_issue = 525
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=Representative key derivation, signing and verification operations maintained by identus-crypto",
+  "fixture=Deterministic dependency-free crypto_baseline example inputs",
+  "environment=Release-mode local or Nix slow-lane host recorded with the receipt",
+  "statistic=Per-operation median and dispersion emitted by the validated artifact",
+  "samples=20 samples per maintained operation",
+  "threshold=Artifact validation is blocking; historical performance comparison remains advisory until a stable host baseline is accepted",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "RustCrypto verification behavior may diverge from signatures produced by the JVM PRISM implementation or its bitcoin-transcode compatibility path."
+selectors = [
+  "crates/crypto/tests/secp256k1_compat.rs#test_secp256k1_apollo_test_cases",
+  "crates/crypto/tests/secp256k1_compat.rs#secp256k1_bitcoin_transcode_fallback_verifies_reversed_signature",
+  "docs/conformance/cross-language-vector-catalog.toml#crypto.secp256k1.jvm-compat",
+]
+command = "cargo test -p identus-crypto --all-features --test secp256k1_compat"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-crypto", "host:rust", "consumer:jvm-prism" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Verify all 50 published JVM signatures plus the deciding bitcoin-transcode fallback regression."
+receipt_kind = "source"
+receipt = "source:crates/crypto/tests/secp256k1_compat.rs"
+evidence_revision = "67c30d599a538b873646a6e857809f2106391bb1"
+recorded_at = "2026-10-27"
+artifact = "docs/conformance/fixtures/crypto/v1/vectors.json"
+owner = "SDK-Rust cryptography maintainers"
+owner_issue = 525
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=Published Identus JVM PRISM secp256k1 verification vectors",
+  "oracle-revision=67c30d599a538b873646a6e857809f2106391bb1",
+  "normalization=Compare acceptance of exact public-key, message and DER signature bytes without mapping upstream Rust types",
+  "deviations=SDK retains the documented raw, normalized-s and bitcoin-transcode verification sequence",
+]
 
 [[declarations]]
 id = "did.syntax.quality.v1"

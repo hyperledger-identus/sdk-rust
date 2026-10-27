@@ -4,8 +4,53 @@ Generated deterministically from `docs/architecture/quality-evidence-declaration
 Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
-- Evidence evaluated: `2026-10-26`
-- Declaration count: `2`
+- Evidence evaluated: `2026-10-27`
+- Declaration count: `3`
+
+## `crypto.quality.v1`
+
+- Capability: `crypto.secp256k1`
+- Slice: RustCrypto advisory remediation
+- Owner: SDK-Rust cryptography maintainers (issue #525)
+- Risk: A curve-family security upgrade can silently change key encodings, signature acceptance, target portability or cross-implementation verification behavior.
+- Targets: `package:identus-crypto`, `host:rust`, `consumer:portable-sdk`
+- Vector IDs: `1` local catalog entries
+- Limitations: This declaration proves the existing SDK cryptographic facade across the RustCrypto 0.14 migration; it does not make upstream tuple-field types stable or add a new algorithm claim.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #525 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `max-age-days (8 days)` | #525 |
+| `benchmark` | `satisfied` | `release` | `per-candidate` | `source-bound` | #525 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #525 |
+
+### `property`
+
+- Command: `cargo test -p identus-crypto --all-features --test curves`
+- Budget: Exercise deterministic lifecycle and exact encoding round trips for every supported curve with tamper rejection.
+- Receipt: `source:crates/crypto/tests/curves.rs`
+- Evidence revision: `67c30d599a538b873646a6e857809f2106391bb1`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak all`
+- Budget: Run public JWK and COSE fuzz targets for 300 seconds each with max_len=8192, timeout=5 and rss_limit_mb=1024.
+- Receipt: `https://github.com/hyperledger-identus/sdk-rust/actions/runs/39196675834`
+- Evidence revision: `fb1c7011897ba766f82ea5957feaeb95df179418`
+
+### `benchmark`
+
+- Command: `./scripts/benchmark-crypto.sh --samples 20 --output artifacts/crypto-baseline.json`
+- Budget: Measure 20 samples for the maintained representative crypto operations and validate the bounded baseline artifact.
+- Receipt: `source:scripts/benchmark-crypto.sh`
+- Evidence revision: `67c30d599a538b873646a6e857809f2106391bb1`
+
+### `differential`
+
+- Command: `cargo test -p identus-crypto --all-features --test secp256k1_compat`
+- Budget: Verify all 50 published JVM signatures plus the deciding bitcoin-transcode fallback regression.
+- Receipt: `source:crates/crypto/tests/secp256k1_compat.rs`
+- Evidence revision: `67c30d599a538b873646a6e857809f2106391bb1`
 
 ## `did.syntax.quality.v1`
 

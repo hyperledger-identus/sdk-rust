@@ -1,6 +1,6 @@
 schema_version = 1
 issue          = 525
-disposition    = "behavior-neutral"
-scope          = "internal-refactor"
-rationale      = "The security migration preserves SDK public APIs, encodings, signature behavior, errors, features and supported targets while replacing an affected private dependency closure."
-ledger_ids     = [  ]
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The security migration preserves SDK-owned methods and byte behavior but changes the RustCrypto 0.13 types exposed by four public tuple fields to their 0.14 counterparts; the release-candidate migration is therefore an explicit source break."
+ledger_ids     = [ "crypto.secp256k1.rustcrypto-security-stack.v1" ]

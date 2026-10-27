@@ -13,7 +13,9 @@ removal rather than suppression of both advisory findings.
 
 ## Introduced or changed constraints
 
-- `identus-crypto` retains its current public types and exact byte behavior.
+- `identus-crypto` retains its SDK-owned methods and exact byte behavior. The
+  four public tuple fields that expose RustCrypto key types move from 0.13 to
+  0.14 and are governed by `crypto.secp256k1.rustcrypto-security-stack.v1`.
 - RustCrypto family versions move together; no duplicate old curve stack may
   remain in root or fuzz lockfiles.
 - Tokio retains the existing feature set and cannot enter a domain crate.
@@ -30,9 +32,12 @@ RustCrypto API or Tokio facility as part of the SDK contract.
 
 ## Consumer and product impact
 
-Consumers receive the same SDK API and wire values with a corrected dependency
-closure. Direct users of transitive RustCrypto types were never supported and
-must not shape the facade.
+Consumers using SDK constructors, encoders, signers and verifiers receive the
+same behavior and wire values with a corrected dependency closure. Consumers
+that directly construct or read the published tuple fields must update their
+`k256`/`p256` types to 0.14 or migrate to the SDK byte boundaries documented in
+`docs/release/identus-crypto-rustcrypto-0.14-migration.md`. The change lands on
+the release-candidate line before a stable `0.1.0` contract.
 
 ## Activation and rollback
 

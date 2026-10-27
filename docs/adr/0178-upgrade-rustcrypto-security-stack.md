@@ -16,16 +16,23 @@ without correcting the affected code.
 Upgrade `k256` and `p256` together to 0.14 and consume the resulting maintained
 `elliptic-curve`/`crypto-bigint` family only behind `identus-crypto`. Upgrade
 Tokio to 1.54.1 or a later compatible 1.x patch without feature expansion.
-Preserve every SDK-owned API and observable cryptographic invariant. Require
-clean root and fuzz audits with no ignores plus existing vector and target
-evidence before integration.
+Preserve every SDK-owned method and observable cryptographic invariant. Four
+published tuple fields already expose the upstream `k256`/`p256` key types;
+retaining their 0.13 identities would retain the rejected closure. Classify
+their move to the corresponding 0.14 types as a source break on the candidate
+line, record it as `crypto.secp256k1.rustcrypto-security-stack.v1`, and publish the
+versioned migration before the next candidate. Require clean root and fuzz
+audits with no ignores plus existing vector and target evidence before
+integration.
 
 ## Consequences
 
-Private implementation calls may need mechanical migration to upstream 0.14
-traits. The repository receives an advisory-clean closure without making
-RustCrypto or Tokio types part of its public architecture. Future family
-upgrades remain coordinated and evidence-driven rather than lockfile-only.
+Implementation calls need mechanical migration to upstream 0.14 traits. The
+repository receives an advisory-clean closure and makes the accidental public
+RustCrypto boundary explicit rather than pretending it is private. SDK byte
+constructors and encoders remain the recommended boundary; later encapsulation
+requires its own compatibility decision. Future family upgrades remain
+coordinated and evidence-driven rather than lockfile-only.
 
 ## Rejected alternatives
 
@@ -34,3 +41,5 @@ upgrades remain coordinated and evidence-driven rather than lockfile-only.
 - Replacing RustCrypto with a new native or unsafe backend adds unnecessary
   supply-chain and portability risk.
 - Keeping both curve families would leave the affected closure reachable.
+- Describing the work as behavior-neutral contradicts the published API
+  snapshot and would hide a real consumer migration.

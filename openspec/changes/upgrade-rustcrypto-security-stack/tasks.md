@@ -10,7 +10,7 @@
 ## 2. Implementation
 
 - [x] 2.1 Upgrade the workspace curve family and Tokio resolution without feature expansion.
-- [x] 2.2 Adapt private crypto implementation details while preserving the public facade.
+- [x] 2.2 Adapt crypto implementation details and record the exposed-type source migration.
 - [x] 2.3 Regenerate root and fuzz locks and prove the vulnerable versions are absent.
 - [x] 2.4 Add or refine migration-sensitive regression evidence if required.
 
@@ -23,4 +23,4 @@
 
 ## 4. Stop boundary
 
-- [x] 4.1 Keep API redesign, new algorithms, advisory suppression, downstream changes and publication out.
+- [x] 4.1 Keep broader API redesign, new algorithms, advisory suppression, downstream changes and publication out.

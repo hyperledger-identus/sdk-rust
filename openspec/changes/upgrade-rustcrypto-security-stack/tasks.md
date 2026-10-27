@@ -5,7 +5,7 @@
 - [x] 1.1 Reproduce both RustSec findings and map their inverse dependency trees.
 - [x] 1.2 Evaluate the patched RustCrypto and Tokio lines, licenses, MSRVs and feature cones.
 - [x] 1.3 Record ADR 0178, constraints, compatibility posture and exact verification plan.
-- [ ] 1.4 Commit planning only and write the exact issue #525 preimplementation receipt.
+- [x] 1.4 Commit planning only and write the exact issue #525 preimplementation receipt.
 
 ## 2. Implementation
 

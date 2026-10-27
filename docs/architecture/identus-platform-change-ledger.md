@@ -11,7 +11,7 @@ Status: `active`
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
-State: `proposed`. Class: `security` / `security`. Target: `unreleased`. The same SDK wrappers, methods and byte behavior use advisory-clean k256 and p256 0.14; their exposed tuple fields consequently have the corresponding 0.14 upstream type identities.
+State: `active`. Class: `security` / `security`. Target: `unreleased`. The same SDK wrappers, methods and byte behavior use advisory-clean k256 and p256 0.14; their exposed tuple fields consequently have the corresponding 0.14 upstream type identities.
 
 ### `did.prism.portable-method.v1`
 

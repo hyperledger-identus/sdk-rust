@@ -76,9 +76,9 @@ allowed_mapping_dispositions = [
 [[changes]]
 id                                = "crypto.secp256k1.rustcrypto-security-stack.v1"
 capability                        = "crypto.secp256k1"
-lifecycle_state                   = "proposed"
+lifecycle_state                   = "active"
 issue                             = 525
-pull_request                      = 0
+pull_request                      = 530
 change_class                      = "security"
 release_note_class                = "security"
 visibility                        = [ "public-api", "security" ]

@@ -61,4 +61,3 @@ Reconsider on stable `no-way-jose` public-recipient support, a narrow-feature
 `jose-rs`, or another qualified stable engine. Rollback removes the additive
 port and protected response transition before publication; existing JWS and
 plain OID4VP behavior remain unchanged.
-

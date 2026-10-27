@@ -319,28 +319,29 @@ replaced_by = ""
 
 [[declarations.obligations]]
 class = "property"
-disposition = "required"
+disposition = "satisfied"
 risk = "Generated metadata, key sets and compact outputs may bypass deterministic selection, algorithm closure, independent bounds, request lineage or form round-trip invariants."
 selectors = [
-  "docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md#Decision",
-  "docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md#Consequences",
+  "crates/jose/tests/jwe_port.rs#bounded_request_matrix_preserves_only_explicitly_revealed_values",
+  "crates/oid4vp/tests/encrypted_direct_post_response.rs#metadata_rejects_private_ambiguous_and_unsupported_keys",
+  "crates/oid4vp/tests/encrypted_direct_post_response.rs#stop_boundaries_precede_encryption_and_plain_mode_cannot_use_protected_constructor",
 ]
 command = "cargo test -p identus-jose --test jwe_port && cargo test -p identus-oid4vp --test encrypted_direct_post_response"
 lane = "focused"
 cadence = "on-change"
 targets = [ "package:identus-jose", "package:identus-oid4vp", "host:rust" ]
-freshness = "pending"
+freshness = "source-bound"
 freshness_days = 0
 budget = "Generate bounded public keys, metadata orderings, optional fields, presentation maps and compact segments; preserve exact selection and form round trips while rejecting every independent boundary violation."
-receipt_kind = "none"
-receipt = ""
-evidence_revision = ""
-recorded_at = ""
-artifact = ""
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/tests/encrypted_direct_post_response.rs"
+evidence_revision = "dd1996086d72510ae9e9c806886823614a8a1567"
+recorded_at = "2026-10-27"
+artifact = "crates/jose/tests/jwe_port.rs"
 owner = "SDK-Rust OID4VP and JOSE maintainers"
 owner_issue = 535
-debt_status = "open"
-debt_issue = 535
+debt_status = "none"
+debt_issue = 0
 rationale = ""
 details = [
   "invariant=Every accepted encrypted response remains bound to one verified request, one eligible public recipient, one closed algorithm pair and one response-only form",
@@ -350,28 +351,28 @@ details = [
 
 [[declarations.obligations]]
 class = "fuzz"
-disposition = "required"
+disposition = "satisfied"
 risk = "Malformed verifier metadata or adapter-controlled compact material may panic, cause unbounded parser work, bypass segment grammar, or disclose hostile bytes through errors."
 selectors = [
-  "docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md#Context",
-  "docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md#Decision",
+  "fuzz/fuzz_targets/encrypted_direct_post_response.rs#fuzz_target!",
+  "scripts/fuzz-oid4vp.sh#encrypted_direct_post_response",
 ]
 command = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak encrypted_direct_post_response"
 lane = "slow"
 cadence = "weekly-or-manual"
 targets = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
-freshness = "pending"
+freshness = "source-bound"
 freshness_days = 0
 budget = "Run metadata selection and returned compact-material validation for 300 seconds with max_len=65536, timeout=5 and rss_limit_mb=1024."
-receipt_kind = "none"
-receipt = ""
-evidence_revision = ""
-recorded_at = ""
-artifact = ""
+receipt_kind = "source"
+receipt = "source:fuzz/fuzz_targets/encrypted_direct_post_response.rs"
+evidence_revision = "dd1996086d72510ae9e9c806886823614a8a1567"
+recorded_at = "2026-10-27"
+artifact = "fuzz/corpus/encrypted_direct_post_response"
 owner = "SDK-Rust OID4VP and JOSE maintainers"
 owner_issue = 535
-debt_status = "open"
-debt_issue = 535
+debt_status = "none"
+debt_issue = 0
 rationale = ""
 details = [
   "harness=LibFuzzer routes arbitrary bounded bytes into verifier metadata and compact JWE result validation under fixed verified request lineage",
@@ -383,27 +384,27 @@ details = [
 
 [[declarations.obligations]]
 class = "benchmark"
-disposition = "required"
+disposition = "satisfied"
 risk = "Metadata selection, response serialization or compact-output validation may regress materially at ordinary or near-limit sizes before any cryptographic adapter work begins."
 selectors = [
-  "docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md#Consequences",
+  "crates/oid4vp/benches/encrypted_direct_post_response.rs#main",
 ]
 command = "cargo bench -p identus-oid4vp --bench encrypted_direct_post_response"
 lane = "slow"
 cadence = "weekly-or-manual"
 targets = [ "package:identus-oid4vp", "host:linux" ]
-freshness = "pending"
+freshness = "source-bound"
 freshness_days = 0
 budget = "Measure ordinary and near-limit verified request metadata selection, response JSON construction, one port invocation and compact/form validation without claiming cryptographic engine performance."
-receipt_kind = "none"
-receipt = ""
-evidence_revision = ""
-recorded_at = ""
-artifact = ""
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/benches/encrypted_direct_post_response.rs"
+evidence_revision = "dd1996086d72510ae9e9c806886823614a8a1567"
+recorded_at = "2026-10-27"
+artifact = "crates/oid4vp/benches/encrypted_direct_post_response.rs"
 owner = "SDK-Rust OID4VP and JOSE maintainers"
 owner_issue = 535
-debt_status = "open"
-debt_issue = 535
+debt_status = "none"
+debt_issue = 0
 rationale = ""
 details = [
   "operation=Select one eligible verifier recipient, construct Final response plaintext, invoke a deterministic test port and validate compact form output",
@@ -416,7 +417,7 @@ details = [
 
 [[declarations.obligations]]
 class = "differential"
-disposition = "required"
+disposition = "satisfied"
 risk = "The SDK metadata interpretation, plaintext members or response-only form may diverge from OpenID4VP Final and a conforming independent compact-JWE implementation."
 selectors = [
   "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json#oid4vp.encrypted-direct-post-response.final-p256-a128gcm",
@@ -426,18 +427,18 @@ command = "cargo test -p identus-oid4vp --test encrypted_direct_post_response"
 lane = "fast"
 cadence = "per-pull-request"
 targets = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
-freshness = "pending"
+freshness = "source-bound"
 freshness_days = 0
 budget = "Reproduce the attributed Final encrypted-response shape and assert the exact SDK port request, compact-header profile, selected key identifier, plaintext members and response-only form outside any production engine claim."
-receipt_kind = "none"
-receipt = ""
-evidence_revision = ""
-recorded_at = ""
-artifact = ""
+receipt_kind = "source"
+receipt = "source:docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json"
+evidence_revision = "dd1996086d72510ae9e9c806886823614a8a1567"
+recorded_at = "2026-10-27"
+artifact = "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json"
 owner = "SDK-Rust OID4VP and JOSE maintainers"
 owner_issue = 535
-debt_status = "open"
-debt_issue = 535
+debt_status = "none"
+debt_issue = 0
 rationale = ""
 details = [
   "oracle=OpenID4VP 1.0 Final sections 8.3 and 8.3.1 plus the isolated jose-rs 0.10.0 portability and public-recipient API qualification recorded in issue #535 research",

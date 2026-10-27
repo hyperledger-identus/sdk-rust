@@ -26,7 +26,7 @@
 - [x] 4.1 Add ADR, architecture/adapter guide and diagrams.
 - [x] 4.2 Add vectors plus E2E, property, fuzz, benchmark and differential routes.
 - [x] 4.3 Update backlog owner, change ledger, quality declarations and inventory.
-- [ ] 4.4 Run focused/workspace, MSRV, docs, Nix, dependency and portable gates.
+- [x] 4.4 Run focused/workspace, MSRV, docs, Nix, dependency and portable gates.
 
 ## 5. Review and delivery
 

@@ -97,6 +97,16 @@ pub mod error_code {
     pub const RESPONSE_JSON_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.response_json_too_large");
     pub const DIRECT_POST_FORM_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vp.direct_post_form_too_large");
+    pub const INVALID_PROTOCOL_ERROR_DESCRIPTION: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_protocol_error_description");
+    pub const PROTOCOL_ERROR_DESCRIPTION_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.protocol_error_description_too_large");
+    pub const INVALID_PROTOCOL_ERROR_URI: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_protocol_error_uri");
+    pub const PROTOCOL_ERROR_URI_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.protocol_error_uri_too_large");
+    pub const DIRECT_POST_ERROR_FORM_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.direct_post_error_form_too_large");
 }
 
 /// Public error categories for OID4VP invocation parsing.
@@ -166,11 +176,16 @@ pub enum Oid4vpError {
     PresentationTooLarge,
     ResponseJsonTooLarge,
     DirectPostFormTooLarge,
+    InvalidProtocolErrorDescription,
+    ProtocolErrorDescriptionTooLarge,
+    InvalidProtocolErrorUri,
+    ProtocolErrorUriTooLarge,
+    DirectPostErrorFormTooLarge,
 }
 
 impl Oid4vpError {
     /// Ordered error inventory frozen by the v1 contract fixture.
-    pub const CONTRACT_VARIANTS: [Self; 63] = [
+    pub const CONTRACT_VARIANTS: [Self; 68] = [
         Self::InvalidLimits,
         Self::InvocationTooLarge,
         Self::InvalidInvocation,
@@ -234,9 +249,14 @@ impl Oid4vpError {
         Self::PresentationTooLarge,
         Self::ResponseJsonTooLarge,
         Self::DirectPostFormTooLarge,
+        Self::InvalidProtocolErrorDescription,
+        Self::ProtocolErrorDescriptionTooLarge,
+        Self::InvalidProtocolErrorUri,
+        Self::ProtocolErrorUriTooLarge,
+        Self::DirectPostErrorFormTooLarge,
     ];
 
-    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 63] = {
+    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 68] = {
         use error_code as code;
         [
             (
@@ -553,6 +573,31 @@ impl Oid4vpError {
                 code::DIRECT_POST_FORM_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VP direct-post form exceeds its byte limit",
+            ),
+            (
+                code::INVALID_PROTOCOL_ERROR_DESCRIPTION,
+                ErrorKind::InvalidInput,
+                "OID4VP protocol error description is invalid",
+            ),
+            (
+                code::PROTOCOL_ERROR_DESCRIPTION_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP protocol error description exceeds its byte limit",
+            ),
+            (
+                code::INVALID_PROTOCOL_ERROR_URI,
+                ErrorKind::InvalidInput,
+                "OID4VP protocol error URI is invalid",
+            ),
+            (
+                code::PROTOCOL_ERROR_URI_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP protocol error URI exceeds its byte limit",
+            ),
+            (
+                code::DIRECT_POST_ERROR_FORM_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP direct-post error form exceeds its byte limit",
             ),
         ]
     };

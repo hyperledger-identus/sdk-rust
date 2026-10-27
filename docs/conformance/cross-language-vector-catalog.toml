@@ -218,7 +218,7 @@ id             = "oid4vp.direct-post-response.v1"
 capability     = "oid4vp.direct-post-response"
 schema_version = 1
 path           = "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
-sha256         = "f028c91b536f8b5d428d1cbdf89c62f874eaa25f9bac2e826ad978eea7a3cae3"
+sha256         = "4581ae8087eaca8898b5411e278d3e8c10ec8dd5f3c7e5a52c654da4029ee1bb"
 authorship     = "SDK-Rust clean-room curation from OpenID4VP 1.0 Final section 8"
 license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
@@ -270,6 +270,29 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "The fixture includes a deterministic public test key, compact signed request, DCQL query, route and state so consumers need not invent lineage; it proves no HTTP execution, presentation verification, protected response, or language DTO shape."
+
+[[vectors]]
+id                 = "oid4vp.direct-post-response.final-error-state"
+packet             = "oid4vp.direct-post-response.v1"
+case               = "oid4vp.direct-post-response.final-error-state"
+capability         = "oid4vp.direct-post-response"
+authority          = "normative"
+source_ids         = [ "openid.oid4vp-final" ]
+source_locator     = "OpenID4VP 1.0 Final sections 8.2 and 8.5 adapted clean-room direct-post Authorization Error Response"
+operation          = "oid4vp.direct-post-response.construct"
+expected           = "success"
+profile_scope      = "Verified request lineage, plain direct_post invalid_request response, bounded developer description and returned state"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "direct_post_response::direct_post_error_matches_final_example_and_preserves_request_lineage"
+language_selectors = [  ]
+owner_issue        = 532
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The vector proves bounded deterministic protocol-error form construction; it does not authorize disclosure, execute HTTP or define foreign DTO/error shapes."
 
 [[vectors]]
 id                 = "did.peer.numalgo2.affinidi-compat"

@@ -5,11 +5,13 @@ use std::{
     fmt,
 };
 
+use fluent_uri::UriRef;
 use serde::de::{DeserializeSeed, Error as _, MapAccess, SeqAccess, Visitor};
 use zeroize::{Zeroize, Zeroizing};
 
 use crate::{
-    DirectPostResponseLimits, Oid4vpError, ValidatedAuthorizationRequest,
+    DirectPostErrorResponseLimits, DirectPostResponseLimits, Oid4vpError,
+    ValidatedAuthorizationRequest,
     dcql::{DcqlResponseQueryRule, DcqlResponseRules},
 };
 
@@ -18,6 +20,172 @@ pub const DIRECT_POST_HTTP_METHOD: &str = "POST";
 
 /// Media type required for a plain direct-post response body.
 pub const DIRECT_POST_MEDIA_TYPE: &str = "application/x-www-form-urlencoded";
+
+/// Closed RFC 6749 and OpenID4VP 1.0 Final authorization-error vocabulary.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DirectPostErrorCode {
+    InvalidRequest,
+    InvalidClient,
+    UnauthorizedClient,
+    AccessDenied,
+    UnsupportedResponseType,
+    InvalidScope,
+    ServerError,
+    TemporarilyUnavailable,
+    VpFormatsNotSupported,
+    InvalidRequestUriMethod,
+    InvalidTransactionData,
+    WalletUnavailable,
+}
+
+impl DirectPostErrorCode {
+    /// Return the exact case-sensitive wire value.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::InvalidRequest => "invalid_request",
+            Self::InvalidClient => "invalid_client",
+            Self::UnauthorizedClient => "unauthorized_client",
+            Self::AccessDenied => "access_denied",
+            Self::UnsupportedResponseType => "unsupported_response_type",
+            Self::InvalidScope => "invalid_scope",
+            Self::ServerError => "server_error",
+            Self::TemporarilyUnavailable => "temporarily_unavailable",
+            Self::VpFormatsNotSupported => "vp_formats_not_supported",
+            Self::InvalidRequestUriMethod => "invalid_request_uri_method",
+            Self::InvalidTransactionData => "invalid_transaction_data",
+            Self::WalletUnavailable => "wallet_unavailable",
+        }
+    }
+}
+
+/// Optional bounded developer-oriented fields for a protocol-error response.
+///
+/// Syntax validation does not make either value safe for display or resolution.
+pub struct DirectPostErrorDetails {
+    description: Option<Zeroizing<String>>,
+    uri: Option<Zeroizing<String>>,
+}
+
+impl DirectPostErrorDetails {
+    /// Construct optional error details under explicit resource limits.
+    pub fn new(
+        description: Option<&str>,
+        uri: Option<&str>,
+        limits: DirectPostErrorResponseLimits,
+    ) -> Result<Self, Oid4vpError> {
+        let description = description
+            .map(|value| validate_error_description(value, limits))
+            .transpose()?;
+        let uri = uri
+            .map(|value| validate_error_uri(value, limits))
+            .transpose()?;
+        Ok(Self { description, uri })
+    }
+
+    /// Construct the privacy-minimal response without developer fields.
+    pub const fn empty() -> Self {
+        Self {
+            description: None,
+            uri: None,
+        }
+    }
+
+    /// Report whether developer-oriented text is present.
+    pub const fn description_present(&self) -> bool {
+        self.description.is_some()
+    }
+
+    /// Report whether an untrusted URI-reference is present.
+    pub const fn error_uri_present(&self) -> bool {
+        self.uri.is_some()
+    }
+}
+
+impl fmt::Debug for DirectPostErrorDetails {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("DirectPostErrorDetails")
+            .field("description_present", &self.description.is_some())
+            .field("error_uri_present", &self.uri.is_some())
+            .finish_non_exhaustive()
+    }
+}
+
+/// Inert, bounded HTTP request material for one plain direct-post error response.
+pub struct DirectPostErrorResponse {
+    target: Zeroizing<String>,
+    form_body: Zeroizing<String>,
+    code: DirectPostErrorCode,
+    state_present: bool,
+    description_present: bool,
+    error_uri_present: bool,
+}
+
+impl DirectPostErrorResponse {
+    /// Return the required HTTP method.
+    pub const fn http_method(&self) -> &'static str {
+        DIRECT_POST_HTTP_METHOD
+    }
+
+    /// Return the required request-body media type.
+    pub const fn media_type(&self) -> &'static str {
+        DIRECT_POST_MEDIA_TYPE
+    }
+
+    /// Return the exact selected protocol error code.
+    pub const fn error_code(&self) -> DirectPostErrorCode {
+        self.code
+    }
+
+    /// Exact target URI byte count.
+    pub fn target_len(&self) -> usize {
+        self.target.len()
+    }
+
+    /// Exact encoded form-body byte count.
+    pub fn form_body_len(&self) -> usize {
+        self.form_body.len()
+    }
+
+    /// Whether exact request state is included.
+    pub const fn state_present(&self) -> bool {
+        self.state_present
+    }
+
+    /// Whether developer-oriented text is included.
+    pub const fn description_present(&self) -> bool {
+        self.description_present
+    }
+
+    /// Whether an untrusted URI-reference is included.
+    pub const fn error_uri_present(&self) -> bool {
+        self.error_uri_present
+    }
+
+    /// Explicitly reveal the validated HTTPS transport target.
+    pub fn expose_sensitive_target(&self) -> &str {
+        &self.target
+    }
+
+    /// Explicitly reveal the protocol-error form body for transport.
+    pub fn expose_sensitive_form_body(&self) -> &str {
+        &self.form_body
+    }
+}
+
+impl fmt::Debug for DirectPostErrorResponse {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("DirectPostErrorResponse")
+            .field("code", &self.code)
+            .field("target_bytes", &self.target.len())
+            .field("form_body_bytes", &self.form_body.len())
+            .field("state_present", &self.state_present)
+            .field("description_present", &self.description_present)
+            .field("error_uri_present", &self.error_uri_present)
+            .finish_non_exhaustive()
+    }
+}
 
 /// One bounded Final presentation value.
 pub struct DirectPostPresentation {
@@ -183,6 +351,88 @@ impl ValidatedAuthorizationRequest {
             query_result_count: results.len(),
         })
     }
+
+    /// Consume validated request lineage and construct a protocol-error envelope.
+    ///
+    /// This method does not translate SDK failures, authorize disclosure, obtain
+    /// End-User consent, or execute transport. The caller must select the wire
+    /// error explicitly after applying those policies.
+    pub fn into_direct_post_error_response(
+        self,
+        code: DirectPostErrorCode,
+        details: DirectPostErrorDetails,
+        limits: DirectPostErrorResponseLimits,
+    ) -> Result<DirectPostErrorResponse, Oid4vpError> {
+        validate_retained_error_details(&details, limits)?;
+        let (target, state, _query) = self.into_direct_post_parts();
+        let description_present = details.description.is_some();
+        let error_uri_present = details.uri.is_some();
+        let form_body = serialize_error_form(
+            code,
+            details.description.as_ref().map(|value| value.as_str()),
+            details.uri.as_ref().map(|value| value.as_str()),
+            state.as_ref().map(|value| value.as_str()),
+            limits,
+        )?;
+        Ok(DirectPostErrorResponse {
+            target,
+            form_body,
+            code,
+            state_present: state.is_some(),
+            description_present,
+            error_uri_present,
+        })
+    }
+}
+
+fn validate_error_description(
+    value: &str,
+    limits: DirectPostErrorResponseLimits,
+) -> Result<Zeroizing<String>, Oid4vpError> {
+    if value.len() > limits.max_error_description_bytes() {
+        return Err(Oid4vpError::ProtocolErrorDescriptionTooLarge);
+    }
+    if value.is_empty() || !value.bytes().all(is_nqschar) {
+        return Err(Oid4vpError::InvalidProtocolErrorDescription);
+    }
+    Ok(Zeroizing::new(value.to_owned()))
+}
+
+fn validate_error_uri(
+    value: &str,
+    limits: DirectPostErrorResponseLimits,
+) -> Result<Zeroizing<String>, Oid4vpError> {
+    if value.len() > limits.max_error_uri_bytes() {
+        return Err(Oid4vpError::ProtocolErrorUriTooLarge);
+    }
+    if value.is_empty()
+        || !value.bytes().all(is_uri_reference_char)
+        || UriRef::parse(value).is_err()
+    {
+        return Err(Oid4vpError::InvalidProtocolErrorUri);
+    }
+    Ok(Zeroizing::new(value.to_owned()))
+}
+
+fn validate_retained_error_details(
+    details: &DirectPostErrorDetails,
+    limits: DirectPostErrorResponseLimits,
+) -> Result<(), Oid4vpError> {
+    if let Some(description) = details.description.as_ref().map(|value| value.as_str()) {
+        validate_error_description(description, limits)?;
+    }
+    if let Some(uri) = details.uri.as_ref().map(|value| value.as_str()) {
+        validate_error_uri(uri, limits)?;
+    }
+    Ok(())
+}
+
+const fn is_nqschar(byte: u8) -> bool {
+    matches!(byte, 0x20..=0x21 | 0x23..=0x5b | 0x5d..=0x7e)
+}
+
+const fn is_uri_reference_char(byte: u8) -> bool {
+    matches!(byte, 0x21 | 0x23..=0x5b | 0x5d..=0x7e)
 }
 
 fn validate_result_limits(
@@ -397,6 +647,43 @@ fn serialize_form(
     if let Some(state) = state {
         output.push('&');
         append_pair(&mut output, "state", state);
+    }
+    debug_assert_eq!(output.len(), total);
+    Ok(output)
+}
+
+fn serialize_error_form(
+    code: DirectPostErrorCode,
+    description: Option<&str>,
+    uri: Option<&str>,
+    state: Option<&str>,
+    limits: DirectPostErrorResponseLimits,
+) -> Result<Zeroizing<String>, Oid4vpError> {
+    let fields = [
+        Some(("error", code.as_str())),
+        description.map(|value| ("error_description", value)),
+        uri.map(|value| ("error_uri", value)),
+        state.map(|value| ("state", value)),
+    ];
+    let mut total = 0usize;
+    for (count, (name, value)) in fields.into_iter().flatten().enumerate() {
+        let pair = pair_len(name, value).ok_or(Oid4vpError::DirectPostErrorFormTooLarge)?;
+        total = total
+            .checked_add(usize::from(count != 0))
+            .and_then(|length| length.checked_add(pair))
+            .ok_or(Oid4vpError::DirectPostErrorFormTooLarge)?;
+    }
+    if total > limits.max_form_body_bytes() {
+        return Err(Oid4vpError::DirectPostErrorFormTooLarge);
+    }
+    let mut output = Zeroizing::new(String::with_capacity(total));
+    let mut first = true;
+    for (name, value) in fields.into_iter().flatten() {
+        if !first {
+            output.push('&');
+        }
+        first = false;
+        append_pair(&mut output, name, value);
     }
     debug_assert_eq!(output.len(), total);
     Ok(output)

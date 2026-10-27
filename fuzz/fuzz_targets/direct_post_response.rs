@@ -4,7 +4,8 @@ use identus_crypto::PublicKeyJwk;
 use identus_jose::{JwsAlgorithm, JwsVerificationKey, SignatureSuiteRegistry};
 use identus_oid4vp::{
     AuthorizationRequestInvocation, AuthorizationRequestInvocationLimits,
-    AuthorizationRequestValidationLimits, DcqlLimits, DirectPostPresentation,
+    AuthorizationRequestValidationLimits, DcqlLimits, DirectPostErrorCode,
+    DirectPostErrorDetails, DirectPostErrorResponseLimits, DirectPostPresentation,
     DirectPostQueryResult, DirectPostResponseLimits, REQUEST_OBJECT_MEDIA_TYPE,
     RequestObjectValidationLimits, RequestUriRetrievalInput, RequestUriRetrievalLimits,
 };
@@ -18,21 +19,6 @@ fuzz_target!(|data: &[u8]| {
     let Some((&kind, value)) = data.split_first() else {
         return;
     };
-    let limits = DirectPostResponseLimits::default();
-    let presentation = if kind & 1 == 0 {
-        std::str::from_utf8(value)
-            .ok()
-            .and_then(|value| DirectPostPresentation::string(value, limits).ok())
-    } else {
-        DirectPostPresentation::object_json(value, limits).ok()
-    };
-    let Some(presentation) = presentation else {
-        return;
-    };
-    let Ok(result) = DirectPostQueryResult::new("degree", vec![presentation], limits) else {
-        return;
-    };
-
     let AuthorizationRequestInvocation::Referenced(reference) =
         AuthorizationRequestInvocation::parse(
             REFERENCE,
@@ -62,9 +48,39 @@ fuzz_target!(|data: &[u8]| {
             DcqlLimits::default(),
         )
         .expect("fixed authorization request");
-    let response = request.into_direct_post_response(vec![result], limits);
-    if let Ok(response) = response {
-        assert!(response.form_body_len() <= limits.max_form_body_bytes());
-        assert_eq!(response.query_result_count(), 1);
+    if kind & 2 == 0 {
+        let limits = DirectPostResponseLimits::default();
+        let presentation = if kind & 1 == 0 {
+            std::str::from_utf8(value)
+                .ok()
+                .and_then(|value| DirectPostPresentation::string(value, limits).ok())
+        } else {
+            DirectPostPresentation::object_json(value, limits).ok()
+        };
+        let Some(presentation) = presentation else {
+            return;
+        };
+        let Ok(result) = DirectPostQueryResult::new("degree", vec![presentation], limits) else {
+            return;
+        };
+        if let Ok(response) = request.into_direct_post_response(vec![result], limits) {
+            assert!(response.form_body_len() <= limits.max_form_body_bytes());
+            assert_eq!(response.query_result_count(), 1);
+        }
+    } else {
+        let limits = DirectPostErrorResponseLimits::default();
+        let text = std::str::from_utf8(value).ok();
+        let details = DirectPostErrorDetails::new(text, None, limits);
+        if let Ok(details) = details {
+            let response = request.into_direct_post_error_response(
+                DirectPostErrorCode::InvalidRequest,
+                details,
+                limits,
+            );
+            if let Ok(response) = response {
+                assert!(response.form_body_len() <= limits.max_form_body_bytes());
+                assert_eq!(response.error_code(), DirectPostErrorCode::InvalidRequest);
+            }
+        }
     }
 });

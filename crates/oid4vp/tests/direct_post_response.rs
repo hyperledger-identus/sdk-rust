@@ -6,8 +6,9 @@ use identus_jose::{
 use identus_oid4vp::{
     AuthorizationRequestInvocation, AuthorizationRequestInvocationLimits,
     AuthorizationRequestValidationLimits, DIRECT_POST_HTTP_METHOD, DIRECT_POST_MEDIA_TYPE,
-    DcqlLimits, DirectPostPresentation, DirectPostQueryResult, DirectPostResponseLimits,
-    Oid4vpError, REQUEST_OBJECT_JWT_TYPE, REQUEST_OBJECT_MEDIA_TYPE, RequestObjectValidationLimits,
+    DcqlLimits, DirectPostErrorCode, DirectPostErrorDetails, DirectPostErrorResponseLimits,
+    DirectPostPresentation, DirectPostQueryResult, DirectPostResponseLimits, Oid4vpError,
+    REQUEST_OBJECT_JWT_TYPE, REQUEST_OBJECT_MEDIA_TYPE, RequestObjectValidationLimits,
     RequestUriRetrievalInput, RequestUriRetrievalLimits, ValidatedAuthorizationRequest,
 };
 use serde_json::{Value, json};
@@ -360,6 +361,176 @@ fn diagnostics_do_not_expose_presentation_or_routing_values() {
     let response = request
         .into_direct_post_response(vec![result], limits)
         .expect("response");
+    let rendered = format!("{response:?}");
+    assert!(!rendered.contains(CANARY));
+    assert!(!rendered.contains("verifier.example"));
+}
+
+#[test]
+fn direct_post_error_matches_final_example_and_preserves_request_lineage() {
+    let packet: Value = serde_json::from_str(PACKET).expect("packet");
+    let case = packet["cases"]
+        .as_array()
+        .expect("cases")
+        .iter()
+        .find(|case| case["id"] == "oid4vp.direct-post-response.final-error-state")
+        .expect("error case");
+    let input: Value = serde_json::from_str(case["input"]["literal"].as_str().expect("literal"))
+        .expect("error input");
+    let limits = DirectPostErrorResponseLimits::default();
+    let details = DirectPostErrorDetails::new(input["error_description"].as_str(), None, limits)
+        .expect("bounded details");
+    let response = validated(request(json!({
+        "credentials": [credential("pid", false)]
+    })))
+    .into_direct_post_error_response(
+        match input["error"].as_str() {
+            Some("invalid_request") => DirectPostErrorCode::InvalidRequest,
+            _ => panic!("unexpected packet error"),
+        },
+        details,
+        limits,
+    )
+    .expect("error response");
+
+    assert_eq!(response.http_method(), DIRECT_POST_HTTP_METHOD);
+    assert_eq!(response.media_type(), DIRECT_POST_MEDIA_TYPE);
+    assert_eq!(response.error_code(), DirectPostErrorCode::InvalidRequest);
+    assert_eq!(
+        response.expose_sensitive_target(),
+        "https://verifier.example/response"
+    );
+    assert_eq!(
+        response.expose_sensitive_form_body(),
+        case["expected"]["fields"]["serialized"]
+            .as_str()
+            .expect("expected form")
+    );
+    assert!(response.state_present());
+    assert!(response.description_present());
+    assert!(!response.error_uri_present());
+    assert!(!response.expose_sensitive_form_body().contains("vp_token"));
+}
+
+#[test]
+fn direct_post_error_vocabulary_and_optional_values_round_trip() {
+    let codes = [
+        DirectPostErrorCode::InvalidRequest,
+        DirectPostErrorCode::InvalidClient,
+        DirectPostErrorCode::UnauthorizedClient,
+        DirectPostErrorCode::AccessDenied,
+        DirectPostErrorCode::UnsupportedResponseType,
+        DirectPostErrorCode::InvalidScope,
+        DirectPostErrorCode::ServerError,
+        DirectPostErrorCode::TemporarilyUnavailable,
+        DirectPostErrorCode::VpFormatsNotSupported,
+        DirectPostErrorCode::InvalidRequestUriMethod,
+        DirectPostErrorCode::InvalidTransactionData,
+        DirectPostErrorCode::WalletUnavailable,
+    ];
+    let limits = DirectPostErrorResponseLimits::default();
+    for code in codes {
+        let details = DirectPostErrorDetails::new(
+            Some("developer hint +&%"),
+            Some("https://errors.example/reference?id=one&lang=en"),
+            limits,
+        )
+        .unwrap();
+        let response = validated(request(json!({
+            "credentials": [credential("pid", false)]
+        })))
+        .into_direct_post_error_response(code, details, limits)
+        .unwrap();
+        let decoded = decode_form(response.expose_sensitive_form_body());
+        assert_eq!(
+            decoded.get("error").map(String::as_str),
+            Some(code.as_str())
+        );
+        assert_eq!(
+            decoded.get("error_description").map(String::as_str),
+            Some("developer hint +&%")
+        );
+        assert_eq!(
+            decoded.get("error_uri").map(String::as_str),
+            Some("https://errors.example/reference?id=one&lang=en")
+        );
+        assert_eq!(decoded.get("state").map(String::as_str), Some("state-123"));
+    }
+}
+
+#[test]
+fn direct_post_error_details_and_output_are_independently_bounded() {
+    let limits = DirectPostErrorResponseLimits::new(4, 8, 64).unwrap();
+    assert_eq!(
+        DirectPostErrorDetails::new(Some("five!"), None, limits).unwrap_err(),
+        Oid4vpError::ProtocolErrorDescriptionTooLarge
+    );
+    assert_eq!(
+        DirectPostErrorDetails::new(Some("bad\n"), None, limits).unwrap_err(),
+        Oid4vpError::InvalidProtocolErrorDescription
+    );
+    assert_eq!(
+        DirectPostErrorDetails::new(None, Some("https://x"), limits).unwrap_err(),
+        Oid4vpError::ProtocolErrorUriTooLarge
+    );
+    assert_eq!(
+        DirectPostErrorDetails::new(None, Some("["), DirectPostErrorResponseLimits::default())
+            .unwrap_err(),
+        Oid4vpError::InvalidProtocolErrorUri
+    );
+    for index in 0..3 {
+        let mut values = [1; 3];
+        values[index] = 0;
+        assert_eq!(
+            DirectPostErrorResponseLimits::new(values[0], values[1], values[2]),
+            Err(Oid4vpError::InvalidLimits)
+        );
+    }
+    let narrow = DirectPostErrorResponseLimits::new(32, 64, 8).unwrap();
+    assert_eq!(
+        validated(request(json!({
+            "credentials": [credential("pid", false)]
+        })))
+        .into_direct_post_error_response(
+            DirectPostErrorCode::InvalidRequest,
+            DirectPostErrorDetails::empty(),
+            narrow,
+        )
+        .unwrap_err(),
+        Oid4vpError::DirectPostErrorFormTooLarge
+    );
+}
+
+#[test]
+fn direct_post_error_diagnostics_are_redacted_and_details_are_rechecked() {
+    const CANARY: &str = "VERIFIER_SECRET_CANARY";
+    let broad = DirectPostErrorResponseLimits::default();
+    let details = DirectPostErrorDetails::new(
+        Some(CANARY),
+        Some("https://errors.example/VERIFIER_SECRET_CANARY"),
+        broad,
+    )
+    .unwrap();
+    assert!(!format!("{details:?}").contains(CANARY));
+    let narrow = DirectPostErrorResponseLimits::new(4, 4, 256).unwrap();
+    assert_eq!(
+        validated(request(json!({
+            "credentials": [credential("pid", false)]
+        })))
+        .into_direct_post_error_response(DirectPostErrorCode::AccessDenied, details, narrow)
+        .unwrap_err(),
+        Oid4vpError::ProtocolErrorDescriptionTooLarge
+    );
+
+    let response = validated(request(json!({
+        "credentials": [credential("pid", false)]
+    })))
+    .into_direct_post_error_response(
+        DirectPostErrorCode::AccessDenied,
+        DirectPostErrorDetails::new(Some(CANARY), None, broad).unwrap(),
+        broad,
+    )
+    .unwrap();
     let rendered = format!("{response:?}");
     assert!(!rendered.contains(CANARY));
     assert!(!rendered.contains("verifier.example"));

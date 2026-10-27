@@ -69,16 +69,18 @@ commit all mutations and advance the cursor or change nothing.
 Immediately after structural batch validation, the indexer computes a
 domain-separated SHA-256 transition digest over the exact ordered signed
 records, their indices, transaction identity, expected cursor and next cursor.
-It probes an immutable committed-transition receipt by digest before loading
-current DID/VDR state. An exact receipt returns replay success without planning,
-so duplicate creates or stale predecessors caused by the prior successful
-commit cannot mask an ambiguous-response retry.
+It probes an immutable committed-transition receipt by transaction identity
+before loading current DID/VDR state. A receipt with the same digest returns
+replay success without planning, so duplicate creates or stale predecessors
+caused by the prior successful commit cannot mask an ambiguous-response retry.
+The same identity with a different digest is a conflict before planning.
 
 When the probe is absent, normal planning proceeds and the commit request
 carries the same digest. Commit outcomes distinguish applied, exact replay and
-cursor conflict. Atomically, the adapter checks exact digest equality first to
-close the race between probe and commit, then applies expected-cursor
-compare-and-set. Different content or a genuinely stale cursor fails
+cursor conflict. Atomically, the adapter checks transaction identity and digest
+first to close the race between probe and commit: equal digest is replay,
+different digest for the same identity is conflict, and only an unseen identity
+reaches expected-cursor compare-and-set. Different content or a stale cursor fails
 deterministically and is never automatically retried by the SDK.
 
 ## Backpressure, cancellation and retry

@@ -129,11 +129,13 @@ adds an explicit committed plus batch-local head invariant and rejects forks.
 The same entry state retains a terminal bit because donor protocol state rejects
 updates and repeated deactivation after revocation; a terminal hash is not a
 new mutable head.
-Replay identity is a domain-separated digest of the complete exact ordered
-transition, not the opaque transaction label alone. A committed-receipt probe
-must run before state-dependent planning; otherwise an ambiguous retry can be
-rejected as a duplicate create or stale predecessor after its first commit.
-The atomic commit repeats the digest check to close the probe/commit race.
+Replay equality is a domain-separated digest of the complete exact ordered
+transition, while the opaque transaction identity is the uniqueness key. A
+committed-receipt probe by transaction identity must run before state-dependent
+planning; equal digest is replay and a different digest under that identity is
+conflict. Otherwise an ambiguous retry can be rejected as a duplicate create or
+stale predecessor after its first commit. The atomic commit repeats the
+identity-and-digest check to close the probe/commit race.
 
 Public errors expose stable categories and bounded indices, never raw payloads,
 DIDs, keys, signatures or adapter diagnostics. The SDK owns neither secrets

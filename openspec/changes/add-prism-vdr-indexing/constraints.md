@@ -43,9 +43,11 @@ crypto, error, target, unsafe-code and release constraints remain unchanged.
   operation bytes. Same-transaction DID changes update batch-local state first.
 - Cursor advance and mutations commit atomically using an expected-cursor
   compare-and-set contract. A domain-separated digest binds the complete exact
-  ordered transition. A read-only committed-receipt probe occurs before mutable
-  state validation, and the atomic commit repeats the digest-first check before
-  stale-cursor comparison. Changed content and other conflict fail closed.
+  ordered transition. A read-only committed-receipt probe by transaction
+  identity occurs before mutable state validation: equal digest is replay and a
+  different digest for the same identity is conflict. The atomic commit repeats
+  that identity-and-digest check before stale-cursor comparison. Changed content
+  and other conflict fail closed.
 - Public errors and `Debug` output omit payload bytes, DIDs, transaction IDs,
   signatures, keys, cursors supplied by an adapter and repository diagnostics.
 - The implementation uses no unsafe code, native dependency, network client,

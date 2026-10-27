@@ -57,18 +57,23 @@ deterministic redacted outcomes.
 
 ### Requirement: complete batches plan before one atomic commit
 
-The indexer SHALL validate and plan every record in one complete bounded batch
-before invoking a caller-provided atomic commit exactly once. The commit SHALL
+For every new transition, the indexer SHALL validate and plan every record in
+one complete bounded batch before invoking a caller-provided atomic commit
+exactly once. An exact replay recognized by the committed-transition probe is
+an idempotent result, not a new transition, and SHALL return without planning
+or invoking commit. The commit SHALL
 compare the expected cursor and make the complete ordered mutation set plus the
 next cursor visible atomically. Batch capacity SHALL be the SDK backpressure
 boundary; the SDK SHALL NOT own an internal channel.
 
 After structural batch validation and before reading mutable DID/VDR state, the
 indexer SHALL compute the complete transition digest and query a read-only
-committed-transition receipt. An exact receipt SHALL return replay success
+committed-transition receipt by transaction identity. A receipt with the same
+identity and digest SHALL return replay success; a receipt with the same
+identity and a different digest SHALL return a cursor conflict
 without state-dependent planning. When no receipt exists, normal planning SHALL
-continue and the atomic commit SHALL repeat digest equality before cursor
-comparison to close the probe/commit race.
+continue and the atomic commit SHALL repeat the identity-and-digest check before
+cursor comparison to close the probe/commit race.
 
 A batch SHALL represent one complete transaction and carry a bounded opaque
 transaction identity, a declared operation count and records with the same
@@ -93,12 +98,13 @@ and any complete transaction above the profile rather than split it.
 - **WHEN** a domain-separated digest over transaction identity, expected and
   next cursors, contiguous indices and complete exact ordered signed records
   matches an already committed transition
-- **THEN** the commit reports exact replay without duplicating mutations
+- **THEN** the probe or commit reports exact replay without duplicating
+  mutations
 
 #### Scenario: a conflicting batch is replayed
 
-- **WHEN** no exact transition digest matches and the expected cursor is stale,
-  or the same transaction identity carries different ordered content
+- **WHEN** the expected cursor is stale, or a committed receipt for the same
+  transaction identity carries a different transition digest
 - **THEN** the commit reports a cursor conflict and the SDK does not retry it
 
 #### Scenario: an exact replay carries a stale expected cursor

@@ -59,6 +59,13 @@ Pallas and Cardano feature dependencies are explicitly rejected.
 | Donor implementation as differential oracle | `oracle` | Useful positive vectors and grouping behavior, not architecture authority. | Donor is deprecated after independently pinned conformance replaces it. |
 | Third-party universal VDR crate | `not-adopt` | No reviewed crate matches PRISM storage wire and finite root semantics. | A maintained crate demonstrates exact compatibility and smaller risk. |
 
+NeoPRISM's V1 processor authorizes storage operations with an active
+secp256k1 `VdrKey` over the exact operation bytes. The storage protobuf comments
+still say “issuing key”; that text is stale relative to the dedicated key usage
+in the schema/domain and executable processor. SDK-Rust therefore selects
+`KeyUsage::Vdr`, records the deviation, and requires a DID-state snapshot at the
+operation's exact ordered position.
+
 ### Reusable-module assessment: VDR
 
 - Cohesion: high after isolating create/update/deactivate payload decoding,
@@ -111,7 +118,8 @@ The implementation adds no unsafe or native code. Supply-chain surface should
 remain unchanged apart from the two local packages. Every untrusted byte and
 collection boundary is finite; batch-local maps are bounded by batch capacity,
 and ancestry tracks visited fixed-size operation hashes up to the depth limit.
-Malformed, orphan, cyclic and too-deep chains fail deterministically. Candidate
+Malformed, unauthorized, orphan, cyclic and too-deep chains fail
+deterministically. Candidate
 plans are fully computed before commit, preventing partial persistence after a
 late validation error.
 

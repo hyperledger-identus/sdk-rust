@@ -40,10 +40,11 @@ orchestration.
 
 ### Requirement: ancestry and replay work are bounded
 
-Root traversal SHALL apply finite limits to ancestry depth, pages, batch size,
-channels, retries, and retained state. Cycles, missing parents, rollback,
-depth exhaustion, and duplicate replay SHALL produce deterministic redacted
-outcomes.
+Root traversal SHALL apply finite limits to ancestry depth, lookup work,
+records and signed bytes per complete transaction, and retained batch-local
+state. The SDK SHALL own no channel or retry loop. Cycles, missing parents,
+rollback, depth exhaustion, duplicate replay and cursor conflicts SHALL produce
+deterministic redacted outcomes.
 
 #### Scenario: ancestry is cyclic or too deep
 
@@ -62,11 +63,23 @@ compare the expected cursor and make the complete ordered mutation set plus the
 next cursor visible atomically. Batch capacity SHALL be the SDK backpressure
 boundary; the SDK SHALL NOT own an internal channel.
 
+A batch SHALL represent one complete transaction and carry a bounded opaque
+transaction identity, a declared operation count and records with the same
+identity and contiguous zero-based indices. The source adapter SHALL own
+authoritative boundary extraction. The SDK SHALL reject inconsistent boundaries
+and any complete transaction above the profile rather than split it.
+
 #### Scenario: batch validation fails late
 
 - **WHEN** any record is malformed, out of order, orphaned, cyclic, too deep or
   outside a finite limit
 - **THEN** no commit call occurs and no partial state becomes visible
+
+#### Scenario: a transaction is split or incomplete
+
+- **WHEN** identity, declared count or contiguous indices do not describe one
+  complete transaction
+- **THEN** construction fails before parsing or committing any operation
 
 #### Scenario: the same committed batch is replayed
 
@@ -98,3 +111,26 @@ cancellation and retry policy between bounded SDK calls.
 - **WHEN** an adapter cannot determine whether its atomic commit completed
 - **THEN** the caller may replay the same bounded transition and use exact
   replay semantics to distinguish applied state from a conflict
+
+### Requirement: storage mutations are authorized at their ledger position
+
+Before planning a storage mutation, the VDR capability SHALL derive its owner
+DID, receive that DID's state at the operation's exact ordered position, require
+the state to be active, locate the active secp256k1 `KeyUsage::Vdr` key named by
+the signed envelope and verify the signature over exact nested operation bytes.
+The indexer SHALL reduce earlier DID operations in the same transaction into
+batch-local state before authorizing later storage operations.
+
+#### Scenario: a forged or unauthorized storage operation is observed
+
+- **WHEN** the owner is deactivated, the named key is absent, retired or has a
+  different purpose, or signature verification fails
+- **THEN** the complete transaction is rejected before the atomic commit port
+  is invoked
+
+#### Scenario: a DID update precedes storage in the same transaction
+
+- **WHEN** a valid ordered DID operation changes the VDR-key set before a later
+  storage operation
+- **THEN** authorization uses the updated batch-local DID state rather than the
+  pre-transaction snapshot

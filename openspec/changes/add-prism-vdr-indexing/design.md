@@ -32,16 +32,31 @@ a bounded batch-local map. It walks the local map first, then the immutable
 lookup snapshot, records visited hashes and terminates on root, missing parent,
 cycle or depth exhaustion. The lookup cannot mutate state.
 
+Authorization uses the owner DID derived directly from create or from the
+resolved root for update/deactivate. The caller supplies the materialized DID
+state at the exact pre-operation ledger position. The VDR crate requires that
+state to be active, locates the active `KeyUsage::Vdr` secp256k1 key named by
+the envelope, and verifies the signature over exact nested operation bytes.
+Malformed state, missing/revoked/wrong-purpose keys and bad signatures reject
+the operation without a mutation. The storage proto's old “issuing key” comment
+is not authoritative; the dedicated VDR key enforced by the donor processor is
+the explicit SDK profile.
+
 ## Deterministic indexer core
 
-A caller supplies one complete ordered batch with an expected cursor and next
-cursor. Records carry effect-neutral monotonic ordering fields and exact signed
-operation bytes; chain-specific block/transaction metadata may be retained as
-bounded opaque adapter metadata outside the canonical plan.
+A caller supplies one complete transaction batch with an expected cursor, next
+cursor, opaque bounded transaction identity and declared operation count.
+Records carry that same identity, a contiguous zero-based operation index and
+exact signed operation bytes. Construction verifies identity, count, indices
+and limits, so a caller cannot accidentally split or combine transactions.
+The source adapter is responsible for extracting an authoritative transaction
+boundary from its ledger; other chain metadata remains outside the plan.
 
 The planner validates total cardinality and order, parses every operation,
-resolves storage roots, and builds all mutations in memory. Any invalid record
-fails the batch before persistence. A successful plan is passed once to an
+reduces DID state from the caller's snapshot (including earlier operations in
+the same transaction), resolves storage roots, authorizes every storage
+signature against the state at that position, and builds all mutations in
+memory. Any invalid record fails the batch before persistence. A successful plan is passed once to an
 atomic commit trait together with expected/next cursors. The adapter must either
 commit all mutations and advance the cursor or change nothing.
 

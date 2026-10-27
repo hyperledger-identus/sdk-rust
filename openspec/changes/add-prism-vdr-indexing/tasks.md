@@ -7,6 +7,7 @@
 - [x] 1.3 Decide effect isolation, atomic commit, replay and cancellation ownership.
 - [x] 1.4 Finalize the concrete public API/limit ADR and provenance digests.
 - [x] 1.5 Record exact issue #522 preimplementation receipt.
+- [x] 1.6 Address independent Codex planning review: authorization, transaction completeness and bounded-work consistency.
 
 ## 2. VDR capability
 

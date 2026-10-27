@@ -29,6 +29,13 @@ crypto, error, target, unsafe-code and release constraints remain unchanged.
   channel. Batch capacity is the SDK backpressure boundary.
 - A child root lookup checks batch-local predecessors before an immutable store
   snapshot and terminates on missing parents, cycles or depth exhaustion.
+- One batch carries exactly one bounded transaction identity, a declared
+  operation count and contiguous zero-based indices. The source adapter owns
+  authoritative boundary extraction; the SDK rejects inconsistent or oversized
+  complete transactions instead of accepting a partial vector.
+- Every storage operation is authorized against the owner DID state at its
+  exact ordered position using an active secp256k1 VDR key and the exact nested
+  operation bytes. Same-transaction DID changes update batch-local state first.
 - Cursor advance and mutations commit atomically using an expected-cursor
   compare-and-set contract. Replay of the same committed batch is idempotent;
   conflicting replay fails closed.
@@ -47,6 +54,9 @@ crypto, error, target, unsafe-code and release constraints remain unchanged.
   not split into partially visible commits.
 - Wall-clock timestamps and chain-finality policy are adapter metadata and do
   not participate in deterministic SDK planning.
+- The SDK cannot prove that a dishonest source fabricated its declared
+  transaction count; adapter conformance and downstream differential receipts
+  establish that trust boundary.
 - Crate names were absent from `cargo search` on 2026-10-27, but publication
   authority is not inferred and must be reverified by the release workflow.
 

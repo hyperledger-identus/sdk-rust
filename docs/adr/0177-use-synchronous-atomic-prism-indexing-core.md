@@ -28,9 +28,27 @@ does not poll a source, spawn a task, create a channel, sleep or retry. Batch
 capacity is the backpressure boundary. Callers own async adaptation,
 cancellation and retries between bounded calls.
 
+One SDK batch represents one complete ledger transaction. Its public header
+contains a bounded opaque transaction identity, declared PRISM-operation count
+and next cursor; records carry a contiguous zero-based operation index. The
+constructor rejects missing, repeated or cross-transaction records and rejects
+the complete transaction when it exceeds the profile. The source adapter owns
+extraction of the authoritative transaction boundary; the SDK verifies the
+declared boundary before planning.
+
 The commit request contains expected cursor, next cursor, deterministic batch
 identity and the complete ordered mutation set. An adapter returns applied,
 exact replay or cursor conflict and guarantees all-or-nothing visibility.
+
+Before a VDR mutation is planned, the indexer supplies the owner DID state at
+that exact ordered position. It begins with a caller-provided snapshot and
+reduces DID create/update/deactivate operations in the same transaction before
+later storage operations. `identus-prism-vdr` requires a live active secp256k1
+VDR key named by `signed_with` and verifies the signature over the exact nested
+operation bytes. A deactivated owner, missing/revoked/wrong-purpose key or bad
+signature rejects the complete transaction. The protobuf comment naming an
+issuing key is treated as stale donor text; the dedicated VDR key enforced by
+NeoPRISM's processor and represented by `KeyUsage::Vdr` is the SDK profile.
 
 Default limits and absolute maxima are public typed configuration. The initial
 profile will cap operation/object bytes at the already accepted PRISM envelope
@@ -58,6 +76,8 @@ a thin adapter around its current source and repository implementations.
   safety and FFI while allowing partial mutation before validation completes.
 - Split commits for oversized transactions: violates atomic visibility.
 - Copy donor repository types: leaks UUID, Cardano, SQL and string-error shape.
+- Trust a caller-provided vector as a transaction: cannot prove completeness;
+  the typed transaction header and contiguous operation indices are required.
 
 ## Review fallback
 

@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 487
+disposition    = "behavior-neutral"
+scope          = "documentation"
+rationale      = "This preimplementation contract records research, constraints and the intended OID4VP response surface; implementation will activate the consumer-visible ledger record before delivery."
+ledger_ids     = [  ]

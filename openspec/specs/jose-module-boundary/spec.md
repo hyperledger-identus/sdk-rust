@@ -12,6 +12,9 @@ states. It SHALL NOT own OIDC/OID4VCI claims, DID resolution, certificate or
 federation trust policy, key-attestation policy, clocks, freshness, replay,
 network, storage, wallet, product, or chain behavior.
 
+It SHALL additionally own bounded SDK-owned JWE encryption port types without
+owning OID4VP claims or a concrete encryption engine.
+
 #### Scenario: generic consumers reuse JOSE without identity protocols
 
 - **WHEN** a consumer requires bounded compact JWS signing or verification
@@ -24,6 +27,12 @@ network, storage, wallet, product, or chain behavior.
   higher-level profile
 - **THEN** JOSE preserves only its validated syntax and makes no profile or
   trust claim
+
+#### Scenario: generic consumers reuse the bounded JWE port
+
+- **WHEN** a consumer requires one bounded JWE encryption capability
+- **THEN** it can depend on `identus-jose` without bringing OID4VP claims or a
+  concrete encryption engine
 
 ### Requirement: OID4VCI owns its proof profile and policy
 
@@ -69,3 +78,4 @@ facade.
   existing facade contract and dependency policy
 - **THEN** a separately authorized change may adopt it privately without
   changing consumer APIs or security-state meaning
+

@@ -15,11 +15,11 @@ const MULTIHASH_BYTES: usize = 34;
 
 /// Maximum decoded JSON input-document bytes accepted by this profile.
 ///
-/// Base58 expansion plus the fixed peer-DID hash/prefix remains below the
-/// generic 128 KiB DID ceiling at this bound.
-pub const MAX_INPUT_DOCUMENT_BYTES: usize = 90 * 1_024;
+/// This intentionally stays well below the generic DID ceiling because
+/// base58btc conversion is super-linear for large inputs.
+pub const MAX_INPUT_DOCUMENT_BYTES: usize = 16 * 1_024;
 /// Maximum encoded input-document characters accepted before base decoding.
-pub const MAX_ENCODED_DOCUMENT_BYTES: usize = 126 * 1_024;
+pub const MAX_ENCODED_DOCUMENT_BYTES: usize = 24 * 1_024;
 /// Maximum JSON nesting depth accepted by the input-document parser.
 pub const MAX_INPUT_DOCUMENT_DEPTH: usize = 32;
 /// Maximum aggregate JSON values accepted by the input-document parser.
@@ -252,10 +252,6 @@ fn validate_multihash(hash: &str) -> Result<[u8; 32], Error> {
 fn decode_multibase(value: &str, max_decoded: usize) -> Result<Vec<u8>, Error> {
     let payload = value.strip_prefix('z').ok_or(Error::MalformedEncoding)?;
     if payload.is_empty() || payload.len() > MAX_ENCODED_DOCUMENT_BYTES {
-        return Err(Error::ResourceLimit);
-    }
-    let estimate = payload.len().saturating_mul(733) / 1_000 + 1;
-    if estimate > max_decoded {
         return Err(Error::ResourceLimit);
     }
     let decoded = decode(payload)
@@ -507,5 +503,23 @@ mod tests {
             assert_eq!(parsed.short_form(), long.short_form());
             assert_eq!(parsed.resolve().expect("resolve").id(), parsed.did());
         }
+    }
+
+    #[test]
+    fn exact_maximum_input_round_trips_through_long_form() {
+        let overhead = r#"{"claim":["",""]}"#.len();
+        let content = MAX_INPUT_DOCUMENT_BYTES - overhead;
+        let source = format!(
+            r#"{{"claim":["{}","{}"]}}"#,
+            "a".repeat(content / 2),
+            "b".repeat(content - content / 2)
+        );
+        assert_eq!(source.len(), MAX_INPUT_DOCUMENT_BYTES);
+        let long = LongForm::create(InputDocument::from_json_str(&source).expect("input"))
+            .expect("create exact maximum");
+        assert_eq!(
+            LongForm::parse(long.did().as_str()).expect("parse exact maximum"),
+            long
+        );
     }
 }

@@ -107,7 +107,7 @@ id               = "did-peer-method-profiles"
 package          = "identus-did-peer"
 surface          = "peer DID numalgo-4 short/long forms, construction input documents, numalgo-2 purpose keys and compact services"
 disposition      = "sdk-enforced"
-limits           = [ "MAX_ENCODED_DOCUMENT_BYTES=129024", "MAX_ELEMENTS=32", "MAX_INPUT_DOCUMENT_BYTES=92160", "MAX_INPUT_DOCUMENT_DEPTH=32", "MAX_INPUT_DOCUMENT_NODES=4096", "MAX_INPUT_LIVE_KEY_BYTES=65536", "MAX_INPUT_OBJECT_MEMBERS=128", "MAX_KEY_BYTES=128", "MAX_SERVICE_BYTES=16384" ]
+limits           = [ "MAX_ENCODED_DOCUMENT_BYTES=24576", "MAX_ELEMENTS=32", "MAX_INPUT_DOCUMENT_BYTES=16384", "MAX_INPUT_DOCUMENT_DEPTH=32", "MAX_INPUT_DOCUMENT_NODES=4096", "MAX_INPUT_LIVE_KEY_BYTES=65536", "MAX_INPUT_OBJECT_MEMBERS=128", "MAX_KEY_BYTES=128", "MAX_SERVICE_BYTES=16384" ]
 evidence         = [ "crates/did-peer/src/numalgo4.rs", "crates/did-peer/src/numalgo2_compat.rs" ]
 outer_obligation = "Callers own raw JSON, DID strings, public-key strings and service values before entry; profile dispatch and encoded-size checks precede proportional decoding."
 consumer_impact  = "Accepted encoded/decoded documents, keys, services, element counts and generic DID projection remain within the declared finite method profile."

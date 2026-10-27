@@ -41,7 +41,7 @@ service descriptors. Each key has one explicit verification relationship and
 a supported public multicodec value. Encoding emits dot-delimited purpose
 elements; a service element uses unpadded base64url of the pinned compact JSON
 shape. Resolution validates every delimiter/purpose/encoding before decode,
-assigns deterministic fragment identifiers from key fingerprints, and projects
+assigns deterministic fragment identifiers from ordered key positions, and projects
 relationships and services through `identus-did` builders.
 
 The compatibility implementation preserves pinned SDK-TS behavior only where

@@ -16,7 +16,11 @@ struct DependencyDeclaration {
     workspace: bool,
 }
 
-const ALLOWED_IN_TREE_METHOD_PACKAGES: &[&str] = &["identus-prism-did"];
+const ALLOWED_IN_TREE_METHOD_PACKAGES: &[&str] = &[
+    "identus-prism-did",
+    "identus-prism-vdr",
+    "identus-prism-indexer",
+];
 
 const DENIED_SOURCE_IDENTITIES: &[(&str, &str)] = &[
     ("apollo repository", "hyperledger-identus/apollo"),
@@ -411,6 +415,8 @@ fn exact_in_tree_portable_prism_method_is_accepted() {
         r#"
             [workspace.dependencies]
             identus-prism-did = { path = "crates/prism-did" }
+            identus-prism-vdr = { path = "crates/prism-vdr" }
+            identus-prism-indexer = { path = "crates/prism-indexer" }
         "#,
     )
     .expect("valid workspace manifest");
@@ -420,6 +426,8 @@ fn exact_in_tree_portable_prism_method_is_accepted() {
         r#"
             [dependencies]
             identus-prism-did = { workspace = true }
+            identus-prism-vdr = { workspace = true }
+            identus-prism-indexer = { workspace = true }
         "#,
     )
     .expect("valid member manifest");
@@ -429,6 +437,12 @@ fn exact_in_tree_portable_prism_method_is_accepted() {
         r#"
             [[package]]
             name = "identus-prism-did"
+            version = "0.0.0"
+            [[package]]
+            name = "identus-prism-vdr"
+            version = "0.0.0"
+            [[package]]
+            name = "identus-prism-indexer"
             version = "0.0.0"
         "#,
     )
@@ -542,7 +556,7 @@ fn renamed_package_and_normalized_identity_are_enforced() {
 }
 
 #[test]
-fn external_method_and_planned_sdk_prism_packages_remain_denied() {
+fn external_method_and_unimplemented_sdk_prism_packages_remain_denied() {
     let root = workspace_root();
     for declaration in [
         r#"identus-prism-did = "1""#,
@@ -577,7 +591,7 @@ fn external_method_and_planned_sdk_prism_packages_remain_denied() {
         "#,
     )
     .expect("valid synthetic lockfile");
-    assert_eq!(lockfile_violations(&lockfile).len(), 2);
+    assert_eq!(lockfile_violations(&lockfile).len(), 0);
 }
 
 #[test]

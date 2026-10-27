@@ -16,7 +16,7 @@ jobs:
   fuzz:
     name: nightly sanitizer experiment (${{ github.event_name }})
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 50
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -44,6 +44,9 @@ jobs:
 
       - name: Run bounded PRISM DID soak
         run: nix develop .#fuzz --command ./scripts/fuzz-did-prism.sh soak all
+
+      - name: Run bounded PRISM VDR and indexer soak
+        run: nix develop .#fuzz --command ./scripts/fuzz-prism-vdr-indexer.sh soak all
 
       - name: Preserve failing inputs
         if: failure()

@@ -882,6 +882,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-prism-indexer"
+version = "0.0.0"
+dependencies = [
+ "hex",
+ "identus-core",
+ "identus-crypto",
+ "identus-prism-did",
+ "identus-prism-vdr",
+ "sha2 0.10.9",
+]
+
+[[package]]
+name = "identus-prism-vdr"
+version = "0.0.0"
+dependencies = [
+ "identus-core",
+ "identus-crypto",
+ "identus-prism-did",
+ "prost",
+]
+
+[[package]]
 name = "identus-trust"
 version = "0.0.0"
 dependencies = [

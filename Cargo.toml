@@ -9,6 +9,8 @@ identus-crypto             = { path = "crates/crypto", version = "=0.1.0-rc.1", 
 identus-derive             = { path = "crates/derive", version = "=0.1.0-rc.1" }
 identus-did                = { path = "crates/did" }
 identus-prism-did          = { path = "crates/prism-did" }
+identus-prism-vdr          = { path = "crates/prism-vdr" }
+identus-prism-indexer      = { path = "crates/prism-indexer" }
 identus-did-resolver-http  = { path = "crates/did-resolver-http" }
 identus-trust              = { path = "crates/trust" }
 identus-credentials        = { path = "crates/credentials" }

@@ -464,3 +464,161 @@ details = [
   "normalization=Compare exact signed bytes, nested operation hash, signature result and semantic projection rather than donor DTO shapes",
   "deviations=Active-count correction, missing-action rejection, duplicate singular-field rejection and exact-byte signature verification are explicit SDK hardening",
 ]
+
+[[declarations]]
+id = "did.prism.vdr-indexing.quality.v1"
+capability = "did.prism.vdr-indexing"
+slice = "Portable chain-neutral PRISM VDR and deterministic indexer cores"
+owner = "SDK-Rust PRISM VDR and indexer maintainers"
+owner_issue = 522
+risk = "Unbounded ancestry, ambiguous replay, partial commits, or wire drift can authorize invalid storage history or split deterministic index state."
+targets = [
+  "package:identus-prism-vdr",
+  "package:identus-prism-indexer",
+  "host:rust",
+  "target:wasm32-unknown-unknown",
+  "target:aarch64-apple-ios",
+  "target:aarch64-linux-android",
+]
+vector_ids = [
+  "did.prism.vdr-indexing.empty-nonce",
+  "did.prism.vdr-indexing.transition-digest",
+]
+limitations = "Effect-neutral VDR and indexing semantics only; no Cardano source, persistence, SQL, HTTP, scheduler, retry loop, device runtime, FFI, deployment, or downstream NeoPRISM adoption is claimed."
+active = true
+supersedes = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Generated ancestry depths and operation orders may violate finite traversal, canonical ordering, framing, root, or current-head invariants."
+selectors = [
+  "crates/prism-vdr/tests/vdr.rs#property_generated_ancestry_lengths_preserve_root_and_head",
+  "crates/prism-indexer/tests/batch.rs#property_exhaustive_four_record_orders_are_bounded_and_domain_separated",
+]
+command = "cargo test -p identus-prism-vdr property && cargo test -p identus-prism-indexer property"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-prism-vdr", "package:identus-prism-indexer", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Exercise every accepted ancestry length from zero through 200 predecessor hops and all 24 permutations of four framed transaction records."
+receipt_kind = "source"
+receipt = "source:docs/architecture/prism-vdr-indexer-quality-baseline.md"
+evidence_revision = "fd808b1df5e25923d60eea5f8d276e6c7a00ac27"
+recorded_at = "2026-10-27"
+artifact = ""
+owner = "SDK-Rust PRISM VDR and indexer maintainers"
+owner_issue = 522
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Traversal remains finite and preserves root, owner and current head while record order remains framed and digest-distinct",
+  "domain=Every supported ancestry length and every permutation of four complete bounded records",
+  "cases=Deterministic generated chains and exhaustive order enumeration",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "satisfied"
+risk = "Malformed exact-wire storage envelopes and adversarial batch boundaries may trigger panics, allocation amplification, parser disagreement, or digest instability."
+selectors = [
+  "fuzz/fuzz_targets/prism_vdr.rs#fuzz_target!",
+  "fuzz/fuzz_targets/prism_indexer_batch.rs#fuzz_target!",
+  "scripts/fuzz-prism-vdr-indexer.sh#-max_total_time=300",
+  ".github/workflows/did-fuzz.yml#Run bounded PRISM VDR and indexer soak",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-prism-vdr-indexer.sh soak all"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-prism-vdr", "package:identus-prism-indexer", "host:linux", "sanitizer:address" ]
+freshness = "max-age-days"
+freshness_days = 8
+budget = "Run each target for 300 seconds with 139264-byte inputs, five seconds per case and 1024 MiB RSS; promote failures into checked-in regression seeds."
+receipt_kind = "github-run"
+receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925"
+evidence_revision = "fd808b1df5e25923d60eea5f8d276e6c7a00ac27"
+recorded_at = "2026-10-27"
+artifact = "did-fuzz-artifacts-<sha>-<attempt> on failure"
+owner = "SDK-Rust PRISM VDR and indexer maintainers"
+owner_issue = 522
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "harness=libFuzzer exact VDR parsing and complete transaction batch construction targets",
+  "corpus=Checked-in empty-wire and bounded-indexer seed inputs with regression promotion",
+  "seed=libFuzzer-managed reproducible failing inputs",
+  "bounds=max_len=139264;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "Root traversal, canonical batch hashing, exact-wire parsing, or full planning may introduce material latency as reusable consumers adopt the cores."
+selectors = [
+  "crates/prism-indexer/benches/directional.rs#prism-vdr-indexer-benchmark",
+  "docs/architecture/prism-vdr-indexer-quality-baseline.md#Directional benchmark",
+]
+command = "cargo bench -p identus-prism-indexer --bench directional"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-prism-vdr", "package:identus-prism-indexer", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure VDR parse, 100-node traversal, 128-record digest construction and same-transaction DID plus VDR planning over 101 samples."
+receipt_kind = "source"
+receipt = "source:docs/architecture/prism-vdr-indexer-quality-baseline.md"
+evidence_revision = "fd808b1df5e25923d60eea5f8d276e6c7a00ac27"
+recorded_at = "2026-10-27"
+artifact = "docs/architecture/prism-vdr-indexer-quality-baseline.md"
+owner = "SDK-Rust PRISM VDR and indexer maintainers"
+owner_issue = 522
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=VDR parse and traversal plus indexer digest construction and pure planning",
+  "fixture=Deterministic ordinary VDR create, 100-node ancestry, 128 records and same-transaction DID plus VDR create",
+  "environment=Rust 1.98.1 on Apple Silicon macOS; stable Linux comparison remains directional until separately recorded",
+  "statistic=Median wall time in nanoseconds per iteration",
+  "samples=101 measured samples after 100 warm-up iterations",
+  "threshold=Directional source-bound baseline only; no blocking regression threshold is declared",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "Rust storage parsing and transaction identity semantics may drift from the pinned PRISM schema and NeoPRISM-shaped source ordering."
+selectors = [
+  "crates/prism-vdr/tests/vdr.rs#accepts_the_schema_default_empty_nonce",
+  "crates/prism-indexer/tests/batch.rs#canonical_transition_digest_matches_the_portable_vector",
+  "crates/prism-indexer/tests/indexing.rs#neoprism_shaped_metadata_maps_to_one_complete_ordered_batch",
+  "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json#did.prism.vdr-indexing.transition-digest",
+]
+command = "cargo test -p identus-prism-vdr accepts_the_schema_default_empty_nonce && cargo test -p identus-prism-indexer canonical_transition_digest_matches_the_portable_vector && cargo test -p identus-prism-indexer neoprism_shaped_metadata"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-prism-vdr", "package:identus-prism-indexer", "host:rust", "consumer:neoprism" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Compare exact empty-nonce storage parsing, the canonical transition digest and NeoPRISM-shaped transaction metadata mapping without donor dependencies."
+receipt_kind = "source"
+receipt = "source:docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
+evidence_revision = "fd808b1df5e25923d60eea5f8d276e6c7a00ac27"
+recorded_at = "2026-10-27"
+artifact = "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
+owner = "SDK-Rust PRISM VDR and indexer maintainers"
+owner_issue = 522
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=Pinned public PRISM storage schema plus NeoPRISM donor metadata shape at revision a2ddbc5a8a316841e2c8df3831e7904fef01c356",
+  "oracle-revision=a2ddbc5a8a316841e2c8df3831e7904fef01c356",
+  "normalization=Compare exact wire semantics, source order and SDK-owned replay digest rather than donor DTO, async, SQL or Cardano types",
+  "deviations=Invalid operations fail the complete batch instead of being silently ignored; persistence and source effects remain downstream",
+]

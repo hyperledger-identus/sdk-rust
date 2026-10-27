@@ -508,6 +508,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-prism-indexer"
+version = "0.0.0"
+dependencies = [
+ "identus-core",
+ "identus-crypto",
+ "identus-prism-did",
+ "identus-prism-vdr",
+ "sha2 0.10.9",
+]
+
+[[package]]
+name = "identus-prism-vdr"
+version = "0.0.0"
+dependencies = [
+ "identus-core",
+ "identus-crypto",
+ "identus-prism-did",
+ "prost",
+]
+
+[[package]]
 name = "identus-sdk-fuzz"
 version = "0.0.0"
 dependencies = [
@@ -517,6 +538,8 @@ dependencies = [
  "identus-did",
  "identus-jose",
  "identus-prism-did",
+ "identus-prism-indexer",
+ "identus-prism-vdr",
  "libfuzzer-sys",
  "serde",
  "serde_json",

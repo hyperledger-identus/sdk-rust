@@ -81,6 +81,7 @@ required_files=(
   docs/architecture/identus-platform-change-ledger.toml
   docs/architecture/quality-evidence-declarations.toml
   docs/architecture/quality-evidence-plan.md
+  docs/architecture/prism-vdr-indexer-quality-baseline.md
   docs/conformance/cross-language-vector-catalog.md
   docs/conformance/cross-language-vector-catalog.toml
   docs/conformance/fixtures/did/v1/vectors.json
@@ -91,10 +92,13 @@ required_files=(
   crates/crypto/tests/curves.rs
   crates/crypto/tests/secp256k1_compat.rs
   fuzz/fuzz_targets/crypto_support.rs
+  docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json
   fuzz/fuzz_targets/did.rs
   fuzz/fuzz_targets/did_url.rs
   fuzz/fuzz_targets/prism_did.rs
   fuzz/fuzz_targets/prism_operation.rs
+  fuzz/fuzz_targets/prism_vdr.rs
+  fuzz/fuzz_targets/prism_indexer_batch.rs
   docs/architecture/portable-agent-runtime.md
   docs/roadmap/a1-shared-compatibility-foundation.md
   docs/roadmap/a1-shared-compatibility-foundation.toml
@@ -315,6 +319,7 @@ required_files=(
   crates/prism-did/proto/prism-storage.proto
   crates/prism-did/proto/prism-version.proto
   crates/prism-did/src/proto.rs
+  scripts/fuzz-prism-vdr-indexer.sh
 )
 
 for relative_path in "${required_files[@]}"; do

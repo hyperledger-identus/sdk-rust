@@ -114,6 +114,28 @@ consumer_impact  = "Accepted method syntax, exact signed bytes, typed operation 
 review_triggers  = [ "PRISM protobuf revision", "method-profile limit change", "new operation variant", "new retained JSON or byte field", "long-form encoding change" ]
 
 [[boundaries]]
+id               = "did-prism-vdr-operation-profile"
+package          = "identus-prism-vdr"
+surface          = "PRISM storage payloads, opaque content, status text, authorization and local-first root traversal"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_ANCESTRY_DEPTH=200", "MAX_IPFS_BYTES=2048", "MAX_LOOKUP_NODES_PER_BATCH=4096", "MAX_NONCE_BYTES=64", "MAX_STATUS_TEXT_BYTES=4096", "MAX_VDR_DATA_BYTES=65536" ]
+evidence         = [ "crates/prism-vdr/src/limits.rs", "crates/prism-vdr/src/operation.rs", "crates/prism-vdr/src/traversal.rs", "crates/prism-vdr/src/wire.rs", "crates/prism-vdr/tests/vdr.rs" ]
+outer_obligation = "The caller owns signed-envelope allocation, authoritative transaction boundaries, DID-state snapshots, lookup snapshots and batch-local maps before entry."
+consumer_impact  = "Retained VDR content, nested status text, ancestry depth and aggregate lookup work are finite; the enclosing PRISM envelope remains bounded by identus-prism-did."
+review_triggers  = [ "PRISM storage protobuf revision", "VDR content limit change", "new retained field", "root traversal or authorization change" ]
+
+[[boundaries]]
+id               = "did-prism-indexer-transaction-profile"
+package          = "identus-prism-indexer"
+surface          = "complete transaction identity, expected/next cursors, ordered signed records and canonical replay transcript"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_BATCH_RECORDS=1024", "MAX_CURSOR_BYTES=1024", "MAX_SIGNED_BYTES_PER_BATCH=8388608", "MAX_TRANSACTION_ID_BYTES=256" ]
+evidence         = [ "crates/prism-indexer/src/batch.rs" ]
+outer_obligation = "The source adapter owns authoritative transaction-boundary extraction and the allocated signed envelopes before construction."
+consumer_impact  = "Incomplete, cross-transaction, out-of-order or oversized transactions fail before planning or commit; digest fields use canonical tagged length-delimited framing."
+review_triggers  = [ "batch profile change", "cursor or identity change", "transition transcript change", "new retained transaction metadata" ]
+
+[[boundaries]]
 id               = "did-resolution-results-json"
 package          = "identus-did"
 surface          = "DID resolution/dereferencing results, metadata and open JSON content"

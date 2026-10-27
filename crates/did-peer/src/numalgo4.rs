@@ -82,7 +82,10 @@ impl InputDocument {
         Self::from_json_slice(input.as_bytes())
     }
 
-    /// Borrow the deterministic compact representation hashed during creation.
+    /// Borrow the exact validated representation hashed during creation.
+    ///
+    /// Native construction canonicalizes JSON to compact form. Parsing a long
+    /// form retains its original decoded bytes so recreation preserves the DID.
     #[must_use]
     pub fn compact_json(&self) -> &[u8] {
         &self.compact
@@ -163,7 +166,9 @@ impl LongForm {
         if !decoded.starts_with(&JSON_MULTICODEC) {
             return Err(Error::UnsupportedCodec);
         }
-        let input = InputDocument::from_json_slice(&decoded[JSON_MULTICODEC.len()..])?;
+        let document_bytes = &decoded[JSON_MULTICODEC.len()..];
+        let mut input = InputDocument::from_json_slice(document_bytes)?;
+        input.compact = document_bytes.to_vec();
         let did = Did::parse(value).map_err(|_| Error::MalformedEncoding)?;
         let short = Did::parse(&format!("{PREFIX}{hash}")).map_err(|_| Error::MalformedEncoding)?;
         let long = Self { did, short, input };
@@ -458,6 +463,29 @@ mod tests {
         assert_eq!(
             long.did().as_str(),
             "did:peer:4zQmb7xLdVY9TXx8oov5XgpGUmGELgqiAV2699s43i6Qdm3M:zQSJgiFTYiCHjQ9MktwNThRXM7a"
+        );
+    }
+
+    #[test]
+    fn parsed_noncanonical_json_recreates_the_same_long_form() {
+        let document_bytes = br#"{ "second" : 2, "first" : 1 }"#;
+        let mut encoded_bytes = JSON_MULTICODEC.to_vec();
+        encoded_bytes.extend_from_slice(document_bytes);
+        let encoded_document = format!("z{}", encode(encoded_bytes).into_string());
+        let digest = Sha256::digest(encoded_document.as_bytes());
+        let mut multihash = SHA2_256_MULTIHASH.to_vec();
+        multihash.extend_from_slice(&digest);
+        let hash = format!("z{}", encode(multihash).into_string());
+        let original = format!("{PREFIX}{hash}:{encoded_document}");
+
+        let parsed = LongForm::parse(&original).expect("parse noncanonical input");
+        assert_eq!(parsed.input_document().compact_json(), document_bytes);
+        assert_eq!(
+            LongForm::create(parsed.input_document().clone())
+                .expect("recreate")
+                .did()
+                .as_str(),
+            original
         );
     }
 

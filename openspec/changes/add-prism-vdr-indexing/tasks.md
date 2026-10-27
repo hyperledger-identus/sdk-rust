@@ -19,7 +19,7 @@
 - [x] 2.1 Add `identus-prism-vdr` scaffold, finite limits and redacted errors.
 - [x] 2.2 Add typed create/update/deactivate payload decoding.
 - [x] 2.3 Add bounded batch-local/store root traversal with cycle detection.
-- [ ] 2.4 Add donor/spec/negative/property/fuzz evidence.
+- [x] 2.4 Add donor/spec/negative/property/fuzz evidence.
 
 ## 3. Indexer capability
 
@@ -31,8 +31,8 @@
 ## 4. Architecture and quality
 
 - [x] 4.1 Replace the complete-family deny with the exact dependency graph guard.
-- [ ] 4.2 Activate `did.prism.vdr-indexing.quality.v1` and add compatibility/change-ledger records.
-- [ ] 4.3 Capture dependency cone and native/WASM/iOS/Android evidence.
+- [x] 4.2 Activate `did.prism.vdr-indexing.quality.v1` and add compatibility/change-ledger records.
+- [x] 4.3 Capture dependency cone and native/WASM/iOS/Android evidence.
 - [ ] 4.4 Capture directional benchmarks and 300-second Linux fuzz evidence.
 
 ## 5. Review and delivery

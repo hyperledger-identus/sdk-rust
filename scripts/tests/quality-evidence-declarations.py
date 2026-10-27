@@ -66,6 +66,15 @@ def obligation_block(content: str, class_name: str, disposition: str) -> str:
     return candidates[0]
 
 
+def declaration_block(content: str, identifier: str) -> str:
+    marker = "[[declarations]]"
+    needle = f'id = "{identifier}"'
+    candidates = [marker + part for part in content.split(marker)[1:] if needle in part]
+    if len(candidates) != 1:
+        raise AssertionError(f"expected one declaration {identifier}, found {len(candidates)}")
+    return candidates[0]
+
+
 def replace_field(block: str, key: str, value: str) -> str:
     updated, count = re.subn(
         rf"(?m)^{re.escape(key)}\s*=.*$", f"{key} = {value}", block, count=1
@@ -134,7 +143,8 @@ def main() -> int:
             "must explain the bounded omission",
         )
 
-        satisfied_fuzz = obligation_block(baseline, "fuzz", "satisfied")
+        did_syntax = declaration_block(baseline, "did.syntax.quality.v1")
+        satisfied_fuzz = obligation_block(did_syntax, "fuzz", "satisfied")
         stale_fuzz = replace_field(satisfied_fuzz, "recorded_at", '"2026-09-01"')
         stale_receipt = replace_once(baseline, satisfied_fuzz, stale_fuzz)
         expect_failure(
@@ -193,9 +203,7 @@ def main() -> int:
             "unknown keys: free_form_policy",
         )
 
-        declaration_offset = baseline.index("[[declarations]]")
-        next_declaration_offset = baseline.index("[[declarations]]", declaration_offset + 1)
-        additive_declaration = baseline[declaration_offset:next_declaration_offset]
+        additive_declaration = did_syntax
         additive_declaration = replace_once(
             additive_declaration,
             'id = "did.syntax.quality.v1"',

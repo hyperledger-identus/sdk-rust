@@ -404,7 +404,7 @@ fn secp256k1_bitcoin_transcode_is_the_deciding_branch() {
         "vanilla verify must reject the reversed-r signature"
     );
     // Branch 2 — normalize-s verification: must fail (r is still reversed).
-    let normalized = sig.normalize_s().unwrap_or(sig);
+    let normalized = sig.normalize_s();
     assert!(
         vk.verify(message, &normalized).is_err(),
         "normalize-s verify must reject the reversed-r signature"

@@ -3,8 +3,8 @@
 //! P-256).
 
 use p256::NistP256;
-use p256::ecdsa::signature::{SignerMut, Verifier};
-use p256::elliptic_curve::sec1::{EncodedPoint, ToEncodedPoint};
+use p256::ecdsa::signature::{Signer, Verifier};
+use p256::elliptic_curve::sec1::{Sec1Point, ToSec1Point};
 use p256::{
     PublicKey, SecretKey,
     ecdsa::{Signature, SigningKey},
@@ -47,7 +47,7 @@ impl P256PublicKey {
     /// Compressed (33-byte) SEC1 encoding.
     #[must_use]
     pub fn encode_compressed(&self) -> [u8; COMPRESSED_SIZE] {
-        let bytes: EncodedPoint<NistP256> = self.0.to_encoded_point(true);
+        let bytes: Sec1Point<NistP256> = self.0.to_sec1_point(true);
         bytes
             .as_bytes()
             .try_into()
@@ -57,7 +57,7 @@ impl P256PublicKey {
     /// Uncompressed (65-byte) SEC1 encoding.
     #[must_use]
     pub fn encode_uncompressed(&self) -> [u8; UNCOMPRESSED_SIZE] {
-        let bytes: EncodedPoint<NistP256> = self.0.to_encoded_point(false);
+        let bytes: Sec1Point<NistP256> = self.0.to_sec1_point(false);
         bytes
             .as_bytes()
             .try_into()
@@ -92,7 +92,7 @@ impl P256PrivateKey {
     /// Sign `message` (deterministic RFC 6979 nonce), returning a DER-encoded signature.
     #[must_use]
     pub fn sign(&self, message: &[u8]) -> Vec<u8> {
-        let mut signing_key = SigningKey::from(&self.0);
+        let signing_key = SigningKey::from(&self.0);
         let signature: Signature = signing_key.sign(message);
         signature.to_der().as_bytes().to_vec()
     }
@@ -100,7 +100,7 @@ impl P256PrivateKey {
     /// Sign `message`, returning the fixed-width 64-byte `r || s` value.
     #[must_use]
     pub fn sign_fixed(&self, message: &[u8]) -> [u8; 64] {
-        let mut signing_key = SigningKey::from(&self.0);
+        let signing_key = SigningKey::from(&self.0);
         let signature: Signature = signing_key.sign(message);
         signature.to_bytes().into()
     }
@@ -167,9 +167,7 @@ impl Verifiable for P256PublicKey {
         }
         // normalized-s fallback (cheap robustness against high-s signatures
         // produced by other libraries); no bitcoin-transcode for P-256.
-        let Some(normalized) = signature.normalize_s() else {
-            return false;
-        };
+        let normalized = signature.normalize_s();
         verifying_key.verify(message, &normalized).is_ok()
     }
 }
@@ -185,9 +183,7 @@ impl P256PublicKey {
         if verifying_key.verify(message, &signature).is_ok() {
             return true;
         }
-        let Some(normalized) = signature.normalize_s() else {
-            return false;
-        };
+        let normalized = signature.normalize_s();
         verifying_key.verify(message, &normalized).is_ok()
     }
 }

@@ -31,7 +31,7 @@ State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic 
 
 ### `oid4vp.direct-post-response.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and bounded caller presentations into a deterministic plain direct-post success envelope.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and bounded caller presentations into a deterministic plain direct-post success envelope.
 
 ## Migration actions
 

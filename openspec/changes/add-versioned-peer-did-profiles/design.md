@@ -41,7 +41,8 @@ service descriptors. Each key has one explicit verification relationship and
 a supported public multicodec value. Encoding emits dot-delimited purpose
 elements; a service element uses unpadded base64url of the pinned compact JSON
 shape, using one object for one service and one array for multiple services.
-Omitted compact endpoint options remain omitted when re-encoded. Resolution
+Omitted compact endpoint options remain omitted when re-encoded, while fields
+explicitly present as empty arrays remain present. Resolution
 validates every delimiter/purpose/encoding before decode, assigns deterministic
 fragment identifiers from ordered key positions, maps each purpose to only its
 corresponding verification relationship, and projects relationships and services

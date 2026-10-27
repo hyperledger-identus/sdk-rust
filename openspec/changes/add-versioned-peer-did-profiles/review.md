@@ -31,8 +31,9 @@ from blocking delivery.
   selectors such as `20` and `40` remain `UnsupportedAlgorithm` rather than
   being misclassified as malformed payloads for algorithms 2 and 4.
 - Numalgo-2 maps `V` keys only to authentication, accepts omitted compact
-  endpoint options without inventing them on re-encoding, and supports the
-  Identus one-array encoding for multiple services in one `S` element.
+  endpoint options without inventing them on re-encoding, preserves explicitly
+  empty options, and supports the Identus one-array encoding for multiple
+  services in one `S` element.
 - Numalgo-2 applies one shared 4,096-node compact-service JSON budget during
   creation and parsing, preserving create/parse closure for every accepted
   service array; truncated elements retain the malformed-encoding category.

@@ -119,11 +119,11 @@ pub struct ServiceEndpointMap {
     /// Endpoint URI.
     pub uri: String,
     /// Accepted message profiles.
-    #[serde(rename = "a", default, skip_serializing_if = "Vec::is_empty")]
-    pub accept: Vec<String>,
+    #[serde(rename = "a", default, skip_serializing_if = "Option::is_none")]
+    pub accept: Option<Vec<String>>,
     /// Routing key identifiers.
-    #[serde(rename = "r", default, skip_serializing_if = "Vec::is_empty")]
-    pub routing_keys: Vec<String>,
+    #[serde(rename = "r", default, skip_serializing_if = "Option::is_none")]
+    pub routing_keys: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -423,8 +423,8 @@ fn json_string_encoded_len(value: &str) -> usize {
 
 fn projected_endpoint_map_bytes(endpoint: &ServiceEndpointMap) -> Result<usize, Error> {
     std::iter::once(&endpoint.uri)
-        .chain(endpoint.accept.iter())
-        .chain(endpoint.routing_keys.iter())
+        .chain(endpoint.accept.iter().flatten())
+        .chain(endpoint.routing_keys.iter().flatten())
         .try_fold(0_usize, |bytes, value| {
             bytes
                 .checked_add(json_string_encoded_len(value))
@@ -524,15 +524,21 @@ fn validate_endpoint_map(
 ) -> Result<(), Error> {
     if endpoint.uri.is_empty()
         || endpoint.uri.len() > 8_192
-        || endpoint.accept.len() > 32
-        || endpoint.routing_keys.len() > 32
+        || endpoint
+            .accept
+            .as_ref()
+            .is_some_and(|values| values.len() > 32)
+        || endpoint
+            .routing_keys
+            .as_ref()
+            .is_some_and(|values| values.len() > 32)
     {
         return Err(Error::ResourceLimit);
     }
     Uri::parse(&endpoint.uri).map_err(|_| Error::InvalidInputDocument)?;
     for value in std::iter::once(&endpoint.uri)
-        .chain(endpoint.accept.iter())
-        .chain(endpoint.routing_keys.iter())
+        .chain(endpoint.accept.iter().flatten())
+        .chain(endpoint.routing_keys.iter().flatten())
     {
         *retained_string_bytes = retained_string_bytes
             .checked_add(value.len())
@@ -558,24 +564,23 @@ const fn map_json_wire_error(error: JsonWireError) -> Error {
 fn expand_service_endpoint(value: &ServiceEndpoint) -> Value {
     match value {
         ServiceEndpoint::Uri(uri) => Value::String(uri.clone()),
-        ServiceEndpoint::Map(endpoint) => json!({
-            "uri": endpoint.uri,
-            "accept": endpoint.accept,
-            "routingKeys": endpoint.routing_keys,
-        }),
-        ServiceEndpoint::Maps(endpoints) => Value::Array(
-            endpoints
-                .iter()
-                .map(|endpoint| {
-                    json!({
-                        "uri": endpoint.uri,
-                        "accept": endpoint.accept,
-                        "routingKeys": endpoint.routing_keys,
-                    })
-                })
-                .collect(),
-        ),
+        ServiceEndpoint::Map(endpoint) => expand_endpoint_map(endpoint),
+        ServiceEndpoint::Maps(endpoints) => {
+            Value::Array(endpoints.iter().map(expand_endpoint_map).collect())
+        }
     }
+}
+
+fn expand_endpoint_map(endpoint: &ServiceEndpointMap) -> Value {
+    let mut value = serde_json::Map::new();
+    value.insert("uri".into(), Value::String(endpoint.uri.clone()));
+    if let Some(accept) = &endpoint.accept {
+        value.insert("accept".into(), json!(accept));
+    }
+    if let Some(routing_keys) = &endpoint.routing_keys {
+        value.insert("routingKeys".into(), json!(routing_keys));
+    }
+    Value::Object(value)
 }
 
 fn insert_nonempty(map: &mut serde_json::Map<String, Value>, name: &str, values: Vec<Value>) {
@@ -601,8 +606,8 @@ mod tests {
             type_: "DIDCommMessaging".into(),
             endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
                 uri: "https://example.com/didcomm".into(),
-                accept: vec!["didcomm/v2".into()],
-                routing_keys: vec![],
+                accept: Some(vec!["didcomm/v2".into()]),
+                routing_keys: Some(vec![]),
             }),
             id: None,
         };
@@ -621,8 +626,8 @@ mod tests {
         let key = PublicKey::new(Purpose::Verification, VERIFICATION_KEY).expect("key");
         let endpoint = |uri: &str| ServiceEndpointMap {
             uri: uri.into(),
-            accept: vec!["didcomm/v2".into()],
-            routing_keys: vec![],
+            accept: Some(vec!["didcomm/v2".into()]),
+            routing_keys: Some(vec![]),
         };
         let service = Service {
             type_: "DIDCommMessaging".into(),
@@ -659,8 +664,8 @@ mod tests {
             type_: type_.into(),
             endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
                 uri: uri.into(),
-                accept: vec![],
-                routing_keys: vec![],
+                accept: None,
+                routing_keys: None,
             }),
             id: None,
         };
@@ -743,8 +748,8 @@ mod tests {
             type_: "DIDCommMessaging".into(),
             endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
                 uri: "https://example.com/didcomm".into(),
-                accept: vec!["a".repeat(MAX_SERVICE_BYTES)],
-                routing_keys: vec![],
+                accept: Some(vec!["a".repeat(MAX_SERVICE_BYTES)]),
+                routing_keys: Some(vec![]),
             }),
             id: None,
         };
@@ -762,8 +767,8 @@ mod tests {
                 type_: "DIDCommMessaging".into(),
                 endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
                     uri: "https://example.com/didcomm".into(),
-                    accept: vec!["a".repeat(8_000)],
-                    routing_keys: vec![],
+                    accept: Some(vec!["a".repeat(8_000)]),
+                    routing_keys: Some(vec![]),
                 }),
                 id: None,
             })
@@ -782,8 +787,8 @@ mod tests {
                 type_: "DIDCommMessaging".into(),
                 endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
                     uri: format!("https://example.com/{index}"),
-                    accept: vec!["didcomm/v2".into(), "didcomm/aip2;env=rfc587".into()],
-                    routing_keys: vec!["did:example:one".into(), "did:example:two".into()],
+                    accept: Some(vec!["didcomm/v2".into(), "didcomm/aip2;env=rfc587".into()]),
+                    routing_keys: Some(vec!["did:example:one".into(), "did:example:two".into()]),
                 }),
                 id: None,
             })
@@ -803,8 +808,8 @@ mod tests {
                 type_: "DIDCommMessaging".into(),
                 endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
                     uri: format!("https://example.com/{index}"),
-                    accept: vec!["a".repeat(16_000)],
-                    routing_keys: vec![],
+                    accept: Some(vec!["a".repeat(16_000)]),
+                    routing_keys: Some(vec![]),
                 }),
                 id: None,
             })
@@ -820,11 +825,12 @@ mod tests {
         const VECTOR: &str = "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv.EzQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s.SeyJ0IjoiRElEQ29tbU1lc3NhZ2luZyIsInMiOnsidXJpIjoiaHR0cHM6Ly8xMjcuMC4wLjE6NzAzNyIsImEiOlsiZGlkY29tbS92MiJdLCJyIjpbXX19";
         let peer = PeerDid::parse(VECTOR).expect("oracle vector");
         assert_eq!(peer.did().as_str(), VECTOR);
-        let recreated =
-            PeerDid::create(peer.keys.clone(), peer.services.clone()).expect("recreate");
         assert_eq!(
-            PeerDid::parse(recreated.did().as_str()).expect("parse recreated"),
-            recreated
+            PeerDid::create(peer.keys.clone(), peer.services.clone())
+                .expect("recreate")
+                .did()
+                .as_str(),
+            VECTOR
         );
         let document = peer.resolve().expect("resolve");
         assert_eq!(document.verification_methods().expect("methods").len(), 2);

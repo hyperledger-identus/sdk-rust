@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-27`
-- Declaration count: `4`
+- Declaration count: `5`
 
 ## `crypto.quality.v1`
 
@@ -185,3 +185,49 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Compare exact empty-nonce storage parsing, the canonical transition digest and NeoPRISM-shaped transaction metadata mapping without donor dependencies.
 - Receipt: `source:docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json`
 - Evidence revision: `fd808b1df5e25923d60eea5f8d276e6c7a00ac27`
+
+## `did.peer.profiles.quality.v1`
+
+- Capability: `did.peer.profiles`
+- Slice: Bounded numalgo-4 and explicit numalgo-2 compatibility profiles
+- Owner: SDK-Rust peer DID maintainers (issue #523)
+- Risk: Ambiguous encodings, malformed public material, secret-bearing input or unbounded projection can split peer DID identity state or expose private material in public identifiers.
+- Targets: `package:identus-did-peer`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`
+- Vector IDs: `2` local catalog entries
+- Limitations: Effect-free public-material construction, parsing and local resolution only; no custody, private keys, networking, persistence, DIDComm engine, language bindings or historical numalgo 0, 1 and 3 support is claimed.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #523 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #523 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #523 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #523 |
+
+### `property`
+
+- Command: `cargo test -p identus-did-peer property`
+- Budget: Exercise every supported numalgo-2 purpose and deterministic numalgo-4 JSON sizes from zero through 512 bytes.
+- Receipt: `source:docs/architecture/did-peer-quality-baseline.md`
+- Evidence revision: `fcf7083d712baa1c4ff45c2933b7bec48c44531e`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak`
+- Budget: Run both peer DID profiles for 300 seconds with 131072-byte inputs, five seconds per case and 1024 MiB RSS.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #523
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-did-peer --bench directional`
+- Budget: Measure numalgo-4 create, numalgo-4 parse/resolve and numalgo-2 parse/resolve over 101 samples.
+- Receipt: `source:docs/architecture/did-peer-quality-baseline.md`
+- Evidence revision: `fcf7083d712baa1c4ff45c2933b7bec48c44531e`
+
+### `differential`
+
+- Command: `cargo test -p identus-did-peer --test conformance`
+- Budget: Compare exact numalgo-4 output and numalgo-2 parse/create/resolve behavior against two pinned public oracle cases.
+- Receipt: `source:docs/conformance/fixtures/did-peer/v1/vectors.json`
+- Evidence revision: `fcf7083d712baa1c4ff45c2933b7bec48c44531e`

@@ -42,8 +42,8 @@ the only source for signature verification and operation hashes.
 A create operation SHALL contain at most 50 uniquely identified keys and 50
 uniquely identified services, at least one secp256k1 master key, supported key
 usages/curves, bounded service values and at most 127 unique exact-text
-absolute context URIs. Validated URI values SHALL retain their signed wire
-representation. Master, revocation and VDR keys SHALL remain protocol
+absolute context URIs other than the SDK-added DID Core context. Validated URI
+values SHALL retain their signed wire representation. Master, revocation and VDR keys SHALL remain protocol
 state but SHALL NOT appear in a projected DID document.
 
 #### Scenario: maximum finite initial state is portable
@@ -95,7 +95,8 @@ update SHALL retain at least one active master key.
 Active state SHALL project to `identus-did` values in deterministic insertion
 order. Supported key usages SHALL map to their DID Core verification
 relationships and public JWKs. Services and contexts SHALL use generic bounded
-domain types. Deactivated state SHALL return a standards-shaped result and
+domain types, and aggregate document limits SHALL be enforced before candidate
+state is accepted. Deactivated state SHALL return a standards-shaped result and
 method metadata without active document content.
 
 #### Scenario: repeated projection is stable

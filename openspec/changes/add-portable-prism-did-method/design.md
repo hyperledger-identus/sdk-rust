@@ -50,8 +50,9 @@ IDs use a bounded ASCII fragment validator rather than regex. Service type
 accepts the draft's single value or canonical non-empty JSON array grammar.
 Endpoint text is bounded by both character and byte limits, rejects duplicate
 JSON names, maps into `identus-did::ServiceEndpoint`, and requires generic URI
-validation. Contexts are unique absolute URIs. Validated URI text is preserved
-exactly so projection and history replay cannot rewrite signed protocol values.
+validation. Contexts are unique absolute URIs and cannot repeat the SDK-added
+DID Core context. Validated URI text is preserved exactly so projection and
+history replay cannot rewrite signed protocol values.
 
 Supported public key curves are secp256k1, Ed25519 and X25519 through
 `identus-crypto`. Master and VDR operation keys must be secp256k1. Unknown key
@@ -80,6 +81,10 @@ references use the canonical or requested long DID consistently. JWK values
 come from `identus-crypto`; services and contexts use generic DID domain types.
 The DID Core context is first and is not duplicated. Deactivated resolution
 uses the generic standards-shaped result and method metadata.
+
+Create and update reduction construct the generic document before accepting a
+candidate, so aggregate JSON budgets across keys and services cannot leave
+method state that local resolution is unable to project.
 
 Native projection has a 32 MiB method-owned output budget. Its preflight counts
 one document controller, three controller occurrences per projected method and

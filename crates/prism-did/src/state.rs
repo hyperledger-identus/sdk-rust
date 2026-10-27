@@ -50,7 +50,9 @@ impl PrismDidState {
     /// [`Self::from_signed_create`] when accepting a published signed envelope.
     pub fn from_initial_state(raw: &RawPrismOperation) -> Result<Self, Error> {
         let operation = CreateDidOperation::parse(raw)?;
-        Ok(Self::from_create(operation, raw.operation_hash()))
+        let state = Self::from_create(operation, raw.operation_hash());
+        crate::project_did_document(&state)?;
+        Ok(state)
     }
 
     /// Verify a signed create envelope and materialize its initial state.
@@ -168,6 +170,7 @@ impl PrismDidState {
         {
             return Err(StateError::ResourceLimitExceeded.into());
         }
+        crate::project_did_document(self)?;
         self.last_operation_hash = raw.operation_hash();
         Ok(())
     }
@@ -504,6 +507,72 @@ mod tests {
         assert_eq!(state.active_services().count(), 1);
         assert!(state.retired_service_ids.len() > MAX_SERVICES);
         assert_eq!(state.services.len(), 1);
+    }
+
+    #[test]
+    fn create_rejects_an_aggregate_service_budget_that_cannot_project() {
+        let public = Secp256k1PrivateKey::from_slice(&PRIVATE_KEY)
+            .unwrap()
+            .to_public_key()
+            .encode_compressed();
+        let endpoint = format!(r#"{{"x":[{}]}}"#, vec!["0"; 100].join(","));
+        let services = (0..MAX_SERVICES)
+            .map(|index| proto::Service {
+                id: format!("service-{index}"),
+                r#type: "LinkedDomains".to_owned(),
+                service_endpoint: endpoint.clone(),
+            })
+            .collect();
+        let create = proto::CreateDid {
+            did_data: Some(proto::DidCreationData {
+                public_keys: vec![proto::PublicKey {
+                    id: "master".to_owned(),
+                    usage: proto::KeyUsage::Master as i32,
+                    key_data: Some(proto::public_key::KeyData::Compressed(
+                        proto::CompressedEcKeyData {
+                            curve: "secp256k1".to_owned(),
+                            data: public.to_vec(),
+                        },
+                    )),
+                }],
+                services,
+                context: Vec::new(),
+            }),
+        };
+        let raw = operation(1, &create.encode_to_vec());
+
+        assert!(CreateDidOperation::parse(&raw).is_ok());
+        assert_eq!(
+            PrismDidState::from_initial_state(&raw),
+            Err(Error::InvalidState(StateError::InvalidCandidate))
+        );
+    }
+
+    #[test]
+    fn update_rolls_back_an_aggregate_service_budget_that_cannot_project() {
+        let mut state = initial_state();
+        let before = state.clone();
+        let endpoint = format!(r#"{{"x":[{}]}}"#, vec!["0"; 100].join(","));
+        let actions = (1..MAX_SERVICES)
+            .map(|index| {
+                action(proto::update_did_action::Action::AddService(
+                    proto::AddServiceAction {
+                        service: Some(proto::Service {
+                            id: format!("service-{index}"),
+                            r#type: "LinkedDomains".to_owned(),
+                            service_endpoint: endpoint.clone(),
+                        }),
+                    },
+                ))
+            })
+            .collect();
+        let update = signed_update(&state, actions);
+
+        assert_eq!(
+            state.apply_signed(&update),
+            Err(Error::InvalidState(StateError::InvalidCandidate))
+        );
+        assert_eq!(state, before);
     }
 
     #[test]

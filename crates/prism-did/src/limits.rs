@@ -29,3 +29,5 @@ pub const MAX_SERVICE_ENDPOINT_CHARACTERS: usize = 300;
 pub const MAX_SERVICE_ENDPOINT_BYTES: usize = MAX_SERVICE_ENDPOINT_CHARACTERS * 4;
 /// Maximum additional context URI values. DID Core context makes the projected total 128.
 pub const MAX_CONTEXTS: usize = 127;
+
+pub(crate) const DID_CORE_CONTEXT: &str = "https://www.w3.org/ns/did/v1";

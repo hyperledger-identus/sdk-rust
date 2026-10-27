@@ -9,7 +9,7 @@ use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
 use crate::{
     Error, MAX_CONTEXTS, MAX_ID_CHARACTERS, MAX_SERVICE_ENDPOINT_BYTES,
     MAX_SERVICE_ENDPOINT_CHARACTERS, MAX_SERVICES, MAX_TYPE_CHARACTERS, MAX_VERIFICATION_METHODS,
-    OperationError, OperationKind, RawPrismOperation, WireError, proto,
+    OperationError, OperationKind, RawPrismOperation, WireError, limits::DID_CORE_CONTEXT, proto,
 };
 
 mod builder;
@@ -311,12 +311,7 @@ impl CreateDidOperation {
             .collect::<Result<Vec<_>, _>>()?;
         ensure_unique(services.iter().map(PrismService::id))?;
 
-        let contexts = data
-            .context
-            .into_iter()
-            .map(|context| validate_uri_preserving_text(&context))
-            .collect::<Result<Vec<_>, _>>()?;
-        ensure_unique(contexts.iter().map(String::as_str))?;
+        let contexts = parse_contexts(data.context)?;
 
         Ok(Self {
             public_keys,
@@ -458,13 +453,7 @@ fn parse_update_action(action: proto::UpdateDidAction) -> Result<UpdateAction, E
             if action.context.len() > MAX_CONTEXTS {
                 return Err(OperationError::TooManyItems.into());
             }
-            let contexts = action
-                .context
-                .into_iter()
-                .map(|context| validate_uri_preserving_text(&context))
-                .collect::<Result<Vec<_>, _>>()?;
-            ensure_unique(contexts.iter().map(String::as_str))?;
-            Ok(UpdateAction::PatchContext(contexts))
+            parse_contexts(action.context).map(UpdateAction::PatchContext)
         }
     }
 }
@@ -575,6 +564,18 @@ fn validate_uri_preserving_text(value: &str) -> Result<String, Error> {
     identus_did::Uri::parse(value)
         .map_err(|_| Error::InvalidOperation(OperationError::InvalidValue))?;
     Ok(value.to_owned())
+}
+
+fn parse_contexts(values: Vec<String>) -> Result<Vec<String>, Error> {
+    let contexts = values
+        .into_iter()
+        .map(|context| validate_uri_preserving_text(&context))
+        .collect::<Result<Vec<_>, _>>()?;
+    if contexts.iter().any(|context| context == DID_CORE_CONTEXT) {
+        return Err(OperationError::DuplicateValue.into());
+    }
+    ensure_unique(contexts.iter().map(String::as_str))?;
+    Ok(contexts)
 }
 
 pub(crate) fn validate_fragment(value: &str) -> Result<(), Error> {
@@ -908,6 +909,10 @@ mod tests {
         );
         assert!(ensure_unique(["https://example.com", "https://example.com"]).is_err());
         assert!(ensure_unique(["HTTPS://EXAMPLE.COM", "https://example.com"]).is_ok());
+        assert_eq!(
+            parse_contexts(vec![DID_CORE_CONTEXT.to_owned()]),
+            Err(Error::InvalidOperation(OperationError::DuplicateValue))
+        );
     }
 
     #[test]

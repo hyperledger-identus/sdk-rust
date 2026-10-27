@@ -292,7 +292,6 @@ checksum = "bc74ac4d8359ae70623506d512209619e5cf8f347124910440dbc221714b328e"
 dependencies = [
  "borrow-or-share",
  "ref-cast",
- "serde",
 ]
 
 [[package]]
@@ -419,7 +418,6 @@ name = "identus-prism-did"
 version = "0.0.0"
 dependencies = [
  "base64",
- "fluent-uri",
  "identus-core",
  "identus-crypto",
  "identus-did",

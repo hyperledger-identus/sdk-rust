@@ -13,10 +13,8 @@ use serde_json::Value;
 use crate::{
     Error, KeyUsage, MAX_OPERATION_BYTES, MAX_PROJECTED_DOCUMENT_BYTES, PrismDid, PrismDidState,
     PrismPublicKey, PrismPublicKeyMaterial, PrismService, ServiceEndpoint, ServiceEndpointValue,
-    ServiceType, StateError,
+    ServiceType, StateError, limits::DID_CORE_CONTEXT,
 };
-
-const DID_CORE_CONTEXT: &str = "https://www.w3.org/ns/did/v1";
 
 /// Project active PRISM method state into a deterministic DID document.
 ///

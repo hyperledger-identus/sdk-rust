@@ -53,6 +53,26 @@ authorship     = "Hyperledger Identus contributors"
 license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 
+[[sources]]
+id             = "prism.did-method-spec"
+kind           = "standard"
+url            = "https://github.com/input-output-hk/PRISM-did-method-spec"
+version        = "fdd9007e23dc08d94d1a2b66b2dc26d1db499422"
+section        = "Create, Update and Deactivate operations; long-form identifiers"
+authorship     = "Input Output Global and PRISM DID method contributors"
+license        = "Apache-2.0"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "neoprism.did-prism"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/neoprism"
+revision       = "a2ddbc5a8a316841e2c8df3831e7904fef01c356"
+path           = "lib/did-prism"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
 [[packets]]
 id             = "did.syntax.v1"
 capability     = "did.syntax"
@@ -64,6 +84,18 @@ license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 public_data    = true
 targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[packets]]
+id             = "did.prism.portable-method.v1"
+capability     = "did.prism"
+schema_version = 1
+path           = "docs/conformance/fixtures/did-prism/v1/vectors.json"
+sha256         = "91505c545a0a76db6ce09b8fb53ef3dfad3f75b9ecabf6b7d8c3bf5cd4897141"
+authorship     = "SDK-Rust clean-room curation from the pinned PRISM method specification and public Preprod ledger facts"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust" ]
 
 [[vectors]]
 id                 = "did.syntax.valid-basic"
@@ -570,3 +602,72 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "8193-byte DID URL suffix policy, not a W3C limit; the total envelope remains 139264 bytes."
+
+[[vectors]]
+id                 = "did.prism.preprod.signed-create"
+packet             = "did.prism.portable-method.v1"
+case               = "did.prism.preprod.signed-create"
+capability         = "did.prism"
+authority          = "implementation-regression"
+source_ids         = [ "prism.did-method-spec", "neoprism.did-prism" ]
+source_locator     = "Preprod slot 10718870; NeoPRISM issue #325 and PR #327 parity receipt"
+operation          = "did-prism.signed-create.verify"
+expected           = "success"
+profile_scope      = "Pinned exact-wire PRISM v1 create and secp256k1 authentication"
+boundary           = "positive"
+resource_class     = "historical-preprod-canary"
+targets            = [ "rust" ]
+rust_selector      = "state::tests::verifies_pinned_preprod_signed_create_envelope"
+language_selectors = [  ]
+owner_issue        = 521
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "One public Preprod create envelope; not representative volume or a Cardano indexer claim."
+
+[[vectors]]
+id                 = "did.prism.preprod.signed-create-second"
+packet             = "did.prism.portable-method.v1"
+case               = "did.prism.preprod.signed-create-second"
+capability         = "did.prism"
+authority          = "implementation-regression"
+source_ids         = [ "prism.did-method-spec", "neoprism.did-prism" ]
+source_locator     = "Preprod slot 10718532; NeoPRISM issue #325 and PR #327 parity receipt"
+operation          = "did-prism.signed-create.verify"
+expected           = "success"
+profile_scope      = "Second pinned exact-wire PRISM v1 create and secp256k1 authentication"
+boundary           = "positive"
+resource_class     = "historical-preprod-canary"
+targets            = [ "rust" ]
+rust_selector      = "state::tests::verifies_pinned_preprod_signed_create_envelope"
+language_selectors = [  ]
+owner_issue        = 521
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Second public Preprod create envelope; not representative volume or a Cardano indexer claim."
+
+[[vectors]]
+id                 = "did.prism.wire.duplicate-envelope-field"
+packet             = "did.prism.portable-method.v1"
+case               = "did.prism.wire.duplicate-envelope-field"
+capability         = "did.prism"
+authority          = "identus-contract"
+source_ids         = [ "prism.did-method-spec" ]
+source_locator     = "Exact signed envelope singular-field hardening profile"
+operation          = "did-prism.envelope.parse"
+expected           = "did-prism.invalid_wire"
+profile_scope      = "SDK-Rust duplicate-aware exact protobuf boundary"
+boundary           = "negative"
+resource_class     = "duplicate-singular-field"
+targets            = [ "rust" ]
+rust_selector      = "wire::tests::rejects_duplicate_security_relevant_fields_and_kinds"
+language_selectors = [  ]
+owner_issue        = 521
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Tests SDK fail-closed behavior beyond ordinary generated protobuf decoding."

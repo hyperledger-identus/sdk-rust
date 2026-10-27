@@ -98,6 +98,15 @@ owner_issue    = "#5"
 summary        = "Bounded generic DID values, documents with narrow canonical public-key carriers, resolution, dereferencing, registration and caching without key or chain semantics."
 
 [[packages]]
+name           = "identus-prism-did"
+path           = "crates/prism-did"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#521"
+summary        = "Portable chain-neutral PRISM DID method syntax, exact signed operations, authenticated state reduction and deterministic generic DID document projection."
+
+[[packages]]
 name           = "identus-trust"
 path           = "crates/trust"
 layer          = "domain-primitives"

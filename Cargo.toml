@@ -8,6 +8,7 @@ identus-core               = { path = "crates/core", version = "=0.1.0-rc.1" }
 identus-crypto             = { path = "crates/crypto", version = "=0.1.0-rc.1", default-features = false }
 identus-derive             = { path = "crates/derive", version = "=0.1.0-rc.1" }
 identus-did                = { path = "crates/did" }
+identus-prism-did          = { path = "crates/prism-did" }
 identus-did-resolver-http  = { path = "crates/did-resolver-http" }
 identus-trust              = { path = "crates/trust" }
 identus-credentials        = { path = "crates/credentials" }
@@ -38,6 +39,7 @@ trybuild                   = "1"
 uriparse                   = "=0.6.4"
 uniffi                     = { version = "=0.32.0", default-features = false }
 wasm-bindgen               = "=0.2.121"
+prost                      = { version = "=0.14.4", default-features = false, features = [ "derive", "std" ] }
 
 # identus-did-resolver-http external dependencies. Axum is deliberately built
 # without listener/runtime defaults; Tokio and Tower `util` are test-only.

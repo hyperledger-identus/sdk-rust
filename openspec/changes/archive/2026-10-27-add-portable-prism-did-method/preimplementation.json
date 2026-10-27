@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 521,
+  "change": "add-portable-prism-did-method",
+  "branch": "codex/feat/issue-521",
+  "baseRef": "origin/develop",
+  "baseSha": "4612053cef68dd68a26a6940aa10fd41f3fb14e0",
+  "contractHeadSha": "8c241638dd502c831ab574266b8cc783bfe436f0",
+  "createdAt": "2026-10-26T23:50:03.115Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

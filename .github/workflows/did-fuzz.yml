@@ -1,4 +1,4 @@
-name: DID lexical fuzzing
+name: DID fuzzing
 
 on:
   schedule:
@@ -16,7 +16,7 @@ jobs:
   fuzz:
     name: nightly sanitizer experiment (${{ github.event_name }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -41,6 +41,9 @@ jobs:
 
       - name: Run bounded nightly soak
         run: nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all
+
+      - name: Run bounded PRISM DID soak
+        run: nix develop .#fuzz --command ./scripts/fuzz-did-prism.sh soak all
 
       - name: Preserve failing inputs
         if: failure()

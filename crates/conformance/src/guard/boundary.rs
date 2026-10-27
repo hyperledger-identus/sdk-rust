@@ -13,7 +13,10 @@ struct DependencyDeclaration {
     package: String,
     git: Option<String>,
     path: Option<String>,
+    workspace: bool,
 }
+
+const ALLOWED_IN_TREE_METHOD_PACKAGES: &[&str] = &["identus-prism-did"];
 
 const DENIED_SOURCE_IDENTITIES: &[(&str, &str)] = &[
     ("apollo repository", "hyperledger-identus/apollo"),
@@ -51,10 +54,11 @@ fn denied_identity(identity: &str) -> Option<&'static str> {
     {
         Some("Cardano")
     } else if matches_family("identus-prism")
+        || matches_family("identus-did-prism")
         || matches_family("prism")
         || matches_family("neoprism")
-        || identity == "identus-did-prism"
-        || identity.starts_with("identus-did-prism-")
+        || identity == "identus-prism-did"
+        || identity.starts_with("identus-prism-did-")
     {
         Some("PRISM")
     } else if matches_family("oxid") {
@@ -115,8 +119,8 @@ fn collect_dependency_table(
         } else {
             alias
         };
-        let (package, git, path) = match declaration {
-            toml::Value::String(_) => (alias.to_owned(), None, None),
+        let (package, git, path, workspace) = match declaration {
+            toml::Value::String(_) => (alias.to_owned(), None, None, false),
             toml::Value::Table(fields) => (
                 fields
                     .get("package")
@@ -131,6 +135,10 @@ fn collect_dependency_table(
                     .get("path")
                     .and_then(toml::Value::as_str)
                     .map(str::to_owned),
+                fields
+                    .get("workspace")
+                    .and_then(toml::Value::as_bool)
+                    .unwrap_or(false),
             ),
             _ => continue,
         };
@@ -141,6 +149,7 @@ fn collect_dependency_table(
             package,
             git,
             path,
+            workspace,
         });
     }
 }
@@ -247,11 +256,26 @@ fn direct_dependency_violations(
         });
 
     for dependency in dependency_declarations(manifest) {
+        let allowed_location = match (dependency.workspace, dependency.path.as_deref()) {
+            (true, None) => true,
+            (false, Some(path)) => manifest_dir
+                .join(path)
+                .canonicalize()
+                .is_ok_and(|path| path.starts_with(&canonical_crates)),
+            _ => false,
+        };
+        let allowed_in_tree_method = dependency.git.is_none()
+            && allowed_location
+            && ALLOWED_IN_TREE_METHOD_PACKAGES
+                .contains(&normalize_identity(&dependency.package).as_str());
         for (field, identity) in [
             ("alias", dependency.alias.as_str()),
             ("package", dependency.package.as_str()),
         ] {
-            if let Some(family) = denied_identity(identity) {
+            let allowed_identity = allowed_in_tree_method
+                && (field == "package"
+                    || normalize_identity(identity) == normalize_identity(&dependency.package));
+            if !allowed_identity && let Some(family) = denied_identity(identity) {
                 violations.push(format!(
                     "{}: dependency {} `{}` matches prohibited {family} family",
                     dependency.section, field, identity
@@ -315,12 +339,15 @@ fn lockfile_violations(lockfile: &toml::Value) -> Vec<String> {
             violations.push("Cargo.lock package entry has no name".to_owned());
             continue;
         };
-        if let Some(family) = denied_identity(name) {
+        let source = fields.get("source").and_then(toml::Value::as_str);
+        let allowed_in_tree_method = source.is_none()
+            && ALLOWED_IN_TREE_METHOD_PACKAGES.contains(&normalize_identity(name).as_str());
+        if !allowed_in_tree_method && let Some(family) = denied_identity(name) {
             violations.push(format!(
                 "Cargo.lock package `{name}` matches prohibited {family} family"
             ));
         }
-        if let Some(source) = fields.get("source").and_then(toml::Value::as_str)
+        if let Some(source) = source
             && let Some(denied) = denied_source(source)
         {
             violations.push(format!(
@@ -378,6 +405,102 @@ fn neutral_dependency_is_accepted() {
 }
 
 #[test]
+fn exact_in_tree_portable_prism_method_is_accepted() {
+    let root = workspace_root();
+    let root_manifest: toml::Value = toml::from_str(
+        r#"
+            [workspace.dependencies]
+            identus-prism-did = { path = "crates/prism-did" }
+        "#,
+    )
+    .expect("valid workspace manifest");
+    assert!(direct_dependency_violations(&root_manifest, &root, &root).is_empty());
+
+    let member_manifest: toml::Value = toml::from_str(
+        r#"
+            [dependencies]
+            identus-prism-did = { workspace = true }
+        "#,
+    )
+    .expect("valid member manifest");
+    assert!(direct_dependency_violations(&member_manifest, &root, &root).is_empty());
+
+    let local_lock: toml::Value = toml::from_str(
+        r#"
+            [[package]]
+            name = "identus-prism-did"
+            version = "0.0.0"
+        "#,
+    )
+    .expect("valid local lockfile");
+    assert!(lockfile_violations(&local_lock).is_empty());
+}
+
+#[test]
+fn external_or_expanded_prism_method_packages_remain_prohibited() {
+    let root = workspace_root();
+    let crates_io: toml::Value = toml::from_str(
+        r#"
+            [dependencies]
+            identus-prism-did = "1"
+        "#,
+    )
+    .expect("valid external manifest");
+    assert_eq!(
+        direct_dependency_violations(&crates_io, &root, &root).len(),
+        2
+    );
+
+    let expanded: toml::Value = toml::from_str(
+        r#"
+            [dependencies]
+            identus-prism-did-cardano = { workspace = true }
+        "#,
+    )
+    .expect("valid expanded manifest");
+    assert_eq!(
+        direct_dependency_violations(&expanded, &root, &root).len(),
+        2
+    );
+
+    let registry_lock: toml::Value = toml::from_str(
+        r#"
+            [[package]]
+            name = "identus-prism-did"
+            version = "1.0.0"
+            source = "registry+https://github.com/rust-lang/crates.io-index"
+        "#,
+    )
+    .expect("valid external lockfile");
+    assert_eq!(lockfile_violations(&registry_lock).len(), 1);
+
+    let local_outside_crates: toml::Value = toml::from_str(
+        r#"
+            [dependencies]
+            identus-prism-did = { path = "." }
+        "#,
+    )
+    .expect("valid local manifest");
+    let violations = direct_dependency_violations(&local_outside_crates, &root, &root);
+    assert!(
+        violations
+            .iter()
+            .any(|violation| violation.contains("matches prohibited PRISM family"))
+    );
+
+    let prohibited_alias: toml::Value = toml::from_str(
+        r#"
+            [dependencies]
+            cardano-client = { package = "identus-prism-did", path = "crates/prism-did" }
+        "#,
+    )
+    .expect("valid renamed local manifest");
+    let violations = direct_dependency_violations(&prohibited_alias, &root, &root);
+    assert_eq!(violations.len(), 1);
+    assert!(violations[0].contains("alias `cardano-client` matches prohibited Cardano family"));
+}
+
+#[test]
 fn all_dependency_section_kinds_are_enforced() {
     let root = workspace_root();
     for section in ["dependencies", "dev-dependencies", "build-dependencies"] {
@@ -419,7 +542,7 @@ fn renamed_package_and_normalized_identity_are_enforced() {
 }
 
 #[test]
-fn planned_sdk_prism_packages_remain_denied_until_implementation() {
+fn external_method_and_planned_sdk_prism_packages_remain_denied() {
     let root = workspace_root();
     for declaration in [
         r#"identus-prism-did = "1""#,
@@ -454,7 +577,7 @@ fn planned_sdk_prism_packages_remain_denied_until_implementation() {
         "#,
     )
     .expect("valid synthetic lockfile");
-    assert_eq!(lockfile_violations(&lockfile).len(), 3);
+    assert_eq!(lockfile_violations(&lockfile).len(), 2);
 }
 
 #[test]

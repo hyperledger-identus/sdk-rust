@@ -242,6 +242,17 @@ def main() -> None:
     registry = REGISTRY.read_text(encoding="utf-8")
     rendered = RENDERED.read_text(encoding="utf-8")
     catalog = CATALOG.read_text(encoding="utf-8")
+    revision_match = re.search(
+        r'(?m)^canonical_revision = "([0-9a-f]{40})"$', registry
+    )
+    if revision_match is None:
+        raise AssertionError("canonical source revision fixture is missing")
+    canonical_revision_line = (
+        f'canonical_revision = "{revision_match.group(1)}"'
+    )
+    active_state_line = 'state              = "active"'
+    pending_state_line = 'state              = "pending-revision"'
+    pending_registry = replace_once(registry, active_state_line, pending_state_line)
 
     run(registry, rendered, True)
     run(registry, rendered, True, check_rendered=True)
@@ -264,7 +275,7 @@ def main() -> None:
         ),
         replace_once(registry, "owner_issue        = 512", "owner_issue        = 999"),
         replace_once(
-            registry, 'state              = "pending-revision"', 'state              = "planned"'
+            registry, active_state_line, 'state              = "planned"'
         ),
     ):
         run(mutation, rendered, False)
@@ -306,7 +317,7 @@ def main() -> None:
         replace_once(registry, 'canonical_owner  = "sdk-rust"', 'canonical_owner  = "sdk-ts"'),
         replace_first(
             registry,
-            'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
+            canonical_revision_line,
             'canonical_revision = "develop"',
         ),
         replace_first(registry, 'language_version = "8.1.4"', 'language_version = "8.1"'),
@@ -928,8 +939,9 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         'path               = "crates/did/src/did.rs"',
         'path               = "crates/did/src/evidence/moved.rs"',
     )
-    active_moved_registry = replace_once(
-        moved_registry, 'state              = "pending-revision"', 'state              = "active"'
+    active_moved_registry = moved_registry
+    pending_moved_registry = replace_once(
+        moved_registry, active_state_line, pending_state_line
     )
 
     def moved_source(root: Path) -> None:
@@ -953,7 +965,7 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
+                canonical_revision_line,
                 f'canonical_revision = "{revision}"',
             ),
             encoding="utf-8",
@@ -966,7 +978,6 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         setup=moved_source,
         expect_diagnostic="canonical_revision path must resolve to git_blob_oid",
     )
-    pending_moved_registry = moved_registry
     first_commit_args = lambda root: [
         "--pr-base",
         subprocess.run(
@@ -1069,14 +1080,14 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
+                canonical_revision_line,
                 f'canonical_revision = "{revision}"',
             ),
             encoding="utf-8",
         )
 
     run(
-        registry,
+        pending_registry,
         rendered,
         False,
         setup=unchanged_pending,
@@ -1091,9 +1102,7 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
 
     run(
-        replace_once(
-            registry, 'state              = "pending-revision"', 'state              = "active"'
-        ),
+        registry,
         rendered,
         False,
         setup=unrelated_git_history,
@@ -1127,16 +1136,14 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
+                canonical_revision_line,
                 f'canonical_revision = "{revision}"',
             ),
             encoding="utf-8",
         )
 
     run(
-        replace_once(
-            registry, 'state              = "pending-revision"', 'state              = "active"'
-        ),
+        registry,
         rendered,
         False,
         setup=feature_only_active_revision,
@@ -1167,7 +1174,7 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         registry_path.write_text(
             replace_once(
                 registry_path.read_text(encoding="utf-8"),
-                'canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"',
+                canonical_revision_line,
                 f'canonical_revision = "{side}"',
             ),
             encoding="utf-8",

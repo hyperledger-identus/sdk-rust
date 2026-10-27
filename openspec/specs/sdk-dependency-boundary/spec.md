@@ -5,7 +5,6 @@
 Keep the generic Identus SDK dependency graph independent from chains,
 products and evidence-source repositories through deterministic manifest,
 source, path and resolved-closure enforcement.
-
 ## Requirements
 ### Requirement: SDK dependencies remain chain and product neutral
 
@@ -25,6 +24,30 @@ without requiring network or donor access.
 - **WHEN** the lockfile contains a package in a prohibited chain or product
   family
 - **THEN** the guard fails and names the package and matched policy family
+
+A method-specific crate MAY own portable deterministic method semantics when
+separately accepted by ADR and OpenSpec. The exact `identus-prism-did`
+identity SHALL be accepted only as a source-less in-tree workspace package;
+registry, Git, prefixed and ledger-family variants SHALL remain prohibited.
+
+#### Scenario: Exact local portable method package is used
+
+- **WHEN** `identus-prism-did` resolves through the workspace path beneath
+  `crates/` and its lockfile entry has no external source
+- **THEN** the chain-neutral dependency guard accepts it
+
+#### Scenario: Same name comes from a registry
+
+- **WHEN** `identus-prism-did` is version-only or its lockfile entry has a
+  registry or Git source
+- **THEN** the guard rejects it as prohibited PRISM coupling
+
+#### Scenario: Expanded method or ledger package is used
+
+- **WHEN** a dependency uses `identus-prism-did-*`, `prism-*`, Cardano,
+  Pallas, Oura or Blockfrost identity/source families
+- **THEN** the guard rejects it without treating the exact local exception as
+  a wildcard
 
 ### Requirement: Every Cargo dependency surface is inspected
 

@@ -180,6 +180,7 @@ reserve the final namespace automatically.
 | `identus-ports` | time, entropy, HTTP, secure-key/signing, storage transaction and cancellation contracts | production storage, platform keychain, browser or cloud runtime |
 | `identus-crypto` | validated encodings, public-key/JWK conversion, curve utilities and HD derivation required by SSI formats | custody, JOSE protocol, Midnight Jubjub suite |
 | `identus-did` | DID/DID URL, document, verification relationships, services, resolution/dereference/registration contracts and metadata | DID method ledger behavior, HTTP server/client |
+| `identus-prism-did` | portable PRISM method syntax, exact signed-operation validation, authenticated state reduction and generic DID document projection | Cardano transport/indexing, VDR payload semantics, persistence, node composition |
 | `identus-did-resolver-http` | optional Axum binding for the W3C DID Resolution HTTP interface over any resolver | chain resolver implementation |
 | `identus-uniffi-did` | experimental versioned UniFFI value facade for bounded DID and DID URL parsing, including local Apple proof, ARM64 Android package proof and test-only x86_64 Android runtime proof | published/signed mobile distribution, ARM64 device execution, physical-device or compatibility-matrix support, or general binding umbrella |
 | `identus-wasm-did` | experimental versioned browser-native ESM/TypeScript value facade for bounded DID and DID URL parsing with Chromium/Firefox behavior evidence | publication, Node, React Native, bundler-specific policy, browser-version matrix, secrets or browser authority |
@@ -207,13 +208,14 @@ crates.
              │             │             │
              └───────┬─────┴──────┬──────┘
                      ▼            ▼
-                identus-jose  identus-vc-core
-                     │            │
-                     ▼            ▼
-              identus-crypto  identus-did
-                                    │
-                                    ▼
-                              identus-ports
+                identus-jose  identus-vc-core   identus-prism-did
+                     │            │                │       │
+                     └────────────┼────────────────┘       │
+                                  ▼                        ▼
+                           identus-crypto              identus-did
+                                                           │
+                                                           ▼
+                                                     identus-ports
 
 identus-oid4vci -> identus-did for protocol-owned DID proof resolution
 

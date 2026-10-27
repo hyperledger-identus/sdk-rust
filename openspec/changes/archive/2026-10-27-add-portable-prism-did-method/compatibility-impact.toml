@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 521
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "This change adds the independently reusable identus-prism-did public crate and a pinned protobuf method profile without changing existing crate behavior."
+ledger_ids     = [ "did.prism.portable-method.v1" ]

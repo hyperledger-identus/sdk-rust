@@ -9,14 +9,15 @@ publish = false
 cargo-fuzz = true
 
 [dependencies]
-base64         = "=0.22.1"
-hex            = "=0.4.3"
-identus-crypto = { path = "../crates/crypto", default-features = false, features = [ "cose", "jwk-thumbprint" ] }
-identus-did    = { path = "../crates/did" }
-identus-jose   = { path = "../crates/jose" }
-libfuzzer-sys  = "=0.4.13"
-serde          = "=1.0.228"
-serde_json     = "=1.0.150"
+base64            = "=0.22.1"
+hex               = "=0.4.3"
+identus-crypto    = { path = "../crates/crypto", default-features = false, features = [ "cose", "jwk-thumbprint" ] }
+identus-did       = { path = "../crates/did" }
+identus-prism-did = { path = "../crates/prism-did" }
+identus-jose      = { path = "../crates/jose" }
+libfuzzer-sys     = "=0.4.13"
+serde             = "=1.0.228"
+serde_json        = "=1.0.150"
 
 [[bin]]
 name  = "did"
@@ -28,6 +29,20 @@ bench = false
 [[bin]]
 name  = "did_url"
 path  = "fuzz_targets/did_url.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "prism_operation"
+path  = "fuzz_targets/prism_operation.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "prism_did"
+path  = "fuzz_targets/prism_did.rs"
 test  = false
 doc   = false
 bench = false

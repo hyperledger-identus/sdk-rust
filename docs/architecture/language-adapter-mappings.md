@@ -12,7 +12,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 | Source | State | Cargo package | Revision | Path | Bytes | SHA-256 | Git blob |
 | --- | --- | --- | --- | --- | ---: | --- | --- |
-| `did.source.identus-did.v1` | `pending-revision` | `identus-did` | `ee972c49bbec75582eba213ac85903f146dfc2c4` | `crates/did/src/did.rs` | 13161 | `89fa144cbe94391c5403c1363a005266bfee5728adbc3958ad605f7d94676753` | `sha1:18132b1f388abd1cac9a0bf6fb14935604e089f6` |
+| `did.source.identus-did.v1` | `active` | `identus-did` | `4612053cef68dd68a26a6940aa10fd41f3fb14e0` | `crates/did/src/did.rs` | 13161 | `89fa144cbe94391c5403c1363a005266bfee5728adbc3958ad605f7d94676753` | `sha1:18132b1f388abd1cac9a0bf6fb14935604e089f6` |
 
 ## Mappings
 
@@ -27,7 +27,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
 - Cargo package: `identus-did`.
-- Rust API: `identus_did::Did` from source `did.source.identus-did.v1` at `ee972c49bbec75582eba213ac85903f146dfc2c4` (unreleased-workspace-0.0.0).
+- Rust API: `identus_did::Did` from source `did.source.identus-did.v1` at `4612053cef68dd68a26a6940aa10fd41f3fb14e0` (unreleased-workspace-0.0.0).
 - Canonical semantics: Validated immutable DID preserving the exact serialized value, method, and method-specific identifier.
 - Canonical bound: `MAX_DID_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `DID`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/shared/domain/src/models/DID.ts`.
@@ -60,7 +60,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
 - Cargo package: `identus-did`.
-- Rust API: `identus_did::DidUrl` from source `did.source.identus-did.v1` at `ee972c49bbec75582eba213ac85903f146dfc2c4` (unreleased-workspace-0.0.0).
+- Rust API: `identus_did::DidUrl` from source `did.source.identus-did.v1` at `4612053cef68dd68a26a6940aa10fd41f3fb14e0` (unreleased-workspace-0.0.0).
 - Canonical semantics: Validated immutable DID URL preserving exact serialization and absent-versus-empty query and fragment state.
 - Canonical bound: `MAX_DID_URL_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `DIDUrl`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/shared/domain/src/models/DIDUrl.ts`.
@@ -109,7 +109,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `error`.
 - Cargo package: `identus-did`.
-- Rust API: `identus_did::Error::to_identus_error` from source `did.source.identus-did.v1` at `ee972c49bbec75582eba213ac85903f146dfc2c4` (unreleased-workspace-0.0.0).
+- Rust API: `identus_did::Error::to_identus_error` from source `did.source.identus-did.v1` at `4612053cef68dd68a26a6940aa10fd41f3fb14e0` (unreleased-workspace-0.0.0).
 - Canonical semantics: Stable public invalid-DID code with InvalidInput kind, did capability, and redacted caller input.
 - Canonical bound: `MAX_DID_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `CastorError.InvalidDIDString`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/shared/domain/src/models/errors/Castor.ts`.
@@ -145,7 +145,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `did.syntax`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `error`.
 - Cargo package: `identus-did`.
-- Rust API: `identus_did::Error::to_identus_error` from source `did.source.identus-did.v1` at `ee972c49bbec75582eba213ac85903f146dfc2c4` (unreleased-workspace-0.0.0).
+- Rust API: `identus_did::Error::to_identus_error` from source `did.source.identus-did.v1` at `4612053cef68dd68a26a6940aa10fd41f3fb14e0` (unreleased-workspace-0.0.0).
 - Canonical semantics: Stable public invalid-DID-URL code with InvalidInput kind, did capability, and redacted caller input.
 - Canonical bound: `MAX_DID_URL_BYTES` in `crates/did/src/did.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `CastorError.InvalidDIDString`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/lib/sdk/src/castor/parser/DIDUrlParser.ts`.

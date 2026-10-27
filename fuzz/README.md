@@ -9,6 +9,9 @@ Enter the repository's Nix shell or let the wrapper enter it for you:
 ./scripts/fuzz-did.sh replay all
 ./scripts/fuzz-did.sh smoke all
 ./scripts/fuzz-did.sh soak did_url
+./scripts/fuzz-did-prism.sh replay all
+./scripts/fuzz-did-prism.sh smoke prism_operation
+./scripts/fuzz-did-prism.sh soak prism_did
 ./scripts/fuzz-crypto.sh replay all
 ./scripts/fuzz-crypto.sh smoke public_jwk
 ./scripts/fuzz-crypto.sh soak public_cose
@@ -26,6 +29,11 @@ inputs at 8 KiB, individual executions at five seconds, and RSS at 1 GiB. The
 JWS lane uses a 128 KiB ceiling to cross its 64 KiB public compact-input
 boundary. Targets with explicit parser bounds also run deterministic exact and
 one-byte-over probes.
+
+The PRISM DID lane covers the bounded exact protobuf envelope, canonical and
+long-form identifiers, typed initial state, deterministic projection and
+exact-byte/hash invariants. It accepts at most the signed-envelope ceiling plus
+headroom and runs in the same weekly DID sanitizer job.
 
 The crypto lane covers validated public JWK parsing, RFC 7638 thumbprints,
 bounded public COSE Key parsing, deterministic serialization, and structural

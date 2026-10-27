@@ -272,7 +272,10 @@ fn direct_dependency_violations(
             ("alias", dependency.alias.as_str()),
             ("package", dependency.package.as_str()),
         ] {
-            if !allowed_in_tree_method && let Some(family) = denied_identity(identity) {
+            let allowed_identity = allowed_in_tree_method
+                && (field == "package"
+                    || normalize_identity(identity) == normalize_identity(&dependency.package));
+            if !allowed_identity && let Some(family) = denied_identity(identity) {
                 violations.push(format!(
                     "{}: dependency {} `{}` matches prohibited {family} family",
                     dependency.section, field, identity
@@ -484,6 +487,17 @@ fn external_or_expanded_prism_method_packages_remain_prohibited() {
             .iter()
             .any(|violation| violation.contains("matches prohibited PRISM family"))
     );
+
+    let prohibited_alias: toml::Value = toml::from_str(
+        r#"
+            [dependencies]
+            cardano-client = { package = "identus-prism-did", path = "crates/prism-did" }
+        "#,
+    )
+    .expect("valid renamed local manifest");
+    let violations = direct_dependency_violations(&prohibited_alias, &root, &root);
+    assert_eq!(violations.len(), 1);
+    assert!(violations[0].contains("alias `cardano-client` matches prohibited Cardano family"));
 }
 
 #[test]

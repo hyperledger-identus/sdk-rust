@@ -9,6 +9,8 @@ use crate::{
     MAX_SIGNED_WITH_BYTES, WireError, operation::validate_fragment,
 };
 
+const MAX_PROTOBUF_FIELD_NUMBER: u64 = (1 << 29) - 1;
+
 /// Stable discriminator for an operation carried by a PRISM envelope.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
@@ -242,7 +244,7 @@ fn scan_envelope(bytes: &[u8]) -> Result<EnvelopeRanges, WireError> {
         cursor = next;
         let field = key >> 3;
         let wire_type = (key & 0x07) as u8;
-        if field == 0 {
+        if !valid_field_number(field) {
             return Err(WireError::Malformed);
         }
         if matches!(field, 1..=3) {
@@ -296,7 +298,7 @@ fn scan_operation(bytes: &[u8]) -> Result<(OperationKind, Range<usize>), WireErr
         cursor = next;
         let field = key >> 3;
         let wire_type = (key & 0x07) as u8;
-        if field == 0 {
+        if !valid_field_number(field) {
             return Err(WireError::Malformed);
         }
         let kind = match field {
@@ -516,7 +518,7 @@ fn scan_fields(
         cursor = next;
         let field = key >> 3;
         let wire_type = (key & 0x07) as u8;
-        if field == 0 {
+        if !valid_field_number(field) {
             return Err(WireError::Malformed);
         }
         if wire_type == 2 {
@@ -528,6 +530,10 @@ fn scan_fields(
         }
     }
     Ok(())
+}
+
+const fn valid_field_number(field: u64) -> bool {
+    field > 0 && field <= MAX_PROTOBUF_FIELD_NUMBER
 }
 
 fn read_varint(bytes: &[u8], start: usize) -> Result<(u64, usize), WireError> {
@@ -664,6 +670,25 @@ mod tests {
         assert_eq!(
             SignedPrismOperation::parse(&[0x0a, 0x00, 0x12, 0x00, 0x1a, 0x00]),
             Err(Error::InvalidWire(WireError::RequiredFieldMissing))
+        );
+
+        let mut invalid_field = Vec::new();
+        prost::encoding::encode_varint((MAX_PROTOBUF_FIELD_NUMBER + 1) << 3, &mut invalid_field);
+        invalid_field.push(0);
+        assert_eq!(
+            SignedPrismOperation::parse(&invalid_field),
+            Err(Error::InvalidWire(WireError::Malformed))
+        );
+
+        let mut operation = vec![0x0a, 0x00];
+        operation.extend_from_slice(&invalid_field);
+        assert_eq!(
+            RawPrismOperation::parse(&operation),
+            Err(Error::InvalidWire(WireError::Malformed))
+        );
+        assert_eq!(
+            scan_fields(&invalid_field, |_, _, _| Ok(())),
+            Err(WireError::Malformed)
         );
     }
 }

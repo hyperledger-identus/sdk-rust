@@ -65,6 +65,9 @@ Root resolution alone is insufficient for updates and deactivation. The VDR
 lookup snapshot also supplies the current head for each root. A predecessor
 must equal that head, after applying earlier operations in the same transaction;
 otherwise the operation is a stale fork and rejects the complete transaction.
+The snapshot and batch-local entry state also carry a terminal flag.
+Deactivation advances the head and sets terminal atomically; every later update
+or deactivation is rejected even when it names that terminal head.
 
 Default limits and absolute maxima are public typed configuration. The initial
 profile will cap operation/object bytes at the already accepted PRISM envelope
@@ -96,6 +99,8 @@ a thin adapter around its current source and repository implementations.
   the typed transaction header and contiguous operation indices are required.
 - Treat any root-reachable predecessor as current: admits stale forks after an
   entry has already advanced.
+- Model deactivation as only another head: would allow update or repeated
+  deactivation after a terminal event.
 
 ## Review fallback
 

@@ -10,6 +10,7 @@
 - [x] 1.6 Address independent Codex planning review: authorization, transaction completeness and bounded-work consistency.
 - [x] 1.7 Address independent Codex replay/head review: exact-content replay ordering and stale-fork rejection.
 - [x] 1.8 Address independent Codex retry review: pre-planning replay probe plus atomic race closure.
+- [x] 1.9 Bind pending quality ID `did.prism.vdr-indexing.quality.v1` and terminal deactivation semantics.
 
 ## 2. VDR capability
 
@@ -28,7 +29,7 @@
 ## 4. Architecture and quality
 
 - [ ] 4.1 Replace the complete-family deny with the exact dependency graph guard.
-- [ ] 4.2 Add stable quality declarations and compatibility/change-ledger records.
+- [ ] 4.2 Activate `did.prism.vdr-indexing.quality.v1` and add compatibility/change-ledger records.
 - [ ] 4.3 Capture dependency cone and native/WASM/iOS/Android evidence.
 - [ ] 4.4 Capture directional benchmarks and 300-second Linux fuzz evidence.
 

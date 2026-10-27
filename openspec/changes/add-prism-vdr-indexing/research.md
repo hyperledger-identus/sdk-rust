@@ -126,6 +126,9 @@ late validation error.
 The donor's root traversal is not sufficient as an update-state check: a
 root-reachable predecessor may no longer be the current entry head. SDK-Rust
 adds an explicit committed plus batch-local head invariant and rejects forks.
+The same entry state retains a terminal bit because donor protocol state rejects
+updates and repeated deactivation after revocation; a terminal hash is not a
+new mutable head.
 Replay identity is a domain-separated digest of the complete exact ordered
 transition, not the opaque transaction label alone. A committed-receipt probe
 must run before state-dependent planning; otherwise an ambiguous retry can be
@@ -173,3 +176,7 @@ Independent review uses Claude when available. If Claude is missing,
 unauthenticated or quota-limited, Codex CLI runs immediately against the same
 exact commit; waiting for quota is prohibited. Findings remain advisory until
 verified locally, and the reviewer identity, command and commit are retained.
+
+The issue-owned pending quality declaration is
+`did.prism.vdr-indexing.quality.v1`; implementation must activate its property,
+fuzz, benchmark and differential routes before consumer-visible activation.

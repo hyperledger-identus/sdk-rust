@@ -32,6 +32,8 @@ crypto, error, target, unsafe-code and release constraints remain unchanged.
 - Update/deactivate must reference the current head of the resolved root after
   earlier operations in the same transaction. Root-reachable but stale
   predecessors are rejected as forks.
+- Deactivation is terminal entry state, not merely a new head. Later update or
+  repeated deactivation is rejected against committed and batch-local state.
 - One batch carries exactly one bounded transaction identity, a declared
   operation count and contiguous zero-based indices. The source adapter owns
   authoritative boundary extraction; the SDK rejects inconsistent or oversized
@@ -88,3 +90,5 @@ Evidence authorities are issue #522, ADR 0174, the new concrete API ADR, the
 pinned NeoPRISM donor revision, PRISM protobuf sources already pinned by
 `identus-prism-did`, OpenSpec validation, conformance/fuzz/property tests,
 dependency and target receipts, independent review and protected CI.
+The pending quality declaration ID is `did.prism.vdr-indexing.quality.v1` and
+is owned by issue #522 until implementation activates its executable routes.

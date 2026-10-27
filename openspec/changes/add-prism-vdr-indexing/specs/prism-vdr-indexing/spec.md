@@ -163,6 +163,12 @@ batch-local state before authorizing later storage operations.
   not the current committed-plus-batch-local head for that root
 - **THEN** the complete transaction is rejected before commit
 
+#### Scenario: a mutation follows terminal deactivation
+
+- **WHEN** an update or repeated deactivation names the terminal head of an
+  entry already deactivated in committed or earlier batch-local state
+- **THEN** the complete transaction is rejected before commit
+
 #### Scenario: a DID update precedes storage in the same transaction
 
 - **WHEN** a valid ordered DID operation changes the VDR-key set before a later

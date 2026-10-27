@@ -33,7 +33,10 @@ lookup snapshot, records visited hashes and terminates on root, missing parent,
 cycle or depth exhaustion. The lookup also supplies the committed current head
 for the resolved root. Update/deactivate predecessors must equal that head after
 earlier batch-local operations are applied; a second child of an old head is a
-stale fork and rejects the transaction. The lookup cannot mutate state.
+stale fork and rejects the transaction. Committed and batch-local entry state
+also carry a terminal flag. Deactivation advances the head and marks terminal;
+no later update or deactivation is valid even when it references that head. The
+lookup cannot mutate state.
 
 Authorization uses the owner DID derived directly from create or from the
 resolved root for update/deactivate. The caller supplies the materialized DID
@@ -106,7 +109,12 @@ Cardano, Tokio or SQL into production dependencies.
 ## Verification
 
 Verification includes donor/spec vectors, malformed/orphan/cycle/depth cases,
-order permutations, atomic rollback, replay conflicts, property traces, fuzz
+terminal-deactivation cases, order permutations, atomic rollback, replay
+conflicts, property traces, fuzz
 targets for payload and batch boundaries, dependency graph tests, supported
 target checks and directional parse/plan/traversal benchmarks. Performance data
 is reported but is not a CI threshold without a later stability decision.
+
+The issue-owned pending declaration ID is
+`did.prism.vdr-indexing.quality.v1`. Implementation activates it in the
+canonical quality registry before the consumer-visible ledger record.

@@ -37,3 +37,7 @@ mutation, or crates.io publication.
 Issue #522 owns one cohesive extraction after #521. Public activation remains
 independent per crate. NeoPRISM adoption and mainnet/preprod comparison are a
 separate downstream slice after this SDK contract is stable.
+
+Pending quality declaration `did.prism.vdr-indexing.quality.v1`, owned by issue
+#522, will bind property, fuzz, benchmark and donor differential evidence before
+consumer-visible activation.

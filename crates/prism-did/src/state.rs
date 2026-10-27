@@ -154,11 +154,19 @@ impl PrismDidState {
         for action in operation.actions() {
             self.apply_action(action.clone())?;
         }
+        if self.public_keys.len() > MAX_VERIFICATION_METHODS || self.services.len() > MAX_SERVICES {
+            return Err(StateError::InvalidCandidate.into());
+        }
         if !self
             .active_public_keys()
             .any(|key| key.usage() == KeyUsage::Master)
         {
             return Err(StateError::InvalidCandidate.into());
+        }
+        if self.retired_public_key_ids.len() > MAX_RETIRED_IDENTIFIERS_PER_KIND
+            || self.retired_service_ids.len() > MAX_RETIRED_IDENTIFIERS_PER_KIND
+        {
+            return Err(StateError::ResourceLimitExceeded.into());
         }
         self.last_operation_hash = raw.operation_hash();
         Ok(())
@@ -200,16 +208,12 @@ impl PrismDidState {
                     .iter()
                     .any(|active| active.id() == key.id())
                     || self.retired_public_key_ids.contains(key.id())
-                    || self.public_keys.len() >= MAX_VERIFICATION_METHODS
                 {
                     return Err(StateError::IdentifierConflict.into());
                 }
                 self.public_keys.push(key);
             }
             UpdateAction::RemoveKey(id) => {
-                if self.retired_public_key_ids.len() >= MAX_RETIRED_IDENTIFIERS_PER_KIND {
-                    return Err(StateError::ResourceLimitExceeded.into());
-                }
                 let index = self
                     .public_keys
                     .iter()
@@ -224,16 +228,12 @@ impl PrismDidState {
                     .iter()
                     .any(|active| active.id() == service.id())
                     || self.retired_service_ids.contains(service.id())
-                    || self.services.len() >= MAX_SERVICES
                 {
                     return Err(StateError::IdentifierConflict.into());
                 }
                 self.services.push(service);
             }
             UpdateAction::RemoveService(id) => {
-                if self.retired_service_ids.len() >= MAX_RETIRED_IDENTIFIERS_PER_KIND {
-                    return Err(StateError::ResourceLimitExceeded.into());
-                }
                 let index = self
                     .services
                     .iter()
@@ -639,6 +639,28 @@ mod tests {
     #[test]
     fn retired_key_budget_fails_atomically() {
         let mut state = initial_state();
+        let public = Secp256k1PrivateKey::from_slice(&[2; 32])
+            .unwrap()
+            .to_public_key()
+            .encode_compressed();
+        let add_auth = signed_update(
+            &state,
+            vec![action(proto::update_did_action::Action::AddKey(
+                proto::AddKeyAction {
+                    key: Some(proto::PublicKey {
+                        id: "auth".to_owned(),
+                        usage: proto::KeyUsage::Authentication as i32,
+                        key_data: Some(proto::public_key::KeyData::Compressed(
+                            proto::CompressedEcKeyData {
+                                curve: "secp256k1".to_owned(),
+                                data: public.to_vec(),
+                            },
+                        )),
+                    }),
+                },
+            ))],
+        );
+        state.apply_signed(&add_auth).unwrap();
         state.retired_public_key_ids = (0..MAX_RETIRED_IDENTIFIERS_PER_KIND)
             .map(|index| format!("retired-key-{index}"))
             .collect();
@@ -646,7 +668,7 @@ mod tests {
             &state,
             vec![action(proto::update_did_action::Action::RemoveKey(
                 proto::RemoveKeyAction {
-                    key_id: "master".to_owned(),
+                    key_id: "auth".to_owned(),
                 },
             ))],
         );
@@ -657,6 +679,76 @@ mod tests {
             Err(Error::InvalidState(StateError::ResourceLimitExceeded))
         );
         assert_eq!(state, before);
+    }
+
+    #[test]
+    fn invalid_removal_wins_over_a_full_retired_identifier_budget() {
+        let mut state = initial_state();
+        state.retired_service_ids = (0..MAX_RETIRED_IDENTIFIERS_PER_KIND)
+            .map(|index| format!("retired-{index}"))
+            .collect();
+        let remove = signed_update(
+            &state,
+            vec![action(proto::update_did_action::Action::RemoveService(
+                proto::RemoveServiceAction {
+                    service_id: "missing".to_owned(),
+                },
+            ))],
+        );
+
+        assert_eq!(
+            state.apply_signed(&remove),
+            Err(Error::InvalidState(StateError::IdentifierConflict))
+        );
+    }
+
+    #[test]
+    fn active_capacity_is_validated_on_the_final_ordered_candidate() {
+        let mut state = initial_state();
+        let fill = (1..MAX_SERVICES)
+            .map(|index| {
+                action(proto::update_did_action::Action::AddService(
+                    proto::AddServiceAction {
+                        service: Some(proto::Service {
+                            id: format!("service-{index}"),
+                            r#type: "LinkedDomains".to_owned(),
+                            service_endpoint: "https://example.com".to_owned(),
+                        }),
+                    },
+                ))
+            })
+            .collect();
+        let fill = signed_update(&state, fill);
+        state.apply_signed(&fill).unwrap();
+        assert_eq!(state.active_services().count(), MAX_SERVICES);
+
+        let replace = signed_update(
+            &state,
+            vec![
+                action(proto::update_did_action::Action::AddService(
+                    proto::AddServiceAction {
+                        service: Some(proto::Service {
+                            id: "service-next".to_owned(),
+                            r#type: "LinkedDomains".to_owned(),
+                            service_endpoint: "https://example.com/next".to_owned(),
+                        }),
+                    },
+                )),
+                action(proto::update_did_action::Action::RemoveService(
+                    proto::RemoveServiceAction {
+                        service_id: "service".to_owned(),
+                    },
+                )),
+            ],
+        );
+
+        state.apply_signed(&replace).unwrap();
+        assert_eq!(state.active_services().count(), MAX_SERVICES);
+        assert!(
+            state
+                .active_services()
+                .any(|service| service.id() == "service-next")
+        );
     }
 
     #[test]

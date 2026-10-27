@@ -12,6 +12,7 @@ const PREFIX: &str = "did:peer:4";
 const JSON_MULTICODEC: [u8; 2] = [0x80, 0x04];
 const SHA2_256_MULTIHASH: [u8; 2] = [0x12, 0x20];
 const MULTIHASH_BYTES: usize = 34;
+const MAX_ENCODED_MULTIHASH_BYTES: usize = 48;
 
 /// Maximum decoded JSON input-document bytes accepted by this profile.
 ///
@@ -240,6 +241,9 @@ fn validate_hash(hash: &str, encoded_document: &str) -> Result<(), Error> {
 }
 
 fn validate_multihash(hash: &str) -> Result<[u8; 32], Error> {
+    if hash.len() > MAX_ENCODED_MULTIHASH_BYTES {
+        return Err(Error::ResourceLimit);
+    }
     let decoded = decode_multibase(hash, MULTIHASH_BYTES)?;
     if decoded.len() != MULTIHASH_BYTES || !decoded.starts_with(&SHA2_256_MULTIHASH) {
         return Err(Error::UnsupportedCodec);
@@ -450,6 +454,12 @@ mod tests {
             ShortForm::parse("did:peer:2.Vz6Mkabc"),
             Err(Error::UnsupportedAlgorithm)
         );
+    }
+
+    #[test]
+    fn rejects_oversized_hash_before_base58_decoding() {
+        let oversized = format!("{PREFIX}z{}", "1".repeat(MAX_ENCODED_MULTIHASH_BYTES));
+        assert_eq!(ShortForm::parse(&oversized), Err(Error::ResourceLimit));
     }
 
     #[test]

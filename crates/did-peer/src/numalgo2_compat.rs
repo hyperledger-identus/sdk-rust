@@ -341,6 +341,11 @@ fn validate_service(service: &Service) -> Result<(), Error> {
     if service.type_.is_empty() || service.type_.len() > 128 {
         return Err(Error::InvalidInputDocument);
     }
+    let mut retained_string_bytes = service
+        .type_
+        .len()
+        .checked_add(service.id.as_deref().map_or(0, str::len))
+        .ok_or(Error::ResourceLimit)?;
     let endpoint_uri = match &service.endpoint {
         ServiceEndpoint::Uri(uri) if uri.is_empty() || uri.len() > 8_192 => {
             return Err(Error::InvalidInputDocument);
@@ -353,9 +358,30 @@ fn validate_service(service: &Service) -> Result<(), Error> {
         {
             return Err(Error::ResourceLimit);
         }
-        ServiceEndpoint::Uri(uri) => uri,
-        ServiceEndpoint::Map(endpoint) => &endpoint.uri,
+        ServiceEndpoint::Uri(uri) => {
+            retained_string_bytes = retained_string_bytes
+                .checked_add(uri.len())
+                .ok_or(Error::ResourceLimit)?;
+            uri
+        }
+        ServiceEndpoint::Map(endpoint) => {
+            retained_string_bytes = retained_string_bytes
+                .checked_add(endpoint.uri.len())
+                .ok_or(Error::ResourceLimit)?;
+            for value in endpoint.accept.iter().chain(&endpoint.routing_keys) {
+                retained_string_bytes = retained_string_bytes
+                    .checked_add(value.len())
+                    .ok_or(Error::ResourceLimit)?;
+                if retained_string_bytes > MAX_SERVICE_BYTES {
+                    return Err(Error::ResourceLimit);
+                }
+            }
+            &endpoint.uri
+        }
     };
+    if retained_string_bytes > MAX_SERVICE_BYTES {
+        return Err(Error::ResourceLimit);
+    }
     Uri::parse(endpoint_uri).map_err(|_| Error::InvalidInputDocument)?;
     if service
         .id
@@ -462,6 +488,24 @@ mod tests {
             .encode(br#"{"t":"DIDCommMessaging","s":"https://example.com","privateKey":"secret"}"#);
         let value = format!("did:peer:2.V{VERIFICATION_KEY}.S{secret_service}");
         assert_eq!(PeerDid::parse(&value), Err(Error::InvalidInputDocument));
+    }
+
+    #[test]
+    fn rejects_oversized_service_fields_before_serialization() {
+        let key = PublicKey::new(Purpose::Verification, VERIFICATION_KEY).expect("key");
+        let service = Service {
+            type_: "DIDCommMessaging".into(),
+            endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
+                uri: "https://example.com/didcomm".into(),
+                accept: vec!["a".repeat(MAX_SERVICE_BYTES)],
+                routing_keys: vec![],
+            }),
+            id: None,
+        };
+        assert_eq!(
+            PeerDid::create(vec![key], vec![service]),
+            Err(Error::ResourceLimit)
+        );
     }
 
     #[test]

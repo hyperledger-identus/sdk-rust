@@ -47,7 +47,7 @@ baseline may add thresholds and allocation instrumentation.
 ## Property and fuzz evidence
 
 Deterministic property tests exhaust all 24 orderings of a four-record batch
-and every accepted ancestry length from one through 200 nodes. Focused VDR and
+and every accepted ancestry length from zero through 200 predecessor hops. Focused VDR and
 indexer unit, conformance, and clippy gates pass.
 
 Both libFuzzer targets passed a 4,096-run AddressSanitizer smoke on the local

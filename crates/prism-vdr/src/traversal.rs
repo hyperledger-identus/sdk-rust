@@ -130,7 +130,7 @@ pub fn resolve_entry<L: VdrLookup>(
 ) -> Result<ResolvedEntry, Error> {
     let mut current = predecessor;
     let mut visited = HashSet::new();
-    for position in 0..MAX_ANCESTRY_DEPTH {
+    for position in 0..=MAX_ANCESTRY_DEPTH {
         let position = u16::try_from(position).expect("ancestry bound fits u16");
         if !visited.insert(current) {
             return Err(Error::at(ErrorKind::Cycle, position));
@@ -177,6 +177,6 @@ pub fn resolve_entry<L: VdrLookup>(
     }
     Err(Error::at(
         ErrorKind::ResourceLimitExceeded,
-        u16::try_from(MAX_ANCESTRY_DEPTH).expect("ancestry bound fits u16"),
+        u16::try_from(MAX_ANCESTRY_DEPTH + 1).expect("ancestry bound fits u16"),
     ))
 }

@@ -29,6 +29,12 @@ pub trait TransitionReceiptLookup {
     ) -> Result<Option<TransitionDigest>, StoreError>;
 }
 
+/// Read-only source cursor lookup used to fail stale work before planning.
+pub trait CursorLookup {
+    /// Return the current committed source cursor, if indexing has started.
+    fn current_cursor(&self) -> Result<Option<Cursor>, StoreError>;
+}
+
 /// Complete request supplied to a caller-owned atomic commit boundary.
 pub struct CommitRequest<'a> {
     /// Unique source transaction identity.
@@ -82,7 +88,7 @@ pub enum IndexOutcome {
 /// Probe replay before mutable-state reads, otherwise plan and commit once.
 pub fn index_transaction<S>(batch: &TransactionBatch, store: &S) -> Result<IndexOutcome, Error>
 where
-    S: TransitionReceiptLookup + DidStateLookup + VdrLookup + AtomicCommit,
+    S: TransitionReceiptLookup + CursorLookup + DidStateLookup + VdrLookup + AtomicCommit,
 {
     if let Some(committed) = store
         .transition_receipt(batch.identity())
@@ -93,6 +99,13 @@ where
         } else {
             Err(Error::new(ErrorKind::Conflict))
         };
+    }
+    if store
+        .current_cursor()
+        .map_err(|_| Error::new(ErrorKind::LookupFailed))?
+        .is_some_and(|current| current.as_bytes() != batch.expected_cursor().as_bytes())
+    {
+        return Err(Error::new(ErrorKind::Conflict));
     }
     let plan = plan_transaction(batch, store)?;
     let request = CommitRequest {

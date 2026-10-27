@@ -91,6 +91,11 @@ byte length and its exact bytes. Integer values SHALL use fixed-width
 big-endian bytes within that frame, and records SHALL be framed individually in
 contiguous index order.
 
+After the identity-first replay probe and before state-dependent planning, the
+SDK SHALL compare an existing committed source cursor with the batch's expected
+cursor. A mismatch SHALL return conflict without reading DID or VDR state. The
+atomic commit SHALL repeat identity-first and cursor checks to close races.
+
 #### Scenario: batch validation fails late
 
 - **WHEN** any record is malformed, out of order, orphaned, cyclic, too deep or

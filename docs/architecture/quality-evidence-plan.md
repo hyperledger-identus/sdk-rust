@@ -161,7 +161,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `property`
 
 - Command: `cargo test -p identus-prism-vdr property && cargo test -p identus-prism-indexer property`
-- Budget: Exercise every accepted ancestry length from one through 200 and all 24 permutations of four framed transaction records.
+- Budget: Exercise every accepted ancestry length from zero through 200 predecessor hops and all 24 permutations of four framed transaction records.
 - Receipt: `source:docs/architecture/prism-vdr-indexer-quality-baseline.md`
 - Evidence revision: `81166292462cae8e0254b1724dddb5c2f62a34fe`
 

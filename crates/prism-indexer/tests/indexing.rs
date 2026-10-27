@@ -6,7 +6,7 @@ use identus_prism_did::{
     PrismPublicKeyMaterial, RawPrismOperation, SignedPrismOperation,
 };
 use identus_prism_indexer::{
-    AtomicCommit, CommitOutcome, CommitRequest, Cursor, DidStateLookup,
+    AtomicCommit, CommitOutcome, CommitRequest, Cursor, CursorLookup, DidStateLookup,
     ErrorKind as IndexerErrorKind, IncomingRecord, IndexOutcome, Mutation, StoreError,
     TransactionBatch, TransactionIdentity, TransitionDigest, TransitionReceiptLookup,
     index_transaction, plan_transaction,
@@ -79,6 +79,12 @@ impl TransitionReceiptLookup for InMemoryStore {
         identity: &TransactionIdentity,
     ) -> Result<Option<TransitionDigest>, StoreError> {
         Ok(self.0.lock().unwrap().receipts.get(identity).copied())
+    }
+}
+
+impl CursorLookup for InMemoryStore {
+    fn current_cursor(&self) -> Result<Option<Cursor>, StoreError> {
+        Ok(self.0.lock().unwrap().cursor.clone())
     }
 }
 
@@ -315,6 +321,27 @@ fn advances_an_existing_vdr_head_and_rejects_identity_reuse() {
     let conflicting = batch(b"tx-2", b"cursor-2", b"cursor-3", vec![create_storage]);
     assert!(index_transaction(&conflicting, &store).is_err());
     assert_eq!(store.0.lock().unwrap().commits, 2);
+}
+
+#[test]
+fn stale_cursor_conflicts_before_state_dependent_planning() {
+    let store = InMemoryStore::default();
+    store.0.lock().unwrap().cursor = Some(Cursor::new(b"current").unwrap());
+    let key = Secp256k1PrivateKey::from_slice(&[3; 32]).unwrap();
+    let predecessor = Sha256Digest::from_bytes(&[9; 32]).unwrap();
+    let mut update_payload = Vec::new();
+    push_bytes(&mut update_payload, 2, predecessor.as_bytes());
+    push_bytes(&mut update_payload, 100, b"updated");
+    let stale = batch(
+        b"tx-stale",
+        b"stale",
+        b"next",
+        vec![signed_vdr(8, &update_payload, &key)],
+    );
+
+    let error = index_transaction(&stale, &store).unwrap_err();
+    assert_eq!(error.kind(), IndexerErrorKind::Conflict);
+    assert_eq!(store.0.lock().unwrap().commits, 0);
 }
 
 #[test]

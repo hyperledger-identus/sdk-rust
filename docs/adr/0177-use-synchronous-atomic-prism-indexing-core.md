@@ -48,7 +48,10 @@ store's immutable committed-transition receipt by transaction identity. A
 receipt with the same digest is replay success, which keeps an
 ambiguous-acknowledgement retry reachable even after state advanced. The same
 identity with a different digest is a conflict. An absent receipt proceeds to
-normal planning.
+an existing source-cursor observation. A stale expected cursor is rejected as a
+conflict before state-dependent planning. An absent or matching source cursor
+proceeds to normal planning; the atomic commit repeats the cursor check to close
+races.
 
 The commit request contains the same digest and the complete ordered mutation
 set. Atomically, the adapter first looks up the transaction identity: an exact
@@ -80,7 +83,7 @@ or deactivation is rejected even when it names that terminal head.
 Default limits and absolute maxima are public typed configuration. The initial
 profile will cap operation/object bytes at the already accepted PRISM envelope
 limits, records at 1,024 per batch, total signed bytes at 8 MiB, ancestry at 200
-nodes, lookup work at 4,096 nodes per batch, transaction identity at 256 bytes,
+predecessor hops, lookup work at 4,096 nodes per batch, transaction identity at 256 bytes,
 and each encoded expected/next cursor at 1,024 bytes. Identity and cursor limits
 are checked before cloning, retaining or hashing their bytes. Values may be
 configured lower; raising absolute maxima is a compatibility/security decision.

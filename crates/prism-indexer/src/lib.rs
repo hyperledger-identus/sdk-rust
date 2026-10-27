@@ -14,8 +14,8 @@ pub use batch::{
 pub use error::{Error, ErrorKind};
 pub use planner::{DidStateLookup, Mutation, PlannedTransaction, plan_transaction};
 pub use store::{
-    AtomicCommit, CommitOutcome, CommitRequest, IndexOutcome, StoreError, TransitionReceiptLookup,
-    index_transaction,
+    AtomicCommit, CommitOutcome, CommitRequest, CursorLookup, IndexOutcome, StoreError,
+    TransitionReceiptLookup, index_transaction,
 };
 
 /// Metadata for the `identus-prism-indexer` crate.

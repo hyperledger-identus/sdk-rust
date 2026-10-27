@@ -383,7 +383,8 @@ fn rejects_cycles_terminal_entries_and_exhausted_work() {
 
 #[test]
 fn property_generated_ancestry_lengths_preserve_root_and_head() {
-    for node_count in 1..=MAX_ANCESTRY_DEPTH {
+    for predecessor_hops in 0..=MAX_ANCESTRY_DEPTH {
+        let node_count = predecessor_hops + 1;
         let owner = CanonicalPrismDid::from_digest(&[0x55; 32]);
         let root = sha256(0_u64.to_be_bytes());
         let mut previous = root;

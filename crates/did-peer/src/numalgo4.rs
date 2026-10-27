@@ -157,6 +157,9 @@ impl LongForm {
             return classify_wrong_profile(value);
         }
         let remainder = &value[PREFIX.len()..];
+        if !remainder.is_empty() && !remainder.starts_with('z') {
+            return Err(Error::UnsupportedAlgorithm);
+        }
         let (hash, encoded_document) = remainder.split_once(':').ok_or(Error::WrongProfile)?;
         if hash.contains(':') || encoded_document.contains(':') {
             return Err(Error::MalformedEncoding);
@@ -218,6 +221,9 @@ impl ShortForm {
             return classify_wrong_profile(value);
         }
         let hash = &value[PREFIX.len()..];
+        if !hash.is_empty() && !hash.starts_with('z') {
+            return Err(Error::UnsupportedAlgorithm);
+        }
         if hash.is_empty() || hash.contains(':') {
             return Err(Error::WrongProfile);
         }
@@ -624,6 +630,14 @@ mod tests {
         assert_eq!(LongForm::parse(&tampered), Err(Error::HashMismatch));
         assert_eq!(
             ShortForm::parse("did:peer:2.Vz6Mkabc"),
+            Err(Error::UnsupportedAlgorithm)
+        );
+        assert_eq!(
+            ShortForm::parse("did:peer:40zabc"),
+            Err(Error::UnsupportedAlgorithm)
+        );
+        assert_eq!(
+            LongForm::parse("did:peer:40zabc:zdocument"),
             Err(Error::UnsupportedAlgorithm)
         );
     }

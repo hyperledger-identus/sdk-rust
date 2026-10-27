@@ -187,6 +187,9 @@ impl PeerDid {
             };
         }
         let suffix = value.strip_prefix(PREFIX).ok_or(Error::WrongProfile)?;
+        if !suffix.is_empty() && !suffix.starts_with('.') {
+            return Err(Error::UnsupportedAlgorithm);
+        }
         if !suffix.starts_with('.') {
             return Err(Error::MalformedEncoding);
         }
@@ -609,6 +612,10 @@ mod tests {
     fn rejects_other_profiles_and_unknown_codecs() {
         assert_eq!(
             PeerDid::parse("did:peer:4zQmabc"),
+            Err(Error::UnsupportedAlgorithm)
+        );
+        assert_eq!(
+            PeerDid::parse("did:peer:20.Vz6Mkabc"),
             Err(Error::UnsupportedAlgorithm)
         );
         assert_eq!(

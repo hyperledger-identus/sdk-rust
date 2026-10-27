@@ -27,6 +27,9 @@ from blocking delivery.
   endpoint-map shape; JWK context is preserved through nested arrays.
 - Numalgo-2 preflights aggregate DID length before base64-encoding and appending
   each compact service.
+- Both profile parsers match the complete algorithm selector boundary, so
+  selectors such as `20` and `40` remain `UnsupportedAlgorithm` rather than
+  being misclassified as malformed payloads for algorithms 2 and 4.
 - The exact 16 KiB decoded input ceiling round-trips. The profile ceiling is
   intentionally below the generic DID limit because large base58 conversion is
   super-linear; the measured exact-boundary test completes in about 2.3 seconds

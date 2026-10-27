@@ -252,7 +252,7 @@ fn compact_header_and_segment_profile_rejects_each_independent_defect() {
         ("sixth compact segment", format!("{valid}.AAAA")),
         (
             "forbidden base64url character",
-            compact_with_segment(&valid, 2, "AQEBAQEBAQEBAQEB+"),
+            compact_with_segment(&valid, 2, "AQEBAQEBAQEBAQE+"),
         ),
     ]);
 

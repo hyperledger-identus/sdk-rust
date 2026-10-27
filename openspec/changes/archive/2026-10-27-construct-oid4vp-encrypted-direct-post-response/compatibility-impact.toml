@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 535
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The pre-release JOSE port and OID4VP transition add a non-exhaustive response mode, metadata-specific validation categories and a mode-mismatch guard while keeping existing valid plain direct-post wire output unchanged and leaking no engine API."
+ledger_ids     = [ "oid4vp.direct-post-response.encrypted.v1" ]

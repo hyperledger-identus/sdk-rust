@@ -9,11 +9,11 @@ target=${2:-direct_post_response}
 case "$mode" in
   replay | smoke | soak) ;;
   *)
-    printf 'Usage: %s {replay|smoke|soak} [direct_post_response]\n' "$0" >&2
+    printf 'Usage: %s {replay|smoke|soak} [direct_post_response|encrypted_direct_post_response]\n' "$0" >&2
     exit 2
     ;;
 esac
-if [[ "$target" != "direct_post_response" ]]; then
+if [[ "$target" != "direct_post_response" && "$target" != "encrypted_direct_post_response" ]]; then
   printf 'fuzz-oid4vp: unsupported target: %s\n' "$target" >&2
   exit 2
 fi

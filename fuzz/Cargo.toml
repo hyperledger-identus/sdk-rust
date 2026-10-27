@@ -11,7 +11,7 @@ cargo-fuzz = true
 [dependencies]
 base64                = "=0.22.1"
 hex                   = "=0.4.3"
-identus-crypto        = { path = "../crates/crypto", default-features = false, features = [ "cose", "jwk-thumbprint" ] }
+identus-crypto        = { path = "../crates/crypto", default-features = false, features = [ "cose", "ed25519", "jwk-thumbprint", "secp256r1" ] }
 identus-did           = { path = "../crates/did" }
 identus-did-peer      = { path = "../crates/did-peer" }
 identus-prism-did     = { path = "../crates/prism-did" }
@@ -96,6 +96,13 @@ bench = false
 [[bin]]
 name  = "direct_post_response"
 path  = "fuzz_targets/direct_post_response.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "encrypted_direct_post_response"
+path  = "fuzz_targets/encrypted_direct_post_response.rs"
 test  = false
 doc   = false
 bench = false

@@ -107,6 +107,9 @@ pub mod error_code {
         ErrorCode::new("oid4vp.protocol_error_uri_too_large");
     pub const DIRECT_POST_ERROR_FORM_TOO_LARGE: ErrorCode =
         ErrorCode::new("oid4vp.direct_post_error_form_too_large");
+    pub const RESPONSE_MODE_MISMATCH: ErrorCode = ErrorCode::new("oid4vp.response_mode_mismatch");
+    pub const RESPONSE_ENCRYPTION_FAILED: ErrorCode =
+        ErrorCode::new("oid4vp.response_encryption_failed");
 }
 
 /// Public error categories for OID4VP invocation parsing.
@@ -181,11 +184,13 @@ pub enum Oid4vpError {
     InvalidProtocolErrorUri,
     ProtocolErrorUriTooLarge,
     DirectPostErrorFormTooLarge,
+    ResponseModeMismatch,
+    ResponseEncryptionFailed,
 }
 
 impl Oid4vpError {
     /// Ordered error inventory frozen by the v1 contract fixture.
-    pub const CONTRACT_VARIANTS: [Self; 68] = [
+    pub const CONTRACT_VARIANTS: [Self; 70] = [
         Self::InvalidLimits,
         Self::InvocationTooLarge,
         Self::InvalidInvocation,
@@ -254,9 +259,11 @@ impl Oid4vpError {
         Self::InvalidProtocolErrorUri,
         Self::ProtocolErrorUriTooLarge,
         Self::DirectPostErrorFormTooLarge,
+        Self::ResponseModeMismatch,
+        Self::ResponseEncryptionFailed,
     ];
 
-    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 68] = {
+    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 70] = {
         use error_code as code;
         [
             (
@@ -598,6 +605,16 @@ impl Oid4vpError {
                 code::DIRECT_POST_ERROR_FORM_TOO_LARGE,
                 ErrorKind::InvalidInput,
                 "OID4VP direct-post error form exceeds its byte limit",
+            ),
+            (
+                code::RESPONSE_MODE_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VP response constructor does not match the validated mode",
+            ),
+            (
+                code::RESPONSE_ENCRYPTION_FAILED,
+                ErrorKind::Crypto,
+                "OID4VP response encryption failed",
             ),
         ]
     };

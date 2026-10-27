@@ -506,12 +506,14 @@ dependencies = [
  "identus-crypto",
  "serde",
  "serde_json",
+ "zeroize",
 ]
 
 [[package]]
 name = "identus-oid4vp"
 version = "0.0.0"
 dependencies = [
+ "base64",
  "fluent-uri",
  "identus-core",
  "identus-jose",

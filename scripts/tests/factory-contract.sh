@@ -81,6 +81,7 @@ required_files=(
   docs/architecture/identus-platform-change-ledger.toml
   docs/architecture/quality-evidence-declarations.toml
   docs/architecture/quality-evidence-plan.md
+  docs/architecture/oid4vp-encrypted-response-boundary.md
   docs/architecture/did-peer-quality-baseline.md
   docs/architecture/prism-vdr-indexer-quality-baseline.md
   docs/conformance/cross-language-vector-catalog.md
@@ -91,10 +92,12 @@ required_files=(
   docs/conformance/fixtures/did-prism/v1/vectors.json
   docs/conformance/fixtures/crypto/v1/vectors.json
   docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json
+  docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json
   crates/crypto/examples/crypto_baseline.rs
   crates/crypto/tests/curves.rs
   crates/crypto/tests/secp256k1_compat.rs
   fuzz/fuzz_targets/crypto_support.rs
+  fuzz/fuzz_targets/encrypted_direct_post_response.rs
   docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json
   fuzz/fuzz_targets/did.rs
   fuzz/fuzz_targets/did_url.rs
@@ -103,6 +106,9 @@ required_files=(
   fuzz/fuzz_targets/prism_operation.rs
   fuzz/fuzz_targets/prism_vdr.rs
   fuzz/fuzz_targets/prism_indexer_batch.rs
+  crates/jose/tests/jwe_port.rs
+  crates/oid4vp/benches/encrypted_direct_post_response.rs
+  crates/oid4vp/tests/encrypted_direct_post_response.rs
   docs/architecture/portable-agent-runtime.md
   docs/roadmap/a1-shared-compatibility-foundation.md
   docs/roadmap/a1-shared-compatibility-foundation.toml

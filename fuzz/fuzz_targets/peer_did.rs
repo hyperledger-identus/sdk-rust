@@ -27,12 +27,12 @@ fuzz_target!(|data: &[u8]| {
         }
     }
 
-    if let Ok(input) = InputDocument::from_json_slice(data) {
-        if let Ok(long) = LongForm::create(input) {
-            LongForm::parse(long.did().as_str())
-                .expect("created long form must parse")
-                .resolve()
-                .expect("created long form must resolve");
-        }
+    if let Ok(input) = InputDocument::from_json_slice(data)
+        && let Ok(long) = LongForm::create(input)
+    {
+        LongForm::parse(long.did().as_str())
+            .expect("created long form must parse")
+            .resolve()
+            .expect("created long form must resolve");
     }
 });

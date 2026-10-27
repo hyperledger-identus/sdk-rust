@@ -225,6 +225,18 @@ redistribution = "allowed-with-attribution"
 public_data    = true
 targets        = [ "rust", "typescript", "swift", "kotlin" ]
 
+[[packets]]
+id             = "oid4vp.encrypted-direct-post-response.v1"
+capability     = "oid4vp.direct-post-response"
+schema_version = 1
+path           = "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json"
+sha256         = "5917136af22ba4341a1f7fc71e58be69ee96eceedf83558a0617ea69f11c3b74"
+authorship     = "SDK-Rust clean-room curation from OpenID4VP 1.0 Final sections 8.3 and 8.3.1"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
 [[vectors]]
 id                 = "did.peer.numalgo4.reference-minimal"
 packet             = "did.peer.profiles.v1"
@@ -293,6 +305,29 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "The vector proves bounded deterministic protocol-error form construction; it does not authorize disclosure, execute HTTP or define foreign DTO/error shapes."
+
+[[vectors]]
+id                 = "oid4vp.encrypted-direct-post-response.final-p256-a128gcm"
+packet             = "oid4vp.encrypted-direct-post-response.v1"
+case               = "oid4vp.encrypted-direct-post-response.final-p256-a128gcm"
+capability         = "oid4vp.direct-post-response"
+authority          = "normative"
+source_ids         = [ "openid.oid4vp-final" ]
+source_locator     = "OpenID4VP 1.0 Final sections 8.3 and 8.3.1 adapted clean-room encrypted direct-post boundary"
+operation          = "oid4vp.direct-post-response.construct"
+expected           = "success"
+profile_scope      = "Verified request lineage, one public P-256 ECDH-ES recipient, A128GCM, exact plaintext and response-only form"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "encrypted_direct_post_response::e2e_verified_request_selects_key_encrypts_once_and_emits_only_response"
+language_selectors = [  ]
+owner_issue        = 535
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The compact bytes are deterministic inert adapter output used to prove the SDK boundary and grammar; they do not claim valid ECDH/AES-GCM cryptography or a production engine."
 
 [[vectors]]
 id                 = "did.peer.numalgo2.affinidi-compat"

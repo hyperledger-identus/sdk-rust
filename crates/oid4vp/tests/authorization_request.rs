@@ -178,7 +178,7 @@ fn unsupported_and_missing_response_fields_are_explicit() {
     request["response_mode"] = json!("direct_post.jwt");
     assert_eq!(
         validate(&request, AuthorizationRequestValidationLimits::default()).unwrap_err(),
-        Oid4vpError::UnsupportedResponseMode
+        Oid4vpError::InvalidRequestObjectPayload
     );
 }
 

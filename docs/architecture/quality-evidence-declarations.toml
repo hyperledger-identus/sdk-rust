@@ -304,6 +304,151 @@ details = [
 ]
 
 [[declarations]]
+id          = "oid4vp.direct-post-response.encrypted.quality.v1"
+capability  = "oid4vp.direct-post-response"
+slice       = "Bounded OpenID4VP Final direct_post.jwt response construction through an SDK-owned JWE capability port"
+owner       = "SDK-Rust OID4VP and JOSE maintainers"
+owner_issue = 535
+risk        = "Encrypted response construction can select an attacker-controlled or ambiguous key, detach plaintext from verified request lineage, expose sensitive response material, accept malformed compact output, or amplify hostile metadata."
+targets     = [ "package:identus-jose", "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "oid4vp.encrypted-direct-post-response.final-p256-a128gcm" ]
+limitations = "This declaration covers Final direct_post.jwt metadata selection, bounded SDK-owned P-256 ECDH-ES/A128GCM port input, opaque compact-output validation and response-only form construction; it does not prove a production JWE engine, HTTP delivery, wallet authentication, consent, trust, presentation verification or foreign DTO shape."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Bounded metadata, key sets and compact outputs may bypass deterministic selection, algorithm closure, independent bounds, request lineage or response-only form invariants."
+selectors = [
+  "crates/jose/tests/jwe_port.rs#bounded_request_matrix_preserves_only_explicitly_revealed_values",
+  "crates/jose/tests/jwe_port.rs#compact_header_and_segment_profile_rejects_each_independent_defect",
+  "crates/oid4vp/tests/encrypted_direct_post_response.rs#metadata_rejects_private_ambiguous_and_unsupported_keys",
+  "crates/oid4vp/tests/encrypted_direct_post_response.rs#stop_boundaries_precede_encryption_and_plain_mode_cannot_use_protected_constructor",
+]
+command = "cargo test -p identus-jose --test jwe_port && cargo test -p identus-oid4vp --test encrypted_direct_post_response"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-jose", "package:identus-oid4vp", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Exercise deterministic key-identifier and plaintext boundaries, required and optional metadata, wrong-mode constructors, private or ambiguous keys, unsupported algorithms, presentation lineage, every compact-header rule and segment grammar."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/tests/encrypted_direct_post_response.rs"
+evidence_revision = "15d500b639c67e824e1ac29459a9038730c0cb1b"
+recorded_at = "2026-10-27"
+artifact = "crates/jose/tests/jwe_port.rs"
+owner = "SDK-Rust OID4VP and JOSE maintainers"
+owner_issue = 535
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Every accepted encrypted response remains bound to one verified request, one eligible public recipient, one closed algorithm pair and one response-only form",
+  "domain=Bounded P-256 public keys, selected JWK metadata cases, encryption preferences, DCQL results and compact JWE segment shapes",
+  "cases=Deterministic boundary matrices plus explicit ambiguous, private, malformed, unsupported, empty, oversized, wrong-mode and redaction-sensitive inputs",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "satisfied"
+risk = "Malformed verifier metadata or adapter-controlled compact material may panic, cause unbounded parser work, bypass segment grammar, or disclose hostile bytes through errors."
+selectors = [
+  "fuzz/fuzz_targets/encrypted_direct_post_response.rs#fuzz_target!",
+  "scripts/fuzz-oid4vp.sh#encrypted_direct_post_response",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak encrypted_direct_post_response"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Run metadata selection and returned compact-material validation for 300 seconds with max_len=65536, timeout=5 and rss_limit_mb=1024."
+receipt_kind = "source"
+receipt = "source:fuzz/fuzz_targets/encrypted_direct_post_response.rs"
+evidence_revision = "dd1996086d72510ae9e9c806886823614a8a1567"
+recorded_at = "2026-10-27"
+artifact = "fuzz/corpus/encrypted_direct_post_response"
+owner = "SDK-Rust OID4VP and JOSE maintainers"
+owner_issue = 535
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "harness=LibFuzzer routes arbitrary bounded bytes into verifier metadata and compact JWE result validation under fixed verified request lineage",
+  "corpus=Minimal eligible public JWK and five-segment compact response seeds plus arbitrary metadata and segment bytes",
+  "seed=libFuzzer-managed reproducible failures promoted into focused regression tests",
+  "bounds=max_len=65536;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "Metadata selection, response serialization or compact-output validation may regress materially at ordinary or near-limit sizes before any cryptographic adapter work begins."
+selectors = [
+  "crates/oid4vp/benches/encrypted_direct_post_response.rs#main",
+]
+command = "cargo bench -p identus-oid4vp --bench encrypted_direct_post_response"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:linux" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure ordinary and near-limit verified request metadata selection, response JSON construction, one port invocation and compact/form validation without claiming cryptographic engine performance."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/benches/encrypted_direct_post_response.rs"
+evidence_revision = "dd1996086d72510ae9e9c806886823614a8a1567"
+recorded_at = "2026-10-27"
+artifact = "crates/oid4vp/benches/encrypted_direct_post_response.rs"
+owner = "SDK-Rust OID4VP and JOSE maintainers"
+owner_issue = 535
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=Select one eligible verifier recipient, construct Final response plaintext, invoke a deterministic test port and validate compact form output",
+  "fixture=Ordinary and near-limit public metadata, presentation JSON and compact segment lengths",
+  "environment=Pinned toolchain release-mode benchmark process; compare results only within a recorded environment",
+  "statistic=Median wall time across 21 samples with 10 iterations per sample; allocation observation is explicitly unavailable",
+  "samples=21 measured samples per ordinary and near-limit end-to-end operation",
+  "threshold=Diagnostic only; introduce a regression threshold after a stable CI baseline exists",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "required"
+risk = "The SDK metadata interpretation, plaintext members, response-only form or future adapter output may diverge from OpenID4VP Final and a conforming independent compact-JWE implementation."
+selectors = [
+  "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json#oid4vp.encrypted-direct-post-response.final-p256-a128gcm",
+  "docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md#Decision",
+]
+command = "cargo test -p identus-oid4vp --test encrypted_direct_post_response"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Reproduce the attributed Final encrypted-response shape, then independently encrypt and decrypt the exact SDK request with a qualified adapter on native and portable targets without comparing randomized ciphertext bytes."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust OID4VP and JOSE maintainers"
+owner_issue = 535
+debt_status = "open"
+debt_issue = 538
+rationale = ""
+details = [
+  "oracle=OpenID4VP 1.0 Final sections 8.3 and 8.3.1 plus a future independently qualified compact-JWE implementation",
+  "oracle-revision=Final 2025-07-09 with current errata; independent cryptographic oracle selection and execution are pending issue #538",
+  "normalization=Compare selected public-key bytes, algorithms, bounded plaintext members, compact segment grammar and decoded form names rather than library DTOs or randomized ciphertext bytes",
+  "deviations=The current SDK exposes only an engine-neutral port and inert normative fixture; neither is independent cryptographic evidence, and issue #538 owns the missing qualification",
+]
+
+[[declarations]]
 id = "did.syntax.quality.v1"
 capability = "did.syntax"
 slice = "A1 shared compatibility foundation"

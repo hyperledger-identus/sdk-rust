@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-27`
-- Declaration count: `6`
+- Declaration count: `7`
 
 ## `crypto.quality.v1`
 
@@ -96,6 +96,52 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Reproduce attributed Final success and error response shapes and round-trip form bodies through an independent strict decoder.
 - Receipt: `source:docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json`
 - Evidence revision: `86efc29b517ad4fe53c2a345c6cc47076556509e`
+
+## `oid4vp.direct-post-response.encrypted.quality.v1`
+
+- Capability: `oid4vp.direct-post-response`
+- Slice: Bounded OpenID4VP Final direct_post.jwt response construction through an SDK-owned JWE capability port
+- Owner: SDK-Rust OID4VP and JOSE maintainers (issue #535)
+- Risk: Encrypted response construction can select an attacker-controlled or ambiguous key, detach plaintext from verified request lineage, expose sensitive response material, accept malformed compact output, or amplify hostile metadata.
+- Targets: `package:identus-jose`, `package:identus-oid4vp`, `host:rust`, `consumer:portable-sdk`
+- Vector IDs: `1` local catalog entries
+- Limitations: This declaration covers Final direct_post.jwt metadata selection, bounded SDK-owned P-256 ECDH-ES/A128GCM port input, opaque compact-output validation and response-only form construction; it does not prove a production JWE engine, HTTP delivery, wallet authentication, consent, trust, presentation verification or foreign DTO shape.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #535 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #535 |
+
+### `property`
+
+- Command: `cargo test -p identus-jose --test jwe_port && cargo test -p identus-oid4vp --test encrypted_direct_post_response`
+- Budget: Exercise deterministic key-identifier and plaintext boundaries, required and optional metadata, wrong-mode constructors, private or ambiguous keys, unsupported algorithms, presentation lineage, every compact-header rule and segment grammar.
+- Receipt: `source:crates/oid4vp/tests/encrypted_direct_post_response.rs`
+- Evidence revision: `15d500b639c67e824e1ac29459a9038730c0cb1b`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak encrypted_direct_post_response`
+- Budget: Run metadata selection and returned compact-material validation for 300 seconds with max_len=65536, timeout=5 and rss_limit_mb=1024.
+- Receipt: `source:fuzz/fuzz_targets/encrypted_direct_post_response.rs`
+- Evidence revision: `dd1996086d72510ae9e9c806886823614a8a1567`
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-oid4vp --bench encrypted_direct_post_response`
+- Budget: Measure ordinary and near-limit verified request metadata selection, response JSON construction, one port invocation and compact/form validation without claiming cryptographic engine performance.
+- Receipt: `source:crates/oid4vp/benches/encrypted_direct_post_response.rs`
+- Evidence revision: `dd1996086d72510ae9e9c806886823614a8a1567`
+
+### `differential`
+
+- Command: `cargo test -p identus-oid4vp --test encrypted_direct_post_response`
+- Budget: Reproduce the attributed Final encrypted-response shape, then independently encrypt and decrypt the exact SDK request with a qualified adapter on native and portable targets without comparing randomized ciphertext bytes.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #538
 
 ## `did.syntax.quality.v1`
 

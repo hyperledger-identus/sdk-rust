@@ -7,9 +7,11 @@ Presentations 1.0 protocol crate. Its current narrow profile supports:
 - effect-free GET/POST Request URI envelopes and bounded response binding;
 - compact signed Request Object verification through `identus-jose`;
 - strict bounded DCQL validation and selection behind SDK-owned types;
-- composed `vp_token` / `direct_post` request routing; and
+- composed `vp_token` / `direct_post` request routing;
 - deterministic bounded plain `direct_post` success and protocol-error response
-  construction.
+  construction; and
+- Final `direct_post.jwt` metadata selection plus encrypted-response construction
+  through an injected SDK-owned JWE capability port.
 
 ## Direct-post flow
 
@@ -28,6 +30,7 @@ signed JAR ──verify──▶ ValidatedAuthorizationRequest
                                              │
                  ┌─ caller-selected bounded presentations ─▶ DirectPostResponse
 validated request┤
+                 ├─ presentations + JWE port ──────────────▶ EncryptedDirectPostResponse
                  └─ explicit typed protocol error ─────────▶ DirectPostErrorResponse
                                       both: inert POST + form body
 ```
@@ -56,11 +59,20 @@ the protocol outcome only after applying End-User interaction, consent and
 privacy policy. In particular, an error URI is validated as inert syntax and is
 never resolved by this crate.
 
-`direct_post.jwt`, JWE, SIOPv2, Digital Credentials API, HAIP, network I/O and
-credential-format proof creation are intentionally separate capabilities.
+For `direct_post.jwt`, verified `client_metadata` must select exactly one public
+P-256 `ECDH-ES` recipient; the first profile supports `A128GCM` only. The SDK
+constructs the exact response JSON, calls the injected `JweEncrypter` once, and
+accepts only a bounded five-segment compact JWE whose protected header repeats
+the selected `kid`. The resulting form contains only `response`. SDK-Rust does
+not yet bundle a production JWE engine, so an application or future adapter
+must implement the port. SIOPv2, Digital Credentials API, HAIP, network I/O and
+credential-format proof creation remain separate capabilities.
 
 The normative boundary and decisions are recorded in
 [`ADR 0179`](../../docs/adr/0179-construct-bounded-oid4vp-direct-post-responses.md),
 [`ADR 0180`](../../docs/adr/0180-construct-explicit-oid4vp-protocol-errors.md),
+[`ADR 0181`](../../docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md),
 with executable lineage in the versioned
-[`direct-post vector packet`](../../docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json).
+[`plain direct-post vector packet`](../../docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json)
+and
+[`encrypted-response packet`](../../docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json).

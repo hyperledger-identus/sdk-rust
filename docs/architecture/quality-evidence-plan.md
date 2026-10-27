@@ -154,7 +154,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #522 |
-| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #522 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `max-age-days (8 days)` | #522 |
 | `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #522 |
 | `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #522 |
 
@@ -163,26 +163,25 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo test -p identus-prism-vdr property && cargo test -p identus-prism-indexer property`
 - Budget: Exercise every accepted ancestry length from zero through 200 predecessor hops and all 24 permutations of four framed transaction records.
 - Receipt: `source:docs/architecture/prism-vdr-indexer-quality-baseline.md`
-- Evidence revision: `81166292462cae8e0254b1724dddb5c2f62a34fe`
+- Evidence revision: `fd808b1df5e25923d60eea5f8d276e6c7a00ac27`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-prism-vdr-indexer.sh soak all`
 - Budget: Run each target for 300 seconds with 139264-byte inputs, five seconds per case and 1024 MiB RSS; promote failures into checked-in regression seeds.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #522
+- Receipt: `https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925`
+- Evidence revision: `fd808b1df5e25923d60eea5f8d276e6c7a00ac27`
 
 ### `benchmark`
 
 - Command: `cargo bench -p identus-prism-indexer --bench directional`
 - Budget: Measure VDR parse, 100-node traversal, 128-record digest construction and same-transaction DID plus VDR planning over 101 samples.
 - Receipt: `source:docs/architecture/prism-vdr-indexer-quality-baseline.md`
-- Evidence revision: `81166292462cae8e0254b1724dddb5c2f62a34fe`
+- Evidence revision: `fd808b1df5e25923d60eea5f8d276e6c7a00ac27`
 
 ### `differential`
 
 - Command: `cargo test -p identus-prism-vdr accepts_the_schema_default_empty_nonce && cargo test -p identus-prism-indexer canonical_transition_digest_matches_the_portable_vector && cargo test -p identus-prism-indexer neoprism_shaped_metadata`
 - Budget: Compare exact empty-nonce storage parsing, the canonical transition digest and NeoPRISM-shaped transaction metadata mapping without donor dependencies.
 - Receipt: `source:docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json`
-- Evidence revision: `81166292462cae8e0254b1724dddb5c2f62a34fe`
+- Evidence revision: `fd808b1df5e25923d60eea5f8d276e6c7a00ac27`

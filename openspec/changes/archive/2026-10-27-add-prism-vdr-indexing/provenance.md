@@ -23,6 +23,18 @@ implementation commit. History for `indexing.rs` includes the original VDR
 implementation and later transaction-ID, SQLite and resolver work; those later
 effect-specific additions are not evidence of SDK ownership.
 
+## Rebase receipt preservation
+
+The planning contract originally passed preimplementation at
+`2026-10-27T02:17:32.485Z` from base
+`67c30d599a538b873646a6e857809f2106391bb1` and planning commit
+`57c44b99347b07ff723fe1d2d5697c325b8347c8`. After issue #525 merged, the
+branch was replayed without content changes to that planning commit onto
+`706eed1eb81ce42daec8cedfb1cb47053f93cf1b`, producing the equivalent signed
+planning commit `e684d792495cb5c28bd965942fd2a7cac3f35c87`. The receipt preserves the
+original preimplementation timestamp while binding validation to the replayed
+ancestry used by this delivery.
+
 ## Excluded donor areas
 
 Blockfrost, db-sync, Oura, Pallas, submitter, node-storage, SQL migrations,

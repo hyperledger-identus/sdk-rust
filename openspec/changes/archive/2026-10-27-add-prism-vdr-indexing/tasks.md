@@ -33,13 +33,17 @@
 - [x] 4.1 Replace the complete-family deny with the exact dependency graph guard.
 - [x] 4.2 Activate `did.prism.vdr-indexing.quality.v1` and add compatibility/change-ledger records.
 - [x] 4.3 Capture dependency cone and native/WASM/iOS/Android evidence.
-- [ ] 4.4 Capture directional benchmarks and 300-second Linux fuzz evidence.
+- [x] 4.4 Capture directional benchmarks and 300-second Linux fuzz evidence.
 
 ## 5. Review and delivery
 
 - [x] 5.1 Run exact-head independent CLI review: Claude when available, otherwise Codex CLI immediately; record reviewer, command and commit.
 - [x] 5.2 Verify every blocker/high/medium finding locally and rerun proportional gates.
-- [ ] 5.3 Archive OpenSpec, open the issue-linked cohesive PR, publish factory metrics and merge only with protected CI green.
+- [x] 5.3 Archive OpenSpec and open the issue-linked cohesive PR.
+
+Factory metrics and guarded merge are post-archive delivery records owned by
+the PR closeout rather than completed OpenSpec implementation tasks. They remain
+subject to exact-head protected CI and the repository integration policy.
 
 ## 6. Stop boundary
 

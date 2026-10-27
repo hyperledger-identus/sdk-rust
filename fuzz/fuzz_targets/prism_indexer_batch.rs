@@ -18,15 +18,14 @@ fn push_bytes(target: &mut Vec<u8>, field: u64, value: &[u8]) {
     target.extend_from_slice(value);
 }
 
-fn signed(marker: u8, content: &[u8]) -> SignedPrismOperation {
+fn signed(marker: u8, content: &[u8]) -> Option<SignedPrismOperation> {
     let mut payload = Vec::new();
     push_bytes(&mut payload, 1, &[marker; 32]);
     push_bytes(&mut payload, 100, content);
     let mut operation = Vec::new();
     push_bytes(&mut operation, 7, &payload);
-    let raw = RawPrismOperation::parse(&operation).expect("constructed operation is valid");
-    SignedPrismOperation::from_signature("vdr-0", &[marker; 64], &raw)
-        .expect("constructed envelope is valid")
+    let raw = RawPrismOperation::parse(&operation).ok()?;
+    SignedPrismOperation::from_signature("vdr-0", &[marker; 64], &raw).ok()
 }
 
 fuzz_target!(|data: &[u8]| {
@@ -39,13 +38,17 @@ fuzz_target!(|data: &[u8]| {
     let identity = TransactionIdentity::new(identity_bytes).expect("fuzzed identity is bounded");
     let count = data.get(2).copied().map_or(1, |value| value % 16 + 1);
     let content = data.get(3..).unwrap_or_default();
-    let records = (0..count)
-        .map(|index| IncomingRecord {
+    let mut records = Vec::with_capacity(usize::from(count));
+    for index in 0..count {
+        let Some(signed_operation) = signed(marker.wrapping_add(index), content) else {
+            return;
+        };
+        records.push(IncomingRecord {
             transaction_identity: identity.clone(),
             operation_index: u16::from(index),
-            signed_operation: signed(marker.wrapping_add(index), content),
-        })
-        .collect();
+            signed_operation,
+        });
+    }
     let batch = TransactionBatch::new(
         identity,
         u16::from(count),

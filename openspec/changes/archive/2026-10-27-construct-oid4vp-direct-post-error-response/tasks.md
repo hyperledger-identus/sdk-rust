@@ -24,7 +24,7 @@
 
 - [x] 4.1 Run exact-head Claude CLI review or immediate Codex CLI fallback.
 - [x] 4.2 Resolve blocker/high/medium findings and rerun proportionate gates.
-- [ ] 4.3 Archive OpenSpec, publish metrics and deliver the issue-linked PR.
+- [x] 4.3 Archive OpenSpec, publish metrics and deliver the issue-linked PR.
 
 ## 5. Stop boundary
 

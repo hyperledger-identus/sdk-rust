@@ -1071,3 +1071,113 @@ details = [
   "normalization=Compare exact DID text and resolved semantic counts rather than foreign DTO or error shapes",
   "deviations=Numalgo-2 is explicitly compatibility-only; unsupported historical algorithms fail closed",
 ]
+
+[[declarations]]
+id = "siopv2.did-authentication.quality.v1"
+capability = "did.syntax"
+slice = "Pinned SIOPv2 draft-13 DID-subject direct_post protocol core"
+owner = "SDK-Rust OpenID maintainers"
+owner_issue = 514
+risk = "Ambiguous request binding, signature lineage, token claims or lifecycle retries can authenticate the wrong relying party, disclose identity material or duplicate a response."
+targets = [ "package:identus-siopv2", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android" ]
+vector_ids = [ "did.syntax.valid-basic" ]
+limitations = "Experimental draft-13 DID-subject direct_post profile only; no transport, durable replay storage, trust, custody, UI, DID resolution, language adapter, publication or certification claim."
+active = true
+supersedes = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "required"
+risk = "Boundary times, event replay and request/response round trips may violate deterministic profile invariants."
+selectors = [ "openspec/changes/add-siopv2-protocol-core/tasks.md#Add clean-room/oracle vectors plus E2E, negative and property tests" ]
+command = "cargo test -p identus-siopv2 --test property"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-siopv2", "host:rust" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Exercise deterministic transition, time-boundary and request/response invariants over bounded generated inputs."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust OpenID maintainers"
+owner_issue = 514
+debt_status = "open"
+debt_issue = 514
+rationale = ""
+details = [ "invariant=Accepted requests and responses preserve exact client, audience, nonce, subject, method and event identity", "domain=Bounded draft-13 profile values and caller-driven lifecycle events", "cases=Valid values, exact limits, one-over limits, duplicate events and invalid transitions" ]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "required"
+risk = "Malformed JSON, compact JWS, form values or events may panic, allocate excessively or bypass validation order."
+selectors = [ "openspec/changes/add-siopv2-protocol-core/tasks.md#Add fuzz, benchmark and differential evidence with explicit limits" ]
+command = "nix develop .#fuzz --command ./scripts/fuzz-siopv2.sh soak"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-siopv2", "host:linux", "sanitizer:address" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Run bounded SIOPv2 parsing and lifecycle inputs for 300 seconds with finite input, timeout and RSS limits."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust OpenID maintainers"
+owner_issue = 514
+debt_status = "open"
+debt_issue = 514
+rationale = ""
+details = [ "harness=Route arbitrary bytes through request parsing, compact input, form parsing and lifecycle events", "corpus=Pinned clean-room and attributed SIOPv2 draft-13 cases", "seed=libFuzzer-managed reproducible failures with checked-in regression promotion", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "required"
+risk = "Bounded request validation or response planning may introduce material portable-client latency."
+selectors = [ "openspec/changes/add-siopv2-protocol-core/tasks.md#Add fuzz, benchmark and differential evidence with explicit limits" ]
+command = "cargo bench -p identus-siopv2 --bench protocol"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-siopv2", "host:rust" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Measure ordinary and boundary request validation, lifecycle approval and response planning over a stable sample set."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust OpenID maintainers"
+owner_issue = 514
+debt_status = "open"
+debt_issue = 514
+rationale = ""
+details = [ "operation=Validate signed request claims and plan a self-issued response", "fixture=Pinned deterministic draft-13 DID-subject request", "environment=Rust 1.98 etalon on the executing development host; Linux remains the comparison lane", "statistic=Criterion median wall time", "samples=Stable Criterion defaults", "threshold=Directional baseline before downstream adoption" ]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "required"
+risk = "SDK-owned claims or failure classes may diverge from the pinned specification and independent implementations."
+selectors = [ "docs/adr/0182-pin-siopv2-draft13-behind-identus-protocol-boundaries.md#Decision", "openspec/changes/add-siopv2-protocol-core/research.md#The E2E route" ]
+command = "cargo test -p identus-siopv2 --test conformance"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-siopv2", "host:rust", "consumer:portable-sdk" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Compare normalized claims and stable failure categories against pinned draft-13, Oxid and independent Rust oracle cases."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust OpenID maintainers"
+owner_issue = 514
+debt_status = "open"
+debt_issue = 514
+rationale = ""
+details = [ "oracle=Normative SIOPv2 draft 13 plus pinned Oxid and independent Rust implementation evidence", "oracle-revision=3ceea617557dce795a247fdd9c6180a873f1611e;siopv2-0.2.0;affinidi-siopv2-0.1.4", "normalization=Compare protocol claims, form fields and stable failure categories rather than foreign DTO or error strings", "deviations=SDK uses redirect_uri and protocol-neutral invocation per draft 13; product-owned response_uri and openid4vp fixtures remain adapters" ]

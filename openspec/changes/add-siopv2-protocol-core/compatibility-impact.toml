@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 514
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The pre-release SDK activates a shared request-retrieval crate, adds an experimental SIOPv2 draft-13 crate and preserves existing OID4VP public retrieval names through re-exports."
+ledger_ids     = [ "did.syntax.siopv2-draft13.v1" ]

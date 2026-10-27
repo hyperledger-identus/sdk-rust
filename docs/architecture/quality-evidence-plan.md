@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-27`
-- Declaration count: `7`
+- Declaration count: `8`
 
 ## `crypto.quality.v1`
 
@@ -322,3 +322,52 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Compare exact numalgo-4 output and numalgo-2 parse/create/resolve behavior against two pinned public oracle cases.
 - Receipt: `source:docs/conformance/fixtures/did-peer/v1/vectors.json`
 - Evidence revision: `fcf7083d712baa1c4ff45c2933b7bec48c44531e`
+
+## `siopv2.did-authentication.quality.v1`
+
+- Capability: `did.syntax`
+- Slice: Pinned SIOPv2 draft-13 DID-subject direct_post protocol core
+- Owner: SDK-Rust OpenID maintainers (issue #514)
+- Risk: Ambiguous request binding, signature lineage, token claims or lifecycle retries can authenticate the wrong relying party, disclose identity material or duplicate a response.
+- Targets: `package:identus-siopv2`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`
+- Vector IDs: `1` local catalog entries
+- Limitations: Experimental draft-13 DID-subject direct_post profile only; no transport, durable replay storage, trust, custody, UI, DID resolution, language adapter, publication or certification claim.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `required` | `focused` | `on-change` | `pending` | #514 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #514 |
+| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #514 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #514 |
+
+### `property`
+
+- Command: `cargo test -p identus-siopv2 --test property`
+- Budget: Exercise deterministic transition, time-boundary and request/response invariants over bounded generated inputs.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #514
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-siopv2.sh soak`
+- Budget: Run bounded SIOPv2 parsing and lifecycle inputs for 300 seconds with finite input, timeout and RSS limits.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #514
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-siopv2 --bench protocol`
+- Budget: Measure ordinary and boundary request validation, lifecycle approval and response planning over a stable sample set.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #514
+
+### `differential`
+
+- Command: `cargo test -p identus-siopv2 --test conformance`
+- Budget: Compare normalized claims and stable failure categories against pinned draft-13, Oxid and independent Rust oracle cases.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #514

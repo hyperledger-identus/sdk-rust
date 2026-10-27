@@ -29,6 +29,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic DID and URI values admit the measured finite long-form envelope while the independent method and cache limits remain bounded; a valid oversized cache identity bypasses retention observably.
 
+### `did.syntax.siopv2-draft13.v1`
+
+State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive experimental crate validates the pinned SIOPv2 draft-13 DID-subject direct_post profile, plans a self-issued ID Token through injected JOSE ports and exposes deterministic caller-driven lifecycle transitions while shared bounded request retrieval moves behind identus-openid4vc.
+
 ### `oid4vp.direct-post-response.encrypted.v1`
 
 State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. The pre-release SDK adds a non-exhaustive DirectPostJwt mode, validates one bounded P-256 ECDH-ES verifier recipient and A128GCM policy, returns metadata-specific validation categories, makes the plain constructor reject protected mode, invokes an SDK-owned JWE port once, validates opaque compact output and emits a response-only form.
@@ -62,6 +66,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `did.syntax.long-form-resource-policy.v1`
 
 `0.1.0-rc.1` → `unreleased` for sdk-rust-adopters. Use the exported constants rather than copied literals, handle KeyBudgetBypass as an uncached successful resolution path, and keep external transport limits explicit.
+
+### `did.syntax.siopv2-draft13.v1`
+
+`unreleased` → `unreleased` for oxid, sdk-rust-adopters. No migration action required.
 
 ### `oid4vp.direct-post-response.encrypted.v1`
 
@@ -97,6 +105,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The release-candidate line documents the new limits before a stable 0.1.0 contract is declared.
 
+### `did.syntax.siopv2-draft13.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
 ### `oid4vp.direct-post-response.encrypted.v1`
 
 Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started.
@@ -131,6 +143,10 @@ Fallback: Consumers remain on their existing PRISM storage and indexing implemen
 
 Fallback: Bypass cache retention for valid oversized identities; do not truncate keys or fall back to a second parser. Rollback: Restore the prior lexical constants and cache outcome before publication while retaining issue and measurement evidence. Removal gate: Not applicable; this is an expansion of a bounded public envelope rather than a deprecated facade.
 
+### `did.syntax.siopv2-draft13.v1`
+
+Fallback: Consumers retain their existing SIOPv2 implementation until a separately qualified adapter accepts the experimental SDK profile. Rollback: Remove the additive SIOPv2 crate and shared delegation before publication; existing OID4VP behavior and downstream implementations remain unchanged. Removal gate: Not applicable.
+
 ### `oid4vp.direct-post-response.encrypted.v1`
 
 Fallback: Consumers retain plain direct_post or their existing protected-response implementation until a separately qualified JWE engine adapter is available. Rollback: Remove the additive mode, metadata types, port transition and evidence before publication; existing plain direct_post behavior and storage remain unchanged. Removal gate: Not applicable.
@@ -164,6 +180,10 @@ Visibility: behavior, public-api, security, target-support, wire. No Cardano sou
 ### `did.syntax.long-form-resource-policy.v1`
 
 Visibility: behavior, public-api. The lexical envelope does not guarantee transportability through every host, cache retention, or acceptance by a method-specific semantic profile.
+
+### `did.syntax.siopv2-draft13.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. Draft 13 is not Final. The first profile excludes transport, storage, trust, custody, UI, DID resolution, JWK-thumbprint subjects, self-attested claims, discovery, federation, authorization code, encrypted tokens, OpenID4VP presentation and certification.
 
 ### `oid4vp.direct-post-response.encrypted.v1`
 

@@ -253,6 +253,31 @@ fn presentation_and_aggregate_limits_fail_before_returning_an_envelope() {
 }
 
 #[test]
+fn object_presentation_parsing_enforces_work_before_allocation_and_container_depth() {
+    let exact = DirectPostResponseLimits::new(1, 8, 1, 128, 1, 2, 256, 512).unwrap();
+    DirectPostPresentation::object_json(br#"{"vp":true}"#, exact)
+        .expect("root object and scalar fit one container and two nodes");
+
+    let node_limited = DirectPostResponseLimits::new(1, 8, 1, 128, 8, 1, 256, 512).unwrap();
+    assert_eq!(
+        DirectPostPresentation::object_json(br#"{"vp":true}"#, node_limited).unwrap_err(),
+        Oid4vpError::PresentationTooLarge
+    );
+    assert_eq!(
+        DirectPostPresentation::object_json(br#"{"vp":{"nested":true}}"#, exact).unwrap_err(),
+        Oid4vpError::PresentationTooLarge
+    );
+    assert_eq!(
+        DirectPostPresentation::object_json(
+            br#"{"vp":1,"vp":2}"#,
+            DirectPostResponseLimits::default()
+        )
+        .unwrap_err(),
+        Oid4vpError::InvalidPresentation
+    );
+}
+
+#[test]
 fn response_rechecks_values_created_under_a_different_limit_policy() {
     let broad = DirectPostResponseLimits::default();
     let narrow = DirectPostResponseLimits::new(1, 8, 1, 4, 2, 2, 64, 256).unwrap();

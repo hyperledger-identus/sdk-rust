@@ -71,7 +71,26 @@ impl PrismDidResolver {
         };
 
         match parsed {
-            PrismDid::LongForm(long) => resolve_long_form(&long, options),
+            PrismDid::LongForm(long) => {
+                if let Some(history) = &self.history {
+                    match history.resolve(long.canonical(), options).await {
+                        Ok(Some(state)) if state.did() == long.canonical() => {
+                            return resolution_from_state(
+                                &state,
+                                long.as_did().clone(),
+                                options,
+                                Some(long.canonical().as_did().clone()),
+                            );
+                        }
+                        Ok(Some(_)) => {
+                            return failure(DidResolutionErrorKind::InvalidDidDocument);
+                        }
+                        Ok(None) => {}
+                        Err(_) => return failure(DidResolutionErrorKind::InternalError),
+                    }
+                }
+                resolve_local_long_form(&long, options)
+            }
             PrismDid::Canonical(canonical) => {
                 let Some(history) = &self.history else {
                     return failure(DidResolutionErrorKind::NotFound);
@@ -108,7 +127,10 @@ impl DidResolver for PrismDidResolver {
     }
 }
 
-fn resolve_long_form(did: &LongFormPrismDid, options: &ResolutionOptions) -> DidResolutionResult {
+fn resolve_local_long_form(
+    did: &LongFormPrismDid,
+    options: &ResolutionOptions,
+) -> DidResolutionResult {
     if options.version_id().is_some()
         || options.version_time().is_some()
         || !options.extensions().is_empty()
@@ -332,5 +354,39 @@ mod tests {
         assert_eq!(result.document().unwrap().id(), canonical.as_did());
         assert!(result.metadata().error().is_none());
         assert!(resolver.clone().into_method_binding().method().as_str() == "prism");
+    }
+
+    #[test]
+    fn long_form_prefers_published_history_over_embedded_initial_state() {
+        let raw_create = initial_state();
+        let long = LongFormPrismDid::from_initial_state(raw_create.clone()).unwrap();
+        let mut state = PrismDidState::from_initial_state(&raw_create).unwrap();
+        let deactivate = proto::DeactivateDid {
+            previous_operation_hash: state.last_operation_hash().to_vec(),
+            id: state.did().suffix().to_owned(),
+        };
+        let payload = deactivate.encode_to_vec();
+        let mut operation = vec![0x32];
+        prost::encoding::encode_varint(payload.len() as u64, &mut operation);
+        operation.extend_from_slice(&payload);
+        let operation = RawPrismOperation::parse(&operation).unwrap();
+        let private = Secp256k1PrivateKey::from_slice(&[1; 32]).unwrap();
+        let signed = crate::SignedPrismOperation::from_signature(
+            "master",
+            &private.sign(operation.as_bytes()),
+            &operation,
+        )
+        .unwrap();
+        state.apply_signed(&signed).unwrap();
+
+        let resolver = PrismDidResolver::with_history(Arc::new(FixedHistory(state)));
+        let result = block_on(resolver.resolve(long.as_did(), &ResolutionOptions::empty()));
+
+        assert!(result.document().is_none());
+        assert_eq!(result.document_metadata().deactivated(), Some(true));
+        assert_eq!(
+            result.document_metadata().canonical_id(),
+            Some(long.canonical().as_did())
+        );
     }
 }

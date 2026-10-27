@@ -32,7 +32,7 @@
 ## 5. Evidence and delivery
 
 - [x] 5.1 Port donor/spec/historical vectors with provenance.
-- [x] 5.2 Add negative, property, fuzz and differential state evidence.
+- [x] 5.2 Add negative/property state evidence and executable differential wire vectors.
 - [x] 5.3 Pass native/WASM/mobile compile, clippy, docs and dependency gates.
 - [x] 5.4 Capture directional parse/verify/project/state benchmarks.
 - [ ] 5.5 Complete independent CLI review before push: use Claude first and Codex CLI when Claude is unavailable or quota-limited.

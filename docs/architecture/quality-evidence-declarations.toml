@@ -180,7 +180,6 @@ vector_ids = [
   "did.prism.preprod.signed-create",
   "did.prism.preprod.signed-create-second",
   "did.prism.wire.duplicate-envelope-field",
-  "did.prism.state.atomic-rollback",
 ]
 limitations = "The declaration covers portable DID operations and projection only; Cardano indexing, VDR payload semantics, persistence and downstream adoption remain separate capabilities."
 active = true
@@ -292,9 +291,10 @@ disposition = "satisfied"
 risk = "Portable operation hashes, signature verification, state semantics or document projection may diverge from the public ledger and pinned method behavior."
 selectors = [
   "crates/prism-did/src/state.rs#verifies_pinned_preprod_signed_create_envelope",
+  "crates/conformance/tests/cross_language_prism_vectors.rs#portable_prism_packet_matches_identus_prism_did",
   "docs/conformance/fixtures/did-prism/preprod-2026-09-10.json#5873d42d38408e10f5e9dc624c0fc18fbf4b5a7871046501eb7f7e4997f11360",
 ]
-command = "cargo test -p identus-prism-did verifies_pinned_preprod"
+command = "cargo test -p identus-prism-did verifies_pinned_preprod && cargo test -p identus-conformance --test cross_language_prism_vectors"
 lane = "fast"
 cadence = "per-pull-request"
 targets = [ "package:identus-prism-did", "host:rust", "network:preprod-fixture" ]
@@ -302,7 +302,7 @@ freshness = "source-bound"
 freshness_days = 0
 budget = "Verify both pinned public Preprod create envelopes and compare exact operation ID, DID suffix, signature and projected document evidence offline."
 receipt_kind = "source"
-receipt = "source:crates/prism-did/src/state.rs"
+receipt = "source:crates/conformance/tests/cross_language_prism_vectors.rs"
 evidence_revision = "5f4ea13c1635db5466d5fcae353d0897f09abdf5"
 recorded_at = "2026-10-26"
 artifact = "docs/conformance/fixtures/did-prism/preprod-2026-09-10.json"

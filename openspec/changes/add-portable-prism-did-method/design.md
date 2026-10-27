@@ -50,7 +50,8 @@ IDs use a bounded ASCII fragment validator rather than regex. Service type
 accepts the draft's single value or canonical non-empty JSON array grammar.
 Endpoint text is bounded by both character and byte limits, rejects duplicate
 JSON names, maps into `identus-did::ServiceEndpoint`, and requires generic URI
-normalization. Contexts are unique absolute normalized URIs.
+validation. Contexts are unique absolute URIs. Validated URI text is preserved
+exactly so projection and history replay cannot rewrite signed protocol values.
 
 Supported public key curves are secp256k1, Ed25519 and X25519 through
 `identus-crypto`. Master and VDR operation keys must be secp256k1. Unknown key
@@ -59,12 +60,12 @@ in protocol state but omitted from DID document verification methods.
 
 ## Deterministic state
 
-State keeps insertion-ordered vectors of historical keys and services. Each
-entry retains its validated value and active/tombstone state; ledger position,
+State keeps insertion-ordered vectors of at most 50 active keys and services.
+Removed values are dropped while their identifiers move to compact ordered
+tombstone sets, bounded to 4,096 identifiers per kind; ledger position,
 wall-clock time and transaction metadata remain owned by the outer history
-adapter. With active maxima of 50, linear lookup is simpler and more auditable
-than a hash or persistent-map dependency. Removed identifiers remain
-tombstoned and cannot be reused.
+adapter. Linear active lookup plus logarithmic tombstone lookup keeps replay
+finite and auditable. Removed identifiers cannot be reused.
 
 An update validates its previous-operation hash and active master signature,
 clones the state, applies every action in wire order, validates final active
@@ -82,9 +83,9 @@ uses the generic standards-shaped result and method metadata.
 
 Native projection has a 32 MiB method-owned output budget. Its preflight counts
 one document controller, three controller occurrences per projected method and
-one per service, then adds the complete 96,000-byte operation budget for other
-method-owned content. The supported maximum long-form shape contributes
-25,454,850 bytes to that conservative estimate. This does not widen generic
+one per service, then adds three complete 96,000-byte operation budgets for
+contexts, keys and services accumulated across separate published updates. The
+supported maximum long-form shape remains below the 32 MiB ceiling. This does not widen generic
 hostile JSON re-ingress.
 
 ## Extension boundary
@@ -96,7 +97,7 @@ payloads without duplicating the envelope scanner or exposing prost structs.
 ## Verification
 
 Evidence includes pinned NeoPRISM and historical node vectors, specification
-boundary cases, differential state traces, duplicate-wire attacks, rollback,
+boundary cases, executable differential wire vectors, duplicate-wire attacks, rollback,
 retired-ID churn, deterministic ordering, property tests, fuzz targets,
 WASM/native checks and directional benchmarks. No performance number becomes
 a CI threshold without a separate stability decision.

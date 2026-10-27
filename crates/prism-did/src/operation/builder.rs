@@ -6,8 +6,8 @@ use serde::{Serialize, Serializer, ser::SerializeSeq};
 use super::{
     CreateDidOperation, DeactivateDidOperation, KeyUsage, PrismPublicKey, PrismPublicKeyMaterial,
     PrismService, ServiceEndpoint, ServiceEndpointValue, ServiceType, UpdateAction,
-    UpdateDidOperation, normalize_uri, parse_service, parse_service_endpoint, parse_service_type,
-    validate_fragment,
+    UpdateDidOperation, parse_service, parse_service_endpoint, parse_service_type,
+    validate_fragment, validate_uri_preserving_text,
 };
 use crate::{
     CanonicalPrismDid, Error, MAX_CONTEXTS, MAX_OPERATION_BYTES, MAX_SERVICE_ENDPOINT_BYTES,
@@ -64,7 +64,7 @@ impl ServiceEndpoint {
         parse_service_endpoint(value)
     }
 
-    /// Construct one normalized absolute-URI endpoint.
+    /// Construct one absolute-URI endpoint while preserving its exact text.
     pub fn uri(value: &str) -> Result<Self, Error> {
         parse_service_endpoint(value)
     }
@@ -299,8 +299,8 @@ fn encode_update_action(action: &UpdateAction) -> Result<Vec<u8>, Error> {
                 if context.len() > MAX_OPERATION_BYTES {
                     return Err(WireError::OperationTooLarge.into());
                 }
-                let normalized = normalize_uri(context)?;
-                payload.push_bytes(1, normalized.as_bytes())?;
+                let validated = validate_uri_preserving_text(context)?;
+                payload.push_bytes(1, validated.as_bytes())?;
             }
             (6, payload.finish())
         }
@@ -464,7 +464,7 @@ mod tests {
             vec!["HTTPS://EXAMPLE.COM/a/../context".to_owned()],
         )
         .unwrap();
-        assert_eq!(create.contexts(), &["https://example.com/context"]);
+        assert_eq!(create.contexts(), &["HTTPS://EXAMPLE.COM/a/../context"]);
         let raw_create = create.to_raw_operation().unwrap();
         assert_eq!(CreateDidOperation::parse(&raw_create).unwrap(), create);
         let signature = private.sign(raw_create.as_bytes());
@@ -494,7 +494,7 @@ mod tests {
         )
         .unwrap();
         state.apply_signed(&signed_update).unwrap();
-        assert_eq!(state.contexts(), &["https://example.com/updated"]);
+        assert_eq!(state.contexts(), &["HTTPS://EXAMPLE.COM/b/../updated"]);
 
         let deactivate =
             DeactivateDidOperation::new(state.did().clone(), state.last_operation_hash());

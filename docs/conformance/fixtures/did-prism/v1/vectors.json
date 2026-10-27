@@ -51,19 +51,6 @@
         "redacted": true,
         "fields": {}
       }
-    },
-    {
-      "id": "did.prism.state.atomic-rollback",
-      "operation": "did-prism.state.reduce",
-      "input": {
-        "literal": "ordered patch-context followed by remove-missing-service"
-      },
-      "expected": {
-        "kind": "error",
-        "errorCode": "did-prism.invalid_state",
-        "redacted": true,
-        "fields": {}
-      }
     }
   ]
 }

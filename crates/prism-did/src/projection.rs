@@ -126,8 +126,9 @@ fn ensure_projection_budget(state: &PrismDidState, controller_bytes: usize) -> R
     let projected_services = state.active_services().count();
     // The controller occurs once as the document ID, three times per method
     // (ID, controller and relationship reference), and once per service ID.
-    // The complete accepted operation budget conservatively covers all other
-    // method-owned strings and key material in the native projection.
+    // Three complete operation budgets conservatively cover contexts from one
+    // patch plus keys and services accumulated across separate published
+    // updates. Controller repetition is accounted for independently above.
     let repetitions = projected_keys
         .checked_mul(3)
         .and_then(|value| value.checked_add(projected_services))
@@ -135,7 +136,7 @@ fn ensure_projection_budget(state: &PrismDidState, controller_bytes: usize) -> R
         .ok_or(Error::InvalidState(StateError::InvalidCandidate))?;
     let estimated = controller_bytes
         .checked_mul(repetitions)
-        .and_then(|value| value.checked_add(MAX_OPERATION_BYTES))
+        .and_then(|value| value.checked_add(MAX_OPERATION_BYTES.saturating_mul(3)))
         .ok_or(Error::InvalidState(StateError::InvalidCandidate))?;
     if estimated > MAX_PROJECTED_DOCUMENT_BYTES {
         return Err(Error::InvalidState(StateError::InvalidCandidate));
@@ -277,7 +278,7 @@ mod tests {
 
         assert_eq!(json, serde_json::to_value(&second).unwrap());
         assert_eq!(json["@context"][0], DID_CORE_CONTEXT);
-        assert_eq!(json["@context"][1], "https://example.com/context");
+        assert_eq!(json["@context"][1], "HTTPS://EXAMPLE.COM/a/../context");
         assert_eq!(json["verificationMethod"].as_array().unwrap().len(), 2);
         assert_eq!(json["assertionMethod"].as_array().unwrap().len(), 1);
         assert_eq!(json["authentication"].as_array().unwrap().len(), 1);
@@ -307,10 +308,11 @@ mod tests {
     #[test]
     fn projection_budget_covers_the_supported_maximum_long_form_shape() {
         let repetitions = 1 + 3 * (MAX_VERIFICATION_METHODS - 1) + MAX_SERVICES;
-        let estimate = MAX_LONG_FORM_DID_BYTES * repetitions + MAX_OPERATION_BYTES;
+        let estimate =
+            MAX_LONG_FORM_DID_BYTES * repetitions + MAX_OPERATION_BYTES.saturating_mul(3);
 
         assert_eq!(MAX_LONG_FORM_DID_BYTES, 128_075);
-        assert_eq!(estimate, 25_454_850);
+        assert_eq!(estimate, 25_646_850);
         assert!(estimate <= MAX_PROJECTED_DOCUMENT_BYTES);
     }
 }

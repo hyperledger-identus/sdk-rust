@@ -23,14 +23,15 @@ all chain, donor and product families remain prohibited.
   131,072 bytes. Bounds are checked before protobuf allocation.
 - A long-form identifier is at most 128,075 bytes. Native document projection
   uses a separate 32 MiB preflight budget derived from actual projected key and
-  service counts plus the complete operation budget.
+  service counts plus three complete operation budgets.
 - Key and service identifiers contain at most 50 ASCII fragment characters.
 - Service type wire text contains at most 100 ASCII grammar characters.
 - Service endpoint wire text contains at most 300 Unicode scalar values and
   1,200 UTF-8 bytes, with bounded duplicate-name-safe JSON parsing.
-- A state has at most 50 active keys and 50 active services. Historical
-  tombstones do not count against those active limits, but identifiers cannot
-  be reused.
+- A state has at most 50 active keys and 50 active services. At most 4,096
+  retired key IDs and 4,096 retired service IDs are retained; retired full
+  values are dropped, tombstones do not count against active limits, and
+  identifiers cannot be reused.
 - At most 127 unique additional absolute context URIs are accepted. The DID
   Core context added during projection produces at most 128 entries.
 - Update actions execute in wire order against a clone and commit atomically.
@@ -42,7 +43,7 @@ all chain, donor and product families remain prohibited.
 Dependencies and targets additionally require:
 
 - Production dependencies are `identus-core`, `identus-crypto`, `identus-did`,
-  `prost`, `base64`, `fluent-uri`, `serde` and `serde_json` only when directly
+  `prost`, `base64`, `serde` and `serde_json` only when directly
   required by the implementation.
 - `prost` is pinned to 0.14.4, built without consumer-time code generation.
 - The crate remains compatible with native, `wasm32-unknown-unknown`, iOS and
@@ -54,7 +55,7 @@ Dependencies and targets additionally require:
 - The pinned PRISM draft leaves context count/size and total operation size
   unbounded. SDK-Rust publishes a finite safe profile and does not claim to
   accept every theoretically encodable protobuf.
-- RFC 3986 generic normalization is enforceable. Scheme-specific URI
+- URI syntax is validated without rewriting signed text. Scheme-specific
   normalization remains caller/profile responsibility.
 - VDR operation tags and VDR keys are recognized at the exact-wire boundary,
   but VDR payload semantics belong to issue #522.

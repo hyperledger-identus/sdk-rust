@@ -8,7 +8,6 @@ publish.workspace      = true
 
 [dependencies]
 base64.workspace = true
-fluent-uri = { workspace = true, features = [ "alloc" ] }
 identus-core.workspace = true
 identus-crypto = { workspace = true, default-features = false, features = [
   "ed25519",

@@ -2,7 +2,6 @@
 
 use std::{collections::BTreeSet, fmt};
 
-use fluent_uri::Uri as ParsedUri;
 use identus_crypto::{Ed25519PublicKey, Secp256k1PublicKey, Sha256Digest, X25519PublicKey};
 use prost::Message;
 use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
@@ -96,7 +95,7 @@ pub enum ServiceType {
 /// payloads before they enter protocol state.
 #[derive(Clone, PartialEq, Eq)]
 pub enum ServiceEndpointValue {
-    /// An absolute URI, normalized according to RFC 3986 generic rules.
+    /// An absolute URI retained in its exact validated wire form.
     Uri(String),
     /// A JSON object with duplicate member names rejected recursively.
     Object(serde_json::Map<String, serde_json::Value>),
@@ -312,7 +311,7 @@ impl CreateDidOperation {
         let contexts = data
             .context
             .into_iter()
-            .map(|context| normalize_uri(&context))
+            .map(|context| validate_uri_preserving_text(&context))
             .collect::<Result<Vec<_>, _>>()?;
         ensure_unique(contexts.iter().map(String::as_str))?;
 
@@ -335,7 +334,7 @@ impl CreateDidOperation {
         &self.services
     }
 
-    /// Borrow normalized additional contexts in signed wire order.
+    /// Borrow validated additional contexts in their exact signed wire form.
     #[must_use]
     pub fn contexts(&self) -> &[String] {
         &self.contexts
@@ -459,7 +458,7 @@ fn parse_update_action(action: proto::UpdateDidAction) -> Result<UpdateAction, E
             let contexts = action
                 .context
                 .into_iter()
-                .map(|context| normalize_uri(&context))
+                .map(|context| validate_uri_preserving_text(&context))
                 .collect::<Result<Vec<_>, _>>()?;
             ensure_unique(contexts.iter().map(String::as_str))?;
             Ok(UpdateAction::PatchContext(contexts))
@@ -553,24 +552,24 @@ fn parse_service_endpoint(value: &str) -> Result<ServiceEndpoint, Error> {
             _ => Err(OperationError::InvalidValue.into()),
         };
     }
-    normalize_uri(value).map(|uri| ServiceEndpoint::One(ServiceEndpointValue::Uri(uri)))
+    validate_uri_preserving_text(value)
+        .map(|uri| ServiceEndpoint::One(ServiceEndpointValue::Uri(uri)))
 }
 
 fn endpoint_from_json(value: serde_json::Value) -> Result<ServiceEndpointValue, Error> {
     match value {
-        serde_json::Value::String(uri) => normalize_uri(&uri).map(ServiceEndpointValue::Uri),
+        serde_json::Value::String(uri) => {
+            validate_uri_preserving_text(&uri).map(ServiceEndpointValue::Uri)
+        }
         serde_json::Value::Object(map) => Ok(ServiceEndpointValue::Object(map)),
         _ => Err(OperationError::InvalidValue.into()),
     }
 }
 
-fn normalize_uri(value: &str) -> Result<String, Error> {
-    let parsed = ParsedUri::parse(value)
+fn validate_uri_preserving_text(value: &str) -> Result<String, Error> {
+    identus_did::Uri::parse(value)
         .map_err(|_| Error::InvalidOperation(OperationError::InvalidValue))?;
-    let normalized = parsed.normalize().to_string();
-    identus_did::Uri::parse(&normalized)
-        .map_err(|_| Error::InvalidOperation(OperationError::InvalidValue))?;
-    Ok(normalized)
+    Ok(value.to_owned())
 }
 
 pub(crate) fn validate_fragment(value: &str) -> Result<(), Error> {
@@ -858,12 +857,13 @@ mod tests {
     }
 
     #[test]
-    fn contexts_are_normalized_before_duplicate_detection() {
+    fn uri_text_is_preserved_and_context_duplicates_are_exact() {
         assert_eq!(
-            normalize_uri("HTTPS://EXAMPLE.COM/a/../b").unwrap(),
-            "https://example.com/b"
+            validate_uri_preserving_text("HTTPS://EXAMPLE.COM/a/../b").unwrap(),
+            "HTTPS://EXAMPLE.COM/a/../b"
         );
         assert!(ensure_unique(["https://example.com", "https://example.com"]).is_err());
+        assert!(ensure_unique(["HTTPS://EXAMPLE.COM", "https://example.com"]).is_ok());
     }
 
     #[test]
@@ -900,7 +900,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_normalization_equivalent_contexts() {
+    fn preserves_and_accepts_distinct_normalization_equivalent_contexts() {
         let raw = raw_create_from(proto::DidCreationData {
             public_keys: vec![master("master")],
             services: Vec::new(),
@@ -909,9 +909,13 @@ mod tests {
                 "https://example.com/context".to_owned(),
             ],
         });
+        let operation = CreateDidOperation::parse(&raw).unwrap();
         assert_eq!(
-            CreateDidOperation::parse(&raw),
-            Err(Error::InvalidOperation(OperationError::DuplicateValue))
+            operation.contexts(),
+            [
+                "https://EXAMPLE.com/a/../context",
+                "https://example.com/context"
+            ]
         );
     }
 
@@ -958,7 +962,7 @@ mod tests {
         };
         assert_eq!(
             values[0],
-            ServiceEndpointValue::Uri("https://example.com/didcomm".to_owned())
+            ServiceEndpointValue::Uri("HTTPS://EXAMPLE.COM/a/../didcomm".to_owned())
         );
     }
 
@@ -991,7 +995,7 @@ mod tests {
         assert!(matches!(operation.actions()[0], UpdateAction::RemoveKey(_)));
         assert_eq!(
             operation.actions()[1],
-            UpdateAction::PatchContext(vec!["https://example.com/context".to_owned()])
+            UpdateAction::PatchContext(vec!["HTTPS://EXAMPLE.COM/a/../context".to_owned()])
         );
 
         let invalid = proto::UpdateDid {

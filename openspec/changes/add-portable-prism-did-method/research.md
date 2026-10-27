@@ -90,7 +90,7 @@ need an adapter for multiple values; they do not alter the canonical Rust
 facade boundary.
 
 The proposed direct dependency cone is `identus-core`, `identus-crypto`,
-`identus-did`, `prost 0.14.4`, `base64`, `fluent-uri`, `serde` and
+`identus-did`, `prost 0.14.4`, `base64`, `serde` and
 `serde_json`, reduced further where implementation proves a dependency is
 unnecessary. The resolved dependency cone adds `bytes` and prost derive
 machinery already present only at compile time. No regex, runtime, network,
@@ -117,7 +117,7 @@ reflect DIDs, endpoints, key bytes, signatures or opaque payloads.
 
 The candidate adds no unsafe code, native code, build script in consumer
 builds, network access or secret ownership. `identus-crypto`, `prost`,
-`base64`, `fluent-uri`, `serde` and `serde_json` are the direct supply-chain
+`base64`, `serde` and `serde_json` are the direct supply-chain
 surface; the existing `identus-crypto` hex feature supplies canonical digest
 text through its bounded `hex` dependency. Exact feature and resolved-package
 evidence must be captured from the final lockfile. Private generated files are
@@ -138,8 +138,8 @@ rather than simulated; source-compatible fixes use the compatibility ledger.
   bounded Unicode values.
 - Its hash-map iteration does not define stable document ordering.
 
-The SDK preserves tombstones and no-ID-reuse semantics while correcting these
-deviations with differential tests.
+The SDK preserves bounded tombstones and no-ID-reuse semantics while correcting
+these deviations with property tests and executable differential wire vectors.
 
 ## Wire feasibility evidence
 

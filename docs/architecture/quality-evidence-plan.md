@@ -56,7 +56,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Owner: SDK-Rust PRISM DID maintainers (issue #521)
 - Risk: Wire reconstruction, invalid key profiles, non-atomic updates or unstable projection can split PRISM history and expose unauthorized DID state.
 - Targets: `package:identus-prism-did`, `host:rust`, `target:wasm32-unknown-unknown`
-- Vector IDs: `4` local catalog entries
+- Vector IDs: `3` local catalog entries
 - Limitations: The declaration covers portable DID operations and projection only; Cardano indexing, VDR payload semantics, persistence and downstream adoption remain separate capabilities.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
@@ -91,7 +91,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `differential`
 
-- Command: `cargo test -p identus-prism-did verifies_pinned_preprod`
+- Command: `cargo test -p identus-prism-did verifies_pinned_preprod && cargo test -p identus-conformance --test cross_language_prism_vectors`
 - Budget: Verify both pinned public Preprod create envelopes and compare exact operation ID, DID suffix, signature and projected document evidence offline.
-- Receipt: `source:crates/prism-did/src/state.rs`
+- Receipt: `source:crates/conformance/tests/cross_language_prism_vectors.rs`
 - Evidence revision: `5f4ea13c1635db5466d5fcae353d0897f09abdf5`

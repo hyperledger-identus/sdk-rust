@@ -1,33 +1,30 @@
 //! Authenticated, deterministic and atomic PRISM DID state reduction.
 
-use std::fmt;
+use std::{collections::BTreeSet, fmt};
 
 use identus_crypto::{Sha256Digest, Verifiable};
 
 use crate::{
-    CanonicalPrismDid, CreateDidOperation, DeactivateDidOperation, Error, KeyUsage, MAX_SERVICES,
-    MAX_VERIFICATION_METHODS, OperationError, OperationKind, PrismPublicKey,
-    PrismPublicKeyMaterial, PrismService, RawPrismOperation, SignedPrismOperation, StateError,
-    UpdateAction, UpdateDidOperation,
+    CanonicalPrismDid, CreateDidOperation, DeactivateDidOperation, Error, KeyUsage,
+    MAX_RETIRED_IDENTIFIERS_PER_KIND, MAX_SERVICES, MAX_VERIFICATION_METHODS, OperationError,
+    OperationKind, PrismPublicKey, PrismPublicKeyMaterial, PrismService, RawPrismOperation,
+    SignedPrismOperation, StateError, UpdateAction, UpdateDidOperation,
 };
-
-#[derive(Clone, PartialEq)]
-struct Historical<T> {
-    value: T,
-    active: bool,
-}
 
 /// Materialized PRISM DID method state.
 ///
-/// Keys and services retain insertion order and tombstones. Signed state
+/// Active keys and services retain insertion order. Removed values are dropped
+/// while their bounded identifier tombstones prevent reuse. Signed state
 /// transitions verify against an active master key over the exact nested
 /// operation bytes before a cloned candidate is mutated and committed.
 #[derive(Clone, PartialEq)]
 pub struct PrismDidState {
     did: CanonicalPrismDid,
     last_operation_hash: Sha256Digest,
-    public_keys: Vec<Historical<PrismPublicKey>>,
-    services: Vec<Historical<PrismService>>,
+    public_keys: Vec<PrismPublicKey>,
+    retired_public_key_ids: BTreeSet<String>,
+    services: Vec<PrismService>,
+    retired_service_ids: BTreeSet<String>,
     contexts: Vec<String>,
     deactivated: bool,
 }
@@ -36,10 +33,10 @@ impl fmt::Debug for PrismDidState {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("PrismDidState")
-            .field("historical_public_keys", &self.public_keys.len())
-            .field("active_public_keys", &self.active_public_keys().count())
-            .field("historical_services", &self.services.len())
-            .field("active_services", &self.active_services().count())
+            .field("active_public_keys", &self.public_keys.len())
+            .field("retired_public_key_ids", &self.retired_public_key_ids.len())
+            .field("active_services", &self.services.len())
+            .field("retired_service_ids", &self.retired_service_ids.len())
             .field("contexts", &self.contexts.len())
             .field("deactivated", &self.deactivated)
             .finish_non_exhaustive()
@@ -106,21 +103,15 @@ impl PrismDidState {
 
     /// Iterate active keys in deterministic insertion order.
     pub fn active_public_keys(&self) -> impl Iterator<Item = &PrismPublicKey> {
-        self.public_keys
-            .iter()
-            .filter(|entry| entry.active)
-            .map(|entry| &entry.value)
+        self.public_keys.iter()
     }
 
     /// Iterate active services in deterministic insertion order.
     pub fn active_services(&self) -> impl Iterator<Item = &PrismService> {
-        self.services
-            .iter()
-            .filter(|entry| entry.active)
-            .map(|entry| &entry.value)
+        self.services.iter()
     }
 
-    /// Borrow normalized additional contexts in signed wire order.
+    /// Borrow validated additional contexts in exact signed wire order.
     #[must_use]
     pub fn contexts(&self) -> &[String] {
         &self.contexts
@@ -130,38 +121,24 @@ impl PrismDidState {
         Self {
             did: CanonicalPrismDid::from_digest(operation_hash.as_array()),
             last_operation_hash: operation_hash,
-            public_keys: operation
-                .public_keys()
-                .iter()
-                .cloned()
-                .map(|value| Historical {
-                    value,
-                    active: true,
-                })
-                .collect(),
-            services: operation
-                .services()
-                .iter()
-                .cloned()
-                .map(|value| Historical {
-                    value,
-                    active: true,
-                })
-                .collect(),
+            public_keys: operation.public_keys().to_vec(),
+            retired_public_key_ids: BTreeSet::new(),
+            services: operation.services().to_vec(),
+            retired_service_ids: BTreeSet::new(),
             contexts: operation.contexts().to_vec(),
             deactivated: false,
         }
     }
 
     fn verify_master_signature(&self, signed: &SignedPrismOperation) -> Result<(), Error> {
-        let Some(key) = self.public_keys.iter().find(|entry| {
-            entry.active
-                && entry.value.id() == signed.signed_with()
-                && entry.value.usage() == KeyUsage::Master
-        }) else {
+        let Some(key) = self
+            .public_keys
+            .iter()
+            .find(|key| key.id() == signed.signed_with() && key.usage() == KeyUsage::Master)
+        else {
             return Err(OperationError::InvalidSignature.into());
         };
-        let PrismPublicKeyMaterial::Secp256k1(key) = key.value.material() else {
+        let PrismPublicKeyMaterial::Secp256k1(key) = key.material() else {
             return Err(OperationError::InvalidSignature.into());
         };
         if key.verify(signed.operation_bytes(), signed.signature()) {
@@ -190,12 +167,7 @@ impl PrismDidState {
     fn reduce_deactivation(&mut self, raw: &RawPrismOperation) -> Result<(), Error> {
         let operation = DeactivateDidOperation::parse(raw)?;
         self.check_history(operation.did(), operation.previous_operation_hash())?;
-        self.public_keys
-            .iter_mut()
-            .for_each(|entry| entry.active = false);
-        self.services
-            .iter_mut()
-            .for_each(|entry| entry.active = false);
+        self.retire_all_active_identifiers()?;
         self.contexts.clear();
         self.last_operation_hash = raw.operation_hash();
         self.deactivated = true;
@@ -220,45 +192,49 @@ impl PrismDidState {
                 if self
                     .public_keys
                     .iter()
-                    .any(|entry| entry.value.id() == key.id())
-                    || self.active_public_keys().count() >= MAX_VERIFICATION_METHODS
+                    .any(|active| active.id() == key.id())
+                    || self.retired_public_key_ids.contains(key.id())
+                    || self.public_keys.len() >= MAX_VERIFICATION_METHODS
                 {
                     return Err(StateError::IdentifierConflict.into());
                 }
-                self.public_keys.push(Historical {
-                    value: key,
-                    active: true,
-                });
+                self.public_keys.push(key);
             }
             UpdateAction::RemoveKey(id) => {
-                let entry = self
+                if self.retired_public_key_ids.len() >= MAX_RETIRED_IDENTIFIERS_PER_KIND {
+                    return Err(StateError::InvalidCandidate.into());
+                }
+                let index = self
                     .public_keys
-                    .iter_mut()
-                    .find(|entry| entry.active && entry.value.id() == id)
+                    .iter()
+                    .position(|key| key.id() == id)
                     .ok_or(Error::InvalidState(StateError::IdentifierConflict))?;
-                entry.active = false;
+                let removed = self.public_keys.remove(index);
+                self.retired_public_key_ids.insert(removed.id().to_owned());
             }
             UpdateAction::AddService(service) => {
                 if self
                     .services
                     .iter()
-                    .any(|entry| entry.value.id() == service.id())
-                    || self.active_services().count() >= MAX_SERVICES
+                    .any(|active| active.id() == service.id())
+                    || self.retired_service_ids.contains(service.id())
+                    || self.services.len() >= MAX_SERVICES
                 {
                     return Err(StateError::IdentifierConflict.into());
                 }
-                self.services.push(Historical {
-                    value: service,
-                    active: true,
-                });
+                self.services.push(service);
             }
             UpdateAction::RemoveService(id) => {
-                let entry = self
+                if self.retired_service_ids.len() >= MAX_RETIRED_IDENTIFIERS_PER_KIND {
+                    return Err(StateError::InvalidCandidate.into());
+                }
+                let index = self
                     .services
-                    .iter_mut()
-                    .find(|entry| entry.active && entry.value.id() == id)
+                    .iter()
+                    .position(|service| service.id() == id)
                     .ok_or(Error::InvalidState(StateError::IdentifierConflict))?;
-                entry.active = false;
+                let removed = self.services.remove(index);
+                self.retired_service_ids.insert(removed.id().to_owned());
             }
             UpdateAction::UpdateService {
                 id,
@@ -268,17 +244,41 @@ impl PrismDidState {
                 let entry = self
                     .services
                     .iter_mut()
-                    .find(|entry| entry.active && entry.value.id() == id)
+                    .find(|service| service.id() == id)
                     .ok_or(Error::InvalidState(StateError::IdentifierConflict))?;
                 if let Some(service_type) = service_type {
-                    entry.value.replace_type(service_type);
+                    entry.replace_type(service_type);
                 }
                 if let Some(endpoint) = endpoint {
-                    entry.value.replace_endpoint(endpoint);
+                    entry.replace_endpoint(endpoint);
                 }
             }
             UpdateAction::PatchContext(contexts) => self.contexts = contexts,
         }
+        Ok(())
+    }
+
+    fn retire_all_active_identifiers(&mut self) -> Result<(), Error> {
+        if self
+            .retired_public_key_ids
+            .len()
+            .saturating_add(self.public_keys.len())
+            > MAX_RETIRED_IDENTIFIERS_PER_KIND
+            || self
+                .retired_service_ids
+                .len()
+                .saturating_add(self.services.len())
+                > MAX_RETIRED_IDENTIFIERS_PER_KIND
+        {
+            return Err(StateError::InvalidCandidate.into());
+        }
+        self.retired_public_key_ids
+            .extend(self.public_keys.drain(..).map(|key| key.id().to_owned()));
+        self.retired_service_ids.extend(
+            self.services
+                .drain(..)
+                .map(|service| service.id().to_owned()),
+        );
         Ok(())
     }
 }
@@ -520,7 +520,8 @@ mod tests {
             active = next;
         }
         assert_eq!(state.active_services().count(), 1);
-        assert!(state.services.len() > MAX_SERVICES);
+        assert!(state.retired_service_ids.len() > MAX_SERVICES);
+        assert_eq!(state.services.len(), 1);
     }
 
     #[test]
@@ -572,9 +573,8 @@ mod tests {
                 1 => {
                     let id = state
                         .services
-                        .iter()
-                        .find(|entry| entry.active)
-                        .map_or_else(|| "missing".to_owned(), |entry| entry.value.id().to_owned());
+                        .first()
+                        .map_or_else(|| "missing".to_owned(), |service| service.id().to_owned());
                     vec![action(proto::update_did_action::Action::RemoveService(
                         proto::RemoveServiceAction { service_id: id },
                     ))]
@@ -619,15 +619,39 @@ mod tests {
                     .active_public_keys()
                     .any(|key| key.usage() == KeyUsage::Master)
             );
-            for (index, entry) in state.services.iter().enumerate() {
+            for (index, service) in state.services.iter().enumerate() {
                 assert!(
                     state.services[..index]
                         .iter()
-                        .all(|prior| prior.value.id() != entry.value.id()),
-                    "generated trace reused a tombstoned service identifier"
+                        .all(|prior| prior.id() != service.id()),
+                    "generated trace duplicated an active service identifier"
                 );
+                assert!(!state.retired_service_ids.contains(service.id()));
             }
         }
+    }
+
+    #[test]
+    fn retired_identifier_budget_fails_atomically() {
+        let mut state = initial_state();
+        state.retired_service_ids = (0..MAX_RETIRED_IDENTIFIERS_PER_KIND)
+            .map(|index| format!("retired-{index}"))
+            .collect();
+        let remove = signed_update(
+            &state,
+            vec![action(proto::update_did_action::Action::RemoveService(
+                proto::RemoveServiceAction {
+                    service_id: "service".to_owned(),
+                },
+            ))],
+        );
+        let before = state.clone();
+
+        assert_eq!(
+            state.apply_signed(&remove),
+            Err(Error::InvalidState(StateError::InvalidCandidate))
+        );
+        assert_eq!(state, before);
     }
 
     #[test]

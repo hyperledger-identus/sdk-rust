@@ -17,6 +17,8 @@ pub const MAX_SIGNATURE_BYTES: usize = 128;
 pub const MAX_VERIFICATION_METHODS: usize = 50;
 /// Maximum active services in one PRISM state.
 pub const MAX_SERVICES: usize = 50;
+/// Maximum retired key or service identifiers retained by one materialized state.
+pub const MAX_RETIRED_IDENTIFIERS_PER_KIND: usize = 4_096;
 /// Maximum ASCII fragment characters in a key or service identifier.
 pub const MAX_ID_CHARACTERS: usize = 50;
 /// Maximum ASCII grammar characters in a service type wire value.

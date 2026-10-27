@@ -41,8 +41,9 @@ the only source for signature verification and operation hashes.
 
 A create operation SHALL contain at most 50 uniquely identified keys and 50
 uniquely identified services, at least one secp256k1 master key, supported key
-usages/curves, bounded service values and at most 127 unique normalized
-absolute context URIs. Master, revocation and VDR keys SHALL remain protocol
+usages/curves, bounded service values and at most 127 unique exact-text
+absolute context URIs. Validated URI values SHALL retain their signed wire
+representation. Master, revocation and VDR keys SHALL remain protocol
 state but SHALL NOT appear in a projected DID document.
 
 #### Scenario: maximum finite initial state is portable
@@ -59,9 +60,10 @@ state but SHALL NOT appear in a projected DID document.
 
 Update actions SHALL execute in signed wire order against a cloned candidate.
 Any failed action or final invariant SHALL discard the complete candidate.
-Identifiers SHALL remain reserved after removal. The 50-key and 50-service
-limits SHALL count active entries only, and a successful update SHALL retain at
-least one active master key.
+Identifiers SHALL remain reserved after removal using at most 4,096 compact
+retired identifiers per kind. Retired full values SHALL be discarded. The
+50-key and 50-service limits SHALL count active entries only, and a successful
+update SHALL retain at least one active master key.
 
 #### Scenario: retired identifier cannot be reused
 
@@ -70,7 +72,7 @@ least one active master key.
 
 #### Scenario: historical churn does not consume active capacity
 
-- **WHEN** more than 50 lifetime identifiers exist but no more than 50 are active
+- **WHEN** more than 50 and no more than 4,096 lifetime identifiers exist but no more than 50 are active
 - **THEN** the state SHALL remain valid while retaining all tombstones
 
 #### Scenario: one failed action rolls back earlier actions

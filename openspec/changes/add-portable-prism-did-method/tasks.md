@@ -35,7 +35,7 @@
 - [x] 5.2 Add negative/property state evidence and executable differential wire vectors.
 - [x] 5.3 Pass native/WASM/mobile compile, clippy, docs and dependency gates.
 - [x] 5.4 Capture directional parse/verify/project/state benchmarks.
-- [ ] 5.5 Complete independent CLI review before push: use Claude first and Codex CLI when Claude is unavailable or quota-limited.
+- [x] 5.5 Complete independent CLI review before push: use Claude first and Codex CLI when Claude is unavailable or quota-limited.
 - [ ] 5.6 Open one issue-linked cohesive PR, pass protected CI and publish metrics.
 - [ ] 5.7 Archive the completed OpenSpec change and merge to `develop`.
 

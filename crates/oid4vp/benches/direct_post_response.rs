@@ -7,10 +7,11 @@ use identus_jose::{
 };
 use identus_oid4vp::{
     AuthorizationRequestInvocation, AuthorizationRequestInvocationLimits,
-    AuthorizationRequestValidationLimits, DcqlLimits, DirectPostPresentation,
-    DirectPostQueryResult, DirectPostResponseLimits, REQUEST_OBJECT_JWT_TYPE,
-    REQUEST_OBJECT_MEDIA_TYPE, RequestObjectValidationLimits, RequestUriRetrievalInput,
-    RequestUriRetrievalLimits,
+    AuthorizationRequestValidationLimits, DcqlLimits, DirectPostErrorCode, DirectPostErrorDetails,
+    DirectPostErrorResponseLimits, DirectPostPresentation, DirectPostQueryResult,
+    DirectPostResponseLimits, REQUEST_OBJECT_JWT_TYPE, REQUEST_OBJECT_MEDIA_TYPE,
+    RequestObjectValidationLimits, RequestUriRetrievalInput, RequestUriRetrievalLimits,
+    ValidatedAuthorizationRequest,
 };
 use serde_json::json;
 
@@ -23,10 +24,44 @@ fn main() {
     measure("ordinary.end-to-end", || construct("compact"));
     let boundary = "p".repeat(60 * 1_024);
     measure("boundary.end-to-end", || construct(black_box(&boundary)));
+    measure("error.ordinary.end-to-end", || {
+        construct_error("unsupported client_id_prefix")
+    });
+    let error_boundary = "e".repeat(1_024);
+    measure("error.boundary.end-to-end", || {
+        construct_error(black_box(&error_boundary))
+    });
     println!("oid4vp-direct-post-benchmark allocation_observation=not_available");
 }
 
 fn construct(presentation: &str) {
+    let request = validated_request();
+    let limits = DirectPostResponseLimits::default();
+    let result = DirectPostQueryResult::new(
+        "degree",
+        vec![DirectPostPresentation::string(presentation, limits).unwrap()],
+        limits,
+    )
+    .unwrap();
+    black_box(
+        request
+            .into_direct_post_response(vec![result], limits)
+            .unwrap(),
+    );
+}
+
+fn construct_error(description: &str) {
+    let request = validated_request();
+    let limits = DirectPostErrorResponseLimits::default();
+    let details = DirectPostErrorDetails::new(Some(description), None, limits).unwrap();
+    black_box(
+        request
+            .into_direct_post_error_response(DirectPostErrorCode::InvalidRequest, details, limits)
+            .unwrap(),
+    );
+}
+
+fn validated_request() -> ValidatedAuthorizationRequest {
     let private = Ed25519PrivateKey::from_slice(&PRIVATE_BYTES).unwrap();
     let payload = serde_json::to_vec(&json!({
         "client_id": "decentralized_identifier:did:example:verifier",
@@ -72,26 +107,14 @@ fn construct(presentation: &str) {
         .unwrap();
     let public = private.to_public_key().encode_jwk();
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).unwrap();
-    let request = unverified
+    unverified
         .verify(&SignatureSuiteRegistry::recommended(), &key)
         .unwrap()
         .into_authorization_request(
             AuthorizationRequestValidationLimits::default(),
             DcqlLimits::default(),
         )
-        .unwrap();
-    let limits = DirectPostResponseLimits::default();
-    let result = DirectPostQueryResult::new(
-        "degree",
-        vec![DirectPostPresentation::string(presentation, limits).unwrap()],
-        limits,
-    )
-    .unwrap();
-    black_box(
-        request
-            .into_direct_post_response(vec![result], limits)
-            .unwrap(),
-    );
+        .unwrap()
 }
 
 fn measure(name: &str, mut operation: impl FnMut()) {

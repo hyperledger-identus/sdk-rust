@@ -55,12 +55,12 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ## `oid4vp.direct-post-response.quality.v1`
 
 - Capability: `oid4vp.direct-post-response`
-- Slice: Bounded OpenID4VP Final direct-post response construction
+- Slice: Bounded OpenID4VP Final plain direct-post success and protocol-error construction
 - Owner: SDK-Rust OID4VP maintainers (issue #487)
-- Risk: Response construction can detach presentations from validated DCQL lineage, emit malformed wire values, leak credentials, or amplify hostile input.
+- Risk: Response construction can detach success or error material from validated request lineage, emit malformed wire values, leak credentials or developer context, or amplify hostile input.
 - Targets: `package:identus-oid4vp`, `host:rust`, `consumer:portable-sdk`
-- Vector IDs: `1` local catalog entries
-- Limitations: This declaration covers plain OpenID4VP Final direct_post success construction only; it does not prove HTTP delivery, presentation authenticity, consent, trust, encryption, direct_post.jwt, SIOPv2, DC API or HAIP.
+- Vector IDs: `2` local catalog entries
+- Limitations: This declaration covers plain OpenID4VP Final direct_post success and explicitly selected protocol-error construction only; it does not prove HTTP delivery, presentation authenticity, error truth, End-User interaction, consent, privacy safety, trust, encryption, direct_post.jwt, SIOPv2, DC API or HAIP.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
@@ -72,30 +72,30 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `property`
 
 - Command: `cargo test -p identus-oid4vp --test direct_post_response`
-- Budget: Generate bounded request rules and result collections across required, optional, single and multiple profiles and round-trip every accepted form.
+- Budget: Generate bounded success matrices and every closed error code with optional detail forms; round-trip accepted output and reject independent boundary violations.
 - Receipt: `source:crates/oid4vp/tests/direct_post_response.rs`
-- Evidence revision: `18187dfae0cfc7195628f53c6c026598f6b0e2e4`
+- Evidence revision: `86efc29b517ad4fe53c2a345c6cc47076556509e`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response`
-- Budget: Run the direct-post response parser/constructor for 300 seconds with max_len=65536, timeout=5 and rss_limit_mb=1024.
+- Budget: Run both success and error direct-post constructors for 300 seconds with max_len=65536, timeout=5 and rss_limit_mb=1024.
 - Receipt: `source:fuzz/fuzz_targets/direct_post_response.rs`
-- Evidence revision: `18187dfae0cfc7195628f53c6c026598f6b0e2e4`
+- Evidence revision: `86efc29b517ad4fe53c2a345c6cc47076556509e`
 
 ### `benchmark`
 
 - Command: `cargo bench -p identus-oid4vp --bench direct_post_response`
-- Budget: Measure the complete deterministic pipeline for ordinary and 60 KiB single-string presentations; this diagnostic does not isolate response construction or measure allocations.
+- Budget: Measure the complete deterministic pipeline for ordinary and near-limit success presentations and error descriptions; this diagnostic does not isolate construction or measure allocations.
 - Receipt: `source:crates/oid4vp/benches/direct_post_response.rs`
-- Evidence revision: `18187dfae0cfc7195628f53c6c026598f6b0e2e4`
+- Evidence revision: `86efc29b517ad4fe53c2a345c6cc47076556509e`
 
 ### `differential`
 
-- Command: `cargo test -p identus-oid4vp --test direct_post_response packet_executes_full_invocation_jar_dcql_and_response_lineage`
-- Budget: Reproduce the attributed Final response shape and round-trip its form body through an independent strict decoder.
+- Command: `cargo test -p identus-oid4vp --test direct_post_response`
+- Budget: Reproduce attributed Final success and error response shapes and round-trip form bodies through an independent strict decoder.
 - Receipt: `source:docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json`
-- Evidence revision: `18187dfae0cfc7195628f53c6c026598f6b0e2e4`
+- Evidence revision: `86efc29b517ad4fe53c2a345c6cc47076556509e`
 
 ## `did.syntax.quality.v1`
 

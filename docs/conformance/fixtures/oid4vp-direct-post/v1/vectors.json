@@ -17,6 +17,21 @@
           "serialized": "vp_token=%7B%22degree%22%3A%5B%22eyJhbGciOiJub25lIn0%22%5D%7D&state=state-123"
         }
       }
+    },
+    {
+      "id": "oid4vp.direct-post-response.final-error-state",
+      "operation": "oid4vp.direct-post-response.construct",
+      "input": {
+        "literal": "{\"error\":\"invalid_request\",\"error_description\":\"unsupported client_id_prefix\"}"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "error=invalid_request&error_description=unsupported+client_id_prefix&state=state-123"
+        }
+      }
     }
   ]
 }

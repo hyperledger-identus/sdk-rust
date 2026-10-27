@@ -403,6 +403,58 @@ impl Default for DirectPostResponseLimits {
     }
 }
 
+/// Resource limits for one plain direct-post Authorization Error Response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DirectPostErrorResponseLimits {
+    max_error_description_bytes: usize,
+    max_error_uri_bytes: usize,
+    max_form_body_bytes: usize,
+}
+
+impl DirectPostErrorResponseLimits {
+    /// Construct a positive protocol-error response policy.
+    pub const fn new(
+        max_error_description_bytes: usize,
+        max_error_uri_bytes: usize,
+        max_form_body_bytes: usize,
+    ) -> Result<Self, Oid4vpError> {
+        if max_error_description_bytes == 0 || max_error_uri_bytes == 0 || max_form_body_bytes == 0
+        {
+            return Err(Oid4vpError::InvalidLimits);
+        }
+        Ok(Self {
+            max_error_description_bytes,
+            max_error_uri_bytes,
+            max_form_body_bytes,
+        })
+    }
+
+    /// Maximum decoded bytes in optional developer-oriented text.
+    pub const fn max_error_description_bytes(self) -> usize {
+        self.max_error_description_bytes
+    }
+
+    /// Maximum decoded bytes in the optional URI-reference.
+    pub const fn max_error_uri_bytes(self) -> usize {
+        self.max_error_uri_bytes
+    }
+
+    /// Maximum bytes in the encoded direct-post error form body.
+    pub const fn max_form_body_bytes(self) -> usize {
+        self.max_form_body_bytes
+    }
+}
+
+impl Default for DirectPostErrorResponseLimits {
+    fn default() -> Self {
+        Self {
+            max_error_description_bytes: 1_024,
+            max_error_uri_bytes: 2_048,
+            max_form_body_bytes: 8_192,
+        }
+    }
+}
+
 /// Resource and work limits for one DCQL query evaluation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DcqlLimits {

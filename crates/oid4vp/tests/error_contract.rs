@@ -23,7 +23,7 @@ macro_rules! case {
     };
 }
 
-const CASES: [Case; 63] = [
+const CASES: [Case; 68] = [
     case!(InvalidLimits, INVALID_LIMITS),
     case!(InvocationTooLarge, INVOCATION_TOO_LARGE),
     case!(InvalidInvocation, INVALID_INVOCATION),
@@ -105,6 +105,20 @@ const CASES: [Case; 63] = [
     case!(PresentationTooLarge, PRESENTATION_TOO_LARGE),
     case!(ResponseJsonTooLarge, RESPONSE_JSON_TOO_LARGE),
     case!(DirectPostFormTooLarge, DIRECT_POST_FORM_TOO_LARGE),
+    case!(
+        InvalidProtocolErrorDescription,
+        INVALID_PROTOCOL_ERROR_DESCRIPTION
+    ),
+    case!(
+        ProtocolErrorDescriptionTooLarge,
+        PROTOCOL_ERROR_DESCRIPTION_TOO_LARGE
+    ),
+    case!(InvalidProtocolErrorUri, INVALID_PROTOCOL_ERROR_URI),
+    case!(ProtocolErrorUriTooLarge, PROTOCOL_ERROR_URI_TOO_LARGE),
+    case!(
+        DirectPostErrorFormTooLarge,
+        DIRECT_POST_ERROR_FORM_TOO_LARGE
+    ),
 ];
 
 #[test]

@@ -65,3 +65,8 @@ InvalidPresentation,oid4vp.invalid_presentation,InvalidInput,OID4VP presentation
 PresentationTooLarge,oid4vp.presentation_too_large,InvalidInput,OID4VP presentation value exceeds its resource limits
 ResponseJsonTooLarge,oid4vp.response_json_too_large,InvalidInput,OID4VP response JSON exceeds its byte limit
 DirectPostFormTooLarge,oid4vp.direct_post_form_too_large,InvalidInput,OID4VP direct-post form exceeds its byte limit
+InvalidProtocolErrorDescription,oid4vp.invalid_protocol_error_description,InvalidInput,OID4VP protocol error description is invalid
+ProtocolErrorDescriptionTooLarge,oid4vp.protocol_error_description_too_large,InvalidInput,OID4VP protocol error description exceeds its byte limit
+InvalidProtocolErrorUri,oid4vp.invalid_protocol_error_uri,InvalidInput,OID4VP protocol error URI is invalid
+ProtocolErrorUriTooLarge,oid4vp.protocol_error_uri_too_large,InvalidInput,OID4VP protocol error URI exceeds its byte limit
+DirectPostErrorFormTooLarge,oid4vp.direct_post_error_form_too_large,InvalidInput,OID4VP direct-post error form exceeds its byte limit

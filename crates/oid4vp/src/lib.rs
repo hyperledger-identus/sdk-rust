@@ -4,9 +4,11 @@
 //! bounded runtime-neutral GET/POST retrieval, binds its response, and verifies
 //! a signed compact JAR through [`identus_jose`], and validates/evaluates DCQL
 //! through a bounded SDK-owned facade, then composes one narrow Final
-//! `vp_token`/`direct_post` request state and a bounded plain success response.
+//! `vp_token`/`direct_post` request state and bounded mutually exclusive plain
+//! success or explicit protocol-error responses.
 //! It does not execute HTTP, authorize a verifier key, record consent, create
-//! presentations, or verify credentials.
+//! presentations, verify credentials, or translate internal failures into wire
+//! errors.
 
 #![forbid(unsafe_code)]
 
@@ -29,8 +31,8 @@ pub use dcql::{
     ValidatedDcqlQuery,
 };
 pub use direct_post::{
-    DIRECT_POST_HTTP_METHOD, DIRECT_POST_MEDIA_TYPE, DirectPostPresentation, DirectPostQueryResult,
-    DirectPostResponse,
+    DIRECT_POST_HTTP_METHOD, DIRECT_POST_MEDIA_TYPE, DirectPostErrorCode, DirectPostErrorDetails,
+    DirectPostErrorResponse, DirectPostPresentation, DirectPostQueryResult, DirectPostResponse,
 };
 pub use error::{CAPABILITY, Oid4vpError, error_code};
 pub use invocation::{
@@ -38,7 +40,8 @@ pub use invocation::{
 };
 pub use limits::{
     AuthorizationRequestInvocationLimits, AuthorizationRequestValidationLimits, DcqlLimits,
-    DirectPostResponseLimits, RequestObjectValidationLimits, RequestUriRetrievalLimits,
+    DirectPostErrorResponseLimits, DirectPostResponseLimits, RequestObjectValidationLimits,
+    RequestUriRetrievalLimits,
 };
 pub use request_object::{REQUEST_OBJECT_JWT_TYPE, UnverifiedRequestObject, VerifiedRequestObject};
 pub use request_uri::{

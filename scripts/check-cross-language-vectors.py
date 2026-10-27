@@ -53,6 +53,7 @@ OPERATIONS = {
     "did-prism-vdr.operation.parse",
     "did-peer.numalgo4.create",
     "did-peer.numalgo2.parse-resolve",
+    "oid4vp.direct-post-response.construct",
 }
 BOUNDARIES = {"positive", "negative", "boundary", "mutation"}
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
@@ -206,6 +207,8 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 }
             elif operation in {"did-peer.numalgo4.create", "did-peer.numalgo2.parse-resolve"}:
                 allowed_fields = {"did"}
+            elif operation == "oid4vp.direct-post-response.construct":
+                allowed_fields = {"serialized"}
             else:
                 allowed_fields = {"operationKind", "operationId", "operationHash", "canonicalDid"}
             if set(fields) - allowed_fields:
@@ -236,6 +239,7 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 "did-prism-vdr.operation.parse": "did-prism-vdr.invalid_operation",
                 "did-peer.numalgo4.create": "did-peer.invalid_input_document",
                 "did-peer.numalgo2.parse-resolve": "did-peer.malformed_encoding",
+                "oid4vp.direct-post-response.construct": "oid4vp.invalid_direct_post_response",
             }[operation]
             if expected.get("errorCode") != required_code or expected.get("redacted") is not True or fields:
                 errors.append(f"{identifier}: error expectation must use {required_code}, redacted=true, and empty fields")

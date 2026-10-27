@@ -155,6 +155,151 @@ details = [
 ]
 
 [[declarations]]
+id          = "oid4vp.direct-post-response.quality.v1"
+capability  = "oid4vp.direct-post-response"
+slice       = "Bounded OpenID4VP Final direct-post response construction"
+owner       = "SDK-Rust OID4VP maintainers"
+owner_issue = 487
+risk        = "Response construction can detach presentations from validated DCQL lineage, emit malformed wire values, leak credentials, or amplify hostile input."
+targets     = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "oid4vp.direct-post-response.final-string-state" ]
+limitations = "This declaration covers plain OpenID4VP Final direct_post success construction only; it does not prove HTTP delivery, presentation authenticity, consent, trust, encryption, direct_post.jwt, SIOPv2, DC API or HAIP."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Generated query/result combinations may bypass required coverage, duplicate rejection, optional omission, cardinality, or round-trip form invariants."
+selectors = [
+  "crates/oid4vp/tests/direct_post_response.rs#direct_post_property_generated_matrix_round_trips",
+  "crates/oid4vp/tests/direct_post_response.rs#unknown_duplicate_and_absent_all_query_results_are_rejected",
+  "crates/oid4vp/tests/direct_post_response.rs#required_alternatives_optional_sets_and_multiple_cardinality_are_enforced",
+  "crates/oid4vp/tests/direct_post_response.rs#presentation_and_aggregate_limits_fail_before_returning_an_envelope",
+]
+command = "cargo test -p identus-oid4vp --test direct_post_response"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-oid4vp", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Generate bounded request rules and result collections across required, optional, single and multiple profiles and round-trip every accepted form."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/tests/direct_post_response.rs"
+evidence_revision = "18187dfae0cfc7195628f53c6c026598f6b0e2e4"
+recorded_at = "2026-10-27"
+artifact = "crates/oid4vp/tests/direct_post_response.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 487
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Every accepted result exactly satisfies validated query coverage and cardinality and form-decodes to the same JSON/state values",
+  "domain=Bounded required and optional query rules, single and multiple presentation lists, strings, objects and state",
+  "cases=Deterministic generated matrices with unknown, duplicate, missing, empty, oversized and valid combinations",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "satisfied"
+risk = "Malformed bounded string/object presentations may panic, exceed parser work limits, escape invalid JSON, or leak payload bytes when placed in one valid request-bound envelope."
+selectors = [
+  "fuzz/fuzz_targets/direct_post_response.rs#fuzz_target",
+  "scripts/fuzz-oid4vp.sh#direct_post_response",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Run the direct-post response parser/constructor for 300 seconds with max_len=65536, timeout=5 and rss_limit_mb=1024."
+receipt_kind = "source"
+receipt = "source:fuzz/fuzz_targets/direct_post_response.rs"
+evidence_revision = "18187dfae0cfc7195628f53c6c026598f6b0e2e4"
+recorded_at = "2026-10-27"
+artifact = "fuzz/fuzz_targets/direct_post_response.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 487
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "harness=LibFuzzer routes arbitrary bounded bytes into one string/object presentation and one fixed valid request-bound response envelope",
+  "corpus=Minimal string and object presentation seeds; collection cardinality and DCQL alternatives remain covered by the focused integration suite",
+  "seed=libFuzzer-managed reproducible failures promoted into regression tests",
+  "bounds=max_len=65536;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "The complete invocation, JAR, DCQL and response pipeline may show material latency drift between an ordinary presentation and a near-limit presentation."
+selectors = [
+  "crates/oid4vp/benches/direct_post_response.rs#main",
+]
+command = "cargo bench -p identus-oid4vp --bench direct_post_response"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:linux" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure the complete deterministic pipeline for ordinary and 60 KiB single-string presentations; this diagnostic does not isolate response construction or measure allocations."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/benches/direct_post_response.rs"
+evidence_revision = "18187dfae0cfc7195628f53c6c026598f6b0e2e4"
+recorded_at = "2026-10-27"
+artifact = "crates/oid4vp/benches/direct_post_response.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 487
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=Parse invocation, bind and verify JAR, validate DCQL, then construct deterministic vp_token and form output",
+  "fixture=One ordinary string and one 60 KiB near-limit string under default 64 KiB per-presentation policy",
+  "environment=Pinned toolchain release-mode benchmark process; compare results only within a recorded environment",
+  "statistic=Median wall time across 21 samples with 10 iterations per sample; allocation observation is explicitly unavailable",
+  "samples=21 measured samples per ordinary and near-limit end-to-end operation",
+  "threshold=Diagnostic only; introduce a regression threshold after a stable CI baseline exists",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "The SDK JSON or form encoding may diverge from the normative OpenID4VP Final response examples and independent decoders."
+selectors = [
+  "crates/oid4vp/tests/direct_post_response.rs#packet_executes_full_invocation_jar_dcql_and_response_lineage",
+  "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json#oid4vp.direct-post-response.final-string-state",
+]
+command = "cargo test -p identus-oid4vp --test direct_post_response packet_executes_full_invocation_jar_dcql_and_response_lineage"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Reproduce the attributed Final response shape and round-trip its form body through an independent strict decoder."
+receipt_kind = "source"
+receipt = "source:docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+evidence_revision = "18187dfae0cfc7195628f53c6c026598f6b0e2e4"
+recorded_at = "2026-10-27"
+artifact = "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 487
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=OpenID4VP 1.0 Final sections 8.1 and 8.2 clean-room response example",
+  "oracle-revision=Final 2025-07-09 with current errata retrieved 2026-10-27",
+  "normalization=Compare decoded parameter names, exact state and structural JSON presentation types rather than language DTO shapes",
+  "deviations=The SDK uses deterministic key order and conservative public limits that do not change conforming wire meaning",
+]
+
+[[declarations]]
 id = "did.syntax.quality.v1"
 capability = "did.syntax"
 slice = "A1 shared compatibility foundation"

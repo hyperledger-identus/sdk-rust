@@ -74,6 +74,47 @@ allowed_mapping_dispositions = [
 # change. Subsequent issue-owned records are added only with connected vector,
 # quality and OpenSpec impact evidence.
 [[changes]]
+id                                = "oid4vp.direct-post-response.v1"
+capability                        = "oid4vp.direct-post-response"
+lifecycle_state                   = "active"
+issue                             = 487
+pull_request                      = 533
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-oid4vp" ]
+affected_consumers                = [ "lace-id-portal", "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust validates an OID4VP Final direct-post Authorization Request and DCQL selection but leaves Authorization Response assembly to callers."
+new_behavior                      = "The additive transition consumes validated request lineage and bounded caller presentations into a deterministic plain direct-post success envelope."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "This additive Rust-native transition deliberately does not preserve SDK-TS, Swift or KMP DTO and error shapes; language adapters remain separate work."
+vector_ids                        = [ "oid4vp.direct-post-response.final-string-state" ]
+quality_declaration_ids           = [ "oid4vp.direct-post-response.quality.v1" ]
+observability                     = "Record only stable result classes, presentation kinds, counts and byte lengths without URI, state, query identifiers or presentation payloads."
+fallback                          = "Consumers continue assembling responses in their existing adapter until they explicitly adopt the experimental SDK transition."
+rollback                          = "Remove the additive response transition and private retained metadata before publication; existing request validation remains available."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#oid4vp.direct-post-response.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.direct-post-response.final-string-state" ]
+evidence_artifacts                = [ "docs/adr/0179-construct-bounded-oid4vp-direct-post-responses.md", "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json" ]
+limitations                       = "Only plain OpenID4VP 1.0 Final direct_post success construction is included; no HTTP execution, presentation generation or verification, consent, trust, replay defense, signing, encryption, direct_post.jwt, SIOPv2, DC API, HAIP, persistence, consumer mutation or publication is claimed."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "did.peer.profiles.v1"
 capability                        = "did.peer.profiles"
 lifecycle_state                   = "active"

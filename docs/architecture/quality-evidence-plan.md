@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-27`
-- Declaration count: `5`
+- Declaration count: `6`
 
 ## `crypto.quality.v1`
 
@@ -51,6 +51,51 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Verify all 50 published JVM signatures plus the deciding bitcoin-transcode fallback regression.
 - Receipt: `source:crates/crypto/tests/secp256k1_compat.rs`
 - Evidence revision: `67c30d599a538b873646a6e857809f2106391bb1`
+
+## `oid4vp.direct-post-response.quality.v1`
+
+- Capability: `oid4vp.direct-post-response`
+- Slice: Bounded OpenID4VP Final direct-post response construction
+- Owner: SDK-Rust OID4VP maintainers (issue #487)
+- Risk: Response construction can detach presentations from validated DCQL lineage, emit malformed wire values, leak credentials, or amplify hostile input.
+- Targets: `package:identus-oid4vp`, `host:rust`, `consumer:portable-sdk`
+- Vector IDs: `1` local catalog entries
+- Limitations: This declaration covers plain OpenID4VP Final direct_post success construction only; it does not prove HTTP delivery, presentation authenticity, consent, trust, encryption, direct_post.jwt, SIOPv2, DC API or HAIP.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #487 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #487 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #487 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #487 |
+
+### `property`
+
+- Command: `cargo test -p identus-oid4vp --test direct_post_response`
+- Budget: Generate bounded request rules and result collections across required, optional, single and multiple profiles and round-trip every accepted form.
+- Receipt: `source:crates/oid4vp/tests/direct_post_response.rs`
+- Evidence revision: `18187dfae0cfc7195628f53c6c026598f6b0e2e4`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response`
+- Budget: Run the direct-post response parser/constructor for 300 seconds with max_len=65536, timeout=5 and rss_limit_mb=1024.
+- Receipt: `source:fuzz/fuzz_targets/direct_post_response.rs`
+- Evidence revision: `18187dfae0cfc7195628f53c6c026598f6b0e2e4`
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-oid4vp --bench direct_post_response`
+- Budget: Measure the complete deterministic pipeline for ordinary and 60 KiB single-string presentations; this diagnostic does not isolate response construction or measure allocations.
+- Receipt: `source:crates/oid4vp/benches/direct_post_response.rs`
+- Evidence revision: `18187dfae0cfc7195628f53c6c026598f6b0e2e4`
+
+### `differential`
+
+- Command: `cargo test -p identus-oid4vp --test direct_post_response packet_executes_full_invocation_jar_dcql_and_response_lineage`
+- Budget: Reproduce the attributed Final response shape and round-trip its form body through an independent strict decoder.
+- Receipt: `source:docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json`
+- Evidence revision: `18187dfae0cfc7195628f53c6c026598f6b0e2e4`
 
 ## `did.syntax.quality.v1`
 

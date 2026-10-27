@@ -203,7 +203,7 @@ layer          = "protocol-semantics"
 classification = "implemented"
 public_api     = "experimental"
 owner_issue    = "#487"
-summary        = "Bounded OpenID4VP 1.0 by-reference invocation, runtime-neutral GET/POST retrieval, signed compact JAR verification, bounded DCQL selection through a private engine, and composed vp_token/direct_post request routing; no HTTP runtime, client-prefix trust, JWE, consent or response construction."
+summary        = "Bounded OpenID4VP 1.0 by-reference invocation, runtime-neutral GET/POST retrieval, signed compact JAR verification, bounded DCQL selection through a private engine, composed vp_token/direct_post routing, and deterministic bounded plain direct-post success construction; no HTTP runtime, client-prefix trust, JWE, consent or presentation generation."
 
 [[packages]]
 name           = "identus-wallet"

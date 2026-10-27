@@ -115,11 +115,40 @@ fn valid_direct_post_request_preserves_composed_evidence() {
     assert_eq!(request.expose_sensitive_client_id(), CLIENT_ID);
     assert_eq!(request.expose_sensitive_wallet_nonce(), None);
     assert_eq!(request.expose_sensitive_nonce(), "fresh-nonce_1");
+    assert_eq!(request.expose_sensitive_state(), None);
     assert_eq!(
         request.expose_sensitive_response_uri(),
         "https://verifier.example/response"
     );
     assert_eq!(request.dcql_query().credential_query_count(), 1);
+}
+
+#[test]
+fn optional_state_is_bounded_visible_ascii_and_retained_exactly() {
+    let mut request = valid_request();
+    request["state"] = json!("opaque state~1");
+    let validated =
+        validate(&request, AuthorizationRequestValidationLimits::default()).expect("valid state");
+    assert_eq!(validated.expose_sensitive_state(), Some("opaque state~1"));
+
+    for invalid in [json!(""), json!("line\nbreak"), json!("💣"), json!(7)] {
+        let mut request = valid_request();
+        request["state"] = invalid;
+        assert_eq!(
+            validate(&request, AuthorizationRequestValidationLimits::default()).unwrap_err(),
+            Oid4vpError::InvalidState
+        );
+    }
+
+    let mut request = valid_request();
+    request["state"] = json!("abc");
+    let limits = AuthorizationRequestValidationLimits::default()
+        .with_max_state_bytes(2)
+        .unwrap();
+    assert_eq!(
+        validate(&request, limits).unwrap_err(),
+        Oid4vpError::StateTooLarge
+    );
 }
 
 #[test]
@@ -316,6 +345,10 @@ fn routing_limits_require_positive_values() {
     );
     assert_eq!(
         AuthorizationRequestValidationLimits::new(1, 0),
+        Err(Oid4vpError::InvalidLimits)
+    );
+    assert_eq!(
+        AuthorizationRequestValidationLimits::default().with_max_state_bytes(0),
         Err(Oid4vpError::InvalidLimits)
     );
 }

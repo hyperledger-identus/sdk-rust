@@ -10,12 +10,17 @@ publish.workspace      = true
 fluent-uri.workspace   = true
 identus-core.workspace = true
 identus-jose.workspace = true
+serde.workspace        = true
 serde_json.workspace   = true
 siros-dcql.workspace   = true
 zeroize.workspace      = true
 
 [dev-dependencies]
 identus-crypto = { workspace = true, features = [ "ed25519" ] }
+
+[[bench]]
+name    = "direct_post_response"
+harness = false
 
 [features]
 default = [  ]

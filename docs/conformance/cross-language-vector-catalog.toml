@@ -143,6 +143,16 @@ authorship     = "Hyperledger Identus contributors"
 license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 
+[[sources]]
+id             = "openid.oid4vp-final"
+kind           = "standard"
+url            = "https://openid.net/specs/openid-4-verifiable-presentations-1_0.html"
+version        = "OpenID4VP 1.0 Final 2025-07-09 with current errata"
+section        = "8 Authorization Response"
+authorship     = "OpenID Foundation Digital Credentials Protocols Working Group"
+license        = "OpenID-Document-License"
+redistribution = "derived-cases-allowed"
+
 [[packets]]
 id             = "did.peer.profiles.v1"
 capability     = "did.peer.profiles"
@@ -203,6 +213,18 @@ redistribution = "allowed-with-attribution"
 public_data    = true
 targets        = [ "rust" ]
 
+[[packets]]
+id             = "oid4vp.direct-post-response.v1"
+capability     = "oid4vp.direct-post-response"
+schema_version = 1
+path           = "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+sha256         = "f028c91b536f8b5d428d1cbdf89c62f874eaa25f9bac2e826ad978eea7a3cae3"
+authorship     = "SDK-Rust clean-room curation from OpenID4VP 1.0 Final section 8"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
 [[vectors]]
 id                 = "did.peer.numalgo4.reference-minimal"
 packet             = "did.peer.profiles.v1"
@@ -225,6 +247,29 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "The vector proves exact numalgo-4 encoding and hash linkage; it does not define foreign DTO or error shapes."
+
+[[vectors]]
+id                 = "oid4vp.direct-post-response.final-string-state"
+packet             = "oid4vp.direct-post-response.v1"
+case               = "oid4vp.direct-post-response.final-string-state"
+capability         = "oid4vp.direct-post-response"
+authority          = "normative"
+source_ids         = [ "openid.oid4vp-final" ]
+source_locator     = "OpenID4VP 1.0 Final sections 8.1 and 8.2 adapted clean-room signed request plus direct-post response"
+operation          = "oid4vp.direct-post-response.construct"
+expected           = "success"
+profile_scope      = "Verified Ed25519 request lineage, plain direct_post success response, one string presentation and returned state"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "direct_post_response::packet_executes_full_invocation_jar_dcql_and_response_lineage"
+language_selectors = [  ]
+owner_issue        = 487
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The fixture includes a deterministic public test key, compact signed request, DCQL query, route and state so consumers need not invent lineage; it proves no HTTP execution, presentation verification, protected response, or language DTO shape."
 
 [[vectors]]
 id                 = "did.peer.numalgo2.affinidi-compat"

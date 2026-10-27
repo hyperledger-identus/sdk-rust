@@ -99,6 +99,22 @@ pub struct ValidatedDcqlQuery {
     limits: DcqlLimits,
     credential_query_count: usize,
     claim_query_count: usize,
+    response_rules: DcqlResponseRules,
+}
+
+pub(crate) struct DcqlResponseRules {
+    queries: Vec<DcqlResponseQueryRule>,
+    credential_sets: Option<Vec<DcqlResponseCredentialSetRule>>,
+}
+
+pub(crate) struct DcqlResponseQueryRule {
+    id: Zeroizing<String>,
+    multiple: bool,
+}
+
+pub(crate) struct DcqlResponseCredentialSetRule {
+    required: bool,
+    options: Vec<Vec<Zeroizing<String>>>,
 }
 
 impl VerifiedRequestObject {
@@ -145,12 +161,14 @@ impl ValidatedDcqlQuery {
         }
         let text = std::str::from_utf8(&encoded).map_err(|_| Oid4vpError::InvalidDcqlQuery)?;
         let engine = EngineQuery::from_json(text).map_err(|_| Oid4vpError::InvalidDcqlQuery)?;
+        let response_rules = DcqlResponseRules::from_engine(&engine);
 
         Ok(Self {
             engine,
             limits,
             credential_query_count: counts.credential_queries,
             claim_query_count: counts.claim_queries,
+            response_rules,
         })
     }
 
@@ -162,6 +180,10 @@ impl ValidatedDcqlQuery {
     /// Number of claim queries retained across all credential queries.
     pub const fn claim_query_count(&self) -> usize {
         self.claim_query_count
+    }
+
+    pub(crate) const fn response_rules(&self) -> &DcqlResponseRules {
+        &self.response_rules
     }
 
     /// Evaluate bounded credential descriptors through the private engine.
@@ -241,6 +263,61 @@ impl ValidatedDcqlQuery {
             return Err(Oid4vpError::DcqlWorkLimitExceeded);
         }
         Ok(())
+    }
+}
+
+impl DcqlResponseRules {
+    fn from_engine(engine: &EngineQuery) -> Self {
+        Self {
+            queries: engine
+                .credentials
+                .iter()
+                .map(|query| DcqlResponseQueryRule {
+                    id: Zeroizing::new(query.id.clone()),
+                    multiple: query.multiple,
+                })
+                .collect(),
+            credential_sets: engine.credential_sets.as_ref().map(|sets| {
+                sets.iter()
+                    .map(|set| DcqlResponseCredentialSetRule {
+                        required: set.required,
+                        options: set
+                            .options
+                            .iter()
+                            .map(|option| option.iter().cloned().map(Zeroizing::new).collect())
+                            .collect(),
+                    })
+                    .collect()
+            }),
+        }
+    }
+
+    pub(crate) fn queries(&self) -> &[DcqlResponseQueryRule] {
+        &self.queries
+    }
+
+    pub(crate) fn credential_sets(&self) -> Option<&[DcqlResponseCredentialSetRule]> {
+        self.credential_sets.as_deref()
+    }
+}
+
+impl DcqlResponseQueryRule {
+    pub(crate) fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub(crate) const fn multiple(&self) -> bool {
+        self.multiple
+    }
+}
+
+impl DcqlResponseCredentialSetRule {
+    pub(crate) const fn required(&self) -> bool {
+        self.required
+    }
+
+    pub(crate) fn options(&self) -> &[Vec<Zeroizing<String>>] {
+        &self.options
     }
 }
 

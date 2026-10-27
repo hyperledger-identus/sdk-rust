@@ -843,10 +843,14 @@ independent slices. Issue #429 adopts exact `siros-dcql 0.3.0` privately behind
 strict SDK-owned Final validation and bounded selection under ADR 0165. The
 issue #447 slice then consumes the same bounded request map into a composed
 `vp_token`/HTTPS `direct_post` routing state while preserving signature and
-DCQL evidence. Issue #487 owns bounded response construction as the explicit
-successor. HTTP execution, verifier trust, consent, credential
-verification, redirects, `direct_post.jwt`, SIOPv2, DC API, JWE and response
-construction remain separate capabilities.
+DCQL evidence. Issue #487 consumes that state with bounded caller-selected
+presentation strings or objects, enforces the retained DCQL coverage and
+cardinality rules, and produces a deterministic form-encoded plain
+`direct_post` success envelope with exact state return. Issue #532 owns the
+separately bounded plain protocol-error response successor. HTTP execution,
+verifier trust, consent, credential or presentation verification,
+presentation generation, redirects, `direct_post.jwt`, SIOPv2, DC API and JWE
+remain separate capabilities.
 
 ### B11 — formats and profiles
 

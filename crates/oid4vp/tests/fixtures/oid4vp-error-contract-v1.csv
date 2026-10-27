@@ -52,3 +52,16 @@ MissingResponseUri,oid4vp.missing_response_uri,InvalidInput,OID4VP direct-post r
 ConflictingResponseDestination,oid4vp.conflicting_response_destination,InvalidInput,OID4VP direct-post request has a conflicting response destination
 ResponseUriTooLarge,oid4vp.response_uri_too_large,InvalidInput,OID4VP response URI exceeds its byte limit
 UnsafeResponseUri,oid4vp.unsafe_response_uri,InvalidInput,OID4VP response URI is unsafe
+InvalidState,oid4vp.invalid_state,InvalidInput,OID4VP state is invalid
+StateTooLarge,oid4vp.state_too_large,InvalidInput,OID4VP state exceeds its byte limit
+TooManyQueryResults,oid4vp.too_many_query_results,InvalidInput,OID4VP response has too many query results
+UnknownDcqlResult,oid4vp.unknown_dcql_result,InvalidInput,OID4VP response contains an unknown DCQL result
+DuplicateDcqlResult,oid4vp.duplicate_dcql_result,InvalidInput,OID4VP response contains a duplicate DCQL result
+MissingDcqlResult,oid4vp.missing_dcql_result,InvalidInput,OID4VP response does not satisfy required DCQL results
+EmptyPresentationList,oid4vp.empty_presentation_list,InvalidInput,OID4VP response presentation list is empty
+TooManyPresentations,oid4vp.too_many_presentations,InvalidInput,OID4VP response has too many presentations for one query
+DcqlCardinalityMismatch,oid4vp.dcql_cardinality_mismatch,InvalidInput,OID4VP response violates DCQL result cardinality
+InvalidPresentation,oid4vp.invalid_presentation,InvalidInput,OID4VP presentation value is invalid
+PresentationTooLarge,oid4vp.presentation_too_large,InvalidInput,OID4VP presentation value exceeds its resource limits
+ResponseJsonTooLarge,oid4vp.response_json_too_large,InvalidInput,OID4VP response JSON exceeds its byte limit
+DirectPostFormTooLarge,oid4vp.direct_post_form_too_large,InvalidInput,OID4VP direct-post form exceeds its byte limit

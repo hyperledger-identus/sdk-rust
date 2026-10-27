@@ -444,6 +444,17 @@ consumer_impact  = "The composed state proves narrow request and routing syntax 
 review_triggers  = [ "new response type or mode", "redirect support", "encrypted response", "HTTP adapter", "nonce or URI limit change", "response construction" ]
 
 [[boundaries]]
+id               = "oid4vp-direct-post-response"
+package          = "identus-oid4vp"
+surface          = "caller-selected Final presentation strings or JSON objects bound to a validated DCQL request and serialized into an inert plain direct-post success envelope"
+disposition      = "sdk-enforced"
+limits           = [ "DirectPostResponseLimits=explicit", "AuthorizationStateBytes=explicit" ]
+evidence         = [ "crates/oid4vp/src/direct_post.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/direct_post_response.rs", "fuzz/fuzz_targets/direct_post_response.rs", "docs/adr/0179-construct-bounded-oid4vp-direct-post-responses.md" ]
+outer_obligation = "Callers bound presentation production before construction and transport adapters own DNS, address policy, TLS, redirects, timeouts, retries, SSRF defense and HTTP outcome handling."
+consumer_impact  = "The SDK validates query identity, required DCQL alternatives, cardinality, JSON work, output size and deterministic form encoding; it does not prove credential authenticity, consent, verifier trust, replay safety or delivery."
+review_triggers  = [ "new presentation JSON type", "direct_post.jwt", "encryption", "HTTP adapter", "state grammar", "response limit change" ]
+
+[[boundaries]]
 id               = "wallet-storage-vocabulary"
 package          = "identus-wallet"
 surface          = "storage revisions, cursors, page sizes/pages and write/delete conditions"

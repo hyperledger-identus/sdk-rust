@@ -325,7 +325,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ## `siopv2.did-authentication.quality.v1`
 
-- Capability: `did.syntax`
+- Capability: `siopv2.did-authentication`
 - Slice: Pinned SIOPv2 draft-13 DID-subject direct_post protocol core
 - Owner: SDK-Rust OpenID maintainers (issue #514)
 - Risk: Ambiguous request binding, signature lineage, token claims or lifecycle retries can authenticate the wrong relying party, disclose identity material or duplicate a response.
@@ -343,7 +343,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `property`
 
 - Command: `cargo test -p identus-siopv2 --test property`
-- Budget: Exercise deterministic transition, time-boundary and request/response invariants over bounded generated inputs.
+- Budget: Exercise every accepted event-ID length plus deterministic terminal idempotency, conflict rejection and state preservation.
 - Receipt: `pending`
 - Evidence revision: `pending`
 - Delivery debt: #514
@@ -359,7 +359,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `benchmark`
 
 - Command: `cargo bench -p identus-siopv2 --bench protocol`
-- Budget: Measure ordinary and boundary request validation, lifecycle approval and response planning over a stable sample set.
+- Budget: Measure deterministic ordinary signed-request verification over a stable sample set; response planning remains an unmeasured follow-up.
 - Receipt: `pending`
 - Evidence revision: `pending`
 - Delivery debt: #514
@@ -367,7 +367,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `differential`
 
 - Command: `cargo test -p identus-siopv2 --test conformance`
-- Budget: Compare normalized claims and stable failure categories against pinned draft-13, Oxid and independent Rust oracle cases.
+- Budget: Execute the pinned clean-room draft-13 vector and independently verify normalized request/response claims; foreign implementations remain research oracles.
 - Receipt: `pending`
 - Evidence revision: `pending`
 - Delivery debt: #514

@@ -1,0 +1,28 @@
+[package]
+name                   = "identus-siopv2"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+publish.workspace      = true
+
+[dependencies]
+fluent-uri.workspace        = true
+identus-core.workspace      = true
+identus-did.workspace       = true
+identus-jose.workspace      = true
+identus-openid4vc.workspace = true
+serde.workspace             = true
+serde_json.workspace        = true
+sha2.workspace              = true
+zeroize.workspace           = true
+
+[dev-dependencies]
+identus-crypto = { workspace = true, features = [ "ed25519", "secp256r1" ] }
+
+[[bench]]
+name    = "protocol"
+harness = false
+
+[lints]
+workspace = true

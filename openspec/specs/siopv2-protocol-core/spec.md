@@ -1,0 +1,87 @@
+# siopv2-protocol-core Specification
+
+## Purpose
+TBD - created by archiving change add-siopv2-protocol-core. Update Purpose after archive.
+## Requirements
+### Requirement: the SIOPv2 profile is version-pinned and narrow
+
+The SDK SHALL identify its first SIOPv2 capability as draft 13 dated
+2023-11-28 and SHALL support only the signed-request, DID-subject,
+`subject_signed_id_token`, exact `openid` scope and `direct_post` profile.
+
+#### Scenario: a supported request is verified
+
+- **WHEN** a bounded signed request has exact client, audience, nonce, time,
+  HTTPS redirect, response, token-type, scope, algorithm and DID subject-syntax
+  values
+- **THEN** the SDK returns one validated request and inert replay fingerprint
+
+#### Scenario: broader or ambiguous behavior is requested
+
+- **WHEN** a request selects an unsupported draft feature, token type, response
+  mode, subject syntax, claim shape, algorithm or unbounded value
+- **THEN** it fails with a stable redacted category before consent or signing
+
+### Requirement: self-issued ID Tokens preserve verified request lineage
+
+The SDK SHALL construct a bounded JWS signing input whose claims contain only
+the selected DID as equal `iss` and `sub`, the verified client as `aud`, the
+verified nonce, and explicit bounded `iat`/`exp`. The protected header SHALL
+carry the exact selected algorithm and DID URL `kid`.
+
+#### Scenario: an approved DID authentication is signed
+
+- **WHEN** a validated request, syntactically related DID/method, explicit time
+  and matching injected signer are supplied
+- **THEN** the SDK emits a bounded exact `id_token`/optional-state direct-post
+  form plan without exposing private key material
+
+#### Scenario: subject, method or signer is inconsistent
+
+- **WHEN** the method is not under the subject DID, time is invalid, the signer
+  algorithm differs, or signing fails
+- **THEN** no response is emitted and diagnostics reveal no sensitive value
+
+### Requirement: lifecycle transitions are deterministic and effect-bounded
+
+The SDK SHALL model awaiting decision, response ready, refusal, cancellation,
+timeout, delivery accepted and delivery unknown as pure transitions driven by
+explicit time and bounded event identity. Duplicate identical events SHALL be
+idempotent; conflicting reuse SHALL fail closed.
+
+#### Scenario: the End-User refuses or the request expires
+
+- **WHEN** refusal, cancellation or timeout is applied before approval
+- **THEN** the flow reaches the corresponding terminal state without invoking
+  a signer or transport
+
+#### Scenario: delivery outcome cannot be established
+
+- **WHEN** a response was released but the caller cannot establish acceptance
+- **THEN** the flow records `outcome_unknown` and does not authorize automatic
+  retransmission
+
+### Requirement: runtime and product policy remain outside the core
+
+The SDK SHALL perform no HTTP, DNS, TLS, redirect following, DID resolution,
+key custody, relying-party trust, persistence, telemetry, UI or product consent
+decision. Callers SHALL authorize request keys, authentication methods,
+delivery targets and durable replay policy.
+
+#### Scenario: a caller integrates the core
+
+- **WHEN** request retrieval, DID resolution, signing or delivery is required
+- **THEN** the SDK returns bounded inert inputs/effects and the caller supplies
+  the independently governed adapter
+
+### Requirement: OpenID request retrieval is shared without protocol leakage
+
+`identus-openid4vc` SHALL own bounded runtime-neutral request-by-reference
+retrieval values usable by OID4VP and SIOPv2 while protocol-specific invocation
+and claim validation remain in their owner crates.
+
+#### Scenario: OID4VP adopts the shared seam
+
+- **WHEN** existing OID4VP retrieval APIs are exercised
+- **THEN** their public names, behavior, errors and wire evidence remain
+  compatible through delegation and re-export

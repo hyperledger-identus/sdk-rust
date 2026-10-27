@@ -123,7 +123,8 @@ portable targets and a consumer canary are accepted.
   signature validity never implies relying-party trust.
 - Require `iss == sub`, exact audience/nonce, bounded lifetime and DID URL
   `kid`; no arbitrary claims enter the first ID Token.
-- A nonce/replay fingerprint is inert evidence for a caller-owned replay store;
+- A POST `wallet_nonce` must match the signed request exactly, and a SHA-256
+  request-object fingerprint is inert evidence for a caller-owned replay store;
   the SDK does not pretend in-memory validation is durable replay defense.
 - Refusal, cancellation and timeout never invoke a signer.
 - Unknown delivery outcome is terminal until the caller starts a separately
@@ -143,13 +144,14 @@ storage are deferred to independent profile issues.
 
 ## Quality plan
 
-Property tests cover transition legality/idempotency, time boundaries,
-request/response round trips and exact algorithm/key binding. Fuzzing targets
-request JSON, compact input and state events under finite limits. Benchmarks
-measure ordinary and boundary validation plus response planning. Differential
-tests compare normalized claims and failure classes with pinned Impierce,
-Affinidi and Oxid fixtures without importing their DTOs or expecting identical
-error strings.
+Property tests cover event-identity boundaries and transition
+legality/idempotency. E2E tests cover time, request/response round trips,
+retrieval nonce binding and independent request/response algorithms. Fuzzing
+targets compact parsing, signed arbitrary request JSON, response construction
+and state events under finite limits. The benchmark measures ordinary signed
+request verification; response planning remains an explicit follow-up. The conformance test executes the checked-in
+clean-room normative vector; Impierce, Affinidi and Oxid remain pinned research
+oracles until attributed automated fixtures are added.
 
 The E2E route is invocation/reference → bounded retrieval → signed request
 verification → validated SIOP request → explicit approval → JOSE signer →

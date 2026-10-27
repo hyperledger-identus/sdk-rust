@@ -6,7 +6,7 @@ normative inventory is
 [`sdk-input-resource-boundaries.toml`](sdk-input-resource-boundaries.toml); this
 document explains how to read it.
 
-The audit covers all thirteen runtime packages classified `implemented` in the
+The audit covers all twenty runtime packages classified `implemented` in the
 bootstrap inventory. Placeholder packages contain no accepted runtime API, and
 verification-only packages consume synthetic repository inputs, so neither is
 presented as an SDK input surface.
@@ -39,7 +39,8 @@ calling it unbounded SDK behavior.
 - All public resource constants with `MAX_`/`MIN_` name segments—including
   `DEFAULT_MAX_`—declared by implemented package source are named by an
   inventory limit; the checker enforces this coverage.
-- Core, credential, presentation, JOSE, OID4VCI and wallet retained values have
+- Core, credential, presentation, JOSE, OID4VCI, OID4VP, SIOPv2, shared
+  OpenID retrieval and wallet retained values have
   explicit fixed or configurable limits. The inventory separately discloses
   the remaining public compatibility exception: DID `Multihash`.
 - DID document, resolution-result, registration, and option-map policies are

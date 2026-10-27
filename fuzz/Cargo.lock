@@ -517,9 +517,20 @@ dependencies = [
  "fluent-uri",
  "identus-core",
  "identus-jose",
+ "identus-openid4vc",
  "serde",
  "serde_json",
  "siros-dcql",
+ "zeroize",
+]
+
+[[package]]
+name = "identus-openid4vc"
+version = "0.0.0"
+dependencies = [
+ "fluent-uri",
+ "identus-core",
+ "serde_json",
  "zeroize",
 ]
 
@@ -571,9 +582,25 @@ dependencies = [
  "identus-prism-did",
  "identus-prism-indexer",
  "identus-prism-vdr",
+ "identus-siopv2",
  "libfuzzer-sys",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "identus-siopv2"
+version = "0.0.0"
+dependencies = [
+ "fluent-uri",
+ "identus-core",
+ "identus-did",
+ "identus-jose",
+ "identus-openid4vc",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "zeroize",
 ]
 
 [[package]]

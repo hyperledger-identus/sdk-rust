@@ -19,6 +19,7 @@ identus-prism-indexer = { path = "../crates/prism-indexer" }
 identus-prism-vdr     = { path = "../crates/prism-vdr" }
 identus-jose          = { path = "../crates/jose" }
 identus-oid4vp        = { path = "../crates/oid4vp" }
+identus-siopv2        = { path = "../crates/siopv2" }
 libfuzzer-sys         = "=0.4.13"
 serde                 = "=1.0.228"
 serde_json            = "=1.0.150"
@@ -103,6 +104,13 @@ bench = false
 [[bin]]
 name  = "encrypted_direct_post_response"
 path  = "fuzz_targets/encrypted_direct_post_response.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "siopv2"
+path  = "fuzz_targets/siopv2.rs"
 test  = false
 doc   = false
 bench = false

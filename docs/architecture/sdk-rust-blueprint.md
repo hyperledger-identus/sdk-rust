@@ -146,19 +146,19 @@ accepted product commitment.
 | `identus-adapters-entropy` | system entropy adapter | retain as the first ports implementation and review runtime/target support |
 | `identus-conformance` | dependency-layer and workspace guards | expand with provenance and architecture evidence |
 
-The inherited `identus-agent`, `identus-bindings`, `identus-messaging`,
-`identus-openid4vc` and `identus-trust` packages remain empty placeholders.
+The inherited `identus-agent`, `identus-bindings`, `identus-messaging` and
+`identus-trust` packages remain empty placeholders.
 They must not be published or represented as supported capabilities. Each is
 removed, quarantined or replaced only through an accepted component issue and
 namespace decision. Focused issues have activated experimental credential,
 presentation and wallet-storage surfaces in their inherited packages; this is
 not a namespace-stability, publication or wallet-product commitment. Issue
 Issue #111 activates the separate experimental `identus-oid4vci` package for the
-Credential Offer transport boundary without changing the quarantined
-`identus-openid4vc` umbrella marker.
+Credential Offer transport boundary. Issue #514 later activates
+`identus-openid4vc` only as a narrow runtime-neutral request-object retrieval
+seam shared by focused protocol crates; it is not an umbrella policy layer.
 Issue #394 activates the separate unpublished experimental `identus-oid4vp`
-package for a bounded Final by-reference invocation boundary. It likewise does
-not activate the umbrella marker. Issue #396 adds runtime-neutral Request URI
+package for a bounded Final by-reference invocation boundary. Issue #396 adds runtime-neutral Request URI
 GET/POST construction, bounded response binding, and signed compact JAR
 verification through `identus-jose`, with exact protected type, client-id and
 optional wallet-nonce correlation. Issue #429 adds strict bounded DCQL

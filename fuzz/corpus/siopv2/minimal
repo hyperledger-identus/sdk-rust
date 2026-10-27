@@ -1,0 +1,1 @@
+{"iss":"https://rp.example","aud":"https://self-issued.me/v2","client_id":"https://rp.example","redirect_uri":"https://rp.example/direct-post","response_type":"id_token","response_mode":"direct_post","scope":"openid","id_token_type":"subject_signed_id_token","nonce":"n","iat":1800000000,"exp":1800000300}

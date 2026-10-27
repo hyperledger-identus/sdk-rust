@@ -42,8 +42,9 @@ crate does not parse protocol claims or perform HTTP.
 
 ## SIOPv2 request stages
 
-1. Parse a bounded by-reference invocation and retain only outer client ID,
-   request URI, method and optional caller nonce evidence.
+1. Accept a caller-parsed bounded by-reference invocation and retain only outer
+   client ID, request URI, method and optional caller nonce evidence. Invocation
+   URI syntax remains protocol-adapter policy in this slice.
 2. Bind retrieved status/media/body to that exact request.
 3. Parse the compact request object, require the selected protected type and
    expose only bounded header evidence for caller-owned key authorization.
@@ -51,7 +52,7 @@ crate does not parse protocol claims or perform HTTP.
    `JwsVerificationKey`.
 5. Parse duplicate-free bounded claims and validate exact client/issuer,
    audience, time, nonce, redirect, response type/mode, ID token type, scope,
-   algorithm and DID subject-syntax metadata.
+   algorithm and the selected DID-subject profile.
 6. Create a validated request plus SHA-256 replay fingerprint; no request value
    is trusted before stage 4.
 
@@ -71,24 +72,27 @@ for authentication in the current DID document.
 
 ## Deterministic lifecycle
 
-The pure flow states are `awaiting_decision`, `response_ready`, `refused`,
+The deterministic flow states are `awaiting_decision`, `response_ready`, `refused`,
 `canceled`, `timed_out`, `delivered`, and `outcome_unknown`. Events carry a
-bounded opaque event ID. The flow retains only a finite receipt window and
-returns the prior result for an identical event ID; reusing an ID with a
-different event fails closed. Terminal events are idempotent only for their
-original identity.
+bounded opaque event ID. Each state retains its current receipt identity;
+repeating that state transition with the same ID is idempotent, while a
+different ID conflicts. Reusing the approval ID as a delivery event also
+conflicts. Failed transitions mutate nothing and therefore cannot destroy a
+prepared response. Durable cross-state event history remains caller-owned.
 
-Approval returns a one-shot response-building capability. Refusal,
-cancellation and timeout return no signing effect. Delivery acknowledgement
-consumes the response. A timeout after response creation becomes
+Approval invokes the supplied signer once and replaces the awaiting state only
+after response construction succeeds. Refusal, cancellation and timeout before
+approval invoke no signer. Delivery acknowledgement consumes the response. A
+timeout after response creation becomes
 `outcome_unknown`, not `timed_out`, because the RP may have accepted the
 response. Automatic resubmission is prohibited.
 
 ## Evidence and migration
 
-Clean-room vectors assert draft-13 wire semantics. Attributed oracle fixtures
-normalize Impierce, Affinidi and Oxid behavior to claims and result categories.
-The E2E test uses SDK software signers and independent SDK verification over
+The checked-in clean-room vector asserts draft-13 wire semantics and is executed
+by the Rust conformance test. Impierce, Affinidi and Oxid remain pinned research
+oracles; automated foreign-oracle fixtures are deferred rather than implied.
+The E2E tests use SDK software signers and independent SDK verification over
 the exact form-decoded token. The Oxid guide maps its prepare/accept/refuse
 aggregate and standalone adapter onto the SDK flow while retaining product
 consent, loopback runtime, managed DID/custody and activity projections.

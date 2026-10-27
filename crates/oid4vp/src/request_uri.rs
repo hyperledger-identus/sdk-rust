@@ -1,6 +1,10 @@
 use std::fmt;
 
-use serde_json::Value;
+use identus_openid4vc::{
+    RequestRetrievalError, RequestRetrievalInput, RequestRetrievalLimits,
+    RequestRetrievalRequest as SharedRetrievalRequest, RequestUriMethod as SharedRequestUriMethod,
+    RequestUriReference,
+};
 use zeroize::Zeroizing;
 
 use crate::{
@@ -9,9 +13,9 @@ use crate::{
 };
 
 /// Media type required for a Request URI response and Accept header.
-pub const REQUEST_OBJECT_MEDIA_TYPE: &str = "application/oauth-authz-req+jwt";
+pub const REQUEST_OBJECT_MEDIA_TYPE: &str = identus_openid4vc::REQUEST_OBJECT_MEDIA_TYPE;
 /// Media type required for an OpenID4VP Request URI POST body.
-pub const FORM_MEDIA_TYPE: &str = "application/x-www-form-urlencoded";
+pub const FORM_MEDIA_TYPE: &str = identus_openid4vc::FORM_MEDIA_TYPE;
 
 /// Caller-selected data for one exact retrieval method.
 pub struct RequestUriRetrievalInput<'input> {
@@ -63,12 +67,10 @@ impl fmt::Debug for RequestUriRetrievalInput<'_> {
 
 /// Runtime-neutral, bounded Request URI HTTP request data.
 pub struct RequestUriRetrievalRequest {
-    endpoint: Zeroizing<String>,
+    shared: SharedRetrievalRequest,
     method: RequestUriMethod,
-    body: Zeroizing<Vec<u8>>,
-    outer_client_id: Zeroizing<String>,
-    sent_wallet_nonce: Option<Zeroizing<String>>,
-    limits: RequestUriRetrievalLimits,
+    client_id_len: usize,
+    has_wallet_nonce: bool,
 }
 
 impl ReferencedAuthorizationRequest {
@@ -82,24 +84,27 @@ impl ReferencedAuthorizationRequest {
         if input.method != requested_method {
             return Err(Oid4vpError::RetrievalMethodMismatch);
         }
-
-        let prepared = match input.method {
-            RequestUriMethod::Get => PreparedPostBody {
-                body: Zeroizing::new(Vec::new()),
-                sent_wallet_nonce: None,
-            },
+        let shared_limits = shared_limits(limits)?;
+        let method = shared_method(requested_method);
+        let reference =
+            RequestUriReference::new(&outer_client_id, &endpoint, method, shared_limits)
+                .map_err(map_shared_error)?;
+        let shared_input = match input.method {
+            RequestUriMethod::Get => RequestRetrievalInput::get(),
             RequestUriMethod::Post => {
-                prepare_post_body(input.wallet_metadata, input.wallet_nonce, limits)?
+                RequestRetrievalInput::post(input.wallet_metadata, input.wallet_nonce)
             }
         };
-
+        let client_id_len = outer_client_id.len();
+        let has_wallet_nonce = input.wallet_nonce.is_some();
+        let shared = reference
+            .prepare(shared_input, shared_limits)
+            .map_err(map_shared_error)?;
         Ok(RequestUriRetrievalRequest {
-            endpoint,
+            shared,
             method: requested_method,
-            body: prepared.body,
-            outer_client_id,
-            sent_wallet_nonce: prepared.sent_wallet_nonce,
-            limits,
+            client_id_len,
+            has_wallet_nonce,
         })
     }
 }
@@ -125,17 +130,17 @@ impl RequestUriRetrievalRequest {
 
     /// Explicitly reveal the validated HTTPS endpoint to a transport adapter.
     pub fn expose_sensitive_endpoint(&self) -> &str {
-        &self.endpoint
+        self.shared.expose_sensitive_endpoint()
     }
 
     /// Explicitly reveal the bounded POST body; GET returns an empty slice.
     pub fn expose_sensitive_body(&self) -> &[u8] {
-        &self.body
+        self.shared.expose_sensitive_body()
     }
 
     /// Encoded request body length.
     pub fn body_len(&self) -> usize {
-        self.body.len()
+        self.shared.expose_sensitive_body().len()
     }
 
     /// Consume this request and bind one HTTP response to an unverified JAR.
@@ -146,35 +151,16 @@ impl RequestUriRetrievalRequest {
         body: &[u8],
         validation_limits: RequestObjectValidationLimits,
     ) -> Result<UnverifiedRequestObject, Oid4vpError> {
-        if !(200..=299).contains(&status_code) {
-            return Err(Oid4vpError::RequestUriHttpError);
-        }
-        let content_type = content_type.ok_or(Oid4vpError::InvalidRequestObjectMediaType)?;
-        if content_type.len() > self.limits.max_content_type_bytes() {
-            return Err(Oid4vpError::ResponseContentTypeTooLarge);
-        }
-        if !content_type
-            .trim()
-            .eq_ignore_ascii_case(REQUEST_OBJECT_MEDIA_TYPE)
-        {
-            return Err(Oid4vpError::InvalidRequestObjectMediaType);
-        }
-        if body.is_empty() {
-            return Err(Oid4vpError::EmptyRequestObject);
-        }
-        if body.len() > self.limits.max_response_body_bytes() {
-            return Err(Oid4vpError::ResponseBodyTooLarge);
-        }
-        let compact = std::str::from_utf8(body).map_err(|_| Oid4vpError::InvalidRequestObject)?;
-        match compact.split('.').count() {
-            5 => return Err(Oid4vpError::UnsupportedEncryptedRequestObject),
-            3 => {}
-            _ => return Err(Oid4vpError::InvalidRequestObject),
-        }
+        let retrieved = self
+            .shared
+            .bind_response(status_code, content_type, body)
+            .map_err(map_shared_error)?;
         UnverifiedRequestObject::parse(
-            compact,
-            self.outer_client_id,
-            self.sent_wallet_nonce,
+            retrieved.expose_sensitive_compact(),
+            Zeroizing::new(retrieved.expose_sensitive_client_id().to_owned()),
+            retrieved
+                .expose_sensitive_wallet_nonce()
+                .map(|value| Zeroizing::new(value.to_owned())),
             validation_limits,
         )
     }
@@ -184,103 +170,55 @@ impl fmt::Debug for RequestUriRetrievalRequest {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("RequestUriRetrievalRequest")
-            .field("method", &self.method)
-            .field("endpoint_len", &self.endpoint.len())
-            .field("body_len", &self.body.len())
-            .field("client_id_len", &self.outer_client_id.len())
-            .field("has_wallet_nonce", &self.sent_wallet_nonce.is_some())
+            .field("method", &self.method())
+            .field("endpoint_len", &self.expose_sensitive_endpoint().len())
+            .field("body_len", &self.body_len())
+            .field("client_id_len", &self.client_id_len)
+            .field("has_wallet_nonce", &self.has_wallet_nonce)
             .finish()
     }
 }
 
-struct PreparedPostBody {
-    body: Zeroizing<Vec<u8>>,
-    sent_wallet_nonce: Option<Zeroizing<String>>,
+fn shared_method(method: RequestUriMethod) -> SharedRequestUriMethod {
+    match method {
+        RequestUriMethod::Get => SharedRequestUriMethod::Get,
+        RequestUriMethod::Post => SharedRequestUriMethod::Post,
+    }
 }
 
-fn prepare_post_body(
-    wallet_metadata: Option<&str>,
-    wallet_nonce: Option<&str>,
-    limits: RequestUriRetrievalLimits,
-) -> Result<PreparedPostBody, Oid4vpError> {
-    if let Some(metadata) = wallet_metadata {
-        if metadata.len() > limits.max_wallet_metadata_bytes() {
-            return Err(Oid4vpError::WalletMetadataTooLarge);
+fn shared_limits(limits: RequestUriRetrievalLimits) -> Result<RequestRetrievalLimits, Oid4vpError> {
+    RequestRetrievalLimits::new(
+        usize::MAX,
+        usize::MAX,
+        limits.max_wallet_metadata_bytes(),
+        limits.max_wallet_nonce_bytes(),
+        limits.max_request_body_bytes(),
+        limits.max_content_type_bytes(),
+        limits.max_response_body_bytes(),
+    )
+    .map_err(map_shared_error)
+}
+
+fn map_shared_error(error: RequestRetrievalError) -> Oid4vpError {
+    match error {
+        RequestRetrievalError::InvalidLimits => Oid4vpError::InvalidLimits,
+        RequestRetrievalError::InvalidClientId => Oid4vpError::InvalidInvocation,
+        RequestRetrievalError::UnsafeEndpoint => Oid4vpError::UnsafeRequestUri,
+        RequestRetrievalError::MethodMismatch => Oid4vpError::RetrievalMethodMismatch,
+        RequestRetrievalError::WalletMetadataTooLarge => Oid4vpError::WalletMetadataTooLarge,
+        RequestRetrievalError::InvalidWalletMetadata => Oid4vpError::InvalidWalletMetadata,
+        RequestRetrievalError::WalletNonceTooLarge => Oid4vpError::WalletNonceTooLarge,
+        RequestRetrievalError::InvalidWalletNonce => Oid4vpError::InvalidWalletNonce,
+        RequestRetrievalError::RequestBodyTooLarge => Oid4vpError::RequestBodyTooLarge,
+        RequestRetrievalError::HttpError => Oid4vpError::RequestUriHttpError,
+        RequestRetrievalError::InvalidMediaType => Oid4vpError::InvalidRequestObjectMediaType,
+        RequestRetrievalError::ContentTypeTooLarge => Oid4vpError::ResponseContentTypeTooLarge,
+        RequestRetrievalError::EmptyResponse => Oid4vpError::EmptyRequestObject,
+        RequestRetrievalError::ResponseBodyTooLarge => Oid4vpError::ResponseBodyTooLarge,
+        RequestRetrievalError::InvalidCompact => Oid4vpError::InvalidRequestObject,
+        RequestRetrievalError::UnsupportedEncryptedObject => {
+            Oid4vpError::UnsupportedEncryptedRequestObject
         }
-        let value: Value =
-            serde_json::from_str(metadata).map_err(|_| Oid4vpError::InvalidWalletMetadata)?;
-        if !value.is_object() {
-            return Err(Oid4vpError::InvalidWalletMetadata);
-        }
+        _ => Oid4vpError::InvalidRequestObject,
     }
-    let sent_wallet_nonce = wallet_nonce
-        .map(|nonce| {
-            if nonce.len() > limits.max_wallet_nonce_bytes() {
-                return Err(Oid4vpError::WalletNonceTooLarge);
-            }
-            if nonce.is_empty() || nonce.chars().any(char::is_control) {
-                return Err(Oid4vpError::InvalidWalletNonce);
-            }
-            Ok(Zeroizing::new(nonce.to_owned()))
-        })
-        .transpose()?;
-
-    let mut body = Zeroizing::new(Vec::with_capacity(
-        limits.max_request_body_bytes().min(1_024),
-    ));
-    if let Some(metadata) = wallet_metadata {
-        append_form_pair(
-            &mut body,
-            b"wallet_metadata",
-            metadata.as_bytes(),
-            limits.max_request_body_bytes(),
-        )?;
-    }
-    if let Some(nonce) = wallet_nonce {
-        append_form_pair(
-            &mut body,
-            b"wallet_nonce",
-            nonce.as_bytes(),
-            limits.max_request_body_bytes(),
-        )?;
-    }
-    Ok(PreparedPostBody {
-        body,
-        sent_wallet_nonce,
-    })
 }
-
-fn append_form_pair(
-    output: &mut Vec<u8>,
-    name: &[u8],
-    value: &[u8],
-    maximum: usize,
-) -> Result<(), Oid4vpError> {
-    if !output.is_empty() {
-        push_bounded(output, b'&', maximum)?;
-    }
-    for byte in name {
-        push_bounded(output, *byte, maximum)?;
-    }
-    push_bounded(output, b'=', maximum)?;
-    for byte in value {
-        if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~') {
-            push_bounded(output, *byte, maximum)?;
-        } else {
-            push_bounded(output, b'%', maximum)?;
-            push_bounded(output, HEX[(byte >> 4) as usize], maximum)?;
-            push_bounded(output, HEX[(byte & 0x0f) as usize], maximum)?;
-        }
-    }
-    Ok(())
-}
-
-fn push_bounded(output: &mut Vec<u8>, byte: u8, maximum: usize) -> Result<(), Oid4vpError> {
-    if output.len() == maximum {
-        return Err(Oid4vpError::RequestBodyTooLarge);
-    }
-    output.push(byte);
-    Ok(())
-}
-
-const HEX: &[u8; 16] = b"0123456789ABCDEF";

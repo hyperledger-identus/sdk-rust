@@ -42,6 +42,7 @@
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json" sourcePath
+          || pkgs.lib.hasSuffix "/docs/conformance/fixtures/siopv2/v1/vectors.json" sourcePath
           || pkgs.lib.hasPrefix oid4vciInteropRoot sourcePath;
       };
       cargoArtifacts = craneLib.buildDepsOnly {
@@ -92,6 +93,8 @@
           test "$(find "$src/docs/conformance/fixtures/oid4vp-direct-post/v1" -type f | wc -l)" -eq 1
           test -f "$src/docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json"
           test "$(find "$src/docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1" -type f | wc -l)" -eq 1
+          test -f "$src/docs/conformance/fixtures/siopv2/v1/vectors.json"
+          test "$(find "$src/docs/conformance/fixtures/siopv2/v1" -type f | wc -l)" -eq 1
           if find "$src/openspec/changes" -type f \
             \( -name credentials-error-contract-v1.csv \
               -o -name presentations-error-contract-v1.csv \

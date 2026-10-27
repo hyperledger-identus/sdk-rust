@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use identus_core::ErrorKind as CoreErrorKind;
 use identus_crypto::{Secp256k1PrivateKey, Sha256Digest, sha256};
 use identus_prism_did::{
     CanonicalPrismDid, CreateDidOperation, KeyUsage, PrismDidState, PrismPublicKey,
@@ -120,6 +121,64 @@ fn rejects_duplicate_owner_and_oversized_content() {
             .kind(),
         ErrorKind::ResourceLimitExceeded
     );
+}
+
+#[test]
+fn accepts_the_schema_default_empty_nonce() {
+    let owner = [0x13u8; 32];
+    let mut payload = Vec::new();
+    push_bytes(&mut payload, 1, &owner);
+    push_bytes(&mut payload, 100, b"value");
+    let operation = VdrOperation::parse(&signed(7, &payload)).unwrap();
+    let VdrOperation::Create(create) = operation else {
+        panic!("expected create");
+    };
+    assert!(create.nonce().is_empty());
+}
+
+#[test]
+fn sdk_error_bridge_preserves_storage_and_conflict_categories() {
+    let missing = sha256(b"missing");
+    struct FailingLookup;
+    impl VdrLookup for FailingLookup {
+        fn node(&self, _: &Sha256Digest) -> Result<Option<VdrNode>, LookupError> {
+            Err(LookupError)
+        }
+
+        fn entry(&self, _: &Sha256Digest) -> Result<Option<EntrySnapshot>, LookupError> {
+            Err(LookupError)
+        }
+    }
+    let mut budget = TraversalBudget::default();
+    let error = resolve_entry(
+        missing,
+        &HashMap::new(),
+        &HashMap::new(),
+        &FailingLookup,
+        &mut budget,
+    )
+    .unwrap_err();
+    assert_eq!(error.to_identus_error().kind(), CoreErrorKind::Storage);
+
+    let root = sha256(b"root-conflict");
+    let owner = CanonicalPrismDid::from_digest(&[0x44; 32]);
+    let nodes = HashMap::from([(
+        root,
+        VdrNode {
+            operation_hash: root,
+            predecessor: None,
+            owner: Some(owner),
+        },
+    )]);
+    let entries = HashMap::from([(
+        root,
+        EntrySnapshot {
+            head: sha256(b"new-head"),
+            terminal: false,
+        },
+    )]);
+    let error = resolve_entry(root, &nodes, &entries, &Lookup::default(), &mut budget).unwrap_err();
+    assert_eq!(error.to_identus_error().kind(), CoreErrorKind::Conflict);
 }
 
 #[test]

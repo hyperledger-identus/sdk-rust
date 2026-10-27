@@ -2,10 +2,15 @@
 
 use std::fmt;
 
-use identus_core::{CapabilityId, ErrorCode, IdentusError};
+use identus_core::{CapabilityId, ErrorCode, ErrorKind as CoreErrorKind, IdentusError};
 
 const CAPABILITY: CapabilityId = CapabilityId::new("did-prism-vdr");
 const CODE: ErrorCode = ErrorCode::new("did-prism-vdr.invalid_operation");
+const LIMIT_CODE: ErrorCode = ErrorCode::new("did-prism-vdr.resource_limit");
+const AUTH_CODE: ErrorCode = ErrorCode::new("did-prism-vdr.unauthorized");
+const NOT_FOUND_CODE: ErrorCode = ErrorCode::new("did-prism-vdr.missing_parent");
+const CONFLICT_CODE: ErrorCode = ErrorCode::new("did-prism-vdr.state_conflict");
+const LOOKUP_CODE: ErrorCode = ErrorCode::new("did-prism-vdr.lookup_failed");
 
 /// Stable non-sensitive VDR failure category.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -79,12 +84,39 @@ impl Error {
 
     /// Convert to the SDK-wide redacted error contract.
     pub const fn to_identus_error(self) -> IdentusError {
-        IdentusError::public(
-            CODE,
-            identus_core::ErrorKind::InvalidInput,
-            CAPABILITY,
-            "invalid PRISM VDR operation",
-        )
+        let (code, kind, message) = match self.kind {
+            ErrorKind::InvalidWire | ErrorKind::InvalidOperation => (
+                CODE,
+                CoreErrorKind::InvalidInput,
+                "invalid PRISM VDR operation",
+            ),
+            ErrorKind::ResourceLimitExceeded => (
+                LIMIT_CODE,
+                CoreErrorKind::InvalidInput,
+                "PRISM VDR resource limit exceeded",
+            ),
+            ErrorKind::Unauthorized => (
+                AUTH_CODE,
+                CoreErrorKind::VerificationFailed,
+                "PRISM VDR authorization failed",
+            ),
+            ErrorKind::MissingParent => (
+                NOT_FOUND_CODE,
+                CoreErrorKind::NotFound,
+                "PRISM VDR predecessor was not found",
+            ),
+            ErrorKind::Cycle | ErrorKind::StalePredecessor | ErrorKind::Deactivated => (
+                CONFLICT_CODE,
+                CoreErrorKind::Conflict,
+                "PRISM VDR state conflicts with its history",
+            ),
+            ErrorKind::LookupFailed => (
+                LOOKUP_CODE,
+                CoreErrorKind::Storage,
+                "PRISM VDR lookup failed",
+            ),
+        };
+        IdentusError::public(code, kind, CAPABILITY, message)
     }
 }
 

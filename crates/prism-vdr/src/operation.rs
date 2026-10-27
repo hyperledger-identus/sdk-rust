@@ -267,7 +267,7 @@ fn parse_create(bytes: &[u8], operation_hash: Sha256Digest) -> Result<VdrOperati
         .did_prism_hash
         .try_into()
         .map_err(|_| Error::new(ErrorKind::InvalidOperation))?;
-    if value.nonce.is_empty() || value.nonce.len() > MAX_NONCE_BYTES {
+    if value.nonce.len() > MAX_NONCE_BYTES {
         return Err(Error::new(ErrorKind::ResourceLimitExceeded));
     }
     Ok(VdrOperation::Create(CreateVdrEntry {

@@ -6,7 +6,7 @@
 - [x] 1.2 Complete VDR and indexer reusable-module assessments.
 - [x] 1.3 Decide effect isolation, atomic commit, replay and cancellation ownership.
 - [x] 1.4 Finalize the concrete public API/limit ADR and provenance digests.
-- [ ] 1.5 Record exact issue #522 preimplementation receipt.
+- [x] 1.5 Record exact issue #522 preimplementation receipt.
 
 ## 2. VDR capability
 

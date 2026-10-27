@@ -8,17 +8,17 @@ allowed_lanes    = [ "focused", "fast", "slow", "release", "none" ]
 allowed_cadences = [ "on-change", "per-pull-request", "weekly-or-manual", "per-candidate", "not-applicable" ]
 
 [[declarations]]
-id = "crypto.quality.v1"
-capability = "crypto.secp256k1"
-slice = "RustCrypto advisory remediation"
-owner = "SDK-Rust cryptography maintainers"
+id          = "crypto.quality.v1"
+capability  = "crypto.secp256k1"
+slice       = "RustCrypto advisory remediation"
+owner       = "SDK-Rust cryptography maintainers"
 owner_issue = 525
-risk = "A curve-family security upgrade can silently change key encodings, signature acceptance, target portability or cross-implementation verification behavior."
-targets = [ "package:identus-crypto", "host:rust", "consumer:portable-sdk" ]
-vector_ids = [ "crypto.secp256k1.jvm-compat" ]
+risk        = "A curve-family security upgrade can silently change key encodings, signature acceptance, target portability or cross-implementation verification behavior."
+targets     = [ "package:identus-crypto", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "crypto.secp256k1.jvm-compat" ]
 limitations = "This declaration proves the existing SDK cryptographic facade across the RustCrypto 0.14 migration; it does not make upstream tuple-field types stable or add a new algorithm claim."
-active = true
-supersedes = [  ]
+active      = true
+supersedes  = [  ]
 replaced_by = ""
 
 [[declarations.obligations]]

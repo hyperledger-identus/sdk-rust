@@ -12,6 +12,7 @@
 - [x] 1.8 Address independent Codex retry review: pre-planning replay probe plus atomic race closure.
 - [x] 1.9 Bind pending quality ID `did.prism.vdr-indexing.quality.v1` and terminal deactivation semantics.
 - [x] 1.10 Address independent Codex identity review: identity-level conflict and exact-replay planning exemption.
+- [x] 1.11 Address independent Codex resource/framing review: bounded cursors and canonical digest transcript.
 
 ## 2. VDR capability
 

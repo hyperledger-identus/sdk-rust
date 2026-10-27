@@ -38,6 +38,8 @@ crypto, error, target, unsafe-code and release constraints remain unchanged.
   operation count and contiguous zero-based indices. The source adapter owns
   authoritative boundary extraction; the SDK rejects inconsistent or oversized
   complete transactions instead of accepting a partial vector.
+- Transaction identity is capped at 256 bytes and each encoded expected/next
+  cursor at 1,024 bytes, checked before cloning, retention or hashing.
 - Every storage operation is authorized against the owner DID state at its
   exact ordered position using an active secp256k1 VDR key and the exact nested
   operation bytes. Same-transaction DID changes update batch-local state first.
@@ -47,7 +49,9 @@ crypto, error, target, unsafe-code and release constraints remain unchanged.
   identity occurs before mutable state validation: equal digest is replay and a
   different digest for the same identity is conflict. The atomic commit repeats
   that identity-and-digest check before stale-cursor comparison. Changed content
-  and other conflict fail closed.
+  and other conflict fail closed. Digest input uses a versioned, tagged,
+  length-delimited transcript with fixed-width big-endian scalar encoding; raw
+  field concatenation is forbidden.
 - Public errors and `Debug` output omit payload bytes, DIDs, transaction IDs,
   signatures, keys, cursors supplied by an adapter and repository diagnostics.
 - The implementation uses no unsafe code, native dependency, network client,

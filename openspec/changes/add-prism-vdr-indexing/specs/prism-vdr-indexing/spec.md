@@ -80,6 +80,16 @@ transaction identity, a declared operation count and records with the same
 identity and contiguous zero-based indices. The source adapter SHALL own
 authoritative boundary extraction. The SDK SHALL reject inconsistent boundaries
 and any complete transaction above the profile rather than split it.
+The initial profile SHALL reject transaction identities above 256 bytes and
+encoded expected or next cursors above 1,024 bytes before cloning, retaining or
+hashing those values.
+
+The transition digest SHALL use the fixed
+`identus.prism-indexer.transition.v1\0` domain followed by a canonical transcript.
+Every field SHALL have a distinct one-byte tag, an unsigned 64-bit big-endian
+byte length and its exact bytes. Integer values SHALL use fixed-width
+big-endian bytes within that frame, and records SHALL be framed individually in
+contiguous index order.
 
 #### Scenario: batch validation fails late
 
@@ -92,6 +102,18 @@ and any complete transaction above the profile rather than split it.
 - **WHEN** identity, declared count or contiguous indices do not describe one
   complete transaction
 - **THEN** construction fails before parsing or committing any operation
+
+#### Scenario: a cursor exceeds the profile
+
+- **WHEN** either encoded cursor exceeds 1,024 bytes
+- **THEN** construction fails before the cursor is cloned, retained or hashed
+
+#### Scenario: variable-length fields share concatenated bytes
+
+- **WHEN** two candidate transitions would have the same raw concatenation but
+  different field boundaries
+- **THEN** their tagged length-delimited transcripts and transition digests are
+  distinct
 
 #### Scenario: the same committed batch is replayed
 

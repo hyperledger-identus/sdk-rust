@@ -57,6 +57,9 @@ exact signed operation bytes. Construction verifies identity, count, indices
 and limits, so a caller cannot accidentally split or combine transactions.
 The source adapter is responsible for extracting an authoritative transaction
 boundary from its ledger; other chain metadata remains outside the plan.
+The initial profile accepts at most 256 transaction-identity bytes and 1,024
+bytes for each encoded expected/next cursor. These bounds are checked before
+the values are cloned, retained or hashed.
 
 The planner validates total cardinality and order, parses every operation,
 reduces DID state from the caller's snapshot (including earlier operations in
@@ -69,6 +72,11 @@ commit all mutations and advance the cursor or change nothing.
 Immediately after structural batch validation, the indexer computes a
 domain-separated SHA-256 transition digest over the exact ordered signed
 records, their indices, transaction identity, expected cursor and next cursor.
+The canonical transcript starts with
+`identus.prism-indexer.transition.v1\0`. Each field then has a distinct one-byte
+tag, an unsigned 64-bit big-endian byte length and exact bytes; integers use
+fixed-width big-endian bytes within that frame and records are framed
+individually in index order. No concatenation relies on implicit boundaries.
 It probes an immutable committed-transition receipt by transaction identity
 before loading current DID/VDR state. A receipt with the same digest returns
 replay success without planning, so duplicate creates or stale predecessors

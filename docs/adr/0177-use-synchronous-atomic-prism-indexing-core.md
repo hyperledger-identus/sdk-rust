@@ -38,7 +38,12 @@ declared boundary before planning.
 
 After structural batch validation, the indexer computes a domain-separated
 SHA-256 transition digest over the complete ordered signed records and cursor
-transition. Before reading mutable DID/VDR snapshots or planning, it probes the
+transition. The transcript begins with the fixed
+`identus.prism-indexer.transition.v1\0` domain, then encodes every field with a
+distinct one-byte tag, an unsigned 64-bit big-endian byte length and the exact
+field bytes. Integer values use their fixed-width big-endian bytes inside that
+frame. Repeated records are framed individually in index order. Before reading
+mutable DID/VDR snapshots or planning, it probes the
 store's immutable committed-transition receipt by transaction identity. A
 receipt with the same digest is replay success, which keeps an
 ambiguous-acknowledgement retry reachable even after state advanced. The same
@@ -75,8 +80,10 @@ or deactivation is rejected even when it names that terminal head.
 Default limits and absolute maxima are public typed configuration. The initial
 profile will cap operation/object bytes at the already accepted PRISM envelope
 limits, records at 1,024 per batch, total signed bytes at 8 MiB, ancestry at 200
-nodes and lookup work at 4,096 nodes per batch. Values may be configured lower;
-raising absolute maxima is a compatibility/security decision.
+nodes, lookup work at 4,096 nodes per batch, transaction identity at 256 bytes,
+and each encoded expected/next cursor at 1,024 bytes. Identity and cursor limits
+are checked before cloning, retaining or hashing their bytes. Values may be
+configured lower; raising absolute maxima is a compatibility/security decision.
 
 ## Consequences
 

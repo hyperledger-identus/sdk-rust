@@ -136,6 +136,11 @@ planning; equal digest is replay and a different digest under that identity is
 conflict. Otherwise an ambiguous retry can be rejected as a duplicate create or
 stale predecessor after its first commit. The atomic commit repeats the
 identity-and-digest check to close the probe/commit race.
+The digest input is a canonical versioned transcript, not raw concatenation:
+the fixed domain is followed by distinct field tags, unsigned 64-bit
+big-endian lengths and exact field bytes, with fixed-width big-endian integers
+and individually framed ordered records. Transaction identity is capped at 256
+bytes and each encoded cursor at 1,024 bytes before retention or hashing.
 
 Public errors expose stable categories and bounded indices, never raw payloads,
 DIDs, keys, signatures or adapter diagnostics. The SDK owns neither secrets

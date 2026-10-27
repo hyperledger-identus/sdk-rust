@@ -80,4 +80,3 @@ A production adapter must be a separately selectable crate or feature, pin one
 exact engine/version, map all errors to SDK categories, pass native and portable
 runtime evidence, and never change OID4VP DTOs. Replacing the engine must not be
 a protocol source break.
-

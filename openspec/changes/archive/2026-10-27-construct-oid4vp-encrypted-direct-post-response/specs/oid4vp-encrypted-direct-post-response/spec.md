@@ -51,4 +51,3 @@ SHALL NOT be described as wallet authentication.
 
 - **WHEN** the caller reveals the inert target and form body
 - **THEN** its adapter retains responsibility for transport and delivery outcome
-

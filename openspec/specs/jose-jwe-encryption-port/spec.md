@@ -35,4 +35,3 @@ production engine SHALL remain a separately qualified private adapter.
   recipient
 - **THEN** JOSE returns only validated cryptographic boundary material and
   makes no protocol, authentication or delivery claim
-

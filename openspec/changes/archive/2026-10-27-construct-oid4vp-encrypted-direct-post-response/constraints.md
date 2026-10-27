@@ -67,4 +67,3 @@ vectors, E2E/property/fuzz/benchmark evidence, portable and dependency gates,
 exact-head CLI review and protected CI. Rollback removes the additive types,
 mode, transition and evidence before publication; plain response behavior is
 unchanged and no persisted migration exists.
-

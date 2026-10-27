@@ -78,4 +78,3 @@ facade.
   existing facade contract and dependency policy
 - **THEN** a separately authorized change may adopt it privately without
   changing consumer APIs or security-state meaning
-

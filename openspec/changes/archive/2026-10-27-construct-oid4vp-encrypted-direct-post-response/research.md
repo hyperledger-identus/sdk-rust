@@ -183,4 +183,3 @@ ECDH encryption and reviewed unsafe removal/containment, or when `jose-rs`
 offers narrow algorithm features that remove unrelated families. A different
 stable engine may qualify if it passes the same exact gates. No automatic
 upgrade or public DTO migration is authorized.
-

@@ -33,4 +33,3 @@
 - [x] 5.1 Run Claude CLI exact-diff review or Codex CLI fallback immediately.
 - [x] 5.2 Resolve blocker/high/medium findings and rerun proportionate gates.
 - [x] 5.3 Archive OpenSpec, publish metrics and deliver the issue-linked PR.
-

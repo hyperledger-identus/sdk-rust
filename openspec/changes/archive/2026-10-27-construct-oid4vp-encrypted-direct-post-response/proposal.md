@@ -47,4 +47,3 @@ consumer mutation, publication, or certification claim.
 Issue #535 owns the slice under IDR-024. A production adapter may be added only
 after a separately reviewed engine passes the dependency, target, safety, and
 public-recipient-key gates recorded here.
-

@@ -118,4 +118,3 @@ constructs the existing composed authorization state.
   exceeds the configured bound
 - **THEN** request validation fails with a stable redacted category before DCQL
   response construction can occur
-

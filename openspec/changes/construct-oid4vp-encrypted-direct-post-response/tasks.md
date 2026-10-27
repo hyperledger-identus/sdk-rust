@@ -5,7 +5,7 @@
 - [x] 1.1 Correct older-draft JARM assumptions against OID4VP Final.
 - [x] 1.2 Qualify `jose-rs`, modular `no-way-jose`, `jwt-simple`, and `josekit`.
 - [x] 1.3 Decide the SDK-owned port, limits, redaction and rollback boundaries.
-- [ ] 1.4 Pass research, constraints, strict validation and issue #535 preflight.
+- [x] 1.4 Pass research, constraints, strict validation and issue #535 preflight.
 
 ## 2. JOSE facade
 

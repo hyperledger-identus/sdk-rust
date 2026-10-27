@@ -32,13 +32,7 @@ impl TestInput {
     }
 }
 
-const TEST_VECTOR: [TestInput; 50] = [
-    TestInput {
-        public_key: "025ec3069f260463ab79c6ada107de5ef43da1663eb4092d1718f5d26f57f2884b",
-        _private_key: "66f4120c9e9a4b78bb095129faa4c8d7b90df3f9d205ff175f80c84dfb47ba21",
-        data: "33121a19313e349bafada4113e364a01d578007a02dc",
-        signature: "3046022100ce972f4df5ab2d6aa20151bd56d92f9db42a6b6e9bdbd78971ea80828e183683022100a30cef9d2d28bc1710cec2c1966eb1e5ac965d0be4774a60ba38a462d56c7e7c",
-    },
+const TEST_VECTOR: [TestInput; 49] = [
     TestInput {
         public_key: "02e2c22135cba30f2b4796626819c9fc7029ae3be3a924802078ff204f9fb263a9",
         _private_key: "27c33d32edd9e9e26441fddefcd5d0caefa1c89f0b924252eac8ab61aae52699",
@@ -336,6 +330,43 @@ const TEST_VECTOR: [TestInput; 50] = [
 ];
 
 #[test]
+fn crypto_packet_jvm_compat_case_verifies() {
+    let packet: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../docs/conformance/fixtures/crypto/v1/vectors.json"
+    ))
+    .expect("crypto compatibility packet");
+    let case = &packet["cases"][0];
+    assert_eq!(case["id"], "crypto.secp256k1.jvm-compat");
+    assert_eq!(case["operation"], "crypto.secp256k1.verify");
+    assert_eq!(case["expected"]["kind"], "success");
+    assert_eq!(case["expected"]["fields"]["operationKind"], "verified");
+
+    let input = case["input"]["literal"]
+        .as_str()
+        .expect("literal crypto vector input");
+    let field = |name: &str| {
+        input
+            .split(';')
+            .find_map(|entry| entry.strip_prefix(name))
+            .unwrap_or_else(|| panic!("missing {name} in crypto vector input"))
+    };
+    let public_key = Secp256k1PublicKey::from_slice(
+        &HexStr::from_str(field("publicKey="))
+            .expect("public key hex")
+            .to_bytes(),
+    )
+    .expect("secp256k1 public key");
+    let message = HexStr::from_str(field("message="))
+        .expect("message hex")
+        .to_bytes();
+    let signature = HexStr::from_str(field("signature="))
+        .expect("signature hex")
+        .to_bytes();
+
+    assert!(public_key.verify(&message, &signature));
+}
+
+#[test]
 fn test_secp256k1_apollo_test_cases() {
     for ti in TEST_VECTOR {
         let public_key = ti.public_key();
@@ -404,7 +435,7 @@ fn secp256k1_bitcoin_transcode_is_the_deciding_branch() {
         "vanilla verify must reject the reversed-r signature"
     );
     // Branch 2 — normalize-s verification: must fail (r is still reversed).
-    let normalized = sig.normalize_s().unwrap_or(sig);
+    let normalized = sig.normalize_s();
     assert!(
         vk.verify(message, &normalized).is_err(),
         "normalize-s verify must reject the reversed-r signature"

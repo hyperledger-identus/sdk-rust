@@ -48,6 +48,7 @@ OPERATIONS = {
     "did-prism.envelope.parse",
     "did-prism.signed-create.verify",
     "did-prism.state.reduce",
+    "crypto.secp256k1.verify",
 }
 BOUNDARIES = {"positive", "negative", "boundary", "mutation"}
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
@@ -224,6 +225,7 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 "did-prism.envelope.parse": "did-prism.invalid_wire",
                 "did-prism.signed-create.verify": "did-prism.invalid_operation",
                 "did-prism.state.reduce": "did-prism.invalid_state",
+                "crypto.secp256k1.verify": "crypto.signature_invalid",
             }[operation]
             if expected.get("errorCode") != required_code or expected.get("redacted") is not True or fields:
                 errors.append(f"{identifier}: error expectation must use {required_code}, redacted=true, and empty fields")

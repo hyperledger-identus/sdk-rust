@@ -74,6 +74,47 @@ allowed_mapping_dispositions = [
 # change. Subsequent issue-owned records are added only with connected vector,
 # quality and OpenSpec impact evidence.
 [[changes]]
+id                                = "crypto.secp256k1.rustcrypto-security-stack.v1"
+capability                        = "crypto.secp256k1"
+lifecycle_state                   = "active"
+issue                             = 525
+pull_request                      = 530
+change_class                      = "security"
+release_note_class                = "security"
+visibility                        = [ "public-api", "security" ]
+affected_packages                 = [ "identus-crypto" ]
+affected_consumers                = [ "sdk-rust-adopters" ]
+source_version                    = "0.1.0-rc.1"
+target_version                    = "unreleased"
+compatibility                     = "source-break"
+old_behavior                      = "The four public secp256k1 and P-256 key-wrapper tuple fields expose k256 and p256 0.13 key types whose dependency closure reaches advisory-affected crypto-bigint 0.5.5."
+new_behavior                      = "The same SDK wrappers, methods and byte behavior use advisory-clean k256 and p256 0.14; their exposed tuple fields consequently have the corresponding 0.14 upstream type identities."
+migration_action                  = "Prefer identus-crypto from_slice, to_public_key and encoding methods; direct tuple-field consumers update their k256 or p256 dependency and imports to 0.14 when adopting the next candidate."
+replacement                       = "SDK-owned byte constructors and encoders, or the corresponding k256 and p256 0.14 types for consumers that intentionally use the tuple fields."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "0.1.0-rc.1"
+compatibility_window              = "The migration is declared on the release-candidate line before stable 0.1.0; the next candidate carries the advisory-clean type identities."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "This is a Rust-only dependency type-identity migration; no TypeScript, Swift or Kotlin DTO or error mapping changes."
+vector_ids                        = [ "crypto.secp256k1.jvm-compat" ]
+quality_declaration_ids           = [ "crypto.quality.v1" ]
+observability                     = "Record audit result, dependency versions and stable test outcomes without logging private key bytes, messages or signatures."
+fallback                          = "Delay consumer adoption while migrating to SDK byte boundaries; do not publish a new security-current candidate that restores the rejected 0.13 closure."
+rollback                          = "Move forward to another advisory-clean curve family or SDK-owned opaque boundary; never restore the advisory-affected dependency closure as a release state."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = "Not applicable; this is a security remediation and candidate source migration, not a deprecated compatibility facade."
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#crypto.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#crypto.secp256k1.jvm-compat" ]
+evidence_artifacts                = [ "docs/release/identus-crypto-0.1.0-rc.1.api.txt", "docs/release/identus-crypto-rustcrypto-0.14-migration.md" ]
+limitations                       = "Wire values and SDK-owned methods remain compatible, but direct construction or access through the four public tuple fields is source-incompatible until the consumer adopts RustCrypto 0.14 or the SDK byte boundary."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "did.prism.portable-method.v1"
 capability                        = "did.prism"
 lifecycle_state                   = "active"

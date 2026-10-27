@@ -24,6 +24,26 @@ license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 
 [[sources]]
+id             = "sdk-rust.crypto-secp256k1"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-rust"
+revision       = "67c30d599a538b873646a6e857809f2106391bb1"
+path           = "crates/crypto/tests/secp256k1_compat.rs"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
+[[sources]]
+id             = "apollo.secp256k1"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/apollo"
+revision       = "ccee22bcd693e618b9b8ff3e15ed6f9c9156c27c"
+path           = "apollo/src/commonTest/kotlin/org/hyperledger/identus/apollo/utils/Secp256k1LibTests.kt"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
+[[sources]]
 id             = "sdk-ts.did-parser"
 kind           = "repository"
 url            = "https://github.com/hyperledger-identus/sdk-ts"
@@ -92,6 +112,18 @@ schema_version = 1
 path           = "docs/conformance/fixtures/did-prism/v1/vectors.json"
 sha256         = "91505c545a0a76db6ce09b8fb53ef3dfad3f75b9ecabf6b7d8c3bf5cd4897141"
 authorship     = "SDK-Rust clean-room curation from the pinned PRISM method specification and public Preprod ledger facts"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust" ]
+
+[[packets]]
+id             = "crypto.compat.v1"
+capability     = "crypto.secp256k1"
+schema_version = 1
+path           = "docs/conformance/fixtures/crypto/v1/vectors.json"
+sha256         = "d357c46c0369e5597c89203d92332b94dbf9684fb28b120bbe3241cdb55e09cb"
+authorship     = "SDK-Rust curation from the published Identus JVM compatibility suite"
 license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 public_data    = true
@@ -671,3 +703,26 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "Tests SDK fail-closed behavior beyond ordinary generated protobuf decoding."
+
+[[vectors]]
+id                 = "crypto.secp256k1.jvm-compat"
+packet             = "crypto.compat.v1"
+case               = "crypto.secp256k1.jvm-compat"
+capability         = "crypto.secp256k1"
+authority          = "implementation-regression"
+source_ids         = [ "apollo.secp256k1", "sdk-rust.crypto-secp256k1" ]
+source_locator     = "Published Identus JVM secp256k1 verification compatibility suite"
+operation          = "crypto.secp256k1.verify"
+expected           = "success"
+profile_scope      = "Identus secp256k1 DER verification across the RustCrypto family migration"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust" ]
+rust_selector      = "secp256k1_compat::crypto_packet_jvm_compat_case_verifies"
+language_selectors = [  ]
+owner_issue        = 525
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "This packet pins one public verification case; the Rust suite retains all 50 JVM vectors and the separate bitcoin-transcode regression."

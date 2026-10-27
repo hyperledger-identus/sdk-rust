@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 525,
+  "change": "upgrade-rustcrypto-security-stack",
+  "branch": "codex/fix/issue-525",
+  "baseRef": "origin/develop",
+  "baseSha": "67c30d599a538b873646a6e857809f2106391bb1",
+  "contractHeadSha": "fdd5b9c8ac9594a1b8878c1e46e86d3203bf9303",
+  "createdAt": "2026-10-27T04:06:51.711Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

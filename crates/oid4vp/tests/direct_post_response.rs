@@ -275,6 +275,25 @@ fn object_presentation_parsing_enforces_work_before_allocation_and_container_dep
         .unwrap_err(),
         Oid4vpError::InvalidPresentation
     );
+
+    let numeric = DirectPostPresentation::object_json(
+        br#"{ "number": 18446744073709551617 }"#,
+        DirectPostResponseLimits::default(),
+    )
+    .expect("valid arbitrary-precision JSON number");
+    let validated = validated(request(json!({
+        "credentials": [credential("pid", false)]
+    })));
+    let result =
+        DirectPostQueryResult::new("pid", vec![numeric], DirectPostResponseLimits::default())
+            .unwrap();
+    assert!(
+        validated
+            .into_direct_post_response(vec![result], DirectPostResponseLimits::default())
+            .unwrap()
+            .expose_sensitive_form_body()
+            .contains("18446744073709551617")
+    );
 }
 
 #[test]
@@ -309,6 +328,10 @@ fn response_limit_policy_requires_every_positive_budget() {
             Oid4vpError::InvalidLimits
         );
     }
+    assert_eq!(
+        DirectPostResponseLimits::new(1, 1, 1, 1, 65, 1, 1, 1),
+        Err(Oid4vpError::InvalidLimits)
+    );
 }
 
 #[test]

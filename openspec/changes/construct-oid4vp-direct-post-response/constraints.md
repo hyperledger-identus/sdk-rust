@@ -31,9 +31,11 @@ DCQL engine and composed direct-post request lineage.
   `vp_token` first and optional `state` second.
 - Public errors and `Debug` output expose static categories, variants, counts,
   and lengths only; no URI, state, query id, credential, or presentation bytes.
-- The slice adds no dependency, unsafe code, native code, HTTP, executor,
-  filesystem, clock, randomness, private key, signing, encryption, persistence,
-  logging, or global mutable state.
+- The slice adds no crate to the resolved dependency graph; `serde`, already
+  resolved through `serde_json`, becomes an explicit parsing dependency. It
+  adds no unsafe code, native code, HTTP, executor, filesystem, clock,
+  randomness, private key, signing, encryption, persistence, logging, or
+  global mutable state.
 
 ## Introduced or changed limitations
 

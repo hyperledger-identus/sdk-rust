@@ -48,9 +48,10 @@ byte length.
 The constructor first validates result count, identifiers, duplicates,
 credential-set satisfaction, and cardinality. It then serializes a
 deterministic `vp_token` object in validated DCQL query order. String values
-receive correct JSON escaping; validated object bytes are embedded only after
-their bounded parse. Temporary and retained encoded buffers are wrapped in
-zeroizing owners.
+receive correct JSON escaping; validated object bytes are whitespace-minified
+without normalizing numeric or string lexemes and embedded only after bounded
+streaming validation. Temporary owned strings and retained encoded buffers are
+wrapped in zeroizing owners.
 
 ## State and form output
 

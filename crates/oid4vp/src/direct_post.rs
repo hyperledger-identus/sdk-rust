@@ -3,7 +3,6 @@
 use std::{collections::BTreeMap, fmt};
 
 use serde::de::{DeserializeSeed, Error as _, MapAccess, SeqAccess, Visitor};
-use serde_json::{Map, Value};
 use zeroize::Zeroizing;
 
 use crate::{
@@ -52,7 +51,7 @@ impl DirectPostPresentation {
         })
     }
 
-    /// Parse and canonicalize one bounded JSON object presentation.
+    /// Validate and whitespace-minify one bounded JSON object presentation.
     pub fn object_json(
         input: &[u8],
         limits: DirectPostResponseLimits,
@@ -60,12 +59,11 @@ impl DirectPostPresentation {
         if input.len() > limits.max_presentation_bytes() {
             return Err(Oid4vpError::PresentationTooLarge);
         }
-        let (value, json_depth, json_nodes) = parse_bounded_json(input, limits)?;
-        if !value.is_object() {
+        let (kind, json_depth, json_nodes) = parse_bounded_json(input, limits)?;
+        if kind != ParsedJsonKind::Object {
             return Err(Oid4vpError::InvalidPresentation);
         }
-        let encoded =
-            serde_json::to_string(&value).map_err(|_| Oid4vpError::InvalidPresentation)?;
+        let encoded = minify_exact_json(input)?;
         if encoded.len() > limits.max_presentation_bytes() {
             return Err(Oid4vpError::PresentationTooLarge);
         }
@@ -444,10 +442,16 @@ const fn is_form_literal(byte: u8) -> bool {
 
 const JSON_WORK_LIMIT_MARKER: &str = "identus-oid4vp:json-work-limit";
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ParsedJsonKind {
+    Object,
+    Other,
+}
+
 fn parse_bounded_json(
     input: &[u8],
     limits: DirectPostResponseLimits,
-) -> Result<(Value, usize, usize), Oid4vpError> {
+) -> Result<(ParsedJsonKind, usize, usize), Oid4vpError> {
     let mut work = JsonWork {
         nodes: 0,
         maximum_depth: 0,
@@ -462,6 +466,30 @@ fn parse_bounded_json(
     .map_err(map_json_error)?;
     deserializer.end().map_err(map_json_error)?;
     Ok((value, work.maximum_depth, work.nodes))
+}
+
+fn minify_exact_json(input: &[u8]) -> Result<String, Oid4vpError> {
+    let mut output = Zeroizing::new(Vec::with_capacity(input.len()));
+    let mut in_string = false;
+    let mut escaped = false;
+    for &byte in input {
+        if in_string {
+            output.push(byte);
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'"' {
+                in_string = false;
+            }
+        } else if byte == b'"' {
+            in_string = true;
+            output.push(byte);
+        } else if !byte.is_ascii_whitespace() {
+            output.push(byte);
+        }
+    }
+    String::from_utf8(std::mem::take(&mut *output)).map_err(|_| Oid4vpError::InvalidPresentation)
 }
 
 fn map_json_error(error: serde_json::Error) -> Oid4vpError {
@@ -505,7 +533,7 @@ struct BoundedValueSeed<'work> {
 }
 
 impl<'de> DeserializeSeed<'de> for BoundedValueSeed<'_> {
-    type Value = Value;
+    type Value = ParsedJsonKind;
 
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
@@ -524,7 +552,7 @@ struct BoundedValueVisitor<'work> {
 }
 
 impl<'de> Visitor<'de> for BoundedValueVisitor<'_> {
-    type Value = Value;
+    type Value = ParsedJsonKind;
 
     fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("a bounded JSON value")
@@ -532,44 +560,48 @@ impl<'de> Visitor<'de> for BoundedValueVisitor<'_> {
 
     fn visit_bool<E: serde::de::Error>(self, value: bool) -> Result<Self::Value, E> {
         self.work.visit_node()?;
-        Ok(Value::Bool(value))
+        let _ = value;
+        Ok(ParsedJsonKind::Other)
     }
 
     fn visit_i64<E: serde::de::Error>(self, value: i64) -> Result<Self::Value, E> {
         self.work.visit_node()?;
-        Ok(Value::Number(value.into()))
+        let _ = value;
+        Ok(ParsedJsonKind::Other)
     }
 
     fn visit_u64<E: serde::de::Error>(self, value: u64) -> Result<Self::Value, E> {
         self.work.visit_node()?;
-        Ok(Value::Number(value.into()))
+        let _ = value;
+        Ok(ParsedJsonKind::Other)
     }
 
     fn visit_f64<E: serde::de::Error>(self, value: f64) -> Result<Self::Value, E> {
         self.work.visit_node()?;
-        serde_json::Number::from_f64(value)
-            .map(Value::Number)
-            .ok_or_else(|| E::custom("invalid JSON number"))
+        let _ = value;
+        Ok(ParsedJsonKind::Other)
     }
 
     fn visit_str<E: serde::de::Error>(self, value: &str) -> Result<Self::Value, E> {
         self.work.visit_node()?;
-        Ok(Value::String(value.to_owned()))
+        let _ = value;
+        Ok(ParsedJsonKind::Other)
     }
 
     fn visit_string<E: serde::de::Error>(self, value: String) -> Result<Self::Value, E> {
         self.work.visit_node()?;
-        Ok(Value::String(value))
+        drop(Zeroizing::new(value));
+        Ok(ParsedJsonKind::Other)
     }
 
     fn visit_none<E: serde::de::Error>(self) -> Result<Self::Value, E> {
         self.work.visit_node()?;
-        Ok(Value::Null)
+        Ok(ParsedJsonKind::Other)
     }
 
     fn visit_unit<E: serde::de::Error>(self) -> Result<Self::Value, E> {
         self.work.visit_node()?;
-        Ok(Value::Null)
+        Ok(ParsedJsonKind::Other)
     }
 
     fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
@@ -590,14 +622,14 @@ impl<'de> Visitor<'de> for BoundedValueVisitor<'_> {
         self.work.visit_node()?;
         let depth = self.parent_depth + 1;
         self.work.enter_container(depth)?;
-        let mut values = Vec::new();
-        while let Some(value) = sequence.next_element_seed(BoundedValueSeed {
-            work: &mut *self.work,
-            parent_depth: depth,
-        })? {
-            values.push(value);
-        }
-        Ok(Value::Array(values))
+        while sequence
+            .next_element_seed(BoundedValueSeed {
+                work: &mut *self.work,
+                parent_depth: depth,
+            })?
+            .is_some()
+        {}
+        Ok(ParsedJsonKind::Other)
     }
 
     fn visit_map<A>(self, mut object: A) -> Result<Self::Value, A::Error>
@@ -607,17 +639,21 @@ impl<'de> Visitor<'de> for BoundedValueVisitor<'_> {
         self.work.visit_node()?;
         let depth = self.parent_depth + 1;
         self.work.enter_container(depth)?;
-        let mut values = Map::new();
+        let mut names = Vec::<Zeroizing<String>>::new();
         while let Some(name) = object.next_key::<String>()? {
-            if values.contains_key(&name) {
+            let name = Zeroizing::new(name);
+            if names
+                .iter()
+                .any(|existing| existing.as_str() == name.as_str())
+            {
                 return Err(A::Error::custom("duplicate JSON object member"));
             }
-            let value = object.next_value_seed(BoundedValueSeed {
+            object.next_value_seed(BoundedValueSeed {
                 work: &mut *self.work,
                 parent_depth: depth,
             })?;
-            values.insert(name, value);
+            names.push(name);
         }
-        Ok(Value::Object(values))
+        Ok(ParsedJsonKind::Object)
     }
 }

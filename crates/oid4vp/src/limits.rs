@@ -2,6 +2,8 @@ use identus_jose::JwsLimits;
 
 use crate::Oid4vpError;
 
+const MAX_PRESENTATION_JSON_DEPTH: usize = 64;
+
 /// Resource limits for one Authorization Request invocation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AuthorizationRequestInvocationLimits {
@@ -326,6 +328,7 @@ impl DirectPostResponseLimits {
             || max_presentations_per_query == 0
             || max_presentation_bytes == 0
             || max_json_depth == 0
+            || max_json_depth > MAX_PRESENTATION_JSON_DEPTH
             || max_json_nodes == 0
             || max_vp_token_bytes == 0
             || max_form_body_bytes == 0

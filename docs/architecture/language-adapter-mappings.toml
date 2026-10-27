@@ -7,9 +7,9 @@ canonical_owner  = "sdk-rust"
 [[canonical_sources]]
 id                 = "did.source.identus-did.v1"
 owner_issue        = 512
-state              = "pending-revision"
+state              = "active"
 canonical_crate    = "identus-did"
-canonical_revision = "ee972c49bbec75582eba213ac85903f146dfc2c4"
+canonical_revision = "4612053cef68dd68a26a6940aa10fd41f3fb14e0"
 path               = "crates/did/src/did.rs"
 file_mode          = "100644"
 byte_length        = 13161

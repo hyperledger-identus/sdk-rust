@@ -14,6 +14,10 @@ from blocking delivery.
 - Numalgo-4 parsing enforces the decoded byte ceiling without a conservative
   base58 estimate that could reject values produced by creation.
 - The fuzz target treats bounded construction rejection as an ordinary outcome.
+- Profile-specific raw DID and fixed multihash ceilings reject oversized input
+  before delimiter scanning or base58 decoding.
+- Numalgo-2 rejects oversized retained service strings before serialization,
+  and numalgo-4 rejects recognized private JWK members before public retention.
 - The exact 16 KiB decoded input ceiling round-trips. The profile ceiling is
   intentionally below the generic DID limit because large base58 conversion is
   super-linear; the measured exact-boundary test completes in about 2.3 seconds

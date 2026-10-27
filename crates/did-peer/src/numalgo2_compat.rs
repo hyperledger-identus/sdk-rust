@@ -6,7 +6,8 @@
 
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use identus_did::{
-    Did, DidDocument, JsonWireError, JsonWireLimits, Uri, validate_unique_object_names,
+    Did, DidDocument, JsonWireError, JsonWireLimits, MAX_DID_BYTES, Uri,
+    validate_unique_object_names,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -20,6 +21,8 @@ pub const MAX_ELEMENTS: usize = 32;
 pub const MAX_KEY_BYTES: usize = 128;
 /// Maximum decoded compact JSON bytes accepted for one service.
 pub const MAX_SERVICE_BYTES: usize = 16 * 1_024;
+/// Maximum total characters accepted by the compatibility DID parser.
+pub const MAX_COMPAT_DID_BYTES: usize = MAX_DID_BYTES;
 
 /// Verification relationship encoded by one numalgo-2 key element.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -160,6 +163,9 @@ impl PeerDid {
 
     /// Parse an explicit numalgo-2 compatibility DID.
     pub fn parse(value: &str) -> Result<Self, Error> {
+        if value.len() > MAX_COMPAT_DID_BYTES {
+            return Err(Error::ResourceLimit);
+        }
         if !value.starts_with(PREFIX) {
             return if value.starts_with("did:peer:") {
                 Err(Error::UnsupportedAlgorithm)
@@ -469,6 +475,12 @@ mod tests {
             PeerDid::parse("did:peer:2.é"),
             Err(Error::UnsupportedPurpose)
         );
+    }
+
+    #[test]
+    fn rejects_oversized_raw_did_before_element_scans() {
+        let oversized = format!("{PREFIX}.{}", "V".repeat(MAX_COMPAT_DID_BYTES));
+        assert_eq!(PeerDid::parse(&oversized), Err(Error::ResourceLimit));
     }
 
     #[test]

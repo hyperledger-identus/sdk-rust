@@ -13,6 +13,7 @@ const JSON_MULTICODEC: [u8; 2] = [0x80, 0x04];
 const SHA2_256_MULTIHASH: [u8; 2] = [0x12, 0x20];
 const MULTIHASH_BYTES: usize = 34;
 const MAX_ENCODED_MULTIHASH_BYTES: usize = 48;
+const PRIVATE_JWK_MEMBERS: &[&str] = &["d", "p", "q", "dp", "dq", "qi", "oth", "k"];
 
 /// Maximum decoded JSON input-document bytes accepted by this profile.
 ///
@@ -21,6 +22,11 @@ const MAX_ENCODED_MULTIHASH_BYTES: usize = 48;
 pub const MAX_INPUT_DOCUMENT_BYTES: usize = 16 * 1_024;
 /// Maximum encoded input-document characters accepted before base decoding.
 pub const MAX_ENCODED_DOCUMENT_BYTES: usize = 24 * 1_024;
+/// Maximum total characters accepted by the long-form parser.
+pub const MAX_LONG_FORM_BYTES: usize =
+    PREFIX.len() + MAX_ENCODED_MULTIHASH_BYTES + 1 + MAX_ENCODED_DOCUMENT_BYTES;
+/// Maximum total characters accepted by the short-form parser.
+pub const MAX_SHORT_FORM_BYTES: usize = PREFIX.len() + MAX_ENCODED_MULTIHASH_BYTES;
 /// Maximum JSON nesting depth accepted by the input-document parser.
 pub const MAX_INPUT_DOCUMENT_DEPTH: usize = 32;
 /// Maximum aggregate JSON values accepted by the input-document parser.
@@ -138,6 +144,9 @@ impl LongForm {
 
     /// Parse and verify a numalgo-4 long form.
     pub fn parse(value: &str) -> Result<Self, Error> {
+        if value.len() > MAX_LONG_FORM_BYTES {
+            return Err(Error::ResourceLimit);
+        }
         if !value.starts_with(PREFIX) {
             return classify_wrong_profile(value);
         }
@@ -194,6 +203,9 @@ pub struct ShortForm(Did);
 impl ShortForm {
     /// Parse a short form without performing resolution I/O.
     pub fn parse(value: &str) -> Result<Self, Error> {
+        if value.len() > MAX_SHORT_FORM_BYTES {
+            return Err(Error::ResourceLimit);
+        }
         if !value.starts_with(PREFIX) {
             return classify_wrong_profile(value);
         }
@@ -297,6 +309,13 @@ fn contextualize(
 fn reject_secret_members(value: &Value) -> Result<(), Error> {
     match value {
         Value::Object(object) => {
+            if object.contains_key("kty")
+                && PRIVATE_JWK_MEMBERS
+                    .iter()
+                    .any(|member| object.contains_key(*member))
+            {
+                return Err(Error::InvalidInputDocument);
+            }
             for (name, value) in object {
                 let normalized: String = name
                     .chars()
@@ -463,6 +482,17 @@ mod tests {
     }
 
     #[test]
+    fn rejects_oversized_raw_forms_before_delimiter_scans() {
+        let oversized_long = format!("{PREFIX}{}", "1".repeat(MAX_LONG_FORM_BYTES));
+        assert_eq!(LongForm::parse(&oversized_long), Err(Error::ResourceLimit));
+        let oversized_short = format!("{PREFIX}{}", "1".repeat(MAX_SHORT_FORM_BYTES));
+        assert_eq!(
+            ShortForm::parse(&oversized_short),
+            Err(Error::ResourceLimit)
+        );
+    }
+
+    #[test]
     fn rejects_root_id_and_oversized_input() {
         assert_eq!(
             InputDocument::from_json_str(r#"{"id":"did:example:123"}"#),
@@ -484,6 +514,7 @@ mod tests {
             r#"{"privateKey":"secret"}"#,
             r#"{"extension":{"secret_key":"secret"}}"#,
             r#"{"extension":[{"mnemonic":"words"}]}"#,
+            r#"{"extension":{"jwk":{"kty":"oct","k":"c2VjcmV0"}}}"#,
         ] {
             assert_eq!(
                 InputDocument::from_json_str(input),

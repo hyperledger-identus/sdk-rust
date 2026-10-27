@@ -86,6 +86,11 @@ required_files=(
   docs/conformance/fixtures/did/v1/vectors.json
   docs/conformance/fixtures/did-prism/preprod-2026-09-10.json
   docs/conformance/fixtures/did-prism/v1/vectors.json
+  docs/conformance/fixtures/crypto/v1/vectors.json
+  crates/crypto/examples/crypto_baseline.rs
+  crates/crypto/tests/curves.rs
+  crates/crypto/tests/secp256k1_compat.rs
+  fuzz/fuzz_targets/crypto_support.rs
   fuzz/fuzz_targets/did.rs
   fuzz/fuzz_targets/did_url.rs
   fuzz/fuzz_targets/prism_did.rs
@@ -118,6 +123,7 @@ required_files=(
   docs/release/did-candidate.toml
   docs/release/release-trains.toml
   docs/release/0.1.0-rc.1.md
+  docs/release/identus-crypto-rustcrypto-0.14-migration.md
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
   docs/release/identus-did-0.1.0-rc.1.api.txt
   docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt
@@ -245,6 +251,7 @@ required_files=(
   scripts/check-quality-evidence-declarations.py
   scripts/fuzz-did.sh
   scripts/fuzz-did-prism.sh
+  scripts/fuzz-crypto.sh
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
   scripts/check-crypto-benchmark.py

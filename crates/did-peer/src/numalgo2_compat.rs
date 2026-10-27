@@ -21,6 +21,7 @@ pub const MAX_ELEMENTS: usize = 32;
 pub const MAX_KEY_BYTES: usize = 128;
 /// Maximum decoded compact JSON bytes accepted for one service.
 pub const MAX_SERVICE_BYTES: usize = 16 * 1_024;
+const MAX_SERVICE_JSON_NODES: usize = 4_096;
 /// Maximum endpoint maps retained by one compact service.
 pub const MAX_SERVICE_ENDPOINTS: usize = 32;
 /// Maximum total characters accepted by the compatibility DID parser.
@@ -166,6 +167,7 @@ impl PeerDid {
             if json.len() > MAX_SERVICE_BYTES {
                 return Err(Error::ResourceLimit);
             }
+            validate_service_json(&json)?;
             let encoded_len = base64::encoded_len(json.len(), false).ok_or(Error::ResourceLimit)?;
             let next_len = value
                 .len()
@@ -210,7 +212,10 @@ impl PeerDid {
         let mut keys = Vec::new();
         let mut services = Vec::new();
         for element in suffix[1..].split('.') {
-            if element.len() < 2 || keys.len() + services.len() >= MAX_ELEMENTS {
+            if element.len() < 2 {
+                return Err(Error::MalformedEncoding);
+            }
+            if keys.len() + services.len() >= MAX_ELEMENTS {
                 return Err(Error::ResourceLimit);
             }
             let Some((&code, payload)) = element.as_bytes().split_first() else {
@@ -242,16 +247,7 @@ impl PeerDid {
                     if bytes.len() > MAX_SERVICE_BYTES {
                         return Err(Error::ResourceLimit);
                     }
-                    validate_unique_object_names(
-                        &bytes,
-                        JsonWireLimits {
-                            max_depth: 8,
-                            max_nodes: 256,
-                            max_object_members: 16,
-                            max_live_key_bytes: 4_096,
-                        },
-                    )
-                    .map_err(map_json_wire_error)?;
+                    validate_service_json(&bytes)?;
                     let decoded: EncodedServices =
                         serde_json::from_slice(&bytes).map_err(|_| Error::InvalidInputDocument)?;
                     let decoded = match decoded {
@@ -442,6 +438,19 @@ fn validate_counts(keys: usize, services: usize) -> Result<(), Error> {
     } else {
         Ok(())
     }
+}
+
+fn validate_service_json(input: &[u8]) -> Result<(), Error> {
+    validate_unique_object_names(
+        input,
+        JsonWireLimits {
+            max_depth: 8,
+            max_nodes: MAX_SERVICE_JSON_NODES,
+            max_object_members: 16,
+            max_live_key_bytes: 4_096,
+        },
+    )
+    .map_err(map_json_wire_error)
 }
 
 fn validate_key(multibase: &str) -> Result<(&'static str, &'static str), Error> {
@@ -694,6 +703,15 @@ mod tests {
     }
 
     #[test]
+    fn truncated_elements_are_malformed_not_resource_exhaustion() {
+        assert_eq!(PeerDid::parse("did:peer:2."), Err(Error::MalformedEncoding));
+        assert_eq!(
+            PeerDid::parse("did:peer:2.V"),
+            Err(Error::MalformedEncoding)
+        );
+    }
+
+    #[test]
     fn rejects_oversized_raw_did_before_element_scans() {
         let oversized = format!("{PREFIX}.{}", "V".repeat(MAX_COMPAT_DID_BYTES));
         assert_eq!(PeerDid::parse(&oversized), Err(Error::ResourceLimit));
@@ -753,6 +771,27 @@ mod tests {
         assert_eq!(
             PeerDid::create(vec![key], services),
             Err(Error::ResourceLimit)
+        );
+    }
+
+    #[test]
+    fn created_service_array_stays_within_the_parser_work_budget() {
+        let key = PublicKey::new(Purpose::Verification, VERIFICATION_KEY).expect("key");
+        let services = (0..26)
+            .map(|index| Service {
+                type_: "DIDCommMessaging".into(),
+                endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
+                    uri: format!("https://example.com/{index}"),
+                    accept: vec!["didcomm/v2".into(), "didcomm/aip2;env=rfc587".into()],
+                    routing_keys: vec!["did:example:one".into(), "did:example:two".into()],
+                }),
+                id: None,
+            })
+            .collect();
+        let peer = PeerDid::create(vec![key], services).expect("create bounded service array");
+        assert_eq!(
+            PeerDid::parse(peer.did().as_str()).expect("parse created DID"),
+            peer
         );
     }
 

@@ -7,6 +7,8 @@
   `67c30d599a538b873646a6e857809f2106391bb1`
 - Reviewed implementation head:
   `5ee0b83a5be72c3c69d0347ac833f5bbe21db96c`
+- Reviewed archived candidate head:
+  `f39656e6c0d94fb81e4156a9a39820c215e3443a`
 - Independent reviewer: Codex CLI `0.163.0`, `review --base origin/develop`
 - Final result: no actionable defects found
 

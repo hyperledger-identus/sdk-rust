@@ -8,7 +8,8 @@ use identus_prism_did::{
     UpdateDidOperation,
 };
 use identus_prism_vdr::{
-    EntrySnapshot, LookupError, TraversalBudget, VdrLookup, VdrNode, VdrOperation, resolve_entry,
+    EntrySnapshot, Error as VdrError, ErrorKind as VdrErrorKind, LookupError, TraversalBudget,
+    VdrLookup, VdrNode, VdrOperation, resolve_entry,
 };
 
 use crate::{Error, ErrorKind, TransactionBatch};
@@ -162,7 +163,7 @@ where
                         lookup,
                         &mut budget,
                     )
-                    .map_err(|_| Error::at(ErrorKind::InvalidOperation, position))?;
+                    .map_err(|error| map_vdr_error(error, position))?;
                     (
                         resolved.root,
                         resolved.owner,
@@ -206,4 +207,20 @@ where
         }
     }
     Ok(PlannedTransaction { mutations })
+}
+
+fn map_vdr_error(error: VdrError, position: u16) -> Error {
+    let kind = match error.kind() {
+        VdrErrorKind::ResourceLimitExceeded => ErrorKind::ResourceLimitExceeded,
+        VdrErrorKind::MissingParent => ErrorKind::MissingState,
+        VdrErrorKind::Cycle | VdrErrorKind::StalePredecessor | VdrErrorKind::Deactivated => {
+            ErrorKind::Conflict
+        }
+        VdrErrorKind::LookupFailed => ErrorKind::LookupFailed,
+        VdrErrorKind::InvalidWire | VdrErrorKind::InvalidOperation | VdrErrorKind::Unauthorized => {
+            ErrorKind::InvalidOperation
+        }
+        _ => ErrorKind::InvalidOperation,
+    };
+    Error::at(kind, position)
 }

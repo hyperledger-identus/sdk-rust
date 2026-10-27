@@ -6,9 +6,10 @@ use identus_prism_did::{
     PrismPublicKeyMaterial, RawPrismOperation, SignedPrismOperation,
 };
 use identus_prism_indexer::{
-    AtomicCommit, CommitOutcome, CommitRequest, Cursor, DidStateLookup, IncomingRecord,
-    IndexOutcome, Mutation, StoreError, TransactionBatch, TransactionIdentity, TransitionDigest,
-    TransitionReceiptLookup, index_transaction,
+    AtomicCommit, CommitOutcome, CommitRequest, Cursor, DidStateLookup,
+    ErrorKind as IndexerErrorKind, IncomingRecord, IndexOutcome, Mutation, StoreError,
+    TransactionBatch, TransactionIdentity, TransitionDigest, TransitionReceiptLookup,
+    index_transaction, plan_transaction,
 };
 use identus_prism_vdr::{EntrySnapshot, LookupError, VdrLookup, VdrNode, VdrOperation};
 
@@ -24,6 +25,24 @@ struct State {
 
 #[derive(Default)]
 struct InMemoryStore(Mutex<State>);
+
+struct FailingLookup;
+
+impl DidStateLookup for FailingLookup {
+    fn did_state(&self, _: &CanonicalPrismDid) -> Result<Option<PrismDidState>, LookupError> {
+        Err(LookupError)
+    }
+}
+
+impl VdrLookup for FailingLookup {
+    fn node(&self, _: &Sha256Digest) -> Result<Option<VdrNode>, LookupError> {
+        Err(LookupError)
+    }
+
+    fn entry(&self, _: &Sha256Digest) -> Result<Option<EntrySnapshot>, LookupError> {
+        Err(LookupError)
+    }
+}
 
 impl DidStateLookup for InMemoryStore {
     fn did_state(&self, did: &CanonicalPrismDid) -> Result<Option<PrismDidState>, LookupError> {
@@ -243,4 +262,33 @@ fn advances_an_existing_vdr_head_and_rejects_identity_reuse() {
     let conflicting = batch(b"tx-2", b"cursor-2", b"cursor-3", vec![create_storage]);
     assert!(index_transaction(&conflicting, &store).is_err());
     assert_eq!(store.0.lock().unwrap().commits, 2);
+}
+
+#[test]
+fn preserves_vdr_traversal_failure_categories() {
+    let key = Secp256k1PrivateKey::from_slice(&[3; 32]).unwrap();
+    let predecessor = Sha256Digest::from_bytes(&[9; 32]).unwrap();
+    let mut update_payload = Vec::new();
+    push_bytes(&mut update_payload, 2, predecessor.as_bytes());
+    push_bytes(&mut update_payload, 100, b"updated");
+    let update = signed_vdr(8, &update_payload, &key);
+    let batch = batch(b"tx-errors", b"genesis", b"next", vec![update]);
+
+    let missing = plan_transaction(&batch, &InMemoryStore::default()).unwrap_err();
+    assert_eq!(missing.kind(), IndexerErrorKind::MissingState);
+
+    let failed = plan_transaction(&batch, &FailingLookup).unwrap_err();
+    assert_eq!(failed.kind(), IndexerErrorKind::LookupFailed);
+
+    let cyclic = InMemoryStore::default();
+    cyclic.0.lock().unwrap().nodes.insert(
+        predecessor,
+        VdrNode {
+            operation_hash: predecessor,
+            predecessor: Some(predecessor),
+            owner: None,
+        },
+    );
+    let bounded = plan_transaction(&batch, &cyclic).unwrap_err();
+    assert_eq!(bounded.kind(), IndexerErrorKind::Conflict);
 }

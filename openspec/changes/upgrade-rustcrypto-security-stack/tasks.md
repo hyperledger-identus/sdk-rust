@@ -18,7 +18,7 @@
 
 - [x] 3.1 Pass crypto vectors, workspace feature matrices, docs, clippy and portable targets.
 - [x] 3.2 Pass root/fuzz audit and deny policy, fuzz dependency policy and full Nix checks.
-- [ ] 3.3 Run exact-head independent CLI review, using Codex immediately if Claude is unavailable.
+- [x] 3.3 Run exact-head independent CLI review, using Codex immediately if Claude is unavailable.
 - [ ] 3.4 Archive OpenSpec, publish metrics, open the issue-linked PR and merge only with protected CI green.
 
 ## 4. Stop boundary

@@ -23,7 +23,7 @@ macro_rules! case {
     };
 }
 
-const CASES: [Case; 50] = [
+const CASES: [Case; 63] = [
     case!(InvalidLimits, INVALID_LIMITS),
     case!(InvocationTooLarge, INVOCATION_TOO_LARGE),
     case!(InvalidInvocation, INVALID_INVOCATION),
@@ -92,6 +92,19 @@ const CASES: [Case; 50] = [
     ),
     case!(ResponseUriTooLarge, RESPONSE_URI_TOO_LARGE),
     case!(UnsafeResponseUri, UNSAFE_RESPONSE_URI),
+    case!(InvalidState, INVALID_STATE),
+    case!(StateTooLarge, STATE_TOO_LARGE),
+    case!(TooManyQueryResults, TOO_MANY_QUERY_RESULTS),
+    case!(UnknownDcqlResult, UNKNOWN_DCQL_RESULT),
+    case!(DuplicateDcqlResult, DUPLICATE_DCQL_RESULT),
+    case!(MissingDcqlResult, MISSING_DCQL_RESULT),
+    case!(EmptyPresentationList, EMPTY_PRESENTATION_LIST),
+    case!(TooManyPresentations, TOO_MANY_PRESENTATIONS),
+    case!(DcqlCardinalityMismatch, DCQL_CARDINALITY_MISMATCH),
+    case!(InvalidPresentation, INVALID_PRESENTATION),
+    case!(PresentationTooLarge, PRESENTATION_TOO_LARGE),
+    case!(ResponseJsonTooLarge, RESPONSE_JSON_TOO_LARGE),
+    case!(DirectPostFormTooLarge, DIRECT_POST_FORM_TOO_LARGE),
 ];
 
 #[test]

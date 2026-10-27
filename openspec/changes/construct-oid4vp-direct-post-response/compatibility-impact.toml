@@ -1,6 +1,6 @@
 schema_version = 1
 issue          = 487
-disposition    = "behavior-neutral"
-scope          = "documentation"
-rationale      = "This preimplementation contract records research, constraints and the intended OID4VP response surface; implementation will activate the consumer-visible ledger record before delivery."
-ledger_ids     = [  ]
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The additive identus-oid4vp response transition exposes bounded public presentation inputs and a direct-post output envelope while preserving existing request APIs."
+ledger_ids     = [ "oid4vp.direct-post-response.v1" ]

@@ -18,6 +18,7 @@ PEER_PACKET = ROOT / "docs/conformance/fixtures/did-peer/v1/vectors.json"
 PRISM_PACKET = ROOT / "docs/conformance/fixtures/did-prism/v1/vectors.json"
 CRYPTO_PACKET = ROOT / "docs/conformance/fixtures/crypto/v1/vectors.json"
 PRISM_VDR_INDEXING_PACKET = ROOT / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
+OID4VP_DIRECT_POST_PACKET = ROOT / "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
 
 
 def replace_once(text: str, before: str, after: str) -> str:
@@ -57,6 +58,9 @@ def run(catalog: str, packet: str, should_pass: bool, *, crypto_packet: str | No
         prism_vdr_indexing_target = root / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
         prism_vdr_indexing_target.parent.mkdir(parents=True)
         shutil.copy2(PRISM_VDR_INDEXING_PACKET, prism_vdr_indexing_target)
+        oid4vp_direct_post_target = root / "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+        oid4vp_direct_post_target.parent.mkdir(parents=True)
+        shutil.copy2(OID4VP_DIRECT_POST_PACKET, oid4vp_direct_post_target)
         result = subprocess.run([str(CHECKER), str(root)], capture_output=True, text=True, check=False)
         if (result.returncode == 0) != should_pass:
             raise AssertionError(
@@ -202,6 +206,9 @@ def main() -> None:
         prism_vdr_indexing_target = root / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
         prism_vdr_indexing_target.parent.mkdir(parents=True)
         shutil.copy2(PRISM_VDR_INDEXING_PACKET, prism_vdr_indexing_target)
+        oid4vp_direct_post_target = root / "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+        oid4vp_direct_post_target.parent.mkdir(parents=True)
+        shutil.copy2(OID4VP_DIRECT_POST_PACKET, oid4vp_direct_post_target)
         external = root / "outside.json"
         shutil.copy2(PACKET, external)
         packet_target.symlink_to(external)

@@ -18,6 +18,7 @@ identus-prism-did     = { path = "../crates/prism-did" }
 identus-prism-indexer = { path = "../crates/prism-indexer" }
 identus-prism-vdr     = { path = "../crates/prism-vdr" }
 identus-jose          = { path = "../crates/jose" }
+identus-oid4vp        = { path = "../crates/oid4vp" }
 libfuzzer-sys         = "=0.4.13"
 serde                 = "=1.0.228"
 serde_json            = "=1.0.150"
@@ -88,6 +89,13 @@ bench = false
 [[bin]]
 name  = "public_cose"
 path  = "fuzz_targets/public_cose.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "direct_post_response"
+path  = "fuzz_targets/direct_post_response.rs"
 test  = false
 doc   = false
 bench = false

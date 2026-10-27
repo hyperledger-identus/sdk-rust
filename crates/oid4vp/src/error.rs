@@ -82,6 +82,21 @@ pub mod error_code {
         ErrorCode::new("oid4vp.conflicting_response_destination");
     pub const RESPONSE_URI_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.response_uri_too_large");
     pub const UNSAFE_RESPONSE_URI: ErrorCode = ErrorCode::new("oid4vp.unsafe_response_uri");
+    pub const INVALID_STATE: ErrorCode = ErrorCode::new("oid4vp.invalid_state");
+    pub const STATE_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.state_too_large");
+    pub const TOO_MANY_QUERY_RESULTS: ErrorCode = ErrorCode::new("oid4vp.too_many_query_results");
+    pub const UNKNOWN_DCQL_RESULT: ErrorCode = ErrorCode::new("oid4vp.unknown_dcql_result");
+    pub const DUPLICATE_DCQL_RESULT: ErrorCode = ErrorCode::new("oid4vp.duplicate_dcql_result");
+    pub const MISSING_DCQL_RESULT: ErrorCode = ErrorCode::new("oid4vp.missing_dcql_result");
+    pub const EMPTY_PRESENTATION_LIST: ErrorCode = ErrorCode::new("oid4vp.empty_presentation_list");
+    pub const TOO_MANY_PRESENTATIONS: ErrorCode = ErrorCode::new("oid4vp.too_many_presentations");
+    pub const DCQL_CARDINALITY_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vp.dcql_cardinality_mismatch");
+    pub const INVALID_PRESENTATION: ErrorCode = ErrorCode::new("oid4vp.invalid_presentation");
+    pub const PRESENTATION_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.presentation_too_large");
+    pub const RESPONSE_JSON_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.response_json_too_large");
+    pub const DIRECT_POST_FORM_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.direct_post_form_too_large");
 }
 
 /// Public error categories for OID4VP invocation parsing.
@@ -138,11 +153,24 @@ pub enum Oid4vpError {
     ConflictingResponseDestination,
     ResponseUriTooLarge,
     UnsafeResponseUri,
+    InvalidState,
+    StateTooLarge,
+    TooManyQueryResults,
+    UnknownDcqlResult,
+    DuplicateDcqlResult,
+    MissingDcqlResult,
+    EmptyPresentationList,
+    TooManyPresentations,
+    DcqlCardinalityMismatch,
+    InvalidPresentation,
+    PresentationTooLarge,
+    ResponseJsonTooLarge,
+    DirectPostFormTooLarge,
 }
 
 impl Oid4vpError {
     /// Ordered error inventory frozen by the v1 contract fixture.
-    pub const CONTRACT_VARIANTS: [Self; 50] = [
+    pub const CONTRACT_VARIANTS: [Self; 63] = [
         Self::InvalidLimits,
         Self::InvocationTooLarge,
         Self::InvalidInvocation,
@@ -193,9 +221,22 @@ impl Oid4vpError {
         Self::ConflictingResponseDestination,
         Self::ResponseUriTooLarge,
         Self::UnsafeResponseUri,
+        Self::InvalidState,
+        Self::StateTooLarge,
+        Self::TooManyQueryResults,
+        Self::UnknownDcqlResult,
+        Self::DuplicateDcqlResult,
+        Self::MissingDcqlResult,
+        Self::EmptyPresentationList,
+        Self::TooManyPresentations,
+        Self::DcqlCardinalityMismatch,
+        Self::InvalidPresentation,
+        Self::PresentationTooLarge,
+        Self::ResponseJsonTooLarge,
+        Self::DirectPostFormTooLarge,
     ];
 
-    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 50] = {
+    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 63] = {
         use error_code as code;
         [
             (
@@ -447,6 +488,71 @@ impl Oid4vpError {
                 code::UNSAFE_RESPONSE_URI,
                 ErrorKind::InvalidInput,
                 "OID4VP response URI is unsafe",
+            ),
+            (
+                code::INVALID_STATE,
+                ErrorKind::InvalidInput,
+                "OID4VP state is invalid",
+            ),
+            (
+                code::STATE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP state exceeds its byte limit",
+            ),
+            (
+                code::TOO_MANY_QUERY_RESULTS,
+                ErrorKind::InvalidInput,
+                "OID4VP response has too many query results",
+            ),
+            (
+                code::UNKNOWN_DCQL_RESULT,
+                ErrorKind::InvalidInput,
+                "OID4VP response contains an unknown DCQL result",
+            ),
+            (
+                code::DUPLICATE_DCQL_RESULT,
+                ErrorKind::InvalidInput,
+                "OID4VP response contains a duplicate DCQL result",
+            ),
+            (
+                code::MISSING_DCQL_RESULT,
+                ErrorKind::InvalidInput,
+                "OID4VP response does not satisfy required DCQL results",
+            ),
+            (
+                code::EMPTY_PRESENTATION_LIST,
+                ErrorKind::InvalidInput,
+                "OID4VP response presentation list is empty",
+            ),
+            (
+                code::TOO_MANY_PRESENTATIONS,
+                ErrorKind::InvalidInput,
+                "OID4VP response has too many presentations for one query",
+            ),
+            (
+                code::DCQL_CARDINALITY_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VP response violates DCQL result cardinality",
+            ),
+            (
+                code::INVALID_PRESENTATION,
+                ErrorKind::InvalidInput,
+                "OID4VP presentation value is invalid",
+            ),
+            (
+                code::PRESENTATION_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP presentation value exceeds its resource limits",
+            ),
+            (
+                code::RESPONSE_JSON_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP response JSON exceeds its byte limit",
+            ),
+            (
+                code::DIRECT_POST_FORM_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP direct-post form exceeds its byte limit",
             ),
         ]
     };

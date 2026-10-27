@@ -40,6 +40,7 @@ pub struct ValidatedAuthorizationRequest {
     client_id: Zeroizing<String>,
     wallet_nonce: Option<Zeroizing<String>>,
     nonce: Zeroizing<String>,
+    state: Option<Zeroizing<String>>,
     response_uri: Zeroizing<String>,
     dcql_query: ValidatedDcqlQuery,
 }
@@ -77,6 +78,7 @@ impl ValidatedAuthorizationRequest {
         let response_type = validate_response_type(&request)?;
         let response_mode = validate_response_mode(&request)?;
         let nonce = validate_nonce(&request, routing_limits)?;
+        let state = validate_state(&request, routing_limits)?;
         let response_uri = validate_response_destination(&request, routing_limits)?;
         let dcql_query = ValidatedDcqlQuery::from_request_map(request, dcql_limits)?;
 
@@ -88,6 +90,7 @@ impl ValidatedAuthorizationRequest {
             client_id: parts.client_id,
             wallet_nonce: parts.wallet_nonce,
             nonce,
+            state,
             response_uri,
             dcql_query,
         })
@@ -128,6 +131,11 @@ impl ValidatedAuthorizationRequest {
         &self.nonce
     }
 
+    /// Explicitly reveal the exact signed OAuth state, when present.
+    pub fn expose_sensitive_state(&self) -> Option<&str> {
+        self.state.as_ref().map(|state| state.as_str())
+    }
+
     /// Explicitly reveal the syntactically validated HTTPS response URI.
     ///
     /// This accessor confers no authority to perform network I/O. Callers own
@@ -139,6 +147,16 @@ impl ValidatedAuthorizationRequest {
     /// Borrow the bounded structurally validated DCQL query.
     pub const fn dcql_query(&self) -> &ValidatedDcqlQuery {
         &self.dcql_query
+    }
+
+    pub(crate) fn into_direct_post_parts(
+        self,
+    ) -> (
+        Zeroizing<String>,
+        Option<Zeroizing<String>>,
+        ValidatedDcqlQuery,
+    ) {
+        (self.response_uri, self.state, self.dcql_query)
     }
 }
 
@@ -156,6 +174,7 @@ impl fmt::Debug for ValidatedAuthorizationRequest {
             .field("client_id_len", &self.client_id.len())
             .field("has_wallet_nonce", &self.wallet_nonce.is_some())
             .field("nonce_len", &self.nonce.len())
+            .field("has_state", &self.state.is_some())
             .field("response_uri_len", &self.response_uri.len())
             .field(
                 "credential_query_count",
@@ -163,6 +182,23 @@ impl fmt::Debug for ValidatedAuthorizationRequest {
             )
             .finish_non_exhaustive()
     }
+}
+
+fn validate_state(
+    request: &Map<String, Value>,
+    limits: AuthorizationRequestValidationLimits,
+) -> Result<Option<Zeroizing<String>>, Oid4vpError> {
+    let Some(value) = request.get("state") else {
+        return Ok(None);
+    };
+    let state = value.as_str().ok_or(Oid4vpError::InvalidState)?;
+    if state.len() > limits.max_state_bytes() {
+        return Err(Oid4vpError::StateTooLarge);
+    }
+    if state.is_empty() || !state.bytes().all(|byte| matches!(byte, 0x20..=0x7e)) {
+        return Err(Oid4vpError::InvalidState);
+    }
+    Ok(Some(Zeroizing::new(state.to_owned())))
 }
 
 fn validate_response_type(

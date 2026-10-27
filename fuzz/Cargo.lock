@@ -491,6 +491,7 @@ dependencies = [
  "bs58",
  "identus-core",
  "identus-did",
+ "k256",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -505,6 +506,18 @@ dependencies = [
  "identus-crypto",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "identus-oid4vp"
+version = "0.0.0"
+dependencies = [
+ "fluent-uri",
+ "identus-core",
+ "identus-jose",
+ "serde_json",
+ "siros-dcql",
+ "zeroize",
 ]
 
 [[package]]
@@ -551,6 +564,7 @@ dependencies = [
  "identus-did",
  "identus-did-peer",
  "identus-jose",
+ "identus-oid4vp",
  "identus-prism-did",
  "identus-prism-indexer",
  "identus-prism-vdr",
@@ -870,6 +884,16 @@ checksum = "28d567dcbaf0049cb8ac2608a76cd95ff9e4412e1899d389ee400918ca7537f5"
 dependencies = [
  "digest 0.11.3",
  "rand_core 0.10.1",
+]
+
+[[package]]
+name = "siros-dcql"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "749a7da5b56f724a05c9694d87a82e0b03a609ad412deaf84ccf9376de2ec192"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

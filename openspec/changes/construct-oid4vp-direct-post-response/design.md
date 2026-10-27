@@ -78,3 +78,15 @@ and multiple cardinality. Negative/boundary tests,
 round-trip form decoding, redaction checks, property tests, fuzz targets,
 benchmarks, public-contract fixtures, target builds and dependency checks bind
 the implementation. No runtime network test belongs to this slice.
+
+## Slice-size decomposition note
+
+The delivery crosses the 12-path attention threshold because one externally
+visible transition must remain bound to its request state, DCQL rules, error
+contract, resource inventory, executable vector, property/fuzz/benchmark
+evidence and generated governance views. Production behavior remains confined
+to `identus-oid4vp`; the other paths are tests, corpus, harnesses or required
+knowledge records. Splitting those records into later PRs would temporarily
+advertise an ungoverned public surface or leave its E2E lineage non-executable.
+HTTP execution, presentation production and verification, protected response
+modes and consumer adoption remain independently decomposed successors.

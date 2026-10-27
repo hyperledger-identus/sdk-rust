@@ -29,6 +29,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic DID and URI values admit the measured finite long-form envelope while the independent method and cache limits remain bounded; a valid oversized cache identity bypasses retention observably.
 
+### `oid4vp.direct-post-response.v1`
+
+State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and bounded caller presentations into a deterministic plain direct-post success envelope.
+
 ## Migration actions
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
@@ -50,6 +54,10 @@ State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic 
 ### `did.syntax.long-form-resource-policy.v1`
 
 `0.1.0-rc.1` → `unreleased` for sdk-rust-adopters. Use the exported constants rather than copied literals, handle KeyBudgetBypass as an uncached successful resolution path, and keep external transport limits explicit.
+
+### `oid4vp.direct-post-response.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. No migration action required.
 
 ## Compatibility windows
 
@@ -73,6 +81,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The release-candidate line documents the new limits before a stable 0.1.0 contract is declared.
 
+### `oid4vp.direct-post-response.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
 ## Rollback and removal
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
@@ -95,6 +107,10 @@ Fallback: Consumers remain on their existing PRISM storage and indexing implemen
 
 Fallback: Bypass cache retention for valid oversized identities; do not truncate keys or fall back to a second parser. Rollback: Restore the prior lexical constants and cache outcome before publication while retaining issue and measurement evidence. Removal gate: Not applicable; this is an expansion of a bounded public envelope rather than a deprecated facade.
 
+### `oid4vp.direct-post-response.v1`
+
+Fallback: Consumers continue assembling responses in their existing adapter until they explicitly adopt the experimental SDK transition. Rollback: Remove the additive response transition and private retained metadata before publication; existing request validation remains available. Removal gate: Not applicable.
+
 ## Limitations
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
@@ -116,3 +132,7 @@ Visibility: behavior, public-api, security, target-support, wire. No Cardano sou
 ### `did.syntax.long-form-resource-policy.v1`
 
 Visibility: behavior, public-api. The lexical envelope does not guarantee transportability through every host, cache retention, or acceptance by a method-specific semantic profile.
+
+### `oid4vp.direct-post-response.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. Only plain OpenID4VP 1.0 Final direct_post success construction is included; no HTTP execution, presentation generation or verification, consent, trust, replay defense, signing, encryption, direct_post.jwt, SIOPv2, DC API, HAIP, persistence, consumer mutation or publication is claimed.

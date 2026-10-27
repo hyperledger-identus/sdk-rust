@@ -17,6 +17,10 @@ zeroize.workspace      = true
 [dev-dependencies]
 identus-crypto = { workspace = true, features = [ "ed25519" ] }
 
+[[bench]]
+name    = "direct_post_response"
+harness = false
+
 [features]
 default = [  ]
 

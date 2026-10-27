@@ -128,7 +128,7 @@ fn fixtures() -> (SignedPrismOperation, SignedPrismOperation) {
 }
 
 fn batch(operations: Vec<SignedPrismOperation>) -> TransactionBatch {
-    let identity = TransactionIdentity::new(b"benchmark-transaction".to_vec()).unwrap();
+    let identity = TransactionIdentity::new(b"benchmark-transaction").unwrap();
     let records = operations
         .into_iter()
         .enumerate()
@@ -141,8 +141,8 @@ fn batch(operations: Vec<SignedPrismOperation>) -> TransactionBatch {
     TransactionBatch::new(
         identity,
         records.len() as u16,
-        Cursor::new(b"before".to_vec()).unwrap(),
-        Cursor::new(b"after".to_vec()).unwrap(),
+        Cursor::new(b"before").unwrap(),
+        Cursor::new(b"after").unwrap(),
         records,
     )
     .unwrap()

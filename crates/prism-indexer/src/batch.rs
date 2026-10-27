@@ -24,9 +24,9 @@ const TRANSITION_DOMAIN: &[u8] = b"identus.prism-indexer.transition.v1\0";
 pub struct TransactionIdentity(Arc<[u8]>);
 
 impl TransactionIdentity {
-    /// Validate a non-empty opaque transaction identity.
-    pub fn new(bytes: impl Into<Vec<u8>>) -> Result<Self, Error> {
-        let bytes = bytes.into();
+    /// Validate a non-empty opaque transaction identity before retaining it.
+    pub fn new(bytes: impl AsRef<[u8]>) -> Result<Self, Error> {
+        let bytes = bytes.as_ref();
         if bytes.is_empty() || bytes.len() > MAX_TRANSACTION_ID_BYTES {
             return Err(Error::new(ErrorKind::InvalidBoundaryValue));
         }
@@ -54,9 +54,9 @@ impl fmt::Debug for TransactionIdentity {
 pub struct Cursor(Arc<[u8]>);
 
 impl Cursor {
-    /// Validate a non-empty encoded cursor.
-    pub fn new(bytes: impl Into<Vec<u8>>) -> Result<Self, Error> {
-        let bytes = bytes.into();
+    /// Validate a non-empty encoded cursor before retaining it.
+    pub fn new(bytes: impl AsRef<[u8]>) -> Result<Self, Error> {
+        let bytes = bytes.as_ref();
         if bytes.is_empty() || bytes.len() > MAX_CURSOR_BYTES {
             return Err(Error::new(ErrorKind::InvalidBoundaryValue));
         }

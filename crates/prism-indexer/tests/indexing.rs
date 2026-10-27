@@ -198,7 +198,7 @@ fn batch(
     next: &[u8],
     operations: Vec<SignedPrismOperation>,
 ) -> TransactionBatch {
-    let identity = TransactionIdentity::new(id.to_vec()).unwrap();
+    let identity = TransactionIdentity::new(id).unwrap();
     let records = operations
         .into_iter()
         .enumerate()
@@ -211,8 +211,8 @@ fn batch(
     TransactionBatch::new(
         identity,
         records.len() as u16,
-        Cursor::new(expected.to_vec()).unwrap(),
-        Cursor::new(next.to_vec()).unwrap(),
+        Cursor::new(expected).unwrap(),
+        Cursor::new(next).unwrap(),
         records,
     )
     .unwrap()
@@ -234,7 +234,7 @@ fn neoprism_shaped_batch(
             record.metadata.operation_index,
         )
     });
-    let identity = TransactionIdentity::new(tx_id.to_vec()).map_err(|_| "invalid identity")?;
+    let identity = TransactionIdentity::new(tx_id).map_err(|_| "invalid identity")?;
     let incoming = records
         .into_iter()
         .enumerate()
@@ -251,8 +251,8 @@ fn neoprism_shaped_batch(
     TransactionBatch::new(
         identity,
         count,
-        Cursor::new(expected_cursor.to_vec()).map_err(|_| "invalid expected cursor")?,
-        Cursor::new(next_cursor.to_vec()).map_err(|_| "invalid next cursor")?,
+        Cursor::new(expected_cursor).map_err(|_| "invalid expected cursor")?,
+        Cursor::new(next_cursor).map_err(|_| "invalid next cursor")?,
         incoming,
     )
     .map_err(|_| "invalid complete transaction")

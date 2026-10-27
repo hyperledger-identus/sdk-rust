@@ -120,12 +120,19 @@ method metadata without active document content.
 The crate SHALL provide a local long-form `DidResolver` and a `prism`
 `DidMethodBinding`. Local initial-state resolution SHALL not call a network or
 clock. Published short-form history lookup SHALL be supplied through a
-chain-neutral port and SHALL not introduce Cardano or persistence types.
+chain-neutral port and SHALL not introduce Cardano or persistence types. DID
+JSON results SHALL omit `@context`; DID JSON-LD results SHALL include the DID
+Core and retained method contexts.
 
 #### Scenario: long-form resolution is local
 
 - **WHEN** a valid unpublished long-form DID is resolved
 - **THEN** its initial state SHALL be validated and projected without transport, storage or ledger dependencies
+
+#### Scenario: selected representation controls JSON-LD context
+
+- **WHEN** a caller resolves the same active state as DID JSON and DID JSON-LD
+- **THEN** only the DID JSON-LD document SHALL contain `@context`, and each result SHALL declare its matching media type
 
 #### Scenario: short-form history is absent
 

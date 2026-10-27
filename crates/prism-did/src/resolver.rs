@@ -9,7 +9,8 @@ use identus_did::{
 };
 
 use crate::{
-    CanonicalPrismDid, LongFormPrismDid, PrismDid, PrismDidState, project_did_document_for,
+    CanonicalPrismDid, LongFormPrismDid, PrismDid, PrismDidState,
+    projection::project_did_document_for_representation,
 };
 
 const DID_JSON: &str = "application/did+json";
@@ -162,6 +163,7 @@ fn resolution_from_state(
         Ok(content_type) => content_type,
         Err(kind) => return failure(kind),
     };
+    let include_context = content_type.as_str() == DID_LD_JSON;
     let metadata = match DidResolutionMetadata::new(Some(content_type), None, BTreeMap::new()) {
         Ok(metadata) => metadata,
         Err(_) => return failure(DidResolutionErrorKind::InternalError),
@@ -179,7 +181,8 @@ fn resolution_from_state(
             })
             .unwrap_or_else(|_| failure(DidResolutionErrorKind::InternalError));
     }
-    let document = match project_did_document_for(state, requested) {
+    let document = match project_did_document_for_representation(state, requested, include_context)
+    {
         Ok(Some(document)) => document,
         Ok(None) | Err(_) => return failure(DidResolutionErrorKind::InvalidDidDocument),
     };
@@ -296,6 +299,18 @@ mod tests {
         let json = serde_json::to_string(result.document().unwrap()).unwrap();
         assert!(json.contains(long.as_did().as_str()));
         assert!(!json.contains(&format!("\"id\":\"{}\"", long.canonical().as_did())));
+
+        let did_json_options = ResolutionOptions::builder()
+            .accept(MediaType::parse(DID_JSON).unwrap())
+            .build()
+            .unwrap();
+        let did_json =
+            block_on(PrismDidResolver::local().resolve(long.as_did(), &did_json_options));
+        assert_eq!(
+            did_json.metadata().content_type().unwrap().as_str(),
+            DID_JSON
+        );
+        assert!(did_json.document().unwrap().context().is_none());
     }
 
     #[test]

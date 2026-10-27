@@ -34,6 +34,14 @@ pub fn project_did_document_for(
     state: &PrismDidState,
     controller: Did,
 ) -> Result<Option<DidDocument>, Error> {
+    project_did_document_for_representation(state, controller, true)
+}
+
+pub(crate) fn project_did_document_for_representation(
+    state: &PrismDidState,
+    controller: Did,
+    include_context: bool,
+) -> Result<Option<DidDocument>, Error> {
     if state.is_deactivated() {
         return Ok(None);
     }
@@ -66,24 +74,27 @@ pub fn project_did_document_for(
         methods.push(method);
     }
 
-    let mut contexts = Vec::with_capacity(state.contexts().len() + 1);
-    contexts.push(ContextEntry::Uri(parse_uri(DID_CORE_CONTEXT)?));
-    contexts.extend(
-        state
-            .contexts()
-            .iter()
-            .map(|context| parse_uri(context).map(ContextEntry::Uri))
-            .collect::<Result<Vec<_>, _>>()?,
-    );
     let services = state
         .active_services()
         .map(|service| project_service(service, controller.as_str()))
         .collect::<Result<Vec<_>, _>>()?;
 
-    let mut builder = DidDocument::builder(controller).context(
-        OneOrMany::try_many(contexts)
-            .map_err(|_| Error::InvalidState(StateError::InvalidCandidate))?,
-    );
+    let mut builder = DidDocument::builder(controller);
+    if include_context {
+        let mut contexts = Vec::with_capacity(state.contexts().len() + 1);
+        contexts.push(ContextEntry::Uri(parse_uri(DID_CORE_CONTEXT)?));
+        contexts.extend(
+            state
+                .contexts()
+                .iter()
+                .map(|context| parse_uri(context).map(ContextEntry::Uri))
+                .collect::<Result<Vec<_>, _>>()?,
+        );
+        builder = builder.context(
+            OneOrMany::try_many(contexts)
+                .map_err(|_| Error::InvalidState(StateError::InvalidCandidate))?,
+        );
+    }
     if !methods.is_empty() {
         builder = builder.verification_methods(methods);
     }

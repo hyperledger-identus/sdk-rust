@@ -1,0 +1,36 @@
+# Tasks
+
+## 1. Research and preflight
+
+- [x] 1.1 Correct older-draft JARM assumptions against OID4VP Final.
+- [x] 1.2 Qualify `jose-rs`, modular `no-way-jose`, `jwt-simple`, and `josekit`.
+- [x] 1.3 Decide the SDK-owned port, limits, redaction and rollback boundaries.
+- [ ] 1.4 Pass research, constraints, strict validation and issue #535 preflight.
+
+## 2. JOSE facade
+
+- [ ] 2.1 Add bounded P-256 recipient, algorithm, request/result and error types.
+- [ ] 2.2 Add the synchronous encrypter port without a production backend.
+- [ ] 2.3 Add grammar, redaction, boundary and portable tests.
+
+## 3. OID4VP protected response
+
+- [ ] 3.1 Validate bounded Final client metadata and deterministic key selection.
+- [ ] 3.2 Accept `direct_post.jwt` as a distinct validated mode.
+- [ ] 3.3 Share DCQL payload construction and invoke the JWE port once.
+- [ ] 3.4 Emit only the bounded deterministic `response` form parameter.
+- [ ] 3.5 Preserve plain success/error behavior and all stop boundaries.
+
+## 4. Knowledge and quality evidence
+
+- [ ] 4.1 Add ADR, architecture/adapter guide and diagrams.
+- [ ] 4.2 Add vectors plus E2E, property, fuzz, benchmark and differential routes.
+- [ ] 4.3 Update backlog owner, change ledger, quality declarations and inventory.
+- [ ] 4.4 Run focused/workspace, MSRV, docs, Nix, dependency and portable gates.
+
+## 5. Review and delivery
+
+- [ ] 5.1 Run Claude CLI exact-diff review or Codex CLI fallback immediately.
+- [ ] 5.2 Resolve blocker/high/medium findings and rerun proportionate gates.
+- [ ] 5.3 Archive OpenSpec, publish metrics and deliver the issue-linked PR.
+

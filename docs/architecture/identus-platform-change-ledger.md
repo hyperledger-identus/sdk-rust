@@ -29,6 +29,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic DID and URI values admit the measured finite long-form envelope while the independent method and cache limits remain bounded; a valid oversized cache identity bypasses retention observably.
 
+### `oid4vp.direct-post-response.error.v1`
+
+State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and explicit typed protocol-error values into a bounded plain direct-post error envelope.
+
 ### `oid4vp.direct-post-response.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and bounded caller presentations into a deterministic plain direct-post success envelope.
@@ -54,6 +58,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `did.syntax.long-form-resource-policy.v1`
 
 `0.1.0-rc.1` → `unreleased` for sdk-rust-adopters. Use the exported constants rather than copied literals, handle KeyBudgetBypass as an uncached successful resolution path, and keep external transport limits explicit.
+
+### `oid4vp.direct-post-response.error.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. No migration action required.
 
 ### `oid4vp.direct-post-response.v1`
 
@@ -81,6 +89,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The release-candidate line documents the new limits before a stable 0.1.0 contract is declared.
 
+### `oid4vp.direct-post-response.error.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
 ### `oid4vp.direct-post-response.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
@@ -107,6 +119,10 @@ Fallback: Consumers remain on their existing PRISM storage and indexing implemen
 
 Fallback: Bypass cache retention for valid oversized identities; do not truncate keys or fall back to a second parser. Rollback: Restore the prior lexical constants and cache outcome before publication while retaining issue and measurement evidence. Removal gate: Not applicable; this is an expansion of a bounded public envelope rather than a deprecated facade.
 
+### `oid4vp.direct-post-response.error.v1`
+
+Fallback: Consumers continue constructing error forms in their existing adapter until they explicitly adopt the experimental SDK transition. Rollback: Remove the additive error-response types and constructor before publication; existing request validation and success construction remain available. Removal gate: Not applicable.
+
 ### `oid4vp.direct-post-response.v1`
 
 Fallback: Consumers continue assembling responses in their existing adapter until they explicitly adopt the experimental SDK transition. Rollback: Remove the additive response transition and private retained metadata before publication; existing request validation remains available. Removal gate: Not applicable.
@@ -132,6 +148,10 @@ Visibility: behavior, public-api, security, target-support, wire. No Cardano sou
 ### `did.syntax.long-form-resource-policy.v1`
 
 Visibility: behavior, public-api. The lexical envelope does not guarantee transportability through every host, cache retention, or acceptance by a method-specific semantic profile.
+
+### `oid4vp.direct-post-response.error.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. Only plain OpenID4VP 1.0 Final direct_post protocol-error construction is included; no automatic SDK error mapping, HTTP, consent/privacy policy, protected response, DC API, consumer mutation or publication is claimed.
 
 ### `oid4vp.direct-post-response.v1`
 

@@ -1,6 +1,6 @@
 schema_version = 1
 issue          = 532
-disposition    = "behavior-neutral"
-scope          = "documentation"
-rationale      = "This preimplementation planning checkpoint records protocol research, constraints and architecture only; consumer-visible Rust and ledger activation follow the exact preflight receipt."
-ledger_ids     = [  ]
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The additive identus-oid4vp transition exposes typed bounded protocol-error inputs and an inert direct-post error envelope while preserving existing request and success APIs."
+ledger_ids     = [ "oid4vp.direct-post-response.error.v1" ]

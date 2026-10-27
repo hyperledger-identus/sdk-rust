@@ -43,7 +43,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `siopv2.did-authentication.draft13.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive experimental crate validates the pinned SIOPv2 draft-13 DID-subject direct_post profile, plans a self-issued ID Token through injected JOSE ports and exposes deterministic caller-driven lifecycle transitions while shared bounded request retrieval moves behind identus-openid4vc.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive experimental crate validates the pinned SIOPv2 draft-13 DID-subject direct_post profile, plans a self-issued ID Token through injected JOSE ports and exposes deterministic caller-driven lifecycle transitions while shared bounded request retrieval moves behind identus-openid4vc.
 
 ## Migration actions
 

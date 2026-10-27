@@ -73,6 +73,12 @@ Run `scripts/factory research-ready <change>` and `scripts/factory
 constraints-ready <change>`, commit the planning-only change, then run
 `scripts/factory preflight <change> --issue N --write` before the first
 implementation edit. Final readiness validates this durable exact-head receipt.
+The planning commit may include ADRs plus additive, issue-owned records in the
+canonical consumer-change and quality-evidence registries when a
+consumer-visible contract cannot validate without them. Existing records cannot
+be changed or removed. Vector catalogs, fixture packets, source, manifests,
+workflows and unrelated documentation remain implementation paths and are
+rejected before preflight.
 The [research readiness contract](research-readiness.md) is lightweight
 for routine changes and requires a full candidate/evidence matrix for new
 protocol, foundational, cryptography/security, storage or FFI work.

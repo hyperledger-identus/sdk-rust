@@ -101,6 +101,14 @@ pub enum ServiceEndpointValue {
     Object(serde_json::Map<String, serde_json::Value>),
 }
 
+impl Drop for ServiceEndpointValue {
+    fn drop(&mut self) {
+        if let Self::Object(map) = self {
+            drop_json_values_iteratively(std::mem::take(map).into_values());
+        }
+    }
+}
+
 /// A typed PRISM service-endpoint candidate, preserving one or many values.
 ///
 /// Use its constructors or an enclosing operation builder to validate public
@@ -557,6 +565,20 @@ fn endpoint_from_json(value: serde_json::Value) -> Result<ServiceEndpointValue, 
         }
         serde_json::Value::Object(map) => Ok(ServiceEndpointValue::Object(map)),
         _ => Err(OperationError::InvalidValue.into()),
+    }
+}
+
+fn drop_json_values_iteratively(roots: impl IntoIterator<Item = serde_json::Value>) {
+    let mut pending: Vec<_> = roots.into_iter().collect();
+    while let Some(value) = pending.pop() {
+        match value {
+            serde_json::Value::Array(mut values) => pending.append(&mut values),
+            serde_json::Value::Object(values) => pending.extend(values.into_values()),
+            serde_json::Value::Null
+            | serde_json::Value::Bool(_)
+            | serde_json::Value::Number(_)
+            | serde_json::Value::String(_) => {}
+        }
     }
 }
 

@@ -70,8 +70,8 @@ impl ServiceEndpoint {
     /// Construct one absolute-URI endpoint while preserving its exact text.
     pub fn uri(value: &str) -> Result<Self, Error> {
         match parse_service_endpoint(value)? {
-            Self::One(ServiceEndpointValue::Uri(value)) => {
-                Ok(Self::One(ServiceEndpointValue::Uri(value)))
+            Self::One(ServiceEndpointValue::Uri(_)) => {
+                Ok(Self::One(ServiceEndpointValue::Uri(value.to_owned())))
             }
             _ => Err(OperationError::InvalidValue.into()),
         }
@@ -79,7 +79,8 @@ impl ServiceEndpoint {
 
     /// Construct a bounded endpoint from one JSON object.
     pub fn object(value: serde_json::Map<String, serde_json::Value>) -> Result<Self, Error> {
-        let wire = encode_json_bounded(&value, MAX_SERVICE_ENDPOINT_BYTES)?;
+        let candidate = Self::One(ServiceEndpointValue::Object(value));
+        let wire = service_endpoint_to_wire(&candidate)?;
         parse_service_endpoint(&wire)
     }
 
@@ -88,7 +89,8 @@ impl ServiceEndpoint {
         if values.len() > MAX_SERVICE_ENDPOINT_BYTES / 3 {
             return Err(OperationError::ValueTooLong.into());
         }
-        let wire = encode_json_bounded(&EndpointValues(&values), MAX_SERVICE_ENDPOINT_BYTES)?;
+        let candidate = Self::Many(values);
+        let wire = service_endpoint_to_wire(&candidate)?;
         parse_service_endpoint(&wire)
     }
 }
@@ -248,17 +250,60 @@ fn service_endpoint_to_wire(value: &ServiceEndpoint) -> Result<String, Error> {
     match value {
         ServiceEndpoint::One(ServiceEndpointValue::Uri(value)) => {
             match parse_service_endpoint(value)? {
-                ServiceEndpoint::One(ServiceEndpointValue::Uri(value)) => Ok(value),
+                ServiceEndpoint::One(ServiceEndpointValue::Uri(_)) => Ok(value.clone()),
                 _ => Err(OperationError::InvalidValue.into()),
             }
         }
         ServiceEndpoint::One(ServiceEndpointValue::Object(value)) => {
+            validate_endpoint_json(value)?;
             encode_json_bounded(value, MAX_SERVICE_ENDPOINT_BYTES)
         }
         ServiceEndpoint::Many(values) => {
+            for value in values {
+                if let ServiceEndpointValue::Object(value) = value {
+                    validate_endpoint_json(value)?;
+                }
+            }
             encode_json_bounded(&EndpointValues(values), MAX_SERVICE_ENDPOINT_BYTES)
         }
     }
+}
+
+fn validate_endpoint_json(root: &serde_json::Map<String, serde_json::Value>) -> Result<(), Error> {
+    let mut nodes = 1usize;
+    let mut pending: Vec<_> = root.values().map(|value| (value, 1usize)).collect();
+
+    while let Some((value, depth)) = pending.pop() {
+        if depth > identus_did::MAX_EXTENSION_DEPTH {
+            return Err(OperationError::ValueTooLong.into());
+        }
+        nodes = nodes
+            .checked_add(1)
+            .ok_or(Error::InvalidOperation(OperationError::ValueTooLong))?;
+        if nodes > identus_did::MAX_EXTENSION_NODES {
+            return Err(OperationError::ValueTooLong.into());
+        }
+
+        match value {
+            serde_json::Value::Array(values) => {
+                if values.len() > identus_did::MAX_DOCUMENT_ITEMS {
+                    return Err(OperationError::TooManyItems.into());
+                }
+                pending.extend(values.iter().map(|value| (value, depth + 1)));
+            }
+            serde_json::Value::Object(values) => {
+                if values.len() > identus_did::MAX_DOCUMENT_ITEMS {
+                    return Err(OperationError::TooManyItems.into());
+                }
+                pending.extend(values.values().map(|value| (value, depth + 1)));
+            }
+            serde_json::Value::Null
+            | serde_json::Value::Bool(_)
+            | serde_json::Value::Number(_)
+            | serde_json::Value::String(_) => {}
+        }
+    }
+    Ok(())
 }
 
 fn encode_update_action(action: &UpdateAction) -> Result<Vec<u8>, Error> {
@@ -566,6 +611,17 @@ mod tests {
             serde_json::Value::String("x".repeat(MAX_SERVICE_ENDPOINT_BYTES + 1)),
         );
         assert!(ServiceEndpoint::object(object).is_err());
+
+        let mut nested = serde_json::Value::Null;
+        for _ in 0..32_768 {
+            nested = serde_json::Value::Array(vec![nested]);
+        }
+        let mut object = serde_json::Map::new();
+        object.insert("nested".to_owned(), nested);
+        assert_eq!(
+            ServiceEndpoint::object(object),
+            Err(Error::InvalidOperation(OperationError::ValueTooLong))
+        );
 
         assert_eq!(
             CreateDidOperation::new(

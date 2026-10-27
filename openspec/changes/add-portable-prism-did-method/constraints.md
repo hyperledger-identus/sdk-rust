@@ -27,7 +27,9 @@ all chain, donor and product families remain prohibited.
 - Key and service identifiers contain at most 50 ASCII fragment characters.
 - Service type wire text contains at most 100 ASCII grammar characters.
 - Service endpoint wire text contains at most 300 Unicode scalar values and
-  1,200 UTF-8 bytes, with bounded duplicate-name-safe JSON parsing.
+  1,200 UTF-8 bytes, with bounded duplicate-name-safe JSON parsing. Typed JSON
+  endpoint input is depth/node/collection preflighted iteratively and rejected
+  values are destroyed without recursive stack growth.
 - A state has at most 50 active keys and 50 active services. At most 4,096
   retired key IDs and 4,096 retired service IDs are retained; retired full
   values are dropped, tombstones do not count against active limits, and

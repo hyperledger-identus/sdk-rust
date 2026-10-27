@@ -51,9 +51,11 @@ IDs use a bounded ASCII fragment validator rather than regex. Service type
 accepts the draft's single value or canonical non-empty JSON array grammar.
 Endpoint text is bounded by both character and byte limits, rejects duplicate
 JSON names, maps into `identus-did::ServiceEndpoint`, and requires generic URI
-validation. Contexts are unique absolute URIs and cannot repeat the SDK-added
-DID Core context. Validated URI text is preserved exactly so projection and
-history replay cannot rewrite signed protocol values.
+validation. Typed JSON endpoint constructors iteratively enforce the generic
+depth, node and collection profile before recursive serialization, and endpoint
+values use iterative rejection cleanup. Contexts are unique absolute URIs and
+cannot repeat the SDK-added DID Core context. Validated URI text is preserved
+exactly so projection and history replay cannot rewrite signed protocol values.
 
 Variant-specific constructors (`ServiceType::one` and `ServiceEndpoint::uri`)
 reject wire text for any other representation; polymorphic wire parsing stays

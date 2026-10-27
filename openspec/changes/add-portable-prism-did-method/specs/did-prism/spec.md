@@ -57,6 +57,11 @@ state but SHALL NOT appear in a projected DID document.
 - **WHEN** required create data, a key representation or master key is absent, or IDs/contexts are duplicated
 - **THEN** construction and parsing SHALL fail without retaining caller values in errors
 
+#### Scenario: hostile typed endpoint JSON is bounded before serialization
+
+- **WHEN** a caller supplies an endpoint object beyond the generic JSON depth, node or collection profile
+- **THEN** construction SHALL return a redacted validation error and SHALL release the rejected tree without recursive stack growth
+
 ### Requirement: Ordered atomic PRISM state updates
 
 Update actions SHALL execute in signed wire order against a cloned candidate.

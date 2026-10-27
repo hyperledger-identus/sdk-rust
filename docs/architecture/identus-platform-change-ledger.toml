@@ -115,47 +115,6 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
-id                                = "oid4vp.direct-post-response.error.v1"
-capability                        = "oid4vp.direct-post-response"
-lifecycle_state                   = "proposed"
-issue                             = 532
-pull_request                      = 0
-change_class                      = "additive"
-release_note_class                = "added"
-visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
-affected_packages                 = [ "identus-oid4vp" ]
-affected_consumers                = [ "lace-id-portal", "oxid", "sdk-rust-adopters" ]
-source_version                    = "unreleased"
-target_version                    = "unreleased"
-compatibility                     = "compatible"
-old_behavior                      = "SDK-Rust constructs bounded plain direct-post success material but leaves the mutually exclusive Authorization Error Response to callers."
-new_behavior                      = "The additive transition consumes validated request lineage and explicit typed protocol-error values into a bounded plain direct-post error envelope."
-migration_action                  = ""
-replacement                       = ""
-no_replacement_rationale          = ""
-first_compatible_version          = "unreleased"
-last_compatible_version           = "unreleased"
-compatibility_window              = ""
-deprecation_phase                 = "not-applicable"
-legacy_bug_policy                 = "fix-and-document"
-mapping_disposition               = "not-applicable"
-mapping_ids                       = [  ]
-mapping_rationale                 = "This additive Rust-native transition deliberately does not preserve SDK-TS, Swift or KMP DTO and error shapes; language adapters remain separate work."
-vector_ids                        = [ "oid4vp.direct-post-response.final-string-state" ]
-quality_declaration_ids           = [ "oid4vp.direct-post-response.quality.v1" ]
-observability                     = "Record only the stable protocol code, optional-field presence and byte lengths without target, state, description, URI or holder data."
-fallback                          = "Consumers continue constructing error forms in their existing adapter until they explicitly adopt the experimental SDK transition."
-rollback                          = "Remove the additive error-response types and constructor before publication; existing request validation and success construction remain available."
-rollback_restores_unsafe_behavior = false
-removal_gate                      = ""
-evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#oid4vp.direct-post-response.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.direct-post-response.final-string-state" ]
-evidence_artifacts                = [ "docs/adr/0180-construct-explicit-oid4vp-protocol-errors.md" ]
-limitations                       = "Only plain OpenID4VP 1.0 Final direct_post protocol-error construction is proposed; no automatic SDK error mapping, HTTP, consent/privacy policy, protected response, DC API, consumer mutation or publication is claimed."
-active                            = true
-supersedes                        = [  ]
-replaced_by                       = ""
-
-[[changes]]
 id                                = "did.peer.profiles.v1"
 capability                        = "did.peer.profiles"
 lifecycle_state                   = "active"

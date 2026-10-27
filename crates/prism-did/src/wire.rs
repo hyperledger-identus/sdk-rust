@@ -324,6 +324,212 @@ fn scan_operation(bytes: &[u8]) -> Result<(OperationKind, Range<usize>), WireErr
     operation.ok_or(WireError::OperationMissing)
 }
 
+pub(crate) fn scan_did_payload(kind: OperationKind, bytes: &[u8]) -> Result<(), WireError> {
+    match kind {
+        OperationKind::CreateDid => scan_create_did(bytes),
+        OperationKind::UpdateDid => scan_update_did(bytes),
+        OperationKind::DeactivateDid => scan_deactivate_did(bytes),
+        _ => Ok(()),
+    }
+}
+
+fn scan_create_did(bytes: &[u8]) -> Result<(), WireError> {
+    let mut seen = 0_u64;
+    scan_fields(bytes, |field, wire_type, value| match field {
+        1 => {
+            claim(&mut seen, field, wire_type, 2)?;
+            scan_did_creation_data(value.expect("length-delimited field has a value"))
+        }
+        _ => Ok(()),
+    })
+}
+
+fn scan_did_creation_data(bytes: &[u8]) -> Result<(), WireError> {
+    scan_fields(bytes, |field, wire_type, value| match field {
+        2 => {
+            expect_wire_type(wire_type, 2)?;
+            scan_public_key(value.expect("length-delimited field has a value"))
+        }
+        3 => {
+            expect_wire_type(wire_type, 2)?;
+            scan_service(value.expect("length-delimited field has a value"))
+        }
+        4 => expect_wire_type(wire_type, 2),
+        _ => Ok(()),
+    })
+}
+
+fn scan_public_key(bytes: &[u8]) -> Result<(), WireError> {
+    let mut seen = 0_u64;
+    let mut key_data_seen = false;
+    scan_fields(bytes, |field, wire_type, value| match field {
+        1 => claim(&mut seen, field, wire_type, 2),
+        2 => claim(&mut seen, field, wire_type, 0),
+        8 | 9 => {
+            expect_wire_type(wire_type, 2)?;
+            if key_data_seen {
+                return Err(WireError::DuplicateSingularField);
+            }
+            key_data_seen = true;
+            let value = value.expect("length-delimited field has a value");
+            if field == 8 {
+                scan_ec_key_data(value)
+            } else {
+                scan_compressed_ec_key_data(value)
+            }
+        }
+        _ => Ok(()),
+    })
+}
+
+fn scan_ec_key_data(bytes: &[u8]) -> Result<(), WireError> {
+    let mut seen = 0_u64;
+    scan_fields(bytes, |field, wire_type, _| match field {
+        1..=3 => claim(&mut seen, field, wire_type, 2),
+        _ => Ok(()),
+    })
+}
+
+fn scan_compressed_ec_key_data(bytes: &[u8]) -> Result<(), WireError> {
+    let mut seen = 0_u64;
+    scan_fields(bytes, |field, wire_type, _| match field {
+        1 | 2 => claim(&mut seen, field, wire_type, 2),
+        _ => Ok(()),
+    })
+}
+
+fn scan_service(bytes: &[u8]) -> Result<(), WireError> {
+    let mut seen = 0_u64;
+    scan_fields(bytes, |field, wire_type, _| match field {
+        1..=3 => claim(&mut seen, field, wire_type, 2),
+        _ => Ok(()),
+    })
+}
+
+fn scan_update_did(bytes: &[u8]) -> Result<(), WireError> {
+    let mut seen = 0_u64;
+    scan_fields(bytes, |field, wire_type, value| match field {
+        1 | 2 => claim(&mut seen, field, wire_type, 2),
+        3 => {
+            expect_wire_type(wire_type, 2)?;
+            scan_update_action(value.expect("length-delimited field has a value"))
+        }
+        _ => Ok(()),
+    })
+}
+
+fn scan_update_action(bytes: &[u8]) -> Result<(), WireError> {
+    let mut action_seen = false;
+    scan_fields(bytes, |field, wire_type, value| match field {
+        1..=6 => {
+            expect_wire_type(wire_type, 2)?;
+            if action_seen {
+                return Err(WireError::DuplicateSingularField);
+            }
+            action_seen = true;
+            let value = value.expect("length-delimited field has a value");
+            match field {
+                1 => scan_wrapped_message(value, scan_public_key),
+                2 | 4 => scan_single_string(value),
+                3 => scan_wrapped_message(value, scan_service),
+                5 => scan_update_service(value),
+                6 => scan_repeated_string(value),
+                _ => unreachable!(),
+            }
+        }
+        _ => Ok(()),
+    })
+}
+
+fn scan_wrapped_message(
+    bytes: &[u8],
+    nested: fn(&[u8]) -> Result<(), WireError>,
+) -> Result<(), WireError> {
+    let mut seen = 0_u64;
+    scan_fields(bytes, |field, wire_type, value| match field {
+        1 => {
+            claim(&mut seen, field, wire_type, 2)?;
+            nested(value.expect("length-delimited field has a value"))
+        }
+        _ => Ok(()),
+    })
+}
+
+fn scan_single_string(bytes: &[u8]) -> Result<(), WireError> {
+    let mut seen = 0_u64;
+    scan_fields(bytes, |field, wire_type, _| match field {
+        1 => claim(&mut seen, field, wire_type, 2),
+        _ => Ok(()),
+    })
+}
+
+fn scan_repeated_string(bytes: &[u8]) -> Result<(), WireError> {
+    scan_fields(bytes, |field, wire_type, _| match field {
+        1 => expect_wire_type(wire_type, 2),
+        _ => Ok(()),
+    })
+}
+
+fn scan_update_service(bytes: &[u8]) -> Result<(), WireError> {
+    let mut seen = 0_u64;
+    scan_fields(bytes, |field, wire_type, _| match field {
+        1..=3 => claim(&mut seen, field, wire_type, 2),
+        _ => Ok(()),
+    })
+}
+
+fn scan_deactivate_did(bytes: &[u8]) -> Result<(), WireError> {
+    let mut seen = 0_u64;
+    scan_fields(bytes, |field, wire_type, _| match field {
+        1 | 2 => claim(&mut seen, field, wire_type, 2),
+        _ => Ok(()),
+    })
+}
+
+fn claim(seen: &mut u64, field: u64, wire_type: u8, expected: u8) -> Result<(), WireError> {
+    expect_wire_type(wire_type, expected)?;
+    let bit = 1_u64
+        .checked_shl(u32::try_from(field).map_err(|_| WireError::Malformed)?)
+        .ok_or(WireError::Malformed)?;
+    if *seen & bit != 0 {
+        return Err(WireError::DuplicateSingularField);
+    }
+    *seen |= bit;
+    Ok(())
+}
+
+fn expect_wire_type(actual: u8, expected: u8) -> Result<(), WireError> {
+    if actual == expected {
+        Ok(())
+    } else {
+        Err(WireError::Malformed)
+    }
+}
+
+fn scan_fields(
+    bytes: &[u8],
+    mut visit: impl FnMut(u64, u8, Option<&[u8]>) -> Result<(), WireError>,
+) -> Result<(), WireError> {
+    let mut cursor = 0;
+    while cursor < bytes.len() {
+        let (key, next) = read_varint(bytes, cursor)?;
+        cursor = next;
+        let field = key >> 3;
+        let wire_type = (key & 0x07) as u8;
+        if field == 0 {
+            return Err(WireError::Malformed);
+        }
+        if wire_type == 2 {
+            let range = read_length_delimited(bytes, &mut cursor)?;
+            visit(field, wire_type, Some(&bytes[range]))?;
+        } else {
+            cursor = skip_value(bytes, cursor, wire_type)?;
+            visit(field, wire_type, None)?;
+        }
+    }
+    Ok(())
+}
+
 fn read_varint(bytes: &[u8], start: usize) -> Result<(u64, usize), WireError> {
     let mut value = 0_u64;
     for offset in 0..10 {

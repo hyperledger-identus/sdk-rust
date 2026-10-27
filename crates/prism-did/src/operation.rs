@@ -199,6 +199,7 @@ impl UpdateDidOperation {
         if raw.operation_kind() != OperationKind::UpdateDid {
             return Err(OperationError::InvalidValue.into());
         }
+        crate::wire::scan_did_payload(raw.operation_kind(), raw.operation_payload())?;
         let wire = proto::UpdateDid::decode(raw.operation_payload())
             .map_err(|_| Error::InvalidWire(WireError::Malformed))?;
         if wire.actions.is_empty() {
@@ -250,6 +251,7 @@ impl DeactivateDidOperation {
         if raw.operation_kind() != OperationKind::DeactivateDid {
             return Err(OperationError::InvalidValue.into());
         }
+        crate::wire::scan_did_payload(raw.operation_kind(), raw.operation_payload())?;
         let wire = proto::DeactivateDid::decode(raw.operation_payload())
             .map_err(|_| Error::InvalidWire(WireError::Malformed))?;
         let did = canonical_from_suffix(&wire.id)?;
@@ -279,6 +281,7 @@ impl CreateDidOperation {
         if raw.operation_kind() != OperationKind::CreateDid {
             return Err(OperationError::InvalidValue.into());
         }
+        crate::wire::scan_did_payload(raw.operation_kind(), raw.operation_payload())?;
         let wire = proto::CreateDid::decode(raw.operation_payload())
             .map_err(|_| Error::InvalidWire(WireError::Malformed))?;
         let data = wire
@@ -533,6 +536,8 @@ fn parse_service_endpoint(value: &str) -> Result<ServiceEndpoint, Error> {
     }
     if value.starts_with('{') || value.starts_with('[') {
         let json = parse_json_without_duplicate_names(value)?;
+        serde_json::from_value::<identus_did::ServiceEndpoint>(json.clone())
+            .map_err(|_| Error::InvalidOperation(OperationError::InvalidValue))?;
         return match json {
             serde_json::Value::Object(map) => {
                 Ok(ServiceEndpoint::One(ServiceEndpointValue::Object(map)))
@@ -755,6 +760,13 @@ mod tests {
         RawPrismOperation::parse(&operation).unwrap()
     }
 
+    fn nested_message(field: u8, payload: &[u8]) -> Vec<u8> {
+        let mut encoded = vec![field << 3 | 2];
+        prost::encoding::encode_varint(payload.len() as u64, &mut encoded);
+        encoded.extend_from_slice(payload);
+        encoded
+    }
+
     fn master(id: &str) -> proto::PublicKey {
         proto::PublicKey {
             id: id.to_owned(),
@@ -854,6 +866,38 @@ mod tests {
     fn endpoint_rejects_duplicate_names_at_any_depth() {
         assert!(parse_service_endpoint(r#"{"uri":"https://a","uri":"https://b"}"#).is_err());
         assert!(parse_service_endpoint(r#"{"nested":{"x":1,"x":2}}"#).is_err());
+    }
+
+    #[test]
+    fn endpoint_rejects_values_the_did_document_cannot_project() {
+        assert!(parse_service_endpoint(r#"{"":1}"#).is_err());
+
+        let mut nested = "null".to_owned();
+        for _ in 0..64 {
+            nested = format!(r#"{{"nested":{nested}}}"#);
+        }
+        assert!(parse_service_endpoint(&nested).is_err());
+    }
+
+    #[test]
+    fn rejects_duplicate_nested_singular_and_oneof_fields_before_decoding() {
+        let mut duplicate_usage = master("master").encode_to_vec();
+        duplicate_usage.extend_from_slice(&[0x10, proto::KeyUsage::Issuing as u8]);
+        let creation_data = nested_message(2, &duplicate_usage);
+        let create = nested_message(1, &creation_data);
+        assert_eq!(
+            CreateDidOperation::parse(&raw_message(1, &create)),
+            Err(Error::InvalidWire(WireError::DuplicateSingularField))
+        );
+
+        let mut duplicate_key_data = master("master").encode_to_vec();
+        duplicate_key_data.extend_from_slice(&nested_message(8, &[]));
+        let creation_data = nested_message(2, &duplicate_key_data);
+        let create = nested_message(1, &creation_data);
+        assert_eq!(
+            CreateDidOperation::parse(&raw_message(1, &create)),
+            Err(Error::InvalidWire(WireError::DuplicateSingularField))
+        );
     }
 
     #[test]

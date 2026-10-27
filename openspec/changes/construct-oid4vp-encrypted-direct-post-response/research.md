@@ -117,12 +117,14 @@ overall output length but does not decrypt its own result in production.
 
 The versioned E2E packet covers invocation → Request URI response binding → JAR
 verification → Final metadata/key selection → DCQL response selection → JWE
-port call → compact envelope validation → form decoding. A test engine records
-the exact SDK request and returns bounded inert compact material; an isolated
-oracle fixture proves the same P-256/A128GCM request is implementable and
-decryptable without entering the production graph. The knowledge page explains
-the draft-to-Final correction, component responsibilities, dependency decision,
-adapter contract, diagrams, limits, failure classes and reconsideration gates.
+port call → compact envelope validation → exact response-only form
+construction. A test engine records the exact SDK request and returns bounded
+inert compact material. This proves the protocol-to-adapter contract, but it
+does not prove independent cryptographic decryptability. Issue #538 owns that
+qualification before a production engine can be adopted. The knowledge page
+explains the draft-to-Final correction, component responsibilities, dependency
+decision, adapter contract, diagrams, limits, failure classes and
+reconsideration gates.
 
 The dependency decision deliberately leaves cryptographic implementation out of
 the protocol slice. This avoids locally maintaining ECDH KDF, nonce generation,
@@ -135,9 +137,10 @@ and diagnostics.
 
 `no-way-jose`, `jwt-simple`, `josekit`, a local JWE implementation and direct
 production adoption of `jose-rs` are rejected for this slice for the exact
-reasons in the candidate matrix. `jose-rs` is retained only as an isolated
-interoperability oracle. A production adapter is deferred until an engine meets
-the narrow dependency, public-recipient, unsafe, portability and maintenance
+reasons in the candidate matrix. `jose-rs` remains a researched candidate, not
+executed interoperability evidence. A production adapter and independent
+decryptability oracle are deferred to issue #538, where an engine must meet the
+narrow dependency, public-recipient, unsafe, portability and maintenance
 contract.
 
 ## Open questions and blockers

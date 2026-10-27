@@ -32,7 +32,11 @@ impl JweLimits {
         max_compact_bytes: usize,
         max_key_id_bytes: usize,
     ) -> Result<Self, JweEncryptionError> {
-        if max_plaintext_bytes == 0 || max_compact_bytes == 0 || max_key_id_bytes == 0 {
+        if max_plaintext_bytes == 0
+            || max_compact_bytes == 0
+            || max_key_id_bytes == 0
+            || max_key_id_bytes > DEFAULT_MAX_JWE_KEY_ID_BYTES
+        {
             return Err(JweEncryptionError::InvalidLimits);
         }
         Ok(Self {

@@ -101,6 +101,16 @@ fn encrypted_request() -> Value {
     })
 }
 
+fn plain_request() -> Value {
+    let mut request = encrypted_request();
+    request["response_mode"] = json!("direct_post");
+    request
+        .as_object_mut()
+        .expect("request object")
+        .remove("client_metadata");
+    request
+}
+
 fn validated(
     request: &Value,
     jwe_limits: JweLimits,
@@ -285,6 +295,72 @@ fn metadata_rejects_private_ambiguous_and_unsupported_keys() {
         validation_error(&unsupported, limits),
         Oid4vpError::UnsupportedResponseMode
     );
+
+    for (member, value) in [("use", json!("sig")), ("key_ops", json!(["sign"]))] {
+        let mut incompatible = encrypted_request();
+        incompatible["client_metadata"]["jwks"]["keys"][0][member] = value;
+        assert_eq!(
+            validation_error(&incompatible, limits),
+            Oid4vpError::InvalidRequestObjectPayload
+        );
+    }
+
+    for algorithm in [None, Some("RSA-OAEP")] {
+        let mut incompatible = encrypted_request();
+        let key = incompatible["client_metadata"]["jwks"]["keys"][0]
+            .as_object_mut()
+            .expect("key object");
+        match algorithm {
+            Some(value) => {
+                key.insert("alg".to_owned(), json!(value));
+            }
+            None => {
+                key.remove("alg");
+            }
+        }
+        assert_eq!(
+            validation_error(&incompatible, limits),
+            Oid4vpError::InvalidRequestObjectPayload
+        );
+    }
+
+    let mut too_many_keys = encrypted_request();
+    let key = too_many_keys["client_metadata"]["jwks"]["keys"][0].clone();
+    too_many_keys["client_metadata"]["jwks"]["keys"] = Value::Array(vec![key; 17]);
+    assert_eq!(
+        validation_error(&too_many_keys, limits),
+        Oid4vpError::InvalidRequestObjectPayload
+    );
+
+    let mut too_many_enc_values = encrypted_request();
+    let mut enc_values: Vec<_> = (0..16).map(|index| json!(format!("enc-{index}"))).collect();
+    enc_values.push(json!("A128GCM"));
+    too_many_enc_values["client_metadata"]["encrypted_response_enc_values_supported"] =
+        Value::Array(enc_values);
+    assert_eq!(
+        validation_error(&too_many_enc_values, limits),
+        Oid4vpError::InvalidRequestObjectPayload
+    );
+
+    let mut default_enc = encrypted_request();
+    default_enc["client_metadata"]
+        .as_object_mut()
+        .expect("metadata object")
+        .remove("encrypted_response_enc_values_supported");
+    assert_eq!(
+        validated(&default_enc, limits).response_mode(),
+        AuthorizationResponseMode::DirectPostJwt
+    );
+
+    let mut no_key_id = encrypted_request();
+    no_key_id["client_metadata"]["jwks"]["keys"][0]
+        .as_object_mut()
+        .expect("key object")
+        .remove("kid");
+    assert_eq!(
+        validated(&no_key_id, limits).response_mode(),
+        AuthorizationResponseMode::DirectPostJwt
+    );
 }
 
 fn validation_error(request: &Value, limits: JweLimits) -> Oid4vpError {
@@ -344,6 +420,26 @@ fn stop_boundaries_precede_encryption_and_plain_mode_cannot_use_protected_constr
     assert_eq!(encrypter.calls.load(Ordering::SeqCst), 0);
 
     let response_limits = DirectPostResponseLimits::default();
+    assert_eq!(
+        validated(&plain_request(), jwe_limits)
+            .into_encrypted_direct_post_response(
+                vec![result(response_limits)],
+                response_limits,
+                jwe_limits,
+                &encrypter,
+            )
+            .unwrap_err(),
+        Oid4vpError::ResponseModeMismatch
+    );
+    assert_eq!(encrypter.calls.load(Ordering::SeqCst), 0);
+
+    assert_eq!(
+        validated(&encrypted_request(), jwe_limits)
+            .into_direct_post_response(vec![result(response_limits)], response_limits)
+            .unwrap_err(),
+        Oid4vpError::ResponseModeMismatch
+    );
+
     assert_eq!(
         validated(&encrypted_request(), jwe_limits)
             .into_encrypted_direct_post_response(

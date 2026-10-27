@@ -60,13 +60,17 @@ mode puts those members in the plaintext JSON, calls the port, then emits only
 - official/clean-room metadata and response examples;
 - negative keys, algorithms, use/operations, private members, ambiguity,
   duplicate JSON, malformed points, mode mismatch and output limits;
-- property tests for accepted key/metadata normalization and compact envelope
-  grammar;
+- deterministic boundary matrices for key identifiers, plaintext, metadata,
+  compact grammar, wrong-mode constructors and resource limits;
 - fuzz targets for metadata selection and returned compact material;
 - benchmarks for selection, payload construction and port boundary overhead;
-- E2E test spanning invocation through form decode with an exact request
-  recorder, plus isolated oracle encrypt/decrypt qualification;
+- E2E test spanning invocation through exact response-only form construction
+  with an exact request recorder;
 - diagrams and adopter guide kept next to the canonical spec.
+
+Independent encrypt/decrypt interoperability is intentionally not claimed by
+this slice. Issue #538 owns the production-adapter and independent-oracle
+qualification, including native and portable runtime evidence.
 
 ## Engine adapter follow-up
 

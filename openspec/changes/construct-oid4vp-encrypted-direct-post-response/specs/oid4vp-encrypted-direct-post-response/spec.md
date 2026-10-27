@@ -21,19 +21,6 @@ P-256 `ECDH-ES` and `A128GCM` only.
   algorithms or operations conflict, or a resource limit is exceeded
 - **THEN** validation fails before any encryption provider is called
 
-### Requirement: the JWE capability is an SDK-owned bounded port
-
-The SDK SHALL expose protocol-neutral P-256 ECDH-ES/A128GCM request and compact
-result types without exposing an implementation dependency. Plaintext, key ID,
-public key and output SHALL have independent finite limits and redacted
-diagnostics.
-
-#### Scenario: an adapter encrypts accepted material
-
-- **WHEN** a conforming adapter receives the validated SDK request
-- **THEN** it returns one bounded opaque five-segment compact JWE or one static
-  failure category
-
 ### Requirement: protected response construction consumes validated lineage
 
 The SDK SHALL consume one validated `direct_post.jwt` request and matching

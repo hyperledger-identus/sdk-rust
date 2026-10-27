@@ -157,7 +157,8 @@ fn serialize_encrypted_payload(
     let state = state
         .map(serde_json::to_string)
         .transpose()
-        .map_err(|_| Oid4vpError::ResponseJsonTooLarge)?;
+        .map_err(|_| Oid4vpError::ResponseJsonTooLarge)?
+        .map(Zeroizing::new);
     let mut length = "{\"vp_token\":"
         .len()
         .checked_add(vp_token.len())

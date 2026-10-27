@@ -79,6 +79,12 @@ plaintext and a maximum compact size. It must return `CompactJwe`; its
 `Debug`, errors and the protocol response expose lengths/categories rather
 than keys, plaintext, state, presentations or ciphertext.
 
+The initial compact-header profile is deliberately closed. An adapter must
+emit exactly `alg`, `enc`, `epk` (`kty`, `crv`, `x`, `y`) and an optional
+non-empty `kid`. Registered extensions such as `typ`, `cty`, `apu`, `apv`,
+`zip`, and `crit`, as well as unknown members, are rejected until a separately
+specified profile defines their semantics and limits.
+
 ## Supported and deferred surface
 
 | Surface | Current state |
@@ -98,6 +104,10 @@ than keys, plaintext, state, presentations or ciphertext.
 - benchmark: `cargo bench -p identus-oid4vp --bench encrypted_direct_post_response`;
 - normative packet:
   `docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json`.
+
+The packet contains inert compact material and is not independent encryption
+or decryptability evidence. Issue #538 tracks a qualified production adapter
+and independent native/portable cryptographic oracle.
 
 Reconsider the engine decision only through ADR 0181's stable-version,
 dependency-cone, public-recipient, unsafe-code, advisory and portable-runtime

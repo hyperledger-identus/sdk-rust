@@ -26,8 +26,10 @@ pub use header::{
     ProtectedHeader,
 };
 pub use jwe::{
-    CompactJwe, JweContentEncryptionAlgorithm, JweEncrypter, JweEncryptionError,
-    JweEncryptionRequest, JweKeyManagementAlgorithm, JweLimits, JweRecipientPublicKey,
+    CompactJwe, DEFAULT_MAX_COMPACT_JWE_BYTES, DEFAULT_MAX_JWE_KEY_ID_BYTES,
+    DEFAULT_MAX_JWE_PLAINTEXT_BYTES, JweContentEncryptionAlgorithm, JweEncrypter,
+    JweEncryptionError, JweEncryptionRequest, JweKeyManagementAlgorithm, JweLimits,
+    JweRecipientPublicKey,
 };
 pub use limits::JwsLimits;
 pub use signature::{

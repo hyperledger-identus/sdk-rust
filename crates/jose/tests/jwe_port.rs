@@ -155,3 +155,11 @@ fn failures_are_static_and_redacted() {
         assert!(!error.to_string().contains("secret"));
     }
 }
+
+#[test]
+fn limits_cannot_admit_key_ids_rejected_by_compact_validation() {
+    assert_eq!(
+        JweLimits::new(1, 1, identus_jose::DEFAULT_MAX_JWE_KEY_ID_BYTES + 1).unwrap_err(),
+        JweEncryptionError::InvalidLimits
+    );
+}

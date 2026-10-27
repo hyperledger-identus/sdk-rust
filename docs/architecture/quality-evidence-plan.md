@@ -112,12 +112,12 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #535 |
 | `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
 | `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
-| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #535 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #535 |
 
 ### `property`
 
 - Command: `cargo test -p identus-jose --test jwe_port && cargo test -p identus-oid4vp --test encrypted_direct_post_response`
-- Budget: Generate bounded public keys, metadata orderings, optional fields, presentation maps and compact segments; preserve exact selection and form round trips while rejecting every independent boundary violation.
+- Budget: Exercise deterministic key-identifier and plaintext boundaries, required and optional metadata, wrong-mode constructors, private or ambiguous keys, unsupported algorithms, presentation lineage and compact segment grammar.
 - Receipt: `source:crates/oid4vp/tests/encrypted_direct_post_response.rs`
 - Evidence revision: `dd1996086d72510ae9e9c806886823614a8a1567`
 
@@ -138,9 +138,10 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `differential`
 
 - Command: `cargo test -p identus-oid4vp --test encrypted_direct_post_response`
-- Budget: Reproduce the attributed Final encrypted-response shape and assert the exact SDK port request, compact-header profile, selected key identifier, plaintext members and response-only form outside any production engine claim.
-- Receipt: `source:docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json`
-- Evidence revision: `dd1996086d72510ae9e9c806886823614a8a1567`
+- Budget: Reproduce the attributed Final encrypted-response shape, then independently encrypt and decrypt the exact SDK request with a qualified adapter on native and portable targets without comparing randomized ciphertext bytes.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #538
 
 ## `did.syntax.quality.v1`
 

@@ -25,6 +25,7 @@ pub enum AuthorizationResponseType {
 
 /// Supported OpenID4VP Authorization Response delivery mode.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum AuthorizationResponseMode {
     /// Form-encoded response sent to the request's response URI.
     DirectPost,

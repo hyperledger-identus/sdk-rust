@@ -52,8 +52,8 @@ fuzz_target!(|data: &[u8]| {
     let batch = TransactionBatch::new(
         identity,
         u16::from(count),
-        Cursor::new(b"before".to_vec()).unwrap(),
-        Cursor::new(b"after".to_vec()).unwrap(),
+        Cursor::new(b"before").unwrap(),
+        Cursor::new(b"after").unwrap(),
         records,
     );
     if let Ok(batch) = batch {

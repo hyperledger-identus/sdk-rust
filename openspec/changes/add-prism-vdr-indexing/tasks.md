@@ -37,10 +37,10 @@
 
 ## 5. Review and delivery
 
-- [ ] 5.1 Run exact-head independent CLI review: Claude when available, otherwise Codex CLI immediately; record reviewer, command and commit.
-- [ ] 5.2 Verify every blocker/high/medium finding locally and rerun proportional gates.
+- [x] 5.1 Run exact-head independent CLI review: Claude when available, otherwise Codex CLI immediately; record reviewer, command and commit.
+- [x] 5.2 Verify every blocker/high/medium finding locally and rerun proportional gates.
 - [ ] 5.3 Archive OpenSpec, open the issue-linked cohesive PR, publish factory metrics and merge only with protected CI green.
 
 ## 6. Stop boundary
 
-- [ ] 6.1 Keep Cardano, SQL, HTTP, CLI, runtime, deployment, downstream mutation and crates.io publication out of this change.
+- [x] 6.1 Keep Cardano, SQL, HTTP, CLI, runtime, deployment, downstream mutation and crates.io publication out of this change.

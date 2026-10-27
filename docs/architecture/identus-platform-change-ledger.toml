@@ -199,9 +199,9 @@ replaced_by                       = ""
 [[changes]]
 id                                = "did.prism.vdr-indexing.portable-core.v1"
 capability                        = "did.prism.vdr-indexing"
-lifecycle_state                   = "proposed"
+lifecycle_state                   = "active"
 issue                             = 522
-pull_request                      = 0
+pull_request                      = 529
 change_class                      = "additive"
 release_note_class                = "added"
 visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]

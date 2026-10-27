@@ -19,7 +19,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `did.prism.vdr-indexing.portable-core.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive crates parse and authorize bounded PRISM VDR operations, resolve finite ancestry, plan complete ordered transactions, and expose replay-safe atomic commit ports without chain or persistence effects.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive crates parse and authorize bounded PRISM VDR operations, resolve finite ancestry, plan complete ordered transactions, and expose replay-safe atomic commit ports without chain or persistence effects.
 
 ### `did.syntax.long-form-resource-policy.v1`
 

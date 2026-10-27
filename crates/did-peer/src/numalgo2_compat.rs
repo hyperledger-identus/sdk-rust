@@ -118,11 +118,18 @@ pub struct ServiceEndpointMap {
     /// Endpoint URI.
     pub uri: String,
     /// Accepted message profiles.
-    #[serde(rename = "a")]
+    #[serde(rename = "a", default, skip_serializing_if = "Vec::is_empty")]
     pub accept: Vec<String>,
     /// Routing key identifiers.
-    #[serde(rename = "r")]
+    #[serde(rename = "r", default, skip_serializing_if = "Vec::is_empty")]
     pub routing_keys: Vec<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum EncodedServices {
+    One(Service),
+    Many(Vec<Service>),
 }
 
 /// A parsed numalgo-2 compatibility DID.
@@ -148,7 +155,14 @@ impl PeerDid {
         }
         for service in &services {
             validate_service(service)?;
-            let json = serde_json::to_vec(service).map_err(|_| Error::InvalidInputDocument)?;
+        }
+        if !services.is_empty() {
+            let json = if services.len() == 1 {
+                serde_json::to_vec(&services[0])
+            } else {
+                serde_json::to_vec(&services)
+            }
+            .map_err(|_| Error::InvalidInputDocument)?;
             if json.len() > MAX_SERVICE_BYTES {
                 return Err(Error::ResourceLimit);
             }
@@ -238,10 +252,27 @@ impl PeerDid {
                         },
                     )
                     .map_err(map_json_wire_error)?;
-                    let service: Service =
+                    let decoded: EncodedServices =
                         serde_json::from_slice(&bytes).map_err(|_| Error::InvalidInputDocument)?;
-                    validate_service(&service)?;
-                    services.push(service);
+                    let decoded = match decoded {
+                        EncodedServices::One(service) => vec![service],
+                        EncodedServices::Many(services) if services.is_empty() => {
+                            return Err(Error::InvalidInputDocument);
+                        }
+                        EncodedServices::Many(services) => services,
+                    };
+                    if keys
+                        .len()
+                        .saturating_add(services.len())
+                        .saturating_add(decoded.len())
+                        > MAX_ELEMENTS
+                    {
+                        return Err(Error::ResourceLimit);
+                    }
+                    for service in &decoded {
+                        validate_service(service)?;
+                    }
+                    services.extend(decoded);
                 }
                 _ => return Err(Error::UnsupportedPurpose),
             }
@@ -287,10 +318,7 @@ impl PeerDid {
             }));
             let reference = Value::String(id.clone());
             match key.purpose {
-                Purpose::Verification => {
-                    authentication.push(Value::String(id.clone()));
-                    assertion_method.push(Value::String(id));
-                }
+                Purpose::Verification => authentication.push(reference),
                 Purpose::Encryption => key_agreement.push(reference),
                 Purpose::Assertion => assertion_method.push(reference),
                 Purpose::CapabilityInvocation => capability_invocation.push(reference),
@@ -331,14 +359,8 @@ impl PeerDid {
     }
 
     fn preflight_projection(&self) -> Result<(), Error> {
-        let did_repetitions = self.keys.iter().try_fold(1_usize, |count, key| {
-            count
-                .checked_add(if key.purpose == Purpose::Verification {
-                    4
-                } else {
-                    3
-                })
-                .ok_or(Error::ResourceLimit)
+        let did_repetitions = self.keys.iter().try_fold(1_usize, |count, _| {
+            count.checked_add(3).ok_or(Error::ResourceLimit)
         })?;
         let did_repetitions = did_repetitions
             .checked_add(self.services.len())
@@ -581,6 +603,8 @@ mod tests {
         let document = parsed.resolve().expect("resolve");
         assert_eq!(document.id(), peer.did());
         assert_eq!(document.verification_methods().expect("methods").len(), 2);
+        assert_eq!(document.authentication().expect("authentication").len(), 1);
+        assert!(document.assertion_method().is_none());
     }
 
     #[test]
@@ -606,6 +630,43 @@ mod tests {
             parsed.resolve().expect("resolve").services().unwrap().len(),
             1
         );
+    }
+
+    #[test]
+    fn accepts_omitted_endpoint_options_and_preserves_the_omission() {
+        let compact =
+            URL_SAFE_NO_PAD.encode(br#"{"t":"dm","s":{"uri":"https://example.com/didcomm"}}"#);
+        let encoded = format!("{PREFIX}.V{VERIFICATION_KEY}.S{compact}");
+        let parsed = PeerDid::parse(&encoded).expect("parse omitted options");
+        let recreated = PeerDid::create(parsed.keys.clone(), parsed.services.clone())
+            .expect("recreate omitted options");
+        assert_eq!(recreated.did().as_str(), encoded);
+    }
+
+    #[test]
+    fn creates_and_parses_multiple_services_in_one_compact_element() {
+        let key = PublicKey::new(Purpose::Verification, VERIFICATION_KEY).expect("key");
+        let service = |type_: &str, uri: &str| Service {
+            type_: type_.into(),
+            endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
+                uri: uri.into(),
+                accept: vec![],
+                routing_keys: vec![],
+            }),
+            id: None,
+        };
+        let peer = PeerDid::create(
+            vec![key],
+            vec![
+                service("DIDCommMessaging", "https://one.example/didcomm"),
+                service("LinkedDomains", "https://two.example/domain"),
+            ],
+        )
+        .expect("create service array");
+        assert_eq!(peer.did().as_str().matches(".S").count(), 1);
+        let parsed = PeerDid::parse(peer.did().as_str()).expect("parse service array");
+        assert_eq!(parsed.services.len(), 2);
+        assert_eq!(parsed, peer);
     }
 
     #[test]
@@ -720,12 +781,11 @@ mod tests {
         const VECTOR: &str = "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv.EzQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s.SeyJ0IjoiRElEQ29tbU1lc3NhZ2luZyIsInMiOnsidXJpIjoiaHR0cHM6Ly8xMjcuMC4wLjE6NzAzNyIsImEiOlsiZGlkY29tbS92MiJdLCJyIjpbXX19";
         let peer = PeerDid::parse(VECTOR).expect("oracle vector");
         assert_eq!(peer.did().as_str(), VECTOR);
+        let recreated =
+            PeerDid::create(peer.keys.clone(), peer.services.clone()).expect("recreate");
         assert_eq!(
-            PeerDid::create(peer.keys.clone(), peer.services.clone())
-                .expect("recreate")
-                .did()
-                .as_str(),
-            VECTOR
+            PeerDid::parse(recreated.did().as_str()).expect("parse recreated"),
+            recreated
         );
         let document = peer.resolve().expect("resolve");
         assert_eq!(document.verification_methods().expect("methods").len(), 2);

@@ -40,9 +40,12 @@ Creation consumes ordered, caller-owned public key descriptors and optional
 service descriptors. Each key has one explicit verification relationship and
 a supported public multicodec value. Encoding emits dot-delimited purpose
 elements; a service element uses unpadded base64url of the pinned compact JSON
-shape. Resolution validates every delimiter/purpose/encoding before decode,
-assigns deterministic fragment identifiers from ordered key positions, and projects
-relationships and services through `identus-did` builders.
+shape, using one object for one service and one array for multiple services.
+Omitted compact endpoint options remain omitted when re-encoded. Resolution
+validates every delimiter/purpose/encoding before decode, assigns deterministic
+fragment identifiers from ordered key positions, maps each purpose to only its
+corresponding verification relationship, and projects relationships and services
+through `identus-did` builders.
 
 The compatibility implementation preserves pinned SDK-TS behavior only where
 it agrees with the DIF draft. Deviations are fixtures and ledger entries, not

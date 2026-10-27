@@ -30,6 +30,9 @@ from blocking delivery.
 - Both profile parsers match the complete algorithm selector boundary, so
   selectors such as `20` and `40` remain `UnsupportedAlgorithm` rather than
   being misclassified as malformed payloads for algorithms 2 and 4.
+- Numalgo-2 maps `V` keys only to authentication, accepts omitted compact
+  endpoint options without inventing them on re-encoding, and supports the
+  Identus one-array encoding for multiple services in one `S` element.
 - The exact 16 KiB decoded input ceiling round-trips. The profile ceiling is
   intentionally below the generic DID limit because large base58 conversion is
   super-linear; the measured exact-boundary test completes in about 2.3 seconds

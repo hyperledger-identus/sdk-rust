@@ -1,9 +1,12 @@
 //! Bounded construction of plain OID4VP `direct_post` success responses.
 
-use std::{collections::BTreeMap, fmt};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt,
+};
 
 use serde::de::{DeserializeSeed, Error as _, MapAccess, SeqAccess, Visitor};
-use zeroize::Zeroizing;
+use zeroize::{Zeroize, Zeroizing};
 
 use crate::{
     DirectPostResponseLimits, Oid4vpError, ValidatedAuthorizationRequest,
@@ -448,6 +451,15 @@ enum ParsedJsonKind {
     Other,
 }
 
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+struct ObjectMemberName(String);
+
+impl Drop for ObjectMemberName {
+    fn drop(&mut self) {
+        self.0.zeroize();
+    }
+}
+
 fn parse_bounded_json(
     input: &[u8],
     limits: DirectPostResponseLimits,
@@ -639,20 +651,16 @@ impl<'de> Visitor<'de> for BoundedValueVisitor<'_> {
         self.work.visit_node()?;
         let depth = self.parent_depth + 1;
         self.work.enter_container(depth)?;
-        let mut names = Vec::<Zeroizing<String>>::new();
+        let mut names = BTreeSet::<ObjectMemberName>::new();
         while let Some(name) = object.next_key::<String>()? {
-            let name = Zeroizing::new(name);
-            if names
-                .iter()
-                .any(|existing| existing.as_str() == name.as_str())
-            {
+            let name = ObjectMemberName(name);
+            if !names.insert(name) {
                 return Err(A::Error::custom("duplicate JSON object member"));
             }
             object.next_value_seed(BoundedValueSeed {
                 work: &mut *self.work,
                 parent_depth: depth,
             })?;
-            names.push(name);
         }
         Ok(ParsedJsonKind::Object)
     }

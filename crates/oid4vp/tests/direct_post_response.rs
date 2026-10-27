@@ -294,6 +294,20 @@ fn object_presentation_parsing_enforces_work_before_allocation_and_container_dep
             .expose_sensitive_form_body()
             .contains("18446744073709551617")
     );
+
+    let many_members = format!(
+        "{{{}}}",
+        (0..4_000)
+            .map(|index| format!("\"k{index}\":null"))
+            .collect::<Vec<_>>()
+            .join(",")
+    );
+    DirectPostPresentation::object_json(
+        many_members.as_bytes(),
+        DirectPostResponseLimits::new(1, 8, 1, 65_536, 8, 4_001, 262_144, 786_432)
+            .expect("large-object limits"),
+    )
+    .expect("thousands of distinct members remain within bounded parser work");
 }
 
 #[test]

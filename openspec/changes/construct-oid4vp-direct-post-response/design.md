@@ -51,7 +51,9 @@ deterministic `vp_token` object in validated DCQL query order. String values
 receive correct JSON escaping; validated object bytes are whitespace-minified
 without normalizing numeric or string lexemes and embedded only after bounded
 streaming validation. Temporary owned strings and retained encoded buffers are
-wrapped in zeroizing owners.
+wrapped in zeroizing owners. Per-object duplicate member detection uses an
+ordered set, avoiding quadratic scans while retaining deterministic bounded
+work without runtime randomness.
 
 ## State and form output
 

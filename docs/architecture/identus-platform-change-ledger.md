@@ -31,7 +31,7 @@ State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic 
 
 ### `oid4vp.direct-post-response.encrypted.v1`
 
-State: `proposed`. Class: `breaking` / `changed`. Target: `unreleased`. The pre-release SDK adds a non-exhaustive DirectPostJwt mode, validates one bounded P-256 ECDH-ES verifier recipient and A128GCM policy, returns metadata-specific validation categories, makes the plain constructor reject protected mode, invokes an SDK-owned JWE port once, validates opaque compact output and emits a response-only form.
+State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. The pre-release SDK adds a non-exhaustive DirectPostJwt mode, validates one bounded P-256 ECDH-ES verifier recipient and A128GCM policy, returns metadata-specific validation categories, makes the plain constructor reject protected mode, invokes an SDK-owned JWE port once, validates opaque compact output and emits a response-only form.
 
 ### `oid4vp.direct-post-response.error.v1`
 

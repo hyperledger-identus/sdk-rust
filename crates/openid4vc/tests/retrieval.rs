@@ -55,6 +55,16 @@ fn post_retrieval_is_bounded_and_percent_encoded() {
 
 #[test]
 fn unsafe_endpoints_and_ambiguous_responses_fail_closed() {
+    assert_eq!(
+        RequestUriReference::new(
+            "client\tidentifier",
+            "https://rp.example/request",
+            RequestUriMethod::Get,
+            RequestRetrievalLimits::default(),
+        )
+        .err(),
+        Some(RequestRetrievalError::InvalidClientId),
+    );
     for endpoint in [
         "http://rp.example/request",
         "https://user@rp.example/request",

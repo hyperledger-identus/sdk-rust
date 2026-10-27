@@ -51,6 +51,10 @@ persistence, telemetry, and delivery recovery.
 - explicit time, event identity, approval, refusal, cancellation, timeout,
   accepted delivery, and unknown delivery outcome.
 
+Approval takes a distinct caller-supplied evaluation time and rechecks request
+expiry immediately before response planning or signer invocation. Token
+`iat`/`exp` values cannot be backdated to bypass that transition guard.
+
 Unknown delivery outcome is terminal. The core never automatically resends an
 identity assertion whose external delivery status is uncertain.
 
@@ -80,6 +84,7 @@ flow.approve(
     subject_did,
     subject_key_id,
     algorithm,
+    now,
     now,
     token_expiry,
     &custody_signer,

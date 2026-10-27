@@ -152,10 +152,24 @@ impl RequestUriReference {
         method: RequestUriMethod,
         limits: RequestRetrievalLimits,
     ) -> Result<Self, RequestRetrievalError> {
-        if client_id.is_empty()
-            || client_id.len() > limits.max_client_id_bytes
-            || client_id.chars().any(char::is_control)
-        {
+        if client_id.chars().any(char::is_control) {
+            return Err(RequestRetrievalError::InvalidClientId);
+        }
+        Self::new_with_prevalidated_client_id(client_id, endpoint, method, limits)
+    }
+
+    /// Bind a client identifier already validated by its protocol owner.
+    ///
+    /// This retains the shared size bound but deliberately does not impose a
+    /// second protocol-specific character policy. Callers MUST validate the
+    /// identifier before selecting this constructor.
+    pub fn new_with_prevalidated_client_id(
+        client_id: &str,
+        endpoint: &str,
+        method: RequestUriMethod,
+        limits: RequestRetrievalLimits,
+    ) -> Result<Self, RequestRetrievalError> {
+        if client_id.is_empty() || client_id.len() > limits.max_client_id_bytes {
             return Err(RequestRetrievalError::InvalidClientId);
         }
         if endpoint.len() > limits.max_endpoint_bytes || !safe_https(endpoint) {

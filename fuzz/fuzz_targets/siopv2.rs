@@ -54,6 +54,7 @@ fuzz_target!(|data: &[u8]| {
             DidUrl::parse("did:example:alice#auth-1").unwrap(),
             JwsAlgorithm::Ed25519,
             1_800_000_000,
+            1_800_000_000,
             1_800_000_120,
             &Ed25519Signer::new(&subject_private),
         )

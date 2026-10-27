@@ -110,6 +110,7 @@ fn complete_did_subject_flow_round_trips_through_an_independent_verifier() {
         DidUrl::parse("did:example:alice#auth-1").expect("DID URL"),
         JwsAlgorithm::Ed25519,
         NOW,
+        NOW,
         NOW + 120,
         &Ed25519Signer::new(&subject_key()),
     )
@@ -278,6 +279,7 @@ fn response_algorithm_is_selected_by_the_subject_key_not_the_request_key() {
         DidUrl::parse("did:example:alice#p256-1").unwrap(),
         JwsAlgorithm::Es256,
         NOW,
+        NOW,
         NOW + 120,
         &Es256Signer::new(&subject_private),
     )
@@ -306,6 +308,7 @@ fn failed_transitions_preserve_state_and_response_timeout_is_unknown() {
         Did::parse("did:example:alice").unwrap(),
         DidUrl::parse("did:example:alice#auth-1").unwrap(),
         JwsAlgorithm::Ed25519,
+        NOW,
         NOW,
         NOW + 120,
         &Ed25519Signer::new(&subject_key()),
@@ -340,11 +343,32 @@ fn signer_failure_preserves_the_awaiting_decision_state() {
             DidUrl::parse("did:example:alice#auth-1").unwrap(),
             JwsAlgorithm::Ed25519,
             NOW,
+            NOW,
             NOW + 120,
             &RejectingSigner,
         )
         .unwrap_err(),
         identus_siopv2::Siopv2Error::SigningRejected
+    );
+    assert!(matches!(flow, SiopFlow::AwaitingDecision { .. }));
+}
+
+#[test]
+fn approval_rechecks_request_expiry_before_invoking_the_signer() {
+    let mut flow = SiopFlow::new(validated_request(&request_claims()));
+    assert_eq!(
+        flow.approve(
+            EventId::new("approval-after-expiry", 128).unwrap(),
+            Did::parse("did:example:alice").unwrap(),
+            DidUrl::parse("did:example:alice#auth-1").unwrap(),
+            JwsAlgorithm::Ed25519,
+            NOW + 300,
+            NOW,
+            NOW + 120,
+            &RejectingSigner,
+        )
+        .unwrap_err(),
+        identus_siopv2::Siopv2Error::RequestExpired
     );
     assert!(matches!(flow, SiopFlow::AwaitingDecision { .. }));
 }

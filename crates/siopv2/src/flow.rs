@@ -65,6 +65,7 @@ impl SiopFlow {
         subject: Did,
         key_id: DidUrl,
         algorithm: JwsAlgorithm,
+        now: i64,
         issued_at: i64,
         expires_at: i64,
         signer: &dyn JwsSigner,
@@ -77,6 +78,9 @@ impl SiopFlow {
             Self::ResponseReady { .. } => return Err(Siopv2Error::EventConflict),
             _ => return Err(Siopv2Error::InvalidTransition),
         };
+        if now >= request.expires_at() {
+            return Err(Siopv2Error::RequestExpired);
+        }
         let plan: SiopResponsePlan =
             request.plan_response(subject, key_id, algorithm, issued_at, expires_at)?;
         let response = plan.sign(signer)?;

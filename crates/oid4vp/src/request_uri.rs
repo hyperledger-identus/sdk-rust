@@ -86,9 +86,15 @@ impl ReferencedAuthorizationRequest {
         }
         let shared_limits = shared_limits(limits)?;
         let method = shared_method(requested_method);
-        let reference =
-            RequestUriReference::new(&outer_client_id, &endpoint, method, shared_limits)
-                .map_err(map_shared_error)?;
+        // Invocation parsing already owns the OID4VP client-identifier policy.
+        // Avoid tightening that established public behavior in the shared seam.
+        let reference = RequestUriReference::new_with_prevalidated_client_id(
+            &outer_client_id,
+            &endpoint,
+            method,
+            shared_limits,
+        )
+        .map_err(map_shared_error)?;
         let shared_input = match input.method {
             RequestUriMethod::Get => RequestRetrievalInput::get(),
             RequestUriMethod::Post => {

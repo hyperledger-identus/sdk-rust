@@ -82,6 +82,7 @@ required_files=(
   docs/architecture/quality-evidence-declarations.toml
   docs/architecture/quality-evidence-plan.md
   docs/architecture/oid4vp-encrypted-response-boundary.md
+  docs/architecture/siopv2-protocol-core.md
   docs/architecture/did-peer-quality-baseline.md
   docs/architecture/prism-vdr-indexer-quality-baseline.md
   docs/conformance/cross-language-vector-catalog.md
@@ -212,6 +213,7 @@ required_files=(
   openspec/specs/sdk-support-policy/spec.md
   openspec/specs/crypto/spec.md
   openspec/specs/did-core/spec.md
+  openspec/specs/siopv2-protocol-core/spec.md
   openspec/specs/unpublished-crypto-candidate/spec.md
   scripts/benchmark-code-health-classifier.py
   scripts/benchmark-support-policy.py

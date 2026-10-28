@@ -114,6 +114,17 @@ consumer_impact  = "Accepted identifiers and decoded keys remain finite; canonic
 review_triggers  = [ "did:key draft revision", "new multibase or multicodec", "new curve", "resource limit change", "implicit key conversion" ]
 
 [[boundaries]]
+id               = "did-jwk-method-profile"
+package          = "identus-did-jwk"
+surface          = "did:jwk base64url carriers, duplicate-safe public JWK JSON, key validation, and deterministic DID document projection"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_JWK_JSON_BYTES=16384", "MAX_JSON_DEPTH=16", "MAX_JSON_NODES=1024", "MAX_JWK_MEMBERS=64", "MAX_METHOD_SPECIFIC_ID_BYTES=21846" ]
+evidence         = [ "crates/did-jwk/src/lib.rs", "crates/did-jwk/tests/conformance.rs", "crates/did-jwk/tests/registry_e2e.rs" ]
+outer_obligation = "The borrowed DID string exists before entry; early carrier length/alphabet checks precede proportional decoding, and the method-owned parser bounds decoded bytes, JSON work, typed construction, and projection."
+consumer_impact  = "Accepted identifiers, JSON trees, public keys and generic DID documents remain finite; creation applies the same serialized byte ceilings as parsing."
+review_triggers  = [ "did:jwk draft revision", "new JWK curve or member policy", "new relationship policy", "resource limit change", "JSON parser extraction" ]
+
+[[boundaries]]
 id               = "did-peer-method-profiles"
 package          = "identus-did-peer"
 surface          = "peer DID numalgo-4 short/long forms, construction input documents, numalgo-2 purpose keys and compact services"

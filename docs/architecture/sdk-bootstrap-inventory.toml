@@ -107,6 +107,15 @@ owner_issue    = "#557"
 summary        = "Bounded effect-free did:key v0.9 creation, parsing, and local resolution over four direct public-key multicodecs."
 
 [[packages]]
+name           = "identus-did-jwk"
+path           = "crates/did-jwk"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#558"
+summary        = "Bounded effect-free did:jwk creation, duplicate-safe parsing, and local resolution over four public JWK curves."
+
+[[packages]]
 name           = "identus-did-peer"
 path           = "crates/did-peer"
 layer          = "domain-primitives"

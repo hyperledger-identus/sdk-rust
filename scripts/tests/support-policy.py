@@ -1812,7 +1812,7 @@ in
     def test_target_gate_must_build_every_declared_package(self) -> None:
         self.replace_gate(
             "rust-build-wasm32",
-            'packages = [ "identus-derive", "identus-core", "identus-crypto", "identus-did", "identus-did-key", "identus-did-jwk", "identus-did-web", "identus-did-peer", "identus-jose", "identus-oid4vci", "identus-oid4vp", "identus-prism-did", "identus-adapters-entropy" ]',
+            'packages = [ "identus-derive", "identus-core", "identus-crypto", "identus-did", "identus-did-key", "identus-did-jwk", "identus-did-web", "identus-did-peer", "identus-jose", "identus-oid4vci", "identus-oid4vp", "identus-prism-did", "identus-adapters-entropy", "identus-sd-jwt", "identus-sd-jwt-vc" ]',
             'packages = [ "identus-core", "identus-crypto", "identus-did", "identus-adapters-entropy" ]',
         )
         self.assert_fails("rust-build-wasm32 selects packages")
@@ -2366,7 +2366,7 @@ in
     def test_invalid_list_field_fails_without_traceback(self) -> None:
         self.replace_gate(
             "rust-build-wasm32",
-            'packages = [ "identus-derive", "identus-core", "identus-crypto", "identus-did", "identus-did-key", "identus-did-jwk", "identus-did-web", "identus-did-peer", "identus-jose", "identus-oid4vci", "identus-oid4vp", "identus-prism-did", "identus-adapters-entropy" ]',
+            'packages = [ "identus-derive", "identus-core", "identus-crypto", "identus-did", "identus-did-key", "identus-did-jwk", "identus-did-web", "identus-did-peer", "identus-jose", "identus-oid4vci", "identus-oid4vp", "identus-prism-did", "identus-adapters-entropy", "identus-sd-jwt", "identus-sd-jwt-vc" ]',
             "packages = 7",
         )
         result = self.run_checker()

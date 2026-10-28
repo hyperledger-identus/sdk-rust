@@ -206,6 +206,15 @@ owner_issue    = "#568"
 summary        = "Unpublished bounded RFC 9901 compact engine with staged issuance, disclosure and key binding."
 
 [[packages]]
+name           = "identus-sd-jwt-vc"
+path           = "crates/sd-jwt-vc"
+layer          = "credential-semantics"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#569"
+summary        = "Unpublished bounded canonical SD-JWT VC draft-22 profile over the RFC 9901 engine."
+
+[[packages]]
 name           = "identus-messaging"
 path           = "crates/messaging"
 layer          = "protocol-semantics"

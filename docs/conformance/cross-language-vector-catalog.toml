@@ -1469,3 +1469,48 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "Planning vector proves one static structural rejection only; complete RFC, boundary, differential and E2E evidence remains required by issue #568."
+
+[[sources]]
+id             = "ietf.sd-jwt-vc-draft22"
+kind           = "standard"
+url            = "https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-22.txt"
+version        = "draft-ietf-oauth-sd-jwt-vc-22, 27 October 2026; text SHA-256 da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124"
+section        = "SD-JWT VC format, claims, issuer metadata, Type Metadata and validation"
+authorship     = "IETF OAuth Working Group and SD-JWT VC draft authors"
+license        = "IETF-Trust"
+redistribution = "derived-cases-allowed"
+
+[[packets]]
+id             = "credentials.sd-jwt-vc.draft22.v1"
+capability     = "credentials.sd-jwt"
+schema_version = 1
+path           = "docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json"
+sha256         = "fc63c41fcc398c76b225220ff81e94c91e2f238fcd3214d1c02ea8ee1fbdc091"
+authorship     = "SDK-Rust clean-room profile cases under the pinned draft-22 contract"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[vectors]]
+id                 = "credentials.sd-jwt-vc.legacy-protected-type"
+packet             = "credentials.sd-jwt-vc.draft22.v1"
+case               = "credentials.sd-jwt-vc.legacy-protected-type"
+capability         = "credentials.sd-jwt"
+authority          = "normative"
+source_ids         = [ "ietf.sd-jwt-vc-draft22" ]
+source_locator     = "draft-ietf-oauth-sd-jwt-vc-22 sections 3.2 and 3.3 plus SDK clean-room legacy negative"
+operation          = "sd-jwt-vc.validate-profile"
+expected           = "sd_jwt_vc.protected_type"
+profile_scope      = "Exact canonical dc+sd-jwt protected type and application/dc+sd-jwt media identity"
+boundary           = "negative"
+resource_class     = "early-profile-rejection"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "conformance::differential_sdk_ts_legacy_type_and_protected_claim_disclosure_fail_closed"
+language_selectors = [  ]
+owner_issue        = 569
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "sdk-ts.sd-jwt-vc.legacy-type" ]
+limitations        = "The vector rejects legacy profile identity and does not define the optional issue #572 input adapter, foreign DTOs, or product migration policy."

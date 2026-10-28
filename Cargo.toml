@@ -21,6 +21,7 @@ identus-credentials        = { path = "crates/credentials" }
 identus-presentations      = { path = "crates/presentations" }
 identus-jose               = { path = "crates/jose" }
 identus-sd-jwt             = { path = "crates/sd-jwt" }
+identus-sd-jwt-vc          = { path = "crates/sd-jwt-vc" }
 identus-messaging          = { path = "crates/messaging" }
 identus-openid4vc          = { path = "crates/openid4vc" }
 identus-siopv2             = { path = "crates/siopv2" }

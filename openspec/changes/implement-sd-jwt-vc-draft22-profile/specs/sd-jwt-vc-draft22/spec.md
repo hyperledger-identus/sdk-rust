@@ -44,7 +44,8 @@ key binding SHALL require structurally valid `cnf` evidence.
 The SDK SHALL accept bounded caller-supplied evidence for exactly the
 draft-22 inline X.509 or JWT VC Issuer Metadata mechanisms. Metadata SHALL
 correlate exact `issuer` with the verified `iss` claim and contain exactly one
-of `jwks` or `jwks_uri`. The profile SHALL NOT perform HTTP, certificate path
+of `jwks` or `jwks_uri`. Both forms SHALL carry the resolved key set and SHALL
+correlate the exact verified issuer key. The profile SHALL NOT perform HTTP, certificate path
 validation, JWK cryptography, trust-anchor selection, key authorization or
 issuer policy.
 
@@ -65,6 +66,11 @@ correlation, finite acyclic extension chains, unique bounded claim paths,
 mandatory rules and `always`/`allowed`/`never` disclosure rules. It SHALL NOT
 retrieve metadata, execute rendering content, authorize an issuer, or treat
 metadata publication as trust.
+
+#### Scenario: metadata understates its encoded size or exceeds work policy
+
+- **WHEN** retained claim paths exceed the byte ceiling or traversal would exceed the aggregate work ceiling
+- **THEN** validation fails before path evaluation regardless of the caller-supplied encoded-byte count
 
 #### Scenario: metadata extension chain is cyclic
 

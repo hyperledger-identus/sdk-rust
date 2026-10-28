@@ -137,8 +137,10 @@ change this implementation through a dependency range.
   transitions under bounded work.
 - Benchmark ordinary, exact-boundary, early-rejection, extension-chain, and
   claim-metadata paths.
-- Compare frozen outputs from at least two independent exact-version oracles;
-  disagreements are resolved against draft-22.
+- Compare the pinned draft with the released SDK-TS 8.1.4 migration oracle and
+  record its legacy protected-type disagreement. No assessed implementation
+  currently provides a second complete exact draft-22 profile oracle; issue
+  #573 owns qualification of two independent engines before publication.
 - Execute an offline public-API journey from issuance through generic envelope,
   disclosure selection, OID4VP `dc+sd-jwt` capability matching, issuer/holder
   verification, profile validation, and redacted receipt.

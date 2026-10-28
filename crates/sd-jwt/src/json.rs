@@ -170,6 +170,32 @@ pub(crate) fn encode<T: Serialize>(
     Ok(writer.bytes)
 }
 
+pub(crate) fn encoded_len<T: Serialize>(value: &T, max: usize) -> Result<usize, SdJwtError> {
+    let mut writer = CountingWriter { bytes: 0, max };
+    serde_json::to_writer(&mut writer, value).map_err(|_| SdJwtError::ResourceLimit)?;
+    Ok(writer.bytes)
+}
+
+struct CountingWriter {
+    bytes: usize,
+    max: usize,
+}
+
+impl Write for CountingWriter {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        self.bytes = self
+            .bytes
+            .checked_add(bytes.len())
+            .filter(|total| *total <= self.max)
+            .ok_or_else(|| io::Error::other("bounded JSON"))?;
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
 struct BoundedWriter<'a> {
     bytes: Vec<u8>,
     max: usize,

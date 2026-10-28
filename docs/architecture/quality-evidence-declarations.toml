@@ -2094,7 +2094,7 @@ owner       = "SDK-Rust credential maintainers"
 owner_issue = 569
 risk        = "Profile drift, malformed claims or external evidence can misidentify credential semantics, bypass disclosure rules, amplify work or represent structural evidence as trust."
 targets     = [ "package:identus-sd-jwt-vc", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android" ]
-vector_ids  = [ "credentials.sd-jwt.malformed-compact" ]
+vector_ids  = [ "credentials.sd-jwt-vc.legacy-protected-type" ]
 limitations = "Exact draft-22 compact profile only; no HTTP, trust or issuer authorization, status acceptance, rendering, replay/storage policy, legacy adapter, bindings, runtime certification, publication or downstream adoption."
 active      = true
 supersedes  = [  ]
@@ -2159,7 +2159,7 @@ cadence           = "weekly-or-manual"
 targets           = [ "package:identus-sd-jwt-vc", "host:rust" ]
 freshness         = "pending"
 freshness_days    = 0
-budget            = "Measure ordinary, exact-boundary, early-rejection, maximum extension-chain and status-correlation cases with retained-output evidence."
+budget            = "Measure ordinary, exact-boundary, early-rejection, maximum extension-chain and status-correlation cases with directional elapsed-time evidence."
 receipt_kind      = "none"
 receipt           = ""
 evidence_revision = ""
@@ -2170,7 +2170,7 @@ owner_issue       = 569
 debt_status       = "open"
 debt_issue        = 569
 rationale         = ""
-details           = [ "operation=Issue, parse, base verify, profile validate, metadata/status correlate and reject oversized input", "fixture=Ordinary and near-limit draft-22 profile packets", "environment=Rust 1.98.1 etalon on the recorded local host", "statistic=Median directional wall time plus retained bytes and charged work units", "samples=101 measured samples after 500 warm-up iterations", "threshold=Directional baseline with functional byte, count, depth, output and work limits remaining blocking" ]
+details           = [ "operation=Issue, parse, base verify, profile validate, metadata/status correlate and reject oversized input", "fixture=Ordinary and near-limit draft-22 profile packets", "environment=Rust 1.98.1 etalon on the recorded local host", "statistic=Aggregate directional wall time reported per route", "samples=101 ordinary/boundary samples after 101 warm-up iterations; 10000 metadata-chain and 100000 rejection/status iterations after 500 warm-up iterations", "threshold=Directional baseline with functional byte, count, depth, output and work limits remaining blocking" ]
 
 [[declarations.obligations]]
 class             = "differential"
@@ -2183,7 +2183,7 @@ cadence           = "per-pull-request"
 targets           = [ "package:identus-sd-jwt-vc", "host:rust", "consumer:portable-sdk" ]
 freshness         = "pending"
 freshness_days    = 0
-budget            = "Compare draft-22 Appendix A and clean-room cases to at least two immutable independent engines, resolving every disagreement against the pinned draft."
+budget            = "Compare the pinned draft-22 identity and clean-room cases with released SDK-TS 8.1.4 migration behavior; preserve its legacy protected-type disagreement and track two-engine profile qualification in issue #573."
 receipt_kind      = "none"
 receipt           = ""
 evidence_revision = ""
@@ -2192,6 +2192,6 @@ artifact          = "docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json
 owner             = "SDK-Rust credential maintainers"
 owner_issue       = 569
 debt_status       = "open"
-debt_issue        = 569
+debt_issue        = 573
 rationale         = ""
-details           = [ "oracle=Draft-22 plus frozen Affinidi and IOTA or other exact-version outputs", "oracle-revision=Draft text da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124; candidate revisions recorded in ADR 0193", "normalization=Compare canonical identifier, claim and evidence categories rather than donor DTO or error strings", "deviations=SDK bounds, staged evidence, static redaction and caller-owned trust/effects remain stricter local policy" ]
+details           = [ "oracle=Draft-22 normative source plus SDK-TS 8.1.4 migration oracle", "oracle-revision=Draft text da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124; SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e", "normalization=Compare canonical protected/media identifiers and profile outcome rather than donor DTO or error strings", "deviations=SDK-TS emits legacy vc+sd-jwt; issue #572 owns any input adapter; issue #573 owns two-engine exact-profile qualification" ]

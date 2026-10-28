@@ -15,14 +15,14 @@ mod types;
 pub use engine::{
     DisclosureVerifiedSdJwt, EncodedDisclosure, IssuedSdJwt, IssuerVerifiedSdJwt,
     KeyBindingExpectations, SdJwtPresentation, UnverifiedSdJwt, VerifiedSdJwt, issue,
-    issue_with_hasher, parse_envelope,
+    issue_with_hasher, issue_with_options, issue_with_options_and_hasher, parse_envelope,
 };
 pub use error::SdJwtError;
 pub use hash::{DisclosureHasher, Sha256DisclosureHasher};
 pub use limits::SdJwtLimits;
 pub use types::{
-    ClaimPath, DecoyLocation, IssuancePlan, PathSegment, SelectionPlan, VerificationReceipt,
-    map_claim_path, map_disclosure_plan,
+    ClaimPath, DecoyLocation, IssuanceOptions, IssuancePlan, PathSegment, SelectionPlan,
+    VerificationReceipt, map_claim_path, map_disclosure_plan,
 };
 
 use identus_core::Component;

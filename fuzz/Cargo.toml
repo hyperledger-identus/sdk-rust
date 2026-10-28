@@ -25,6 +25,7 @@ identus-jose          = { path = "../crates/jose" }
 identus-oid4vp        = { path = "../crates/oid4vp" }
 identus-siopv2        = { path = "../crates/siopv2" }
 identus-sd-jwt        = { path = "../crates/sd-jwt" }
+identus-sd-jwt-vc     = { path = "../crates/sd-jwt-vc" }
 libfuzzer-sys         = "=0.4.13"
 serde                 = "=1.0.228"
 serde_json            = "=1.0.150"
@@ -32,6 +33,13 @@ serde_json            = "=1.0.150"
 [[bin]]
 name  = "sd_jwt"
 path  = "fuzz_targets/sd_jwt.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "sd_jwt_vc"
+path  = "fuzz_targets/sd_jwt_vc.rs"
 test  = false
 doc   = false
 bench = false

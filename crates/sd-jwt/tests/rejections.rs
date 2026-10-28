@@ -1,9 +1,9 @@
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use identus_crypto::{Ed25519PrivateKey, EncodeJwk, SecureRandom};
+use identus_crypto::{Ed25519PrivateKey, EncodeJwk, PublicKeyJwk, SecureRandom};
 use identus_jose::{
     Ed25519Signer, JwsAlgorithm, JwsLimits, JwsSigningInput, JwsVerificationKey, ProtectedHeader,
-    SignatureSuiteRegistry,
+    SignatureSuiteRegistry, UnverifiedCompactJws,
 };
 use identus_sd_jwt::{
     ClaimPath, DisclosureHasher, IssuancePlan, PathSegment, SdJwtError, SdJwtLimits,
@@ -109,6 +109,66 @@ fn resource_and_error_surface_are_static() {
         assert!(!rendered.contains("private"));
         assert!(!rendered.contains("secret"));
     }
+}
+
+#[test]
+fn retained_issuer_verification_key_is_charged() {
+    let (issuer, private) = signed(br#"{"_sd_alg":"sha-256","public":true}"#);
+    let public = private.to_public_key().encode_jwk();
+    let key_bytes = serde_json::to_vec(&public).unwrap().len();
+    let claims_bytes = serde_json::to_vec(&json!({"public":true})).unwrap().len();
+    let jws_limits = JwsLimits::new(524_288, 4_096, 524_288, 1_024, 2_048).unwrap();
+    let header_bytes = serde_json::to_vec(
+        UnverifiedCompactJws::parse(&issuer, jws_limits)
+            .unwrap()
+            .protected_header(),
+    )
+    .unwrap()
+    .len();
+    let retained = issuer.len() * 2 + 1 + claims_bytes + key_bytes + header_bytes;
+    let limits = SdJwtLimits {
+        retained_output_bytes: retained,
+        ..SdJwtLimits::default()
+    };
+    let compact = format!("{issuer}~");
+    let normal = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).unwrap();
+    assert!(
+        UnverifiedSdJwt::parse(&compact, limits)
+            .unwrap()
+            .verify_issuer(&SignatureSuiteRegistry::recommended(), &normal)
+            .unwrap()
+            .process_disclosures()
+            .is_ok()
+    );
+
+    let insufficient = SdJwtLimits {
+        retained_output_bytes: retained - 1,
+        ..SdJwtLimits::default()
+    };
+    assert!(matches!(
+        UnverifiedSdJwt::parse(&compact, insufficient)
+            .unwrap()
+            .verify_issuer(&SignatureSuiteRegistry::recommended(), &normal)
+            .unwrap()
+            .process_disclosures(),
+        Err(SdJwtError::ResourceLimit)
+    ));
+
+    let mut extended = serde_json::to_value(public).unwrap();
+    extended
+        .as_object_mut()
+        .unwrap()
+        .insert("label".into(), json!("x".repeat(128)));
+    let extended: PublicKeyJwk = serde_json::from_value(extended).unwrap();
+    let extended = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &extended).unwrap();
+    assert!(matches!(
+        UnverifiedSdJwt::parse(&compact, limits)
+            .unwrap()
+            .verify_issuer(&SignatureSuiteRegistry::recommended(), &extended)
+            .unwrap()
+            .process_disclosures(),
+        Err(SdJwtError::ResourceLimit)
+    ));
 }
 
 #[test]

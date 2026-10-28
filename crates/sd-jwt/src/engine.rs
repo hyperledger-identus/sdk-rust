@@ -5,7 +5,7 @@ use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use identus_core::UnixTimestampMillis;
 use identus_credentials::{CredentialEnvelope, CredentialFormat, CredentialPayload};
-use identus_crypto::SecureRandom;
+use identus_crypto::{PublicKeyJwk, SecureRandom};
 use identus_jose::{
     JoseError, JwsLimits, JwsSigner, JwsSigningInput, JwsVerificationKey, ProtectedHeader,
     SignatureSuiteRegistry, UnverifiedCompactJws,
@@ -13,8 +13,9 @@ use identus_jose::{
 use serde_json::{Map, Value};
 
 use crate::{
-    ClaimPath, DecoyLocation, DisclosureHasher, IssuancePlan, PathSegment, SdJwtError, SdJwtLimits,
-    SelectionPlan, Sha256DisclosureHasher, VerificationReceipt, json, limits::Work,
+    ClaimPath, DecoyLocation, DisclosureHasher, IssuanceOptions, IssuancePlan, PathSegment,
+    SdJwtError, SdJwtLimits, SelectionPlan, Sha256DisclosureHasher, VerificationReceipt, json,
+    limits::Work,
 };
 
 fn jws_limits(limits: SdJwtLimits, compact: usize) -> Result<JwsLimits, SdJwtError> {
@@ -158,9 +159,13 @@ impl UnverifiedSdJwt {
         suites
             .verify(&self.issuer, key)
             .map_err(|_| SdJwtError::IssuerSignature)?;
+        let verification_key_bytes =
+            json::encoded_len(key.public_key(), self.limits.retained_output_bytes)?;
         Ok(IssuerVerifiedSdJwt {
             inner: self,
             algorithm: key.algorithm(),
+            verification_key: key.public_key().clone(),
+            verification_key_bytes,
         })
     }
 }
@@ -169,6 +174,8 @@ impl UnverifiedSdJwt {
 pub struct IssuerVerifiedSdJwt {
     inner: UnverifiedSdJwt,
     algorithm: identus_jose::JwsAlgorithm,
+    verification_key: PublicKeyJwk,
+    verification_key_bytes: usize,
 }
 impl fmt::Debug for IssuerVerifiedSdJwt {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -366,6 +373,8 @@ pub struct DisclosureVerifiedSdJwt {
     key_binding: Option<String>,
     limits: SdJwtLimits,
     algorithm: identus_jose::JwsAlgorithm,
+    protected_header: ProtectedHeader,
+    verification_key: PublicKeyJwk,
 }
 impl fmt::Debug for DisclosureVerifiedSdJwt {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -423,6 +432,10 @@ impl IssuerVerifiedSdJwt {
         let inventory = std::mem::take(&mut graph.inventory);
         drop(graph);
         let claims_bytes = json::encode(&claims, limits.retained_output_bytes, &mut work)?;
+        let protected_header_bytes = json::encoded_len(
+            self.inner.issuer.protected_header(),
+            limits.retained_output_bytes,
+        )?;
         let mut full_compact = self.inner.issuer.compact().to_owned();
         full_compact.push('~');
         for encoded in &self.inner.disclosures {
@@ -438,6 +451,8 @@ impl IssuerVerifiedSdJwt {
             .and_then(|n| n.checked_add(self.inner.issuer.compact().len()))
             .and_then(|n| n.checked_add(self.inner.key_binding.as_ref().map_or(0, String::len)))
             .and_then(|n| n.checked_add(inventory.values().map(String::len).sum::<usize>()))
+            .and_then(|n| n.checked_add(self.verification_key_bytes))
+            .and_then(|n| n.checked_add(protected_header_bytes))
             .ok_or(SdJwtError::ResourceLimit)?;
         if retained > limits.retained_output_bytes {
             return Err(SdJwtError::ResourceLimit);
@@ -451,6 +466,8 @@ impl IssuerVerifiedSdJwt {
             key_binding: self.inner.key_binding,
             limits,
             algorithm: self.algorithm,
+            protected_header: self.inner.issuer.protected_header().clone(),
+            verification_key: self.verification_key,
         })
     }
 }
@@ -459,6 +476,33 @@ impl DisclosureVerifiedSdJwt {
     /// Borrow materialized claims only after issuer and disclosure verification.
     pub fn claims(&self) -> &Value {
         &self.claims
+    }
+
+    /// Borrow the exact bounded protected header authenticated by the issuer
+    /// signature. Profile and trust semantics remain caller-owned.
+    pub fn issuer_protected_header(&self) -> &ProtectedHeader {
+        &self.protected_header
+    }
+
+    /// Borrow the exact public key used to verify the issuer signature.
+    pub fn issuer_verification_key(&self) -> &PublicKeyJwk {
+        &self.verification_key
+    }
+
+    /// Return whether one validated path originated in a Disclosure.
+    pub fn was_disclosed(&self, path: &ClaimPath) -> bool {
+        self.inventory.contains_key(path)
+    }
+
+    /// Return whether a Disclosure supplied the path itself or any descendant.
+    ///
+    /// Profile layers use this bounded provenance query when an entire claim
+    /// subtree must remain non-selective. The disclosure inventory is already
+    /// limited by [`SdJwtLimits::disclosures`].
+    pub fn was_disclosed_at_or_below(&self, path: &ClaimPath) -> bool {
+        self.inventory
+            .keys()
+            .any(|candidate| candidate.segments().starts_with(path.segments()))
     }
 
     /// Produce a deterministic minimal closure for the chosen claim paths.
@@ -806,9 +850,10 @@ pub fn issue(
     signer: &dyn JwsSigner,
     limits: SdJwtLimits,
 ) -> Result<IssuedSdJwt, SdJwtError> {
-    issue_with_hasher(
+    issue_with_options_and_hasher(
         claims,
         plan,
+        IssuanceOptions::default(),
         random,
         signer,
         limits,
@@ -818,8 +863,49 @@ pub fn issue(
 
 /// Issue with an injected digest capability for deterministic collision testing.
 pub fn issue_with_hasher(
+    claims: Value,
+    plan: &IssuancePlan,
+    random: &mut impl SecureRandom,
+    signer: &dyn JwsSigner,
+    limits: SdJwtLimits,
+    hasher: &dyn DisclosureHasher,
+) -> Result<IssuedSdJwt, SdJwtError> {
+    issue_with_options_and_hasher(
+        claims,
+        plan,
+        IssuanceOptions::default(),
+        random,
+        signer,
+        limits,
+        hasher,
+    )
+}
+
+/// Issue with a caller-validated protected type while retaining RFC mechanics.
+pub fn issue_with_options(
+    claims: Value,
+    plan: &IssuancePlan,
+    options: IssuanceOptions<'_>,
+    random: &mut impl SecureRandom,
+    signer: &dyn JwsSigner,
+    limits: SdJwtLimits,
+) -> Result<IssuedSdJwt, SdJwtError> {
+    issue_with_options_and_hasher(
+        claims,
+        plan,
+        options,
+        random,
+        signer,
+        limits,
+        &Sha256DisclosureHasher,
+    )
+}
+
+/// Issue with profile-neutral header options and an injected digest capability.
+pub fn issue_with_options_and_hasher(
     mut claims: Value,
     plan: &IssuancePlan,
+    options: IssuanceOptions<'_>,
     random: &mut impl SecureRandom,
     signer: &dyn JwsSigner,
     limits: SdJwtLimits,
@@ -927,8 +1013,13 @@ pub fn issue_with_hasher(
         return Err(SdJwtError::InternalInvariant);
     }
     let jws_limits = jws_limits(limits, limits.issuer_jws_bytes)?;
-    let header = ProtectedHeader::new(signer.algorithm().as_str(), None, None, jws_limits)
-        .map_err(signing_error)?;
+    let header = ProtectedHeader::new(
+        signer.algorithm().as_str(),
+        options.protected_type,
+        None,
+        jws_limits,
+    )
+    .map_err(signing_error)?;
     let signing =
         JwsSigningInput::new(header, bytes, jws_limits).map_err(|_| SdJwtError::ResourceLimit)?;
     let mut predicted = signing

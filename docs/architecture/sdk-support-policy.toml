@@ -142,6 +142,8 @@ packages = [
   "identus-prism-did",
   "identus-did-peer",
   "identus-adapters-entropy",
+  "identus-sd-jwt",
+  "identus-sd-jwt-vc",
 ]
 no_default_features = false
 features = [ "identus-adapters-entropy/getrandom" ]
@@ -167,6 +169,8 @@ packages = [
   "identus-prism-did",
   "identus-did-peer",
   "identus-adapters-entropy",
+  "identus-sd-jwt",
+  "identus-sd-jwt-vc",
 ]
 no_default_features = false
 features = [ "identus-adapters-entropy/getrandom" ]
@@ -192,6 +196,8 @@ packages = [
   "identus-prism-did",
   "identus-did-peer",
   "identus-adapters-entropy",
+  "identus-sd-jwt",
+  "identus-sd-jwt-vc",
 ]
 no_default_features = false
 features = [ "identus-adapters-entropy/getrandom" ]

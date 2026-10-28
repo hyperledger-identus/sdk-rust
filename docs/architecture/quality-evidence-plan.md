@@ -769,7 +769,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `benchmark`
 
 - Command: `cargo bench -p identus-sd-jwt-vc --bench directional`
-- Budget: Measure ordinary, exact-boundary, early-rejection, maximum extension-chain and status-correlation cases with retained-output evidence.
+- Budget: Measure ordinary, exact-boundary, early-rejection, maximum extension-chain and status-correlation cases with directional elapsed-time evidence.
 - Receipt: `pending`
 - Evidence revision: `pending`
 - Delivery debt: #569
@@ -777,7 +777,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `differential`
 
 - Command: `cargo test -p identus-sd-jwt-vc --test conformance differential`
-- Budget: Compare draft-22 Appendix A and clean-room cases to at least two immutable independent engines, resolving every disagreement against the pinned draft.
+- Budget: Compare the pinned draft-22 identity and clean-room cases with released SDK-TS 8.1.4 migration behavior; preserve its legacy protected-type disagreement and track two-engine profile qualification in issue #573.
 - Receipt: `pending`
 - Evidence revision: `pending`
-- Delivery debt: #569
+- Delivery debt: #573

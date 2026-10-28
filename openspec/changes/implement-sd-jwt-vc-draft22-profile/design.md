@@ -88,20 +88,22 @@ does not establish trust, issuer authorization, freshness or acceptability.
 ### Claim contract
 
 `vct` is a required bounded, non-empty, case-sensitive collision-resistant
-name. The SDK uses a conservative URI/URN-shaped syntax check and preserves
-exact spelling; ecosystem semantics and issuer authorization remain caller
-policy. `aka_vcts`, when present, is non-empty, bounded, exact-unique and
-cannot contain `vct`.
+name represented by a string. The SDK preserves exact spelling and accepts a
+bounded absolute URI, dotted namespace or UUID-shaped name; ecosystem
+semantics and issuer authorization remain caller policy.
+`aka_vcts`, when present, is non-empty, bounded, exact-unique and cannot
+contain `vct`.
 
 `iss`, `nbf`, `exp`, `cnf`, `vct`, `vct#integrity`, `aka_vcts`, and `status`
 must be present only as clear root claims, never disclosures. `sub` and `iat`
-may be disclosed. Numeric dates must be integral JSON numbers in seconds; the
+may be disclosed. Numeric dates must be finite JSON numbers in seconds; the
 profile does not accept the SDK-TS millisecond heuristic. A known `nbf > exp`
 interval fails structurally, while current-time acceptance remains policy.
 
 If key binding is required by caller input, `cnf` must exist and carry a
-bounded supported confirmation method. The profile correlates the already
-validated holder key class; it does not select or trust a key.
+bounded supported confirmation method. This records a confirmation method
+only; holder-proof verification, key selection and trust remain separate
+caller-owned steps.
 
 ### Issuer discovery inputs
 
@@ -112,7 +114,8 @@ The closed structural choices are:
   profile compares both against the bounded header/key pair retained by the
   verified base value; or
 - JWT VC Issuer Metadata with exact `iss` correlation and exactly one of
-  bounded inline `jwks` or HTTPS `jwks_uri` evidence.
+  bounded inline `jwks` or HTTPS `jwks_uri` evidence. Both forms retain the
+  resolved keys and require the exact issuer-verification key to be present.
 
 The crate does not parse certificates, retrieve URLs, choose a `kid`, validate
 JWK cryptography, or decide that the mechanism is allowed for an issuer. Those
@@ -123,14 +126,22 @@ explicit versioned extension rather than an untyped success boolean.
 
 The first slice validates caller-supplied metadata needed to protect credential
 semantics: exact `vct`, optional bounded `extends` chain, exact-unique claim
-paths, `mandatory`, and `sd` values (`always`, `allowed`, `never`). It validates
+paths with member, array-index and `null` wildcard segments, `mandatory`, and
+`sd` values (`always`, `allowed`, `never`). It validates
 rules against the complete issuer view when available and the presented view
 without treating an undisclosed mandatory claim as proof of issuer failure.
 
 Display, locale, image and SVG data remain bounded opaque metadata and are not
 rendered or executed. Remote retrieval and integrity verification occur before
 the caller constructs validated metadata evidence. Extension traversal has an
-explicit depth/count/work ceiling and rejects cycles.
+explicit aggregate byte/depth/count/work ceiling, independently measures
+retained claim paths rather than trusting a caller byte count, and rejects
+cycles.
+
+The generic verification adapter preserves the stage of optional evidence
+failures: issuer discovery, Type Metadata and status correlation fail their
+respective issuer-key, schema and status stages after signature proof remains
+passed.
 
 ### Status vocabulary and evidence
 

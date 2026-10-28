@@ -56,3 +56,15 @@ candidate train.
 These are unpublished experimental source packages, not part of either
 activated release train. See the [portable-stack walkthrough](../architecture/prism-portable-stack.md)
 for effect boundaries, executable evidence, and downstream adoption status.
+
+## Selective-disclosure credential semantics
+
+![SD-JWT VC stages](../diagrams/sd-jwt-vc-draft22.svg)
+
+| Crate | Kind | Runtime dependency direction |
+| --- | --- | --- |
+| [`identus-sd-jwt`](https://github.com/hyperledger-identus/sdk-rust/tree/develop/crates/sd-jwt) | RFC 9901 mechanics | Depends on JOSE and generic credential/presentation vocabulary |
+| [`identus-sd-jwt-vc`](identus-sd-jwt-vc.md) | Canonical draft-22 VC profile | Depends on the RFC engine and generic credential vocabulary |
+
+Both crates are unpublished experimental source components. Protocol crates
+are dev/test dependencies of the profile, not production foundations.

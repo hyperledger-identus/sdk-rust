@@ -11,11 +11,12 @@ authorization routing.
 
 ## Claims and policy
 
-The existing streaming scanner captures `aud` as one non-empty string or a
-non-empty string array, mandatory integral `iat`, optional integral `exp` and
-`nbf`, and optional non-empty `jti`. Duplicate members, wrong types, empty
-values, overflow, fractional NumericDate, or resource-limit violations fail
-closed. Exact audience membership is required.
+The existing streaming scanner first establishes one bounded, duplicate-free
+JSON object. The security transition then captures `aud` as one non-empty
+string or a non-empty string array, mandatory integral `iat`, optional integral
+`exp` and `nbf`, and optional non-empty `jti` from that verified payload.
+Wrong types, empty values, arithmetic overflow, fractional NumericDate, or
+resource-limit violations fail closed. Exact audience membership is required.
 
 The policy owns an expected audience, finite maximum age, and finite allowed
 skew. Validation uses checked integer arithmetic: expired, not-yet-valid,
@@ -25,9 +26,10 @@ issued-in-future, and stale inputs produce distinct static categories.
 
 The guard receives borrowed, explicitly sensitive evidence after local policy
 validation: bounded `jti` when present, the exact verified payload, client ID,
-audience, issued-at, and effective expiry. It atomically accepts or rejects the
-event. The SDK neither derives a storage key nor dictates persistence. Guard
-unavailability and replay rejection are distinct redacted failures.
+audience, issued-at, and optional signed expiry/not-before values. It atomically
+accepts or rejects the event. The SDK neither derives a storage key nor
+dictates persistence. Guard unavailability and replay rejection are distinct
+redacted failures.
 
 ## Evidence
 

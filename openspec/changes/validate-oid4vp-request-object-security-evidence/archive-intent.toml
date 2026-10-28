@@ -1,5 +1,5 @@
 [[modified_requirement]]
 capability       = "oid4vp-request-object-jar"
 requirement      = "Cryptographic validity does not imply verifier trust"
-canonical_sha256 = "b15d4d9440934f56fbbc114f56a678cbd7e350c4c58128dc7cdc4a34b6718c5e"
+canonical_sha256 = "0dc8350857b5eee9a862456055295d116c5a79dfefd3bbce80122587554ba455"
 reason           = "The security-evidence successor preserves the canonical trust disclaimer while separating signature evidence from audience, freshness, and replay acceptance."

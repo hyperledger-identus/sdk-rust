@@ -15,6 +15,8 @@ use identus_oid4vp::{
 };
 use serde_json::json;
 
+mod support;
+
 const SAMPLES: usize = 21;
 const ITERATIONS: usize = 10;
 const PRIVATE_BYTES: [u8; 32] = [0x71; 32];
@@ -65,6 +67,8 @@ fn validated_request() -> ValidatedAuthorizationRequest {
     let private = Ed25519PrivateKey::from_slice(&PRIVATE_BYTES).unwrap();
     let payload = serde_json::to_vec(&json!({
         "client_id": "decentralized_identifier:did:example:verifier",
+        "aud": identus_oid4vp::STATIC_DISCOVERY_AUDIENCE,
+        "iat": support::NOW_SECONDS - 120,
         "response_type": "vp_token",
         "response_mode": "direct_post",
         "nonce": "fresh-nonce_1",
@@ -107,14 +111,16 @@ fn validated_request() -> ValidatedAuthorizationRequest {
         .unwrap();
     let public = private.to_public_key().encode_jwk();
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).unwrap();
-    unverified
-        .verify(&SignatureSuiteRegistry::recommended(), &key)
-        .unwrap()
-        .into_authorization_request(
-            AuthorizationRequestValidationLimits::default(),
-            DcqlLimits::default(),
-        )
-        .unwrap()
+    support::secure(
+        unverified
+            .verify(&SignatureSuiteRegistry::recommended(), &key)
+            .unwrap(),
+    )
+    .into_authorization_request(
+        AuthorizationRequestValidationLimits::default(),
+        DcqlLimits::default(),
+    )
+    .unwrap()
 }
 
 fn measure(name: &str, mut operation: impl FnMut()) {

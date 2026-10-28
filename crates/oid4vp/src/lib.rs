@@ -21,6 +21,7 @@ mod invocation;
 mod limits;
 mod request_object;
 mod request_object_json;
+mod request_object_security;
 mod request_uri;
 
 pub use authorization_request::{
@@ -46,6 +47,11 @@ pub use limits::{
     RequestUriRetrievalLimits,
 };
 pub use request_object::{REQUEST_OBJECT_JWT_TYPE, UnverifiedRequestObject, VerifiedRequestObject};
+pub use request_object_security::{
+    RequestObjectReplayFailure, RequestObjectReplayFuture, RequestObjectReplayGuard,
+    RequestObjectReplayInput, RequestObjectSecurityEvidence, RequestObjectSecurityPolicy,
+    STATIC_DISCOVERY_AUDIENCE,
+};
 pub use request_uri::{
     FORM_MEDIA_TYPE, REQUEST_OBJECT_MEDIA_TYPE, RequestUriRetrievalInput,
     RequestUriRetrievalRequest,

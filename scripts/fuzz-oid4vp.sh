@@ -9,11 +9,11 @@ target=${2:-direct_post_response}
 case "$mode" in
   replay | smoke | soak) ;;
   *)
-    printf 'Usage: %s {replay|smoke|soak} [direct_post_response|encrypted_direct_post_response]\n' "$0" >&2
+    printf 'Usage: %s {replay|smoke|soak} [direct_post_response|encrypted_direct_post_response|request_object_security]\n' "$0" >&2
     exit 2
     ;;
 esac
-if [[ "$target" != "direct_post_response" && "$target" != "encrypted_direct_post_response" ]]; then
+if [[ "$target" != "direct_post_response" && "$target" != "encrypted_direct_post_response" && "$target" != "request_object_security" ]]; then
   printf 'fuzz-oid4vp: unsupported target: %s\n' "$target" >&2
   exit 2
 fi
@@ -41,8 +41,12 @@ trap 'rm -rf "$tmp_root"' EXIT
 cp -R "$repo_root/fuzz/corpus/$target" "$tmp_root/$target"
 mkdir -p "$repo_root/fuzz/artifacts/$target"
 
+max_len=65536
+if [[ "$target" == "request_object_security" ]]; then
+  max_len=131072
+fi
 common=(
-  -max_len=65536
+  -max_len="$max_len"
   -timeout=5
   -rss_limit_mb=1024
   -reload=0

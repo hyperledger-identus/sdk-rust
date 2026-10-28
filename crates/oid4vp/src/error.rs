@@ -58,6 +58,24 @@ pub mod error_code {
         ErrorCode::new("oid4vp.request_object_client_id_mismatch");
     pub const REQUEST_OBJECT_WALLET_NONCE_MISMATCH: ErrorCode =
         ErrorCode::new("oid4vp.request_object_wallet_nonce_mismatch");
+    pub const INVALID_REQUEST_OBJECT_SECURITY_POLICY: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_request_object_security_policy");
+    pub const INVALID_REQUEST_OBJECT_SECURITY_CLAIMS: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_request_object_security_claims");
+    pub const REQUEST_OBJECT_AUDIENCE_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_audience_mismatch");
+    pub const REQUEST_OBJECT_EXPIRED: ErrorCode = ErrorCode::new("oid4vp.request_object_expired");
+    pub const REQUEST_OBJECT_NOT_YET_VALID: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_not_yet_valid");
+    pub const REQUEST_OBJECT_STALE: ErrorCode = ErrorCode::new("oid4vp.request_object_stale");
+    pub const REQUEST_OBJECT_ISSUED_IN_FUTURE: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_issued_in_future");
+    pub const REQUEST_OBJECT_REPLAY_REJECTED: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_replay_rejected");
+    pub const REQUEST_OBJECT_REPLAY_UNAVAILABLE: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_replay_unavailable");
+    pub const REQUEST_OBJECT_CLOCK_UNAVAILABLE: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_clock_unavailable");
     pub const MISSING_DCQL_QUERY: ErrorCode = ErrorCode::new("oid4vp.missing_dcql_query");
     pub const UNSUPPORTED_DCQL_SCOPE: ErrorCode = ErrorCode::new("oid4vp.unsupported_dcql_scope");
     pub const INVALID_DCQL_QUERY: ErrorCode = ErrorCode::new("oid4vp.invalid_dcql_query");
@@ -186,11 +204,21 @@ pub enum Oid4vpError {
     DirectPostErrorFormTooLarge,
     ResponseModeMismatch,
     ResponseEncryptionFailed,
+    InvalidRequestObjectSecurityPolicy,
+    InvalidRequestObjectSecurityClaims,
+    RequestObjectAudienceMismatch,
+    RequestObjectExpired,
+    RequestObjectNotYetValid,
+    RequestObjectStale,
+    RequestObjectIssuedInFuture,
+    RequestObjectReplayRejected,
+    RequestObjectReplayUnavailable,
+    RequestObjectClockUnavailable,
 }
 
 impl Oid4vpError {
-    /// Ordered error inventory frozen by the v1 contract fixture.
-    pub const CONTRACT_VARIANTS: [Self; 70] = [
+    /// Ordered error inventory with the frozen v1 fixture as its append-only prefix.
+    pub const CONTRACT_VARIANTS: [Self; 80] = [
         Self::InvalidLimits,
         Self::InvocationTooLarge,
         Self::InvalidInvocation,
@@ -261,9 +289,19 @@ impl Oid4vpError {
         Self::DirectPostErrorFormTooLarge,
         Self::ResponseModeMismatch,
         Self::ResponseEncryptionFailed,
+        Self::InvalidRequestObjectSecurityPolicy,
+        Self::InvalidRequestObjectSecurityClaims,
+        Self::RequestObjectAudienceMismatch,
+        Self::RequestObjectExpired,
+        Self::RequestObjectNotYetValid,
+        Self::RequestObjectStale,
+        Self::RequestObjectIssuedInFuture,
+        Self::RequestObjectReplayRejected,
+        Self::RequestObjectReplayUnavailable,
+        Self::RequestObjectClockUnavailable,
     ];
 
-    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 70] = {
+    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 80] = {
         use error_code as code;
         [
             (
@@ -615,6 +653,56 @@ impl Oid4vpError {
                 code::RESPONSE_ENCRYPTION_FAILED,
                 ErrorKind::Crypto,
                 "OID4VP response encryption failed",
+            ),
+            (
+                code::INVALID_REQUEST_OBJECT_SECURITY_POLICY,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object security policy is invalid",
+            ),
+            (
+                code::INVALID_REQUEST_OBJECT_SECURITY_CLAIMS,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object security claims are invalid",
+            ),
+            (
+                code::REQUEST_OBJECT_AUDIENCE_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object audience does not match",
+            ),
+            (
+                code::REQUEST_OBJECT_EXPIRED,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object is expired",
+            ),
+            (
+                code::REQUEST_OBJECT_NOT_YET_VALID,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object is not yet valid",
+            ),
+            (
+                code::REQUEST_OBJECT_STALE,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object is stale",
+            ),
+            (
+                code::REQUEST_OBJECT_ISSUED_IN_FUTURE,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object was issued in the future",
+            ),
+            (
+                code::REQUEST_OBJECT_REPLAY_REJECTED,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object replay policy rejected the object",
+            ),
+            (
+                code::REQUEST_OBJECT_REPLAY_UNAVAILABLE,
+                ErrorKind::Internal,
+                "OID4VP Request Object replay policy is unavailable",
+            ),
+            (
+                code::REQUEST_OBJECT_CLOCK_UNAVAILABLE,
+                ErrorKind::Internal,
+                "OID4VP Request Object clock is unavailable",
             ),
         ]
     };

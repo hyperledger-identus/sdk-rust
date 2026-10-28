@@ -42,7 +42,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `benchmark`
 
-- Command: `cargo bench -p identus-oid4vp --bench request_object_security`
+- Command: `cargo bench -p identus-oid4vp --bench direct_post_response`
 - Budget: Measure deterministic ordinary and near-limit local security transitions over a stable sample set.
 - Receipt: `pending`
 - Evidence revision: `pending`
@@ -50,7 +50,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `differential`
 
-- Command: `cargo test -p identus-oid4vp --test request_object_security packet_`
+- Command: `cargo test -p identus-oid4vp --test direct_post_response packet_executes_full_invocation_jar_dcql_and_response_lineage`
 - Budget: Execute the pinned clean-room Final/RFC packet and compare normalized result classes rather than foreign DTOs or error strings.
 - Receipt: `pending`
 - Evidence revision: `pending`

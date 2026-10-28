@@ -12,11 +12,9 @@ published 2025-07-09 with current errata retrieved 2026-10-28.
 ## Verdict
 
 The bounded protocol core is coherent and executable, but IDR-024 is not yet
-complete. Nine capability groups are implemented. Eight required rows retain a
-bounded partial or unsupported surface and are owned by four focused issues:
+complete. Ten capability groups are implemented. Seven required rows retain a
+bounded partial or unsupported surface and are owned by three focused issues:
 
-- [#544](https://github.com/hyperledger-identus/sdk-rust/issues/544) — Request
-  Object audience, freshness, temporal, and replay evidence;
 - [#545](https://github.com/hyperledger-identus/sdk-rust/issues/545) — client
   identifier schemes and verifier metadata policy ports;
 - [#546](https://github.com/hyperledger-identus/sdk-rust/issues/546) — remaining
@@ -30,12 +28,12 @@ executable condition rather than a subjective issue-count decision.
 
 ## Coverage summary
 
-<!-- oid4vp-summary: implemented=9 partial=9 unsupported=4 not-applicable=3 required-gaps=8 -->
+<!-- oid4vp-summary: implemented=10 partial=8 unsupported=4 not-applicable=3 required-gaps=7 -->
 
 | Status | Rows | Meaning |
 | --- | ---: | --- |
-| Implemented | 9 | Bounded implementation, canonical contract, and executable tests exist. |
-| Partial | 9 | A real executable subset exists with an exact limitation. |
+| Implemented | 10 | Bounded implementation, canonical contract, and executable tests exist. |
+| Partial | 8 | A real executable subset exists with an exact limitation. |
 | Unsupported | 4 | The current profile deliberately has no implementation. |
 | Not applicable | 3 | The behavior belongs to an independently versioned capability. |
 
@@ -52,7 +50,10 @@ OpenID4VP invocation
 bounded Request URI envelope ── runtime adapter performs HTTP
         │
         ▼
-signed Request Object ── JWS verification ── DCQL validation
+signed Request Object ── JWS verification ── audience/time/replay evidence
+        │                                      │
+        │                                      ▼
+        │                              DCQL validation
         │                                      │
         │                                      ▼
         │                             caller selects presentations
@@ -76,8 +77,9 @@ and verification.
 
 - **Section 5:** static by-reference invocation, bounded GET/POST Request URI,
   JAR signature/type/client correlation, and the current request profile are
-  executable. Audience/time/replay and scheme-specific verifier authority are
-  not yet bound.
+  executable. Discovery-bound audience, injected time policy and atomic replay
+  acceptance are bound before typed routing; scheme-specific verifier authority
+  remains separate.
 - **Sections 6–7:** DCQL validation, bounded evaluation, credential-set rules,
   and generic JSON claims paths are implemented behind SDK-owned types.
 - **Section 8:** request-bound `vp_token`, plain `direct_post`, explicit errors,
@@ -89,8 +91,9 @@ and verification.
   encrypted-response recipient metadata is interpreted. General metadata,
   client-scheme binding, and verifier attestation remain outside this subset.
 - **Sections 13–15:** selected static/direct-post implementation guidance and
-  security controls are present. Trust, replay policy, consent, and privacy
-  remain explicit caller responsibilities.
+  security controls are present. Replay storage and atomic decision policy stay
+  caller-owned behind the SDK port; trust, consent, and privacy remain explicit
+  product responsibilities.
 - **Appendices A–C:** DC API, credential-format engines, and combined SIOPv2
   are separate capabilities and cannot be inferred from this HTTPS profile.
 
@@ -99,7 +102,8 @@ and verification.
 The clean-room direct-post packet executes:
 
 ```text
-invocation → retrieval binding → signed JAR verification → DCQL validation
+invocation → retrieval binding → signed JAR verification
+           → audience/time/atomic replay acceptance → DCQL validation
            → caller-selected presentation → exact request-bound form response
 ```
 
@@ -116,7 +120,6 @@ or mutated. The canaries are not compatibility promises.
 
 ```text
 #541 executable Final matrix and durable closeout owner
- ├── #544 Request Object security evidence
  ├── #545 client scheme and verifier metadata ports
  ├── #546 redirect response modes
  └── #547 transaction and format metadata ports

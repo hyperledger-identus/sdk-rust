@@ -12,8 +12,8 @@ use serde_json::{Map, Value};
 use zeroize::Zeroizing;
 
 use crate::{
-    AuthorizationRequestValidationLimits, DcqlLimits, Oid4vpError, ValidatedDcqlQuery,
-    VerifiedRequestObject,
+    AuthorizationRequestValidationLimits, DcqlLimits, Oid4vpError, RequestObjectSecurityEvidence,
+    ValidatedDcqlQuery,
 };
 
 /// Supported OpenID4VP Authorization Response type.
@@ -59,8 +59,8 @@ pub struct ValidatedAuthorizationRequest {
     encryption_plan: Option<DirectPostEncryptionPlan>,
 }
 
-impl VerifiedRequestObject {
-    /// Consume verified JAR evidence into one bounded Final request state.
+impl RequestObjectSecurityEvidence {
+    /// Consume security-validated JAR evidence into one bounded Final request state.
     ///
     /// # Errors
     ///
@@ -86,7 +86,7 @@ impl VerifiedRequestObject {
         dcql_limits: DcqlLimits,
         jwe_limits: JweLimits,
     ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
-        let parts = self.into_parts();
+        let parts = self.into_request().into_parts();
         let Value::Object(request) = serde_json::from_slice(parts.payload.as_slice())
             .map_err(|_| Oid4vpError::InvalidRequestObjectPayload)?
         else {

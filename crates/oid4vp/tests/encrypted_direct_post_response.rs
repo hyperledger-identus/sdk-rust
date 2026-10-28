@@ -19,6 +19,8 @@ use identus_oid4vp::{
 };
 use serde_json::{Value, json};
 
+mod support;
+
 const REQUEST_SIGNING_KEY: [u8; 32] = [0x71; 32];
 const RESPONSE_KEY: [u8; 32] = [0x42; 32];
 const CLIENT_ID: &str = "decentralized_identifier:did:example:verifier";
@@ -79,6 +81,8 @@ fn encrypted_request() -> Value {
         .encode_uncompressed();
     json!({
         "client_id": CLIENT_ID,
+        "aud": identus_oid4vp::STATIC_DISCOVERY_AUDIENCE,
+        "iat": support::ISSUED_AT_SECONDS,
         "response_type": "vp_token",
         "response_mode": "direct_post.jwt",
         "nonce": "fresh-nonce_1",
@@ -145,15 +149,17 @@ fn validated(
         .to_public_key()
         .encode_jwk();
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).expect("verification key");
-    object
-        .verify(&SignatureSuiteRegistry::recommended(), &key)
-        .expect("verified")
-        .into_authorization_request_with_jwe_limits(
-            AuthorizationRequestValidationLimits::default(),
-            DcqlLimits::default(),
-            jwe_limits,
-        )
-        .expect("validated")
+    support::secure(
+        object
+            .verify(&SignatureSuiteRegistry::recommended(), &key)
+            .expect("verified"),
+    )
+    .into_authorization_request_with_jwe_limits(
+        AuthorizationRequestValidationLimits::default(),
+        DcqlLimits::default(),
+        jwe_limits,
+    )
+    .expect("validated")
 }
 
 fn result(limits: DirectPostResponseLimits) -> DirectPostQueryResult {
@@ -412,15 +418,17 @@ fn validation_error(request: &Value, limits: JweLimits) -> Oid4vpError {
         .to_public_key()
         .encode_jwk();
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).expect("key");
-    object
-        .verify(&SignatureSuiteRegistry::recommended(), &key)
-        .expect("verified")
-        .into_authorization_request_with_jwe_limits(
-            AuthorizationRequestValidationLimits::default(),
-            DcqlLimits::default(),
-            limits,
-        )
-        .unwrap_err()
+    support::secure(
+        object
+            .verify(&SignatureSuiteRegistry::recommended(), &key)
+            .expect("verified"),
+    )
+    .into_authorization_request_with_jwe_limits(
+        AuthorizationRequestValidationLimits::default(),
+        DcqlLimits::default(),
+        limits,
+    )
+    .unwrap_err()
 }
 
 #[test]

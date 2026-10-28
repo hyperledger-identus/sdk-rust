@@ -4,13 +4,13 @@
 
 - [x] 1.1 Research Final/RFC requirements, reusable crates, existing ports, and dependency impact.
 - [x] 1.2 Record constraints, state ownership, compatibility, rollback, ADR, and delta specification.
-- [ ] 1.3 Pass planning readiness, commit the planning-only contract, and write issue-bound preflight.
+- [x] 1.3 Pass planning readiness, commit the planning-only contract, and write issue-bound preflight.
 
 ## 2. Implementation
 
-- [ ] 2.1 Extend bounded claim capture with audience and temporal/JWT-ID claims.
-- [ ] 2.2 Add policy, clock/replay ports, static errors, and consuming security-evidence state.
-- [ ] 2.3 Move typed routing successors to security evidence and update public documentation.
+- [x] 2.1 Extend bounded claim capture with audience and temporal/JWT-ID claims.
+- [x] 2.2 Add policy, clock/replay ports, static errors, and consuming security-evidence state.
+- [x] 2.3 Move typed routing successors to security evidence and update public documentation.
 
 ## 3. Evidence and closeout
 

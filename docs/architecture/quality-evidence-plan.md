@@ -745,34 +745,31 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
-| `property` | `required` | `focused` | `on-change` | `pending` | #569 |
-| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #569 |
-| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #569 |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #569 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #569 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #569 |
 | `differential` | `required` | `fast` | `per-pull-request` | `pending` | #569 |
 
 ### `property`
 
 - Command: `cargo test -p identus-sd-jwt-vc --test properties`
 - Budget: Sweep types, additional types, protected claims, dates, metadata chains, claim paths, issuer and status evidence, ordering and exact boundaries.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #569
+- Receipt: `source:crates/sd-jwt-vc/tests/properties.rs`
+- Evidence revision: `b24862fb503ade957bea90d40edef62011ffb5b4`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-sd-jwt-vc.sh soak`
 - Budget: Run profile claims, metadata, issuer evidence, status and base/profile transition targets for 300 seconds each with max_len=1048576, timeout=5 and rss_limit_mb=1024.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #569
+- Receipt: `source:fuzz/fuzz_targets/sd_jwt_vc.rs`
+- Evidence revision: `b24862fb503ade957bea90d40edef62011ffb5b4`
 
 ### `benchmark`
 
 - Command: `cargo bench -p identus-sd-jwt-vc --bench directional`
 - Budget: Measure ordinary, exact-boundary, early-rejection, maximum extension-chain and status-correlation cases with directional elapsed-time evidence.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #569
+- Receipt: `source:crates/sd-jwt-vc/benches/directional.rs`
+- Evidence revision: `b24862fb503ade957bea90d40edef62011ffb5b4`
 
 ### `differential`
 

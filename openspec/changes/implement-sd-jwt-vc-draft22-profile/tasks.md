@@ -35,12 +35,12 @@
 - [x] 5.4 Add normal, boundary, early-rejection, metadata-chain and status benchmarks.
 - [x] 5.5 Record the source-bound SDK-TS legacy disagreement and explicit issue #573 debt because no two assessed engines implement the complete exact draft-22 profile.
 - [ ] 5.6 Activate `credentials.sd-jwt-vc.draft22.quality.v1`, `IDR-021`, the consumer-change ledger and deterministic draft-watch metadata only after required routes pass.
-- [ ] 5.7 Capture native, MSRV, dependency/advisory, WASM, iOS and Android evidence without converting compile-only results into runtime claims.
+- [x] 5.7 Capture native, MSRV, dependency/advisory, WASM, iOS and Android evidence without converting compile-only results into runtime claims.
 
 ## 6. Review and delivery
 
-- [ ] 6.1 Run focused and workspace format, Clippy, tests, docs, factory, Nix, conformance and exact-head evidence routes.
-- [ ] 6.2 Run Claude CLI review or immediate Codex CLI fallback; resolve every actionable blocker/high/medium finding and rerun proportionate gates.
+- [x] 6.1 Run focused and workspace format, Clippy, tests, docs, factory, Nix, conformance and exact-head evidence routes.
+- [x] 6.2 Run Claude CLI review or immediate Codex CLI fallback; resolve every actionable blocker/high/medium finding and rerun proportionate gates.
 - [ ] 6.3 Archive OpenSpec, open the signed/DCO issue-linked PR, monitor protected CI, merge only when green, publish metrics and close delivered backlog.
 
 ## 7. Stop boundary

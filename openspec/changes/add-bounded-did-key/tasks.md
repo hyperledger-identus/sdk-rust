@@ -25,7 +25,9 @@
 
 - [x] 4.1 Run exact-head Claude review or immediate Codex CLI fallback.
 - [x] 4.2 Resolve actionable blocker/high/medium findings and rerun proportionate gates.
-- [ ] 4.3 Archive OpenSpec, publish metrics, and deliver the issue-linked PR.
+- [x] 4.3 Prepare the OpenSpec archive and signed/DCO issue-linked PR packet;
+  hosted exact-head CI, metrics publication, guarded merge, and issue
+  reconciliation remain GitHub delivery evidence.
 
 ## 5. Stop boundary
 

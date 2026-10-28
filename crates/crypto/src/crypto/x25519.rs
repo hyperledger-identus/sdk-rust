@@ -43,6 +43,19 @@ impl X25519PublicKey {
         })?;
         Ok(Self(PublicKey::from(arr)))
     }
+
+    /// Return whether this public key can produce a contributory shared secret.
+    ///
+    /// Low-order public keys produce an all-zero shared secret for every X25519
+    /// private key and must be rejected by protocols that require contributory
+    /// key agreement. This classification uses a fixed non-secret scalar and
+    /// does not consume or expose caller-owned private material.
+    #[must_use]
+    pub fn is_contributory(&self) -> bool {
+        StaticSecret::from([0x42; KEY_SIZE])
+            .diffie_hellman(&self.0)
+            .was_contributory()
+    }
 }
 
 impl X25519PrivateKey {

@@ -26,13 +26,15 @@ storage, transport, executor, product policy, or global registration.
 | Multibase | canonical base58-btc `z` | base64url `u` |
 | Public keys | Ed25519, X25519, P-256, secp256k1 | P-384, BLS, RSA, private codecs |
 | Verification method | one `Multikey` with `publicKeyMultibase` | donor-specific DTOs and alternate suites |
-| Relationships | X25519: key agreement; signing curves: authentication, assertion, capability invocation/delegation | implicit Ed25519-to-X25519 derivation |
+| Relationships | contributory X25519: key agreement; signing curves: authentication, assertion, capability invocation/delegation | low-order X25519 and implicit Ed25519-to-X25519 derivation |
 | Operations | create, parse, deterministic local resolve | update, deactivate, network resolution |
+| Representations | context-free `application/did+json`; DID Core + Multikey contexts for `application/did+ld+json` | JSON-LD processing or expansion |
 
 The method-specific identifier is limited to 128 bytes and decoded material to
 67 bytes. Base58 is decoded into a fixed stack buffer. Codec varints, exact key
 length, curve points, and canonical re-encoding are checked before projection.
-Errors expose categories, never identifier or key content.
+X25519 inputs must also be contributory. Errors expose categories, never
+identifier or key content.
 
 ## Explicit registry composition
 
@@ -49,7 +51,9 @@ let registry = DidMethodRegistry::builder()
 No global default changes when the crate is linked. The deterministic E2E in
 `crates/did-key/tests/registry_e2e.rs` creates a DID, resolves it through this
 opt-in registry, serializes/reparses the generic document, and proves the
-fingerprint and relationships survive without I/O.
+fingerprint and relationships survive without I/O. It also negotiates the
+JSON-LD representation and proves the DID Core and Multikey contexts are
+present only on that representation.
 
 ## Evidence and adoption
 

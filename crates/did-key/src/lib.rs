@@ -11,9 +11,10 @@ use identus_crypto::{
     Ed25519PublicKey, EncodeVec, P256PublicKey, Secp256k1PublicKey, X25519PublicKey,
 };
 use identus_did::{
-    Did, DidDocument, DidDocumentMetadata, DidMethod, DidMethodBinding, DidResolutionError,
-    DidResolutionErrorKind, DidResolutionFuture, DidResolutionMetadata, DidResolutionResult,
-    DidResolver, MediaType, ResolutionOptions, Uri, VerificationMethod, VerificationRelationship,
+    ContextEntry, Did, DidDocument, DidDocumentMetadata, DidMethod, DidMethodBinding,
+    DidResolutionError, DidResolutionErrorKind, DidResolutionFuture, DidResolutionMetadata,
+    DidResolutionResult, DidResolver, MediaType, OneOrMany, ResolutionOptions, Uri,
+    VerificationMethod, VerificationRelationship,
 };
 use serde_json::Value;
 
@@ -25,6 +26,8 @@ pub const MAX_DECODED_KEY_BYTES: usize = 67;
 const DID_PREFIX: &str = "did:key:";
 const DID_JSON: &str = "application/did+json";
 const DID_LD_JSON: &str = "application/did+ld+json";
+const DID_CORE_CONTEXT: &str = "https://www.w3.org/ns/did/v1";
+const MULTIKEY_CONTEXT: &str = "https://w3id.org/security/multikey/v1";
 const ED25519_PUB: u64 = 0xed;
 const X25519_PUB: u64 = 0xec;
 const SECP256K1_PUB: u64 = 0xe7;
@@ -108,6 +111,15 @@ impl From<Secp256k1PublicKey> for PublicKey {
 }
 
 impl PublicKey {
+    fn validate(&self) -> Result<(), Error> {
+        if let Self::X25519(key) = self
+            && !key.is_contributory()
+        {
+            return Err(Error::InvalidPublicKey);
+        }
+        Ok(())
+    }
+
     fn codec(&self) -> u64 {
         match self {
             Self::Ed25519(_) => ED25519_PUB,
@@ -143,6 +155,7 @@ impl DidKey {
     /// Create a canonical DID from a supported public key.
     pub fn create(public_key: impl Into<PublicKey>) -> Result<Self, Error> {
         let public_key = public_key.into();
+        public_key.validate()?;
         let fingerprint = encode_fingerprint(&public_key);
         let did =
             Did::parse(&format!("{DID_PREFIX}{fingerprint}")).map_err(|_| Error::Projection)?;
@@ -204,6 +217,10 @@ impl DidKey {
 
     /// Resolve this DID to its deterministic DID document.
     pub fn resolve(&self) -> Result<DidDocument, Error> {
+        self.resolve_document(false)
+    }
+
+    fn resolve_document(&self, json_ld: bool) -> Result<DidDocument, Error> {
         let method_uri = Uri::parse(&format!("{}#{}", self.did, self.fingerprint))
             .map_err(|_| Error::Projection)?;
         let mut properties = BTreeMap::new();
@@ -219,7 +236,22 @@ impl DidKey {
         )
         .map_err(|_| Error::Projection)?;
         let relationship = || VerificationRelationship::Reference(method_uri.clone());
-        let builder = DidDocument::builder(self.did.clone()).verification_methods(vec![method]);
+        let builder = DidDocument::builder(self.did.clone());
+        let builder = if json_ld {
+            let contexts = OneOrMany::try_many(vec![
+                ContextEntry::Uri(
+                    Uri::parse(DID_CORE_CONTEXT).expect("fixed DID Core context URI is valid"),
+                ),
+                ContextEntry::Uri(
+                    Uri::parse(MULTIKEY_CONTEXT).expect("fixed Multikey context URI is valid"),
+                ),
+            ])
+            .expect("fixed did:key JSON-LD contexts are non-empty");
+            builder.context(contexts)
+        } else {
+            builder
+        };
+        let builder = builder.verification_methods(vec![method]);
         let builder = if self.public_key.is_agreement() {
             builder.key_agreement(vec![relationship()])
         } else {
@@ -291,7 +323,11 @@ fn decode_fingerprint(fingerprint: &str) -> Result<PublicKey, Error> {
             .map_err(|_| Error::InvalidPublicKey),
         X25519_PUB if key.len() == 32 => X25519PublicKey::from_slice(key)
             .map(PublicKey::X25519)
-            .map_err(|_| Error::InvalidPublicKey),
+            .map_err(|_| Error::InvalidPublicKey)
+            .and_then(|key| {
+                key.validate()?;
+                Ok(key)
+            }),
         P256_PUB if key.len() == 33 => P256PublicKey::from_slice(key)
             .map(PublicKey::P256)
             .map_err(|_| Error::InvalidPublicKey),
@@ -357,7 +393,7 @@ fn resolve_result(did: &Did, options: &ResolutionOptions) -> DidResolutionResult
         }
         Err(_) => return resolution_failure(DidResolutionErrorKind::InvalidDid),
     };
-    let document = match parsed.resolve() {
+    let document = match parsed.resolve_document(selected == DID_LD_JSON) {
         Ok(document) => document,
         Err(_) => return resolution_failure(DidResolutionErrorKind::InvalidDidDocument),
     };
@@ -400,5 +436,16 @@ mod tests {
             "invalid did:key public key"
         );
         assert!(!Error::ResourceLimit.to_string().contains("did:key:z"));
+    }
+
+    #[test]
+    fn non_contributory_x25519_keys_are_rejected() {
+        let public_key = X25519PublicKey::from_slice(&[0; 32]).unwrap();
+        assert_eq!(DidKey::create(public_key), Err(Error::InvalidPublicKey));
+
+        let mut bytes = encode_uvarint(X25519_PUB);
+        bytes.extend([0; 32]);
+        let did = format!("{DID_PREFIX}z{}", bs58::encode(bytes).into_string());
+        assert_eq!(DidKey::parse(&did), Err(Error::InvalidPublicKey));
     }
 }

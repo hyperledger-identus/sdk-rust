@@ -22,12 +22,18 @@ and direct Ed25519, X25519, P-256, and secp256k1 public-key multicodecs already
 validated by `identus-crypto`. Creation receives typed public keys; parsing
 requires canonical unsigned varints, exact lengths, valid curve points, and
 canonical re-encoding under explicit 128-byte text and 67-byte decoded limits.
+Direct X25519 creation and parsing additionally reject low-order public keys
+that cannot produce a contributory shared secret.
 
 Resolve to one `Multikey` with `publicKeyMultibase`. Direct X25519 projects only
 to `keyAgreement`; signing keys project to authentication, assertion,
 capability invocation, and capability delegation. Do not derive X25519 from
 Ed25519. Keep the codec implementation method-local until another delivered
 owner proves a genuinely identical shared contract.
+
+Keep the representation-neutral `DidKey::resolve` result free of a JSON-LD
+context. When the generic resolver negotiates `application/did+ld+json`, add
+the DID Core and Multikey contexts; `application/did+json` remains context-free.
 
 Use the pinned DIF, Spruce, Impierce, and SDK-TS behavior only as attributed
 fixtures or differential oracles. No oracle enters a dependency table. Rust

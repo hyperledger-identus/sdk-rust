@@ -12,13 +12,15 @@ network, runtime, store, or global registry.
 | Encoding | canonical base58-btc `z` | base64url `u`, non-canonical varints |
 | Public keys | Ed25519, X25519, P-256, secp256k1 | private codecs, P-384, BLS, RSA |
 | Verification method | `Multikey` with `publicKeyMultibase` | donor DTOs and alternate suites |
-| Relationships | direct X25519 key agreement; four signing/capability relationships for signing curves | implicit Ed25519-to-X25519 conversion |
+| Relationships | contributory direct X25519 key agreement; four signing/capability relationships for signing curves | low-order X25519 and implicit Ed25519-to-X25519 conversion |
 | Operations | create, parse, deterministic local resolve | update, deactivate, network resolution |
+| Representations | context-free DID JSON; DID Core + Multikey contexts for DID JSON-LD | JSON-LD processing or expansion |
 
 The method-specific identifier is limited to 128 bytes and decoded public
 material to 67 bytes. Parsing uses a fixed stack buffer, canonical unsigned
 varints, exact key lengths, SDK curve validation, canonical re-encoding, and
-content-free error categories.
+content-free error categories. X25519 public keys must also produce a
+contributory shared secret.
 
 ## Explicit composition
 
@@ -42,6 +44,8 @@ The fixture-driven conformance suite binds the pinned did:key v0.9 draft to
 independent DIF, Spruce, and Impierce Rust oracles without adding those crates
 as dependencies. Property tests, a registry E2E, a bounded fuzz target, and a
 directional benchmark cover the selected profile.
+The registry E2E additionally proves representation negotiation: DID JSON is
+context-free while DID JSON-LD carries the DID Core and Multikey contexts.
 
 Run the readable local E2E:
 

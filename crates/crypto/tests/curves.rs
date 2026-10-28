@@ -118,6 +118,17 @@ fn x25519_from_slice_rejects_wrong_length() {
 }
 
 #[test]
+fn x25519_classifies_non_contributory_public_keys() {
+    let low_order = X25519PublicKey::from_slice(&[0; 32]).unwrap();
+    let ordinary = identus_crypto::X25519PrivateKey::from_slice(&[42; 32])
+        .unwrap()
+        .to_public_key();
+
+    assert!(!low_order.is_contributory());
+    assert!(ordinary.is_contributory());
+}
+
+#[test]
 fn x25519_jwk() {
     let mut rng = DetRandom::new();
     let kp = X25519KeyPair::generate(&mut rng).unwrap();

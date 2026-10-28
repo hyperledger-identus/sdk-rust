@@ -9,7 +9,8 @@ crate. The first profile SHALL accept only canonical base58-btc `z` method
 identifiers carrying direct Ed25519, X25519, P-256, or secp256k1 public-key
 multicodecs. Creation SHALL consume typed caller-owned public keys and parsing
 SHALL validate canonical varints, exact key lengths, curve points, re-encoding,
-and public text/decoded byte ceilings.
+and public text/decoded byte ceilings. X25519 public keys SHALL additionally be
+rejected when they cannot produce a contributory shared secret.
 
 #### Scenario: a supported public key creates a canonical DID
 
@@ -20,7 +21,8 @@ and public text/decoded byte ceilings.
 #### Scenario: non-canonical or unsupported input is received
 
 - **WHEN** an identifier uses `u`, an overlong varint, unknown/private codec,
-  wrong key length, invalid curve point, trailing data, or non-canonical text
+  wrong key length, invalid curve point, low-order X25519 key, trailing data,
+  or non-canonical text
 - **THEN** parsing fails with a stable redacted category and returns no key
 
 #### Scenario: an input exceeds a public boundary
@@ -37,6 +39,8 @@ canonical fingerprint. Direct X25519 keys SHALL appear only in `keyAgreement`.
 Ed25519, P-256, and secp256k1 keys SHALL appear in authentication,
 assertionMethod, capabilityInvocation, and capabilityDelegation. Resolution
 SHALL NOT derive another key or perform I/O.
+The resolver SHALL return a context-free document for `application/did+json`
+and add the DID Core and Multikey contexts for `application/did+ld+json`.
 
 #### Scenario: a signing key is resolved
 
@@ -54,6 +58,12 @@ SHALL NOT derive another key or perform I/O.
 - **WHEN** a caller explicitly registers the method with the generic registry
 - **THEN** create/parse/resolve completes locally with the same canonical
   document while unrelated SDK users receive no new global default
+
+#### Scenario: JSON-LD representation is negotiated
+
+- **WHEN** the resolver receives `application/did+ld+json`
+- **THEN** its document includes the DID Core and Multikey contexts while the
+  default `application/did+json` representation remains context-free
 
 ### Requirement: did:key remains custody-neutral and independently evidenced
 

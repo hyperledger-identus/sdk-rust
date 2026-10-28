@@ -5,7 +5,7 @@ use std::{
 };
 
 use identus_crypto::Ed25519PrivateKey;
-use identus_did::{DidMethodRegistry, DidResolver, ResolutionOptions};
+use identus_did::{ContextEntry, DidMethodRegistry, DidResolver, MediaType, ResolutionOptions};
 use identus_did_key::{DidKey, DidKeyResolver};
 
 #[test]
@@ -29,6 +29,51 @@ fn opt_in_registry_round_trip_is_deterministic_and_effect_free() {
     assert_eq!(
         reparsed.verification_methods().unwrap()[0].public_key_multibase(),
         Some(created.fingerprint())
+    );
+    assert!(document.context().is_none());
+}
+
+#[test]
+fn registry_projects_json_ld_contexts_for_json_ld_representation() {
+    let created = DidKey::create(
+        Ed25519PrivateKey::from_slice(&[43; 32])
+            .unwrap()
+            .to_public_key(),
+    )
+    .unwrap();
+    let registry = DidMethodRegistry::builder()
+        .register(DidKeyResolver.into_method_binding())
+        .unwrap()
+        .build();
+    let options = ResolutionOptions::builder()
+        .accept(MediaType::parse("application/did+ld+json").unwrap())
+        .build()
+        .unwrap();
+
+    let result = block_on(registry.resolve(created.did(), &options));
+    assert_eq!(
+        result.metadata().content_type().unwrap().as_str(),
+        "application/did+ld+json"
+    );
+    let contexts = result
+        .document()
+        .expect("local JSON-LD document")
+        .context()
+        .expect("JSON-LD contexts")
+        .as_slice();
+    let context_uris: Vec<_> = contexts
+        .iter()
+        .map(|context| match context {
+            ContextEntry::Uri(uri) => uri.as_str(),
+            ContextEntry::Object(_) => panic!("did:key contexts are URI-only"),
+        })
+        .collect();
+    assert_eq!(
+        context_uris,
+        [
+            "https://www.w3.org/ns/did/v1",
+            "https://w3id.org/security/multikey/v1"
+        ]
     );
 }
 

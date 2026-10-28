@@ -16,6 +16,7 @@
 #![forbid(unsafe_code)]
 
 mod authorization_request;
+mod credential_format;
 mod dcql;
 mod direct_post;
 mod direct_post_acknowledgement;
@@ -28,10 +29,14 @@ mod request_object;
 mod request_object_json;
 mod request_object_security;
 mod request_uri;
+mod transaction_data;
 mod verifier_authorization;
 
 pub use authorization_request::{
     AuthorizationResponseMode, AuthorizationResponseType, ValidatedAuthorizationRequest,
+};
+pub use credential_format::{
+    CredentialFormat, CredentialFormatCapability, CredentialFormatCapabilityError,
 };
 pub use dcql::{
     DcqlCandidate, DcqlClaimError, DcqlCombination, DcqlCombinationMember, DcqlCredential,
@@ -63,6 +68,10 @@ pub use request_object_security::{
 pub use request_uri::{
     FORM_MEDIA_TYPE, REQUEST_OBJECT_MEDIA_TYPE, RequestUriRetrievalInput,
     RequestUriRetrievalRequest,
+};
+pub use transaction_data::{
+    SelectedCredentialInput, TransactionBinding, TransactionDataCapability,
+    TransactionDataCapabilityError, TransactionDataLimits,
 };
 pub use verifier_authorization::{
     ClientIdentifierScheme, VerifierAuthorizationEvidence, VerifierAuthorizationLimits,

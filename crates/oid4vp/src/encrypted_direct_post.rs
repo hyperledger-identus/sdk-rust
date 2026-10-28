@@ -43,7 +43,7 @@ impl ValidatedAuthorizationRequest {
             return Err(Oid4vpError::TooManyQueryResults);
         }
         validate_result_limits(&results, response_limits)?;
-        let (destination, state, query, _mode, encryption_plan) = self.into_response_parts();
+        let (destination, state, query, _mode, encryption_plan) = self.into_response_parts()?;
         let AuthorizationResponseDestination::ResponseUri(target) = destination else {
             return Err(Oid4vpError::ResponseModeMismatch);
         };

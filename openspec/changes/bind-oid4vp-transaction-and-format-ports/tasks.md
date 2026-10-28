@@ -8,13 +8,13 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Add bounded SDK-owned format identifiers and capability ports.
-- [ ] 2.2 Add exact transaction-data parsing, type capability validation, and DCQL reference linkage.
-- [ ] 2.3 Retain request lineage and validate selected presentation binding inputs.
+- [x] 2.1 Add bounded SDK-owned format identifiers and capability ports.
+- [x] 2.2 Add exact transaction-data parsing, type capability validation, and DCQL reference linkage.
+- [x] 2.3 Retain request lineage and validate selected presentation binding inputs.
 
 ## 3. Evidence and closeout
 
-- [ ] 3.1 Add clean-room full-lineage E2E, format-adapter, boundary, negative, and property cases.
+- [x] 3.1 Add clean-room full-lineage E2E, format-adapter, boundary, negative, and property cases.
 - [ ] 3.2 Add quality declaration, fuzz, benchmark, redaction, portable, and differential evidence.
 - [ ] 3.3 Update ADR, knowledge base, conformance/resource/change ledgers, and adopter guidance.
 - [ ] 3.4 Pass local/Nix/factory gates and exact-head Claude-or-Codex CLI review.

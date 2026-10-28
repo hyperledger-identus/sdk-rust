@@ -1,13 +1,17 @@
+use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use identus_crypto::{Ed25519PrivateKey, EncodeJwk, PublicKeyJwk};
 use identus_jose::{
-    Ed25519Signer, JwsAlgorithm, JwsLimits, JwsSigningInput, JwsVerificationKey, ProtectedHeader,
-    SignatureSuiteRegistry,
+    Ed25519Signer, JweLimits, JwsAlgorithm, JwsLimits, JwsSigningInput, JwsVerificationKey,
+    ProtectedHeader, SignatureSuiteRegistry,
 };
 use identus_oid4vp::{
     AuthorizationRequestInvocation, AuthorizationRequestInvocationLimits,
     AuthorizationRequestValidationLimits, AuthorizationResponseMode, AuthorizationResponseType,
-    DcqlLimits, Oid4vpError, REQUEST_OBJECT_JWT_TYPE, REQUEST_OBJECT_MEDIA_TYPE,
-    RequestObjectValidationLimits, RequestUriRetrievalInput, RequestUriRetrievalLimits,
+    CredentialFormat, CredentialFormatCapability, CredentialFormatCapabilityError, DcqlLimits,
+    DirectPostPresentation, DirectPostQueryResult, DirectPostResponseLimits, Oid4vpError,
+    REQUEST_OBJECT_JWT_TYPE, REQUEST_OBJECT_MEDIA_TYPE, RequestObjectValidationLimits,
+    RequestUriRetrievalInput, RequestUriRetrievalLimits, SelectedCredentialInput,
+    TransactionDataCapability, TransactionDataCapabilityError, TransactionDataLimits,
     ValidatedAuthorizationRequest,
 };
 use serde_json::{Value, json};
@@ -361,6 +365,199 @@ fn routing_limits_require_positive_values() {
     );
     assert_eq!(
         AuthorizationRequestValidationLimits::default().with_max_state_bytes(0),
+        Err(Oid4vpError::InvalidLimits)
+    );
+}
+
+struct SdJwtFormat;
+
+impl CredentialFormatCapability for SdJwtFormat {
+    fn format(&self) -> CredentialFormat {
+        CredentialFormat::DcSdJwt
+    }
+
+    fn validate_metadata(&self, metadata: &Value) -> Result<(), CredentialFormatCapabilityError> {
+        metadata
+            .get("vct_values")
+            .and_then(Value::as_array)
+            .filter(|values| !values.is_empty())
+            .map(|_| ())
+            .ok_or(CredentialFormatCapabilityError::InvalidMetadata)
+    }
+
+    fn supports_transaction_type(&self, transaction_type: &str) -> bool {
+        transaction_type == "payment_data"
+    }
+}
+
+struct PaymentData;
+
+impl TransactionDataCapability for PaymentData {
+    fn transaction_type(&self) -> &str {
+        "payment_data"
+    }
+
+    fn validate(&self, value: &Value) -> Result<(), TransactionDataCapabilityError> {
+        value
+            .get("amount")
+            .and_then(Value::as_u64)
+            .filter(|amount| *amount > 0)
+            .map(|_| ())
+            .ok_or(TransactionDataCapabilityError::Invalid)
+    }
+}
+
+#[test]
+fn transaction_data_flows_from_signed_request_to_selected_format_input() {
+    let mut request = valid_request();
+    request["dcql_query"]["credentials"][0]["meta"] =
+        json!({"vct_values": ["urn:example:payment-credential"]});
+    let transaction = json!({
+        "type": "payment_data",
+        "credential_ids": ["pid"],
+        "amount": 42
+    });
+    let encoded = URL_SAFE_NO_PAD.encode(serde_json::to_vec(&transaction).unwrap());
+    request["transaction_data"] = json!([encoded]);
+
+    let format = SdJwtFormat;
+    let transaction = PaymentData;
+    let validate = || {
+        support::authorize(support::secure(verified_request(&request)))
+            .into_authorization_request_with_transaction_capabilities(
+                AuthorizationRequestValidationLimits::default(),
+                DcqlLimits::default(),
+                JweLimits::default(),
+                TransactionDataLimits::default(),
+                &[&format],
+                &[&transaction],
+            )
+            .expect("supported transaction request")
+    };
+
+    let response_limits = DirectPostResponseLimits::default();
+    let result = DirectPostQueryResult::new(
+        "pid",
+        vec![DirectPostPresentation::string("presentation", response_limits).unwrap()],
+        response_limits,
+    )
+    .unwrap();
+    assert_eq!(
+        validate()
+            .into_direct_post_response(vec![result], response_limits)
+            .unwrap_err(),
+        Oid4vpError::InvalidTransactionData
+    );
+
+    let validated = validate();
+
+    assert_eq!(validated.transaction_data_count(), 1);
+    let (validated, bindings) = validated
+        .bind_transaction_data(&[SelectedCredentialInput::new(
+            "pid",
+            CredentialFormat::DcSdJwt,
+        )])
+        .expect("selected format binding");
+    assert_eq!(bindings.len(), 1);
+    assert_eq!(bindings[0].transaction_type(), "payment_data");
+    assert_eq!(bindings[0].expose_sensitive_encoded(), encoded);
+    assert!(!format!("{validated:?}").contains(&encoded));
+    assert!(!format!("{:?}", bindings[0]).contains(&encoded));
+
+    let result = DirectPostQueryResult::new(
+        "pid",
+        vec![DirectPostPresentation::string("presentation", response_limits).unwrap()],
+        response_limits,
+    )
+    .unwrap();
+    validated
+        .into_direct_post_response(vec![result], response_limits)
+        .expect("bound request can construct response material");
+
+    assert_eq!(
+        validate()
+            .bind_transaction_data(&[SelectedCredentialInput::new(
+                "pid",
+                CredentialFormat::MsoMdoc,
+            )])
+            .unwrap_err(),
+        Oid4vpError::InvalidTransactionData
+    );
+}
+
+#[test]
+fn nonempty_metadata_and_transaction_semantics_fail_closed_without_ports() {
+    let mut request = valid_request();
+    request["dcql_query"]["credentials"][0]["meta"] = json!({"vct_values": ["x"]});
+    assert_eq!(
+        validate(&request, AuthorizationRequestValidationLimits::default()).unwrap_err(),
+        Oid4vpError::InvalidDcqlQuery
+    );
+
+    let mut request = valid_request();
+    let encoded = URL_SAFE_NO_PAD.encode(
+        serde_json::to_vec(&json!({
+            "type": "unknown",
+            "credential_ids": ["pid"]
+        }))
+        .unwrap(),
+    );
+    request["transaction_data"] = json!([encoded]);
+    assert_eq!(
+        validate(&request, AuthorizationRequestValidationLimits::default()).unwrap_err(),
+        Oid4vpError::InvalidTransactionData
+    );
+}
+
+#[test]
+fn transaction_data_rejects_bad_encoding_references_and_resource_policy() {
+    let format = SdJwtFormat;
+    let transaction = PaymentData;
+
+    for value in [json!("not+base64"), json!("e30=")] {
+        let mut request = valid_request();
+        request["transaction_data"] = json!([value]);
+        assert_eq!(
+            support::authorize(support::secure(verified_request(&request)))
+                .into_authorization_request_with_transaction_capabilities(
+                    AuthorizationRequestValidationLimits::default(),
+                    DcqlLimits::default(),
+                    JweLimits::default(),
+                    TransactionDataLimits::default(),
+                    &[&format],
+                    &[&transaction],
+                )
+                .unwrap_err(),
+            Oid4vpError::InvalidTransactionData
+        );
+    }
+
+    let bad_reference = URL_SAFE_NO_PAD.encode(
+        serde_json::to_vec(&json!({
+            "type": "payment_data",
+            "credential_ids": ["absent"],
+            "amount": 42
+        }))
+        .unwrap(),
+    );
+    let mut request = valid_request();
+    request["transaction_data"] = json!([bad_reference]);
+    assert_eq!(
+        support::authorize(support::secure(verified_request(&request)))
+            .into_authorization_request_with_transaction_capabilities(
+                AuthorizationRequestValidationLimits::default(),
+                DcqlLimits::default(),
+                JweLimits::default(),
+                TransactionDataLimits::default(),
+                &[&format],
+                &[&transaction],
+            )
+            .unwrap_err(),
+        Oid4vpError::InvalidTransactionData
+    );
+
+    assert_eq!(
+        TransactionDataLimits::new(0, 1, 1, 1, 1, 1, 1, 1),
         Err(Oid4vpError::InvalidLimits)
     );
 }

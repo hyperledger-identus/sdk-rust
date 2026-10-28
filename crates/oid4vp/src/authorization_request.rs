@@ -12,8 +12,10 @@ use serde_json::{Map, Value};
 use zeroize::Zeroizing;
 
 use crate::{
-    AuthorizationRequestValidationLimits, ClientIdentifierScheme, DcqlLimits, Oid4vpError,
-    ValidatedDcqlQuery, VerifierAuthorizationEvidence,
+    AuthorizationRequestValidationLimits, ClientIdentifierScheme, CredentialFormatCapability,
+    DcqlLimits, Oid4vpError, SelectedCredentialInput, TransactionBinding,
+    TransactionDataCapability, TransactionDataLimits, ValidatedDcqlQuery,
+    VerifierAuthorizationEvidence,
 };
 
 /// Supported OpenID4VP Authorization Response type.
@@ -58,6 +60,24 @@ pub(crate) struct DirectPostEncryptionPlan {
     pub(crate) content_encryption: JweContentEncryptionAlgorithm,
 }
 
+struct AuthorizationValidationPolicy<'a> {
+    routing: AuthorizationRequestValidationLimits,
+    dcql: DcqlLimits,
+    jwe: JweLimits,
+    transaction: TransactionDataLimits,
+    scheme: ClientIdentifierScheme,
+    format_capabilities: &'a [&'a dyn CredentialFormatCapability],
+    transaction_capabilities: &'a [&'a dyn TransactionDataCapability],
+}
+
+pub(crate) type AuthorizationResponseParts = (
+    AuthorizationResponseDestination,
+    Option<Zeroizing<String>>,
+    ValidatedDcqlQuery,
+    AuthorizationResponseMode,
+    Option<DirectPostEncryptionPlan>,
+);
+
 /// A verifier-authorized request with bounded Final authorization and routing.
 ///
 /// This state proves the narrow `vp_token`/`direct_post` request profile and
@@ -76,6 +96,8 @@ pub struct ValidatedAuthorizationRequest {
     state: Option<Zeroizing<String>>,
     destination: AuthorizationResponseDestination,
     dcql_query: ValidatedDcqlQuery,
+    transaction_data: crate::transaction_data::ValidatedTransactionData,
+    transaction_data_bound: bool,
     encryption_plan: Option<DirectPostEncryptionPlan>,
 }
 
@@ -106,6 +128,57 @@ impl VerifierAuthorizationEvidence {
         dcql_limits: DcqlLimits,
         jwe_limits: JweLimits,
     ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
+        self.into_authorization_request_with_capabilities_and_jwe_limits(
+            routing_limits,
+            dcql_limits,
+            jwe_limits,
+            &[],
+        )
+    }
+
+    /// Consume verified JAR evidence with credential-format capabilities.
+    pub fn into_authorization_request_with_capabilities(
+        self,
+        routing_limits: AuthorizationRequestValidationLimits,
+        dcql_limits: DcqlLimits,
+        format_capabilities: &[&dyn CredentialFormatCapability],
+    ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
+        self.into_authorization_request_with_capabilities_and_jwe_limits(
+            routing_limits,
+            dcql_limits,
+            JweLimits::default(),
+            format_capabilities,
+        )
+    }
+
+    /// Consume verified JAR evidence with explicit JWE and format policies.
+    pub fn into_authorization_request_with_capabilities_and_jwe_limits(
+        self,
+        routing_limits: AuthorizationRequestValidationLimits,
+        dcql_limits: DcqlLimits,
+        jwe_limits: JweLimits,
+        format_capabilities: &[&dyn CredentialFormatCapability],
+    ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
+        self.into_authorization_request_with_transaction_capabilities(
+            routing_limits,
+            dcql_limits,
+            jwe_limits,
+            TransactionDataLimits::default(),
+            format_capabilities,
+            &[],
+        )
+    }
+
+    /// Consume verified JAR evidence with complete transaction and format ports.
+    pub fn into_authorization_request_with_transaction_capabilities(
+        self,
+        routing_limits: AuthorizationRequestValidationLimits,
+        dcql_limits: DcqlLimits,
+        jwe_limits: JweLimits,
+        transaction_limits: TransactionDataLimits,
+        format_capabilities: &[&dyn CredentialFormatCapability],
+        transaction_capabilities: &[&dyn TransactionDataCapability],
+    ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
         let (security, scheme) = self.into_parts();
         let parts = security.into_request().into_parts();
         let Value::Object(request) = serde_json::from_slice(parts.payload.as_slice())
@@ -113,14 +186,16 @@ impl VerifierAuthorizationEvidence {
         else {
             return Err(Oid4vpError::InvalidRequestObjectPayload);
         };
-        ValidatedAuthorizationRequest::from_request_map(
-            request,
-            parts,
-            routing_limits,
-            dcql_limits,
-            jwe_limits,
+        let policy = AuthorizationValidationPolicy {
+            routing: routing_limits,
+            dcql: dcql_limits,
+            jwe: jwe_limits,
+            transaction: transaction_limits,
             scheme,
-        )
+            format_capabilities,
+            transaction_capabilities,
+        };
+        ValidatedAuthorizationRequest::from_request_map(request, parts, policy)
     }
 }
 
@@ -128,19 +203,28 @@ impl ValidatedAuthorizationRequest {
     fn from_request_map(
         request: Map<String, Value>,
         parts: crate::request_object::VerifiedRequestObjectParts,
-        routing_limits: AuthorizationRequestValidationLimits,
-        dcql_limits: DcqlLimits,
-        jwe_limits: JweLimits,
-        scheme: ClientIdentifierScheme,
+        policy: AuthorizationValidationPolicy<'_>,
     ) -> Result<Self, Oid4vpError> {
         let response_type = validate_response_type(&request)?;
         let response_mode = validate_response_mode(&request)?;
-        let nonce = validate_nonce(&request, routing_limits)?;
-        let state = validate_state(&request, routing_limits)?;
-        let destination = validate_response_destination(&request, response_mode, routing_limits)?;
+        let nonce = validate_nonce(&request, policy.routing)?;
+        let state = validate_state(&request, policy.routing)?;
+        let destination = validate_response_destination(&request, response_mode, policy.routing)?;
         let encryption_plan =
-            validate_encryption_plan(&request, response_mode, jwe_limits, scheme)?;
-        let dcql_query = ValidatedDcqlQuery::from_request_map(request, dcql_limits)?;
+            validate_encryption_plan(&request, response_mode, policy.jwe, policy.scheme)?;
+        let dcql_query = ValidatedDcqlQuery::from_request_map_with_capabilities(
+            request.clone(),
+            policy.dcql,
+            policy.format_capabilities,
+        )?;
+        let transaction_data = crate::transaction_data::ValidatedTransactionData::parse(
+            &request,
+            &dcql_query,
+            policy.transaction,
+            policy.format_capabilities,
+            policy.transaction_capabilities,
+        )?;
+        let transaction_data_bound = transaction_data.is_empty();
 
         Ok(Self {
             response_type,
@@ -153,6 +237,8 @@ impl ValidatedAuthorizationRequest {
             state,
             destination,
             dcql_query,
+            transaction_data,
+            transaction_data_bound,
             encryption_plan,
         })
     }
@@ -232,22 +318,33 @@ impl ValidatedAuthorizationRequest {
         &self.dcql_query
     }
 
-    pub(crate) fn into_response_parts(
-        self,
-    ) -> (
-        AuthorizationResponseDestination,
-        Option<Zeroizing<String>>,
-        ValidatedDcqlQuery,
-        AuthorizationResponseMode,
-        Option<DirectPostEncryptionPlan>,
-    ) {
-        (
+    /// Number of validated transaction-data entries retained by the request.
+    pub fn transaction_data_count(&self) -> usize {
+        self.transaction_data.len()
+    }
+
+    /// Consume the request after validating selected DCQL inputs and return
+    /// exact format-proof binding material beside response-capable lineage.
+    pub fn bind_transaction_data(
+        mut self,
+        selections: &[SelectedCredentialInput],
+    ) -> Result<(Self, Vec<TransactionBinding>), Oid4vpError> {
+        let bindings = self.transaction_data.bindings(selections)?;
+        self.transaction_data_bound = true;
+        Ok((self, bindings))
+    }
+
+    pub(crate) fn into_response_parts(self) -> Result<AuthorizationResponseParts, Oid4vpError> {
+        if !self.transaction_data_bound {
+            return Err(Oid4vpError::InvalidTransactionData);
+        }
+        Ok((
             self.destination,
             self.state,
             self.dcql_query,
             self.response_mode,
             self.encryption_plan,
-        )
+        ))
     }
 }
 
@@ -275,6 +372,8 @@ impl fmt::Debug for ValidatedAuthorizationRequest {
                 &self.dcql_query.credential_query_count(),
             )
             .field("has_encryption_plan", &self.encryption_plan.is_some())
+            .field("transaction_data_count", &self.transaction_data.len())
+            .field("transaction_data_bound", &self.transaction_data_bound)
             .finish_non_exhaustive()
     }
 }

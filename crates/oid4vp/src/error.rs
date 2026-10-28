@@ -142,6 +142,8 @@ pub mod error_code {
     pub const INVALID_DIRECT_POST_ACKNOWLEDGEMENT: ErrorCode =
         ErrorCode::new("oid4vp.invalid_direct_post_acknowledgement");
     pub const AMBIGUOUS_RESPONSE_CODE: ErrorCode = ErrorCode::new("oid4vp.ambiguous_response_code");
+    pub const INVALID_TRANSACTION_DATA: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_transaction_data");
 }
 
 /// Public error categories for OID4VP invocation parsing.
@@ -236,11 +238,12 @@ pub enum Oid4vpError {
     VerifierTrustUnavailable,
     InvalidDirectPostAcknowledgement,
     AmbiguousResponseCode,
+    InvalidTransactionData,
 }
 
 impl Oid4vpError {
     /// Ordered error inventory with the frozen v1 fixture as its append-only prefix.
-    pub const CONTRACT_VARIANTS: [Self; 88] = [
+    pub const CONTRACT_VARIANTS: [Self; 89] = [
         Self::InvalidLimits,
         Self::InvocationTooLarge,
         Self::InvalidInvocation,
@@ -329,9 +332,10 @@ impl Oid4vpError {
         Self::VerifierTrustUnavailable,
         Self::InvalidDirectPostAcknowledgement,
         Self::AmbiguousResponseCode,
+        Self::InvalidTransactionData,
     ];
 
-    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 88] = {
+    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 89] = {
         use error_code as code;
         [
             (
@@ -773,6 +777,11 @@ impl Oid4vpError {
                 code::AMBIGUOUS_RESPONSE_CODE,
                 ErrorKind::InvalidInput,
                 "OID4VP direct-post acknowledgement response code is ambiguous",
+            ),
+            (
+                code::INVALID_TRANSACTION_DATA,
+                ErrorKind::InvalidInput,
+                "OID4VP transaction data is invalid or unsupported",
             ),
         ]
     };

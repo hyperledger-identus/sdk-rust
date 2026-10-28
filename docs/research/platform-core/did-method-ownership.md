@@ -119,3 +119,12 @@ on a method crate, and SDK-Rust never depends on a consumer repository.
 
 No planning artifact claims target support, publication, consumer adoption, or
 downstream deletion. Those claims require their own immutable receipts.
+
+## Remaining method handoff
+
+Issue #555 separately researched `did:key`, `did:jwk`, and `did:web` after the
+peer/PRISM sequence. Their pinned sources, build-versus-adopt evidence, strict
+first profiles, effect boundaries, and ordered child issues are recorded in the
+[remaining-method disposition](../did-methods/remaining-method-disposition.md)
+and [ADR 0187](../../adr/0187-sequence-portable-static-did-methods-before-web-effects.md).
+That follow-up does not alter the peer/PRISM decisions above.

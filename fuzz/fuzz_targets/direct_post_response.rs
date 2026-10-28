@@ -4,10 +4,11 @@ use identus_crypto::PublicKeyJwk;
 use identus_jose::{JwsAlgorithm, JwsVerificationKey, SignatureSuiteRegistry};
 use identus_oid4vp::{
     AuthorizationRequestInvocation, AuthorizationRequestInvocationLimits,
-    AuthorizationRequestValidationLimits, DcqlLimits, DirectPostErrorCode, DirectPostErrorDetails,
-    DirectPostErrorResponseLimits, DirectPostPresentation, DirectPostQueryResult,
-    DirectPostResponseLimits, REQUEST_OBJECT_MEDIA_TYPE, RequestObjectValidationLimits,
-    RequestUriRetrievalInput, RequestUriRetrievalLimits,
+    AuthorizationRequestValidationLimits, DcqlLimits, DirectPostAcknowledgementLimits,
+    DirectPostErrorCode, DirectPostErrorDetails, DirectPostErrorResponseLimits,
+    DirectPostPresentation, DirectPostQueryResult, DirectPostResponseLimits,
+    REQUEST_OBJECT_MEDIA_TYPE, RequestObjectValidationLimits, RequestUriRetrievalInput,
+    RequestUriRetrievalLimits,
 };
 use libfuzzer_sys::fuzz_target;
 
@@ -55,7 +56,23 @@ fuzz_target!(|data: &[u8]| {
             DcqlLimits::default(),
         )
         .expect("fixed authorization request");
-    if kind & 2 == 0 {
+    if kind & 4 != 0 {
+        let limits = DirectPostResponseLimits::default();
+        let presentation = DirectPostPresentation::string("fixed.presentation", limits)
+            .expect("fixed presentation");
+        let result = DirectPostQueryResult::new("degree", vec![presentation], limits)
+            .expect("fixed result");
+        let response = request
+            .into_direct_post_response(vec![result], limits)
+            .expect("fixed response");
+        let _ = response.bind_endpoint_acknowledgement(
+            200,
+            Some("application/json"),
+            Some("no-store"),
+            value,
+            DirectPostAcknowledgementLimits::default(),
+        );
+    } else if kind & 2 == 0 {
         let limits = DirectPostResponseLimits::default();
         let presentation = if kind & 1 == 0 {
             std::str::from_utf8(value)

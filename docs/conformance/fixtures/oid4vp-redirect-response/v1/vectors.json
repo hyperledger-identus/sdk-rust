@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "packetId": "oid4vp.redirect-response.v1",
+  "capability": "oid4vp.direct-post-response",
+  "cases": [
+    {
+      "id": "oid4vp.redirect-response.final-fragment-state",
+      "operation": "oid4vp.redirect-response.construct",
+      "input": {
+        "mode": "fragment",
+        "redirectUri": "openid://wallet/cb?tenant=one#screen=done",
+        "vpToken": "{\"degree\":[\"vp.compact\"]}",
+        "state": "state-123"
+      },
+      "expected": {
+        "target": "openid://wallet/cb?tenant=one#screen=done&vp_token=%7B%22degree%22%3A%5B%22vp.compact%22%5D%7D&state=state-123"
+      }
+    },
+    {
+      "id": "oid4vp.direct-post-response.final-acknowledgement-code",
+      "operation": "oid4vp.direct-post-response.bind-acknowledgement",
+      "input": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "cacheControl": "private, no-store",
+        "body": "{\"redirect_uri\":\"openid://wallet/done?response_code=opaque%2D123\"}"
+      },
+      "expected": {
+        "redirectUri": "openid://wallet/done?response_code=opaque%2D123",
+        "responseCode": "opaque-123"
+      }
+    }
+  ]
+}

@@ -12,11 +12,9 @@ published 2025-07-09 with current errata retrieved 2026-10-28.
 ## Verdict
 
 The bounded protocol core is coherent and executable, but IDR-024 is not yet
-complete. Fourteen capability groups are implemented. Four required rows retain
-a bounded partial or unsupported surface and are owned by two focused issues:
+complete. Fifteen capability groups are implemented. Three required rows retain
+a bounded partial or unsupported surface and are owned by one focused issue:
 
-- [#546](https://github.com/hyperledger-identus/sdk-rust/issues/546) — remaining
-  redirect response modes and response-code binding; and
 - [#547](https://github.com/hyperledger-identus/sdk-rust/issues/547) — transaction
   data and credential-format metadata ports.
 
@@ -26,12 +24,12 @@ executable condition rather than a subjective issue-count decision.
 
 ## Coverage summary
 
-<!-- oid4vp-summary: implemented=14 partial=6 unsupported=2 not-applicable=3 required-gaps=4 -->
+<!-- oid4vp-summary: implemented=15 partial=5 unsupported=2 not-applicable=3 required-gaps=3 -->
 
 | Status | Rows | Meaning |
 | --- | ---: | --- |
-| Implemented | 14 | Bounded implementation, canonical contract, and executable tests exist. |
-| Partial | 6 | A real executable subset exists with an exact limitation. |
+| Implemented | 15 | Bounded implementation, canonical contract, and executable tests exist. |
+| Partial | 5 | A real executable subset exists with an exact limitation. |
 | Unsupported | 2 | The current profile deliberately has no implementation. |
 | Not applicable | 3 | The behavior belongs to an independently versioned capability. |
 
@@ -61,7 +59,10 @@ signed Request Object ── JWS verification ── audience/time/replay eviden
         │                                      │
         └──────────────────────────────────────┤
                                                ▼
-                           direct_post / direct_post.jwt envelope
+                redirect modes / direct_post(.jwt) inert material
+                                               │
+                                               ▼
+                       optional bound direct-post acknowledgement
 
 Matrix row ── implementation path ── canonical OpenSpec ── executable test
     │
@@ -83,8 +84,9 @@ and verification.
   typed routing.
 - **Sections 6–7:** DCQL validation, bounded evaluation, credential-set rules,
   and generic JSON claims paths are implemented behind SDK-owned types.
-- **Section 8:** request-bound `vp_token`, plain `direct_post`, explicit errors,
-  and engine-neutral `direct_post.jwt` construction are implemented.
+- **Section 8:** request-bound `vp_token`, fragment/query/form-post, plain
+  `direct_post`, explicit errors, engine-neutral `direct_post.jwt`, and bounded
+  acknowledgement binding are implemented.
   Transaction data and format-specific VP validation remain incomplete.
 - **Section 9:** the static `openid4vp:` by-reference invocation profile is
   implemented. Platform dispatch and navigation remain adapter effects.
@@ -124,7 +126,7 @@ or mutated. The canaries are not compatibility promises.
 ```text
 #541 executable Final matrix and durable closeout owner
  ├── #545 client scheme and verifier metadata ports (delivered by this slice)
- ├── #546 redirect response modes
+ ├── #546 redirect response modes (delivered by this slice)
  └── #547 transaction and format metadata ports
 ```
 

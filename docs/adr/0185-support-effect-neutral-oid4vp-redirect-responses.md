@@ -1,6 +1,6 @@
 # ADR 0185: support effect-neutral OID4VP redirect responses
 
-- **Status:** Proposed for issue #546
+- **Status:** Accepted and implemented by issue #546
 - **Date:** 2026-10-28
 - **Decision authority:** issue #546 under parent #541 and the standing SDK mandate
 - **Related:** ADRs 0168, 0179, 0180, 0181, 0183, and 0184

@@ -5,9 +5,10 @@
 //! a signed compact JAR through [`identus_jose`], validates audience/time/replay,
 //! binds the exact verified key to the Final client identifier through a
 //! caller-owned trust port, and validates/evaluates DCQL through a bounded
-//! SDK-owned facade, then composes one narrow Final
-//! `vp_token`/`direct_post` request state and bounded mutually exclusive plain
-//! success, explicit protocol-error, or engine-neutral encrypted responses.
+//! SDK-owned facade, then composes one Final `vp_token` request state and
+//! bounded mutually exclusive fragment, query, form-post, plain direct-post,
+//! explicit protocol-error, or engine-neutral encrypted response material.
+//! Direct-post material can consume one bounded endpoint acknowledgement.
 //! It does not execute HTTP, bundle a DID/PKI/Federation/attestation trust
 //! engine, record consent, create presentations, verify credentials, or
 //! translate internal failures into wire errors.
@@ -17,10 +18,12 @@
 mod authorization_request;
 mod dcql;
 mod direct_post;
+mod direct_post_acknowledgement;
 mod encrypted_direct_post;
 mod error;
 mod invocation;
 mod limits;
+mod redirect_response;
 mod request_object;
 mod request_object_json;
 mod request_object_security;
@@ -39,6 +42,7 @@ pub use direct_post::{
     DIRECT_POST_HTTP_METHOD, DIRECT_POST_MEDIA_TYPE, DirectPostErrorCode, DirectPostErrorDetails,
     DirectPostErrorResponse, DirectPostPresentation, DirectPostQueryResult, DirectPostResponse,
 };
+pub use direct_post_acknowledgement::{DirectPostAcknowledgement, DirectPostNavigationCandidate};
 pub use encrypted_direct_post::EncryptedDirectPostResponse;
 pub use error::{CAPABILITY, Oid4vpError, error_code};
 pub use invocation::{
@@ -46,9 +50,10 @@ pub use invocation::{
 };
 pub use limits::{
     AuthorizationRequestInvocationLimits, AuthorizationRequestValidationLimits, DcqlLimits,
-    DirectPostErrorResponseLimits, DirectPostResponseLimits, RequestObjectValidationLimits,
-    RequestUriRetrievalLimits,
+    DirectPostAcknowledgementLimits, DirectPostErrorResponseLimits, DirectPostResponseLimits,
+    RedirectResponseLimits, RequestObjectValidationLimits, RequestUriRetrievalLimits,
 };
+pub use redirect_response::{RedirectResponse, RedirectResponseKind};
 pub use request_object::{REQUEST_OBJECT_JWT_TYPE, UnverifiedRequestObject, VerifiedRequestObject};
 pub use request_object_security::{
     RequestObjectReplayFailure, RequestObjectReplayFuture, RequestObjectReplayGuard,
@@ -61,8 +66,8 @@ pub use request_uri::{
 };
 pub use verifier_authorization::{
     ClientIdentifierScheme, VerifierAuthorizationEvidence, VerifierAuthorizationLimits,
-    VerifierInfo, VerifierMetadata, VerifierTrustFailure, VerifierTrustFuture, VerifierTrustInput,
-    VerifierTrustPolicy,
+    VerifierInfo, VerifierMetadata, VerifierResponseDestination, VerifierTrustFailure,
+    VerifierTrustFuture, VerifierTrustInput, VerifierTrustPolicy,
 };
 
 use identus_core::Component;

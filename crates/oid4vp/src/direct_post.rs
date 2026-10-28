@@ -12,6 +12,7 @@ use zeroize::{Zeroize, Zeroizing};
 use crate::{
     AuthorizationResponseMode, DirectPostErrorResponseLimits, DirectPostResponseLimits,
     Oid4vpError, ValidatedAuthorizationRequest,
+    authorization_request::AuthorizationResponseDestination,
     dcql::{DcqlResponseQueryRule, DcqlResponseRules},
 };
 
@@ -62,8 +63,8 @@ impl DirectPostErrorCode {
 ///
 /// Syntax validation does not make either value safe for display or resolution.
 pub struct DirectPostErrorDetails {
-    description: Option<Zeroizing<String>>,
-    uri: Option<Zeroizing<String>>,
+    pub(crate) description: Option<Zeroizing<String>>,
+    pub(crate) uri: Option<Zeroizing<String>>,
 }
 
 impl DirectPostErrorDetails {
@@ -338,7 +339,10 @@ impl ValidatedAuthorizationRequest {
             return Err(Oid4vpError::TooManyQueryResults);
         }
         validate_result_limits(&results, limits)?;
-        let (target, state, query, _mode, _encryption_plan) = self.into_direct_post_parts();
+        let (destination, state, query, _mode, _encryption_plan) = self.into_response_parts();
+        let AuthorizationResponseDestination::ResponseUri(target) = destination else {
+            return Err(Oid4vpError::ResponseModeMismatch);
+        };
         let ordered = validate_results(query.response_rules(), &results)?;
         let vp_token = serialize_vp_token(query.response_rules(), &ordered, limits)?;
         let form_body = serialize_form(
@@ -366,8 +370,14 @@ impl ValidatedAuthorizationRequest {
         details: DirectPostErrorDetails,
         limits: DirectPostErrorResponseLimits,
     ) -> Result<DirectPostErrorResponse, Oid4vpError> {
+        if self.response_mode() != AuthorizationResponseMode::DirectPost {
+            return Err(Oid4vpError::ResponseModeMismatch);
+        }
         validate_retained_error_details(&details, limits)?;
-        let (target, state, _query, _mode, _encryption_plan) = self.into_direct_post_parts();
+        let (destination, state, _query, _mode, _encryption_plan) = self.into_response_parts();
+        let AuthorizationResponseDestination::ResponseUri(target) = destination else {
+            return Err(Oid4vpError::ResponseModeMismatch);
+        };
         let description_present = details.description.is_some();
         let error_uri_present = details.uri.is_some();
         let form_body = serialize_error_form(
@@ -417,7 +427,7 @@ fn validate_error_uri(
     Ok(Zeroizing::new(value.to_owned()))
 }
 
-fn validate_retained_error_details(
+pub(crate) fn validate_retained_error_details(
     details: &DirectPostErrorDetails,
     limits: DirectPostErrorResponseLimits,
 ) -> Result<(), Oid4vpError> {
@@ -629,7 +639,7 @@ fn push_json(
     Ok(())
 }
 
-fn serialize_form(
+pub(crate) fn serialize_form(
     vp_token: &str,
     state: Option<&str>,
     limits: DirectPostResponseLimits,
@@ -655,7 +665,7 @@ fn serialize_form(
     Ok(output)
 }
 
-fn serialize_error_form(
+pub(crate) fn serialize_error_form(
     code: DirectPostErrorCode,
     description: Option<&str>,
     uri: Option<&str>,

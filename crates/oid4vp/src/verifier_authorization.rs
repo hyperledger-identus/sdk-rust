@@ -151,13 +151,23 @@ pub enum VerifierTrustFailure {
     Unavailable,
 }
 
+/// Exact signed response destination presented to caller-owned trust policy.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum VerifierResponseDestination<'a> {
+    /// Final `response_uri` used by direct-post modes.
+    ResponseUri(&'a str),
+    /// OAuth `redirect_uri` used by redirect response modes.
+    RedirectUri(&'a str),
+}
+
 /// Borrowed exact evidence supplied to a verifier trust adapter.
 #[derive(Clone, Copy)]
 pub struct VerifierTrustInput<'a> {
     scheme: ClientIdentifierScheme,
     full_client_id: &'a str,
     original_client_id: &'a str,
-    response_uri: Option<&'a str>,
+    response_destination: Option<VerifierResponseDestination<'a>>,
     protected_header: &'a ProtectedHeader,
     verification_key: &'a PublicKeyJwk,
     metadata: Option<&'a VerifierMetadata>,
@@ -183,7 +193,17 @@ impl<'a> VerifierTrustInput<'a> {
 
     /// Explicitly reveal the exact signed response destination, when textual.
     pub const fn expose_sensitive_response_uri(&self) -> Option<&'a str> {
-        self.response_uri
+        match self.response_destination {
+            Some(VerifierResponseDestination::ResponseUri(value)) => Some(value),
+            _ => None,
+        }
+    }
+
+    /// Explicitly reveal the exact signed response destination, if present.
+    pub const fn expose_sensitive_response_destination(
+        &self,
+    ) -> Option<VerifierResponseDestination<'a>> {
+        self.response_destination
     }
 
     /// Protected header of the exact verified Request Object.
@@ -219,7 +239,15 @@ impl fmt::Debug for VerifierTrustInput<'_> {
             .field("scheme", &self.scheme)
             .field("full_client_id_len", &self.full_client_id.len())
             .field("original_client_id_len", &self.original_client_id.len())
-            .field("response_uri_len", &self.response_uri.map(str::len))
+            .field(
+                "response_destination_len",
+                &self
+                    .response_destination
+                    .map(|destination| match destination {
+                        VerifierResponseDestination::ResponseUri(value)
+                        | VerifierResponseDestination::RedirectUri(value) => value.len(),
+                    }),
+            )
             .field("has_metadata", &self.metadata.is_some())
             .field("verifier_info_count", &self.verifier_info.len())
             .field("trust_chain_count", &self.trust_chain.len())
@@ -290,13 +318,19 @@ impl RequestObjectSecurityEvidence {
         let dcql_ids = dcql_credential_ids(&payload)?;
         let verifier_info = parse_verifier_info(payload.get("verifier_info"), &dcql_ids, limits)?;
         let response_uri = payload.get("response_uri").and_then(Value::as_str);
+        let redirect_uri = payload.get("redirect_uri").and_then(Value::as_str);
+        let response_destination = match (response_uri, redirect_uri) {
+            (Some(value), None) => Some(VerifierResponseDestination::ResponseUri(value)),
+            (None, Some(value)) => Some(VerifierResponseDestination::RedirectUri(value)),
+            _ => None,
+        };
 
         policy
             .authorize(VerifierTrustInput {
                 scheme,
                 full_client_id: client_id,
                 original_client_id,
-                response_uri,
+                response_destination,
                 protected_header: self.protected_header(),
                 verification_key: self.verification_key(),
                 metadata: metadata.as_ref(),

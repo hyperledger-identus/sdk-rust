@@ -8,14 +8,14 @@
 
 ## 2. Implementation
 
-- [ ] 2.1 Generalize routing to exclusive verifier-authorized response and redirect destinations.
-- [ ] 2.2 Add bounded fragment, query, and form-post success/error material.
-- [ ] 2.3 Add consuming direct-post acknowledgement and opaque response-code evidence.
+- [x] 2.1 Generalize routing to exclusive verifier-authorized response and redirect destinations.
+- [x] 2.2 Add bounded fragment, query, and form-post success/error material.
+- [x] 2.3 Add consuming direct-post acknowledgement and opaque response-code evidence.
 
 ## 3. Evidence and closeout
 
-- [ ] 3.1 Add clean-room full-lineage E2E, boundary, negative, and property cases.
+- [x] 3.1 Add clean-room full-lineage E2E, boundary, negative, and property cases.
 - [ ] 3.2 Add quality declaration, fuzz, benchmark, redaction, portable, and differential evidence.
-- [ ] 3.3 Update ADR, knowledge base, conformance/resource/change ledgers, and adopter guidance.
+- [x] 3.3 Update ADR, knowledge base, conformance/resource/change ledgers, and adopter guidance.
 - [ ] 3.4 Pass local/Nix/factory gates and exact-head Claude-or-Codex CLI review.
 - [ ] 3.5 Archive OpenSpec, deliver the signed/DCO PR, publish metrics, and merge only on green protected CI.

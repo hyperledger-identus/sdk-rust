@@ -34,7 +34,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `fuzz`
 
-- Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak redirect_response`
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response`
 - Budget: Run for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024.
 - Receipt: `pending`
 - Evidence revision: `pending`
@@ -42,7 +42,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `benchmark`
 
-- Command: `cargo bench -p identus-oid4vp --bench redirect_response`
+- Command: `cargo bench -p identus-oid4vp --bench direct_post_response`
 - Budget: Measure ordinary and near-limit redirect construction plus acknowledgement parsing.
 - Receipt: `pending`
 - Evidence revision: `pending`

@@ -42,7 +42,7 @@ cp -R "$repo_root/fuzz/corpus/$target" "$tmp_root/$target"
 mkdir -p "$repo_root/fuzz/artifacts/$target"
 
 max_len=65536
-if [[ "$target" == "request_object_security" ]]; then
+if [[ "$target" == "request_object_security" || "$target" == "direct_post_response" ]]; then
   max_len=131072
 fi
 common=(

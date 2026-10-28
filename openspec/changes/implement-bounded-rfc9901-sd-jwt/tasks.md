@@ -4,7 +4,7 @@
 
 - [x] 1.1 Finalize RFC 9901 provenance, candidate dispositions, crate boundary, staged API, limits, static errors, and rollback.
 - [x] 1.2 Add archive intent for the complete modified engine-selection requirements.
-- [ ] 1.3 Pass research readiness, constraint readiness, strict OpenSpec validation, and exact issue #568 preimplementation receipt.
+- [x] 1.3 Pass research readiness, constraint readiness, strict OpenSpec validation, and exact issue #568 preimplementation receipt.
 
 ## 2. Crate foundation
 

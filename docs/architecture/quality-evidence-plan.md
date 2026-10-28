@@ -27,9 +27,9 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `property`
 
 - Command: `cargo test -p identus-oid4vp --test request_object_security`
-- Budget: Exercise exact age, skew, expiry, not-before, audience and one-over boundary values with consuming-state compile/runtime canaries.
+- Budget: Sweep generated age/skew/expiry/not-before boundaries and exercise a stateful atomic replay decision with consuming-state compile/runtime canaries.
 - Receipt: `source:crates/oid4vp/tests/request_object_security.rs`
-- Evidence revision: `a48bd9ca075268b3c0ab6cfea26de124f9fdfb15`
+- Evidence revision: `4fc60ef685a035e56e9b79ad73c41924047e95ec`
 
 ### `fuzz`
 

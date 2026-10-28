@@ -25,17 +25,17 @@ replaced_by = ""
 class = "property"
 disposition = "satisfied"
 risk = "Temporal boundary arithmetic or consuming state transitions can accept stale/future input or expose typed routing before security acceptance."
-selectors = [ "crates/oid4vp/src/request_object.rs#bypass_security", "crates/oid4vp/tests/request_object_security.rs#exact_temporal_boundaries_are_accepted", "crates/oid4vp/tests/request_object_security.rs#temporal_boundaries_fail_before_replay" ]
+selectors = [ "crates/oid4vp/src/request_object.rs#bypass_security", "crates/oid4vp/tests/request_object_security.rs#generated_temporal_boundary_properties_hold", "crates/oid4vp/tests/request_object_security.rs#stateful_replay_guard_accepts_each_payload_once" ]
 command = "cargo test -p identus-oid4vp --test request_object_security"
 lane = "focused"
 cadence = "on-change"
 targets = [ "package:identus-oid4vp", "host:rust" ]
 freshness = "source-bound"
 freshness_days = 0
-budget = "Exercise exact age, skew, expiry, not-before, audience and one-over boundary values with consuming-state compile/runtime canaries."
+budget = "Sweep generated age/skew/expiry/not-before boundaries and exercise a stateful atomic replay decision with consuming-state compile/runtime canaries."
 receipt_kind = "source"
 receipt = "source:crates/oid4vp/tests/request_object_security.rs"
-evidence_revision = "a48bd9ca075268b3c0ab6cfea26de124f9fdfb15"
+evidence_revision = "4fc60ef685a035e56e9b79ad73c41924047e95ec"
 recorded_at = "2026-10-28"
 artifact = "crates/oid4vp/tests/request_object_security.rs"
 owner = "SDK-Rust OID4VP maintainers"
@@ -45,8 +45,8 @@ debt_issue = 0
 rationale = ""
 details = [
   "invariant=Only an audience/time-valid atomically accepted Request Object reaches typed routing",
-  "domain=Static and dynamic audience plus all integral temporal policy boundaries",
-  "cases=Exact boundary, one-before, one-after, missing, malformed, mismatch, replay rejection and guard failure",
+  "domain=Singleton static/dynamic audiences plus generated integral age/skew/expiry/not-before boundaries",
+  "cases=Exact boundary, one-before, one-after, missing, malformed, mismatch, stateful duplicate rejection and guard failure",
 ]
 
 [[declarations.obligations]]

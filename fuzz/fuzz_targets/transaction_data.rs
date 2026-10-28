@@ -11,8 +11,8 @@ use identus_oid4vp::{
     AuthorizationRequestValidationLimits, CredentialFormat, CredentialFormatCapability,
     CredentialFormatCapabilityError, DcqlLimits, REQUEST_OBJECT_JWT_TYPE,
     REQUEST_OBJECT_MEDIA_TYPE, RequestObjectValidationLimits, RequestUriRetrievalInput,
-    RequestUriRetrievalLimits, TransactionDataCapability, TransactionDataCapabilityError,
-    TransactionDataLimits,
+    RequestUriRetrievalLimits, SelectedCredentialInput, TransactionDataCapability,
+    TransactionDataCapabilityError, TransactionDataLimits,
 };
 use libfuzzer_sys::fuzz_target;
 use serde_json::{Value, json};
@@ -145,12 +145,18 @@ fuzz_target!(|data: &[u8]| {
     };
     let format = Format;
     let transaction = Transaction;
-    let _ = authorized.into_authorization_request_with_transaction_capabilities(
+    let Ok(validated) = authorized.into_authorization_request_with_transaction_capabilities(
         AuthorizationRequestValidationLimits::default(),
         DcqlLimits::default(),
         JweLimits::default(),
         TransactionDataLimits::default(),
         &[&format],
         &[&transaction],
-    );
+    ) else {
+        return;
+    };
+    let _ = validated.bind_transaction_data(&[SelectedCredentialInput::new(
+        "credential",
+        CredentialFormat::DcSdJwt,
+    )]);
 });

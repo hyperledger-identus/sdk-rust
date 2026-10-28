@@ -3,6 +3,7 @@
 use std::{collections::BTreeSet, fmt};
 
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
+use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
 use serde_json::{Map, Value};
 use zeroize::Zeroizing;
 
@@ -325,8 +326,7 @@ fn parse_entry(
     if URL_SAFE_NO_PAD.encode(decoded.as_slice()) != encoded {
         return Err(Oid4vpError::InvalidTransactionData);
     }
-    let parsed: Value =
-        serde_json::from_slice(&decoded).map_err(|_| Oid4vpError::InvalidTransactionData)?;
+    let parsed = parse_unique_json(&decoded)?;
     validate_json_bounds(&parsed, limits, 0, &mut 0)?;
     let object = parsed
         .as_object()
@@ -391,6 +391,106 @@ fn parse_entry(
         transaction_type: Zeroizing::new(transaction_type.to_owned()),
         compatible_queries,
     })
+}
+
+fn parse_unique_json(input: &[u8]) -> Result<Value, Oid4vpError> {
+    let mut deserializer = serde_json::Deserializer::from_slice(input);
+    let value = UniqueJson
+        .deserialize(&mut deserializer)
+        .map_err(|_| Oid4vpError::InvalidTransactionData)?;
+    deserializer
+        .end()
+        .map_err(|_| Oid4vpError::InvalidTransactionData)?;
+    Ok(value)
+}
+
+struct UniqueJson;
+
+impl<'de> DeserializeSeed<'de> for UniqueJson {
+    type Value = Value;
+
+    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_any(UniqueJsonVisitor)
+    }
+}
+
+struct UniqueJsonVisitor;
+
+impl<'de> Visitor<'de> for UniqueJsonVisitor {
+    type Value = Value;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("JSON without duplicate object member names")
+    }
+
+    fn visit_bool<E>(self, value: bool) -> Result<Self::Value, E> {
+        Ok(value.into())
+    }
+
+    fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E> {
+        Ok(value.into())
+    }
+
+    fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E> {
+        Ok(value.into())
+    }
+
+    fn visit_f64<E: de::Error>(self, value: f64) -> Result<Self::Value, E> {
+        serde_json::Number::from_f64(value)
+            .map(Value::Number)
+            .ok_or_else(|| E::custom("non-finite JSON number"))
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E> {
+        Ok(value.into())
+    }
+
+    fn visit_string<E>(self, value: String) -> Result<Self::Value, E> {
+        Ok(value.into())
+    }
+
+    fn visit_none<E>(self) -> Result<Self::Value, E> {
+        Ok(Value::Null)
+    }
+
+    fn visit_unit<E>(self) -> Result<Self::Value, E> {
+        Ok(Value::Null)
+    }
+
+    fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        UniqueJson.deserialize(deserializer)
+    }
+
+    fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
+    where
+        A: SeqAccess<'de>,
+    {
+        let mut values = Vec::new();
+        while let Some(value) = sequence.next_element_seed(UniqueJson)? {
+            values.push(value);
+        }
+        Ok(Value::Array(values))
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        let mut values = Map::new();
+        while let Some(key) = map.next_key::<String>()? {
+            if values.contains_key(&key) {
+                return Err(de::Error::custom("duplicate JSON object member"));
+            }
+            values.insert(key, map.next_value_seed(UniqueJson)?);
+        }
+        Ok(Value::Object(values))
+    }
 }
 
 fn required_text<'a>(

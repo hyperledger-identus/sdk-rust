@@ -859,6 +859,24 @@ fn transaction_data_rejects_bad_encoding_references_and_resource_policy() {
         );
     }
 
+    let duplicate_member = URL_SAFE_NO_PAD
+        .encode(br#"{"type":"payment_data","type":"other","credential_ids":["pid"],"amount":42}"#);
+    let mut request = valid_request();
+    request["transaction_data"] = json!([duplicate_member]);
+    assert_eq!(
+        support::authorize(support::secure(verified_request(&request)))
+            .into_authorization_request_with_transaction_capabilities(
+                AuthorizationRequestValidationLimits::default(),
+                DcqlLimits::default(),
+                JweLimits::default(),
+                TransactionDataLimits::default(),
+                &[&format],
+                &[&transaction],
+            )
+            .unwrap_err(),
+        Oid4vpError::InvalidTransactionData
+    );
+
     let bad_reference = URL_SAFE_NO_PAD.encode(
         serde_json::to_vec(&json!({
             "type": "payment_data",

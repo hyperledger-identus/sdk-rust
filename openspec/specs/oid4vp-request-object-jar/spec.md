@@ -56,13 +56,12 @@ outer/inner client-id and optional wallet-nonce correlation.
 
 The SDK SHALL type signature/correlation evidence separately from audience,
 freshness, and replay evidence and SHALL NOT claim client-key authorization,
-prefix trust, consent, credential validity, or product authorization at either
-stage.
+prefix trust, consent, or product authorization at either stage.
 
 #### Scenario: a caller supplies a valid but unauthorized key
 
-- **WHEN** the signature verifies with that key
-- **THEN** the result makes no claim that the key is associated with or trusted for the client identifier
+- **WHEN** the signature verifies and security policy accepts the Request Object
+- **THEN** the result still makes no claim that the key is authorized or trusted for the client identifier
 
 ### Requirement: JAR diagnostics are stable and redacted
 
@@ -87,9 +86,9 @@ caller-supplied discovery audience before returning security evidence.
 #### Scenario: dynamic discovery succeeds
 
 - **WHEN** `aud` contains the exact caller-supplied discovered issuer and all other policy checks pass
-- **THEN** the transition proceeds without consulting Request Object `iss`
+- **THEN** the security transition may proceed without consulting Request Object `iss`
 
-#### Scenario: audience differs or names another recipient
+#### Scenario: audience differs
 
 - **WHEN** `aud` is not exactly one value equal to the expected value byte-for-byte
 - **THEN** validation fails with a static audience-mismatch category
@@ -120,10 +119,10 @@ accepts the bounded event.
 - **WHEN** local policy passes and the guard atomically accepts the event
 - **THEN** the SDK returns redacted security evidence eligible for typed routing
 
-#### Scenario: replay is rejected or unavailable
+#### Scenario: replay is rejected or the guard is unavailable
 
 - **WHEN** the guard rejects the event or cannot decide
-- **THEN** validation fails closed without exposing payload or identifiers
+- **THEN** validation fails closed without exposing payload or identifiers in diagnostics
 
 ### Requirement: Typed routing requires security evidence
 
@@ -133,4 +132,4 @@ security evidence rather than directly from signature/correlation evidence.
 #### Scenario: a caller has only signature evidence
 
 - **WHEN** the caller has not completed audience, temporal, and replay validation
-- **THEN** the public typed API does not permit authorization routing
+- **THEN** the public typed API does not permit routing to authorization processing

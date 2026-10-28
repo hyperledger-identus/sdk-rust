@@ -220,6 +220,12 @@ fn compile_inventory_extends_the_ordered_fixture() {
             "RequestObjectReplayRejected",
             "RequestObjectReplayUnavailable",
             "RequestObjectClockUnavailable",
+            "UnsupportedClientIdentifierScheme",
+            "InvalidClientIdentifier",
+            "InvalidVerifierMetadata",
+            "VerifierMetadataTooLarge",
+            "VerifierTrustRejected",
+            "VerifierTrustUnavailable",
         ]
     );
 }

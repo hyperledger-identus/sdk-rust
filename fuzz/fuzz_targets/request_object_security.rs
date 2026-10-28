@@ -45,11 +45,27 @@ fuzz_target!(|data: &[u8]| {
         }
         if selector & 0x10 != 0 {
             let jwt_id = if selector & 0x08 == 0 {
-                Value::String(arbitrary.into_owned())
+                Value::String(arbitrary.to_string())
             } else {
                 json!(selector)
             };
             object.insert("jti".to_owned(), jwt_id);
+        }
+        if selector & 0x04 != 0 {
+            object.insert(
+                "client_metadata".to_owned(),
+                json!({"arbitrary": arbitrary}),
+            );
+        }
+        if selector & 0x02 != 0 {
+            object.insert(
+                "verifier_info".to_owned(),
+                json!([{
+                    "format": arbitrary,
+                    "data": {"arbitrary": arbitrary},
+                    "credential_ids": [arbitrary]
+                }]),
+            );
         }
     }
     let payload = serde_json::to_vec(&request).expect("JSON");
@@ -93,7 +109,9 @@ fuzz_target!(|data: &[u8]| {
     let public = private.to_public_key().encode_jwk();
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).expect("key");
     if let Ok(verified) = object.verify(&SignatureSuiteRegistry::recommended(), &key) {
-        let _ = oid4vp_support::secure(verified);
+        if let Some(secured) = oid4vp_support::secure(verified) {
+            let _ = oid4vp_support::authorize(secured);
+        }
     }
 });
 

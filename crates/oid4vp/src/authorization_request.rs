@@ -12,8 +12,8 @@ use serde_json::{Map, Value};
 use zeroize::Zeroizing;
 
 use crate::{
-    AuthorizationRequestValidationLimits, DcqlLimits, Oid4vpError, RequestObjectSecurityEvidence,
-    ValidatedDcqlQuery,
+    AuthorizationRequestValidationLimits, ClientIdentifierScheme, DcqlLimits, Oid4vpError,
+    ValidatedDcqlQuery, VerifierAuthorizationEvidence,
 };
 
 /// Supported OpenID4VP Authorization Response type.
@@ -39,10 +39,11 @@ pub(crate) struct DirectPostEncryptionPlan {
     pub(crate) content_encryption: JweContentEncryptionAlgorithm,
 }
 
-/// A signature-proven request with bounded Final authorization and routing.
+/// A verifier-authorized request with bounded Final authorization and routing.
 ///
 /// This state proves the narrow `vp_token`/`direct_post` request profile and
-/// one valid DCQL query. It does not authorize the verifier key, trust or
+/// one valid DCQL query. It proves that a caller-owned policy accepted the
+/// exact verifier/key binding, but does not expose the policy's reasoning,
 /// execute the response endpoint, verify credentials, record consent, or
 /// construct a presentation response.
 pub struct ValidatedAuthorizationRequest {
@@ -59,7 +60,7 @@ pub struct ValidatedAuthorizationRequest {
     encryption_plan: Option<DirectPostEncryptionPlan>,
 }
 
-impl RequestObjectSecurityEvidence {
+impl VerifierAuthorizationEvidence {
     /// Consume security-validated JAR evidence into one bounded Final request state.
     ///
     /// # Errors
@@ -86,7 +87,8 @@ impl RequestObjectSecurityEvidence {
         dcql_limits: DcqlLimits,
         jwe_limits: JweLimits,
     ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
-        let parts = self.into_request().into_parts();
+        let (security, scheme) = self.into_parts();
+        let parts = security.into_request().into_parts();
         let Value::Object(request) = serde_json::from_slice(parts.payload.as_slice())
             .map_err(|_| Oid4vpError::InvalidRequestObjectPayload)?
         else {
@@ -98,6 +100,7 @@ impl RequestObjectSecurityEvidence {
             routing_limits,
             dcql_limits,
             jwe_limits,
+            scheme,
         )
     }
 }
@@ -109,13 +112,15 @@ impl ValidatedAuthorizationRequest {
         routing_limits: AuthorizationRequestValidationLimits,
         dcql_limits: DcqlLimits,
         jwe_limits: JweLimits,
+        scheme: ClientIdentifierScheme,
     ) -> Result<Self, Oid4vpError> {
         let response_type = validate_response_type(&request)?;
         let response_mode = validate_response_mode(&request)?;
         let nonce = validate_nonce(&request, routing_limits)?;
         let state = validate_state(&request, routing_limits)?;
         let response_uri = validate_response_destination(&request, routing_limits)?;
-        let encryption_plan = validate_encryption_plan(&request, response_mode, jwe_limits)?;
+        let encryption_plan =
+            validate_encryption_plan(&request, response_mode, jwe_limits, scheme)?;
         let dcql_query = ValidatedDcqlQuery::from_request_map(request, dcql_limits)?;
 
         Ok(Self {
@@ -276,9 +281,16 @@ fn validate_encryption_plan(
     request: &Map<String, Value>,
     mode: AuthorizationResponseMode,
     limits: JweLimits,
+    scheme: ClientIdentifierScheme,
 ) -> Result<Option<DirectPostEncryptionPlan>, Oid4vpError> {
     if mode == AuthorizationResponseMode::DirectPost {
         return Ok(None);
+    }
+    if matches!(
+        scheme,
+        ClientIdentifierScheme::OpenIdFederation | ClientIdentifierScheme::PreRegistered
+    ) {
+        return Err(Oid4vpError::InvalidVerifierMetadata);
     }
     let metadata = request
         .get("client_metadata")

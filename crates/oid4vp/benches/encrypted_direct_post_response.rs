@@ -153,11 +153,11 @@ fn validated_request(jwe_limits: JweLimits) -> ValidatedAuthorizationRequest {
         .expect("binding");
     let public = signing.to_public_key().encode_jwk();
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).expect("verification key");
-    support::secure(
+    support::authorize(support::secure(
         object
             .verify(&SignatureSuiteRegistry::recommended(), &key)
             .expect("verified"),
-    )
+    ))
     .into_authorization_request_with_jwe_limits(
         AuthorizationRequestValidationLimits::default(),
         DcqlLimits::default(),

@@ -98,7 +98,7 @@ fn validate(compact: &str, expected_audience: &str) {
     } else {
         support::secure_for_audience(verified, expected_audience)
     };
-    black_box(evidence);
+    black_box(support::authorize(evidence));
 }
 
 fn measure(name: &str, mut operation: impl FnMut()) {

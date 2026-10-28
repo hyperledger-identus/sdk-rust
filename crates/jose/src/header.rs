@@ -142,7 +142,7 @@ impl fmt::Debug for JwsKeyReference {
 /// A validated, deliberately closed JWS protected header.
 ///
 /// The supported surface is `alg`, optional `typ`, at most one `kid`, public
-/// `jwk`, or `x5c`, and optional bounded `key_attestation` and `trust_chain`
+/// `jwk`, or `x5c`, and optional bounded `jwt`, `key_attestation` and `trust_chain`
 /// evidence. Algorithm allowlisting, nested JWT validation, certificate and
 /// federation validation, trust, and key authorization belong to profiles.
 #[derive(Clone, PartialEq, Eq)]
@@ -150,6 +150,7 @@ pub struct ProtectedHeader {
     algorithm: String,
     type_: Option<String>,
     key_reference: Option<JwsKeyReference>,
+    jwt: Option<String>,
     key_attestation: Option<String>,
     trust_chain: Option<Vec<String>>,
 }
@@ -175,7 +176,15 @@ impl ProtectedHeader {
         key_reference: Option<JwsKeyReference>,
         limits: JwsLimits,
     ) -> Result<Self, JoseError> {
-        Self::with_key_reference_and_evidence(algorithm, type_, key_reference, None, None, limits)
+        Self::with_key_reference_and_extended_evidence(
+            algorithm,
+            type_,
+            key_reference,
+            None,
+            None,
+            None,
+            limits,
+        )
     }
 
     /// Construct a protected header with one exclusive public key reference
@@ -191,12 +200,38 @@ impl ProtectedHeader {
         trust_chain: Option<Vec<String>>,
         limits: JwsLimits,
     ) -> Result<Self, JoseError> {
+        Self::with_key_reference_and_extended_evidence(
+            algorithm,
+            type_,
+            key_reference,
+            None,
+            key_attestation,
+            trust_chain,
+            limits,
+        )
+    }
+
+    /// Construct a protected header with protocol-neutral bounded evidence.
+    pub fn with_key_reference_and_extended_evidence(
+        algorithm: &str,
+        type_: Option<&str>,
+        key_reference: Option<JwsKeyReference>,
+        jwt: Option<String>,
+        key_attestation: Option<String>,
+        trust_chain: Option<Vec<String>>,
+        limits: JwsLimits,
+    ) -> Result<Self, JoseError> {
         validate_algorithm(algorithm, limits)?;
         if type_.is_some_and(|value| !valid_optional(value, limits))
             || key_reference
                 .as_ref()
                 .is_some_and(|value| !valid_key_reference(value, limits))
-            || !valid_protected_evidence(key_attestation.as_deref(), trust_chain.as_deref(), limits)
+            || !valid_protected_evidence(
+                jwt.as_deref(),
+                key_attestation.as_deref(),
+                trust_chain.as_deref(),
+                limits,
+            )
         {
             return Err(JoseError::InvalidHeaderValue);
         }
@@ -204,6 +239,7 @@ impl ProtectedHeader {
             algorithm: algorithm.to_owned(),
             type_: type_.map(str::to_owned),
             key_reference,
+            jwt,
             key_attestation,
             trust_chain,
         })
@@ -216,7 +252,7 @@ impl ProtectedHeader {
         trust_chain: Option<&[String]>,
         limits: JwsLimits,
     ) -> Result<(), JoseError> {
-        if valid_protected_evidence(key_attestation, trust_chain, limits) {
+        if valid_protected_evidence(None, key_attestation, trust_chain, limits) {
             Ok(())
         } else {
             Err(JoseError::InvalidHeaderValue)
@@ -270,6 +306,11 @@ impl ProtectedHeader {
         self.key_attestation.as_deref()
     }
 
+    /// Borrow a bounded caller-interpreted nested JWT, if present.
+    pub fn nested_jwt(&self) -> Option<&str> {
+        self.jwt.as_deref()
+    }
+
     /// Borrow the untrusted bounded OpenID Federation trust chain, if present.
     pub fn trust_chain(&self) -> Option<&[String]> {
         self.trust_chain.as_deref()
@@ -277,10 +318,11 @@ impl ProtectedHeader {
 
     pub(crate) fn parse(bytes: &[u8], limits: JwsLimits) -> Result<Self, JoseError> {
         let raw = serde_json::from_slice::<RawProtectedHeader>(bytes).map_err(map_json_error)?;
-        Self::with_key_reference_and_evidence(
+        Self::with_key_reference_and_extended_evidence(
             &raw.algorithm,
             raw.type_.as_deref(),
             raw.key_reference,
+            raw.jwt,
             raw.key_attestation,
             raw.trust_chain,
             limits,
@@ -298,6 +340,7 @@ impl ProtectedHeader {
                 .as_ref()
                 .is_some_and(|value| !valid_key_reference(value, limits))
             || !valid_protected_evidence(
+                self.jwt.as_deref(),
                 self.key_attestation.as_deref(),
                 self.trust_chain.as_deref(),
                 limits,
@@ -316,6 +359,7 @@ impl fmt::Debug for ProtectedHeader {
             .field("algorithm", &self.algorithm)
             .field("type", &self.type_)
             .field("key_reference", &self.key_reference_kind())
+            .field("has_nested_jwt", &self.jwt.is_some())
             .field("has_key_attestation", &self.key_attestation.is_some())
             .field(
                 "trust_chain_len",
@@ -333,6 +377,7 @@ impl Serialize for ProtectedHeader {
         let member_count = 1
             + usize::from(self.type_.is_some())
             + usize::from(self.key_reference.is_some())
+            + usize::from(self.jwt.is_some())
             + usize::from(self.key_attestation.is_some())
             + usize::from(self.trust_chain.is_some());
         let mut state = serializer.serialize_struct("ProtectedHeader", member_count)?;
@@ -345,6 +390,9 @@ impl Serialize for ProtectedHeader {
             Some(JwsKeyReference::Jwk(value)) => state.serialize_field("jwk", value)?,
             Some(JwsKeyReference::X5c(value)) => state.serialize_field("x5c", value.as_slice())?,
             None => {}
+        }
+        if let Some(value) = &self.jwt {
+            state.serialize_field("jwt", value)?;
         }
         if let Some(value) = &self.key_attestation {
             state.serialize_field("key_attestation", value)?;
@@ -405,6 +453,7 @@ struct RawProtectedHeader {
     algorithm: String,
     type_: Option<String>,
     key_reference: Option<JwsKeyReference>,
+    jwt: Option<String>,
     key_attestation: Option<String>,
     trust_chain: Option<Vec<String>>,
 }
@@ -426,6 +475,7 @@ enum ProtectedHeaderMember {
     KeyId,
     Jwk,
     X5c,
+    Jwt,
     KeyAttestation,
     TrustChain,
 }
@@ -438,6 +488,7 @@ impl ProtectedHeaderMember {
             "kid" => Some(Self::KeyId),
             "jwk" => Some(Self::Jwk),
             "x5c" => Some(Self::X5c),
+            "jwt" => Some(Self::Jwt),
             "key_attestation" => Some(Self::KeyAttestation),
             "trust_chain" => Some(Self::TrustChain),
             _ => None,
@@ -452,6 +503,7 @@ struct RawProtectedHeaderFields {
     key_id: Option<String>,
     jwk: Option<PublicKeyJwk>,
     x5c: Option<Vec<String>>,
+    jwt: Option<String>,
     key_attestation: Option<String>,
     trust_chain: Option<Vec<String>>,
 }
@@ -471,6 +523,7 @@ impl RawProtectedHeaderFields {
             ProtectedHeaderMember::X5c => {
                 read_unique_value(map, &mut self.x5c, |value: BoundedX5c| value.0)
             }
+            ProtectedHeaderMember::Jwt => read_string(map, &mut self.jwt),
             ProtectedHeaderMember::KeyAttestation => read_string(map, &mut self.key_attestation),
             ProtectedHeaderMember::TrustChain => {
                 read_unique_value(map, &mut self.trust_chain, |value: BoundedTrustChain| {
@@ -503,6 +556,7 @@ impl RawProtectedHeaderFields {
             algorithm,
             type_: self.type_,
             key_reference,
+            jwt: self.jwt,
             key_attestation: self.key_attestation,
             trust_chain: self.trust_chain,
         })
@@ -684,11 +738,13 @@ fn valid_x5c(values: &[String], limits: JwsLimits) -> bool {
 }
 
 pub(crate) fn valid_protected_evidence(
+    jwt: Option<&str>,
     key_attestation: Option<&str>,
     trust_chain: Option<&[String]>,
     limits: JwsLimits,
 ) -> bool {
-    key_attestation.is_none_or(|value| valid_compact_token(value, limits))
+    jwt.is_none_or(|value| valid_compact_token(value, limits))
+        && key_attestation.is_none_or(|value| valid_compact_token(value, limits))
         && trust_chain.is_none_or(|values| {
             !values.is_empty()
                 && values.len() <= MAX_TRUST_CHAIN_ENTRIES

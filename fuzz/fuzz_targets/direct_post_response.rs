@@ -46,6 +46,9 @@ fuzz_target!(|data: &[u8]| {
     let Some(request) = oid4vp_support::secure(unverified
         .verify(&SignatureSuiteRegistry::recommended(), &key)
         .expect("fixed signature")) else { return; };
+    let Some(request) = oid4vp_support::authorize(request) else {
+        return;
+    };
     let request = request
         .into_authorization_request(
             AuthorizationRequestValidationLimits::default(),

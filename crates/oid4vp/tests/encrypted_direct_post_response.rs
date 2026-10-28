@@ -149,11 +149,11 @@ fn validated(
         .to_public_key()
         .encode_jwk();
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).expect("verification key");
-    support::secure(
+    support::authorize(support::secure(
         object
             .verify(&SignatureSuiteRegistry::recommended(), &key)
             .expect("verified"),
-    )
+    ))
     .into_authorization_request_with_jwe_limits(
         AuthorizationRequestValidationLimits::default(),
         DcqlLimits::default(),
@@ -418,11 +418,11 @@ fn validation_error(request: &Value, limits: JweLimits) -> Oid4vpError {
         .to_public_key()
         .encode_jwk();
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).expect("key");
-    support::secure(
+    support::authorize(support::secure(
         object
             .verify(&SignatureSuiteRegistry::recommended(), &key)
             .expect("verified"),
-    )
+    ))
     .into_authorization_request_with_jwe_limits(
         AuthorizationRequestValidationLimits::default(),
         DcqlLimits::default(),

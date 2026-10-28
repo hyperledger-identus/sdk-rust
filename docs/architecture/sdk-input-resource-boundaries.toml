@@ -424,12 +424,12 @@ review_triggers  = [ "new invocation transport", "Request Object retrieval", "JA
 [[boundaries]]
 id               = "oid4vp-request-uri-and-jar"
 package          = "identus-oid4vp"
-surface          = "runtime-neutral GET/POST Request URI construction, bounded response binding, signed JAR verification, exact correlation, discovery audience, temporal policy, and atomic replay evidence"
+surface          = "runtime-neutral GET/POST Request URI construction, bounded response binding, signed JAR verification, exact correlation, discovery audience, temporal policy, atomic replay evidence, client identifier classification, verifier metadata and exact-key trust ports"
 disposition      = "sdk-enforced"
-limits           = [ "RequestUriRetrievalLimits=explicit", "RequestObjectValidationLimits=explicit" ]
-evidence         = [ "crates/oid4vp/src/request_uri.rs", "crates/oid4vp/src/request_object.rs", "crates/oid4vp/src/request_object_json.rs", "crates/oid4vp/src/request_object_security.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/request_uri_jar.rs", "crates/oid4vp/tests/request_object_security.rs", "docs/adr/0158-bind-oid4vp-request-uri-retrieval-and-signed-jar.md", "docs/adr/0183-require-oid4vp-request-object-security-evidence-before-routing.md" ]
-outer_obligation = "Transport adapters cap pre-UTF-8 headers, redirects, decompression and time, execute HTTPS, generate nonce entropy, supply trusted discovery audience and clock evidence, implement atomic replay durability, and authorize the verification key through the selected trust framework."
-consumer_impact  = "Security evidence proves signature correlation exact discovery audience integral freshness policy and one atomic replay acceptance; it does not prove verifier-key authorization trust consent credential validity transport safety or product authorization."
+limits           = [ "RequestUriRetrievalLimits=explicit", "RequestObjectValidationLimits=explicit", "VerifierAuthorizationLimits=explicit" ]
+evidence         = [ "crates/oid4vp/src/request_uri.rs", "crates/oid4vp/src/request_object.rs", "crates/oid4vp/src/request_object_json.rs", "crates/oid4vp/src/request_object_security.rs", "crates/oid4vp/src/verifier_authorization.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/request_uri_jar.rs", "crates/oid4vp/tests/request_object_security.rs", "crates/oid4vp/tests/verifier_authorization.rs", "docs/adr/0158-bind-oid4vp-request-uri-retrieval-and-signed-jar.md", "docs/adr/0183-require-oid4vp-request-object-security-evidence-before-routing.md", "docs/adr/0184-bind-oid4vp-verifier-identity-through-policy-ports.md" ]
+outer_obligation = "Transport adapters cap pre-UTF-8 headers, redirects, decompression and time, execute HTTPS, generate nonce entropy, supply trusted discovery audience and clock evidence, implement atomic replay durability, and completely validate the selected DID, PKI, Federation, attestation or registration trust scheme before accepting the exact verification key."
+consumer_impact  = "Verifier authorization evidence proves signature correlation exact discovery audience integral freshness atomic replay and one caller-policy acceptance of the exact verifier/key binding; it does not prove consent credential validity transport safety or product authorization."
 review_triggers  = [ "HTTP adapter", "JWE or JWS JSON", "client identifier prefix", "audience or NumericDate profile", "replay persistence", "DCQL parsing", "limit change" ]
 
 [[boundaries]]

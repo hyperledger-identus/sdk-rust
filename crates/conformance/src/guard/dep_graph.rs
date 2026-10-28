@@ -129,8 +129,14 @@ fn manifests_conform_to_layer_rules() {
             ),
             "identus-oid4vp" => assert_eq!(
                 deps,
-                ["identus-core", "identus-jose", "identus-openid4vc"],
-                "OID4VP must retain its exact core, JOSE, and shared retrieval internal dependency cone"
+                [
+                    "identus-core",
+                    "identus-crypto",
+                    "identus-did",
+                    "identus-jose",
+                    "identus-openid4vc"
+                ],
+                "OID4VP must retain its exact core, crypto, DID, JOSE, and shared retrieval internal dependency cone"
             ),
             "identus-siopv2" => assert_eq!(
                 deps,
@@ -232,8 +238,12 @@ fn oid4vci_protocol_retains_an_exact_inward_internal_cone() {
 #[test]
 fn oid4vp_protocol_retains_an_exact_inward_internal_cone() {
     assert!(check_dep_edge("identus-oid4vp", "identus-core").is_ok());
+    assert!(check_dep_edge("identus-oid4vp", "identus-crypto").is_ok());
+    assert!(check_dep_edge("identus-oid4vp", "identus-did").is_ok());
     assert!(check_dep_edge("identus-oid4vp", "identus-jose").is_ok());
     assert!(check_dep_edge("identus-core", "identus-oid4vp").is_err());
+    assert!(check_dep_edge("identus-crypto", "identus-oid4vp").is_err());
+    assert!(check_dep_edge("identus-did", "identus-oid4vp").is_err());
     assert!(check_dep_edge("identus-jose", "identus-oid4vp").is_err());
 }
 

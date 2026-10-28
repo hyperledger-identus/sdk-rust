@@ -75,7 +75,12 @@ fuzz_target!(|data: &[u8]| {
     let Ok(verified) = object.verify(&SignatureSuiteRegistry::recommended(), &key) else {
         return;
     };
-    let Some(evidence) = oid4vp_support::secure(verified) else { return; };
+    let Some(evidence) = oid4vp_support::secure(verified) else {
+        return;
+    };
+    let Some(evidence) = oid4vp_support::authorize(evidence) else {
+        return;
+    };
     let _ = evidence.into_authorization_request_with_jwe_limits(
         AuthorizationRequestValidationLimits::default(),
         DcqlLimits::default(),

@@ -102,7 +102,7 @@ fn validate(
     request: &Value,
     routing_limits: AuthorizationRequestValidationLimits,
 ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
-    support::secure(verified_request(request))
+    support::authorize(support::secure(verified_request(request)))
         .into_authorization_request(routing_limits, DcqlLimits::default())
 }
 

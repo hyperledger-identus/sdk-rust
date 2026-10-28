@@ -1313,3 +1313,113 @@ debt_status       = "open"
 debt_issue        = 514
 rationale         = ""
 details           = [ "oracle=Normative SIOPv2 draft 13 clean-room vector plus independent SDK verification", "oracle-revision=3ceea617557dce795a247fdd9c6180a873f1611e;siopv2-0.2.0;affinidi-siopv2-0.1.4 (research pins only)", "normalization=Compare exact protocol claims and form fields rather than foreign DTO or error strings", "deviations=Automated foreign-oracle fixtures are deferred; SDK uses redirect_uri and protocol-neutral invocation per draft 13" ]
+
+[[declarations]]
+id          = "oid4vp.direct-post-response.verifier-authorization.quality.v1"
+capability  = "oid4vp.direct-post-response"
+slice       = "Final client identifier schemes, verifier metadata and exact-key trust policy"
+owner       = "SDK-Rust OID4VP maintainers"
+owner_issue = 545
+risk        = "A syntactically valid signed request can route with a key unauthorized for its full client identifier or with malformed or mis-sourced verifier evidence."
+targets     = [ "package:identus-oid4vp", "package:identus-jose", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "oid4vp.direct-post-response.final-string-state" ]
+limitations = "The declaration proves bounded classification, evidence lineage and one caller-owned trust decision; it does not prove any concrete DID, PKI, Federation or attestation adapter, transport, consent or product policy."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Prefix, header, metadata source or credential-reference ambiguity can bypass exact-key authorization or invoke product trust on malformed evidence."
+selectors         = [ "crates/oid4vp/tests/verifier_authorization.rs#every_signed_final_scheme_binds_the_exact_verified_key_before_routing", "crates/oid4vp/tests/verifier_authorization.rs#unsupported_and_invalid_schemes_fail_before_policy", "crates/oid4vp/tests/verifier_authorization.rs#metadata_references_limits_and_source_rules_fail_closed" ]
+command           = "cargo test -p identus-oid4vp --test verifier_authorization"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Exercise every Final scheme, first-colon disposition, exact key lineage, metadata source rule, verifier-info reference and independent collection limit."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/tests/verifier_authorization.rs"
+evidence_revision = "0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/tests/verifier_authorization.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 545
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Only one exact full-client-id and verified-key binding accepted by the selected scheme policy reaches routing", "domain=Pre-registration, Federation, DID, verifier attestation, X.509 SAN DNS, X.509 hash, redirect URI, origin and unknown prefixes", "cases=Success, unsupported, malformed header, mismatched DID key, invalid DNS/hash, metadata source, unknown DCQL reference, rejection, unavailability and redaction" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Hostile metadata and verifier-info nested in an otherwise signed request can panic, amplify parser work or bypass bounds."
+selectors         = [ "fuzz/fuzz_targets/request_object_security.rs#fuzz_target!", "scripts/fuzz-oid4vp.sh#request_object_security" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak request_object_security"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run security and verifier authorization over arbitrary bounded claims and metadata for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/request_object_security.rs"
+evidence_revision = "0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/request_object_security.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 545
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Route arbitrary bounded verified payload claims, client metadata and verifier-info through deterministic security and trust ports", "corpus=Existing clean-room request security seeds plus arbitrary metadata", "seed=libFuzzer-managed reproducible failures promoted to focused regressions", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Scheme and metadata validation plus one trust-port call can materially regress portable request latency."
+selectors         = [ "crates/oid4vp/benches/request_object_security.rs#security.ordinary.end-to-end", "crates/oid4vp/benches/request_object_security.rs#security.boundary.end-to-end" ]
+command           = "cargo bench -p identus-oid4vp --bench request_object_security"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure ordinary and near-limit request security followed by exact verifier authorization with one deterministic accepting port."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/benches/request_object_security.rs"
+evidence_revision = "0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/benches/request_object_security.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 545
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Verify claims, audience, time, replay, DID client-id/header binding and invoke one trust decision", "fixture=Ordinary and maximum-string clean-room signed request", "environment=Rust 1.98 etalon on the executing host; Linux remains comparison lane", "statistic=Median wall time from the dependency-free harness", "samples=21 samples with 20 iterations each", "threshold=Directional baseline before downstream adoption" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "SDK prefix and metadata rules can drift from OpenID4VP Final while internal round trips remain green."
+selectors         = [ "crates/oid4vp/tests/verifier_authorization.rs#every_signed_final_scheme_binds_the_exact_verified_key_before_routing", "docs/adr/0184-bind-oid4vp-verifier-identity-through-policy-ports.md#Decision" ]
+command           = "cargo test -p identus-oid4vp --test verifier_authorization"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Compare every Final-defined prefix and metadata source disposition against the pinned normative matrix using normalized SDK states and errors."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/tests/verifier_authorization.rs"
+evidence_revision = "0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/tests/verifier_authorization.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 545
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=OpenID4VP 1.0 Final sections 5.9, 5.11, 11, 12 and 14.8", "oracle-revision=Final published 2025-07-09; retrieved 2026-10-28", "normalization=Compare scheme class, policy invocation, metadata presence and stable result category", "deviations=Unsigned redirect_uri and DC-API origin are deliberately unsupported by this signed non-DC-API profile" ]

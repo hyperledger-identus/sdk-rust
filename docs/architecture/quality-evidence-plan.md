@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-28`
-- Declaration count: `9`
+- Declaration count: `10`
 
 ## `oid4vp.direct-post-response.request-object-security.quality.v1`
 
@@ -417,3 +417,48 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Receipt: `pending`
 - Evidence revision: `pending`
 - Delivery debt: #514
+
+## `oid4vp.direct-post-response.verifier-authorization.quality.v1`
+
+- Capability: `oid4vp.direct-post-response`
+- Slice: Final client identifier schemes, verifier metadata and exact-key trust policy
+- Owner: SDK-Rust OID4VP maintainers (issue #545)
+- Risk: A syntactically valid signed request can route with a key unauthorized for its full client identifier or with malformed or mis-sourced verifier evidence.
+- Targets: `package:identus-oid4vp`, `package:identus-jose`, `host:rust`, `consumer:portable-sdk`
+- Vector IDs: `1` local catalog entries
+- Limitations: The declaration proves bounded classification, evidence lineage and one caller-owned trust decision; it does not prove any concrete DID, PKI, Federation or attestation adapter, transport, consent or product policy.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #545 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #545 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #545 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #545 |
+
+### `property`
+
+- Command: `cargo test -p identus-oid4vp --test verifier_authorization`
+- Budget: Exercise every Final scheme, first-colon disposition, exact key lineage, metadata source rule, verifier-info reference and independent collection limit.
+- Receipt: `source:crates/oid4vp/tests/verifier_authorization.rs`
+- Evidence revision: `0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak request_object_security`
+- Budget: Run security and verifier authorization over arbitrary bounded claims and metadata for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024.
+- Receipt: `source:fuzz/fuzz_targets/request_object_security.rs`
+- Evidence revision: `0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba`
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-oid4vp --bench request_object_security`
+- Budget: Measure ordinary and near-limit request security followed by exact verifier authorization with one deterministic accepting port.
+- Receipt: `source:crates/oid4vp/benches/request_object_security.rs`
+- Evidence revision: `0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba`
+
+### `differential`
+
+- Command: `cargo test -p identus-oid4vp --test verifier_authorization`
+- Budget: Compare every Final-defined prefix and metadata source disposition against the pinned normative matrix using normalized SDK states and errors.
+- Receipt: `source:crates/oid4vp/tests/verifier_authorization.rs`
+- Evidence revision: `0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba`

@@ -111,11 +111,11 @@ fn validated_request() -> ValidatedAuthorizationRequest {
         .unwrap();
     let public = private.to_public_key().encode_jwk();
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).unwrap();
-    support::secure(
+    support::authorize(support::secure(
         unverified
             .verify(&SignatureSuiteRegistry::recommended(), &key)
             .unwrap(),
-    )
+    ))
     .into_authorization_request(
         AuthorizationRequestValidationLimits::default(),
         DcqlLimits::default(),

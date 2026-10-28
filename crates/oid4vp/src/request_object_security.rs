@@ -3,6 +3,7 @@
 use std::{fmt, future::Future, pin::Pin};
 
 use identus_core::WallClock;
+use identus_crypto::PublicKeyJwk;
 use identus_jose::{JwsAlgorithm, ProtectedHeader};
 use serde_json::Value;
 use zeroize::Zeroizing;
@@ -182,7 +183,21 @@ struct SecurityClaims {
 
 /// A verified Request Object accepted by audience, time, and replay policy.
 ///
-/// This evidence does not prove verifier-key authorization or product trust.
+/// This evidence does not prove verifier-key authorization or product trust,
+/// and cannot enter typed routing directly:
+///
+/// ```compile_fail
+/// use identus_oid4vp::{
+///     AuthorizationRequestValidationLimits, DcqlLimits, RequestObjectSecurityEvidence,
+/// };
+///
+/// fn bypass_verifier_policy(evidence: RequestObjectSecurityEvidence) {
+///     let _ = evidence.into_authorization_request(
+///         AuthorizationRequestValidationLimits::default(),
+///         DcqlLimits::default(),
+///     );
+/// }
+/// ```
 pub struct RequestObjectSecurityEvidence {
     request: VerifiedRequestObject,
     claims: SecurityClaims,
@@ -289,6 +304,16 @@ impl RequestObjectSecurityEvidence {
     /// Exact verified payload byte length.
     pub fn payload_len(&self) -> usize {
         self.request.payload_len()
+    }
+
+    /// Explicitly reveal the exact verified payload for bounded successor stages.
+    pub fn expose_sensitive_payload(&self) -> &[u8] {
+        self.request.expose_sensitive_payload()
+    }
+
+    /// Borrow the exact public key that verified the Request Object.
+    pub const fn verification_key(&self) -> &PublicKeyJwk {
+        self.request.verification_key()
     }
 
     /// Explicitly reveal the accepted signed audiences.

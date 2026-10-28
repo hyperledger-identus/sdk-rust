@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 545,
+  "change": "bind-oid4vp-client-identifier-schemes",
+  "branch": "codex/feat/issue-545",
+  "baseRef": "origin/develop",
+  "baseSha": "f0edaf820b3bc12b45faae02b60c55db3d3040ff",
+  "contractHeadSha": "d3a17eb3baf74652045f823dc988b20eeaf70711",
+  "createdAt": "2026-10-28T02:15:37.515Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

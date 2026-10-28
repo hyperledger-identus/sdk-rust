@@ -11,7 +11,7 @@ Status: `active`
 
 ### `credentials.sd-jwt.rfc9901.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt crate provides bounded staged RFC 9901 compact issuance, disclosure processing and selection, key binding and verification behind SDK-owned types and injected effects.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt crate provides bounded staged RFC 9901 compact issuance, disclosure processing and selection, key binding and verification behind SDK-owned types and injected effects.
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
@@ -221,7 +221,7 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 ### `credentials.sd-jwt.rfc9901.v1`
 
-Fallback: Consumers retain their current SD-JWT implementation until they explicitly adopt a later released crate or language adapter. Rollback: Before publication remove the additive crate and proposed ledger record while preserving RFC vectors, ADR 0193 and failure evidence. Removal gate: Not applicable.
+Fallback: Consumers retain their current SD-JWT implementation until they explicitly adopt a later released crate or language adapter. Rollback: Before publication remove the additive crate and active ledger record while preserving RFC vectors, ADR 0193 and failure evidence. Removal gate: Not applicable.
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 

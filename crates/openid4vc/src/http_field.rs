@@ -1,4 +1,10 @@
-pub(crate) fn is_application_json(bytes: &[u8]) -> bool {
+//! Strict, allocation-bounded HTTP field-value validation shared by OpenID protocols.
+
+/// Return whether a field value is a syntactically valid `application/json` media type.
+///
+/// Optional parameters are accepted only when each has a unique token name and
+/// a valid token or quoted-string value.
+pub fn is_application_json(bytes: &[u8]) -> bool {
     let mut cursor = Cursor::new(bytes);
     let mut parameter_names: Vec<&[u8]> = Vec::new();
     cursor.ows();
@@ -43,11 +49,13 @@ pub(crate) fn is_application_json(bytes: &[u8]) -> bool {
     }
 }
 
-pub(crate) fn has_bare_no_store(bytes: &[u8]) -> bool {
+/// Return whether a cache-control field contains one bare `no-store` directive.
+pub fn has_bare_no_store(bytes: &[u8]) -> bool {
     has_bare_directive(bytes, b"no-store")
 }
 
-pub(crate) fn has_bare_no_cache(bytes: &[u8]) -> bool {
+/// Return whether a cache-control field contains one bare `no-cache` directive.
+pub fn has_bare_no_cache(bytes: &[u8]) -> bool {
     has_bare_directive(bytes, b"no-cache")
 }
 
@@ -200,4 +208,43 @@ fn is_qdtext(byte: u8) -> bool {
 
 fn is_quoted_pair_byte(byte: u8) -> bool {
     matches!(byte, b'\t' | b' ' | 0x21..=0x7e | 0x80..=0xff)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{has_bare_no_cache, has_bare_no_store, is_application_json};
+
+    #[test]
+    fn json_media_type_requires_valid_complete_parameters() {
+        for valid in [
+            "application/json",
+            " Application/JSON ; charset=utf-8 ",
+            "application/json;charset=\"utf-8\";profile=wallet",
+        ] {
+            assert!(is_application_json(valid.as_bytes()), "{valid}");
+        }
+        for invalid in [
+            "text/json",
+            "application/json; charset",
+            "application/json;charset= utf-8",
+            "application/json;charset=\"unterminated",
+            "application/json;charset=utf-8;CHARSET=iso-8859-1",
+        ] {
+            assert!(!is_application_json(invalid.as_bytes()), "{invalid}");
+        }
+    }
+
+    #[test]
+    fn cache_directive_requires_a_bare_complete_member() {
+        assert!(has_bare_no_store(b"private=\"field,a\", no-store"));
+        assert!(has_bare_no_cache(b"max-age=0, NO-CACHE"));
+        for invalid in [
+            b"no-store=value".as_slice(),
+            b"no-store=\"value\"",
+            b"private=\"a,no-store,b\"",
+            b"private=\"unterminated, no-store",
+        ] {
+            assert!(!has_bare_no_store(invalid));
+        }
+    }
 }

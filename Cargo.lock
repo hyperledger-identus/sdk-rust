@@ -849,6 +849,7 @@ dependencies = [
  "identus-crypto",
  "identus-did",
  "identus-jose",
+ "identus-openid4vc",
  "serde",
  "serde_json",
  "zeroize",

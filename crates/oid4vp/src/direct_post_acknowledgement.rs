@@ -3,6 +3,7 @@
 use std::{collections::BTreeSet, fmt};
 
 use fluent_uri::Uri as ParsedUri;
+use identus_openid4vc::http_field::{has_bare_no_store, is_application_json};
 use serde::de::{DeserializeSeed, IgnoredAny, MapAccess, Visitor};
 use zeroize::Zeroizing;
 
@@ -97,11 +98,15 @@ fn parse_acknowledgement(
         return Err(Oid4vpError::InvalidDirectPostAcknowledgement);
     }
     let content_type = content_type.ok_or(Oid4vpError::InvalidDirectPostAcknowledgement)?;
-    if content_type.len() > limits.max_content_type_bytes() || !is_json_content_type(content_type) {
+    if content_type.len() > limits.max_content_type_bytes()
+        || !is_application_json(content_type.as_bytes())
+    {
         return Err(Oid4vpError::InvalidDirectPostAcknowledgement);
     }
     let cache_control = cache_control.ok_or(Oid4vpError::InvalidDirectPostAcknowledgement)?;
-    if cache_control.len() > limits.max_cache_control_bytes() || !has_no_store(cache_control) {
+    if cache_control.len() > limits.max_cache_control_bytes()
+        || !has_bare_no_store(cache_control.as_bytes())
+    {
         return Err(Oid4vpError::InvalidDirectPostAcknowledgement);
     }
     if body.len() > limits.max_body_bytes() {
@@ -124,25 +129,6 @@ fn parse_acknowledgement(
             response_code,
         },
     ))
-}
-
-fn is_json_content_type(value: &str) -> bool {
-    value
-        .split(';')
-        .next()
-        .is_some_and(|media| media.trim().eq_ignore_ascii_case("application/json"))
-}
-
-fn has_no_store(value: &str) -> bool {
-    value
-        .split(',')
-        .map(str::trim)
-        .map(|directive| {
-            directive
-                .split_once('=')
-                .map_or(directive, |(name, _)| name)
-        })
-        .any(|directive| directive.eq_ignore_ascii_case("no-store"))
 }
 
 struct AckSeed {

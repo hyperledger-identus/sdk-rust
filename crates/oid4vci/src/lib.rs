@@ -62,7 +62,6 @@ mod error;
 mod error_contract;
 mod form;
 mod grants;
-mod http_field;
 mod immediate_credential_http_response;
 mod immediate_credential_response;
 mod json;

@@ -76,3 +76,8 @@ with executable lineage in the versioned
 [`plain direct-post vector packet`](../../docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json)
 and
 [`encrypted-response packet`](../../docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json).
+
+The exact Final capability status and remaining focused owners are maintained
+in the machine-checked
+[`OpenID4VP wallet-core capability report`](../../docs/conformance/oid4vp-final-wallet-core.md).
+The report is traceability evidence rather than a certification claim.

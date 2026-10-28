@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 541
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "The change adds offline evidence, tests, documentation, and roadmap reconciliation without changing a public API, production behavior, dependency, target, wire format, or persisted representation."
+ledger_ids     = [  ]

@@ -18,6 +18,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 
 "$repository_root/scripts/tests/ssi-upstream-backlog.py"
 "$repository_root/scripts/tests/oid4vci-conformance.py"
+"$repository_root/scripts/tests/oid4vp-conformance.py"
 "$repository_root/scripts/tests/ssi-upstream-backlog-live.py"
 "$repository_root/scripts/tests/weekly-slow-live.py"
 "$repository_root/scripts/tests/support-policy.py"
@@ -134,6 +135,8 @@ required_files=(
   docs/architecture/source-distribution.md
   docs/conformance/oid4vci-final-wallet-core.csv
   docs/conformance/oid4vci-final-wallet-core.md
+  docs/conformance/oid4vp-final-wallet-core.csv
+  docs/conformance/oid4vp-final-wallet-core.md
   docs/release/crypto-candidate.toml
   docs/release/did-candidate.lock
   docs/release/did-candidate.toml
@@ -278,6 +281,7 @@ required_files=(
   scripts/report-crypto-coverage.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-oid4vci-conformance.py
+  scripts/check-oid4vp-conformance.py
   scripts/check-ssi-upstream-backlog-live.py
   scripts/check-uniffi-did-android.sh
   scripts/check-weekly-slow-live.py
@@ -306,6 +310,7 @@ required_files=(
   scripts/tests/support-policy.py
   scripts/tests/ssi-upstream-backlog-live.py
   scripts/tests/oid4vci-conformance.py
+  scripts/tests/oid4vp-conformance.py
   scripts/tests/weekly-slow-live.py
   scripts/tests/apollo-parity.py
   scripts/tests/platform-ts-capabilities.py
@@ -478,6 +483,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-quality-evidence-declarations.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/check-oid4vci-conformance.py" \
+  "$fixture_root/scripts/check-oid4vp-conformance.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog-live.py" \
   "$fixture_root/scripts/check-weekly-slow-live.py" \
   "$fixture_root/scripts/check-source-distribution.py" \
@@ -507,6 +513,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/support-policy.py" \
   "$fixture_root/scripts/tests/ssi-upstream-backlog-live.py" \
   "$fixture_root/scripts/tests/oid4vci-conformance.py" \
+  "$fixture_root/scripts/tests/oid4vp-conformance.py" \
   "$fixture_root/scripts/tests/weekly-slow-live.py"
 chmod +x "$fixture_root/scripts/tests/apollo-parity.py"
 chmod +x "$fixture_root/scripts/tests/platform-ts-capabilities.py"

@@ -11,6 +11,7 @@ from pathlib import Path
 
 
 MATRIX_PATH = Path("docs/conformance/oid4vp-final-wallet-core.csv")
+REPORT_PATH = Path("docs/conformance/oid4vp-final-wallet-core.md")
 BACKLOG_PATH = Path("docs/roadmap/ssi-upstream-dependency-backlog.csv")
 EXPECTED_FIELDS = (
     "id",
@@ -33,6 +34,10 @@ SECTION_PATTERN = re.compile(
     r"(?:(?:[5-9]|1[0-5])(?:\.[0-9]+)*(?:-(?:[5-9]|1[0-5])(?:\.[0-9]+)*)?|[ABC]|profile)\Z"
 )
 ISSUE_PATTERN = re.compile(r"#[1-9][0-9]*\Z")
+REPORT_SUMMARY_PATTERN = re.compile(
+    r"<!-- oid4vp-summary: implemented=([0-9]+) partial=([0-9]+) "
+    r"unsupported=([0-9]+) not-applicable=([0-9]+) required-gaps=([0-9]+) -->"
+)
 IMPLEMENTATION_PATH_PATTERN = re.compile(
     r"crates/[a-z0-9]+(?:-[a-z0-9]+)*/src/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.rs\Z"
 )
@@ -116,6 +121,30 @@ def backlog_status(root: Path, failures: list[str]) -> str | None:
         failures.append("backlog must contain exactly one IDR-024 row")
         return None
     return matches[0].get("delivery_status")
+
+
+def validate_report_summary(
+    root: Path, counts: Counter[str], required_gaps: int, failures: list[str]
+) -> None:
+    try:
+        report = (root / REPORT_PATH).read_text(encoding="utf-8")
+    except OSError as error:
+        failures.append(f"cannot read {REPORT_PATH}: {error}")
+        return
+    matches = REPORT_SUMMARY_PATTERN.findall(report)
+    if len(matches) != 1:
+        failures.append("report must contain exactly one canonical oid4vp-summary marker")
+        return
+    actual = tuple(int(value) for value in matches[0])
+    expected = (
+        counts["implemented"],
+        counts["partial"],
+        counts["unsupported"],
+        counts["not-applicable"],
+        required_gaps,
+    )
+    if actual != expected:
+        failures.append(f"report summary is stale: expected {expected}, found {actual}")
 
 
 def validate(root: Path, matrix: Path | None = None) -> tuple[list[str], Counter[str]]:
@@ -231,8 +260,11 @@ def validate(root: Path, matrix: Path | None = None) -> tuple[list[str], Counter
         )
 
     status = backlog_status(root, failures)
-    if status == "delivered" and required_gaps:
-        failures.append(f"IDR-024 cannot be delivered with {required_gaps} incomplete required row(s)")
+    if required_gaps and status != "in_progress":
+        failures.append(
+            f"IDR-024 must remain in_progress with {required_gaps} incomplete required row(s)"
+        )
+    validate_report_summary(root, counts, required_gaps, failures)
     return failures, counts
 
 

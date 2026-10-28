@@ -16,9 +16,7 @@ const TYPESCRIPT_FIXTURE: &str = r#"{
 const SWIFT_FIXTURE: &str = r#"{
     "client_id": "decentralized_identifier:did:example:verifier",
     "request_uri": "https://verifier.example/request",
-    "request_uri_method": "post",
-    "wallet_metadata": "{\"vp_formats_supported\":{\"dc+sd-jwt\":{}}}",
-    "wallet_nonce": "adapter-nonce"
+    "request_uri_method": "get"
 }"#;
 
 #[derive(Deserialize)]
@@ -27,8 +25,8 @@ struct TypeScriptAdapterInput {
     client_id: String,
     request_uri: String,
     request_uri_method: String,
-    wallet_metadata: String,
-    wallet_nonce: String,
+    wallet_metadata: Option<String>,
+    wallet_nonce: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -36,16 +34,16 @@ struct SwiftAdapterInput {
     client_id: String,
     request_uri: String,
     request_uri_method: String,
-    wallet_metadata: String,
-    wallet_nonce: String,
+    wallet_metadata: Option<String>,
+    wallet_nonce: Option<String>,
 }
 
 struct NativeAdapterInput {
     client_id: String,
     request_uri: String,
     request_uri_method: String,
-    wallet_metadata: String,
-    wallet_nonce: String,
+    wallet_metadata: Option<String>,
+    wallet_nonce: Option<String>,
 }
 
 impl From<TypeScriptAdapterInput> for NativeAdapterInput {
@@ -86,11 +84,19 @@ fn percent_encode(value: &str) -> String {
 }
 
 fn translate(input: NativeAdapterInput) -> RequestUriRetrievalRequest {
-    assert_eq!(input.request_uri_method, "post");
+    let retrieval = match input.request_uri_method.as_str() {
+        "get" => RequestUriRetrievalInput::get(),
+        "post" => RequestUriRetrievalInput::post(
+            input.wallet_metadata.as_deref(),
+            input.wallet_nonce.as_deref(),
+        ),
+        method => panic!("unsupported test adapter method: {method}"),
+    };
     let invocation = format!(
-        "openid4vp:?client_id={}&request_uri={}&request_uri_method=post",
+        "openid4vp:?client_id={}&request_uri={}&request_uri_method={}",
         percent_encode(&input.client_id),
-        percent_encode(&input.request_uri)
+        percent_encode(&input.request_uri),
+        percent_encode(&input.request_uri_method)
     );
     let AuthorizationRequestInvocation::Referenced(reference) =
         AuthorizationRequestInvocation::parse(
@@ -99,37 +105,45 @@ fn translate(input: NativeAdapterInput) -> RequestUriRetrievalRequest {
         )
         .expect("adapter input maps to the Rust-native invocation");
     reference
-        .prepare_retrieval(
-            RequestUriRetrievalInput::post(Some(&input.wallet_metadata), Some(&input.wallet_nonce)),
-            RequestUriRetrievalLimits::default(),
-        )
+        .prepare_retrieval(retrieval, RequestUriRetrievalLimits::default())
         .expect("adapter input maps to the Rust-native retrieval envelope")
 }
 
-fn assert_same_native_contract(request: &RequestUriRetrievalRequest) {
-    assert_eq!(request.method(), RequestUriMethod::Post);
+fn assert_common_native_contract(request: &RequestUriRetrievalRequest) {
     assert_eq!(request.accept(), REQUEST_OBJECT_MEDIA_TYPE);
-    assert_eq!(request.content_type(), Some(FORM_MEDIA_TYPE));
     assert_eq!(
         request.expose_sensitive_endpoint(),
         "https://verifier.example/request"
     );
+}
+
+fn assert_post_native_contract(request: &RequestUriRetrievalRequest) {
+    assert_common_native_contract(request);
+    assert_eq!(request.method(), RequestUriMethod::Post);
+    assert_eq!(request.content_type(), Some(FORM_MEDIA_TYPE));
     assert_eq!(
         request.expose_sensitive_body(),
         b"wallet_metadata=%7B%22vp_formats_supported%22%3A%7B%22dc%2Bsd-jwt%22%3A%7B%7D%7D%7D&wallet_nonce=adapter-nonce"
     );
 }
 
+fn assert_get_native_contract(request: &RequestUriRetrievalRequest) {
+    assert_common_native_contract(request);
+    assert_eq!(request.method(), RequestUriMethod::Get);
+    assert_eq!(request.content_type(), None);
+    assert_eq!(request.expose_sensitive_body(), b"");
+}
+
 #[test]
 fn typescript_shaped_input_stays_at_the_adapter_boundary() {
     let input: TypeScriptAdapterInput =
         serde_json::from_str(TYPESCRIPT_FIXTURE).expect("independent TypeScript-shaped fixture");
-    assert_same_native_contract(&translate(input.into()));
+    assert_post_native_contract(&translate(input.into()));
 }
 
 #[test]
 fn swift_shaped_input_stays_at_the_adapter_boundary() {
     let input: SwiftAdapterInput =
         serde_json::from_str(SWIFT_FIXTURE).expect("independent Swift-shaped fixture");
-    assert_same_native_contract(&translate(input.into()));
+    assert_get_native_contract(&translate(input.into()));
 }

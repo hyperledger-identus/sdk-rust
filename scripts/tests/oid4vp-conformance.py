@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from collections import Counter
 from pathlib import Path
 
 
@@ -120,14 +121,31 @@ class Oid4vpConformanceContractTests(unittest.TestCase):
             writer.writeheader()
             writer.writerows(self.rows)
 
-    def run_checker(self) -> subprocess.CompletedProcess[str]:
-        self.write()
+        counts = Counter(row["status"] for row in self.rows)
+        required_gaps = sum(
+            row["relevance"] == "required" and row["status"] != "implemented"
+            for row in self.rows
+        )
+        (self.root / "docs/conformance/oid4vp-final-wallet-core.md").write_text(
+            "<!-- oid4vp-summary: "
+            f"implemented={counts['implemented']} partial={counts['partial']} "
+            f"unsupported={counts['unsupported']} "
+            f"not-applicable={counts['not-applicable']} "
+            f"required-gaps={required_gaps} -->\n",
+            encoding="utf-8",
+        )
+
+    def execute_checker(self) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             [sys.executable, str(CHECKER), str(self.root)],
             check=False,
             capture_output=True,
             text=True,
         )
+
+    def run_checker(self) -> subprocess.CompletedProcess[str]:
+        self.write()
+        return self.execute_checker()
 
     def test_complete_matrix_passes(self) -> None:
         result = self.run_checker()
@@ -168,7 +186,29 @@ class Oid4vpConformanceContractTests(unittest.TestCase):
         )
         result = self.run_checker()
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("IDR-024 cannot be delivered with 1 incomplete required row", result.stderr)
+        self.assertIn("IDR-024 must remain in_progress with 1 incomplete required row", result.stderr)
+
+    def test_required_gap_rejects_any_non_in_progress_backlog_state(self) -> None:
+        self.rows[0].update(status="partial", followup_issue="#99")
+        for status in ("queued", "specified", "delivered"):
+            with self.subTest(status=status):
+                (self.root / "docs/roadmap/ssi-upstream-dependency-backlog.csv").write_text(
+                    f"id,delivery_status\nIDR-024,{status}\n", encoding="utf-8"
+                )
+                result = self.run_checker()
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("IDR-024 must remain in_progress", result.stderr)
+
+    def test_stale_report_summary_fails(self) -> None:
+        self.write()
+        (self.root / "docs/conformance/oid4vp-final-wallet-core.md").write_text(
+            "<!-- oid4vp-summary: implemented=0 partial=0 unsupported=0 "
+            "not-applicable=0 required-gaps=0 -->\n",
+            encoding="utf-8",
+        )
+        result = self.execute_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("report summary is stale", result.stderr)
 
     def test_unsafe_and_noncanonical_paths_fail(self) -> None:
         cases = {

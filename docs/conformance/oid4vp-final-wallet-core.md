@@ -30,6 +30,8 @@ executable condition rather than a subjective issue-count decision.
 
 ## Coverage summary
 
+<!-- oid4vp-summary: implemented=9 partial=9 unsupported=4 not-applicable=3 required-gaps=8 -->
+
 | Status | Rows | Meaning |
 | --- | ---: | --- |
 | Implemented | 9 | Bounded implementation, canonical contract, and executable tests exist. |

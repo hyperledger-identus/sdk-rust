@@ -5,7 +5,7 @@ Issue: #545
 Develop base: `f0edaf820b3bc12b45faae02b60c55db3d3040ff`
 Planning contract: `d3a17eb3baf74652045f823dc988b20eeaf70711`
 Preimplementation receipt: `9cfbcdfe860b2ee47ed2704e00d302ec6ce912c8`
-Implementation under review: `f8868f315dbbc8ef2dc6db419a4dd28c9559a211`
+Implementation under review: `736601b758a1bf24ce53ef090b863c5e21a66682`
 Reviewer: Codex CLI, used under the repository's Claude-or-Codex fallback rule
 
 ## Resolved findings
@@ -55,6 +55,7 @@ the verified protected header, applies its own profile limits, rejects a chain
 for every other client-id scheme, and rejects any payload `trust_chain` before
 invoking the policy. The scheme E2E test now constructs protected-header
 Federation evidence and includes a negative payload-substitution regression.
+Commit: `736601b758a1bf24ce53ef090b863c5e21a66682`.
 
 ## Architecture review
 

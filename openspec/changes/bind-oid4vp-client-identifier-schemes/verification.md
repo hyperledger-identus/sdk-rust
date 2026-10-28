@@ -5,7 +5,7 @@ Issue: #545
 Develop base: `f0edaf820b3bc12b45faae02b60c55db3d3040ff`
 Planning contract: `d3a17eb3baf74652045f823dc988b20eeaf70711`
 Preimplementation receipt: `9cfbcdfe860b2ee47ed2704e00d302ec6ce912c8`
-Evidence source head: `f8868f315dbbc8ef2dc6db419a4dd28c9559a211`
+Evidence source head: `736601b758a1bf24ce53ef090b863c5e21a66682`
 
 ## Focused protocol and E2E evidence
 

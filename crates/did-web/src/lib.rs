@@ -492,7 +492,7 @@ fn validate_host(host: &str) -> Result<(), Error> {
     if host.is_empty() || host.len() > 253 || !host.contains('.') || host.ends_with('.') {
         return Err(Error::InvalidIdentifier);
     }
-    if host.split('.').all(is_ipv4_number) {
+    if host.rsplit('.').next().is_some_and(is_ipv4_number) {
         return Err(Error::InvalidIdentifier);
     }
     for label in host.split('.') {

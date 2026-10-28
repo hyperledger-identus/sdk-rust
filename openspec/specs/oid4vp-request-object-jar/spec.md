@@ -89,9 +89,9 @@ caller-supplied discovery audience before returning security evidence.
 - **WHEN** `aud` contains the exact caller-supplied discovered issuer and all other policy checks pass
 - **THEN** the transition proceeds without consulting Request Object `iss`
 
-#### Scenario: audience differs
+#### Scenario: audience differs or names another recipient
 
-- **WHEN** no `aud` member equals the expected value byte-for-byte
+- **WHEN** `aud` is not exactly one value equal to the expected value byte-for-byte
 - **THEN** validation fails with a static audience-mismatch category
 
 ### Requirement: Temporal claims are deterministic and bounded

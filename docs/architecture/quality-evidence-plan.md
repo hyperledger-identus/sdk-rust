@@ -740,7 +740,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Owner: SDK-Rust credential maintainers (issue #569)
 - Risk: Profile drift, malformed claims or external evidence can misidentify credential semantics, bypass disclosure rules, amplify work or represent structural evidence as trust.
 - Targets: `package:identus-sd-jwt-vc`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`
-- Vector IDs: `1` local catalog entries
+- Vector IDs: `4` local catalog entries
 - Limitations: Exact draft-22 compact profile only; no HTTP, trust or issuer authorization, status acceptance, rendering, replay/storage policy, legacy adapter, bindings, runtime certification, publication or downstream adoption.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
@@ -748,7 +748,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #569 |
 | `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #569 |
 | `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #569 |
-| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #569 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #569 |
 
 ### `property`
 
@@ -773,8 +773,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `differential`
 
-- Command: `cargo test -p identus-sd-jwt-vc --test conformance differential`
-- Budget: Compare the pinned draft-22 identity and clean-room cases with released SDK-TS 8.1.4 migration behavior; preserve its legacy protected-type disagreement and track two-engine profile qualification in issue #573.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #573
+- Command: `cargo test -p identus-sd-jwt-vc --test differential`
+- Budget: Execute every normative packet result through the public Rust API and preserve exactly two immutable independent observations per case without donor runtimes in normal CI.
+- Receipt: `source:crates/sd-jwt-vc/tests/differential.rs`
+- Evidence revision: `42c1bb4e9c8a8be692409f5b2c71908deb42262e`

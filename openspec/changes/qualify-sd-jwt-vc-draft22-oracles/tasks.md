@@ -20,8 +20,8 @@
 ## 4. Knowledge and quality evidence
 
 - [x] 4.1 Add a concise qualification report explaining what agrees, disagrees, is not exposed, and remains out of SDK scope.
-- [ ] 4.2 Change only the differential obligation to satisfied/source-bound, clear issue #573 debt, and regenerate deterministic quality evidence.
-- [ ] 4.3 Keep `identus-sd-jwt-vc` unpublished and preserve issue #572 as the sole legacy-adapter owner.
+- [x] 4.2 Change only the differential obligation to satisfied/source-bound, clear issue #573 debt, and regenerate deterministic quality evidence.
+- [x] 4.3 Keep `identus-sd-jwt-vc` unpublished and preserve issue #572 as the sole legacy-adapter owner.
 
 ## 5. Review and delivery
 

@@ -19,8 +19,8 @@ network, runtime, store, or global registry.
 The method-specific identifier is limited to 128 bytes and decoded public
 material to 67 bytes. Parsing uses a fixed stack buffer, canonical unsigned
 varints, exact key lengths, SDK curve validation, canonical re-encoding, and
-content-free error categories. X25519 public keys must also produce a
-contributory shared secret.
+content-free error categories. X25519 public keys must additionally use a
+canonical field encoding and produce a contributory shared secret.
 
 ## Explicit composition
 

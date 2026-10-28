@@ -13,6 +13,10 @@ use crate::jwk::{EncodeJwk, JwkCurve, PublicKeyJwk};
 use crate::securerandom::SecureRandom;
 
 const KEY_SIZE: usize = 32;
+const FIELD_MODULUS: [u8; KEY_SIZE] = [
+    0xed, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f,
+];
 
 fn key_type<T>() -> &'static str {
     std::any::type_name::<T>()
@@ -42,6 +46,18 @@ impl X25519PublicKey {
             key_type: key_type::<Self>(),
         })?;
         Ok(Self(PublicKey::from(arr)))
+    }
+
+    /// Return whether the public key uses the canonical field encoding.
+    ///
+    /// RFC 7748 arithmetic masks the high bit and accepts non-canonical field
+    /// elements. Identifier profiles that bind identity to exact public bytes
+    /// can use this predicate to prevent aliases for the same effective key.
+    #[must_use]
+    pub fn has_canonical_encoding(&self) -> bool {
+        let bytes = self.0.as_bytes();
+        bytes[KEY_SIZE - 1] & 0x80 == 0
+            && bytes.iter().rev().cmp(FIELD_MODULUS.iter().rev()).is_lt()
     }
 
     /// Return whether this public key can produce a contributory shared secret.

@@ -113,7 +113,7 @@ impl From<Secp256k1PublicKey> for PublicKey {
 impl PublicKey {
     fn validate(&self) -> Result<(), Error> {
         if let Self::X25519(key) = self
-            && !key.is_contributory()
+            && (!key.has_canonical_encoding() || !key.is_contributory())
         {
             return Err(Error::InvalidPublicKey);
         }
@@ -420,6 +420,7 @@ fn resolution_failure(kind: DidResolutionErrorKind) -> DidResolutionResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use identus_crypto::{EncodeArray, X25519PrivateKey};
 
     #[test]
     fn uvarint_rejects_overlong_encodings() {
@@ -451,5 +452,22 @@ mod tests {
             let did = format!("{DID_PREFIX}z{}", bs58::encode(encoded).into_string());
             assert_eq!(DidKey::parse(&did), Err(Error::InvalidPublicKey));
         }
+    }
+
+    #[test]
+    fn non_canonical_x25519_aliases_are_rejected() {
+        let canonical = X25519PrivateKey::from_slice(&[42; 32])
+            .unwrap()
+            .to_public_key();
+        let mut aliased_bytes = canonical.encode_array();
+        aliased_bytes[31] |= 0x80;
+        let aliased = X25519PublicKey::from_slice(&aliased_bytes).unwrap();
+        assert!(aliased.is_contributory());
+        assert_eq!(DidKey::create(aliased), Err(Error::InvalidPublicKey));
+
+        let mut encoded = encode_uvarint(X25519_PUB);
+        encoded.extend(aliased_bytes);
+        let did = format!("{DID_PREFIX}z{}", bs58::encode(encoded).into_string());
+        assert_eq!(DidKey::parse(&did), Err(Error::InvalidPublicKey));
     }
 }

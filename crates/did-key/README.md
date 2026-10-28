@@ -6,5 +6,6 @@ SDK's strict v0.9 profile.
 The crate accepts caller-owned Ed25519, X25519, P-256, and secp256k1 public
 keys. It does not generate or store keys, derive X25519 material, perform I/O,
 or register itself globally. See the SDK handbook for the support and evidence
-matrix. Low-order X25519 public keys are rejected, and resolver negotiation
-adds DID Core and Multikey contexts only for `application/did+ld+json`.
+matrix. Non-canonical and low-order X25519 public keys are rejected, and
+resolver negotiation adds DID Core and Multikey contexts only for
+`application/did+ld+json`.

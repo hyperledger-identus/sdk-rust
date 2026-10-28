@@ -33,8 +33,9 @@ storage, transport, executor, product policy, or global registration.
 The method-specific identifier is limited to 128 bytes and decoded material to
 67 bytes. Base58 is decoded into a fixed stack buffer. Codec varints, exact key
 length, curve points, and canonical re-encoding are checked before projection.
-X25519 inputs must also be contributory. Errors expose categories, never
-identifier or key content.
+X25519 inputs must use a canonical field encoding and be contributory, so two
+fingerprints cannot represent one effective agreement key. Errors expose
+categories, never identifier or key content.
 
 ## Explicit registry composition
 

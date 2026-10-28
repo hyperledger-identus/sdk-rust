@@ -133,6 +133,32 @@ fn x25519_classifies_non_contributory_public_keys() {
 }
 
 #[test]
+fn x25519_classifies_non_canonical_coordinate_encodings() {
+    let ordinary = identus_crypto::X25519PrivateKey::from_slice(&[42; 32])
+        .unwrap()
+        .to_public_key();
+    let mut high_bit_alias = ordinary.encode_array();
+    high_bit_alias[31] |= 0x80;
+    let modulus = [
+        0xed, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0x7f,
+    ];
+
+    assert!(ordinary.has_canonical_encoding());
+    assert!(
+        !X25519PublicKey::from_slice(&high_bit_alias)
+            .unwrap()
+            .has_canonical_encoding()
+    );
+    assert!(
+        !X25519PublicKey::from_slice(&modulus)
+            .unwrap()
+            .has_canonical_encoding()
+    );
+}
+
+#[test]
 fn x25519_jwk() {
     let mut rng = DetRandom::new();
     let kp = X25519KeyPair::generate(&mut rng).unwrap();

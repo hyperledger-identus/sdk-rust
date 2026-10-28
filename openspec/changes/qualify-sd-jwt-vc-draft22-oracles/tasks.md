@@ -3,7 +3,7 @@
 ## 1. Contract and preflight
 
 - [x] 1.1 Finalize the two candidate identities, draft-19-to-22 delta, neutral observation model, scope, rollback, and quality transition.
-- [ ] 1.2 Pass research readiness, constraint readiness, OpenSpec validation, signed/DCO planning commit, and exact issue #573 preimplementation receipt.
+- [x] 1.2 Pass research readiness, constraint readiness, OpenSpec validation, signed/DCO planning commit, and exact issue #573 preimplementation receipt.
 
 ## 2. Isolated oracle qualification
 

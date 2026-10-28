@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 573,
+  "change": "qualify-sd-jwt-vc-draft22-oracles",
+  "branch": "codex/test/issue-573",
+  "baseRef": "origin/develop",
+  "baseSha": "cddc54765168533db71dfa89738a2d458d7d0c81",
+  "contractHeadSha": "be479340b1e80734f188dc015398caa810e5eccd",
+  "createdAt": "2026-10-28T23:04:52.768Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -440,7 +440,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo test -p identus-oid4vp --test verifier_authorization`
 - Budget: Exercise every Final scheme, first-colon disposition, exact key lineage, metadata source rule, verifier-info reference and independent collection limit.
 - Receipt: `source:crates/oid4vp/tests/verifier_authorization.rs`
-- Evidence revision: `cd0125c8658aee13e8d088298aef212af3b73484`
+- Evidence revision: `c7bbf3705ce644bfb24e5f1855cc6e2a90bb60e5`
 
 ### `fuzz`
 
@@ -454,11 +454,11 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo bench -p identus-oid4vp --bench request_object_security`
 - Budget: Measure ordinary and near-limit request security followed by exact verifier authorization with one deterministic accepting port.
 - Receipt: `source:crates/oid4vp/benches/request_object_security.rs`
-- Evidence revision: `cd0125c8658aee13e8d088298aef212af3b73484`
+- Evidence revision: `c7bbf3705ce644bfb24e5f1855cc6e2a90bb60e5`
 
 ### `differential`
 
 - Command: `cargo test -p identus-oid4vp --test verifier_authorization`
 - Budget: Compare every Final-defined prefix and metadata source disposition against the pinned normative matrix using normalized SDK states and errors.
 - Receipt: `source:crates/oid4vp/tests/verifier_authorization.rs`
-- Evidence revision: `cd0125c8658aee13e8d088298aef212af3b73484`
+- Evidence revision: `c7bbf3705ce644bfb24e5f1855cc6e2a90bb60e5`

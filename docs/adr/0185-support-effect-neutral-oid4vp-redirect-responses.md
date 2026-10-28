@@ -29,6 +29,9 @@ the verified request lineage.
    entropy, redeem it, or authorize navigation.
 7. Keep HTTP, browser/deep-link dispatch, HTML rendering, privacy, consent,
    session storage, and verifier product policy outside the crate.
+8. Reuse the strict allocation-bounded HTTP media-type and cache-directive
+   parser in `identus-openid4vc` across OID4VP and OID4VCI. Protocol crates
+   retain their own status, limits, and response semantics.
 
 ## Consequences
 
@@ -37,6 +40,8 @@ downstream matches require migration. Consumers gain one Rust-native bounded
 protocol core across native, WASM, and mobile targets without importing a
 browser or HTTP runtime. Syntax and accepted verifier policy are not a claim
 that navigation is safe or that the verifier processed a presentation.
+The shared parser adds one deliberate inward dependency to OID4VCI while
+removing duplicated security-sensitive field parsing.
 
 ## Alternatives rejected
 

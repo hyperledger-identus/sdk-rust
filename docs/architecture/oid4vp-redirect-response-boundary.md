@@ -48,6 +48,12 @@ response to that exact sent request. The parser accepts status 200, JSON media,
 `Cache-Control: no-store`, a bounded duplicate-safe object, and an optional
 absolute `redirect_uri`.
 
+OID4VP and OID4VCI share the protocol-neutral strict HTTP field parser in
+`identus-openid4vc`. Media parameters, quoted strings, duplicate parameters,
+and cache directives are parsed as complete field values; text fragments such
+as `no-store=value` or `private="a,no-store,b"` are not accepted as no-store
+evidence.
+
 One `response_code` may occur across the redirect query and fragment. It is
 retained as opaque zeroizing text. The SDK does not estimate entropy, redeem the
 code, store it, infer verifier success, or authorize navigation. Ambiguous,

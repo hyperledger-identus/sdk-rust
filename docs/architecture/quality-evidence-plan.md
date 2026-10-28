@@ -19,42 +19,38 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
-| `property` | `required` | `focused` | `on-change` | `pending` | #546 |
-| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #546 |
-| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #546 |
-| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #546 |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #546 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #546 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #546 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #546 |
 
 ### `property`
 
 - Command: `cargo test -p identus-oid4vp --test redirect_response property`
-- Budget: Sweep every supported mode, URI component, reserved-field collision, and exact configured byte boundary.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #546
+- Budget: Sweep every supported mode, query/fragment output boundaries, form-post collision bounds, all reserved fields, and the exact acknowledgement body boundary.
+- Receipt: `source:crates/oid4vp/tests/redirect_response.rs`
+- Evidence revision: `30b90193044bdabdafb97a4f309c249e30f275cc`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response`
 - Budget: Run for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #546
+- Receipt: `source:fuzz/fuzz_targets/direct_post_response.rs`
+- Evidence revision: `30b90193044bdabdafb97a4f309c249e30f275cc`
 
 ### `benchmark`
 
 - Command: `cargo bench -p identus-oid4vp --bench direct_post_response`
 - Budget: Measure ordinary and near-limit redirect construction plus acknowledgement parsing.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #546
+- Receipt: `source:crates/oid4vp/benches/direct_post_response.rs`
+- Evidence revision: `30b90193044bdabdafb97a4f309c249e30f275cc`
 
 ### `differential`
 
-- Command: `cargo test -p identus-oid4vp --test redirect_response final_e2e`
+- Command: `cargo test -p identus-oid4vp --test redirect_response`
 - Budget: Compare clean-room fragment, query, form_post, and acknowledgement cases to pinned rules.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #546
+- Receipt: `source:docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json`
+- Evidence revision: `30b90193044bdabdafb97a4f309c249e30f275cc`
 
 ## `oid4vp.direct-post-response.request-object-security.quality.v1`
 

@@ -22,100 +22,100 @@ supersedes  = [  ]
 replaced_by = ""
 
 [[declarations.obligations]]
-class = "property"
-disposition = "required"
-risk = "Mode/destination combinations, escaping, collisions, and boundary arithmetic can create ambiguous or unbounded output."
-selectors = [ "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md#Decision" ]
-command = "cargo test -p identus-oid4vp --test redirect_response property"
-lane = "focused"
-cadence = "on-change"
-targets = [ "package:identus-oid4vp", "host:rust" ]
-freshness = "pending"
-freshness_days = 0
-budget = "Sweep every supported mode, URI component, reserved-field collision, and exact configured byte boundary."
-receipt_kind = "none"
-receipt = ""
-evidence_revision = ""
-recorded_at = ""
-artifact = ""
-owner = "SDK-Rust OID4VP maintainers"
-owner_issue = 546
-debt_status = "open"
-debt_issue = 546
-rationale = ""
-details = [ "invariant=Only exact authorized mode/destination pairs produce bounded inert output", "domain=fragment, query, form_post and acknowledgement", "cases=success, mismatch, collision, malformed URI, oversize and ambiguity" ]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Mode/destination combinations, escaping, collisions, and boundary arithmetic can create ambiguous or unbounded output."
+selectors         = [ "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md#Decision" ]
+command           = "cargo test -p identus-oid4vp --test redirect_response property"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Sweep every supported mode, query/fragment output boundaries, form-post collision bounds, all reserved fields, and the exact acknowledgement body boundary."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/tests/redirect_response.rs"
+evidence_revision = "30b90193044bdabdafb97a4f309c249e30f275cc"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/tests/redirect_response.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 546
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Only exact authorized mode/destination pairs produce bounded inert output", "domain=fragment, query, form_post and acknowledgement", "cases=success, mismatch, collision, malformed URI, oversize and ambiguity" ]
 
 [[declarations.obligations]]
-class = "fuzz"
-disposition = "required"
-risk = "Hostile acknowledgement JSON or URI components can panic, amplify work, bypass bounds, or mint navigation evidence."
-selectors = [ "fuzz/fuzz_targets/direct_post_response.rs#fuzz_target!", "scripts/fuzz-oid4vp.sh#direct_post_response" ]
-command = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response"
-lane = "slow"
-cadence = "weekly-or-manual"
-targets = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
-freshness = "pending"
-freshness_days = 0
-budget = "Run for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024."
-receipt_kind = "none"
-receipt = ""
-evidence_revision = ""
-recorded_at = ""
-artifact = ""
-owner = "SDK-Rust OID4VP maintainers"
-owner_issue = 546
-debt_status = "open"
-debt_issue = 546
-rationale = ""
-details = [ "harness=Arbitrary bounded mode, URI, headers and JSON", "corpus=Clean-room Final examples", "seed=libFuzzer-managed failures promoted to regressions", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Hostile acknowledgement JSON or URI components can panic, amplify work, bypass bounds, or mint navigation evidence."
+selectors         = [ "fuzz/fuzz_targets/direct_post_response.rs#fuzz_target!", "scripts/fuzz-oid4vp.sh#direct_post_response" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/direct_post_response.rs"
+evidence_revision = "30b90193044bdabdafb97a4f309c249e30f275cc"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/direct_post_response.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 546
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded mode, URI, headers and JSON", "corpus=Clean-room Final examples", "seed=libFuzzer-managed failures promoted to regressions", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
 
 [[declarations.obligations]]
-class = "benchmark"
-disposition = "required"
-risk = "URI assembly, encoding, JSON scanning, or collision checks can regress portable latency."
-selectors = [ "crates/oid4vp/benches/direct_post_response.rs#main" ]
-command = "cargo bench -p identus-oid4vp --bench direct_post_response"
-lane = "slow"
-cadence = "weekly-or-manual"
-targets = [ "package:identus-oid4vp", "host:rust" ]
-freshness = "pending"
-freshness_days = 0
-budget = "Measure ordinary and near-limit redirect construction plus acknowledgement parsing."
-receipt_kind = "none"
-receipt = ""
-evidence_revision = ""
-recorded_at = ""
-artifact = ""
-owner = "SDK-Rust OID4VP maintainers"
-owner_issue = 546
-debt_status = "open"
-debt_issue = 546
-rationale = ""
-details = [ "operation=Construct redirect material and parse acknowledgement", "fixture=Ordinary and near-limit clean-room packets", "environment=Rust 1.98 etalon", "statistic=Median directional wall time", "samples=21 samples with 20 iterations", "threshold=Directional baseline" ]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "URI assembly, encoding, JSON scanning, or collision checks can regress portable latency."
+selectors         = [ "crates/oid4vp/benches/direct_post_response.rs#main" ]
+command           = "cargo bench -p identus-oid4vp --bench direct_post_response"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure ordinary and near-limit redirect construction plus acknowledgement parsing."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/benches/direct_post_response.rs"
+evidence_revision = "30b90193044bdabdafb97a4f309c249e30f275cc"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/benches/direct_post_response.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 546
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Construct redirect material and parse acknowledgement", "fixture=Ordinary and near-limit clean-room packets", "environment=Rust 1.98 etalon", "statistic=Median directional wall time", "samples=21 samples with 20 iterations", "threshold=Directional baseline" ]
 
 [[declarations.obligations]]
-class = "differential"
-disposition = "required"
-risk = "SDK behavior can drift from OpenID4VP Final and OAuth response-mode encoding."
-selectors = [ "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md#Decision" ]
-command = "cargo test -p identus-oid4vp --test redirect_response final_e2e"
-lane = "fast"
-cadence = "per-pull-request"
-targets = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
-freshness = "pending"
-freshness_days = 0
-budget = "Compare clean-room fragment, query, form_post, and acknowledgement cases to pinned rules."
-receipt_kind = "none"
-receipt = ""
-evidence_revision = ""
-recorded_at = ""
-artifact = ""
-owner = "SDK-Rust OID4VP maintainers"
-owner_issue = 546
-debt_status = "open"
-debt_issue = 546
-rationale = ""
-details = [ "oracle=OpenID4VP 1.0 Final sections 3.1, 5.6, 8.1, 8.2 and 13.3 plus OAuth response modes", "oracle-revision=Final 2025-07-09", "normalization=Exact parameters, placement and stable categories", "deviations=Effects and redemption caller-owned" ]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "SDK behavior can drift from OpenID4VP Final and OAuth response-mode encoding."
+selectors         = [ "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md#Decision" ]
+command           = "cargo test -p identus-oid4vp --test redirect_response"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Compare clean-room fragment, query, form_post, and acknowledgement cases to pinned rules."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json"
+evidence_revision = "30b90193044bdabdafb97a4f309c249e30f275cc"
+recorded_at       = "2026-10-28"
+artifact          = "docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 546
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=OpenID4VP 1.0 Final sections 3.1, 5.6, 8.1, 8.2 and 13.3 plus OAuth response modes", "oracle-revision=Final 2025-07-09", "normalization=Exact parameters, placement and stable categories", "deviations=Effects and redemption caller-owned" ]
 
 [[declarations]]
 id          = "oid4vp.direct-post-response.request-object-security.quality.v1"

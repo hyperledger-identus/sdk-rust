@@ -91,6 +91,10 @@ pub(crate) const LAYER_RULES: &[LayerRule] = &[
                 proc_macro: false,
             },
             Member {
+                name: "identus-did-key",
+                proc_macro: false,
+            },
+            Member {
                 name: "identus-did-peer",
                 proc_macro: false,
             },

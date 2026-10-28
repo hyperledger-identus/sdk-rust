@@ -103,6 +103,17 @@ consumer_impact  = "Accepted typed structures, including inline ContextObject va
 review_triggers  = [ "new DID JSON surface", "open JSON field", "collection or recursion limit change", "new owned fallible boundary", "iterative cleanup regression" ]
 
 [[boundaries]]
+id               = "did-key-method-profile"
+package          = "identus-did-key"
+surface          = "did:key v0.9 method-specific identifiers, decoded multicodec public keys, and deterministic DID document projection"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_DECODED_KEY_BYTES=67", "MAX_METHOD_SPECIFIC_ID_BYTES=128" ]
+evidence         = [ "crates/did-key/src/lib.rs", "crates/did-key/tests/conformance.rs" ]
+outer_obligation = "The borrowed input string exists before entry; the SDK bounds the key fingerprint before DID allocation and decodes into a fixed-size stack buffer."
+consumer_impact  = "Accepted identifiers and decoded keys remain finite; canonical codec, exact key length, curve validation, and generic document limits apply before projection."
+review_triggers  = [ "did:key draft revision", "new multibase or multicodec", "new curve", "resource limit change", "implicit key conversion" ]
+
+[[boundaries]]
 id               = "did-peer-method-profiles"
 package          = "identus-did-peer"
 surface          = "peer DID numalgo-4 short/long forms, construction input documents, numalgo-2 purpose keys and compact services"

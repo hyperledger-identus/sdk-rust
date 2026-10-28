@@ -98,6 +98,15 @@ owner_issue    = "#5"
 summary        = "Bounded generic DID values, documents with narrow canonical public-key carriers, resolution, dereferencing, registration and caching without key or chain semantics."
 
 [[packages]]
+name           = "identus-did-key"
+path           = "crates/did-key"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#557"
+summary        = "Bounded effect-free did:key v0.9 creation, parsing, and local resolution over four direct public-key multicodecs."
+
+[[packages]]
 name           = "identus-did-peer"
 path           = "crates/did-peer"
 layer          = "domain-primitives"

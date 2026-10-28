@@ -14,7 +14,7 @@
 
 ## 3. Evidence and closeout
 
-- [ ] 3.1 Add clean-room vectors, property, redaction, replay, E2E, fuzz, benchmark, and portable evidence.
-- [ ] 3.2 Update capability matrix, resource boundaries, quality declaration, change ledger, and knowledge base.
+- [x] 3.1 Add clean-room vectors, property, redaction, replay, E2E, fuzz, benchmark, and portable evidence.
+- [x] 3.2 Update capability matrix, resource boundaries, quality declaration, change ledger, and knowledge base.
 - [ ] 3.3 Pass local/Nix/factory gates and exact-head Claude-or-Codex CLI review.
 - [ ] 3.4 Open an issue-linked signed/DCO PR, merge only on green protected CI, publish metrics, reconcile #544/#541, and archive OpenSpec.

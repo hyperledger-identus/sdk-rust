@@ -45,6 +45,10 @@ State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. A consumin
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and bounded caller presentations into a deterministic plain direct-post success envelope.
 
+### `oid4vp.direct-post-response.verifier-authorization-evidence.v1`
+
+State: `proposed`. Class: `breaking` / `changed`. Target: `unreleased`. A consuming transition classifies Final client identifier prefixes, validates bounded scheme metadata and requires a caller-owned trust port to accept the exact verified key and full correlated client identifier before typed routing.
+
 ### `siopv2.did-authentication.draft13.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive experimental crate validates the pinned SIOPv2 draft-13 DID-subject direct_post profile, plans a self-issued ID Token through injected JOSE ports and exposes deterministic caller-driven lifecycle transitions while shared bounded request retrieval moves behind identus-openid4vc.
@@ -86,6 +90,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `oid4vp.direct-post-response.v1`
 
 `unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. No migration action required.
+
+### `oid4vp.direct-post-response.verifier-authorization-evidence.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. Implement the applicable Final verifier trust adapter and call the verifier-authorization transition after request security validation.
 
 ### `siopv2.did-authentication.draft13.v1`
 
@@ -129,6 +137,10 @@ Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: 
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
+### `oid4vp.direct-post-response.verifier-authorization-evidence.v1`
+
+Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started.
+
 ### `siopv2.did-authentication.draft13.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
@@ -171,6 +183,10 @@ Fallback: Consumers retain their existing implementation until they can supply t
 
 Fallback: Consumers continue assembling responses in their existing adapter until they explicitly adopt the experimental SDK transition. Rollback: Remove the additive response transition and private retained metadata before publication; existing request validation remains available. Removal gate: Not applicable.
 
+### `oid4vp.direct-post-response.verifier-authorization-evidence.v1`
+
+Fallback: Consumers retain their existing verifier-authentication implementation until they can supply a conforming trust adapter; no unsafe SDK bypass is retained. Rollback: Before publication remove the verifier authorization transition and its typed routing successors as one unreleased unit; never restore routing from request-security evidence alone. Removal gate: Not applicable.
+
 ### `siopv2.did-authentication.draft13.v1`
 
 Fallback: Consumers retain their existing SIOPv2 implementation until a separately qualified adapter accepts the experimental SDK profile. Rollback: Remove the additive SIOPv2 crate and shared delegation before publication; existing OID4VP behavior and downstream implementations remain unchanged. Removal gate: Not applicable.
@@ -212,6 +228,10 @@ Visibility: behavior, public-api, security. No verifier-key trust, discovery fet
 ### `oid4vp.direct-post-response.v1`
 
 Visibility: behavior, public-api, security, target-support, wire. Only plain OpenID4VP 1.0 Final direct_post success construction is included; no HTTP execution, presentation generation or verification, consent, trust, replay defense, signing, encryption, direct_post.jwt, SIOPv2, DC API, HAIP, persistence, consumer mutation or publication is claimed.
+
+### `oid4vp.direct-post-response.verifier-authorization-evidence.v1`
+
+Visibility: behavior, public-api, security. No bundled DID resolver, PKI/DNS validation, Federation engine, attestation trust store, transport, persistence, product consent/policy, unsigned redirect-URI flow, Digital Credentials API, language adapter, publication or downstream adoption.
 
 ### `siopv2.did-authentication.draft13.v1`
 

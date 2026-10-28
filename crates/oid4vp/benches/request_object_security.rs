@@ -30,19 +30,19 @@ fn main() {
     let exact_string = "b".repeat(RequestObjectValidationLimits::default().max_string_bytes());
     let boundary = signed(&json!({
         "client_id": CLIENT_ID,
-        "aud": [
-            STATIC_DISCOVERY_AUDIENCE,
-            exact_string,
-            "c".repeat(RequestObjectValidationLimits::default().max_string_bytes() / 2)
-        ],
+        "aud": exact_string,
         "iat": support::NOW_SECONDS - 120,
         "exp": support::NOW_SECONDS + 180,
         "nbf": support::NOW_SECONDS - 150,
         "jti": "j".repeat(RequestObjectValidationLimits::default().max_string_bytes())
     }));
 
-    measure("security.ordinary.end-to-end", || validate(&ordinary));
-    measure("security.boundary.end-to-end", || validate(&boundary));
+    measure("security.ordinary.end-to-end", || {
+        validate(&ordinary, STATIC_DISCOVERY_AUDIENCE)
+    });
+    measure("security.boundary.end-to-end", || {
+        validate(&boundary, &exact_string)
+    });
     println!("oid4vp-request-object-security-benchmark allocation_observation=not_available");
 }
 
@@ -67,7 +67,7 @@ fn signed(request: &serde_json::Value) -> String {
     .to_owned()
 }
 
-fn validate(compact: &str) {
+fn validate(compact: &str, expected_audience: &str) {
     let AuthorizationRequestInvocation::Referenced(reference) =
         AuthorizationRequestInvocation::parse(
             REFERENCE,
@@ -93,7 +93,12 @@ fn validate(compact: &str) {
     let verified = object
         .verify(&SignatureSuiteRegistry::recommended(), &key)
         .expect("verified");
-    black_box(support::secure(verified));
+    let evidence = if expected_audience == STATIC_DISCOVERY_AUDIENCE {
+        support::secure(verified)
+    } else {
+        support::secure_for_audience(verified, expected_audience)
+    };
+    black_box(evidence);
 }
 
 fn measure(name: &str, mut operation: impl FnMut()) {

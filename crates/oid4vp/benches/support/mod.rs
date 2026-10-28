@@ -28,7 +28,15 @@ impl RequestObjectReplayGuard for Replay {
 }
 
 pub fn secure(request: VerifiedRequestObject) -> RequestObjectSecurityEvidence {
-    let policy = RequestObjectSecurityPolicy::static_discovery(
+    secure_for_audience(request, identus_oid4vp::STATIC_DISCOVERY_AUDIENCE)
+}
+
+pub fn secure_for_audience(
+    request: VerifiedRequestObject,
+    expected_audience: &str,
+) -> RequestObjectSecurityEvidence {
+    let policy = RequestObjectSecurityPolicy::new(
+        expected_audience,
         300,
         30,
         RequestObjectValidationLimits::default(),

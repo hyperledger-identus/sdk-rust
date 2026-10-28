@@ -39,7 +39,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `oid4vp.direct-post-response.request-object-security.v1`
 
-State: `proposed`. Class: `breaking` / `changed`. Target: `unreleased`. A consuming protocol-local transition validates the discovered audience, temporal policy, and one atomic caller-owned replay decision before typed routing.
+State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. A consuming protocol-local transition validates the discovered audience, temporal policy, and one atomic caller-owned replay decision before typed routing.
 
 ### `oid4vp.direct-post-response.v1`
 

@@ -16,6 +16,7 @@ CATALOG = ROOT / "docs/conformance/cross-language-vector-catalog.toml"
 PACKET = ROOT / "docs/conformance/fixtures/did/v1/vectors.json"
 PEER_PACKET = ROOT / "docs/conformance/fixtures/did-peer/v1/vectors.json"
 DID_KEY_PACKET = ROOT / "docs/conformance/fixtures/did-key/v1/vectors.json"
+DID_JWK_PACKET = ROOT / "docs/conformance/fixtures/did-jwk/v1/vectors.json"
 PRISM_PACKET = ROOT / "docs/conformance/fixtures/did-prism/v1/vectors.json"
 CRYPTO_PACKET = ROOT / "docs/conformance/fixtures/crypto/v1/vectors.json"
 PRISM_VDR_INDEXING_PACKET = ROOT / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
@@ -57,6 +58,9 @@ def run(catalog: str, packet: str, should_pass: bool, *, crypto_packet: str | No
         did_key_target = root / "docs/conformance/fixtures/did-key/v1/vectors.json"
         did_key_target.parent.mkdir(parents=True)
         shutil.copy2(DID_KEY_PACKET, did_key_target)
+        did_jwk_target = root / "docs/conformance/fixtures/did-jwk/v1/vectors.json"
+        did_jwk_target.parent.mkdir(parents=True)
+        shutil.copy2(DID_JWK_PACKET, did_jwk_target)
         prism_target = root / "docs/conformance/fixtures/did-prism/v1/vectors.json"
         prism_target.parent.mkdir(parents=True)
         shutil.copy2(PRISM_PACKET, prism_target)
@@ -224,6 +228,9 @@ def main() -> None:
         did_key_target = root / "docs/conformance/fixtures/did-key/v1/vectors.json"
         did_key_target.parent.mkdir(parents=True)
         shutil.copy2(DID_KEY_PACKET, did_key_target)
+        did_jwk_target = root / "docs/conformance/fixtures/did-jwk/v1/vectors.json"
+        did_jwk_target.parent.mkdir(parents=True)
+        shutil.copy2(DID_JWK_PACKET, did_jwk_target)
         prism_target = root / "docs/conformance/fixtures/did-prism/v1/vectors.json"
         prism_target.parent.mkdir(parents=True)
         shutil.copy2(PRISM_PACKET, prism_target)

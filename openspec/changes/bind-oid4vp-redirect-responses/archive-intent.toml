@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability = "oid4vp-authorization-request-routing"
+requirement = "The first profile supports only VP token direct post"
+canonical_sha256 = "66e60f550d5a3b2d04e2bec65401478d3c15d675908bcf1d4800c22838397dfd"
+reason = "Issue #546 intentionally broadens the unpublished Final wallet-core profile to standard OAuth redirect response modes while preserving the direct-post modes and verifier-authorization gate."

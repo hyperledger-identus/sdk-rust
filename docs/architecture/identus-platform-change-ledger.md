@@ -37,6 +37,10 @@ State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. The pre-re
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and explicit typed protocol-error values into a bounded plain direct-post error envelope.
 
+### `oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1`
+
+State: `proposed`. Class: `breaking` / `changed`. Target: `unreleased`. Verifier-authorized requests can additionally construct bounded inert fragment, query, or form_post material and sent direct-post material can consume one bounded optional post-submission redirect acknowledgement.
+
 ### `oid4vp.direct-post-response.request-object-security.v1`
 
 State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. A consuming protocol-local transition validates the discovered audience, temporal policy, and one atomic caller-owned replay decision before typed routing.
@@ -82,6 +86,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `oid4vp.direct-post-response.error.v1`
 
 `unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. No migration action required.
+
+### `oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. Make AuthorizationResponseMode matches forward-compatible, select mode-specific inert output, and keep browser, HTTP, navigation, privacy, and session policy in the adapter.
 
 ### `oid4vp.direct-post-response.request-object-security.v1`
 
@@ -129,6 +137,10 @@ Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: 
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
+### `oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1`
+
+Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The API is experimental and unpublished; migration is required before the first compatible release.
+
 ### `oid4vp.direct-post-response.request-object-security.v1`
 
 Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started.
@@ -175,6 +187,10 @@ Fallback: Consumers retain plain direct_post or their existing protected-respons
 
 Fallback: Consumers continue constructing error forms in their existing adapter until they explicitly adopt the experimental SDK transition. Rollback: Remove the additive error-response types and constructor before publication; existing request validation and success construction remain available. Removal gate: Not applicable.
 
+### `oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1`
+
+Fallback: Consumers keep existing direct-post or adapter-owned redirect behavior until they adopt the additive unreleased contract. Rollback: Before publication remove the additive variants and acknowledgement successor while preserving existing direct-post behavior and verifier authorization. Removal gate: Not applicable.
+
 ### `oid4vp.direct-post-response.request-object-security.v1`
 
 Fallback: Consumers retain their existing implementation until they can supply trusted discovery evidence and an atomic replay guard; no unsafe SDK bypass is retained. Rollback: Before publication remove the security transition and its typed routing successors as one unreleased unit while preserving issue evidence; never restore direct routing from raw signature evidence or simulate acceptance. Removal gate: Not applicable.
@@ -220,6 +236,10 @@ Visibility: behavior, public-api, security, wire. The enum, validation-category 
 ### `oid4vp.direct-post-response.error.v1`
 
 Visibility: behavior, public-api, security, target-support, wire. Only plain OpenID4VP 1.0 Final direct_post protocol-error construction is included; no automatic SDK error mapping, HTTP, consent/privacy policy, protected response, DC API, consumer mutation or publication is claimed.
+
+### `oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1`
+
+Visibility: behavior, public-api, security, wire. No browser/deep-link navigation, HTML rendering, HTTP execution, URL leakage policy, response-code redemption, verifier storage, entropy proof, product consent/trust, Digital Credentials API, SIOPv2, publication, or downstream adoption.
 
 ### `oid4vp.direct-post-response.request-object-security.v1`
 

@@ -115,6 +115,47 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
+id                                = "oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1"
+capability                        = "oid4vp.direct-post-response"
+lifecycle_state                   = "proposed"
+issue                             = 546
+pull_request                      = 0
+change_class                      = "breaking"
+release_note_class                = "changed"
+visibility                        = [ "behavior", "public-api", "security", "wire" ]
+affected_packages                 = [ "identus-oid4vp" ]
+affected_consumers                = [ "lace-id-portal", "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "source-break"
+old_behavior                      = "Verifier-authorized OID4VP requests can construct only direct_post or direct_post.jwt output and cannot bind the response endpoint acknowledgement."
+new_behavior                      = "Verifier-authorized requests can additionally construct bounded inert fragment, query, or form_post material and sent direct-post material can consume one bounded optional post-submission redirect acknowledgement."
+migration_action                  = "Make AuthorizationResponseMode matches forward-compatible, select mode-specific inert output, and keep browser, HTTP, navigation, privacy, and session policy in the adapter."
+replacement                       = "Additive redirect response types and direct-post acknowledgement successor."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The API is experimental and unpublished; migration is required before the first compatible release."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "Rust-native response states remain canonical; language adapters map the explicit modes without preserving foreign DTO or error shapes."
+vector_ids                        = [ "oid4vp.direct-post-response.final-string-state" ]
+quality_declaration_ids           = [ "oid4vp.redirect-response.quality.v1" ]
+observability                     = "Record only stable mode/outcome categories and bounded counts or lengths; never record VP tokens, state, destinations, response bodies, response codes, or verifier diagnostics."
+fallback                          = "Consumers keep existing direct-post or adapter-owned redirect behavior until they adopt the additive unreleased contract."
+rollback                          = "Before publication remove the additive variants and acknowledgement successor while preserving existing direct-post behavior and verifier authorization."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#oid4vp.redirect-response.quality.v1" ]
+evidence_artifacts                = [ "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md" ]
+limitations                       = "No browser/deep-link navigation, HTML rendering, HTTP execution, URL leakage policy, response-code redemption, verifier storage, entropy proof, product consent/trust, Digital Credentials API, SIOPv2, publication, or downstream adoption."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "siopv2.did-authentication.draft13.v1"
 capability                        = "siopv2.did-authentication"
 lifecycle_state                   = "active"

@@ -5,7 +5,56 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-28`
-- Declaration count: `10`
+- Declaration count: `11`
+
+## `oid4vp.redirect-response.quality.v1`
+
+- Capability: `oid4vp.direct-post-response`
+- Slice: Bounded redirect response modes and direct-post acknowledgement
+- Owner: SDK-Rust OID4VP maintainers (issue #546)
+- Risk: Redirect encoding or acknowledgement parsing can lose request lineage, leak presentation data, create ambiguous destinations, or authorize effects.
+- Targets: `package:identus-oid4vp`, `host:rust`, `consumer:portable-sdk`
+- Vector IDs: `1` local catalog entries
+- Limitations: Inert protocol material only; no HTTP, browser navigation, HTML, leakage policy, response-code redemption, entropy proof, storage, publication, or certification claim.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `required` | `focused` | `on-change` | `pending` | #546 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #546 |
+| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #546 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #546 |
+
+### `property`
+
+- Command: `cargo test -p identus-oid4vp --test redirect_response property`
+- Budget: Sweep every supported mode, URI component, reserved-field collision, and exact configured byte boundary.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #546
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak redirect_response`
+- Budget: Run for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #546
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-oid4vp --bench redirect_response`
+- Budget: Measure ordinary and near-limit redirect construction plus acknowledgement parsing.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #546
+
+### `differential`
+
+- Command: `cargo test -p identus-oid4vp --test redirect_response final_e2e`
+- Budget: Compare clean-room fragment, query, form_post, and acknowledgement cases to pinned rules.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #546
 
 ## `oid4vp.direct-post-response.request-object-security.quality.v1`
 

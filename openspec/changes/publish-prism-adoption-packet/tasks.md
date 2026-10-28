@@ -4,7 +4,7 @@
 
 - [x] 1.1 Reconcile delivered SDK capabilities, current handbook, roadmap, and immutable NeoPRISM parity evidence.
 - [x] 1.2 Record documentation, E2E, status, ownership, limitations, evidence, and rollback decisions.
-- [ ] 1.3 Pass planning readiness, commit the planning-only contract, and retain issue preflight.
+- [x] 1.3 Pass planning readiness, commit the planning-only contract, and retain issue preflight.
 
 ## 2. Executable adoption packet
 

@@ -4,7 +4,7 @@
 
 - [x] 1.1 Research Final/OAuth response-mode and acknowledgement requirements.
 - [x] 1.2 Record state, destination, effect, compatibility, bounds, and rollback decisions.
-- [ ] 1.3 Pass planning readiness, commit the planning contract, and write issue preflight.
+- [x] 1.3 Pass planning readiness, commit the planning contract, and write issue preflight.
 
 ## 2. Implementation
 

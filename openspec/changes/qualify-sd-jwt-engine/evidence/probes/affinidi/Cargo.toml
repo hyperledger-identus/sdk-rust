@@ -1,0 +1,8 @@
+[package]
+name = "probe-affinidi-sd-jwt"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+affinidi-sd-jwt = { version = "=0.1.8", default-features = false }

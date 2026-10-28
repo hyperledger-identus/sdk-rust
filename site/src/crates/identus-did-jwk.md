@@ -21,7 +21,10 @@ network, runtime, store, custody layer, or global registry.
 Carrier text is bounded at 21,846 bytes and decoded JSON at 16,384 bytes. The
 duplicate-safe parser additionally limits depth to 16, nodes to 1,024, and
 top-level members to 64. Creation applies the same serialized ceilings, and
-all four curve families receive actual public-key validation before use.
+both entry paths preflight generic DID document projection limits. Accepted
+values therefore remain resolvable rather than deferring an extension-shape
+failure until projection. All four curve families receive actual public-key
+validation before use.
 
 ## Explicit composition
 

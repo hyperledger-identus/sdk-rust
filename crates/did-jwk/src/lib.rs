@@ -121,16 +121,19 @@ impl DidJwk {
         if json.len() > MAX_JWK_JSON_BYTES {
             return Err(Error::ResourceLimit);
         }
+        parse_bounded_json(&json)?;
         let carrier = URL_SAFE_NO_PAD.encode(&json);
         if carrier.len() > MAX_METHOD_SPECIFIC_ID_BYTES {
             return Err(Error::ResourceLimit);
         }
         let did = Did::parse(&format!("{DID_PREFIX}{carrier}")).map_err(|_| Error::Projection)?;
-        Ok(Self {
+        let value = Self {
             did,
             public_key,
             key_use,
-        })
+        };
+        value.ensure_projectable()?;
+        Ok(value)
     }
 
     /// Parse and validate a `did:jwk` string.
@@ -180,11 +183,13 @@ impl DidJwk {
         let public_key: PublicKeyJwk =
             serde_json::from_value(value).map_err(|_| Error::UnsupportedProfile)?;
         let key_use = validate_jwk(&public_key)?;
-        Ok(Self {
+        let value = Self {
             did,
             public_key,
             key_use,
-        })
+        };
+        value.ensure_projectable()?;
+        Ok(value)
     }
 
     /// Borrow the exact validated DID representation.
@@ -208,6 +213,10 @@ impl DidJwk {
     /// Resolve this DID to its deterministic context-free DID document.
     pub fn resolve(&self) -> Result<DidDocument, Error> {
         self.resolve_document(false)
+    }
+
+    fn ensure_projectable(&self) -> Result<(), Error> {
+        self.resolve_document(false).map(|_| ())
     }
 
     fn resolve_document(&self, json_ld: bool) -> Result<DidDocument, Error> {

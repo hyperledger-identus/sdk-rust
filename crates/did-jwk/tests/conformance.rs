@@ -92,6 +92,27 @@ fn constructor_parser_property_covers_public_material() {
 }
 
 #[test]
+fn creation_and_parsing_share_structural_and_projection_limits() {
+    let jwk = Ed25519PrivateKey::from_slice(&[23; 32])
+        .unwrap()
+        .to_public_key()
+        .encode_jwk();
+
+    let mut nested = Value::Null;
+    for _ in 0..15 {
+        nested = Value::Array(vec![nested]);
+    }
+    let nested = with_extension(&jwk, "meta", nested);
+    assert_eq!(DidJwk::create(nested), Err(Error::ResourceLimit));
+
+    let wide = with_extension(&jwk, "meta", Value::Array(vec![Value::Null; 129]));
+    assert_eq!(DidJwk::create(wide.clone()), Err(Error::Projection));
+    let json = serde_json::to_vec(&wide).unwrap();
+    let did = format!("did:jwk:{}", URL_SAFE_NO_PAD.encode(json));
+    assert_eq!(DidJwk::parse(&did), Err(Error::Projection));
+}
+
+#[test]
 fn duplicate_private_key_ops_and_noncanonical_carriers_fail_closed() {
     let cases = [
         (
@@ -116,8 +137,12 @@ fn duplicate_private_key_ops_and_noncanonical_carriers_fail_closed() {
 }
 
 fn with_use(jwk: &PublicKeyJwk, value: &str) -> PublicKeyJwk {
+    with_extension(jwk, "use", Value::String(value.to_owned()))
+}
+
+fn with_extension(jwk: &PublicKeyJwk, name: &str, value: Value) -> PublicKeyJwk {
     let mut extensions = BTreeMap::new();
-    extensions.insert("use".to_owned(), Value::String(value.to_owned()));
+    extensions.insert(name.to_owned(), value);
     PublicKeyJwk::from_parts(
         match jwk.crv() {
             JwkCurve::Ed25519 | JwkCurve::X25519 => JwkKeyType::Okp,

@@ -18,10 +18,10 @@ sample contains 500 iterations.
 
 | Operation | Median ns/iteration |
 | --- | ---: |
-| create Ed25519 DID | 3,902 |
-| parse Ed25519 DID | 4,353 |
-| resolve local document | 1,462 |
-| reject oversized identifier | 1 |
+| create Ed25519 DID | 5,775 |
+| parse Ed25519 DID | 6,016 |
+| resolve local document | 1,475 |
+| reject oversized identifier | 2 |
 
 Compare order of magnitude and early rejection behavior on the same host
 rather than treating nanoseconds as a cross-host promise.
@@ -34,7 +34,8 @@ rather than treating nanoseconds as a cross-host promise.
   create and parse across 64 seed classes.
 - Parser security: alternate ordering and whitespace preserve the exact DID;
   nested duplicates, private members, `key_ops`, malformed carriers, weak or
-  invalid key material, and incompatible explicit `use` fail closed.
+  invalid key material, incompatible explicit `use`, parser-depth drift, and
+  unprojectable extension collections fail closed.
 - E2E: an opt-in generic registry resolves, serializes, reparses, and checks the
   JWK and JSON/JSON-LD context behavior without I/O or global registration.
 - Fuzz: the carrier, duplicate-safe JSON, typed JWK, key validation, and local

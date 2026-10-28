@@ -34,6 +34,9 @@ language binding, consumer migration, publication, or global registration.
 Carrier text is limited to 21,846 bytes and decoded JSON to 16,384 bytes. JSON
 work is limited to 16 levels, 1,024 nodes, and 64 top-level members before
 typed construction. Creation enforces the same serialized ceilings as parsing.
+Both paths also preflight the generic DID document extension rules, so an
+accepted JWK cannot later fail solely because its arrays or objects are too
+large to project.
 Ed25519 values must be canonical and non-weak; X25519 values canonical and
 contributory; EC coordinates must form valid points. Errors expose categories,
 never identifier, JSON, extension, coordinate, or key content.

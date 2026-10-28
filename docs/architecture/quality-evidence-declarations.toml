@@ -2,10 +2,142 @@ schema_version   = 1
 registry_version = "1.0.0"
 status           = "active"
 owner_issue      = 501
-evaluated_at     = "2026-10-27"
+evaluated_at     = "2026-10-28"
 allowed_classes  = [ "property", "fuzz", "benchmark", "differential" ]
 allowed_lanes    = [ "focused", "fast", "slow", "release", "none" ]
 allowed_cadences = [ "on-change", "per-pull-request", "weekly-or-manual", "per-candidate", "not-applicable" ]
+
+[[declarations]]
+id          = "oid4vp.direct-post-response.request-object-security.quality.v1"
+capability  = "oid4vp.direct-post-response"
+slice       = "Bounded Request Object audience, freshness and atomic replay evidence"
+owner       = "SDK-Rust OID4VP maintainers"
+owner_issue = 544
+risk        = "A signed Request Object can target the wrong Wallet, be accepted outside its validity window, or be replayed before typed authorization routing."
+targets     = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "oid4vp.direct-post-response.final-string-state" ]
+limitations = "This declaration proves local Final audience, integral temporal policy, atomic replay decision and typed state lineage; it does not prove verifier trust, persistence, transport, consent, credential validity or product policy."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Temporal boundary arithmetic or consuming state transitions can accept stale/future input or expose typed routing before security acceptance."
+selectors = [ "crates/oid4vp/src/request_object.rs#bypass_security", "crates/oid4vp/tests/request_object_security.rs#generated_temporal_boundary_properties_hold", "crates/oid4vp/tests/request_object_security.rs#stateful_replay_guard_accepts_each_payload_once" ]
+command = "cargo test -p identus-oid4vp --test request_object_security && cargo test -p identus-oid4vp --doc"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-oid4vp", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Sweep generated age/skew/expiry/not-before boundaries and exercise a stateful atomic replay decision with consuming-state compile/runtime canaries."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/tests/request_object_security.rs"
+evidence_revision = "4fc60ef685a035e56e9b79ad73c41924047e95ec"
+recorded_at = "2026-10-28"
+artifact = "crates/oid4vp/tests/request_object_security.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 544
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Only an audience/time-valid atomically accepted Request Object reaches typed routing",
+  "domain=Singleton static/dynamic audiences plus generated integral age/skew/expiry/not-before boundaries",
+  "cases=Exact boundary, one-before, one-after, missing, malformed, mismatch, stateful duplicate rejection and guard failure",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "satisfied"
+risk = "Malformed audience arrays or NumericDate tokens can panic, amplify parser work, overflow arithmetic or bypass policy."
+selectors = [ "fuzz/fuzz_targets/request_object_security.rs#fuzz_target!", "scripts/fuzz-oid4vp.sh#request_object_security" ]
+command = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak request_object_security"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Run the bounded claims and policy path for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024."
+receipt_kind = "source"
+receipt = "source:fuzz/fuzz_targets/request_object_security.rs"
+evidence_revision = "643773773b40a3571f94e676a22d01cd43393aff"
+recorded_at = "2026-10-28"
+artifact = "fuzz/fuzz_targets/request_object_security.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 544
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "harness=Route arbitrary bounded payload claims through scanning and deterministic security policy",
+  "corpus=Clean-room Final static and mismatch cases plus generated temporal boundaries",
+  "seed=libFuzzer-managed reproducible failures with checked-in regression promotion",
+  "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "Additional claim scanning, time arithmetic or replay-port invocation can materially regress portable request latency."
+selectors = [ "crates/oid4vp/benches/request_object_security.rs#security.ordinary.end-to-end", "crates/oid4vp/benches/request_object_security.rs#security.boundary.end-to-end" ]
+command = "cargo bench -p identus-oid4vp --bench request_object_security"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure deterministic ordinary and near-limit local security transitions over a stable sample set."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/benches/request_object_security.rs"
+evidence_revision = "21f16a0fc91244a0ff6304f14d2b80cb6e7c2fab"
+recorded_at = "2026-10-28"
+artifact = "crates/oid4vp/benches/request_object_security.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 544
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=Parse verified claims, validate audience/time and invoke one in-memory replay decision",
+  "fixture=Deterministic clean-room Final static ordinary audience and dynamic near-limit audience/JWT-ID strings",
+  "environment=Rust 1.98 etalon on the executing development host with Linux as comparison lane",
+  "statistic=Median wall time from the dependency-free directional harness",
+  "samples=21 samples with 20 iterations each",
+  "threshold=Directional baseline before downstream adoption; functional limits remain blocking",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "SDK audience and temporal behavior can drift from OpenID4VP Final and RFC 7519 while internal round trips remain green."
+selectors = [ "crates/oid4vp/tests/direct_post_response.rs#packet_executes_full_invocation_jar_dcql_and_response_lineage", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.direct-post-response.final-string-state" ]
+command = "cargo test -p identus-oid4vp --test direct_post_response packet_executes_full_invocation_jar_dcql_and_response_lineage"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Execute the pinned clean-room Final/RFC packet and compare normalized result classes rather than foreign DTOs or error strings."
+receipt_kind = "source"
+receipt = "source:docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+evidence_revision = "547ef60adea10a8d97c2948043e51c82f793d9be"
+recorded_at = "2026-10-28"
+artifact = "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 544
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=OpenID4VP 1.0 Final section 5.8 and RFC 7519 clean-room cases",
+  "oracle-revision=OpenID4VP-Final-2025-07-09-current-errata;RFC7519-May-2015",
+  "normalization=Compare exact audience and stable policy result categories without importing foreign DTOs",
+  "deviations=Integral NumericDate profile and caller-owned atomic replay are explicit SDK constraints",
+]
 
 [[declarations]]
 id          = "crypto.quality.v1"
@@ -54,7 +186,7 @@ details = [
 
 [[declarations.obligations]]
 class = "fuzz"
-disposition = "satisfied"
+disposition = "required"
 risk = "Malformed public JWK or COSE values can trigger parser panics, excessive allocation or invalid curve-point acceptance."
 selectors = [
   "fuzz/fuzz_targets/crypto_support.rs#fuzz_public_jwk",
@@ -65,18 +197,18 @@ command = "nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak all"
 lane = "slow"
 cadence = "weekly-or-manual"
 targets = [ "package:identus-crypto", "host:linux", "sanitizer:address" ]
-freshness = "max-age-days"
-freshness_days = 8
+freshness = "pending"
+freshness_days = 0
 budget = "Run public JWK and COSE fuzz targets for 300 seconds each with max_len=8192, timeout=5 and rss_limit_mb=1024."
-receipt_kind = "github-run"
-receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/39196675834"
-evidence_revision = "fb1c7011897ba766f82ea5957feaeb95df179418"
-recorded_at = "2026-10-19"
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
 artifact = "crypto-fuzz-artifacts-<sha>-<attempt> on failure"
 owner = "SDK-Rust cryptography maintainers"
 owner_issue = 525
-debt_status = "none"
-debt_issue = 0
+debt_status = "open"
+debt_issue = 525
 rationale = ""
 details = [
   "harness=libFuzzer public JWK and COSE parse and round-trip targets",

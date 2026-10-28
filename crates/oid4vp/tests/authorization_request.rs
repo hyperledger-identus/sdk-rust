@@ -12,6 +12,8 @@ use identus_oid4vp::{
 };
 use serde_json::{Value, json};
 
+mod support;
+
 const PRIVATE_BYTES: [u8; 32] = [0x71; 32];
 const CLIENT_ID: &str = "decentralized_identifier:did:example:verifier";
 const REFERENCE: &str = "openid4vp:?client_id=decentralized_identifier%3Adid%3Aexample%3Averifier&request_uri=https%3A%2F%2Fverifier.example%2Frequest";
@@ -44,6 +46,8 @@ fn signed(payload: &[u8]) -> String {
 fn valid_request() -> Value {
     json!({
         "client_id": CLIENT_ID,
+        "aud": identus_oid4vp::STATIC_DISCOVERY_AUDIENCE,
+        "iat": support::ISSUED_AT_SECONDS,
         "response_type": "vp_token",
         "response_mode": "direct_post",
         "nonce": "fresh-nonce_1",
@@ -59,7 +63,14 @@ fn valid_request() -> Value {
 }
 
 fn verified_request(request: &Value) -> identus_oid4vp::VerifiedRequestObject {
-    let payload = serde_json::to_vec(request).expect("fixed JSON");
+    let mut request = request.clone();
+    let object = request.as_object_mut().expect("request object");
+    object.insert(
+        "aud".to_owned(),
+        json!(identus_oid4vp::STATIC_DISCOVERY_AUDIENCE),
+    );
+    object.insert("iat".to_owned(), json!(support::ISSUED_AT_SECONDS));
+    let payload = serde_json::to_vec(&request).expect("fixed JSON");
     let compact = signed(&payload);
     let AuthorizationRequestInvocation::Referenced(reference) =
         AuthorizationRequestInvocation::parse(
@@ -91,7 +102,8 @@ fn validate(
     request: &Value,
     routing_limits: AuthorizationRequestValidationLimits,
 ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
-    verified_request(request).into_authorization_request(routing_limits, DcqlLimits::default())
+    support::secure(verified_request(request))
+        .into_authorization_request(routing_limits, DcqlLimits::default())
 }
 
 #[test]
@@ -314,7 +326,7 @@ fn query_only_transition_remains_compatible_without_routing_fields() {
             "credentials": [{"id": "pid", "format": "dc+sd-jwt", "meta": {}}]
         }
     });
-    let query = verified_request(&request)
+    let query = support::secure(verified_request(&request))
         .into_dcql_query(DcqlLimits::default())
         .expect("existing query-only transition");
     assert_eq!(query.credential_query_count(), 1);

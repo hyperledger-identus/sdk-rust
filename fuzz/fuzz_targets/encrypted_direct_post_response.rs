@@ -13,6 +13,8 @@ use identus_oid4vp::{
 };
 use libfuzzer_sys::fuzz_target;
 
+mod oid4vp_support;
+
 const REFERENCE: &str = "openid4vp:?client_id=decentralized_identifier%3Adid%3Aexample%3Averifier&request_uri=https%3A%2F%2Fverifier.example%2Frequest";
 const PRIVATE: [u8; 32] = [0x71; 32];
 
@@ -28,7 +30,7 @@ fuzz_target!(|data: &[u8]| {
         return;
     };
     let payload = format!(
-        r#"{{"client_id":"decentralized_identifier:did:example:verifier","response_type":"vp_token","response_mode":"direct_post.jwt","nonce":"n","response_uri":"https://verifier.example/response","client_metadata":{},"dcql_query":{{"credentials":[{{"id":"degree","format":"dc+sd-jwt","meta":{{}}}}]}}}}"#,
+        r#"{{"client_id":"decentralized_identifier:did:example:verifier","aud":"https://self-issued.me/v2","iat":1735689480,"response_type":"vp_token","response_mode":"direct_post.jwt","nonce":"n","response_uri":"https://verifier.example/response","client_metadata":{},"dcql_query":{{"credentials":[{{"id":"degree","format":"dc+sd-jwt","meta":{{}}}}]}}}}"#,
         metadata
     );
     let private = Ed25519PrivateKey::from_slice(&PRIVATE).expect("fixed private key");
@@ -73,7 +75,8 @@ fuzz_target!(|data: &[u8]| {
     let Ok(verified) = object.verify(&SignatureSuiteRegistry::recommended(), &key) else {
         return;
     };
-    let _ = verified.into_authorization_request_with_jwe_limits(
+    let Some(evidence) = oid4vp_support::secure(verified) else { return; };
+    let _ = evidence.into_authorization_request_with_jwe_limits(
         AuthorizationRequestValidationLimits::default(),
         DcqlLimits::default(),
         JweLimits::default(),

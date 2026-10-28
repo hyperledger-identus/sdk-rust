@@ -16,6 +16,8 @@ use identus_oid4vp::{
 };
 use serde_json::json;
 
+mod support;
+
 const SAMPLES: usize = 21;
 const ITERATIONS: usize = 10;
 const SIGNING_KEY: [u8; 32] = [0x71; 32];
@@ -90,6 +92,8 @@ fn validated_request(jwe_limits: JweLimits) -> ValidatedAuthorizationRequest {
         .encode_uncompressed();
     let payload = serde_json::to_vec(&json!({
         "client_id": "decentralized_identifier:did:example:verifier",
+        "aud": identus_oid4vp::STATIC_DISCOVERY_AUDIENCE,
+        "iat": support::NOW_SECONDS - 120,
         "response_type": "vp_token",
         "response_mode": "direct_post.jwt",
         "nonce": "fresh-nonce_1",
@@ -149,15 +153,17 @@ fn validated_request(jwe_limits: JweLimits) -> ValidatedAuthorizationRequest {
         .expect("binding");
     let public = signing.to_public_key().encode_jwk();
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).expect("verification key");
-    object
-        .verify(&SignatureSuiteRegistry::recommended(), &key)
-        .expect("verified")
-        .into_authorization_request_with_jwe_limits(
-            AuthorizationRequestValidationLimits::default(),
-            DcqlLimits::default(),
-            jwe_limits,
-        )
-        .expect("validated")
+    support::secure(
+        object
+            .verify(&SignatureSuiteRegistry::recommended(), &key)
+            .expect("verified"),
+    )
+    .into_authorization_request_with_jwe_limits(
+        AuthorizationRequestValidationLimits::default(),
+        DcqlLimits::default(),
+        jwe_limits,
+    )
+    .expect("validated")
 }
 
 fn measure(name: &str, mut operation: impl FnMut()) {

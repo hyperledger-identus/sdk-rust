@@ -121,6 +121,15 @@ impl fmt::Debug for UnverifiedRequestObject {
 ///
 /// This is not yet verifier-trust, audience, freshness, OAuth, DCQL, consent,
 /// or product-authorization evidence.
+/// The security transition is required before typed routing:
+///
+/// ```compile_fail
+/// use identus_oid4vp::{DcqlLimits, VerifiedRequestObject};
+///
+/// fn bypass_security(request: VerifiedRequestObject) {
+///     let _ = request.into_dcql_query(DcqlLimits::default());
+/// }
+/// ```
 pub struct VerifiedRequestObject {
     protected_header: ProtectedHeader,
     algorithm: JwsAlgorithm,

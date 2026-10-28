@@ -101,6 +101,9 @@ required_files=(
   crates/crypto/tests/secp256k1_compat.rs
   fuzz/fuzz_targets/crypto_support.rs
   fuzz/fuzz_targets/encrypted_direct_post_response.rs
+  fuzz/fuzz_targets/oid4vp_support.rs
+  fuzz/fuzz_targets/request_object_security.rs
+  fuzz/corpus/request_object_security/static
   docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json
   fuzz/fuzz_targets/did.rs
   fuzz/fuzz_targets/did_url.rs

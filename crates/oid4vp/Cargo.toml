@@ -28,6 +28,10 @@ harness = false
 name    = "encrypted_direct_post_response"
 harness = false
 
+[[bench]]
+name    = "request_object_security"
+harness = false
+
 [features]
 default = [  ]
 

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 544,
+  "change": "validate-oid4vp-request-object-security-evidence",
+  "branch": "codex/feat/issue-544",
+  "baseRef": "origin/develop",
+  "baseSha": "d33321e1dd6ae47cad934d34e6ba87b366f82190",
+  "contractHeadSha": "d201379d9300d6852620d69d7104fd31f80a0239",
+  "createdAt": "2026-10-28T00:40:35.069Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

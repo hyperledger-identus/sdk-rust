@@ -11,8 +11,10 @@ use identus_oid4vp::{
 };
 use libfuzzer_sys::fuzz_target;
 
+mod oid4vp_support;
+
 const REFERENCE: &str = "openid4vp:?client_id=decentralized_identifier%3Adid%3Aexample%3Averifier&request_uri=https%3A%2F%2Fverifier.example%2Frequest";
-const REQUEST_OBJECT: &str = "eyJhbGciOiJFZDI1NTE5IiwidHlwIjoib2F1dGgtYXV0aHotcmVxK2p3dCIsImtpZCI6ImRpZDpleGFtcGxlOnZlcmlmaWVyI2tleS0xIn0.eyJjbGllbnRfaWQiOiJkZWNlbnRyYWxpemVkX2lkZW50aWZpZXI6ZGlkOmV4YW1wbGU6dmVyaWZpZXIiLCJyZXNwb25zZV90eXBlIjoidnBfdG9rZW4iLCJyZXNwb25zZV9tb2RlIjoiZGlyZWN0X3Bvc3QiLCJub25jZSI6ImZyZXNoLW5vbmNlXzEiLCJyZXNwb25zZV91cmkiOiJodHRwczovL3ZlcmlmaWVyLmV4YW1wbGUvcmVzcG9uc2UiLCJzdGF0ZSI6InN0YXRlLTEyMyIsImRjcWxfcXVlcnkiOnsiY3JlZGVudGlhbHMiOlt7ImlkIjoiZGVncmVlIiwiZm9ybWF0IjoiZGMrc2Qtand0IiwibWV0YSI6e319XX19.daneYuPWoerhkVN0-BMpQvCmb6u-R3XPEnBwjmnh4RI_hSuSvWEz7Vf8hhD_nkuwYQL8qpr2pniNBoxp9xgKCg";
+const REQUEST_OBJECT: &str = "eyJhbGciOiJFZDI1NTE5IiwidHlwIjoib2F1dGgtYXV0aHotcmVxK2p3dCIsImtpZCI6ImRpZDpleGFtcGxlOnZlcmlmaWVyI2tleS0xIn0.eyJhdWQiOiJodHRwczovL3NlbGYtaXNzdWVkLm1lL3YyIiwiY2xpZW50X2lkIjoiZGVjZW50cmFsaXplZF9pZGVudGlmaWVyOmRpZDpleGFtcGxlOnZlcmlmaWVyIiwiZGNxbF9xdWVyeSI6eyJjcmVkZW50aWFscyI6W3siZm9ybWF0IjoiZGMrc2Qtand0IiwiaWQiOiJkZWdyZWUiLCJtZXRhIjp7fX1dfSwiaWF0IjoxNzM1Njg5NDgwLCJub25jZSI6ImZyZXNoLW5vbmNlXzEiLCJyZXNwb25zZV9tb2RlIjoiZGlyZWN0X3Bvc3QiLCJyZXNwb25zZV90eXBlIjoidnBfdG9rZW4iLCJyZXNwb25zZV91cmkiOiJodHRwczovL3ZlcmlmaWVyLmV4YW1wbGUvcmVzcG9uc2UiLCJzdGF0ZSI6InN0YXRlLTEyMyJ9.LXDik4Kt5ZC16J7GFXgu83kS7slDNTXAjNi8-UavuHin0BWuXQ1OxzjcjIxHRF6bY6hkuAAhsWqWD_S9bjfUDg";
 const PUBLIC_JWK: &str =
     r#"{"kty":"OKP","crv":"Ed25519","x":"4v4qObcyZkKCfW2C1JdiLNbCl_54Jw6qQ2sB8Ia288s"}"#;
 
@@ -41,9 +43,10 @@ fuzz_target!(|data: &[u8]| {
         .expect("fixed response");
     let public: PublicKeyJwk = serde_json::from_str(PUBLIC_JWK).expect("fixed public JWK");
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).expect("fixed key");
-    let request = unverified
+    let Some(request) = oid4vp_support::secure(unverified
         .verify(&SignatureSuiteRegistry::recommended(), &key)
-        .expect("fixed signature")
+        .expect("fixed signature")) else { return; };
+    let request = request
         .into_authorization_request(
             AuthorizationRequestValidationLimits::default(),
             DcqlLimits::default(),

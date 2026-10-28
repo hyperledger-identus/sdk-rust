@@ -4,8 +4,53 @@ Generated deterministically from `docs/architecture/quality-evidence-declaration
 Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
-- Evidence evaluated: `2026-10-27`
-- Declaration count: `8`
+- Evidence evaluated: `2026-10-28`
+- Declaration count: `9`
+
+## `oid4vp.direct-post-response.request-object-security.quality.v1`
+
+- Capability: `oid4vp.direct-post-response`
+- Slice: Bounded Request Object audience, freshness and atomic replay evidence
+- Owner: SDK-Rust OID4VP maintainers (issue #544)
+- Risk: A signed Request Object can target the wrong Wallet, be accepted outside its validity window, or be replayed before typed authorization routing.
+- Targets: `package:identus-oid4vp`, `host:rust`, `consumer:portable-sdk`
+- Vector IDs: `1` local catalog entries
+- Limitations: This declaration proves local Final audience, integral temporal policy, atomic replay decision and typed state lineage; it does not prove verifier trust, persistence, transport, consent, credential validity or product policy.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #544 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #544 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #544 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #544 |
+
+### `property`
+
+- Command: `cargo test -p identus-oid4vp --test request_object_security && cargo test -p identus-oid4vp --doc`
+- Budget: Sweep generated age/skew/expiry/not-before boundaries and exercise a stateful atomic replay decision with consuming-state compile/runtime canaries.
+- Receipt: `source:crates/oid4vp/tests/request_object_security.rs`
+- Evidence revision: `4fc60ef685a035e56e9b79ad73c41924047e95ec`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak request_object_security`
+- Budget: Run the bounded claims and policy path for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024.
+- Receipt: `source:fuzz/fuzz_targets/request_object_security.rs`
+- Evidence revision: `643773773b40a3571f94e676a22d01cd43393aff`
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-oid4vp --bench request_object_security`
+- Budget: Measure deterministic ordinary and near-limit local security transitions over a stable sample set.
+- Receipt: `source:crates/oid4vp/benches/request_object_security.rs`
+- Evidence revision: `21f16a0fc91244a0ff6304f14d2b80cb6e7c2fab`
+
+### `differential`
+
+- Command: `cargo test -p identus-oid4vp --test direct_post_response packet_executes_full_invocation_jar_dcql_and_response_lineage`
+- Budget: Execute the pinned clean-room Final/RFC packet and compare normalized result classes rather than foreign DTOs or error strings.
+- Receipt: `source:docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json`
+- Evidence revision: `547ef60adea10a8d97c2948043e51c82f793d9be`
 
 ## `crypto.quality.v1`
 
@@ -20,7 +65,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #525 |
-| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `max-age-days (8 days)` | #525 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #525 |
 | `benchmark` | `satisfied` | `release` | `per-candidate` | `source-bound` | #525 |
 | `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #525 |
 
@@ -35,8 +80,9 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak all`
 - Budget: Run public JWK and COSE fuzz targets for 300 seconds each with max_len=8192, timeout=5 and rss_limit_mb=1024.
-- Receipt: `https://github.com/hyperledger-identus/sdk-rust/actions/runs/39196675834`
-- Evidence revision: `fb1c7011897ba766f82ea5957feaeb95df179418`
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #525
 
 ### `benchmark`
 

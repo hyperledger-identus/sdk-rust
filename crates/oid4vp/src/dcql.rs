@@ -10,7 +10,7 @@ use siros_dcql::{
 };
 use zeroize::Zeroizing;
 
-use crate::{DcqlLimits, Oid4vpError, VerifiedRequestObject};
+use crate::{DcqlLimits, Oid4vpError, RequestObjectSecurityEvidence};
 
 /// One SDK-owned DCQL claims-path component.
 #[derive(Clone, PartialEq, Eq)]
@@ -117,15 +117,15 @@ pub(crate) struct DcqlResponseCredentialSetRule {
     options: Vec<Vec<Zeroizing<String>>>,
 }
 
-impl VerifiedRequestObject {
-    /// Consume signature evidence into a bounded, structurally valid DCQL query.
+impl RequestObjectSecurityEvidence {
+    /// Consume security evidence into a bounded, structurally valid DCQL query.
     ///
     /// # Errors
     ///
     /// Returns a static OID4VP category when the query is absent, ambiguous,
     /// unsupported, malformed, or outside the supplied resource policy.
     pub fn into_dcql_query(self, limits: DcqlLimits) -> Result<ValidatedDcqlQuery, Oid4vpError> {
-        ValidatedDcqlQuery::parse(self.into_sensitive_payload(), limits)
+        ValidatedDcqlQuery::parse(self.into_request().into_sensitive_payload(), limits)
     }
 }
 

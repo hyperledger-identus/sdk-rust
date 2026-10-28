@@ -13,6 +13,8 @@ use identus_oid4vp::{
 };
 use serde_json::{Value, json};
 
+mod support;
+
 const PRIVATE_BYTES: [u8; 32] = [0x71; 32];
 const CLIENT_ID: &str = "decentralized_identifier:did:example:verifier";
 const REFERENCE: &str = "openid4vp:?client_id=decentralized_identifier%3Adid%3Aexample%3Averifier&request_uri=https%3A%2F%2Fverifier.example%2Frequest";
@@ -60,17 +62,26 @@ fn bind_verified(compact: &str, key: &PublicKeyJwk) -> ValidatedAuthorizationReq
         )
         .expect("bound request object");
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, key).expect("bound key");
-    unverified
-        .verify(&SignatureSuiteRegistry::recommended(), &key)
-        .expect("verified request object")
-        .into_authorization_request(
-            AuthorizationRequestValidationLimits::default(),
-            DcqlLimits::default(),
-        )
-        .expect("validated authorization request")
+    support::secure(
+        unverified
+            .verify(&SignatureSuiteRegistry::recommended(), &key)
+            .expect("verified request object"),
+    )
+    .into_authorization_request(
+        AuthorizationRequestValidationLimits::default(),
+        DcqlLimits::default(),
+    )
+    .expect("validated authorization request")
 }
 
 fn validated(request: Value) -> ValidatedAuthorizationRequest {
+    let mut request = request;
+    let object = request.as_object_mut().expect("request object");
+    object.insert(
+        "aud".to_owned(),
+        json!(identus_oid4vp::STATIC_DISCOVERY_AUDIENCE),
+    );
+    object.insert("iat".to_owned(), json!(support::ISSUED_AT_SECONDS));
     let payload = serde_json::to_vec(&request).expect("fixed JSON");
     let compact = signed(&payload);
     bind_verified(&compact, &private_key().to_public_key().encode_jwk())

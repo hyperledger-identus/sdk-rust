@@ -6,6 +6,7 @@ Presentations 1.0 protocol crate. Its current narrow profile supports:
 - bounded `openid4vp:` by-reference invocation parsing;
 - effect-free GET/POST Request URI envelopes and bounded response binding;
 - compact signed Request Object verification through `identus-jose`;
+- discovery-bound audience, injected freshness, and atomic replay evidence;
 - strict bounded DCQL validation and selection behind SDK-owned types;
 - composed `vp_token` / `direct_post` request routing;
 - deterministic bounded plain `direct_post` success and protocol-error response
@@ -22,7 +23,16 @@ openid4vp: invocation
 runtime adapter executes bounded Request URI envelope
         │
         ▼
-signed JAR ──verify──▶ ValidatedAuthorizationRequest
+signed JAR ──verify──▶ VerifiedRequestObject
+                              │
+                              ▼
+                  audience + injected clock + atomic replay guard
+                              │
+                              ▼
+                  RequestObjectSecurityEvidence
+                              │
+                              ▼
+                  ValidatedAuthorizationRequest
                               │
                               ├─ validated HTTPS response_uri
                               ├─ bounded optional state
@@ -39,8 +49,8 @@ Both response types are inert transport material. Revealing a target and body
 does not authorize delivery. A platform adapter still owns DNS and IP
 policy, TLS, redirects, decompression, timeouts, retries, SSRF defenses and HTTP
 outcome handling. Applications still own verifier trust, consent, credential
-and presentation verification, presentation generation, replay policy and
-retention.
+and presentation verification, presentation generation, and the durable atomic
+replay implementation behind the SDK port.
 
 ## Supported response shapes
 
@@ -72,6 +82,7 @@ The normative boundary and decisions are recorded in
 [`ADR 0179`](../../docs/adr/0179-construct-bounded-oid4vp-direct-post-responses.md),
 [`ADR 0180`](../../docs/adr/0180-construct-explicit-oid4vp-protocol-errors.md),
 [`ADR 0181`](../../docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md),
+[`ADR 0183`](../../docs/adr/0183-require-oid4vp-request-object-security-evidence-before-routing.md),
 with executable lineage in the versioned
 [`plain direct-post vector packet`](../../docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json)
 and

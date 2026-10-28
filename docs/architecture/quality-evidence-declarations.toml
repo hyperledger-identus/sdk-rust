@@ -2104,7 +2104,7 @@ replaced_by = ""
 class             = "property"
 disposition       = "satisfied"
 risk              = "Type matching, non-selective placement, metadata inheritance, issuer/status correlation and staged transitions can lose invariants."
-selectors         = [ "openspec/changes/implement-sd-jwt-vc-draft22-profile/specs/sd-jwt-vc-draft22/spec.md#Requirement: profile claims and disclosure placement are validated" ]
+selectors         = [ "openspec/specs/sd-jwt-vc-draft22/spec.md#Requirement: profile claims and disclosure placement are validated" ]
 command           = "cargo test -p identus-sd-jwt-vc --test properties"
 lane              = "focused"
 cadence           = "on-change"
@@ -2128,7 +2128,7 @@ details           = [ "invariant=Accepted profile values retain exact type and e
 class             = "fuzz"
 disposition       = "satisfied"
 risk              = "Hostile claims, metadata, issuer evidence or status values can panic, amplify work, bypass limits or expose correlating material."
-selectors         = [ "openspec/changes/implement-sd-jwt-vc-draft22-profile/specs/sd-jwt-vc-draft22/spec.md#Requirement: every profile path has finite resource and privacy bounds" ]
+selectors         = [ "openspec/specs/sd-jwt-vc-draft22/spec.md#Requirement: every profile path has finite resource and privacy bounds" ]
 command           = "nix develop .#fuzz --command ./scripts/fuzz-sd-jwt-vc.sh soak"
 lane              = "slow"
 cadence           = "weekly-or-manual"
@@ -2152,7 +2152,7 @@ details           = [ "harness=Arbitrary bounded profile claims, metadata, issue
 class             = "benchmark"
 disposition       = "satisfied"
 risk              = "Metadata chains, claim paths, evidence correlation, serialization or oversized rejection can regress portable latency and allocation."
-selectors         = [ "openspec/changes/implement-sd-jwt-vc-draft22-profile/design.md#Public default limits" ]
+selectors         = [ "openspec/changes/archive/2026-10-28-implement-sd-jwt-vc-draft22-profile/design.md#Public default limits" ]
 command           = "cargo bench -p identus-sd-jwt-vc --bench directional"
 lane              = "slow"
 cadence           = "weekly-or-manual"
@@ -2176,7 +2176,7 @@ details           = [ "operation=Issue, parse, base verify, profile validate, me
 class             = "differential"
 disposition       = "required"
 risk              = "The local profile can internally round-trip while diverging from draft-22 or independent canonical dc+sd-jwt behavior."
-selectors         = [ "openspec/changes/implement-sd-jwt-vc-draft22-profile/specs/sd-jwt-vc-draft22/spec.md#Requirement: conformance evidence is source-bound and migration-aware" ]
+selectors         = [ "openspec/specs/sd-jwt-vc-draft22/spec.md#Requirement: conformance evidence is source-bound and migration-aware" ]
 command           = "cargo test -p identus-sd-jwt-vc --test conformance differential"
 lane              = "fast"
 cadence           = "per-pull-request"

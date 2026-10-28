@@ -15,7 +15,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `credentials.sd-jwt.vc-draft22.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt-vc crate provides an exact bounded draft-22 profile with canonical dc+sd-jwt issuance, profile claims, caller-supplied issuer/type/status evidence and offline protocol integration.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt-vc crate provides an exact bounded draft-22 profile with canonical dc+sd-jwt issuance, profile claims, caller-supplied issuer/type/status evidence and offline protocol integration.
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 

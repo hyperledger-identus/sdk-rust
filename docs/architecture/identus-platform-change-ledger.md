@@ -165,7 +165,7 @@ Fallback: Consumers continue constructing error forms in their existing adapter 
 
 ### `oid4vp.direct-post-response.request-object-security.v1`
 
-Fallback: Consumers retain their existing implementation until they can supply trusted discovery evidence and an atomic replay guard; no unsafe SDK bypass is retained. Rollback: Before publication remove the additive transition and restore pre-release routing methods while preserving issue evidence; never simulate accepted security evidence. Removal gate: Not applicable.
+Fallback: Consumers retain their existing implementation until they can supply trusted discovery evidence and an atomic replay guard; no unsafe SDK bypass is retained. Rollback: Before publication remove the security transition and its typed routing successors as one unreleased unit while preserving issue evidence; never restore direct routing from raw signature evidence or simulate acceptance. Removal gate: Not applicable.
 
 ### `oid4vp.direct-post-response.v1`
 

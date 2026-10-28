@@ -94,6 +94,17 @@ impl VerifierTrustPolicy for InspectPolicy {
     }
 }
 
+struct AcceptPolicy {
+    calls: AtomicUsize,
+}
+
+impl VerifierTrustPolicy for AcceptPolicy {
+    fn authorize<'a>(&'a self, _input: VerifierTrustInput<'a>) -> VerifierTrustFuture<'a> {
+        self.calls.fetch_add(1, Ordering::SeqCst);
+        Box::pin(async { Ok(()) })
+    }
+}
+
 #[test]
 fn every_signed_final_scheme_binds_the_exact_verified_key_before_routing() {
     let hash = URL_SAFE_NO_PAD.encode([0_u8; 32]);
@@ -216,6 +227,31 @@ fn metadata_references_limits_and_source_rules_fail_closed() {
     wrong_data["verifier_info"][0]["data"] = json!(42);
     assert_metadata_error(client_id, wrong_data, Oid4vpError::InvalidVerifierMetadata);
 
+    let mut long_string_data = request(
+        client_id,
+        ClientIdentifierScheme::DecentralizedIdentifier,
+        true,
+    );
+    long_string_data["verifier_info"][0]["format"] = json!("fmt");
+    long_string_data["verifier_info"][0]["data"] = json!("123456789");
+    let policy = AcceptPolicy {
+        calls: AtomicUsize::new(0),
+    };
+    let error = block_on(
+        secure(
+            client_id,
+            long_string_data,
+            HeaderKind::Kid("did:example:verifier#key-1"),
+        )
+        .authorize_verifier(
+            &policy,
+            VerifierAuthorizationLimits::new(1_024, 1, 1, 8, 1).expect("limits"),
+        ),
+    )
+    .unwrap_err();
+    assert_eq!(error, Oid4vpError::InvalidVerifierMetadata);
+    assert_eq!(policy.calls.load(Ordering::SeqCst), 0);
+
     let limits = VerifierAuthorizationLimits::new(8, 1, 1, 64, 1).expect("limits");
     let policy = InspectPolicy::accepting(ClientIdentifierScheme::DecentralizedIdentifier);
     let error = block_on(
@@ -296,6 +332,35 @@ fn metadata_references_limits_and_source_rules_fail_closed() {
     .unwrap_err();
     assert_eq!(error, Oid4vpError::InvalidVerifierMetadata);
     assert_eq!(policy.calls.load(Ordering::SeqCst), 0);
+}
+
+#[test]
+fn verifier_info_limits_do_not_constrain_unreferenced_dcql_identifiers() {
+    let client_id = "registered-client";
+    let mut value = request(client_id, ClientIdentifierScheme::PreRegistered, false);
+    value
+        .as_object_mut()
+        .expect("request object")
+        .remove("verifier_info");
+    value["dcql_query"]["credentials"][0]["id"] = json!("credential-id-long");
+    let policy = AcceptPolicy {
+        calls: AtomicUsize::new(0),
+    };
+
+    let authorized = block_on(
+        secure(client_id, value, HeaderKind::Kid("registered-key")).authorize_verifier(
+            &policy,
+            VerifierAuthorizationLimits::new(1_024, 1, 1, 4, 1).expect("limits"),
+        ),
+    )
+    .expect("unreferenced DCQL identifier is outside verifier-info policy");
+    assert_eq!(policy.calls.load(Ordering::SeqCst), 1);
+    authorized
+        .into_authorization_request(
+            AuthorizationRequestValidationLimits::default(),
+            DcqlLimits::default(),
+        )
+        .expect("DCQL identifier remains valid under DCQL limits");
 }
 
 #[test]

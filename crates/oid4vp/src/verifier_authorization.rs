@@ -287,7 +287,7 @@ impl RequestObjectSecurityEvidence {
             scheme,
             limits,
         )?;
-        let dcql_ids = dcql_credential_ids(&payload, limits)?;
+        let dcql_ids = dcql_credential_ids(&payload)?;
         let verifier_info = parse_verifier_info(payload.get("verifier_info"), &dcql_ids, limits)?;
         let response_uri = payload.get("response_uri").and_then(Value::as_str);
 
@@ -440,10 +440,7 @@ fn parse_trust_chain(
         .collect()
 }
 
-fn dcql_credential_ids(
-    payload: &Map<String, Value>,
-    limits: VerifierAuthorizationLimits,
-) -> Result<BTreeSet<&str>, Oid4vpError> {
+fn dcql_credential_ids(payload: &Map<String, Value>) -> Result<BTreeSet<&str>, Oid4vpError> {
     let Some(credentials) = payload
         .get("dcql_query")
         .and_then(Value::as_object)
@@ -459,7 +456,7 @@ fn dcql_credential_ids(
             .and_then(|value| value.get("id"))
             .and_then(Value::as_str)
             .ok_or(Oid4vpError::InvalidVerifierMetadata)?;
-        if id.len() > limits.max_string_bytes || !ids.insert(id) {
+        if !ids.insert(id) {
             return Err(Oid4vpError::InvalidVerifierMetadata);
         }
     }
@@ -497,6 +494,12 @@ fn parse_verifier_info(
             if !matches!(data, Value::Object(_) | Value::String(_)) {
                 return Err(Oid4vpError::InvalidVerifierMetadata);
             }
+            if data
+                .as_str()
+                .is_some_and(|value| value.len() > limits.max_string_bytes)
+            {
+                return Err(Oid4vpError::InvalidVerifierMetadata);
+            }
             let data_json =
                 serde_json::to_vec(data).map_err(|_| Oid4vpError::InvalidVerifierMetadata)?;
             if data_json.len() > limits.max_metadata_bytes {
@@ -512,7 +515,11 @@ fn parse_verifier_info(
                         .map(|id| {
                             let id = id
                                 .as_str()
-                                .filter(|id| dcql_ids.contains(id) && seen.insert(*id))
+                                .filter(|id| {
+                                    id.len() <= limits.max_string_bytes
+                                        && dcql_ids.contains(id)
+                                        && seen.insert(*id)
+                                })
                                 .ok_or(Oid4vpError::InvalidVerifierMetadata)?;
                             Ok(Zeroizing::new(id.to_owned()))
                         })

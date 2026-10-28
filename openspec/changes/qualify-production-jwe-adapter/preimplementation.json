@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 538,
+  "change": "qualify-production-jwe-adapter",
+  "branch": "codex/test/issue-538",
+  "baseRef": "origin/develop",
+  "baseSha": "3437360ef74383853317e34ed4616fb57e50a469",
+  "contractHeadSha": "0b5cd59ed721d69e8a262f036b6ce392c542ea6e",
+  "createdAt": "2026-10-28T16:11:10.986Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -31,12 +31,20 @@ future adapter
 
 ## Why no engine is embedded yet
 
-The stable candidate passed target compilation but brought roughly 80 new
-packages and unrelated algorithms. The modular candidate was smaller, but its
+The closest stable candidate, `jose-rs 0.10.0`, passes a public-encrypt/private-decrypt
+round trip and host, WASM, iOS and Android compilation. Its exact graph still
+pulls about 120 packages and mandatory `rsa 0.10.0-rc.19`, which the repository
+audit rejects under RUSTSEC-2023-0071. Disabling default features does not remove
+that direct and transitive edge. The modular candidate is smaller, but its
 current release candidate requires recipient private material for ECDH
-encryption and contains unsafe JSON code. Neither is a sound SDK default today.
-The decision is deliberately reversible and has explicit reconsideration gates
-in ADR 0181.
+encryption and contains unsafe JSON code. A promising alternative requires Rust
+1.99 while the SDK supports Rust 1.89. None is a sound SDK default today.
+
+Issue #538 and ADR 0192 therefore retain the passing independent engine as an
+isolated oracle but reject production adoption. This is not an advisory waiver:
+the dependency never enters the workspace lock, and the differential debt stays
+open. The decision is deliberately reversible through explicit gates in ADRs
+0181 and 0192.
 
 ## Final-profile facts
 
@@ -105,13 +113,20 @@ specified profile defines their semantics and limits.
 - JOSE grammar and redaction: `crates/jose/tests/jwe_port.rs`;
 - fuzz: `scripts/fuzz-oid4vp.sh smoke encrypted_direct_post_response`;
 - benchmark: `cargo bench -p identus-oid4vp --bench encrypted_direct_post_response`;
+- isolated engine E2E: `python3 scripts/qualify-jwe-engine.py --mode all`;
+- static fail-closed contract: `python3 scripts/check-jwe-engine-qualification.py .`;
 - normative packet:
   `docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json`.
 
 The packet contains inert compact material and is not independent encryption
-or decryptability evidence. Issue #538 tracks a qualified production adapter
-and independent native/portable cryptographic oracle.
+or decryptability evidence. The isolated engine E2E encrypts with a public-only
+P-256 JWK, checks `alg`, `enc`, `kid`, public `epk` and the empty direct-agreement
+segment, then decrypts with the corresponding private test JWK and compares the
+plaintext. It also compiles the exact package for host, WASM, iOS and Android
+and requires the exact current audit rejection. Because the engine is not in the
+production graph, this satisfies independent feasibility evidence but not the
+production-adapter debt owned by #538.
 
-Reconsider the engine decision only through ADR 0181's stable-version,
+Reconsider the engine decision only through ADRs 0181 and 0192's stable-version,
 dependency-cone, public-recipient, unsafe-code, advisory and portable-runtime
 gates. Replacing an engine must not change the OID4VP DTOs or errors.

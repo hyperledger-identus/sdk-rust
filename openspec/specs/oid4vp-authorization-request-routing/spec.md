@@ -5,21 +5,21 @@ TBD - created by archiving change validate-oid4vp-final-routing. Update Purpose 
 ## Requirements
 ### Requirement: Authorization semantics are one consuming composed transition
 
-The SDK SHALL consume one `VerifiedRequestObject`, deserialize its already
-bounded duplicate-safe payload once, and return one state that preserves JAR
-evidence and owns one valid DCQL query.
+The SDK SHALL consume one verified and verifier-authorized Request Object,
+deserialize its already bounded duplicate-safe payload once, and return one
+state that preserves JAR evidence, owns one valid DCQL query, and retains any
+validated transaction-data linkage through caller-supplied capabilities.
 
 #### Scenario: one supported request is valid
 
-- **WHEN** a verified request has exact supported authorization fields,
-  direct-post routing, and one valid DCQL query
-- **THEN** the result owns the composed evidence without retaining or exposing
-  the raw payload
+- **WHEN** a verified request has supported authorization fields, coherent
+  routing, one valid DCQL query, and supported transaction/format semantics
+- **THEN** the result owns composed redacted evidence without exposing raw payload or foreign DTOs
 
 #### Scenario: a caller still needs query-only evidence
 
-- **WHEN** the existing DCQL-only transition is used
-- **THEN** its public behavior and narrower evidence claim remain unchanged
+- **WHEN** the existing DCQL-only transition is used with the baseline empty-metadata profile
+- **THEN** its narrower evidence claim and no-transaction behavior remain available
 
 ### Requirement: The first profile supports only VP token direct post
 

@@ -12,6 +12,10 @@ use crate::jwk::{EncodeJwk, JwkCurve, PublicKeyJwk};
 use crate::securerandom::SecureRandom;
 
 const KEY_SIZE: usize = 32;
+const FIELD_MODULUS: [u8; KEY_SIZE] = [
+    0xed, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f,
+];
 
 fn key_type<T>() -> &'static str {
     std::any::type_name::<T>()
@@ -47,6 +51,23 @@ impl Ed25519PublicKey {
     /// The underlying verifying key.
     pub fn as_verifying_key(&self) -> &VerifyingKey {
         &self.0
+    }
+
+    /// Return whether the compressed point uses a canonical field encoding.
+    ///
+    /// The most-significant bit encodes the sign of the x-coordinate. The
+    /// remaining 255 bits must encode a y-coordinate below 2^255 - 19.
+    #[must_use]
+    pub fn has_canonical_encoding(&self) -> bool {
+        let mut bytes = self.0.to_bytes();
+        bytes[KEY_SIZE - 1] &= 0x7f;
+        bytes.iter().rev().cmp(FIELD_MODULUS.iter().rev()).is_lt()
+    }
+
+    /// Return whether the public key is a low-order point.
+    #[must_use]
+    pub fn is_weak(&self) -> bool {
+        self.0.is_weak()
     }
 }
 

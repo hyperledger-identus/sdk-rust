@@ -26,16 +26,18 @@ storage, transport, executor, product policy, or global registration.
 | Multibase | canonical base58-btc `z` | base64url `u` |
 | Public keys | Ed25519, X25519, P-256, secp256k1 | P-384, BLS, RSA, private codecs |
 | Verification method | one `Multikey` with `publicKeyMultibase` | donor-specific DTOs and alternate suites |
-| Relationships | contributory X25519: key agreement; signing curves: authentication, assertion, capability invocation/delegation | low-order X25519 and implicit Ed25519-to-X25519 derivation |
+| Relationships | canonical non-weak Ed25519 and other signing curves: authentication, assertion, capability invocation/delegation; contributory X25519: key agreement | weak Ed25519, low-order X25519 and implicit Ed25519-to-X25519 derivation |
 | Operations | create, parse, deterministic local resolve | update, deactivate, network resolution |
 | Representations | context-free `application/did+json`; DID Core + Multikey contexts for `application/did+ld+json` | JSON-LD processing or expansion |
 
 The method-specific identifier is limited to 128 bytes and decoded material to
 67 bytes. Base58 is decoded into a fixed stack buffer. Codec varints, exact key
 length, curve points, and canonical re-encoding are checked before projection.
+Ed25519 inputs must use a canonical field encoding and must not be weak.
 X25519 inputs must use a canonical field encoding and be contributory, so two
-fingerprints cannot represent one effective agreement key. Errors expose
-categories, never identifier or key content.
+fingerprints cannot represent one effective key and accepted identity keys are
+usable for their projected purpose. Errors expose categories, never identifier
+or key content.
 
 ## Explicit registry composition
 

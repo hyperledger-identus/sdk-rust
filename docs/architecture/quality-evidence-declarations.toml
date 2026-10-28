@@ -1650,7 +1650,7 @@ capability  = "did.key.profile"
 slice       = "Bounded effect-free did:key creation, parsing and local resolution"
 owner       = "SDK-Rust DID maintainers"
 owner_issue = 557
-risk        = "Non-canonical multicodec input, invalid public material, unbounded base58 work or relationship drift can split portable identity state or expose key content."
+risk        = "Non-canonical multicodec or curve encodings, unusable public material, unbounded base58 work or relationship drift can split portable identity state or expose key content."
 targets     = [ "package:identus-did-key", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android" ]
 vector_ids  = [ "did.key.ed25519.w3c-example", "did.key.x25519.rust-oracle-example", "did.key.base64url.rejected" ]
 limitations = "Effect-free direct public-key creation, parsing and local resolution only; no private keys, generation, derivation, signing, custody, network resolution, persistence, runtime, bindings or global registry is claimed."
@@ -1662,7 +1662,7 @@ replaced_by = ""
 class             = "property"
 disposition       = "satisfied"
 risk              = "Supported public keys may fail canonical round-trip or registry projection invariants."
-selectors         = [ "crates/did-key/tests/conformance.rs#constructor_parser_property_covers_deterministic_public_material", "crates/did-key/tests/registry_e2e.rs#opt_in_registry_round_trip_is_deterministic_and_effect_free" ]
+selectors         = [ "crates/did-key/tests/conformance.rs#constructor_parser_property_covers_deterministic_public_material", "crates/did-key/tests/conformance.rs#rejects_aliased_and_weak_ed25519_keys", "crates/did-key/tests/registry_e2e.rs#opt_in_registry_round_trip_is_deterministic_and_effect_free" ]
 command           = "cargo test -p identus-did-key --all-features"
 lane              = "focused"
 cadence           = "on-change"
@@ -1680,7 +1680,7 @@ owner_issue       = 557
 debt_status       = "none"
 debt_issue        = 0
 rationale         = ""
-details           = [ "invariant=Every constructed key reparses identically and opt-in registry projection preserves fingerprint and relationships", "domain=Direct Ed25519 and X25519 public material plus generic registry/document serialization", "cases=64 deterministic public-key classes and one complete effect-free E2E" ]
+details           = [ "invariant=Every constructed key reparses identically, aliased or unusable Edwards/Montgomery material is rejected, and opt-in registry projection preserves fingerprint and relationships", "domain=Direct Ed25519 and X25519 public material plus generic registry/document serialization", "cases=64 deterministic public-key classes, non-canonical and weak Ed25519 regressions, and one complete effect-free E2E" ]
 
 [[declarations.obligations]]
 class             = "fuzz"

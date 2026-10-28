@@ -15,7 +15,7 @@ State: `active`. Class: `security` / `security`. Target: `unreleased`. The same 
 
 ### `did.key.profile.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-key crate creates, parses and locally resolves a bounded strict base58-btc profile for direct Ed25519, X25519, P-256 and secp256k1 public keys; identus-crypto exposes public X25519 canonical-encoding and contributory classification so aliased or low-order agreement keys are rejected.
+State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-key crate creates, parses and locally resolves a bounded strict base58-btc profile for direct Ed25519, X25519, P-256 and secp256k1 public keys; identus-crypto exposes Ed25519 canonical-encoding and weak-point classification plus X25519 canonical-encoding and contributory classification so aliased or unusable identity keys are rejected.
 
 ### `did.peer.profiles.v1`
 
@@ -247,7 +247,7 @@ Visibility: public-api, security. Wire values and SDK-owned methods remain compa
 
 ### `did.key.profile.v1`
 
-Visibility: behavior, public-api, security, target-support, wire. No private keys, generation, derivation, signing, custody, I/O, network resolution, persistence, runtime, binding, global registry, consumer mutation, JSON-LD processing or publication is included. The strict profile rejects base64url, unsupported curves, non-canonical or low-order X25519 keys and implicit Ed25519-to-X25519 conversion.
+Visibility: behavior, public-api, security, target-support, wire. No private keys, generation, derivation, signing, custody, I/O, network resolution, persistence, runtime, binding, global registry, consumer mutation, JSON-LD processing or publication is included. The strict profile rejects base64url, unsupported curves, non-canonical or weak Ed25519 keys, non-canonical or low-order X25519 keys and implicit Ed25519-to-X25519 conversion.
 
 ### `did.peer.profiles.v1`
 

@@ -112,12 +112,15 @@ impl From<Secp256k1PublicKey> for PublicKey {
 
 impl PublicKey {
     fn validate(&self) -> Result<(), Error> {
-        if let Self::X25519(key) = self
-            && (!key.has_canonical_encoding() || !key.is_contributory())
-        {
-            return Err(Error::InvalidPublicKey);
+        match self {
+            Self::Ed25519(key) if !key.has_canonical_encoding() || key.is_weak() => {
+                Err(Error::InvalidPublicKey)
+            }
+            Self::X25519(key) if !key.has_canonical_encoding() || !key.is_contributory() => {
+                Err(Error::InvalidPublicKey)
+            }
+            _ => Ok(()),
         }
-        Ok(())
     }
 
     fn codec(&self) -> u64 {
@@ -317,17 +320,13 @@ fn decode_fingerprint(fingerprint: &str) -> Result<PublicKey, Error> {
     let bytes = &decoded[..decoded_len];
     let (codec, prefix_len) = decode_uvarint(bytes)?;
     let key = &bytes[prefix_len..];
-    match codec {
+    let public_key = match codec {
         ED25519_PUB if key.len() == 32 => Ed25519PublicKey::from_slice(key)
             .map(PublicKey::Ed25519)
             .map_err(|_| Error::InvalidPublicKey),
         X25519_PUB if key.len() == 32 => X25519PublicKey::from_slice(key)
             .map(PublicKey::X25519)
-            .map_err(|_| Error::InvalidPublicKey)
-            .and_then(|key| {
-                key.validate()?;
-                Ok(key)
-            }),
+            .map_err(|_| Error::InvalidPublicKey),
         P256_PUB if key.len() == 33 => P256PublicKey::from_slice(key)
             .map(PublicKey::P256)
             .map_err(|_| Error::InvalidPublicKey),
@@ -336,7 +335,9 @@ fn decode_fingerprint(fingerprint: &str) -> Result<PublicKey, Error> {
             .map_err(|_| Error::InvalidPublicKey),
         ED25519_PUB | X25519_PUB | P256_PUB | SECP256K1_PUB => Err(Error::InvalidPublicKey),
         _ => Err(Error::UnsupportedCodec),
-    }
+    }?;
+    public_key.validate()?;
+    Ok(public_key)
 }
 
 fn encode_uvarint(mut value: u64) -> Vec<u8> {

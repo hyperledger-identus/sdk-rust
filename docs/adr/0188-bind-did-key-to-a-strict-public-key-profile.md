@@ -22,9 +22,11 @@ and direct Ed25519, X25519, P-256, and secp256k1 public-key multicodecs already
 validated by `identus-crypto`. Creation receives typed public keys; parsing
 requires canonical unsigned varints, exact lengths, valid curve points, and
 canonical re-encoding under explicit 128-byte text and 67-byte decoded limits.
-Direct X25519 creation and parsing additionally reject non-canonical field
-encodings and low-order public keys that cannot produce a contributory shared
-secret, preventing multiple identifiers for one effective agreement key.
+Ed25519 creation and parsing reject non-canonical field encodings and weak
+points. Direct X25519 additionally rejects non-canonical field encodings and
+low-order public keys that cannot produce a contributory shared secret. These
+rules prevent multiple identifiers for one effective key and unusable signing
+or agreement identities.
 
 Resolve to one `Multikey` with `publicKeyMultibase`. Direct X25519 projects only
 to `keyAgreement`; signing keys project to authentication, assertion,

@@ -1,4 +1,6 @@
-use identus_crypto::{Ed25519PrivateKey, P256PrivateKey, Secp256k1PrivateKey, X25519PrivateKey};
+use identus_crypto::{
+    Ed25519PrivateKey, Ed25519PublicKey, P256PrivateKey, Secp256k1PrivateKey, X25519PrivateKey,
+};
 use identus_did_key::{DidKey, Error, PublicKey};
 
 #[test]
@@ -104,6 +106,33 @@ fn constructor_parser_property_covers_deterministic_public_material() {
         let created = DidKey::create(x).unwrap();
         assert_eq!(DidKey::parse(created.did().as_str()).unwrap(), created);
     }
+}
+
+#[test]
+fn rejects_aliased_and_weak_ed25519_keys() {
+    let mut non_canonical = [0xff; 32];
+    non_canonical[0] = 0xf0;
+    non_canonical[31] = 0x7f;
+    let non_canonical_key = Ed25519PublicKey::from_slice(&non_canonical).unwrap();
+    assert_eq!(
+        DidKey::create(non_canonical_key),
+        Err(Error::InvalidPublicKey)
+    );
+
+    let mut fingerprint = vec![0xed, 0x01];
+    fingerprint.extend(non_canonical);
+    let did = format!("did:key:z{}", bs58::encode(fingerprint).into_string());
+    assert_eq!(DidKey::parse(&did), Err(Error::InvalidPublicKey));
+
+    let mut identity = [0; 32];
+    identity[0] = 1;
+    let identity_key = Ed25519PublicKey::from_slice(&identity).unwrap();
+    assert_eq!(DidKey::create(identity_key), Err(Error::InvalidPublicKey));
+
+    let mut fingerprint = vec![0xed, 0x01];
+    fingerprint.extend(identity);
+    let did = format!("did:key:z{}", bs58::encode(fingerprint).into_string());
+    assert_eq!(DidKey::parse(&did), Err(Error::InvalidPublicKey));
 }
 
 #[test]

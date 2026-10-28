@@ -9,9 +9,10 @@ crate. The first profile SHALL accept only canonical base58-btc `z` method
 identifiers carrying direct Ed25519, X25519, P-256, or secp256k1 public-key
 multicodecs. Creation SHALL consume typed caller-owned public keys and parsing
 SHALL validate canonical varints, exact key lengths, curve points, re-encoding,
-and public text/decoded byte ceilings. X25519 public keys SHALL additionally be
-rejected when their field encoding is non-canonical or they cannot produce a
-contributory shared secret.
+and public text/decoded byte ceilings. Ed25519 public keys SHALL additionally be
+rejected when their field encoding is non-canonical or the point is weak.
+X25519 public keys SHALL additionally be rejected when their field encoding is
+non-canonical or they cannot produce a contributory shared secret.
 
 #### Scenario: a supported public key creates a canonical DID
 
@@ -22,8 +23,8 @@ contributory shared secret.
 #### Scenario: non-canonical or unsupported input is received
 
 - **WHEN** an identifier uses `u`, an overlong varint, unknown/private codec,
-  wrong key length, invalid curve point, non-canonical or low-order X25519 key,
-  trailing data, or non-canonical text
+  wrong key length, invalid curve point, non-canonical or weak Ed25519 key,
+  non-canonical or low-order X25519 key, trailing data, or non-canonical text
 - **THEN** parsing fails with a stable redacted category and returns no key
 
 #### Scenario: an input exceeds a public boundary

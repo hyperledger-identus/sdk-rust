@@ -76,6 +76,27 @@ fn ed25519_encode_array_and_vec() {
 }
 
 #[test]
+fn ed25519_classifies_non_canonical_and_weak_encodings() {
+    let mut non_canonical = [0xff; 32];
+    non_canonical[0] = 0xf0;
+    non_canonical[31] = 0x7f;
+    let non_canonical = Ed25519PublicKey::from_slice(&non_canonical).unwrap();
+
+    let mut identity = [0; 32];
+    identity[0] = 1;
+    let identity = Ed25519PublicKey::from_slice(&identity).unwrap();
+
+    let ordinary = Ed25519PrivateKey::from_slice(&SAMPLE_32)
+        .unwrap()
+        .to_public_key();
+
+    assert!(!non_canonical.has_canonical_encoding());
+    assert!(identity.is_weak());
+    assert!(ordinary.has_canonical_encoding());
+    assert!(!ordinary.is_weak());
+}
+
+#[test]
 fn ed25519_private_key_bytes_roundtrip() {
     let sk = Ed25519PrivateKey::from_slice(&SAMPLE_32).unwrap();
     let bytes = sk.to_bytes();

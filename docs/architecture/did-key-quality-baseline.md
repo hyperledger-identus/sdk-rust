@@ -32,6 +32,8 @@ behavior on the same host, not treat these nanosecond values as portable SLAs.
 
 - Property: deterministic Ed25519/X25519 public material round-trips through
   create and parse for 64 generated seed classes.
+- Security boundary: non-canonical or weak Ed25519 material and non-canonical
+  or non-contributory X25519 material are rejected by creation and parsing.
 - Differential: the attributed packet covers normative Ed25519, independent
   direct-X25519 oracle behavior, and strict base64url rejection. The oracle's
   RFC 7748 ignored high bit is cleared so the fixture cannot encode an identity

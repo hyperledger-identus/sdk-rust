@@ -558,7 +558,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Capability: `did.key.profile`
 - Slice: Bounded effect-free did:key creation, parsing and local resolution
 - Owner: SDK-Rust DID maintainers (issue #557)
-- Risk: Non-canonical multicodec input, invalid public material, unbounded base58 work or relationship drift can split portable identity state or expose key content.
+- Risk: Non-canonical multicodec or curve encodings, unusable public material, unbounded base58 work or relationship drift can split portable identity state or expose key content.
 - Targets: `package:identus-did-key`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`
 - Vector IDs: `3` local catalog entries
 - Limitations: Effect-free direct public-key creation, parsing and local resolution only; no private keys, generation, derivation, signing, custody, network resolution, persistence, runtime, bindings or global registry is claimed.

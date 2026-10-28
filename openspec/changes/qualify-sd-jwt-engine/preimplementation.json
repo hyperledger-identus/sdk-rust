@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 489,
+  "change": "qualify-sd-jwt-engine",
+  "branch": "codex/spec/issue-489",
+  "baseRef": "origin/develop",
+  "baseSha": "b92023ed75917d7efe818a2dd0d39ada3fb8ce68",
+  "contractHeadSha": "ed36fb0f176a71eb7d5abf6323b63b588009f445",
+  "createdAt": "2026-10-28T17:18:10.294Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

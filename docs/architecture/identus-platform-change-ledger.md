@@ -47,7 +47,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `oid4vp.direct-post-response.verifier-authorization-evidence.v1`
 
-State: `proposed`. Class: `breaking` / `changed`. Target: `unreleased`. A consuming transition classifies Final client identifier prefixes, validates bounded scheme metadata and requires a caller-owned trust port to accept the exact verified key and full correlated client identifier before typed routing.
+State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. A consuming transition classifies Final client identifier prefixes, validates bounded scheme metadata and requires a caller-owned trust port to accept the exact verified key and full correlated client identifier before typed routing.
 
 ### `siopv2.did-authentication.draft13.v1`
 

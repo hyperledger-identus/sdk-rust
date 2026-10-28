@@ -6,19 +6,19 @@ use identus_oid4vp::{
 use serde::Deserialize;
 
 const TYPESCRIPT_FIXTURE: &str = r#"{
-  "clientId": "decentralized_identifier:did:example:verifier",
-  "requestUri": "https://verifier.example/request",
-  "requestUriMethod": "post",
-  "walletMetadata": "{\"vp_formats_supported\":{\"dc+sd-jwt\":{}}}",
-  "walletNonce": "adapter-nonce"
+    "clientId": "decentralized_identifier:did:example:verifier",
+    "requestUri": "https://verifier.example/request",
+    "requestUriMethod": "post",
+    "walletMetadata": "{\"vp_formats_supported\":{\"dc+sd-jwt\":{}}}",
+    "walletNonce": "adapter-nonce"
 }"#;
 
 const SWIFT_FIXTURE: &str = r#"{
-  "client_id": "decentralized_identifier:did:example:verifier",
-  "request_uri": "https://verifier.example/request",
-  "request_uri_method": "post",
-  "wallet_metadata": "{\"vp_formats_supported\":{\"dc+sd-jwt\":{}}}",
-  "wallet_nonce": "adapter-nonce"
+    "client_id": "decentralized_identifier:did:example:verifier",
+    "request_uri": "https://verifier.example/request",
+    "request_uri_method": "post",
+    "wallet_metadata": "{\"vp_formats_supported\":{\"dc+sd-jwt\":{}}}",
+    "wallet_nonce": "adapter-nonce"
 }"#;
 
 #[derive(Deserialize)]

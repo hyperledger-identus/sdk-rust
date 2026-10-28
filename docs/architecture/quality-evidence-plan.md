@@ -620,28 +620,28 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo test -p identus-did-web --all-features`
 - Budget: Sweep deterministic valid and invalid authority, port and path classes plus complete in-memory fetch-port E2E.
 - Receipt: `source:crates/did-web/tests/conformance.rs`
-- Evidence revision: `32fbbe5cdc41c3279e6a7969fabc0c611fb63fa7`
+- Evidence revision: `9ccffe38ca4f91ec0a36acb3729edd4814bd2d5e`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did-web.sh soak`
 - Budget: Run bounded parse and response binding for 300 seconds with timeout 5 seconds and RSS limit 1024 MiB.
 - Receipt: `source:fuzz/fuzz_targets/did_web.rs`
-- Evidence revision: `32fbbe5cdc41c3279e6a7969fabc0c611fb63fa7`
+- Evidence revision: `9ccffe38ca4f91ec0a36acb3729edd4814bd2d5e`
 
 ### `benchmark`
 
 - Command: `cargo bench -p identus-did-web --bench directional`
 - Budget: Measure parse/derive, response binding, and early oversized rejection over deterministic samples.
 - Receipt: `source:docs/architecture/did-web-quality-baseline.md`
-- Evidence revision: `32fbbe5cdc41c3279e6a7969fabc0c611fb63fa7`
+- Evidence revision: `9ccffe38ca4f91ec0a36acb3729edd4814bd2d5e`
 
 ### `differential`
 
 - Command: `cargo test -p identus-did-web --test conformance pinned_url_mapping_examples_match_the_selected_profile`
 - Budget: Compare exact bare, path and encoded-port URLs plus exact document ID binding against attributed pinned examples.
 - Receipt: `source:docs/conformance/fixtures/did-web/v1/vectors.json`
-- Evidence revision: `32fbbe5cdc41c3279e6a7969fabc0c611fb63fa7`
+- Evidence revision: `9ccffe38ca4f91ec0a36acb3729edd4814bd2d5e`
 
 ## `did.jwk.profile.quality.v1`
 

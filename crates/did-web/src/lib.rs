@@ -555,7 +555,11 @@ fn parse_media_type(value: Option<&str>, limits: DidWebLimits) -> Result<Represe
     if value.len() > limits.max_content_type_bytes {
         return Err(Error::ResourceLimit);
     }
-    if value.is_empty() || !value.bytes().all(|byte| (0x20..=0x7e).contains(&byte)) {
+    if value.is_empty()
+        || !value
+            .bytes()
+            .all(|byte| byte == b'\t' || (0x20..=0x7e).contains(&byte))
+    {
         return Err(Error::InvalidMediaType);
     }
     let (base, parameters) = match value.split_once(';') {
@@ -600,6 +604,9 @@ fn validate_parameters(mut input: &str) -> Result<(), Error> {
             return Ok(());
         }
         input = input.strip_prefix(';').ok_or(Error::InvalidMediaType)?;
+        if input.trim_start_matches([' ', '\t']).is_empty() {
+            return Err(Error::InvalidMediaType);
+        }
     }
     Ok(())
 }

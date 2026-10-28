@@ -105,6 +105,7 @@ fn response_binding_checks_envelope_before_document_and_exact_id() {
         "application/did+json; char set=utf-8",
         "application/did+json; charset=",
         "application/did+json;",
+        "application/did+json; charset=utf-8;",
     ] {
         let response = request
             .response(
@@ -120,6 +121,15 @@ fn response_binding_checks_envelope_before_document_and_exact_id() {
         .response(
             200,
             Some("application/did+json; charset=\"utf-8\""),
+            br#"{"id":"did:web:example.com"}"#.to_vec(),
+        )
+        .unwrap();
+    assert_eq!(value.bind_response(response).unwrap().id(), value.did());
+
+    let response = request
+        .response(
+            200,
+            Some("application/did+json;\tcharset=utf-8"),
             br#"{"id":"did:web:example.com"}"#.to_vec(),
         )
         .unwrap();

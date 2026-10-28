@@ -114,6 +114,17 @@ consumer_impact  = "Accepted identifiers and decoded keys remain finite; canonic
 review_triggers  = [ "did:key draft revision", "new multibase or multicodec", "new curve", "resource limit change", "implicit key conversion" ]
 
 [[boundaries]]
+id               = "did-web-method-profile"
+package          = "identus-did-web"
+surface          = "did:web identifiers, derived HTTPS request URLs, response media types, remote response bodies, and generic DID documents"
+disposition      = "sdk-enforced"
+limits           = [ "max_identifier_bytes=2048", "max_path_segments=32", "max_path_segment_bytes=128", "max_url_bytes=4096", "max_content_type_bytes=128", "max_response_body_bytes=131072" ]
+evidence         = [ "crates/did-web/src/lib.rs", "crates/did-web/tests/conformance.rs", "crates/did-web/tests/fetch_port_e2e.rs" ]
+outer_obligation = "The caller owns network execution and must stop reading at the request body ceiling; the SDK rechecks response status, media type, body size, duplicate-safe DID document structure, and exact document identity."
+consumer_impact  = "Accepted method text, URL allocation, path work, headers, remote bytes and document parsing remain finite while DNS, TLS, redirects, cancellation and SSRF policy stay adapter-owned."
+review_triggers  = [ "did:web draft revision", "new host or IDNA profile", "new representation", "concrete transport adapter", "resource limit change" ]
+
+[[boundaries]]
 id               = "did-jwk-method-profile"
 package          = "identus-did-jwk"
 surface          = "did:jwk base64url carriers, duplicate-safe public JWK JSON, key validation, and deterministic DID document projection"

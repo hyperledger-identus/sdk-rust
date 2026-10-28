@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "packetId": "did.web.profile.v1",
+  "capability": "did.web.profile",
+  "cases": [
+    {
+      "id": "did.web.path.pinned-example",
+      "operation": "did-web.parse-prepare",
+      "input": {
+        "literal": "did:web:w3c-ccg.github.io:user:alice"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "url": "https://w3c-ccg.github.io/user/alice/did.json"
+        }
+      }
+    }
+  ]
+}

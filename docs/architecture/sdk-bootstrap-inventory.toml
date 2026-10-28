@@ -107,6 +107,15 @@ owner_issue    = "#557"
 summary        = "Bounded effect-free did:key v0.9 creation, parsing, and local resolution over four direct public-key multicodecs."
 
 [[packages]]
+name           = "identus-did-web"
+path           = "crates/did-web"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#559"
+summary        = "Bounded did:web parsing, deterministic HTTPS request derivation, injected retrieval, and exact DID document binding without a concrete HTTP runtime."
+
+[[packages]]
 name           = "identus-did-jwk"
 path           = "crates/did-jwk"
 layer          = "domain-primitives"

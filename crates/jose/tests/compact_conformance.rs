@@ -406,6 +406,39 @@ fn protected_header_serialization_stops_at_the_configured_byte_limit() {
     );
 }
 
+#[test]
+fn bounded_nested_jwt_evidence_round_trips_without_assigning_trust() {
+    let header = ProtectedHeader::with_key_reference_and_extended_evidence(
+        "Ed25519",
+        Some("oauth-authz-req+jwt"),
+        Some(JwsKeyReference::key_id("attested-key", JwsLimits::default()).unwrap()),
+        Some("e30.e30.AQ".to_owned()),
+        None,
+        None,
+        JwsLimits::default(),
+    )
+    .expect("bounded header");
+    let compact = JwsSigningInput::new(header, b"{}".to_vec(), JwsLimits::default())
+        .expect("input")
+        .attach_signature(vec![1; 64])
+        .expect("signature");
+    let parsed =
+        UnverifiedCompactJws::parse(compact.compact(), JwsLimits::default()).expect("parsed");
+    assert_eq!(parsed.protected_header().nested_jwt(), Some("e30.e30.AQ"));
+    assert_eq!(
+        ProtectedHeader::with_key_reference_and_extended_evidence(
+            "Ed25519",
+            None,
+            None,
+            Some("not-a-compact-token".to_owned()),
+            None,
+            None,
+            JwsLimits::default(),
+        ),
+        Err(JoseError::InvalidHeaderValue)
+    );
+}
+
 fn json_string(length: usize) -> serde_json::Value {
     serde_json::Value::String("x".repeat(length))
 }

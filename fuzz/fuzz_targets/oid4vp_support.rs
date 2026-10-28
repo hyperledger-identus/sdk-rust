@@ -8,7 +8,8 @@ use identus_core::{ClockError, UnixTimestampMillis, WallClock};
 use identus_oid4vp::{
     RequestObjectReplayFuture, RequestObjectReplayGuard, RequestObjectReplayInput,
     RequestObjectSecurityEvidence, RequestObjectSecurityPolicy, RequestObjectValidationLimits,
-    VerifiedRequestObject,
+    VerifiedRequestObject, VerifierAuthorizationEvidence, VerifierAuthorizationLimits,
+    VerifierTrustFuture, VerifierTrustInput, VerifierTrustPolicy,
 };
 
 pub const NOW_SECONDS: u64 = 1_735_689_600;
@@ -35,6 +36,18 @@ pub fn secure(request: VerifiedRequestObject) -> Option<RequestObjectSecurityEvi
     )
     .ok()?;
     block_on(request.validate_security(&policy, &Clock, &Replay)).ok()
+}
+
+struct Trust;
+
+impl VerifierTrustPolicy for Trust {
+    fn authorize<'a>(&'a self, _input: VerifierTrustInput<'a>) -> VerifierTrustFuture<'a> {
+        Box::pin(async { Ok(()) })
+    }
+}
+
+pub fn authorize(evidence: RequestObjectSecurityEvidence) -> Option<VerifierAuthorizationEvidence> {
+    block_on(evidence.authorize_verifier(&Trust, VerifierAuthorizationLimits::default())).ok()
 }
 
 fn block_on<F: Future>(future: F) -> F::Output {

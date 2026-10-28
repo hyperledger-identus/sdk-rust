@@ -2,13 +2,15 @@
 //!
 //! The crate classifies a by-reference Authorization Request, describes
 //! bounded runtime-neutral GET/POST retrieval, binds its response, and verifies
-//! a signed compact JAR through [`identus_jose`], and validates/evaluates DCQL
-//! through a bounded SDK-owned facade, then composes one narrow Final
+//! a signed compact JAR through [`identus_jose`], validates audience/time/replay,
+//! binds the exact verified key to the Final client identifier through a
+//! caller-owned trust port, and validates/evaluates DCQL through a bounded
+//! SDK-owned facade, then composes one narrow Final
 //! `vp_token`/`direct_post` request state and bounded mutually exclusive plain
 //! success, explicit protocol-error, or engine-neutral encrypted responses.
-//! It does not execute HTTP, authorize a verifier key, record consent, create
-//! presentations, verify credentials, or translate internal failures into wire
-//! errors.
+//! It does not execute HTTP, bundle a DID/PKI/Federation/attestation trust
+//! engine, record consent, create presentations, verify credentials, or
+//! translate internal failures into wire errors.
 
 #![forbid(unsafe_code)]
 
@@ -23,6 +25,7 @@ mod request_object;
 mod request_object_json;
 mod request_object_security;
 mod request_uri;
+mod verifier_authorization;
 
 pub use authorization_request::{
     AuthorizationResponseMode, AuthorizationResponseType, ValidatedAuthorizationRequest,
@@ -55,6 +58,11 @@ pub use request_object_security::{
 pub use request_uri::{
     FORM_MEDIA_TYPE, REQUEST_OBJECT_MEDIA_TYPE, RequestUriRetrievalInput,
     RequestUriRetrievalRequest,
+};
+pub use verifier_authorization::{
+    ClientIdentifierScheme, VerifierAuthorizationEvidence, VerifierAuthorizationLimits,
+    VerifierInfo, VerifierMetadata, VerifierTrustFailure, VerifierTrustFuture, VerifierTrustInput,
+    VerifierTrustPolicy,
 };
 
 use identus_core::Component;

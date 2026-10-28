@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::{
     future::Future,
     pin::pin,
@@ -8,7 +10,8 @@ use identus_core::{ClockError, UnixTimestampMillis, WallClock};
 use identus_oid4vp::{
     RequestObjectReplayFuture, RequestObjectReplayGuard, RequestObjectReplayInput,
     RequestObjectSecurityEvidence, RequestObjectSecurityPolicy, RequestObjectValidationLimits,
-    VerifiedRequestObject,
+    VerifiedRequestObject, VerifierAuthorizationEvidence, VerifierAuthorizationLimits,
+    VerifierTrustFuture, VerifierTrustInput, VerifierTrustPolicy,
 };
 
 pub const NOW_SECONDS: u64 = 1_735_689_600;
@@ -43,6 +46,18 @@ pub fn secure_for_audience(
     )
     .unwrap();
     block_on(request.validate_security(&policy, &Clock, &Replay)).unwrap()
+}
+
+struct Trust;
+
+impl VerifierTrustPolicy for Trust {
+    fn authorize<'a>(&'a self, _input: VerifierTrustInput<'a>) -> VerifierTrustFuture<'a> {
+        Box::pin(async { Ok(()) })
+    }
+}
+
+pub fn authorize(evidence: RequestObjectSecurityEvidence) -> VerifierAuthorizationEvidence {
+    block_on(evidence.authorize_verifier(&Trust, VerifierAuthorizationLimits::default())).unwrap()
 }
 
 fn block_on<F: Future>(future: F) -> F::Output {

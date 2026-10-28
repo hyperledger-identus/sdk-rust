@@ -25,6 +25,8 @@ use identus_oid4vp::{
 };
 use serde_json::{Value, json};
 
+mod support;
+
 const PRIVATE_BYTES: [u8; 32] = [0x71; 32];
 const CLIENT_ID: &str = "decentralized_identifier:did:example:verifier";
 const REFERENCE: &str = "openid4vp:?client_id=decentralized_identifier%3Adid%3Aexample%3Averifier&request_uri=https%3A%2F%2Fverifier.example%2Frequest";
@@ -245,7 +247,7 @@ fn packet_static_audience_executes_full_security_transition() {
     assert_eq!(seen.issued_at, NOW - 120);
     assert_eq!(seen.expires_at, Some(NOW + 180));
     assert!(seen.payload_len > 0);
-    let routed = evidence
+    let routed = support::authorize(evidence)
         .into_authorization_request(
             AuthorizationRequestValidationLimits::default(),
             DcqlLimits::default(),

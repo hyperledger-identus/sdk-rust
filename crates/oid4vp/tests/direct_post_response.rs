@@ -62,11 +62,11 @@ fn bind_verified(compact: &str, key: &PublicKeyJwk) -> ValidatedAuthorizationReq
         )
         .expect("bound request object");
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, key).expect("bound key");
-    support::secure(
+    support::authorize(support::secure(
         unverified
             .verify(&SignatureSuiteRegistry::recommended(), &key)
             .expect("verified request object"),
-    )
+    ))
     .into_authorization_request(
         AuthorizationRequestValidationLimits::default(),
         DcqlLimits::default(),

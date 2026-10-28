@@ -76,6 +76,17 @@ pub mod error_code {
         ErrorCode::new("oid4vp.request_object_replay_unavailable");
     pub const REQUEST_OBJECT_CLOCK_UNAVAILABLE: ErrorCode =
         ErrorCode::new("oid4vp.request_object_clock_unavailable");
+    pub const UNSUPPORTED_CLIENT_IDENTIFIER_SCHEME: ErrorCode =
+        ErrorCode::new("oid4vp.unsupported_client_identifier_scheme");
+    pub const INVALID_CLIENT_IDENTIFIER: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_client_identifier");
+    pub const INVALID_VERIFIER_METADATA: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_verifier_metadata");
+    pub const VERIFIER_METADATA_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.verifier_metadata_too_large");
+    pub const VERIFIER_TRUST_REJECTED: ErrorCode = ErrorCode::new("oid4vp.verifier_trust_rejected");
+    pub const VERIFIER_TRUST_UNAVAILABLE: ErrorCode =
+        ErrorCode::new("oid4vp.verifier_trust_unavailable");
     pub const MISSING_DCQL_QUERY: ErrorCode = ErrorCode::new("oid4vp.missing_dcql_query");
     pub const UNSUPPORTED_DCQL_SCOPE: ErrorCode = ErrorCode::new("oid4vp.unsupported_dcql_scope");
     pub const INVALID_DCQL_QUERY: ErrorCode = ErrorCode::new("oid4vp.invalid_dcql_query");
@@ -214,11 +225,17 @@ pub enum Oid4vpError {
     RequestObjectReplayRejected,
     RequestObjectReplayUnavailable,
     RequestObjectClockUnavailable,
+    UnsupportedClientIdentifierScheme,
+    InvalidClientIdentifier,
+    InvalidVerifierMetadata,
+    VerifierMetadataTooLarge,
+    VerifierTrustRejected,
+    VerifierTrustUnavailable,
 }
 
 impl Oid4vpError {
     /// Ordered error inventory with the frozen v1 fixture as its append-only prefix.
-    pub const CONTRACT_VARIANTS: [Self; 80] = [
+    pub const CONTRACT_VARIANTS: [Self; 86] = [
         Self::InvalidLimits,
         Self::InvocationTooLarge,
         Self::InvalidInvocation,
@@ -299,9 +316,15 @@ impl Oid4vpError {
         Self::RequestObjectReplayRejected,
         Self::RequestObjectReplayUnavailable,
         Self::RequestObjectClockUnavailable,
+        Self::UnsupportedClientIdentifierScheme,
+        Self::InvalidClientIdentifier,
+        Self::InvalidVerifierMetadata,
+        Self::VerifierMetadataTooLarge,
+        Self::VerifierTrustRejected,
+        Self::VerifierTrustUnavailable,
     ];
 
-    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 80] = {
+    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 86] = {
         use error_code as code;
         [
             (
@@ -703,6 +726,36 @@ impl Oid4vpError {
                 code::REQUEST_OBJECT_CLOCK_UNAVAILABLE,
                 ErrorKind::Internal,
                 "OID4VP Request Object clock is unavailable",
+            ),
+            (
+                code::UNSUPPORTED_CLIENT_IDENTIFIER_SCHEME,
+                ErrorKind::Unsupported,
+                "OID4VP client identifier scheme is not supported",
+            ),
+            (
+                code::INVALID_CLIENT_IDENTIFIER,
+                ErrorKind::InvalidInput,
+                "OID4VP client identifier is invalid for its scheme",
+            ),
+            (
+                code::INVALID_VERIFIER_METADATA,
+                ErrorKind::InvalidInput,
+                "OID4VP verifier metadata is invalid",
+            ),
+            (
+                code::VERIFIER_METADATA_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP verifier metadata exceeds its resource limits",
+            ),
+            (
+                code::VERIFIER_TRUST_REJECTED,
+                ErrorKind::InvalidInput,
+                "OID4VP verifier trust policy rejected the request",
+            ),
+            (
+                code::VERIFIER_TRUST_UNAVAILABLE,
+                ErrorKind::Internal,
+                "OID4VP verifier trust policy is unavailable",
             ),
         ]
     };

@@ -1,5 +1,5 @@
 [package]
-name = "probe-sd-jwt-payload-default"
+name    = "probe-sd-jwt-payload-default"
 version = "0.0.0"
 edition = "2021"
 publish = false

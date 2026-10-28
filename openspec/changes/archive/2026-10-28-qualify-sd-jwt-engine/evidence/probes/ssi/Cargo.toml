@@ -1,5 +1,5 @@
 [package]
-name = "probe-ssi-sd-jwt"
+name    = "probe-ssi-sd-jwt"
 version = "0.0.0"
 edition = "2021"
 publish = false

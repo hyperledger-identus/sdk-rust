@@ -2,8 +2,9 @@
 
 These isolated manifests and exact Cargo locks are research evidence, not SDK
 workspace members or production dependencies. They were generated and executed
-outside the repository on 2026-10-28, then copied here unchanged so dependency,
-compiler, and advisory claims can be reproduced from the reviewed change.
+outside the repository on 2026-10-28, then copied here with only repository
+Taplo whitespace normalization so dependency, compiler, and advisory claims can
+be reproduced from the reviewed change.
 
 ## Integrity
 

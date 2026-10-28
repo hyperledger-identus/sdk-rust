@@ -15,7 +15,7 @@ State: `active`. Class: `security` / `security`. Target: `unreleased`. The same 
 
 ### `did.key.profile.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-key crate creates, parses and locally resolves a bounded strict base58-btc profile for direct Ed25519, X25519, P-256 and secp256k1 public keys; identus-crypto exposes Ed25519 canonical-encoding and weak-point classification plus X25519 canonical-encoding and contributory classification so aliased or unusable identity keys are rejected.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-key crate creates, parses and locally resolves a bounded strict base58-btc profile for direct Ed25519, X25519, P-256 and secp256k1 public keys; identus-crypto exposes Ed25519 canonical-encoding and weak-point classification plus X25519 canonical-encoding and contributory classification so aliased or unusable identity keys are rejected.
 
 ### `did.peer.profiles.v1`
 

@@ -24,7 +24,7 @@ status-acceptance, legacy-input, or donor-runtime behavior.
 | K2GL `sd-jwt-vc` 2.1.0 | commit `7d938daf0a1e14974420651e7ce84146ed1875bb`; archive SHA-256 `fe86f82ce0b1345f163086f9d0b09265643982f07b9ec15d08c1596bc46586c2` | PHP 8.3.36, Composer 2.10.3; 128 tests and 296 assertions passed | 44 resolved packages; zero advisories and zero abandoned packages |
 
 Exact license, lock, audit and toolchain receipts are in
-[`oracle-receipts.json`](../../conformance/fixtures/sd-jwt-vc-draft22/differential-v1/oracle-receipts.json).
+[`oracle-receipts.json`](../../../crates/sd-jwt-vc/tests/fixtures/differential-v1/oracle-receipts.json).
 The OpenWallet advisory and browser-harness failure are reasons to keep the
 engine isolated; neither invalidates its passing Node behavior as an oracle.
 
@@ -48,7 +48,7 @@ normative result.
 | nested protected claim disclosure | reject | root-frame check only | reject | draft-22 reject; Rust covers nested status |
 | required holder confirmation | accept only with valid `cnf` at this policy stage | accept/reject | separate policy surface | Rust keeps policy explicit |
 | finite acyclic metadata extension | accept valid; reject cycle/depth | accept/reject | accept/reject | agreement |
-| missing mandatory cleartext (`sd=never`) path | reject | mandatory not enforced | **accept** in draft-19-era test | draft-20/22 complete-payload rule wins |
+| missing mandatory cleartext (`sd=never`) path | reject | mandatory not enforced | **accept** because the verifier explicitly skips `mandatory` | draft-20/22 complete-payload rule wins where absence is observable |
 | malformed optional claim `display`/`svg_id` | **ignore for credential processing** | reject in metadata schema | reject in metadata schema | draft-21/22 wins; Rust imports only processing-critical path/mandatory/sd |
 | valid status reference shape | accept as evidence, not policy | accept and performs optional network policy | accept/expose | Rust stops before retrieval or acceptance |
 | malformed status reference | reject | not exposed by cited test | not exposed by cited test | draft-22 reject |
@@ -71,7 +71,7 @@ and credential acceptance remain outside this crate and outside the claim.
 ## Reproduction and maintenance
 
 The immutable packet is
-[`packet.json`](../../conformance/fixtures/sd-jwt-vc-draft22/differential-v1/packet.json).
+[`packet.json`](../../../crates/sd-jwt-vc/tests/fixtures/differential-v1/packet.json).
 Run:
 
 ```console

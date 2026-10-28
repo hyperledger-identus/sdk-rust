@@ -125,7 +125,7 @@
       "draftSection": "5.6.3",
       "observations": [
         {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-instance.ts:418-431", "noteCode": "mandatory-not-enforced"},
-        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "accept", "selector": "tests/TypeMetadataValidationTest.php:143-157", "noteCode": "draft19-missing-path-pass"}
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "accept", "selector": "src/Internal/ClaimMetadataValidator.php:11-20", "noteCode": "mandatory-not-checked"}
       ]
     },
     {

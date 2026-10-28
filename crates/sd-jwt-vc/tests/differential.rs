@@ -12,12 +12,8 @@ use identus_sd_jwt_vc::{
 use serde::Deserialize;
 use serde_json::{Value, json};
 
-const PACKET: &str = include_str!(
-    "../../../docs/conformance/fixtures/sd-jwt-vc-draft22/differential-v1/packet.json"
-);
-const RECEIPTS: &str = include_str!(
-    "../../../docs/conformance/fixtures/sd-jwt-vc-draft22/differential-v1/oracle-receipts.json"
-);
+const PACKET: &str = include_str!("fixtures/differential-v1/packet.json");
+const RECEIPTS: &str = include_str!("fixtures/differential-v1/oracle-receipts.json");
 const DRAFT_SHA256: &str = "da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124";
 
 #[derive(Deserialize)]

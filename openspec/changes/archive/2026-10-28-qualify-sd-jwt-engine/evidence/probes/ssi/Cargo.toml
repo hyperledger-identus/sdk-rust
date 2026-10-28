@@ -1,0 +1,8 @@
+[package]
+name    = "probe-ssi-sd-jwt"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+ssi-sd-jwt = { version = "=0.6.0", default-features = false }

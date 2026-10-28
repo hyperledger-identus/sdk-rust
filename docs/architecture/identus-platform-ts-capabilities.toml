@@ -218,7 +218,7 @@ source_aliases     = [ "Pollux", "OEA plugin" ]
 source_paths       = [ "packages/lib/sdk/src/pollux/models/SDJWTVerifiableCredential.ts", "packages/lib/sdk/src/pollux/utils/jwt/SDJWT.ts", "packages/lib/sdk/src/plugins/internal/oea/sdjwt" ]
 public_surface     = [ "SDJWTCredential", "SDJWT", "SD-JWT credential workflow tasks" ]
 dependency_basis   = [ "@sd-jwt/sd-jwt-vc@^0.7.1" ]
-standard_basis     = [ "RFC 9901", "draft-ietf-oauth-sd-jwt-vc-19" ]
+standard_basis     = [ "RFC 9901", "draft-ietf-oauth-sd-jwt-vc-22" ]
 test_authority     = "implementation-regression"
 test_paths         = [ "packages/lib/sdk/tests/pollux", "packages/lib/sdk/tests/plugins" ]
 known_consumers    = [ "OEA selective-disclosure workflows" ]
@@ -227,8 +227,8 @@ rust_state         = "partial"
 target_owner       = "identus-credentials behind an Identus-owned facade"
 typescript_owner   = "facade and compatibility adapter"
 disposition        = "replace-upstream"
-decision_basis     = [ "donor dependency predates the stable base RFC", "dc+sd-jwt is the current profile media type", "legacy vc+sd-jwt is a bounded compatibility-adapter question, not a second canonical core", "current Rust engines require exact profile and target assessment" ]
-follow_up_issue    = 489
+decision_basis     = [ "ADR 0193 selects a focused Identus RFC 9901 engine after exact candidate qualification", "draft-ietf-oauth-sd-jwt-vc-22 is pinned independently from the stable base RFC", "dc+sd-jwt is the canonical profile media type", "legacy vc+sd-jwt is a bounded compatibility-adapter question, not a second canonical core", "SDK-TS DTOs errors and task models remain adapter concerns rather than Rust domain authority" ]
+follow_up_issue    = 568
 
 [[capability]]
 id                 = "credentials.anoncreds-v1"

@@ -112,6 +112,47 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
+id                                = "credentials.sd-jwt.rfc9901.v1"
+capability                        = "credentials.sd-jwt"
+lifecycle_state                   = "active"
+issue                             = 568
+pull_request                      = 571
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-sd-jwt" ]
+affected_consumers                = [ "oxid", "sdk-rust-adopters", "sdk-swift", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes bounded generic credential, presentation, JOSE, crypto, entropy and time seams but no stable RFC 9901 selective-disclosure engine."
+new_behavior                      = "The additive identus-sd-jwt crate provides bounded staged RFC 9901 compact issuance, disclosure processing and selection, key binding and verification behind SDK-owned types and injected effects."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "Rust-native staged types and static errors deliberately do not preserve SDK-TS or oracle DTO and error shapes; later language adapters remain separate."
+vector_ids                        = [ "credentials.sd-jwt.malformed-compact" ]
+quality_declaration_ids           = [ "credentials.sd-jwt.rfc9901.quality.v1" ]
+observability                     = "Record only stable stage, algorithm, outcome and limit categories plus bounded counts or lengths; never record compact credentials, claims, disclosures, salts, digests, keys, signatures, audience, nonce or identifiers."
+fallback                          = "Consumers retain their current SD-JWT implementation until they explicitly adopt a later released crate or language adapter."
+rollback                          = "Before publication remove the additive crate and active ledger record while preserving RFC vectors, ADR 0193 and failure evidence."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#credentials.sd-jwt.rfc9901.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#credentials.sd-jwt.malformed-compact" ]
+evidence_artifacts                = [ "docs/adr/0193-build-a-focused-rfc9901-engine.md", "docs/conformance/fixtures/sd-jwt-rfc9901/v1/vectors.json", "openspec/changes/archive/2026-10-28-implement-bounded-rfc9901-sd-jwt/design.md" ]
+limitations                       = "RFC 9901 compact plus SHA-256 only; no SD-JWT VC profile, JWS JSON Serialization, HTTP, DID/trust/replay/storage policy, bindings, runtime, publication, certification or downstream adoption is included."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "did.web.profile.v1"
 capability                        = "did.web.profile"
 lifecycle_state                   = "active"

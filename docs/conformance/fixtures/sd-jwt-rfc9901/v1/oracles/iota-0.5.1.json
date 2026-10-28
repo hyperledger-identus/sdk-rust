@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "oracle": "sd-jwt-payload",
+  "version": "0.5.1",
+  "revision": "c47e52c31545f7ede55ad1259f275f31595e2322",
+  "crateSha256": "3d0271aef808decf6005e82e2b779a5659a630855206cde7e89a86d0d2b195cd",
+  "source": "src/hasher.rs:test3",
+  "cases": [
+    {
+      "disclosure": "WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgIkZSIl0",
+      "digest": "w0I8EKcdCtUPkGCNUrfwVp2xEgNjtoIDlOxc9-PlOhs"
+    }
+  ]
+}

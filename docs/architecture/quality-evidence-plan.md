@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-28`
-- Declaration count: `15`
+- Declaration count: `16`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -687,3 +687,48 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Compare exact pinned P-256 and X25519 DIDs, validated curves and semantic relationship counts against the attributed packet.
 - Receipt: `source:docs/conformance/fixtures/did-jwk/v1/vectors.json`
 - Evidence revision: `cca5a33cc861436ae6830dd3e42ba08d9424b074`
+
+## `credentials.sd-jwt.rfc9901.quality.v1`
+
+- Capability: `credentials.sd-jwt`
+- Slice: Bounded RFC 9901 issuance, disclosure, presentation, key binding and verification
+- Owner: SDK-Rust credential maintainers (issue #568)
+- Risk: Malformed or adversarial disclosures can expose hidden claims, amplify work, create ambiguous graphs, or represent unverified input as verified evidence.
+- Targets: `package:identus-sd-jwt`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`
+- Vector IDs: `1` local catalog entries
+- Limitations: RFC 9901 compact plus SHA-256 only; target evidence is compile-only, and no SD-JWT VC profile, HTTP, DID/trust/replay/storage policy, bindings, runtime, publication, certification, or downstream adoption is claimed.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #568 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #568 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #568 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #568 |
+
+### `property`
+
+- Command: `cargo test -p identus-sd-jwt --test properties`
+- Budget: Sweep deterministic nested object/array claims, disclosure closures, ordering classes, exact limits and every staged-state transition.
+- Receipt: `source:crates/sd-jwt/tests/properties.rs`
+- Evidence revision: `1e22043f450f31be4a5387ed66444cb7214dbd8e`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-sd-jwt.sh soak`
+- Budget: Run compact, disclosure, graph, selection and key-binding harnesses for 300 seconds each with max_len=1048576, timeout=5 and rss_limit_mb=1024.
+- Receipt: `source:fuzz/fuzz_targets/sd_jwt.rs`
+- Evidence revision: `1e22043f450f31be4a5387ed66444cb7214dbd8e`
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-sd-jwt --bench directional`
+- Budget: Measure ordinary, exact-limit, adversarial graph, and early oversized-rejection cases with retained input/output and work counts.
+- Receipt: `source:crates/sd-jwt/benches/directional.rs`
+- Evidence revision: `1e22043f450f31be4a5387ed66444cb7214dbd8e`
+
+### `differential`
+
+- Command: `cargo test -p identus-sd-jwt --test conformance differential`
+- Budget: Compare applicable RFC examples and clean-room cases to at least two immutable independent engines, resolving every disagreement against RFC 9901.
+- Receipt: `source:crates/sd-jwt/tests/conformance.rs`
+- Evidence revision: `1e22043f450f31be4a5387ed66444cb7214dbd8e`

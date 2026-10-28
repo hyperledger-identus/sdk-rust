@@ -60,6 +60,7 @@ OPERATIONS = {
     "did-web.parse-prepare",
     "oid4vp.direct-post-response.construct",
     "siopv2.did-authentication.roundtrip",
+    "sd-jwt.parse",
 }
 BOUNDARIES = {"positive", "negative", "boundary", "mutation"}
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
@@ -287,6 +288,7 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                     "did-jwk.resource_limit",
                 },
                 "oid4vp.direct-post-response.construct": "oid4vp.invalid_direct_post_response",
+                "sd-jwt.parse": "sd_jwt.invalid_compact",
             }[operation]
             error_code = expected.get("errorCode")
             code_matches = error_code in required_code if isinstance(required_code, set) else error_code == required_code

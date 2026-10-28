@@ -960,6 +960,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-sd-jwt"
+version = "0.0.0"
+dependencies = [
+ "base64",
+ "identus-core",
+ "identus-credentials",
+ "identus-crypto",
+ "identus-jose",
+ "identus-presentations",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "identus-siopv2"
 version = "0.0.0"
 dependencies = [

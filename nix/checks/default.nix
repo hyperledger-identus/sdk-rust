@@ -15,7 +15,7 @@
     let
       # Like `craneLib.cleanCargoSource ./../..` but also keeps trybuild
       # `.stderr` fixtures, the six immutable error goldens, the bounded
-      # OID4VCI interoperability packet and the shared DID/key/peer/crypto/OID4VP vector packets,
+      # OID4VCI interoperability packet and the shared DID/key/peer/crypto/OID4VP/SD-JWT vector packets,
       # which the default cargo source filter strips. Keep every exception
       # path-scoped so planning evidence and unrelated data files do not enter
       # Rust build sources.
@@ -26,6 +26,7 @@
           let
             sourcePath = toString path;
             oid4vciInteropRoot = "${toString ./../..}/crates/oid4vci/tests/fixtures/interop-v1";
+            sdJwtFixtureRoot = "${toString ./../..}/docs/conformance/fixtures/sd-jwt-rfc9901/v1";
           in
           craneLib.filterCargoSources path type
           || pkgs.lib.hasSuffix ".stderr" (baseNameOf sourcePath)
@@ -48,6 +49,8 @@
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/siopv2/v1/vectors.json" sourcePath
+          || pkgs.lib.hasSuffix "${sdJwtFixtureRoot}/vectors.json" sourcePath
+          || pkgs.lib.hasPrefix "${sdJwtFixtureRoot}/oracles/" sourcePath
           || pkgs.lib.hasPrefix oid4vciInteropRoot sourcePath;
       };
       cargoArtifacts = craneLib.buildDepsOnly {
@@ -110,6 +113,10 @@
           test "$(find "$src/docs/conformance/fixtures/oid4vp-transaction-format/v1" -type f | wc -l)" -eq 1
           test -f "$src/docs/conformance/fixtures/siopv2/v1/vectors.json"
           test "$(find "$src/docs/conformance/fixtures/siopv2/v1" -type f | wc -l)" -eq 1
+          test -f "$src/docs/conformance/fixtures/sd-jwt-rfc9901/v1/vectors.json"
+          test -f "$src/docs/conformance/fixtures/sd-jwt-rfc9901/v1/oracles/affinidi-0.1.8.json"
+          test -f "$src/docs/conformance/fixtures/sd-jwt-rfc9901/v1/oracles/iota-0.5.1.json"
+          test "$(find "$src/docs/conformance/fixtures/sd-jwt-rfc9901/v1" -type f | wc -l)" -eq 3
           if find "$src/openspec/changes" -type f \
             \( -name credentials-error-contract-v1.csv \
               -o -name presentations-error-contract-v1.csv \

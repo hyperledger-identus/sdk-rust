@@ -6,7 +6,7 @@ normative inventory is
 [`sdk-input-resource-boundaries.toml`](sdk-input-resource-boundaries.toml); this
 document explains how to read it.
 
-The audit covers all twenty runtime packages classified `implemented` in the
+The audit covers all 24 runtime packages classified `implemented` in the
 bootstrap inventory. Placeholder packages contain no accepted runtime API, and
 verification-only packages consume synthetic repository inputs, so neither is
 presented as an SDK input surface.

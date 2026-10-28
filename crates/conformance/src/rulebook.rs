@@ -140,6 +140,10 @@ pub(crate) const LAYER_RULES: &[LayerRule] = &[
                 name: "identus-jose",
                 proc_macro: false,
             },
+            Member {
+                name: "identus-sd-jwt",
+                proc_macro: false,
+            },
         ],
         allowed_target_layers: &[
             Layer::Foundation,

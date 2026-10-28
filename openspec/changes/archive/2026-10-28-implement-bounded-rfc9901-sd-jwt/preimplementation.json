@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 568,
+  "change": "implement-bounded-rfc9901-sd-jwt",
+  "branch": "codex/feat/issue-568",
+  "baseRef": "origin/develop",
+  "baseSha": "8b666d4791cdbde09e20c19e3250b592d4bd9ef5",
+  "contractHeadSha": "23ef7615885bbd637301facf3f27f8e6ebdd96df",
+  "createdAt": "2026-10-28T17:49:50.023Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-28
 - Decision owners: SDK-Rust OID4VP maintainers
-- Issue: https://github.com/hyperledger-identus/sdk-rust/issues/547
+- Issue: [#547](https://github.com/hyperledger-identus/sdk-rust/issues/547)
 
 ## Context
 

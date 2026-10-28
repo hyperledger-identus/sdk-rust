@@ -39,8 +39,17 @@
 ## 6. Review and delivery
 
 - [ ] 6.1 Run focused and workspace format, Clippy, tests, docs, factory, Nix, conformance, and exact-head evidence routes.
-- [ ] 6.2 Run Claude CLI review or immediate Codex CLI fallback; resolve every actionable blocker/high/medium finding and rerun proportionate gates.
+- [x] 6.2 Run Claude CLI review or immediate Codex CLI fallback; resolve every actionable blocker/high/medium finding and rerun proportionate gates.
 - [ ] 6.3 Archive OpenSpec, open the signed/DCO issue-linked PR, monitor protected CI, merge only when green, and publish factory metrics.
+
+Exact-head review resolved one actionable P1 finding: partial array presentations now
+reindex their materialized disclosure paths before a presentation can be selected
+again. The regression route, focused and workspace tests, Clippy, docs, factory,
+portable target builds, benchmark, and a 300-second sanitizer soak pass at
+`1e22043f450f31be4a5387ed66444cb7214dbd8e`. The full Nix route remains open:
+its single-job retry reached `rust-msrv-release-wasm32` and then failed while
+archiving `zerocopy` with `No space left on device`; this is retained as an
+environmental failure, not converted into passing evidence.
 
 ## 7. Stop boundary
 

@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-10-28
-- Issue: https://github.com/hyperledger-identus/sdk-rust/issues/544
+- Issue: [#544](https://github.com/hyperledger-identus/sdk-rust/issues/544)
 
 ## Context
 

@@ -19,7 +19,7 @@ VerifierAuthorizationEvidence
   │ caller-owned VerifierTrustPolicy accepts the binding
   ▼
 ValidatedAuthorizationRequest
-  │ DCQL and direct_post / direct_post.jwt construction
+  │ DCQL and redirect / direct_post construction
   ▼
 inert response material
 ```
@@ -40,8 +40,8 @@ inert response material
 
 The full prefixed client identifier is never replaced by its inner identifier.
 It remains the exact request identity and audience-facing value. The port also
-receives the exact textual signed `response_uri`, when present, so attestation
-and X.509 policies can enforce their verifier-to-destination redirect rules.
+receives the exact signed `response_uri` or `redirect_uri`, when present, so
+attestation and X.509 policies can enforce verifier-to-destination rules.
 
 ## Adapter skeleton
 

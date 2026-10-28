@@ -455,6 +455,130 @@ impl Default for DirectPostErrorResponseLimits {
     }
 }
 
+/// Resource limits for one inert redirect-mode response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RedirectResponseLimits {
+    max_output_uri_bytes: usize,
+    max_existing_parameters: usize,
+}
+
+impl RedirectResponseLimits {
+    /// Construct a positive redirect-output policy.
+    pub const fn new(
+        max_output_uri_bytes: usize,
+        max_existing_parameters: usize,
+    ) -> Result<Self, Oid4vpError> {
+        if max_output_uri_bytes == 0 || max_existing_parameters == 0 {
+            return Err(Oid4vpError::InvalidLimits);
+        }
+        Ok(Self {
+            max_output_uri_bytes,
+            max_existing_parameters,
+        })
+    }
+
+    /// Maximum bytes in the complete query or fragment redirect URI.
+    pub const fn max_output_uri_bytes(self) -> usize {
+        self.max_output_uri_bytes
+    }
+
+    /// Maximum existing query or fragment parameters inspected for collisions.
+    pub const fn max_existing_parameters(self) -> usize {
+        self.max_existing_parameters
+    }
+}
+
+impl Default for RedirectResponseLimits {
+    fn default() -> Self {
+        Self {
+            max_output_uri_bytes: 1_048_576,
+            max_existing_parameters: 64,
+        }
+    }
+}
+
+/// Resource limits for one direct-post endpoint acknowledgement.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DirectPostAcknowledgementLimits {
+    max_content_type_bytes: usize,
+    max_cache_control_bytes: usize,
+    max_body_bytes: usize,
+    max_members: usize,
+    max_member_name_bytes: usize,
+    max_redirect_uri_bytes: usize,
+    max_response_code_bytes: usize,
+}
+
+impl DirectPostAcknowledgementLimits {
+    /// Construct a positive acknowledgement parsing policy.
+    #[allow(clippy::too_many_arguments)]
+    pub const fn new(
+        max_content_type_bytes: usize,
+        max_cache_control_bytes: usize,
+        max_body_bytes: usize,
+        max_members: usize,
+        max_member_name_bytes: usize,
+        max_redirect_uri_bytes: usize,
+        max_response_code_bytes: usize,
+    ) -> Result<Self, Oid4vpError> {
+        if max_content_type_bytes == 0
+            || max_cache_control_bytes == 0
+            || max_body_bytes == 0
+            || max_members == 0
+            || max_member_name_bytes == 0
+            || max_redirect_uri_bytes == 0
+            || max_response_code_bytes == 0
+        {
+            return Err(Oid4vpError::InvalidLimits);
+        }
+        Ok(Self {
+            max_content_type_bytes,
+            max_cache_control_bytes,
+            max_body_bytes,
+            max_members,
+            max_member_name_bytes,
+            max_redirect_uri_bytes,
+            max_response_code_bytes,
+        })
+    }
+
+    pub const fn max_content_type_bytes(self) -> usize {
+        self.max_content_type_bytes
+    }
+    pub const fn max_cache_control_bytes(self) -> usize {
+        self.max_cache_control_bytes
+    }
+    pub const fn max_body_bytes(self) -> usize {
+        self.max_body_bytes
+    }
+    pub const fn max_members(self) -> usize {
+        self.max_members
+    }
+    pub const fn max_member_name_bytes(self) -> usize {
+        self.max_member_name_bytes
+    }
+    pub const fn max_redirect_uri_bytes(self) -> usize {
+        self.max_redirect_uri_bytes
+    }
+    pub const fn max_response_code_bytes(self) -> usize {
+        self.max_response_code_bytes
+    }
+}
+
+impl Default for DirectPostAcknowledgementLimits {
+    fn default() -> Self {
+        Self {
+            max_content_type_bytes: 256,
+            max_cache_control_bytes: 512,
+            max_body_bytes: 16_384,
+            max_members: 32,
+            max_member_name_bytes: 128,
+            max_redirect_uri_bytes: 4_096,
+            max_response_code_bytes: 1_024,
+        }
+    }
+}
+
 /// Resource and work limits for one DCQL query evaluation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DcqlLimits {

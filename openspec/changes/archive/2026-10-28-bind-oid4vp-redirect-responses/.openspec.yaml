@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-28
+goal: Add bounded OpenID4VP redirect response material and bind the direct-post acknowledgement redirect without performing browser or network effects.

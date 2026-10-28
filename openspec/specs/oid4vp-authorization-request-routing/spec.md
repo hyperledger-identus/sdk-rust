@@ -23,21 +23,30 @@ evidence and owns one valid DCQL query.
 
 ### Requirement: The first profile supports only VP token direct post
 
-The SDK SHALL require exact `response_type=vp_token`, exact
-`response_mode=direct_post`, one bounded valid nonce, one bounded absolute
-HTTPS `response_uri`, no `redirect_uri`, and one object-valued DCQL query with
-no scope-based selection.
+The SDK SHALL require exact `response_type=vp_token`, one supported exact
+response mode, one bounded valid nonce, one mode-matching bounded destination,
+and one object-valued DCQL query with no scope-based selection.
 
-It SHALL additionally accept exact `response_mode=direct_post.jwt` only with
-bounded verifier metadata that selects exactly one supported public recipient
-and content-encryption profile.
+For `direct_post` and `direct_post.jwt`, it SHALL require one absolute HTTPS
+`response_uri` and no `redirect_uri`. For `fragment`, `query`, and `form_post`,
+it SHALL require one absolute `redirect_uri` authorized by the exact verifier
+trust decision and no `response_uri`.
+
+It SHALL accept `direct_post.jwt` only with bounded verifier metadata that
+selects exactly one supported public recipient and content-encryption profile.
 
 #### Scenario: direct-post routing is coherent
 
 - **WHEN** every required value has the supported exact spelling and the
-  destination meets the HTTPS syntax policy
+  response destination meets the HTTPS syntax policy
 - **THEN** the result reports safe response enums and exposes retained strings
   only through explicitly sensitive accessors
+
+#### Scenario: redirect routing is coherent
+
+- **WHEN** `fragment`, `query`, or `form_post` carries one exact bounded
+  verifier-authorized redirect destination
+- **THEN** the result retains only that destination for the matching inert response constructor
 
 #### Scenario: protected direct-post metadata is coherent
 
@@ -47,8 +56,8 @@ and content-encryption profile.
 
 #### Scenario: routing is absent, conflicting, or unsupported
 
-- **WHEN** a required value is missing/malformed, an unsupported value is
-  supplied, or both response and redirect destinations are present
+- **WHEN** a required value is missing or malformed, an unsupported value is
+  supplied, the destination does not match the mode, or both destinations are present
 - **THEN** validation terminates with the corresponding static category
 
 #### Scenario: the nonce is invalid or outside policy
@@ -63,12 +72,17 @@ and content-encryption profile.
   contains user information or a fragment
 - **THEN** validation terminates without performing network work
 
+#### Scenario: the redirect URI is unsafe or outside policy
+
+- **WHEN** `redirect_uri` is oversized, not absolute, contains user information,
+  or violates mode-specific component/collision policy
+- **THEN** validation terminates without performing browser work
+
 #### Scenario: protected routing metadata is absent or ambiguous
 
 - **WHEN** `direct_post.jwt` metadata is absent, malformed, unsupported or
   selects zero or multiple recipients
-- **THEN** validation terminates with a static category before response
-  construction
+- **THEN** validation terminates with a static category before response construction
 
 ### Requirement: Validation order and diagnostics are deterministic and redacted
 

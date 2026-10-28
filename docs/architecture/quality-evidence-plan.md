@@ -5,7 +5,52 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-28`
-- Declaration count: `10`
+- Declaration count: `11`
+
+## `oid4vp.redirect-response.quality.v1`
+
+- Capability: `oid4vp.direct-post-response`
+- Slice: Bounded redirect response modes and direct-post acknowledgement
+- Owner: SDK-Rust OID4VP maintainers (issue #546)
+- Risk: Redirect encoding or acknowledgement parsing can lose request lineage, leak presentation data, create ambiguous destinations, or authorize effects.
+- Targets: `package:identus-oid4vp`, `host:rust`, `consumer:portable-sdk`
+- Vector IDs: `1` local catalog entries
+- Limitations: Inert protocol material only; no HTTP, browser navigation, HTML, leakage policy, response-code redemption, entropy proof, storage, publication, or certification claim.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #546 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #546 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #546 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #546 |
+
+### `property`
+
+- Command: `cargo test -p identus-oid4vp --test redirect_response property`
+- Budget: Sweep every supported mode, query/fragment output boundaries, form-post collision bounds, all reserved fields, and the exact acknowledgement body boundary.
+- Receipt: `source:crates/oid4vp/tests/redirect_response.rs`
+- Evidence revision: `30b90193044bdabdafb97a4f309c249e30f275cc`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response`
+- Budget: Run for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024.
+- Receipt: `source:fuzz/fuzz_targets/direct_post_response.rs`
+- Evidence revision: `30b90193044bdabdafb97a4f309c249e30f275cc`
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-oid4vp --bench direct_post_response`
+- Budget: Measure ordinary and near-limit redirect construction plus acknowledgement parsing.
+- Receipt: `source:crates/oid4vp/benches/direct_post_response.rs`
+- Evidence revision: `30b90193044bdabdafb97a4f309c249e30f275cc`
+
+### `differential`
+
+- Command: `cargo test -p identus-oid4vp --test redirect_response`
+- Budget: Compare clean-room fragment, query, form_post, and acknowledgement cases to pinned rules.
+- Receipt: `source:docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json`
+- Evidence revision: `30b90193044bdabdafb97a4f309c249e30f275cc`
 
 ## `oid4vp.direct-post-response.request-object-security.quality.v1`
 

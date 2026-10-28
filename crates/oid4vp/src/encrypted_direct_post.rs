@@ -8,6 +8,7 @@ use zeroize::Zeroizing;
 use crate::{
     AuthorizationResponseMode, DirectPostQueryResult, DirectPostResponseLimits, Oid4vpError,
     ValidatedAuthorizationRequest,
+    authorization_request::AuthorizationResponseDestination,
     direct_post::{
         DIRECT_POST_HTTP_METHOD, DIRECT_POST_MEDIA_TYPE, append_pair, pair_len, serialize_vp_token,
         validate_result_limits, validate_results,
@@ -42,7 +43,10 @@ impl ValidatedAuthorizationRequest {
             return Err(Oid4vpError::TooManyQueryResults);
         }
         validate_result_limits(&results, response_limits)?;
-        let (target, state, query, _mode, encryption_plan) = self.into_direct_post_parts();
+        let (destination, state, query, _mode, encryption_plan) = self.into_response_parts();
+        let AuthorizationResponseDestination::ResponseUri(target) = destination else {
+            return Err(Oid4vpError::ResponseModeMismatch);
+        };
         let encryption_plan = encryption_plan.ok_or(Oid4vpError::ResponseModeMismatch)?;
         let ordered = validate_results(query.response_rules(), &results)?;
         let vp_token = serialize_vp_token(query.response_rules(), &ordered, response_limits)?;

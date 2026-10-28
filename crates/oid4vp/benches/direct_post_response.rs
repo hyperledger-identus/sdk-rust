@@ -7,9 +7,10 @@ use identus_jose::{
 };
 use identus_oid4vp::{
     AuthorizationRequestInvocation, AuthorizationRequestInvocationLimits,
-    AuthorizationRequestValidationLimits, DcqlLimits, DirectPostErrorCode, DirectPostErrorDetails,
-    DirectPostErrorResponseLimits, DirectPostPresentation, DirectPostQueryResult,
-    DirectPostResponseLimits, REQUEST_OBJECT_JWT_TYPE, REQUEST_OBJECT_MEDIA_TYPE,
+    AuthorizationRequestValidationLimits, DcqlLimits, DirectPostAcknowledgementLimits,
+    DirectPostErrorCode, DirectPostErrorDetails, DirectPostErrorResponseLimits,
+    DirectPostPresentation, DirectPostQueryResult, DirectPostResponseLimits,
+    REQUEST_OBJECT_JWT_TYPE, REQUEST_OBJECT_MEDIA_TYPE, RedirectResponseLimits,
     RequestObjectValidationLimits, RequestUriRetrievalInput, RequestUriRetrievalLimits,
     ValidatedAuthorizationRequest,
 };
@@ -18,7 +19,7 @@ use serde_json::json;
 mod support;
 
 const SAMPLES: usize = 21;
-const ITERATIONS: usize = 10;
+const ITERATIONS: usize = 20;
 const PRIVATE_BYTES: [u8; 32] = [0x71; 32];
 const REFERENCE: &str = "openid4vp:?client_id=decentralized_identifier%3Adid%3Aexample%3Averifier&request_uri=https%3A%2F%2Fverifier.example%2Frequest";
 
@@ -33,6 +34,16 @@ fn main() {
     measure("error.boundary.end-to-end", || {
         construct_error(black_box(&error_boundary))
     });
+    measure("fragment.ordinary.end-to-end", || {
+        construct_redirect("fragment", "compact")
+    });
+    measure("fragment.boundary.end-to-end", || {
+        construct_redirect("fragment", black_box(&boundary))
+    });
+    measure(
+        "acknowledgement.ordinary.end-to-end",
+        construct_acknowledgement,
+    );
     println!("oid4vp-direct-post-benchmark allocation_observation=not_available");
 }
 
@@ -63,20 +74,77 @@ fn construct_error(description: &str) {
     );
 }
 
+fn construct_redirect(mode: &str, presentation: &str) {
+    let request =
+        validated_request_for(mode, "redirect_uri", "openid://wallet/callback#screen=done");
+    let limits = DirectPostResponseLimits::default();
+    let result = DirectPostQueryResult::new(
+        "degree",
+        vec![DirectPostPresentation::string(presentation, limits).unwrap()],
+        limits,
+    )
+    .unwrap();
+    black_box(
+        request
+            .into_redirect_response(vec![result], limits, RedirectResponseLimits::default())
+            .unwrap(),
+    );
+}
+
+fn construct_acknowledgement() {
+    let request = validated_request();
+    let limits = DirectPostResponseLimits::default();
+    let result = DirectPostQueryResult::new(
+        "degree",
+        vec![DirectPostPresentation::string("compact", limits).unwrap()],
+        limits,
+    )
+    .unwrap();
+    let response = request
+        .into_direct_post_response(vec![result], limits)
+        .unwrap();
+    black_box(
+        response
+            .bind_endpoint_acknowledgement(
+                200,
+                Some("application/json"),
+                Some("no-store"),
+                br#"{"redirect_uri":"openid://wallet/done?response_code=opaque"}"#,
+                DirectPostAcknowledgementLimits::default(),
+            )
+            .unwrap(),
+    );
+}
+
 fn validated_request() -> ValidatedAuthorizationRequest {
+    validated_request_for(
+        "direct_post",
+        "response_uri",
+        "https://verifier.example/response",
+    )
+}
+
+fn validated_request_for(
+    mode: &str,
+    destination_name: &str,
+    destination: &str,
+) -> ValidatedAuthorizationRequest {
     let private = Ed25519PrivateKey::from_slice(&PRIVATE_BYTES).unwrap();
-    let payload = serde_json::to_vec(&json!({
+    let mut request = json!({
         "client_id": "decentralized_identifier:did:example:verifier",
         "aud": identus_oid4vp::STATIC_DISCOVERY_AUDIENCE,
         "iat": support::NOW_SECONDS - 120,
         "response_type": "vp_token",
-        "response_mode": "direct_post",
+        "response_mode": mode,
         "nonce": "fresh-nonce_1",
-        "response_uri": "https://verifier.example/response",
         "state": "state-123",
         "dcql_query": {"credentials": [{"id": "degree", "format": "dc+sd-jwt", "meta": {}}]}
-    }))
-    .unwrap();
+    });
+    request
+        .as_object_mut()
+        .unwrap()
+        .insert(destination_name.to_owned(), json!(destination));
+    let payload = serde_json::to_vec(&request).unwrap();
     let header = ProtectedHeader::new(
         "Ed25519",
         Some(REQUEST_OBJECT_JWT_TYPE),

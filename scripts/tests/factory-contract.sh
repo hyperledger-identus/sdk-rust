@@ -94,6 +94,7 @@ required_files=(
   docs/conformance/fixtures/did-prism/v1/vectors.json
   docs/conformance/fixtures/crypto/v1/vectors.json
   docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json
+  docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json
   docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json
   docs/conformance/fixtures/siopv2/v1/vectors.json
   crates/crypto/examples/crypto_baseline.rs

@@ -208,7 +208,7 @@ crates.
              │             │             │
              └───────┬─────┴──────┬──────┘
                      ▼            ▼
-                identus-jose  identus-vc-core   identus-prism-did
+             identus-openid4vc  identus-jose  identus-vc-core   identus-prism-did
                      │            │                │       │
                      └────────────┼────────────────┘       │
                                   ▼                        ▼
@@ -218,6 +218,7 @@ crates.
                                                      identus-ports
 
 identus-oid4vci -> identus-did for protocol-owned DID proof resolution
+identus-oid4vci -> identus-openid4vc for narrow shared HTTP field validation
 
 identus-did-resolver-http -> identus-did + optional HTTP framework
 identus-conformance       -> dev/test edges only

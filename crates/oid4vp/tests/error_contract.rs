@@ -226,6 +226,8 @@ fn compile_inventory_extends_the_ordered_fixture() {
             "VerifierMetadataTooLarge",
             "VerifierTrustRejected",
             "VerifierTrustUnavailable",
+            "InvalidDirectPostAcknowledgement",
+            "AmbiguousResponseCode",
         ]
     );
 }

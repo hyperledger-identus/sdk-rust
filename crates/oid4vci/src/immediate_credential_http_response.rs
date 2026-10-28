@@ -1,8 +1,10 @@
 use std::fmt;
 
+use identus_openid4vc::http_field::is_application_json;
+
 use crate::{
     CredentialOfferError, ImmediateCredentialHttpResponseLimits, ImmediateCredentialResponseCore,
-    JwtCredentialRequest, http_field::is_application_json,
+    JwtCredentialRequest,
 };
 
 /// An immediate Credential Response with its necessary request-count bound.

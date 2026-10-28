@@ -130,7 +130,7 @@ fn valid_direct_post_request_preserves_composed_evidence() {
     assert_eq!(request.expose_sensitive_state(), None);
     assert_eq!(
         request.expose_sensitive_response_uri(),
-        "https://verifier.example/response"
+        Some("https://verifier.example/response")
     );
     assert_eq!(request.dcql_query().credential_query_count(), 1);
 }
@@ -278,7 +278,7 @@ fn validation_order_precedes_dcql_and_is_map_order_independent() {
         "response_uri": "http://unsafe.example",
         "redirect_uri": "https://verifier.example/callback",
         "nonce": "contains space",
-        "response_mode": "query",
+        "response_mode": "jwt",
         "response_type": "code",
         "client_id": CLIENT_ID
     });

@@ -446,10 +446,10 @@ review_triggers  = [ "format metadata policy", "trusted-authority policy", "scop
 [[boundaries]]
 id               = "oid4vp-authorization-request-routing"
 package          = "identus-oid4vp"
-surface          = "signature-proven and DCQL-valid OpenID4VP Final vp_token/direct_post request semantics with bounded nonce and HTTPS response URI"
+surface          = "signature-proven and DCQL-valid OpenID4VP Final vp_token request semantics with bounded nonce and one mode-specific response or redirect destination"
 disposition      = "sdk-enforced"
 limits           = [ "AuthorizationRequestValidationLimits=explicit", "DcqlLimits=explicit" ]
-evidence         = [ "crates/oid4vp/src/authorization_request.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/authorization_request.rs", "crates/oid4vp/tests/error_contract.rs", "docs/adr/0168-compose-oid4vp-final-direct-post-routing.md" ]
+evidence         = [ "crates/oid4vp/src/authorization_request.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/authorization_request.rs", "crates/oid4vp/tests/redirect_response.rs", "crates/oid4vp/tests/error_contract.rs", "docs/adr/0168-compose-oid4vp-final-direct-post-routing.md", "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md" ]
 outer_obligation = "Transport adapters own DNS, private-address policy, TLS, redirects, decompression, timeout, execution and SSRF defense; consumers own verifier-key authorization, trust, consent, credential verification and response construction."
 consumer_impact  = "The composed state proves narrow request and routing syntax plus JAR/DCQL evidence only; it confers no network authority, verifier trust, credential authenticity, consent or response safety."
 review_triggers  = [ "new response type or mode", "redirect support", "encrypted response", "HTTP adapter", "nonce or URI limit change", "response construction" ]
@@ -457,12 +457,12 @@ review_triggers  = [ "new response type or mode", "redirect support", "encrypted
 [[boundaries]]
 id               = "oid4vp-direct-post-response"
 package          = "identus-oid4vp"
-surface          = "caller-selected Final presentation strings or JSON objects bound to a validated DCQL request and serialized into an inert plain direct-post success envelope"
+surface          = "caller-selected Final presentations bound to validated DCQL and serialized into bounded inert redirect or direct-post material plus consuming direct-post acknowledgement parsing"
 disposition      = "sdk-enforced"
-limits           = [ "DirectPostResponseLimits=explicit", "AuthorizationStateBytes=explicit" ]
-evidence         = [ "crates/oid4vp/src/direct_post.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/direct_post_response.rs", "fuzz/fuzz_targets/direct_post_response.rs", "docs/adr/0179-construct-bounded-oid4vp-direct-post-responses.md" ]
+limits           = [ "DirectPostResponseLimits=explicit", "RedirectResponseLimits=explicit", "DirectPostAcknowledgementLimits=explicit", "AuthorizationStateBytes=explicit" ]
+evidence         = [ "crates/oid4vp/src/direct_post.rs", "crates/oid4vp/src/redirect_response.rs", "crates/oid4vp/src/direct_post_acknowledgement.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/direct_post_response.rs", "crates/oid4vp/tests/redirect_response.rs", "fuzz/fuzz_targets/direct_post_response.rs", "docs/adr/0179-construct-bounded-oid4vp-direct-post-responses.md", "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md" ]
 outer_obligation = "Callers bound presentation production before construction and transport adapters own DNS, address policy, TLS, redirects, timeouts, retries, SSRF defense and HTTP outcome handling."
-consumer_impact  = "The SDK validates query identity, required DCQL alternatives, cardinality, JSON work, output size and deterministic form encoding; it does not prove credential authenticity, consent, verifier trust, replay safety or delivery."
+consumer_impact  = "The SDK validates query identity, cardinality, encoding, destination collisions, output bounds and acknowledgement shape; it does not authorize HTTP, browser navigation, code redemption, disclosure, consent or verifier success."
 review_triggers  = [ "new presentation JSON type", "direct_post.jwt", "encryption", "HTTP adapter", "state grammar", "response limit change" ]
 
 [[boundaries]]

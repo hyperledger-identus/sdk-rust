@@ -1,7 +1,6 @@
-use crate::{
-    CredentialErrorHttpResponseLimits, CredentialErrorResponseCore, CredentialOfferError,
-    http_field::is_application_json,
-};
+use identus_openid4vc::http_field::is_application_json;
+
+use crate::{CredentialErrorHttpResponseLimits, CredentialErrorResponseCore, CredentialOfferError};
 
 impl CredentialErrorResponseCore {
     /// Validate a caller-supplied Final Credential payload-error HTTP response.

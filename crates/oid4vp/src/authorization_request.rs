@@ -27,10 +27,29 @@ pub enum AuthorizationResponseType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum AuthorizationResponseMode {
+    /// Parameters encoded into the redirect URI fragment.
+    Fragment,
+    /// Parameters encoded into the redirect URI query.
+    Query,
+    /// Form-encoded response material targeting the redirect URI.
+    FormPost,
     /// Form-encoded response sent to the request's response URI.
     DirectPost,
     /// Form-encoded response carrying one unsigned encrypted JWT.
     DirectPostJwt,
+}
+
+pub(crate) enum AuthorizationResponseDestination {
+    RedirectUri(Zeroizing<String>),
+    ResponseUri(Zeroizing<String>),
+}
+
+impl AuthorizationResponseDestination {
+    pub(crate) fn expose_sensitive(&self) -> &str {
+        match self {
+            Self::RedirectUri(value) | Self::ResponseUri(value) => value,
+        }
+    }
 }
 
 pub(crate) struct DirectPostEncryptionPlan {
@@ -55,7 +74,7 @@ pub struct ValidatedAuthorizationRequest {
     wallet_nonce: Option<Zeroizing<String>>,
     nonce: Zeroizing<String>,
     state: Option<Zeroizing<String>>,
-    response_uri: Zeroizing<String>,
+    destination: AuthorizationResponseDestination,
     dcql_query: ValidatedDcqlQuery,
     encryption_plan: Option<DirectPostEncryptionPlan>,
 }
@@ -118,7 +137,7 @@ impl ValidatedAuthorizationRequest {
         let response_mode = validate_response_mode(&request)?;
         let nonce = validate_nonce(&request, routing_limits)?;
         let state = validate_state(&request, routing_limits)?;
-        let response_uri = validate_response_destination(&request, routing_limits)?;
+        let destination = validate_response_destination(&request, response_mode, routing_limits)?;
         let encryption_plan =
             validate_encryption_plan(&request, response_mode, jwe_limits, scheme)?;
         let dcql_query = ValidatedDcqlQuery::from_request_map(request, dcql_limits)?;
@@ -132,7 +151,7 @@ impl ValidatedAuthorizationRequest {
             wallet_nonce: parts.wallet_nonce,
             nonce,
             state,
-            response_uri,
+            destination,
             dcql_query,
             encryption_plan,
         })
@@ -182,8 +201,30 @@ impl ValidatedAuthorizationRequest {
     ///
     /// This accessor confers no authority to perform network I/O. Callers own
     /// DNS, address policy, TLS, redirects, timeouts, and SSRF defenses.
-    pub fn expose_sensitive_response_uri(&self) -> &str {
-        &self.response_uri
+    pub fn expose_sensitive_response_uri(&self) -> Option<&str> {
+        match &self.destination {
+            AuthorizationResponseDestination::ResponseUri(value) => Some(value),
+            AuthorizationResponseDestination::RedirectUri(_) => None,
+        }
+    }
+
+    /// Explicitly reveal the syntactically validated redirect URI, when selected.
+    ///
+    /// This accessor confers no authority to navigate, render, or submit data.
+    pub fn expose_sensitive_redirect_uri(&self) -> Option<&str> {
+        match &self.destination {
+            AuthorizationResponseDestination::RedirectUri(value) => Some(value),
+            AuthorizationResponseDestination::ResponseUri(_) => None,
+        }
+    }
+
+    /// Explicitly reveal the exact signed response destination.
+    ///
+    /// This accessor confers no authority to perform transport, navigation, or
+    /// rendering. The selected response mode determines whether the value came
+    /// from `response_uri` or `redirect_uri`.
+    pub fn expose_sensitive_response_destination(&self) -> &str {
+        self.destination.expose_sensitive()
     }
 
     /// Borrow the bounded structurally validated DCQL query.
@@ -191,17 +232,17 @@ impl ValidatedAuthorizationRequest {
         &self.dcql_query
     }
 
-    pub(crate) fn into_direct_post_parts(
+    pub(crate) fn into_response_parts(
         self,
     ) -> (
-        Zeroizing<String>,
+        AuthorizationResponseDestination,
         Option<Zeroizing<String>>,
         ValidatedDcqlQuery,
         AuthorizationResponseMode,
         Option<DirectPostEncryptionPlan>,
     ) {
         (
-            self.response_uri,
+            self.destination,
             self.state,
             self.dcql_query,
             self.response_mode,
@@ -225,7 +266,10 @@ impl fmt::Debug for ValidatedAuthorizationRequest {
             .field("has_wallet_nonce", &self.wallet_nonce.is_some())
             .field("nonce_len", &self.nonce.len())
             .field("has_state", &self.state.is_some())
-            .field("response_uri_len", &self.response_uri.len())
+            .field(
+                "response_destination_len",
+                &self.destination.expose_sensitive().len(),
+            )
             .field(
                 "credential_query_count",
                 &self.dcql_query.credential_query_count(),
@@ -271,6 +315,9 @@ fn validate_response_mode(
         .get("response_mode")
         .ok_or(Oid4vpError::MissingResponseMode)?;
     match value.as_str() {
+        Some("fragment") => Ok(AuthorizationResponseMode::Fragment),
+        Some("query") => Ok(AuthorizationResponseMode::Query),
+        Some("form_post") => Ok(AuthorizationResponseMode::FormPost),
         Some("direct_post") => Ok(AuthorizationResponseMode::DirectPost),
         Some("direct_post.jwt") => Ok(AuthorizationResponseMode::DirectPostJwt),
         _ => Err(Oid4vpError::UnsupportedResponseMode),
@@ -283,7 +330,7 @@ fn validate_encryption_plan(
     limits: JweLimits,
     scheme: ClientIdentifierScheme,
 ) -> Result<Option<DirectPostEncryptionPlan>, Oid4vpError> {
-    if mode == AuthorizationResponseMode::DirectPost {
+    if mode != AuthorizationResponseMode::DirectPostJwt {
         return Ok(None);
     }
     if matches!(
@@ -440,21 +487,51 @@ const fn is_unreserved_ascii(byte: u8) -> bool {
 
 fn validate_response_destination(
     request: &Map<String, Value>,
+    mode: AuthorizationResponseMode,
     limits: AuthorizationRequestValidationLimits,
-) -> Result<Zeroizing<String>, Oid4vpError> {
-    if request.contains_key("redirect_uri") {
+) -> Result<AuthorizationResponseDestination, Oid4vpError> {
+    let response_uri = request.get("response_uri");
+    let redirect_uri = request.get("redirect_uri");
+    if response_uri.is_some() && redirect_uri.is_some() {
         return Err(Oid4vpError::ConflictingResponseDestination);
     }
-    let response_uri = request
-        .get("response_uri")
-        .ok_or(Oid4vpError::MissingResponseUri)?
-        .as_str()
-        .ok_or(Oid4vpError::UnsafeResponseUri)?;
-    if response_uri.len() > limits.max_response_uri_bytes() {
+    let (value, is_redirect) = match mode {
+        AuthorizationResponseMode::DirectPost | AuthorizationResponseMode::DirectPostJwt => {
+            (response_uri.ok_or(Oid4vpError::MissingResponseUri)?, false)
+        }
+        AuthorizationResponseMode::Fragment
+        | AuthorizationResponseMode::Query
+        | AuthorizationResponseMode::FormPost => {
+            (redirect_uri.ok_or(Oid4vpError::MissingResponseUri)?, true)
+        }
+    };
+    let value = value.as_str().ok_or(Oid4vpError::UnsafeResponseUri)?;
+    if value.len() > limits.max_response_uri_bytes() {
         return Err(Oid4vpError::ResponseUriTooLarge);
     }
-    validate_https_response_uri(response_uri)?;
-    Ok(Zeroizing::new(response_uri.to_owned()))
+    if is_redirect {
+        validate_absolute_redirect_uri(value)?;
+        Ok(AuthorizationResponseDestination::RedirectUri(
+            Zeroizing::new(value.to_owned()),
+        ))
+    } else {
+        validate_https_response_uri(value)?;
+        Ok(AuthorizationResponseDestination::ResponseUri(
+            Zeroizing::new(value.to_owned()),
+        ))
+    }
+}
+
+fn validate_absolute_redirect_uri(value: &str) -> Result<(), Oid4vpError> {
+    let parsed = ParsedUri::parse(value).map_err(|_| Oid4vpError::UnsafeResponseUri)?;
+    if parsed.scheme().as_str().is_empty()
+        || parsed
+            .authority()
+            .is_some_and(|authority| authority.userinfo().is_some())
+    {
+        return Err(Oid4vpError::UnsafeResponseUri);
+    }
+    Ok(())
 }
 
 fn validate_https_response_uri(value: &str) -> Result<(), Oid4vpError> {

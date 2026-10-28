@@ -139,6 +139,9 @@ pub mod error_code {
     pub const RESPONSE_MODE_MISMATCH: ErrorCode = ErrorCode::new("oid4vp.response_mode_mismatch");
     pub const RESPONSE_ENCRYPTION_FAILED: ErrorCode =
         ErrorCode::new("oid4vp.response_encryption_failed");
+    pub const INVALID_DIRECT_POST_ACKNOWLEDGEMENT: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_direct_post_acknowledgement");
+    pub const AMBIGUOUS_RESPONSE_CODE: ErrorCode = ErrorCode::new("oid4vp.ambiguous_response_code");
 }
 
 /// Public error categories for OID4VP invocation parsing.
@@ -231,11 +234,13 @@ pub enum Oid4vpError {
     VerifierMetadataTooLarge,
     VerifierTrustRejected,
     VerifierTrustUnavailable,
+    InvalidDirectPostAcknowledgement,
+    AmbiguousResponseCode,
 }
 
 impl Oid4vpError {
     /// Ordered error inventory with the frozen v1 fixture as its append-only prefix.
-    pub const CONTRACT_VARIANTS: [Self; 86] = [
+    pub const CONTRACT_VARIANTS: [Self; 88] = [
         Self::InvalidLimits,
         Self::InvocationTooLarge,
         Self::InvalidInvocation,
@@ -322,9 +327,11 @@ impl Oid4vpError {
         Self::VerifierMetadataTooLarge,
         Self::VerifierTrustRejected,
         Self::VerifierTrustUnavailable,
+        Self::InvalidDirectPostAcknowledgement,
+        Self::AmbiguousResponseCode,
     ];
 
-    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 86] = {
+    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 88] = {
         use error_code as code;
         [
             (
@@ -756,6 +763,16 @@ impl Oid4vpError {
                 code::VERIFIER_TRUST_UNAVAILABLE,
                 ErrorKind::Internal,
                 "OID4VP verifier trust policy is unavailable",
+            ),
+            (
+                code::INVALID_DIRECT_POST_ACKNOWLEDGEMENT,
+                ErrorKind::InvalidInput,
+                "OID4VP direct-post acknowledgement is invalid",
+            ),
+            (
+                code::AMBIGUOUS_RESPONSE_CODE,
+                ErrorKind::InvalidInput,
+                "OID4VP direct-post acknowledgement response code is ambiguous",
             ),
         ]
     };

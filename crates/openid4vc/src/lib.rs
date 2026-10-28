@@ -6,6 +6,8 @@
 
 #![forbid(unsafe_code)]
 
+pub mod http_field;
+
 use std::{error::Error, fmt};
 
 use fluent_uri::Uri as ParsedUri;

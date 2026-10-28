@@ -29,9 +29,10 @@ Evidence source head: `02584a585d204d4f8b5be256802b35c5f4bb0fb8`
   no crash or timeout.
 - After final corpus and security corrections, a 4,096-run smoke passed with
   47 MiB peak RSS and no crash or timeout.
-- `cargo bench -p identus-did-key --bench directional` measured directional
-  medians of 1,946 ns for creation, 5,348 ns for parsing, 5,142 ns for local
-  resolution and 95 ns for early oversized rejection.
+- After moving fixture construction outside the timed closure,
+  `cargo bench -p identus-did-key --bench directional` measured directional
+  medians of 2,376 ns for creation, 5,571 ns for parsing, 5,041 ns for local
+  resolution and 1 ns for early oversized rejection.
 - The versioned vector packet and quality registry bind differential,
   property, fuzz and benchmark obligations to durable source paths.
 

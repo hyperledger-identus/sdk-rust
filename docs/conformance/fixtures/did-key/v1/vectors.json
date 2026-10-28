@@ -45,6 +45,39 @@
         "redacted": true,
         "fields": {}
       }
+    },
+    {
+      "id": "did.key.unsupported-codec.rejected",
+      "operation": "did-key.parse",
+      "input": { "literal": "did:key:z5R" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did-key.unsupported_codec",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.key.low-order-x25519.rejected",
+      "operation": "did-key.parse",
+      "input": { "literal": "did:key:z6LSbgBAXJos6Tik6PNmXeWxKbDUr9Y7hcB9syigVTeXiNmm" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did-key.invalid_public_key",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.key.oversized-identifier.rejected",
+      "operation": "did-key.parse",
+      "input": { "literal": "did:key:z11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did-key.resource_limit",
+        "redacted": true,
+        "fields": {}
+      }
     }
   ]
 }

@@ -81,4 +81,3 @@ unreleased capability becomes active.
 
 - **WHEN** any required evidence family or provenance record is absent
 - **THEN** the change remains incomplete and cannot claim delivered support
-

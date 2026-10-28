@@ -19,10 +19,10 @@ sample contains 500 iterations.
 
 | Operation | Median ns/iteration |
 | --- | ---: |
-| create Ed25519 DID | 1,946 |
-| parse Ed25519 DID | 5,348 |
-| resolve local document | 5,142 |
-| reject oversized identifier | 95 |
+| create Ed25519 DID | 2,376 |
+| parse Ed25519 DID | 5,571 |
+| resolve local document | 5,041 |
+| reject oversized identifier | 1 |
 
 The oversized path stays ahead of generic DID allocation and base58 decoding.
 Future measurements should compare order of magnitude and allocation/boundary
@@ -35,9 +35,9 @@ behavior on the same host, not treat these nanosecond values as portable SLAs.
 - Security boundary: non-canonical or weak Ed25519 material and non-canonical
   or non-contributory X25519 material are rejected by creation and parsing.
 - Differential: the attributed packet covers normative Ed25519, independent
-  direct-X25519 oracle behavior, and strict base64url rejection. The oracle's
-  RFC 7748 ignored high bit is cleared so the fixture cannot encode an identity
-  alias.
+  direct-X25519 oracle behavior, stable encoding/key/resource rejection
+  categories, and the public identifier ceiling. The oracle's RFC 7748 ignored
+  high bit is cleared so the fixture cannot encode an identity alias.
 - E2E: an opt-in generic registry creates, resolves, serializes, reparses, and
   checks relationships without I/O or global registration.
 - Fuzz: the bounded parser/creator/resolver harness replays checked-in corpus,

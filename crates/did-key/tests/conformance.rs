@@ -11,6 +11,7 @@ fn attributed_vector_packet_matches_selected_profile() {
     .unwrap();
     let cases = packet["cases"].as_array().unwrap();
     for case in cases {
+        let operation = case["operation"].as_str().unwrap();
         let input = case["input"]["literal"].as_str().unwrap();
         let expected = case["expected"]["kind"].as_str().unwrap();
         match (DidKey::parse(input), expected) {
@@ -23,22 +24,37 @@ fn attributed_vector_packet_matches_selected_profile() {
                     _ => panic!("fixture reached an unsupported future key profile"),
                 };
                 assert_eq!(curve, case["expected"]["fields"]["curve"]);
-                let expected_count = case["expected"]["fields"]["relationshipCount"]
-                    .as_u64()
-                    .unwrap();
-                let document = parsed.resolve().unwrap();
-                let relationship_count = document.authentication().map_or(0, <[_]>::len)
-                    + document.assertion_method().map_or(0, <[_]>::len)
-                    + document.key_agreement().map_or(0, <[_]>::len)
-                    + document.capability_invocation().map_or(0, <[_]>::len)
-                    + document.capability_delegation().map_or(0, <[_]>::len);
-                assert_eq!(u64::try_from(relationship_count).unwrap(), expected_count);
+                if operation == "did-key.parse-resolve" {
+                    let expected_count = case["expected"]["fields"]["relationshipCount"]
+                        .as_u64()
+                        .unwrap();
+                    let document = parsed.resolve().unwrap();
+                    let relationship_count = document.authentication().map_or(0, <[_]>::len)
+                        + document.assertion_method().map_or(0, <[_]>::len)
+                        + document.key_agreement().map_or(0, <[_]>::len)
+                        + document.capability_invocation().map_or(0, <[_]>::len)
+                        + document.capability_delegation().map_or(0, <[_]>::len);
+                    assert_eq!(u64::try_from(relationship_count).unwrap(), expected_count);
+                }
             }
-            (Err(Error::MalformedEncoding), "error") => {
+            (Err(error), "error") => {
                 assert_eq!(case["expected"]["redacted"], true);
+                assert_eq!(error_code(error), case["expected"]["errorCode"]);
             }
             (actual, _) => panic!("unexpected vector outcome: {actual:?}"),
         }
+    }
+}
+
+fn error_code(error: Error) -> &'static str {
+    match error {
+        Error::WrongMethod => "did-key.wrong_method",
+        Error::MalformedEncoding => "did-key.malformed_encoding",
+        Error::UnsupportedCodec => "did-key.unsupported_codec",
+        Error::InvalidPublicKey => "did-key.invalid_public_key",
+        Error::ResourceLimit => "did-key.resource_limit",
+        Error::Projection => "did-key.projection",
+        _ => "did-key.unknown",
     }
 }
 

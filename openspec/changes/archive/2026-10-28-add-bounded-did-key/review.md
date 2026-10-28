@@ -117,3 +117,24 @@ implementation head `02584a585d204d4f8b5be256802b35c5f4bb0fb8`
 reported no actionable defects. The review sandbox could not acquire Cargo's
 build lock, so independently run focused, workspace, fuzz, benchmark,
 portability and Nix evidence remains the executable verification authority.
+
+## Hosted discovery review
+
+After exact-head protected CI passed, the bounded Claude CLI discovery review
+of PR #561 identified four actionable evidence-harness defects. The
+fixture-driven Rust test assumed every successful operation was parse-resolve
+and compared only one error variant; the catalog schema could not express the
+other stable did:key rejections; the synthetic factory fixture silently
+filtered missing declared evidence behind process substitution; and the
+oversized benchmark constructed its input inside the timed closure.
+
+The one permitted remediation round makes operation-specific success fields
+explicit, compares every declared stable error category, adds attributed
+unsupported-codec, unusable-X25519 and resource-ceiling vectors, makes missing
+evidence fail before fixture copying, and moves benchmark setup outside the
+measurement. Focused conformance, checker mutation, factory, benchmark and
+exact-head CI evidence are rerun on the remediation head. Resolver error
+coarsening remains the W3C DID Resolution boundary rather than the crate parser
+error contract; duplicate bound checks are intentional pre-allocation defense;
+and the remaining allocation, scalar-multiplication and constant-sharing items
+are non-blocking optimization suggestions outside this slice.

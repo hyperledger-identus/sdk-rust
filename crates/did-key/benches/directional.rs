@@ -11,6 +11,7 @@ fn main() {
         .unwrap()
         .to_public_key();
     let created = DidKey::create(key).unwrap();
+    let oversized = format!("did:key:z{}", "1".repeat(129));
     measure("create", || {
         let _ = black_box(DidKey::create(black_box(key)).unwrap());
     });
@@ -21,8 +22,7 @@ fn main() {
         let _ = black_box(created.resolve().unwrap());
     });
     measure("reject-oversize", || {
-        let input = format!("did:key:z{}", "1".repeat(129));
-        let _ = black_box(DidKey::parse(black_box(&input)).unwrap_err());
+        let _ = black_box(DidKey::parse(black_box(&oversized)).unwrap_err());
     });
 }
 

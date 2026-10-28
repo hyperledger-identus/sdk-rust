@@ -48,6 +48,16 @@ Planning issue #555 closes after this packet integrates. `IDR-040` points to
 #559. Only #559 can evaluate whether the row's remaining-method scope is
 delivered. This creates one active owner without duplicate umbrella issues.
 
+## Decomposition note
+
+The change touches thirteen files because the repository requires one complete
+OpenSpec packet, one accepted ADR, one navigable research report, one link from
+the prior DID-method report, one canonical backlog handoff, and the generated
+preflight receipt. These are one behavior-neutral planning decision and cannot
+be split without temporarily leaving the issue hierarchy, canonical owner, or
+normative contract inconsistent. Production implementation is already split
+into three independent child issues and does not enter this change.
+
 ## Stop boundary
 
 This change modifies governance, planning, and research only. It adds no Cargo

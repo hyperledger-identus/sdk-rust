@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 558,
+  "change": "add-bounded-did-jwk",
+  "branch": "codex/feat/issue-558",
+  "baseRef": "origin/develop",
+  "baseSha": "9e0530084f5a7a7e1cde954995af4fc10708dc4e",
+  "contractHeadSha": "3d81636a43fa8fc323d483e71f65cc2661b7f946",
+  "createdAt": "2026-10-28T11:58:20.019Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

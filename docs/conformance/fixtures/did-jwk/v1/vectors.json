@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "packetId": "did.jwk.profile.v1",
+  "capability": "did.jwk.profile",
+  "cases": [
+    {
+      "id": "did.jwk.p256.pinned-example",
+      "operation": "did-jwk.parse-resolve",
+      "input": {
+        "literal": "did:jwk:eyJjcnYiOiJQLTI1NiIsImt0eSI6IkVDIiwieCI6ImFjYklRaXVNczNpOF91c3pFakoydHBUdFJNNEVVM3l6OTFQSDZDZEgyVjAiLCJ5IjoiX0tjeUxqOXZXTXB0bm1LdG00NkdxRHo4d2Y3NEk1TEtncmwyR3pIM25TRSJ9"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": { "curve": "P-256", "relationshipCount": 5 }
+      }
+    },
+    {
+      "id": "did.jwk.x25519.pinned-example",
+      "operation": "did-jwk.parse-resolve",
+      "input": {
+        "literal": "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJYMjU1MTkiLCJ1c2UiOiJlbmMiLCJ4IjoiM3A3YmZYdDl3YlRUVzJIQzdPUTFOei1EUThoYmVHZE5yZngtRkctSUswOCJ9"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": { "curve": "X25519", "relationshipCount": 1 }
+      }
+    }
+  ]
+}

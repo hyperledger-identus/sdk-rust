@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-28`
-- Declaration count: `13`
+- Declaration count: `14`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -597,3 +597,48 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Compare exact Ed25519 and X25519 DIDs, semantic relationship counts, strict encoding/category rejection and the public identifier ceiling against the attributed packet.
 - Receipt: `source:docs/conformance/fixtures/did-key/v1/vectors.json`
 - Evidence revision: `9d032d8397e8afb1ed7133b95119ab522755e25f`
+
+## `did.jwk.profile.quality.v1`
+
+- Capability: `did.jwk.profile`
+- Slice: Bounded effect-free did:jwk creation, duplicate-safe parsing and local resolution
+- Owner: SDK-Rust DID maintainers (issue #558)
+- Risk: Ambiguous JSON, invalid public material, unbounded decode work or relationship drift can split portable identity state or expose content.
+- Targets: `package:identus-did-jwk`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`
+- Vector IDs: `2` local catalog entries
+- Limitations: Effect-free public-JWK creation, parsing and local resolution only; no private keys, key_ops policy, generation, signing, custody, network resolution, persistence, runtime, bindings, consumer migration or publication.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #558 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #558 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #558 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #558 |
+
+### `property`
+
+- Command: `cargo test -p identus-did-jwk --all-features`
+- Budget: Sweep 64 deterministic Ed25519 and X25519 seed classes, retain one alternate JSON identifier exactly, and complete one opt-in registry document round trip.
+- Receipt: `source:crates/did-jwk/tests/conformance.rs`
+- Evidence revision: `cca5a33cc861436ae6830dd3e42ba08d9424b074`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-did-jwk.sh soak`
+- Budget: Run bounded parse, exact retention and local resolution for 300 seconds with max_len=22000, timeout=5 and rss_limit_mb=1024.
+- Receipt: `source:fuzz/fuzz_targets/did_jwk.rs`
+- Evidence revision: `cca5a33cc861436ae6830dd3e42ba08d9424b074`
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-did-jwk --bench directional`
+- Budget: Measure create, parse, local resolve and early oversized rejection over 101 samples with 500 iterations per sample.
+- Receipt: `source:docs/architecture/did-jwk-quality-baseline.md`
+- Evidence revision: `cca5a33cc861436ae6830dd3e42ba08d9424b074`
+
+### `differential`
+
+- Command: `cargo test -p identus-did-jwk --test conformance pinned_normative_examples_match_the_selected_profile`
+- Budget: Compare exact pinned P-256 and X25519 DIDs, validated curves and semantic relationship counts against the attributed packet.
+- Receipt: `source:docs/conformance/fixtures/did-jwk/v1/vectors.json`
+- Evidence revision: `cca5a33cc861436ae6830dd3e42ba08d9424b074`

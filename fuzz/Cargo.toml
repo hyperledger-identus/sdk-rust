@@ -15,6 +15,7 @@ identus-crypto        = { path = "../crates/crypto", default-features = false, f
 identus-core          = { path = "../crates/core" }
 identus-did           = { path = "../crates/did" }
 identus-did-key       = { path = "../crates/did-key" }
+identus-did-jwk       = { path = "../crates/did-jwk" }
 identus-did-peer      = { path = "../crates/did-peer" }
 identus-prism-did     = { path = "../crates/prism-did" }
 identus-prism-indexer = { path = "../crates/prism-indexer" }
@@ -43,6 +44,13 @@ bench = false
 [[bin]]
 name  = "did_key"
 path  = "fuzz_targets/did_key.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "did_jwk"
+path  = "fuzz_targets/did_jwk.rs"
 test  = false
 doc   = false
 bench = false

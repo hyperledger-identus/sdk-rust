@@ -1753,3 +1753,113 @@ debt_status       = "none"
 debt_issue        = 0
 rationale         = ""
 details           = [ "oracle=Pinned did:key v0.9 specification plus DIF, Spruce and Impierce Rust implementations", "oracle-revision=2cc490c38c5aacf58497a87fc0cf8794668bf716;eb00da6074d8bc61e5d4c8129fbdd9dc05735cbf;886a6cf694dfdb6b019d5f69a04dd16f01cb58a4;183f3eb061938404060d75817de53dd99adb18b0", "normalization=Compare exact DID text and resolved semantic relationship counts rather than foreign DTO or error shapes; clear the RFC 7748 ignored high bit in the X25519 oracle value to obtain the one canonical SDK identifier", "deviations=Base58-btc only, canonical direct X25519 only, Multikey projection and no implicit Ed25519 conversion" ]
+
+[[declarations]]
+id          = "did.jwk.profile.quality.v1"
+capability  = "did.jwk.profile"
+slice       = "Bounded effect-free did:jwk creation, duplicate-safe parsing and local resolution"
+owner       = "SDK-Rust DID maintainers"
+owner_issue = 558
+risk        = "Ambiguous JSON, invalid public material, unbounded decode work or relationship drift can split portable identity state or expose content."
+targets     = [ "package:identus-did-jwk", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android" ]
+vector_ids  = [ "did.jwk.p256.pinned-example", "did.jwk.x25519.pinned-example" ]
+limitations = "Effect-free public-JWK creation, parsing and local resolution only; no private keys, key_ops policy, generation, signing, custody, network resolution, persistence, runtime, bindings, consumer migration or publication."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Supported public JWKs may fail deterministic creation, exact parse retention or registry projection invariants."
+selectors         = [ "crates/did-jwk/tests/conformance.rs#constructor_parser_property_covers_public_material", "crates/did-jwk/tests/conformance.rs#alternate_ordering_and_whitespace_preserve_the_exact_did", "crates/did-jwk/tests/registry_e2e.rs#opt_in_registry_round_trip_is_deterministic_and_effect_free" ]
+command           = "cargo test -p identus-did-jwk --all-features"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-did-jwk", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Sweep 64 deterministic Ed25519 and X25519 seed classes, retain one alternate JSON identifier exactly, and complete one opt-in registry document round trip."
+receipt_kind      = "source"
+receipt           = "source:crates/did-jwk/tests/conformance.rs"
+evidence_revision = "cca5a33cc861436ae6830dd3e42ba08d9424b074"
+recorded_at       = "2026-10-28"
+artifact          = "crates/did-jwk/tests/conformance.rs"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 558
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Every constructed key reparses identically, accepted alternate JSON preserves the exact DID, and opt-in registry projection retains the public JWK", "domain=Ed25519 and X25519 generated public material plus pinned P-256 and X25519 examples", "cases=64 deterministic seed classes, one alternate serialization and one complete effect-free E2E" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Hostile UTF-8, base64url, duplicate JSON or curve material can panic, amplify work, bypass bounds or leak content."
+selectors         = [ "fuzz/fuzz_targets/did_jwk.rs#fuzz_target!", "scripts/fuzz-did-jwk.sh#-max_total_time=300" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-did-jwk.sh soak"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did-jwk", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run bounded parse, exact retention and local resolution for 300 seconds with max_len=22000, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/did_jwk.rs"
+evidence_revision = "cca5a33cc861436ae6830dd3e42ba08d9424b074"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/did_jwk.rs"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 558
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded bytes route through the parser and accepted values through local resolution", "corpus=Pinned normative P-256 did:jwk value", "seed=libFuzzer-managed reproducible failures promoted to checked-in regressions", "bounds=max_len=22000;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Base64url, duplicate-safe JSON, curve validation or document projection can materially regress latency or move oversized rejection behind expensive work."
+selectors         = [ "crates/did-jwk/benches/directional.rs#did-jwk-benchmark", "docs/architecture/did-jwk-quality-baseline.md#Directional benchmark" ]
+command           = "cargo bench -p identus-did-jwk --bench directional"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did-jwk", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure create, parse, local resolve and early oversized rejection over 101 samples with 500 iterations per sample."
+receipt_kind      = "source"
+receipt           = "source:docs/architecture/did-jwk-quality-baseline.md"
+evidence_revision = "cca5a33cc861436ae6830dd3e42ba08d9424b074"
+recorded_at       = "2026-10-28"
+artifact          = "docs/architecture/did-jwk-quality-baseline.md"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 558
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Deterministic creation, exact parse, local resolution and early resource rejection", "fixture=Deterministic Ed25519 public JWK plus an oversized method carrier", "environment=Rust 1.98 etalon on Apple Silicon macOS", "statistic=Median wall time in nanoseconds per iteration", "samples=101 measured samples after 500 warm-up iterations", "threshold=Order-of-magnitude advisory baseline; functional resource limits remain blocking" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "SDK-Rust JWK decoding or relationship projection may drift from the pinned method while internal round trips remain green."
+selectors         = [ "crates/did-jwk/tests/conformance.rs#pinned_normative_examples_match_the_selected_profile", "docs/conformance/cross-language-vector-catalog.toml#did.jwk.p256.pinned-example", "docs/conformance/cross-language-vector-catalog.toml#did.jwk.x25519.pinned-example" ]
+command           = "cargo test -p identus-did-jwk --test conformance pinned_normative_examples_match_the_selected_profile"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-did-jwk", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Compare exact pinned P-256 and X25519 DIDs, validated curves and semantic relationship counts against the attributed packet."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/fixtures/did-jwk/v1/vectors.json"
+evidence_revision = "cca5a33cc861436ae6830dd3e42ba08d9424b074"
+recorded_at       = "2026-10-28"
+artifact          = "docs/conformance/fixtures/did-jwk/v1/vectors.json"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 558
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=Pinned quartzjer did:jwk draft", "oracle-revision=44e186cf4cc215fc726afeecad1727cc9f9a66e8", "normalization=Compare exact DID text, public curve and semantic relationship counts rather than foreign DTO or error shapes", "deviations=Canonical unpadded carrier, strict public-key validation, key_ops rejection and explicit curve/use compatibility" ]

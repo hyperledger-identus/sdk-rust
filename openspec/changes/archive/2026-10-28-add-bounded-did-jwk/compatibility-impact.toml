@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 558
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The additive unreleased identus-did-jwk crate exposes bounded creation, duplicate-safe parsing, local resolution, and opt-in registry composition under the issue-owned strict profile."
+ledger_ids     = [ "did.jwk.profile.v1" ]

@@ -24,9 +24,17 @@ identus-prism-vdr     = { path = "../crates/prism-vdr" }
 identus-jose          = { path = "../crates/jose" }
 identus-oid4vp        = { path = "../crates/oid4vp" }
 identus-siopv2        = { path = "../crates/siopv2" }
+identus-sd-jwt        = { path = "../crates/sd-jwt" }
 libfuzzer-sys         = "=0.4.13"
 serde                 = "=1.0.228"
 serde_json            = "=1.0.150"
+
+[[bin]]
+name  = "sd_jwt"
+path  = "fuzz_targets/sd_jwt.rs"
+test  = false
+doc   = false
+bench = false
 
 [[bin]]
 name  = "did"

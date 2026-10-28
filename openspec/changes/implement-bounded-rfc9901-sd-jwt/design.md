@@ -88,7 +88,10 @@ RFC 9901 shapes.
 
 Selection uses the same path vocabulary and computes the transitive disclosure
 closure. An adapter maps generic `identus-presentations` selected-claim intents
-to these paths; TypeScript DTOs and errors do not enter the crate.
+to object-member paths without inventing a string convention for array indexes;
+array-aware adopters use typed `ClaimPath` values until the generic vocabulary
+distinguishes member names from indexes. TypeScript DTOs and errors do not enter
+the crate.
 
 ### Explicit effect capabilities
 
@@ -187,6 +190,20 @@ The quality declaration routes:
 
 The E2E is required on the host fast path. Portable compile evidence does not
 become runtime, packaging, binding, device, or certification evidence.
+
+### Decomposition note
+
+This cohesive slice intentionally spans more than twelve files because the
+repository requires protocol code, executable evidence, machine-checked
+architecture inventories, immutable provenance, fuzz wiring, and the
+OpenSpec task record to land together. Production ownership remains confined
+to the `identus-sd-jwt` crate's seven focused modules; conformance, property,
+rejection, and end-to-end routes remain separate test targets. The largest
+production module stays below the 1,000-authored-nonblank-line attention
+threshold. Splitting the evidence from the implementation would create a
+temporarily unqualified security-sensitive protocol surface, while SD-JWT VC,
+bindings, networking, trust policy, persistence, and publication remain in
+separate future slices.
 
 ## Risks / Trade-offs
 

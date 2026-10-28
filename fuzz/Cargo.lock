@@ -443,6 +443,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-credentials"
+version = "0.0.0"
+dependencies = [
+ "identus-core",
+ "identus-derive",
+ "zeroize",
+]
+
+[[package]]
 name = "identus-crypto"
 version = "0.1.0-rc.1"
 dependencies = [
@@ -569,6 +578,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-presentations"
+version = "0.0.0"
+dependencies = [
+ "identus-core",
+ "identus-credentials",
+]
+
+[[package]]
 name = "identus-prism-did"
 version = "0.0.0"
 dependencies = [
@@ -603,6 +620,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-sd-jwt"
+version = "0.0.0"
+dependencies = [
+ "base64",
+ "identus-core",
+ "identus-credentials",
+ "identus-crypto",
+ "identus-jose",
+ "identus-presentations",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "identus-sdk-fuzz"
 version = "0.0.0"
 dependencies = [
@@ -620,6 +651,7 @@ dependencies = [
  "identus-prism-did",
  "identus-prism-indexer",
  "identus-prism-vdr",
+ "identus-sd-jwt",
  "identus-siopv2",
  "libfuzzer-sys",
  "serde",

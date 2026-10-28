@@ -197,6 +197,15 @@ owner_issue    = "#99"
 summary        = "Bounded JWS Compact, signature capabilities, and staged OpenID4VCI Final proof-JWT holder construction and issuer verification."
 
 [[packages]]
+name           = "identus-sd-jwt"
+path           = "crates/sd-jwt"
+layer          = "credential-semantics"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#568"
+summary        = "Unpublished bounded RFC 9901 compact engine with staged issuance, disclosure and key binding."
+
+[[packages]]
 name           = "identus-messaging"
 path           = "crates/messaging"
 layer          = "protocol-semantics"

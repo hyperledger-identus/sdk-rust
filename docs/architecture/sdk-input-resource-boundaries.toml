@@ -367,6 +367,17 @@ consumer_impact  = "Retained semantic collections and artifacts are bounded with
 review_triggers  = [ "new presentation collection", "wire codec", "proof generation engine" ]
 
 [[boundaries]]
+id               = "sd-jwt-compact-and-graph"
+package          = "identus-sd-jwt"
+surface          = "RFC 9901 compact parsing, disclosure issuance, graph processing, selection and key binding"
+disposition      = "sdk-enforced"
+limits           = [ "SdJwtLimits=explicit" ]
+evidence         = [ "crates/sd-jwt/src/limits.rs", "crates/sd-jwt/src/json.rs", "crates/sd-jwt/src/engine.rs", "crates/sd-jwt/tests/offline_journey.rs" ]
+outer_obligation = "Callers own allocation of compact strings and programmatic JSON values before typed entry; injected random and signing providers own their execution budgets."
+consumer_impact  = "The engine bounds decoded and retained bytes, graph depth, counts, and aggregate synchronous work but does not bound caller allocation or provider latency."
+review_triggers  = [ "new SD-JWT serialization", "new digest algorithm", "limit or graph change", "new injected effect" ]
+
+[[boundaries]]
 id               = "jose-compact-and-signature"
 package          = "identus-jose"
 surface          = "JWS Compact parsing, validated protected headers, and signature-suite registry"

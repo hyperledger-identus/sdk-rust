@@ -119,12 +119,16 @@ fn x25519_from_slice_rejects_wrong_length() {
 
 #[test]
 fn x25519_classifies_non_contributory_public_keys() {
-    let low_order = X25519PublicKey::from_slice(&[0; 32]).unwrap();
+    let all_zero = X25519PublicKey::from_slice(&[0; 32]).unwrap();
+    let mut order_one_bytes = [0; 32];
+    order_one_bytes[0] = 1;
+    let order_one = X25519PublicKey::from_slice(&order_one_bytes).unwrap();
     let ordinary = identus_crypto::X25519PrivateKey::from_slice(&[42; 32])
         .unwrap()
         .to_public_key();
 
-    assert!(!low_order.is_contributory());
+    assert!(!all_zero.is_contributory());
+    assert!(!order_one.is_contributory());
     assert!(ordinary.is_contributory());
 }
 

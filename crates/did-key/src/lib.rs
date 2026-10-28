@@ -440,12 +440,16 @@ mod tests {
 
     #[test]
     fn non_contributory_x25519_keys_are_rejected() {
-        let public_key = X25519PublicKey::from_slice(&[0; 32]).unwrap();
-        assert_eq!(DidKey::create(public_key), Err(Error::InvalidPublicKey));
+        let mut order_one = [0; 32];
+        order_one[0] = 1;
+        for bytes in [[0; 32], order_one] {
+            let public_key = X25519PublicKey::from_slice(&bytes).unwrap();
+            assert_eq!(DidKey::create(public_key), Err(Error::InvalidPublicKey));
 
-        let mut bytes = encode_uvarint(X25519_PUB);
-        bytes.extend([0; 32]);
-        let did = format!("{DID_PREFIX}z{}", bs58::encode(bytes).into_string());
-        assert_eq!(DidKey::parse(&did), Err(Error::InvalidPublicKey));
+            let mut encoded = encode_uvarint(X25519_PUB);
+            encoded.extend(bytes);
+            let did = format!("{DID_PREFIX}z{}", bs58::encode(encoded).into_string());
+            assert_eq!(DidKey::parse(&did), Err(Error::InvalidPublicKey));
+        }
     }
 }

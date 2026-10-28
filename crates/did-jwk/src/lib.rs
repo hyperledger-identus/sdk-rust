@@ -115,13 +115,13 @@ pub struct DidJwk {
 impl DidJwk {
     /// Create a deterministic DID from a supported public JWK.
     pub fn create(public_key: PublicKeyJwk) -> Result<Self, Error> {
-        let key_use = validate_jwk(&public_key)?;
         ensure_member_limit(&public_key)?;
         let json = serde_json::to_vec(&public_key).map_err(|_| Error::Projection)?;
         if json.len() > MAX_JWK_JSON_BYTES {
             return Err(Error::ResourceLimit);
         }
         parse_bounded_json(&json)?;
+        let key_use = validate_jwk(&public_key)?;
         let carrier = URL_SAFE_NO_PAD.encode(&json);
         if carrier.len() > MAX_METHOD_SPECIFIC_ID_BYTES {
             return Err(Error::ResourceLimit);
@@ -322,6 +322,11 @@ fn reject_private_or_profile_members(object: &Map<String, Value>) -> Result<(), 
         return Err(Error::PrivateKeyMaterial);
     }
     if object.contains_key("key_ops") {
+        return Err(Error::UnsupportedProfile);
+    }
+    if matches!(object.get("kty"), Some(Value::String(value)) if value == "OKP")
+        && object.contains_key("y")
+    {
         return Err(Error::UnsupportedProfile);
     }
     Ok(())

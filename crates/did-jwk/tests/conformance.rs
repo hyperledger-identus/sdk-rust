@@ -110,6 +110,18 @@ fn creation_and_parsing_share_structural_and_projection_limits() {
     let json = serde_json::to_vec(&wide).unwrap();
     let did = format!("did:jwk:{}", URL_SAFE_NO_PAD.encode(json));
     assert_eq!(DidJwk::parse(&did), Err(Error::Projection));
+
+    let mut extensions = BTreeMap::new();
+    extensions.insert("note".to_owned(), Value::String("x".repeat(16_384)));
+    let oversized_weak = PublicKeyJwk::from_parts(
+        JwkKeyType::Okp,
+        JwkCurve::Ed25519,
+        &URL_SAFE_NO_PAD.encode([0u8; 32]),
+        None,
+        extensions,
+    )
+    .unwrap();
+    assert_eq!(DidJwk::create(oversized_weak), Err(Error::ResourceLimit));
 }
 
 #[test]
@@ -125,6 +137,10 @@ fn duplicate_private_key_ops_and_noncanonical_carriers_fail_closed() {
         ),
         (
             r#"{"kty":"OKP","crv":"Ed25519","x":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","key_ops":["verify"]}"#,
+            Error::UnsupportedProfile,
+        ),
+        (
+            r#"{"kty":"OKP","crv":"Ed25519","x":"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE","y":null}"#,
             Error::UnsupportedProfile,
         ),
     ];

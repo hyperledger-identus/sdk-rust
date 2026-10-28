@@ -220,7 +220,7 @@ id             = "did.key.profile.v1"
 capability     = "did.key.profile"
 schema_version = 1
 path           = "docs/conformance/fixtures/did-key/v1/vectors.json"
-sha256         = "69e999ac07d06cf86d900ce85ab5fcd19a448c5000a9846f19e397c1db82e913"
+sha256         = "132bde040f9e79fb3b1267aba41d077c5f4acc529c8332606f3ad576f1fa1c5a"
 authorship     = "SDK-Rust clean-room curation from the pinned did:key v0.9 specification and public Rust oracle vectors"
 license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
@@ -376,7 +376,7 @@ case               = "did.key.x25519.rust-oracle-example"
 capability         = "did.key.profile"
 authority          = "implementation-regression"
 source_ids         = [ "rust.dif-did-key", "rust.spruce-did-key", "rust.impierce-did-key" ]
-source_locator     = "Pinned public direct-X25519 oracle value normalized to one key-agreement relationship"
+source_locator     = "Pinned public direct-X25519 oracle value with the RFC 7748 ignored high bit cleared, normalized to one key-agreement relationship"
 operation          = "did-key.parse-resolve"
 expected           = "success"
 profile_scope      = "Canonical base58-btc X25519 fingerprint without implicit conversion"
@@ -390,7 +390,7 @@ active             = true
 supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
-limitations        = "This is an attributed compatibility oracle, not normative authority; it proves direct X25519 only and no Ed25519 conversion."
+limitations        = "This is an attributed compatibility oracle, not normative authority. The oracle's non-canonical high bit is cleared because the strict SDK identity profile rejects byte aliases for the same effective X25519 key; the vector proves direct X25519 only and no Ed25519 conversion."
 
 [[vectors]]
 id                 = "did.key.base64url.rejected"

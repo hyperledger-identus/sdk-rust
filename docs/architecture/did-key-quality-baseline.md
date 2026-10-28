@@ -33,7 +33,9 @@ behavior on the same host, not treat these nanosecond values as portable SLAs.
 - Property: deterministic Ed25519/X25519 public material round-trips through
   create and parse for 64 generated seed classes.
 - Differential: the attributed packet covers normative Ed25519, independent
-  direct-X25519 oracle behavior, and strict base64url rejection.
+  direct-X25519 oracle behavior, and strict base64url rejection. The oracle's
+  RFC 7748 ignored high bit is cleared so the fixture cannot encode an identity
+  alias.
 - E2E: an opt-in generic registry creates, resolves, serializes, reparses, and
   checks relationships without I/O or global registration.
 - Fuzz: the bounded parser/creator/resolver harness replays checked-in corpus,

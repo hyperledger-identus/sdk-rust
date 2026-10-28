@@ -51,7 +51,7 @@ fn pinned_ed25519_example_round_trips() {
 
 #[test]
 fn direct_x25519_projects_only_key_agreement() {
-    let value = "did:key:z6LSj72tK8brWgZja8NLRwfiAcBXQWZJL6n1AP1zFjvVUtqN";
+    let value = "did:key:z6LSj72tK8brWgZja8NLRwfiAcBXQWZJL6n1AP1zFjvVUtoA";
     let document = DidKey::parse(value).unwrap().resolve().unwrap();
     assert_eq!(document.key_agreement().unwrap().len(), 1);
     assert!(document.authentication().is_none());

@@ -23,7 +23,7 @@
       "id": "did.key.x25519.rust-oracle-example",
       "operation": "did-key.parse-resolve",
       "input": {
-        "literal": "did:key:z6LSj72tK8brWgZja8NLRwfiAcBXQWZJL6n1AP1zFjvVUtqN"
+        "literal": "did:key:z6LSj72tK8brWgZja8NLRwfiAcBXQWZJL6n1AP1zFjvVUtoA"
       },
       "expected": {
         "kind": "success",

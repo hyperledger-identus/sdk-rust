@@ -1,6 +1,6 @@
 schema_version = 1
 issue          = 559
 disposition    = "behavior-neutral"
-scope          = "planning-only"
+scope          = "documentation"
 rationale      = "This pre-implementation contract fixes the did:web profile and evidence plan without yet exposing crate behavior; implementation will bind the proposed consumer ledger before delivery."
 ledger_ids     = [  ]

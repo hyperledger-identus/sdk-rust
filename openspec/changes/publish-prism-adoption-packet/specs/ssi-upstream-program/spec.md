@@ -9,4 +9,4 @@ NOT mark the complete portfolio delivered while those methods remain absent.
 #### Scenario: PRISM and peer slices are delivered
 
 - **WHEN** issues #521, #522, and #523 have immutable merged evidence but `did:key`, `did:jwk`, or `did:web` remain unplanned
-- **THEN** IDR-040 is reported as `in_progress` under a focused closeout owner with the delivered and remaining profiles named explicitly
+- **THEN** IDR-040 is reported as `in_progress` under an open focused successor owner with the delivered and remaining profiles named explicitly

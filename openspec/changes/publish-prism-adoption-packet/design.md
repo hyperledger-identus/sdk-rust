@@ -35,10 +35,12 @@ store or conceal the atomic-commit contract.
 
 ## Roadmap reconciliation
 
-Keep IDR-040 at `in_progress` under new closeout issue #554. Its outcome and
-evidence text state that PRISM and peer profiles are delivered by #521–#523,
-while `did:key`, `did:jwk`, and `did:web` require focused future issues. This is
-more accurate than either stale `specified` or portfolio-wide `delivered`.
+Keep IDR-040 at `in_progress` under focused successor issue #555. Its outcome
+and evidence text state that PRISM and peer profiles are delivered by #521–#523,
+while `did:key`, `did:jwk`, and `did:web` require separately researched and
+specified slices. Issue #554 owns only this executable adoption packet. This is
+more accurate than either stale `specified` or portfolio-wide `delivered`, and
+it preserves an open durable owner after #554 closes.
 
 ## Verification
 

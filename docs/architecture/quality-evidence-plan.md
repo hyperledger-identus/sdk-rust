@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-28`
-- Declaration count: `12`
+- Declaration count: `13`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -552,3 +552,48 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Execute clean-room SD-JWT-shaped, mdoc-shaped and generic-extension packets and compare exact retained encoding plus stable binding results.
 - Receipt: `source:docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json`
 - Evidence revision: `58057823d2c05830a1fb05271fbfad5f05c4b485`
+
+## `did.key.profile.quality.v1`
+
+- Capability: `did.key.profile`
+- Slice: Bounded effect-free did:key creation, parsing and local resolution
+- Owner: SDK-Rust DID maintainers (issue #557)
+- Risk: Non-canonical multicodec input, invalid public material, unbounded base58 work or relationship drift can split portable identity state or expose key content.
+- Targets: `package:identus-did-key`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`
+- Vector IDs: `3` local catalog entries
+- Limitations: Effect-free direct public-key creation, parsing and local resolution only; no private keys, generation, derivation, signing, custody, network resolution, persistence, runtime, bindings or global registry is claimed.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #557 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #557 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #557 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #557 |
+
+### `property`
+
+- Command: `cargo test -p identus-did-key --all-features`
+- Budget: Sweep 64 deterministic Ed25519 and X25519 seed classes, then create, opt-in resolve, serialize and reparse one complete generic DID document.
+- Receipt: `source:crates/did-key/tests/conformance.rs`
+- Evidence revision: `9d032d8397e8afb1ed7133b95119ab522755e25f`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-did-key.sh soak`
+- Budget: Run bounded parse, canonical recreation and local resolution for 300 seconds with max_len=144, timeout=5 and rss_limit_mb=1024.
+- Receipt: `source:fuzz/fuzz_targets/did_key.rs`
+- Evidence revision: `9d032d8397e8afb1ed7133b95119ab522755e25f`
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-did-key --bench directional`
+- Budget: Measure create, parse, local resolve and early oversized rejection over 101 samples with 500 iterations per sample.
+- Receipt: `source:docs/architecture/did-key-quality-baseline.md`
+- Evidence revision: `9d032d8397e8afb1ed7133b95119ab522755e25f`
+
+### `differential`
+
+- Command: `cargo test -p identus-did-key --test conformance attributed_vector_packet_matches_selected_profile`
+- Budget: Compare exact Ed25519 and X25519 DIDs, semantic relationship counts and strict base64url rejection against the attributed packet.
+- Receipt: `source:docs/conformance/fixtures/did-key/v1/vectors.json`
+- Evidence revision: `9d032d8397e8afb1ed7133b95119ab522755e25f`

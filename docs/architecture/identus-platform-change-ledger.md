@@ -13,6 +13,10 @@ Status: `active`
 
 State: `active`. Class: `security` / `security`. Target: `unreleased`. The same SDK wrappers, methods and byte behavior use advisory-clean k256 and p256 0.14; their exposed tuple fields consequently have the corresponding 0.14 upstream type identities.
 
+### `did.key.profile.v1`
+
+State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-key crate creates, parses and locally resolves a bounded strict base58-btc profile for direct Ed25519, X25519, P-256 and secp256k1 public keys.
+
 ### `did.peer.profiles.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-peer crate creates, parses and locally resolves bounded numalgo-4 current-profile and explicit numalgo-2 compatibility DIDs from caller-owned public material.
@@ -66,6 +70,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 `0.1.0-rc.1` → `unreleased` for sdk-rust-adopters. Prefer identus-crypto from_slice, to_public_key and encoding methods; direct tuple-field consumers update their k256 or p256 dependency and imports to 0.14 when adopting the next candidate.
+
+### `did.key.profile.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
 
 ### `did.peer.profiles.v1`
 
@@ -121,6 +129,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The migration is declared on the release-candidate line before stable 0.1.0; the next candidate carries the advisory-clean type identities.
 
+### `did.key.profile.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
 ### `did.peer.profiles.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
@@ -175,6 +187,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Fallback: Delay consumer adoption while migrating to SDK byte boundaries; do not publish a new security-current candidate that restores the rejected 0.13 closure. Rollback: Move forward to another advisory-clean curve family or SDK-owned opaque boundary; never restore the advisory-affected dependency closure as a release state. Removal gate: Not applicable; this is a security remediation and candidate source migration, not a deprecated compatibility facade.
 
+### `did.key.profile.v1`
+
+Fallback: Consumers retain their existing did:key implementation until they explicitly adopt the additive crate or a later language adapter. Rollback: Before publication remove the additive package and its evidence as one unreleased unit; generic SDK-Rust DID and crypto behavior remains unchanged. Removal gate: Not applicable.
+
 ### `did.peer.profiles.v1`
 
 Fallback: Consumers retain their existing peer DID implementation until an explicit adapter or canary adopts the additive crate. Rollback: Remove the additive package dependency before publication; generic SDK-Rust DID behavior remains unchanged. Removal gate: Not applicable.
@@ -228,6 +244,10 @@ Fallback: Consumers retain their existing SIOPv2 implementation until a separate
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 Visibility: public-api, security. Wire values and SDK-owned methods remain compatible, but direct construction or access through the four public tuple fields is source-incompatible until the consumer adopts RustCrypto 0.14 or the SDK byte boundary.
+
+### `did.key.profile.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. No private keys, generation, derivation, signing, custody, I/O, network resolution, persistence, runtime, binding, global registry, consumer mutation or publication is included. The strict profile rejects base64url, unsupported curves and implicit Ed25519-to-X25519 conversion.
 
 ### `did.peer.profiles.v1`
 

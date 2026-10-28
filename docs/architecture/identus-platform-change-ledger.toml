@@ -111,6 +111,47 @@ active                            = true
 supersedes                        = [  ]
 replaced_by                       = ""
 
+[[changes]]
+id                                = "did.key.profile.v1"
+capability                        = "did.key.profile"
+lifecycle_state                   = "proposed"
+issue                             = 557
+pull_request                      = 0
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-did-key" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-swift", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes generic DID values and validated public keys but no independently selectable did:key method implementation."
+new_behavior                      = "The additive identus-did-key crate creates, parses and locally resolves a bounded strict base58-btc profile for direct Ed25519, X25519, P-256 and secp256k1 public keys."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The Rust-native method deliberately does not preserve SDK-TS, Swift, KMP, Spruce, DIF or Impierce DTO and error shapes; migration adapters remain separate consumer-owned work."
+vector_ids                        = [ "did.key.base64url.rejected", "did.key.ed25519.w3c-example", "did.key.x25519.rust-oracle-example" ]
+quality_declaration_ids           = [ "did.key.profile.quality.v1" ]
+observability                     = "Record only stable operation, curve and result categories plus bounded lengths; never record DIDs, fingerprints, public-key bytes, identifier content or parser diagnostics."
+fallback                          = "Consumers retain their existing did:key implementation until they explicitly adopt the additive crate or a later language adapter."
+rollback                          = "Before publication remove the additive package and its evidence as one unreleased unit; generic SDK-Rust DID and crypto behavior remains unchanged."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#did.key.profile.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.key.ed25519.w3c-example" ]
+evidence_artifacts                = [ "docs/adr/0188-bind-did-key-to-a-strict-public-key-profile.md", "docs/architecture/did-key-profile.md", "docs/architecture/did-key-quality-baseline.md", "docs/conformance/fixtures/did-key/v1/vectors.json" ]
+limitations                       = "No private keys, generation, derivation, signing, custody, I/O, network resolution, persistence, runtime, binding, global registry, consumer mutation or publication is included. The strict profile rejects base64url, unsupported curves and implicit Ed25519-to-X25519 conversion."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
 # Issue #422 activated the registry without inventing a synthetic consumer
 # change. Subsequent issue-owned records are added only with connected vector,
 # quality and OpenSpec impact evidence.

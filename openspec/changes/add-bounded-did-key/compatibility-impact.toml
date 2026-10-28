@@ -1,6 +1,6 @@
 schema_version = 1
 issue          = 557
-disposition    = "behavior-neutral"
-scope          = "documentation"
-rationale      = "This exact preflight records only the planned contract; implementation will activate the consumer-visible ledger and quality evidence before archive."
-ledger_ids     = [  ]
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The additive identus-did-key crate exposes a new public method facade, strict wire profile, stable redacted errors and portable target contract, all owned by the canonical consumer change record."
+ledger_ids     = [ "did.key.profile.v1" ]

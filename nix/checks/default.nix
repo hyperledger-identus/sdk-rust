@@ -43,6 +43,7 @@
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json" sourcePath
+          || pkgs.lib.hasSuffix "/docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/siopv2/v1/vectors.json" sourcePath
           || pkgs.lib.hasPrefix oid4vciInteropRoot sourcePath;
       };
@@ -96,6 +97,8 @@
           test "$(find "$src/docs/conformance/fixtures/oid4vp-redirect-response/v1" -type f | wc -l)" -eq 1
           test -f "$src/docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json"
           test "$(find "$src/docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1" -type f | wc -l)" -eq 1
+          test -f "$src/docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+          test "$(find "$src/docs/conformance/fixtures/oid4vp-transaction-format/v1" -type f | wc -l)" -eq 1
           test -f "$src/docs/conformance/fixtures/siopv2/v1/vectors.json"
           test "$(find "$src/docs/conformance/fixtures/siopv2/v1" -type f | wc -l)" -eq 1
           if find "$src/openspec/changes" -type f \

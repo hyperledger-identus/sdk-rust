@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 547
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The experimental OID4VP request state gains transaction-data lineage and injected credential-format capability ports before publication."
+ledger_ids     = [ "oid4vp.direct-post-response.transaction-and-format-ports.v1" ]

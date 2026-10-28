@@ -1,5 +1,6 @@
 use std::{hint::black_box, time::Instant};
 
+use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use identus_crypto::{Ed25519PrivateKey, EncodeJwk};
 use identus_jose::{
     Ed25519Signer, JwsAlgorithm, JwsLimits, JwsSigningInput, JwsVerificationKey, ProtectedHeader,
@@ -7,14 +8,16 @@ use identus_jose::{
 };
 use identus_oid4vp::{
     AuthorizationRequestInvocation, AuthorizationRequestInvocationLimits,
-    AuthorizationRequestValidationLimits, DcqlLimits, DirectPostAcknowledgementLimits,
+    AuthorizationRequestValidationLimits, CredentialFormat, CredentialFormatCapability,
+    CredentialFormatCapabilityError, DcqlLimits, DirectPostAcknowledgementLimits,
     DirectPostErrorCode, DirectPostErrorDetails, DirectPostErrorResponseLimits,
     DirectPostPresentation, DirectPostQueryResult, DirectPostResponseLimits,
     REQUEST_OBJECT_JWT_TYPE, REQUEST_OBJECT_MEDIA_TYPE, RedirectResponseLimits,
     RequestObjectValidationLimits, RequestUriRetrievalInput, RequestUriRetrievalLimits,
-    ValidatedAuthorizationRequest,
+    SelectedCredentialInput, TransactionDataCapability, TransactionDataCapabilityError,
+    TransactionDataLimits, ValidatedAuthorizationRequest, VerifierAuthorizationEvidence,
 };
-use serde_json::json;
+use serde_json::{Value, json};
 
 mod support;
 
@@ -44,6 +47,12 @@ fn main() {
         "acknowledgement.ordinary.end-to-end",
         construct_acknowledgement,
     );
+    measure("transaction.ordinary.end-to-end", || {
+        construct_transaction(32)
+    });
+    measure("transaction.boundary.end-to-end", || {
+        construct_transaction(4_096)
+    });
     println!("oid4vp-direct-post-benchmark allocation_observation=not_available");
 }
 
@@ -116,6 +125,92 @@ fn construct_acknowledgement() {
     );
 }
 
+struct SdJwtFormat;
+
+impl CredentialFormatCapability for SdJwtFormat {
+    fn format(&self) -> CredentialFormat {
+        CredentialFormat::DcSdJwt
+    }
+
+    fn validate_metadata(&self, metadata: &Value) -> Result<(), CredentialFormatCapabilityError> {
+        metadata
+            .get("vct_values")
+            .and_then(Value::as_array)
+            .filter(|values| !values.is_empty())
+            .map(|_| ())
+            .ok_or(CredentialFormatCapabilityError::InvalidMetadata)
+    }
+
+    fn supports_transaction_type(&self, transaction_type: &str) -> bool {
+        transaction_type == "payment_data"
+    }
+}
+
+struct PaymentData;
+
+impl TransactionDataCapability for PaymentData {
+    fn transaction_type(&self) -> &str {
+        "payment_data"
+    }
+
+    fn validate(&self, value: &Value) -> Result<(), TransactionDataCapabilityError> {
+        value
+            .get("amount")
+            .and_then(Value::as_u64)
+            .filter(|amount| *amount > 0)
+            .map(|_| ())
+            .ok_or(TransactionDataCapabilityError::Invalid)
+    }
+}
+
+fn construct_transaction(memo_len: usize) {
+    let transaction = json!({
+        "type": "payment_data",
+        "credential_ids": ["degree"],
+        "amount": 42,
+        "memo": "m".repeat(memo_len),
+    });
+    let encoded = URL_SAFE_NO_PAD.encode(serde_json::to_vec(&transaction).unwrap());
+    let mut request = base_request(
+        "direct_post",
+        "response_uri",
+        "https://verifier.example/response",
+    );
+    request["dcql_query"]["credentials"][0]["meta"] = json!({"vct_values": ["urn:example:degree"]});
+    request["transaction_data"] = json!([encoded]);
+    let format = SdJwtFormat;
+    let transaction = PaymentData;
+    let request = authorize_request(request)
+        .into_authorization_request_with_transaction_capabilities(
+            AuthorizationRequestValidationLimits::default(),
+            DcqlLimits::default(),
+            identus_jose::JweLimits::default(),
+            TransactionDataLimits::default(),
+            &[&format],
+            &[&transaction],
+        )
+        .unwrap();
+    let (request, bindings) = request
+        .bind_transaction_data(&[SelectedCredentialInput::new(
+            "degree",
+            CredentialFormat::DcSdJwt,
+        )])
+        .unwrap();
+    black_box(bindings);
+    let limits = DirectPostResponseLimits::default();
+    let result = DirectPostQueryResult::new(
+        "degree",
+        vec![DirectPostPresentation::string("compact", limits).unwrap()],
+        limits,
+    )
+    .unwrap();
+    black_box(
+        request
+            .into_direct_post_response(vec![result], limits)
+            .unwrap(),
+    );
+}
+
 fn validated_request() -> ValidatedAuthorizationRequest {
     validated_request_for(
         "direct_post",
@@ -129,7 +224,16 @@ fn validated_request_for(
     destination_name: &str,
     destination: &str,
 ) -> ValidatedAuthorizationRequest {
-    let private = Ed25519PrivateKey::from_slice(&PRIVATE_BYTES).unwrap();
+    let request = base_request(mode, destination_name, destination);
+    authorize_request(request)
+        .into_authorization_request(
+            AuthorizationRequestValidationLimits::default(),
+            DcqlLimits::default(),
+        )
+        .unwrap()
+}
+
+fn base_request(mode: &str, destination_name: &str, destination: &str) -> Value {
     let mut request = json!({
         "client_id": "decentralized_identifier:did:example:verifier",
         "aud": identus_oid4vp::STATIC_DISCOVERY_AUDIENCE,
@@ -144,6 +248,11 @@ fn validated_request_for(
         .as_object_mut()
         .unwrap()
         .insert(destination_name.to_owned(), json!(destination));
+    request
+}
+
+fn authorize_request(request: Value) -> VerifierAuthorizationEvidence {
+    let private = Ed25519PrivateKey::from_slice(&PRIVATE_BYTES).unwrap();
     let payload = serde_json::to_vec(&request).unwrap();
     let header = ProtectedHeader::new(
         "Ed25519",
@@ -184,11 +293,6 @@ fn validated_request_for(
             .verify(&SignatureSuiteRegistry::recommended(), &key)
             .unwrap(),
     ))
-    .into_authorization_request(
-        AuthorizationRequestValidationLimits::default(),
-        DcqlLimits::default(),
-    )
-    .unwrap()
 }
 
 fn measure(name: &str, mut operation: impl FnMut()) {

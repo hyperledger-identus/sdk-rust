@@ -8,6 +8,8 @@ Presentations 1.0 protocol crate. Its current narrow profile supports:
 - compact signed Request Object verification through `identus-jose`;
 - discovery-bound audience, injected freshness, and atomic replay evidence;
 - strict bounded DCQL validation and selection behind SDK-owned types;
+- exact bounded transaction data plus caller-owned credential-format and
+  transaction-type capability ports;
 - composed `vp_token` / `direct_post` request routing;
 - deterministic bounded plain `direct_post` success and protocol-error response
   construction; and
@@ -36,9 +38,10 @@ signed JAR ──verify──▶ VerifiedRequestObject
                               │
                               ├─ validated HTTPS response_uri
                               ├─ bounded optional state
-                              └─ private DCQL coverage/cardinality rules
+                              ├─ private DCQL coverage/cardinality rules
+                              └─ exact transaction + format capability decisions
                                              │
-                 ┌─ caller-selected bounded presentations ─▶ DirectPostResponse
+                 ┌─ selected format binding + presentations ▶ DirectPostResponse
 validated request┤
                  ├─ presentations + JWE port ──────────────▶ EncryptedDirectPostResponse
                  └─ explicit typed protocol error ─────────▶ DirectPostErrorResponse
@@ -51,6 +54,20 @@ policy, TLS, redirects, decompression, timeouts, retries, SSRF defenses and HTTP
 outcome handling. Applications still own verifier trust, consent, credential
 and presentation verification, presentation generation, and the durable atomic
 replay implementation behind the SDK port.
+
+When `transaction_data` is present, the caller must inject exactly one matching
+transaction-type capability and exact credential-format capabilities. The SDK
+validates the bounded common envelope, canonical unpadded base64url encoding,
+DCQL references, metadata and caller selection. Every selected compatible
+reference receives a redacted `TransactionBinding`, and a success response must
+contain those same query IDs. Protocol errors remain constructible when proof
+binding fails. Concrete SD-JWT VC, mdoc, W3C VC and extension proof behavior is
+deliberately outside this crate.
+
+Non-empty format metadata has two fail-closed gates. A format capability first
+validates the verifier constraint, and each `DcqlCredential` adapter must then
+affirm that a candidate satisfies it. The default candidate behavior rejects
+non-empty metadata; format-name equality alone is not sufficient.
 
 ## Supported response shapes
 
@@ -83,12 +100,15 @@ The normative boundary and decisions are recorded in
 [`ADR 0180`](../../docs/adr/0180-construct-explicit-oid4vp-protocol-errors.md),
 [`ADR 0181`](../../docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md),
 [`ADR 0183`](../../docs/adr/0183-require-oid4vp-request-object-security-evidence-before-routing.md),
+[`ADR 0186`](../../docs/adr/0186-keep-credential-format-proofs-behind-oid4vp-capability-ports.md),
 with executable lineage in the versioned
 [`plain direct-post vector packet`](../../docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json)
 and
-[`encrypted-response packet`](../../docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json).
+[`encrypted-response packet`](../../docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json),
+plus the
+[`transaction/format packet`](../../docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json).
 
-The exact Final capability status and remaining focused owners are maintained
-in the machine-checked
+The exact Final capability status and explicit limitations are maintained in
+the machine-checked
 [`OpenID4VP wallet-core capability report`](../../docs/conformance/oid4vp-final-wallet-core.md).
 The report is traceability evidence rather than a certification claim.

@@ -11,26 +11,26 @@ published 2025-07-09 with current errata retrieved 2026-10-28.
 
 ## Verdict
 
-The bounded protocol core is coherent and executable, but IDR-024 is not yet
-complete. Fifteen capability groups are implemented. Three required rows retain
-a bounded partial or unsupported surface and are owned by one focused issue:
+The bounded protocol core is coherent and executable. Eighteen capability
+groups are implemented and the pinned required set has zero non-implemented
+rows. The reviewed matrix therefore supports IDR-024 delivery. Official OpenID
+certification, publication, live interoperability and downstream adoption
+remain separate gates.
 
-- [#547](https://github.com/hyperledger-identus/sdk-rust/issues/547) — transaction
-  data and credential-format metadata ports.
-
-The matrix checker prevents IDR-024 from being marked delivered while these
-required gaps remain. This is a useful milestone: completion is now an
-executable condition rather than a subjective issue-count decision.
+Issue [#547](https://github.com/hyperledger-identus/sdk-rust/issues/547)
+delivers exact transaction-data lineage and credential-format metadata ports
+without moving SD-JWT VC, mdoc, or W3C proof engines into this crate. Completion
+is an executable matrix condition rather than an issue-count decision.
 
 ## Coverage summary
 
-<!-- oid4vp-summary: implemented=15 partial=5 unsupported=2 not-applicable=3 required-gaps=3 -->
+<!-- oid4vp-summary: implemented=18 partial=3 unsupported=1 not-applicable=3 required-gaps=0 -->
 
 | Status | Rows | Meaning |
 | --- | ---: | --- |
-| Implemented | 15 | Bounded implementation, canonical contract, and executable tests exist. |
-| Partial | 5 | A real executable subset exists with an exact limitation. |
-| Unsupported | 2 | The current profile deliberately has no implementation. |
+| Implemented | 18 | Bounded implementation, canonical contract, and executable tests exist. |
+| Partial | 3 | A real executable adjacent subset exists with an exact limitation. |
+| Unsupported | 1 | The product-owned privacy surface deliberately has no protocol-core implementation. |
 | Not applicable | 3 | The behavior belongs to an independently versioned capability. |
 
 These are traceability labels rather than compliance scores. `implemented`
@@ -67,7 +67,7 @@ signed Request Object ── JWS verification ── audience/time/replay eviden
 Matrix row ── implementation path ── canonical OpenSpec ── executable test
     │
     ├─ complete: implemented
-    └─ bounded gap: partial/unsupported ── focused issue #544–#547
+    └─ adjacent/separate limitation: explicit, outside required completion set
 ```
 
 The protocol crate owns validated states and deterministic inert response
@@ -87,7 +87,8 @@ and verification.
 - **Section 8:** request-bound `vp_token`, fragment/query/form-post, plain
   `direct_post`, explicit errors, engine-neutral `direct_post.jwt`, and bounded
   acknowledgement binding are implemented.
-  Transaction data and format-specific VP validation remain incomplete.
+  Transaction data and format-specific candidate and selected-result linkage
+  are implemented through bounded ports; proof engines remain format-owned.
 - **Section 9:** the static `openid4vp:` by-reference invocation profile is
   implemented. Platform dispatch and navigation remain adapter effects.
 - **Sections 10–12:** bounded wallet metadata can be carried during POST;
@@ -127,12 +128,12 @@ or mutated. The canaries are not compatibility promises.
 #541 executable Final matrix and durable closeout owner
  ├── #545 client scheme and verifier metadata ports (delivered by this slice)
  ├── #546 redirect response modes (delivered by this slice)
- └── #547 transaction and format metadata ports
+ └── #547 transaction and format metadata ports (delivered by this slice)
 ```
 
-Issue #541 remains open until child delivery has reduced the pinned required
-capability set to zero non-implemented rows. Changing that required set is a
-review-visible contract change rather than a CSV relabelling shortcut.
+Issue #541 may close after this reviewed child merges because the pinned
+required capability set is now zero non-implemented rows. Changing that set is
+a review-visible contract change rather than a CSV relabelling shortcut.
 
 ## Assurance boundary
 

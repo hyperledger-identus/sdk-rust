@@ -45,6 +45,10 @@ State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. Verifier-a
 
 State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. A consuming protocol-local transition validates the discovered audience, temporal policy, and one atomic caller-owned replay decision before typed routing.
 
+### `oid4vp.direct-post-response.transaction-and-format-ports.v1`
+
+State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. The unreleased core retains bounded transaction linkage and validates format-specific metadata and binding through SDK-owned caller-injected capabilities.
+
 ### `oid4vp.direct-post-response.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and bounded caller presentations into a deterministic plain direct-post success envelope.
@@ -94,6 +98,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `oid4vp.direct-post-response.request-object-security.v1`
 
 `unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. Construct a RequestObjectSecurityPolicy from trusted discovery evidence and call the security transition with a WallClock and atomic replay guard before DCQL or authorization routing.
+
+### `oid4vp.direct-post-response.transaction-and-format-ports.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. Supply exact format and transaction capabilities when adopting non-empty metadata or transaction_data; keep concrete proof engines in their owning crates.
 
 ### `oid4vp.direct-post-response.v1`
 
@@ -145,6 +153,10 @@ Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: 
 
 Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started.
 
+### `oid4vp.direct-post-response.transaction-and-format-ports.v1`
+
+Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The API is experimental and unpublished; migration is required before the first compatible release.
+
 ### `oid4vp.direct-post-response.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
@@ -195,6 +207,10 @@ Fallback: Consumers keep existing direct-post or adapter-owned redirect behavior
 
 Fallback: Consumers retain their existing implementation until they can supply trusted discovery evidence and an atomic replay guard; no unsafe SDK bypass is retained. Rollback: Before publication remove the security transition and its typed routing successors as one unreleased unit while preserving issue evidence; never restore direct routing from raw signature evidence or simulate acceptance. Removal gate: Not applicable.
 
+### `oid4vp.direct-post-response.transaction-and-format-ports.v1`
+
+Fallback: Consumers retain adapter-owned transaction and format handling until the owning credential-format capability is qualified. Rollback: Before publication remove the additive ports and retained state while preserving existing empty-metadata, no-transaction routing. Removal gate: Not applicable.
+
 ### `oid4vp.direct-post-response.v1`
 
 Fallback: Consumers continue assembling responses in their existing adapter until they explicitly adopt the experimental SDK transition. Rollback: Remove the additive response transition and private retained metadata before publication; existing request validation remains available. Removal gate: Not applicable.
@@ -244,6 +260,10 @@ Visibility: behavior, public-api, security, wire. No browser/deep-link navigatio
 ### `oid4vp.direct-post-response.request-object-security.v1`
 
 Visibility: behavior, public-api, security. No verifier-key trust, discovery fetch, persistence, distributed replay consistency, system clock, network, consent, credential validation, proof generation, Digital Credentials API, SIOPv2, adapter, publication, or downstream adoption is included.
+
+### `oid4vp.direct-post-response.transaction-and-format-ports.v1`
+
+Visibility: behavior, public-api, security, wire. No SD-JWT VC, mdoc, W3C VC/Data Integrity, HAIP, proof generation or verification, HTTP, persistence, product trust/consent, certification, publication, or downstream adoption is included.
 
 ### `oid4vp.direct-post-response.v1`
 

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "packetId": "oid4vp.transaction-format-ports.v1",
+  "capability": "oid4vp.direct-post-response",
+  "cases": [
+    {
+      "id": "oid4vp.transaction-format.sd-jwt-shaped",
+      "operation": "oid4vp.direct-post-response.construct",
+      "input": {"literal": "{\"queryId\":\"pid\",\"format\":\"dc+sd-jwt\",\"meta\":{\"vct_values\":[\"urn:example:pid\"]},\"transactionType\":\"payment_data\",\"encoded\":\"eyJ0eXBlIjoicGF5bWVudF9kYXRhIiwiY3JlZGVudGlhbF9pZHMiOlsicGlkIl0sImFtb3VudCI6NDJ9\"}"},
+      "expected": {"kind": "success", "errorCode": null, "redacted": null, "fields": {"serialized": "eyJ0eXBlIjoicGF5bWVudF9kYXRhIiwiY3JlZGVudGlhbF9pZHMiOlsicGlkIl0sImFtb3VudCI6NDJ9"}}
+    },
+    {
+      "id": "oid4vp.transaction-format.mdoc-shaped",
+      "operation": "oid4vp.direct-post-response.construct",
+      "input": {"literal": "{\"queryId\":\"mdl\",\"format\":\"mso_mdoc\",\"meta\":{\"doctype_value\":\"org.iso.18013.5.1.mDL\"},\"transactionType\":\"payment_data\",\"encoded\":\"eyJ0eXBlIjoicGF5bWVudF9kYXRhIiwiY3JlZGVudGlhbF9pZHMiOlsibWRsIl0sImFtb3VudCI6NDJ9\"}"},
+      "expected": {"kind": "success", "errorCode": null, "redacted": null, "fields": {"serialized": "eyJ0eXBlIjoicGF5bWVudF9kYXRhIiwiY3JlZGVudGlhbF9pZHMiOlsibWRsIl0sImFtb3VudCI6NDJ9"}}
+    },
+    {
+      "id": "oid4vp.transaction-format.generic-extension",
+      "operation": "oid4vp.direct-post-response.construct",
+      "input": {"literal": "{\"queryId\":\"legacy\",\"format\":\"vc+example\",\"meta\":{\"profile\":\"interop\"},\"transactionType\":\"generic_extension\",\"encoded\":\"eyJ0eXBlIjoiZ2VuZXJpY19leHRlbnNpb24iLCJjcmVkZW50aWFsX2lkcyI6WyJsZWdhY3kiXSwicHVycG9zZSI6ImludGVyb3AifQ\"}"},
+      "expected": {"kind": "success", "errorCode": null, "redacted": null, "fields": {"serialized": "eyJ0eXBlIjoiZ2VuZXJpY19leHRlbnNpb24iLCJjcmVkZW50aWFsX2lkcyI6WyJsZWdhY3kiXSwicHVycG9zZSI6ImludGVyb3AifQ"}}
+    }
+  ]
+}

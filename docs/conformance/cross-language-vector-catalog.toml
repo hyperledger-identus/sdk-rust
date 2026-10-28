@@ -248,6 +248,18 @@ public_data    = true
 targets        = [ "rust", "typescript", "swift", "kotlin" ]
 
 [[packets]]
+id             = "oid4vp.transaction-format-ports.v1"
+capability     = "oid4vp.direct-post-response"
+schema_version = 1
+path           = "docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+sha256         = "d60d75e1f8948aa1f09b949c4648991c8ff114b4f0bb37ff907e15de7d56bb40"
+authorship     = "SDK-Rust clean-room curation from OpenID4VP 1.0 Final transaction data and credential metadata rules"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[packets]]
 id             = "siopv2.did-authentication.draft13.v1"
 capability     = "siopv2.did-authentication"
 schema_version = 1
@@ -327,6 +339,75 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "The vector proves bounded deterministic protocol-error form construction; it does not authorize disclosure, execute HTTP or define foreign DTO/error shapes."
+
+[[vectors]]
+id                 = "oid4vp.transaction-format.sd-jwt-shaped"
+packet             = "oid4vp.transaction-format-ports.v1"
+case               = "oid4vp.transaction-format.sd-jwt-shaped"
+capability         = "oid4vp.direct-post-response"
+authority          = "normative"
+source_ids         = [ "openid.oid4vp-final" ]
+source_locator     = "OpenID4VP 1.0 Final sections 6.1 and 8.4 adapted clean-room SD-JWT-shaped metadata and transaction linkage"
+operation          = "oid4vp.direct-post-response.construct"
+expected           = "success"
+profile_scope      = "Bounded dc+sd-jwt metadata, exact transaction encoding and one selected DCQL reference"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "authorization_request::transaction_format_packet_covers_sd_jwt_mdoc_and_generic_extension_ports"
+language_selectors = [  ]
+owner_issue        = 547
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The vector proves protocol-to-format port linkage only; it does not create, verify, or certify an SD-JWT VC proof."
+
+[[vectors]]
+id                 = "oid4vp.transaction-format.mdoc-shaped"
+packet             = "oid4vp.transaction-format-ports.v1"
+case               = "oid4vp.transaction-format.mdoc-shaped"
+capability         = "oid4vp.direct-post-response"
+authority          = "normative"
+source_ids         = [ "openid.oid4vp-final" ]
+source_locator     = "OpenID4VP 1.0 Final sections 6.1 and 8.4 adapted clean-room mdoc-shaped metadata and transaction linkage"
+operation          = "oid4vp.direct-post-response.construct"
+expected           = "success"
+profile_scope      = "Bounded mso_mdoc metadata, exact transaction encoding and one selected DCQL reference"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "authorization_request::transaction_format_packet_covers_sd_jwt_mdoc_and_generic_extension_ports"
+language_selectors = [  ]
+owner_issue        = 547
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The vector proves protocol-to-format port linkage only; it does not create, verify, or certify an ISO mdoc proof."
+
+[[vectors]]
+id                 = "oid4vp.transaction-format.generic-extension"
+packet             = "oid4vp.transaction-format-ports.v1"
+case               = "oid4vp.transaction-format.generic-extension"
+capability         = "oid4vp.direct-post-response"
+authority          = "normative"
+source_ids         = [ "openid.oid4vp-final" ]
+source_locator     = "OpenID4VP 1.0 Final sections 6.1 and 8.4 extension points adapted to one bounded clean-room identifier"
+operation          = "oid4vp.direct-post-response.construct"
+expected           = "success"
+profile_scope      = "Bounded extension format and metadata with exact caller-owned transaction semantics"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "authorization_request::transaction_format_packet_covers_sd_jwt_mdoc_and_generic_extension_ports"
+language_selectors = [  ]
+owner_issue        = 547
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The vector proves extension registration and linkage only; extension semantics and proof behavior remain caller-owned."
 
 [[vectors]]
 id                 = "oid4vp.encrypted-direct-post-response.final-p256-a128gcm"

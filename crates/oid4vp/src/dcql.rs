@@ -4,13 +4,17 @@ use std::{collections::BTreeSet, fmt};
 
 use serde_json::{Map, Value};
 use siros_dcql::{
-    Candidate as EngineCandidate, Credential as EngineCredential, DcqlQuery as EngineQuery,
-    Dropped as EngineDropped, ExactFormat, PathComponent as EnginePath,
-    PathError as EnginePathError, SelectedClaim as EngineSelectedClaim, execute,
+    Candidate as EngineCandidate, Credential as EngineCredential,
+    CredentialQuery as EngineCredentialQuery, DcqlQuery as EngineQuery, Dropped as EngineDropped,
+    PathComponent as EnginePath, PathError as EnginePathError, Policy as EnginePolicy,
+    SelectedClaim as EngineSelectedClaim, execute,
 };
 use zeroize::Zeroizing;
 
-use crate::{DcqlLimits, Oid4vpError, RequestObjectSecurityEvidence};
+use crate::{
+    CredentialFormat, CredentialFormatCapability, DcqlLimits, Oid4vpError,
+    RequestObjectSecurityEvidence,
+};
 
 /// One SDK-owned DCQL claims-path component.
 #[derive(Clone, PartialEq, Eq)]
@@ -81,6 +85,16 @@ pub trait DcqlCredential {
     /// Whether this credential has cryptographic holder binding.
     fn has_cryptographic_holder_binding(&self) -> bool;
 
+    /// Whether this credential satisfies already validated format-specific
+    /// metadata from one credential query.
+    ///
+    /// The default fails closed for non-empty metadata. Implementations that
+    /// support format metadata must delegate to their owning format engine;
+    /// they must be deterministic and effect-free.
+    fn satisfies_format_metadata(&self, metadata: &Map<String, Value>) -> bool {
+        metadata.is_empty()
+    }
+
     /// Resolve a bounded claims path and return matching JSON values.
     ///
     /// # Errors
@@ -100,6 +114,12 @@ pub struct ValidatedDcqlQuery {
     credential_query_count: usize,
     claim_query_count: usize,
     response_rules: DcqlResponseRules,
+    credential_formats: Vec<DcqlCredentialFormatRule>,
+}
+
+pub(crate) struct DcqlCredentialFormatRule {
+    id: Zeroizing<String>,
+    format: CredentialFormat,
 }
 
 pub(crate) struct DcqlResponseRules {
@@ -140,9 +160,20 @@ impl ValidatedDcqlQuery {
     }
 
     pub(crate) fn from_request_map(
-        mut request: Map<String, Value>,
+        request: Map<String, Value>,
         limits: DcqlLimits,
     ) -> Result<Self, Oid4vpError> {
+        Self::from_request_map_with_capabilities(request, limits, &[])
+    }
+
+    pub(crate) fn from_request_map_with_capabilities(
+        mut request: Map<String, Value>,
+        limits: DcqlLimits,
+        capabilities: &[&dyn CredentialFormatCapability],
+    ) -> Result<Self, Oid4vpError> {
+        if capabilities.len() > limits.max_collection_items() {
+            return Err(Oid4vpError::InvalidDcqlQuery);
+        }
         if request.contains_key("scope") {
             return Err(Oid4vpError::UnsupportedDcqlScope);
         }
@@ -153,7 +184,7 @@ impl ValidatedDcqlQuery {
             return Err(Oid4vpError::InvalidDcqlQuery);
         }
 
-        let counts = validate_query(&query, limits)?;
+        let validation = validate_query(&query, limits, capabilities)?;
         let encoded =
             Zeroizing::new(serde_json::to_vec(&query).map_err(|_| Oid4vpError::InvalidDcqlQuery)?);
         if encoded.len() > limits.max_query_bytes() {
@@ -166,9 +197,10 @@ impl ValidatedDcqlQuery {
         Ok(Self {
             engine,
             limits,
-            credential_query_count: counts.credential_queries,
-            claim_query_count: counts.claim_queries,
+            credential_query_count: validation.counts.credential_queries,
+            claim_query_count: validation.counts.claim_queries,
             response_rules,
+            credential_formats: validation.credential_formats,
         })
     }
 
@@ -186,6 +218,17 @@ impl ValidatedDcqlQuery {
         &self.response_rules
     }
 
+    pub(crate) fn credential_format(&self, query_id: &str) -> Option<&CredentialFormat> {
+        self.credential_formats
+            .iter()
+            .find(|rule| rule.id.as_str() == query_id)
+            .map(|rule| &rule.format)
+    }
+
+    pub(crate) fn contains_query_id(&self, query_id: &str) -> bool {
+        self.credential_format(query_id).is_some()
+    }
+
     /// Evaluate bounded credential descriptors through the private engine.
     ///
     /// # Errors
@@ -197,7 +240,7 @@ impl ValidatedDcqlQuery {
     ) -> Result<DcqlEvaluation, Oid4vpError> {
         self.validate_credentials(credentials)?;
         let adapters: Vec<_> = credentials.iter().map(CredentialAdapter).collect();
-        let result = execute(&self.engine, &adapters, &ExactFormat);
+        let result = execute(&self.engine, &adapters, &SdkFormatPolicy);
         let combinations = result.combinations(self.limits.max_combinations());
 
         Ok(DcqlEvaluation {
@@ -333,6 +376,18 @@ impl fmt::Debug for ValidatedDcqlQuery {
 
 struct CredentialAdapter<'a, C>(&'a C);
 
+struct SdkFormatPolicy;
+
+impl<C: DcqlCredential> EnginePolicy<CredentialAdapter<'_, C>> for SdkFormatPolicy {
+    fn matches(
+        &self,
+        query: &EngineCredentialQuery,
+        credential: &CredentialAdapter<'_, C>,
+    ) -> bool {
+        query.format == credential.format() && credential.0.satisfies_format_metadata(&query.meta)
+    }
+}
+
 impl<C: DcqlCredential> EngineCredential for CredentialAdapter<'_, C> {
     fn id(&self) -> &str {
         self.0.expose_sensitive_id()
@@ -384,38 +439,63 @@ struct QueryCounts {
     claim_queries: usize,
 }
 
-fn validate_query(query: &Value, limits: DcqlLimits) -> Result<QueryCounts, Oid4vpError> {
+struct QueryValidation {
+    counts: QueryCounts,
+    credential_formats: Vec<DcqlCredentialFormatRule>,
+}
+
+fn validate_query(
+    query: &Value,
+    limits: DcqlLimits,
+    capabilities: &[&dyn CredentialFormatCapability],
+) -> Result<QueryValidation, Oid4vpError> {
     validate_value_bounds(query, limits)?;
     let object = query.as_object().ok_or(Oid4vpError::InvalidDcqlQuery)?;
     let credentials = required_nonempty_array(object, "credentials", limits)?;
     let mut credential_ids = BTreeSet::new();
     let mut claim_queries = 0_usize;
+    let mut credential_formats = Vec::with_capacity(credentials.len());
 
     for credential in credentials {
-        let (id, claim_count) = validate_credential_query(credential, limits)?;
+        let (id, claim_count, format) =
+            validate_credential_query(credential, limits, capabilities)?;
         if !credential_ids.insert(id.to_owned()) {
             return Err(Oid4vpError::InvalidDcqlQuery);
         }
         claim_queries = claim_queries
             .checked_add(claim_count)
             .ok_or(Oid4vpError::DcqlQueryTooLarge)?;
+        credential_formats.push(DcqlCredentialFormatRule {
+            id: Zeroizing::new(id.to_owned()),
+            format,
+        });
     }
     validate_credential_sets(object, &credential_ids, limits)?;
 
-    Ok(QueryCounts {
-        credential_queries: credentials.len(),
-        claim_queries,
+    Ok(QueryValidation {
+        counts: QueryCounts {
+            credential_queries: credentials.len(),
+            claim_queries,
+        },
+        credential_formats,
     })
 }
 
-fn validate_credential_query(
-    value: &Value,
+fn validate_credential_query<'a>(
+    value: &'a Value,
     limits: DcqlLimits,
-) -> Result<(&str, usize), Oid4vpError> {
+    capabilities: &[&dyn CredentialFormatCapability],
+) -> Result<(&'a str, usize, CredentialFormat), Oid4vpError> {
     let credential = value.as_object().ok_or(Oid4vpError::InvalidDcqlQuery)?;
     let id = required_identifier(credential, "id", limits)?;
-    required_string(credential, "format", limits)?;
-    validate_empty_metadata(credential)?;
+    let format = CredentialFormat::parse(required_string(credential, "format", limits)?);
+    let metadata = credential
+        .get("meta")
+        .ok_or(Oid4vpError::InvalidDcqlQuery)?;
+    crate::credential_format::validate_format_metadata(&format, metadata, capabilities)?;
+    if credential.contains_key("trusted_authorities") {
+        return Err(Oid4vpError::InvalidDcqlQuery);
+    }
 
     let claim_ids = validate_claims(credential, limits)?;
     let claim_count = credential
@@ -423,19 +503,7 @@ fn validate_credential_query(
         .and_then(Value::as_array)
         .map_or(0, Vec::len);
     validate_claim_sets(credential, &claim_ids, claim_count, limits)?;
-    Ok((id, claim_count))
-}
-
-fn validate_empty_metadata(credential: &Map<String, Value>) -> Result<(), Oid4vpError> {
-    let metadata = credential
-        .get("meta")
-        .and_then(Value::as_object)
-        .ok_or(Oid4vpError::InvalidDcqlQuery)?;
-    if !metadata.is_empty() || credential.contains_key("trusted_authorities") {
-        Err(Oid4vpError::InvalidDcqlQuery)
-    } else {
-        Ok(())
-    }
+    Ok((id, claim_count, format))
 }
 
 fn validate_claims(

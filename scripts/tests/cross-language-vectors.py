@@ -22,6 +22,9 @@ OID4VP_DIRECT_POST_PACKET = ROOT / "docs/conformance/fixtures/oid4vp-direct-post
 OID4VP_ENCRYPTED_DIRECT_POST_PACKET = (
     ROOT / "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json"
 )
+OID4VP_TRANSACTION_FORMAT_PACKET = (
+    ROOT / "docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+)
 SIOPV2_PACKET = ROOT / "docs/conformance/fixtures/siopv2/v1/vectors.json"
 
 
@@ -70,6 +73,11 @@ def run(catalog: str, packet: str, should_pass: bool, *, crypto_packet: str | No
         )
         oid4vp_encrypted_direct_post_target.parent.mkdir(parents=True)
         shutil.copy2(OID4VP_ENCRYPTED_DIRECT_POST_PACKET, oid4vp_encrypted_direct_post_target)
+        oid4vp_transaction_format_target = (
+            root / "docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+        )
+        oid4vp_transaction_format_target.parent.mkdir(parents=True)
+        shutil.copy2(OID4VP_TRANSACTION_FORMAT_PACKET, oid4vp_transaction_format_target)
         siopv2_target = root / "docs/conformance/fixtures/siopv2/v1/vectors.json"
         siopv2_target.parent.mkdir(parents=True)
         shutil.copy2(SIOPV2_PACKET, siopv2_target)
@@ -226,6 +234,11 @@ def main() -> None:
         )
         oid4vp_encrypted_direct_post_target.parent.mkdir(parents=True)
         shutil.copy2(OID4VP_ENCRYPTED_DIRECT_POST_PACKET, oid4vp_encrypted_direct_post_target)
+        oid4vp_transaction_format_target = (
+            root / "docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+        )
+        oid4vp_transaction_format_target.parent.mkdir(parents=True)
+        shutil.copy2(OID4VP_TRANSACTION_FORMAT_PACKET, oid4vp_transaction_format_target)
         siopv2_target = root / "docs/conformance/fixtures/siopv2/v1/vectors.json"
         siopv2_target.parent.mkdir(parents=True)
         shutil.copy2(SIOPV2_PACKET, siopv2_target)
@@ -235,6 +248,8 @@ def main() -> None:
         result = subprocess.run([str(CHECKER), str(root)], capture_output=True, text=True, check=False)
         if result.returncode == 0:
             raise AssertionError("symlinked packets must fail validation")
+        if "did.syntax.v1.path must not resolve through a symlink" not in result.stderr:
+            raise AssertionError(f"missing symlink diagnostic: {result.stderr}")
 
     print("cross-language-vectors-tests: mutation suite passed")
 

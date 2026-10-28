@@ -83,6 +83,7 @@ required_files=(
   docs/architecture/quality-evidence-declarations.toml
   docs/architecture/quality-evidence-plan.md
   docs/architecture/oid4vp-encrypted-response-boundary.md
+  docs/architecture/oid4vp-transaction-format-boundary.md
   docs/architecture/siopv2-protocol-core.md
   docs/architecture/did-peer-quality-baseline.md
   docs/architecture/prism-vdr-indexer-quality-baseline.md
@@ -96,7 +97,9 @@ required_files=(
   docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json
   docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json
   docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json
+  docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json
   docs/conformance/fixtures/siopv2/v1/vectors.json
+  openspec/changes/archive/2026-10-28-bind-oid4vp-transaction-and-format-ports/design.md
   crates/crypto/examples/crypto_baseline.rs
   crates/crypto/tests/curves.rs
   crates/crypto/tests/secp256k1_compat.rs

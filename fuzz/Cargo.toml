@@ -117,6 +117,13 @@ doc   = false
 bench = false
 
 [[bin]]
+name  = "transaction_data"
+path  = "fuzz_targets/transaction_data.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
 name  = "siopv2"
 path  = "fuzz_targets/siopv2.rs"
 test  = false

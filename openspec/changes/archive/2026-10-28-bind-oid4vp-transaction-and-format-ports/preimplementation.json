@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 547,
+  "change": "bind-oid4vp-transaction-and-format-ports",
+  "branch": "codex/feat/issue-547",
+  "baseRef": "origin/develop",
+  "baseSha": "a7af3fa2f3afca89b88af0b499e3cf5150760360",
+  "contractHeadSha": "fd1155bab9ab0ecdaf18fd0de27728694f23bd88",
+  "createdAt": "2026-10-28T06:11:13.797Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

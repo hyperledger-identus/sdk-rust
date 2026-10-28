@@ -22,18 +22,20 @@ simultaneous `scope`, and validating complete Final-profile structure.
 ### Requirement: The Identus facade closes candidate tolerance gaps
 
 The SDK SHALL enforce required/non-empty collections, identifier grammar and
-uniqueness, references, path/value shapes, and every configured bound before
-invoking the private engine.
+uniqueness, references, paths/values, format identity, metadata capability,
+and every configured bound before invoking the private engine.
 
 #### Scenario: tolerated candidate input violates Final
 
-- **WHEN** metadata is missing, an identifier contains a dot, a collection is empty, or a reference is unknown
+- **WHEN** metadata is missing, non-empty metadata lacks an exact capability,
+  an identifier contains a dot, a collection is empty, or a reference is unknown
 - **THEN** the SDK rejects the query even if the private candidate would accept it
 
 #### Scenario: work would exceed policy
 
-- **WHEN** query, credential, claim, path, value, set, candidate, or product work exceeds a limit
-- **THEN** evaluation fails before unbounded engine work or result allocation
+- **WHEN** query, metadata, credential, claim, path, value, set, capability,
+  candidate, or product work exceeds a limit
+- **THEN** evaluation fails before unbounded engine or callback work
 
 ### Requirement: Private engine types cannot escape
 
@@ -60,4 +62,3 @@ validity, verifier trust, credential authenticity, consent, or response safety.
 
 - **WHEN** verifier or credential canaries appear in invalid input or resolver failures
 - **THEN** `Debug`, `Display`, errors, metadata, and metrics expose only static categories and bounded counts
-

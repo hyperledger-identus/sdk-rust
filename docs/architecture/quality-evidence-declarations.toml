@@ -1533,3 +1533,113 @@ debt_status       = "none"
 debt_issue        = 0
 rationale         = ""
 details           = [ "oracle=OpenID4VP 1.0 Final sections 5.9, 5.11, 11, 12 and 14.8", "oracle-revision=Final published 2025-07-09; retrieved 2026-10-28", "normalization=Compare scheme class, policy invocation, metadata presence and stable result category", "deviations=Unsigned redirect_uri and DC-API origin are deliberately unsupported by this signed non-DC-API profile" ]
+
+[[declarations]]
+id          = "oid4vp.direct-post-response.transaction-format.quality.v1"
+capability  = "oid4vp.direct-post-response"
+slice       = "Bounded transaction data and credential-format capability ports"
+owner       = "SDK-Rust OID4VP maintainers"
+owner_issue = 547
+risk        = "Unbounded or detached transaction data can amplify parser work, bypass credential selection, disclose authorization context, or couple the protocol core to one proof engine."
+targets     = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "oid4vp.transaction-format.sd-jwt-shaped", "oid4vp.transaction-format.mdoc-shaped", "oid4vp.transaction-format.generic-extension" ]
+limitations = "This declaration proves protocol envelope, resource, capability and selected-query linkage only; it does not create or verify SD-JWT VC, mdoc, W3C VC or extension proofs, execute transport, authorize disclosure, or certify a wallet."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Exact encoding, multi-reference selection and consumed response lineage can diverge across valid transaction and DCQL combinations."
+selectors         = [ "crates/oid4vp/tests/authorization_request.rs#transaction_bindings_cover_every_selected_reference_and_match_success_results", "crates/oid4vp/tests/authorization_request.rs#transaction_data_rejects_bad_encoding_references_and_resource_policy" ]
+command           = "cargo test -p identus-oid4vp --test authorization_request transaction"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Exercise exact unpadded base64url, resource boundaries, unique references, alternative selections, every selected compatible reference, response-result linkage and error-response recovery."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/tests/authorization_request.rs"
+evidence_revision = "58057823d2c05830a1fb05271fbfad5f05c4b485"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/tests/authorization_request.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 547
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Every accepted transaction retains its exact encoding and binds every selected compatible query before successful response construction", "domain=Bounded transaction arrays, JSON objects, DCQL references, formats and selection alternatives", "cases=Ordinary, exact encoding, duplicate, malformed, oversize, unknown, incompatible, multi-reference, mismatched result and protocol error" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Arbitrary encoded transaction input can panic, amplify JSON work, bypass canonical encoding or mint detached query bindings."
+selectors         = [ "fuzz/fuzz_targets/transaction_data.rs#fuzz_target!", "scripts/fuzz-oid4vp.sh#transaction_data" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak transaction_data"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run the bounded transaction parser and linkage path for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/transaction_data.rs"
+evidence_revision = "58057823d2c05830a1fb05271fbfad5f05c4b485"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/transaction_data.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 547
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded transaction arrays, encodings and selected-query linkage", "corpus=Clean-room valid transaction seed plus libFuzzer-managed mutations", "seed=Reproducible failures promoted to focused regression cases", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Canonical decoding, bounded JSON traversal and capability dispatch can materially regress portable authorization latency."
+selectors         = [ "crates/oid4vp/benches/direct_post_response.rs#transaction.ordinary.end-to-end", "crates/oid4vp/benches/direct_post_response.rs#transaction.boundary.end-to-end" ]
+command           = "cargo bench -p identus-oid4vp --bench direct_post_response"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure deterministic ordinary and maximum-string transaction validation, binding and response construction over a stable sample set."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/benches/direct_post_response.rs"
+evidence_revision = "58057823d2c05830a1fb05271fbfad5f05c4b485"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/benches/direct_post_response.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 547
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Validate signed request transaction data, dispatch two deterministic ports, bind one selection and construct inert response", "fixture=Ordinary and 4096-byte maximum-string clean-room transaction objects", "environment=Rust 1.98 etalon on the executing host with Linux as comparison lane", "statistic=Median directional wall time", "samples=21 samples with 20 iterations", "threshold=Directional baseline; functional resource limits remain blocking" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "SDK format identities, common transaction fields and extension behavior can drift from OpenID4VP Final while internal round trips remain green."
+selectors         = [ "crates/oid4vp/tests/authorization_request.rs#transaction_format_packet_covers_sd_jwt_mdoc_and_generic_extension_ports", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.transaction-format.sd-jwt-shaped" ]
+command           = "cargo test -p identus-oid4vp --test authorization_request transaction_format_packet"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Execute clean-room SD-JWT-shaped, mdoc-shaped and generic-extension packets and compare exact retained encoding plus stable binding results."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+evidence_revision = "58057823d2c05830a1fb05271fbfad5f05c4b485"
+recorded_at       = "2026-10-28"
+artifact          = "docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 547
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=OpenID4VP 1.0 Final sections 6.1, 8.4, 8.5 and 10.1", "oracle-revision=Final published 2025-07-09; retrieved 2026-10-28", "normalization=Compare SDK-owned format identifiers, exact encoded transaction bytes and stable binding categories", "deviations=Proof-engine metadata semantics and proof creation remain behind caller-owned ports" ]

@@ -339,7 +339,8 @@ impl ValidatedAuthorizationRequest {
             return Err(Oid4vpError::TooManyQueryResults);
         }
         validate_result_limits(&results, limits)?;
-        let (destination, state, query, _mode, _encryption_plan) = self.into_response_parts();
+        let (destination, state, query, _mode, _encryption_plan) =
+            self.into_success_response_parts(&results)?;
         let AuthorizationResponseDestination::ResponseUri(target) = destination else {
             return Err(Oid4vpError::ResponseModeMismatch);
         };
@@ -374,7 +375,8 @@ impl ValidatedAuthorizationRequest {
             return Err(Oid4vpError::ResponseModeMismatch);
         }
         validate_retained_error_details(&details, limits)?;
-        let (destination, state, _query, _mode, _encryption_plan) = self.into_response_parts();
+        let (destination, state, _query, _mode, _encryption_plan) =
+            self.into_error_response_parts();
         let AuthorizationResponseDestination::ResponseUri(target) = destination else {
             return Err(Oid4vpError::ResponseModeMismatch);
         };

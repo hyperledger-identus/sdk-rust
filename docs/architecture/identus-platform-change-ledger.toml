@@ -70,6 +70,47 @@ allowed_mapping_dispositions = [
   "not-applicable",
 ]
 
+[[changes]]
+id                                = "oid4vp.direct-post-response.transaction-and-format-ports.v1"
+capability                        = "oid4vp.direct-post-response"
+lifecycle_state                   = "active"
+issue                             = 547
+pull_request                      = 553
+change_class                      = "breaking"
+release_note_class                = "changed"
+visibility                        = [ "behavior", "public-api", "security", "wire" ]
+affected_packages                 = [ "identus-oid4vp" ]
+affected_consumers                = [ "lace-id-portal", "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "source-break"
+old_behavior                      = "The unreleased OID4VP core rejects transaction_data and every non-empty DCQL credential metadata object."
+new_behavior                      = "The unreleased core retains bounded transaction linkage and validates format-specific metadata and binding through SDK-owned caller-injected capabilities."
+migration_action                  = "Supply exact format and transaction capabilities when adopting non-empty metadata or transaction_data; keep concrete proof engines in their owning crates."
+replacement                       = "SDK-owned OID4VP transaction and credential-format capability ports."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The API is experimental and unpublished; migration is required before the first compatible release."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "Rust-native protocol values remain canonical; language adapters must not dictate SDK DTO or error shapes."
+vector_ids                        = [ "oid4vp.transaction-format.generic-extension", "oid4vp.transaction-format.mdoc-shaped", "oid4vp.transaction-format.sd-jwt-shaped" ]
+quality_declaration_ids           = [ "oid4vp.direct-post-response.transaction-format.quality.v1" ]
+observability                     = "Record only stable type, format and outcome categories plus bounded counts or lengths; never record metadata, exact transaction strings, credential IDs, presentations or adapter diagnostics."
+fallback                          = "Consumers retain adapter-owned transaction and format handling until the owning credential-format capability is qualified."
+rollback                          = "Before publication remove the additive ports and retained state while preserving existing empty-metadata, no-transaction routing."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#oid4vp.direct-post-response.transaction-format.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.transaction-format.sd-jwt-shaped" ]
+evidence_artifacts                = [ "docs/adr/0186-keep-credential-format-proofs-behind-oid4vp-capability-ports.md", "docs/architecture/oid4vp-transaction-format-boundary.md", "docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json", "openspec/changes/archive/2026-10-28-bind-oid4vp-transaction-and-format-ports/design.md" ]
+limitations                       = "No SD-JWT VC, mdoc, W3C VC/Data Integrity, HAIP, proof generation or verification, HTTP, persistence, product trust/consent, certification, publication, or downstream adoption is included."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
 # Issue #422 activated the registry without inventing a synthetic consumer
 # change. Subsequent issue-owned records are added only with connected vector,
 # quality and OpenSpec impact evidence.

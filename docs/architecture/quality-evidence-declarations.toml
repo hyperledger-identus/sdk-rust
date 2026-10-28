@@ -1770,97 +1770,97 @@ replaced_by = ""
 
 [[declarations.obligations]]
 class             = "property"
-disposition       = "required"
+disposition       = "satisfied"
 risk              = "Accepted identifiers may fail stable parse, format, URL derivation, or exact-document binding invariants."
-selectors         = [ "openspec/changes/add-portable-did-web-core/specs/did-web-method/spec.md#The method profile is strict and bounded" ]
+selectors         = [ "crates/did-web/tests/conformance.rs#parse_format_and_url_property_covers_sixty_four_domain_classes", "crates/did-web/tests/conformance.rs#strict_profile_rejects_unsafe_or_ambiguous_forms", "crates/did-web/tests/fetch_port_e2e.rs#public_fetch_port_resolves_one_exact_document_end_to_end" ]
 command           = "cargo test -p identus-did-web --all-features"
 lane              = "focused"
 cadence           = "on-change"
 targets           = [ "package:identus-did-web", "host:rust" ]
-freshness         = "pending"
+freshness         = "source-bound"
 freshness_days    = 0
 budget            = "Sweep deterministic valid and invalid authority, port and path classes plus complete in-memory fetch-port E2E."
-receipt_kind      = "none"
-receipt           = ""
-evidence_revision = ""
-recorded_at       = ""
-artifact          = ""
+receipt_kind      = "source"
+receipt           = "source:crates/did-web/tests/conformance.rs"
+evidence_revision = "f424e3914a46a4c0f5d74be0b3bf6b1378949b02"
+recorded_at       = "2026-10-28"
+artifact          = "crates/did-web/tests/conformance.rs"
 owner             = "SDK-Rust DID maintainers"
 owner_issue       = 559
-debt_status       = "open"
-debt_issue        = 559
+debt_status       = "none"
+debt_issue        = 0
 rationale         = ""
 details           = [ "invariant=Every accepted DID reparses and derives the same exact HTTPS request while only an exact document ID succeeds", "domain=Bounded ASCII FQDN, encoded port, path, response envelope and DID document inputs", "cases=Deterministic equivalence classes and one complete injected-port E2E" ]
 
 [[declarations.obligations]]
 class             = "fuzz"
-disposition       = "required"
+disposition       = "satisfied"
 risk              = "Hostile method text, media types or response bytes can panic, amplify work, reinterpret authority, or bypass exact ID binding."
-selectors         = [ "openspec/changes/add-portable-did-web-core/specs/did-web-method/spec.md#Responses are bounded and exactly correlated" ]
+selectors         = [ "fuzz/fuzz_targets/did_web.rs#fuzz_target!", "scripts/fuzz-did-web.sh#-max_total_time=300" ]
 command           = "nix develop .#fuzz --command ./scripts/fuzz-did-web.sh soak"
 lane              = "slow"
 cadence           = "weekly-or-manual"
 targets           = [ "package:identus-did-web", "host:linux", "sanitizer:address" ]
-freshness         = "pending"
+freshness         = "source-bound"
 freshness_days    = 0
 budget            = "Run bounded parse and response binding for 300 seconds with timeout 5 seconds and RSS limit 1024 MiB."
-receipt_kind      = "none"
-receipt           = ""
-evidence_revision = ""
-recorded_at       = ""
-artifact          = ""
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/did_web.rs"
+evidence_revision = "f424e3914a46a4c0f5d74be0b3bf6b1378949b02"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/did_web.rs"
 owner             = "SDK-Rust DID maintainers"
 owner_issue       = 559
-debt_status       = "open"
-debt_issue        = 559
+debt_status       = "none"
+debt_issue        = 0
 rationale         = ""
 details           = [ "harness=Arbitrary bounded bytes route through identifier parsing and response binding", "corpus=Pinned path mapping and exact valid DID document", "seed=libFuzzer-managed reproducible failures promoted to checked-in regressions", "bounds=max_len=140000;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
 
 [[declarations.obligations]]
 class             = "benchmark"
-disposition       = "required"
+disposition       = "satisfied"
 risk              = "Authority parsing, URL derivation, response validation, or oversized rejection can materially regress latency or allocation behavior."
-selectors         = [ "openspec/changes/add-portable-did-web-core/specs/did-web-method/spec.md#Pure URL derivation follows the pinned method" ]
+selectors         = [ "crates/did-web/benches/directional.rs#did-web-benchmark", "docs/architecture/did-web-quality-baseline.md#Directional benchmark" ]
 command           = "cargo bench -p identus-did-web --bench directional"
 lane              = "slow"
 cadence           = "weekly-or-manual"
 targets           = [ "package:identus-did-web", "host:rust" ]
-freshness         = "pending"
+freshness         = "source-bound"
 freshness_days    = 0
 budget            = "Measure parse/derive, response binding, and early oversized rejection over deterministic samples."
-receipt_kind      = "none"
-receipt           = ""
-evidence_revision = ""
-recorded_at       = ""
-artifact          = ""
+receipt_kind      = "source"
+receipt           = "source:docs/architecture/did-web-quality-baseline.md"
+evidence_revision = "f424e3914a46a4c0f5d74be0b3bf6b1378949b02"
+recorded_at       = "2026-10-28"
+artifact          = "docs/architecture/did-web-quality-baseline.md"
 owner             = "SDK-Rust DID maintainers"
 owner_issue       = 559
-debt_status       = "open"
-debt_issue        = 559
+debt_status       = "none"
+debt_issue        = 0
 rationale         = ""
-details           = [ "operation=Identifier parse, request derivation, successful response binding and early resource rejection", "fixture=Pinned path DID, exact document and oversized identifier", "environment=Rust 1.98 etalon development host", "statistic=Median wall time in nanoseconds per iteration", "samples=101 measured samples after warm-up", "threshold=Order-of-magnitude advisory baseline while functional limits remain blocking" ]
+details           = [ "operation=Identifier parse, request derivation, successful response binding and early resource rejection", "fixture=Pinned path DID, exact document and oversized identifier", "environment=Rust 1.98.1 etalon on Apple Silicon macOS; parse-derive=187ns; bind-response=374ns; reject-oversize=2ns", "statistic=Median wall time in nanoseconds per iteration", "samples=101 measured samples with 500 iterations per sample", "threshold=Order-of-magnitude advisory baseline while functional limits remain blocking" ]
 
 [[declarations.obligations]]
 class             = "differential"
-disposition       = "required"
+disposition       = "satisfied"
 risk              = "SDK URL mapping or document correlation may drift from the pinned method while internal round trips remain green."
 selectors         = [ "docs/conformance/fixtures/did-web/v1/vectors.json#did.web.path.pinned-example" ]
 command           = "cargo test -p identus-did-web --test conformance pinned_url_mapping_examples_match_the_selected_profile"
 lane              = "fast"
 cadence           = "per-pull-request"
 targets           = [ "package:identus-did-web", "host:rust", "consumer:portable-sdk" ]
-freshness         = "pending"
+freshness         = "source-bound"
 freshness_days    = 0
 budget            = "Compare exact bare, path and encoded-port URLs plus exact document ID binding against attributed pinned examples."
-receipt_kind      = "none"
-receipt           = ""
-evidence_revision = ""
-recorded_at       = ""
-artifact          = ""
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/fixtures/did-web/v1/vectors.json"
+evidence_revision = "f424e3914a46a4c0f5d74be0b3bf6b1378949b02"
+recorded_at       = "2026-10-28"
+artifact          = "docs/conformance/fixtures/did-web/v1/vectors.json"
 owner             = "SDK-Rust DID maintainers"
 owner_issue       = 559
-debt_status       = "open"
-debt_issue        = 559
+debt_status       = "none"
+debt_issue        = 0
 rationale         = ""
 details           = [ "oracle=Pinned w3c-ccg did:web draft", "oracle-revision=ea423c114e6f2537498ee6f94e8d794c64f60c18", "normalization=Compare exact derived URL and document ID rather than foreign DTO or transport errors", "deviations=Strict ASCII FQDN, canonical non-default port, conservative path and caller-owned network policy" ]
 

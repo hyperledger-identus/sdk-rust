@@ -610,42 +610,38 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
-| `property` | `required` | `focused` | `on-change` | `pending` | #559 |
-| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #559 |
-| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #559 |
-| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #559 |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #559 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #559 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #559 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #559 |
 
 ### `property`
 
 - Command: `cargo test -p identus-did-web --all-features`
 - Budget: Sweep deterministic valid and invalid authority, port and path classes plus complete in-memory fetch-port E2E.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #559
+- Receipt: `source:crates/did-web/tests/conformance.rs`
+- Evidence revision: `f424e3914a46a4c0f5d74be0b3bf6b1378949b02`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did-web.sh soak`
 - Budget: Run bounded parse and response binding for 300 seconds with timeout 5 seconds and RSS limit 1024 MiB.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #559
+- Receipt: `source:fuzz/fuzz_targets/did_web.rs`
+- Evidence revision: `f424e3914a46a4c0f5d74be0b3bf6b1378949b02`
 
 ### `benchmark`
 
 - Command: `cargo bench -p identus-did-web --bench directional`
 - Budget: Measure parse/derive, response binding, and early oversized rejection over deterministic samples.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #559
+- Receipt: `source:docs/architecture/did-web-quality-baseline.md`
+- Evidence revision: `f424e3914a46a4c0f5d74be0b3bf6b1378949b02`
 
 ### `differential`
 
 - Command: `cargo test -p identus-did-web --test conformance pinned_url_mapping_examples_match_the_selected_profile`
 - Budget: Compare exact bare, path and encoded-port URLs plus exact document ID binding against attributed pinned examples.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #559
+- Receipt: `source:docs/conformance/fixtures/did-web/v1/vectors.json`
+- Evidence revision: `f424e3914a46a4c0f5d74be0b3bf6b1378949b02`
 
 ## `did.jwk.profile.quality.v1`
 

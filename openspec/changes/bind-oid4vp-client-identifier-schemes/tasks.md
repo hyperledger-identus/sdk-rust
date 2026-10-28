@@ -17,5 +17,5 @@
 - [x] 3.1 Add clean-room scheme, mismatch, ambiguity, metadata, property and E2E cases.
 - [x] 3.2 Add fuzz, benchmark, redaction, portable and dependency evidence.
 - [x] 3.3 Update ADR, conformance matrix, resource/quality registries and adopter guidance.
-- [ ] 3.4 Pass local/Nix/factory gates and exact-head Claude-or-Codex CLI review.
+- [x] 3.4 Pass local/Nix/factory gates and exact-head Claude-or-Codex CLI review.
 - [ ] 3.5 Archive OpenSpec, publish metrics and deliver through protected CI/guarded merge.

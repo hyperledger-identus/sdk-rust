@@ -5,7 +5,7 @@ Issue: #545
 Develop base: `f0edaf820b3bc12b45faae02b60c55db3d3040ff`
 Planning contract: `d3a17eb3baf74652045f823dc988b20eeaf70711`
 Preimplementation receipt: `9cfbcdfe860b2ee47ed2704e00d302ec6ce912c8`
-Implementation under review: `736601b758a1bf24ce53ef090b863c5e21a66682`
+Implementation under review: `0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba`
 Reviewer: Codex CLI, used under the repository's Claude-or-Codex fallback rule
 
 ## Resolved findings
@@ -57,6 +57,22 @@ invoking the policy. The scheme E2E test now constructs protected-header
 Federation evidence and includes a negative payload-substitution regression.
 Commit: `736601b758a1bf24ce53ef090b863c5e21a66682`.
 
+### R-4 — Verifier-info string limits crossed the DCQL boundary
+
+Severity: P2 before correction
+
+The exact-branch remediation review found two inconsistent explicit-limit
+paths. String-valued `verifier_info.data` was governed only by the aggregate
+metadata-byte ceiling, while every DCQL credential identifier was governed by
+the verifier-info string ceiling even when no verifier-info entry referenced
+it.
+
+Resolution: string-valued verifier-info data and referenced credential IDs now
+obey the verifier-info string ceiling. Unreferenced DCQL identifiers remain
+owned by `DcqlLimits`, so a narrow verifier-info policy cannot reject an
+otherwise valid query. Focused regressions cover both boundaries. Commit:
+`0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba`.
+
 ## Architecture review
 
 - The protocol crate owns scheme parsing, bounded verifier metadata and the
@@ -92,7 +108,9 @@ Commit: `736601b758a1bf24ce53ef090b863c5e21a66682`.
 
 ## Final review status
 
-The three independent review findings above are resolved. A final exact-branch
-Codex CLI remediation pass will be recorded after the correction commit; task
-3.4 remains open until that pass reports no unresolved blocker, high or medium
-finding.
+All four independent review findings above are resolved. A final Codex CLI
+review of exact implementation head
+`0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba` reported no actionable defects.
+The review sandbox could not acquire Cargo's build lock, so independently run
+focused, workspace, fuzz, benchmark and Nix evidence remains the executable
+verification authority.

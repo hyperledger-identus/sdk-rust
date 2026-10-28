@@ -30,7 +30,7 @@ func bindingContractExecutesInIosSimulator() throws {
         #expect(!error.localizedDescription.contains(callerText))
     }
 
-    let oversized = "did:example:" + String(repeating: "a", count: 4_096)
+    let oversized = "did:example:1/" + String(repeating: "a", count: 8_192)
     do {
         _ = try parseDidUrl(value: oversized)
         Issue.record("oversized DID URL was accepted")

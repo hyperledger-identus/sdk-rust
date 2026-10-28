@@ -21,6 +21,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/oid4vp-conformance.py"
 "$repository_root/scripts/tests/ssi-upstream-backlog-live.py"
 "$repository_root/scripts/tests/weekly-slow-live.py"
+"$repository_root/scripts/tests/uniffi-generator-supply-chain.py"
 "$repository_root/scripts/tests/support-policy.py"
 "$repository_root/scripts/tests/apollo-parity.py"
 "$repository_root/scripts/tests/platform-ts-capabilities.py"
@@ -169,6 +170,7 @@ required_files=(
   docs/governance/constraints-and-limitations.md
   docs/governance/repository-settings-receipt-2026-09-14.md
   docs/governance/repository-settings.md
+  docs/governance/uniffi-generator-risk-acceptance.md
   docs/governance/crates-io-environment-receipt-2026-09-22.md
   docs/governance/sdk-constraints.toml
   docs/adr/0001-bootstrap-branch-selection.md
@@ -291,6 +293,7 @@ required_files=(
   scripts/check-oid4vp-conformance.py
   scripts/check-ssi-upstream-backlog-live.py
   scripts/check-uniffi-did-android.sh
+  scripts/check-uniffi-generator-supply-chain.py
   scripts/check-weekly-slow-live.py
   scripts/check-source-distribution.py
   scripts/check-crypto-candidate.py
@@ -319,6 +322,7 @@ required_files=(
   scripts/tests/oid4vci-conformance.py
   scripts/tests/oid4vp-conformance.py
   scripts/tests/weekly-slow-live.py
+  scripts/tests/uniffi-generator-supply-chain.py
   scripts/tests/apollo-parity.py
   scripts/tests/platform-ts-capabilities.py
   scripts/tests/a1-compatibility-plan.py

@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-28
+goal: Restore honest native DID binding evidence while bounding the build-only RUSTSEC-2026-0374 dependency risk.

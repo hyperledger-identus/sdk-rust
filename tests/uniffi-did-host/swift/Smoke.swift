@@ -29,7 +29,9 @@ struct Smoke {
             precondition(!error.localizedDescription.contains(callerText))
         }
 
-        let oversized = "did:example:" + String(repeating: "a", count: 4_096)
+        // The PRISM-capable domain ceiling is intentionally large. Exercise the
+        // independent 8 KiB DID URL suffix bound without allocating 139 KiB.
+        let oversized = "did:example:1/" + String(repeating: "a", count: 8_192)
         do {
             _ = try parseDidUrl(value: oversized)
             preconditionFailure("oversized DID URL was accepted")

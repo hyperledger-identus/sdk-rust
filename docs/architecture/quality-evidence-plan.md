@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-28`
-- Declaration count: `11`
+- Declaration count: `12`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -507,3 +507,48 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Compare every Final-defined prefix and metadata source disposition against the pinned normative matrix using normalized SDK states and errors.
 - Receipt: `source:crates/oid4vp/tests/verifier_authorization.rs`
 - Evidence revision: `0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba`
+
+## `oid4vp.direct-post-response.transaction-format.quality.v1`
+
+- Capability: `oid4vp.direct-post-response`
+- Slice: Bounded transaction data and credential-format capability ports
+- Owner: SDK-Rust OID4VP maintainers (issue #547)
+- Risk: Unbounded or detached transaction data can amplify parser work, bypass credential selection, disclose authorization context, or couple the protocol core to one proof engine.
+- Targets: `package:identus-oid4vp`, `host:rust`, `consumer:portable-sdk`
+- Vector IDs: `3` local catalog entries
+- Limitations: This declaration proves protocol envelope, resource, capability and selected-query linkage only; it does not create or verify SD-JWT VC, mdoc, W3C VC or extension proofs, execute transport, authorize disclosure, or certify a wallet.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #547 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #547 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #547 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #547 |
+
+### `property`
+
+- Command: `cargo test -p identus-oid4vp --test authorization_request transaction`
+- Budget: Exercise exact unpadded base64url, resource boundaries, unique references, alternative selections, every selected compatible reference, response-result linkage and error-response recovery.
+- Receipt: `source:crates/oid4vp/tests/authorization_request.rs`
+- Evidence revision: `58057823d2c05830a1fb05271fbfad5f05c4b485`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak transaction_data`
+- Budget: Run the bounded transaction parser and linkage path for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024.
+- Receipt: `source:fuzz/fuzz_targets/transaction_data.rs`
+- Evidence revision: `58057823d2c05830a1fb05271fbfad5f05c4b485`
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-oid4vp --bench direct_post_response`
+- Budget: Measure deterministic ordinary and maximum-string transaction validation, binding and response construction over a stable sample set.
+- Receipt: `source:crates/oid4vp/benches/direct_post_response.rs`
+- Evidence revision: `58057823d2c05830a1fb05271fbfad5f05c4b485`
+
+### `differential`
+
+- Command: `cargo test -p identus-oid4vp --test authorization_request transaction_format_packet`
+- Budget: Execute clean-room SD-JWT-shaped, mdoc-shaped and generic-extension packets and compare exact retained encoding plus stable binding results.
+- Receipt: `source:docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json`
+- Evidence revision: `58057823d2c05830a1fb05271fbfad5f05c4b485`

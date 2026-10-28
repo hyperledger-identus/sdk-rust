@@ -52,7 +52,8 @@ impl ValidatedAuthorizationRequest {
             return Err(Oid4vpError::TooManyQueryResults);
         }
         validate_result_limits(&results, response_limits)?;
-        let (destination, state, query, _, encryption) = self.into_response_parts()?;
+        let (destination, state, query, _, encryption) =
+            self.into_success_response_parts(&results)?;
         if encryption.is_some() {
             return Err(Oid4vpError::ResponseModeMismatch);
         }
@@ -87,7 +88,7 @@ impl ValidatedAuthorizationRequest {
         let mode = self.response_mode();
         require_redirect_mode(mode)?;
         validate_retained_error_details(&details, error_limits)?;
-        let (destination, state, _query, _, encryption) = self.into_response_parts()?;
+        let (destination, state, _query, _, encryption) = self.into_error_response_parts();
         if encryption.is_some() {
             return Err(Oid4vpError::ResponseModeMismatch);
         }

@@ -21,6 +21,12 @@ semantics. Credential-format crates own proof creation, verification, hashing,
 embedding, and their native types. There is no global registry or foreign DTO
 compatibility contract.
 
+Request-time capabilities validate the meaning of non-empty query metadata.
+Candidate adapters also implement the fail-closed
+`DcqlCredential::satisfies_format_metadata` port, so evaluation enforces the
+accepted constraint against every credential instead of matching only its
+format identifier.
+
 Empty metadata without transaction data remains the baseline profile. Every
 non-empty metadata object and transaction type requires exactly one capability.
 The exact encoded transaction string is retained behind an explicit sensitive

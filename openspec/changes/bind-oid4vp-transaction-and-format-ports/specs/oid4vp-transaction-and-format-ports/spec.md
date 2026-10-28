@@ -20,17 +20,25 @@ DCQL credential references, and retain the exact encoded representation.
 
 The SDK SHALL represent known Final credential formats and bounded extensions
 with SDK-owned values and SHALL validate non-empty format metadata through one
-exact injected capability without exposing implementation types or errors.
+exact injected capability without exposing implementation types or errors. It
+SHALL require each candidate adapter to satisfy the accepted metadata during
+DCQL evaluation; format-identifier equality alone is insufficient.
 
 #### Scenario: format metadata is supported
 
 - **WHEN** the DCQL format and metadata are accepted by exactly one capability
+- **AND** a candidate adapter affirms the same metadata constraint
 - **THEN** the query retains SDK-owned format evidence for later selection linkage
 
 #### Scenario: format semantics are absent or ambiguous
 
 - **WHEN** non-empty metadata has no capability, registrations conflict, or a capability rejects it
 - **THEN** query validation fails before candidate evaluation
+
+#### Scenario: candidate does not satisfy accepted metadata
+
+- **WHEN** query metadata is valid but a same-format credential does not satisfy it
+- **THEN** DCQL evaluation excludes that credential from candidates and combinations
 
 ### Requirement: selected inputs preserve transaction binding
 

@@ -4,9 +4,10 @@ use std::{collections::BTreeSet, fmt};
 
 use serde_json::{Map, Value};
 use siros_dcql::{
-    Candidate as EngineCandidate, Credential as EngineCredential, DcqlQuery as EngineQuery,
-    Dropped as EngineDropped, ExactFormat, PathComponent as EnginePath,
-    PathError as EnginePathError, SelectedClaim as EngineSelectedClaim, execute,
+    Candidate as EngineCandidate, Credential as EngineCredential,
+    CredentialQuery as EngineCredentialQuery, DcqlQuery as EngineQuery, Dropped as EngineDropped,
+    PathComponent as EnginePath, PathError as EnginePathError, Policy as EnginePolicy,
+    SelectedClaim as EngineSelectedClaim, execute,
 };
 use zeroize::Zeroizing;
 
@@ -84,6 +85,16 @@ pub trait DcqlCredential {
     /// Whether this credential has cryptographic holder binding.
     fn has_cryptographic_holder_binding(&self) -> bool;
 
+    /// Whether this credential satisfies already validated format-specific
+    /// metadata from one credential query.
+    ///
+    /// The default fails closed for non-empty metadata. Implementations that
+    /// support format metadata must delegate to their owning format engine;
+    /// they must be deterministic and effect-free.
+    fn satisfies_format_metadata(&self, metadata: &Map<String, Value>) -> bool {
+        metadata.is_empty()
+    }
+
     /// Resolve a bounded claims path and return matching JSON values.
     ///
     /// # Errors
@@ -160,6 +171,9 @@ impl ValidatedDcqlQuery {
         limits: DcqlLimits,
         capabilities: &[&dyn CredentialFormatCapability],
     ) -> Result<Self, Oid4vpError> {
+        if capabilities.len() > limits.max_collection_items() {
+            return Err(Oid4vpError::InvalidDcqlQuery);
+        }
         if request.contains_key("scope") {
             return Err(Oid4vpError::UnsupportedDcqlScope);
         }
@@ -226,7 +240,7 @@ impl ValidatedDcqlQuery {
     ) -> Result<DcqlEvaluation, Oid4vpError> {
         self.validate_credentials(credentials)?;
         let adapters: Vec<_> = credentials.iter().map(CredentialAdapter).collect();
-        let result = execute(&self.engine, &adapters, &ExactFormat);
+        let result = execute(&self.engine, &adapters, &SdkFormatPolicy);
         let combinations = result.combinations(self.limits.max_combinations());
 
         Ok(DcqlEvaluation {
@@ -361,6 +375,18 @@ impl fmt::Debug for ValidatedDcqlQuery {
 }
 
 struct CredentialAdapter<'a, C>(&'a C);
+
+struct SdkFormatPolicy;
+
+impl<C: DcqlCredential> EnginePolicy<CredentialAdapter<'_, C>> for SdkFormatPolicy {
+    fn matches(
+        &self,
+        query: &EngineCredentialQuery,
+        credential: &CredentialAdapter<'_, C>,
+    ) -> bool {
+        query.format == credential.format() && credential.0.satisfies_format_metadata(&query.meta)
+    }
+}
 
 impl<C: DcqlCredential> EngineCredential for CredentialAdapter<'_, C> {
     fn id(&self) -> &str {

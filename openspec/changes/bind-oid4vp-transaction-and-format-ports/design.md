@@ -21,6 +21,11 @@ There is no global registry. Duplicate registrations and missing capabilities
 fail before callback execution. Empty metadata uses a built-in baseline rule;
 non-empty metadata always requires a port.
 
+Validation alone is not candidate matching. The DCQL policy invokes the
+credential adapter's fail-closed format-metadata predicate for every candidate.
+Its default accepts only empty metadata, preventing an adapter from degrading
+a VCT, doctype, or extension constraint to format-name equality.
+
 ## Consumed lineage
 
 Authorization parsing validates DCQL format/meta first, then parses transaction

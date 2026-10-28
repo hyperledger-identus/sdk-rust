@@ -212,6 +212,9 @@ impl ValidatedTransactionData {
         format_capabilities: &[&dyn CredentialFormatCapability],
         transaction_capabilities: &[&dyn TransactionDataCapability],
     ) -> Result<Self, Oid4vpError> {
+        if transaction_capabilities.len() > limits.max_items {
+            return Err(Oid4vpError::InvalidTransactionData);
+        }
         let Some(value) = request.get("transaction_data") else {
             return Ok(Self {
                 entries: Vec::new(),
@@ -246,26 +249,39 @@ impl ValidatedTransactionData {
                 return Err(Oid4vpError::InvalidTransactionData);
             }
         }
-        self.entries
-            .iter()
-            .map(|entry| {
-                let selected = selections.iter().find(|selection| {
-                    entry.compatible_queries.iter().any(|(id, format)| {
-                        id.as_str() == selection.query_id.as_str() && format == &selection.format
-                    })
-                });
-                let selected = selected.ok_or(Oid4vpError::InvalidTransactionData)?;
-                Ok(TransactionBinding {
+        let mut bindings = Vec::new();
+        for entry in &self.entries {
+            let start = bindings.len();
+            for selected in selections.iter().filter(|selection| {
+                entry.compatible_queries.iter().any(|(id, format)| {
+                    id.as_str() == selection.query_id.as_str() && format == &selection.format
+                })
+            }) {
+                bindings.push(TransactionBinding {
                     encoded: entry.encoded.clone(),
                     transaction_type: entry.transaction_type.clone(),
                     query_id: selected.query_id.clone(),
-                })
-            })
-            .collect()
+                });
+            }
+            if bindings.len() == start {
+                return Err(Oid4vpError::InvalidTransactionData);
+            }
+        }
+        Ok(bindings)
     }
 
     pub(crate) fn len(&self) -> usize {
         self.entries.len()
+    }
+
+    pub(crate) fn referenced_query_ids(&self) -> Vec<Zeroizing<String>> {
+        self.entries
+            .iter()
+            .flat_map(|entry| entry.compatible_queries.iter().map(|(id, _)| id.as_str()))
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .map(|id| Zeroizing::new(id.to_owned()))
+            .collect()
     }
 
     pub(crate) fn is_empty(&self) -> bool {

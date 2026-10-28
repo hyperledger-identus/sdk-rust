@@ -28,13 +28,22 @@ The OID4VP crate owns Final envelope syntax, exact base64url representation,
 common `type` and `credential_ids` fields, resource limits, DCQL references,
 format identity, selection linkage, consumed request lineage, and redacted
 errors. It refuses to construct response material until a request containing
-transaction data has passed the selected-input binding transition.
+transaction data has passed the selected-input binding transition. Every
+selected compatible reference receives binding material, and a success response
+must contain the same bound query IDs. A protocol error remains available when
+selection or proof construction fails.
 
 Credential-format crates own metadata meaning, transaction-type compatibility,
 hashing or embedding rules, proof creation and verification, keys, and native
 credential values. Adapters own transport, storage, consent, trust, and product
 policy. There is no ambient registry and no SDK-TS/Swift/KMP DTO or error shape
 in the Rust contract.
+
+The metadata boundary is deliberately two-sided: the format capability
+validates the bounded verifier query, while
+`DcqlCredential::satisfies_format_metadata` checks each inventory candidate.
+The candidate port defaults to rejecting non-empty metadata, preventing a
+silent downgrade to format-name-only matching.
 
 ## Supported identifiers and extension rule
 
@@ -44,6 +53,11 @@ DCQL metadata remains a baseline path; non-empty metadata and every transaction
 type require exactly one injected capability. Unknown or duplicate mandatory
 semantics fail closed.
 
+Extension capabilities use `CredentialFormat::extension` with an explicit byte
+budget. Capability list traversal is bounded by the DCQL or transaction policy;
+ports are deterministic and effect-free, so network, storage, trust and consent
+cannot hide inside validation.
+
 ## Assurance boundary
 
 The clean-room E2E signs a request, validates audience/replay and verifier key,
@@ -52,3 +66,9 @@ links it to a selected DCQL input, and exposes the exact encoded value only to
 the proof-engine boundary. This proves protocol lineage and adapter feasibility,
 not SD-JWT VC, mdoc, W3C VC, HAIP, certification, live interoperability,
 credential authenticity, or user consent.
+
+The versioned clean-room packet covers SD-JWT-shaped, mdoc-shaped and generic
+extension ports. Property cases cover multi-reference selection and final
+response linkage; the transaction parser has a dedicated fuzz target; and the
+directional benchmark measures ordinary and maximum-string requests. These are
+quality routing records, not certification or live interoperability claims.

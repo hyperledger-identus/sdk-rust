@@ -1,6 +1,6 @@
 //! Composed OpenID4VP Final authorization and direct-post routing evidence.
 
-use std::fmt;
+use std::{collections::BTreeSet, fmt};
 
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use fluent_uri::Uri as ParsedUri;
@@ -13,7 +13,7 @@ use zeroize::Zeroizing;
 
 use crate::{
     AuthorizationRequestValidationLimits, ClientIdentifierScheme, CredentialFormatCapability,
-    DcqlLimits, Oid4vpError, SelectedCredentialInput, TransactionBinding,
+    DcqlLimits, DirectPostQueryResult, Oid4vpError, SelectedCredentialInput, TransactionBinding,
     TransactionDataCapability, TransactionDataLimits, ValidatedDcqlQuery,
     VerifierAuthorizationEvidence,
 };
@@ -97,7 +97,8 @@ pub struct ValidatedAuthorizationRequest {
     destination: AuthorizationResponseDestination,
     dcql_query: ValidatedDcqlQuery,
     transaction_data: crate::transaction_data::ValidatedTransactionData,
-    transaction_data_bound: bool,
+    transaction_query_ids: Vec<Zeroizing<String>>,
+    bound_transaction_query_ids: Option<Vec<Zeroizing<String>>>,
     encryption_plan: Option<DirectPostEncryptionPlan>,
 }
 
@@ -224,7 +225,8 @@ impl ValidatedAuthorizationRequest {
             policy.format_capabilities,
             policy.transaction_capabilities,
         )?;
-        let transaction_data_bound = transaction_data.is_empty();
+        let transaction_query_ids = transaction_data.referenced_query_ids();
+        let bound_transaction_query_ids = transaction_data.is_empty().then(Vec::new);
 
         Ok(Self {
             response_type,
@@ -238,7 +240,8 @@ impl ValidatedAuthorizationRequest {
             destination,
             dcql_query,
             transaction_data,
-            transaction_data_bound,
+            transaction_query_ids,
+            bound_transaction_query_ids,
             encryption_plan,
         })
     }
@@ -330,21 +333,63 @@ impl ValidatedAuthorizationRequest {
         selections: &[SelectedCredentialInput],
     ) -> Result<(Self, Vec<TransactionBinding>), Oid4vpError> {
         let bindings = self.transaction_data.bindings(selections)?;
-        self.transaction_data_bound = true;
+        let query_ids = bindings
+            .iter()
+            .map(|binding| binding.expose_sensitive_query_id())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .map(|query_id| Zeroizing::new(query_id.to_owned()))
+            .collect();
+        self.bound_transaction_query_ids = Some(query_ids);
         Ok((self, bindings))
     }
 
-    pub(crate) fn into_response_parts(self) -> Result<AuthorizationResponseParts, Oid4vpError> {
-        if !self.transaction_data_bound {
-            return Err(Oid4vpError::InvalidTransactionData);
+    pub(crate) fn into_success_response_parts(
+        self,
+        results: &[DirectPostQueryResult],
+    ) -> Result<AuthorizationResponseParts, Oid4vpError> {
+        let bound_query_ids = self
+            .bound_transaction_query_ids
+            .as_ref()
+            .ok_or(Oid4vpError::InvalidTransactionData)?;
+        let bound_query_ids = bound_query_ids
+            .iter()
+            .map(|query_id| query_id.as_str())
+            .collect::<BTreeSet<_>>();
+        let transaction_query_ids = self
+            .transaction_query_ids
+            .iter()
+            .map(|query_id| query_id.as_str())
+            .collect::<BTreeSet<_>>();
+        for query_id in &bound_query_ids {
+            if !results
+                .iter()
+                .any(|result| result.expose_sensitive_query_id() == *query_id)
+            {
+                return Err(Oid4vpError::InvalidTransactionData);
+            }
         }
-        Ok((
+        for result in results {
+            let query_id = result.expose_sensitive_query_id();
+            if transaction_query_ids.contains(query_id) && !bound_query_ids.contains(query_id) {
+                return Err(Oid4vpError::InvalidTransactionData);
+            }
+        }
+        Ok(self.into_response_parts())
+    }
+
+    pub(crate) fn into_error_response_parts(self) -> AuthorizationResponseParts {
+        self.into_response_parts()
+    }
+
+    fn into_response_parts(self) -> AuthorizationResponseParts {
+        (
             self.destination,
             self.state,
             self.dcql_query,
             self.response_mode,
             self.encryption_plan,
-        ))
+        )
     }
 }
 
@@ -373,7 +418,10 @@ impl fmt::Debug for ValidatedAuthorizationRequest {
             )
             .field("has_encryption_plan", &self.encryption_plan.is_some())
             .field("transaction_data_count", &self.transaction_data.len())
-            .field("transaction_data_bound", &self.transaction_data_bound)
+            .field(
+                "transaction_data_bound",
+                &self.bound_transaction_query_ids.is_some(),
+            )
             .finish_non_exhaustive()
     }
 }

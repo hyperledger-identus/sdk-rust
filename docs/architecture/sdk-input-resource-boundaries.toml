@@ -446,13 +446,13 @@ review_triggers  = [ "format metadata policy", "trusted-authority policy", "scop
 [[boundaries]]
 id               = "oid4vp-authorization-request-routing"
 package          = "identus-oid4vp"
-surface          = "signature-proven and DCQL-valid OpenID4VP Final vp_token request semantics with bounded nonce and one mode-specific response or redirect destination"
+surface          = "signature-proven and DCQL-valid OpenID4VP Final vp_token request semantics with bounded nonce, exact transaction data, credential-format capability dispatch, selected-query linkage and one mode-specific response or redirect destination"
 disposition      = "sdk-enforced"
-limits           = [ "AuthorizationRequestValidationLimits=explicit", "DcqlLimits=explicit" ]
-evidence         = [ "crates/oid4vp/src/authorization_request.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/authorization_request.rs", "crates/oid4vp/tests/redirect_response.rs", "crates/oid4vp/tests/error_contract.rs", "docs/adr/0168-compose-oid4vp-final-direct-post-routing.md", "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md" ]
-outer_obligation = "Transport adapters own DNS, private-address policy, TLS, redirects, decompression, timeout, execution and SSRF defense; consumers own verifier-key authorization, trust, consent, credential verification and response construction."
-consumer_impact  = "The composed state proves narrow request and routing syntax plus JAR/DCQL evidence only; it confers no network authority, verifier trust, credential authenticity, consent or response safety."
-review_triggers  = [ "new response type or mode", "redirect support", "encrypted response", "HTTP adapter", "nonce or URI limit change", "response construction" ]
+limits           = [ "AuthorizationRequestValidationLimits=explicit", "DcqlLimits=explicit", "TransactionDataLimits=explicit" ]
+evidence         = [ "crates/oid4vp/src/authorization_request.rs", "crates/oid4vp/src/credential_format.rs", "crates/oid4vp/src/transaction_data.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/authorization_request.rs", "crates/oid4vp/tests/redirect_response.rs", "crates/oid4vp/tests/error_contract.rs", "fuzz/fuzz_targets/transaction_data.rs", "docs/adr/0168-compose-oid4vp-final-direct-post-routing.md", "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md", "docs/adr/0186-keep-credential-format-proofs-behind-oid4vp-capability-ports.md" ]
+outer_obligation = "Transport adapters own DNS, private-address policy, TLS, redirects, decompression, timeout, execution and SSRF defense; consumers own verifier-key authorization, trust, consent, credential verification and concrete format proof engines behind deterministic effect-free capability ports."
+consumer_impact  = "The composed state proves narrow request/routing syntax, JAR/DCQL evidence, bounded common transaction semantics and selected-query linkage; it confers no network authority, credential authenticity, consent, proof validity or response delivery authority."
+review_triggers  = [ "new response type or mode", "transaction profile", "credential format", "redirect support", "encrypted response", "HTTP adapter", "nonce, URI or transaction limit change", "response construction" ]
 
 [[boundaries]]
 id               = "oid4vp-direct-post-response"

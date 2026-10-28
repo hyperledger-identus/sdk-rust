@@ -34,6 +34,21 @@ impl CredentialFormat {
         }
     }
 
+    /// Construct one bounded extension identifier for a caller-owned format.
+    pub fn extension(
+        identifier: impl Into<String>,
+        max_identifier_bytes: usize,
+    ) -> Result<Self, Oid4vpError> {
+        if max_identifier_bytes == 0 {
+            return Err(Oid4vpError::InvalidLimits);
+        }
+        let identifier = Zeroizing::new(identifier.into());
+        if identifier.is_empty() || identifier.len() > max_identifier_bytes {
+            return Err(Oid4vpError::InvalidDcqlQuery);
+        }
+        Ok(Self::Extension(identifier))
+    }
+
     /// Explicitly reveal the exact wire identifier.
     pub fn expose_sensitive_identifier(&self) -> &str {
         match self {

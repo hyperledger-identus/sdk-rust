@@ -20,6 +20,8 @@ DCQL, response, security, authorization, and effect-neutral lineage.
   exact caller-supplied capability; absence or ambiguity fails closed.
 - Format capabilities return SDK-owned static outcomes and cannot expose
   foreign DTOs, errors, transports, persistence, or proof-engine types.
+- Candidate adapters fail closed for non-empty metadata and affirm the
+  accepted constraint against each credential during DCQL evaluation.
 - Proof construction and verification remain in owning credential-format crates.
 - The implementation has no ambient/global registry and performs no effects.
 - All attacker-controlled structures and callback work have explicit finite bounds.

@@ -41,7 +41,7 @@ class MainActivity : Activity() {
         check(invalid.code == "did.invalid_did")
         check(callerText !in invalid.toString())
 
-        val oversized = "did:example:" + "a".repeat(4_096)
+        val oversized = "did:example:1/" + "a".repeat(8_192)
         val tooLarge = runCatching { parseDidUrl(oversized) }.exceptionOrNull()
         check(tooLarge is DidBindingException.InvalidDidUrl)
         check(tooLarge.code == "did.invalid_did_url")

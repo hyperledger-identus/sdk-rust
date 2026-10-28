@@ -18,8 +18,9 @@ generator audit treatment for one maintenance advisory.
 - The acceptance expires after 2027-01-31 UTC without an automatic renewal.
 - The guard must fail before audit when the date, version, path, lock identity
   or expected root changes.
-- Generator `cargo deny`, root/fuzz audits and every other advisory remain
-  strict and ignore-free.
+- Generator ban/license/source `cargo deny` checks remain strict. `cargo audit`
+  is the sole advisory authority for the tool lock; root/fuzz audits and every
+  other advisory remain strict and ignore-free.
 - Swift, Kotlin/JVM, Apple and Android generation/consumer E2E checks remain
   blocking in the weekly macOS lane.
 - A vulnerability affecting this path invalidates the acceptance immediately.

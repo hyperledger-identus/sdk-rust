@@ -17,8 +17,9 @@ lane would hide rather than manage the dependency.
 - Make the acceptance fail closed after 2027-01-31 and whenever the dependency
   version/path changes, so upstream removal becomes mandatory rather than
   silently extending the exception.
-- Keep generator `cargo deny` plus Swift, Kotlin/JVM, Apple and Android package
-  execution unchanged.
+- Keep generator ban, license and source policy under `cargo deny`, make
+  `cargo audit` the single advisory authority for the tool lock, and preserve
+  Swift, Kotlin/JVM, Apple and Android package execution.
 - Document the owner, renewal prohibition and upstream exit condition.
 
 ## Capability

@@ -61,8 +61,10 @@ https://github.com/mozilla/uniffi-rs/blob/main/CHANGELOG.md.
 
 There is no SDK or generated ABI change. The guard must compare the full inverse
 path, exact versions and root tool identity before applying one advisory ID.
-`cargo deny` remains unmodified. Root and fuzz `cargo audit --deny warnings`
-remain ignore-free. The host-generation scripts remain the behavior oracle.
+`cargo deny` remains authoritative for bans, licenses and sources; its duplicate
+advisory pass is replaced by the single scoped `cargo audit` authority for this
+tool lock. Root and fuzz `cargo audit --deny warnings` remain ignore-free. The
+host-generation scripts remain the behavior oracle.
 The exact version and feature set remain UniFFI 0.32.0 with only its generator
 CLI feature in the nested tool. The direct dependency is UniFFI; the resolved
 dependency cone reaches Askama and `basic-toml` only in that nested workspace.
@@ -82,7 +84,7 @@ Licenses remain MIT OR Apache-2.0 in the accepted graph. MSRV is unchanged.
 No protocol or draft-currency decision applies.
 The reviewed cone introduces no SDK-authored unsafe code and no additional
 native-code dependency. Supply-chain evidence is the exact lock, inverse tree,
-RustSec record, cargo-deny result and source provenance. Maintenance, release
+RustSec record, cargo-deny policy result and source provenance. Maintenance, release
 and security posture remains experimental and unpublished. Rollback is a PR
 revert to strict failure; a clean release requires the upstream exit instead.
 

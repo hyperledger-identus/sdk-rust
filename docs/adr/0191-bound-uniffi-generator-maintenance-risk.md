@@ -18,9 +18,10 @@ the same Askama family, so no compatible published upgrade removes the path.
 
 Accept RUSTSEC-2026-0374 only for that exact build-time path through 2027-01-31.
 Enforce the decision with a repository script that checks the clock and exact
-locked inverse tree before running unchanged `cargo deny` and a `cargo audit`
-invocation scoped to the single advisory. Keep root and fuzz audits ignore-free
-and preserve the full Swift, Kotlin/JVM, Apple and Android E2E lane. Remove the
+locked inverse tree before running `cargo deny` for bans, licenses and sources,
+then `cargo audit` as the single tool-lock advisory authority scoped to the
+single accepted ID. Keep root and fuzz audits ignore-free and preserve the full
+Swift, Kotlin/JVM, Apple and Android E2E lane. Remove the
 acceptance as soon as upstream publishes a compatible clean graph. A newly
 reported vulnerability invalidates this decision immediately.
 
@@ -28,7 +29,8 @@ reported vulnerability invalidates this decision immediately.
 
 The weekly lane becomes actionable again without representing an unmaintained
 crate as remediated. Exact graph matching and expiry turn upstream drift into a
-failure, while tests make the exception visible and reproducible. If upstream
+failure, while one advisory engine prevents contradictory duplicate policy
+results and tests make the exception visible and reproducible. If upstream
 has not removed the dependency by the deadline, a new issue and ADR decision
 must choose migration, a reviewed fork or a short explicit renewal; renewal is
 never automatic.

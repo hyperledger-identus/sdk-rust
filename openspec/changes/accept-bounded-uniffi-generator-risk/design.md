@@ -6,8 +6,9 @@ Add a repository-owned script that receives the repository root and optional
 clock override used only by deterministic tests. It validates an ISO date,
 rejects dates after 2027-01-31, obtains the locked inverse tree for
 `basic-toml@0.1.10`, and byte-compares its normalized output with the reviewed
-seven-node path. It then runs generator `cargo deny` and `cargo audit` with
-exactly one ignored advisory ID.
+seven-node path. It then runs generator `cargo deny` for bans, licenses and
+sources, and runs `cargo audit` as the single advisory authority with exactly
+one ignored advisory ID.
 
 The workflow calls this script instead of spelling the two supply-chain
 commands inline. Host binding generation and execution remain separate commands

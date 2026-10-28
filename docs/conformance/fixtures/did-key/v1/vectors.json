@@ -41,7 +41,7 @@
       "input": { "literal": "did:key:uAA" },
       "expected": {
         "kind": "error",
-        "errorCode": "malformed-encoding",
+        "errorCode": "did-key.malformed_encoding",
         "redacted": true,
         "fields": {}
       }

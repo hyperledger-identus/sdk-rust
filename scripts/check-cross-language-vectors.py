@@ -36,7 +36,8 @@ EXPECTED_KEYS = {"kind", "errorCode", "redacted", "fields"}
 GENERATED_KEYS = {"prefix", "repeat", "count", "suffix"}
 FIELD_KEYS = {
     "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment",
-    "operationKind", "operationId", "operationHash", "canonicalDid",
+    "operationKind", "operationId", "operationHash", "canonicalDid", "curve",
+    "relationshipCount",
 }
 AUTHORITIES = {
     "normative", "identus-contract", "consumer-regression", "implementation-regression", "exploratory"
@@ -53,6 +54,8 @@ OPERATIONS = {
     "did-prism-vdr.operation.parse",
     "did-peer.numalgo4.create",
     "did-peer.numalgo2.parse-resolve",
+    "did-key.parse",
+    "did-key.parse-resolve",
     "oid4vp.direct-post-response.construct",
     "siopv2.did-authentication.roundtrip",
 }
@@ -208,6 +211,8 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 }
             elif operation in {"did-peer.numalgo4.create", "did-peer.numalgo2.parse-resolve"}:
                 allowed_fields = {"did"}
+            elif operation in {"did-key.parse", "did-key.parse-resolve"}:
+                allowed_fields = {"curve", "relationshipCount"}
             elif operation in {
                 "oid4vp.direct-post-response.construct",
                 "siopv2.did-authentication.roundtrip",
@@ -218,6 +223,10 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
             if set(fields) - allowed_fields:
                 errors.append(f"{identifier}.expected.fields contains fields unsupported by {operation}")
             for field, value in fields.items():
+                if field == "relationshipCount":
+                    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                        errors.append(f"{identifier}.expected.fields.{field} must be a non-negative integer")
+                    continue
                 nullable = operation == "did-url.parse" and field in {"query", "fragment"}
                 empty_allowed = operation == "did-url.parse" and field in {"path", "query", "fragment"}
                 if value is None and not nullable:
@@ -243,6 +252,8 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 "did-prism-vdr.operation.parse": "did-prism-vdr.invalid_operation",
                 "did-peer.numalgo4.create": "did-peer.invalid_input_document",
                 "did-peer.numalgo2.parse-resolve": "did-peer.malformed_encoding",
+                "did-key.parse": "did-key.malformed_encoding",
+                "did-key.parse-resolve": "did-key.malformed_encoding",
                 "oid4vp.direct-post-response.construct": "oid4vp.invalid_direct_post_response",
             }[operation]
             if expected.get("errorCode") != required_code or expected.get("redacted") is not True or fields:

@@ -15,7 +15,7 @@
 ## 3. Planning evidence
 
 - [x] 3.1 Pass research, constraint, strict OpenSpec, backlog, and factory checks.
-- [ ] 3.2 Commit the planning packet and bind the exact issue #555 preflight receipt.
+- [x] 3.2 Commit the planning packet and bind the exact issue #555 preflight receipt.
 - [ ] 3.3 Complete a distinct local review, archive, protected PR, and metrics evidence.
 
 ## 4. Stop boundary

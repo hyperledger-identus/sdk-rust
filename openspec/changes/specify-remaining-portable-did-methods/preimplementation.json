@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 555,
+  "change": "specify-remaining-portable-did-methods",
+  "branch": "codex/spec/issue-555",
+  "baseRef": "origin/develop",
+  "baseSha": "c622268f7839d0636155576b0fe3984b6954404f",
+  "contractHeadSha": "15d85a04c720f33457d41d3c37a6205fe1cfc823",
+  "createdAt": "2026-10-28T08:44:45.360Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -115,6 +115,17 @@ fn result() -> DirectPostQueryResult {
     .expect("result")
 }
 
+fn direct_post_response() -> identus_oid4vp::DirectPostResponse {
+    validated(
+        "direct_post",
+        "response_uri",
+        "https://verifier.example/response",
+    )
+    .unwrap()
+    .into_direct_post_response(vec![result()], DirectPostResponseLimits::default())
+    .unwrap()
+}
+
 #[test]
 fn final_e2e_redirect_modes_preserve_full_authorized_lineage() {
     let packet: Value = serde_json::from_str(PACKET).expect("clean-room packet");
@@ -265,20 +276,9 @@ fn direct_post_acknowledgement_is_consuming_bounded_and_opaque() {
 
 #[test]
 fn acknowledgement_rejects_detached_or_ambiguous_navigation_evidence() {
-    fn response() -> identus_oid4vp::DirectPostResponse {
-        validated(
-            "direct_post",
-            "response_uri",
-            "https://verifier.example/response",
-        )
-        .unwrap()
-        .into_direct_post_response(vec![result()], DirectPostResponseLimits::default())
-        .unwrap()
-    }
-
     let limits = DirectPostAcknowledgementLimits::default();
     assert!(matches!(
-        response()
+        direct_post_response()
             .bind_endpoint_acknowledgement(
                 200,
                 Some("application/json"),
@@ -356,7 +356,7 @@ fn acknowledgement_rejects_detached_or_ambiguous_navigation_evidence() {
         ),
     ] {
         assert_eq!(
-            response()
+            direct_post_response()
                 .bind_endpoint_acknowledgement(status, content_type, cache_control, body, limits)
                 .unwrap_err(),
             error
@@ -417,6 +417,116 @@ fn property_redirect_modes_obey_exact_output_and_collision_boundaries() {
             Oid4vpError::ResponseUriTooLarge
         );
     }
+
+    let form_post = validated(
+        "form_post",
+        "redirect_uri",
+        "https://verifier.example/cb?existing=one",
+    )
+    .unwrap()
+    .into_redirect_response(
+        vec![result()],
+        DirectPostResponseLimits::default(),
+        RedirectResponseLimits::new(1, 1).unwrap(),
+    )
+    .expect("one existing form-post parameter");
+    assert_eq!(
+        form_post.expose_sensitive_target(),
+        "https://verifier.example/cb?existing=one"
+    );
+    assert!(form_post.expose_sensitive_form_body().is_some());
+    assert_eq!(
+        validated(
+            "form_post",
+            "redirect_uri",
+            "https://verifier.example/cb?one=1&two=2",
+        )
+        .unwrap()
+        .into_redirect_response(
+            vec![result()],
+            DirectPostResponseLimits::default(),
+            RedirectResponseLimits::new(1, 1).unwrap(),
+        )
+        .unwrap_err(),
+        Oid4vpError::ConflictingResponseDestination
+    );
+
+    for mode in ["query", "fragment", "form_post"] {
+        for name in [
+            "vp_token",
+            "state",
+            "error",
+            "error_description",
+            "error_uri",
+        ] {
+            let destination = if mode == "fragment" {
+                format!("openid://wallet/cb#{name}=old")
+            } else {
+                format!("https://verifier.example/cb?{name}=old")
+            };
+            assert_eq!(
+                validated(mode, "redirect_uri", &destination)
+                    .unwrap()
+                    .into_redirect_response(
+                        vec![result()],
+                        DirectPostResponseLimits::default(),
+                        RedirectResponseLimits::default(),
+                    )
+                    .unwrap_err(),
+                Oid4vpError::ConflictingResponseDestination
+            );
+        }
+    }
+
+    let content_type = "application/json";
+    let cache_control = "no-store";
+    let redirect_uri = "https://v.example/cb?response_code=opaque";
+    let response_code = "opaque";
+    let body = format!(r#"{{"redirect_uri":"{redirect_uri}"}}"#);
+    let exact_ack_limits = DirectPostAcknowledgementLimits::new(
+        content_type.len(),
+        cache_control.len(),
+        body.len(),
+        1,
+        "redirect_uri".len(),
+        redirect_uri.len(),
+        response_code.len(),
+    )
+    .unwrap();
+    assert!(matches!(
+        direct_post_response()
+            .bind_endpoint_acknowledgement(
+                200,
+                Some(content_type),
+                Some(cache_control),
+                body.as_bytes(),
+                exact_ack_limits,
+            )
+            .unwrap(),
+        DirectPostAcknowledgement::Redirect(_)
+    ));
+    let too_short = DirectPostAcknowledgementLimits::new(
+        content_type.len(),
+        cache_control.len(),
+        body.len() - 1,
+        1,
+        "redirect_uri".len(),
+        redirect_uri.len(),
+        response_code.len(),
+    )
+    .unwrap();
+    assert_eq!(
+        direct_post_response()
+            .bind_endpoint_acknowledgement(
+                200,
+                Some(content_type),
+                Some(cache_control),
+                body.as_bytes(),
+                too_short,
+            )
+            .unwrap_err(),
+        Oid4vpError::ResponseBodyTooLarge
+    );
 
     assert_eq!(
         RedirectResponseLimits::new(0, 1),

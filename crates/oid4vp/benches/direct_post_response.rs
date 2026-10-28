@@ -37,6 +37,9 @@ fn main() {
     measure("fragment.ordinary.end-to-end", || {
         construct_redirect("fragment", "compact")
     });
+    measure("fragment.boundary.end-to-end", || {
+        construct_redirect("fragment", black_box(&boundary))
+    });
     measure(
         "acknowledgement.ordinary.end-to-end",
         construct_acknowledgement,

@@ -81,4 +81,3 @@ runtime, packaging, FFI, hardware-backed-key, certification, or device support.
 
 - **WHEN** the crate compiles for a portable target but no browser or device journey executes
 - **THEN** the target is reported as compile-only and the existing runtime-support limitation remains effective
-

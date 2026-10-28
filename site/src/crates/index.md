@@ -30,3 +30,17 @@ Cargo resolves its exact internal closure.
 These two packages are candidate-only and source-evaluated. They are not
 available from crates.io merely because a staged `0.1.0-rc.1` archive and
 public-API origin exist. See the [DID candidate review](../did-candidate.md).
+
+## Portable PRISM stack
+
+![Portable PRISM stack](../diagrams/prism-portable-stack.svg)
+
+| Crate | Kind | Runtime dependency direction |
+| --- | --- | --- |
+| [`identus-prism-did`](identus-prism-did.md) | PRISM method semantics | Depends on generic DID/crypto foundations |
+| [`identus-prism-vdr`](identus-prism-vdr.md) | PRISM VDR semantics | Depends on `identus-prism-did` |
+| [`identus-prism-indexer`](identus-prism-indexer.md) | Ordered atomic indexing core | Depends on `identus-prism-vdr` |
+
+These are unpublished experimental source packages, not part of either
+activated release train. See the [portable-stack walkthrough](../architecture/prism-portable-stack.md)
+for effect boundaries, executable evidence, and downstream adoption status.

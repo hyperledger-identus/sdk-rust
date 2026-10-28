@@ -8,12 +8,12 @@
 
 ## 2. Executable adoption packet
 
-- [ ] 2.1 Add the portable-stack overview, tracked architecture diagram, and three crate reference pages.
-- [ ] 2.2 Add one deterministic full-stack in-memory E2E test and document its exact command.
-- [ ] 2.3 Reconcile IDR-040 and durable knowledge links without claiming unimplemented methods or downstream effects.
+- [x] 2.1 Add the portable-stack overview, tracked architecture diagram, and three crate reference pages.
+- [x] 2.2 Add one deterministic full-stack in-memory E2E test and document its exact command.
+- [x] 2.3 Reconcile IDR-040 and durable knowledge links without claiming unimplemented methods or downstream effects.
 
 ## 3. Evidence and closeout
 
-- [ ] 3.1 Pass focused tests, all-target compilation, documentation build/link checks, workspace and routed Nix gates.
+- [x] 3.1 Pass focused tests, all-target compilation, documentation build/link checks, workspace and routed Nix gates.
 - [ ] 3.2 Run exact-head Claude-or-Codex CLI review and remediate actionable blocker/high/medium findings.
 - [ ] 3.3 Archive OpenSpec, deliver the signed/DCO PR, publish metrics, and merge only on green protected CI.

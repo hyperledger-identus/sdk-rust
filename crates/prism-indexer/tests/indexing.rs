@@ -3,7 +3,7 @@ use std::{collections::HashMap, sync::Mutex};
 use identus_crypto::{Secp256k1PrivateKey, Sha256Digest};
 use identus_prism_did::{
     CanonicalPrismDid, CreateDidOperation, KeyUsage, PrismDidState, PrismPublicKey,
-    PrismPublicKeyMaterial, RawPrismOperation, SignedPrismOperation,
+    PrismPublicKeyMaterial, RawPrismOperation, SignedPrismOperation, project_did_document,
 };
 use identus_prism_indexer::{
     AtomicCommit, CommitOutcome, CommitRequest, Cursor, CursorLookup, DidStateLookup,
@@ -11,7 +11,10 @@ use identus_prism_indexer::{
     TransactionBatch, TransactionIdentity, TransitionDigest, TransitionReceiptLookup,
     index_transaction, plan_transaction,
 };
-use identus_prism_vdr::{EntrySnapshot, LookupError, VdrLookup, VdrNode, VdrOperation};
+use identus_prism_vdr::{
+    EntrySnapshot, LookupError, TraversalBudget, VdrData, VdrLookup, VdrNode, VdrOperation,
+    resolve_entry,
+};
 
 #[derive(Clone, Default)]
 struct State {
@@ -20,6 +23,7 @@ struct State {
     dids: HashMap<CanonicalPrismDid, PrismDidState>,
     nodes: HashMap<Sha256Digest, VdrNode>,
     entries: HashMap<Sha256Digest, EntrySnapshot>,
+    operations: HashMap<Sha256Digest, VdrOperation>,
     commits: usize,
 }
 
@@ -115,6 +119,7 @@ impl AtomicCommit for InMemoryStore {
                     owner,
                 } => {
                     let hash = operation.operation_hash();
+                    candidate.operations.insert(hash, operation.clone());
                     candidate.nodes.insert(
                         hash,
                         VdrNode {
@@ -167,6 +172,7 @@ fn fixture() -> (
 ) {
     let master = Secp256k1PrivateKey::from_slice(&[1; 32]).unwrap();
     let vdr = Secp256k1PrivateKey::from_slice(&[2; 32]).unwrap();
+    let authentication = Secp256k1PrivateKey::from_slice(&[3; 32]).unwrap();
     let create = CreateDidOperation::new(
         vec![
             PrismPublicKey::new(
@@ -179,6 +185,12 @@ fn fixture() -> (
                 "vdr-0",
                 KeyUsage::Vdr,
                 PrismPublicKeyMaterial::Secp256k1(vdr.to_public_key()),
+            )
+            .unwrap(),
+            PrismPublicKey::new(
+                "authentication-0",
+                KeyUsage::Authentication,
+                PrismPublicKeyMaterial::Secp256k1(authentication.to_public_key()),
             )
             .unwrap(),
         ],
@@ -196,6 +208,95 @@ fn fixture() -> (
     push_bytes(&mut payload, 100, b"initial");
     let signed_storage = signed_vdr(7, &payload, &vdr);
     (signed_create, signed_storage, vdr)
+}
+
+#[test]
+fn portable_stack_e2e_creates_resolves_updates_and_replays() {
+    let (create_did, create_entry, vdr_key) = fixture();
+    let root = create_entry.operation_hash();
+    let first = batch(
+        b"portable-stack-create",
+        b"genesis",
+        b"cursor-1",
+        vec![create_did, create_entry],
+    );
+    let store = InMemoryStore::default();
+
+    assert_eq!(
+        index_transaction(&first, &store).unwrap(),
+        IndexOutcome::Applied
+    );
+    let did_state = store
+        .0
+        .lock()
+        .unwrap()
+        .dids
+        .values()
+        .next()
+        .unwrap()
+        .clone();
+    let document = project_did_document(&did_state).unwrap().unwrap();
+    assert_eq!(document.id(), did_state.did().as_did());
+    assert_eq!(document.verification_methods().unwrap().len(), 1);
+    assert_eq!(document.authentication().unwrap().len(), 1);
+
+    let resolved = resolve_entry(
+        root,
+        &HashMap::new(),
+        &HashMap::new(),
+        &store,
+        &mut TraversalBudget::default(),
+    )
+    .unwrap();
+    assert_eq!(resolved.root, root);
+    assert_eq!(resolved.owner, did_state.did().clone());
+    assert_eq!(resolved.head, root);
+    let state = store.0.lock().unwrap();
+    let VdrOperation::Create(created) = state.operations.get(&root).unwrap() else {
+        panic!("root must retain the create operation");
+    };
+    assert!(matches!(created.data(), VdrData::Bytes(value) if value == b"initial"));
+    assert_eq!(state.commits, 1);
+    drop(state);
+
+    assert_eq!(
+        index_transaction(&first, &store).unwrap(),
+        IndexOutcome::ExactReplay
+    );
+    assert_eq!(store.0.lock().unwrap().commits, 1);
+
+    let mut update_payload = Vec::new();
+    push_bytes(&mut update_payload, 2, root.as_bytes());
+    push_bytes(&mut update_payload, 100, b"updated");
+    let update = signed_vdr(8, &update_payload, &vdr_key);
+    let update_hash = update.operation_hash();
+    let second = batch(
+        b"portable-stack-update",
+        b"cursor-1",
+        b"cursor-2",
+        vec![update],
+    );
+    assert_eq!(
+        index_transaction(&second, &store).unwrap(),
+        IndexOutcome::Applied
+    );
+
+    let resolved = resolve_entry(
+        update_hash,
+        &HashMap::new(),
+        &HashMap::new(),
+        &store,
+        &mut TraversalBudget::default(),
+    )
+    .unwrap();
+    assert_eq!(resolved.root, root);
+    assert_eq!(resolved.head, update_hash);
+    let state = store.0.lock().unwrap();
+    let VdrOperation::Update(updated) = state.operations.get(&update_hash).unwrap() else {
+        panic!("new head must retain the update operation");
+    };
+    assert!(matches!(updated.data(), VdrData::Bytes(value) if value == b"updated"));
+    assert_eq!(state.commits, 2);
 }
 
 fn batch(

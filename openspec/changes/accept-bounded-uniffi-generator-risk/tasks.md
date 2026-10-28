@@ -18,9 +18,11 @@
 
 - [x] 3.1 Pass guard fixtures and live locked generator deny/audit evidence.
 - [x] 3.2 Pass Swift, Kotlin/JVM, Apple and Android binding generation/consumer E2E checks.
-- [x] 3.3 Pass factory, OpenSpec, Nix and proportionate workspace gates.
+- [x] 3.3 Pass factory, OpenSpec, targeted Nix and proportionate workspace gates.
 - [x] 3.4 Run exact-head Claude or Codex CLI review and address actionable findings.
-- [ ] 3.5 Archive the change, publish metrics, obtain green protected CI and merge through the guarded path.
+- [x] 3.5 Prepare the issue-linked PR handoff; protected CI, published metrics
+      and merge remain guarded delivery outcomes.
+- [x] 3.6 Archive the completed OpenSpec change before opening the ready PR.
 
 ## 4. Stop boundary
 

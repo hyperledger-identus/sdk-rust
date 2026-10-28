@@ -17,6 +17,12 @@
   assembly, lock comparison and receipt passed with Rust 1.98.1, Gradle 8.14.4,
   JDK 17.0.19 and NDK 27.0.12077973.
 - Factory and strict OpenSpec validation: 121 items passed.
+- The full 38-output `nix flake check` progressed through the factory contract,
+  RustSec, MSRV, portable WASM/iOS and multiple release builds, then the final
+  all-target workspace build exhausted the host volume (`No space left on
+  device`, 882 MiB remaining). This is recorded as infrastructure-limited
+  evidence rather than a product failure; the affected source and E2E paths
+  passed their targeted Nix and native checks above.
 - Claude CLI reviewed exact implementation head
   `b2aad0cbbb131118bd9c5530ee3ec1a220c152e4` and reported no blocker, high or
   medium findings. The review covered fail-closed ordering, exact graph and
@@ -37,5 +43,6 @@ and records Gradle 8.14.4.
 
 ## Remaining evidence
 
-Protected hosted CI remains pending. The next natural scheduled slow run, not a
-rerun or manual dispatch, will be the authoritative post-merge weekly receipt.
+Protected hosted CI remains pending and is the authority for the complete
+repository gate. The next natural scheduled slow run, not a rerun or manual
+dispatch, will be the authoritative post-merge weekly receipt.

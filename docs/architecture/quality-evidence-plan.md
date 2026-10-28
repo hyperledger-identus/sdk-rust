@@ -430,39 +430,35 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
-| `property` | `required` | `focused` | `on-change` | `pending` | #545 |
-| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #545 |
-| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #545 |
-| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #545 |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #545 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #545 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #545 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #545 |
 
 ### `property`
 
 - Command: `cargo test -p identus-oid4vp --test verifier_authorization`
 - Budget: Exercise every Final scheme, first-colon disposition, exact key lineage, metadata source rule, verifier-info reference and independent collection limit.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #545
+- Receipt: `source:crates/oid4vp/tests/verifier_authorization.rs`
+- Evidence revision: `cd0125c8658aee13e8d088298aef212af3b73484`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak request_object_security`
 - Budget: Run security and verifier authorization over arbitrary bounded claims and metadata for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #545
+- Receipt: `source:fuzz/fuzz_targets/request_object_security.rs`
+- Evidence revision: `b58effbe4d2805e68f2e4d03214b8d5026fadd0f`
 
 ### `benchmark`
 
 - Command: `cargo bench -p identus-oid4vp --bench request_object_security`
 - Budget: Measure ordinary and near-limit request security followed by exact verifier authorization with one deterministic accepting port.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #545
+- Receipt: `source:crates/oid4vp/benches/request_object_security.rs`
+- Evidence revision: `cd0125c8658aee13e8d088298aef212af3b73484`
 
 ### `differential`
 
 - Command: `cargo test -p identus-oid4vp --test verifier_authorization`
 - Budget: Compare every Final-defined prefix and metadata source disposition against the pinned normative matrix using normalized SDK states and errors.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #545
+- Receipt: `source:crates/oid4vp/tests/verifier_authorization.rs`
+- Evidence revision: `cd0125c8658aee13e8d088298aef212af3b73484`

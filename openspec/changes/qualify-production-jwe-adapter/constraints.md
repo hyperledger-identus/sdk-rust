@@ -9,8 +9,8 @@ Constraint blockers: none
 
 ADR 0181 and `jose-jwe-encryption-port` already require an SDK-owned facade and
 a separately qualified private engine. The OpenID4VP differential declaration
-owned by #535 remains required debt until a production adapter runs the
-independent oracle in repository evidence.
+owned by #535 remains required debt under #566 until a production adapter runs
+the independent oracle in repository evidence.
 
 ## Introduced or changed constraints
 

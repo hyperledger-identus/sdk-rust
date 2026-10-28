@@ -31,7 +31,7 @@ evidence and this issue's delivery receipt.
 ## Knowledge and debt
 
 ADR 0192 and the encrypted-response knowledge page record the decision. The
-quality declaration remains open and points to the exact deferral. A future
+quality declaration remains open under #566 and points to the exact deferral. A future
 adoption changes the declaration to satisfied only after the production adapter
 and independent decryptability test run from the supported repository graph.
 

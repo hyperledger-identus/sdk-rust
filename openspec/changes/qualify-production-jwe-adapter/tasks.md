@@ -15,7 +15,7 @@
 ## 3. Knowledge and quality evidence
 
 - [x] 3.1 Add ADR 0192 and update the encrypted-response knowledge page and architecture diagram.
-- [x] 3.2 Update the differential obligation with exact executed evidence while retaining built-in engine support as an explicit limitation.
+- [x] 3.2 Record exact executed feasibility evidence while retaining production differential debt under #566.
 - [x] 3.3 Record target, dependency-cone, benchmark and independent-oracle evidence.
 
 ## 4. Review and delivery

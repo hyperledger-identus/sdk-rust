@@ -26,6 +26,7 @@ def validate(root: Path) -> list[str]:
         'VERSION = "0.10.0"',
         'BLOCKING_ADVISORY = "RUSTSEC-2023-0071"',
         'BLOCKING_PACKAGE = "rsa 0.10.0-rc.19"',
+        'LOCK_SHA256 = "2e893f1a3a046b55c26c9399e761d3ab812d65c9a2bf736862526b9cb47d4638"',
         'identus-jose = { path = "__IDENTUS_JOSE_PATH__" }',
         'jose-rs = { version = "=0.10.0", default-features = false }',
         '"cargo", "+1.89.0", "run", "--locked", "--release"',
@@ -33,6 +34,8 @@ def validate(root: Path) -> list[str]:
         '"aarch64-apple-ios": "bindings"',
         '"aarch64-linux-android": "bindings"',
         'candidate audit unexpectedly passed; open a new adoption review',
+        'vulnerabilities["count"] == 1',
+        'and report["warnings"] == {}',
         'oracle-qualified / production-rejected',
     )
     for phrase in required_runner:

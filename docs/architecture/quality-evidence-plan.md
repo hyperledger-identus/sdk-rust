@@ -203,7 +203,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #535 |
 | `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
 | `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
-| `differential` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
+| `differential` | `required` | `release` | `per-candidate` | `pending` | #535 |
 
 ### `property`
 
@@ -228,10 +228,11 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `differential`
 
-- Command: `python3 scripts/qualify-jwe-engine.py --mode all`
-- Budget: Implement the exact SDK JWE port in an isolated adapter, encrypt 25 times from the bounded public P-256 recipient, validate protected-header and compact grammar, decrypt with the corresponding private key, compile for host/WASM/iOS/Android, and require the exact fail-closed audit disposition.
-- Receipt: `source:scripts/qualify-jwe-engine.py`
-- Evidence revision: `ab5da6325dd3eeb16e078698edbc978df23b06c4`
+- Command: `cargo test -p identus-jose --test jwe_production_adapter`
+- Budget: Adopt an exact all-gates production engine, execute the SDK port through that supported adapter, validate protected-header and compact grammar, independently decrypt with the corresponding private key, and pass native/portable and clean audit evidence.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #566
 
 ## `did.syntax.quality.v1`
 

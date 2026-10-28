@@ -35,5 +35,6 @@ consumer mutation.
 ## Delivery
 
 Issue #538 owns this qualification. A reasoned deferral is a valid result; it
-does not satisfy or erase the production-adapter debt. A later adoption issue
-must repeat qualification against the exact version it proposes to ship.
+does not satisfy or erase the production-adapter debt. Issue #566 owns the later
+adoption and must repeat qualification against the exact version it proposes to
+ship.

@@ -43,8 +43,8 @@ encryption and contains unsafe JSON code. A promising alternative requires Rust
 Issue #538 and ADR 0192 therefore retain the passing independent engine as an
 isolated oracle but reject production adoption. This is not an advisory waiver:
 the dependency never enters the workspace lock, and the differential debt stays
-open. The decision is deliberately reversible through explicit gates in ADRs
-0181 and 0192.
+open under issue #566. The decision is deliberately reversible through explicit
+gates in ADRs 0181 and 0192.
 
 ## Final-profile facts
 
@@ -125,7 +125,7 @@ segment, then decrypts with the corresponding private test JWK and compares the
 plaintext. It also compiles the exact package for host, WASM, iOS and Android
 and requires the exact current audit rejection. Because the engine is not in the
 production graph, this satisfies independent feasibility evidence but not the
-production-adapter debt owned by #538.
+production-adapter debt owned by #566.
 
 Reconsider the engine decision only through ADRs 0181 and 0192's stable-version,
 dependency-cone, public-recipient, unsafe-code, advisory and portable-runtime

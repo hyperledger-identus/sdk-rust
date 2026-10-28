@@ -9,8 +9,9 @@ candidate is expected to fail the RustSec production gate with RUSTSEC-2023-0071
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -23,6 +24,7 @@ CANDIDATE = "jose-rs"
 VERSION = "0.10.0"
 BLOCKING_ADVISORY = "RUSTSEC-2023-0071"
 BLOCKING_PACKAGE = "rsa 0.10.0-rc.19"
+LOCK_SHA256 = "2e893f1a3a046b55c26c9399e761d3ab812d65c9a2bf736862526b9cb47d4638"
 TARGETS = {
     "wasm32-unknown-unknown": "wasm",
     "aarch64-apple-ios": "bindings",
@@ -167,12 +169,18 @@ def nix_executable() -> str:
     raise QualificationError("Nix is required for portable and audit evidence")
 
 
-def run(command: list[str], *, cwd: Path, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
+def run(
+    command: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str],
+    emit_stdout: bool = True,
+) -> subprocess.CompletedProcess[str]:
     started = time.monotonic()
     result = subprocess.run(command, cwd=cwd, env=env, text=True, capture_output=True, check=False)
     elapsed = time.monotonic() - started
     print(f"jwe-qualification: {' '.join(command)} ({elapsed:.2f}s)")
-    if result.stdout:
+    if emit_stdout and result.stdout:
         print(result.stdout, end="")
     return result
 
@@ -193,6 +201,11 @@ def prepare(root: Path, work: Path, env: dict[str, str]) -> None:
         run(["cargo", "+1.89.0", "generate-lockfile"], cwd=work, env=env),
         "exact candidate lock",
     )
+    actual_lock = hashlib.sha256((work / "Cargo.lock").read_bytes()).hexdigest()
+    if actual_lock != LOCK_SHA256:
+        raise QualificationError(
+            f"candidate lock drifted: expected {LOCK_SHA256}, got {actual_lock}"
+        )
 
 
 def host(work: Path, env: dict[str, str]) -> None:
@@ -220,6 +233,24 @@ def portable(root: Path, work: Path, env: dict[str, str]) -> None:
         require_success(run(command, cwd=work, env=env), f"portable target {target}")
 
 
+def exact_audit_blocker(report: object) -> bool:
+    try:
+        vulnerabilities = report["vulnerabilities"]
+        findings = vulnerabilities["list"]
+        finding = findings[0]
+        return (
+            vulnerabilities["found"] is True
+            and vulnerabilities["count"] == 1
+            and len(findings) == 1
+            and finding["advisory"]["id"] == BLOCKING_ADVISORY
+            and finding["package"]["name"] == "rsa"
+            and finding["package"]["version"] == "0.10.0-rc.19"
+            and report["warnings"] == {}
+        )
+    except (IndexError, KeyError, TypeError):
+        return False
+
+
 def audit(root: Path, work: Path, env: dict[str, str]) -> None:
     command = [
         nix_executable(),
@@ -232,15 +263,19 @@ def audit(root: Path, work: Path, env: dict[str, str]) -> None:
         str(work / "Cargo.lock"),
         "--deny",
         "warnings",
+        "--format",
+        "json",
     ]
-    result = run(command, cwd=work, env=env)
-    combined = f"{result.stdout}\n{result.stderr}"
+    result = run(command, cwd=work, env=env, emit_stdout=False)
     if result.returncode == 0:
         raise QualificationError("candidate audit unexpectedly passed; open a new adoption review")
-    blocked_package = re.search(
-        r"Crate:\s+rsa\s+Version:\s+0\.10\.0-rc\.19(?:\s|$)", combined
-    )
-    if BLOCKING_ADVISORY not in combined or blocked_package is None:
+    try:
+        report = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        exact_blocker = False
+    else:
+        exact_blocker = exact_audit_blocker(report)
+    if not exact_blocker:
         if result.stderr:
             print(result.stderr, file=sys.stderr, end="")
         raise QualificationError("candidate audit failed for an unexpected reason")

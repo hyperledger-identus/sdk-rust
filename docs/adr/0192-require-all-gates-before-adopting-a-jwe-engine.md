@@ -30,8 +30,8 @@ graph under RUSTSEC-2023-0071. No feature selection removes the edge.
 4. Keep rejected-engine oracles isolated from the workspace graph and lockfile.
 5. Defer current production adoption. Do not suppress RUSTSEC-2023-0071, patch a
    broad facade locally, or reimplement JWE cryptographic composition.
-6. Keep the production-adapter quality debt open until a supported repository
-   adapter executes the independent oracle.
+6. Keep the production-adapter quality debt open under issue #566 until a
+   supported repository adapter executes the independent oracle.
 
 ## Consequences
 

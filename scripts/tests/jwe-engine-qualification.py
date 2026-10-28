@@ -11,12 +11,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "scripts/check-jwe-engine-qualification.py"
+RUNNER = ROOT / "scripts/qualify-jwe-engine.py"
 
 
 def load_checker():
     spec = importlib.util.spec_from_file_location("jwe_engine_qualification", CHECKER)
     if spec is None or spec.loader is None:
         raise RuntimeError("cannot load JWE qualification checker")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_runner():
+    spec = importlib.util.spec_from_file_location("qualify_jwe_engine", RUNNER)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("cannot load JWE qualification runner")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -51,6 +61,21 @@ def require_rejection(checker, fixture: Path, old: str, new: str, expected: str)
 
 def main() -> int:
     checker = load_checker()
+    runner = load_runner()
+    finding = {
+        "advisory": {"id": runner.BLOCKING_ADVISORY},
+        "package": {"name": "rsa", "version": "0.10.0-rc.19"},
+    }
+    report = {
+        "vulnerabilities": {"found": True, "count": 1, "list": [finding]},
+        "warnings": {},
+    }
+    assert runner.exact_audit_blocker(report)
+    report["warnings"] = {"unmaintained": [{"package": "another"}]}
+    assert not runner.exact_audit_blocker(report)
+    report["warnings"] = {}
+    report["vulnerabilities"] = {"found": True, "count": 2, "list": [finding, finding]}
+    assert not runner.exact_audit_blocker(report)
     with tempfile.TemporaryDirectory(prefix="jwe-qualification-policy-") as temporary:
         fixture = Path(temporary) / "valid"
         copy_fixture(fixture)
@@ -63,6 +88,13 @@ def main() -> int:
             'BLOCKING_ADVISORY = "RUSTSEC-2023-0071"',
             'BLOCKING_ADVISORY = "ignored"',
             "BLOCKING_ADVISORY",
+        )
+        require_rejection(
+            checker,
+            fixture,
+            'LOCK_SHA256 = "2e893f1a3a046b55c26c9399e761d3ab812d65c9a2bf736862526b9cb47d4638"',
+            'LOCK_SHA256 = "drifted"',
+            "LOCK_SHA256",
         )
         require_rejection(
             checker,

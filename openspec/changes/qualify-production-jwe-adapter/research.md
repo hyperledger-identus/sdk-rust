@@ -74,7 +74,9 @@ fork a broad JOSE facade, or implement JOSE composition locally.
 ## Compatibility and dependency evidence
 
 The disposable manifest selects exact `jose-rs 0.10.0` with default features
-disabled and a WASM-only entropy feature. The candidate has Rust 1.88 MSRV and
+disabled and a WASM-only entropy feature. Its resolved lock is bound to SHA-256
+`2e893f1a3a046b55c26c9399e761d3ab812d65c9a2bf736862526b9cb47d4638`;
+any graph drift fails before execution. The candidate has Rust 1.88 MSRV and
 BSD-2-Clause license, but its direct and resolved dependency cone contains about
 120 packages and unrelated algorithms. Supply-chain evidence includes the
 generated lock checksum, `cargo tree`, source inspection, license/provenance,
@@ -87,8 +89,8 @@ removes only behavior-neutral evidence.
 ## Security, privacy and maintenance evidence
 
 The decision is behavior-neutral and adds no dependency. SDK-owned DTOs and
-errors remain stable and redacted. The quality debt remains visible because
-external evidence is not a shipping adapter. A later engine can be replaced
+errors remain stable and redacted. The quality debt remains visible under #566
+because external evidence is not a shipping adapter. A later engine can be replaced
 without reshaping OID4VP or JOSE APIs. Security posture is fail-closed; release
 and maintenance posture require repeating exact qualification before adoption.
 The exact candidate source forbids unsafe code, but its broad resolved graph and

@@ -198,6 +198,21 @@ impl DidWeb {
         DidWebRequest {
             url: self.url.clone(),
             limits: self.limits,
+            representation: RequestedRepresentation::DidJson,
+            no_cache: false,
+        }
+    }
+
+    fn request_for(&self, selected: &str, no_cache: bool) -> DidWebRequest {
+        DidWebRequest {
+            url: self.url.clone(),
+            limits: self.limits,
+            representation: if selected == DID_LD_JSON {
+                RequestedRepresentation::DidLdJson
+            } else {
+                RequestedRepresentation::DidJson
+            },
+            no_cache,
         }
     }
 
@@ -227,6 +242,8 @@ impl DidWeb {
 pub struct DidWebRequest {
     url: String,
     limits: DidWebLimits,
+    representation: RequestedRepresentation,
+    no_cache: bool,
 }
 
 impl DidWebRequest {
@@ -240,7 +257,16 @@ impl DidWebRequest {
     /// Media types accepted by the portable core.
     #[must_use]
     pub const fn accept(&self) -> &'static str {
-        "application/did+json, application/did+ld+json, application/json"
+        match self.representation {
+            RequestedRepresentation::DidJson => "application/did+json, application/json",
+            RequestedRepresentation::DidLdJson => "application/did+ld+json",
+        }
+    }
+
+    /// Whether the caller requested that runtime-owned caches be bypassed.
+    #[must_use]
+    pub const fn no_cache(&self) -> bool {
+        self.no_cache
     }
 
     /// Maximum body bytes the adapter may retain.
@@ -275,6 +301,12 @@ pub struct DidWebResponse {
     status: u16,
     content_type: Option<String>,
     body: Vec<u8>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum RequestedRepresentation {
+    DidJson,
+    DidLdJson,
 }
 
 /// Type-erased future returned by [`DidWebFetcher`].
@@ -340,7 +372,7 @@ impl<F: DidWebFetcher> DidResolver for DidWebResolver<F> {
                 }
                 Err(_) => return resolution_failure(DidResolutionErrorKind::InvalidDid),
             };
-            let request = web.request();
+            let request = web.request_for(selected, options.no_cache() == Some(true));
             let response = match self.fetcher.fetch(&request).await {
                 Ok(value) => value,
                 Err(_) => return resolution_failure(DidResolutionErrorKind::InternalError),
@@ -526,7 +558,11 @@ fn parse_media_type(value: Option<&str>, limits: DidWebLimits) -> Result<Represe
     if value.is_empty() || !value.bytes().all(|byte| (0x20..=0x7e).contains(&byte)) {
         return Err(Error::InvalidMediaType);
     }
-    let (base, parameters) = value.split_once(';').unwrap_or((value, ""));
+    let (base, parameters) = match value.split_once(';') {
+        Some((_, "")) => return Err(Error::InvalidMediaType),
+        Some(parts) => parts,
+        None => (value, ""),
+    };
     let representation = if base.trim().eq_ignore_ascii_case(DID_JSON) {
         Representation::DidJson
     } else if base.trim().eq_ignore_ascii_case(DID_LD_JSON) {

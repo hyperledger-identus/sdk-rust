@@ -25,8 +25,9 @@ port convention and remains implementable without an async-trait macro.
 - `DidWeb`: validated DID plus its derived request URL.
 - `DidWebLimits`: strictly positive public identifier, segment, segment-count,
   URL, media-type, and response-body ceilings with conservative defaults.
-- `DidWebRequest`: immutable GET request data exposing URL and accepted media
-  types; no arbitrary headers, body, credentials, redirect target, or method.
+- `DidWebRequest`: immutable GET request data exposing URL, the exact negotiated
+  media types, and cache-bypass intent; no arbitrary headers, body, credentials,
+  redirect target, or method.
 - `DidWebResponse`: status, optional media type, and owned bytes constructed
   under the request's response limits.
 - `DidWebFetcher`: caller-implemented asynchronous port returning a response or
@@ -66,6 +67,8 @@ statuses remain internal/transient so the generic cache cannot retain an
 outage as a missing DID. Resolver representation metadata is derived from the
 requested representation only after the response agrees with it. JSON-LD
 requires both `application/did+ld+json` and a document context.
+The request advertises only representations that can satisfy the selected
+resolution output and carries `noCache=true` to the caller-owned cache boundary.
 
 Generic `DidResolver` integration returns standard DID resolution metadata and
 errors. The method-specific synchronous API retains more precise fixed error

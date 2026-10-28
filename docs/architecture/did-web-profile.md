@@ -21,7 +21,8 @@ flowchart LR
   Match -->|no| Reject[Redacted mismatch]
 ```
 
-The core owns method syntax, deterministic URL derivation, response-envelope
+The core owns method syntax, deterministic URL derivation, representation
+negotiation, cache-bypass signaling, response-envelope
 validation, generic DID document parsing, and exact ID binding. The adapter
 owns DNS, private-network and SSRF rules, TLS roots and versions, redirects,
 proxy, connection/read limits, cancellation, cache, retry, privacy, and
@@ -51,7 +52,8 @@ profile.
 
 ## Adapter recipe
 
-1. Receive `DidWebRequest`; allow only its exact HTTPS URL.
+1. Receive `DidWebRequest`; allow only its exact HTTPS URL, send its exact
+   `accept()` value, and honor `no_cache()` in runtime-owned caches.
 2. Apply product SSRF, DNS, TLS, redirect, proxy, privacy, timeout,
    cancellation, retry, cache, and telemetry policy.
 3. Stop reading at `max_response_body_bytes()`.

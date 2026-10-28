@@ -104,6 +104,7 @@ fn response_binding_checks_envelope_before_document_and_exact_id() {
         "application/did+json; charset=\"unterminated",
         "application/did+json; char set=utf-8",
         "application/did+json; charset=",
+        "application/did+json;",
     ] {
         let response = request
             .response(
@@ -123,4 +124,7 @@ fn response_binding_checks_envelope_before_document_and_exact_id() {
         )
         .unwrap();
     assert_eq!(value.bind_response(response).unwrap().id(), value.did());
+
+    assert_eq!(request.accept(), "application/did+json, application/json");
+    assert!(!request.no_cache());
 }

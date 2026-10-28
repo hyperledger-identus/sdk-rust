@@ -12,7 +12,7 @@ use identus_did_web::{
 
 #[derive(Clone)]
 struct InMemoryFetcher {
-    seen: Arc<Mutex<Vec<String>>>,
+    seen: Arc<Mutex<Vec<(String, String, bool)>>>,
     status: u16,
     content_type: &'static str,
     document: Vec<u8>,
@@ -21,7 +21,11 @@ struct InMemoryFetcher {
 impl DidWebFetcher for InMemoryFetcher {
     fn fetch<'a>(&'a self, request: &'a DidWebRequest) -> DidWebFetchFuture<'a> {
         Box::pin(async move {
-            self.seen.lock().unwrap().push(request.url().to_owned());
+            self.seen.lock().unwrap().push((
+                request.url().to_owned(),
+                request.accept().to_owned(),
+                request.no_cache(),
+            ));
             request
                 .response(self.status, Some(self.content_type), self.document.clone())
                 .map_err(|_| TransportFailure)
@@ -45,7 +49,11 @@ fn public_fetch_port_resolves_one_exact_document_end_to_end() {
     assert_eq!(result.document().unwrap().services().unwrap().len(), 1);
     assert_eq!(
         seen.lock().unwrap().as_slice(),
-        ["https://example.com/users/alice/did.json"]
+        [(
+            "https://example.com/users/alice/did.json".to_owned(),
+            "application/did+json, application/json".to_owned(),
+            false,
+        )]
     );
 }
 
@@ -74,6 +82,7 @@ fn resolver_separates_not_found_transient_and_representation_failures() {
 
     let options = ResolutionOptions::builder()
         .accept(MediaType::parse("application/did+ld+json").unwrap())
+        .no_cache(true)
         .build()
         .unwrap();
     for (content_type, document, expected) in [
@@ -88,9 +97,10 @@ fn resolver_separates_not_found_transient_and_representation_failures() {
             DidResolutionErrorKind::InvalidDidDocument,
         ),
     ] {
+        let seen: Arc<Mutex<Vec<(String, String, bool)>>> = Arc::default();
         let resolver = DidWebResolver::new(
             InMemoryFetcher {
-                seen: Arc::default(),
+                seen: seen.clone(),
                 status: 200,
                 content_type,
                 document: document.to_vec(),
@@ -101,6 +111,15 @@ fn resolver_separates_not_found_transient_and_representation_failures() {
         assert_eq!(
             result.metadata().error().and_then(|error| error.kind()),
             Some(expected)
+        );
+        let requests = seen.lock().unwrap();
+        assert_eq!(
+            requests.as_slice(),
+            [(
+                "https://example.com/.well-known/did.json".to_owned(),
+                "application/did+ld+json".to_owned(),
+                true,
+            )]
         );
     }
 }

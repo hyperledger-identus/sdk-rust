@@ -40,6 +40,9 @@ The SDK SHALL expose an executor-neutral asynchronous fetch port accepting one
 immutable bounded GET request. A resolution SHALL invoke it at most once. The
 crate SHALL NOT provide a concrete HTTP, DNS, TLS, redirect, proxy, cache,
 retry, timer, executor, or SSRF implementation.
+The request SHALL advertise only representations that can satisfy the selected
+resolution output and SHALL expose the caller's cache-bypass intent to the
+adapter.
 
 #### Scenario: a runtime resolves a web DID
 

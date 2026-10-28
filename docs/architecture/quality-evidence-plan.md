@@ -203,7 +203,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #535 |
 | `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
 | `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
-| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #535 |
+| `differential` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
 
 ### `property`
 
@@ -228,11 +228,10 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `differential`
 
-- Command: `cargo test -p identus-oid4vp --test encrypted_direct_post_response`
-- Budget: Reproduce the attributed Final encrypted-response shape, then independently encrypt and decrypt the exact SDK request with a qualified adapter on native and portable targets without comparing randomized ciphertext bytes.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #538
+- Command: `python3 scripts/qualify-jwe-engine.py --mode all`
+- Budget: Implement the exact SDK JWE port in an isolated adapter, encrypt 25 times from the bounded public P-256 recipient, validate protected-header and compact grammar, decrypt with the corresponding private key, compile for host/WASM/iOS/Android, and require the exact fail-closed audit disposition.
+- Receipt: `source:scripts/qualify-jwe-engine.py`
+- Evidence revision: `ab5da6325dd3eeb16e078698edbc978df23b06c4`
 
 ## `did.syntax.quality.v1`
 

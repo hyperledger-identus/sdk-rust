@@ -9,4 +9,5 @@ three-crate closure.
 
 - [Dependency direction](dependency-direction.md)
 - [Ownership boundaries](ownership-boundaries.md)
+- [Portable PRISM stack](prism-portable-stack.md)
 - [Evidence and release flow](evidence-flow.md)

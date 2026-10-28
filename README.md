@@ -16,6 +16,7 @@ Wallet products keep custody, storage, consent, trust and UI policy.
 
 - [Technical blueprint and component sequence](docs/architecture/sdk-rust-blueprint.md)
 - [SDK architecture and release handbook](https://hyperledger-identus.github.io/sdk-rust/)
+- [Portable PRISM DID/VDR/indexer adoption](site/src/architecture/prism-portable-stack.md)
 - [Bootstrap governance and crate inventory](docs/architecture/sdk-bootstrap-inventory.md)
 - [Alpha source distribution](docs/architecture/source-distribution.md)
 - [Bootstrap branch decision](docs/adr/0001-bootstrap-branch-selection.md)

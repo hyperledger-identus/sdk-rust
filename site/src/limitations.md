@@ -11,6 +11,10 @@ The handbook is intentionally explicit about what has **not** been proven.
   source revision.
 - Every package outside those two train closures also remains `0.0.0` with
   `publish = false`.
+- The portable PRISM DID, VDR, and indexer packages have deterministic
+  in-memory and compile-target evidence, but no SDK-owned Cardano source,
+  durable store, hosted service, production QoS threshold, or downstream
+  replacement claim.
 - Rust 1.89.0 is the `0.1.x` release MSRV; Rust 1.98.1 remains the primary and
   compatibility-etalon compiler.
 - WASM, iOS, and Android cryptography evidence is currently compile-oriented;

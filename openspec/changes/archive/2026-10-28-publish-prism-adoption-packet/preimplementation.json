@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 554,
+  "change": "publish-prism-adoption-packet",
+  "branch": "codex/docs/issue-554",
+  "baseRef": "origin/develop",
+  "baseSha": "c763c3bd0020f9c726eb08f390629a1b353e5e01",
+  "contractHeadSha": "800686cbd3e8f0d1f6de7305d68d35976d791233",
+  "createdAt": "2026-10-28T07:39:44.816Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

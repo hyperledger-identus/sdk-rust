@@ -114,9 +114,9 @@ replaced_by                       = ""
 [[changes]]
 id                                = "did.jwk.profile.v1"
 capability                        = "did.jwk.profile"
-lifecycle_state                   = "proposed"
+lifecycle_state                   = "active"
 issue                             = 558
-pull_request                      = 0
+pull_request                      = 562
 change_class                      = "additive"
 release_note_class                = "added"
 visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]

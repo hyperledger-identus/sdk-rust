@@ -15,7 +15,7 @@ State: `active`. Class: `security` / `security`. Target: `unreleased`. The same 
 
 ### `did.jwk.profile.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-jwk crate creates, parses and locally resolves a bounded canonical-base64url public-JWK profile with duplicate-safe JSON, validated Ed25519, X25519, P-256 and secp256k1 material, fixed #0 projection, explicit use policy and opt-in registry composition.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-jwk crate creates, parses and locally resolves a bounded canonical-base64url public-JWK profile with duplicate-safe JSON, validated Ed25519, X25519, P-256 and secp256k1 material, fixed #0 projection, explicit use policy and opt-in registry composition.
 
 ### `did.key.profile.v1`
 

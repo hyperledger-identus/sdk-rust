@@ -5,7 +5,56 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-27`
-- Declaration count: `8`
+- Declaration count: `9`
+
+## `oid4vp.direct-post-response.request-object-security.quality.v1`
+
+- Capability: `oid4vp.direct-post-response`
+- Slice: Bounded Request Object audience, freshness and atomic replay evidence
+- Owner: SDK-Rust OID4VP maintainers (issue #544)
+- Risk: A signed Request Object can target the wrong Wallet, be accepted outside its validity window, or be replayed before typed authorization routing.
+- Targets: `package:identus-oid4vp`, `host:rust`, `consumer:portable-sdk`
+- Vector IDs: `1` local catalog entries
+- Limitations: This declaration proves local Final audience, integral temporal policy, atomic replay decision and typed state lineage; it does not prove verifier trust, persistence, transport, consent, credential validity or product policy.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `required` | `focused` | `on-change` | `pending` | #544 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #544 |
+| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #544 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #544 |
+
+### `property`
+
+- Command: `cargo test -p identus-oid4vp --test request_object_security`
+- Budget: Exercise exact age, skew, expiry, not-before, audience and one-over boundary values with consuming-state compile/runtime canaries.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #544
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak request_object_security`
+- Budget: Run the bounded claims and policy path for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #544
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-oid4vp --bench request_object_security`
+- Budget: Measure deterministic ordinary and near-limit local security transitions over a stable sample set.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #544
+
+### `differential`
+
+- Command: `cargo test -p identus-oid4vp --test request_object_security packet_`
+- Budget: Execute the pinned clean-room Final/RFC packet and compare normalized result classes rather than foreign DTOs or error strings.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #544
 
 ## `crypto.quality.v1`
 

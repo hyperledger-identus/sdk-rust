@@ -39,7 +39,7 @@ State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic 
 
 ### `did.web.profile.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-web crate parses a strict bounded profile, derives exact HTTPS requests, retrieves through a caller-injected port, and binds bounded DID documents to the exact requested identifier.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-web crate parses a strict bounded profile, derives exact HTTPS requests, retrieves through a caller-injected port, and binds bounded DID documents to the exact requested identifier.
 
 ### `oid4vp.direct-post-response.encrypted.v1`
 

@@ -18,7 +18,7 @@
 - [x] 3.1 Add attributed normative/oracle, negative, and boundary fixtures.
 - [x] 3.2 Add unit, conformance, property, fuzz, benchmark, and deterministic in-memory E2E routes.
 - [x] 3.3 Add handbook, crate documentation, effect/ownership diagrams, and adapter example.
-- [ ] 3.4 Activate quality declaration, vector catalog, change ledger, package inventory, and dependency guards.
+- [x] 3.4 Activate quality declaration, vector catalog, change ledger, package inventory, and dependency guards.
 - [x] 3.5 Prove native, MSRV, no-default, WASM, iOS, Android, strict Clippy, rustdoc, dependency, and workspace evidence.
 - [x] 3.6 Run the deterministic fetch-port E2E separately from portable compile evidence.
 
@@ -26,7 +26,9 @@
 
 - [x] 4.1 Run exact-head Claude review or immediate Codex CLI fallback.
 - [x] 4.2 Resolve actionable blocker/high/medium findings and rerun proportionate gates.
-- [ ] 4.3 Archive the OpenSpec change and prepare a signed/DCO issue-linked PR packet; publish metrics and merge only after protected CI is green.
+- [x] 4.3 Prepare the reviewed OpenSpec archive and signed/DCO issue-linked PR
+  packet; hosted exact-head CI, metrics publication, guarded merge, and issue
+  reconciliation remain GitHub delivery evidence.
 
 ## 5. Stop boundary
 

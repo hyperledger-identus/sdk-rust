@@ -11,7 +11,7 @@ use identus_oid4vp::{
     RequestUriRetrievalLimits,
 };
 use libfuzzer_sys::fuzz_target;
-use serde_json::json;
+use serde_json::{Value, json};
 
 mod oid4vp_support;
 
@@ -19,20 +19,40 @@ const PRIVATE: [u8; 32] = [0x71; 32];
 const REFERENCE: &str = "openid4vp:?client_id=decentralized_identifier%3Adid%3Aexample%3Averifier&request_uri=https%3A%2F%2Fverifier.example%2Frequest";
 
 fuzz_target!(|data: &[u8]| {
-    let Some((time_bytes, audience_bytes)) = data.split_at_checked(8) else {
+    let Some((&selector, bytes)) = data.split_first() else {
         return;
     };
-    let issued_at = u64::from_le_bytes(time_bytes.try_into().expect("eight bytes"));
-    let Ok(audience) = std::str::from_utf8(audience_bytes) else {
-        return;
-    };
-    let payload = serde_json::to_vec(&json!({
+    let arbitrary = String::from_utf8_lossy(bytes);
+    let mut request = json!({
         "client_id": "decentralized_identifier:did:example:verifier",
-        "aud": audience,
-        "iat": issued_at,
-        "jti": audience,
-    }))
-    .expect("JSON");
+    });
+    let object = request.as_object_mut().expect("request object");
+    if selector == b'S' {
+        object.insert(
+            "aud".to_owned(),
+            json!(identus_oid4vp::STATIC_DISCOVERY_AUDIENCE),
+        );
+        object.insert("iat".to_owned(), json!(oid4vp_support::NOW_SECONDS));
+        object.insert("jti".to_owned(), json!("static-seed"));
+    } else {
+        object.insert("aud".to_owned(), audience(selector, &arbitrary));
+        object.insert("iat".to_owned(), numeric_date(selector >> 3, bytes));
+        if selector & 0x40 != 0 {
+            object.insert("exp".to_owned(), numeric_date(selector >> 1, bytes));
+        }
+        if selector & 0x20 != 0 {
+            object.insert("nbf".to_owned(), numeric_date(selector >> 2, bytes));
+        }
+        if selector & 0x10 != 0 {
+            let jwt_id = if selector & 0x08 == 0 {
+                Value::String(arbitrary.into_owned())
+            } else {
+                json!(selector)
+            };
+            object.insert("jti".to_owned(), jwt_id);
+        }
+    }
+    let payload = serde_json::to_vec(&request).expect("JSON");
     let private = Ed25519PrivateKey::from_slice(&PRIVATE).expect("fixed private key");
     let header = ProtectedHeader::new(
         "Ed25519",
@@ -76,3 +96,33 @@ fuzz_target!(|data: &[u8]| {
         let _ = oid4vp_support::secure(verified);
     }
 });
+
+fn audience(selector: u8, arbitrary: &str) -> Value {
+    match selector & 0x07 {
+        0 => json!(identus_oid4vp::STATIC_DISCOVERY_AUDIENCE),
+        1 => json!(arbitrary),
+        2 => json!([identus_oid4vp::STATIC_DISCOVERY_AUDIENCE, arbitrary]),
+        3 => json!([]),
+        4 => json!([identus_oid4vp::STATIC_DISCOVERY_AUDIENCE, selector]),
+        5 => json!(selector),
+        6 => Value::Null,
+        _ => json!([arbitrary]),
+    }
+}
+
+fn numeric_date(selector: u8, bytes: &[u8]) -> Value {
+    let mut encoded = [0_u8; 8];
+    let retained = bytes.len().min(encoded.len());
+    encoded[..retained].copy_from_slice(&bytes[..retained]);
+    let arbitrary = u64::from_le_bytes(encoded);
+    match selector & 0x07 {
+        0 => json!(oid4vp_support::NOW_SECONDS),
+        1 => json!(arbitrary),
+        2 => json!(u64::MAX),
+        3 => json!(oid4vp_support::NOW_SECONDS + 31),
+        4 => json!(1.5),
+        5 => json!(-1),
+        6 => json!(arbitrary.to_string()),
+        _ => Value::Null,
+    }
+}

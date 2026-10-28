@@ -1,4 +1,8 @@
-use std::{future::Future, pin::pin, task::{Context, Poll, Waker}};
+use std::{
+    future::Future,
+    pin::pin,
+    task::{Context, Poll, Waker},
+};
 
 use identus_core::{ClockError, UnixTimestampMillis, WallClock};
 use identus_oid4vp::{
@@ -18,10 +22,7 @@ impl WallClock for Clock {
 
 struct Replay;
 impl RequestObjectReplayGuard for Replay {
-    fn accept<'a>(
-        &'a self,
-        _input: RequestObjectReplayInput<'a>,
-    ) -> RequestObjectReplayFuture<'a> {
+    fn accept<'a>(&'a self, _input: RequestObjectReplayInput<'a>) -> RequestObjectReplayFuture<'a> {
         Box::pin(async { Ok(()) })
     }
 }

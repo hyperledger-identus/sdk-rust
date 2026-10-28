@@ -1313,6 +1313,51 @@ external_records   = [  ]
 limitations        = "The digest is an SDK idempotency contract, not a Cardano transaction hash or persistence schema."
 
 [[sources]]
+id             = "w3c-ccg.did-method-web"
+kind           = "standard"
+url            = "https://github.com/w3c-ccg/did-method-web"
+version        = "ea423c114e6f2537498ee6f94e8d794c64f60c18"
+section        = "Method-specific identifier, create/read URL mapping, exact document ID, and security considerations"
+authorship     = "did:web specification contributors"
+license        = "W3C-20150513"
+redistribution = "derived-cases-allowed"
+
+[[packets]]
+id             = "did.web.profile.v1"
+capability     = "did.web.profile"
+schema_version = 1
+path           = "docs/conformance/fixtures/did-web/v1/vectors.json"
+sha256         = "591eb3b735abae0a9969693870f54949da6ef924ace0f4f85b0c532007a8dd3b"
+authorship     = "SDK-Rust clean-room curation from the pinned did:web draft examples"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[vectors]]
+id                 = "did.web.path.pinned-example"
+packet             = "did.web.profile.v1"
+case               = "did.web.path.pinned-example"
+capability         = "did.web.profile"
+authority          = "normative"
+source_ids         = [ "w3c-ccg.did-method-web" ]
+source_locator     = "Pinned path URL mapping example at index.html lines 344-351"
+operation          = "did-web.parse-prepare"
+expected           = "success"
+profile_scope      = "Lowercase ASCII FQDN and two unreserved path segments"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "conformance::pinned_url_mapping_examples_match_the_selected_profile"
+language_selectors = [  ]
+owner_issue        = 559
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The vector proves deterministic URL mapping, not DNS, TLS, HTTP, redirect, or remote trust policy."
+
+[[sources]]
 id             = "quartzjer.did-jwk"
 kind           = "standard"
 url            = "https://github.com/quartzjer/did-jwk"

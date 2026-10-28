@@ -29,8 +29,8 @@ follows redirects nor accepts an effective URL. A synchronous binding function
 keeps protocol validation independently reusable and testable.
 
 The first identifier profile accepts lowercase ASCII FQDNs, a canonical
-uppercase `%3A` non-default port, and conservative unreserved colon-separated
-paths. It rejects IP literals, IDNA conversion, ambiguous escapes, empty/dot
+uppercase `%3A` non-default port, and conservative DID-`idchar` colon-separated
+paths without percent escapes or `~`. It rejects IP literals, IDNA conversion, ambiguous escapes, empty/dot
 segments, and noncanonical ports. Profile expansion requires a later decision.
 
 ## Consequences

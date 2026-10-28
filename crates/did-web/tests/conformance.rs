@@ -53,6 +53,7 @@ fn strict_profile_rejects_unsafe_or_ambiguous_forms() {
         "did:web:example.com%3A443",
         "did:web:example.com:.",
         "did:web:example.com:a::b",
+        "did:web:example.com:user~1",
     ] {
         assert!(DidWeb::parse(input).is_err(), "accepted {input}");
     }

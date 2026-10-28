@@ -32,7 +32,8 @@ telemetry. A resolver calls the port at most once.
 
 - lowercase ASCII multi-label FQDNs only;
 - optional uppercase `%3A` port in `1..=65535`, excluding noncanonical 443;
-- optional non-empty unreserved ASCII colon-separated path segments;
+- optional non-empty ASCII DID `idchar` colon-separated path segments, with
+  percent escapes and `~` excluded by the first profile;
 - bare domain maps to `/.well-known/did.json`;
 - path maps to slash-separated segments followed by `/did.json`;
 - response status is 200 with a bounded, syntactically valid DID JSON or

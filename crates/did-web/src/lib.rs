@@ -525,7 +525,7 @@ fn valid_segment(segment: &str) -> bool {
             byte.is_ascii_lowercase()
                 || byte.is_ascii_uppercase()
                 || byte.is_ascii_digit()
-                || matches!(byte, b'-' | b'.' | b'_' | b'~')
+                || matches!(byte, b'-' | b'.' | b'_')
         })
 }
 

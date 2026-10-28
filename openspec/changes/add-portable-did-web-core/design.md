@@ -45,8 +45,8 @@ then splits the method-specific identifier into authority and path. Authority
 validation recognizes at most one uppercase `%3A` port delimiter and rejects
 every other percent sign. FQDN labels are lowercase ASCII, 1..=63 bytes, do not
 start/end with a hyphen, and total at most 253 bytes. Ports use canonical
-decimal syntax and exclude 443. Paths have finite count/length, use unreserved
-ASCII, and reject `.` and `..`.
+decimal syntax and exclude 443. Paths have finite count/length, use the ASCII
+DID `idchar` subset without percent escapes or `~`, and reject `.` and `..`.
 
 URL derivation is a direct allocation after checked length arithmetic. Bare
 domains receive `/.well-known/did.json`; path DIDs receive their segments and

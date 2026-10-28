@@ -60,7 +60,7 @@ as a production dependency. No source is copied wholesale.
 - Optional uppercase canonical `%3A` followed by a decimal port in `1..=65535`;
   no leading zero and no explicit port `443` because it is noncanonical.
 - Optional non-empty colon-delimited path segments containing the conservative
-  URI unreserved ASCII set; dot segments and percent escapes are rejected.
+  generic DID `idchar` ASCII subset; dot segments, percent escapes, and `~` are rejected.
 - Exact HTTPS URL derivation with no normalization delegated to a URL library.
 - Successful response status `200`, bounded media type, and JSON-compatible
   `application/did+json`, `application/did+ld+json`, or `application/json`.

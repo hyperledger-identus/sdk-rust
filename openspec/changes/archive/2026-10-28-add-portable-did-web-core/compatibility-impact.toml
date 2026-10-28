@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 559
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The additive unreleased identus-did-web crate exposes strict parsing, deterministic request derivation, injected retrieval, and bounded exact document binding."
+ledger_ids     = [ "did.web.profile.v1" ]

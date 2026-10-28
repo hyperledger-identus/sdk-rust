@@ -37,7 +37,7 @@ GENERATED_KEYS = {"prefix", "repeat", "count", "suffix"}
 FIELD_KEYS = {
     "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment",
     "operationKind", "operationId", "operationHash", "canonicalDid", "curve",
-    "relationshipCount",
+    "relationshipCount", "url",
 }
 AUTHORITIES = {
     "normative", "identus-contract", "consumer-regression", "implementation-regression", "exploratory"
@@ -57,6 +57,7 @@ OPERATIONS = {
     "did-key.parse",
     "did-key.parse-resolve",
     "did-jwk.parse-resolve",
+    "did-web.parse-prepare",
     "oid4vp.direct-post-response.construct",
     "siopv2.did-authentication.roundtrip",
 }
@@ -216,6 +217,8 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 allowed_fields = {"curve"}
             elif operation in {"did-key.parse-resolve", "did-jwk.parse-resolve"}:
                 allowed_fields = {"curve", "relationshipCount"}
+            elif operation == "did-web.parse-prepare":
+                allowed_fields = {"url"}
             elif operation in {
                 "oid4vp.direct-post-response.construct",
                 "siopv2.did-authentication.roundtrip",

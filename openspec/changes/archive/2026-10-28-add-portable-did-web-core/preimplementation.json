@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 559,
+  "change": "add-portable-did-web-core",
+  "branch": "codex/feat/issue-559",
+  "baseRef": "origin/develop",
+  "baseSha": "aa563f280a52ca27297c09f64c7176331cd12103",
+  "contractHeadSha": "a5ead0b51598013836d41266f34302b184def717",
+  "createdAt": "2026-10-28T13:26:27.180Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

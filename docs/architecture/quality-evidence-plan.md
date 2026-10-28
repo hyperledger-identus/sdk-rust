@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-28`
-- Declaration count: `14`
+- Declaration count: `15`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -597,6 +597,51 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Compare exact Ed25519 and X25519 DIDs, semantic relationship counts, strict encoding/category rejection and the public identifier ceiling against the attributed packet.
 - Receipt: `source:docs/conformance/fixtures/did-key/v1/vectors.json`
 - Evidence revision: `9d032d8397e8afb1ed7133b95119ab522755e25f`
+
+## `did.web.profile.quality.v1`
+
+- Capability: `did.web.profile`
+- Slice: Bounded did:web parsing, request derivation, injected retrieval and exact document binding
+- Owner: SDK-Rust DID maintainers (issue #559)
+- Risk: Ambiguous authority parsing, unbounded remote data, transport-policy leakage, or document mismatch can redirect identity resolution or amplify work.
+- Targets: `package:identus-did-web`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`
+- Vector IDs: `1` local catalog entries
+- Limitations: Portable method core only; concrete HTTP, DNS, TLS, redirect, proxy, cache, retry, cancellation, SSRF policy, registration, persistence, bindings, consumer migration and publication remain separate.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #559 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #559 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #559 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #559 |
+
+### `property`
+
+- Command: `cargo test -p identus-did-web --all-features`
+- Budget: Sweep deterministic valid and invalid authority, port and path classes plus complete in-memory fetch-port E2E.
+- Receipt: `source:crates/did-web/tests/conformance.rs`
+- Evidence revision: `561302c59f4259033e99e767ed5ebb1f8c634693`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-did-web.sh soak`
+- Budget: Run bounded parse and response binding for 300 seconds with timeout 5 seconds and RSS limit 1024 MiB.
+- Receipt: `source:fuzz/fuzz_targets/did_web.rs`
+- Evidence revision: `561302c59f4259033e99e767ed5ebb1f8c634693`
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-did-web --bench directional`
+- Budget: Measure parse/derive, response binding, and early oversized rejection over deterministic samples.
+- Receipt: `source:docs/architecture/did-web-quality-baseline.md`
+- Evidence revision: `561302c59f4259033e99e767ed5ebb1f8c634693`
+
+### `differential`
+
+- Command: `cargo test -p identus-did-web --test conformance pinned_url_mapping_examples_match_the_selected_profile`
+- Budget: Compare exact bare, path and encoded-port URLs plus exact document ID binding against attributed pinned examples.
+- Receipt: `source:docs/conformance/fixtures/did-web/v1/vectors.json`
+- Evidence revision: `561302c59f4259033e99e767ed5ebb1f8c634693`
 
 ## `did.jwk.profile.quality.v1`
 

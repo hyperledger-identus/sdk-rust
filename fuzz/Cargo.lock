@@ -521,6 +521,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-did-web"
+version = "0.0.0"
+dependencies = [
+ "identus-core",
+ "identus-derive",
+ "identus-did",
+]
+
+[[package]]
 name = "identus-jose"
 version = "0.0.0"
 dependencies = [
@@ -605,6 +614,7 @@ dependencies = [
  "identus-did-jwk",
  "identus-did-key",
  "identus-did-peer",
+ "identus-did-web",
  "identus-jose",
  "identus-oid4vp",
  "identus-prism-did",

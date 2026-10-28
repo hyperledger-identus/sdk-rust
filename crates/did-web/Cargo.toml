@@ -1,0 +1,22 @@
+[package]
+name                   = "identus-did-web"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+publish.workspace      = true
+
+[dependencies]
+identus-core.workspace   = true
+identus-derive.workspace = true
+identus-did.workspace    = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[[bench]]
+name    = "directional"
+harness = false
+
+[lints]
+workspace = true

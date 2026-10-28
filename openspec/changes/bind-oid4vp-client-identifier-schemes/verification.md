@@ -18,9 +18,9 @@ Evidence source head: `f8868f315dbbc8ef2dc6db419a4dd28c9559a211`
 - The E2E path verifies the Request Object, retains the exact verified JWK,
   authorizes the verifier through a caller port, asserts the signed direct-post
   destination, consumes the evidence and produces typed routing state.
-- Metadata source rules, verifier-information references, trust-chain bounds,
-  independent collection limits, mismatch cases, redaction canaries and
-  Send/Sync contracts pass.
+- Metadata source rules, verifier-information references, protected-header
+  trust-chain bounds, payload-substitution rejection, independent collection
+  limits, mismatch cases, redaction canaries and Send/Sync contracts pass.
 - JOSE compact-conformance tests prove that the protected `jwt` evidence is
   bounded and retained without changing signature verification semantics.
 

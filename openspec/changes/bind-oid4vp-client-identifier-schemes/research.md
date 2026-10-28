@@ -34,7 +34,7 @@ interoperability evidence only and do not dictate Rust DTOs or errors.
 | --- | --- | --- | --- |
 | no prefix | supported | exact full-id and verified-key evidence | pre-registration and metadata trust |
 | `redirect_uri` | unsupported here | classify and fail closed | use a separately specified unsigned flow |
-| `openid_federation` | supported by port | bounded trust-chain and metadata-source rules | Federation validation, policies, key and metadata |
+| `openid_federation` | supported by port | bounded protected-header trust-chain and metadata-source rules | Federation validation, policies, key and metadata |
 | `decentralized_identifier` | supported by port | DID syntax, required `kid`, exact-key evidence | DID resolution, relationship and key authorization |
 | `verifier_attestation` | supported by port | bounded nested `jwt` evidence and exact subject input | attestation signature, issuer trust, `cnf`, redirects |
 | `x509_san_dns` | supported by port | bounded DNS identifier, `x5c`, exact-key evidence | chain, SAN, DNS and redirect policy |

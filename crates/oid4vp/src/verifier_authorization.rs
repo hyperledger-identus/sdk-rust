@@ -281,7 +281,12 @@ impl RequestObjectSecurityEvidence {
             return Err(Oid4vpError::InvalidVerifierMetadata);
         };
         let metadata = parse_metadata(payload.get("client_metadata"), scheme, limits)?;
-        let trust_chain = parse_trust_chain(payload.get("trust_chain"), scheme, limits)?;
+        let trust_chain = parse_trust_chain(
+            self.protected_header().trust_chain(),
+            payload.get("trust_chain"),
+            scheme,
+            limits,
+        )?;
         let dcql_ids = dcql_credential_ids(&payload, limits)?;
         let verifier_info = parse_verifier_info(payload.get("verifier_info"), &dcql_ids, limits)?;
         let response_uri = payload.get("response_uri").and_then(Value::as_str);
@@ -403,30 +408,30 @@ fn parse_metadata(
 }
 
 fn parse_trust_chain(
-    value: Option<&Value>,
+    protected_value: Option<&[String]>,
+    payload_value: Option<&Value>,
     scheme: ClientIdentifierScheme,
     limits: VerifierAuthorizationLimits,
 ) -> Result<Vec<Zeroizing<String>>, Oid4vpError> {
+    if payload_value.is_some() {
+        return Err(Oid4vpError::InvalidVerifierMetadata);
+    }
     if scheme != ClientIdentifierScheme::OpenIdFederation {
-        return if value.is_none() {
+        return if protected_value.is_none() {
             Ok(Vec::new())
         } else {
             Err(Oid4vpError::InvalidVerifierMetadata)
         };
     }
-    let Some(value) = value else {
+    let Some(values) = protected_value else {
         return Ok(Vec::new());
     };
-    let values = value
-        .as_array()
-        .ok_or(Oid4vpError::InvalidVerifierMetadata)?;
     if values.is_empty() || values.len() > limits.max_trust_chain_entries {
         return Err(Oid4vpError::InvalidVerifierMetadata);
     }
     values
         .iter()
         .map(|value| {
-            let value = value.as_str().ok_or(Oid4vpError::InvalidVerifierMetadata)?;
             if value.len() > limits.max_string_bytes || !valid_compact(value) {
                 return Err(Oid4vpError::InvalidVerifierMetadata);
             }

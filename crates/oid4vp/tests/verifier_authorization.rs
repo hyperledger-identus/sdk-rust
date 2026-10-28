@@ -106,7 +106,7 @@ fn every_signed_final_scheme_binds_the_exact_verified_key_before_routing() {
         (
             "openid_federation:https://verifier.example".to_owned(),
             ClientIdentifierScheme::OpenIdFederation,
-            HeaderKind::Kid("federation-key"),
+            HeaderKind::Federation("federation-key"),
         ),
         (
             "decentralized_identifier:did:example:verifier".to_owned(),
@@ -240,7 +240,7 @@ fn metadata_references_limits_and_source_rules_fail_closed() {
         secure(
             federation,
             request(federation, ClientIdentifierScheme::OpenIdFederation, true),
-            HeaderKind::Kid("federation-key"),
+            HeaderKind::Federation("federation-key"),
         )
         .authorize_verifier(&policy, VerifierAuthorizationLimits::default()),
     );
@@ -258,7 +258,7 @@ fn metadata_references_limits_and_source_rules_fail_closed() {
         (
             federation,
             ClientIdentifierScheme::OpenIdFederation,
-            HeaderKind::Kid("federation-key"),
+            HeaderKind::Federation("federation-key"),
         ),
     ] {
         let mut encrypted = request(client_id, scheme, true);
@@ -280,6 +280,22 @@ fn metadata_references_limits_and_source_rules_fail_closed() {
             "untrusted inline metadata must not select encryption keys"
         );
     }
+
+    let mut payload_substitution =
+        request(federation, ClientIdentifierScheme::OpenIdFederation, true);
+    payload_substitution["trust_chain"] = json!(["e30.e30.AQ"]);
+    let policy = InspectPolicy::accepting(ClientIdentifierScheme::OpenIdFederation);
+    let error = block_on(
+        secure(
+            federation,
+            payload_substitution,
+            HeaderKind::Federation("federation-key"),
+        )
+        .authorize_verifier(&policy, VerifierAuthorizationLimits::default()),
+    )
+    .unwrap_err();
+    assert_eq!(error, Oid4vpError::InvalidVerifierMetadata);
+    assert_eq!(policy.calls.load(Ordering::SeqCst), 0);
 }
 
 #[test]
@@ -331,7 +347,7 @@ fn assert_metadata_error(client_id: &str, request: Value, expected: Oid4vpError)
     assert_eq!(policy.calls.load(Ordering::SeqCst), 0);
 }
 
-fn request(client_id: &str, scheme: ClientIdentifierScheme, metadata: bool) -> Value {
+fn request(client_id: &str, _scheme: ClientIdentifierScheme, metadata: bool) -> Value {
     let mut value = json!({
         "client_id": client_id,
         "aud": STATIC_DISCOVERY_AUDIENCE,
@@ -354,15 +370,13 @@ fn request(client_id: &str, scheme: ClientIdentifierScheme, metadata: bool) -> V
     if metadata {
         value["client_metadata"] = json!({"display_name": CANARY});
     }
-    if scheme == ClientIdentifierScheme::OpenIdFederation {
-        value["trust_chain"] = json!(["e30.e30.AQ"]);
-    }
     value
 }
 
 #[derive(Clone, Copy)]
 enum HeaderKind {
     Kid(&'static str),
+    Federation(&'static str),
     Attestation,
     X5c,
 }
@@ -378,6 +392,15 @@ fn secure(
             "Ed25519",
             Some(REQUEST_OBJECT_JWT_TYPE),
             Some(kid),
+            JwsLimits::default(),
+        ),
+        HeaderKind::Federation(kid) => ProtectedHeader::with_key_reference_and_extended_evidence(
+            "Ed25519",
+            Some(REQUEST_OBJECT_JWT_TYPE),
+            Some(JwsKeyReference::key_id(kid, JwsLimits::default()).expect("kid")),
+            None,
+            None,
+            Some(vec!["e30.e30.AQ".to_owned()]),
             JwsLimits::default(),
         ),
         HeaderKind::Attestation => ProtectedHeader::with_key_reference_and_extended_evidence(

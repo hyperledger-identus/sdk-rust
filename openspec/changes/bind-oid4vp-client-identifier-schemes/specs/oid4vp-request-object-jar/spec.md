@@ -39,8 +39,9 @@ and public key that verified the correlated JWS.
 
 ### Requirement: Verifier metadata and verifier info are bounded evidence
 
-The SDK SHALL validate applicable inline verifier metadata, Federation trust
-chains, and verifier-info structures under finite limits and enforce all
+The SDK SHALL validate applicable inline verifier metadata, protected-header
+Federation trust chains, and verifier-info structures under finite limits,
+reject payload substitution of Federation trust-chain evidence, and enforce all
 verifier-info credential references against the request's DCQL query.
 
 #### Scenario: bounded metadata is structurally valid

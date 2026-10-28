@@ -29,9 +29,11 @@ Support pre-registered, `openid_federation`, `decentralized_identifier`,
 Reject `redirect_uri`, `origin`, and unknown prefixes in this profile. Reuse
 generic DID and JOSE types; add no trust-engine dependency.
 
-Parse `client_metadata`, `trust_chain`, and `verifier_info` under explicit
-limits and Final source rules. Keep `direct_post.jwt` recipient selection a
-separate closed encryption function, not evidence of verifier identity.
+Parse payload `client_metadata` and `verifier_info` plus protected-header
+`trust_chain` under explicit limits and Final source rules. Reject payload
+substitution of Federation trust-chain evidence. Keep `direct_post.jwt`
+recipient selection a separate closed encryption function, not evidence of
+verifier identity.
 
 ## Consequences
 

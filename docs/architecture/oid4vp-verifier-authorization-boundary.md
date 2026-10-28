@@ -29,7 +29,7 @@ inert response material
 | Client identifier | Core behavior | Adapter obligation |
 | --- | --- | --- |
 | no prefix | pre-registered scheme; inline metadata is ignored | look up registration, metadata and authorized key |
-| `openid_federation` | bounded entity id and optional `trust_chain`; inline metadata is ignored | validate Federation chain/policies and authorize exact key |
+| `openid_federation` | bounded entity id and optional protected-header `trust_chain`; payload substitution and inline metadata are ignored | validate Federation chain/policies and authorize exact key |
 | `decentralized_identifier` | validate DID, require a `kid` DID URL for that exact DID | resolve/dereference the verification method and authorize its relationship/key |
 | `verifier_attestation` | require bounded protected `jwt` evidence | validate nested JWT, issuer trust, `sub`, `cnf`, redirects and exact outer key |
 | `x509_san_dns` | validate DNS-name syntax and require bounded `x5c` | validate chain, SAN, redirect rules and exact leaf key |

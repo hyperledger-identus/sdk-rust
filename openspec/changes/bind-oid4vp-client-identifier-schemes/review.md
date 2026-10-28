@@ -40,6 +40,22 @@ helper before typed routing. All three OID4VP fuzz binaries compile and pass a
 4,096-run smoke, and the dedicated Request Object target passed a 300-second
 ASan soak. Commit: `f8868f315dbbc8ef2dc6db419a4dd28c9559a211`.
 
+### R-3 — Federation trust chains were read from the payload
+
+Severity: P2 before correction
+
+The final branch review found that `openid_federation` authorization read
+`trust_chain` from the Request Object payload even though OpenID Federation
+places that evidence in the protected JWS header. A conforming chain was
+therefore omitted from the trust-port input, while a payload substitution could
+be accepted.
+
+Resolution: verifier authorization now borrows the already bounded chain from
+the verified protected header, applies its own profile limits, rejects a chain
+for every other client-id scheme, and rejects any payload `trust_chain` before
+invoking the policy. The scheme E2E test now constructs protected-header
+Federation evidence and includes a negative payload-substitution regression.
+
 ## Architecture review
 
 - The protocol crate owns scheme parsing, bounded verifier metadata and the
@@ -75,7 +91,7 @@ ASan soak. Commit: `f8868f315dbbc8ef2dc6db419a4dd28c9559a211`.
 
 ## Final review status
 
-The two independent review findings above are resolved. A final exact-branch
-Codex CLI pass will be recorded after the closeout evidence commit; task 3.4
-remains open until that pass reports no unresolved blocker, high or medium
+The three independent review findings above are resolved. A final exact-branch
+Codex CLI remediation pass will be recorded after the correction commit; task
+3.4 remains open until that pass reports no unresolved blocker, high or medium
 finding.

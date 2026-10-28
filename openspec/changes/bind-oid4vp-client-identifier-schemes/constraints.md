@@ -30,7 +30,8 @@ state boundaries. The Final matrix rows owned by #545 are affected.
   crates do not duplicate these generic components or import donor DTOs.
 - Metadata and verifier-info are accepted only from the Final-permitted source,
   under explicit byte/count/string/reference limits. Federation ignores inline
-  `client_metadata` for trust decisions.
+  `client_metadata` for trust decisions and accepts `trust_chain` only from the
+  protected JWS header; payload substitution fails closed.
 - `verifier_info` credential references must identify DCQL credential queries.
 - Existing encrypted-response key selection remains separate from verifier
   trust and retains its exact algorithm/key restrictions.

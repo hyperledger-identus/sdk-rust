@@ -18,8 +18,9 @@ audience.
 - Add one consuming verifier-authorization transition that supplies the exact
   verified key, full client identifier, protected header, and bounded
   scheme-specific evidence to a caller-owned trust port.
-- Parse applicable `client_metadata`, `trust_chain`, and `verifier_info` under
-  explicit limits, including DCQL credential-id references.
+- Parse applicable payload `client_metadata` and `verifier_info` plus
+  protected-header `trust_chain` under explicit limits, including DCQL
+  credential-id references and rejection of payload trust-chain substitution.
 - Preserve existing `direct_post.jwt` recipient selection as a separate,
   narrowly claimed metadata consumer.
 - Add clean-room conformance, property, E2E, fuzz, benchmark, redaction, and

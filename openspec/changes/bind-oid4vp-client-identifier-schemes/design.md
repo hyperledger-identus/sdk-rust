@@ -30,7 +30,8 @@ the SDK remains owner of evidence state and redaction.
 The verified request payload is parsed after the existing bounded scanner has
 accepted it. `client_metadata` must be an object when applicable. Federation
 does not supply it to the trust decision. `trust_chain` is a bounded non-empty
-array only for Federation. `verifier_info` is a bounded non-empty array of
+protected-header array only for Federation; a payload member is rejected as a
+source-confusion attempt. `verifier_info` is a bounded non-empty array of
 objects containing a bounded non-empty `format`, object-or-string `data`, and
 optional non-empty unique `credential_ids`; every reference must match a DCQL
 credential query id. Unknown metadata members remain bounded opaque JSON.

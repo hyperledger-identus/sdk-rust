@@ -13,6 +13,10 @@ Status: `active`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt crate provides bounded staged RFC 9901 compact issuance, disclosure processing and selection, key binding and verification behind SDK-owned types and injected effects.
 
+### `credentials.sd-jwt.vc-draft22.v1`
+
+State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt-vc crate provides an exact bounded draft-22 profile with canonical dc+sd-jwt issuance, profile claims, caller-supplied issuer/type/status evidence and offline protocol integration.
+
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 State: `active`. Class: `security` / `security`. Target: `unreleased`. The same SDK wrappers, methods and byte behavior use advisory-clean k256 and p256 0.14; their exposed tuple fields consequently have the corresponding 0.14 upstream type identities.
@@ -83,6 +87,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 `unreleased` → `unreleased` for oxid, sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
 
+### `credentials.sd-jwt.vc-draft22.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters, sdk-swift, sdk-ts. Use the canonical dc+sd-jwt profile for new Rust integrations; keep legacy vc+sd-jwt migration isolated to issue #572.
+
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 `0.1.0-rc.1` → `unreleased` for sdk-rust-adopters. Prefer identus-crypto from_slice, to_public_key and encoding methods; direct tuple-field consumers update their k256 or p256 dependency and imports to 0.14 when adopting the next candidate.
@@ -150,6 +158,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ## Compatibility windows
 
 ### `credentials.sd-jwt.rfc9901.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `credentials.sd-jwt.vc-draft22.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
@@ -223,6 +235,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Fallback: Consumers retain their current SD-JWT implementation until they explicitly adopt a later released crate or language adapter. Rollback: Before publication remove the additive crate and active ledger record while preserving RFC vectors, ADR 0193 and failure evidence. Removal gate: Not applicable.
 
+### `credentials.sd-jwt.vc-draft22.v1`
+
+Fallback: Consumers retain their current SD-JWT VC implementation until they explicitly adopt a later released profile or language adapter. Rollback: Before publication remove the additive profile crate and proposed ledger record while preserving the RFC 9901 base, immutable vectors and decision history. Removal gate: Not applicable.
+
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 Fallback: Delay consumer adoption while migrating to SDK byte boundaries; do not publish a new security-current candidate that restores the rejected 0.13 closure. Rollback: Move forward to another advisory-clean curve family or SDK-owned opaque boundary; never restore the advisory-affected dependency closure as a release state. Removal gate: Not applicable; this is a security remediation and candidate source migration, not a deprecated compatibility facade.
@@ -292,6 +308,10 @@ Fallback: Consumers retain their existing SIOPv2 implementation until a separate
 ### `credentials.sd-jwt.rfc9901.v1`
 
 Visibility: behavior, public-api, security, target-support, wire. RFC 9901 compact plus SHA-256 only; no SD-JWT VC profile, JWS JSON Serialization, HTTP, DID/trust/replay/storage policy, bindings, runtime, publication, certification or downstream adoption is included.
+
+### `credentials.sd-jwt.vc-draft22.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. Exact draft-22 compact profile only; no HTTP, trust/authorization/status acceptance, rendering, replay/storage policy, legacy adapter, bindings, runtime certification, publication or downstream adoption.
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 

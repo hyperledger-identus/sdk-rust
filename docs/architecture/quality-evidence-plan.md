@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-28`
-- Declaration count: `16`
+- Declaration count: `17`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -732,3 +732,52 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Compare applicable RFC examples and clean-room cases to at least two immutable independent engines, resolving every disagreement against RFC 9901.
 - Receipt: `source:crates/sd-jwt/tests/conformance.rs`
 - Evidence revision: `1e22043f450f31be4a5387ed66444cb7214dbd8e`
+
+## `credentials.sd-jwt-vc.draft22.quality.v1`
+
+- Capability: `credentials.sd-jwt`
+- Slice: Bounded canonical SD-JWT VC draft-22 profile over RFC 9901
+- Owner: SDK-Rust credential maintainers (issue #569)
+- Risk: Profile drift, malformed claims or external evidence can misidentify credential semantics, bypass disclosure rules, amplify work or represent structural evidence as trust.
+- Targets: `package:identus-sd-jwt-vc`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`
+- Vector IDs: `1` local catalog entries
+- Limitations: Exact draft-22 compact profile only; no HTTP, trust or issuer authorization, status acceptance, rendering, replay/storage policy, legacy adapter, bindings, runtime certification, publication or downstream adoption.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `required` | `focused` | `on-change` | `pending` | #569 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #569 |
+| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #569 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #569 |
+
+### `property`
+
+- Command: `cargo test -p identus-sd-jwt-vc --test properties`
+- Budget: Sweep types, additional types, protected claims, dates, metadata chains, claim paths, issuer and status evidence, ordering and exact boundaries.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #569
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-sd-jwt-vc.sh soak`
+- Budget: Run profile claims, metadata, issuer evidence, status and base/profile transition targets for 300 seconds each with max_len=1048576, timeout=5 and rss_limit_mb=1024.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #569
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-sd-jwt-vc --bench directional`
+- Budget: Measure ordinary, exact-boundary, early-rejection, maximum extension-chain and status-correlation cases with retained-output evidence.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #569
+
+### `differential`
+
+- Command: `cargo test -p identus-sd-jwt-vc --test conformance differential`
+- Budget: Compare draft-22 Appendix A and clean-room cases to at least two immutable independent engines, resolving every disagreement against the pinned draft.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #569

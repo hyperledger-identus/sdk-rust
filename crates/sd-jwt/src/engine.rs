@@ -329,8 +329,8 @@ impl Graph<'_> {
             }
             Value::Array(array) => {
                 let mut output = Vec::new();
-                for (index, value) in array.into_iter().enumerate() {
-                    path.push(PathSegment::Index(index));
+                for value in array {
+                    path.push(PathSegment::Index(output.len()));
                     if let Value::Object(ref map) = value
                         && let Some(reference) = map.get("...")
                     {

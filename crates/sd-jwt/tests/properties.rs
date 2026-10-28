@@ -153,3 +153,60 @@ fn array_paths_and_exact_salt_boundaries_roundtrip() {
         );
     }
 }
+
+#[test]
+fn partial_array_presentations_reindex_visible_disclosures() {
+    let limits = SdJwtLimits::default();
+    let private = Ed25519PrivateKey::from_slice(&[31; 32]).unwrap();
+    let public = private.to_public_key().encode_jwk();
+    let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).unwrap();
+    let item = |index| {
+        path(
+            limits,
+            vec![
+                PathSegment::Member("items".to_owned()),
+                PathSegment::Index(index),
+            ],
+        )
+    };
+    let issued = issue(
+        json!({"items":["hidden-first", "visible-second"]}),
+        &IssuancePlan {
+            disclose: vec![item(0), item(1)],
+            decoy_locations: Vec::new(),
+            salt_bytes: 16,
+        },
+        &mut SeededEntropy(0xfeed_face),
+        &Ed25519Signer::new(&private),
+        limits,
+    )
+    .unwrap();
+    let full = UnverifiedSdJwt::parse(issued.as_str(), limits)
+        .unwrap()
+        .verify_issuer(&SignatureSuiteRegistry::recommended(), &key)
+        .unwrap()
+        .process_disclosures()
+        .unwrap();
+    let partial = full
+        .select(&SelectionPlan {
+            paths: vec![item(1)],
+        })
+        .unwrap();
+    let materialized = UnverifiedSdJwt::parse(partial.as_str(), limits)
+        .unwrap()
+        .verify_issuer(&SignatureSuiteRegistry::recommended(), &key)
+        .unwrap()
+        .process_disclosures()
+        .unwrap();
+    assert_eq!(materialized.claims(), &json!({"items":["visible-second"]}));
+    assert_eq!(
+        materialized
+            .select(&SelectionPlan {
+                paths: vec![item(0)],
+            })
+            .unwrap()
+            .receipt()
+            .disclosure_count,
+        1
+    );
+}

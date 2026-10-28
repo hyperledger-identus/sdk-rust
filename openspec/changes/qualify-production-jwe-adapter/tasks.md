@@ -21,7 +21,7 @@
 ## 4. Review and delivery
 
 - [x] 4.1 Run proportionate repository/Nix gates and the isolated qualification route.
-- [ ] 4.2 Run Claude CLI review or immediate Codex CLI fallback and resolve actionable findings.
+- [x] 4.2 Run Claude CLI review or immediate Codex CLI fallback and resolve actionable findings.
 - [ ] 4.3 Archive the completed OpenSpec change and prepare a signed/DCO issue-linked PR with metrics.
 
 ## 5. Stop boundary

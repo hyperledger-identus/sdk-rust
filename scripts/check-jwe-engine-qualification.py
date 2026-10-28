@@ -37,6 +37,8 @@ def validate(root: Path) -> list[str]:
         'vulnerabilities["count"] == 1',
         'and report["warnings"] == {}',
         'oracle-qualified / production-rejected',
+        'all qualification gates verified',
+        'partial evidence complete: {args.mode} gate only',
     )
     for phrase in required_runner:
         if phrase not in runner:

@@ -44,6 +44,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/openspec-archive.py"
 "$repository_root/scripts/tests/research-readiness.py"
 "$repository_root/scripts/tests/rustsec-audit.py"
+"$repository_root/scripts/tests/jwe-engine-qualification.py"
 
 required_files=(
   AGENTS.md
@@ -299,6 +300,8 @@ required_files=(
   scripts/check-crypto-candidate.py
   scripts/check-release-train.py
   scripts/check-release-candidates.py
+  scripts/check-jwe-engine-qualification.py
+  scripts/qualify-jwe-engine.py
   scripts/code-health-audit.py
   scripts/prepare-crypto-candidate.py
   scripts/prepare-did-candidate.py
@@ -317,6 +320,7 @@ required_files=(
   scripts/tests/repository-issue-verification.sh
   scripts/tests/research-readiness.py
   scripts/tests/rustsec-audit.py
+  scripts/tests/jwe-engine-qualification.py
   scripts/tests/support-policy.py
   scripts/tests/ssi-upstream-backlog-live.py
   scripts/tests/oid4vci-conformance.py
@@ -528,6 +532,8 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-pr-policy.sh" \
   "$fixture_root/scripts/check-research-readiness.py" \
   "$fixture_root/scripts/check-rustsec-audit.py" \
+  "$fixture_root/scripts/check-jwe-engine-qualification.py" \
+  "$fixture_root/scripts/qualify-jwe-engine.py" \
   "$fixture_root/scripts/check-support-policy.py" \
   "$fixture_root/scripts/check-apollo-parity.py" \
   "$fixture_root/scripts/check-platform-ts-capabilities.py" \
@@ -566,6 +572,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/pr-policy.sh" \
   "$fixture_root/scripts/tests/research-readiness.py" \
   "$fixture_root/scripts/tests/rustsec-audit.py" \
+  "$fixture_root/scripts/tests/jwe-engine-qualification.py" \
   "$fixture_root/scripts/tests/support-policy.py" \
   "$fixture_root/scripts/tests/ssi-upstream-backlog-live.py" \
   "$fixture_root/scripts/tests/oid4vci-conformance.py" \

@@ -280,7 +280,7 @@ def audit(root: Path, work: Path, env: dict[str, str]) -> None:
             print(result.stderr, file=sys.stderr, end="")
         raise QualificationError("candidate audit failed for an unexpected reason")
     print(
-        "jwe-qualification: oracle-qualified / production-rejected "
+        "jwe-qualification: audit gate passed with production blocker "
         f"({BLOCKING_ADVISORY}, {BLOCKING_PACKAGE})"
     )
 
@@ -308,7 +308,16 @@ def main() -> int:
             portable(root, work, env)
         if args.mode in {"audit", "all"}:
             audit(root, work, env)
-        print(f"jwe-qualification: {CANDIDATE} {VERSION} disposition verified")
+        if args.mode == "all":
+            print(
+                "jwe-qualification: oracle-qualified / production-rejected "
+                f"for {CANDIDATE} {VERSION}; all qualification gates verified"
+            )
+        else:
+            print(
+                f"jwe-qualification: {CANDIDATE} {VERSION} "
+                f"partial evidence complete: {args.mode} gate only"
+            )
         return 0
     except QualificationError as error:
         print(f"jwe-qualification: {error}", file=sys.stderr)

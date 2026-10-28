@@ -1311,3 +1311,71 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "The digest is an SDK idempotency contract, not a Cardano transaction hash or persistence schema."
+
+[[sources]]
+id             = "quartzjer.did-jwk"
+kind           = "standard"
+url            = "https://github.com/quartzjer/did-jwk"
+version        = "44e186cf4cc215fc726afeecad1727cc9f9a66e8"
+section        = "DID format, create/read algorithm, fixed fragment, relationships, examples, security and privacy considerations"
+authorship     = "did:jwk specification contributors"
+license        = "CC0-1.0"
+redistribution = "derived-cases-allowed"
+
+[[packets]]
+id             = "did.jwk.profile.v1"
+capability     = "did.jwk.profile"
+schema_version = 1
+path           = "docs/conformance/fixtures/did-jwk/v1/vectors.json"
+sha256         = "0ef470fd0b632522ac9db57c5da740116bdba190d1154f7857c8a40971df2226"
+authorship     = "SDK-Rust clean-room curation from the pinned did:jwk draft examples"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[vectors]]
+id                 = "did.jwk.p256.pinned-example"
+packet             = "did.jwk.profile.v1"
+case               = "did.jwk.p256.pinned-example"
+capability         = "did.jwk.profile"
+authority          = "normative"
+source_ids         = [ "quartzjer.did-jwk" ]
+source_locator     = "Pinned P-256 DID example and five-relationship document projection"
+operation          = "did-jwk.parse-resolve"
+expected           = "success"
+profile_scope      = "P-256 public JWK without use"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "conformance::pinned_normative_examples_match_the_selected_profile"
+language_selectors = [  ]
+owner_issue        = 558
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The source's stray dollar sign in one authentication URI is treated as an editorial typo; the algorithm-defined fixed #0 reference governs."
+
+[[vectors]]
+id                 = "did.jwk.x25519.pinned-example"
+packet             = "did.jwk.profile.v1"
+case               = "did.jwk.x25519.pinned-example"
+capability         = "did.jwk.profile"
+authority          = "normative"
+source_ids         = [ "quartzjer.did-jwk" ]
+source_locator     = "Pinned X25519 use=enc DID example and key-agreement-only projection"
+operation          = "did-jwk.parse-resolve"
+expected           = "success"
+profile_scope      = "X25519 public JWK with explicit encryption use"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "conformance::pinned_normative_examples_match_the_selected_profile"
+language_selectors = [  ]
+owner_issue        = 558
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The vector proves exact carrier parsing, public-key validation and relationship count, not foreign DTO or error shapes."

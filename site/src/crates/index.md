@@ -36,10 +36,12 @@ public-API origin exist. See the [DID candidate review](../did-candidate.md).
 | Crate | Kind | Runtime dependency direction |
 | --- | --- | --- |
 | [`identus-did-key`](identus-did-key.md) | Strict effect-free `did:key` profile | Depends on generic DID/crypto foundations; opt-in registry composition |
+| [`identus-did-jwk`](identus-did-jwk.md) | Bounded effect-free `did:jwk` profile | Depends on generic DID/crypto/JSON foundations; opt-in registry composition |
 
-This package is an unpublished experimental source component. Its frozen
-profile, bounds, redacted errors, conformance packet, fuzzing, benchmark, and
-registry E2E are reviewed independently from the generic DID candidate train.
+These packages are unpublished experimental source components. Their frozen
+profiles, bounds, redacted errors, conformance packets, fuzzing, benchmarks,
+and registry E2E routes are reviewed independently from the generic DID
+candidate train.
 
 ## Portable PRISM stack
 

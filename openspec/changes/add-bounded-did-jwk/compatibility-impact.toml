@@ -1,6 +1,6 @@
 schema_version = 1
 issue          = 558
-disposition    = "behavior-neutral"
-scope          = "governance"
-rationale      = "This preimplementation revision records only the issue-owned architecture, research, constraints, and testable contract. Implementation will add the consumer ledger, vectors, quality declaration, and switch this disposition before delivery."
-ledger_ids     = [  ]
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The additive unreleased identus-did-jwk crate exposes bounded creation, duplicate-safe parsing, local resolution, and opt-in registry composition under the issue-owned strict profile."
+ledger_ids     = [ "did.jwk.profile.v1" ]

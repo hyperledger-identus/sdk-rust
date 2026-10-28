@@ -56,6 +56,7 @@ OPERATIONS = {
     "did-peer.numalgo2.parse-resolve",
     "did-key.parse",
     "did-key.parse-resolve",
+    "did-jwk.parse-resolve",
     "oid4vp.direct-post-response.construct",
     "siopv2.did-authentication.roundtrip",
 }
@@ -213,7 +214,7 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 allowed_fields = {"did"}
             elif operation == "did-key.parse":
                 allowed_fields = {"curve"}
-            elif operation == "did-key.parse-resolve":
+            elif operation in {"did-key.parse-resolve", "did-jwk.parse-resolve"}:
                 allowed_fields = {"curve", "relationshipCount"}
             elif operation in {
                 "oid4vp.direct-post-response.construct",
@@ -244,9 +245,9 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 errors.append(f"{identifier}: success must assert at least one parsed field")
             elif operation == "did-key.parse" and set(fields) != {"curve"}:
                 errors.append(f"{identifier}: did-key.parse success must assert exactly curve")
-            elif operation == "did-key.parse-resolve" and set(fields) != {"curve", "relationshipCount"}:
+            elif operation in {"did-key.parse-resolve", "did-jwk.parse-resolve"} and set(fields) != {"curve", "relationshipCount"}:
                 errors.append(
-                    f"{identifier}: did-key.parse-resolve success must assert curve and relationshipCount"
+                    f"{identifier}: {operation} success must assert curve and relationshipCount"
                 )
         elif kind == "error":
             required_code: str | set[str] = {
@@ -271,6 +272,16 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                     "did-key.unsupported_codec",
                     "did-key.invalid_public_key",
                     "did-key.resource_limit",
+                },
+                "did-jwk.parse-resolve": {
+                    "did-jwk.malformed_encoding",
+                    "did-jwk.malformed_json",
+                    "did-jwk.duplicate_member",
+                    "did-jwk.private_key_material",
+                    "did-jwk.unsupported_profile",
+                    "did-jwk.invalid_public_key",
+                    "did-jwk.incompatible_use",
+                    "did-jwk.resource_limit",
                 },
                 "oid4vp.direct-post-response.construct": "oid4vp.invalid_direct_post_response",
             }[operation]

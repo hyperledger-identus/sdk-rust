@@ -112,6 +112,47 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
+id                                = "did.jwk.profile.v1"
+capability                        = "did.jwk.profile"
+lifecycle_state                   = "proposed"
+issue                             = 558
+pull_request                      = 0
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-did-jwk" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-swift", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes generic DID and public JWK values but no independently selectable did:jwk method implementation."
+new_behavior                      = "The additive identus-did-jwk crate creates, parses and locally resolves a bounded canonical-base64url public-JWK profile with duplicate-safe JSON, validated Ed25519, X25519, P-256 and secp256k1 material, fixed #0 projection, explicit use policy and opt-in registry composition."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The Rust-native method deliberately does not preserve SDK-TS, Swift, KMP, Spruce or Impierce DTO and error shapes; migration adapters remain separate consumer-owned work."
+vector_ids                        = [ "did.jwk.p256.pinned-example", "did.jwk.x25519.pinned-example" ]
+quality_declaration_ids           = [ "did.jwk.profile.quality.v1" ]
+observability                     = "Record only stable operation, curve, use and result categories plus bounded lengths; never record DIDs, decoded JSON, extension values, coordinates, key material or parser diagnostics."
+fallback                          = "Consumers retain their existing did:jwk implementation until they explicitly adopt the additive crate or a later language adapter."
+rollback                          = "Before publication remove the additive crate and evidence as one unreleased unit; generic SDK-Rust DID and crypto behavior remains unchanged."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#did.jwk.profile.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.jwk.p256.pinned-example" ]
+evidence_artifacts                = [ "docs/adr/0189-bind-did-jwk-to-a-bounded-public-profile.md", "docs/architecture/did-jwk-profile.md", "docs/architecture/did-jwk-quality-baseline.md", "docs/conformance/fixtures/did-jwk/v1/vectors.json" ]
+limitations                       = "No private keys, key_ops policy, generation, signing, proof/trust policy, custody, I/O, network resolution, persistence, runtime, bindings, consumer mutation, publication, JSON-LD processing or uniqueness claim is included."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "did.key.profile.v1"
 capability                        = "did.key.profile"
 lifecycle_state                   = "active"

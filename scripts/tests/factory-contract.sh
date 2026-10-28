@@ -410,23 +410,48 @@ if [[ -d "$repository_root/openspec/changes/archive" ]]; then
   done
 fi
 
-# The resource inventory intentionally points at implementation evidence beyond
-# the minimal synthetic factory fixture. Copy that exact bounded evidence set so
-# the fixture proves path validation rather than weakening it.
+# Canonical inventories intentionally point at implementation evidence beyond
+# the minimal synthetic factory fixture. Derive and copy their bounded evidence
+# set so a new capability cannot require a hand-maintained fixture exception.
 while IFS= read -r evidence_path; do
   if [[ ! -f "$fixture_root/$evidence_path" ]]; then
     mkdir -p "$fixture_root/$(dirname "$evidence_path")"
     cp "$repository_root/$evidence_path" "$fixture_root/$evidence_path"
   fi
 done < <(
-  python3 - "$repository_root/docs/architecture/sdk-input-resource-boundaries.toml" <<'PY'
+  python3 - "$repository_root" <<'PY'
 import sys
 import tomllib
+from pathlib import Path
 
-with open(sys.argv[1], "rb") as source:
+root = Path(sys.argv[1])
+evidence = set()
+
+with (root / "docs/architecture/sdk-input-resource-boundaries.toml").open("rb") as source:
     document = tomllib.load(source)
-for evidence in sorted({item for row in document["boundaries"] for item in row["evidence"]}):
-    print(evidence)
+evidence.update(item for row in document["boundaries"] for item in row["evidence"])
+
+with (root / "docs/architecture/identus-platform-change-ledger.toml").open("rb") as source:
+    document = tomllib.load(source)
+evidence.update(item for row in document["changes"] for item in row["evidence_artifacts"])
+
+with (root / "docs/conformance/cross-language-vector-catalog.toml").open("rb") as source:
+    document = tomllib.load(source)
+evidence.update(packet["path"] for packet in document["packets"])
+
+with (root / "docs/architecture/quality-evidence-declarations.toml").open("rb") as source:
+    document = tomllib.load(source)
+for declaration in document["declarations"]:
+    for obligation in declaration["obligations"]:
+        evidence.update(selector.split("#", 1)[0] for selector in obligation["selectors"])
+        evidence.add(obligation["artifact"])
+        receipt = obligation["receipt"]
+        if receipt.startswith("source:"):
+            evidence.add(receipt.removeprefix("source:").split("#", 1)[0])
+
+for item in sorted(evidence):
+    if (root / item).is_file():
+        print(item)
 PY
 )
 

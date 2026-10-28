@@ -45,7 +45,7 @@ fuzz_target!(|data: &[u8]| {
         }
         if selector & 0x10 != 0 {
             let jwt_id = if selector & 0x08 == 0 {
-                Value::String(arbitrary.into_owned())
+                Value::String(arbitrary.to_string())
             } else {
                 json!(selector)
             };

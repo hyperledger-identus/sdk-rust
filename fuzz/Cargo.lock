@@ -516,6 +516,8 @@ dependencies = [
  "base64",
  "fluent-uri",
  "identus-core",
+ "identus-crypto",
+ "identus-did",
  "identus-jose",
  "identus-openid4vc",
  "serde",

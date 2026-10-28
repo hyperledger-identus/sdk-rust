@@ -36,7 +36,8 @@ EXPECTED_KEYS = {"kind", "errorCode", "redacted", "fields"}
 GENERATED_KEYS = {"prefix", "repeat", "count", "suffix"}
 FIELD_KEYS = {
     "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment",
-    "operationKind", "operationId", "operationHash", "canonicalDid",
+    "operationKind", "operationId", "operationHash", "canonicalDid", "curve",
+    "relationshipCount",
 }
 AUTHORITIES = {
     "normative", "identus-contract", "consumer-regression", "implementation-regression", "exploratory"
@@ -53,6 +54,8 @@ OPERATIONS = {
     "did-prism-vdr.operation.parse",
     "did-peer.numalgo4.create",
     "did-peer.numalgo2.parse-resolve",
+    "did-key.parse",
+    "did-key.parse-resolve",
     "oid4vp.direct-post-response.construct",
     "siopv2.did-authentication.roundtrip",
 }
@@ -208,6 +211,10 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 }
             elif operation in {"did-peer.numalgo4.create", "did-peer.numalgo2.parse-resolve"}:
                 allowed_fields = {"did"}
+            elif operation == "did-key.parse":
+                allowed_fields = {"curve"}
+            elif operation == "did-key.parse-resolve":
+                allowed_fields = {"curve", "relationshipCount"}
             elif operation in {
                 "oid4vp.direct-post-response.construct",
                 "siopv2.did-authentication.roundtrip",
@@ -218,6 +225,10 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
             if set(fields) - allowed_fields:
                 errors.append(f"{identifier}.expected.fields contains fields unsupported by {operation}")
             for field, value in fields.items():
+                if field == "relationshipCount":
+                    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                        errors.append(f"{identifier}.expected.fields.{field} must be a non-negative integer")
+                    continue
                 nullable = operation == "did-url.parse" and field in {"query", "fragment"}
                 empty_allowed = operation == "did-url.parse" and field in {"path", "query", "fragment"}
                 if value is None and not nullable:
@@ -231,8 +242,14 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 errors.append(f"{identifier}: success must use null errorCode and redacted")
             if not fields:
                 errors.append(f"{identifier}: success must assert at least one parsed field")
+            elif operation == "did-key.parse" and set(fields) != {"curve"}:
+                errors.append(f"{identifier}: did-key.parse success must assert exactly curve")
+            elif operation == "did-key.parse-resolve" and set(fields) != {"curve", "relationshipCount"}:
+                errors.append(
+                    f"{identifier}: did-key.parse-resolve success must assert curve and relationshipCount"
+                )
         elif kind == "error":
-            required_code = {
+            required_code: str | set[str] = {
                 "did.parse": "did.invalid_did",
                 "did-url.parse": "did.invalid_did_url",
                 "did-prism.envelope.parse": "did-prism.invalid_wire",
@@ -243,10 +260,26 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 "did-prism-vdr.operation.parse": "did-prism-vdr.invalid_operation",
                 "did-peer.numalgo4.create": "did-peer.invalid_input_document",
                 "did-peer.numalgo2.parse-resolve": "did-peer.malformed_encoding",
+                "did-key.parse": {
+                    "did-key.malformed_encoding",
+                    "did-key.unsupported_codec",
+                    "did-key.invalid_public_key",
+                    "did-key.resource_limit",
+                },
+                "did-key.parse-resolve": {
+                    "did-key.malformed_encoding",
+                    "did-key.unsupported_codec",
+                    "did-key.invalid_public_key",
+                    "did-key.resource_limit",
+                },
                 "oid4vp.direct-post-response.construct": "oid4vp.invalid_direct_post_response",
             }[operation]
-            if expected.get("errorCode") != required_code or expected.get("redacted") is not True or fields:
-                errors.append(f"{identifier}: error expectation must use {required_code}, redacted=true, and empty fields")
+            error_code = expected.get("errorCode")
+            code_matches = error_code in required_code if isinstance(required_code, set) else error_code == required_code
+            if not code_matches or expected.get("redacted") is not True or fields:
+                errors.append(
+                    f"{identifier}: error expectation must use an operation-owned stable code, redacted=true, and empty fields"
+                )
         else:
             errors.append(f"{identifier}.expected.kind must be success or error")
         found[identifier] = case

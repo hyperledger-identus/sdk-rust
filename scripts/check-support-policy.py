@@ -72,6 +72,7 @@ REQUIRED_COMPILE_PACKAGES = {
     "identus-core",
     "identus-crypto",
     "identus-did",
+    "identus-did-key",
     "identus-did-peer",
     "identus-jose",
     "identus-oid4vci",

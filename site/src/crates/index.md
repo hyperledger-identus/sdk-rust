@@ -31,6 +31,16 @@ These two packages are candidate-only and source-evaluated. They are not
 available from crates.io merely because a staged `0.1.0-rc.1` archive and
 public-API origin exist. See the [DID candidate review](../did-candidate.md).
 
+## Portable DID methods
+
+| Crate | Kind | Runtime dependency direction |
+| --- | --- | --- |
+| [`identus-did-key`](identus-did-key.md) | Strict effect-free `did:key` profile | Depends on generic DID/crypto foundations; opt-in registry composition |
+
+This package is an unpublished experimental source component. Its frozen
+profile, bounds, redacted errors, conformance packet, fuzzing, benchmark, and
+registry E2E are reviewed independently from the generic DID candidate train.
+
 ## Portable PRISM stack
 
 ![Portable PRISM stack](../diagrams/prism-portable-stack.svg)

@@ -44,6 +44,46 @@ license        = "Apache-2.0"
 redistribution = "derived-cases-allowed"
 
 [[sources]]
+id             = "w3c.did-key-v0-9"
+kind           = "standard"
+url            = "https://github.com/w3c-ccg/did-key-spec"
+version        = "2cc490c38c5aacf58497a87fc0cf8794668bf716"
+section        = "did:key Method v0.9 identifier creation, decoding and resolution"
+authorship     = "W3C Credentials Community Group contributors"
+license        = "W3C-Software-and-Document-License"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "rust.dif-did-key"
+kind           = "repository"
+url            = "https://github.com/decentralized-identity/did-key.rs"
+revision       = "eb00da6074d8bc61e5d4c8129fbdd9dc05735cbf"
+path           = "src"
+authorship     = "Decentralized Identity Foundation contributors"
+license        = "Apache-2.0"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "rust.spruce-did-key"
+kind           = "repository"
+url            = "https://github.com/spruceid/ssi"
+revision       = "886a6cf694dfdb6b019d5f69a04dd16f01cb58a4"
+path           = "crates/dids/methods/key"
+authorship     = "Spruce Systems contributors"
+license        = "Apache-2.0"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "rust.impierce-did-key"
+kind           = "repository"
+url            = "https://github.com/impierce/did-manager"
+revision       = "183f3eb061938404060d75817de53dd99adb18b0"
+path           = "did-method-key"
+authorship     = "Impierce Technologies contributors"
+license        = "Apache-2.0"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
 id             = "w3c.did-core-v1"
 kind           = "standard"
 url            = "https://www.w3.org/TR/2022/REC-did-core-20220719/"
@@ -176,6 +216,18 @@ public_data    = true
 targets        = [ "rust", "typescript", "swift", "kotlin" ]
 
 [[packets]]
+id             = "did.key.profile.v1"
+capability     = "did.key.profile"
+schema_version = 1
+path           = "docs/conformance/fixtures/did-key/v1/vectors.json"
+sha256         = "f571feba4f154c46cfb1391f60f1ba3aeb0eaaba1afb8b7410c44f205601c668"
+authorship     = "SDK-Rust clean-room curation from the pinned did:key v0.9 specification and public Rust oracle vectors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[packets]]
 id             = "did.syntax.v1"
 capability     = "did.syntax"
 schema_version = 1
@@ -293,6 +345,144 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "The vector proves exact numalgo-4 encoding and hash linkage; it does not define foreign DTO or error shapes."
+
+[[vectors]]
+id                 = "did.key.ed25519.w3c-example"
+packet             = "did.key.profile.v1"
+case               = "did.key.ed25519.w3c-example"
+capability         = "did.key.profile"
+authority          = "normative"
+source_ids         = [ "w3c.did-key-v0-9", "rust.dif-did-key", "rust.spruce-did-key" ]
+source_locator     = "Pinned v0.9 Ed25519 did:key example normalized to Multikey relationship counts"
+operation          = "did-key.parse-resolve"
+expected           = "success"
+profile_scope      = "Canonical base58-btc Ed25519 fingerprint and signing relationships"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "conformance::attributed_vector_packet_matches_selected_profile"
+language_selectors = [  ]
+owner_issue        = 557
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The semantic count deliberately avoids donor DTO and error shapes; no private key, derivation, signing or implicit X25519 conversion is represented."
+
+[[vectors]]
+id                 = "did.key.x25519.rust-oracle-example"
+packet             = "did.key.profile.v1"
+case               = "did.key.x25519.rust-oracle-example"
+capability         = "did.key.profile"
+authority          = "implementation-regression"
+source_ids         = [ "rust.dif-did-key", "rust.spruce-did-key", "rust.impierce-did-key" ]
+source_locator     = "Pinned public direct-X25519 oracle value with the RFC 7748 ignored high bit cleared, normalized to one key-agreement relationship"
+operation          = "did-key.parse-resolve"
+expected           = "success"
+profile_scope      = "Canonical base58-btc X25519 fingerprint without implicit conversion"
+boundary           = "positive"
+resource_class     = "ordinary"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "conformance::attributed_vector_packet_matches_selected_profile"
+language_selectors = [  ]
+owner_issue        = 557
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "This is an attributed compatibility oracle, not normative authority. The oracle's non-canonical high bit is cleared because the strict SDK identity profile rejects byte aliases for the same effective X25519 key; the vector proves direct X25519 only and no Ed25519 conversion."
+
+[[vectors]]
+id                 = "did.key.base64url.rejected"
+packet             = "did.key.profile.v1"
+case               = "did.key.base64url.rejected"
+capability         = "did.key.profile"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-key-v0-9" ]
+source_locator     = "Strict v0.9 executable-algorithm profile rejects non-base58-btc method encodings"
+operation          = "did-key.parse"
+expected           = "did-key.malformed_encoding"
+profile_scope      = "Base58-btc z-only fail-closed profile"
+boundary           = "negative"
+resource_class     = "encoding-policy"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "conformance::attributed_vector_packet_matches_selected_profile"
+language_selectors = [  ]
+owner_issue        = 557
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The syntax prose mentions base64url, but the pinned creation and decoding algorithms require base58-btc; broadening the profile needs a new compatibility decision."
+
+[[vectors]]
+id                 = "did.key.unsupported-codec.rejected"
+packet             = "did.key.profile.v1"
+case               = "did.key.unsupported-codec.rejected"
+capability         = "did.key.profile"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-key-v0-9" ]
+source_locator     = "Strict executable profile rejects a canonical fingerprint whose multicodec is outside the selected direct-key set"
+operation          = "did-key.parse"
+expected           = "did-key.unsupported_codec"
+profile_scope      = "Selected public-key multicodecs only"
+boundary           = "negative"
+resource_class     = "encoding-policy"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "conformance::attributed_vector_packet_matches_selected_profile"
+language_selectors = [  ]
+owner_issue        = 557
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The stable category is SDK-owned and does not prescribe foreign error DTOs."
+
+[[vectors]]
+id                 = "did.key.low-order-x25519.rejected"
+packet             = "did.key.profile.v1"
+case               = "did.key.low-order-x25519.rejected"
+capability         = "did.key.profile"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-key-v0-9", "rust.spruce-did-key" ]
+source_locator     = "Direct X25519 zero-coordinate fingerprint retained as an unusable-key negative regression"
+operation          = "did-key.parse"
+expected           = "did-key.invalid_public_key"
+profile_scope      = "Contributory canonical direct X25519 public keys"
+boundary           = "negative"
+resource_class     = "security-policy"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "conformance::attributed_vector_packet_matches_selected_profile"
+language_selectors = [  ]
+owner_issue        = 557
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "This strict identity profile rejects non-contributory X25519 material even when a donor parser accepts the bytes."
+
+[[vectors]]
+id                 = "did.key.oversized-identifier.rejected"
+packet             = "did.key.profile.v1"
+case               = "did.key.oversized-identifier.rejected"
+capability         = "did.key.profile"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-key-v0-9" ]
+source_locator     = "One byte beyond the public 128-byte method-specific identifier ceiling"
+operation          = "did-key.parse"
+expected           = "did-key.resource_limit"
+profile_scope      = "Bounded method-specific identifier ingress"
+boundary           = "boundary"
+resource_class     = "near-limit"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "conformance::attributed_vector_packet_matches_selected_profile"
+language_selectors = [  ]
+owner_issue        = 557
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The 128-byte ceiling is SDK resource policy rather than a W3C did:key limit."
 
 [[vectors]]
 id                 = "oid4vp.direct-post-response.final-string-state"

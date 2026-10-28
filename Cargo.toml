@@ -8,6 +8,7 @@ identus-core               = { path = "crates/core", version = "=0.1.0-rc.1" }
 identus-crypto             = { path = "crates/crypto", version = "=0.1.0-rc.1", default-features = false }
 identus-derive             = { path = "crates/derive", version = "=0.1.0-rc.1" }
 identus-did                = { path = "crates/did" }
+identus-did-key            = { path = "crates/did-key" }
 identus-did-peer           = { path = "crates/did-peer" }
 identus-prism-did          = { path = "crates/prism-did" }
 identus-prism-vdr          = { path = "crates/prism-vdr" }

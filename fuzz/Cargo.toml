@@ -14,6 +14,7 @@ hex                   = "=0.4.3"
 identus-crypto        = { path = "../crates/crypto", default-features = false, features = [ "cose", "ed25519", "jwk-thumbprint", "secp256r1" ] }
 identus-core          = { path = "../crates/core" }
 identus-did           = { path = "../crates/did" }
+identus-did-key       = { path = "../crates/did-key" }
 identus-did-peer      = { path = "../crates/did-peer" }
 identus-prism-did     = { path = "../crates/prism-did" }
 identus-prism-indexer = { path = "../crates/prism-indexer" }
@@ -35,6 +36,13 @@ bench = false
 [[bin]]
 name  = "did_url"
 path  = "fuzz_targets/did_url.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "did_key"
+path  = "fuzz_targets/did_key.rs"
 test  = false
 doc   = false
 bench = false

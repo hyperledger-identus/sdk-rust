@@ -791,6 +791,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-did-key"
+version = "0.0.0"
+dependencies = [
+ "bs58",
+ "identus-core",
+ "identus-crypto",
+ "identus-did",
+ "serde_json",
+]
+
+[[package]]
 name = "identus-did-peer"
 version = "0.0.0"
 dependencies = [

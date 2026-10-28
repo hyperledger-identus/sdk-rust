@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 557
+disposition    = "behavior-neutral"
+scope          = "documentation"
+rationale      = "This exact preflight records only the planned contract; implementation will activate the consumer-visible ledger and quality evidence before archive."
+ledger_ids     = [  ]

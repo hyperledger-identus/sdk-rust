@@ -19,7 +19,7 @@
 - [x] 3.1 Pass guard fixtures and live locked generator deny/audit evidence.
 - [x] 3.2 Pass Swift, Kotlin/JVM, Apple and Android binding generation/consumer E2E checks.
 - [x] 3.3 Pass factory, OpenSpec, Nix and proportionate workspace gates.
-- [ ] 3.4 Run exact-head Claude or Codex CLI review and address actionable findings.
+- [x] 3.4 Run exact-head Claude or Codex CLI review and address actionable findings.
 - [ ] 3.5 Archive the change, publish metrics, obtain green protected CI and merge through the guarded path.
 
 ## 4. Stop boundary

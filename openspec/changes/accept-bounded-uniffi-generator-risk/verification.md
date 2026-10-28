@@ -17,6 +17,10 @@
   assembly, lock comparison and receipt passed with Rust 1.98.1, Gradle 8.14.4,
   JDK 17.0.19 and NDK 27.0.12077973.
 - Factory and strict OpenSpec validation: 121 items passed.
+- Claude CLI reviewed exact implementation head
+  `b2aad0cbbb131118bd9c5530ee3ec1a220c152e4` and reported no blocker, high or
+  medium findings. The review covered fail-closed ordering, exact graph and
+  advisory scope, fixtures, CI registration, receipt integrity and host bounds.
 
 ## Findings corrected during reproduction
 
@@ -33,6 +37,5 @@ and records Gradle 8.14.4.
 
 ## Remaining evidence
 
-Exact-head independent Claude/Codex CLI review and protected hosted CI remain
-pending. The next natural scheduled slow run, not a rerun or manual dispatch,
-will be the authoritative post-merge weekly receipt.
+Protected hosted CI remains pending. The next natural scheduled slow run, not a
+rerun or manual dispatch, will be the authoritative post-merge weekly receipt.

@@ -19,7 +19,8 @@ best as differential oracles.
 
 Create separate future crates `identus-did-key`, `identus-did-jwk`, and
 `identus-did-web`. Deliver them in that order through issues #557, #558, and
-#559. The sequence is a delivery-risk order, not a runtime dependency chain.
+issue #559. The sequence is a delivery-risk order, not a runtime dependency
+chain.
 
 `identus-did-key` and `identus-did-jwk` are effect-free and reuse
 `identus-did` plus `identus-crypto`. `identus-did-web` owns pure URL

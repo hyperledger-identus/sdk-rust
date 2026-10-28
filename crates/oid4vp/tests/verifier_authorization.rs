@@ -72,6 +72,10 @@ impl VerifierTrustPolicy for InspectPolicy {
         assert_eq!(input.scheme(), self.expected);
         assert!(!input.expose_sensitive_full_client_id().is_empty());
         assert!(!input.expose_sensitive_original_client_id().is_empty());
+        assert_eq!(
+            input.expose_sensitive_response_uri(),
+            Some("https://verifier.example/response")
+        );
         assert_eq!(input.verification_key().kty(), JwkKeyType::Okp);
         assert_eq!(input.metadata().is_some(), self.expect_metadata);
         assert_eq!(input.verifier_info().len(), 1);

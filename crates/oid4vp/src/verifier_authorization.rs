@@ -157,6 +157,7 @@ pub struct VerifierTrustInput<'a> {
     scheme: ClientIdentifierScheme,
     full_client_id: &'a str,
     original_client_id: &'a str,
+    response_uri: Option<&'a str>,
     protected_header: &'a ProtectedHeader,
     verification_key: &'a PublicKeyJwk,
     metadata: Option<&'a VerifierMetadata>,
@@ -178,6 +179,11 @@ impl<'a> VerifierTrustInput<'a> {
     /// Explicitly reveal the identifier inside the scheme namespace.
     pub const fn expose_sensitive_original_client_id(&self) -> &'a str {
         self.original_client_id
+    }
+
+    /// Explicitly reveal the exact signed response destination, when textual.
+    pub const fn expose_sensitive_response_uri(&self) -> Option<&'a str> {
+        self.response_uri
     }
 
     /// Protected header of the exact verified Request Object.
@@ -213,6 +219,7 @@ impl fmt::Debug for VerifierTrustInput<'_> {
             .field("scheme", &self.scheme)
             .field("full_client_id_len", &self.full_client_id.len())
             .field("original_client_id_len", &self.original_client_id.len())
+            .field("response_uri_len", &self.response_uri.map(str::len))
             .field("has_metadata", &self.metadata.is_some())
             .field("verifier_info_count", &self.verifier_info.len())
             .field("trust_chain_count", &self.trust_chain.len())
@@ -277,12 +284,14 @@ impl RequestObjectSecurityEvidence {
         let trust_chain = parse_trust_chain(payload.get("trust_chain"), scheme, limits)?;
         let dcql_ids = dcql_credential_ids(&payload, limits)?;
         let verifier_info = parse_verifier_info(payload.get("verifier_info"), &dcql_ids, limits)?;
+        let response_uri = payload.get("response_uri").and_then(Value::as_str);
 
         policy
             .authorize(VerifierTrustInput {
                 scheme,
                 full_client_id: client_id,
                 original_client_id,
+                response_uri,
                 protected_header: self.protected_header(),
                 verification_key: self.verification_key(),
                 metadata: metadata.as_ref(),

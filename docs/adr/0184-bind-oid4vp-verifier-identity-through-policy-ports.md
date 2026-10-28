@@ -20,8 +20,9 @@ requires the full prefixed client identifier to be used throughout the flow.
 
 Add a protocol-local typed classifier and consuming verifier-authorization
 transition. The transition supplies the exact key that verified the JWS, exact
-full/original client identifier, protected header, and bounded scheme metadata
-to one async caller-owned trust port. The SDK alone constructs the successor.
+full/original client identifier, signed response destination, protected header,
+and bounded scheme metadata to one async caller-owned trust port. The SDK alone
+constructs the successor.
 
 Support pre-registered, `openid_federation`, `decentralized_identifier`,
 `verifier_attestation`, `x509_san_dns`, and `x509_hash` through that port.

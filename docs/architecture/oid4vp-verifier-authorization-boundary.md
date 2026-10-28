@@ -39,7 +39,9 @@ inert response material
 | unknown prefix | reject by default | propose an extension with its own ADR and vectors |
 
 The full prefixed client identifier is never replaced by its inner identifier.
-It remains the exact request identity and audience-facing value.
+It remains the exact request identity and audience-facing value. The port also
+receives the exact textual signed `response_uri`, when present, so attestation
+and X.509 policies can enforce their verifier-to-destination redirect rules.
 
 ## Adapter skeleton
 

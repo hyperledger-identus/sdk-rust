@@ -9,7 +9,8 @@ ValidatedAuthorizationRequest`.
 Signature verification retains the exact public key used. Security validation
 keeps audience/time/replay semantics unchanged. The new consuming async step
 classifies the exact client identifier, validates scheme evidence and metadata,
-and calls a trust port with the exact verified key. Only its success state can
+and calls a trust port with the exact verified key and signed response
+destination. Only its success state can
 enter DCQL/routing.
 
 ## Typed scheme evidence

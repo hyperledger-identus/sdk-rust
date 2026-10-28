@@ -46,7 +46,8 @@ verifier-info credential references against the request's DCQL query.
 #### Scenario: bounded metadata is structurally valid
 
 - **WHEN** metadata follows the source rules and verifier-info references known DCQL credential ids
-- **THEN** borrowed bounded evidence is available to the trust port
+- **THEN** borrowed bounded evidence, including the exact textual signed
+  `response_uri` when present, is available to the trust port
 
 #### Scenario: metadata is malformed, oversized, ambiguous, or mis-sourced
 

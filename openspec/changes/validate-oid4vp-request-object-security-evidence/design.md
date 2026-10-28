@@ -13,10 +13,11 @@ authorization routing.
 
 The existing streaming scanner first establishes one bounded, duplicate-free
 JSON object. The security transition then captures `aud` as one non-empty
-string or a non-empty string array, mandatory integral `iat`, optional integral
+string or a singleton string array, mandatory integral `iat`, optional integral
 `exp` and `nbf`, and optional non-empty `jti` from that verified payload.
 Wrong types, empty values, arithmetic overflow, fractional NumericDate, or
-resource-limit violations fail closed. Exact audience membership is required.
+resource-limit violations fail closed. The sole audience must equal the
+discovery-bound expected value byte-for-byte.
 
 The policy owns an expected audience, finite maximum age, and finite allowed
 skew. Validation uses checked integer arithmetic: expired, not-yet-valid,
@@ -35,7 +36,8 @@ redacted failures.
 
 Clean-room Final/RFC vectors cover static and dynamic audiences, stale/future
 times, `exp`/`nbf`, audience mismatch, replay rejection, and redaction. E2E tests
-exercise invocation through JWS verification to typed routing. Property tests
-cover temporal boundaries; fuzzing covers security-claim scanning and policy;
-a directional benchmark measures the full local transition. Portable builds
-prove the port remains target-neutral.
+exercise invocation through JWS verification to typed routing. Deterministic
+generated property cases sweep age/skew/time boundaries, and a stateful test
+guard proves check-and-record behavior; fuzzing covers security-claim scanning
+and policy. A directional benchmark measures the full local transition.
+Portable builds prove the port remains target-neutral.

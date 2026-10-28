@@ -1,4 +1,5 @@
 use std::{
+    collections::HashSet,
     future::Future,
     pin::pin,
     sync::{
@@ -81,6 +82,28 @@ impl RequestObjectReplayGuard for Replay {
         });
         let outcome = self.outcome;
         Box::pin(async move { outcome })
+    }
+}
+
+#[derive(Default)]
+struct OnceReplay {
+    accepted_payloads: Mutex<HashSet<Vec<u8>>>,
+}
+
+impl RequestObjectReplayGuard for OnceReplay {
+    fn accept<'a>(&'a self, input: RequestObjectReplayInput<'a>) -> RequestObjectReplayFuture<'a> {
+        let accepted = self
+            .accepted_payloads
+            .lock()
+            .expect("atomic replay lock")
+            .insert(input.expose_sensitive_payload().to_vec());
+        Box::pin(async move {
+            if accepted {
+                Ok(())
+            } else {
+                Err(RequestObjectReplayFailure::Rejected)
+            }
+        })
     }
 }
 
@@ -167,6 +190,21 @@ fn validate(
     block_on(verified(request).validate_security(&policy(STATIC_DISCOVERY_AUDIENCE), clock, replay))
 }
 
+fn validate_with_policy(
+    request: &Value,
+    max_age_seconds: u64,
+    allowed_clock_skew_seconds: u64,
+    replay: &dyn RequestObjectReplayGuard,
+) -> Result<RequestObjectSecurityEvidence, Oid4vpError> {
+    let policy = RequestObjectSecurityPolicy::static_discovery(
+        max_age_seconds,
+        allowed_clock_skew_seconds,
+        RequestObjectValidationLimits::default(),
+    )
+    .expect("generated policy");
+    block_on(verified(request).validate_security(&policy, &FixedClock(Ok(NOW)), replay))
+}
+
 #[test]
 fn packet_static_audience_executes_full_security_transition() {
     let request = request(json!({
@@ -221,21 +259,35 @@ fn seen_payload_len(request: &Value) -> usize {
 }
 
 #[test]
-fn dynamic_discovery_accepts_exact_array_member_and_ignores_iss() {
-    let request = request(json!({
+fn dynamic_discovery_requires_one_exact_audience_and_ignores_iss() {
+    let dynamic_request = request(json!({
         "iss": "attacker-controlled-and-ignored",
-        "aud": ["https://other.example", "https://wallet.example"],
+        "aud": ["https://wallet.example"],
         "iat": NOW,
         "jti": "dynamic-001"
     }));
     let replay = Replay::accepting();
-    let evidence = block_on(verified(&request).validate_security(
+    let evidence = block_on(verified(&dynamic_request).validate_security(
         &policy("https://wallet.example"),
         &FixedClock(Ok(NOW)),
         &replay,
     ));
     assert!(evidence.is_ok());
     assert_eq!(replay.calls.load(Ordering::SeqCst), 1);
+
+    let multiple = request(json!({
+        "aud": ["https://wallet.example", "https://other.example"],
+        "iat": NOW
+    }));
+    assert_eq!(
+        block_on(verified(&multiple).validate_security(
+            &policy("https://wallet.example"),
+            &FixedClock(Ok(NOW)),
+            &Replay::accepting(),
+        ))
+        .unwrap_err(),
+        Oid4vpError::RequestObjectAudienceMismatch
+    );
 }
 
 #[test]
@@ -243,7 +295,7 @@ fn exact_temporal_boundaries_are_accepted() {
     for claims in [
         json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW + 30}),
         json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW, "nbf": NOW + 30}),
-        json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW, "exp": NOW - 30}),
+        json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW, "exp": NOW - 29}),
         json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW - 330}),
     ] {
         let replay = Replay::accepting();
@@ -264,7 +316,7 @@ fn temporal_boundaries_fail_before_replay() {
             Oid4vpError::RequestObjectNotYetValid,
         ),
         (
-            json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW - 20, "exp": NOW - 31}),
+            json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW - 20, "exp": NOW - 30}),
             Oid4vpError::RequestObjectExpired,
         ),
         (
@@ -280,6 +332,73 @@ fn temporal_boundaries_fail_before_replay() {
         );
         assert_eq!(replay.calls.load(Ordering::SeqCst), 0);
     }
+}
+
+#[test]
+fn generated_temporal_boundary_properties_hold() {
+    for skew in [0_u64, 1, 30, 300] {
+        for max_age in [0_u64, 1, 300] {
+            let accepted = [
+                json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW + skew}),
+                json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW, "nbf": NOW + skew}),
+                json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW, "exp": NOW - skew + 1}),
+                json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW - max_age - skew}),
+            ];
+            for claims in accepted {
+                validate_with_policy(&request(claims), max_age, skew, &Replay::accepting())
+                    .expect("generated accepted boundary");
+            }
+
+            let rejected = [
+                (
+                    json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW + skew + 1}),
+                    Oid4vpError::RequestObjectIssuedInFuture,
+                ),
+                (
+                    json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW, "nbf": NOW + skew + 1}),
+                    Oid4vpError::RequestObjectNotYetValid,
+                ),
+                (
+                    json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW, "exp": NOW - skew}),
+                    Oid4vpError::RequestObjectExpired,
+                ),
+                (
+                    json!({"aud": STATIC_DISCOVERY_AUDIENCE, "iat": NOW - max_age - skew - 1}),
+                    Oid4vpError::RequestObjectStale,
+                ),
+            ];
+            for (claims, expected) in rejected {
+                assert_eq!(
+                    validate_with_policy(&request(claims), max_age, skew, &Replay::accepting())
+                        .unwrap_err(),
+                    expected
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn stateful_replay_guard_accepts_each_payload_once() {
+    let request = request(json!({
+        "aud": STATIC_DISCOVERY_AUDIENCE,
+        "iat": NOW,
+        "jti": "atomic-replay-001"
+    }));
+    let replay = OnceReplay::default();
+    validate(&request, &FixedClock(Ok(NOW)), &replay).expect("first acceptance");
+    assert_eq!(
+        validate(&request, &FixedClock(Ok(NOW)), &replay).unwrap_err(),
+        Oid4vpError::RequestObjectReplayRejected
+    );
+    assert_eq!(
+        replay
+            .accepted_payloads
+            .lock()
+            .expect("atomic replay lock")
+            .len(),
+        1
+    );
 }
 
 #[test]

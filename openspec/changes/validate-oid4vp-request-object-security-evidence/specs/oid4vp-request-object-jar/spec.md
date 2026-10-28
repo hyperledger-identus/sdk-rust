@@ -32,7 +32,7 @@ caller-supplied discovery audience before returning security evidence.
 
 #### Scenario: audience differs
 
-- **WHEN** no `aud` member equals the expected value byte-for-byte
+- **WHEN** `aud` is not exactly one value equal to the expected value byte-for-byte
 - **THEN** validation fails with a static audience-mismatch category
 
 ### Requirement: Temporal claims are deterministic and bounded

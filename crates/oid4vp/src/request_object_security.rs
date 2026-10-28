@@ -197,10 +197,8 @@ impl VerifiedRequestObject {
         replay_guard: &dyn RequestObjectReplayGuard,
     ) -> Result<RequestObjectSecurityEvidence, Oid4vpError> {
         let claims = parse_security_claims(self.expose_sensitive_payload())?;
-        if !claims
-            .audience
-            .iter()
-            .any(|value| value.as_str() == policy.expected_audience.as_str())
+        if claims.audience.len() != 1
+            || claims.audience[0].as_str() != policy.expected_audience.as_str()
         {
             return Err(Oid4vpError::RequestObjectAudienceMismatch);
         }
@@ -226,7 +224,7 @@ impl VerifiedRequestObject {
             let latest = expires_at
                 .checked_add(skew)
                 .ok_or(Oid4vpError::InvalidRequestObjectSecurityClaims)?;
-            if now > latest {
+            if now >= latest {
                 return Err(Oid4vpError::RequestObjectExpired);
             }
         }

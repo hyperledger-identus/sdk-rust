@@ -1,8 +1,11 @@
 # SD-JWT engine qualification
 
-**Decision date:** 2026-10-28  
-**Owner:** issue [#489](https://github.com/hyperledger-identus/sdk-rust/issues/489)  
-**Implementation:** [#568](https://github.com/hyperledger-identus/sdk-rust/issues/568), then [#569](https://github.com/hyperledger-identus/sdk-rust/issues/569)  
+**Decision date:** 2026-10-28
+
+**Owner:** issue [#489](https://github.com/hyperledger-identus/sdk-rust/issues/489)
+
+**Implementation:** [#568](https://github.com/hyperledger-identus/sdk-rust/issues/568), then [#569](https://github.com/hyperledger-identus/sdk-rust/issues/569)
+
 **Decision:** [ADR 0193](../../adr/0193-build-a-focused-rfc9901-engine.md)
 
 ## Outcome

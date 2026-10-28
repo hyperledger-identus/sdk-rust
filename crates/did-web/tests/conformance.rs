@@ -89,6 +89,20 @@ fn public_limits_cover_identifier_url_header_and_body() {
             .response(200, Some("application/did+json"), vec![0; 65]),
         Err(Error::ResourceLimit)
     );
+
+    let default_request = DidWeb::parse("did:web:example.com").unwrap().request();
+    assert_eq!(default_request.max_response_body_bytes(), 128 * 1_024);
+    assert_eq!(
+        default_request.response(200, Some("application/did+json"), vec![0; 128 * 1_024 + 1]),
+        Err(Error::ResourceLimit)
+    );
+
+    let colon_heavy = format!("did:web:example.com:{}", "a:".repeat(100));
+    let limits = DidWebLimits::new(2_048, 1, 128, 4_096, 128, 128 * 1_024).unwrap();
+    assert_eq!(
+        DidWeb::parse_with_limits(&colon_heavy, limits),
+        Err(Error::ResourceLimit)
+    );
 }
 
 #[test]

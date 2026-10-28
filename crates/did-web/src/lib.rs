@@ -22,6 +22,7 @@ const DID_JSON: &str = "application/did+json";
 const DID_LD_JSON: &str = "application/did+ld+json";
 const DID_CORE_CONTEXT: &str = "https://www.w3.org/ns/did/v1";
 const JSON: &str = "application/json";
+const DEFAULT_MAX_RESPONSE_BODY_BYTES: usize = 128 * 1_024;
 
 /// Metadata for the `identus-did-web` crate.
 pub const COMPONENT: Component = Component {
@@ -85,7 +86,7 @@ impl Default for DidWebLimits {
             max_path_segment_bytes: 128,
             max_url_bytes: 4_096,
             max_content_type_bytes: 128,
-            max_response_body_bytes: MAX_DID_DOCUMENT_BYTES,
+            max_response_body_bytes: DEFAULT_MAX_RESPONSE_BODY_BYTES,
         }
     }
 }
@@ -447,32 +448,36 @@ fn derive_url(specific: &str, limits: DidWebLimits) -> Result<String, Error> {
     let authority = parts.next().ok_or(Error::InvalidIdentifier)?;
     let (host, port) = parse_authority(authority)?;
     validate_host(host)?;
-    let segments: Vec<&str> = parts.collect();
-    if segments.len() > limits.max_path_segments {
-        return Err(Error::ResourceLimit);
-    }
-    for segment in &segments {
-        if segment.len() > limits.max_path_segment_bytes {
-            return Err(Error::ResourceLimit);
-        }
-        if !valid_segment(segment) {
-            return Err(Error::InvalidIdentifier);
-        }
-    }
-    let mut url = String::with_capacity(specific.len().saturating_add(40));
+    let mut url =
+        String::with_capacity(limits.max_url_bytes.min(specific.len().saturating_add(40)));
     url.push_str("https://");
     url.push_str(host);
     if let Some(port) = port {
         use std::fmt::Write as _;
         write!(&mut url, ":{port}").map_err(|_| Error::ResourceLimit)?;
     }
-    if segments.is_empty() {
+    let mut has_segment = false;
+    for (index, segment) in parts.enumerate() {
+        if index >= limits.max_path_segments || segment.len() > limits.max_path_segment_bytes {
+            return Err(Error::ResourceLimit);
+        }
+        if !valid_segment(segment) {
+            return Err(Error::InvalidIdentifier);
+        }
+        if url
+            .len()
+            .checked_add(1 + segment.len() + "/did.json".len())
+            .is_none_or(|length| length > limits.max_url_bytes)
+        {
+            return Err(Error::ResourceLimit);
+        }
+        url.push('/');
+        url.push_str(segment);
+        has_segment = true;
+    }
+    if !has_segment {
         url.push_str("/.well-known/did.json");
     } else {
-        for segment in segments {
-            url.push('/');
-            url.push_str(segment);
-        }
         url.push_str("/did.json");
     }
     if url.len() > limits.max_url_bytes {

@@ -2,6 +2,18 @@ use identus_did_web::{DidWeb, DidWebLimits, Error};
 
 #[test]
 fn pinned_url_mapping_examples_match_the_selected_profile() {
+    let packet: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../docs/conformance/fixtures/did-web/v1/vectors.json"
+    ))
+    .unwrap();
+    for case in packet["cases"].as_array().unwrap() {
+        let did = case["input"]["literal"].as_str().unwrap();
+        let expected = case["expected"]["fields"]["url"].as_str().unwrap();
+        let parsed = DidWeb::parse(did).unwrap();
+        assert_eq!(parsed.url(), expected);
+        assert_eq!(DidWeb::parse(parsed.did().as_str()).unwrap(), parsed);
+    }
+
     for (did, expected) in [
         (
             "did:web:w3c-ccg.github.io",

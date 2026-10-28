@@ -96,6 +96,11 @@ fn resolver_separates_not_found_transient_and_representation_failures() {
             br#"{"id":"did:web:example.com"}"#.as_slice(),
             DidResolutionErrorKind::InvalidDidDocument,
         ),
+        (
+            "application/did+ld+json",
+            br#"{"@context":"https://example.com/context","id":"did:web:example.com"}"#.as_slice(),
+            DidResolutionErrorKind::InvalidDidDocument,
+        ),
     ] {
         let seen: Arc<Mutex<Vec<(String, String, bool)>>> = Arc::default();
         let resolver = DidWebResolver::new(
@@ -122,6 +127,18 @@ fn resolver_separates_not_found_transient_and_representation_failures() {
             )]
         );
     }
+
+    let resolver = DidWebResolver::new(
+        InMemoryFetcher {
+            seen: Arc::default(),
+            status: 200,
+            content_type: "application/did+ld+json",
+            document: br#"{"@context":["https://www.w3.org/ns/did/v1","https://example.com/context"],"id":"did:web:example.com"}"#.to_vec(),
+        },
+        DidWebLimits::default(),
+    );
+    let result = block_on(resolver.resolve(&did, &options));
+    assert_eq!(result.document().unwrap().id(), &did);
 }
 
 #[test]

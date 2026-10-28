@@ -850,6 +850,7 @@ dependencies = [
  "identus-core",
  "identus-derive",
  "identus-did",
+ "serde_json",
 ]
 
 [[package]]

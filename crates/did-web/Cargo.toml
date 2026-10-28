@@ -11,6 +11,9 @@ identus-core.workspace = true
 identus-derive.workspace = true
 identus-did.workspace = true
 
+[dev-dependencies]
+serde_json.workspace = true
+
 [[bench]]
 name    = "directional"
 harness = false

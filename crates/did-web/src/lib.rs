@@ -12,14 +12,15 @@ use std::{collections::BTreeMap, fmt, future::Future, pin::Pin, sync::Arc};
 use identus_core::Component;
 use identus_derive as identus;
 use identus_did::{
-    Did, DidDocument, DidDocumentMetadata, DidMethod, DidMethodBinding, DidResolutionError,
-    DidResolutionErrorKind, DidResolutionFuture, DidResolutionMetadata, DidResolutionResult,
-    DidResolver, MAX_DID_DOCUMENT_BYTES, MediaType, ResolutionOptions,
+    ContextEntry, Did, DidDocument, DidDocumentMetadata, DidMethod, DidMethodBinding,
+    DidResolutionError, DidResolutionErrorKind, DidResolutionFuture, DidResolutionMetadata,
+    DidResolutionResult, DidResolver, MAX_DID_DOCUMENT_BYTES, MediaType, ResolutionOptions,
 };
 
 const DID_PREFIX: &str = "did:web:";
 const DID_JSON: &str = "application/did+json";
 const DID_LD_JSON: &str = "application/did+ld+json";
+const DID_CORE_CONTEXT: &str = "https://www.w3.org/ns/did/v1";
 const JSON: &str = "application/json";
 
 /// Metadata for the `identus-did-web` crate.
@@ -410,7 +411,7 @@ impl<F: DidWebFetcher> DidResolver for DidWebResolver<F> {
                 }
                 Err(_) => return resolution_failure(DidResolutionErrorKind::InvalidDidDocument),
             };
-            if selected == DID_LD_JSON && document.context().is_none() {
+            if selected == DID_LD_JSON && !has_required_did_context(&document) {
                 return resolution_failure(DidResolutionErrorKind::InvalidDidDocument);
             }
             let metadata = match MediaType::parse(selected).and_then(|media_type| {
@@ -423,6 +424,15 @@ impl<F: DidWebFetcher> DidResolver for DidWebResolver<F> {
                 .unwrap_or_else(|_| resolution_failure(DidResolutionErrorKind::InvalidDidDocument))
         })
     }
+}
+
+fn has_required_did_context(document: &DidDocument) -> bool {
+    matches!(
+        document
+            .context()
+            .and_then(|context| context.as_slice().first()),
+        Some(ContextEntry::Uri(uri)) if uri.as_str() == DID_CORE_CONTEXT
+    )
 }
 
 fn derive_url(specific: &str, limits: DidWebLimits) -> Result<String, Error> {

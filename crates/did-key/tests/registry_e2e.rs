@@ -5,7 +5,10 @@ use std::{
 };
 
 use identus_crypto::Ed25519PrivateKey;
-use identus_did::{ContextEntry, DidMethodRegistry, DidResolver, MediaType, ResolutionOptions};
+use identus_did::{
+    ContextEntry, Did, DidMethodRegistry, DidResolutionErrorKind, DidResolver, MediaType,
+    ResolutionOptions,
+};
 use identus_did_key::{DidKey, DidKeyResolver};
 
 #[test]
@@ -74,6 +77,18 @@ fn registry_projects_json_ld_contexts_for_json_ld_representation() {
             "https://www.w3.org/ns/did/v1",
             "https://w3id.org/security/multikey/v1"
         ]
+    );
+}
+
+#[test]
+fn resolver_rejects_oversized_identifier_before_method_owned_projection() {
+    let did = Did::parse(&format!("did:key:{}", "1".repeat(129))).unwrap();
+    let result = block_on(DidKeyResolver.resolve(&did, &ResolutionOptions::empty()));
+
+    assert!(result.document().is_none());
+    assert_eq!(
+        result.metadata().error().and_then(|error| error.kind()),
+        Some(DidResolutionErrorKind::InvalidDid)
     );
 }
 

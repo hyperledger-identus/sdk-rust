@@ -31,8 +31,8 @@ non-canonical or they cannot produce a contributory shared secret.
 
 - **WHEN** method-specific text exceeds 128 bytes or decoded material could
   exceed 67 bytes
-- **THEN** parsing returns a resource-limit error before avoidable allocation
-  or document projection
+- **THEN** parsing or resolver dispatch rejects it before cloning, proportional
+  decoding, or document projection
 
 ### Requirement: did:key resolution is deterministic and relationship-specific
 

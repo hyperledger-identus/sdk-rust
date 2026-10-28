@@ -33,6 +33,8 @@ storage, transport, executor, product policy, or global registration.
 The method-specific identifier is limited to 128 bytes and decoded material to
 67 bytes. Base58 is decoded into a fixed stack buffer. Codec varints, exact key
 length, curve points, and canonical re-encoding are checked before projection.
+Both direct parsing and resolver dispatch reject an oversized method-specific
+identifier before cloning or decoding the generic DID value.
 Ed25519 inputs must use a canonical field encoding and must not be weak.
 X25519 inputs must use a canonical field encoding and be contributory, so two
 fingerprints cannot represent one effective key and accepted identity keys are

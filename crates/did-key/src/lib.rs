@@ -387,6 +387,9 @@ fn resolve_result(did: &Did, options: &ResolutionOptions) -> DidResolutionResult
     if !matches!(selected, DID_JSON | DID_LD_JSON) {
         return resolution_failure(DidResolutionErrorKind::RepresentationNotSupported);
     }
+    if did.method() == "key" && did.method_specific_id().len() > MAX_METHOD_SPECIFIC_ID_BYTES {
+        return resolution_failure(DidResolutionErrorKind::InvalidDid);
+    }
     let parsed = match DidKey::from_did(did.clone()) {
         Ok(value) => value,
         Err(Error::WrongMethod) => {

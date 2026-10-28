@@ -9,6 +9,7 @@
   - [`identus-derive`](crates/identus-derive.md)
   - [`identus-core`](crates/identus-core.md)
   - [`identus-crypto`](crates/identus-crypto.md)
+  - [`identus-did-key`](crates/identus-did-key.md)
   - [`identus-prism-did`](crates/identus-prism-did.md)
   - [`identus-prism-vdr`](crates/identus-prism-vdr.md)
   - [`identus-prism-indexer`](crates/identus-prism-indexer.md)

@@ -47,7 +47,7 @@ State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. A consumin
 
 ### `oid4vp.direct-post-response.transaction-and-format-ports.v1`
 
-State: `proposed`. Class: `breaking` / `changed`. Target: `unreleased`. The unreleased core retains bounded transaction linkage and validates format-specific metadata and binding through SDK-owned caller-injected capabilities.
+State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. The unreleased core retains bounded transaction linkage and validates format-specific metadata and binding through SDK-owned caller-injected capabilities.
 
 ### `oid4vp.direct-post-response.v1`
 

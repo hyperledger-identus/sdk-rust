@@ -33,14 +33,14 @@
 - [x] 5.3 Add bounded fuzz targets for compact ingress, disclosures, claim graphs, selection, and key binding.
 - [x] 5.4 Add normal, exact-boundary, and adversarial graph/work benchmarks with retained-output evidence.
 - [x] 5.5 Add two immutable differential-oracle packets and an RFC-based disagreement ledger.
-- [ ] 5.6 Activate `credentials.sd-jwt.rfc9901.v1`, `IDR-020`, and the RFC 9901 quality declaration only after all required routes pass.
+- [x] 5.6 Activate `credentials.sd-jwt.rfc9901.v1`, `IDR-020`, and the RFC 9901 quality declaration only after all required routes pass.
 - [x] 5.7 Capture native, MSRV, dependency/advisory, WASM, iOS, and Android evidence without converting compile-only results into runtime claims.
 
 ## 6. Review and delivery
 
-- [ ] 6.1 Run focused and workspace format, Clippy, tests, docs, factory, Nix, conformance, and exact-head evidence routes.
+- [x] 6.1 Run focused and workspace format, Clippy, tests, docs, factory, Nix, conformance, and exact-head evidence routes.
 - [x] 6.2 Run Claude CLI review or immediate Codex CLI fallback; resolve every actionable blocker/high/medium finding and rerun proportionate gates.
-- [ ] 6.3 Archive OpenSpec, open the signed/DCO issue-linked PR, monitor protected CI, merge only when green, and publish factory metrics.
+- [x] 6.3 Archive OpenSpec, open the signed/DCO issue-linked PR, monitor protected CI, merge only when green, and publish factory metrics.
 
 Exact-head review resolved one actionable P1 finding: partial array presentations now
 reindex their materialized disclosure paths before a presentation can be selected

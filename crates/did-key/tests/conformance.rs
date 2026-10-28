@@ -13,6 +13,14 @@ fn attributed_vector_packet_matches_selected_profile() {
         let expected = case["expected"]["kind"].as_str().unwrap();
         match (DidKey::parse(input), expected) {
             (Ok(parsed), "success") => {
+                let curve = match parsed.public_key() {
+                    PublicKey::Ed25519(_) => "Ed25519",
+                    PublicKey::X25519(_) => "X25519",
+                    PublicKey::P256(_) => "P-256",
+                    PublicKey::Secp256k1(_) => "secp256k1",
+                    _ => panic!("fixture reached an unsupported future key profile"),
+                };
+                assert_eq!(curve, case["expected"]["fields"]["curve"]);
                 let expected_count = case["expected"]["fields"]["relationshipCount"]
                     .as_u64()
                     .unwrap();

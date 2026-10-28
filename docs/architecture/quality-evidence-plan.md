@@ -203,7 +203,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #535 |
 | `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
 | `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #535 |
-| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #535 |
+| `differential` | `required` | `release` | `per-candidate` | `pending` | #535 |
 
 ### `property`
 
@@ -228,11 +228,11 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `differential`
 
-- Command: `cargo test -p identus-oid4vp --test encrypted_direct_post_response`
-- Budget: Reproduce the attributed Final encrypted-response shape, then independently encrypt and decrypt the exact SDK request with a qualified adapter on native and portable targets without comparing randomized ciphertext bytes.
+- Command: `cargo test -p identus-jose --test jwe_production_adapter`
+- Budget: Adopt an exact all-gates production engine, execute the SDK port through that supported adapter, validate protected-header and compact grammar, independently decrypt with the corresponding private key, and pass native/portable and clean audit evidence.
 - Receipt: `pending`
 - Evidence revision: `pending`
-- Delivery debt: #538
+- Delivery debt: #566
 
 ## `did.syntax.quality.v1`
 

@@ -117,9 +117,9 @@ replaced_by                       = ""
 [[changes]]
 id                                = "oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1"
 capability                        = "oid4vp.direct-post-response"
-lifecycle_state                   = "proposed"
+lifecycle_state                   = "active"
 issue                             = 546
-pull_request                      = 0
+pull_request                      = 552
 change_class                      = "breaking"
 release_note_class                = "changed"
 visibility                        = [ "behavior", "public-api", "security", "wire" ]

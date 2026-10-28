@@ -39,7 +39,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1`
 
-State: `proposed`. Class: `breaking` / `changed`. Target: `unreleased`. Verifier-authorized requests can additionally construct bounded inert fragment, query, or form_post material and sent direct-post material can consume one bounded optional post-submission redirect acknowledgement.
+State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. Verifier-authorized requests can additionally construct bounded inert fragment, query, or form_post material and sent direct-post material can consume one bounded optional post-submission redirect acknowledgement.
 
 ### `oid4vp.direct-post-response.request-object-security.v1`
 

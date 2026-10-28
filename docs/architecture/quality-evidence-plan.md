@@ -43,7 +43,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo bench -p identus-oid4vp --bench request_object_security`
 - Budget: Measure deterministic ordinary and near-limit local security transitions over a stable sample set.
 - Receipt: `source:crates/oid4vp/benches/request_object_security.rs`
-- Evidence revision: `e9a6b28b54011e02124664d4bcbbaa96cf326d7c`
+- Evidence revision: `21f16a0fc91244a0ff6304f14d2b80cb6e7c2fab`
 
 ### `differential`
 

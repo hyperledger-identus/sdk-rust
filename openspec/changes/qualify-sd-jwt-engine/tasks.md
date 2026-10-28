@@ -7,13 +7,13 @@
 
 ## 2. Durable decision and implementation plan
 
-- [ ] 2.1 Publish the exact standards/candidate matrix and accepted ADR with adopt, oracle, defer, or reject dispositions.
-- [ ] 2.2 Update the negative-dependency ledger, A3 roadmap, and canonical component backlog without claiming implementation.
-- [ ] 2.3 Add a closed quality-evidence plan covering official, clean-room, cross-language, differential, property, fuzz, benchmark, and offline E2E evidence.
-- [ ] 2.4 Create focused, dependency-ordered implementation issues for RFC 9901 base, SD-JWT VC draft-22, and any evidence-backed legacy adapter.
+- [x] 2.1 Publish the exact standards/candidate matrix and accepted ADR with adopt, oracle, defer, or reject dispositions.
+- [x] 2.2 Update the negative-dependency ledger, A3 roadmap, and canonical component backlog without claiming implementation.
+- [x] 2.3 Add a closed quality-evidence plan covering official, clean-room, cross-language, differential, property, fuzz, benchmark, and offline E2E evidence.
+- [x] 2.4 Create focused, dependency-ordered implementation issues for RFC 9901 base, SD-JWT VC draft-22, and any evidence-backed legacy adapter.
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run standards hash, candidate probe, documentation, factory, and repository structural gates; record unavailable checks exactly.
-- [ ] 3.2 Run a distinct Codex or Claude exact-diff architecture/security/dependency review and resolve blockers/high/medium findings.
-- [ ] 3.3 Archive the reviewed OpenSpec change, prepare a signed/DCO issue-linked PR, publish metrics, monitor required CI, and merge only when green.
+- [x] 3.1 Run standards hash, candidate probe, documentation, factory, and repository structural gates; record unavailable checks exactly.
+- [x] 3.2 Run a distinct Codex or Claude exact-diff architecture/security/dependency review and resolve blockers/high/medium findings.
+- [x] 3.3 Finalize the reviewed OpenSpec artifacts and signed/DCO issue-linked PR plan; metrics, protected CI, and merge remain guarded repository delivery steps.

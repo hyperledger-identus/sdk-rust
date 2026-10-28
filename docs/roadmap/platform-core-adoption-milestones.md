@@ -43,7 +43,7 @@ cannot skip a predecessor contract or proof.
 | A0 | Correct canonical ownership, adapters, DID/DIDComm/runtime boundaries, quality rules, and this roadmap | #497 | offline inventories reject donor-shaped ownership and incomplete milestone records |
 | A1 | Shared compatibility foundation: vector catalog, change ledger, adapter/error mapping rules, and risk-routed evidence plan | #504 with #420, #422, #501, #505 | four versioned contracts form one immutable, consumer-ready DID packet |
 | A2 | Portable DID platform: generic DID bindings, versioned peer profiles, and separately bounded PRISM method, VDR, and indexer capabilities | #420, #492, #493, #501, #524, #521, #522, #523 | SDK-TS DID facade and a measured NeoPRISM path use Rust without duplicated covered semantics |
-| A3 | Credential format engines: RFC 9901 base, pinned SD-JWT VC profile, bounded legacy adapter, and independently qualified AnonCreds 1.0 facade | #489, #490 | shared cross-language issuance/presentation vectors pass for each delivered format |
+| A3 | Credential format engines: RFC 9901 base, pinned SD-JWT VC profile, named-consumer-gated legacy adapter, and independently qualified AnonCreds 1.0 facade | #489, #568, #569, #490 | shared cross-language issuance/presentation vectors pass for each delivered format |
 | A4 | DIDComm v2.1 core: qualified engine facade, DID/secret ports, pack/unpack/routing, attachment/resource/error contracts | #491 | immutable existing agent/Mediator endpoint interoperates with exact engine capabilities |
 | A5 | Portable agent kernel: deterministic events/transitions/effects/checkpoints and multi-executor contract | #498 | one fixture produces identical results in reference, native-async, and WASM-shaped executors |
 | A6 | Versioned DIDComm application protocols delivered one bounded state machine at a time | #500, #419 | selected existing Cloud Agent/Mediator issue, present, revoke, and mediation/pickup E2E flows pass at pinned versions |
@@ -124,6 +124,14 @@ separately pinned VC profile, and evidence-driven legacy `vc+sd-jwt` adapter.
 AnonCreds targets current 1.0 behavior and a maintained Rust engine with VDR,
 link-secret, revocation, native/mobile/WASM, and supply-chain boundaries. One
 format does not block the other's research or delivery.
+
+Issue #489 and ADR 0193 completed the SD-JWT build-versus-adopt decision:
+implement a focused Identus-owned RFC 9901 engine in #568, then the exact
+draft-22 profile in #569. Assessed crates remain immutable differential
+oracles. A legacy adapter is not an unconditional milestone deliverable: #569
+first requires a named released consumer and records `not-activated` otherwise.
+The milestone remains planned until executable base/profile evidence and
+consumer adoption exist; research completion is not implementation completion.
 
 ### A4 — DIDComm v2.1 core
 

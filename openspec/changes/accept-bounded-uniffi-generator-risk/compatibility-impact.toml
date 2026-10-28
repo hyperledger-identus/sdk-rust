@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 564
+disposition    = "behavior-neutral"
+scope          = "tooling"
+rationale      = "This change makes one existing build-only generator dependency risk explicit and expiring without changing SDK APIs, runtime behavior, generated bindings, targets, wire formats, persisted values, releases, or consumer contracts."
+ledger_ids     = [  ]

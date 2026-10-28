@@ -51,8 +51,9 @@ mutated by this slice.
 
 ## Activation and rollback
 
-Before publication, rollback removes the additive policy/port/state and restores
-typed successors to signature evidence. After adoption, consumers migrate by
+Before publication, rollback removes the policy, port, state, and their typed
+routing successors as one unreleased unit; it never restores routing from raw
+signature evidence. After adoption, consumers migrate by
 calling the security transition with their discovered audience, clock, and
 atomic replay guard; unsafe legacy behavior is not retained as a compatibility
 mode. Activation requires issue-bound preflight, focused and portable evidence,

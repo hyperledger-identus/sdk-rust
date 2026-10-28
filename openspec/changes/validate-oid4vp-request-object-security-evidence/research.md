@@ -57,9 +57,10 @@ No new unsafe code or native code is introduced. Existing license provenance
 is Apache-2.0 repository code plus clean-room cases derived from OpenID and IETF
 document licenses. The supply-chain lock and advisory policy remain unchanged.
 
-Rollback before publication removes the new state and restores the prior
-pre-release API. The migration is explicit and no wire or persistence format is
-written by the crate.
+Rollback before publication removes the security state and its typed routing
+successors as one unreleased unit without restoring the unsafe signature-only
+route. The migration is explicit and no wire or persistence format is written
+by the crate.
 
 ## Security, privacy and maintenance evidence
 

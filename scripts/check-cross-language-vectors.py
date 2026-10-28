@@ -290,7 +290,20 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 },
                 "oid4vp.direct-post-response.construct": "oid4vp.invalid_direct_post_response",
                 "sd-jwt.parse": "sd_jwt.invalid_compact",
-                "sd-jwt-vc.validate-profile": "sd_jwt_vc.protected_type",
+                "sd-jwt-vc.validate-profile": {
+                    "sd_jwt_vc.protected_type",
+                    "sd_jwt_vc.credential_type",
+                    "sd_jwt_vc.additional_types",
+                    "sd_jwt_vc.claim_placement",
+                    "sd_jwt_vc.key_binding_required",
+                    "sd_jwt_vc.type_metadata",
+                    "sd_jwt_vc.type_metadata_cycle",
+                    "sd_jwt_vc.type_metadata_rule",
+                    "sd_jwt_vc.status",
+                    "sd_jwt_vc.unsupported_status",
+                    "sd_jwt_vc.evidence_mismatch",
+                    "sd_jwt_vc.resource_limit",
+                },
             }[operation]
             error_code = expected.get("errorCode")
             code_matches = error_code in required_code if isinstance(required_code, set) else error_code == required_code

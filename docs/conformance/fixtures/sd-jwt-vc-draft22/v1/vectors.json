@@ -15,6 +15,45 @@
         "redacted": true,
         "fields": {}
       }
+    },
+    {
+      "id": "credentials.sd-jwt-vc.missing-vct",
+      "operation": "sd-jwt-vc.validate-profile",
+      "input": {
+        "literal": "{\"iss\":\"https://issuer.example\"}"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "sd_jwt_vc.credential_type",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "credentials.sd-jwt-vc.malformed-additional-types",
+      "operation": "sd-jwt-vc.validate-profile",
+      "input": {
+        "literal": "{\"vct\":\"urn:example:pid\",\"aka_vcts\":\"urn:example:pid:v2\"}"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "sd_jwt_vc.additional_types",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "credentials.sd-jwt-vc.malformed-status-reference",
+      "operation": "sd-jwt-vc.validate-profile",
+      "input": {
+        "literal": "{\"status\":{\"status_list\":{\"idx\":\"7\",\"uri\":\"https://status.example/list\"}}}"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "sd_jwt_vc.status",
+        "redacted": true,
+        "fields": {}
+      }
     }
   ]
 }

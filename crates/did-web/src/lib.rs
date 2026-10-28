@@ -345,16 +345,37 @@ impl<F: DidWebFetcher> DidResolver for DidWebResolver<F> {
                 Ok(value) => value,
                 Err(_) => return resolution_failure(DidResolutionErrorKind::InternalError),
             };
+            if response.status == 404 {
+                return resolution_failure(DidResolutionErrorKind::NotFound);
+            }
+            if response.status != 200 {
+                return resolution_failure(DidResolutionErrorKind::InternalError);
+            }
+            let representation =
+                match parse_media_type(response.content_type.as_deref(), self.limits) {
+                    Ok(value) => value,
+                    Err(Error::InvalidMediaType) => {
+                        return resolution_failure(
+                            DidResolutionErrorKind::RepresentationNotSupported,
+                        );
+                    }
+                    Err(_) => {
+                        return resolution_failure(DidResolutionErrorKind::InvalidDidDocument);
+                    }
+                };
+            if !representation.satisfies(selected) {
+                return resolution_failure(DidResolutionErrorKind::RepresentationNotSupported);
+            }
             let document = match web.bind_response(response) {
                 Ok(value) => value,
-                Err(Error::HttpStatus) => {
-                    return resolution_failure(DidResolutionErrorKind::NotFound);
-                }
                 Err(Error::InvalidMediaType) => {
                     return resolution_failure(DidResolutionErrorKind::RepresentationNotSupported);
                 }
                 Err(_) => return resolution_failure(DidResolutionErrorKind::InvalidDidDocument),
             };
+            if selected == DID_LD_JSON && document.context().is_none() {
+                return resolution_failure(DidResolutionErrorKind::InvalidDidDocument);
+            }
             let metadata = match MediaType::parse(selected).and_then(|media_type| {
                 DidResolutionMetadata::new(Some(media_type), None, BTreeMap::new())
             }) {
@@ -439,7 +460,7 @@ fn validate_host(host: &str) -> Result<(), Error> {
     if host.is_empty() || host.len() > 253 || !host.contains('.') || host.ends_with('.') {
         return Err(Error::InvalidIdentifier);
     }
-    if host.split('.').all(|label| label.parse::<u8>().is_ok()) {
+    if host.split('.').all(is_ipv4_number) {
         return Err(Error::InvalidIdentifier);
     }
     for label in host.split('.') {
@@ -457,6 +478,14 @@ fn validate_host(host: &str) -> Result<(), Error> {
     Ok(())
 }
 
+fn is_ipv4_number(label: &str) -> bool {
+    !label.is_empty()
+        && (label.bytes().all(|byte| byte.is_ascii_digit())
+            || label.strip_prefix("0x").is_some_and(|digits| {
+                !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_hexdigit())
+            }))
+}
+
 fn valid_segment(segment: &str) -> bool {
     !segment.is_empty()
         && !matches!(segment, "." | "..")
@@ -468,7 +497,28 @@ fn valid_segment(segment: &str) -> bool {
         })
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Representation {
+    DidJson,
+    DidLdJson,
+    Json,
+}
+
+impl Representation {
+    fn satisfies(self, selected: &str) -> bool {
+        match selected {
+            DID_JSON => matches!(self, Self::DidJson | Self::Json),
+            DID_LD_JSON => self == Self::DidLdJson,
+            _ => false,
+        }
+    }
+}
+
 fn validate_media_type(value: Option<&str>, limits: DidWebLimits) -> Result<(), Error> {
+    parse_media_type(value, limits).map(|_| ())
+}
+
+fn parse_media_type(value: Option<&str>, limits: DidWebLimits) -> Result<Representation, Error> {
     let value = value.ok_or(Error::InvalidMediaType)?;
     if value.len() > limits.max_content_type_bytes {
         return Err(Error::ResourceLimit);
@@ -476,24 +526,96 @@ fn validate_media_type(value: Option<&str>, limits: DidWebLimits) -> Result<(), 
     if value.is_empty() || !value.bytes().all(|byte| (0x20..=0x7e).contains(&byte)) {
         return Err(Error::InvalidMediaType);
     }
-    let mut parts = value.split(';');
-    let base = parts.next().ok_or(Error::InvalidMediaType)?.trim();
-    if ![DID_JSON, DID_LD_JSON, JSON]
-        .iter()
-        .any(|candidate| base.eq_ignore_ascii_case(candidate))
-    {
+    let (base, parameters) = value.split_once(';').unwrap_or((value, ""));
+    let representation = if base.trim().eq_ignore_ascii_case(DID_JSON) {
+        Representation::DidJson
+    } else if base.trim().eq_ignore_ascii_case(DID_LD_JSON) {
+        Representation::DidLdJson
+    } else if base.trim().eq_ignore_ascii_case(JSON) {
+        Representation::Json
+    } else {
         return Err(Error::InvalidMediaType);
-    }
-    if parts.any(|parameter| {
-        let parameter = parameter.trim();
-        parameter.is_empty()
-            || parameter
-                .split_once('=')
-                .is_none_or(|(name, value)| name.trim().is_empty() || value.trim().is_empty())
-    }) {
-        return Err(Error::InvalidMediaType);
+    };
+    validate_parameters(parameters)?;
+    Ok(representation)
+}
+
+fn validate_parameters(mut input: &str) -> Result<(), Error> {
+    while !input.is_empty() {
+        input = input.trim_start_matches([' ', '\t']);
+        let (name, rest) = take_token(input);
+        if name.is_empty() {
+            return Err(Error::InvalidMediaType);
+        }
+        input = rest.trim_start_matches([' ', '\t']);
+        input = input.strip_prefix('=').ok_or(Error::InvalidMediaType)?;
+        input = input.trim_start_matches([' ', '\t']);
+        if let Some(rest) = input.strip_prefix('"') {
+            input = take_quoted_value(rest)?;
+        } else {
+            let (value, rest) = take_token(input);
+            if value.is_empty() {
+                return Err(Error::InvalidMediaType);
+            }
+            input = rest;
+        }
+        input = input.trim_start_matches([' ', '\t']);
+        if input.is_empty() {
+            return Ok(());
+        }
+        input = input.strip_prefix(';').ok_or(Error::InvalidMediaType)?;
     }
     Ok(())
+}
+
+fn take_token(input: &str) -> (&str, &str) {
+    let end = input
+        .bytes()
+        .position(|byte| !is_token_byte(byte))
+        .unwrap_or(input.len());
+    input.split_at(end)
+}
+
+const fn is_token_byte(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric()
+        || matches!(
+            byte,
+            b'!' | b'#'
+                | b'$'
+                | b'%'
+                | b'&'
+                | b'\''
+                | b'*'
+                | b'+'
+                | b'-'
+                | b'.'
+                | b'^'
+                | b'_'
+                | b'`'
+                | b'|'
+                | b'~'
+        )
+}
+
+fn take_quoted_value(input: &str) -> Result<&str, Error> {
+    let bytes = input.as_bytes();
+    let mut index = 0;
+    while index < bytes.len() {
+        match bytes[index] {
+            b'"' => return Ok(&input[index + 1..]),
+            b'\\' => {
+                index += 1;
+                let escaped = bytes.get(index).copied().ok_or(Error::InvalidMediaType)?;
+                if !matches!(escaped, b'\t' | b' ' | 0x21..=0x7e) {
+                    return Err(Error::InvalidMediaType);
+                }
+            }
+            b'\t' | b' ' | 0x21 | 0x23..=0x5b | 0x5d..=0x7e => {}
+            _ => return Err(Error::InvalidMediaType),
+        }
+        index += 1;
+    }
+    Err(Error::InvalidMediaType)
 }
 
 fn resolution_failure(kind: DidResolutionErrorKind) -> DidResolutionResult {

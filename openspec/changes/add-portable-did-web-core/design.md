@@ -61,6 +61,12 @@ existing bounded DID document parser rejects duplicate names, excessive JSON,
 and invalid document structure. Exact ID mismatch is a distinct content-free
 failure.
 
+Only HTTP 404 maps to the standard `notFound` result; other non-success
+statuses remain internal/transient so the generic cache cannot retain an
+outage as a missing DID. Resolver representation metadata is derived from the
+requested representation only after the response agrees with it. JSON-LD
+requires both `application/did+ld+json` and a document context.
+
 Generic `DidResolver` integration returns standard DID resolution metadata and
 errors. The method-specific synchronous API retains more precise fixed error
 categories for direct adopters.

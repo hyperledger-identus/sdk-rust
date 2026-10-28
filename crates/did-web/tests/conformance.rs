@@ -38,6 +38,9 @@ fn parse_format_and_url_property_covers_sixty_four_domain_classes() {
 fn strict_profile_rejects_unsafe_or_ambiguous_forms() {
     for input in [
         "did:web:127.0.0.1",
+        "did:web:0x7f.0.0.1",
+        "did:web:2130706433.1",
+        "did:web:0177.0.0.1",
         "did:web:[::1]",
         "did:web:user@example.com",
         "did:web:example.com?query",
@@ -95,4 +98,29 @@ fn response_binding_checks_envelope_before_document_and_exact_id() {
         value.bind_response(response),
         Err(Error::DocumentIdMismatch)
     );
+
+    for malformed in [
+        "application/did+json; charset=bad value",
+        "application/did+json; charset=\"unterminated",
+        "application/did+json; char set=utf-8",
+        "application/did+json; charset=",
+    ] {
+        let response = request
+            .response(
+                200,
+                Some(malformed),
+                br#"{"id":"did:web:example.com"}"#.to_vec(),
+            )
+            .unwrap();
+        assert_eq!(value.bind_response(response), Err(Error::InvalidMediaType));
+    }
+
+    let response = request
+        .response(
+            200,
+            Some("application/did+json; charset=\"utf-8\""),
+            br#"{"id":"did:web:example.com"}"#.to_vec(),
+        )
+        .unwrap();
+    assert_eq!(value.bind_response(response).unwrap().id(), value.did());
 }

@@ -53,6 +53,10 @@ The SDK SHALL validate status and bounded supported JSON media type before
 parsing a non-empty bounded body with `identus-did`. Success SHALL require the
 resolved DID document `id` to equal the requested DID exactly. Errors SHALL not
 contain the DID, URL, header, body, or transport diagnostics.
+Only status 404 SHALL map to `notFound`; other non-success statuses SHALL remain
+non-cacheable internal failures. A requested JSON-LD representation SHALL
+require both `application/did+ld+json` and a document context rather than
+relabeling ordinary DID JSON.
 
 #### Scenario: a fetched document belongs to another DID
 
@@ -63,6 +67,16 @@ contain the DID, URL, header, body, or transport diagnostics.
 
 - **WHEN** content type or body exceeds the configured limit
 - **THEN** binding fails before avoidable parsing or document allocation
+
+#### Scenario: an upstream outage is not a missing DID
+
+- **WHEN** the adapter returns status 500 or 503
+- **THEN** resolution reports an internal failure rather than `notFound`
+
+#### Scenario: the requested representation does not match
+
+- **WHEN** JSON-LD is requested but the response is DID JSON or lacks a context
+- **THEN** resolution fails without labeling the document as JSON-LD
 
 ### Requirement: The production port has deterministic end-to-end evidence
 

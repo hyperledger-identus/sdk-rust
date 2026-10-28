@@ -5,7 +5,7 @@ use std::{
     task::{Context, Poll, Waker},
 };
 
-use identus_did::{Did, DidResolver, ResolutionOptions};
+use identus_did::{Did, DidResolutionErrorKind, DidResolver, MediaType, ResolutionOptions};
 use identus_did_web::{
     DidWebFetchFuture, DidWebFetcher, DidWebLimits, DidWebRequest, DidWebResolver, TransportFailure,
 };
@@ -13,6 +13,8 @@ use identus_did_web::{
 #[derive(Clone)]
 struct InMemoryFetcher {
     seen: Arc<Mutex<Vec<String>>>,
+    status: u16,
+    content_type: &'static str,
     document: Vec<u8>,
 }
 
@@ -21,7 +23,7 @@ impl DidWebFetcher for InMemoryFetcher {
         Box::pin(async move {
             self.seen.lock().unwrap().push(request.url().to_owned());
             request
-                .response(200, Some("application/did+json"), self.document.clone())
+                .response(self.status, Some(self.content_type), self.document.clone())
                 .map_err(|_| TransportFailure)
         })
     }
@@ -33,6 +35,8 @@ fn public_fetch_port_resolves_one_exact_document_end_to_end() {
     let seen = Arc::new(Mutex::new(Vec::new()));
     let fetcher = InMemoryFetcher {
         seen: seen.clone(),
+        status: 200,
+        content_type: "application/did+json",
         document: br#"{"id":"did:web:example.com:users:alice","service":[{"id":"did:web:example.com:users:alice#inbox","type":"DIDCommMessaging","serviceEndpoint":"https://example.com/inbox"}]}"#.to_vec(),
     };
     let resolver = DidWebResolver::new(fetcher, DidWebLimits::default());
@@ -43,6 +47,62 @@ fn public_fetch_port_resolves_one_exact_document_end_to_end() {
         seen.lock().unwrap().as_slice(),
         ["https://example.com/users/alice/did.json"]
     );
+}
+
+#[test]
+fn resolver_separates_not_found_transient_and_representation_failures() {
+    let did = Did::parse("did:web:example.com").unwrap();
+    for (status, expected) in [
+        (404, DidResolutionErrorKind::NotFound),
+        (503, DidResolutionErrorKind::InternalError),
+    ] {
+        let resolver = DidWebResolver::new(
+            InMemoryFetcher {
+                seen: Arc::default(),
+                status,
+                content_type: "application/did+json",
+                document: Vec::new(),
+            },
+            DidWebLimits::default(),
+        );
+        let result = block_on(resolver.resolve(&did, &ResolutionOptions::empty()));
+        assert_eq!(
+            result.metadata().error().and_then(|error| error.kind()),
+            Some(expected)
+        );
+    }
+
+    let options = ResolutionOptions::builder()
+        .accept(MediaType::parse("application/did+ld+json").unwrap())
+        .build()
+        .unwrap();
+    for (content_type, document, expected) in [
+        (
+            "application/did+json",
+            br#"{"id":"did:web:example.com"}"#.as_slice(),
+            DidResolutionErrorKind::RepresentationNotSupported,
+        ),
+        (
+            "application/did+ld+json",
+            br#"{"id":"did:web:example.com"}"#.as_slice(),
+            DidResolutionErrorKind::InvalidDidDocument,
+        ),
+    ] {
+        let resolver = DidWebResolver::new(
+            InMemoryFetcher {
+                seen: Arc::default(),
+                status: 200,
+                content_type,
+                document: document.to_vec(),
+            },
+            DidWebLimits::default(),
+        );
+        let result = block_on(resolver.resolve(&did, &options));
+        assert_eq!(
+            result.metadata().error().and_then(|error| error.kind()),
+            Some(expected)
+        );
+    }
 }
 
 fn block_on<T>(future: impl Future<Output = T>) -> T {

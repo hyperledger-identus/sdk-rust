@@ -34,11 +34,17 @@ telemetry. A resolver calls the port at most once.
 - optional non-empty unreserved ASCII colon-separated path segments;
 - bare domain maps to `/.well-known/did.json`;
 - path maps to slash-separated segments followed by `/did.json`;
-- response status is 200 with a bounded DID JSON or ordinary JSON media type;
+- response status is 200 with a bounded, syntactically valid DID JSON or
+  ordinary JSON media type; only an actual 404 is classified as `notFound`,
+  while other non-success statuses remain transient/internal failures;
+- resolver output honors the requested representation: JSON-LD requires
+  `application/did+ld+json` and a document context, while DID JSON also accepts
+  the legacy `application/json` response type;
 - response body passes the existing duplicate-safe bounded DID parser;
 - returned document `id` equals the exact requested DID.
 
-IP literals, single-label hosts, IDNA conversion, arbitrary percent decoding,
+IP literals and numeric URL-parser aliases, single-label hosts, IDNA conversion,
+arbitrary percent decoding,
 dot/empty path segments, concrete transports, registration, update,
 deactivation, persistence, bindings, and trust decisions are outside the first
 profile.

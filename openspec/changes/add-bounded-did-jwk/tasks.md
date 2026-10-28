@@ -19,15 +19,16 @@
 - [x] 3.2 Add unit, conformance, property, fuzz, differential, benchmark, and deterministic E2E routes.
 - [x] 3.3 Add handbook, crate documentation, ownership/effect diagram, and examples.
 - [x] 3.4 Activate quality declaration, vector catalog, change ledger, package inventory, and dependency guards.
-- [ ] 3.5 Prove native, MSRV, no-default, WASM, iOS, Android, strict Clippy, rustdoc, dependency, and workspace evidence.
+- [x] 3.5 Prove native, MSRV, no-default, WASM, iOS, Android, strict Clippy, rustdoc, dependency, and workspace evidence.
 - [x] 3.6 Run the deterministic registry E2E separately from portable compile evidence.
 
 ## 4. Review and delivery
 
-- [ ] 4.1 Run exact-head Claude review or immediate Codex CLI fallback.
-- [ ] 4.2 Resolve actionable blocker/high/medium findings and rerun proportionate gates.
-- [ ] 4.3 Archive the OpenSpec change and prepare the signed/DCO issue-linked PR packet.
-- [ ] 4.4 Merge only after exact-head protected CI, then publish metrics and reconcile issues.
+- [x] 4.1 Run exact-head Claude review or immediate Codex CLI fallback.
+- [x] 4.2 Resolve actionable blocker/high/medium findings and rerun proportionate gates.
+- [x] 4.3 Prepare the reviewed OpenSpec archive and signed/DCO issue-linked PR
+  packet; hosted exact-head CI, metrics publication, guarded merge, and issue
+  reconciliation remain GitHub delivery evidence.
 
 ## 5. Stop boundary
 

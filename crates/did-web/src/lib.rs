@@ -357,14 +357,19 @@ impl<F: DidWebFetcher> DidResolver for DidWebResolver<F> {
         Box::pin(async move {
             if options.version_id().is_some()
                 || options.version_time().is_some()
+                || options.expand_relative_urls() == Some(true)
                 || !options.extensions().is_empty()
             {
                 return resolution_failure(DidResolutionErrorKind::FeatureNotSupported);
             }
-            let selected = options.accept().map_or(DID_JSON, MediaType::as_str);
-            if !matches!(selected, DID_JSON | DID_LD_JSON) {
-                return resolution_failure(DidResolutionErrorKind::RepresentationNotSupported);
-            }
+            let selected = match options.accept().map(MediaType::as_str) {
+                None => DID_JSON,
+                Some(value) if value.eq_ignore_ascii_case(DID_JSON) => DID_JSON,
+                Some(value) if value.eq_ignore_ascii_case(DID_LD_JSON) => DID_LD_JSON,
+                Some(_) => {
+                    return resolution_failure(DidResolutionErrorKind::RepresentationNotSupported);
+                }
+            };
             let web = match DidWeb::from_did(did.clone(), self.limits) {
                 Ok(value) => value,
                 Err(Error::WrongMethod) => {

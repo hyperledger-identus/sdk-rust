@@ -124,6 +124,47 @@ fn resolver_separates_not_found_transient_and_representation_failures() {
     }
 }
 
+#[test]
+fn resolver_normalizes_media_types_and_rejects_unsupported_expansion() {
+    let did = Did::parse("did:web:example.com").unwrap();
+    let seen: Arc<Mutex<Vec<(String, String, bool)>>> = Arc::default();
+    let resolver = DidWebResolver::new(
+        InMemoryFetcher {
+            seen: seen.clone(),
+            status: 200,
+            content_type: "application/did+json",
+            document: br#"{"id":"did:web:example.com"}"#.to_vec(),
+        },
+        DidWebLimits::default(),
+    );
+    let options = ResolutionOptions::builder()
+        .accept(MediaType::parse("Application/DID+JSON").unwrap())
+        .build()
+        .unwrap();
+    let result = block_on(resolver.resolve(&did, &options));
+    assert_eq!(result.document().unwrap().id(), &did);
+    assert_eq!(
+        seen.lock().unwrap().as_slice(),
+        [(
+            "https://example.com/.well-known/did.json".to_owned(),
+            "application/did+json, application/json".to_owned(),
+            false,
+        )]
+    );
+
+    seen.lock().unwrap().clear();
+    let options = ResolutionOptions::builder()
+        .expand_relative_urls(true)
+        .build()
+        .unwrap();
+    let result = block_on(resolver.resolve(&did, &options));
+    assert_eq!(
+        result.metadata().error().and_then(|error| error.kind()),
+        Some(DidResolutionErrorKind::FeatureNotSupported)
+    );
+    assert!(seen.lock().unwrap().is_empty());
+}
+
 fn block_on<T>(future: impl Future<Output = T>) -> T {
     let waker = Waker::noop();
     let mut context = Context::from_waker(waker);

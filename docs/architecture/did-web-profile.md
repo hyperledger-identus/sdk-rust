@@ -49,7 +49,8 @@ IP literals and numeric URL-parser aliases, single-label hosts, IDNA conversion,
 arbitrary percent decoding,
 dot/empty path segments, concrete transports, registration, update,
 deactivation, persistence, bindings, and trust decisions are outside the first
-profile.
+profile. `expandRelativeUrls=true` is rejected as unsupported until a separate
+bounded expansion capability is specified.
 
 ## Adapter recipe
 

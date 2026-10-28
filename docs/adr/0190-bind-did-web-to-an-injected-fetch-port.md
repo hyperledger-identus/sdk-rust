@@ -30,8 +30,10 @@ keeps protocol validation independently reusable and testable.
 
 The first identifier profile accepts lowercase ASCII FQDNs, a canonical
 uppercase `%3A` non-default port, and conservative DID-`idchar` colon-separated
-paths without percent escapes or `~`. It rejects IP literals, IDNA conversion, ambiguous escapes, empty/dot
-segments, and noncanonical ports. Profile expansion requires a later decision.
+paths without percent escapes or `~`. It rejects IP literals, IDNA conversion,
+ambiguous escapes, empty/dot segments, and noncanonical ports.
+Relative-reference expansion is not part of the first profile. Profile
+expansion requires a later decision.
 
 ## Consequences
 

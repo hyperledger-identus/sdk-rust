@@ -69,6 +69,9 @@ requested representation only after the response agrees with it. JSON-LD
 requires both `application/did+ld+json` and a document context.
 The request advertises only representations that can satisfy the selected
 resolution output and carries `noCache=true` to the caller-owned cache boundary.
+Supported media-type spellings are normalized case-insensitively, while
+`expandRelativeUrls=true` fails as unsupported because the first profile does
+not own relative-reference expansion.
 
 Generic `DidResolver` integration returns standard DID resolution metadata and
 errors. The method-specific synchronous API retains more precise fixed error

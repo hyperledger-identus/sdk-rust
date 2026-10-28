@@ -42,7 +42,9 @@ crate SHALL NOT provide a concrete HTTP, DNS, TLS, redirect, proxy, cache,
 retry, timer, executor, or SSRF implementation.
 The request SHALL advertise only representations that can satisfy the selected
 resolution output and SHALL expose the caller's cache-bypass intent to the
-adapter.
+adapter. Supported media-type spellings SHALL be compared case-insensitively
+and normalized to canonical request values. The resolver SHALL reject
+`expandRelativeUrls=true` until bounded relative-reference expansion exists.
 
 #### Scenario: a runtime resolves a web DID
 

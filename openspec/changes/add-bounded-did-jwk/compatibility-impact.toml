@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 558
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "This preimplementation revision records only the issue-owned architecture, research, constraints, and testable contract. Implementation will add the consumer ledger, vectors, quality declaration, and switch this disposition before delivery."
+ledger_ids     = [  ]

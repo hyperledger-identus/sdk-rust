@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-28
+goal: Add a bounded effect-free did:jwk profile over SDK-owned public JWK and DID types without importing a third-party SSI facade or custody.

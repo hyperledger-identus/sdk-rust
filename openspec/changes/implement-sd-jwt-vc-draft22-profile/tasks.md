@@ -4,7 +4,7 @@
 
 - [x] 1.1 Finalize draft-22 provenance, candidate dispositions, profile/API/resource/error contract, migration trigger, and rollback.
 - [x] 1.2 Record SDK-TS 8.1.4 legacy evidence and separate opt-in adapter issue #572 without activating legacy behavior.
-- [ ] 1.3 Pass research readiness, constraint readiness, strict OpenSpec validation, planning-only signed/DCO commit, and exact issue #569 preimplementation receipt.
+- [x] 1.3 Pass research readiness, constraint readiness, strict OpenSpec validation, planning-only signed/DCO commit, and exact issue #569 preimplementation receipt.
 
 ## 2. Profile foundation
 

@@ -2,6 +2,37 @@ use identus_crypto::{Ed25519PrivateKey, P256PrivateKey, Secp256k1PrivateKey, X25
 use identus_did_key::{DidKey, Error, PublicKey};
 
 #[test]
+fn attributed_vector_packet_matches_selected_profile() {
+    let packet: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../docs/conformance/fixtures/did-key/v1/vectors.json"
+    ))
+    .unwrap();
+    let cases = packet["cases"].as_array().unwrap();
+    for case in cases {
+        let input = case["input"]["literal"].as_str().unwrap();
+        let expected = case["expected"]["kind"].as_str().unwrap();
+        match (DidKey::parse(input), expected) {
+            (Ok(parsed), "success") => {
+                let expected_count = case["expected"]["fields"]["relationshipCount"]
+                    .as_u64()
+                    .unwrap();
+                let document = parsed.resolve().unwrap();
+                let relationship_count = document.authentication().map_or(0, <[_]>::len)
+                    + document.assertion_method().map_or(0, <[_]>::len)
+                    + document.key_agreement().map_or(0, <[_]>::len)
+                    + document.capability_invocation().map_or(0, <[_]>::len)
+                    + document.capability_delegation().map_or(0, <[_]>::len);
+                assert_eq!(u64::try_from(relationship_count).unwrap(), expected_count);
+            }
+            (Err(Error::MalformedEncoding), "error") => {
+                assert_eq!(case["expected"]["redacted"], true);
+            }
+            (actual, _) => panic!("unexpected vector outcome: {actual:?}"),
+        }
+    }
+}
+
+#[test]
 fn pinned_ed25519_example_round_trips() {
     let value = "did:key:z6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv";
     let parsed = DidKey::parse(value).expect("pinned Ed25519 example");

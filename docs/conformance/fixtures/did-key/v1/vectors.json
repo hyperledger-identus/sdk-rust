@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "packetId": "did.key.profile.v1",
+  "capability": "did.key.profile",
+  "cases": [
+    {
+      "id": "did.key.ed25519.w3c-example",
+      "operation": "did-key.parse-resolve",
+      "input": {
+        "literal": "did:key:z6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "curve": "Ed25519",
+          "relationshipCount": 4
+        }
+      }
+    },
+    {
+      "id": "did.key.x25519.rust-oracle-example",
+      "operation": "did-key.parse-resolve",
+      "input": {
+        "literal": "did:key:z6LSj72tK8brWgZja8NLRwfiAcBXQWZJL6n1AP1zFjvVUtqN"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "curve": "X25519",
+          "relationshipCount": 1
+        }
+      }
+    },
+    {
+      "id": "did.key.base64url.rejected",
+      "operation": "did-key.parse",
+      "input": { "literal": "did:key:uAA" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "malformed-encoding",
+        "redacted": true,
+        "fields": {}
+      }
+    }
+  ]
+}

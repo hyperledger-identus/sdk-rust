@@ -15,5 +15,5 @@
 ## 3. Evidence and closeout
 
 - [x] 3.1 Pass focused tests, all-target compilation, documentation build/link checks, workspace and routed Nix gates.
-- [ ] 3.2 Run exact-head Claude-or-Codex CLI review and remediate actionable blocker/high/medium findings.
-- [ ] 3.3 Archive OpenSpec, deliver the signed/DCO PR, publish metrics, and merge only on green protected CI.
+- [x] 3.2 Run exact-head Claude-or-Codex CLI review and remediate actionable blocker/high/medium findings.
+- [x] 3.3 Archive OpenSpec, deliver the signed/DCO PR, publish metrics, and merge only on green protected CI.

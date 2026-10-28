@@ -78,6 +78,15 @@ pub struct IssuancePlan {
     pub salt_bytes: usize,
 }
 
+/// Profile-neutral protected-header choices for issuance.
+///
+/// The RFC engine validates the value as a bounded JOSE protected `typ` but
+/// assigns it no media-type or credential-profile meaning.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct IssuanceOptions<'a> {
+    pub protected_type: Option<&'a str>,
+}
+
 impl fmt::Debug for IssuancePlan {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("IssuancePlan")

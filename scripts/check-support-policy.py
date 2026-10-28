@@ -81,6 +81,8 @@ REQUIRED_COMPILE_PACKAGES = {
     "identus-oid4vp",
     "identus-prism-did",
     "identus-adapters-entropy",
+    "identus-sd-jwt",
+    "identus-sd-jwt-vc",
 }
 REQUIRED_FEATURE_SURFACES = {
     "workspace-default",

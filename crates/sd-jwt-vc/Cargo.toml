@@ -1,0 +1,32 @@
+[package]
+name                   = "identus-sd-jwt-vc"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+publish.workspace      = true
+readme                 = "README.md"
+
+[dependencies]
+base64.workspace              = true
+identus-core.workspace        = true
+identus-credentials.workspace = true
+identus-crypto.workspace      = true
+identus-jose.workspace        = true
+identus-sd-jwt.workspace      = true
+serde.workspace               = true
+serde_json.workspace          = true
+uriparse.workspace            = true
+
+[dev-dependencies]
+identus-oid4vci.workspace          = true
+identus-oid4vp.workspace           = true
+identus-presentations.workspace    = true
+identus-adapters-entropy.workspace = true
+
+[[bench]]
+name    = "directional"
+harness = false
+
+[lints]
+workspace = true

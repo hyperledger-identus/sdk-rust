@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 569,
+  "change": "implement-sd-jwt-vc-draft22-profile",
+  "branch": "codex/feat/issue-569",
+  "baseRef": "origin/develop",
+  "baseSha": "0d1b15af40b01c700a923a95b4b37092273c8394",
+  "contractHeadSha": "6809433a8c8d15ccc463bf0bf334b412b9b648e0",
+  "createdAt": "2026-10-28T20:12:59.160Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

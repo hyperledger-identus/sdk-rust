@@ -332,7 +332,9 @@ impl ValidatedAuthorizationRequest {
         mut self,
         selections: &[SelectedCredentialInput],
     ) -> Result<(Self, Vec<TransactionBinding>), Oid4vpError> {
-        let bindings = self.transaction_data.bindings(selections)?;
+        let bindings = self
+            .transaction_data
+            .bindings(selections, &self.dcql_query)?;
         let query_ids = bindings
             .iter()
             .map(|binding| binding.expose_sensitive_query_id())

@@ -242,7 +242,15 @@ impl ValidatedTransactionData {
     pub(crate) fn bindings(
         &self,
         selections: &[SelectedCredentialInput],
+        query: &ValidatedDcqlQuery,
     ) -> Result<Vec<TransactionBinding>, Oid4vpError> {
+        if selections.len() > query.credential_query_count()
+            || selections
+                .iter()
+                .any(|selection| !query.contains_query_id(&selection.query_id))
+        {
+            return Err(Oid4vpError::InvalidTransactionData);
+        }
         let mut ids = BTreeSet::new();
         for selection in selections {
             if selection.query_id.is_empty() || !ids.insert(selection.query_id.as_str()) {
@@ -370,7 +378,7 @@ fn parse_entry(
             })
             .collect();
         if matches.len() != 1 || !matches[0].supports_transaction_type(transaction_type) {
-            continue;
+            return Err(Oid4vpError::InvalidTransactionData);
         }
         compatible_queries.push((Zeroizing::new(id.to_owned()), format.clone()));
     }

@@ -770,6 +770,26 @@ fn transaction_bindings_cover_every_selected_reference_and_match_success_results
         .into_direct_post_response(vec![result("pid")], response_limits)
         .expect("response carries the selected transaction binding");
 
+    assert_eq!(
+        validate()
+            .bind_transaction_data(&[SelectedCredentialInput::new(
+                "unknown",
+                CredentialFormat::DcSdJwt,
+            )])
+            .unwrap_err(),
+        Oid4vpError::InvalidTransactionData
+    );
+    assert_eq!(
+        validate()
+            .bind_transaction_data(&[
+                SelectedCredentialInput::new("pid", CredentialFormat::DcSdJwt),
+                SelectedCredentialInput::new("address", CredentialFormat::DcSdJwt),
+                SelectedCredentialInput::new("extra", CredentialFormat::DcSdJwt),
+            ])
+            .unwrap_err(),
+        Oid4vpError::InvalidTransactionData
+    );
+
     let (validated, _) = validate()
         .bind_transaction_data(&[SelectedCredentialInput::new(
             "pid",
@@ -857,6 +877,35 @@ fn transaction_data_rejects_bad_encoding_references_and_resource_policy() {
                 JweLimits::default(),
                 TransactionDataLimits::default(),
                 &[&format],
+                &[&transaction],
+            )
+            .unwrap_err(),
+        Oid4vpError::InvalidTransactionData
+    );
+
+    let generic = GenericFormat;
+    let incompatible_reference = URL_SAFE_NO_PAD.encode(
+        serde_json::to_vec(&json!({
+            "type": "payment_data",
+            "credential_ids": ["pid", "generic"],
+            "amount": 42
+        }))
+        .unwrap(),
+    );
+    let mut request = valid_request();
+    request["dcql_query"]["credentials"] = json!([
+        {"id": "pid", "format": "dc+sd-jwt", "meta": {}},
+        {"id": "generic", "format": "vc+example", "meta": {"profile": "interop"}}
+    ]);
+    request["transaction_data"] = json!([incompatible_reference]);
+    assert_eq!(
+        support::authorize(support::secure(verified_request(&request)))
+            .into_authorization_request_with_transaction_capabilities(
+                AuthorizationRequestValidationLimits::default(),
+                DcqlLimits::default(),
+                JweLimits::default(),
+                TransactionDataLimits::default(),
+                &[&format, &generic],
                 &[&transaction],
             )
             .unwrap_err(),

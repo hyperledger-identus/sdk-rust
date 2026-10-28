@@ -112,47 +112,6 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
-id                                = "did.web.profile.v1"
-capability                        = "did.web.profile"
-lifecycle_state                   = "proposed"
-issue                             = 559
-pull_request                      = 0
-change_class                      = "additive"
-release_note_class                = "added"
-visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
-affected_packages                 = [ "identus-did-web" ]
-affected_consumers                = [ "sdk-rust-adopters", "sdk-swift", "sdk-ts" ]
-source_version                    = "unreleased"
-target_version                    = "unreleased"
-compatibility                     = "compatible"
-old_behavior                      = "SDK-Rust exposes generic DID resolution and static DID methods but no portable did:web method core."
-new_behavior                      = "The additive identus-did-web crate parses a strict bounded profile, derives exact HTTPS requests, retrieves through a caller-injected port, and binds bounded DID documents to the exact requested identifier."
-migration_action                  = ""
-replacement                       = ""
-no_replacement_rationale          = ""
-first_compatible_version          = "unreleased"
-last_compatible_version           = "unreleased"
-compatibility_window              = ""
-deprecation_phase                 = "not-applicable"
-legacy_bug_policy                 = "fix-and-document"
-mapping_disposition               = "not-applicable"
-mapping_ids                       = [  ]
-mapping_rationale                 = "The Rust-native method does not preserve language SDK, oracle, or HTTP-runtime DTO/error shapes; adapters remain consumer-owned."
-vector_ids                        = [ "did.web.path.pinned-example" ]
-quality_declaration_ids           = [ "did.web.profile.quality.v1" ]
-observability                     = "Record only stable operation and result categories plus bounded lengths; never record DIDs, URLs, headers, bodies, documents, DNS/TLS details, or transport diagnostics."
-fallback                          = "Consumers retain their existing did:web implementation until they explicitly adopt the crate and provide an approved fetch adapter."
-rollback                          = "Before publication remove the additive crate and evidence; generic SDK-Rust DID behavior remains unchanged."
-rollback_restores_unsafe_behavior = false
-removal_gate                      = ""
-evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#did.web.profile.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.web.path.pinned-example" ]
-evidence_artifacts                = [ "docs/adr/0190-bind-did-web-to-an-injected-fetch-port.md", "openspec/changes/add-portable-did-web-core/design.md" ]
-limitations                       = "No concrete HTTP, DNS, TLS, redirect, proxy, cache, retry, executor, timer, SSRF policy, IP/IDNA profile, registration, persistence, bindings, consumer mutation, publication, or trust claim is included."
-active                            = true
-supersedes                        = [  ]
-replaced_by                       = ""
-
-[[changes]]
 id                                = "did.jwk.profile.v1"
 capability                        = "did.jwk.profile"
 lifecycle_state                   = "active"

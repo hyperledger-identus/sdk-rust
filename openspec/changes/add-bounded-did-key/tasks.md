@@ -23,8 +23,8 @@
 
 ## 4. Review and delivery
 
-- [ ] 4.1 Run exact-head Claude review or immediate Codex CLI fallback.
-- [ ] 4.2 Resolve actionable blocker/high/medium findings and rerun proportionate gates.
+- [x] 4.1 Run exact-head Claude review or immediate Codex CLI fallback.
+- [x] 4.2 Resolve actionable blocker/high/medium findings and rerun proportionate gates.
 - [ ] 4.3 Archive OpenSpec, publish metrics, and deliver the issue-linked PR.
 
 ## 5. Stop boundary

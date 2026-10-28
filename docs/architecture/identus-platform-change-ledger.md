@@ -9,6 +9,10 @@ Status: `active`
 
 ## Release notes
 
+### `credentials.sd-jwt.rfc9901.v1`
+
+State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt crate provides bounded staged RFC 9901 compact issuance, disclosure processing and selection, key binding and verification behind SDK-owned types and injected effects.
+
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 State: `active`. Class: `security` / `security`. Target: `unreleased`. The same SDK wrappers, methods and byte behavior use advisory-clean k256 and p256 0.14; their exposed tuple fields consequently have the corresponding 0.14 upstream type identities.
@@ -74,6 +78,10 @@ State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. A consumin
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive experimental crate validates the pinned SIOPv2 draft-13 DID-subject direct_post profile, plans a self-issued ID Token through injected JOSE ports and exposes deterministic caller-driven lifecycle transitions while shared bounded request retrieval moves behind identus-openid4vc.
 
 ## Migration actions
+
+### `credentials.sd-jwt.rfc9901.v1`
+
+`unreleased` → `unreleased` for oxid, sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
@@ -141,6 +149,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ## Compatibility windows
 
+### `credentials.sd-jwt.rfc9901.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The migration is declared on the release-candidate line before stable 0.1.0; the next candidate carries the advisory-clean type identities.
@@ -207,6 +219,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 ## Rollback and removal
 
+### `credentials.sd-jwt.rfc9901.v1`
+
+Fallback: Consumers retain their current SD-JWT implementation until they explicitly adopt a later released crate or language adapter. Rollback: Before publication remove the additive crate and proposed ledger record while preserving RFC vectors, ADR 0193 and failure evidence. Removal gate: Not applicable.
+
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 Fallback: Delay consumer adoption while migrating to SDK byte boundaries; do not publish a new security-current candidate that restores the rejected 0.13 closure. Rollback: Move forward to another advisory-clean curve family or SDK-owned opaque boundary; never restore the advisory-affected dependency closure as a release state. Removal gate: Not applicable; this is a security remediation and candidate source migration, not a deprecated compatibility facade.
@@ -272,6 +288,10 @@ Fallback: Consumers retain their existing verifier-authentication implementation
 Fallback: Consumers retain their existing SIOPv2 implementation until a separately qualified adapter accepts the experimental SDK profile. Rollback: Remove the additive SIOPv2 crate and shared delegation before publication; existing OID4VP behavior and downstream implementations remain unchanged. Removal gate: Not applicable.
 
 ## Limitations
+
+### `credentials.sd-jwt.rfc9901.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. RFC 9901 compact plus SHA-256 only; no SD-JWT VC profile, JWS JSON Serialization, HTTP, DID/trust/replay/storage policy, bindings, runtime, publication, certification or downstream adoption is included.
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 

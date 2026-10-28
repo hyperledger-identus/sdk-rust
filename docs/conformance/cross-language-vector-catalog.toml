@@ -1424,3 +1424,48 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "The vector proves exact carrier parsing, public-key validation and relationship count, not foreign DTO or error shapes."
+
+[[sources]]
+id             = "ietf.rfc9901"
+kind           = "standard"
+url            = "https://www.rfc-editor.org/rfc/rfc9901.txt"
+version        = "RFC 9901, November 2025; text SHA-256 fd4cb79184162fa7ef95f4f63abab8ee6d03c9a04c19b8f83758946464b284eb"
+section        = "Combined Format for Issuance and Presentation, disclosures, processing and key binding"
+authorship     = "IETF OAuth Working Group and RFC 9901 authors"
+license        = "RFC-Trust"
+redistribution = "derived-cases-allowed"
+
+[[packets]]
+id             = "credentials.sd-jwt.rfc9901.v1"
+capability     = "credentials.sd-jwt"
+schema_version = 1
+path           = "docs/conformance/fixtures/sd-jwt-rfc9901/v1/vectors.json"
+sha256         = "59fc5c7454edb4ff8155d61311613cc6c8196a96f19693b9b870c508c8337da9"
+authorship     = "SDK-Rust clean-room negative curation under the pinned RFC 9901 contract"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[vectors]]
+id                 = "credentials.sd-jwt.malformed-compact"
+packet             = "credentials.sd-jwt.rfc9901.v1"
+case               = "credentials.sd-jwt.malformed-compact"
+capability         = "credentials.sd-jwt"
+authority          = "identus-contract"
+source_ids         = [ "ietf.rfc9901" ]
+source_locator     = "RFC 9901 combined-format grammar and SDK clean-room malformed input"
+operation          = "sd-jwt.parse"
+expected           = "sd_jwt.invalid_compact"
+profile_scope      = "Stable base compact parser before disclosure or cryptographic work"
+boundary           = "negative"
+resource_class     = "early-structure-rejection"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "conformance::malformed_compact_is_rejected"
+language_selectors = [  ]
+owner_issue        = 568
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Planning vector proves one static structural rejection only; complete RFC, boundary, differential and E2E evidence remains required by issue #568."

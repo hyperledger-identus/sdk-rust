@@ -1,6 +1,6 @@
 schema_version = 1
 issue          = 568
-disposition    = "behavior-neutral"
-scope          = "documentation"
-rationale      = "This exact preimplementation head records only the RFC 9901 contract; the implementation phase will activate its consumer-visible ledger and evidence records."
-ledger_ids     = [  ]
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The additive identus-sd-jwt crate exposes bounded staged RFC 9901 issuance, disclosure, presentation, key-binding, and verification APIs."
+ledger_ids     = [ "credentials.sd-jwt.rfc9901.v1" ]

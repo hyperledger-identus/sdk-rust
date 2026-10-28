@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "packetId": "credentials.sd-jwt.rfc9901.v1",
+  "capability": "credentials.sd-jwt",
+  "cases": [
+    {
+      "id": "credentials.sd-jwt.malformed-compact",
+      "operation": "sd-jwt.parse",
+      "input": {
+        "literal": "not-an-sd-jwt"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "sd_jwt.invalid_compact",
+        "redacted": true,
+        "fields": {}
+      }
+    }
+  ]
+}

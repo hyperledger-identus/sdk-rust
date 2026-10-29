@@ -54,6 +54,27 @@ EXPECTED_EVIDENCE = {
         "uri": "https://github.com/hyperledger-identus/sdk-rust/issues/388",
     },
 }
+EXPECTED_SLOW = {
+    "status": "failed",
+    "head_branch": "develop",
+    "head_sha": "5da04223c1c4e029cb368870877e56d699d40388",
+    "run_uri": "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40260649503",
+    "failing_lane": "slow (macos-latest)",
+    "cause": "RUSTSEC-2026-0374 classified build-time basic-toml 0.1.10 as unmaintained",
+    "resolution": "Issue #564 and ADR 0191 added a narrow exact-path acceptance with machine-checked expiry; a fresh complete run is still required.",
+}
+EXPECTED_DOWNSTREAM = {
+    "consumer": "hyperledger-identus/neoprism",
+    "adoption_pr": "https://github.com/hyperledger-identus/neoprism/pull/324",
+    "parity_issue": "https://github.com/hyperledger-identus/neoprism/issues/325",
+    "parity_harness_pr": "https://github.com/hyperledger-identus/neoprism/pull/327",
+    "final_candidate_summary": "https://github.com/hyperledger-identus/neoprism/issues/325#issuecomment-6441653199",
+    "latest_composition_receipt": "https://github.com/hyperledger-identus/neoprism/issues/325#issuecomment-6487638362",
+    "network": "preprod",
+    "comparison_slot": 10723321,
+    "semantic_result": "pass",
+    "qos_class": "diagnostic",
+}
 PAGE_IDENTITY_FIELDS = (
     "staged_lock_sha256",
     "reserved_tag",
@@ -119,32 +140,35 @@ def check(root: Path) -> list[str]:
         failures.append(f"{MANIFEST}: identity must equal the exact protected candidate receipt")
 
     evidence = manifest.get("evidence", [])
-    observed = (
-        {
-            entry.get("id"): {
+    observed: dict[str, dict[str, Any]] = {}
+    if not isinstance(evidence, list):
+        failures.append(f"{MANIFEST}: evidence must be an array of tables")
+    else:
+        for entry in evidence:
+            if not isinstance(entry, dict) or set(entry) != {"id", "status", "uri"}:
+                failures.append(f"{MANIFEST}: each evidence entry must contain only id, status, and uri")
+                continue
+            evidence_id = entry.get("id")
+            if not isinstance(evidence_id, str):
+                failures.append(f"{MANIFEST}: evidence id must be a string")
+                continue
+            if evidence_id in observed:
+                failures.append(f"{MANIFEST}: duplicate evidence id: {evidence_id}")
+                continue
+            observed[evidence_id] = {
                 "status": entry.get("status"),
                 "uri": entry.get("uri"),
             }
-            for entry in evidence
-            if isinstance(entry, dict)
-        }
-        if isinstance(evidence, list)
-        else {}
-    )
     if observed != EXPECTED_EVIDENCE:
         failures.append(f"{MANIFEST}: evidence matrix must equal {EXPECTED_EVIDENCE!r}")
 
     slow = manifest.get("last_natural_slow", {})
-    if not isinstance(slow, dict) or slow.get("status") != "failed":
-        failures.append(f"{MANIFEST}: latest natural slow evidence must remain failed until replaced")
-    elif slow.get("head_branch") != "develop" or slow.get("head_sha") != "5da04223c1c4e029cb368870877e56d699d40388":
-        failures.append(f"{MANIFEST}: failed natural slow identity drifted")
+    if slow != EXPECTED_SLOW:
+        failures.append(f"{MANIFEST}: natural slow evidence must equal the exact failed receipt")
 
     downstream = manifest.get("downstream", {})
-    if not isinstance(downstream, dict) or downstream.get("semantic_result") != "pass":
-        failures.append(f"{MANIFEST}: NeoPRISM semantic result must be explicit")
-    elif downstream.get("qos_class") != "diagnostic" or downstream.get("network") != "preprod":
-        failures.append(f"{MANIFEST}: downstream QoS/network scope must remain bounded")
+    if downstream != EXPECTED_DOWNSTREAM:
+        failures.append(f"{MANIFEST}: downstream evidence must equal the exact bounded receipt")
 
     limitations = manifest.get("limitations", [])
     if not isinstance(limitations, list) or len(limitations) != 5:

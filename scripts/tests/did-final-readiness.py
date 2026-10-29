@@ -60,7 +60,7 @@ class ReadinessContractTests(unittest.TestCase):
         path.write_text(content.replace('[last_natural_slow]\nstatus       = "failed"', '[last_natural_slow]\nstatus       = "success"'), encoding="utf-8")
         result = self.run_checker(root)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("must remain failed", result.stderr)
+        self.assertIn("exact failed receipt", result.stderr)
 
     def test_candidate_archive_identity_cannot_drift(self) -> None:
         root = self.fixture()
@@ -89,6 +89,51 @@ class ReadinessContractTests(unittest.TestCase):
         result = self.run_checker(root)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("evidence matrix must equal", result.stderr)
+
+    def test_duplicate_evidence_id_cannot_be_overwritten(self) -> None:
+        root = self.fixture()
+        path = root / FILES[0]
+        duplicate = (
+            '[[evidence]]\n'
+            'id = "train-identity"\n'
+            'status = "failed"\n'
+            'uri = "https://example.invalid/contradictory"\n\n'
+        )
+        path.write_text(
+            path.read_text(encoding="utf-8").replace("[[evidence]]", duplicate + "[[evidence]]", 1),
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("duplicate evidence id", result.stderr)
+
+    def test_natural_slow_receipt_uri_cannot_drift(self) -> None:
+        root = self.fixture()
+        path = root / FILES[0]
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40260649503",
+                "https://example.invalid/slow",
+            ),
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("exact failed receipt", result.stderr)
+
+    def test_downstream_receipt_uri_cannot_drift(self) -> None:
+        root = self.fixture()
+        path = root / FILES[0]
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "https://github.com/hyperledger-identus/neoprism/issues/325#issuecomment-6487638362",
+                "https://example.invalid/e2e",
+            ),
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("exact bounded receipt", result.stderr)
 
     def test_displayed_identity_cannot_drift_from_manifest(self) -> None:
         root = self.fixture()

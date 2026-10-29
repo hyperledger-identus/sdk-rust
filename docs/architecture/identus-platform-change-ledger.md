@@ -83,7 +83,7 @@ State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. A consumin
 
 ### `siopv2.did-authentication.diagnostics.v1`
 
-State: `proposed`. Class: `fix` / `fixed`. Target: `unreleased`. Current-state lifecycle idempotency is explicit and stable redacted categories distinguish wallet-nonce correlation, response encoding, and response size without changing successful wire behavior.
+State: `active`. Class: `fix` / `fixed`. Target: `unreleased`. Current-state lifecycle idempotency is explicit and stable redacted categories distinguish wallet-nonce correlation, response encoding, and response size without changing successful wire behavior.
 
 ### `siopv2.did-authentication.draft13.v1`
 

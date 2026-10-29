@@ -114,9 +114,9 @@ replaced_by                       = ""
 [[changes]]
 id                                = "siopv2.did-authentication.diagnostics.v1"
 capability                        = "siopv2.did-authentication"
-lifecycle_state                   = "proposed"
+lifecycle_state                   = "active"
 issue                             = 543
-pull_request                      = 0
+pull_request                      = 580
 change_class                      = "fix"
 release_note_class                = "fixed"
 visibility                        = [ "behavior", "error", "public-api", "security" ]

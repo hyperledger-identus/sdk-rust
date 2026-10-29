@@ -339,33 +339,48 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
         "constraintsReady": True,
         "strictValidation": True,
     }
-    write(
-        receipt_path,
-        f"{json.dumps(receipt, indent=2)}\n".encode(),
-    )
+
+    def install_receipt(current_binding):
+        payload = f"{json.dumps(receipt, indent=2)}\n".encode()
+        write(receipt_path, payload)
+        return replace(
+            current_binding,
+            receipt_sha256=hashlib.sha256(payload).hexdigest(),
+        )
+
+    test_binding = install_receipt(test_binding)
     write(reauthorized / test_binding.stable, test_payload)
     source_snapshot = os.environ.pop(checker.SOURCE_SNAPSHOT_ENV, None)
     try:
         if errors := checker.validate_binding(reauthorized, test_binding):
             raise AssertionError(f"valid hermetic receipt failed for {prefix}: {errors!r}")
-        receipt["schemaVersion"] = True
+        receipt["createdAt"] = "2026-09-15T00:00:01.000Z"
         write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+        errors = checker.validate_binding(reauthorized, test_binding)
+        if not any("receipt SHA-256" in error for error in errors):
+            raise AssertionError(
+                f"mutated receipt bytes were accepted for {prefix}: {errors!r}"
+            )
+        receipt["createdAt"] = "2026-09-15T00:00:00.000Z"
+        test_binding = install_receipt(test_binding)
+        receipt["schemaVersion"] = True
+        test_binding = install_receipt(test_binding)
         errors = checker.validate_binding(reauthorized, test_binding)
         if not any("receipt identity is invalid" in error for error in errors):
             raise AssertionError(
                 f"boolean schema version was accepted for {prefix}: {errors!r}"
             )
         receipt["schemaVersion"] = 1
-        write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+        test_binding = install_receipt(test_binding)
         receipt["issue"] = float(test_binding.issue)
-        write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+        test_binding = install_receipt(test_binding)
         errors = checker.validate_binding(reauthorized, test_binding)
         if not any("receipt identity is invalid" in error for error in errors):
             raise AssertionError(
                 f"non-integer issue was accepted for {prefix}: {errors!r}"
             )
         receipt["issue"] = test_binding.issue
-        write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+        test_binding = install_receipt(test_binding)
     finally:
         if source_snapshot is not None:
             os.environ[checker.SOURCE_SNAPSHOT_ENV] = source_snapshot
@@ -393,7 +408,7 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
         text=True,
     ).stdout.strip()
     receipt["contractHeadSha"] = drift_head
-    write(receipt_path, f"{json.dumps(receipt, indent=2)}\n".encode())
+    test_binding = install_receipt(test_binding)
     changed_payload = (reauthorized / test_binding.stable).read_bytes()
     changed_binding = replace(
         test_binding,
@@ -412,6 +427,106 @@ def run_binding_cases(checker, test_root: Path, binding, drift: tuple[bytes, byt
     ):
         raise AssertionError(
             f"post-drift receipt retarget was accepted for {prefix}: {errors!r}"
+        )
+
+
+def run_protected_squash_cases(checker, test_root: Path, binding) -> None:
+    root = test_root / "protected-squash"
+    root.mkdir()
+
+    def git(*arguments: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["git", "-C", str(root), *arguments],
+            check=check,
+            capture_output=True,
+            text=True,
+        )
+
+    git("init", "-q")
+    git("config", "user.name", "Golden Test")
+    git("config", "user.email", "golden-test@example.com")
+    git("commit", "-q", "--allow-empty", "-m", "base")
+    base_sha = git("rev-parse", "HEAD").stdout.strip()
+
+    payload = planning_payload(checker, binding).replace(
+        f"# source_revision={binding.source_revision}".encode(),
+        f"# source_revision={base_sha}".encode(),
+        1,
+    )
+    test_binding = replace(
+        binding,
+        source_revision=base_sha,
+        expected_sha256=hashlib.sha256(payload).hexdigest(),
+    )
+    write(root / test_binding.active, payload)
+    git("add", str(test_binding.active))
+    git("commit", "-q", "-m", "planning")
+    contract_head = git("rev-parse", "HEAD").stdout.strip()
+    git("branch", "-m", "planning")
+
+    receipt = {
+        "schemaVersion": 1,
+        "repository": "hyperledger-identus/sdk-rust",
+        "issue": test_binding.issue,
+        "change": test_binding.change_name,
+        "branch": test_binding.branch,
+        "baseRef": "origin/develop",
+        "baseSha": base_sha,
+        "contractHeadSha": contract_head,
+        "createdAt": "2026-10-29T00:00:00.000Z",
+        "researchReady": True,
+        "constraintsReady": True,
+        "strictValidation": True,
+    }
+    receipt_payload = f"{json.dumps(receipt, indent=2)}\n".encode()
+    test_binding = replace(
+        test_binding,
+        receipt_sha256=hashlib.sha256(receipt_payload).hexdigest(),
+    )
+
+    git("switch", "-q", "-c", "canonical", base_sha)
+    archived = root / archive_file(checker, test_binding, "2026-10-29")
+    archived_receipt = archived.parent.parent / "preimplementation.json"
+    write(archived, payload)
+    write(archived_receipt, receipt_payload)
+    write(root / test_binding.stable, payload)
+    git("add", str(archived), str(archived_receipt), str(test_binding.stable))
+    git("commit", "-q", "-m", "protected squash")
+    if errors := checker.validate_binding(root, test_binding):
+        raise AssertionError(f"protected squash evidence failed: {errors!r}")
+
+    git("switch", "-q", "--detach", base_sha)
+    write(archived, payload)
+    write(archived_receipt, receipt_payload)
+    write(root / test_binding.stable, payload)
+    transplanted_errors = checker.validate_binding(root, test_binding)
+    if not any("must resolve from canonical HEAD" in error for error in transplanted_errors):
+        raise AssertionError(
+            f"uncommitted canonical copy was accepted: {transplanted_errors!r}"
+        )
+    shutil.rmtree(root / checker.ARCHIVE)
+    (root / test_binding.stable).unlink()
+    git("switch", "-q", "canonical")
+
+    git("branch", "-D", "planning")
+    git("reflog", "expire", "--expire=now", "--all")
+    git("gc", "--prune=now")
+    if git("cat-file", "-e", f"{contract_head}^{{commit}}", check=False).returncode == 0:
+        raise AssertionError("source planning object remained reachable after pruning")
+    if errors := checker.validate_binding(root, test_binding):
+        raise AssertionError(f"pruned squash evidence failed: {errors!r}")
+
+    git("switch", "-q", "--detach", base_sha)
+    write(root / test_binding.active, payload)
+    write(
+        root / test_binding.active_change / "preimplementation.json",
+        receipt_payload,
+    )
+    write(root / test_binding.stable, payload)
+    active_errors = checker.validate_binding(root, test_binding)
+    if not any("active preimplementation contract head must resolve" in error for error in active_errors):
+        raise AssertionError(
+            f"active change used archived fallback: {active_errors!r}"
         )
 
 
@@ -449,6 +564,7 @@ def main() -> int:
             checker.OID4VCI,
             (b"OID4VCI limits are invalid", b"OID4VCI limits were invalid"),
         )
+        run_protected_squash_cases(checker, test_root, checker.JWE)
 
         combined = test_root / "combined-active-bindings"
         for binding in checker.BINDINGS:

@@ -25,6 +25,7 @@ import { parseContributionPolicy, validateContributionPolicyMonotonicity, valida
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
 import {
   exactIsoDate,
+  fetchExactPullRequestHead,
   maximumPullRequestBodyBytes,
   mergePullRequest,
   parseDeliveryArguments,
@@ -326,6 +327,33 @@ test("deferred acceptance reader binds one bounded regular exact-head blob", () 
       () => readDeferredAcceptanceAt({ repository: created, head: oversizedHead, sidecarPath }),
       /exceeds 16384 bytes/u,
     );
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("guarded delivery fetches and verifies the immutable pull request head", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-head-"));
+  const remote = path.join(created, "remote.git");
+  const source = path.join(created, "source");
+  const consumer = path.join(created, "consumer");
+  try {
+    execFileSync("git", ["init", "--bare", "-q", remote]);
+    execFileSync("git", ["init", "-q", source]);
+    execFileSync("git", ["config", "user.name", "Factory Test"], { cwd: source });
+    execFileSync("git", ["config", "user.email", "factory@example.invalid"], { cwd: source });
+    execFileSync("git", ["config", "commit.gpgsign", "false"], { cwd: source });
+    writeFileSync(path.join(source, "fixture"), "exact head\n");
+    execFileSync("git", ["add", "fixture"], { cwd: source });
+    execFileSync("git", ["commit", "-q", "-m", "fixture"], { cwd: source });
+    const head = execFileSync("git", ["rev-parse", "HEAD"], { cwd: source, encoding: "utf8" }).trim();
+    execFileSync("git", ["remote", "add", "origin", remote], { cwd: source });
+    execFileSync("git", ["push", "-q", "origin", "HEAD:refs/pull/243/head"], { cwd: source });
+
+    execFileSync("git", ["init", "-q", consumer]);
+    execFileSync("git", ["remote", "add", "origin", remote], { cwd: consumer });
+    assert.equal(fetchExactPullRequestHead(consumer, 243, head), head);
+    assert.throws(() => fetchExactPullRequestHead(consumer, 243, "a".repeat(40)), /expected head/u);
   } finally {
     rmSync(created, { recursive: true, force: true });
   }

@@ -270,6 +270,22 @@ function gitText(repositoryRoot, args) {
   }).trim();
 }
 
+export function fetchExactPullRequestHead(repositoryRoot, pullRequest, expectedHead) {
+  const reference = `refs/sdk-rust-delivery/pull-${positiveInteger(pullRequest, "pull request")}`;
+  execFileSync("git", [
+    "fetch", "--no-tags", "--no-recurse-submodules", "origin",
+    `+refs/pull/${pullRequest}/head:${reference}`,
+  ], {
+    cwd: repositoryRoot,
+    encoding: "utf8",
+    maxBuffer: 4 * 1024 * 1024,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const actual = gitText(repositoryRoot, ["rev-parse", "--verify", `${reference}^{commit}`]);
+  if (actual !== expectedHead) fail("fetched pull request head does not match the expected head");
+  return actual;
+}
+
 function repositoryIdentity(repositoryRoot = root) {
   const remote = gitText(repositoryRoot, ["remote", "get-url", "origin"]);
   const repository = remote.match(/github\.com[/:]([^/]+\/[^/.]+)(?:\.git)?$/u)?.[1];
@@ -443,17 +459,29 @@ export function mergePullRequest(options, dependencies = {}) {
   const linkageDeclared = /^\s*-\s*Issue linkage:/imu.test(String(before?.body ?? ""));
   let contribution = null;
   if (!alreadyMerged || linkageDeclared) {
+    let preparedDeferredHead = false;
+    const loadDeferredAcceptance = dependencies.loadDeferredAcceptance ?? ((sidecarPath) => {
+      if (!preparedDeferredHead) {
+        fetchExactPullRequestHead(
+          dependencies.repositoryRoot ?? root,
+          options.pullRequest,
+          options.expectedHead,
+        );
+        preparedDeferredHead = true;
+      }
+      return readDeferredAcceptanceAt({
+        repository: dependencies.repositoryRoot ?? root,
+        head: options.expectedHead,
+        sidecarPath,
+      });
+    });
     contribution = validatePullRequest({
       title: before?.title,
       body: before?.body,
       branch: before?.headRefName,
       actor: before?.author?.login ?? "",
     }, {
-      loadDeferredAcceptance: dependencies.loadDeferredAcceptance ?? ((sidecarPath) => readDeferredAcceptanceAt({
-        repository: dependencies.repositoryRoot ?? root,
-        head: options.expectedHead,
-        sidecarPath,
-      })),
+      loadDeferredAcceptance,
     });
     if (!contribution.ok) fail("hosted pull request metadata no longer satisfies contribution policy");
   }

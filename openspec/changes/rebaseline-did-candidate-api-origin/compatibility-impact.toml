@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 582
+disposition    = "behavior-neutral"
+scope          = "tooling"
+rationale      = "The public JSON-wire surface is already merged and unchanged; this slice updates only the unpublished first-candidate API-origin evidence, with no Rust behavior, wire, dependency, feature, package, target, publication, or consumer change."
+ledger_ids     = [  ]

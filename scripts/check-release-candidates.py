@@ -283,7 +283,7 @@ def validate(root: Path) -> list[str]:
         "preparation_rust_version": "1.98.1",
         "baseline_revision": "96cf5f577b5f3585461d34589aad465297693af0",
         "staged_lock": DID_STAGED_LOCK.as_posix(),
-        "staged_lock_sha256": "1f1d4206e2ced5bd74675d654876684536dd8f82bf79cd6de4c2fa67db904447",
+        "staged_lock_sha256": "f7535a6819c9b9e4474c95b427b54646d46ccac51703c680086ef75c790fba4f",
         "repository": "https://github.com/hyperledger-identus/sdk-rust",
         "homepage": "https://hyperledger-identus.github.io/sdk-rust/",
         "license": "Apache-2.0",

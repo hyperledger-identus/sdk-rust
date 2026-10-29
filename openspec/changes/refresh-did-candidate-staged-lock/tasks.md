@@ -4,12 +4,12 @@
 
 - [x] 1.1 Record the clean preparation failure, exact six-package drift,
       alternatives, constraints, evidence, and rollback.
-- [ ] 1.2 Pass planning readiness, commit the contract, and record exact #581
+- [x] 1.2 Pass planning readiness, commit the contract, and record exact #581
       preimplementation evidence.
 
 ## 2. Refresh and verify
 
-- [ ] 2.1 Copy the generated lock, update all digest references atomically,
+- [x] 2.1 Copy the generated lock, update all digest references atomically,
       and keep candidate manifests and identity unchanged.
 - [ ] 2.2 Reproduce archives, closure, API/SBOM, advisory/license/source,
       compiler/target, factory, site, and Nix evidence.

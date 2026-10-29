@@ -88,7 +88,7 @@ def rebind_lock_digest(root: Path) -> None:
     descriptor = root / "docs/release/did-candidate.toml"
     replace(
         descriptor,
-        'staged_lock_sha256       = "1f1d4206e2ced5bd74675d654876684536dd8f82bf79cd6de4c2fa67db904447"',
+        'staged_lock_sha256       = "f7535a6819c9b9e4474c95b427b54646d46ccac51703c680086ef75c790fba4f"',
         f'staged_lock_sha256       = "{digest}"',
     )
 

@@ -76,5 +76,22 @@ The implementation binds the draft name, publication date, canonical source
 URL and SHA-256 digest in code and conformance tests. A new draft/RFC,
 protected/media type change, claim-rule change, or source mismatch requires a
 new issue and compatibility decision. The released SDK-TS `vc+sd-jwt` spelling
-is migration evidence only; canonical output never uses it. An optional input
-adapter is tracked separately by issue #572.
+is migration evidence only; canonical output never uses it. Issue #572 adds a
+separately named input-only adapter for the draft-03/draft-22 common subset:
+
+```text
+vc+sd-jwt envelope ─► issuer verification ─► disclosure processing
+       └──────── explicit LegacyVcSdJwtDraft03Adapter ────────┐
+                                                              ▼
+                                               legacy migration state
+                                         canonical reissuance required
+```
+
+The adapter preserves exact envelope provenance through typed legacy stages;
+a generic compact parse cannot enter its validator. It rejects status,
+additional types, type-integrity metadata, Type Metadata, automatic fallback,
+header rewriting, legacy issuance, and `nbf`/`exp`/`iat` values whose absolute
+magnitude is at least `1_000_000_000_000`, without date-unit conversion. It
+cannot convert into `Draft22SdJwtVc`. Exact source and
+removal evidence is recorded in the
+[draft-03 migration report](../research/platform-core/sd-jwt-vc-draft03-migration.md).

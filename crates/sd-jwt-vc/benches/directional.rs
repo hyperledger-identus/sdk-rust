@@ -1,15 +1,17 @@
 use std::{hint::black_box, time::Instant};
 
 use identus_credentials::{
-    CredentialStatusEvidence, CredentialStatusRevision, CredentialStatusValue,
+    CredentialEnvelope, CredentialFormat, CredentialPayload, CredentialStatusEvidence,
+    CredentialStatusRevision, CredentialStatusValue,
 };
 use identus_crypto::{Ed25519PrivateKey, EncodeJwk, SecureRandom};
 use identus_jose::{Ed25519Signer, JwsAlgorithm, JwsVerificationKey, SignatureSuiteRegistry};
-use identus_sd_jwt::{IssuancePlan, SdJwtLimits};
+use identus_sd_jwt::{IssuanceOptions, IssuancePlan, SdJwtLimits, issue_with_options};
 use identus_sd_jwt_vc::{
-    ClaimDisclosureRule, ClaimMetadata, Draft22SdJwtVc, ProfileValidationInputs, SdJwtVcLimits,
-    StatusListBinding, StatusListEvidence, TypeMetadata, TypeMetadataChain,
-    correlate_status_evidence, issue_draft22, parse_draft22_envelope,
+    ClaimDisclosureRule, ClaimMetadata, Draft22SdJwtVc, LegacyValidationInputs,
+    LegacyVcSdJwtDraft03Adapter, ProfileValidationInputs, SdJwtVcLimits, StatusListBinding,
+    StatusListEvidence, TypeMetadata, TypeMetadataChain, correlate_status_evidence, issue_draft22,
+    parse_draft22_envelope,
 };
 use serde_json::json;
 
@@ -113,6 +115,100 @@ fn main() {
             profile_limits,
         ))
         .expect_err("oversized type");
+    });
+
+    let legacy = issue_with_options(
+        json!({"iss":"https://issuer.example", "vct":"urn:example:pid"}),
+        &plan,
+        IssuanceOptions {
+            protected_type: Some("vc+sd-jwt"),
+        },
+        &mut Entropy(1),
+        &signer,
+        base_limits,
+    )
+    .expect("legacy fixture");
+    measure("legacy-accepted-migration", 101, || {
+        let envelope = CredentialEnvelope::new(
+            CredentialFormat::parse("vc+sd-jwt").expect("legacy format"),
+            CredentialPayload::new(legacy.as_str().as_bytes().to_vec()).expect("legacy payload"),
+        );
+        let base = LegacyVcSdJwtDraft03Adapter::parse_envelope(&envelope, base_limits)
+            .expect("parse")
+            .verify_issuer(&SignatureSuiteRegistry::recommended(), &verification_key)
+            .expect("issuer signature")
+            .process_disclosures()
+            .expect("disclosures");
+        black_box(LegacyVcSdJwtDraft03Adapter::validate(
+            base,
+            LegacyValidationInputs::default(),
+            profile_limits,
+        ))
+        .expect("legacy common subset");
+    });
+
+    let canonical = issue_draft22(
+        json!({"iss":"https://issuer.example", "vct":"urn:example:pid"}),
+        &plan,
+        &mut Entropy(1),
+        &signer,
+        base_limits,
+        profile_limits,
+    )
+    .expect("canonical fixture");
+    measure("legacy-wrong-identity-rejection", 101, || {
+        let envelope = CredentialEnvelope::new(
+            CredentialFormat::parse("vc+sd-jwt").expect("legacy format"),
+            CredentialPayload::new(canonical.as_str().as_bytes().to_vec())
+                .expect("canonical payload"),
+        );
+        let base = LegacyVcSdJwtDraft03Adapter::parse_envelope(&envelope, base_limits)
+            .expect("parse")
+            .verify_issuer(&SignatureSuiteRegistry::recommended(), &verification_key)
+            .expect("issuer signature")
+            .process_disclosures()
+            .expect("disclosures");
+        black_box(LegacyVcSdJwtDraft03Adapter::validate(
+            base,
+            LegacyValidationInputs::default(),
+            profile_limits,
+        ))
+        .expect_err("canonical identity");
+    });
+
+    let legacy_status = issue_with_options(
+        json!({
+            "iss":"https://issuer.example",
+            "vct":"urn:example:pid",
+            "status":{"status_list":{"idx":7,"uri":"https://status.example/list"}}
+        }),
+        &plan,
+        IssuanceOptions {
+            protected_type: Some("vc+sd-jwt"),
+        },
+        &mut Entropy(1),
+        &signer,
+        base_limits,
+    )
+    .expect("legacy status fixture");
+    measure("legacy-draft-feature-rejection", 101, || {
+        let envelope = CredentialEnvelope::new(
+            CredentialFormat::parse("vc+sd-jwt").expect("legacy format"),
+            CredentialPayload::new(legacy_status.as_str().as_bytes().to_vec())
+                .expect("legacy status payload"),
+        );
+        let base = LegacyVcSdJwtDraft03Adapter::parse_envelope(&envelope, base_limits)
+            .expect("parse")
+            .verify_issuer(&SignatureSuiteRegistry::recommended(), &verification_key)
+            .expect("issuer signature")
+            .process_disclosures()
+            .expect("disclosures");
+        black_box(LegacyVcSdJwtDraft03Adapter::validate(
+            base,
+            LegacyValidationInputs::default(),
+            profile_limits,
+        ))
+        .expect_err("draft-specific status");
     });
 
     let claim = ClaimMetadata::new(

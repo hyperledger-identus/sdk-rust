@@ -53,6 +53,7 @@ required_files=(
   docs/conformance/fixtures/did/v1/vectors.json
   docs/conformance/fixtures/did-peer/v1/vectors.json
   docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json
+  docs/conformance/fixtures/sd-jwt-vc-draft03-adapter/v1/vectors.json
   fuzz/fuzz_targets/did.rs
   fuzz/fuzz_targets/did_url.rs
   docs/architecture/portable-agent-runtime.md

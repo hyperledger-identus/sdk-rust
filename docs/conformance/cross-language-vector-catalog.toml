@@ -1583,3 +1583,137 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "The case validates reference shape only; retrieval, decompression, freshness and acceptance remain caller policy."
+
+[[sources]]
+id             = "ietf.sd-jwt-vc-draft03"
+kind           = "standard"
+url            = "https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-03.txt"
+version        = "draft-ietf-oauth-sd-jwt-vc-03, 4 March 2024; text SHA-256 9599225eb8732c0ef3f9a6524589e637f9272ba742da185c43ecfd272b81bf5a"
+section        = "SD-JWT VC protected type, common claims and validation"
+authorship     = "IETF OAuth Working Group and SD-JWT VC draft authors"
+license        = "IETF-Trust"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "sdk-ts.sd-jwt-vc-v8-1-4"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-ts"
+revision       = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+path           = "packages/lib/sdk/src/pollux/utils/jwt"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "npm.sd-jwt-vc-v0-7-2"
+kind           = "repository"
+url            = "https://github.com/openwallet-foundation-labs/sd-jwt-js"
+revision       = "d3cc53b66be9ef40ede9f86a931b7a43f55dbd3a"
+path           = "packages/sd-jwt-vc"
+authorship     = "OpenWallet Foundation SD-JWT contributors"
+license        = "Apache-2.0"
+redistribution = "derived-cases-allowed"
+
+[[packets]]
+id             = "credentials.sd-jwt-vc.draft03-adapter.v1"
+capability     = "credentials.sd-jwt"
+schema_version = 1
+path           = "docs/conformance/fixtures/sd-jwt-vc-draft03-adapter/v1/vectors.json"
+sha256         = "fab73d72875adb49dd8cd912cf580af44f0c8936b1374b0150e86fa6c3f556b3"
+authorship     = "SDK-Rust clean-room migration cases from frozen draft and consumer observations"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[vectors]]
+id                 = "credentials.sd-jwt-vc.draft03-common-subset"
+packet             = "credentials.sd-jwt-vc.draft03-adapter.v1"
+case               = "credentials.sd-jwt-vc.draft03-common-subset"
+capability         = "credentials.sd-jwt"
+authority          = "normative"
+source_ids         = [ "ietf.sd-jwt-vc-draft03", "ietf.sd-jwt-vc-draft22", "sdk-ts.sd-jwt-vc-v8-1-4", "npm.sd-jwt-vc-v0-7-2" ]
+source_locator     = "draft-03 sections 3.1-3.3, draft-22 sections 3.2-3.3, and frozen consumer/oracle source selectors"
+operation          = "sd-jwt-vc.validate-profile"
+expected           = "success"
+profile_scope      = "Explicit input-only legacy common subset after issuer signature and disclosure verification"
+boundary           = "positive"
+resource_class     = "bounded-profile-validation"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "legacy_differential::legacy_packet_executes_through_the_public_adapter"
+language_selectors = [  ]
+owner_issue        = 572
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "sdk-ts.sd-jwt-vc.legacy-type" ]
+limitations        = "Success proves the bounded common subset only and requires issuer reissuance; it is not canonical draft-22, trust, status or product acceptance."
+
+[[vectors]]
+id                 = "credentials.sd-jwt-vc.draft03-status-rejected"
+packet             = "credentials.sd-jwt-vc.draft03-adapter.v1"
+case               = "credentials.sd-jwt-vc.draft03-status-rejected"
+capability         = "credentials.sd-jwt"
+authority          = "identus-contract"
+source_ids         = [ "ietf.sd-jwt-vc-draft03", "ietf.sd-jwt-vc-draft22", "npm.sd-jwt-vc-v0-7-2" ]
+source_locator     = "draft status-lineage difference and oracle embedded retrieval observation"
+operation          = "sd-jwt-vc.validate-profile"
+expected           = "sd_jwt_vc.legacy_draft_feature"
+profile_scope      = "Legacy status semantics remain outside the common-subset adapter"
+boundary           = "negative"
+resource_class     = "early-profile-rejection"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "legacy_differential::legacy_packet_executes_through_the_public_adapter"
+language_selectors = [  ]
+owner_issue        = 572
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "No retrieval, decoding, freshness or status acceptance is performed."
+
+[[vectors]]
+id                 = "credentials.sd-jwt-vc.draft03-additional-types-rejected"
+packet             = "credentials.sd-jwt-vc.draft03-adapter.v1"
+case               = "credentials.sd-jwt-vc.draft03-additional-types-rejected"
+capability         = "credentials.sd-jwt"
+authority          = "identus-contract"
+source_ids         = [ "ietf.sd-jwt-vc-draft03", "ietf.sd-jwt-vc-draft22" ]
+source_locator     = "draft-22 aka_vcts addition is absent from the qualified draft-03 common subset"
+operation          = "sd-jwt-vc.validate-profile"
+expected           = "sd_jwt_vc.legacy_draft_feature"
+profile_scope      = "Draft-22-only additional credential types fail closed on the legacy path"
+boundary           = "negative"
+resource_class     = "early-profile-rejection"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "legacy_differential::legacy_packet_executes_through_the_public_adapter"
+language_selectors = [  ]
+owner_issue        = 572
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The adapter never synthesizes or preserves draft-22-only profile extensions."
+
+[[vectors]]
+id                 = "credentials.sd-jwt-vc.draft03-integrity-rejected"
+packet             = "credentials.sd-jwt-vc.draft03-adapter.v1"
+case               = "credentials.sd-jwt-vc.draft03-integrity-rejected"
+capability         = "credentials.sd-jwt"
+authority          = "identus-contract"
+source_ids         = [ "ietf.sd-jwt-vc-draft03", "ietf.sd-jwt-vc-draft22" ]
+source_locator     = "draft-22 vct#integrity addition is absent from the qualified draft-03 common subset"
+operation          = "sd-jwt-vc.validate-profile"
+expected           = "sd_jwt_vc.legacy_draft_feature"
+profile_scope      = "Draft-22-only type integrity metadata fails closed on the legacy path"
+boundary           = "negative"
+resource_class     = "early-profile-rejection"
+targets            = [ "rust", "typescript", "swift", "kotlin" ]
+rust_selector      = "legacy_differential::legacy_packet_executes_through_the_public_adapter"
+language_selectors = [  ]
+owner_issue        = 572
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The adapter does not validate or translate draft-22 Type Metadata or integrity semantics."

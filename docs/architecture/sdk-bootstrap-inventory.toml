@@ -211,8 +211,8 @@ path           = "crates/sd-jwt-vc"
 layer          = "credential-semantics"
 classification = "implemented"
 public_api     = "experimental"
-owner_issue    = "#569"
-summary        = "Unpublished bounded canonical SD-JWT VC draft-22 profile over the RFC 9901 engine."
+owner_issue    = "#572"
+summary        = "Unpublished bounded canonical SD-JWT VC draft-22 profile plus an explicit input-only draft-03 common-subset migration adapter over the RFC 9901 engine."
 
 [[packages]]
 name           = "identus-messaging"

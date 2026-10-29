@@ -13,6 +13,10 @@ Status: `active`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt crate provides bounded staged RFC 9901 compact issuance, disclosure processing and selection, key binding and verification behind SDK-owned types and injected effects.
 
+### `credentials.sd-jwt.vc-draft03-input-adapter.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. An additive explicitly selected input-only adapter validates the source-bound draft-03 common subset after RFC 9901 verification, returns a distinct migration state requiring canonical reissuance, and leaves all canonical dc+sd-jwt paths unchanged.
+
 ### `credentials.sd-jwt.vc-draft22.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt-vc crate provides an exact bounded draft-22 profile with canonical dc+sd-jwt issuance, profile claims, caller-supplied issuer/type/status evidence and offline protocol integration.
@@ -86,6 +90,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `credentials.sd-jwt.rfc9901.v1`
 
 `unreleased` → `unreleased` for oxid, sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
+
+### `credentials.sd-jwt.vc-draft03-input-adapter.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-ts. Route only known SDK-TS 8.1.4 draft-03 vc+sd-jwt inputs through the explicit adapter, treat rejection as unsupported legacy semantics, and obtain issuer reissuance before storing or representing the credential as canonical draft-22.
 
 ### `credentials.sd-jwt.vc-draft22.v1`
 
@@ -161,6 +169,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
+### `credentials.sd-jwt.vc-draft03-input-adapter.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The adapter is transitional until the named released consumer and supported stored credentials have measured canonical migration and no supported deployment requires legacy input.
+
 ### `credentials.sd-jwt.vc-draft22.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
@@ -235,6 +247,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Fallback: Consumers retain their current SD-JWT implementation until they explicitly adopt a later released crate or language adapter. Rollback: Before publication remove the additive crate and active ledger record while preserving RFC vectors, ADR 0193 and failure evidence. Removal gate: Not applicable.
 
+### `credentials.sd-jwt.vc-draft03-input-adapter.v1`
+
+Fallback: No automatic fallback; canonical APIs keep rejecting vc+sd-jwt and consumers retain their current engine until they explicitly adopt the adapter. Rollback: Before publication remove the additive adapter, legacy vectors, and proposed record while preserving RFC 9901 and canonical draft-22 behavior. Removal gate: Remove through a separate consumer-visible change after SDK-TS and every supported stored credential population have measured migration to dc+sd-jwt and the agreed compatibility window has elapsed.
+
 ### `credentials.sd-jwt.vc-draft22.v1`
 
 Fallback: Consumers retain their current SD-JWT VC implementation until they explicitly adopt a later released profile or language adapter. Rollback: Before publication remove the additive profile crate and proposed ledger record while preserving the RFC 9901 base, immutable vectors and decision history. Removal gate: Not applicable.
@@ -308,6 +324,10 @@ Fallback: Consumers retain their existing SIOPv2 implementation until a separate
 ### `credentials.sd-jwt.rfc9901.v1`
 
 Visibility: behavior, public-api, security, target-support, wire. RFC 9901 compact plus SHA-256 only; no SD-JWT VC profile, JWS JSON Serialization, HTTP, DID/trust/replay/storage policy, bindings, runtime, publication, certification or downstream adoption is included.
+
+### `credentials.sd-jwt.vc-draft03-input-adapter.v1`
+
+Visibility: behavior, public-api, security, wire. Only the verified draft-03 common subset is accepted; no full draft-03, legacy output, automatic fallback, header rewriting, status behavior, Type Metadata, millisecond dates, trust/time/product policy, bindings, publication, certification, or downstream adoption.
 
 ### `credentials.sd-jwt.vc-draft22.v1`
 

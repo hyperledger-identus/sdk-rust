@@ -27,7 +27,9 @@
             sourcePath = toString path;
             oid4vciInteropRoot = "${toString ./../..}/crates/oid4vci/tests/fixtures/interop-v1";
             sdJwtVcDifferentialRoot = "${toString ./../..}/crates/sd-jwt-vc/tests/fixtures/differential-v1";
+            sdJwtVcLegacyReceiptRoot = "${toString ./../..}/crates/sd-jwt-vc/tests/fixtures/legacy-draft03-v1";
             sdJwtVcVector = "${toString ./../..}/docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json";
+            sdJwtVcLegacyVector = "${toString ./../..}/docs/conformance/fixtures/sd-jwt-vc-draft03-adapter/v1/vectors.json";
             sdJwtFixtureRoot = "${toString ./../..}/docs/conformance/fixtures/sd-jwt-rfc9901/v1";
           in
           craneLib.filterCargoSources path type
@@ -54,7 +56,9 @@
           || pkgs.lib.hasSuffix "${sdJwtFixtureRoot}/vectors.json" sourcePath
           || pkgs.lib.hasPrefix "${sdJwtFixtureRoot}/oracles/" sourcePath
           || pkgs.lib.hasPrefix sdJwtVcDifferentialRoot sourcePath
+          || pkgs.lib.hasPrefix sdJwtVcLegacyReceiptRoot sourcePath
           || sourcePath == sdJwtVcVector
+          || sourcePath == sdJwtVcLegacyVector
           || pkgs.lib.hasPrefix oid4vciInteropRoot sourcePath;
       };
       cargoArtifacts = craneLib.buildDepsOnly {

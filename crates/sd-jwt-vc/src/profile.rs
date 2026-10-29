@@ -284,7 +284,7 @@ impl fmt::Debug for Draft22SdJwtVc {
     }
 }
 
-fn validate_claims(
+pub(crate) fn validate_claims(
     claims: &Map<String, Value>,
     limits: SdJwtVcLimits,
     require_issuer: bool,
@@ -446,7 +446,7 @@ fn numeric_date(value: Option<&Value>) -> Result<Option<NumericDate>, SdJwtVcErr
         .ok_or(SdJwtVcError::NumericDate)
 }
 
-fn valid_confirmation(value: Option<&Value>, limits: SdJwtVcLimits) -> bool {
+pub(crate) fn valid_confirmation(value: Option<&Value>, limits: SdJwtVcLimits) -> bool {
     value.and_then(Value::as_object).is_some_and(|object| {
         if object.len() != 1 {
             return false;
@@ -504,7 +504,9 @@ fn uuid_shape(value: &str) -> bool {
     }) && parts.next().is_none()
 }
 
-fn validate_non_selective_placement(base: &DisclosureVerifiedSdJwt) -> Result<(), SdJwtVcError> {
+pub(crate) fn validate_non_selective_placement(
+    base: &DisclosureVerifiedSdJwt,
+) -> Result<(), SdJwtVcError> {
     for name in NON_SELECTIVE {
         let path = ClaimPath::new(
             vec![PathSegment::Member(name.to_owned())],
@@ -543,7 +545,7 @@ fn parse_status(value: &Value, limits: SdJwtVcLimits) -> Result<StatusListBindin
     StatusListBinding::new(index, uri, limits)
 }
 
-fn ensure_retained_output(
+pub(crate) fn ensure_retained_output(
     vct: &str,
     additional: &[String],
     status: Option<&StatusListBinding>,

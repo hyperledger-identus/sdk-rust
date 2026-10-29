@@ -326,6 +326,7 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                     "sd_jwt_vc.unsupported_status",
                     "sd_jwt_vc.evidence_mismatch",
                     "sd_jwt_vc.resource_limit",
+                    "sd_jwt_vc.legacy_draft_feature",
                 },
             }[operation]
             error_code = expected.get("errorCode")

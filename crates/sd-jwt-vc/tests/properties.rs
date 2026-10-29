@@ -1,14 +1,15 @@
 use identus_credentials::{
-    CredentialStatusEvidence, CredentialStatusRevision, CredentialStatusValue,
+    CredentialEnvelope, CredentialFormat, CredentialPayload, CredentialStatusEvidence,
+    CredentialStatusRevision, CredentialStatusValue,
 };
 use identus_crypto::{Ed25519PrivateKey, EncodeJwk, SecureRandom};
 use identus_jose::{Ed25519Signer, JwsAlgorithm, JwsVerificationKey, SignatureSuiteRegistry};
-use identus_sd_jwt::{IssuancePlan, SdJwtLimits};
+use identus_sd_jwt::{IssuanceOptions, IssuancePlan, SdJwtLimits, issue_with_options};
 use identus_sd_jwt_vc::{
     ClaimDisclosureRule, ClaimMetadata, Draft22SdJwtVc, IssuerEvidence, IssuerMetadataEvidence,
-    MetadataClaimPathSegment, ProfileValidationInputs, SdJwtVcError, SdJwtVcLimits,
-    StatusListBinding, StatusListEvidence, TypeMetadata, TypeMetadataChain, issue_draft22,
-    parse_draft22_envelope,
+    LegacyValidationInputs, LegacyVcSdJwtDraft03Adapter, MetadataClaimPathSegment,
+    ProfileValidationInputs, SdJwtVcError, SdJwtVcLimits, StatusListBinding, StatusListEvidence,
+    TypeMetadata, TypeMetadataChain, issue_draft22, parse_draft22_envelope,
 };
 use serde_json::json;
 
@@ -284,4 +285,80 @@ fn exact_limits_and_metadata_cycles_fail_deterministically() {
         TypeMetadata::new("urn:example:pid", None, vec![oversized_claim], 1, tight,),
         Err(SdJwtVcError::ResourceLimit)
     ));
+}
+
+#[test]
+fn legacy_common_subset_property_matrix_is_bounded_and_redacted() {
+    let base_limits = SdJwtLimits::default();
+    let profile_limits = SdJwtVcLimits::default();
+    let private = Ed25519PrivateKey::from_slice(&[11; 32]).unwrap();
+    let public = private.to_public_key().encode_jwk();
+    let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).unwrap();
+    for (index, (nbf, exp, subject)) in [
+        (None, None, None),
+        (Some(0_i64), Some(0_i64), None),
+        (Some(-1), Some(1), Some("did:example:holder")),
+        (
+            Some(999_999_999_998),
+            Some(999_999_999_999),
+            Some("urn:example:subject"),
+        ),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        let mut claims = json!({
+            "iss":"https://issuer.example",
+            "vct":format!("urn:example:type-{index}"),
+            "cnf":{"jwk":public.clone()}
+        });
+        let object = claims.as_object_mut().unwrap();
+        if let Some(nbf) = nbf {
+            object.insert("nbf".into(), nbf.into());
+        }
+        if let Some(exp) = exp {
+            object.insert("exp".into(), exp.into());
+        }
+        if let Some(subject) = subject {
+            object.insert("sub".into(), subject.into());
+        }
+        let issued = issue_with_options(
+            claims,
+            &IssuancePlan {
+                disclose: vec![],
+                decoy_locations: vec![],
+                salt_bytes: 16,
+            },
+            IssuanceOptions {
+                protected_type: Some("vc+sd-jwt"),
+            },
+            &mut Entropy(index as u8),
+            &Ed25519Signer::new(&private),
+            base_limits,
+        )
+        .unwrap();
+        let envelope = CredentialEnvelope::new(
+            CredentialFormat::parse("vc+sd-jwt").unwrap(),
+            CredentialPayload::new(issued.as_str().as_bytes().to_vec()).unwrap(),
+        );
+        let base = LegacyVcSdJwtDraft03Adapter::parse_envelope(&envelope, base_limits)
+            .unwrap()
+            .verify_issuer(&SignatureSuiteRegistry::recommended(), &key)
+            .unwrap()
+            .process_disclosures()
+            .unwrap();
+        let credential = LegacyVcSdJwtDraft03Adapter::validate(
+            base,
+            LegacyValidationInputs {
+                require_key_binding: true,
+                issuer_evidence: None,
+            },
+            profile_limits,
+        )
+        .unwrap();
+        let debug = format!("{credential:?} {:?}", credential.receipt());
+        for sensitive in ["issuer.example", "did:example", "urn:example"] {
+            assert!(!debug.contains(sensitive));
+        }
+    }
 }

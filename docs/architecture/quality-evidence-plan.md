@@ -4,8 +4,8 @@ Generated deterministically from `docs/architecture/quality-evidence-declaration
 Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
-- Evidence evaluated: `2026-10-28`
-- Declaration count: `17`
+- Evidence evaluated: `2026-10-29`
+- Declaration count: `18`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -262,8 +262,8 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all`
 - Budget: Run each DID and DID URL fuzz target for 300 seconds with max_len=8192, timeout=5, and rss_limit_mb=1024.
-- Receipt: `https://github.com/hyperledger-identus/sdk-rust/actions/runs/39364833087`
-- Evidence revision: `fb1c7011897ba766f82ea5957feaeb95df179418`
+- Receipt: `https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925`
+- Evidence revision: `fd808b1df5e25923d60eea5f8d276e6c7a00ac27`
 
 ### `benchmark`
 
@@ -777,3 +777,48 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Execute every exposed normative packet result through the public Rust API, assert exact negative error stages, retain absent metadata ingestion as not-exposed, and preserve exactly two immutable independent observations per case without donor runtimes in normal CI.
 - Receipt: `source:crates/sd-jwt-vc/tests/differential.rs`
 - Evidence revision: `dc10222d7786d5ccafd6f16c89070916454c2538`
+
+## `credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1`
+
+- Capability: `credentials.sd-jwt`
+- Slice: Explicit input-only draft-03 vc+sd-jwt common-subset migration adapter
+- Owner: SDK-Rust credential maintainers (issue #572)
+- Risk: Automatic fallback, signed-header relabeling, draft confusion, legacy date/status behavior, unbounded input, or correlating diagnostics can misrepresent a legacy credential as canonical draft-22.
+- Targets: `package:identus-sd-jwt-vc`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`, `consumer:sdk-ts`
+- Vector IDs: `4` local catalog entries
+- Limitations: Input-only draft-03 common subset for SDK-TS 8.1.4 migration; no full draft-03, legacy output, automatic fallback, header rewriting, status networking/acceptance, Type Metadata, millisecond dates, trust/time/product policy, bindings, publication, certification, or downstream adoption.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #572 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #572 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #572 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #572 |
+
+### `property`
+
+- Command: `cargo test -p identus-sd-jwt-vc --test properties legacy && cargo test -p identus-sd-jwt-vc --test legacy_adapter`
+- Budget: Sweep exact legacy/canonical identity, common claims, date representations, non-selective placement, unsupported draft features, order, boundaries, redaction, and staged ownership.
+- Receipt: `source:crates/sd-jwt-vc/tests/properties.rs`
+- Evidence revision: `e35e4fba448417feff0cefe283ff20def3385815`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-sd-jwt-vc.sh soak`
+- Budget: Route explicit legacy envelope, compact and profile inputs through the existing SD-JWT VC fuzz family for 300 seconds with max_len=1048576, timeout=5 and rss_limit_mb=1024.
+- Receipt: `source:fuzz/fuzz_targets/sd_jwt_vc.rs`
+- Evidence revision: `5ae0164b5703e9c41243042d92aa5545e9d9ac70`
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-sd-jwt-vc --bench directional legacy`
+- Budget: Measure accepted common-subset validation, wrong-identity early rejection, unsupported-draft early rejection, and canonical-path comparison without a new enforceable latency promise.
+- Receipt: `source:crates/sd-jwt-vc/benches/directional.rs`
+- Evidence revision: `5ae0164b5703e9c41243042d92aa5545e9d9ac70`
+
+### `differential`
+
+- Command: `cargo test -p identus-sd-jwt-vc --test legacy_differential`
+- Budget: Execute every checked-in legacy packet result through public Rust APIs and compare immutable SDK-TS 8.1.4 plus @sd-jwt/sd-jwt-vc 0.7.2 observations, resolving differences against exact drafts and SDK safety policy.
+- Receipt: `source:crates/sd-jwt-vc/tests/legacy_differential.rs`
+- Evidence revision: `e35e4fba448417feff0cefe283ff20def3385815`

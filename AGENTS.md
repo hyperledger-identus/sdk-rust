@@ -93,8 +93,8 @@ Before changing files, read:
 - Archive completed changes through `scripts/factory archive <change>` so
   partial `MODIFIED` requirements fail before canonical specifications change.
 - Complete and record a distinct local review pass.
-- Open a signed, DCO-bearing PR targeting `develop` with the issue reference
-  and evidence receipt.
+- Open a signed, DCO-bearing PR targeting `develop` with the issue reference,
+  explicit `closes` or evidence-bound `deferred` linkage, and evidence receipt.
 - Monitor every required check. Merge into `develop` only when the pull request
   satisfies the repository integration policy; otherwise diagnose or stop.
 - At terminal closeout, retain the closed metrics record locally and publish

@@ -22,7 +22,7 @@ import {
 import path from "node:path";
 import { TextDecoder } from "node:util";
 import { fileURLToPath } from "node:url";
-import { validatePullRequest } from "../ci/contribution-policy.mjs";
+import { readDeferredAcceptanceAt, validatePullRequest } from "../ci/contribution-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const pullRequestPolicy = path.join(root, "scripts", "check-pr-policy.sh");
@@ -131,6 +131,16 @@ function policyDiagnostics(stderr) {
 
 export function preflightPullRequest({ title, bodyFile, headRef, baseRef, draft }, {
   runPolicy = runPullRequestPolicy,
+  loadDeferredAcceptance = (sidecarPath) => readDeferredAcceptanceAt({
+    repository: root,
+    head: execFileSync("git", ["rev-parse", "--verify", "HEAD^{commit}"], {
+      cwd: root,
+      encoding: "utf8",
+      maxBuffer: 1024 * 1024,
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim(),
+    sidecarPath,
+  }),
 } = {}) {
   requireText(title, "--title");
   requireText(headRef, "--head-ref");
@@ -147,7 +157,10 @@ export function preflightPullRequest({ title, bodyFile, headRef, baseRef, draft 
     throw new PullRequestPolicyError(policyDiagnostics(shellOutcome?.stderr));
   }
 
-  const contribution = validatePullRequest({ title, body, branch: headRef });
+  const contribution = validatePullRequest(
+    { title, body, branch: headRef },
+    { loadDeferredAcceptance },
+  );
   if (!contribution.ok) {
     throw new PullRequestPolicyError(
       contribution.errors.map((entry) => `[contribution-policy] ${entry}`),

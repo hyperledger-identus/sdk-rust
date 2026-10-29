@@ -166,11 +166,19 @@ commits receive no subject or DCO exemption.
 ## Pull requests
 
 Open a ready pull request targeting `develop` after implementation and a
-distinct local review pass are complete. Reference the corresponding issue and
-complete the repository template with source revisions, compatibility,
+distinct local review pass are complete. Reference the corresponding issue,
+classify issue linkage as `closes` or `deferred`, and complete the repository
+template with source revisions, compatibility,
 security, documentation, review and validation evidence. The local review may
 be performed by a human or by an agent in a fresh review context; it cannot
 waive a security, compatibility, provenance or conformance finding.
+
+Ordinary delivery uses `closes` plus a standalone closing keyword for the
+branch issue. Use `deferred` only when post-merge evidence is genuinely part of
+acceptance. Deferred delivery references the issue without closing it and
+binds the exact archived OpenSpec `post-merge-acceptance.json` sidecar named in
+the pull-request body. The sidecar reserves the remaining gates; it does not
+satisfy or waive them.
 
 Keep each PR independently reversible. Do not combine upstream implementation
 with downstream Oxid, Midnight, neoprism or other consumer adoption.

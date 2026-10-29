@@ -20,7 +20,7 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { test } from "node:test";
-import { isGitHubSynchronizationMerge, localVerificationFailureDetail, parseConventionalSubject, policy, readContributionPolicyAt, resolveSignatureEnvelopes, validateBranchName, validateCommitEvidence, validateCommitRange, validateHostedCommits, validatePullRequest, validateSignatureProvenance } from "../ci/contribution-policy.mjs";
+import { isGitHubSynchronizationMerge, localVerificationFailureDetail, parseConventionalSubject, policy, readContributionPolicyAt, readDeferredAcceptanceAt, resolveSignatureEnvelopes, validateBranchName, validateCommitEvidence, validateCommitRange, validateDeferredAcceptance, validateHostedCommits, validateIssueLinkage, validatePullRequest, validateSignatureProvenance } from "../ci/contribution-policy.mjs";
 import { parseContributionPolicy, validateContributionPolicyMonotonicity, validateContributionPolicyShape } from "../ci/contribution-policy-schema.mjs";
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
 import {
@@ -221,13 +221,97 @@ test("contribution metadata binds conventional type, scope and issue branch", ()
   assert.equal(validatePullRequest({
     title: "feat(factory): add bounded runtime",
     branch: "codex/feat/issue-243",
-    body: "Closes #243",
+    body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
   }).ok, true);
   assert.equal(validatePullRequest({
     title: "fix(factory): wrong type",
     branch: "codex/feat/issue-243",
-    body: "Closes #243",
+    body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
   }).ok, false);
+});
+
+test("issue linkage rejects prose decoys and accepts exact deferred evidence", () => {
+  const sidecarPath = "openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json";
+  const evidence = {
+    schemaVersion: 1,
+    issue: 243,
+    disposition: "deferred",
+    rationale: "A natural scheduled receipt can exist only after merge.",
+    acceptance: ["weekly-slow-receipt", "independent-approval"],
+  };
+  const deferredBody = [
+    "- Issue: #243",
+    "- Issue linkage: deferred",
+    `- Post-merge acceptance: ${sidecarPath}`,
+    "References #243",
+  ].join("\n");
+  assert.equal(validatePullRequest({
+    title: "feat(factory): add bounded runtime",
+    branch: "codex/feat/issue-243",
+    body: deferredBody,
+  }, {
+    loadDeferredAcceptance(observedPath) {
+      assert.equal(observedPath, sidecarPath);
+      return evidence;
+    },
+  }).ok, true);
+  assert.equal(validateDeferredAcceptance({ ...evidence, issue: 244 }, 243).ok, false);
+  assert.equal(validateDeferredAcceptance({ ...evidence, acceptance: ["same", "same"] }, 243).ok, false);
+  assert.equal(validateIssueLinkage([
+    "```markdown",
+    "- Issue: #243",
+    "- Issue linkage: closes",
+    "Closes #243",
+    "```",
+  ].join("\n"), 243).ok, false);
+  assert.equal(validateIssueLinkage([
+    "<!--",
+    "- Issue: #243",
+    "- Issue linkage: closes",
+    "Closes #243",
+    "-->",
+  ].join("\n"), 243).ok, false);
+  assert.equal(validateIssueLinkage(deferredBody, 243).ok, false);
+  assert.equal(validateIssueLinkage(`${deferredBody}\nCloses #243`, 243, {
+    loadDeferredAcceptance: () => evidence,
+  }).ok, false);
+});
+
+test("deferred acceptance reader binds one bounded regular exact-head blob", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-deferred-linkage-"));
+  try {
+    execFileSync("git", ["init", "-q"], { cwd: created });
+    execFileSync("git", ["config", "user.name", "Factory Test"], { cwd: created });
+    execFileSync("git", ["config", "user.email", "factory@example.invalid"], { cwd: created });
+    const sidecarPath = "openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json";
+    const absolute = path.join(created, sidecarPath);
+    mkdirSync(path.dirname(absolute), { recursive: true });
+    writeFileSync(absolute, `${JSON.stringify({
+      schemaVersion: 1,
+      issue: 243,
+      disposition: "deferred",
+      rationale: "Wait for natural evidence.",
+      acceptance: ["natural-schedule"],
+    })}\n`);
+    execFileSync("git", ["add", "."], { cwd: created });
+    execFileSync("git", ["commit", "-q", "-m", "fixture"], { cwd: created });
+    const head = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    assert.equal(readDeferredAcceptanceAt({ repository: created, head, sidecarPath }).issue, 243);
+    assert.throws(
+      () => readDeferredAcceptanceAt({ repository: created, head, sidecarPath: "../escape.json" }),
+      /path is invalid/u,
+    );
+    writeFileSync(absolute, `${JSON.stringify({ schemaVersion: 1, issue: 243 }).repeat(4096)}\n`);
+    execFileSync("git", ["add", "."], { cwd: created });
+    execFileSync("git", ["commit", "-q", "-m", "oversized"], { cwd: created });
+    const oversizedHead = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    assert.throws(
+      () => readDeferredAcceptanceAt({ repository: created, head: oversizedHead, sidecarPath }),
+      /exceeds 16384 bytes/u,
+    );
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
 });
 
 test("file-backed pull request preflight applies both hosted policy layers", () => {
@@ -235,6 +319,8 @@ test("file-backed pull request preflight applies both hosted policy layers", () 
   try {
     const bodyFile = path.join(created, "body.md");
     const metadata = [
+      "- Issue: #320",
+      "- Issue linkage: closes",
       "Closes #320",
       "- Local review: passed by a focused review",
       "- Constraint impact: routine",
@@ -302,6 +388,8 @@ test("local pull request preflight does not write hosted workflow outputs", () =
     const bodyFile = path.join(created, "body.md");
     const outputFile = path.join(created, "github-output.txt");
     writeFileSync(bodyFile, [
+      "- Issue: #320",
+      "- Issue linkage: closes",
       "Closes #320",
       "- Local review: completed",
       "- Constraint impact: routine",
@@ -344,6 +432,8 @@ test("pull request preflight rejects either hosted policy layer without exposing
   try {
     const validBodyFile = path.join(created, "valid.md");
     writeFileSync(validBodyFile, [
+      "- Issue: #320",
+      "- Issue linkage: closes",
       "Closes #320",
       "- Local review: completed",
       "- Constraint impact: routine",

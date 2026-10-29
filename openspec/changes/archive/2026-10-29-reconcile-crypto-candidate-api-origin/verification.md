@@ -51,6 +51,12 @@ report could still label a mixed add/remove delta `additive-compatible`. The
 classifier now gives removals precedence and records `incompatible`; the
 duplicate-occurrence regression asserts that classification explicitly.
 
+The exact archived-head Codex CLI review then found that the slow workflow
+skipped artifact upload after qualification failure. The candidate artifact
+upload now runs under `always()`, preserving the diagnostics-only diff for
+triage, and the release-candidate mutation suite rejects removal of that
+failure-path upload condition.
+
 A disposable exact-head worktree then added one synthetic published-origin
 line and updated only its local descriptor digest. Complete candidate
 preparation failed as required, retained exactly

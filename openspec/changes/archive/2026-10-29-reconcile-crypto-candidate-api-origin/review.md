@@ -5,7 +5,7 @@
 - **Base:** `develop@6ebd4633c987539689ae180fbccbb629572ca45a`
 - **Reviewed head:** `77372b0d`
 - **Reviewer:** Codex CLI
-- **Result:** passed after two medium findings were resolved
+- **Result:** passed after three medium findings were resolved
 - **Unresolved blockers:** none
 
 ## Resolved findings
@@ -18,6 +18,11 @@
    Removals now take precedence and produce `incompatible`, including duplicate
    occurrence loss. Focused tests and a disposable complete negative candidate
    proved the exact output shape.
+3. The exact archived-head review found that GitHub skipped the candidate
+   artifact upload when qualification failed. The slow workflow now evaluates
+   the upload under `always()`, so a retained diagnostics-only API diff remains
+   available for triage. The release-candidate mutation suite protects the
+   failure-path upload contract.
 
 ## Architecture and release decision
 
@@ -31,5 +36,6 @@
 - No Rust source/API behavior, dependency, feature, version, target,
   publication state, tag, downstream repository, or release authority changed.
 
-Final review found no actionable correctness, security, architecture,
-documentation, test, or release-history defect.
+The exact archived-head review found no further actionable correctness,
+security, architecture, documentation, test, or release-history defect after
+the failure-path upload repair.

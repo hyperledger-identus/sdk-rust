@@ -576,6 +576,14 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / ".github/workflows/nix-checks.yml",
+                    "      - name: Upload candidate evidence\n        if: ${{ always() }}\n",
+                    "      - name: Upload candidate evidence\n",
+                ),
+                "slow workflow must retain crypto candidate evidence after failure",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
                     '--output "$RUNNER_TEMP/did-matrix/primary"',
                     "--output artifacts/did-matrix/primary",
                 ),

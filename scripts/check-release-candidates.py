@@ -731,6 +731,12 @@ def validate(root: Path) -> list[str]:
                 errors.append(f"DID {label} is missing contract: {phrase}")
 
     workflow = read(root / SLOW_WORKFLOW, errors)
+    crypto_upload = """      - name: Upload candidate evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+"""
+    if crypto_upload not in workflow:
+        errors.append("slow workflow must retain crypto candidate evidence after failure")
     required_workflow = (
         "did-candidate-matrix:", "did-candidate-matrix-primary",
         "did-candidate-matrix-msrv", "did-matrix-${{ matrix.host }}-${{ github.sha }}-",

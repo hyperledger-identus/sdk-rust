@@ -797,10 +797,10 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `property`
 
-- Command: `cargo test -p identus-sd-jwt-vc --test properties legacy`
+- Command: `cargo test -p identus-sd-jwt-vc --test properties legacy && cargo test -p identus-sd-jwt-vc --test legacy_adapter`
 - Budget: Sweep exact legacy/canonical identity, common claims, date representations, non-selective placement, unsupported draft features, order, boundaries, redaction, and staged ownership.
 - Receipt: `source:crates/sd-jwt-vc/tests/properties.rs`
-- Evidence revision: `29187e516ce49d2e057343154f0411025e5d6cd7`
+- Evidence revision: `a33496eba410ad31516192209d08c6f1265252a3`
 
 ### `fuzz`
 
@@ -821,4 +821,4 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo test -p identus-sd-jwt-vc --test legacy_differential`
 - Budget: Execute every checked-in legacy packet result through public Rust APIs and compare immutable SDK-TS 8.1.4 plus @sd-jwt/sd-jwt-vc 0.7.2 observations, resolving differences against exact drafts and SDK safety policy.
 - Receipt: `source:crates/sd-jwt-vc/tests/legacy_differential.rs`
-- Evidence revision: `29187e516ce49d2e057343154f0411025e5d6cd7`
+- Evidence revision: `a33496eba410ad31516192209d08c6f1265252a3`

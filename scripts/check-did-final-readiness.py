@@ -29,12 +29,49 @@ EXPECTED_IDENTITY = {
     "api_origin_receipt": "docs/release/did-api-origin-rebaseline.toml",
 }
 EXPECTED_EVIDENCE = {
-    "train-identity": "complete",
-    "api-and-sbom": "complete",
-    "documentation": "complete",
-    "compiler-target-matrix": "complete",
-    "exact-revision-slow": "pending",
-    "independent-approval": "pending",
+    "train-identity": {
+        "status": "complete",
+        "uri": "https://github.com/hyperledger-identus/sdk-rust/issues/382",
+    },
+    "api-and-sbom": {
+        "status": "complete",
+        "uri": "https://github.com/hyperledger-identus/sdk-rust/pull/584#issuecomment-6493993716",
+    },
+    "documentation": {
+        "status": "complete",
+        "uri": "https://github.com/hyperledger-identus/sdk-rust/issues/386",
+    },
+    "compiler-target-matrix": {
+        "status": "complete",
+        "uri": "https://github.com/hyperledger-identus/sdk-rust/issues/387",
+    },
+    "exact-revision-slow": {
+        "status": "pending",
+        "uri": "https://github.com/hyperledger-identus/sdk-rust/issues/388",
+    },
+    "independent-approval": {
+        "status": "pending",
+        "uri": "https://github.com/hyperledger-identus/sdk-rust/issues/388",
+    },
+}
+PAGE_IDENTITY_FIELDS = (
+    "staged_lock_sha256",
+    "reserved_tag",
+    "protected_base_revision",
+    "did_api_sha256",
+    "resolver_api_sha256",
+    "did_archive_sha256",
+    "resolver_archive_sha256",
+    "did_sbom_sha256",
+    "resolver_sbom_sha256",
+)
+PAGE_EVIDENCE_LABELS = {
+    "train-identity": "Independent train identity and deterministic archives",
+    "api-and-sbom": "Public API origins and normalized CycloneDX",
+    "documentation": "Engineer handbook and source-adoption guidance",
+    "compiler-target-matrix": "Linux/macOS primary + MSRV and package-specific portable targets",
+    "exact-revision-slow": "Exact protected-revision slow evidence",
+    "independent-approval": "Independent exact-receipt approval",
 }
 REQUIRED_PAGE_TEXT = (
     "pending an exact-protected-revision slow run and independent",
@@ -82,11 +119,18 @@ def check(root: Path) -> list[str]:
         failures.append(f"{MANIFEST}: identity must equal the exact protected candidate receipt")
 
     evidence = manifest.get("evidence", [])
-    observed = {
-        entry.get("id"): entry.get("status")
-        for entry in evidence
-        if isinstance(entry, dict)
-    } if isinstance(evidence, list) else {}
+    observed = (
+        {
+            entry.get("id"): {
+                "status": entry.get("status"),
+                "uri": entry.get("uri"),
+            }
+            for entry in evidence
+            if isinstance(entry, dict)
+        }
+        if isinstance(evidence, list)
+        else {}
+    )
     if observed != EXPECTED_EVIDENCE:
         failures.append(f"{MANIFEST}: evidence matrix must equal {EXPECTED_EVIDENCE!r}")
 
@@ -114,6 +158,17 @@ def check(root: Path) -> list[str]:
     for phrase in REQUIRED_PAGE_TEXT:
         if phrase not in page:
             failures.append(f"{PAGE}: missing required bounded claim: {phrase}")
+    for field in PAGE_IDENTITY_FIELDS:
+        value = identity.get(field) if isinstance(identity, dict) else None
+        if not isinstance(value, str) or value not in page:
+            failures.append(f"{PAGE}: displayed identity {field} drifted from the manifest")
+    for evidence_id, expected_entry in EXPECTED_EVIDENCE.items():
+        label = PAGE_EVIDENCE_LABELS[evidence_id]
+        status = expected_entry["status"].title()
+        if f"| {label} | {status} |" not in page:
+            failures.append(f"{PAGE}: displayed evidence status {evidence_id} drifted from the manifest")
+        if expected_entry["uri"] not in page:
+            failures.append(f"{PAGE}: displayed evidence URI {evidence_id} drifted from the manifest")
     forbidden = ("is production ready", "is published on crates.io", "all advisories are waived")
     for phrase in forbidden:
         if phrase in page.lower():

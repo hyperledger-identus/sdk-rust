@@ -40,7 +40,7 @@ uri    = "https://github.com/hyperledger-identus/sdk-rust/issues/382"
 [[evidence]]
 id     = "api-and-sbom"
 status = "complete"
-uri    = "https://github.com/hyperledger-identus/sdk-rust/pull/584"
+uri    = "https://github.com/hyperledger-identus/sdk-rust/pull/584#issuecomment-6493993716"
 
 [[evidence]]
 id     = "documentation"

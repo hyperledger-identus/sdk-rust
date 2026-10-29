@@ -76,6 +76,34 @@ class ReadinessContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("exact protected candidate receipt", result.stderr)
 
+    def test_manifest_evidence_uri_cannot_drift(self) -> None:
+        root = self.fixture()
+        path = root / FILES[0]
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "https://github.com/hyperledger-identus/sdk-rust/pull/584#issuecomment-6493993716",
+                "https://example.invalid/mutable",
+            ),
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("evidence matrix must equal", result.stderr)
+
+    def test_displayed_identity_cannot_drift_from_manifest(self) -> None:
+        root = self.fixture()
+        path = root / FILES[1]
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "5c985cd2d3f26c07230ace1086d7a178662a4f583d0086574ac9baa6a00be639",
+                "0" * 64,
+            ),
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("displayed identity did_api_sha256 drifted", result.stderr)
+
     def test_missing_e2e_receipt_fails(self) -> None:
         root = self.fixture()
         path = root / FILES[1]

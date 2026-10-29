@@ -845,7 +845,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `python3 scripts/tests/error-golden.py`
 - Budget: Exercise all five bindings plus ancestry-preserving, protected-squash, pruned-source, active-loss, uncommitted-copy, forged-receipt, forged-path, and forged-golden states offline.
 - Receipt: `source:scripts/tests/error-golden.py`
-- Evidence revision: `dcf8c6fbca81dd6619c7218016b4099fe924b937`
+- Evidence revision: `70bde3212c906408abcc953aba7e53383ad45dfd`
 
 ### `fuzz`
 

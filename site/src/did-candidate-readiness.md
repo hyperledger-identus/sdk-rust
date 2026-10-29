@@ -22,7 +22,7 @@ The machine-readable source is the
 | `identus-did` API SHA-256 | `5c985cd2d3f26c07230ace1086d7a178662a4f583d0086574ac9baa6a00be639` |
 | Resolver API SHA-256 | `9c432f0d0c3d5db92da3aa88aed05164aa2adf483c11be84b9239c9973179df6` |
 | Candidate archive SHA-256 | `7736e445ffce327fae19a55c7b8b7adf38887f93f56aba4a9a804d18d765fb68` / `90366988dd00a4730d398431531d0066eb109ff48a1fcc8f0aed4d9673678480` |
-| CycloneDX SHA-256 | `d0e0976fa6d96918d59202cd173c4162459f19b253120c41fce3058e5c59d109` / `fbaa3985eacf2c89649799c1a33effeb2b521aa21c5ec92ff7044a6afb126d6` |
+| CycloneDX SHA-256 | `d0e0976fa6d96918d59202cd173c4162459f19b253120c41fce3058e5c59d109` / `fbaa3985eacf2c89649799c1a33effeb2b521aa21c5ec92ff70444a6afb126d6` |
 | Reserved future tag | `identus-did-v0.1.0-rc.1` |
 | Canonical source state | `0.0.0`, `publish = false` |
 | Exact release subject | Pending the protected merge revision from [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |

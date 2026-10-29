@@ -12,7 +12,22 @@ from typing import Any
 
 MANIFEST = Path("docs/release/did-candidate-readiness.toml")
 PAGE = Path("site/src/did-candidate-readiness.md")
-EXPECTED_PAGE_SHA256 = "499aa45ddfacc80e684ea762b2692153957230d24b8594f48ed69498d8971123"
+EXPECTED_PAGE_SHA256 = "61d47fd322c077c5885990819e348ce643c08e2f47a82517ac6f8d1d2c458919"
+EXPECTED_TOP_LEVEL_KEYS = {
+    "schema_version",
+    "candidate",
+    "version",
+    "lifecycle",
+    "status",
+    "coordinator",
+    "delivery_issue",
+    "packages",
+    "limitations",
+    "identity",
+    "evidence",
+    "historical_failed_slow",
+    "downstream",
+}
 EXPECTED_PACKAGES = ["identus-did", "identus-did-resolver-http"]
 EXPECTED_LIMITATIONS = [
     "No crates.io publication or registry availability claim.",
@@ -34,7 +49,7 @@ EXPECTED_IDENTITY = {
     "did_archive_sha256": "7736e445ffce327fae19a55c7b8b7adf38887f93f56aba4a9a804d18d765fb68",
     "resolver_archive_sha256": "90366988dd00a4730d398431531d0066eb109ff48a1fcc8f0aed4d9673678480",
     "did_sbom_sha256": "d0e0976fa6d96918d59202cd173c4162459f19b253120c41fce3058e5c59d109",
-    "resolver_sbom_sha256": "fbaa3985eacf2c89649799c1a33effeb2b521aa21c5ec92ff7044a6afb126d6",
+    "resolver_sbom_sha256": "fbaa3985eacf2c89649799c1a33effeb2b521aa21c5ec92ff70444a6afb126d6",
     "api_origin_receipt": "docs/release/did-api-origin-rebaseline.toml",
 }
 EXPECTED_EVIDENCE = {
@@ -132,6 +147,8 @@ def table(path: Path, failures: list[str]) -> dict[str, Any]:
 def check(root: Path) -> list[str]:
     failures: list[str] = []
     manifest = table(root / MANIFEST, failures)
+    if set(manifest) != EXPECTED_TOP_LEVEL_KEYS:
+        failures.append(f"{MANIFEST}: top-level fields must equal the closed readiness schema")
     expected = {
         "schema_version": 1,
         "candidate": "identus-did-0.1.0-rc.1",

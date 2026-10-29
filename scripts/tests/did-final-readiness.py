@@ -76,6 +76,18 @@ class ReadinessContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("five bounded non-claims", result.stderr)
 
+    def test_extra_claim_table_cannot_be_appended(self) -> None:
+        root = self.fixture()
+        path = root / FILES[0]
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + '\n[claims]\npublication = "confirmed"\napproval = "self-issued"\n',
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("closed readiness schema", result.stderr)
+
     def test_contradictory_page_claim_cannot_be_appended(self) -> None:
         root = self.fixture()
         path = root / FILES[1]

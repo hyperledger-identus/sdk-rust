@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 291
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "This change adds an evidence-bound pull-request linkage mode and repository policy tests without changing a public API, wire format, error contract, persisted SDK representation, ABI, supported target, runtime requirement, security behavior, release, or downstream consumer implementation."
+ledger_ids     = [  ]

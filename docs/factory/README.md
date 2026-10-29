@@ -32,7 +32,8 @@ standing mandate / backlog / issue
                                sync specs and archive change
                                              │
                                              ▼
-                         issue-linked PR ──► green CI ──► develop
+                 explicit issue-link PR ──► green CI ──► develop
+                   closes │ deferred + archived acceptance evidence
 ```
 
 `main` is not part of this flow. Downstream adoption is a separate change in
@@ -243,6 +244,14 @@ perform at most one remediation round. Blocking regressions always stay in the
 slice; later independent non-blocking hardening becomes a linked follow-up.
 See [ADR 0127](../adr/0127-separate-fast-integration-from-slow-production-promotion.md)
 and the [operations handbook](operations.md).
+
+Ordinary pull requests explicitly close their branch issue. A pull request may
+keep that issue open only when its body declares `deferred`, uses a standalone
+non-closing reference, and binds a strict `post-merge-acceptance.json` sidecar
+inside the archived OpenSpec change at the exact head. This is intended for
+natural schedules, protected-merge receipts, independent exact-receipt
+approval, or other acceptance that cannot exist before integration. It is not
+a generic substitute for finishing implementation or review.
 
 OpenSpec `MODIFIED` operations replace a complete canonical requirement. The
 repository checker permits the default additive path only when every existing

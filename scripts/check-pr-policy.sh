@@ -33,6 +33,11 @@ else
   report_failure "body must reference the corresponding repository issue"
 fi
 
+linkage_pattern='^[[:space:]]*-[[:space:]]*Issue linkage:[[:space:]]*(closes|deferred)[[:space:]]*$'
+if ! grep -Eiq "$linkage_pattern" "$pr_body_file"; then
+  report_failure "body must classify issue linkage as closes or deferred"
+fi
+
 review_pattern='^[[:space:]]*-[[:space:]]*Local review:[[:space:]]*(passed|complete|completed)([[:space:][:punct:]]|$)'
 if ! grep -Eiq "$review_pattern" "$pr_body_file"; then
   report_failure "body must record completed local review"

@@ -7,6 +7,8 @@
 ## Issue and decision record
 
 - Issue: <!-- Required: #123 -->
+- Issue linkage: <!-- Required: closes/deferred -->
+- Post-merge acceptance: <!-- Required for deferred: openspec/changes/archive/YYYY-MM-DD-change/post-merge-acceptance.json -->
 - Discussion/ADR:
 - Owner crate:
 

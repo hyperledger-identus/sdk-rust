@@ -17,6 +17,6 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run focused JOSE, immutable-golden, factory, workspace, Nix, public API, and dependency evidence.
-- [ ] 3.2 Complete an independent Claude or Codex CLI review and resolve actionable findings.
-- [ ] 3.3 Archive the complete OpenSpec change, publish metrics, open an issue-linked PR, and monitor protected CI.
+- [x] 3.1 Run focused JOSE, immutable-golden, factory, workspace, Nix, public API, and dependency evidence.
+- [x] 3.2 Complete an independent Claude or Codex CLI review and resolve actionable findings.
+- [x] 3.3 Archive the complete OpenSpec change, publish metrics, open an issue-linked PR, and monitor protected CI.

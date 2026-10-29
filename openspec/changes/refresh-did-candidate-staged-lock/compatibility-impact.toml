@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 581
+disposition    = "behavior-neutral"
+scope          = "tooling"
+rationale      = "The staged evidence lock replaces six transitive registry packages with patch releases while direct requirements, Rust APIs, wire behavior, features, canonical manifests, target policy, candidate identity, publication state, and consumers remain unchanged."
+ledger_ids     = [  ]

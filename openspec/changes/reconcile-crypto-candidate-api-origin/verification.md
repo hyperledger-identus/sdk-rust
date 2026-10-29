@@ -51,11 +51,18 @@ report could still label a mixed add/remove delta `additive-compatible`. The
 classifier now gives removals precedence and records `incompatible`; the
 duplicate-occurrence regression asserts that classification explicitly.
 
+A disposable exact-head worktree then added one synthetic published-origin
+line and updated only its local descriptor digest. Complete candidate
+preparation failed as required, retained exactly
+`identus-crypto.public-api-diff.json`, classified the result `incompatible`,
+named the one removed line, and exposed no packages, publication workspace, or
+success receipt.
+
 `nix flake check --print-build-logs` then passed all 35 compatible
 `aarch64-darwin` checks. Evidence included the 1,195-test workspace run, MSRV,
 etalon, WASM, Android, iOS, documentation site and link validation, dependency
 and source policy, release/factory mutation gates, and formatting/linting.
 
-Final independent CLI review, negative-path candidate E2E, OpenSpec archive,
-protected CI, guarded merge, metrics, and the fresh exact-SHA slow run remain
-pending.
+The final Codex CLI review of `origin/develop...77372b0d` reported no actionable
+defects. OpenSpec archive, protected CI, guarded merge, metrics, and the fresh
+exact-SHA slow run remain pending.

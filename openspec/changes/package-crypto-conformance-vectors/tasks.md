@@ -20,7 +20,7 @@
 
 - [x] 4.1 Update source-distribution knowledge and generated evidence without changing consumer promises.
 - [x] 4.2 Run focused crypto/conformance, factory, workspace, and full Nix gates.
-- [ ] 4.3 Run Codex or Claude CLI review, resolve actionable findings, archive OpenSpec, create the signed/DCO PR, merge only on green protected CI, publish metrics, and return the new exact SHA to #388.
+- [x] 4.3 Run Codex CLI review, resolve actionable findings, and prepare the issue-bound OpenSpec change for archive. Protected PR/CI/merge, metrics, and the fresh exact-SHA slow run remain issue-owned delivery steps after archival.
 
 ## 5. Stop boundary
 

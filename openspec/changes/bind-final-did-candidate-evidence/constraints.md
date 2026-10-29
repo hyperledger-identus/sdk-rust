@@ -50,6 +50,6 @@ navigation; no external release state is changed.
 ## Evidence
 
 Issues #381/#388, closed prerequisite issues #382/#384/#386/#387/#564, the
-train descriptor and staged lock, archived verification receipts, the current
-failed natural slow run, a future exact-SHA complete run, and immutable
+train descriptor and staged lock, archived verification receipts, the retained
+historical failed natural slow run, a future exact-SHA complete run, and immutable
 NeoPRISM #324/#325/#327 receipts provide the evidence set.

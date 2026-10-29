@@ -4,10 +4,10 @@
 
 The DID candidate train has deterministic archives, API origins, SBOMs,
 documentation, and a closed compiler/target matrix, but milestone M5 still
-lacks one durable exact-revision readiness receipt. The latest natural weekly
-slow run failed on a subsequently resolved, narrowly governed UniFFI generator
-maintenance advisory, so an older green run cannot be presented as current
-release evidence.
+lacks one durable exact-revision readiness receipt. A retained historical
+natural weekly slow run failed on a subsequently resolved, narrowly governed
+UniFFI generator maintenance advisory, so an older green run cannot be
+presented as current release evidence.
 
 ## What changes
 

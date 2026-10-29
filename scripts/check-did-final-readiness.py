@@ -12,6 +12,13 @@ from typing import Any
 MANIFEST = Path("docs/release/did-candidate-readiness.toml")
 PAGE = Path("site/src/did-candidate-readiness.md")
 EXPECTED_PACKAGES = ["identus-did", "identus-did-resolver-http"]
+EXPECTED_LIMITATIONS = [
+    "No crates.io publication or registry availability claim.",
+    "No stable API, certification, vulnerability-free, or production-readiness claim.",
+    "Portable targets are compile-checked only for identus-did; identus-did-resolver-http remains host-only.",
+    "NeoPRISM evidence is source-pinned downstream compatibility evidence, not SDK-owned Cardano or runtime support.",
+    "Independent approval cannot be self-issued by the implementing agent.",
+]
 EXPECTED_IDENTITY = {
     "descriptor": "docs/release/did-candidate.toml",
     "train_registry": "docs/release/release-trains.toml",
@@ -173,8 +180,8 @@ def check(root: Path) -> list[str]:
         failures.append(f"{MANIFEST}: downstream evidence must equal the exact bounded receipt")
 
     limitations = manifest.get("limitations", [])
-    if not isinstance(limitations, list) or len(limitations) != 5:
-        failures.append(f"{MANIFEST}: exactly five explicit limitations are required")
+    if limitations != EXPECTED_LIMITATIONS:
+        failures.append(f"{MANIFEST}: limitations must equal the five bounded non-claims")
 
     try:
         page = (root / PAGE).read_text(encoding="utf-8")

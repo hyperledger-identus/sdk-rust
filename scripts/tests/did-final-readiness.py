@@ -62,6 +62,20 @@ class ReadinessContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("exact failed receipt", result.stderr)
 
+    def test_publication_non_claim_cannot_be_reversed(self) -> None:
+        root = self.fixture()
+        path = root / FILES[0]
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "No crates.io publication or registry availability claim.",
+                "Crates.io publication and registry availability are confirmed.",
+            ),
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("five bounded non-claims", result.stderr)
+
     def test_candidate_archive_identity_cannot_drift(self) -> None:
         root = self.fixture()
         path = root / FILES[0]

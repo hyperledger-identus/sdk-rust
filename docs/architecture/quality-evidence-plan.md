@@ -776,4 +776,4 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo test -p identus-sd-jwt-vc --test differential`
 - Budget: Execute every exposed normative packet result through the public Rust API, assert exact negative error stages, retain absent metadata ingestion as not-exposed, and preserve exactly two immutable independent observations per case without donor runtimes in normal CI.
 - Receipt: `source:crates/sd-jwt-vc/tests/differential.rs`
-- Evidence revision: `af7dfdb8cc116889dc9c9c4dbec06c24c38da0ee`
+- Evidence revision: `dc10222d7786d5ccafd6f16c89070916454c2538`

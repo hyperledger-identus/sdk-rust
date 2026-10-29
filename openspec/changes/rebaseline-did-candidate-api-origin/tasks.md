@@ -4,7 +4,7 @@
 
 - [x] 1.1 Record source history, exact stale origin, alternatives,
       compatibility classification, constraints, limitations, and rollback.
-- [ ] 1.2 Pass research/constraints/strict readiness, commit the planning-only
+- [x] 1.2 Pass research/constraints/strict readiness, commit the planning-only
       contract, and record exact #582 preimplementation evidence.
 
 ## 2. Exact API-origin evidence

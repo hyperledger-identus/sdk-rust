@@ -17,7 +17,8 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { hasDeferredIssueReference } from "../ci/contribution-policy.mjs";
+import { readDeferredAcceptanceAt, validateIssueLinkage } from "../ci/contribution-policy.mjs";
+import { fetchExactPullRequestHead } from "./delivery.mjs";
 import { parseJsonWithoutDuplicates } from "./strict-json.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -397,7 +398,16 @@ export function resolveMetricPublicationTarget(record, requestedTarget = "auto")
   return { kind: "pull-request", number: record.pullRequest };
 }
 
-export function validateHostedMetricIdentity(record, { issue, pullRequest = null, currentHead = null }) {
+export function validateHostedMetricIdentity(record, {
+  issue,
+  pullRequest = null,
+  currentHead = null,
+  loadDeferredAcceptance = (sidecarPath) => readDeferredAcceptanceAt({
+    repository: root,
+    head: record.headSha,
+    sidecarPath,
+  }),
+}) {
   if (issue?.number !== record.issue || Object.hasOwn(issue ?? {}, "pull_request")) {
     fail("metric issue does not match an authoritative repository issue");
   }
@@ -409,7 +419,8 @@ export function validateHostedMetricIdentity(record, { issue, pullRequest = null
       && pullRequest.closingIssuesReferences.some((reference) => (
         reference?.number === record.issue && reference?.repository === record.repository
       ));
-    const defersRecordedIssue = hasDeferredIssueReference(pullRequest?.body, record.issue);
+    const deferred = validateIssueLinkage(pullRequest?.body, record.issue, { loadDeferredAcceptance });
+    const defersRecordedIssue = deferred.ok && deferred.mode === "deferred";
     if (!closesRecordedIssue && !defersRecordedIssue) {
       fail("metric pull request is not linked to its recorded issue");
     }
@@ -467,6 +478,7 @@ export function publishMetric(record, {
   currentHead,
   github,
   persist = persistPrivate,
+  loadDeferredAcceptance,
 }) {
   if (!execute) fail("publication requires --execute");
   const validation = validateMetric(record);
@@ -475,7 +487,12 @@ export function publishMetric(record, {
   const target = resolveMetricPublicationTarget(record, requestedTarget);
   const hostedIssue = github.readIssue(record.issue);
   const hostedPullRequest = record.pullRequest === null ? null : github.readPullRequest(record.pullRequest);
-  validateHostedMetricIdentity(record, { issue: hostedIssue, pullRequest: hostedPullRequest, currentHead });
+  validateHostedMetricIdentity(record, {
+    issue: hostedIssue,
+    pullRequest: hostedPullRequest,
+    currentHead,
+    ...(loadDeferredAcceptance ? { loadDeferredAcceptance } : {}),
+  });
   const body = renderMetric(record);
   persist(record);
   const versionPolicy = metricVersionPolicy(record.schemaVersion);
@@ -555,12 +572,21 @@ function publish(record, issue, requestedTarget, execute) {
       { stdio: ["ignore", "ignore", "ignore"] },
     ),
   };
+  let preparedDeferredHead = false;
+  const loadDeferredAcceptance = (sidecarPath) => {
+    if (!preparedDeferredHead) {
+      fetchExactPullRequestHead(root, record.pullRequest, record.headSha);
+      preparedDeferredHead = true;
+    }
+    return readDeferredAcceptanceAt({ repository: root, head: record.headSha, sidecarPath });
+  };
   return publishMetric(record, {
     issue,
     requestedTarget,
     execute,
     currentHead: git(["rev-parse", "HEAD"]),
     github,
+    ...(record.pullRequest === null ? {} : { loadDeferredAcceptance }),
   });
 }
 

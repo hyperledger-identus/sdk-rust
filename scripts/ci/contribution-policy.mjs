@@ -125,19 +125,6 @@ export function containsGitHubClosingKeyword(text, issue, repository = repositor
   ));
 }
 
-export function hasDeferredIssueReference(body, expectedIssue) {
-  const lines = authoritativeMarkdownLines(body);
-  const issues = captures(lines, /^\s*-\s*Issue:\s*#([1-9][0-9]*)\s*$/iu).map(Number);
-  const modes = captures(lines, /^\s*-\s*Issue linkage:\s*(closes|deferred)\s*$/iu);
-  const references = captures(lines, /^\s*(?:Refs|References)\s+#([1-9][0-9]*)\.?\s*$/iu).map(Number);
-  const sidecars = captures(lines, /^\s*-\s*Post-merge acceptance:\s*(openspec\/changes\/archive\/\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\/post-merge-acceptance\.json)\s*$/u);
-  return issues.length === 1 && issues[0] === expectedIssue
-    && modes.length === 1 && modes[0][0].toLowerCase() === "deferred"
-    && references.length === 1 && references[0] === expectedIssue
-    && sidecars.length === 1
-    && !containsGitHubClosingKeyword(lines.join("\n"), expectedIssue);
-}
-
 export function validateDeferredAcceptance(document, expectedIssue) {
   const errors = [];
   const expectedKeys = ["acceptance", "disposition", "issue", "rationale", "schemaVersion"];

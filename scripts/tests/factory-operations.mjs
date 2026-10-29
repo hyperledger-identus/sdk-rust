@@ -2054,7 +2054,35 @@ test("metric publication routes PR-first and validates hosted historical identit
       ].join("\n"),
       closingIssuesReferences: [],
     },
+    loadDeferredAcceptance: () => ({
+      schemaVersion: 1,
+      issue: 243,
+      disposition: "deferred",
+      rationale: "Wait for the natural scheduled receipt.",
+      acceptance: ["natural-schedule"],
+    }),
   }));
+  assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      body: [
+        "- Issue: #243",
+        "- Issue linkage: deferred",
+        "- Post-merge acceptance: openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json",
+        "References #243",
+      ].join("\n"),
+      closingIssuesReferences: [],
+    },
+    loadDeferredAcceptance: () => ({
+      schemaVersion: 1,
+      issue: 244,
+      disposition: "deferred",
+      rationale: "Wrong issue.",
+      acceptance: ["natural-schedule"],
+    }),
+  }), /not linked to its recorded issue/u);
   assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
     issue: { number: 243 },
     pullRequest: {

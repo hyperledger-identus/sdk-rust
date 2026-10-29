@@ -5,6 +5,7 @@
 - [Start here](start-here.md)
 - [The first crypto release train](release-train.md)
 - [DID candidate train](did-candidate.md)
+- [DID candidate readiness packet](did-candidate-readiness.md)
 - [Crates](crates/index.md)
   - [`identus-derive`](crates/identus-derive.md)
   - [`identus-core`](crates/identus-core.md)

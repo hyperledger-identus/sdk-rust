@@ -105,3 +105,6 @@ Administrator-owned trusted-publishing hardening remains tracked by
 [#344](https://github.com/hyperledger-identus/sdk-rust/issues/344).
 
 See [release readiness](release-readiness.md) for the consolidated gate table.
+The [DID candidate readiness packet](did-candidate-readiness.md) binds the
+closed evidence, downstream E2E receipts, current failed-run history, and
+remaining exact-SHA approval gates.

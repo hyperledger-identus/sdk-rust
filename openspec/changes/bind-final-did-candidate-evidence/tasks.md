@@ -5,16 +5,16 @@
 - [x] 1.1 Record exact base, prerequisite receipts, slow-run failure history,
       NeoPRISM E2E evidence, alternatives, constraints, non-claims, and
       rollback.
-- [ ] 1.2 Pass research/constraints/OpenSpec readiness, commit the planning-only
+- [x] 1.2 Pass research/constraints/OpenSpec readiness, commit the planning-only
       contract, and persist exact issue preflight.
 
 ## 2. Durable readiness knowledge
 
-- [ ] 2.1 Add the closed DID candidate readiness report and handbook
+- [x] 2.1 Add the closed DID candidate readiness report and handbook
       navigation without changing candidate identity or publication state.
-- [ ] 2.2 Bind API, SBOM, source, docs, compiler/target, audit, and downstream
+- [x] 2.2 Bind API, SBOM, source, docs, compiler/target, audit, and downstream
       E2E evidence with immutable links and honest pending state.
-- [ ] 2.3 Add deterministic validation for required report fields, evidence
+- [x] 2.3 Add deterministic validation for required report fields, evidence
       classes, exact identities, and forbidden overclaims.
 
 ## 3. Verification and delivery

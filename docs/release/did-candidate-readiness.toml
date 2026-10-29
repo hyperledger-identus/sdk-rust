@@ -1,0 +1,76 @@
+schema_version = 1
+candidate      = "identus-did-0.1.0-rc.1"
+version        = "0.1.0-rc.1"
+lifecycle      = "candidate-only"
+status         = "pending-exact-slow-and-independent-approval"
+coordinator    = "https://github.com/hyperledger-identus/sdk-rust/issues/381"
+delivery_issue = "https://github.com/hyperledger-identus/sdk-rust/issues/388"
+
+packages = [ "identus-did", "identus-did-resolver-http" ]
+
+limitations = [
+  "No crates.io publication or registry availability claim.",
+  "No stable API, certification, vulnerability-free, or production-readiness claim.",
+  "Portable targets are compile-checked only for identus-did; identus-did-resolver-http remains host-only.",
+  "NeoPRISM evidence is source-pinned downstream compatibility evidence, not SDK-owned Cardano or runtime support.",
+  "Independent approval cannot be self-issued by the implementing agent.",
+]
+
+[identity]
+descriptor         = "docs/release/did-candidate.toml"
+train_registry     = "docs/release/release-trains.toml"
+staged_lock        = "docs/release/did-candidate.lock"
+staged_lock_sha256 = "1f1d4206e2ced5bd74675d654876684536dd8f82bf79cd6de4c2fa67db904447"
+reserved_tag       = "identus-did-v0.1.0-rc.1"
+merge_revision     = "pending-protected-merge"
+
+[[evidence]]
+id     = "train-identity"
+status = "complete"
+uri    = "https://github.com/hyperledger-identus/sdk-rust/issues/382"
+
+[[evidence]]
+id     = "api-and-sbom"
+status = "complete"
+uri    = "https://github.com/hyperledger-identus/sdk-rust/issues/384"
+
+[[evidence]]
+id     = "documentation"
+status = "complete"
+uri    = "https://github.com/hyperledger-identus/sdk-rust/issues/386"
+
+[[evidence]]
+id     = "compiler-target-matrix"
+status = "complete"
+uri    = "https://github.com/hyperledger-identus/sdk-rust/issues/387"
+
+[[evidence]]
+id     = "exact-revision-slow"
+status = "pending"
+uri    = "https://github.com/hyperledger-identus/sdk-rust/issues/388"
+
+[[evidence]]
+id     = "independent-approval"
+status = "pending"
+uri    = "https://github.com/hyperledger-identus/sdk-rust/issues/388"
+
+[last_natural_slow]
+status       = "failed"
+head_branch  = "develop"
+head_sha     = "5da04223c1c4e029cb368870877e56d699d40388"
+run_uri      = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40260649503"
+failing_lane = "slow (macos-latest)"
+cause        = "RUSTSEC-2026-0374 classified build-time basic-toml 0.1.10 as unmaintained"
+resolution   = "Issue #564 and ADR 0191 added a narrow exact-path acceptance with machine-checked expiry; a fresh complete run is still required."
+
+[downstream]
+consumer                   = "hyperledger-identus/neoprism"
+adoption_pr                = "https://github.com/hyperledger-identus/neoprism/pull/324"
+parity_issue               = "https://github.com/hyperledger-identus/neoprism/issues/325"
+parity_harness_pr          = "https://github.com/hyperledger-identus/neoprism/pull/327"
+final_candidate_summary    = "https://github.com/hyperledger-identus/neoprism/issues/325#issuecomment-6441653199"
+latest_composition_receipt = "https://github.com/hyperledger-identus/neoprism/issues/325#issuecomment-6487638362"
+network                    = "preprod"
+comparison_slot            = 10723321
+semantic_result            = "pass"
+qos_class                  = "diagnostic"

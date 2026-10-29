@@ -202,6 +202,7 @@ required_files=(
   scripts/check-crypto-candidate.py
   scripts/check-release-train.py
   scripts/check-release-candidates.py
+  scripts/check-did-final-readiness.py
   scripts/code-health-audit.py
   scripts/prepare-crypto-candidate.py
   scripts/prepare-did-candidate.py
@@ -386,6 +387,12 @@ fi
 if [[ -x "$factory_root/scripts/check-release-candidates.py" ]]; then
   if ! "$factory_root/scripts/check-release-candidates.py" "$factory_root"; then
     report_failure "independent release-candidate validation failed"
+  fi
+fi
+
+if [[ -x "$factory_root/scripts/check-did-final-readiness.py" ]]; then
+  if ! "$factory_root/scripts/check-did-final-readiness.py" "$factory_root"; then
+    report_failure "DID final-readiness packet validation failed"
   fi
 fi
 

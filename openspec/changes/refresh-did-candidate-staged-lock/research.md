@@ -83,8 +83,12 @@ primitive or the candidate dependency requirements change intentionally.
 
 ## Open questions and blockers
 
-None. The exact proposal and complete drift report are available locally and
-the existing candidate tooling provides all required verification paths.
+The exact proposal and complete drift report are available locally. After the
+lock was adopted, review-mode qualification completed archives, closure, API
+extraction, and SBOMs. Normal qualification then isolated an additive
+`identus-did` API-origin drift; issue #582 owns its classification and
+rebaseline. That independent gate blocks final #388 qualification but does not
+change or invalidate the closed lock decision.
 
 ## Evidence commands
 
@@ -93,4 +97,5 @@ and issue preflight before copying
 the proposal. Then run deterministic candidate preparation, API/SBOM/source
 checks, both compiler lanes where locally available, factory/site/Nix gates,
 advisory/license/source checks, and independent exact-head review. #388 retains
-the complete hosted Linux/macOS slow and human-approval gates.
+the complete hosted Linux/macOS slow and human-approval gates; #582 owns the
+normal-mode API comparison before those final gates.

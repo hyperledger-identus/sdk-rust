@@ -11,8 +11,9 @@
 
 - [x] 2.1 Copy the generated lock, update all digest references atomically,
       and keep candidate manifests and identity unchanged.
-- [ ] 2.2 Reproduce archives, closure, API/SBOM, advisory/license/source,
-      compiler/target, factory, site, and Nix evidence.
+- [ ] 2.2 Reproduce archives, closure, API extraction/SBOM,
+      advisory/license/source, compiler/target, factory, site, and Nix
+      evidence. Normal mode must isolate only the #582 API-origin drift.
 - [ ] 2.3 Complete independent CLI review and resolve actionable findings.
 
 ## 3. Delivery

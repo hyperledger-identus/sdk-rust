@@ -331,10 +331,9 @@ const TEST_VECTOR: [TestInput; 49] = [
 
 #[test]
 fn crypto_packet_jvm_compat_case_verifies() {
-    let packet: serde_json::Value = serde_json::from_str(include_str!(
-        "../../../docs/conformance/fixtures/crypto/v1/vectors.json"
-    ))
-    .expect("crypto compatibility packet");
+    let packet: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/crypto/v1/vectors.json"))
+            .expect("crypto compatibility packet");
     let case = &packet["cases"][0];
     assert_eq!(case["id"], "crypto.secp256k1.jvm-compat");
     assert_eq!(case["operation"], "crypto.secp256k1.verify");

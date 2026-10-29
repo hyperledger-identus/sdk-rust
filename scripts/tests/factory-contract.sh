@@ -96,7 +96,7 @@ required_files=(
   docs/conformance/fixtures/did-peer/v1/vectors.json
   docs/conformance/fixtures/did-prism/preprod-2026-09-10.json
   docs/conformance/fixtures/did-prism/v1/vectors.json
-  docs/conformance/fixtures/crypto/v1/vectors.json
+  crates/crypto/tests/fixtures/crypto/v1/vectors.json
   docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json
   docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json
   docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json

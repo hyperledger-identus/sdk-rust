@@ -15,6 +15,12 @@ the crates.io package; merging package metadata alone does not prove upload.
 Secret-bearing SDK types redact diagnostics; consumers still own custody,
 storage, policy, and platform hardening.
 
+The public JVM-compatibility conformance packet is package-owned at
+`tests/fixtures/crypto/v1/vectors.json`. It is test data, not a runtime asset.
+Keeping the canonical packet below this crate root lets the extracted `.crate`
+archive execute its declared test suite without repository-relative inputs;
+the repository vector catalog retains its provenance and immutable digest.
+
 See the [SDK repository](https://github.com/hyperledger-identus/sdk-rust),
 [Apollo parity report](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/architecture/apollo-crypto-parity.md),
 [feature definitions](https://github.com/hyperledger-identus/sdk-rust/blob/develop/crates/crypto/Cargo.toml),

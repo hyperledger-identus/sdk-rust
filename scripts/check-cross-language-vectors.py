@@ -13,6 +13,8 @@ from pathlib import Path
 
 CATALOG = Path("docs/conformance/cross-language-vector-catalog.toml")
 FIXTURE_ROOT = Path("docs/conformance/fixtures")
+PACKAGE_FIXTURE_ROOT = Path("crates/crypto/tests/fixtures")
+FIXTURE_ROOTS = (FIXTURE_ROOT, PACKAGE_FIXTURE_ROOT)
 TOP_KEYS = {"schema_version", "catalog_version", "status", "owner_issue", "sources", "packets", "vectors"}
 REPOSITORY_SOURCE_KEYS = {
     "id", "kind", "url", "revision", "path", "authorship", "license", "redistribution"
@@ -114,10 +116,13 @@ def safe_payload(root: Path, raw: object, label: str, errors: list[str]) -> Path
     if relative.is_absolute() or ".." in relative.parts or not relative.parts:
         errors.append(f"{label} must be a safe repository-relative path")
         return None
-    try:
-        relative.relative_to(FIXTURE_ROOT)
-    except ValueError:
-        errors.append(f"{label} must remain below {FIXTURE_ROOT}")
+    selected_root = next(
+        (fixture_root for fixture_root in FIXTURE_ROOTS if relative.is_relative_to(fixture_root)),
+        None,
+    )
+    if selected_root is None:
+        allowed = ", ".join(str(fixture_root) for fixture_root in FIXTURE_ROOTS)
+        errors.append(f"{label} must remain below an approved fixture root: {allowed}")
         return None
     candidate = root / relative
     if not candidate.is_file():
@@ -127,9 +132,9 @@ def safe_payload(root: Path, raw: object, label: str, errors: list[str]) -> Path
         errors.append(f"{label} must not resolve through a symlink")
         return None
     try:
-        candidate.resolve().relative_to((root / FIXTURE_ROOT).resolve())
+        candidate.resolve().relative_to((root / selected_root).resolve())
     except ValueError:
-        errors.append(f"{label} resolves outside {FIXTURE_ROOT}")
+        errors.append(f"{label} resolves outside {selected_root}")
         return None
     return candidate
 

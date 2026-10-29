@@ -197,14 +197,20 @@ def copy_package(root: Path, stage: Path, package: dict[str, Any]) -> None:
     relative = Path(package["path"])
     source_root = root / relative
     target_root = stage / relative
+    required_files = {Path(name) for name in package.get("required_files", [])}
     for source in sorted(source_root.rglob("*")):
         if source.is_symlink():
             raise CandidateError(f"candidate package contains symlink: {source.relative_to(root)}")
         if source.is_dir():
             continue
-        if source.name != "Cargo.toml" and source.suffix not in ALLOWED_SUFFIXES:
+        source_relative = source.relative_to(source_root)
+        if (
+            source.name != "Cargo.toml"
+            and source.suffix not in ALLOWED_SUFFIXES
+            and source_relative not in required_files
+        ):
             raise CandidateError(f"candidate package contains unapproved file: {source.relative_to(root)}")
-        destination = target_root / source.relative_to(source_root)
+        destination = target_root / source_relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         if source.name == "Cargo.toml":
             rendered = render_package_manifest(source.read_text(encoding="utf-8"), package)
@@ -226,6 +232,17 @@ def create_stage(root: Path, parent: Path, descriptor: dict[str, Any]) -> Path:
 
 def assemble(stage: Path, descriptor: dict[str, Any], env: dict[str, str]) -> dict[str, Path]:
     run(["cargo", "generate-lockfile", "--manifest-path", str(stage / "Cargo.toml")], cwd=stage, env=env)
+    for package in descriptor["packages"]:
+        listing = run([
+            "cargo", "package", "--list", "-p", package["name"], "--allow-dirty",
+            "--manifest-path", str(stage / "Cargo.toml"),
+        ], cwd=stage, env=env)
+        listed = set(listing.splitlines())
+        required_files = package.get("required_files", [])
+        if missing := sorted(set(required_files) - listed):
+            raise CandidateError(
+                f"{package['name']}: package listing misses required files: {', '.join(missing)}"
+            )
     # Cargo 1.98 can stage mutually dependent, unpublished workspace crates in
     # one operation. Packaging a dependent crate alone incorrectly asks the
     # public registry for the sibling candidate before it exists there.
@@ -303,6 +320,8 @@ def inspect_archive(archive: Path, package: dict[str, Any], descriptor: dict[str
     members = safe_members(archive, prefix, descriptor["max_archive_bytes"])
     names = {member.name for member in members}
     required = {f"{prefix}/{name}" for name in ("Cargo.toml", "Cargo.toml.orig", "README.md", "LICENSE", "src/lib.rs")}
+    package_required = {f"{prefix}/{name}" for name in package.get("required_files", [])}
+    required.update(package_required)
     if missing := sorted(required - names):
         raise CandidateError(f"{archive.name} misses required files: {', '.join(missing)}")
     with tarfile.open(archive, "r:gz") as contents:

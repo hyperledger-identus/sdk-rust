@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
 import sys
 import tomllib
@@ -23,6 +24,8 @@ PACKAGE_PATHS = {
     "identus-core": Path("crates/core"),
     "identus-crypto": Path("crates/crypto"),
 }
+CRYPTO_PACKET = Path("tests/fixtures/crypto/v1/vectors.json")
+CRYPTO_PACKET_SHA256 = "d357c46c0369e5597c89203d92332b94dbf9684fb28b120bbe3241cdb55e09cb"
 TOOLS = {
     "cargo_public_api": "0.52.0",
     "cargo_semver_checks": "0.50.0",
@@ -100,6 +103,11 @@ def validate(root: Path) -> list[str]:
         for field in ("description", "documentation", "readme", "keywords", "categories"):
             if not row.get(field):
                 errors.append(f"{name}: descriptor metadata missing {field}")
+        if name == "identus-crypto":
+            if row.get("required_files") != [CRYPTO_PACKET.as_posix()]:
+                errors.append(f"{name}: descriptor required files differ")
+        elif "required_files" in row:
+            errors.append(f"{name}: descriptor must not declare required files")
 
     profiles_value = descriptor.get("profiles", [])
     if not isinstance(profiles_value, list):
@@ -160,6 +168,15 @@ def validate(root: Path) -> list[str]:
         ):
             if phrase not in readme:
                 errors.append(f"{name}: README is missing release warning: {phrase}")
+
+    packet = root / PACKAGE_PATHS["identus-crypto"] / CRYPTO_PACKET
+    try:
+        packet_digest = hashlib.sha256(packet.read_bytes()).hexdigest()
+    except OSError as error:
+        errors.append(f"cannot read canonical crypto packet {packet}: {error}")
+    else:
+        if packet_digest != CRYPTO_PACKET_SHA256:
+            errors.append("canonical crypto packet digest differs")
 
     adr = read(root / ADR, errors)
     for phrase in ("#266", "archive-closure verification", "publish = false"):
@@ -227,6 +244,14 @@ def validate(root: Path) -> list[str]:
     for phrase in required_api_contract:
         if phrase not in runner:
             errors.append(f"candidate runner is missing stable public-API boundary: {phrase}")
+    required_package_input_contract = (
+        '"cargo", "package", "--list", "-p", package["name"]',
+        'required_files = package.get("required_files", [])',
+        'package_required = {f"{prefix}/{name}" for name in package.get("required_files", [])}',
+    )
+    for phrase in required_package_input_contract:
+        if phrase not in runner:
+            errors.append(f"candidate runner is missing package-input boundary: {phrase}")
     return errors
 
 

@@ -84,12 +84,14 @@ required_files=(
   docs/release/crypto-candidate.toml
   docs/release/did-candidate.lock
   docs/release/did-candidate.toml
+  docs/release/did-candidate-readiness.toml
   docs/release/did-api-origin-rebaseline.toml
   docs/release/release-trains.toml
   docs/release/0.1.0-rc.1.md
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
   docs/release/identus-did-0.1.0-rc.1.api.txt
   docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt
+  site/src/did-candidate-readiness.md
   crates/derive/README.md
   crates/core/README.md
   crates/crypto/README.md

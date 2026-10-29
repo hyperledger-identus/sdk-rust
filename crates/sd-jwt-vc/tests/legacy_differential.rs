@@ -222,9 +222,17 @@ fn oracle_receipt_is_exact_and_source_bound() {
             .expect("every vector has a source-bound observation");
         assert_eq!(observation.consumer_result, "accept");
         assert_eq!(observation.oracle_result, "accept");
-        assert_eq!(observation.source_selectors.len(), 2);
-        assert!(observation.source_selectors[0].starts_with("sdk-ts@"));
-        assert!(observation.source_selectors[1].starts_with("sd-jwt-vc@"));
+        assert_eq!(
+            observation.source_selectors,
+            [
+                "sdk-ts@4bf86ebf69d5e96616a148e4c973f831f95fa38e:SDJWT.ts#verify",
+                if case.id.ends_with("status-rejected") {
+                    "sd-jwt-vc@d3cc53b66be9ef40ede9f86a931b7a43f55dbd3a:SDJwtVcInstance#verifyStatus"
+                } else {
+                    "sd-jwt-vc@d3cc53b66be9ef40ede9f86a931b7a43f55dbd3a:SDJwtVcInstance#verify"
+                },
+            ]
+        );
         match case.expected.kind.as_str() {
             "success" => {
                 assert_eq!(observation.rust_result, "success");

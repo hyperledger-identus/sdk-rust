@@ -16,7 +16,9 @@ change new SDK-Rust issuance from draft-22 `dc+sd-jwt`.
 
 No donor source or fixture is copied. The portable packet contains clean-room
 claim objects and normalized result categories. The immutable observation
-receipt is stored under
+receipt binds every vector to exact consumer/package selectors, observed
+outcomes, the Rust result, and either agreement or an intentional safer
+rejection. It is stored under
 `crates/sd-jwt-vc/tests/fixtures/legacy-draft03-v1/`.
 
 ## Supported transition

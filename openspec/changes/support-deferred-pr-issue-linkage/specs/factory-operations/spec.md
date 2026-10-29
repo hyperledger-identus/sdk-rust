@@ -23,6 +23,10 @@ branch issue, state the deferred disposition and rationale, and enumerate the
 remaining acceptance gates. It SHALL NOT execute pull-request-head code or
 interpret deferral as completion.
 
+Terminal metrics identity validation SHALL accept either the exact repository
+closing linkage or the exact authoritative deferred reference for the recorded
+issue and pull-request head.
+
 #### Scenario: Ordinary pull request closes its branch issue
 
 - **WHEN** a ready pull request declares `closes` and contains a standalone

@@ -279,6 +279,9 @@ test("issue linkage rejects prose decoys and accepts exact deferred evidence", (
   assert.equal(validateIssueLinkage(`${deferredBody}\nFixes hyperledger-identus/sdk-rust#243`, 243, {
     loadDeferredAcceptance: () => evidence,
   }).ok, false);
+  assert.equal(validateIssueLinkage(`${deferredBody}\nFixes other-org/other-repo#243`, 243, {
+    loadDeferredAcceptance: () => evidence,
+  }).ok, true);
   assert.equal(validateIssueLinkage(deferredBody, 243, {
     additionalClosingText: "feat(factory): this fixes #243",
     loadDeferredAcceptance: () => evidence,
@@ -2037,6 +2040,20 @@ test("metric publication routes PR-first and validates hosted historical identit
       closingIssuesReferences: [{ number: 243, repository: "hyperledger-identus/sdk-rust" }],
     },
     currentHead: "b".repeat(40),
+  }));
+  assert.doesNotThrow(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      body: [
+        "- Issue: #243",
+        "- Issue linkage: deferred",
+        "- Post-merge acceptance: openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json",
+        "References #243",
+      ].join("\n"),
+      closingIssuesReferences: [],
+    },
   }));
   assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
     issue: { number: 243 },

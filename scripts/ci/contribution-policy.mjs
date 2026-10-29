@@ -20,6 +20,7 @@ const policyShapeErrors = validateContributionPolicyShape(policy);
 if (policyShapeErrors.length > 0) throw new Error(`base contribution policy is invalid: ${policyShapeErrors.join("; ")}`);
 const types = new Set(policy.types);
 const scopes = new Set(policy.scopes);
+const repositorySlug = "hyperledger-identus/sdk-rust";
 const deferredAcceptancePathPattern = /^openspec\/changes\/archive\/\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\/post-merge-acceptance\.json$/u;
 const maximumDeferredAcceptanceBytes = 16 * 1024;
 
@@ -114,12 +115,27 @@ function captures(lines, pattern) {
   });
 }
 
-export function containsGitHubClosingKeyword(text, issue) {
+export function containsGitHubClosingKeyword(text, issue, repository = repositorySlug) {
   const closingKeyword = new RegExp(
-    `\\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\\s*:?\\s+(?:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#${issue}(?![0-9])`,
-    "iu",
+    `\\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\\s*:?\\s+(?:([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+))?#${issue}(?![0-9])`,
+    "giu",
   );
-  return closingKeyword.test(String(text ?? ""));
+  return [...String(text ?? "").matchAll(closingKeyword)].some((match) => (
+    match[1] === undefined || match[1].toLowerCase() === repository.toLowerCase()
+  ));
+}
+
+export function hasDeferredIssueReference(body, expectedIssue) {
+  const lines = authoritativeMarkdownLines(body);
+  const issues = captures(lines, /^\s*-\s*Issue:\s*#([1-9][0-9]*)\s*$/iu).map(Number);
+  const modes = captures(lines, /^\s*-\s*Issue linkage:\s*(closes|deferred)\s*$/iu);
+  const references = captures(lines, /^\s*(?:Refs|References)\s+#([1-9][0-9]*)\.?\s*$/iu).map(Number);
+  const sidecars = captures(lines, /^\s*-\s*Post-merge acceptance:\s*(openspec\/changes\/archive\/\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\/post-merge-acceptance\.json)\s*$/u);
+  return issues.length === 1 && issues[0] === expectedIssue
+    && modes.length === 1 && modes[0][0].toLowerCase() === "deferred"
+    && references.length === 1 && references[0] === expectedIssue
+    && sidecars.length === 1
+    && !containsGitHubClosingKeyword(lines.join("\n"), expectedIssue);
 }
 
 export function validateDeferredAcceptance(document, expectedIssue) {

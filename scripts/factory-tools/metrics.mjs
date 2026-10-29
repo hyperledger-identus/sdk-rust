@@ -17,6 +17,7 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { hasDeferredIssueReference } from "../ci/contribution-policy.mjs";
 import { parseJsonWithoutDuplicates } from "./strict-json.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -408,7 +409,10 @@ export function validateHostedMetricIdentity(record, { issue, pullRequest = null
       && pullRequest.closingIssuesReferences.some((reference) => (
         reference?.number === record.issue && reference?.repository === record.repository
       ));
-    if (!closesRecordedIssue) fail("metric pull request is not linked to its recorded issue");
+    const defersRecordedIssue = hasDeferredIssueReference(pullRequest?.body, record.issue);
+    if (!closesRecordedIssue && !defersRecordedIssue) {
+      fail("metric pull request is not linked to its recorded issue");
+    }
   } else if (currentHead !== record.headSha) {
     fail("metric without a pull request must match the current exact HEAD");
   }
@@ -522,12 +526,13 @@ function publish(record, issue, requestedTarget, execute) {
         "-f", `owner=${owner}`,
         "-f", `name=${name}`,
         "-F", `number=${number}`,
-        "-f", "query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid closingIssuesReferences(first:100){nodes{number repository{nameWithOwner}}}}}}",
+        "-f", "query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid body closingIssuesReferences(first:100){nodes{number repository{nameWithOwner}}}}}}",
       ], "unable to verify authoritative metric pull request");
       const pullRequest = response?.data?.repository?.pullRequest;
       return {
         number: pullRequest?.number,
         headRefOid: pullRequest?.headRefOid,
+        body: pullRequest?.body,
         closingIssuesReferences: pullRequest?.closingIssuesReferences?.nodes?.map((reference) => ({
           number: reference?.number,
           repository: reference?.repository?.nameWithOwner,

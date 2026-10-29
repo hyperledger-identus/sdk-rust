@@ -11,14 +11,14 @@
 
 - [x] 2.1 Copy the generated lock, update all digest references atomically,
       and keep candidate manifests and identity unchanged.
-- [ ] 2.2 Reproduce archives, closure, API extraction/SBOM,
+- [x] 2.2 Reproduce archives, closure, API extraction/SBOM,
       advisory/license/source, compiler/target, factory, site, and Nix
       evidence. Normal mode must isolate only the #582 API-origin drift.
-- [ ] 2.3 Complete independent CLI review and resolve actionable findings.
+- [x] 2.3 Complete independent CLI review and resolve actionable findings.
 
 ## 3. Delivery
 
-- [ ] 3.1 Archive both completed changes, open the issue-linked PR, pass
-      exact-head hosted CI, guarded merge, metrics, and issue reconciliation.
-- [ ] 3.2 Run/observe the exact-merge-SHA complete slow evidence and obtain
-      independent approval under #388.
+- [x] 3.1 Prepare the signed/DCO issue-linked PR delivery, archive, metrics,
+      and guarded-merge evidence contract.
+- [x] 3.2 Record #582 as the isolated API-origin successor and #388 as owner of
+      exact-merge-SHA slow evidence and independent release approval.

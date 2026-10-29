@@ -114,6 +114,14 @@ function captures(lines, pattern) {
   });
 }
 
+function containsGitHubClosingKeyword(lines, issue) {
+  const closingKeyword = new RegExp(
+    `\\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\\s*:?\\s+#${issue}(?![0-9])`,
+    "iu",
+  );
+  return lines.some((line) => closingKeyword.test(line));
+}
+
 export function validateDeferredAcceptance(document, expectedIssue) {
   const errors = [];
   const expectedKeys = ["acceptance", "disposition", "issue", "rationale", "schemaVersion"];
@@ -199,7 +207,9 @@ export function validateIssueLinkage(body, expectedIssue, { loadDeferredAcceptan
     }
     if (sidecars.length > 0) errors.push("closing linkage must not declare post-merge acceptance evidence");
   } else if (mode === "deferred") {
-    if (closing.includes(expectedIssue)) errors.push(`deferred linkage must not close issue #${expectedIssue}`);
+    if (containsGitHubClosingKeyword(lines, expectedIssue)) {
+      errors.push(`deferred linkage must not close issue #${expectedIssue}`);
+    }
     if (references.filter((issue) => issue === expectedIssue).length !== 1) {
       errors.push(`deferred linkage must contain exactly one standalone reference to issue #${expectedIssue}`);
     }

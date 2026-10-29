@@ -275,6 +275,11 @@ test("issue linkage rejects prose decoys and accepts exact deferred evidence", (
   assert.equal(validateIssueLinkage(`${deferredBody}\nCloses #243`, 243, {
     loadDeferredAcceptance: () => evidence,
   }).ok, false);
+  for (const closingKeyword of ["close", "closes", "closed", "fix", "fixes", "fixed", "resolve", "resolves", "resolved"]) {
+    assert.equal(validateIssueLinkage(`${deferredBody}\nThis ${closingKeyword}: #243 after merge.`, 243, {
+      loadDeferredAcceptance: () => evidence,
+    }).ok, false, `${closingKeyword} must not bypass deferred linkage`);
+  }
 });
 
 test("deferred acceptance reader binds one bounded regular exact-head blob", () => {

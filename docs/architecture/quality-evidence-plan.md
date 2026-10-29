@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-29`
-- Declaration count: `18`
+- Declaration count: `19`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -822,3 +822,39 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Execute every checked-in legacy packet result through public Rust APIs and compare immutable SDK-TS 8.1.4 plus @sd-jwt/sd-jwt-vc 0.7.2 observations, resolving differences against exact drafts and SDK safety policy.
 - Receipt: `source:crates/sd-jwt-vc/tests/legacy_differential.rs`
 - Evidence revision: `e35e4fba448417feff0cefe283ff20def3385815`
+
+## `factory.error-golden.quality.v1`
+
+- Capability: `factory.operations`
+- Slice: Immutable error-golden provenance across protected squash integration
+- Owner: SDK-Rust factory maintainers (issue #578)
+- Risk: Discarded feature ancestry or mutable working-tree evidence can let compatibility fixtures lose their reviewed planning provenance.
+- Targets: `repository:sdk-rust`, `host:python`
+- Vector IDs: `0` local catalog entries
+- Limitations: Repository-local fixed golden bindings only; no public SDK behavior, GitHub administration, remote branch retention, release, or general OpenSpec receipt migration is claimed.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #578 |
+| `fuzz` | `not-applicable` | `none` | `not-applicable` | `not-applicable` | #578 |
+| `benchmark` | `not-applicable` | `none` | `not-applicable` | `not-applicable` | #578 |
+| `differential` | `not-applicable` | `none` | `not-applicable` | `not-applicable` | #578 |
+
+### `property`
+
+- Command: `python3 scripts/tests/error-golden.py`
+- Budget: Exercise all five bindings plus ancestry-preserving, protected-squash, pruned-source, active-loss, uncommitted-copy, forged-receipt, forged-path, and forged-golden states offline.
+- Receipt: `source:scripts/tests/error-golden.py`
+- Evidence revision: `dcf8c6fbca81dd6619c7218016b4099fe924b937`
+
+### `fuzz`
+
+- Rationale: The validator consumes a closed five-binding repository manifest; deterministic repository-state mutations enumerate the meaningful evidence classes more precisely than arbitrary bytes.
+
+### `benchmark`
+
+- Rationale: The offline validator has no consumer latency or throughput promise; its bounded five-binding execution remains part of the ordinary factory gate rather than a performance contract.
+
+### `differential`
+
+- Rationale: No independent implementation defines this repository's exact receipt, archive, branch, and protected-squash policy; deterministic mutation tests are the authoritative comparison surface.

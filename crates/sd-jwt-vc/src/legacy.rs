@@ -1,7 +1,8 @@
 use std::fmt;
 
 use identus_credentials::CredentialEnvelope;
-use identus_sd_jwt::{DisclosureVerifiedSdJwt, SdJwtLimits, UnverifiedSdJwt};
+use identus_jose::{JwsVerificationKey, SignatureSuiteRegistry};
+use identus_sd_jwt::{DisclosureVerifiedSdJwt, IssuerVerifiedSdJwt, SdJwtLimits, UnverifiedSdJwt};
 
 use crate::{
     IssuerEvidence, IssuerEvidenceKind, SdJwtVcError, SdJwtVcLimits,
@@ -22,6 +23,65 @@ pub const LEGACY_DRAFT_SOURCE: &str =
     "https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-03.txt";
 pub const LEGACY_DRAFT_SHA256: &str =
     "9599225eb8732c0ef3f9a6524589e637f9272ba742da185c43ecfd272b81bf5a";
+
+const MILLISECOND_STYLE_DATE_MAGNITUDE: f64 = 1_000_000_000_000.0;
+
+/// Exact legacy-envelope provenance before issuer verification.
+pub struct LegacyUnverifiedDraft03SdJwtVc(UnverifiedSdJwt);
+
+impl LegacyUnverifiedDraft03SdJwtVc {
+    pub fn verify_issuer(
+        self,
+        suites: &SignatureSuiteRegistry,
+        key: &JwsVerificationKey<'_>,
+    ) -> Result<LegacyIssuerVerifiedDraft03SdJwtVc, SdJwtVcError> {
+        self.0
+            .verify_issuer(suites, key)
+            .map(LegacyIssuerVerifiedDraft03SdJwtVc)
+            .map_err(|_| SdJwtVcError::Base)
+    }
+}
+
+impl fmt::Debug for LegacyUnverifiedDraft03SdJwtVc {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("LegacyUnverifiedDraft03SdJwtVc")
+            .finish_non_exhaustive()
+    }
+}
+
+/// Exact legacy-envelope provenance after issuer verification.
+pub struct LegacyIssuerVerifiedDraft03SdJwtVc(IssuerVerifiedSdJwt);
+
+impl LegacyIssuerVerifiedDraft03SdJwtVc {
+    pub fn process_disclosures(
+        self,
+    ) -> Result<LegacyDisclosureVerifiedDraft03SdJwtVc, SdJwtVcError> {
+        self.0
+            .process_disclosures()
+            .map(LegacyDisclosureVerifiedDraft03SdJwtVc)
+            .map_err(|_| SdJwtVcError::Base)
+    }
+}
+
+impl fmt::Debug for LegacyIssuerVerifiedDraft03SdJwtVc {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("LegacyIssuerVerifiedDraft03SdJwtVc")
+            .finish_non_exhaustive()
+    }
+}
+
+/// Exact legacy-envelope provenance after issuer and disclosure verification.
+pub struct LegacyDisclosureVerifiedDraft03SdJwtVc(DisclosureVerifiedSdJwt);
+
+impl fmt::Debug for LegacyDisclosureVerifiedDraft03SdJwtVc {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("LegacyDisclosureVerifiedDraft03SdJwtVc")
+            .finish_non_exhaustive()
+    }
+}
 
 /// Caller-owned evidence accepted by the legacy common-subset adapter.
 #[derive(Default)]
@@ -96,13 +156,15 @@ impl LegacyVcSdJwtDraft03Adapter {
     pub fn parse_envelope(
         envelope: &CredentialEnvelope,
         limits: SdJwtLimits,
-    ) -> Result<UnverifiedSdJwt, SdJwtVcError> {
+    ) -> Result<LegacyUnverifiedDraft03SdJwtVc, SdJwtVcError> {
         if envelope.format().as_str() != LEGACY_ENVELOPE_FORMAT {
             return Err(SdJwtVcError::Envelope);
         }
         let compact = std::str::from_utf8(envelope.payload().as_bytes())
             .map_err(|_| SdJwtVcError::Envelope)?;
-        UnverifiedSdJwt::parse(compact, limits).map_err(|_| SdJwtVcError::Base)
+        UnverifiedSdJwt::parse(compact, limits)
+            .map(LegacyUnverifiedDraft03SdJwtVc)
+            .map_err(|_| SdJwtVcError::Base)
     }
 
     /// Validate a signature-verified, disclosure-processed legacy credential.
@@ -110,11 +172,12 @@ impl LegacyVcSdJwtDraft03Adapter {
     /// This proves only the draft-03/draft-22 common subset and never relabels
     /// or emits the signed credential.
     pub fn validate(
-        base: DisclosureVerifiedSdJwt,
+        base: LegacyDisclosureVerifiedDraft03SdJwtVc,
         inputs: LegacyValidationInputs<'_>,
         limits: SdJwtVcLimits,
     ) -> Result<LegacyDraft03SdJwtVc, SdJwtVcError> {
         limits.validate()?;
+        let base = base.0;
         if base.issuer_protected_header().type_() != Some(LEGACY_PROTECTED_TYPE) {
             return Err(SdJwtVcError::ProtectedType);
         }
@@ -126,6 +189,14 @@ impl LegacyVcSdJwtDraft03Adapter {
             .iter()
             .any(|name| claims.contains_key(*name))
         {
+            return Err(SdJwtVcError::LegacyDraftFeature);
+        }
+        if ["nbf", "exp", "iat"].iter().any(|name| {
+            claims
+                .get(*name)
+                .and_then(serde_json::Value::as_f64)
+                .is_some_and(|value| value.abs() >= MILLISECOND_STYLE_DATE_MAGNITUDE)
+        }) {
             return Err(SdJwtVcError::LegacyDraftFeature);
         }
         let (vct, additional_types) = validate_claims(claims, limits, true)?;

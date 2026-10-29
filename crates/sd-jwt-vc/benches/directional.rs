@@ -1,13 +1,12 @@
 use std::{hint::black_box, time::Instant};
 
 use identus_credentials::{
-    CredentialStatusEvidence, CredentialStatusRevision, CredentialStatusValue,
+    CredentialEnvelope, CredentialFormat, CredentialPayload, CredentialStatusEvidence,
+    CredentialStatusRevision, CredentialStatusValue,
 };
 use identus_crypto::{Ed25519PrivateKey, EncodeJwk, SecureRandom};
 use identus_jose::{Ed25519Signer, JwsAlgorithm, JwsVerificationKey, SignatureSuiteRegistry};
-use identus_sd_jwt::{
-    IssuanceOptions, IssuancePlan, SdJwtLimits, UnverifiedSdJwt, issue_with_options,
-};
+use identus_sd_jwt::{IssuanceOptions, IssuancePlan, SdJwtLimits, issue_with_options};
 use identus_sd_jwt_vc::{
     ClaimDisclosureRule, ClaimMetadata, Draft22SdJwtVc, LegacyValidationInputs,
     LegacyVcSdJwtDraft03Adapter, ProfileValidationInputs, SdJwtVcLimits, StatusListBinding,
@@ -130,7 +129,11 @@ fn main() {
     )
     .expect("legacy fixture");
     measure("legacy-accepted-migration", 101, || {
-        let base = UnverifiedSdJwt::parse(legacy.as_str(), base_limits)
+        let envelope = CredentialEnvelope::new(
+            CredentialFormat::parse("vc+sd-jwt").expect("legacy format"),
+            CredentialPayload::new(legacy.as_str().as_bytes().to_vec()).expect("legacy payload"),
+        );
+        let base = LegacyVcSdJwtDraft03Adapter::parse_envelope(&envelope, base_limits)
             .expect("parse")
             .verify_issuer(&SignatureSuiteRegistry::recommended(), &verification_key)
             .expect("issuer signature")
@@ -154,7 +157,12 @@ fn main() {
     )
     .expect("canonical fixture");
     measure("legacy-wrong-identity-rejection", 101, || {
-        let base = UnverifiedSdJwt::parse(canonical.as_str(), base_limits)
+        let envelope = CredentialEnvelope::new(
+            CredentialFormat::parse("vc+sd-jwt").expect("legacy format"),
+            CredentialPayload::new(canonical.as_str().as_bytes().to_vec())
+                .expect("canonical payload"),
+        );
+        let base = LegacyVcSdJwtDraft03Adapter::parse_envelope(&envelope, base_limits)
             .expect("parse")
             .verify_issuer(&SignatureSuiteRegistry::recommended(), &verification_key)
             .expect("issuer signature")
@@ -184,7 +192,12 @@ fn main() {
     )
     .expect("legacy status fixture");
     measure("legacy-draft-feature-rejection", 101, || {
-        let base = UnverifiedSdJwt::parse(legacy_status.as_str(), base_limits)
+        let envelope = CredentialEnvelope::new(
+            CredentialFormat::parse("vc+sd-jwt").expect("legacy format"),
+            CredentialPayload::new(legacy_status.as_str().as_bytes().to_vec())
+                .expect("legacy status payload"),
+        );
+        let base = LegacyVcSdJwtDraft03Adapter::parse_envelope(&envelope, base_limits)
             .expect("parse")
             .verify_issuer(&SignatureSuiteRegistry::recommended(), &verification_key)
             .expect("issuer signature")

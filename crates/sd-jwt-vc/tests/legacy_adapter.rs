@@ -49,9 +49,23 @@ fn legacy_envelope(claims: Value) -> (CredentialEnvelope, PublicKeyJwk) {
 fn verified_legacy_base(
     envelope: &CredentialEnvelope,
     public: &PublicKeyJwk,
-) -> identus_sd_jwt::DisclosureVerifiedSdJwt {
+) -> identus_sd_jwt_vc::LegacyDisclosureVerifiedDraft03SdJwtVc {
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, public).unwrap();
     LegacyVcSdJwtDraft03Adapter::parse_envelope(envelope, SdJwtLimits::default())
+        .unwrap()
+        .verify_issuer(&SignatureSuiteRegistry::recommended(), &key)
+        .unwrap()
+        .process_disclosures()
+        .unwrap()
+}
+
+fn verified_generic_base(
+    envelope: &CredentialEnvelope,
+    public: &PublicKeyJwk,
+) -> identus_sd_jwt::DisclosureVerifiedSdJwt {
+    let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, public).unwrap();
+    let compact = std::str::from_utf8(envelope.payload().as_bytes()).unwrap();
+    identus_sd_jwt::UnverifiedSdJwt::parse(compact, SdJwtLimits::default())
         .unwrap()
         .verify_issuer(&SignatureSuiteRegistry::recommended(), &key)
         .unwrap()
@@ -87,7 +101,7 @@ fn explicit_adapter_accepts_only_verified_common_subset() {
 
     assert!(matches!(
         Draft22SdJwtVc::validate(
-            verified_legacy_base(&envelope, &key),
+            verified_generic_base(&envelope, &key),
             ProfileValidationInputs::default(),
             SdJwtVcLimits::default(),
         ),
@@ -105,6 +119,7 @@ fn draft_specific_features_fail_closed() {
         json!({"iss":"https://issuer.example","vct":"urn:example:pid","aka_vcts":["urn:example:identity"]}),
         json!({"iss":"https://issuer.example","vct":"urn:example:pid","vct#integrity":"sha256-YWJj"}),
         json!({"iss":"https://issuer.example","vct":"urn:example:pid","status":{"status_list":{"idx":1,"uri":"https://status.example/list"}}}),
+        json!({"iss":"https://issuer.example","vct":"urn:example:pid","nbf":1_700_000_000_000_i64,"exp":1_700_000_001_000_i64}),
     ] {
         let (envelope, key) = legacy_envelope(claims);
         assert!(matches!(
@@ -137,20 +152,8 @@ fn canonical_issuance_remains_canonical_only() {
     let envelope = issued.into_envelope().unwrap();
     assert_eq!(envelope.format().as_str(), "dc+sd-jwt");
 
-    let public = private.to_public_key().encode_jwk();
-    let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).unwrap();
-    let base = parse_draft22_envelope(&envelope, SdJwtLimits::default())
-        .unwrap()
-        .verify_issuer(&SignatureSuiteRegistry::recommended(), &key)
-        .unwrap()
-        .process_disclosures()
-        .unwrap();
     assert!(matches!(
-        LegacyVcSdJwtDraft03Adapter::validate(
-            base,
-            LegacyValidationInputs::default(),
-            SdJwtVcLimits::default(),
-        ),
-        Err(SdJwtVcError::ProtectedType)
+        LegacyVcSdJwtDraft03Adapter::parse_envelope(&envelope, SdJwtLimits::default()),
+        Err(SdJwtVcError::Envelope)
     ));
 }

@@ -69,13 +69,13 @@ fuzz_target!(|data: &[u8]| {
                     &Ed25519Signer::new(&private),
                     SdJwtLimits::default(),
                 )
-                && let Ok(verified) = identus_sd_jwt::UnverifiedSdJwt::parse(
-                    issued.as_str(),
+                && let Ok(format) = CredentialFormat::parse("vc+sd-jwt")
+                && let Ok(payload) = CredentialPayload::new(issued.as_str().as_bytes().to_vec())
+                && let Ok(verified) = LegacyVcSdJwtDraft03Adapter::parse_envelope(
+                    &CredentialEnvelope::new(format, payload),
                     SdJwtLimits::default(),
                 )
-                .and_then(|value| {
-                    value.verify_issuer(&SignatureSuiteRegistry::recommended(), &key)
-                })
+                .and_then(|value| value.verify_issuer(&SignatureSuiteRegistry::recommended(), &key))
                 .and_then(|value| value.process_disclosures())
             {
                 let _ = LegacyVcSdJwtDraft03Adapter::validate(

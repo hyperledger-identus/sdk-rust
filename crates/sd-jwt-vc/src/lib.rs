@@ -21,7 +21,8 @@ pub use issuer_evidence::{IssuerEvidence, IssuerEvidenceKind, IssuerMetadataEvid
 pub use legacy::{
     LEGACY_CAPABILITY_ID, LEGACY_DRAFT_DATE, LEGACY_DRAFT_NAME, LEGACY_DRAFT_SHA256,
     LEGACY_DRAFT_SOURCE, LEGACY_ENVELOPE_FORMAT, LEGACY_MEDIA_TYPE, LEGACY_PROTECTED_TYPE,
-    LegacyDraft03SdJwtVc, LegacyDraft03VerificationReceipt, LegacyValidationInputs,
+    LegacyDisclosureVerifiedDraft03SdJwtVc, LegacyDraft03SdJwtVc, LegacyDraft03VerificationReceipt,
+    LegacyIssuerVerifiedDraft03SdJwtVc, LegacyUnverifiedDraft03SdJwtVc, LegacyValidationInputs,
     LegacyVcSdJwtDraft03Adapter,
 };
 pub use limits::SdJwtVcLimits;

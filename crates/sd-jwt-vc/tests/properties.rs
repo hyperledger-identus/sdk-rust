@@ -299,8 +299,8 @@ fn legacy_common_subset_property_matrix_is_bounded_and_redacted() {
         (Some(0_i64), Some(0_i64), None),
         (Some(-1), Some(1), Some("did:example:holder")),
         (
-            Some(i64::MAX - 1),
-            Some(i64::MAX),
+            Some(999_999_999_998),
+            Some(999_999_999_999),
             Some("urn:example:subject"),
         ),
     ]

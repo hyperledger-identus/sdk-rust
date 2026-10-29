@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use identus_crypto::{Ed25519PrivateKey, EncodeJwk, SecureRandom};
+use identus_crypto::{Ed25519PrivateKey, EncodeJwk, SecureRandom, sha256};
 use identus_jose::{Ed25519Signer, JwsAlgorithm, JwsVerificationKey, SignatureSuiteRegistry};
 use identus_sd_jwt::{
     ClaimPath, IssuanceOptions, IssuancePlan, PathSegment, SdJwtLimits, issue_with_options,
@@ -14,6 +14,11 @@ use serde_json::{Value, json};
 
 const PACKET: &str = include_str!("fixtures/differential-v1/packet.json");
 const RECEIPTS: &str = include_str!("fixtures/differential-v1/oracle-receipts.json");
+const OPENWALLET_GRAPH: &str =
+    include_str!("fixtures/differential-v1/openwallet-dependency-graph.json");
+const K2GL_GRAPH: &str = include_str!("fixtures/differential-v1/k2gl-dependency-graph.json");
+const PORTABLE_VECTORS: &str =
+    include_str!("../../../docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json");
 const DRAFT_SHA256: &str = "da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124";
 
 #[derive(Deserialize)]
@@ -117,9 +122,71 @@ struct OracleReceipt {
     toolchain: String,
     lock_sha256: String,
     resolved_production_dependencies: usize,
+    dependency_graph: String,
+    dependency_graph_sha256: String,
+    resolved_dependency_nodes: usize,
     upstream_tests: String,
     audit: String,
     audit_sha256: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct DependencyGraph {
+    schema_version: u8,
+    oracle: String,
+    root: String,
+    source_revision: String,
+    lock_sha256: String,
+    nodes: Vec<DependencyNode>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct DependencyNode {
+    id: String,
+    name: String,
+    version: String,
+    #[serde(default)]
+    scope: Option<String>,
+    source: String,
+    sha256: String,
+    #[serde(default)]
+    reference: Option<String>,
+    dependencies: Vec<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct PortablePacket {
+    schema_version: u8,
+    packet_id: String,
+    capability: String,
+    cases: Vec<PortableCase>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct PortableCase {
+    id: String,
+    operation: String,
+    input: PortableInput,
+    expected: PortableExpected,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PortableInput {
+    literal: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct PortableExpected {
+    kind: String,
+    error_code: String,
+    redacted: bool,
+    fields: serde_json::Map<String, Value>,
 }
 
 struct DeterministicEntropy(u8);
@@ -172,6 +239,12 @@ fn differential_packet_is_closed_source_bound_and_executable() {
         assert!(!receipt.toolchain.is_empty());
         assert_eq!(receipt.lock_sha256.len(), 64);
         assert!(receipt.resolved_production_dependencies > 0);
+        let graph_text = match receipt.id.as_str() {
+            "openwallet-foundation.sd-jwt-vc.0.20.1" => OPENWALLET_GRAPH,
+            "k2gl.sd-jwt-vc.2.1.0" => K2GL_GRAPH,
+            _ => panic!("unknown oracle receipt"),
+        };
+        validate_dependency_graph(receipt, graph_text);
         assert!(!receipt.upstream_tests.is_empty());
         assert!(!receipt.audit.is_empty());
         assert_eq!(receipt.audit_sha256.len(), 64);
@@ -242,6 +315,82 @@ fn differential_packet_is_closed_source_bound_and_executable() {
             "status-reference",
         ])
     );
+}
+
+#[test]
+fn promoted_portable_vectors_execute_their_checked_in_literals() {
+    let packet: PortablePacket =
+        serde_json::from_str(PORTABLE_VECTORS).expect("closed portable vector packet");
+    assert_eq!(packet.schema_version, 1);
+    assert_eq!(packet.packet_id, "credentials.sd-jwt-vc.draft22.v1");
+    assert_eq!(packet.capability, "credentials.sd-jwt");
+    assert_eq!(packet.cases.len(), 4);
+
+    for case in packet.cases {
+        assert_eq!(case.operation, "sd-jwt-vc.validate-profile");
+        assert_eq!(case.expected.kind, "error");
+        assert!(case.expected.redacted);
+        assert!(case.expected.fields.is_empty());
+        let error = if case.id == "credentials.sd-jwt-vc.legacy-protected-type" {
+            assert_eq!(case.input.literal, "vc+sd-jwt");
+            legacy_profile().expect_err("legacy protected type must fail")
+        } else {
+            let claims: Value =
+                serde_json::from_str(&case.input.literal).expect("portable claims JSON");
+            validate_generic(claims, vec![], ProfileValidationInputs::default())
+                .expect_err("portable negative must fail")
+        };
+        assert_eq!(case.expected.error_code, error.code().as_str());
+    }
+}
+
+fn validate_dependency_graph(receipt: &OracleReceipt, graph_text: &str) {
+    let graph: DependencyGraph = serde_json::from_str(graph_text).expect("closed dependency graph");
+    assert_eq!(graph.schema_version, 1);
+    assert_eq!(graph.oracle, receipt.id);
+    assert_eq!(graph.source_revision, receipt.revision);
+    assert_eq!(graph.lock_sha256, receipt.lock_sha256);
+    assert_eq!(graph.nodes.len(), receipt.resolved_dependency_nodes);
+    assert_eq!(
+        sha256_hex(graph_text.as_bytes()),
+        receipt.dependency_graph_sha256
+    );
+    assert!(receipt.dependency_graph.ends_with("-dependency-graph.json"));
+
+    let mut ids = BTreeSet::new();
+    for node in &graph.nodes {
+        assert!(ids.insert(node.id.as_str()), "duplicate dependency node");
+        assert!(!node.name.is_empty());
+        assert!(!node.version.is_empty());
+        assert!(!node.source.is_empty());
+        assert!(node.sha256.len() == 64 || node.sha256.starts_with("source-revision:"));
+        if let Some(scope) = &node.scope {
+            assert!(matches!(
+                scope.as_str(),
+                "root" | "production" | "development"
+            ));
+        }
+        if let Some(reference) = &node.reference {
+            assert_eq!(reference.len(), 40);
+        }
+    }
+    assert!(ids.contains(graph.root.as_str()));
+    for node in &graph.nodes {
+        for dependency in &node.dependencies {
+            assert!(
+                ids.contains(dependency.as_str()),
+                "unresolved dependency edge"
+            );
+        }
+    }
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    sha256(bytes)
+        .as_bytes()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 
 fn execute(case: &Case) -> Option<Result<(), SdJwtVcError>> {

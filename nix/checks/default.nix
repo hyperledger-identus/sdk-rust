@@ -27,6 +27,7 @@
             sourcePath = toString path;
             oid4vciInteropRoot = "${toString ./../..}/crates/oid4vci/tests/fixtures/interop-v1";
             sdJwtVcDifferentialRoot = "${toString ./../..}/crates/sd-jwt-vc/tests/fixtures/differential-v1";
+            sdJwtVcVector = "${toString ./../..}/docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json";
             sdJwtFixtureRoot = "${toString ./../..}/docs/conformance/fixtures/sd-jwt-rfc9901/v1";
           in
           craneLib.filterCargoSources path type
@@ -53,6 +54,7 @@
           || pkgs.lib.hasSuffix "${sdJwtFixtureRoot}/vectors.json" sourcePath
           || pkgs.lib.hasPrefix "${sdJwtFixtureRoot}/oracles/" sourcePath
           || pkgs.lib.hasPrefix sdJwtVcDifferentialRoot sourcePath
+          || sourcePath == sdJwtVcVector
           || pkgs.lib.hasPrefix oid4vciInteropRoot sourcePath;
       };
       cargoArtifacts = craneLib.buildDepsOnly {
@@ -91,7 +93,10 @@
           test "$(find "$src/crates/oid4vci/tests/fixtures/interop-v1" -type f | wc -l)" -eq 10
           test -f "$src/crates/sd-jwt-vc/tests/fixtures/differential-v1/packet.json"
           test -f "$src/crates/sd-jwt-vc/tests/fixtures/differential-v1/oracle-receipts.json"
-          test "$(find "$src/crates/sd-jwt-vc/tests/fixtures/differential-v1" -type f | wc -l)" -eq 2
+          test -f "$src/crates/sd-jwt-vc/tests/fixtures/differential-v1/openwallet-dependency-graph.json"
+          test -f "$src/crates/sd-jwt-vc/tests/fixtures/differential-v1/k2gl-dependency-graph.json"
+          test "$(find "$src/crates/sd-jwt-vc/tests/fixtures/differential-v1" -type f | wc -l)" -eq 4
+          test -f "$src/docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json"
           test -f "$src/docs/conformance/fixtures/did/v1/vectors.json"
           test "$(find "$src/docs/conformance/fixtures/did/v1" -type f | wc -l)" -eq 1
           test -f "$src/docs/conformance/fixtures/did-key/v1/vectors.json"

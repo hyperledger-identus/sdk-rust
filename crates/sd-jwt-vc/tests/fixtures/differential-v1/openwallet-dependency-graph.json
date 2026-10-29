@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "oracle": "openwallet-foundation.sd-jwt-vc.0.20.1",
+  "root": "@sd-jwt/sd-jwt-vc@0.20.1",
+  "sourceRevision": "b983e03253481ab6d33e147cc7e30e4904d0813f",
+  "lockSha256": "e2370dd8f490245c7eac5f29c23b0bed304461ed56e61f07c3d5092f0431d761",
+  "nodes": [
+    {
+      "id": "@cbor-extract/cbor-extract-darwin-arm64@2.2.2",
+      "name": "@cbor-extract/cbor-extract-darwin-arm64",
+      "version": "2.2.2",
+      "source": "https://registry.npmjs.org/@cbor-extract/cbor-extract-darwin-arm64/-/cbor-extract-darwin-arm64-2.2.2.tgz",
+      "sha256": "ffa541702b7f745f23f58a9bb04f5d47e36dacbb98d36e4d16efd464b61a1bed",
+      "dependencies": []
+    },
+    {
+      "id": "@cbor-extract/cbor-extract-darwin-x64@2.2.2",
+      "name": "@cbor-extract/cbor-extract-darwin-x64",
+      "version": "2.2.2",
+      "source": "https://registry.npmjs.org/@cbor-extract/cbor-extract-darwin-x64/-/cbor-extract-darwin-x64-2.2.2.tgz",
+      "sha256": "519a684fc88046d4463b755dbbd8394fee16d0b24466cb34f55c882cc3ed2d04",
+      "dependencies": []
+    },
+    {
+      "id": "@cbor-extract/cbor-extract-linux-arm@2.2.2",
+      "name": "@cbor-extract/cbor-extract-linux-arm",
+      "version": "2.2.2",
+      "source": "https://registry.npmjs.org/@cbor-extract/cbor-extract-linux-arm/-/cbor-extract-linux-arm-2.2.2.tgz",
+      "sha256": "d3a720a26e8fd732a93f6d2607e10216263b5793c8d3ac3ada9a1c987b3800a2",
+      "dependencies": []
+    },
+    {
+      "id": "@cbor-extract/cbor-extract-linux-arm64@2.2.2",
+      "name": "@cbor-extract/cbor-extract-linux-arm64",
+      "version": "2.2.2",
+      "source": "https://registry.npmjs.org/@cbor-extract/cbor-extract-linux-arm64/-/cbor-extract-linux-arm64-2.2.2.tgz",
+      "sha256": "6dbe420de3108c5e3741791c2af2507aadcbaebff77103aa9fc6bf5561586665",
+      "dependencies": []
+    },
+    {
+      "id": "@cbor-extract/cbor-extract-linux-x64@2.2.2",
+      "name": "@cbor-extract/cbor-extract-linux-x64",
+      "version": "2.2.2",
+      "source": "https://registry.npmjs.org/@cbor-extract/cbor-extract-linux-x64/-/cbor-extract-linux-x64-2.2.2.tgz",
+      "sha256": "4367c053cbf084940f1ee634af09d006c9bd3eec67395f5032a7dc5fa7cd2ee5",
+      "dependencies": []
+    },
+    {
+      "id": "@cbor-extract/cbor-extract-win32-x64@2.2.2",
+      "name": "@cbor-extract/cbor-extract-win32-x64",
+      "version": "2.2.2",
+      "source": "https://registry.npmjs.org/@cbor-extract/cbor-extract-win32-x64/-/cbor-extract-win32-x64-2.2.2.tgz",
+      "sha256": "c8a71920a740628c08000c4a017ab94c920c5e1477022fb8e830bb49bcc9b93c",
+      "dependencies": []
+    },
+    {
+      "id": "@owf/cose@0.3.1",
+      "name": "@owf/cose",
+      "version": "0.3.1",
+      "source": "https://registry.npmjs.org/@owf/cose/-/cose-0.3.1.tgz",
+      "sha256": "f1633c3f7d2b23a56b812302d16d6b26f58879e51038f8a9e13b8ba9c363dcbc",
+      "dependencies": [
+        "@owf/identity-common@0.3.1",
+        "cbor-x@1.6.4",
+        "zod-validation-error@5.0.0",
+        "zod@4.4.3"
+      ]
+    },
+    {
+      "id": "@owf/identity-common@0.3.1",
+      "name": "@owf/identity-common",
+      "version": "0.3.1",
+      "source": "https://registry.npmjs.org/@owf/identity-common/-/identity-common-0.3.1.tgz",
+      "sha256": "38362d1ea75d02bc50c1093c3b6047a3ae163e5f062965a96f87d36025f111d5",
+      "dependencies": []
+    },
+    {
+      "id": "@owf/token-status-list@0.3.1",
+      "name": "@owf/token-status-list",
+      "version": "0.3.1",
+      "source": "https://registry.npmjs.org/@owf/token-status-list/-/token-status-list-0.3.1.tgz",
+      "sha256": "7ca7feb90758f2993dd68d0c3e1e4e9a6c446921ab43e9fd33ea00098b8962b6",
+      "dependencies": [
+        "@owf/cose@0.3.1",
+        "@owf/identity-common@0.3.1",
+        "cbor-x@1.6.4",
+        "pako@3.0.0",
+        "zod@4.4.3"
+      ]
+    },
+    {
+      "id": "@sd-jwt/core@link:../core",
+      "name": "@sd-jwt/core",
+      "version": "link:../core",
+      "source": "workspace:b983e03253481ab6d33e147cc7e30e4904d0813f",
+      "sha256": "source-revision:b983e03253481ab6d33e147cc7e30e4904d0813f",
+      "dependencies": [
+        "@owf/identity-common@0.3.1"
+      ]
+    },
+    {
+      "id": "@sd-jwt/sd-jwt-vc@0.20.1",
+      "name": "@sd-jwt/sd-jwt-vc",
+      "version": "0.20.1",
+      "source": "workspace:b983e03253481ab6d33e147cc7e30e4904d0813f",
+      "sha256": "source-revision:b983e03253481ab6d33e147cc7e30e4904d0813f",
+      "dependencies": [
+        "@owf/token-status-list@0.3.1",
+        "@sd-jwt/core@link:../core",
+        "zod@4.4.3"
+      ]
+    },
+    {
+      "id": "cbor-extract@2.2.2",
+      "name": "cbor-extract",
+      "version": "2.2.2",
+      "source": "https://registry.npmjs.org/cbor-extract/-/cbor-extract-2.2.2.tgz",
+      "sha256": "8f965f229592ed639136a3ea338d482baf88a96e0f5b8bdd3c91ffb76a192ae0",
+      "dependencies": [
+        "@cbor-extract/cbor-extract-darwin-arm64@2.2.2",
+        "@cbor-extract/cbor-extract-darwin-x64@2.2.2",
+        "@cbor-extract/cbor-extract-linux-arm64@2.2.2",
+        "@cbor-extract/cbor-extract-linux-arm@2.2.2",
+        "@cbor-extract/cbor-extract-linux-x64@2.2.2",
+        "@cbor-extract/cbor-extract-win32-x64@2.2.2",
+        "node-gyp-build-optional-packages@5.1.1"
+      ]
+    },
+    {
+      "id": "cbor-x@1.6.4",
+      "name": "cbor-x",
+      "version": "1.6.4",
+      "source": "https://registry.npmjs.org/cbor-x/-/cbor-x-1.6.4.tgz",
+      "sha256": "a9ef5d588f22b36879b648915d3f2e12c605f5fc6a7689b76f3e87e76072435a",
+      "dependencies": [
+        "cbor-extract@2.2.2"
+      ]
+    },
+    {
+      "id": "detect-libc@2.1.2",
+      "name": "detect-libc",
+      "version": "2.1.2",
+      "source": "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz",
+      "sha256": "270dec0fc06cff86481da8af2dd8f18dee6b602790b14ef0e1c2c18d7da39427",
+      "dependencies": []
+    },
+    {
+      "id": "node-gyp-build-optional-packages@5.1.1",
+      "name": "node-gyp-build-optional-packages",
+      "version": "5.1.1",
+      "source": "https://registry.npmjs.org/node-gyp-build-optional-packages/-/node-gyp-build-optional-packages-5.1.1.tgz",
+      "sha256": "623a94073d3ec090418ff5dd465448b692cdb6bfe3ffe277692a43c1ccffeaac",
+      "dependencies": [
+        "detect-libc@2.1.2"
+      ]
+    },
+    {
+      "id": "pako@3.0.0",
+      "name": "pako",
+      "version": "3.0.0",
+      "source": "https://registry.npmjs.org/pako/-/pako-3.0.0.tgz",
+      "sha256": "e14b7180e8f427e9254b5f1495588d75f5f7b6937fa795d24589392edd7789f2",
+      "dependencies": []
+    },
+    {
+      "id": "zod-validation-error@5.0.0",
+      "name": "zod-validation-error",
+      "version": "5.0.0",
+      "source": "https://registry.npmjs.org/zod-validation-error/-/zod-validation-error-5.0.0.tgz",
+      "sha256": "f07dc7d088b6053f5808f84eefe1a357fac14df885b461eecaba3d42c5a5ae1a",
+      "dependencies": [
+        "zod@4.4.3"
+      ]
+    },
+    {
+      "id": "zod@4.4.3",
+      "name": "zod",
+      "version": "4.4.3",
+      "source": "https://registry.npmjs.org/zod/-/zod-4.4.3.tgz",
+      "sha256": "ee38f17f533fd500610685a483ae2f413c26f4eb33a51684314563c8d60f279c",
+      "dependencies": []
+    }
+  ]
+}

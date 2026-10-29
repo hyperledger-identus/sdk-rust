@@ -27,6 +27,8 @@ status-acceptance, legacy-input, or donor-runtime behavior.
 
 Exact license, lock, audit and toolchain receipts are in
 [`oracle-receipts.json`](../../../crates/sd-jwt-vc/tests/fixtures/differential-v1/oracle-receipts.json).
+The adjacent OpenWallet and K2GL dependency-graph receipts retain every
+resolved node, dependency edge, source reference and fetched archive SHA-256.
 The OpenWallet advisory and browser-harness failure are reasons to keep the
 engine isolated; neither invalidates its passing Node behavior as an oracle.
 

@@ -24,6 +24,6 @@
 
 - [x] 4.1 Add positive and adversarial policy, sidecar, and delivery-preflight
       tests.
-- [ ] 4.2 Run focused, factory, bootstrap, formatting, and risk-routed gates.
-- [ ] 4.3 Complete a fresh local review with no unresolved blocker and archive
+- [x] 4.2 Run focused, factory, bootstrap, formatting, and risk-routed gates.
+- [x] 4.3 Complete a fresh local review with no unresolved blocker and archive
       the change.

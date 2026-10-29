@@ -16,6 +16,11 @@
   passed.
 - A fresh `codex review --base c429ac494a6eaeb2e22c0b38a5b1d70c0eb6ff62`
   reported no actionable defect.
+- Claude reviewed published PR #589. Its actionable parser, hosted closing
+  reference, recovery, diagnostics, preflight-head, and metrics findings were
+  corrected in `496fe6fadac05866562556a658611d9ab616778f`; the focused 66-test
+  suite, PR policy tests, factory check, syntax checks, and diff check passed
+  after correction.
 
 The exact Pi package cache had a stale completion marker without its dependency
 tree. The incomplete identity was preserved in a timestamped quarantine and

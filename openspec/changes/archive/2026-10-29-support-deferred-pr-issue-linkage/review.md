@@ -42,3 +42,30 @@ suite successfully.
 
 Final disposition: no unresolved architecture, security, compatibility, or
 factory-operability finding.
+
+## Published-PR Claude review
+
+Claude reviewed PR #589 at `50b240a1011a5ce535bb20c6d452b142d95b97d3`.
+Corrective commit `496fe6fadac05866562556a658611d9ab616778f`
+resolved the actionable findings:
+
+- CommonMark fence recognition now rejects inline backtick sequences as fence
+  openings and applies the three-space indentation boundary.
+- Guarded delivery rejects GitHub's authoritative closing references when the
+  PR declares deferred linkage, covering manual sidebar linkage and any
+  platform-recognized body reference.
+- Historical receipt recovery recognizes only an authoritative linkage field,
+  not a template placeholder or code-fenced decoy.
+- Hosted commit diagnostics retain signature and DCO findings when linkage is
+  also invalid.
+- Local preflight resolves deferred evidence from the named head ref instead
+  of assuming the current checkout head.
+- Metrics avoid unnecessary exact-head retrieval for ordinary historical
+  closing linkage and reject a deferred PR that has a hosted closing reference.
+
+The suggested full-URL closing syntax is not a GitHub-supported closing form;
+the documented forms are `#N` for the same repository and `owner/repo#N` for a
+different repository. The suggested `Assisted-by` trailer comes from a
+reviewer-local instruction and is not part of this repository's signed+DCO
+commit policy. The stricter explicit linkage metadata is the accepted behavior
+of ADR 0198 rather than an SDK compatibility regression.

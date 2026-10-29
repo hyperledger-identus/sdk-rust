@@ -121,7 +121,13 @@ def classify_public_api(baseline: str, current: str) -> dict[str, Any]:
     removed = sorted((baseline_lines - current_lines).elements())
     added = sorted((current_lines - baseline_lines).elements())
     return {
-        "classification": "additive-compatible" if added else "equal",
+        "classification": (
+            "incompatible"
+            if removed
+            else "additive-compatible"
+            if added
+            else "equal"
+        ),
         "added": added,
         "removed": removed,
     }

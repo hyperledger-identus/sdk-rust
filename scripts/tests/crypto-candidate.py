@@ -130,11 +130,12 @@ def main() -> int:
             "removed": [],
         }
         duplicate_removal = runner.classify_public_api("a\na\nb\n", "a\nb\n")
+        assert duplicate_removal["classification"] == "incompatible"
         assert duplicate_removal["removed"] == ["a"]
         equal = runner.classify_public_api("a\nb\n", "a\nb\n")
         assert equal == {"classification": "equal", "added": [], "removed": []}
         rejected = {
-            "classification": "additive-compatible",
+            "classification": "incompatible",
             "added": [],
             "removed": ["published item"],
         }

@@ -46,6 +46,11 @@ rejection, and keeps packages, publication workspace, and success receipt
 absent. Unit and mutation coverage exercise the bounded encoder and the
 diagnostics-only branch.
 
+The second Codex CLI review found that rejection was correct but its retained
+report could still label a mixed add/remove delta `additive-compatible`. The
+classifier now gives removals precedence and records `incompatible`; the
+duplicate-occurrence regression asserts that classification explicitly.
+
 `nix flake check --print-build-logs` then passed all 35 compatible
 `aarch64-darwin` checks. Evidence included the 1,195-test workspace run, MSRV,
 etalon, WASM, Android, iOS, documentation site and link validation, dependency

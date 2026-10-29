@@ -16,5 +16,5 @@
 
 - [x] 3.1 Add focused, property, conformance, E2E, fuzz, benchmark, and portable evidence.
 - [x] 3.2 Update architecture knowledge, canonical purpose, quality declaration, and change ledger evidence.
-- [ ] 3.3 Pass local/Nix/factory gates and exact-head Claude-or-Codex CLI review.
+- [x] 3.3 Pass local/Nix/factory gates and exact-head Claude-or-Codex CLI review.
 - [ ] 3.4 Prepare signed/DCO issue-linked PR delivery, archive, metrics, and guarded merge evidence.

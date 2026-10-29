@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 587
+disposition    = "behavior-neutral"
+scope          = "tooling"
+rationale      = "The four public-key validation methods are already merged and unchanged; this slice preserves the published rc.1 API origin and corrects candidate comparison semantics, with no Rust behavior, wire, dependency, feature, package, target, publication, or consumer change."
+ledger_ids     = [  ]

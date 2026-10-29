@@ -75,24 +75,26 @@ EXPECTED_DOWNSTREAM = {
     "semantic_result": "pass",
     "qos_class": "diagnostic",
 }
-PAGE_IDENTITY_FIELDS = (
-    "staged_lock_sha256",
-    "reserved_tag",
-    "protected_base_revision",
-    "did_api_sha256",
-    "resolver_api_sha256",
-    "did_archive_sha256",
-    "resolver_archive_sha256",
-    "did_sbom_sha256",
-    "resolver_sbom_sha256",
+PAGE_IDENTITY_ROWS = (
+    f"| Protected evidence base | `{EXPECTED_IDENTITY['protected_base_revision']}` |",
+    f"| Staged lock SHA-256 | `{EXPECTED_IDENTITY['staged_lock_sha256']}` |",
+    f"| `identus-did` API SHA-256 | `{EXPECTED_IDENTITY['did_api_sha256']}` |",
+    f"| Resolver API SHA-256 | `{EXPECTED_IDENTITY['resolver_api_sha256']}` |",
+    "| Candidate archive SHA-256 | "
+    f"`{EXPECTED_IDENTITY['did_archive_sha256']}` / "
+    f"`{EXPECTED_IDENTITY['resolver_archive_sha256']}` |",
+    "| CycloneDX SHA-256 | "
+    f"`{EXPECTED_IDENTITY['did_sbom_sha256']}` / "
+    f"`{EXPECTED_IDENTITY['resolver_sbom_sha256']}` |",
+    f"| Reserved future tag | `{EXPECTED_IDENTITY['reserved_tag']}` |",
 )
-PAGE_EVIDENCE_LABELS = {
-    "train-identity": "Independent train identity and deterministic archives",
-    "api-and-sbom": "Public API origins and normalized CycloneDX",
-    "documentation": "Engineer handbook and source-adoption guidance",
-    "compiler-target-matrix": "Linux/macOS primary + MSRV and package-specific portable targets",
-    "exact-revision-slow": "Exact protected-revision slow evidence",
-    "independent-approval": "Independent exact-receipt approval",
+PAGE_EVIDENCE_ROWS = {
+    "train-identity": "| Independent train identity and deterministic archives | Complete | [#382](https://github.com/hyperledger-identus/sdk-rust/issues/382), ADR 0153 |",
+    "api-and-sbom": "| Public API origins and normalized CycloneDX | Complete | [PR #584](https://github.com/hyperledger-identus/sdk-rust/pull/584), [factory receipt](https://github.com/hyperledger-identus/sdk-rust/pull/584#issuecomment-6493993716), ADR 0154 |",
+    "documentation": "| Engineer handbook and source-adoption guidance | Complete | [#386](https://github.com/hyperledger-identus/sdk-rust/issues/386) |",
+    "compiler-target-matrix": "| Linux/macOS primary + MSRV and package-specific portable targets | Complete | [#387](https://github.com/hyperledger-identus/sdk-rust/issues/387), ADR 0155 |",
+    "exact-revision-slow": "| Exact protected-revision slow evidence | Pending | [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |",
+    "independent-approval": "| Independent exact-receipt approval | Pending | [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |",
 }
 REQUIRED_PAGE_TEXT = (
     "pending an exact-protected-revision slow run and independent",
@@ -162,7 +164,7 @@ def check(root: Path) -> list[str]:
     if observed != EXPECTED_EVIDENCE:
         failures.append(f"{MANIFEST}: evidence matrix must equal {EXPECTED_EVIDENCE!r}")
 
-    slow = manifest.get("last_natural_slow", {})
+    slow = manifest.get("historical_failed_slow", {})
     if slow != EXPECTED_SLOW:
         failures.append(f"{MANIFEST}: natural slow evidence must equal the exact failed receipt")
 
@@ -182,17 +184,12 @@ def check(root: Path) -> list[str]:
     for phrase in REQUIRED_PAGE_TEXT:
         if phrase not in page:
             failures.append(f"{PAGE}: missing required bounded claim: {phrase}")
-    for field in PAGE_IDENTITY_FIELDS:
-        value = identity.get(field) if isinstance(identity, dict) else None
-        if not isinstance(value, str) or value not in page:
-            failures.append(f"{PAGE}: displayed identity {field} drifted from the manifest")
-    for evidence_id, expected_entry in EXPECTED_EVIDENCE.items():
-        label = PAGE_EVIDENCE_LABELS[evidence_id]
-        status = expected_entry["status"].title()
-        if f"| {label} | {status} |" not in page:
-            failures.append(f"{PAGE}: displayed evidence status {evidence_id} drifted from the manifest")
-        if expected_entry["uri"] not in page:
-            failures.append(f"{PAGE}: displayed evidence URI {evidence_id} drifted from the manifest")
+    for row in PAGE_IDENTITY_ROWS:
+        if row not in page:
+            failures.append(f"{PAGE}: displayed identity row drifted from the manifest: {row}")
+    for evidence_id, row in PAGE_EVIDENCE_ROWS.items():
+        if row not in page:
+            failures.append(f"{PAGE}: displayed evidence row {evidence_id} drifted from the manifest")
     forbidden = ("is production ready", "is published on crates.io", "all advisories are waived")
     for phrase in forbidden:
         if phrase in page.lower():

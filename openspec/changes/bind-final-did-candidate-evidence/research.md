@@ -22,7 +22,7 @@ archives and SBOMs, primary/MSRV evidence, full Nix evidence, and an independent
 Codex review. This packet consumes those exact identities; it does not infer
 them from a mutable branch.
 
-The latest natural weekly run at
+The retained historical natural weekly run from 2026-10-26 at
 `5da04223c1c4e029cb368870877e56d699d40388` failed only in the macOS slow job
 when RustSec classified build-time-only `basic-toml 0.1.10` as unmaintained.
 Issue #564 and ADR 0191 subsequently added an exact-path, exact-version,

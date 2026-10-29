@@ -62,7 +62,7 @@ id     = "independent-approval"
 status = "pending"
 uri    = "https://github.com/hyperledger-identus/sdk-rust/issues/388"
 
-[last_natural_slow]
+[historical_failed_slow]
 status       = "failed"
 head_branch  = "develop"
 head_sha     = "5da04223c1c4e029cb368870877e56d699d40388"

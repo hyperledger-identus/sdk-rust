@@ -42,7 +42,8 @@ SHA to the complete slow run and independent approval.
 | Exact protected-revision slow evidence | Pending | [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |
 | Independent exact-receipt approval | Pending | [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |
 
-The last natural weekly run, [run 40260649503](https://github.com/hyperledger-identus/sdk-rust/actions/runs/40260649503),
+The retained historical failed weekly run,
+[run 40260649503](https://github.com/hyperledger-identus/sdk-rust/actions/runs/40260649503),
 failed in `slow (macos-latest)` after RustSec classified build-time-only
 `basic-toml 0.1.10` as unmaintained. [Issue #564](https://github.com/hyperledger-identus/sdk-rust/issues/564)
 and ADR 0191 introduced a narrow, exact-path, expiring acceptance without

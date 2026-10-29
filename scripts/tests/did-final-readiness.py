@@ -53,11 +53,11 @@ class ReadinessContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("status must be", result.stderr)
 
-    def test_failed_natural_run_cannot_be_relabelled(self) -> None:
+    def test_historical_failed_run_cannot_be_relabelled(self) -> None:
         root = self.fixture()
         path = root / FILES[0]
         content = path.read_text(encoding="utf-8")
-        path.write_text(content.replace('[last_natural_slow]\nstatus       = "failed"', '[last_natural_slow]\nstatus       = "success"'), encoding="utf-8")
+        path.write_text(content.replace('[historical_failed_slow]\nstatus       = "failed"', '[historical_failed_slow]\nstatus       = "success"'), encoding="utf-8")
         result = self.run_checker(root)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("exact failed receipt", result.stderr)
@@ -147,7 +147,21 @@ class ReadinessContractTests(unittest.TestCase):
         )
         result = self.run_checker(root)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("displayed identity did_api_sha256 drifted", result.stderr)
+        self.assertIn("displayed identity row drifted", result.stderr)
+
+    def test_displayed_api_hashes_cannot_swap_labels(self) -> None:
+        root = self.fixture()
+        path = root / FILES[1]
+        did_hash = "5c985cd2d3f26c07230ace1086d7a178662a4f583d0086574ac9baa6a00be639"
+        resolver_hash = "9c432f0d0c3d5db92da3aa88aed05164aa2adf483c11be84b9239c9973179df6"
+        content = path.read_text(encoding="utf-8")
+        path.write_text(
+            content.replace(did_hash, "SWAPPED_HASH").replace(resolver_hash, did_hash).replace("SWAPPED_HASH", resolver_hash),
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("displayed identity row drifted", result.stderr)
 
     def test_missing_e2e_receipt_fails(self) -> None:
         root = self.fixture()

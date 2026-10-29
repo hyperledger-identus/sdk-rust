@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 539,
+  "change": "version-jwe-error-contract",
+  "branch": "codex/test/issue-539",
+  "baseRef": "origin/develop",
+  "baseSha": "c66d506690d3cd6f119f9ae6430b285f98115d10",
+  "contractHeadSha": "0f81f09c72b920d31c456312822ab28e50b9706c",
+  "createdAt": "2026-10-29T05:17:49.404Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

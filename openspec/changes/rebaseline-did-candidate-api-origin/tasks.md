@@ -20,12 +20,12 @@
 
 - [x] 3.1 Pass normal deterministic candidate preparation without API
       initialization, including archives, closure, API/SBOM, and source policy.
-- [ ] 3.2 Pass primary/MSRV matrix lanes, focused DID tests, factory/site/full
+- [x] 3.2 Pass primary/MSRV matrix lanes, focused DID tests, factory/site/full
       Nix gates, and independent CLI review.
 
 ## 4. Delivery
 
-- [ ] 4.1 Archive the completed OpenSpec change and prepare signed/DCO
-      issue-linked PR, metrics, protected CI, and guarded-merge evidence.
-- [ ] 4.2 Hand the new baseline and lock identities back to #388 without
+- [x] 4.1 Prepare the completed OpenSpec archive and signed/DCO issue-linked
+      PR inputs; retain metrics, protected CI, and guarded merge as delivery evidence.
+- [x] 4.2 Hand the new baseline and lock identities back to #388 without
       claiming final slow evidence or independent release approval.

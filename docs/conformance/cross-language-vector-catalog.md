@@ -41,5 +41,12 @@ locations but never fetches them. A consumer should select cases by stable ID,
 verify the checked-in packet digest, apply its language mapping contract, and
 report exact selectors through the consumer change ledger.
 
+Packets normally live below `docs/conformance/fixtures`. A packet that is also
+a declared test input for a publishable crate is instead owned below that
+crate's `tests/fixtures` directory. The catalog remains the discovery and
+provenance index, while the crate-local regular file is the single byte
+authority included by `cargo package`. Repository and extracted-package tests
+must reference that same path; copied mirrors are not accepted.
+
 Stable IDs are never repurposed. A semantic correction creates a new packet or
 replacement record with explicit lifecycle links.

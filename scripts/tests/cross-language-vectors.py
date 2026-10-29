@@ -19,7 +19,7 @@ DID_KEY_PACKET = ROOT / "docs/conformance/fixtures/did-key/v1/vectors.json"
 DID_WEB_PACKET = ROOT / "docs/conformance/fixtures/did-web/v1/vectors.json"
 DID_JWK_PACKET = ROOT / "docs/conformance/fixtures/did-jwk/v1/vectors.json"
 PRISM_PACKET = ROOT / "docs/conformance/fixtures/did-prism/v1/vectors.json"
-CRYPTO_PACKET = ROOT / "docs/conformance/fixtures/crypto/v1/vectors.json"
+CRYPTO_PACKET = ROOT / "crates/crypto/tests/fixtures/crypto/v1/vectors.json"
 PRISM_VDR_INDEXING_PACKET = ROOT / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
 OID4VP_DIRECT_POST_PACKET = ROOT / "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
 OID4VP_ENCRYPTED_DIRECT_POST_PACKET = (
@@ -73,7 +73,7 @@ def run(catalog: str, packet: str, should_pass: bool, *, crypto_packet: str | No
         prism_target = root / "docs/conformance/fixtures/did-prism/v1/vectors.json"
         prism_target.parent.mkdir(parents=True)
         shutil.copy2(PRISM_PACKET, prism_target)
-        crypto_target = root / "docs/conformance/fixtures/crypto/v1/vectors.json"
+        crypto_target = root / "crates/crypto/tests/fixtures/crypto/v1/vectors.json"
         crypto_target.parent.mkdir(parents=True)
         crypto_target.write_text(
             CRYPTO_PACKET.read_text(encoding="utf-8") if crypto_packet is None else crypto_packet,
@@ -257,7 +257,7 @@ def main() -> None:
         prism_target = root / "docs/conformance/fixtures/did-prism/v1/vectors.json"
         prism_target.parent.mkdir(parents=True)
         shutil.copy2(PRISM_PACKET, prism_target)
-        crypto_target = root / "docs/conformance/fixtures/crypto/v1/vectors.json"
+        crypto_target = root / "crates/crypto/tests/fixtures/crypto/v1/vectors.json"
         crypto_target.parent.mkdir(parents=True)
         shutil.copy2(CRYPTO_PACKET, crypto_target)
         prism_vdr_indexing_target = root / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"

@@ -47,6 +47,7 @@ def copy_fixture(destination: Path) -> None:
         "crates/core/README.md",
         "crates/crypto/Cargo.toml",
         "crates/crypto/README.md",
+        "crates/crypto/tests/fixtures/crypto/v1/vectors.json",
     )
     for relative in files:
         target = destination / relative
@@ -134,6 +135,12 @@ def main() -> int:
             raise AssertionError(f"valid fixture failed: {errors!r}")
 
         cases = (
+            (
+                lambda root: (
+                    root / "crates/crypto/tests/fixtures/crypto/v1/vectors.json"
+                ).unlink(),
+                "cannot read canonical crypto packet",
+            ),
             (
                 lambda root: replace(
                     root / "docs/release/crypto-candidate.toml",
@@ -242,8 +249,8 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / "docs/release/crypto-candidate.toml",
-                    'name          = "identus-crypto"',
-                    'name          = "identus-unknown"',
+                    'name           = "identus-crypto"',
+                    'name           = "identus-unknown"',
                 ),
                 "descriptor package metadata is missing",
             ),

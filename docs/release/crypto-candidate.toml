@@ -64,10 +64,11 @@ keywords      = [ "identity", "ssi", "did" ]
 categories    = [ "data-structures" ]
 
 [[packages]]
-name          = "identus-crypto"
-path          = "crates/crypto"
-description   = "Reusable cryptographic primitives for Hyperledger Identus Rust SDK consumers."
-documentation = "https://docs.rs/identus-crypto/0.1.0-rc.1"
-readme        = "README.md"
-keywords      = [ "cryptography", "identity", "ssi", "did" ]
-categories    = [ "cryptography" ]
+name           = "identus-crypto"
+path           = "crates/crypto"
+description    = "Reusable cryptographic primitives for Hyperledger Identus Rust SDK consumers."
+documentation  = "https://docs.rs/identus-crypto/0.1.0-rc.1"
+readme         = "README.md"
+keywords       = [ "cryptography", "identity", "ssi", "did" ]
+categories     = [ "cryptography" ]
+required_files = [ "tests/fixtures/crypto/v1/vectors.json" ]

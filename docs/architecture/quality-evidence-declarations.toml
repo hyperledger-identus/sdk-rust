@@ -2304,3 +2304,113 @@ debt_status       = "none"
 debt_issue        = 0
 rationale         = ""
 details           = [ "oracle=SDK-TS 8.1.4 and @sd-jwt/sd-jwt-vc 0.7.2 under draft-03, compared with canonical draft-22", "oracle-revision=SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e; package d3cc53b66be9ef40ede9f86a931b7a43f55dbd3a; draft-03 9599225eb8732c0ef3f9a6524589e637f9272ba742da185c43ecfd272b81bf5a; draft-22 da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124", "normalization=Bind every vector to exact consumer and package selectors plus accept/reject and stable Rust semantic categories rather than TypeScript DTO, task, DID or error shapes", "deviations=Millisecond dates, draft-era status effects and any non-common semantics remain explicit intentional safer rejections" ]
+
+[[declarations]]
+id          = "factory.error-golden.quality.v1"
+capability  = "factory.operations"
+slice       = "Immutable error-golden provenance across protected squash integration"
+owner       = "SDK-Rust factory maintainers"
+owner_issue = 578
+risk        = "Discarded feature ancestry or mutable working-tree evidence can let compatibility fixtures lose their reviewed planning provenance."
+targets     = [ "repository:sdk-rust", "host:python" ]
+vector_ids  = [  ]
+limitations = "Repository-local fixed golden bindings only; no public SDK behavior, GitHub administration, remote branch retention, release, or general OpenSpec receipt migration is claimed."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "An ancestry, receipt, blob, path, hash, archive-state, or working-tree mutation can be accepted as canonical planning evidence."
+selectors         = [ "scripts/tests/error-golden.py#run_protected_squash_cases", "scripts/check-error-golden.py#read_contract_head_bytes" ]
+command           = "python3 scripts/tests/error-golden.py"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "repository:sdk-rust", "host:python" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Exercise all five bindings plus ancestry-preserving, protected-squash, pruned-source, active-loss, uncommitted-copy, forged-receipt, forged-path, and forged-golden states offline."
+receipt_kind      = "source"
+receipt           = "source:scripts/tests/error-golden.py"
+evidence_revision = "70bde3212c906408abcc953aba7e53383ad45dfd"
+recorded_at       = "2026-10-29"
+artifact          = "scripts/tests/error-golden.py"
+owner             = "SDK-Rust factory maintainers"
+owner_issue       = 578
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Only exact planning receipts and golden bytes committed in valid ancestry or canonical protected-squash history are accepted", "domain=Five fixed bindings across active, archived, ancestry-preserving, squashed, pruned and adversarial repository states", "cases=Exact success paths plus receipt, identity, base, contract, path, symlink, blob, hash, provenance and working-tree mutations" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "not-applicable"
+risk              = "A byte fuzzer would exercise Git and filesystem setup rather than a variable untrusted parser surface and could misrepresent deterministic mutation evidence."
+selectors         = [  ]
+command           = ""
+lane              = "none"
+cadence           = "not-applicable"
+targets           = [  ]
+freshness         = "not-applicable"
+freshness_days    = 0
+budget            = ""
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust factory maintainers"
+owner_issue       = 578
+debt_status       = "none"
+debt_issue        = 0
+rationale         = "The validator consumes a closed five-binding repository manifest; deterministic repository-state mutations enumerate the meaningful evidence classes more precisely than arbitrary bytes."
+details           = [  ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "not-applicable"
+risk              = "A timing benchmark without a supported latency objective would primarily measure temporary Git process startup and host filesystem variance."
+selectors         = [  ]
+command           = ""
+lane              = "none"
+cadence           = "not-applicable"
+targets           = [  ]
+freshness         = "not-applicable"
+freshness_days    = 0
+budget            = ""
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust factory maintainers"
+owner_issue       = 578
+debt_status       = "none"
+debt_issue        = 0
+rationale         = "The offline validator has no consumer latency or throughput promise; its bounded five-binding execution remains part of the ordinary factory gate rather than a performance contract."
+details           = [  ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "not-applicable"
+risk              = "Inventing an external oracle for repository-specific protected-squash evidence would weaken the canonical SDK policy rather than provide independent semantics."
+selectors         = [  ]
+command           = ""
+lane              = "none"
+cadence           = "not-applicable"
+targets           = [  ]
+freshness         = "not-applicable"
+freshness_days    = 0
+budget            = ""
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust factory maintainers"
+owner_issue       = 578
+debt_status       = "none"
+debt_issue        = 0
+rationale         = "No independent implementation defines this repository's exact receipt, archive, branch, and protected-squash policy; deterministic mutation tests are the authoritative comparison surface."
+details           = [  ]

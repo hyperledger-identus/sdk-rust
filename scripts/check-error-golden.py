@@ -43,6 +43,7 @@ class GoldenBinding:
     file_name: str
     stable: Path
     expected_sha256: str
+    receipt_sha256: str
     source_revision: str
     generated_at: str
     issue: int
@@ -72,6 +73,7 @@ CREDENTIALS = GoldenBinding(
     file_name="credentials-error-contract-v1.csv",
     stable=Path("crates/credentials/tests/fixtures/credentials-error-contract-v1.csv"),
     expected_sha256="6148a00b22bdb8551d4df9369c7a9fcf819e1cf1c2654edc8654feef82227c7c",
+    receipt_sha256="54c44b9ffc9c070dc76103414a8a170a436ee3398a3eb594c954a252676f1399",
     source_revision="353030a7f263b9a1fba9deac0312ed228e61d761",
     generated_at="2026-09-14",
     issue=278,
@@ -83,6 +85,7 @@ PRESENTATIONS = GoldenBinding(
     file_name="presentations-error-contract-v1.csv",
     stable=Path("crates/presentations/tests/fixtures/presentations-error-contract-v1.csv"),
     expected_sha256="3941cbdb1b3eedb26243b5caf1b8a11c4646c3789a3cab1415834c48d3a8ba49",
+    receipt_sha256="a35712fefb8b71d45c76cf1447009135b45c2c5629c52f99a4f99eb8a2e01269",
     source_revision="105308771dbebceb473b99d9eb82b0fa0178ab09",
     generated_at="2026-09-15",
     issue=279,
@@ -94,6 +97,7 @@ JOSE = GoldenBinding(
     file_name="jose-error-contract-v1.csv",
     stable=Path("crates/jose/tests/fixtures/jose-error-contract-v1.csv"),
     expected_sha256="528b29913876710a2ee806e30fef044657f3c6c38e7e3efff860cf71060b9592",
+    receipt_sha256="4a90ea1234a8b830bc1c51b0e9daee2a3131e21fbd7dca17be7b5cdd865c1283",
     source_revision="c32c1c8cd0194466a8c7fbfaa8c050f4bf2971a1",
     generated_at="2026-09-15",
     issue=280,
@@ -105,6 +109,7 @@ JWE = GoldenBinding(
     file_name="jwe-encryption-error-contract-v1.csv",
     stable=Path("crates/jose/tests/fixtures/jwe-encryption-error-contract-v1.csv"),
     expected_sha256="3fbc56eaaa95d35eaf6356fe398922eb0302f6cdc2191d2f9743d263b0574d35",
+    receipt_sha256="9b5bf1e0af47146a37e66f2da0b191e02dc73d87d6981524465a26d7f09d864e",
     source_revision="c66d506690d3cd6f119f9ae6430b285f98115d10",
     generated_at="2026-10-29",
     issue=539,
@@ -116,6 +121,7 @@ OID4VCI = GoldenBinding(
     file_name="oid4vci-error-contract-v1.csv",
     stable=Path("crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv"),
     expected_sha256="2c9e03381744b11902eb8b8bbc08934374781fad99d6561573cfcd62490bcd39",
+    receipt_sha256="4e7eb94113f35ca71fbd389ca871a9379512b6281ffe93c94d44e098fd4116f6",
     source_revision="6217384f85ff72003a7b94482bf7879f4587be02",
     generated_at="2026-09-15",
     issue=277,
@@ -225,9 +231,11 @@ def read_contract_head_bytes(
     root: Path,
     binding: GoldenBinding,
     planning_path: Path,
+    planning: bytes,
+    stable: bytes,
     errors: list[str],
 ) -> bytes | None:
-    """Read the planning golden from the immutable preflight Git commit."""
+    """Validate the immutable receipt and return a reachable contract blob."""
     if os.environ.get(SOURCE_SNAPSHOT_ENV) == "1":
         return None
 
@@ -239,6 +247,13 @@ def read_contract_head_bytes(
         errors,
     )
     if receipt_bytes is None:
+        return None
+    receipt_digest = hashlib.sha256(receipt_bytes).hexdigest()
+    if receipt_digest != binding.receipt_sha256:
+        errors.append(
+            f"{binding.label} preimplementation receipt SHA-256 must be "
+            f"{binding.receipt_sha256}; found {receipt_digest}"
+        )
         return None
     try:
         receipt = json.loads(receipt_bytes)
@@ -294,60 +309,147 @@ def read_contract_head_bytes(
         if Path(top_level).resolve() != root.resolve():
             errors.append(f"{binding.label} repository root does not match Git top-level")
             return None
-        for older, newer, message in (
-            (
-                binding.source_revision,
-                contract_head,
-                "contract head must descend from its fixed base",
-            ),
-            (
-                contract_head,
-                "HEAD",
-                "current head must descend from the contract head",
-            ),
-        ):
-            outcome = subprocess.run(
-                ["git", "-C", str(root), "merge-base", "--is-ancestor", older, newer],
-                capture_output=True,
-            )
-            if outcome.returncode != 0:
-                errors.append(f"{binding.label} preimplementation receipt {message}")
-                return None
-
-        changed = subprocess.run(
+        base_in_head = subprocess.run(
             [
                 "git",
                 "-C",
                 str(root),
-                "diff",
-                "--name-only",
-                f"{binding.source_revision}...{contract_head}",
+                "merge-base",
+                "--is-ancestor",
+                binding.source_revision,
+                "HEAD",
             ],
-            check=True,
             capture_output=True,
-            text=True,
-        ).stdout.splitlines()
-        change_prefix = f"openspec/changes/{binding.change_name}/"
-        invalid = [
-            path
-            for path in changed
-            if not path.startswith(change_prefix) and not path.startswith("docs/adr/")
-        ]
-        if not changed or not any(path.startswith(change_prefix) for path in changed):
+        )
+        if base_in_head.returncode != 0:
             errors.append(
-                f"{binding.label} preimplementation receipt planning diff is incomplete"
+                f"{binding.label} preimplementation receipt current head must descend "
+                "from its fixed base"
             )
             return None
-        if invalid:
+
+        relative_planning = planning_path.relative_to(root)
+        is_archived = relative_planning.parts[:3] == (
+            "openspec",
+            "changes",
+            "archive",
+        )
+        contract_exists = (
+            subprocess.run(
+                ["git", "-C", str(root), "cat-file", "-e", f"{contract_head}^{{commit}}"],
+                capture_output=True,
+            ).returncode
+            == 0
+        )
+
+        contract: bytes | None = None
+        contract_in_head = False
+        if contract_exists:
+            base_in_contract = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(root),
+                    "merge-base",
+                    "--is-ancestor",
+                    binding.source_revision,
+                    contract_head,
+                ],
+                capture_output=True,
+            )
+            if base_in_contract.returncode != 0:
+                errors.append(
+                    f"{binding.label} preimplementation receipt contract head must "
+                    "descend from its fixed base"
+                )
+                return None
+
+            changed = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(root),
+                    "diff",
+                    "--name-only",
+                    f"{binding.source_revision}...{contract_head}",
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.splitlines()
+            change_prefix = f"openspec/changes/{binding.change_name}/"
+            invalid = [
+                path
+                for path in changed
+                if not path.startswith(change_prefix)
+                and not path.startswith("docs/adr/")
+            ]
+            if not changed or not any(
+                path.startswith(change_prefix) for path in changed
+            ):
+                errors.append(
+                    f"{binding.label} preimplementation receipt planning diff is incomplete"
+                )
+                return None
+            if invalid:
+                errors.append(
+                    f"{binding.label} preimplementation receipt contract head is not "
+                    "planning-only"
+                )
+                return None
+            contract = subprocess.run(
+                ["git", "-C", str(root), "show", f"{contract_head}:{original_path}"],
+                check=True,
+                capture_output=True,
+            ).stdout
+            contract_in_head = (
+                subprocess.run(
+                    [
+                        "git",
+                        "-C",
+                        str(root),
+                        "merge-base",
+                        "--is-ancestor",
+                        contract_head,
+                        "HEAD",
+                    ],
+                    capture_output=True,
+                ).returncode
+                == 0
+            )
+
+        if contract_in_head:
+            return contract
+        if not is_archived:
+            reason = "must resolve" if not contract_exists else "must be an ancestor of HEAD"
             errors.append(
-                f"{binding.label} preimplementation receipt contract head is not planning-only"
+                f"{binding.label} active preimplementation contract head {reason}"
             )
             return None
-        return subprocess.run(
-            ["git", "-C", str(root), "show", f"{contract_head}:{original_path}"],
-            check=True,
-            capture_output=True,
-        ).stdout
+
+        for path, working, label in (
+            (receipt_path, receipt_bytes, "preimplementation receipt"),
+            (planning_path, planning, "archived planning golden"),
+            (root / binding.stable, stable, "stable error fixture"),
+        ):
+            relative = path.relative_to(root)
+            try:
+                head_blob = subprocess.run(
+                    ["git", "-C", str(root), "show", f"HEAD:{relative}"],
+                    check=True,
+                    capture_output=True,
+                ).stdout
+            except subprocess.CalledProcessError:
+                errors.append(
+                    f"{binding.label} {label} must resolve from canonical HEAD"
+                )
+                return None
+            if head_blob != working:
+                errors.append(
+                    f"{binding.label} {label} must match its canonical HEAD blob"
+                )
+                return None
+        return contract
     except (OSError, subprocess.CalledProcessError):
         errors.append(
             f"{binding.label} planning golden must resolve from receipt contractHeadSha"
@@ -384,7 +486,9 @@ def validate_binding(
     contract = (
         trusted_contract
         if trusted_contract is not None
-        else read_contract_head_bytes(root, binding, planning_path, errors)
+        else read_contract_head_bytes(
+            root, binding, planning_path, planning, stable, errors
+        )
     )
     if contract is not None and planning != contract:
         errors.append(

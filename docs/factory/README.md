@@ -187,6 +187,29 @@ cannot recurse.
 The receipt proves only the factory contract. Rust, target, conformance,
 security and release gates must be attached separately and truthfully.
 
+### Immutable golden evidence after protected squash merges
+
+Error compatibility goldens keep their planning-before-implementation boundary
+across both historical ancestry-preserving integrations and the current
+protected squash path. Every binding pins the complete preimplementation
+receipt plus the exact planning/stable golden bytes.
+
+When the planning commit remains in `HEAD` ancestry, the checker proves the
+fixed base, planning-only diff, contract blob and current ancestry directly.
+After a protected squash, an archived binding instead requires the fixed base
+in current ancestry and requires the receipt, archived golden and stable
+fixture to resolve byte-for-byte from their exact paths in `HEAD`. If the
+source planning object is still locally reachable, its base, allowed paths and
+golden blob are validated as additional evidence; normal branch cleanup may
+later prune that object without invalidating the canonical snapshot.
+
+The archived path never applies to an active change and never treats a copied
+or uncommitted working-tree file as canonical. It proves which exact reviewed
+receipt and fixture survived integration; it does not claim that a
+behavior-bearing squash commit was itself planning-only. The contract is
+specified by [ADR 0196](../adr/0196-preserve-error-golden-evidence-across-squash-merges.md)
+and exercised by `factory.error-golden.quality.v1`.
+
 The slow `rust-audit` evidence is deliberately advisory-only. It first proves
 that pinned `cargo-audit 0.22.2` parses a deterministic CVSS 4.0 fixture, then
 scans the locked workspace against the pinned RustSec database with

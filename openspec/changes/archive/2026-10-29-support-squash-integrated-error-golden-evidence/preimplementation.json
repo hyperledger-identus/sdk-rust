@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 578,
+  "change": "support-squash-integrated-error-golden-evidence",
+  "branch": "codex/fix/issue-578",
+  "baseRef": "origin/develop",
+  "baseSha": "78bd1c01a83e014e0cc85be27075bf7634902199",
+  "contractHeadSha": "8f1265d044b466431d67310ec878bcea43eb83c3",
+  "createdAt": "2026-10-29T06:37:34.000Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

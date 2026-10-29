@@ -35,6 +35,23 @@ dependency evidence before publication review.
 6. API/SBOM generation must not change the deterministic package inputs; the
    archive hashes accepted by #382 remain invariant.
 
+### Prepublication rebaseline
+
+On 2026-10-29, before the DID train had a published predecessor, issue #582
+rebased the `identus-did` origin from SHA-256
+`3ce68d571d087e78ece200154ba0e185565fbf5da9c2733eb7f70d3b1f7bbf9d`
+to `5c985cd2d3f26c07230ace1086d7a178662a4f583d0086574ac9baa6a00be639`.
+Pinned cargo-public-api 0.52.0 found zero removals and exactly 13 additions:
+the bounded JSON wire validator, its limits, and its non-exhaustive error type.
+The resolver API remained byte-identical. The closed
+`did-api-origin-rebaseline.toml` receipt binds the source revision, hashes,
+classification, and exact added symbols.
+
+This is a one-time correction of an unpublished candidate origin, not a stable
+API promise or a substitute for comparing a later candidate with its real
+published predecessor. Further origin drift requires another issue, decision
+record, exact receipt, mutation coverage, and candidate reproduction.
+
 ## Consequences
 
 Reviewers get exact, diffable API origins and machine-readable dependency /

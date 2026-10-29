@@ -45,7 +45,7 @@ workflow or registry claim.
 | Gate | Status | Evidence owner |
 | --- | --- | --- |
 | Independent train identity and deterministic archives | Complete | [#382](https://github.com/hyperledger-identus/sdk-rust/issues/382), ADR 0153 |
-| Public API origins and normalized CycloneDX evidence | Complete | [#384](https://github.com/hyperledger-identus/sdk-rust/issues/384), ADR 0154 |
+| Public API origins and normalized CycloneDX evidence | Complete; additive prepublication rebaseline recorded | [#384](https://github.com/hyperledger-identus/sdk-rust/issues/384), [#582](https://github.com/hyperledger-identus/sdk-rust/issues/582), ADR 0154 |
 | Engineer-facing architecture and adoption handbook | Implemented in this source revision; deployment receipt remains on the issue | [#386](https://github.com/hyperledger-identus/sdk-rust/issues/386) |
 | Rust/target qualification | Open | [#387](https://github.com/hyperledger-identus/sdk-rust/issues/387) |
 | Final exact-SHA candidate approval | Open; follows all prior gates | [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |

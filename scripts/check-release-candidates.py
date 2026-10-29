@@ -15,6 +15,7 @@ from typing import Any
 INDEX = Path("docs/release/release-trains.toml")
 DID_DESCRIPTOR = Path("docs/release/did-candidate.toml")
 DID_STAGED_LOCK = Path("docs/release/did-candidate.lock")
+DID_API_REBASELINE = Path("docs/release/did-api-origin-rebaseline.toml")
 CRYPTO_DESCRIPTOR = Path("docs/release/crypto-candidate.toml")
 BUILDER = Path("scripts/prepare-did-candidate.py")
 ADR = Path("docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md")
@@ -36,6 +37,7 @@ DESCRIPTOR_KEYS = {
     "schema_version", "candidate", "version", "rust_version",
     "preparation_rust_version", "baseline_revision", "staged_lock",
     "staged_lock_sha256", "repository", "homepage",
+    "api_origin_rebaseline",
     "license", "max_archive_bytes", "max_archive_members", "max_expansion_ratio",
     "max_evidence_bytes", "publication", "release_tag", "compatibility_status",
     "tools", "matrix", "matrix_hosts", "matrix_targets", "profiles", "packages",
@@ -58,6 +60,26 @@ MATRIX_TARGET_KEYS = {
     "triple", "runner_host", "packages", "unsupported_packages", "operation", "tier",
     "limitation",
 }
+API_REBASELINE_KEYS = {
+    "schema_version", "issue", "candidate", "source_revision", "tool",
+    "baseline_path", "previous_api_sha256", "current_api_sha256",
+    "resolver_api_sha256", "classification", "publication", "removed", "added",
+}
+EXPECTED_API_ADDITIONS = [
+    "#[non_exhaustive] pub enum identus_did::JsonWireError",
+    "pub identus_did::JsonWireError::DuplicateName",
+    "pub identus_did::JsonWireError::Malformed",
+    "pub identus_did::JsonWireError::TooDeep",
+    "pub identus_did::JsonWireError::TooManyLiveKeyBytes",
+    "pub identus_did::JsonWireError::TooManyMembers",
+    "pub identus_did::JsonWireError::TooManyNodes",
+    "pub struct identus_did::JsonWireLimits",
+    "pub identus_did::JsonWireLimits::max_depth: usize",
+    "pub identus_did::JsonWireLimits::max_live_key_bytes: usize",
+    "pub identus_did::JsonWireLimits::max_nodes: usize",
+    "pub identus_did::JsonWireLimits::max_object_members: usize",
+    "pub fn identus_did::validate_unique_object_names(&[u8], identus_did::JsonWireLimits) -> core::result::Result<(), identus_did::JsonWireError>",
+]
 EXPECTED_TRAINS = (
     {
         "id": "crypto", "lifecycle": "published", "primary_package": "identus-crypto",
@@ -281,9 +303,10 @@ def validate(root: Path) -> list[str]:
         "version": VERSION,
         "rust_version": "1.89.0",
         "preparation_rust_version": "1.98.1",
-        "baseline_revision": "96cf5f577b5f3585461d34589aad465297693af0",
+        "baseline_revision": "a0ec4c0254f06a18bd914982e919547a9232964d",
         "staged_lock": DID_STAGED_LOCK.as_posix(),
         "staged_lock_sha256": "f7535a6819c9b9e4474c95b427b54646d46ccac51703c680086ef75c790fba4f",
+        "api_origin_rebaseline": DID_API_REBASELINE.as_posix(),
         "repository": "https://github.com/hyperledger-identus/sdk-rust",
         "homepage": "https://hyperledger-identus.github.io/sdk-rust/",
         "license": "Apache-2.0",
@@ -300,6 +323,43 @@ def validate(root: Path) -> list[str]:
             errors.append(f"DID descriptor differs: {field}")
     if not re.fullmatch(r"[0-9a-f]{40}", str(descriptor.get("baseline_revision", ""))):
         errors.append("DID descriptor baseline_revision must be a full lowercase SHA")
+    api_rebaseline_path = root / DID_API_REBASELINE
+    if api_rebaseline_path.is_symlink() or not api_rebaseline_path.is_file():
+        errors.append("DID API-origin rebaseline must be a regular repository file")
+    elif api_rebaseline_path.stat().st_size == 0 or api_rebaseline_path.stat().st_size > 16384:
+        errors.append("DID API-origin rebaseline has an invalid byte size")
+    else:
+        api_rebaseline = load_toml(api_rebaseline_path, errors)
+        require_keys(
+            api_rebaseline, API_REBASELINE_KEYS, "DID API-origin rebaseline", errors
+        )
+        expected_api_rebaseline = {
+            "schema_version": 1,
+            "issue": 582,
+            "candidate": "identus-did-0.1.0-rc.1",
+            "source_revision": "a0ec4c0254f06a18bd914982e919547a9232964d",
+            "tool": "cargo-public-api 0.52.0",
+            "baseline_path": "docs/release/identus-did-0.1.0-rc.1.api.txt",
+            "previous_api_sha256": "3ce68d571d087e78ece200154ba0e185565fbf5da9c2733eb7f70d3b1f7bbf9d",
+            "current_api_sha256": "5c985cd2d3f26c07230ace1086d7a178662a4f583d0086574ac9baa6a00be639",
+            "resolver_api_sha256": "9c432f0d0c3d5db92da3aa88aed05164aa2adf483c11be84b9239c9973179df6",
+            "classification": "additive-only",
+            "publication": "candidate-only",
+            "removed": [],
+            "added": EXPECTED_API_ADDITIONS,
+        }
+        if api_rebaseline != expected_api_rebaseline:
+            errors.append("DID API-origin rebaseline evidence differs")
+        did_baseline = root / "docs/release/identus-did-0.1.0-rc.1.api.txt"
+        resolver_baseline = root / "docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt"
+        if did_baseline.is_file() and sha256(did_baseline) != api_rebaseline.get(
+            "current_api_sha256"
+        ):
+            errors.append("DID API-origin rebaseline digest differs from current baseline")
+        if resolver_baseline.is_file() and sha256(resolver_baseline) != api_rebaseline.get(
+            "resolver_api_sha256"
+        ):
+            errors.append("DID resolver API digest differs from rebaseline evidence")
     staged_lock = root / DID_STAGED_LOCK
     if staged_lock.is_symlink() or not staged_lock.is_file():
         errors.append("DID staged lock must be a regular repository file")

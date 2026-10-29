@@ -63,7 +63,8 @@ consumer's own architecture and acceptance contract.
 - ADRs 0132, 0153, 0154, 0155, and 0191.
 - `docs/release/release-trains.toml`, `did-candidate.toml`, and the staged lock.
 - Archived OpenSpec review/verification records for the prerequisite slices.
-- Natural slow run https://github.com/hyperledger-identus/sdk-rust/actions/runs/40260649503.
+- Retained historical failed natural slow run
+  https://github.com/hyperledger-identus/sdk-rust/actions/runs/40260649503.
 - NeoPRISM PRs #324/#327 and issue #325, all read-only in this slice.
 
 All new text is repository-owned Apache-2.0 material. No donor source or

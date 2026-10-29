@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import sys
 import tomllib
 from pathlib import Path
@@ -11,6 +12,7 @@ from typing import Any
 
 MANIFEST = Path("docs/release/did-candidate-readiness.toml")
 PAGE = Path("site/src/did-candidate-readiness.md")
+EXPECTED_PAGE_SHA256 = "499aa45ddfacc80e684ea762b2692153957230d24b8594f48ed69498d8971123"
 EXPECTED_PACKAGES = ["identus-did", "identus-did-resolver-http"]
 EXPECTED_LIMITATIONS = [
     "No crates.io publication or registry availability claim.",
@@ -188,6 +190,9 @@ def check(root: Path) -> list[str]:
     except OSError as error:
         failures.append(f"{PAGE}: unable to read: {error}")
         page = ""
+    page_sha256 = hashlib.sha256(page.encode("utf-8")).hexdigest()
+    if page_sha256 != EXPECTED_PAGE_SHA256:
+        failures.append(f"{PAGE}: complete bounded page digest drifted")
     for phrase in REQUIRED_PAGE_TEXT:
         if phrase not in page:
             failures.append(f"{PAGE}: missing required bounded claim: {phrase}")

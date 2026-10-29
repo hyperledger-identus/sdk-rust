@@ -76,6 +76,18 @@ class ReadinessContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("five bounded non-claims", result.stderr)
 
+    def test_contradictory_page_claim_cannot_be_appended(self) -> None:
+        root = self.fixture()
+        path = root / FILES[1]
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "\nCrates.io publication and registry availability are confirmed.\n",
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("complete bounded page digest drifted", result.stderr)
+
     def test_candidate_archive_identity_cannot_drift(self) -> None:
         root = self.fixture()
         path = root / FILES[0]

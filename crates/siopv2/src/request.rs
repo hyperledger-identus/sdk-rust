@@ -88,6 +88,10 @@ impl UnverifiedSiopRequest {
         key: &JwsVerificationKey<'_>,
         now: i64,
     ) -> Result<ValidatedSiopRequest, Siopv2Error> {
+        // Parsing is deliberately repeated here. The JOSE parser owns compact,
+        // payload, and signature buffers that are not zeroized on drop; the
+        // public unverified state retains only one zeroized compact value and
+        // bounded public header evidence until this consuming transition.
         let compact = UnverifiedCompactJws::parse(&self.compact, self.limits.jws())
             .map_err(|_| Siopv2Error::InvalidRequestObject)?;
         let verified = suites
@@ -120,7 +124,7 @@ impl UnverifiedSiopRequest {
         if self.expected_wallet_nonce.as_deref().map(String::as_str)
             != claims.wallet_nonce.as_deref()
         {
-            return Err(Siopv2Error::ClientBindingMismatch);
+            return Err(Siopv2Error::WalletNonceMismatch);
         }
         if claims.aud != SIOPV2_AUDIENCE
             || claims.response_type != "id_token"
@@ -168,25 +172,28 @@ fn validate_strings(claims: &Claims, limits: Siopv2Limits) -> Result<(), Siopv2E
         claims.id_token_type.as_str(),
         claims.nonce.as_str(),
     ];
-    if values.iter().any(|value| {
-        value.is_empty()
-            || value.len() > limits.max_string_bytes()
-            || value.chars().any(char::is_control)
-    }) || claims.state.as_deref().is_some_and(|value| {
-        value.is_empty()
-            || value.len() > limits.max_string_bytes()
-            || value.chars().any(char::is_control)
-    }) {
+    if values
+        .iter()
+        .any(|value| !is_valid_bounded_string(value, limits.max_string_bytes()))
+        || claims
+            .state
+            .as_deref()
+            .is_some_and(|value| !is_valid_bounded_string(value, limits.max_string_bytes()))
+    {
         return Err(Siopv2Error::InvalidRequestClaims);
     }
-    if claims.wallet_nonce.as_deref().is_some_and(|value| {
-        value.is_empty()
-            || value.len() > limits.max_string_bytes()
-            || value.chars().any(char::is_control)
-    }) {
+    if claims
+        .wallet_nonce
+        .as_deref()
+        .is_some_and(|value| !is_valid_bounded_string(value, limits.max_string_bytes()))
+    {
         return Err(Siopv2Error::InvalidRequestClaims);
     }
     Ok(())
+}
+
+fn is_valid_bounded_string(value: &str, maximum: usize) -> bool {
+    !value.is_empty() && value.len() <= maximum && !value.chars().any(char::is_control)
 }
 
 fn is_https_uri(value: &str) -> bool {

@@ -1,7 +1,9 @@
 # siopv2-protocol-core Specification
 
 ## Purpose
-TBD - created by archiving change add-siopv2-protocol-core. Update Purpose after archive.
+Define the bounded, runtime-neutral SIOPv2 draft-13 DID-subject authentication
+core, including signed-request verification, direct-post response planning,
+stable redacted diagnostics, and caller-driven lifecycle ownership.
 ## Requirements
 ### Requirement: the SIOPv2 profile is version-pinned and narrow
 

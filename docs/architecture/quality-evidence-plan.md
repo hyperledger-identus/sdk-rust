@@ -434,7 +434,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `property`
 
 - Command: `cargo test -p identus-siopv2 --test property`
-- Budget: Exercise every accepted event-ID length plus deterministic terminal idempotency, conflict rejection and state preservation.
+- Budget: Exercise every accepted event-ID length plus deterministic current-state idempotency, superseded-event rejection, conflict rejection and state preservation.
 - Receipt: `pending`
 - Evidence revision: `pending`
 - Delivery debt: #514
@@ -457,8 +457,8 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `differential`
 
-- Command: `cargo test -p identus-siopv2 --test conformance`
-- Budget: Execute the pinned clean-room draft-13 vector and independently verify normalized request/response claims; foreign implementations remain research oracles.
+- Command: `cargo test -p identus-siopv2`
+- Budget: Execute the pinned clean-room draft-13 vector, independently verify normalized request/response claims, and prove state-local idempotency plus redacted diagnostic categories; foreign implementations remain research oracles.
 - Receipt: `pending`
 - Evidence revision: `pending`
 - Delivery debt: #514

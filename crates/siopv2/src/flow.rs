@@ -24,6 +24,9 @@ impl std::fmt::Debug for EventId {
 }
 
 /// Pure application-neutral SIOPv2 lifecycle.
+///
+/// Event idempotency is local to the current state. Durable or
+/// cross-transition receipt history belongs to the caller.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SiopFlow {

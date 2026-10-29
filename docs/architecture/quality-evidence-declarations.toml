@@ -1341,7 +1341,7 @@ cadence           = "on-change"
 targets           = [ "package:identus-siopv2", "host:rust" ]
 freshness         = "pending"
 freshness_days    = 0
-budget            = "Exercise every accepted event-ID length plus deterministic terminal idempotency, conflict rejection and state preservation."
+budget            = "Exercise every accepted event-ID length plus deterministic current-state idempotency, superseded-event rejection, conflict rejection and state preservation."
 receipt_kind      = "none"
 receipt           = ""
 evidence_revision = ""
@@ -1352,7 +1352,7 @@ owner_issue       = 514
 debt_status       = "open"
 debt_issue        = 514
 rationale         = ""
-details           = [ "invariant=Terminal transition replay is idempotent and conflicting IDs leave state unchanged", "domain=Every accepted event-ID length and terminal refusal receipts", "cases=Empty, exact limits, one-over limit, duplicate event and conflicting event" ]
+details           = [ "invariant=Only the current state's identical receipt is idempotent; conflicting and superseded events leave state unchanged", "domain=Every accepted event-ID length and terminal refusal/delivery receipts", "cases=Empty, exact limits, one-over limit, duplicate current event, conflicting current event and superseded event" ]
 
 [[declarations.obligations]]
 class             = "fuzz"
@@ -1406,14 +1406,14 @@ details           = [ "operation=Validate one signed request and its claims", "f
 class             = "differential"
 disposition       = "required"
 risk              = "SDK-owned claims or failure classes may diverge from the pinned specification and independent implementations."
-selectors         = [ "crates/siopv2/tests/e2e.rs#complete_did_subject_flow_round_trips_through_an_independent_verifier", "docs/conformance/fixtures/siopv2/v1/vectors.json#siopv2.did-authentication.draft13-ed25519" ]
-command           = "cargo test -p identus-siopv2 --test conformance"
+selectors         = [ "crates/siopv2/tests/e2e.rs#complete_did_subject_flow_round_trips_through_an_independent_verifier", "crates/siopv2/tests/e2e.rs#idempotency_is_local_to_the_current_lifecycle_state", "crates/siopv2/tests/e2e.rs#refined_diagnostics_are_stable_and_redacted", "docs/conformance/fixtures/siopv2/v1/vectors.json#siopv2.did-authentication.draft13-ed25519" ]
+command           = "cargo test -p identus-siopv2"
 lane              = "fast"
 cadence           = "per-pull-request"
 targets           = [ "package:identus-siopv2", "host:rust", "consumer:portable-sdk" ]
 freshness         = "pending"
 freshness_days    = 0
-budget            = "Execute the pinned clean-room draft-13 vector and independently verify normalized request/response claims; foreign implementations remain research oracles."
+budget            = "Execute the pinned clean-room draft-13 vector, independently verify normalized request/response claims, and prove state-local idempotency plus redacted diagnostic categories; foreign implementations remain research oracles."
 receipt_kind      = "none"
 receipt           = ""
 evidence_revision = ""

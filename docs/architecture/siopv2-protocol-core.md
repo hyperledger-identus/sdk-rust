@@ -4,7 +4,8 @@ Issue [#514](https://github.com/hyperledger-identus/sdk-rust/issues/514)
 introduces an experimental, unpublished `identus-siopv2` crate. The source of
 truth is Self-Issued OpenID Provider v2 draft 13 (2023-11-28), not SDK-TS,
 Oxid, or a third-party Rust DTO. [ADR 0182](../adr/0182-pin-siopv2-draft13-behind-identus-protocol-boundaries.md)
-records the profile and dependency decision.
+records the profile and dependency decision. [ADR 0197](../adr/0197-keep-siopv2-lifecycle-idempotency-state-local.md)
+records lifecycle receipt and diagnostic ownership.
 
 ## Boundary
 
@@ -58,9 +59,17 @@ expiry immediately before response planning or signer invocation. Token
 Unknown delivery outcome is terminal. The core never automatically resends an
 identity assertion whose external delivery status is uncertain.
 
+Event idempotency is local to the current state: repeating its exact receipt is
+idempotent, a different receipt conflicts, and an event for a superseded state
+is invalid. Durable cross-transition receipts, audit history, and distributed
+deduplication remain caller-owned.
+
 The response-signing algorithm is selected from the caller-authorized subject
 DID method and enforced by the injected signer. It is intentionally independent
 from the algorithm used by the relying party to sign its request object.
+Wallet-nonce correlation, client binding, response size, response encoding,
+algorithm policy, and signer failures have separate stable redacted categories.
+Raw JOSE diagnostics and sensitive protocol values never cross this boundary.
 
 ## Adapter outline
 
@@ -102,7 +111,10 @@ DID subject, signs the ID Token through `identus-jose`, decodes the form body,
 and independently verifies every response claim. Negative evidence rejects
 duplicate JSON members, wrong profile values, outer client or POST nonce
 mismatch, unsafe destinations, invalid time windows, invalid DID method
-relationships and illegal lifecycle transitions without discarding prior state.
+relationships, response bounds and illegal lifecycle transitions without
+discarding prior state. The E2E suite also proves that an approval receipt is
+idempotent only while `ResponseReady` remains current and cannot reopen a later
+terminal delivery state.
 
 - E2E: `cargo test -p identus-siopv2 --test e2e`
 - property: `cargo test -p identus-siopv2 --test property`

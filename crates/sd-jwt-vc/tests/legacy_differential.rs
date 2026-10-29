@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use identus_credentials::{CredentialEnvelope, CredentialFormat, CredentialPayload};
 use identus_crypto::{Ed25519PrivateKey, EncodeJwk, SecureRandom};
 use identus_jose::{Ed25519Signer, JwsAlgorithm, JwsVerificationKey, SignatureSuiteRegistry};
@@ -51,6 +53,18 @@ struct OracleReceipt {
     consumer: Consumer,
     oracle: Oracle,
     normative_sources: Vec<NormativeSource>,
+    cases: Vec<OracleCaseObservation>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct OracleCaseObservation {
+    id: String,
+    consumer_result: String,
+    oracle_result: String,
+    rust_result: String,
+    disposition: String,
+    source_selectors: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -167,6 +181,7 @@ fn legacy_packet_executes_through_the_public_adapter() {
 
 #[test]
 fn oracle_receipt_is_exact_and_source_bound() {
+    let packet: Packet = serde_json::from_str(PACKET).expect("closed legacy packet");
     let receipt: OracleReceipt = serde_json::from_str(RECEIPT).expect("closed oracle receipt");
     assert_eq!(receipt.schema_version, 1);
     assert_eq!(receipt.recorded_at, "2026-10-29");
@@ -190,8 +205,39 @@ fn oracle_receipt_is_exact_and_source_bound() {
     assert_eq!(receipt.oracle.tarball_sha512.len(), 128);
     assert_eq!(receipt.oracle.observations.len(), 3);
     assert_eq!(receipt.normative_sources.len(), 2);
-    for source in receipt.normative_sources {
+    for source in &receipt.normative_sources {
         assert!(source.id.starts_with("draft-ietf-oauth-sd-jwt-vc-"));
         assert_eq!(source.sha256.len(), 64);
+    }
+
+    let observations = receipt
+        .cases
+        .iter()
+        .map(|case| (case.id.as_str(), case))
+        .collect::<BTreeMap<_, _>>();
+    assert_eq!(observations.len(), packet.cases.len());
+    for case in packet.cases {
+        let observation = observations
+            .get(case.id.as_str())
+            .expect("every vector has a source-bound observation");
+        assert_eq!(observation.consumer_result, "accept");
+        assert_eq!(observation.oracle_result, "accept");
+        assert_eq!(observation.source_selectors.len(), 2);
+        assert!(observation.source_selectors[0].starts_with("sdk-ts@"));
+        assert!(observation.source_selectors[1].starts_with("sd-jwt-vc@"));
+        match case.expected.kind.as_str() {
+            "success" => {
+                assert_eq!(observation.rust_result, "success");
+                assert_eq!(observation.disposition, "agreement");
+            }
+            "error" => {
+                assert_eq!(
+                    Some(observation.rust_result.as_str()),
+                    case.expected.error_code.as_deref()
+                );
+                assert_eq!(observation.disposition, "intentional-safer-rejection");
+            }
+            other => panic!("unknown packet outcome: {other}"),
+        }
     }
 }

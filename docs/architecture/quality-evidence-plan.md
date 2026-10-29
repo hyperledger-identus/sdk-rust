@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-28`
-- Declaration count: `17`
+- Declaration count: `18`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -777,3 +777,52 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Execute every exposed normative packet result through the public Rust API, assert exact negative error stages, retain absent metadata ingestion as not-exposed, and preserve exactly two immutable independent observations per case without donor runtimes in normal CI.
 - Receipt: `source:crates/sd-jwt-vc/tests/differential.rs`
 - Evidence revision: `dc10222d7786d5ccafd6f16c89070916454c2538`
+
+## `credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1`
+
+- Capability: `credentials.sd-jwt`
+- Slice: Explicit input-only draft-03 vc+sd-jwt common-subset migration adapter
+- Owner: SDK-Rust credential maintainers (issue #572)
+- Risk: Automatic fallback, signed-header relabeling, draft confusion, legacy date/status behavior, unbounded input, or correlating diagnostics can misrepresent a legacy credential as canonical draft-22.
+- Targets: `package:identus-sd-jwt-vc`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`, `consumer:sdk-ts`
+- Vector IDs: `1` local catalog entries
+- Limitations: Input-only draft-03 common subset for SDK-TS 8.1.4 migration; no full draft-03, legacy output, automatic fallback, header rewriting, status networking/acceptance, Type Metadata, millisecond dates, trust/time/product policy, bindings, publication, certification, or downstream adoption.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `required` | `focused` | `on-change` | `pending` | #572 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #572 |
+| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #572 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #572 |
+
+### `property`
+
+- Command: `cargo test -p identus-sd-jwt-vc --test properties legacy`
+- Budget: Sweep exact legacy/canonical identity, common claims, date representations, non-selective placement, unsupported draft features, order, boundaries, redaction, and staged ownership.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #572
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-sd-jwt-vc.sh soak`
+- Budget: Route explicit legacy envelope, compact and profile inputs through the existing SD-JWT VC fuzz family for 300 seconds with max_len=1048576, timeout=5 and rss_limit_mb=1024.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #572
+
+### `benchmark`
+
+- Command: `cargo bench -p identus-sd-jwt-vc --bench directional legacy`
+- Budget: Measure accepted common-subset validation, wrong-identity early rejection, unsupported-draft early rejection, and canonical-path comparison without a new enforceable latency promise.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #572
+
+### `differential`
+
+- Command: `cargo test -p identus-sd-jwt-vc --test differential legacy`
+- Budget: Execute every checked-in legacy packet result through public Rust APIs and compare immutable SDK-TS 8.1.4 plus @sd-jwt/sd-jwt-vc 0.7.2 observations, resolving differences against exact drafts and SDK safety policy.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #572

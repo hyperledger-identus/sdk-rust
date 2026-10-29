@@ -2195,3 +2195,112 @@ debt_status       = "none"
 debt_issue        = 0
 rationale         = ""
 details           = [ "oracle=Draft-22 normative source plus OpenWallet Foundation 0.20.1 and K2GL 2.1.0 behavioral oracles", "oracle-revision=Draft text da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124; OWF b983e03253481ab6d33e147cc7e30e4904d0813f; K2GL 7d938daf0a1e14974420651e7ce84146ed1875bb", "normalization=Closed accept/reject/not-exposed observations with exact selectors; draft-22 resolves every disagreement", "deviations=Both earlier-draft engines reject optional malformed display metadata; K2GL accepts a missing draft-20 mandatory path; Rust follows draft-22 and issue #572 remains the sole legacy adapter owner" ]
+[[declarations]]
+id          = "credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1"
+capability  = "credentials.sd-jwt"
+slice       = "Explicit input-only draft-03 vc+sd-jwt common-subset migration adapter"
+owner       = "SDK-Rust credential maintainers"
+owner_issue = 572
+risk        = "Automatic fallback, signed-header relabeling, draft confusion, legacy date/status behavior, unbounded input, or correlating diagnostics can misrepresent a legacy credential as canonical draft-22."
+targets     = [ "package:identus-sd-jwt-vc", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android", "consumer:sdk-ts" ]
+vector_ids  = [ "credentials.sd-jwt-vc.legacy-protected-type" ]
+limitations = "Input-only draft-03 common subset for SDK-TS 8.1.4 migration; no full draft-03, legacy output, automatic fallback, header rewriting, status networking/acceptance, Type Metadata, millisecond dates, trust/time/product policy, bindings, publication, certification, or downstream adoption."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "required"
+risk              = "Common claim validation, non-selective placement, exact identity, unsupported-draft rejection, and staged ownership can diverge from canonical safety invariants."
+selectors         = [ "openspec/changes/qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
+command           = "cargo test -p identus-sd-jwt-vc --test properties legacy"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-sd-jwt-vc", "host:rust" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Sweep exact legacy/canonical identity, common claims, date representations, non-selective placement, unsupported draft features, order, boundaries, redaction, and staged ownership."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = "crates/sd-jwt-vc/tests/properties.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 572
+debt_status       = "open"
+debt_issue        = 572
+rationale         = ""
+details           = [ "invariant=An accepted legacy value remains type-distinct from draft-22 and always requires canonical reissuance", "domain=Bounded draft-03 common claims, protected identity, disclosure placement, dates, limits and unsupported features", "cases=Positive, negative, boundary, permutation, mismatch and canonical-separation canaries" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "required"
+risk              = "Hostile legacy compact bytes or claims can panic, amplify work, bypass explicit selection, enter the canonical path, or expose correlating material."
+selectors         = [ "openspec/changes/qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-sd-jwt-vc.sh soak"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-sd-jwt-vc", "host:linux", "sanitizer:address" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Route explicit legacy envelope, compact and profile inputs through the existing SD-JWT VC fuzz family for 300 seconds with max_len=1048576, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = "fuzz/fuzz_targets/sd_jwt_vc.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 572
+debt_status       = "open"
+debt_issue        = 572
+rationale         = ""
+details           = [ "harness=Arbitrary bounded bytes exercise explicit legacy parsing and common-subset validation without automatic canonical fallback", "corpus=Clean-room draft-03 identity plus malformed and exact-boundary cases", "seed=libFuzzer-managed failures promoted to checked-in regression vectors", "bounds=max_len=1048576;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "required"
+risk              = "Legacy compatibility checks can add disproportionate latency or retained allocation to canonical profile paths or oversized rejection."
+selectors         = [ "openspec/changes/qualify-legacy-vc-sd-jwt-adapter/design.md#Reuse existing limits" ]
+command           = "cargo bench -p identus-sd-jwt-vc --bench directional legacy"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-sd-jwt-vc", "host:rust" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Measure accepted common-subset validation, wrong-identity early rejection, unsupported-draft early rejection, and canonical-path comparison without a new enforceable latency promise."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = "crates/sd-jwt-vc/benches/directional.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 572
+debt_status       = "open"
+debt_issue        = 572
+rationale         = ""
+details           = [ "operation=Parse and validate explicit legacy input plus identity and draft-mismatch rejection", "fixture=Ordinary, exact-boundary and unsupported-feature clean-room credentials", "environment=Rust 1.98.1 etalon on the recorded local host", "statistic=Directional wall time plus retained/work counters where exposed", "samples=101 measured samples after 101 warm-up iterations", "threshold=Directional baseline; functional byte, count, depth, output and work limits remain blocking" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "required"
+risk              = "The adapter can appear internally consistent while accepting semantics that differ from draft-03, draft-22, SDK-TS 8.1.4, or its exact package engine."
+selectors         = [ "openspec/changes/qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
+command           = "cargo test -p identus-sd-jwt-vc --test differential legacy"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-sd-jwt-vc", "host:rust", "consumer:sdk-ts" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Execute every checked-in legacy packet result through public Rust APIs and compare immutable SDK-TS 8.1.4 plus @sd-jwt/sd-jwt-vc 0.7.2 observations, resolving differences against exact drafts and SDK safety policy."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = "docs/conformance/fixtures/sd-jwt-vc-legacy-draft03/v1/vectors.json"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 572
+debt_status       = "open"
+debt_issue        = 572
+rationale         = ""
+details           = [ "oracle=SDK-TS 8.1.4 and @sd-jwt/sd-jwt-vc 0.7.2 under draft-03, compared with canonical draft-22", "oracle-revision=SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e; package d3cc53b66be9ef40ede9f86a931b7a43f55dbd3a; draft-03 9599225eb8732c0ef3f9a6524589e637f9272ba742da185c43ecfd272b81bf5a; draft-22 da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124", "normalization=Compare exact accept/reject and stable semantic categories rather than TypeScript DTO, task, DID or error shapes", "deviations=Millisecond dates, draft-era status effects and any non-common semantics remain explicit intentional rejections" ]

@@ -491,23 +491,38 @@ copy_error_planning_golden() {
   local source="$repository_root/openspec/changes/$change_name/golden/$file_name"
   local count=0
 
-  if [[ ! -f "$source" ]]; then
-    source=''
-    while IFS= read -r candidate; do
-      source=$candidate
-      count=$((count + 1))
-    done < <(find "$repository_root/openspec/changes/archive" -type f \
-      -path "*-$change_name/golden/$file_name" | sort)
-    if [[ $count -ne 1 ]]; then
-      printf 'factory-contract test: expected one archived %s planning golden; found %s\n' \
-        "$change_name" "$count" >&2
-      exit 1
-    fi
+  # Every active change is copied above, including its golden. Adding an
+  # artificial archive as well would make the immutable checker observe two
+  # authorities. Only materialize a bounded archive when the change is no
+  # longer active.
+  if [[ -f "$source" ]]; then
+    return 0
+  fi
+
+  source=''
+  while IFS= read -r candidate; do
+    source=$candidate
+    count=$((count + 1))
+  done < <(find "$repository_root/openspec/changes/archive" -type f \
+    -path "*-$change_name/golden/$file_name" | sort)
+  if [[ $count -ne 1 ]]; then
+    printf 'factory-contract test: expected one archived %s planning golden; found %s\n' \
+      "$change_name" "$count" >&2
+    exit 1
   fi
 
   local target="$fixture_root/openspec/changes/archive/$archive_date-$change_name/golden/$file_name"
   mkdir -p "$(dirname "$target")"
   cp "$source" "$target"
+
+  local archived_source
+  archived_source="$(dirname "$(dirname "$source")")"
+  for contract_file in preimplementation.json compatibility-impact.toml; do
+    if [[ -f "$archived_source/$contract_file" ]]; then
+      cp "$archived_source/$contract_file" \
+        "$fixture_root/openspec/changes/archive/$archive_date-$change_name/$contract_file"
+    fi
+  done
 }
 
 copy_error_planning_golden \
@@ -516,6 +531,8 @@ copy_error_planning_golden \
   decompose-presentation-error-contracts presentations-error-contract-v1.csv 2026-09-16
 copy_error_planning_golden \
   decompose-jose-error-contracts jose-error-contract-v1.csv 2026-09-17
+copy_error_planning_golden \
+  version-jwe-error-contract jwe-encryption-error-contract-v1.csv 2026-10-29
 copy_error_planning_golden \
   decompose-oid4vci-error-contracts oid4vci-error-contract-v1.csv 2026-09-18
 

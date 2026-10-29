@@ -45,12 +45,17 @@ The accepted common subset is `iss`, `vct`, optional `nbf`, `exp`, `iat`,
 limits. `status`, `aka_vcts`, `vct#integrity`, Type Metadata, automatic
 fallback, protected-header rewriting, legacy issuance, and millisecond
 conversion are rejected or absent. Numeric dates retain JWT seconds semantics;
-large numeric values are never silently divided or normalized.
+values whose absolute magnitude is at least `1_000_000_000_000` are rejected
+for `nbf`, `exp`, and `iat` as ambiguous millisecond-style input; they are
+never divided or normalized. Canonical draft-22 NumericDate behavior is not
+changed by this migration-only guard.
 
 ## Operational contract
 
 - Callers must select `LegacyVcSdJwtDraft03Adapter`; canonical parsing and
-  validation continue to reject the legacy identity.
+  validation continue to reject the legacy identity. Typed legacy stages
+  preserve exact envelope provenance, so a generic compact parse cannot be
+  substituted after the envelope check.
 - Success proves signature, disclosure processing, and the structural common
   subset. It does not prove issuer trust, time acceptance, status, schema,
   storage safety, or product acceptance.

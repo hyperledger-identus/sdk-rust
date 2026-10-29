@@ -30,14 +30,20 @@ reviewed.
    integrity receipt.
 3. Reuse the verified RFC 9901 state and canonical validation helpers only for
    the closed semantic subset proven common to drafts 03 and 22.
-4. Reject status, `aka_vcts`, `vct#integrity`, Type Metadata, millisecond date
-   heuristics, and any future unqualified legacy feature.
-5. Return a separate legacy migration type and static redacted receipt. It
+4. Preserve envelope provenance with typed unverified, issuer-verified, and
+   disclosure-verified legacy states. A generically parsed compact value does
+   not satisfy the adapter's exact-envelope precondition.
+5. Reject status, `aka_vcts`, `vct#integrity`, Type Metadata, and any future
+   unqualified legacy feature. Reject `nbf`, `exp`, or `iat` whose absolute
+   numeric value is at least `1_000_000_000_000`; never guess, divide, or
+   normalize a possible millisecond timestamp. Canonical draft-22 NumericDate
+   handling remains unchanged.
+6. Return a separate legacy migration type and static redacted receipt. It
    cannot convert into `Draft22SdJwtVc`; canonical identity requires issuer
    reissuance.
-6. Preserve canonical parsing and issuance unchanged. No API automatically
+7. Preserve canonical parsing and issuance unchanged. No API automatically
    dispatches to the adapter or emits `vc+sd-jwt`.
-7. Remove the adapter through a separate consumer-visible change after the
+8. Remove the adapter through a separate consumer-visible change after the
    named consumer and supported stored credentials have measured canonical
    migration and the compatibility window ends.
 

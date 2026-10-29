@@ -5,10 +5,14 @@
 The SDK SHALL accept `vc+sd-jwt` only through a versioned, input-only adapter
 bound to `draft-ietf-oauth-sd-jwt-vc-03` and the named SDK-TS 8.1.4 consumer.
 The adapter SHALL require an issuer-verified and disclosure-processed RFC 9901
-state, exact legacy envelope and protected identity, and the bounded semantic
+state whose typed stages preserve the exact legacy envelope provenance and
+protected identity, and the bounded semantic
 subset proven common with draft-22. It SHALL reject draft-specific ambiguity,
 including legacy status behavior, `aka_vcts`, `vct#integrity`, Type Metadata,
-and millisecond NumericDate heuristics. A successful legacy state SHALL remain
+and `nbf`, `exp`, or `iat` whose absolute numeric value is at least
+`1_000_000_000_000`. The adapter SHALL NOT divide or normalize ambiguous
+millisecond-style dates, and generic compact parsing SHALL NOT satisfy its
+envelope provenance requirement. A successful legacy state SHALL remain
 type-distinct from `Draft22SdJwtVc`, SHALL report that canonical reissuance is
 required, and SHALL expose no legacy issuance, automatic fallback, protected
 header rewriting, or canonical conversion under the original signature.

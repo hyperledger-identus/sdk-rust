@@ -42,9 +42,11 @@ canonical profile implementation.
 ### Require an explicit versioned adapter
 
 The public zero-sized adapter names draft-03 and exposes a stable capability
-identifier. Its methods parse an exact `vc+sd-jwt` envelope and consume a
-`DisclosureVerifiedSdJwt`. No canonical parser dispatches to it, and no
-generic `From` conversion exists between legacy and canonical states.
+identifier. Its methods parse an exact `vc+sd-jwt` envelope and preserve that
+provenance through typed unverified, issuer-verified, and disclosure-verified
+legacy states. A generic compact parse cannot be passed to validation. No
+canonical parser dispatches to the adapter, and no generic `From` conversion
+exists between legacy and canonical states.
 
 ```text
 CredentialEnvelope(format = vc+sd-jwt)
@@ -73,8 +75,10 @@ disclosable.
 It rejects `status`, `aka_vcts`, and `vct#integrity` before validation because
 their specification lineage differs or they do not exist in draft-03. Its
 input structure has no Type Metadata or status evidence fields. Numeric dates
-remain finite seconds; values identified only by the SDK-TS millisecond
-heuristic are migration mismatches.
+remain finite seconds. For `nbf`, `exp`, and `iat`, an absolute numeric value
+at least `1_000_000_000_000` is rejected as an ambiguous millisecond-style
+representation; the adapter never divides or normalizes it. Canonical
+draft-22 NumericDate handling is unchanged.
 
 ### Preserve distinct evidence and errors
 

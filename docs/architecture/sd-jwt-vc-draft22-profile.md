@@ -87,8 +87,11 @@ vc+sd-jwt envelope ─► issuer verification ─► disclosure processing
                                          canonical reissuance required
 ```
 
-The adapter rejects status, additional types, type-integrity metadata, Type
-Metadata, automatic fallback, header rewriting, legacy issuance, and date
-unit conversion. It cannot convert into `Draft22SdJwtVc`. Exact source and
+The adapter preserves exact envelope provenance through typed legacy stages;
+a generic compact parse cannot enter its validator. It rejects status,
+additional types, type-integrity metadata, Type Metadata, automatic fallback,
+header rewriting, legacy issuance, and `nbf`/`exp`/`iat` values whose absolute
+magnitude is at least `1_000_000_000_000`, without date-unit conversion. It
+cannot convert into `Draft22SdJwtVc`. Exact source and
 removal evidence is recorded in the
 [draft-03 migration report](../research/platform-core/sd-jwt-vc-draft03-migration.md).

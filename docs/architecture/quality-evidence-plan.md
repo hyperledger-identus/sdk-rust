@@ -4,7 +4,7 @@ Generated deterministically from `docs/architecture/quality-evidence-declaration
 Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
-- Evidence evaluated: `2026-10-28`
+- Evidence evaluated: `2026-10-29`
 - Declaration count: `18`
 
 ## `oid4vp.redirect-response.quality.v1`
@@ -262,8 +262,8 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all`
 - Budget: Run each DID and DID URL fuzz target for 300 seconds with max_len=8192, timeout=5, and rss_limit_mb=1024.
-- Receipt: `https://github.com/hyperledger-identus/sdk-rust/actions/runs/39364833087`
-- Evidence revision: `fb1c7011897ba766f82ea5957feaeb95df179418`
+- Receipt: `https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925`
+- Evidence revision: `fd808b1df5e25923d60eea5f8d276e6c7a00ac27`
 
 ### `benchmark`
 
@@ -790,39 +790,35 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
-| `property` | `required` | `focused` | `on-change` | `pending` | #572 |
-| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #572 |
-| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #572 |
-| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #572 |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #572 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #572 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #572 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #572 |
 
 ### `property`
 
 - Command: `cargo test -p identus-sd-jwt-vc --test properties legacy`
 - Budget: Sweep exact legacy/canonical identity, common claims, date representations, non-selective placement, unsupported draft features, order, boundaries, redaction, and staged ownership.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #572
+- Receipt: `source:crates/sd-jwt-vc/tests/properties.rs`
+- Evidence revision: `29187e516ce49d2e057343154f0411025e5d6cd7`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-sd-jwt-vc.sh soak`
 - Budget: Route explicit legacy envelope, compact and profile inputs through the existing SD-JWT VC fuzz family for 300 seconds with max_len=1048576, timeout=5 and rss_limit_mb=1024.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #572
+- Receipt: `source:fuzz/fuzz_targets/sd_jwt_vc.rs`
+- Evidence revision: `29187e516ce49d2e057343154f0411025e5d6cd7`
 
 ### `benchmark`
 
 - Command: `cargo bench -p identus-sd-jwt-vc --bench directional legacy`
 - Budget: Measure accepted common-subset validation, wrong-identity early rejection, unsupported-draft early rejection, and canonical-path comparison without a new enforceable latency promise.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #572
+- Receipt: `source:crates/sd-jwt-vc/benches/directional.rs`
+- Evidence revision: `29187e516ce49d2e057343154f0411025e5d6cd7`
 
 ### `differential`
 
 - Command: `cargo test -p identus-sd-jwt-vc --test legacy_differential`
 - Budget: Execute every checked-in legacy packet result through public Rust APIs and compare immutable SDK-TS 8.1.4 plus @sd-jwt/sd-jwt-vc 0.7.2 observations, resolving differences against exact drafts and SDK safety policy.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #572
+- Receipt: `source:crates/sd-jwt-vc/tests/legacy_differential.rs`
+- Evidence revision: `29187e516ce49d2e057343154f0411025e5d6cd7`

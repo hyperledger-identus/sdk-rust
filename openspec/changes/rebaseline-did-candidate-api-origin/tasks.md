@@ -9,11 +9,11 @@
 
 ## 2. Exact API-origin evidence
 
-- [ ] 2.1 Generate current cargo-public-api output through the pinned candidate
+- [x] 2.1 Generate current cargo-public-api output through the pinned candidate
       toolchain and record the exact set difference.
-- [ ] 2.2 Add a closed machine-readable rebaseline receipt with validator and
+- [x] 2.2 Add a closed machine-readable rebaseline receipt with validator and
       mutation coverage.
-- [ ] 2.3 Replace only the `identus-did` baseline byte-for-byte and update ADR
+- [x] 2.3 Replace only the `identus-did` baseline byte-for-byte and update ADR
       and release-readiness knowledge.
 
 ## 3. Qualification

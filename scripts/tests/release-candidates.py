@@ -42,6 +42,7 @@ def copy_fixture(destination: Path) -> None:
         "docs/release/release-trains.toml",
         "docs/release/did-candidate.toml",
         "docs/release/did-candidate.lock",
+        "docs/release/did-api-origin-rebaseline.toml",
         "docs/release/identus-did-0.1.0-rc.1.api.txt",
         "docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt",
         "docs/release/crypto-candidate.toml",
@@ -463,6 +464,40 @@ def main() -> int:
                     'compatibility_status     = "compatible"',
                 ),
                 "DID descriptor differs: compatibility_status",
+            ),
+            (
+                lambda root: (root / "docs/release/did-api-origin-rebaseline.toml").unlink(),
+                "DID API-origin rebaseline must be a regular repository file",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-api-origin-rebaseline.toml",
+                    'classification       = "additive-only"',
+                    'classification       = "compatible"',
+                ),
+                "DID API-origin rebaseline evidence differs",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-api-origin-rebaseline.toml",
+                    'pub identus_did::JsonWireError::Malformed',
+                    'pub identus_did::JsonWireError::Other',
+                ),
+                "DID API-origin rebaseline evidence differs",
+            ),
+            (
+                lambda root: append(
+                    root / "docs/release/identus-did-0.1.0-rc.1.api.txt", "\n# drift\n",
+                ),
+                "DID API-origin rebaseline digest differs from current baseline",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-candidate.toml",
+                    'api_origin_rebaseline    = "docs/release/did-api-origin-rebaseline.toml"',
+                    'api_origin_rebaseline    = "docs/release/missing.toml"',
+                ),
+                "DID descriptor differs: api_origin_rebaseline",
             ),
             (
                 lambda root: (root / "docs/release/did-candidate.lock").unlink(),

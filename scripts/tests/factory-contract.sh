@@ -149,6 +149,7 @@ required_files=(
   docs/release/crypto-candidate.toml
   docs/release/did-candidate.lock
   docs/release/did-candidate.toml
+  docs/release/did-api-origin-rebaseline.toml
   docs/release/release-trains.toml
   docs/release/0.1.0-rc.1.md
   docs/release/identus-crypto-rustcrypto-0.14-migration.md

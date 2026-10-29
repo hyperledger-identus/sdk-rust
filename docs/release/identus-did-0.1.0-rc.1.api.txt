@@ -239,6 +239,13 @@ pub fn identus_did::error::Error::to_identus_error(&self) -> identus_core::Ident
 impl core::error::Error for identus_did::error::Error
 impl core::fmt::Display for identus_did::error::Error
 pub fn identus_did::error::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+#[non_exhaustive] pub enum identus_did::JsonWireError
+pub identus_did::JsonWireError::DuplicateName
+pub identus_did::JsonWireError::Malformed
+pub identus_did::JsonWireError::TooDeep
+pub identus_did::JsonWireError::TooManyLiveKeyBytes
+pub identus_did::JsonWireError::TooManyMembers
+pub identus_did::JsonWireError::TooManyNodes
 pub enum identus_did::RegistrationContinuation
 pub identus_did::RegistrationContinuation::Action(identus_did::RegistrationActionId)
 pub identus_did::RegistrationContinuation::Wait
@@ -697,6 +704,11 @@ impl identus_did::InternalSecretPolicy
 pub fn identus_did::InternalSecretPolicy::new(bool, bool) -> core::result::Result<Self, identus_did::error::Error>
 pub const fn identus_did::InternalSecretPolicy::return_handle(self) -> bool
 pub const fn identus_did::InternalSecretPolicy::store_generated(self) -> bool
+pub struct identus_did::JsonWireLimits
+pub identus_did::JsonWireLimits::max_depth: usize
+pub identus_did::JsonWireLimits::max_live_key_bytes: usize
+pub identus_did::JsonWireLimits::max_nodes: usize
+pub identus_did::JsonWireLimits::max_object_members: usize
 pub struct identus_did::MediaType(_)
 impl identus_did::MediaType
 pub fn identus_did::MediaType::as_str(&self) -> &str
@@ -977,6 +989,7 @@ impl identus_did::DidUrlDereferencer for identus_did::DidMethodRegistry
 pub fn identus_did::DidMethodRegistry::dereference<'a>(&'a self, &'a identus_did::DidUrl, &'a identus_did::DereferencingOptions) -> identus_did::DidUrlDereferencingFuture<'a>
 impl identus_did::DidUrlDereferencer for identus_did::GenericDidUrlDereferencer
 pub fn identus_did::GenericDidUrlDereferencer::dereference<'a>(&'a self, &'a identus_did::DidUrl, &'a identus_did::DereferencingOptions) -> identus_did::DidUrlDereferencingFuture<'a>
+pub fn identus_did::validate_unique_object_names(&[u8], identus_did::JsonWireLimits) -> core::result::Result<(), identus_did::JsonWireError>
 pub type identus_did::CachedDidResolutionFuture<'a> = core::pin::Pin<alloc::boxed::Box<(dyn core::future::future::Future<Output = identus_did::CachedDidResolution> + core::marker::Send + 'a)>>
 pub type identus_did::DidRegistrationFuture<'a> = core::pin::Pin<alloc::boxed::Box<(dyn core::future::future::Future<Output = identus_did::DidRegistrationResult> + core::marker::Send + 'a)>>
 pub type identus_did::DidResolutionCacheLookupFuture<'a> = core::pin::Pin<alloc::boxed::Box<(dyn core::future::future::Future<Output = identus_core::IdentusResult<core::option::Option<identus_did::DidResolutionCacheEntry>>> + core::marker::Send + 'a)>>

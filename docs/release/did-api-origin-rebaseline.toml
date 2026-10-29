@@ -1,0 +1,27 @@
+schema_version       = 1
+issue                = 582
+candidate            = "identus-did-0.1.0-rc.1"
+source_revision      = "a0ec4c0254f06a18bd914982e919547a9232964d"
+tool                 = "cargo-public-api 0.52.0"
+baseline_path        = "docs/release/identus-did-0.1.0-rc.1.api.txt"
+previous_api_sha256  = "3ce68d571d087e78ece200154ba0e185565fbf5da9c2733eb7f70d3b1f7bbf9d"
+current_api_sha256   = "5c985cd2d3f26c07230ace1086d7a178662a4f583d0086574ac9baa6a00be639"
+resolver_api_sha256  = "9c432f0d0c3d5db92da3aa88aed05164aa2adf483c11be84b9239c9973179df6"
+classification       = "additive-only"
+publication          = "candidate-only"
+removed              = []
+added                = [
+  "#[non_exhaustive] pub enum identus_did::JsonWireError",
+  "pub identus_did::JsonWireError::DuplicateName",
+  "pub identus_did::JsonWireError::Malformed",
+  "pub identus_did::JsonWireError::TooDeep",
+  "pub identus_did::JsonWireError::TooManyLiveKeyBytes",
+  "pub identus_did::JsonWireError::TooManyMembers",
+  "pub identus_did::JsonWireError::TooManyNodes",
+  "pub struct identus_did::JsonWireLimits",
+  "pub identus_did::JsonWireLimits::max_depth: usize",
+  "pub identus_did::JsonWireLimits::max_live_key_bytes: usize",
+  "pub identus_did::JsonWireLimits::max_nodes: usize",
+  "pub identus_did::JsonWireLimits::max_object_members: usize",
+  "pub fn identus_did::validate_unique_object_names(&[u8], identus_did::JsonWireLimits) -> core::result::Result<(), identus_did::JsonWireError>",
+]

@@ -61,9 +61,18 @@ Because this is the first candidate, compatibility is explicitly
 green result. The SBOMs describe dependencies and licenses but do not replace
 Cargo-deny, advisory review, provenance, or security assessment.
 
+Before publication, the `identus-did` origin was intentionally rebased once to
+include the already-protected bounded JSON wire validator. Pinned
+`cargo-public-api 0.52.0` reported zero removals and exactly 13 additions; the
+resolver API remained unchanged. The closed
+[API-origin receipt](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/release/did-api-origin-rebaseline.toml)
+binds the exact source revision, hashes, classification, and symbol set. This
+is an additive correction to an unpublished origin, not a stable API promise.
+
 Primary evidence:
 
 - [DID candidate descriptor](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/release/did-candidate.toml)
+- [DID API-origin rebaseline receipt](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/release/did-api-origin-rebaseline.toml)
 - [Release-train registry](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/release/release-trains.toml)
 - [ADR 0153: independent train tags](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md)
 - [ADR 0154: first-candidate API origin](https://github.com/hyperledger-identus/sdk-rust/blob/develop/docs/adr/0154-use-first-candidate-api-snapshots-as-semver-origin.md)

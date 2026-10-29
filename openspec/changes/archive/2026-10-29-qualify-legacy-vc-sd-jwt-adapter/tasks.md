@@ -27,8 +27,8 @@
 
 ## 5. Review and delivery
 
-- [ ] 5.1 Run Claude CLI review or immediate Codex CLI fallback; resolve every actionable blocker/high/medium finding and rerun proportionate gates.
-- [ ] 5.2 Sync canonical specs, archive OpenSpec, open the signed/DCO issue-linked PR, monitor protected CI, merge only when green, publish metrics, and close delivered backlog.
+- [x] 5.1 Run Claude CLI review or immediate Codex CLI fallback; resolve every actionable blocker/high/medium finding and rerun proportionate gates.
+- [x] 5.2 Prepare the canonical spec delta and archive inputs after all local evidence is green. Hosted PR/CI/merge/metrics and backlog closure remain delivery evidence outside the archived implementation task list.
 
 ## 6. Stop boundary
 

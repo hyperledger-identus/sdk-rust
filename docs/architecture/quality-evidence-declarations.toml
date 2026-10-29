@@ -2213,7 +2213,7 @@ replaced_by = ""
 class             = "property"
 disposition       = "satisfied"
 risk              = "Common claim validation, non-selective placement, exact identity, unsupported-draft rejection, and staged ownership can diverge from canonical safety invariants."
-selectors         = [ "openspec/changes/qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
+selectors         = [ "openspec/changes/archive/2026-10-29-qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
 command           = "cargo test -p identus-sd-jwt-vc --test properties legacy && cargo test -p identus-sd-jwt-vc --test legacy_adapter"
 lane              = "focused"
 cadence           = "on-change"
@@ -2237,7 +2237,7 @@ details           = [ "invariant=An accepted legacy value remains type-distinct 
 class             = "fuzz"
 disposition       = "satisfied"
 risk              = "Hostile legacy compact bytes or claims can panic, amplify work, bypass explicit selection, enter the canonical path, or expose correlating material."
-selectors         = [ "openspec/changes/qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
+selectors         = [ "openspec/changes/archive/2026-10-29-qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
 command           = "nix develop .#fuzz --command ./scripts/fuzz-sd-jwt-vc.sh soak"
 lane              = "slow"
 cadence           = "weekly-or-manual"
@@ -2261,7 +2261,7 @@ details           = [ "harness=Arbitrary bounded bytes exercise explicit legacy 
 class             = "benchmark"
 disposition       = "satisfied"
 risk              = "Legacy compatibility checks can add disproportionate latency or retained allocation to canonical profile paths or oversized rejection."
-selectors         = [ "openspec/changes/qualify-legacy-vc-sd-jwt-adapter/design.md#Reuse existing limits" ]
+selectors         = [ "openspec/changes/archive/2026-10-29-qualify-legacy-vc-sd-jwt-adapter/design.md#Reuse existing limits" ]
 command           = "cargo bench -p identus-sd-jwt-vc --bench directional legacy"
 lane              = "slow"
 cadence           = "weekly-or-manual"
@@ -2285,7 +2285,7 @@ details           = [ "operation=Parse and validate explicit legacy input plus i
 class             = "differential"
 disposition       = "satisfied"
 risk              = "The adapter can appear internally consistent while accepting semantics that differ from draft-03, draft-22, SDK-TS 8.1.4, or its exact package engine."
-selectors         = [ "openspec/changes/qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
+selectors         = [ "openspec/changes/archive/2026-10-29-qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
 command           = "cargo test -p identus-sd-jwt-vc --test legacy_differential"
 lane              = "fast"
 cadence           = "per-pull-request"

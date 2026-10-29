@@ -93,13 +93,15 @@ function authoritativeMarkdownLines(body) {
   const lines = [];
   let fence = null;
   for (const line of withoutComments.split(/\r?\n/u)) {
-    const marker = line.match(/^\s*(`{3,}|~{3,})/u)?.[1] ?? null;
-    if (fence === null && marker !== null) {
+    const opening = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/u);
+    const marker = opening?.[1] ?? null;
+    const info = opening?.[2] ?? "";
+    if (fence === null && marker !== null && !(marker[0] === "`" && info.includes("`"))) {
       fence = { character: marker[0], length: marker.length };
       continue;
     }
     if (fence !== null) {
-      const closing = line.match(/^\s*(`{3,}|~{3,})\s*$/u)?.[1] ?? null;
+      const closing = line.match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/u)?.[1] ?? null;
       if (closing !== null && closing[0] === fence.character && closing.length >= fence.length) fence = null;
       continue;
     }
@@ -113,6 +115,16 @@ function captures(lines, pattern) {
     const match = line.match(pattern);
     return match ? [match.slice(1)] : [];
   });
+}
+
+function linkageModes(lines) {
+  return captures(lines, /^\s*-\s*Issue linkage:\s*(closes|deferred)\s*$/iu)
+    .map(([mode]) => mode.toLowerCase());
+}
+
+export function declaredIssueLinkageMode(body) {
+  const modes = linkageModes(authoritativeMarkdownLines(body));
+  return modes.length === 1 ? modes[0] : null;
 }
 
 export function containsGitHubClosingKeyword(text, issue, repository = repositorySlug) {
@@ -194,7 +206,7 @@ export function validateIssueLinkage(body, expectedIssue, {
   const lines = authoritativeMarkdownLines(body);
   const errors = [];
   const issues = captures(lines, /^\s*-\s*Issue:\s*#([1-9][0-9]*)\s*$/iu).map(Number);
-  const modes = captures(lines, /^\s*-\s*Issue linkage:\s*(closes|deferred)\s*$/iu).map(([mode]) => mode.toLowerCase());
+  const modes = linkageModes(lines);
   const closing = captures(
     lines,
     /^\s*(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s+#([1-9][0-9]*)\.?\s*$/iu,
@@ -507,17 +519,16 @@ function main() {
     } else {
       linkage = result(["hosted commit evidence requires an issue branch"]);
     }
-    report(linkage);
-    if (!linkage.ok) return;
     const outcome = validateHostedCommits(records, requireEnv("HEAD_SHA"), {
       baseSha: requireEnv("PR_BASE_SHA"),
       baseRef: requireEnv("PR_BASE_REF"),
       headRef: requireEnv("PR_HEAD_REF"),
       repository: root,
-      deferredIssue: linkage.mode === "deferred" ? branch.issue : null,
+      deferredIssue: linkage.ok && linkage.mode === "deferred" ? branch.issue : null,
     });
-    report(outcome);
-    if (outcome.ok) process.stdout.write(`Hosted commit policy passed for ${records.length} commit(s).\n`);
+    const combined = result([...linkage.errors, ...outcome.errors]);
+    report(combined);
+    if (combined.ok) process.stdout.write(`Hosted commit policy passed for ${records.length} commit(s).\n`);
     return;
   }
   if (command === "policy-monotonicity") {

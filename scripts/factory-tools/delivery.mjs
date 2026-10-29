@@ -24,6 +24,7 @@ import { TextDecoder } from "node:util";
 import { fileURLToPath } from "node:url";
 import {
   containsGitHubClosingKeyword,
+  declaredIssueLinkageMode,
   readDeferredAcceptanceAt,
   validatePullRequest,
 } from "../ci/contribution-policy.mjs";
@@ -135,22 +136,18 @@ function policyDiagnostics(stderr) {
 
 export function preflightPullRequest({ title, bodyFile, headRef, baseRef, draft }, {
   runPolicy = runPullRequestPolicy,
-  loadDeferredAcceptance = (sidecarPath) => readDeferredAcceptanceAt({
-    repository: root,
-    head: execFileSync("git", ["rev-parse", "--verify", "HEAD^{commit}"], {
-      cwd: root,
-      encoding: "utf8",
-      maxBuffer: 1024 * 1024,
-      stdio: ["ignore", "pipe", "pipe"],
-    }).trim(),
-    sidecarPath,
-  }),
+  loadDeferredAcceptance = null,
 } = {}) {
   requireText(title, "--title");
   requireText(headRef, "--head-ref");
   requireText(baseRef, "--base-ref");
   if (typeof draft !== "boolean") fail("--draft must be explicitly true or false");
   const body = readPullRequestBody(bodyFile);
+  const acceptanceLoader = loadDeferredAcceptance ?? ((sidecarPath) => readDeferredAcceptanceAt({
+    repository: root,
+    head: gitText(root, ["rev-parse", "--verify", `${headRef}^{commit}`]),
+    sidecarPath,
+  }));
   const environment = Object.freeze({
     PR_BASE_REF: baseRef,
     PR_DRAFT: String(draft),
@@ -163,7 +160,7 @@ export function preflightPullRequest({ title, bodyFile, headRef, baseRef, draft 
 
   const contribution = validatePullRequest(
     { title, body, branch: headRef },
-    { loadDeferredAcceptance },
+    { loadDeferredAcceptance: acceptanceLoader },
   );
   if (!contribution.ok) {
     throw new PullRequestPolicyError(
@@ -315,7 +312,7 @@ function hostedGithub(repository) {
     readPullRequest(number) {
       return JSON.parse(run([
         "pr", "view", String(number), "--repo", repository, "--json",
-        "state,isDraft,baseRefName,headRefOid,headRefName,title,body,author,mergeable,mergeStateStatus,reviewDecision,mergedAt,mergeCommit",
+        "state,isDraft,baseRefName,headRefOid,headRefName,title,body,author,mergeable,mergeStateStatus,reviewDecision,mergedAt,mergeCommit,closingIssuesReferences",
       ], { failure: "pull request state is unavailable" }));
     },
     requiredChecksPass(number) {
@@ -456,7 +453,7 @@ export function mergePullRequest(options, dependencies = {}) {
   }));
   const before = github.readPullRequest(options.pullRequest);
   const alreadyMerged = before?.state === "MERGED";
-  const linkageDeclared = /^\s*-\s*Issue linkage:/imu.test(String(before?.body ?? ""));
+  const linkageDeclared = declaredIssueLinkageMode(before?.body) !== null;
   let contribution = null;
   if (!alreadyMerged || linkageDeclared) {
     let preparedDeferredHead = false;
@@ -486,6 +483,15 @@ export function mergePullRequest(options, dependencies = {}) {
     if (!contribution.ok) fail("hosted pull request metadata no longer satisfies contribution policy");
   }
   const deferredIssue = contribution?.linkage.mode === "deferred" ? contribution.linkage.issue : null;
+  if (deferredIssue && Array.isArray(before?.closingIssuesReferences)
+      && before.closingIssuesReferences.some((reference) => {
+        const owner = reference?.repository?.owner?.login;
+        const name = reference?.repository?.name;
+        return reference?.number === deferredIssue
+          && `${owner}/${name}`.toLowerCase() === repository.toLowerCase();
+      })) {
+    fail(`hosted pull request closing references include deferred issue #${deferredIssue}`);
+  }
   const body = validateMergeBody(readPullRequestBody(options.bodyFile), identity, { deferredIssue });
   if (!alreadyMerged) validatePreMergeState(before, options.expectedHead);
   if (github.requiredChecksPass(options.pullRequest) !== true) fail("required pull request checks are not successful");

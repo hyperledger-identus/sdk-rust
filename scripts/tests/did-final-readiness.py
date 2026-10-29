@@ -53,6 +53,21 @@ class ReadinessContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("status must be", result.stderr)
 
+    def test_delivery_issue_cannot_drift(self) -> None:
+        root = self.fixture()
+        path = root / FILES[0]
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "https://github.com/hyperledger-identus/sdk-rust/issues/388",
+                "https://github.com/hyperledger-identus/sdk-rust/issues/9999",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("delivery_issue must be", result.stderr)
+
     def test_historical_failed_run_cannot_be_relabelled(self) -> None:
         root = self.fixture()
         path = root / FILES[0]

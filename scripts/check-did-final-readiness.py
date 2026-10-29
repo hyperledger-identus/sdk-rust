@@ -155,6 +155,8 @@ def check(root: Path) -> list[str]:
         "version": "0.1.0-rc.1",
         "lifecycle": "candidate-only",
         "status": "pending-exact-slow-and-independent-approval",
+        "coordinator": "https://github.com/hyperledger-identus/sdk-rust/issues/381",
+        "delivery_issue": "https://github.com/hyperledger-identus/sdk-rust/issues/388",
         "packages": EXPECTED_PACKAGES,
     }
     for key, value in expected.items():

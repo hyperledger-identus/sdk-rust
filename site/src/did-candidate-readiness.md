@@ -17,7 +17,12 @@ The machine-readable source is the
 | Train | `did` |
 | Candidate | `identus-did-0.1.0-rc.1` |
 | Packages | `identus-did`, then `identus-did-resolver-http` |
-| Staged lock SHA-256 | `1f1d4206e2ced5bd74675d654876684536dd8f82bf79cd6de4c2fa67db904447` |
+| Protected evidence base | `34420235103fe9dc599aa061047525c459d422cf` |
+| Staged lock SHA-256 | `f7535a6819c9b9e4474c95b427b54646d46ccac51703c680086ef75c790fba4f` |
+| `identus-did` API SHA-256 | `5c985cd2d3f26c07230ace1086d7a178662a4f583d0086574ac9baa6a00be639` |
+| Resolver API SHA-256 | `9c432f0d0c3d5db92da3aa88aed05164aa2adf483c11be84b9239c9973179df6` |
+| Candidate archive SHA-256 | `7736e445ffce327fae19a55c7b8b7adf38887f93f56aba4a9a804d18d765fb68` / `90366988dd00a4730d398431531d0066eb109ff48a1fcc8f0aed4d9673678480` |
+| CycloneDX SHA-256 | `d0e0976fa6d96918d59202cd173c4162459f19b253120c41fce3058e5c59d109` / `fbaa3985eacf2c89649799c1a33effeb2b521aa21c5ec92ff7044a6afb126d6` |
 | Reserved future tag | `identus-did-v0.1.0-rc.1` |
 | Canonical source state | `0.0.0`, `publish = false` |
 | Exact release subject | Pending the protected merge revision from [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |
@@ -31,7 +36,7 @@ SHA to the complete slow run and independent approval.
 | Evidence class | Status | Receipt |
 | --- | --- | --- |
 | Independent train identity and deterministic archives | Complete | [#382](https://github.com/hyperledger-identus/sdk-rust/issues/382), ADR 0153 |
-| Public API origins and normalized CycloneDX | Complete | [#384](https://github.com/hyperledger-identus/sdk-rust/issues/384), ADR 0154 |
+| Public API origins and normalized CycloneDX | Complete | [PR #584](https://github.com/hyperledger-identus/sdk-rust/pull/584), [factory receipt](https://github.com/hyperledger-identus/sdk-rust/pull/584#issuecomment-6493993716), ADR 0154 |
 | Engineer handbook and source-adoption guidance | Complete | [#386](https://github.com/hyperledger-identus/sdk-rust/issues/386) |
 | Linux/macOS primary + MSRV and package-specific portable targets | Complete | [#387](https://github.com/hyperledger-identus/sdk-rust/issues/387), ADR 0155 |
 | Exact protected-revision slow evidence | Pending | [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |

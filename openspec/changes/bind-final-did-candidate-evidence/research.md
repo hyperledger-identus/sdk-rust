@@ -15,6 +15,13 @@ compiler/target matrix. The canonical manifests remain unpublished at version
 release-candidate specification already requires exact source and staged-lock
 identity, bounded receipts, and honest per-package target limitations.
 
+PR #584 merged the additive-only DID API-origin rebaseline as protected
+`develop@34420235103fe9dc599aa061047525c459d422cf`. Its closed receipt records
+13 additions, zero removals, the refreshed staged-lock identity, deterministic
+archives and SBOMs, primary/MSRV evidence, full Nix evidence, and an independent
+Codex review. This packet consumes those exact identities; it does not infer
+them from a mutable branch.
+
 The latest natural weekly run at
 `5da04223c1c4e029cb368870877e56d699d40388` failed only in the macOS slow job
 when RustSec classified build-time-only `basic-toml 0.1.10` as unmaintained.
@@ -51,7 +58,8 @@ consumer's own architecture and acceptance contract.
 
 ## Sources and provenance
 
-- SDK-Rust issues #381, #382, #384, #386, #387, #388, #564.
+- SDK-Rust issues #381, #382, #384, #386, #387, #388, #564, and #582;
+  PR #584 and its retained factory metric receipt.
 - ADRs 0132, 0153, 0154, 0155, and 0191.
 - `docs/release/release-trains.toml`, `did-candidate.toml`, and the staged lock.
 - Archived OpenSpec review/verification records for the prerequisite slices.

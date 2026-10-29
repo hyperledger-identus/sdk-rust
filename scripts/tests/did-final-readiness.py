@@ -62,6 +62,20 @@ class ReadinessContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("must remain failed", result.stderr)
 
+    def test_candidate_archive_identity_cannot_drift(self) -> None:
+        root = self.fixture()
+        path = root / FILES[0]
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "7736e445ffce327fae19a55c7b8b7adf38887f93f56aba4a9a804d18d765fb68",
+                "0" * 64,
+            ),
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("exact protected candidate receipt", result.stderr)
+
     def test_missing_e2e_receipt_fails(self) -> None:
         root = self.fixture()
         path = root / FILES[1]

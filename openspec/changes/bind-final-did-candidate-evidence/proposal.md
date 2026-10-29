@@ -37,4 +37,5 @@ new DID behavior, downstream mutation, or production promotion.
 ## Delivery
 
 Issue #388 owns this final M5 evidence slice from protected
-`develop@63a78cd085f51fc82dfb2e92ccb51d2fb0263bb9`.
+`develop@34420235103fe9dc599aa061047525c459d422cf`, after the additive-only
+API-origin rebaseline merged through PR #584.

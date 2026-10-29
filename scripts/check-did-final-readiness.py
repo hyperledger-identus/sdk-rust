@@ -12,6 +12,22 @@ from typing import Any
 MANIFEST = Path("docs/release/did-candidate-readiness.toml")
 PAGE = Path("site/src/did-candidate-readiness.md")
 EXPECTED_PACKAGES = ["identus-did", "identus-did-resolver-http"]
+EXPECTED_IDENTITY = {
+    "descriptor": "docs/release/did-candidate.toml",
+    "train_registry": "docs/release/release-trains.toml",
+    "staged_lock": "docs/release/did-candidate.lock",
+    "staged_lock_sha256": "f7535a6819c9b9e4474c95b427b54646d46ccac51703c680086ef75c790fba4f",
+    "reserved_tag": "identus-did-v0.1.0-rc.1",
+    "protected_base_revision": "34420235103fe9dc599aa061047525c459d422cf",
+    "merge_revision": "pending-protected-merge",
+    "did_api_sha256": "5c985cd2d3f26c07230ace1086d7a178662a4f583d0086574ac9baa6a00be639",
+    "resolver_api_sha256": "9c432f0d0c3d5db92da3aa88aed05164aa2adf483c11be84b9239c9973179df6",
+    "did_archive_sha256": "7736e445ffce327fae19a55c7b8b7adf38887f93f56aba4a9a804d18d765fb68",
+    "resolver_archive_sha256": "90366988dd00a4730d398431531d0066eb109ff48a1fcc8f0aed4d9673678480",
+    "did_sbom_sha256": "d0e0976fa6d96918d59202cd173c4162459f19b253120c41fce3058e5c59d109",
+    "resolver_sbom_sha256": "fbaa3985eacf2c89649799c1a33effeb2b521aa21c5ec92ff7044a6afb126d6",
+    "api_origin_receipt": "docs/release/did-api-origin-rebaseline.toml",
+}
 EXPECTED_EVIDENCE = {
     "train-identity": "complete",
     "api-and-sbom": "complete",
@@ -23,6 +39,7 @@ EXPECTED_EVIDENCE = {
 REQUIRED_PAGE_TEXT = (
     "pending an exact-protected-revision slow run and independent",
     "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40260649503",
+    "https://github.com/hyperledger-identus/sdk-rust/pull/584#issuecomment-6493993716",
     "https://github.com/hyperledger-identus/neoprism/pull/324",
     "https://github.com/hyperledger-identus/neoprism/pull/327",
     "https://github.com/hyperledger-identus/neoprism/issues/325#issuecomment-6487638362",
@@ -61,11 +78,8 @@ def check(root: Path) -> list[str]:
     identity = manifest.get("identity", {})
     if not isinstance(identity, dict):
         failures.append(f"{MANIFEST}: identity must be a table")
-    else:
-        if identity.get("staged_lock_sha256") != "1f1d4206e2ced5bd74675d654876684536dd8f82bf79cd6de4c2fa67db904447":
-            failures.append(f"{MANIFEST}: staged lock identity drifted")
-        if identity.get("merge_revision") != "pending-protected-merge":
-            failures.append(f"{MANIFEST}: self-referential merge identity must remain explicitly pending")
+    elif identity != EXPECTED_IDENTITY:
+        failures.append(f"{MANIFEST}: identity must equal the exact protected candidate receipt")
 
     evidence = manifest.get("evidence", [])
     observed = {

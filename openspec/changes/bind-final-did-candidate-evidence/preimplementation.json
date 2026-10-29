@@ -5,9 +5,9 @@
   "change": "bind-final-did-candidate-evidence",
   "branch": "codex/docs/issue-388",
   "baseRef": "origin/develop",
-  "baseSha": "63a78cd085f51fc82dfb2e92ccb51d2fb0263bb9",
-  "contractHeadSha": "9bf55449ec82bda901bb389a35ebc96b4406d477",
-  "createdAt": "2026-10-29T08:29:06.454Z",
+  "baseSha": "34420235103fe9dc599aa061047525c459d422cf",
+  "contractHeadSha": "a02dce1b75283c0a6b01b7e43129b5f26e86042e",
+  "createdAt": "2026-10-29T10:18:39.000Z",
   "researchReady": true,
   "constraintsReady": true,
   "strictValidation": true

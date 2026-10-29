@@ -14,7 +14,7 @@
     }:
     let
       # Like `craneLib.cleanCargoSource ./../..` but also keeps trybuild
-      # `.stderr` fixtures, the six immutable error goldens, the bounded
+      # `.stderr` fixtures, the seven immutable error goldens, the bounded
       # OID4VCI interoperability packet and the shared DID/key/peer/crypto/OID4VP/SD-JWT vector packets,
       # which the default cargo source filter strips. Keep every exception
       # path-scoped so planning evidence and unrelated data files do not enter
@@ -38,6 +38,7 @@
           || pkgs.lib.hasSuffix "/crates/presentations/tests/fixtures/presentations-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/crates/jose/tests/fixtures/jose-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/crates/jose/tests/fixtures/jose-error-contract-v2.csv" sourcePath
+          || pkgs.lib.hasSuffix "/crates/jose/tests/fixtures/jwe-encryption-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/crates/oid4vp/tests/fixtures/oid4vp-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did/v1/vectors.json" sourcePath
@@ -91,6 +92,7 @@
           test -f "$src/crates/presentations/tests/fixtures/presentations-error-contract-v1.csv"
           test -f "$src/crates/jose/tests/fixtures/jose-error-contract-v1.csv"
           test -f "$src/crates/jose/tests/fixtures/jose-error-contract-v2.csv"
+          test -f "$src/crates/jose/tests/fixtures/jwe-encryption-error-contract-v1.csv"
           test -f "$src/crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv"
           test -f "$src/crates/oid4vp/tests/fixtures/oid4vp-error-contract-v1.csv"
           test -f "$src/crates/oid4vci/tests/fixtures/interop-v1/manifest.json"
@@ -136,6 +138,7 @@
               -o -name presentations-error-contract-v1.csv \
               -o -name jose-error-contract-v1.csv \
               -o -name jose-error-contract-v2.csv \
+              -o -name jwe-encryption-error-contract-v1.csv \
               -o -name oid4vci-error-contract-v1.csv \
               -o -name oid4vp-error-contract-v1.csv \) \
             -print -quit | grep -q .; then

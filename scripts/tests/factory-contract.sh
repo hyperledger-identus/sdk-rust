@@ -163,6 +163,7 @@ required_files=(
   crates/credentials/tests/fixtures/credentials-error-contract-v1.csv
   crates/presentations/tests/fixtures/presentations-error-contract-v1.csv
   crates/jose/tests/fixtures/jose-error-contract-v1.csv
+  crates/jose/tests/fixtures/jwe-encryption-error-contract-v1.csv
   crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv
   crates/oid4vp/tests/fixtures/oid4vp-error-contract-v1.csv
   docs/architecture/ssi-upstream-source-matrix.md

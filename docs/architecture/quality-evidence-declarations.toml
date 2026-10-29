@@ -2094,7 +2094,7 @@ owner       = "SDK-Rust credential maintainers"
 owner_issue = 569
 risk        = "Profile drift, malformed claims or external evidence can misidentify credential semantics, bypass disclosure rules, amplify work or represent structural evidence as trust."
 targets     = [ "package:identus-sd-jwt-vc", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android" ]
-vector_ids  = [ "credentials.sd-jwt-vc.legacy-protected-type" ]
+vector_ids  = [ "credentials.sd-jwt-vc.legacy-protected-type", "credentials.sd-jwt-vc.missing-vct", "credentials.sd-jwt-vc.malformed-additional-types", "credentials.sd-jwt-vc.malformed-status-reference" ]
 limitations = "Exact draft-22 compact profile only; no HTTP, trust or issuer authorization, status acceptance, rendering, replay/storage policy, legacy adapter, bindings, runtime certification, publication or downstream adoption."
 active      = true
 supersedes  = [  ]
@@ -2174,24 +2174,24 @@ details           = [ "operation=Issue, parse, base verify, profile validate, me
 
 [[declarations.obligations]]
 class             = "differential"
-disposition       = "required"
+disposition       = "satisfied"
 risk              = "The local profile can internally round-trip while diverging from draft-22 or independent canonical dc+sd-jwt behavior."
 selectors         = [ "openspec/specs/sd-jwt-vc-draft22/spec.md#Requirement: conformance evidence is source-bound and migration-aware" ]
-command           = "cargo test -p identus-sd-jwt-vc --test conformance differential"
+command           = "cargo test -p identus-sd-jwt-vc --test differential"
 lane              = "fast"
 cadence           = "per-pull-request"
 targets           = [ "package:identus-sd-jwt-vc", "host:rust", "consumer:portable-sdk" ]
-freshness         = "pending"
+freshness         = "source-bound"
 freshness_days    = 0
-budget            = "Compare the pinned draft-22 identity and clean-room cases with released SDK-TS 8.1.4 migration behavior; preserve its legacy protected-type disagreement and track two-engine profile qualification in issue #573."
-receipt_kind      = "none"
-receipt           = ""
-evidence_revision = ""
-recorded_at       = ""
-artifact          = "docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json"
+budget            = "Execute every exposed normative packet result through the public Rust API, assert exact negative error stages, retain absent metadata ingestion as not-exposed, and preserve exactly two immutable independent observations per case without donor runtimes in normal CI."
+receipt_kind      = "source"
+receipt           = "source:crates/sd-jwt-vc/tests/differential.rs"
+evidence_revision = "dc10222d7786d5ccafd6f16c89070916454c2538"
+recorded_at       = "2026-10-28"
+artifact          = "crates/sd-jwt-vc/tests/fixtures/differential-v1/packet.json"
 owner             = "SDK-Rust credential maintainers"
 owner_issue       = 569
-debt_status       = "open"
-debt_issue        = 573
+debt_status       = "none"
+debt_issue        = 0
 rationale         = ""
-details           = [ "oracle=Draft-22 normative source plus SDK-TS 8.1.4 migration oracle", "oracle-revision=Draft text da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124; SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e", "normalization=Compare canonical protected/media identifiers and profile outcome rather than donor DTO or error strings", "deviations=SDK-TS emits legacy vc+sd-jwt; issue #572 owns any input adapter; issue #573 owns two-engine exact-profile qualification" ]
+details           = [ "oracle=Draft-22 normative source plus OpenWallet Foundation 0.20.1 and K2GL 2.1.0 behavioral oracles", "oracle-revision=Draft text da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124; OWF b983e03253481ab6d33e147cc7e30e4904d0813f; K2GL 7d938daf0a1e14974420651e7ce84146ed1875bb", "normalization=Closed accept/reject/not-exposed observations with exact selectors; draft-22 resolves every disagreement", "deviations=Both earlier-draft engines reject optional malformed display metadata; K2GL accepts a missing draft-20 mandatory path; Rust follows draft-22 and issue #572 remains the sole legacy adapter owner" ]

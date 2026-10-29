@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "packetId": "credentials.sd-jwt-vc.draft22.differential.v1",
+  "normativeSourceSha256": "da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124",
+  "oracleIds": [
+    "openwallet-foundation.sd-jwt-vc.0.20.1",
+    "k2gl.sd-jwt-vc.2.1.0"
+  ],
+  "cases": [
+    {
+      "id": "canonical-protected-type",
+      "group": "protected-identity",
+      "scenario": "canonical-profile",
+      "normative": "accept",
+      "draftSection": "3.2.1 and 3.3",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "accept", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-instance.ts:35-39", "noteCode": "canonical-emitter"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "accept", "selector": "tests/SdJwtVcIssuerTest.php:35-43", "noteCode": "canonical-emitter"}
+      ]
+    },
+    {
+      "id": "legacy-protected-type",
+      "group": "protected-identity",
+      "scenario": "legacy-protected-type",
+      "normative": "reject",
+      "expectedError": "sd_jwt_vc.protected_type",
+      "draftSection": "3.2.1",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-instance.ts:35-39", "noteCode": "fixed-emitter-no-negative"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "reject", "selector": "tests/SdJwtVcVerifierTest.php:79-87", "noteCode": "default-rejects-legacy"}
+      ]
+    },
+    {
+      "id": "missing-vct",
+      "group": "type-claims",
+      "scenario": "missing-vct",
+      "normative": "reject",
+      "expectedError": "sd_jwt_vc.credential_type",
+      "draftSection": "3.2.2.1",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-payload.ts:1-18", "noteCode": "compile-time-shape-only"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "reject", "selector": "tests/SdJwtVcVerifierTest.php:181-189", "noteCode": "runtime-reject"}
+      ]
+    },
+    {
+      "id": "additional-type-match",
+      "group": "type-claims",
+      "scenario": "additional-type-match",
+      "normative": "accept",
+      "draftSection": "3.2.2.2",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-payload.ts:1-18", "noteCode": "aka-vcts-not-modeled"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "accept", "selector": "tests/SdJwtVcVerifierTest.php:90-103", "noteCode": "additional-types-exposed"}
+      ]
+    },
+    {
+      "id": "malformed-additional-types",
+      "group": "type-claims",
+      "scenario": "malformed-additional-types",
+      "normative": "reject",
+      "expectedError": "sd_jwt_vc.additional_types",
+      "draftSection": "3.2.2.2",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-payload.ts:1-18", "noteCode": "aka-vcts-not-modeled"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "reject", "selector": "tests/SdJwtVcVerifierTest.php:106-128", "noteCode": "runtime-reject"}
+      ]
+    },
+    {
+      "id": "protected-status-subclaim",
+      "group": "protected-placement",
+      "scenario": "protected-status-disclosure",
+      "normative": "reject",
+      "expectedError": "sd_jwt_vc.claim_placement",
+      "draftSection": "3.2.2.2",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-instance.ts:50-69", "noteCode": "root-frame-check-only"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "reject", "selector": "src/SdJwtVcVerifier.php:132-157", "noteCode": "nested-protected-path-reject"}
+      ]
+    },
+    {
+      "id": "holder-confirmation-required",
+      "group": "holder-confirmation",
+      "scenario": "holder-confirmation-present",
+      "normative": "accept",
+      "draftSection": "3.2.2.3 and 3.5",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "accept", "selector": "packages/sd-jwt-vc/test/app-e2e.spec.ts:226-270", "noteCode": "key-binding-e2e"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "accept", "selector": "tests/TypeMetadataValidationTest.php:40-53", "noteCode": "presentation-route"}
+      ]
+    },
+    {
+      "id": "holder-confirmation-missing",
+      "group": "holder-confirmation",
+      "scenario": "holder-confirmation-missing",
+      "normative": "reject",
+      "expectedError": "sd_jwt_vc.key_binding_required",
+      "draftSection": "3.5",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "reject", "selector": "packages/sd-jwt-vc/test/app-e2e.spec.ts:226-270", "noteCode": "required-kb-reject"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "not-exposed", "selector": "tests/SdJwtVcVerifierTest.php:232-234", "noteCode": "separate-policy-surface"}
+      ]
+    },
+    {
+      "id": "metadata-extension-chain",
+      "group": "type-metadata",
+      "scenario": "metadata-extension-chain",
+      "normative": "accept",
+      "draftSection": "5.4 and 5.6.5",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "accept", "selector": "packages/sd-jwt-vc/src/test/vct.spec.ts:359-418", "noteCode": "two-level-chain"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "accept", "selector": "tests/TypeMetadataTest.php:202-233", "noteCode": "extension-rules"}
+      ]
+    },
+    {
+      "id": "metadata-cycle",
+      "group": "type-metadata",
+      "scenario": "metadata-cycle",
+      "normative": "reject",
+      "expectedError": "sd_jwt_vc.type_metadata_cycle",
+      "draftSection": "5.4 and 11.3",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "reject", "selector": "packages/sd-jwt-vc/src/test/vct.spec.ts:479-495", "noteCode": "cycle-reject"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "reject", "selector": "tests/TypeMetadataTest.php:185-199", "noteCode": "bounded-chain-reject"}
+      ]
+    },
+    {
+      "id": "mandatory-cleartext-claim-missing",
+      "group": "type-metadata",
+      "scenario": "mandatory-never-missing",
+      "normative": "reject",
+      "expectedError": "sd_jwt_vc.type_metadata_rule",
+      "draftSection": "5.6.3",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-instance.ts:418-431", "noteCode": "mandatory-not-enforced"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "accept", "selector": "src/Internal/ClaimMetadataValidator.php:11-20", "noteCode": "mandatory-not-checked"}
+      ]
+    },
+    {
+      "id": "malformed-optional-claim-display",
+      "group": "type-metadata",
+      "scenario": "optional-display-ignored",
+      "normative": "accept",
+      "rustResult": "not-exposed",
+      "draftSection": "5.6.2",
+      "optionalDisplay": {
+        "display": "malformed-not-an-array",
+        "svg_id": 7
+      },
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "reject", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-type-metadata-format.ts:146-184", "noteCode": "schema-rejects-display"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "reject", "selector": "tests/TypeMetadataTest.php:64-81", "noteCode": "draft19-schema-reject"}
+      ]
+    },
+    {
+      "id": "status-reference-shape",
+      "group": "status-reference",
+      "scenario": "status-reference-valid",
+      "normative": "accept",
+      "draftSection": "3.2.2.5",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "accept", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-instance.ts:72-117", "noteCode": "status-list-route"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "accept", "selector": "tests/SdJwtVcVerifierTest.php:131-146", "noteCode": "status-reference-exposed"}
+      ]
+    },
+    {
+      "id": "status-reference-malformed",
+      "group": "status-reference",
+      "scenario": "status-reference-malformed",
+      "normative": "reject",
+      "expectedError": "sd_jwt_vc.status",
+      "draftSection": "3.2.2.5",
+      "observations": [
+        {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-instance.ts:72-117", "noteCode": "network-policy-surface"},
+        {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "not-exposed", "selector": "tests/SdJwtVcVerifierTest.php:131-146", "noteCode": "positive-shape-only"}
+      ]
+    }
+  ]
+}

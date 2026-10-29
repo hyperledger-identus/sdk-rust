@@ -1,0 +1,768 @@
+use std::collections::BTreeSet;
+
+use identus_crypto::{Ed25519PrivateKey, EncodeJwk, SecureRandom, sha256};
+use identus_jose::{Ed25519Signer, JwsAlgorithm, JwsVerificationKey, SignatureSuiteRegistry};
+use identus_sd_jwt::{
+    ClaimPath, IssuanceOptions, IssuancePlan, PathSegment, SdJwtLimits, issue_with_options,
+};
+use identus_sd_jwt_vc::{
+    ClaimDisclosureRule, ClaimMetadata, Draft22SdJwtVc, ProfileValidationInputs, SdJwtVcError,
+    SdJwtVcLimits, TypeMetadata, TypeMetadataChain, issue_draft22, parse_draft22_envelope,
+};
+use serde::Deserialize;
+use serde_json::{Value, json};
+
+const PACKET: &str = include_str!("fixtures/differential-v1/packet.json");
+const RECEIPTS: &str = include_str!("fixtures/differential-v1/oracle-receipts.json");
+const OPENWALLET_GRAPH: &str =
+    include_str!("fixtures/differential-v1/openwallet-dependency-graph.json");
+const K2GL_GRAPH: &str = include_str!("fixtures/differential-v1/k2gl-dependency-graph.json");
+const PORTABLE_VECTORS: &str =
+    include_str!("../../../docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json");
+const DRAFT_SHA256: &str = "da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124";
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct Packet {
+    schema_version: u8,
+    packet_id: String,
+    normative_source_sha256: String,
+    oracle_ids: Vec<String>,
+    cases: Vec<Case>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct Case {
+    id: String,
+    group: String,
+    scenario: Scenario,
+    normative: Outcome,
+    draft_section: String,
+    #[serde(default)]
+    rust_result: Option<OracleResult>,
+    #[serde(default)]
+    expected_error: Option<String>,
+    #[serde(default)]
+    optional_display: Option<Value>,
+    observations: Vec<Observation>,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+enum Scenario {
+    CanonicalProfile,
+    LegacyProtectedType,
+    MissingVct,
+    AdditionalTypeMatch,
+    MalformedAdditionalTypes,
+    ProtectedStatusDisclosure,
+    HolderConfirmationPresent,
+    HolderConfirmationMissing,
+    MetadataExtensionChain,
+    MetadataCycle,
+    MandatoryNeverMissing,
+    OptionalDisplayIgnored,
+    StatusReferenceValid,
+    StatusReferenceMalformed,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+enum Outcome {
+    Accept,
+    Reject,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct Observation {
+    oracle_id: String,
+    result: OracleResult,
+    selector: String,
+    note_code: String,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+enum OracleResult {
+    Accept,
+    Reject,
+    NotExposed,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct Receipts {
+    schema_version: u8,
+    recorded_at: String,
+    normative_source: NormativeSource,
+    oracles: Vec<OracleReceipt>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct NormativeSource {
+    id: String,
+    revision: String,
+    text_sha256: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct OracleReceipt {
+    id: String,
+    language: String,
+    version: String,
+    revision: String,
+    archive_sha256: String,
+    registry_integrity: String,
+    license: String,
+    license_sha256: String,
+    toolchain: String,
+    lock_sha256: String,
+    package_manager_dependency_entries: usize,
+    dependency_graph: String,
+    dependency_graph_sha256: String,
+    resolved_dependency_nodes: usize,
+    resolved_production_dependency_nodes: usize,
+    resolved_development_dependency_nodes: usize,
+    upstream_tests: String,
+    audit: String,
+    audit_sha256: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct DependencyGraph {
+    schema_version: u8,
+    oracle: String,
+    root: String,
+    source_revision: String,
+    lock_sha256: String,
+    nodes: Vec<DependencyNode>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct DependencyNode {
+    id: String,
+    name: String,
+    version: String,
+    #[serde(default)]
+    scope: Option<String>,
+    source: String,
+    sha256: String,
+    #[serde(default)]
+    reference: Option<String>,
+    dependencies: Vec<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct PortablePacket {
+    schema_version: u8,
+    packet_id: String,
+    capability: String,
+    cases: Vec<PortableCase>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct PortableCase {
+    id: String,
+    operation: String,
+    input: PortableInput,
+    expected: PortableExpected,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PortableInput {
+    literal: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct PortableExpected {
+    kind: String,
+    error_code: String,
+    redacted: bool,
+    fields: serde_json::Map<String, Value>,
+}
+
+struct DeterministicEntropy(u8);
+
+impl SecureRandom for DeterministicEntropy {
+    fn fill_bytes(&mut self, output: &mut [u8]) -> Result<(), identus_crypto::Error> {
+        for byte in output {
+            *byte = self.0;
+            self.0 = self.0.wrapping_add(1);
+        }
+        Ok(())
+    }
+}
+
+#[test]
+fn differential_packet_is_closed_source_bound_and_executable() {
+    let packet: Packet = serde_json::from_str(PACKET).expect("closed differential packet");
+    let receipts: Receipts = serde_json::from_str(RECEIPTS).expect("closed oracle receipts");
+    assert_eq!(packet.schema_version, 1);
+    assert_eq!(receipts.schema_version, 1);
+    assert_eq!(
+        packet.packet_id,
+        "credentials.sd-jwt-vc.draft22.differential.v1"
+    );
+    assert_eq!(packet.normative_source_sha256, DRAFT_SHA256);
+    assert_eq!(receipts.normative_source.text_sha256, DRAFT_SHA256);
+    assert_eq!(
+        receipts.normative_source.id,
+        "draft-ietf-oauth-sd-jwt-vc-22"
+    );
+    assert_eq!(receipts.normative_source.revision.len(), 40);
+    assert_eq!(receipts.recorded_at, "2026-10-29");
+
+    let oracle_ids = packet.oracle_ids.iter().cloned().collect::<BTreeSet<_>>();
+    assert_eq!(oracle_ids.len(), 2);
+    let mut receipt_ids = BTreeSet::new();
+    for receipt in &receipts.oracles {
+        assert!(oracle_ids.contains(&receipt.id));
+        assert!(
+            receipt_ids.insert(receipt.id.as_str()),
+            "duplicate oracle receipt"
+        );
+        assert!(matches!(receipt.language.as_str(), "typescript" | "php"));
+        assert!(!receipt.version.is_empty());
+        assert_eq!(receipt.revision.len(), 40);
+        assert_eq!(receipt.archive_sha256.len(), 64);
+        assert!(!receipt.registry_integrity.is_empty());
+        assert!(matches!(receipt.license.as_str(), "Apache-2.0" | "MIT"));
+        assert_eq!(receipt.license_sha256.len(), 64);
+        assert!(!receipt.toolchain.is_empty());
+        assert_eq!(receipt.lock_sha256.len(), 64);
+        assert!(receipt.package_manager_dependency_entries > 0);
+        let (graph_text, graph_name) = match receipt.id.as_str() {
+            "openwallet-foundation.sd-jwt-vc.0.20.1" => {
+                (OPENWALLET_GRAPH, "openwallet-dependency-graph.json")
+            }
+            "k2gl.sd-jwt-vc.2.1.0" => (K2GL_GRAPH, "k2gl-dependency-graph.json"),
+            _ => panic!("unknown oracle receipt"),
+        };
+        assert_eq!(receipt.dependency_graph, graph_name);
+        validate_dependency_graph(receipt, graph_text);
+        assert!(!receipt.upstream_tests.is_empty());
+        assert!(!receipt.audit.is_empty());
+        assert_eq!(receipt.audit_sha256.len(), 64);
+    }
+    assert_eq!(receipt_ids, oracle_ids.iter().map(String::as_str).collect());
+
+    let mut case_ids = BTreeSet::new();
+    let mut groups = BTreeSet::new();
+    for case in &packet.cases {
+        assert!(
+            case_ids.insert(case.id.as_str()),
+            "duplicate case {}",
+            case.id
+        );
+        assert!(!case.draft_section.is_empty());
+        groups.insert(case.group.as_str());
+        assert_eq!(case.observations.len(), oracle_ids.len());
+        let observed = case
+            .observations
+            .iter()
+            .map(|observation| {
+                assert!(oracle_ids.contains(&observation.oracle_id));
+                assert!(!observation.selector.is_empty());
+                assert!(!observation.note_code.is_empty());
+                let _ = observation.result;
+                observation.oracle_id.as_str()
+            })
+            .collect::<BTreeSet<_>>();
+        assert_eq!(observed.len(), oracle_ids.len());
+
+        let rust_result = match case.scenario {
+            Scenario::OptionalDisplayIgnored => {
+                assert_eq!(case.rust_result, Some(OracleResult::NotExposed));
+                assert_eq!(case.normative, Outcome::Accept);
+                OracleResult::NotExposed
+            }
+            _ => {
+                assert!(
+                    case.rust_result.is_none(),
+                    "exposed Rust result cannot override the normative result"
+                );
+                match case.normative {
+                    Outcome::Accept => OracleResult::Accept,
+                    Outcome::Reject => OracleResult::Reject,
+                }
+            }
+        };
+        let execution = execute(case);
+        match rust_result {
+            OracleResult::Accept => assert!(
+                execution.is_some_and(|result| result.is_ok()),
+                "expected Rust acceptance for {}",
+                case.id
+            ),
+            OracleResult::Reject => {
+                let error = execution
+                    .expect("rejected Rust surface must be exposed")
+                    .expect_err("expected Rust rejection");
+                assert_eq!(
+                    case.expected_error.as_deref(),
+                    Some(error.code().as_str()),
+                    "wrong Rust rejection stage for {}",
+                    case.id
+                );
+            }
+            OracleResult::NotExposed => {
+                assert!(execution.is_none(), "Rust surface unexpectedly exposed");
+                assert!(case.expected_error.is_none());
+            }
+        }
+    }
+    assert_eq!(case_ids.len(), 14);
+    assert_eq!(
+        groups,
+        BTreeSet::from([
+            "protected-identity",
+            "type-claims",
+            "protected-placement",
+            "holder-confirmation",
+            "type-metadata",
+            "status-reference",
+        ])
+    );
+}
+
+#[test]
+fn promoted_portable_vectors_execute_their_checked_in_literals() {
+    let packet: PortablePacket =
+        serde_json::from_str(PORTABLE_VECTORS).expect("closed portable vector packet");
+    assert_eq!(packet.schema_version, 1);
+    assert_eq!(packet.packet_id, "credentials.sd-jwt-vc.draft22.v1");
+    assert_eq!(packet.capability, "credentials.sd-jwt");
+    assert_eq!(packet.cases.len(), 4);
+
+    for case in packet.cases {
+        assert_eq!(case.operation, "sd-jwt-vc.validate-profile");
+        assert_eq!(case.expected.kind, "error");
+        assert!(case.expected.redacted);
+        assert!(case.expected.fields.is_empty());
+        let error = if case.id == "credentials.sd-jwt-vc.legacy-protected-type" {
+            assert_eq!(case.input.literal, "vc+sd-jwt");
+            legacy_profile().expect_err("legacy protected type must fail")
+        } else {
+            let claims: Value =
+                serde_json::from_str(&case.input.literal).expect("portable claims JSON");
+            validate_generic(claims, vec![], ProfileValidationInputs::default())
+                .expect_err("portable negative must fail")
+        };
+        assert_eq!(case.expected.error_code, error.code().as_str());
+    }
+}
+
+fn validate_dependency_graph(receipt: &OracleReceipt, graph_text: &str) {
+    let graph: DependencyGraph = serde_json::from_str(graph_text).expect("closed dependency graph");
+    assert_eq!(graph.schema_version, 1);
+    assert_eq!(graph.oracle, receipt.id);
+    assert_eq!(graph.source_revision, receipt.revision);
+    assert_eq!(graph.lock_sha256, receipt.lock_sha256);
+    assert_eq!(graph.nodes.len(), receipt.resolved_dependency_nodes);
+    assert_eq!(
+        sha256_hex(graph_text.as_bytes()),
+        receipt.dependency_graph_sha256
+    );
+
+    let mut ids = BTreeSet::new();
+    let mut production_nodes = 0;
+    let mut development_nodes = 0;
+    let mut root_nodes = 0;
+    for node in &graph.nodes {
+        assert!(ids.insert(node.id.as_str()), "duplicate dependency node");
+        assert!(!node.name.is_empty());
+        assert!(!node.version.is_empty());
+        assert!(!node.source.is_empty());
+        assert!(node.sha256.len() == 64 || node.sha256.starts_with("source-revision:"));
+        if let Some(scope) = &node.scope {
+            assert!(matches!(
+                scope.as_str(),
+                "root" | "production" | "development"
+            ));
+        }
+        match node.scope.as_deref() {
+            Some("root") => root_nodes += 1,
+            Some("production") => production_nodes += 1,
+            Some("development") => development_nodes += 1,
+            None if node.id == graph.root => root_nodes += 1,
+            None => production_nodes += 1,
+            Some(_) => unreachable!("scope was validated above"),
+        }
+        if let Some(reference) = &node.reference {
+            assert_eq!(reference.len(), 40);
+        }
+    }
+    assert_eq!(root_nodes, 1);
+    assert_eq!(
+        production_nodes,
+        receipt.resolved_production_dependency_nodes
+    );
+    assert_eq!(
+        development_nodes,
+        receipt.resolved_development_dependency_nodes
+    );
+    assert_eq!(
+        production_nodes + development_nodes + root_nodes,
+        receipt.resolved_dependency_nodes
+    );
+    assert!(ids.contains(graph.root.as_str()));
+    for node in &graph.nodes {
+        for dependency in &node.dependencies {
+            assert!(
+                ids.contains(dependency.as_str()),
+                "unresolved dependency edge"
+            );
+        }
+    }
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    sha256(bytes)
+        .as_bytes()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
+}
+
+fn execute(case: &Case) -> Option<Result<(), SdJwtVcError>> {
+    match case.scenario {
+        Scenario::CanonicalProfile => Some(
+            validate(
+                json!({"iss":"https://issuer.example", "vct":"urn:example:pid"}),
+                vec![],
+                ProfileValidationInputs::default(),
+            )
+            .map(|_| ()),
+        ),
+        Scenario::LegacyProtectedType => Some(legacy_profile().map(|_| ())),
+        Scenario::MissingVct => Some(
+            validate_generic(
+                json!({"iss":"https://issuer.example"}),
+                vec![],
+                ProfileValidationInputs::default(),
+            )
+            .map(|_| ()),
+        ),
+        Scenario::AdditionalTypeMatch => Some(
+            validate(
+                json!({
+                    "iss":"https://issuer.example",
+                    "vct":"urn:example:pid",
+                    "aka_vcts":["urn:example:pid:v2"]
+                }),
+                vec![],
+                ProfileValidationInputs::default(),
+            )
+            .and_then(|credential| {
+                credential
+                    .matches_type("urn:example:pid:v2")
+                    .then_some(())
+                    .ok_or(SdJwtVcError::InternalInvariant)
+            }),
+        ),
+        Scenario::MalformedAdditionalTypes => Some(
+            validate_generic(
+                json!({
+                    "iss":"https://issuer.example",
+                    "vct":"urn:example:pid",
+                    "aka_vcts":"urn:example:pid:v2"
+                }),
+                vec![],
+                ProfileValidationInputs::default(),
+            )
+            .map(|_| ()),
+        ),
+        Scenario::ProtectedStatusDisclosure => Some(
+            validate_generic(
+                json!({
+                    "iss":"https://issuer.example",
+                    "vct":"urn:example:pid",
+                    "status":{"status_list":{"idx":7,"uri":"https://status.example/list"}}
+                }),
+                vec![vec!["status", "status_list", "idx"]],
+                ProfileValidationInputs::default(),
+            )
+            .map(|_| ()),
+        ),
+        Scenario::HolderConfirmationPresent => Some(
+            validate(
+                json!({
+                    "iss":"https://issuer.example",
+                    "vct":"urn:example:pid",
+                    "cnf":{"kid":"did:example:holder#key-1"}
+                }),
+                vec![],
+                ProfileValidationInputs {
+                    require_key_binding: true,
+                    ..ProfileValidationInputs::default()
+                },
+            )
+            .map(|_| ()),
+        ),
+        Scenario::HolderConfirmationMissing => Some(
+            validate(
+                json!({"iss":"https://issuer.example", "vct":"urn:example:pid"}),
+                vec![],
+                ProfileValidationInputs {
+                    require_key_binding: true,
+                    ..ProfileValidationInputs::default()
+                },
+            )
+            .map(|_| ()),
+        ),
+        Scenario::MetadataExtensionChain => Some(metadata_extension_chain()),
+        Scenario::MetadataCycle => Some(metadata_cycle()),
+        Scenario::MandatoryNeverMissing => Some(metadata_mandatory_missing()),
+        Scenario::OptionalDisplayIgnored => {
+            optional_display_not_exposed(case.optional_display.as_ref())
+        }
+        Scenario::StatusReferenceValid => Some(
+            validate(
+                json!({
+                    "iss":"https://issuer.example",
+                    "vct":"urn:example:pid",
+                    "status":{"status_list":{"idx":7,"uri":"https://status.example/list"}}
+                }),
+                vec![],
+                ProfileValidationInputs::default(),
+            )
+            .map(|_| ()),
+        ),
+        Scenario::StatusReferenceMalformed => Some(
+            validate_generic(
+                json!({
+                    "iss":"https://issuer.example",
+                    "vct":"urn:example:pid",
+                    "status":{"status_list":{"idx":"7","uri":"https://status.example/list"}}
+                }),
+                vec![],
+                ProfileValidationInputs::default(),
+            )
+            .map(|_| ()),
+        ),
+    }
+}
+
+fn issue(
+    claims: Value,
+    disclosures: Vec<Vec<&str>>,
+) -> Result<identus_sd_jwt_vc::IssuedDraft22SdJwtVc, SdJwtVcError> {
+    let limits = SdJwtLimits::default();
+    let paths = disclosures
+        .into_iter()
+        .map(|segments| {
+            ClaimPath::new(
+                segments
+                    .into_iter()
+                    .map(|segment| PathSegment::Member(segment.to_owned()))
+                    .collect(),
+                limits,
+            )
+            .expect("bounded clean-room path")
+        })
+        .collect();
+    issue_draft22(
+        claims,
+        &IssuancePlan {
+            disclose: paths,
+            decoy_locations: vec![],
+            salt_bytes: 16,
+        },
+        &mut DeterministicEntropy(1),
+        &Ed25519Signer::new(&Ed25519PrivateKey::from_slice(&[7; 32]).unwrap()),
+        limits,
+        SdJwtVcLimits::default(),
+    )
+}
+
+fn validate(
+    claims: Value,
+    disclosures: Vec<Vec<&str>>,
+    inputs: ProfileValidationInputs<'_>,
+) -> Result<Draft22SdJwtVc, SdJwtVcError> {
+    let limits = SdJwtLimits::default();
+    let private = Ed25519PrivateKey::from_slice(&[7; 32]).unwrap();
+    let public = private.to_public_key().encode_jwk();
+    let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).unwrap();
+    let issued = issue(claims, disclosures)?;
+    let base = parse_draft22_envelope(&issued.into_envelope()?, limits)?
+        .verify_issuer(&SignatureSuiteRegistry::recommended(), &key)
+        .map_err(|_| SdJwtVcError::Base)?
+        .process_disclosures()
+        .map_err(|_| SdJwtVcError::Base)?;
+    Draft22SdJwtVc::validate(base, inputs, SdJwtVcLimits::default())
+}
+
+fn validate_generic(
+    claims: Value,
+    disclosures: Vec<Vec<&str>>,
+    inputs: ProfileValidationInputs<'_>,
+) -> Result<Draft22SdJwtVc, SdJwtVcError> {
+    let limits = SdJwtLimits::default();
+    let private = Ed25519PrivateKey::from_slice(&[7; 32]).unwrap();
+    let public = private.to_public_key().encode_jwk();
+    let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).unwrap();
+    let paths = disclosures
+        .into_iter()
+        .map(|segments| {
+            ClaimPath::new(
+                segments
+                    .into_iter()
+                    .map(|segment| PathSegment::Member(segment.to_owned()))
+                    .collect(),
+                limits,
+            )
+            .expect("bounded clean-room path")
+        })
+        .collect();
+    let issued = issue_with_options(
+        claims,
+        &IssuancePlan {
+            disclose: paths,
+            decoy_locations: vec![],
+            salt_bytes: 16,
+        },
+        IssuanceOptions {
+            protected_type: Some("dc+sd-jwt"),
+        },
+        &mut DeterministicEntropy(1),
+        &Ed25519Signer::new(&private),
+        limits,
+    )
+    .map_err(|_| SdJwtVcError::Base)?;
+    let base = identus_sd_jwt::UnverifiedSdJwt::parse(issued.as_str(), limits)
+        .map_err(|_| SdJwtVcError::Base)?
+        .verify_issuer(&SignatureSuiteRegistry::recommended(), &key)
+        .map_err(|_| SdJwtVcError::Base)?
+        .process_disclosures()
+        .map_err(|_| SdJwtVcError::Base)?;
+    Draft22SdJwtVc::validate(base, inputs, SdJwtVcLimits::default())
+}
+
+fn legacy_profile() -> Result<Draft22SdJwtVc, SdJwtVcError> {
+    let limits = SdJwtLimits::default();
+    let private = Ed25519PrivateKey::from_slice(&[7; 32]).unwrap();
+    let public = private.to_public_key().encode_jwk();
+    let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).unwrap();
+    let issued = issue_with_options(
+        json!({"iss":"https://issuer.example", "vct":"urn:example:pid"}),
+        &IssuancePlan {
+            disclose: vec![],
+            decoy_locations: vec![],
+            salt_bytes: 16,
+        },
+        IssuanceOptions {
+            protected_type: Some("vc+sd-jwt"),
+        },
+        &mut DeterministicEntropy(1),
+        &Ed25519Signer::new(&private),
+        limits,
+    )
+    .map_err(|_| SdJwtVcError::Base)?;
+    let base = identus_sd_jwt::UnverifiedSdJwt::parse(issued.as_str(), limits)
+        .map_err(|_| SdJwtVcError::Base)?
+        .verify_issuer(&SignatureSuiteRegistry::recommended(), &key)
+        .map_err(|_| SdJwtVcError::Base)?
+        .process_disclosures()
+        .map_err(|_| SdJwtVcError::Base)?;
+    Draft22SdJwtVc::validate(
+        base,
+        ProfileValidationInputs::default(),
+        SdJwtVcLimits::default(),
+    )
+}
+
+fn metadata_extension_chain() -> Result<(), SdJwtVcError> {
+    let limits = SdJwtVcLimits::default();
+    let leaf = TypeMetadata::new(
+        "urn:example:pid",
+        Some("urn:example:base"),
+        vec![],
+        64,
+        limits,
+    )
+    .unwrap();
+    let base = TypeMetadata::new("urn:example:base", None, vec![], 64, limits).unwrap();
+    let chain = TypeMetadataChain::new(vec![leaf, base], limits).unwrap();
+    validate(
+        json!({"iss":"https://issuer.example", "vct":"urn:example:pid"}),
+        vec![],
+        ProfileValidationInputs {
+            type_metadata: Some(&chain),
+            ..ProfileValidationInputs::default()
+        },
+    )
+    .map(|_| ())
+}
+
+fn metadata_cycle() -> Result<(), SdJwtVcError> {
+    let limits = SdJwtVcLimits::default();
+    let first = TypeMetadata::new(
+        "urn:example:first",
+        Some("urn:example:second"),
+        vec![],
+        64,
+        limits,
+    )
+    .unwrap();
+    let second = TypeMetadata::new(
+        "urn:example:second",
+        Some("urn:example:first"),
+        vec![],
+        64,
+        limits,
+    )
+    .unwrap();
+    TypeMetadataChain::new(vec![first, second], limits).map(|_| ())
+}
+
+fn metadata_mandatory_missing() -> Result<(), SdJwtVcError> {
+    let limits = SdJwtVcLimits::default();
+    let claim = ClaimMetadata::new(
+        vec!["family_name".to_owned()],
+        true,
+        ClaimDisclosureRule::Never,
+        limits,
+    )
+    .unwrap();
+    let metadata = TypeMetadata::new("urn:example:pid", None, vec![claim], 128, limits).unwrap();
+    let chain = TypeMetadataChain::new(vec![metadata], limits).unwrap();
+    validate(
+        json!({"iss":"https://issuer.example", "vct":"urn:example:pid"}),
+        vec![],
+        ProfileValidationInputs {
+            type_metadata: Some(&chain),
+            ..ProfileValidationInputs::default()
+        },
+    )
+    .map(|_| ())
+}
+
+fn optional_display_not_exposed(
+    optional_display: Option<&Value>,
+) -> Option<Result<(), SdJwtVcError>> {
+    // Draft-21 made claim display/svg_id non-critical for credential processing.
+    // The packet supplies deliberately malformed optional data; the policy-neutral
+    // Rust evidence boundary projects only path/mandatory/sd into public SDK types.
+    let Some(optional_display) = optional_display.and_then(Value::as_object) else {
+        return Some(Err(SdJwtVcError::InternalInvariant));
+    };
+    if !optional_display
+        .get("display")
+        .is_some_and(Value::is_string)
+        || !optional_display.get("svg_id").is_some_and(Value::is_number)
+    {
+        return Some(Err(SdJwtVcError::InternalInvariant));
+    }
+    None
+}

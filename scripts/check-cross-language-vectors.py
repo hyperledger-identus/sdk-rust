@@ -165,6 +165,29 @@ def validate_input(value: object, label: str, errors: list[str]) -> str | None:
     return prefix + repeated * count + suffix
 
 
+def validate_sd_jwt_vc_prerequisites(
+    literal: str | None, expected_code: object, label: str, errors: list[str]
+) -> None:
+    """Reject profile vectors whose prerequisite claims shadow the intended error."""
+    if expected_code == "sd_jwt_vc.protected_type" or literal is None:
+        return
+    try:
+        claims = json.loads(literal)
+    except json.JSONDecodeError:
+        errors.append(f"{label}.input.literal must be JSON for profile validation")
+        return
+    if not isinstance(claims, dict):
+        errors.append(f"{label}.input.literal must be a JSON object for profile validation")
+        return
+    issuer = claims.get("iss")
+    if not isinstance(issuer, str) or not issuer:
+        errors.append(f"{label}.input.literal must include a valid iss prerequisite")
+    if expected_code != "sd_jwt_vc.credential_type":
+        credential_type = claims.get("vct")
+        if not isinstance(credential_type, str) or not credential_type:
+            errors.append(f"{label}.input.literal must include a valid vct prerequisite")
+
+
 def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) -> dict[str, dict[str, object]]:
     label = f"packet {packet.get('id', '<unknown>')}"
     try:
@@ -198,7 +221,7 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
         operation = case.get("operation")
         if operation not in OPERATIONS:
             errors.append(f"{identifier}.operation is invalid")
-        validate_input(case.get("input"), f"{identifier}.input", errors)
+        literal = validate_input(case.get("input"), f"{identifier}.input", errors)
         expected = case.get("expected")
         if not exact_keys(expected, EXPECTED_KEYS, f"{identifier}.expected", errors):
             continue
@@ -290,9 +313,24 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 },
                 "oid4vp.direct-post-response.construct": "oid4vp.invalid_direct_post_response",
                 "sd-jwt.parse": "sd_jwt.invalid_compact",
-                "sd-jwt-vc.validate-profile": "sd_jwt_vc.protected_type",
+                "sd-jwt-vc.validate-profile": {
+                    "sd_jwt_vc.protected_type",
+                    "sd_jwt_vc.credential_type",
+                    "sd_jwt_vc.additional_types",
+                    "sd_jwt_vc.claim_placement",
+                    "sd_jwt_vc.key_binding_required",
+                    "sd_jwt_vc.type_metadata",
+                    "sd_jwt_vc.type_metadata_cycle",
+                    "sd_jwt_vc.type_metadata_rule",
+                    "sd_jwt_vc.status",
+                    "sd_jwt_vc.unsupported_status",
+                    "sd_jwt_vc.evidence_mismatch",
+                    "sd_jwt_vc.resource_limit",
+                },
             }[operation]
             error_code = expected.get("errorCode")
+            if operation == "sd-jwt-vc.validate-profile":
+                validate_sd_jwt_vc_prerequisites(literal, error_code, identifier, errors)
             code_matches = error_code in required_code if isinstance(required_code, set) else error_code == required_code
             if not code_matches or expected.get("redacted") is not True or fields:
                 errors.append(

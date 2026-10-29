@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 573
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "The change freezes independent research-only engines, adds offline differential evidence, and updates one quality obligation without changing public Rust APIs, wire behavior, production dependencies, supported targets, publication state, or downstream consumers."
+ledger_ids     = [  ]

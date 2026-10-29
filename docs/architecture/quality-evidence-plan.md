@@ -800,25 +800,25 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo test -p identus-sd-jwt-vc --test properties legacy && cargo test -p identus-sd-jwt-vc --test legacy_adapter`
 - Budget: Sweep exact legacy/canonical identity, common claims, date representations, non-selective placement, unsupported draft features, order, boundaries, redaction, and staged ownership.
 - Receipt: `source:crates/sd-jwt-vc/tests/properties.rs`
-- Evidence revision: `a33496eba410ad31516192209d08c6f1265252a3`
+- Evidence revision: `e35e4fba448417feff0cefe283ff20def3385815`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-sd-jwt-vc.sh soak`
 - Budget: Route explicit legacy envelope, compact and profile inputs through the existing SD-JWT VC fuzz family for 300 seconds with max_len=1048576, timeout=5 and rss_limit_mb=1024.
 - Receipt: `source:fuzz/fuzz_targets/sd_jwt_vc.rs`
-- Evidence revision: `29187e516ce49d2e057343154f0411025e5d6cd7`
+- Evidence revision: `5ae0164b5703e9c41243042d92aa5545e9d9ac70`
 
 ### `benchmark`
 
 - Command: `cargo bench -p identus-sd-jwt-vc --bench directional legacy`
 - Budget: Measure accepted common-subset validation, wrong-identity early rejection, unsupported-draft early rejection, and canonical-path comparison without a new enforceable latency promise.
 - Receipt: `source:crates/sd-jwt-vc/benches/directional.rs`
-- Evidence revision: `29187e516ce49d2e057343154f0411025e5d6cd7`
+- Evidence revision: `5ae0164b5703e9c41243042d92aa5545e9d9ac70`
 
 ### `differential`
 
 - Command: `cargo test -p identus-sd-jwt-vc --test legacy_differential`
 - Budget: Execute every checked-in legacy packet result through public Rust APIs and compare immutable SDK-TS 8.1.4 plus @sd-jwt/sd-jwt-vc 0.7.2 observations, resolving differences against exact drafts and SDK safety policy.
 - Receipt: `source:crates/sd-jwt-vc/tests/legacy_differential.rs`
-- Evidence revision: `a33496eba410ad31516192209d08c6f1265252a3`
+- Evidence revision: `e35e4fba448417feff0cefe283ff20def3385815`

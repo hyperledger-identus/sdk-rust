@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 586
+disposition    = "behavior-neutral"
+scope          = "test-only"
+rationale      = "The change moves unchanged public test-vector bytes into the identus-crypto package and strengthens isolated candidate evidence without changing APIs, crypto semantics, versions, targets, dependencies, publication state, or downstream consumers."
+ledger_ids     = [  ]

@@ -112,6 +112,47 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
+id                                = "siopv2.did-authentication.diagnostics.v1"
+capability                        = "siopv2.did-authentication"
+lifecycle_state                   = "proposed"
+issue                             = 543
+pull_request                      = 0
+change_class                      = "fix"
+release_note_class                = "fixed"
+visibility                        = [ "behavior", "error", "public-api", "security" ]
+affected_packages                 = [ "identus-siopv2" ]
+affected_consumers                = [ "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SIOPv2 lifecycle idempotency duration is underspecified, wallet-nonce mismatch shares the client-binding category, and non-size JOSE response failures can be reported as response-too-large."
+new_behavior                      = "Current-state lifecycle idempotency is explicit and stable redacted categories distinguish wallet-nonce correlation, response encoding, and response size without changing successful wire behavior."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = "No published behavior is removed; consumers may optionally handle the two more precise non-exhaustive diagnostic categories."
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "Rust-native diagnostics remain canonical; language adapters may map stable codes without adopting dependency errors or Rust enum shapes."
+vector_ids                        = [ "siopv2.did-authentication.draft13-ed25519" ]
+quality_declaration_ids           = [ "siopv2.did-authentication.quality.v1" ]
+observability                     = "Record only stable result categories and bounded counts or lengths; never record client identifiers, wallet nonces, requests, responses, DIDs, keys, state, event identities, or dependency diagnostics."
+fallback                          = "Consumers may continue treating all verification or response-construction failures generically until they adopt the refined pre-release categories."
+rollback                          = "Before publication remove the two diagnostic variants and restore the coarse mapping while retaining the bounded SIOPv2 protocol core."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#siopv2.did-authentication.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#siopv2.did-authentication.draft13-ed25519" ]
+evidence_artifacts                = [ "docs/adr/0197-keep-siopv2-lifecycle-idempotency-state-local.md", "docs/architecture/siopv2-protocol-core.md", "openspec/specs/siopv2-protocol-core/spec.md" ]
+limitations                       = "Diagnostics remain static and redacted; durable lifecycle receipts, event history, transport, persistence, retry, trust, custody, UI, profile expansion, downstream mutation and publication remain excluded."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "credentials.sd-jwt.rfc9901.v1"
 capability                        = "credentials.sd-jwt"
 lifecycle_state                   = "active"

@@ -26,7 +26,7 @@
 ## 5. Review and delivery
 
 - [x] 5.1 Run focused tests, vector/catalog checks, workspace formatting/Clippy/tests/docs, factory and full Nix evidence.
-- [ ] 5.2 Run Claude CLI review or immediate Codex CLI fallback, resolve actionable blocker/high/medium findings, and rerun proportionate gates.
+- [x] 5.2 Run Claude CLI review or immediate Codex CLI fallback, resolve actionable blocker/high/medium findings, and rerun proportionate gates.
 - [ ] 5.3 Archive OpenSpec, create the signed/DCO issue-linked PR, merge only on green protected CI, publish metrics, close #573, and clean the worktree.
 
 ## 6. Stop boundary

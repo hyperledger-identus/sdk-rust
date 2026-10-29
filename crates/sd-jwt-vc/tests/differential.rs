@@ -155,9 +155,13 @@ fn differential_packet_is_closed_source_bound_and_executable() {
 
     let oracle_ids = packet.oracle_ids.iter().cloned().collect::<BTreeSet<_>>();
     assert_eq!(oracle_ids.len(), 2);
-    assert_eq!(receipts.oracles.len(), 2);
+    let mut receipt_ids = BTreeSet::new();
     for receipt in &receipts.oracles {
         assert!(oracle_ids.contains(&receipt.id));
+        assert!(
+            receipt_ids.insert(receipt.id.as_str()),
+            "duplicate oracle receipt"
+        );
         assert!(matches!(receipt.language.as_str(), "typescript" | "php"));
         assert!(!receipt.version.is_empty());
         assert_eq!(receipt.revision.len(), 40);
@@ -172,6 +176,7 @@ fn differential_packet_is_closed_source_bound_and_executable() {
         assert!(!receipt.audit.is_empty());
         assert_eq!(receipt.audit_sha256.len(), 64);
     }
+    assert_eq!(receipt_ids, oracle_ids.iter().map(String::as_str).collect());
 
     let mut case_ids = BTreeSet::new();
     let mut groups = BTreeSet::new();
@@ -182,7 +187,7 @@ fn differential_packet_is_closed_source_bound_and_executable() {
             case.id
         );
         assert!(!case.draft_section.is_empty());
-        assert!(groups.insert(case.group.as_str()) || groups.contains(case.group.as_str()));
+        groups.insert(case.group.as_str());
         assert_eq!(case.observations.len(), oracle_ids.len());
         let observed = case
             .observations
@@ -226,7 +231,17 @@ fn differential_packet_is_closed_source_bound_and_executable() {
         }
     }
     assert_eq!(case_ids.len(), 14);
-    assert_eq!(groups.len(), 6);
+    assert_eq!(
+        groups,
+        BTreeSet::from([
+            "protected-identity",
+            "type-claims",
+            "protected-placement",
+            "holder-confirmation",
+            "type-metadata",
+            "status-reference",
+        ])
+    );
 }
 
 fn execute(case: &Case) -> Option<Result<(), SdJwtVcError>> {
@@ -278,7 +293,7 @@ fn execute(case: &Case) -> Option<Result<(), SdJwtVcError>> {
             .map(|_| ()),
         ),
         Scenario::ProtectedStatusDisclosure => Some(
-            validate(
+            validate_generic(
                 json!({
                     "iss":"https://issuer.example",
                     "vct":"urn:example:pid",

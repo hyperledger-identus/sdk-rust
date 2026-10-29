@@ -18,7 +18,7 @@
 
 ## 3. Qualification
 
-- [ ] 3.1 Pass normal deterministic candidate preparation without API
+- [x] 3.1 Pass normal deterministic candidate preparation without API
       initialization, including archives, closure, API/SBOM, and source policy.
 - [ ] 3.2 Pass primary/MSRV matrix lanes, focused DID tests, factory/site/full
       Nix gates, and independent CLI review.

@@ -38,7 +38,7 @@ workflow, or crates.io artifact is claimed here.
 The exact protected source revision for this review is:
 
 ```text
-cda086f3e7fe72d251c1f896bccdcf5dd1bc8c16
+8fb2f21ae178ec77bdd1afc9e128e8e7779edeed
 ```
 
 Use the [source-adoption instructions](adoption.md) to evaluate it. A library
@@ -51,9 +51,9 @@ Two clean preparations reproduced the same candidate archives and evidence:
 
 | Evidence | `identus-did` SHA-256 | `identus-did-resolver-http` SHA-256 |
 | --- | --- | --- |
-| Cargo archive | `ec9ed5be2f8d716d1395cdea347ec71f19def355617579a7ad26cfc14681f7a7` | `875801cbcd2bb5b1e378ca4f84903f1f58949da7447cea7e586f172845eb8434` |
-| Public API origin | `3412a7dce4b5699afda75ad5c9a0bb4f6f5fbb5cb3256e187a2d107fb26763dd` | `9c432f0d0c3d5db92da3aa88aed05164aa2adf483c11be84b9239c9973179df6` |
-| Normalized CycloneDX 1.5 | `371096ba00a08803548b67afcff8df15c10a228fbcd0bfbcf6297e742e475175` | `9f1734f3e400850c58dddc13ed36ea52d71050be899788ec988926b0ca1b5349` |
+| Cargo archive | `7736e445ffce327fae19a55c7b8b7adf38887f93f56aba4a9a804d18d765fb68` | `90366988dd00a4730d398431531d0066eb109ff48a1fcc8f0aed4d9673678480` |
+| Public API origin | `5c985cd2d3f26c07230ace1086d7a178662a4f583d0086574ac9baa6a00be639` | `9c432f0d0c3d5db92da3aa88aed05164aa2adf483c11be84b9239c9973179df6` |
+| Normalized CycloneDX 1.5 | `d0e0976fa6d96918d59202cd173c4162459f19b253120c41fce3058e5c59d109` | `fbaa3985eacf2c89649799c1a33effeb2b521aa21c5ec92ff70444a6afb126d6` |
 
 The committed API snapshots establish the origin for later SemVer comparison.
 Because this is the first candidate, compatibility is explicitly

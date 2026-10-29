@@ -12,6 +12,7 @@ from typing import Any
 
 DESCRIPTOR = Path("docs/release/crypto-candidate.toml")
 API_BASELINE = Path("docs/release/identus-crypto-0.1.0-rc.1.api.txt")
+API_BASELINE_SHA256 = "3e2c09eddba2de063436c76c8c4901b4cf5a28e0e70c659c12958a561da98909"
 ADR = Path("docs/adr/0113-prepare-isolated-unpublished-crypto-candidate.md")
 TOOLCHAIN_ADR = Path("docs/adr/0121-generate-candidate-rustdoc-json-before-api-rendering.md")
 RELEASE_ADR = Path("docs/adr/0134-activate-protected-crates-io-release-trains.md")
@@ -63,6 +64,9 @@ def validate(root: Path) -> list[str]:
         "rust_version": "1.89.0",
         "preparation_rust_version": "1.98.1",
         "baseline_revision": BASELINE,
+        "api_baseline": API_BASELINE.as_posix(),
+        "api_baseline_sha256": API_BASELINE_SHA256,
+        "api_baseline_status": "published-origin",
         "repository": "https://github.com/hyperledger-identus/sdk-rust",
         "license": "Apache-2.0",
         "publication": "release-gated",
@@ -76,6 +80,9 @@ def validate(root: Path) -> list[str]:
     maximum = descriptor.get("max_archive_bytes")
     if not isinstance(maximum, int) or maximum <= 0 or maximum > 1024 * 1024:
         errors.append("descriptor max_archive_bytes must be within 1 MiB")
+    api_maximum = descriptor.get("max_api_evidence_bytes")
+    if not isinstance(api_maximum, int) or api_maximum <= 0 or api_maximum > 256 * 1024:
+        errors.append("descriptor max_api_evidence_bytes must be within 256 KiB")
     if descriptor.get("tools") != TOOLS:
         errors.append("descriptor tools must retain the reviewed exact versions")
     if descriptor.get("authentication_modes") != [
@@ -201,9 +208,15 @@ def validate(root: Path) -> list[str]:
         if phrase not in release_adr:
             errors.append(f"release ADR is missing decision evidence: {phrase}")
 
-    baseline = read(root / API_BASELINE, errors)
-    if len(baseline.strip().splitlines()) < 5:
-        errors.append("public API baseline must be committed and non-trivial")
+    baseline_path = root / API_BASELINE
+    if baseline_path.is_symlink() or not baseline_path.is_file():
+        errors.append("published public API baseline must be a regular repository file")
+    else:
+        baseline = read(baseline_path, errors)
+        if len(baseline.strip().splitlines()) < 5:
+            errors.append("public API baseline must be committed and non-trivial")
+        if hashlib.sha256(baseline_path.read_bytes()).hexdigest() != API_BASELINE_SHA256:
+            errors.append("published public API baseline digest differs")
 
     runner = read(root / RUNNER, errors)
     prohibited_commands = (
@@ -240,6 +253,13 @@ def validate(root: Path) -> list[str]:
         'api_json = api_target / "doc/identus_crypto.json"',
         'if not api_json.is_file():',
         '"cargo", "public-api", "--rustdoc-json", str(api_json)',
+        "classify_public_api(baseline, api)",
+        "encode_api_compatibility(",
+        '"identus-crypto.public-api-diff.json"',
+        'descriptor["api_baseline_status"] == "published-origin"',
+        "cannot initialize a published API origin",
+        "except ApiCompatibilityError as error:",
+        "failure_output.rename(output)",
     )
     for phrase in required_api_contract:
         if phrase not in runner:

@@ -14,7 +14,7 @@
 
 - [x] 3.1 Assert `cargo package --list -p identus-crypto` includes the packet.
 - [x] 3.2 Extract candidate archives and execute the affected all-feature conformance test without repository files.
-- [ ] 3.3 Run the complete clean-output crypto candidate application.
+- [x] 3.3 Run the complete clean-output crypto candidate application.
 
 ## 4. Knowledge, review, and delivery
 

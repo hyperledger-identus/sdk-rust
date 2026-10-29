@@ -1,0 +1,56 @@
+# Verification
+
+## Release-history correction
+
+The initial local hypothesis was to regenerate the rc.1 baseline. Repository
+evidence rejected that approach before implementation: the crypto train is
+`published` and signed tag `v0.1.0-rc.1` exists. The checked-in baseline remains
+byte-identical with SHA-256
+`3e2c09eddba2de063436c76c8c4901b4cf5a28e0e70c659c12958a561da98909`.
+
+## Exact compatibility evidence
+
+The final ordinary `nix run .#crypto-candidate -- --allow-dirty --output ...`
+passed in 67.470 seconds. It emitted:
+
+- baseline SHA-256
+  `3e2c09eddba2de063436c76c8c4901b4cf5a28e0e70c659c12958a561da98909`;
+- current SHA-256
+  `27ab65e38c024f42a64d252fb781a29a647ebf1a93576c7c7d7f00a68653abdc`;
+- classification `additive-compatible`;
+- zero removed lines;
+- twelve added lines: each of the four reviewed Ed25519/X25519 validation
+  methods appears in three cargo-public-api re-export views.
+
+The same complete run assembled the three archives twice, compared their
+bytes, inspected packaged fixture membership, extracted the closure, built all
+consumer feature profiles, ran the packaged all-feature crypto tests, generated
+SBOMs, and ran SemVer/source policy. The receipt records twelve additions and
+zero removals.
+
+## Focused regression evidence
+
+- `python3 scripts/check-crypto-candidate.py`
+- `python3 scripts/tests/crypto-candidate.py`
+- `python3 scripts/check-release-candidates.py`
+- `python3 scripts/tests/release-candidates.py`
+- `scripts/factory validate reconcile-crypto-candidate-api-origin --strict`
+- published-origin initialization denial
+- line-multiset addition, removal, duplicate-count, and equality cases
+- baseline digest/status mutations
+
+The first Codex CLI review found one medium issue: an incompatible API failed
+before its bounded diff could survive the atomic staging directory. The repair
+renders and bounds evidence before classification, publishes only the diff on
+rejection, and keeps packages, publication workspace, and success receipt
+absent. Unit and mutation coverage exercise the bounded encoder and the
+diagnostics-only branch.
+
+`nix flake check --print-build-logs` then passed all 35 compatible
+`aarch64-darwin` checks. Evidence included the 1,195-test workspace run, MSRV,
+etalon, WASM, Android, iOS, documentation site and link validation, dependency
+and source policy, release/factory mutation gates, and formatting/linting.
+
+Final independent CLI review, negative-path candidate E2E, OpenSpec archive,
+protected CI, guarded merge, metrics, and the fresh exact-SHA slow run remain
+pending.

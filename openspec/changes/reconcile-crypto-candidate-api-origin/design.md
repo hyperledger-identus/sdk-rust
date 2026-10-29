@@ -19,6 +19,11 @@ multisets. Cap output size under the existing candidate evidence boundary. The
 present report must show twelve additions: four method signatures rendered at
 three re-export views, and zero removals.
 
+Render and bound the report before deciding compatibility. On rejection, retain
+only the diff report through an atomic diagnostics-only output rename; packages,
+the publication workspace, and a success receipt remain unavailable. This keeps
+the failure explainable without making a partial candidate look releasable.
+
 ## Qualification and regression
 
 Ordinary candidate preparation must retain the published baseline while also

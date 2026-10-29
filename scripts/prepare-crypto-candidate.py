@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import hashlib
 import json
 import os
@@ -19,7 +20,6 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 DESCRIPTOR = Path("docs/release/crypto-candidate.toml")
-API_BASELINE = Path("docs/release/identus-crypto-0.1.0-rc.1.api.txt")
 PACKAGE_ORDER = ("identus-derive", "identus-core", "identus-crypto")
 INTERNAL_DEPENDENCIES = {
     "identus-core": ("identus-derive",),
@@ -36,6 +36,14 @@ SHA = re.compile(r"^[0-9a-f]{40}$")
 
 class CandidateError(RuntimeError):
     pass
+
+
+class ApiCompatibilityError(CandidateError):
+    """A compatibility rejection carrying bounded, deterministic evidence."""
+
+    def __init__(self, message: str, evidence: bytes) -> None:
+        super().__init__(message)
+        self.evidence = evidence
 
 
 def run(command: list[str], *, cwd: Path, env: dict[str, str]) -> str:
@@ -100,6 +108,42 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: source.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def sha256_bytes(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def classify_public_api(baseline: str, current: str) -> dict[str, Any]:
+    """Compare rendered API as a multiset so duplicate re-export views remain evidence."""
+    baseline_lines = Counter(baseline.splitlines())
+    current_lines = Counter(current.splitlines())
+    removed = sorted((baseline_lines - current_lines).elements())
+    added = sorted((current_lines - baseline_lines).elements())
+    return {
+        "classification": "additive-compatible" if added else "equal",
+        "added": added,
+        "removed": removed,
+    }
+
+
+def encode_api_compatibility(
+    compatibility: dict[str, Any], maximum_bytes: int
+) -> bytes:
+    """Render bounded evidence before accepting or rejecting compatibility."""
+    evidence = (json.dumps(compatibility, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
+    if len(evidence) > maximum_bytes:
+        raise CandidateError("public API compatibility evidence exceeds byte limit")
+    return evidence
+
+
+def require_api_initialization_allowed(
+    descriptor: dict[str, Any], initialize_api: bool
+) -> None:
+    if initialize_api and descriptor["api_baseline_status"] == "published-origin":
+        raise CandidateError("cannot initialize a published API origin")
 
 
 def source_revision(root: Path, requested: str | None, allow_dirty: bool) -> tuple[str, bool]:
@@ -399,7 +443,13 @@ def tool_version(command: list[str], expected: str, cwd: Path, env: dict[str, st
     return output
 
 
-def release_evidence(stage: Path, root: Path, output: Path, descriptor: dict[str, Any], env: dict[str, str], initialize_api: bool) -> dict[str, str]:
+def release_evidence(
+    stage: Path,
+    root: Path,
+    output: Path,
+    descriptor: dict[str, Any],
+    env: dict[str, str],
+) -> tuple[dict[str, str], dict[str, Any]]:
     tools = descriptor["tools"]
     versions = {
         "cargo_public_api": tool_version(["cargo", "public-api", "--version"], tools["cargo_public_api"], root, env),
@@ -424,13 +474,33 @@ def release_evidence(stage: Path, root: Path, output: Path, descriptor: dict[str
         "cargo", "public-api", "--rustdoc-json", str(api_json),
         "-sss", "--color=never",
     ], cwd=stage, env=env)
-    api_path = root / API_BASELINE
-    if initialize_api:
-        api_path.parent.mkdir(parents=True, exist_ok=True)
-        api_path.write_text(api, encoding="utf-8")
-    elif not api_path.is_file() or api_path.read_text(encoding="utf-8") != api:
-        raise CandidateError("public API differs from the committed candidate baseline")
+    api_path = root / descriptor["api_baseline"]
+    if api_path.is_symlink() or not api_path.is_file():
+        raise CandidateError("published public API baseline is not a regular file")
+    baseline_bytes = api_path.read_bytes()
+    if sha256_bytes(baseline_bytes) != descriptor["api_baseline_sha256"]:
+        raise CandidateError("published public API baseline digest differs")
+    baseline = baseline_bytes.decode("utf-8")
+    compatibility = classify_public_api(baseline, api)
+    compatibility.update(
+        {
+            "schemaVersion": 1,
+            "baselinePath": descriptor["api_baseline"],
+            "baselineStatus": descriptor["api_baseline_status"],
+            "baselineSha256": descriptor["api_baseline_sha256"],
+            "currentSha256": sha256_bytes(api.encode("utf-8")),
+        }
+    )
+    compatibility_bytes = encode_api_compatibility(
+        compatibility, descriptor["max_api_evidence_bytes"]
+    )
+    if compatibility["removed"]:
+        raise ApiCompatibilityError(
+            "current public API removes or changes published API items",
+            compatibility_bytes,
+        )
     (output / "identus-crypto.public-api.txt").write_text(api, encoding="utf-8")
+    (output / "identus-crypto.public-api-diff.json").write_bytes(compatibility_bytes)
     run([
         "cargo", "semver-checks", "check-release", "--manifest-path", str(root / "Cargo.toml"),
         "-p", "identus-crypto", "--baseline-rev", descriptor["baseline_revision"], "--all-features",
@@ -457,12 +527,13 @@ def release_evidence(stage: Path, root: Path, output: Path, descriptor: dict[str
         shutil.copyfile(path, output / f"{name}.cdx.json")
     if seen != set(PACKAGE_ORDER):
         raise CandidateError("CycloneDX evidence does not cover the candidate closure")
-    return versions
+    return versions, compatibility
 
 
 def prepare(args: argparse.Namespace) -> Path:
     root = Path(__file__).resolve().parents[1]
     descriptor = load_descriptor(root)
+    require_api_initialization_allowed(descriptor, args.initialize_api)
     revision, dirty = source_revision(root, args.source_revision, args.allow_dirty or args.initialize_api)
     dirty = dirty or args.initialize_api
     output = Path(args.output).resolve()
@@ -495,10 +566,22 @@ def prepare(args: argparse.Namespace) -> Path:
             for name in PACKAGE_ORDER:
                 shutil.copyfile(first[name], staging_output / "packages" / first[name].name)
             versions: dict[str, str] = {}
+            api_compatibility: dict[str, Any] | None = None
             if not args.package_only:
-                versions = release_evidence(
-                    first_stage, root, staging_output, descriptor, env, args.initialize_api
-                )
+                try:
+                    versions, api_compatibility = release_evidence(
+                        first_stage, root, staging_output, descriptor, env
+                    )
+                except ApiCompatibilityError as error:
+                    # Keep failed-candidate output diagnostics-only: no packages,
+                    # publication workspace, or partial success receipt escape.
+                    failure_output = Path(output_temporary) / "failure"
+                    failure_output.mkdir()
+                    (failure_output / "identus-crypto.public-api-diff.json").write_bytes(
+                        error.evidence
+                    )
+                    failure_output.rename(output)
+                    raise
             publication_stage = create_stage(root, scratch / "publication", descriptor)
             run(
                 [
@@ -529,6 +612,17 @@ def prepare(args: argparse.Namespace) -> Path:
                 "cargoVersion": cargo_version,
                 "declaredMsrv": descriptor["rust_version"],
                 "tools": versions,
+                "apiCompatibility": (
+                    None
+                    if api_compatibility is None
+                    else {
+                        "classification": api_compatibility["classification"],
+                        "baselineSha256": api_compatibility["baselineSha256"],
+                        "currentSha256": api_compatibility["currentSha256"],
+                        "addedLines": len(api_compatibility["added"]),
+                        "removedLines": len(api_compatibility["removed"]),
+                    }
+                ),
                 "profiles": [row["name"] for row in descriptor["profiles"]],
                 "packages": [
                     {

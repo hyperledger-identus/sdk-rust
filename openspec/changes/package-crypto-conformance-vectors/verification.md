@@ -34,12 +34,16 @@ The old and new packet SHA-256 values are both
   etalon, WASM, Android, iOS, documentation, dependency, source-distribution,
   and factory mutation gates.
 
-## Independently discovered blocker
+## Independently discovered follow-on
 
-The complete candidate advanced beyond archive-closure verification and then
-failed its public-API comparison. The baseline predates four validation methods
-already merged by strict DID-key work. Issue #587 owns that behavior-neutral
-baseline reconciliation. This slice does not change or hide the API delta.
+The first complete candidate advanced beyond archive-closure verification and
+then exposed an unrelated API-comparison policy defect. Issue #587 preserved
+the already-published rc.1 baseline and changed qualification to accept exact
+additions while rejecting removals. A subsequent complete candidate passed and
+reported the four reviewed methods across twelve re-export views with zero
+removals. The final positive run completed in 67.470 seconds, and full Nix again
+passed all 35 compatible `aarch64-darwin` checks including 1,195 workspace
+tests and the documentation-site build/link check.
 
-Full candidate, review, archive, protected CI, merge, metrics, and a fresh slow
-run remain pending and are not inferred from the package-only or Nix passes.
+Review, archive, protected CI, merge, metrics, and a fresh slow run remain
+pending and are not inferred from the local candidate or Nix passes.

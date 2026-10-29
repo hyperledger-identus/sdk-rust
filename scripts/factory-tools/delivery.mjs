@@ -299,7 +299,7 @@ function hostedGithub(repository) {
     readPullRequest(number) {
       return JSON.parse(run([
         "pr", "view", String(number), "--repo", repository, "--json",
-        "state,isDraft,baseRefName,headRefOid,headRefName,title,body,mergeable,mergeStateStatus,reviewDecision,mergedAt,mergeCommit",
+        "state,isDraft,baseRefName,headRefOid,headRefName,title,body,author,mergeable,mergeStateStatus,reviewDecision,mergedAt,mergeCommit",
       ], { failure: "pull request state is unavailable" }));
     },
     requiredChecksPass(number) {
@@ -439,21 +439,26 @@ export function mergePullRequest(options, dependencies = {}) {
     repositoryRoot: dependencies.repositoryRoot ?? root,
   }));
   const before = github.readPullRequest(options.pullRequest);
-  const contribution = validatePullRequest({
-    title: before?.title,
-    body: before?.body,
-    branch: before?.headRefName,
-  }, {
-    loadDeferredAcceptance: dependencies.loadDeferredAcceptance ?? ((sidecarPath) => readDeferredAcceptanceAt({
-      repository: dependencies.repositoryRoot ?? root,
-      head: options.expectedHead,
-      sidecarPath,
-    })),
-  });
-  if (!contribution.ok) fail("hosted pull request metadata no longer satisfies contribution policy");
-  const deferredIssue = contribution.linkage.mode === "deferred" ? contribution.linkage.issue : null;
-  const body = validateMergeBody(readPullRequestBody(options.bodyFile), identity, { deferredIssue });
   const alreadyMerged = before?.state === "MERGED";
+  const linkageDeclared = /^\s*-\s*Issue linkage:/imu.test(String(before?.body ?? ""));
+  let contribution = null;
+  if (!alreadyMerged || linkageDeclared) {
+    contribution = validatePullRequest({
+      title: before?.title,
+      body: before?.body,
+      branch: before?.headRefName,
+      actor: before?.author?.login ?? "",
+    }, {
+      loadDeferredAcceptance: dependencies.loadDeferredAcceptance ?? ((sidecarPath) => readDeferredAcceptanceAt({
+        repository: dependencies.repositoryRoot ?? root,
+        head: options.expectedHead,
+        sidecarPath,
+      })),
+    });
+    if (!contribution.ok) fail("hosted pull request metadata no longer satisfies contribution policy");
+  }
+  const deferredIssue = contribution?.linkage.mode === "deferred" ? contribution.linkage.issue : null;
+  const body = validateMergeBody(readPullRequestBody(options.bodyFile), identity, { deferredIssue });
   if (!alreadyMerged) validatePreMergeState(before, options.expectedHead);
   if (github.requiredChecksPass(options.pullRequest) !== true) fail("required pull request checks are not successful");
   if (!options.execute && !alreadyMerged) {

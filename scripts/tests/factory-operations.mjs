@@ -736,7 +736,7 @@ test("guarded merge recovers an exact already-merged receipt without merging aga
         readPullRequest() {
           return {
             title: "fix(factory): close delivery loop",
-            body: "- Issue: #320\n- Issue linkage: closes\nCloses #320",
+            body: "- Issue: #320\nCloses #320",
             headRefName: "codex/fix/issue-320",
             state: "MERGED", isDraft: false, baseRefName: "develop",
             headRefOid: expectedHead, mergedAt: "2026-09-17T09:48:40Z",

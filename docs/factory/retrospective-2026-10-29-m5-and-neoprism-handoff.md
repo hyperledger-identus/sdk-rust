@@ -1,8 +1,10 @@
 # Factory retrospective: M5 and NeoPRISM adoption handoff
 
-**Date:** 2026-10-29  
-**SDK candidate:** `develop@c429ac494a6eaeb2e22c0b38a5b1d70c0eb6ff62`  
-**Slow run:** [40888621367](https://github.com/hyperledger-identus/sdk-rust/actions/runs/40888621367)  
+**Date:** 2026-10-29
+
+**SDK candidate:** `develop@c429ac494a6eaeb2e22c0b38a5b1d70c0eb6ff62`
+
+**Slow run:** [40888621367](https://github.com/hyperledger-identus/sdk-rust/actions/runs/40888621367)
 **NeoPRISM gate:** [PR #348](https://github.com/hyperledger-identus/neoprism/pull/348)
 
 ## Outcome

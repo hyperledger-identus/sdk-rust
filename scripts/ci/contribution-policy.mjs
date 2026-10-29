@@ -484,17 +484,26 @@ function main() {
   if (command === "hosted-commits") {
     const records = JSON.parse(readFileSync(requireEnv("COMMITS_FILE"), "utf8"));
     const head = requireEnv("HEAD_SHA");
-    const branch = validateBranchName(requireEnv("PR_HEAD_REF"));
-    const linkage = branch.issue
-      ? validateIssueLinkage(process.env.PR_BODY ?? "", branch.issue, {
+    const branch = validateBranchName(requireEnv("PR_HEAD_REF"), {
+      actor: process.env.PR_ACTOR ?? "",
+    });
+    let linkage;
+    if (!branch.ok) {
+      linkage = result(branch.errors.map((entry) => `branch: ${entry}`));
+    } else if (branch.exempt) {
+      linkage = result([], { mode: null });
+    } else if (branch.issue) {
+      linkage = validateIssueLinkage(process.env.PR_BODY ?? "", branch.issue, {
         additionalClosingText: process.env.PR_TITLE ?? "",
         loadDeferredAcceptance: (sidecarPath) => readDeferredAcceptanceAt({
           repository: root,
           head,
           sidecarPath,
         }),
-      })
-      : result(["hosted commit evidence requires an issue branch"]);
+      });
+    } else {
+      linkage = result(["hosted commit evidence requires an issue branch"]);
+    }
     report(linkage);
     if (!linkage.ok) return;
     const outcome = validateHostedCommits(records, requireEnv("HEAD_SHA"), {

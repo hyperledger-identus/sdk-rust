@@ -44,6 +44,25 @@ maintainer approval and an immutable publication receipt. The namespace-
 creating train uses a short-lived bootstrap token; every later train uses
 crates.io trusted publishing through OIDC.
 
+## Published API origin
+
+The checked-in `identus-crypto 0.1.0-rc.1` public-API baseline describes the
+artifact that was actually published. Its digest is immutable; later additive
+development does not rewrite release history.
+
+Current qualification generates API with the pinned toolchain and compares it
+to that origin as a line multiset. Every published occurrence must remain.
+Additional lines are compatible and appear in a bounded JSON report; a removed
+or changed signature fails the candidate. Baseline initialization is rejected
+while the descriptor identifies `published-origin`. A compatibility rejection
+retains only its diagnostics report; it does not expose candidate packages, a
+publication workspace, or a success receipt.
+
+This distinction matters: an unpublished first candidate may establish or,
+with exact evidence, reconcile its origin. A published train may only compare
+against its origin or select a new version through a separately approved
+release slice.
+
 The credential-bearing job repeats the signed-tag, exact-SHA, and protected
 `develop` ancestry checks after environment approval. Candidate artifacts are
 scoped to the workflow run rather than an individual attempt, so a failed job

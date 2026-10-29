@@ -17,6 +17,8 @@ DID_DESCRIPTOR = Path("docs/release/did-candidate.toml")
 DID_STAGED_LOCK = Path("docs/release/did-candidate.lock")
 DID_API_REBASELINE = Path("docs/release/did-api-origin-rebaseline.toml")
 CRYPTO_DESCRIPTOR = Path("docs/release/crypto-candidate.toml")
+CRYPTO_API_BASELINE = Path("docs/release/identus-crypto-0.1.0-rc.1.api.txt")
+CRYPTO_API_BASELINE_SHA256 = "3e2c09eddba2de063436c76c8c4901b4cf5a28e0e70c659c12958a561da98909"
 BUILDER = Path("scripts/prepare-did-candidate.py")
 ADR = Path("docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md")
 MATRIX_ADR = Path("docs/adr/0155-qualify-staged-did-candidate-matrix.md")
@@ -294,6 +296,19 @@ def validate(root: Path) -> list[str]:
         "identus-derive", "identus-core", "identus-crypto"
     ]:
         errors.append("immutable crypto descriptor package order differs")
+    expected_crypto_api = {
+        "api_baseline": CRYPTO_API_BASELINE.as_posix(),
+        "api_baseline_sha256": CRYPTO_API_BASELINE_SHA256,
+        "api_baseline_status": "published-origin",
+    }
+    for field, expected in expected_crypto_api.items():
+        if crypto.get(field) != expected:
+            errors.append(f"immutable crypto descriptor {field} differs")
+    crypto_api_baseline = root / CRYPTO_API_BASELINE
+    if crypto_api_baseline.is_symlink() or not crypto_api_baseline.is_file():
+        errors.append("published crypto API baseline must be a regular repository file")
+    elif sha256(crypto_api_baseline) != CRYPTO_API_BASELINE_SHA256:
+        errors.append("published crypto API baseline digest differs")
 
     descriptor = load_toml(root / DID_DESCRIPTOR, errors)
     require_keys(descriptor, DESCRIPTOR_KEYS, "DID descriptor", errors)
@@ -716,6 +731,12 @@ def validate(root: Path) -> list[str]:
                 errors.append(f"DID {label} is missing contract: {phrase}")
 
     workflow = read(root / SLOW_WORKFLOW, errors)
+    crypto_upload = """      - name: Upload candidate evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+"""
+    if crypto_upload not in workflow:
+        errors.append("slow workflow must retain crypto candidate evidence after failure")
     required_workflow = (
         "did-candidate-matrix:", "did-candidate-matrix-primary",
         "did-candidate-matrix-msrv", "did-matrix-${{ matrix.host }}-${{ github.sha }}-",

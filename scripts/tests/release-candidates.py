@@ -46,6 +46,7 @@ def copy_fixture(destination: Path) -> None:
         "docs/release/identus-did-0.1.0-rc.1.api.txt",
         "docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt",
         "docs/release/crypto-candidate.toml",
+        "docs/release/identus-crypto-0.1.0-rc.1.api.txt",
         "docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md",
         "docs/adr/0154-use-first-candidate-api-snapshots-as-semver-origin.md",
         "docs/adr/0155-qualify-staged-did-candidate-matrix.md",
@@ -575,6 +576,14 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / ".github/workflows/nix-checks.yml",
+                    "      - name: Upload candidate evidence\n        if: ${{ always() }}\n",
+                    "      - name: Upload candidate evidence\n",
+                ),
+                "slow workflow must retain crypto candidate evidence after failure",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
                     '--output "$RUNNER_TEMP/did-matrix/primary"',
                     "--output artifacts/did-matrix/primary",
                 ),
@@ -786,6 +795,21 @@ def main() -> int:
                     'release_tag              = "identus-crypto-v0.1.0-rc.1"',
                 ),
                 "immutable crypto descriptor tag differs",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/crypto-candidate.toml",
+                    'api_baseline_status      = "published-origin"',
+                    'api_baseline_status      = "unpublished-origin"',
+                ),
+                "immutable crypto descriptor api_baseline_status differs",
+            ),
+            (
+                lambda root: append(
+                    root / "docs/release/identus-crypto-0.1.0-rc.1.api.txt",
+                    "# drift\n",
+                ),
+                "published crypto API baseline digest differs",
             ),
         )
         for position, (mutation, expected) in enumerate(cases):

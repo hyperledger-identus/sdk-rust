@@ -47,7 +47,7 @@
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did-jwk/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did-peer/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did-prism/v1/vectors.json" sourcePath
-          || pkgs.lib.hasSuffix "/docs/conformance/fixtures/crypto/v1/vectors.json" sourcePath
+          || pkgs.lib.hasSuffix "/crates/crypto/tests/fixtures/crypto/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json" sourcePath
@@ -115,8 +115,8 @@
           test "$(find "$src/docs/conformance/fixtures/did-peer/v1" -type f | wc -l)" -eq 1
           test -f "$src/docs/conformance/fixtures/did-prism/v1/vectors.json"
           test "$(find "$src/docs/conformance/fixtures/did-prism/v1" -type f | wc -l)" -eq 1
-          test -f "$src/docs/conformance/fixtures/crypto/v1/vectors.json"
-          test "$(find "$src/docs/conformance/fixtures/crypto/v1" -type f | wc -l)" -eq 1
+          test -f "$src/crates/crypto/tests/fixtures/crypto/v1/vectors.json"
+          test "$(find "$src/crates/crypto/tests/fixtures/crypto/v1" -type f | wc -l)" -eq 1
           test -f "$src/docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
           test "$(find "$src/docs/conformance/fixtures/did-prism-vdr-indexing/v1" -type f | wc -l)" -eq 1
           test -f "$src/docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"

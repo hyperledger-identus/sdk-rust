@@ -99,6 +99,17 @@ JOSE = GoldenBinding(
     issue=280,
     branch="codex/refactor/issue-280",
 )
+JWE = GoldenBinding(
+    label="jwe",
+    change_name="version-jwe-error-contract",
+    file_name="jwe-encryption-error-contract-v1.csv",
+    stable=Path("crates/jose/tests/fixtures/jwe-encryption-error-contract-v1.csv"),
+    expected_sha256="3fbc56eaaa95d35eaf6356fe398922eb0302f6cdc2191d2f9743d263b0574d35",
+    source_revision="c66d506690d3cd6f119f9ae6430b285f98115d10",
+    generated_at="2026-10-29",
+    issue=539,
+    branch="codex/test/issue-539",
+)
 OID4VCI = GoldenBinding(
     label="oid4vci",
     change_name="decompose-oid4vci-error-contracts",
@@ -110,7 +121,7 @@ OID4VCI = GoldenBinding(
     issue=277,
     branch="codex/refactor/issue-277",
 )
-BINDINGS = (CREDENTIALS, PRESENTATIONS, JOSE, OID4VCI)
+BINDINGS = (CREDENTIALS, PRESENTATIONS, JOSE, JWE, OID4VCI)
 SOURCE_SNAPSHOT_ENV = "SDK_ERROR_GOLDEN_SOURCE_SNAPSHOT"
 
 

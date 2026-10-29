@@ -87,6 +87,21 @@ plaintext and a maximum compact size. It must return `CompactJwe`; its
 `Debug`, errors and the protocol response expose lengths/categories rather
 than keys, plaintext, state, presentations or ciphertext.
 
+## Error compatibility contract
+
+`JweEncryptionError` has its own immutable v1 contract rather than sharing the
+historical `JoseError` fixture. This is deliberate: JWS/JOSE and JWE expose
+separate public enums and must be able to evolve without coupling their variant
+order or release cadence. ADR 0195 records the decision.
+
+The v1 contract freezes all eight original categories, stable string codes,
+kinds, the `jose` capability, exact static displays, empty sources, and the
+absence of public code constants. One wildcard-free private mapping keeps the
+inventory compile-exhaustive. A future additive JWE error appends after the v1
+prefix and receives its own exact tests; it never regenerates the historical
+fixture. This contract is diagnostic compatibility evidence, not proof that a
+production encryption engine exists.
+
 The initial compact-header profile is deliberately closed. An adapter must
 emit exactly `alg`, `enc`, `epk` (`kty`, `crv`, `x`, `y`) and an optional
 non-empty `kid`. Registered extensions such as `typ`, `cty`, `apu`, `apv`,
@@ -111,6 +126,8 @@ specified profile defines their semantics and limits.
 
 - focused E2E: `crates/oid4vp/tests/encrypted_direct_post_response.rs`;
 - JOSE grammar and redaction: `crates/jose/tests/jwe_port.rs`;
+- JWE error compatibility: `crates/jose/tests/jwe_error_contract.rs` and
+  `crates/jose/tests/fixtures/jwe-encryption-error-contract-v1.csv`;
 - fuzz: `scripts/fuzz-oid4vp.sh smoke encrypted_direct_post_response`;
 - benchmark: `cargo bench -p identus-oid4vp --bench encrypted_direct_post_response`;
 - isolated engine E2E: `python3 scripts/qualify-jwe-engine.py --mode all`;

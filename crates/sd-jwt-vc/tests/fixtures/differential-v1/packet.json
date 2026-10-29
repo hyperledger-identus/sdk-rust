@@ -23,6 +23,7 @@
       "group": "protected-identity",
       "scenario": "legacy-protected-type",
       "normative": "reject",
+      "expectedError": "sd_jwt_vc.protected_type",
       "draftSection": "3.2.1",
       "observations": [
         {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-instance.ts:35-39", "noteCode": "fixed-emitter-no-negative"},
@@ -34,6 +35,7 @@
       "group": "type-claims",
       "scenario": "missing-vct",
       "normative": "reject",
+      "expectedError": "sd_jwt_vc.credential_type",
       "draftSection": "3.2.2.1",
       "observations": [
         {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-payload.ts:1-18", "noteCode": "compile-time-shape-only"},
@@ -56,6 +58,7 @@
       "group": "type-claims",
       "scenario": "malformed-additional-types",
       "normative": "reject",
+      "expectedError": "sd_jwt_vc.additional_types",
       "draftSection": "3.2.2.2",
       "observations": [
         {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-payload.ts:1-18", "noteCode": "aka-vcts-not-modeled"},
@@ -67,6 +70,7 @@
       "group": "protected-placement",
       "scenario": "protected-status-disclosure",
       "normative": "reject",
+      "expectedError": "sd_jwt_vc.claim_placement",
       "draftSection": "3.2.2.2",
       "observations": [
         {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-instance.ts:50-69", "noteCode": "root-frame-check-only"},
@@ -89,6 +93,7 @@
       "group": "holder-confirmation",
       "scenario": "holder-confirmation-missing",
       "normative": "reject",
+      "expectedError": "sd_jwt_vc.key_binding_required",
       "draftSection": "3.5",
       "observations": [
         {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "reject", "selector": "packages/sd-jwt-vc/test/app-e2e.spec.ts:226-270", "noteCode": "required-kb-reject"},
@@ -111,6 +116,7 @@
       "group": "type-metadata",
       "scenario": "metadata-cycle",
       "normative": "reject",
+      "expectedError": "sd_jwt_vc.type_metadata_cycle",
       "draftSection": "5.4 and 11.3",
       "observations": [
         {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "reject", "selector": "packages/sd-jwt-vc/src/test/vct.spec.ts:479-495", "noteCode": "cycle-reject"},
@@ -122,6 +128,7 @@
       "group": "type-metadata",
       "scenario": "mandatory-never-missing",
       "normative": "reject",
+      "expectedError": "sd_jwt_vc.type_metadata_rule",
       "draftSection": "5.6.3",
       "observations": [
         {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-instance.ts:418-431", "noteCode": "mandatory-not-enforced"},
@@ -133,7 +140,12 @@
       "group": "type-metadata",
       "scenario": "optional-display-ignored",
       "normative": "accept",
+      "rustResult": "not-exposed",
       "draftSection": "5.6.2",
+      "optionalDisplay": {
+        "display": "malformed-not-an-array",
+        "svg_id": 7
+      },
       "observations": [
         {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "reject", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-type-metadata-format.ts:146-184", "noteCode": "schema-rejects-display"},
         {"oracleId": "k2gl.sd-jwt-vc.2.1.0", "result": "reject", "selector": "tests/TypeMetadataTest.php:64-81", "noteCode": "draft19-schema-reject"}
@@ -155,6 +167,7 @@
       "group": "status-reference",
       "scenario": "status-reference-malformed",
       "normative": "reject",
+      "expectedError": "sd_jwt_vc.status",
       "draftSection": "3.2.2.5",
       "observations": [
         {"oracleId": "openwallet-foundation.sd-jwt-vc.0.20.1", "result": "not-exposed", "selector": "packages/sd-jwt-vc/src/sd-jwt-vc-instance.ts:72-117", "noteCode": "network-policy-surface"},

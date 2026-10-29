@@ -1,7 +1,8 @@
 # SD-JWT VC draft-22 differential qualification
 
-**Decision date:** 2026-10-29  
-**Owner:** issue #573  
+**Decision date:** 2026-10-29
+
+**Owner:** issue #573
 **Normative authority:** `draft-ietf-oauth-sd-jwt-vc-22`, text SHA-256
 `da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124`
 
@@ -9,9 +10,10 @@
 
 `identus-sd-jwt-vc` has two independent, immutable behavioral oracles for its
 draft-22 profile. They are research inputs, not production or CI dependencies.
-Normal CI reads a bounded offline packet and executes every normative result
-through the public Rust API. Draft-22, not implementation majority, resolves
-all disagreements.
+Normal CI reads a bounded offline packet and executes every exposed normative
+result through the public Rust API. Optional display ingestion remains
+explicitly `not-exposed`. Draft-22, not implementation majority, resolves all
+disagreements.
 
 The crate remains unpublished. The packet does not add HTTP, rendering, trust,
 status-acceptance, legacy-input, or donor-runtime behavior.
@@ -49,7 +51,7 @@ normative result.
 | required holder confirmation | accept only with valid `cnf` at this policy stage | accept/reject | separate policy surface | Rust keeps policy explicit |
 | finite acyclic metadata extension | accept valid; reject cycle/depth | accept/reject | accept/reject | agreement |
 | missing mandatory cleartext (`sd=never`) path | reject | mandatory not enforced | **accept** because the verifier explicitly skips `mandatory` | draft-20/22 complete-payload rule wins where absence is observable |
-| malformed optional claim `display`/`svg_id` | **ignore for credential processing** | reject in metadata schema | reject in metadata schema | draft-21/22 wins; Rust imports only processing-critical path/mandatory/sd |
+| malformed optional claim `display`/`svg_id` | **ignore for credential processing** | reject in metadata schema | reject in metadata schema | Rust metadata ingestion is `not-exposed`; no agreement is claimed |
 | valid status reference shape | accept as evidence, not policy | accept and performs optional network policy | accept/expose | Rust stops before retrieval or acceptance |
 | malformed status reference | reject | not exposed by cited test | not exposed by cited test | draft-22 reject |
 

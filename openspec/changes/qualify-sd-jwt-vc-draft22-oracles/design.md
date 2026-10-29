@@ -53,8 +53,9 @@ Each case has one draft-22 result and exactly one observation per oracle:
 The packet also records an exact upstream source/test selector and a bounded
 note code. Free-form donor diagnostics and credentials are prohibited. A
 disagreement is expected evidence, not a failing packet, only when its draft
-section and normative resolution are present. The Rust result must always
-match the normative result.
+section and normative resolution are present. Every exposed Rust result must
+match the normative result; an absent public ingestion surface is recorded as
+`not-exposed` and cannot count as agreement.
 
 ### Semantic groups
 

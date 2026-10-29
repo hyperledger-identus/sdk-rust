@@ -15,7 +15,7 @@
 
 - [x] 3.1 Add the versioned packet, closed schema/provenance checks, source selectors, and disagreement ledger.
 - [x] 3.2 Cover canonical identity, type claims, protected placement, holder confirmation, Type Metadata, status references, and draft-20/21 delta cases.
-- [x] 3.3 Execute every normative packet result through public `identus-sd-jwt-vc` APIs and promote stable negative/boundary cases to the cross-language catalog.
+- [x] 3.3 Execute every exposed normative packet result through public `identus-sd-jwt-vc` APIs, keep absent metadata ingestion explicit as `not-exposed`, and promote stable negative/boundary cases to the cross-language catalog.
 
 ## 4. Knowledge and quality evidence
 
@@ -25,10 +25,10 @@
 
 ## 5. Review and delivery
 
-- [ ] 5.1 Run focused tests, vector/catalog checks, workspace formatting/Clippy/tests/docs, factory and full Nix evidence.
+- [x] 5.1 Run focused tests, vector/catalog checks, workspace formatting/Clippy/tests/docs, factory and full Nix evidence.
 - [ ] 5.2 Run Claude CLI review or immediate Codex CLI fallback, resolve actionable blocker/high/medium findings, and rerun proportionate gates.
 - [ ] 5.3 Archive OpenSpec, create the signed/DCO issue-linked PR, merge only on green protected CI, publish metrics, close #573, and clean the worktree.
 
 ## 6. Stop boundary
 
-- [ ] 6.1 Do not add production dependencies, execute donor engines in normal CI, publish the crate, activate legacy input, or add HTTP/trust/rendering/status-acceptance/downstream behavior.
+- [x] 6.1 Do not add production dependencies, execute donor engines in normal CI, publish the crate, activate legacy input, or add HTTP/trust/rendering/status-acceptance/downstream behavior.

@@ -36,7 +36,7 @@ enter the production dependency graph.
 #### Scenario: the offline differential packet runs
 
 - **WHEN** normal SDK tests execute the versioned packet without donor runtimes or network access
-- **THEN** every Rust result matches the draft-22 normative result for protected identity, type claims, registered-claim placement, holder confirmation, Type Metadata and status references
+- **THEN** every exposed Rust result matches the draft-22 normative result for protected identity, type claims, registered-claim placement, holder confirmation, Type Metadata and status references, while an unimplemented metadata-ingress surface remains explicitly `not-exposed`
 
 #### Scenario: a legacy Identus credential is compared
 

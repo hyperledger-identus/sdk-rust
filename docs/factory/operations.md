@@ -43,7 +43,8 @@ constraints and the normal dependency gates.
    declares `Issue linkage: closes` and closes the branch issue. Work with
    genuine post-merge acceptance may declare `deferred`, reference the issue
    without closing it, and bind the exact archived OpenSpec
-   `post-merge-acceptance.json` sidecar. Merge into `develop` only at the
+   `post-merge-acceptance.json` sidecar. Deferred titles, commit messages, and
+   merge bodies must not contain a closing keyword for that issue. Merge into `develop` only at the
    reviewed exact head with all required checks green.
 9. Close the managed worktree only with the merged PR number and exact head.
 

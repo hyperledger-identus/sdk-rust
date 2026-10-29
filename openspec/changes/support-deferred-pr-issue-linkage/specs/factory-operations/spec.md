@@ -12,6 +12,11 @@ branch issue and names one valid archived OpenSpec post-merge acceptance
 sidecar from the exact pull-request head. Metadata inside comments or fenced
 code SHALL NOT authorize linkage.
 
+Deferred linkage SHALL reject closing keywords for the branch issue in the
+pull-request title, authoritative body, exact-head commit messages, guarded
+merge body, and observed merged commit message, including repository-qualified
+references and every closing-keyword form supported by GitHub.
+
 The protected-base validator SHALL treat head content only as bounded untrusted
 data. It SHALL require the deferred sidecar to use the closed schema, match the
 branch issue, state the deferred disposition and rationale, and enumerate the
@@ -38,6 +43,13 @@ interpret deferral as completion.
 - **WHEN** the sidecar is missing, malformed, oversized, outside the allowed
   archive path, belongs to another issue, or omits its remaining gates
 - **THEN** policy validation fails closed without printing the sidecar contents
+
+#### Scenario: A later delivery surface would close a deferred issue
+
+- **WHEN** the pull-request title, body, exact-head commit history, merge body,
+  or observed merge commit contains a closing keyword for the deferred issue
+- **THEN** policy or guarded delivery rejects the candidate before accepting
+  the merge receipt
 
 #### Scenario: Apparent linkage is non-authoritative prose
 

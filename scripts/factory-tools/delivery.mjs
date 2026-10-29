@@ -22,7 +22,11 @@ import {
 import path from "node:path";
 import { TextDecoder } from "node:util";
 import { fileURLToPath } from "node:url";
-import { readDeferredAcceptanceAt, validatePullRequest } from "../ci/contribution-policy.mjs";
+import {
+  containsGitHubClosingKeyword,
+  readDeferredAcceptanceAt,
+  validatePullRequest,
+} from "../ci/contribution-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const pullRequestPolicy = path.join(root, "scripts", "check-pr-policy.sh");
@@ -242,7 +246,7 @@ export function parseMergeArguments(argv) {
   };
 }
 
-export function validateMergeBody(body, { name, email }) {
+export function validateMergeBody(body, { name, email }, { deferredIssue = null } = {}) {
   requireText(name, "Git user name");
   requireText(email, "Git user email");
   if (typeof body !== "string" || body.length === 0) fail("merge body must not be empty");
@@ -251,6 +255,9 @@ export function validateMergeBody(body, { name, email }) {
   if (!normalized.includes("\n")) fail("merge body must contain real multiline text");
   const trailer = `Signed-off-by: ${name} <${email}>`;
   if (normalized.split("\n").at(-1) !== trailer) fail("merge body must end with the exact Git identity DCO trailer");
+  if (deferredIssue && containsGitHubClosingKeyword(normalized, deferredIssue)) {
+    fail(`merge body must not close deferred issue #${deferredIssue}`);
+  }
   return normalized;
 }
 
@@ -292,7 +299,7 @@ function hostedGithub(repository) {
     readPullRequest(number) {
       return JSON.parse(run([
         "pr", "view", String(number), "--repo", repository, "--json",
-        "state,isDraft,baseRefName,headRefOid,mergeable,mergeStateStatus,reviewDecision,mergedAt,mergeCommit",
+        "state,isDraft,baseRefName,headRefOid,headRefName,title,body,mergeable,mergeStateStatus,reviewDecision,mergedAt,mergeCommit",
       ], { failure: "pull request state is unavailable" }));
     },
     requiredChecksPass(number) {
@@ -431,8 +438,21 @@ export function mergePullRequest(options, dependencies = {}) {
   const persist = dependencies.persist ?? ((receipt) => retainMergeReceipt(receipt, {
     repositoryRoot: dependencies.repositoryRoot ?? root,
   }));
-  const body = validateMergeBody(readPullRequestBody(options.bodyFile), identity);
   const before = github.readPullRequest(options.pullRequest);
+  const contribution = validatePullRequest({
+    title: before?.title,
+    body: before?.body,
+    branch: before?.headRefName,
+  }, {
+    loadDeferredAcceptance: dependencies.loadDeferredAcceptance ?? ((sidecarPath) => readDeferredAcceptanceAt({
+      repository: dependencies.repositoryRoot ?? root,
+      head: options.expectedHead,
+      sidecarPath,
+    })),
+  });
+  if (!contribution.ok) fail("hosted pull request metadata no longer satisfies contribution policy");
+  const deferredIssue = contribution.linkage.mode === "deferred" ? contribution.linkage.issue : null;
+  const body = validateMergeBody(readPullRequestBody(options.bodyFile), identity, { deferredIssue });
   const alreadyMerged = before?.state === "MERGED";
   if (!alreadyMerged) validatePreMergeState(before, options.expectedHead);
   if (github.requiredChecksPass(options.pullRequest) !== true) fail("required pull request checks are not successful");
@@ -453,6 +473,9 @@ export function mergePullRequest(options, dependencies = {}) {
   }
   const commitMessage = String(commit?.commit?.message ?? "").replace(/\r\n/gu, "\n").replace(/\n+$/u, "");
   if (!commitMessage.endsWith(body)) fail("merged commit message does not contain the exact validated body");
+  if (deferredIssue && containsGitHubClosingKeyword(commitMessage, deferredIssue)) {
+    fail(`merged commit message closes deferred issue #${deferredIssue}`);
+  }
   const receipt = {
     schemaVersion: 1,
     repository,

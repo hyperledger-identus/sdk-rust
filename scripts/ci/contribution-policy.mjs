@@ -114,12 +114,12 @@ function captures(lines, pattern) {
   });
 }
 
-function containsGitHubClosingKeyword(lines, issue) {
+export function containsGitHubClosingKeyword(text, issue) {
   const closingKeyword = new RegExp(
-    `\\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\\s*:?\\s+#${issue}(?![0-9])`,
+    `\\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\\s*:?\\s+(?:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#${issue}(?![0-9])`,
     "iu",
   );
-  return lines.some((line) => closingKeyword.test(line));
+  return closingKeyword.test(String(text ?? ""));
 }
 
 export function validateDeferredAcceptance(document, expectedIssue) {
@@ -184,12 +184,18 @@ export function readDeferredAcceptanceAt({ repository = root, head, sidecarPath 
   return parseJsonWithoutDuplicates(text, { maximumDepth: 8, maximumNodes: 512 });
 }
 
-export function validateIssueLinkage(body, expectedIssue, { loadDeferredAcceptance = null } = {}) {
+export function validateIssueLinkage(body, expectedIssue, {
+  loadDeferredAcceptance = null,
+  additionalClosingText = "",
+} = {}) {
   const lines = authoritativeMarkdownLines(body);
   const errors = [];
   const issues = captures(lines, /^\s*-\s*Issue:\s*#([1-9][0-9]*)\s*$/iu).map(Number);
   const modes = captures(lines, /^\s*-\s*Issue linkage:\s*(closes|deferred)\s*$/iu).map(([mode]) => mode.toLowerCase());
-  const closing = captures(lines, /^\s*(?:Closes|Fixes|Resolves)\s+#([1-9][0-9]*)\.?\s*$/iu).map(Number);
+  const closing = captures(
+    lines,
+    /^\s*(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s+#([1-9][0-9]*)\.?\s*$/iu,
+  ).map(Number);
   const references = captures(lines, /^\s*(?:Refs|References)\s+#([1-9][0-9]*)\.?\s*$/iu).map(Number);
   const sidecars = captures(
     lines,
@@ -207,7 +213,8 @@ export function validateIssueLinkage(body, expectedIssue, { loadDeferredAcceptan
     }
     if (sidecars.length > 0) errors.push("closing linkage must not declare post-merge acceptance evidence");
   } else if (mode === "deferred") {
-    if (containsGitHubClosingKeyword(lines, expectedIssue)) {
+    if (containsGitHubClosingKeyword(lines.join("\n"), expectedIssue)
+        || containsGitHubClosingKeyword(additionalClosingText, expectedIssue)) {
       errors.push(`deferred linkage must not close issue #${expectedIssue}`);
     }
     if (references.filter((issue) => issue === expectedIssue).length !== 1) {
@@ -240,7 +247,7 @@ export function validatePullRequest(
     ...branchResult.errors.map((entry) => `branch: ${entry}`),
   ];
   const linkage = branchResult.issue
-    ? validateIssueLinkage(body, branchResult.issue, { loadDeferredAcceptance })
+    ? validateIssueLinkage(body, branchResult.issue, { loadDeferredAcceptance, additionalClosingText: title })
     : result([], { issue: null, mode: null, sidecarPath: null });
   errors.push(...linkage.errors.map((entry) => `linkage: ${entry}`));
   return result(errors, { subject, branch: branchResult, linkage });
@@ -422,6 +429,10 @@ export function validateHostedCommits(records, expectedHead, context = {}) {
     );
     const evidence = validateCommitEvidence(record, { authoredMetadata: !synchronizationMerge });
     errors.push(...evidence.errors.map((entry) => `${record.sha}: ${entry}`));
+    if (context.deferredIssue
+        && containsGitHubClosingKeyword(record.message, context.deferredIssue)) {
+      errors.push(`${record.sha}: commit message must not close deferred issue #${context.deferredIssue}`);
+    }
   }
   if (records.at(-1)?.sha !== expectedHead) errors.push(`last hosted commit is not exact PR head ${expectedHead}`);
   return result(errors);
@@ -472,11 +483,26 @@ function main() {
   }
   if (command === "hosted-commits") {
     const records = JSON.parse(readFileSync(requireEnv("COMMITS_FILE"), "utf8"));
+    const head = requireEnv("HEAD_SHA");
+    const branch = validateBranchName(requireEnv("PR_HEAD_REF"));
+    const linkage = branch.issue
+      ? validateIssueLinkage(process.env.PR_BODY ?? "", branch.issue, {
+        additionalClosingText: process.env.PR_TITLE ?? "",
+        loadDeferredAcceptance: (sidecarPath) => readDeferredAcceptanceAt({
+          repository: root,
+          head,
+          sidecarPath,
+        }),
+      })
+      : result(["hosted commit evidence requires an issue branch"]);
+    report(linkage);
+    if (!linkage.ok) return;
     const outcome = validateHostedCommits(records, requireEnv("HEAD_SHA"), {
       baseSha: requireEnv("PR_BASE_SHA"),
       baseRef: requireEnv("PR_BASE_REF"),
       headRef: requireEnv("PR_HEAD_REF"),
       repository: root,
+      deferredIssue: linkage.mode === "deferred" ? branch.issue : null,
     });
     report(outcome);
     if (outcome.ok) process.stdout.write(`Hosted commit policy passed for ${records.length} commit(s).\n`);

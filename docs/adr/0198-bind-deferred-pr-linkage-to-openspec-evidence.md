@@ -22,6 +22,9 @@ the bounded sidecar as untrusted data and never executes head code.
 
 The sidecar must match the issue and enumerate the remaining gates. It reserves
 later acceptance; it does not satisfy, waive, or automate those gates.
+The protected policy and guarded merge path also reject every GitHub closing
+keyword for the deferred issue in titles, commit messages, merge messages, and
+repository-qualified references.
 
 ## Consequences
 

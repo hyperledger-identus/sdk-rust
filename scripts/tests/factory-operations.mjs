@@ -275,7 +275,19 @@ test("issue linkage rejects prose decoys and accepts exact deferred evidence", (
   assert.equal(validateIssueLinkage(`${deferredBody}\nCloses #243`, 243, {
     loadDeferredAcceptance: () => evidence,
   }).ok, false);
+  assert.equal(validateIssueLinkage(`${deferredBody}\nFixes hyperledger-identus/sdk-rust#243`, 243, {
+    loadDeferredAcceptance: () => evidence,
+  }).ok, false);
+  assert.equal(validateIssueLinkage(deferredBody, 243, {
+    additionalClosingText: "feat(factory): this fixes #243",
+    loadDeferredAcceptance: () => evidence,
+  }).ok, false);
   for (const closingKeyword of ["close", "closes", "closed", "fix", "fixes", "fixed", "resolve", "resolves", "resolved"]) {
+    assert.equal(validateIssueLinkage([
+      "- Issue: #243",
+      "- Issue linkage: closes",
+      `${closingKeyword}: #243`,
+    ].join("\n"), 243).ok, true, `${closingKeyword} must remain a supported closing keyword`);
     assert.equal(validateIssueLinkage(`${deferredBody}\nThis ${closingKeyword}: #243 after merge.`, 243, {
       loadDeferredAcceptance: () => evidence,
     }).ok, false, `${closingKeyword} must not bypass deferred linkage`);
@@ -539,18 +551,25 @@ test("guarded merge is dry by default and retains exact verified evidence on exe
     writeFileSync(bodyFile, `${body}\n`);
     const expectedHead = "b".repeat(40);
     const mergeCommit = "c".repeat(40);
+    const prMetadata = {
+      title: "fix(factory): close delivery loop",
+      body: "- Issue: #320\n- Issue linkage: closes\nCloses #320",
+      headRefName: "codex/fix/issue-320",
+    };
     let merged = false;
     let retained;
     const github = {
       readPullRequest() {
         return merged
           ? {
+            ...prMetadata,
             state: "MERGED", isDraft: false, baseRefName: "develop",
             headRefOid: expectedHead, mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN",
             reviewDecision: "", mergedAt: "2026-09-17T09:00:00.000Z",
             mergeCommit: { oid: mergeCommit },
           }
           : {
+            ...prMetadata,
             state: "OPEN", isDraft: false, baseRefName: "develop",
             headRefOid: expectedHead, mergeable: "MERGEABLE", mergeStateStatus: "CLEAN",
             reviewDecision: "", mergedAt: null, mergeCommit: null,
@@ -614,6 +633,12 @@ test("guarded merge rejects unsafe messages, stale state, red checks, and invali
       /literal escaped newline/u,
     );
     assert.throws(
+      () => validateMergeBody(validBody, {
+        name: "Factory Test", email: "factory@example.invalid",
+      }, { deferredIssue: 320 }),
+      /must not close deferred issue/u,
+    );
+    assert.throws(
       () => validateMergeBody("Closes #320.\nWrong trailer", {
         name: "Factory Test", email: "factory@example.invalid",
       }),
@@ -621,6 +646,9 @@ test("guarded merge rejects unsafe messages, stale state, red checks, and invali
     );
     const expectedHead = "b".repeat(40);
     const baseState = {
+      title: "fix(factory): close delivery loop",
+      body: "- Issue: #320\n- Issue linkage: closes\nCloses #320",
+      headRefName: "codex/fix/issue-320",
       state: "OPEN", isDraft: false, baseRefName: "develop", headRefOid: expectedHead,
       mergeable: "MERGEABLE", mergeStateStatus: "CLEAN", reviewDecision: "",
     };
@@ -633,6 +661,25 @@ test("guarded merge rejects unsafe messages, stale state, red checks, and invali
       },
     });
     const options = { pullRequest: 320, expectedHead, bodyFile, execute: false };
+    const deferredState = {
+      ...baseState,
+      body: [
+        "- Issue: #320",
+        "- Issue linkage: deferred",
+        "- Post-merge acceptance: openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json",
+        "References #320",
+      ].join("\n"),
+    };
+    assert.throws(() => mergePullRequest(options, {
+      ...dependencies(deferredState),
+      loadDeferredAcceptance: () => ({
+        schemaVersion: 1,
+        issue: 320,
+        disposition: "deferred",
+        rationale: "Wait for the natural scheduled receipt.",
+        acceptance: ["natural-schedule"],
+      }),
+    }), /must not close deferred issue/u);
     assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, headRefOid: sha })), /expected head/u);
     assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, isDraft: true })), /not ready/u);
     assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, mergeStateStatus: "BLOCKED" })), /not clean/u);
@@ -688,6 +735,9 @@ test("guarded merge recovers an exact already-merged receipt without merging aga
       github: {
         readPullRequest() {
           return {
+            title: "fix(factory): close delivery loop",
+            body: "- Issue: #320\n- Issue linkage: closes\nCloses #320",
+            headRefName: "codex/fix/issue-320",
             state: "MERGED", isDraft: false, baseRefName: "develop",
             headRefOid: expectedHead, mergedAt: "2026-09-17T09:48:40Z",
             mergeCommit: { oid: mergeCommit },
@@ -791,6 +841,9 @@ test("hosted commit evidence accepts declared envelopes and fails closed otherwi
     verification: { verified: true, reason: "valid", signature: "-----BEGIN PGP SIGNATURE-----\nfixture" },
   };
   assert.equal(validateHostedCommits([record], sha).ok, true);
+  assert.equal(validateHostedCommits([{ ...record, message: `${record.message}\n\nFixes #243` }], sha, {
+    deferredIssue: 243,
+  }).ok, false);
   const ssh = { ...record, verification: { ...record.verification, signature: "-----BEGIN SSH SIGNATURE-----\nfixture" } };
   assert.equal(validateHostedCommits([ssh], sha).ok, true);
   const undeclared = { ...record, verification: { ...record.verification, signature: "-----BEGIN X509 SIGNATURE-----\nfixture" } };

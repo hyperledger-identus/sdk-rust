@@ -47,8 +47,9 @@ workflow or registry claim.
 | Independent train identity and deterministic archives | Complete | [#382](https://github.com/hyperledger-identus/sdk-rust/issues/382), ADR 0153 |
 | Public API origins and normalized CycloneDX evidence | Complete; additive prepublication rebaseline recorded | [#384](https://github.com/hyperledger-identus/sdk-rust/issues/384), [#582](https://github.com/hyperledger-identus/sdk-rust/issues/582), ADR 0154 |
 | Engineer-facing architecture and adoption handbook | Implemented in this source revision; deployment receipt remains on the issue | [#386](https://github.com/hyperledger-identus/sdk-rust/issues/386) |
-| Rust/target qualification | Open | [#387](https://github.com/hyperledger-identus/sdk-rust/issues/387) |
-| Final exact-SHA candidate approval | Open; follows all prior gates | [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |
+| Rust/target qualification | Complete; staged package-specific matrix retained | [#387](https://github.com/hyperledger-identus/sdk-rust/issues/387), ADR 0155 |
+| Final exact-SHA slow evidence | Pending after a retained historical natural macOS lane failure was addressed by #564 | [readiness packet](did-candidate-readiness.md), [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |
+| Independent exact-receipt approval | Pending; cannot be self-issued by the implementing agent | [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |
 | Trusted-publishing administration | Separate administrator-owned hardening | [#344](https://github.com/hyperledger-identus/sdk-rust/issues/344) |
 
 Reviewers should start with the [DID candidate train](did-candidate.md). A

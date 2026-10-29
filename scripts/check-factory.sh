@@ -84,12 +84,14 @@ required_files=(
   docs/release/crypto-candidate.toml
   docs/release/did-candidate.lock
   docs/release/did-candidate.toml
+  docs/release/did-candidate-readiness.toml
   docs/release/did-api-origin-rebaseline.toml
   docs/release/release-trains.toml
   docs/release/0.1.0-rc.1.md
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
   docs/release/identus-did-0.1.0-rc.1.api.txt
   docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt
+  site/src/did-candidate-readiness.md
   crates/derive/README.md
   crates/core/README.md
   crates/crypto/README.md
@@ -202,6 +204,7 @@ required_files=(
   scripts/check-crypto-candidate.py
   scripts/check-release-train.py
   scripts/check-release-candidates.py
+  scripts/check-did-final-readiness.py
   scripts/code-health-audit.py
   scripts/prepare-crypto-candidate.py
   scripts/prepare-did-candidate.py
@@ -386,6 +389,12 @@ fi
 if [[ -x "$factory_root/scripts/check-release-candidates.py" ]]; then
   if ! "$factory_root/scripts/check-release-candidates.py" "$factory_root"; then
     report_failure "independent release-candidate validation failed"
+  fi
+fi
+
+if [[ -x "$factory_root/scripts/check-did-final-readiness.py" ]]; then
+  if ! "$factory_root/scripts/check-did-final-readiness.py" "$factory_root"; then
+    report_failure "DID final-readiness packet validation failed"
   fi
 fi
 

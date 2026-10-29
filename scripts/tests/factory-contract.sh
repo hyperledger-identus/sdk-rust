@@ -36,6 +36,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/crypto-candidate.py"
 "$repository_root/scripts/tests/release-train.py"
 "$repository_root/scripts/tests/release-candidates.py"
+"$repository_root/scripts/tests/did-final-readiness.py"
 "$repository_root/scripts/tests/error-golden.py"
 "$repository_root/scripts/tests/code-health-audit.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
@@ -149,6 +150,7 @@ required_files=(
   docs/release/crypto-candidate.toml
   docs/release/did-candidate.lock
   docs/release/did-candidate.toml
+  docs/release/did-candidate-readiness.toml
   docs/release/did-api-origin-rebaseline.toml
   docs/release/release-trains.toml
   docs/release/0.1.0-rc.1.md
@@ -156,6 +158,7 @@ required_files=(
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
   docs/release/identus-did-0.1.0-rc.1.api.txt
   docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt
+  site/src/did-candidate-readiness.md
   crates/derive/README.md
   crates/core/README.md
   crates/crypto/README.md
@@ -302,6 +305,7 @@ required_files=(
   scripts/check-crypto-candidate.py
   scripts/check-release-train.py
   scripts/check-release-candidates.py
+  scripts/check-did-final-readiness.py
   scripts/check-jwe-engine-qualification.py
   scripts/qualify-jwe-engine.py
   scripts/code-health-audit.py
@@ -343,6 +347,7 @@ required_files=(
   scripts/tests/crypto-candidate.py
   scripts/tests/release-train.py
   scripts/tests/release-candidates.py
+  scripts/tests/did-final-readiness.py
   scripts/tests/code-health-audit.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml

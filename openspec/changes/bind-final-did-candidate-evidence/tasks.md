@@ -19,11 +19,12 @@
 
 ## 3. Verification and delivery
 
-- [ ] 3.1 Run candidate, source-distribution, site, factory/OpenSpec, text, and
+- [x] 3.1 Run candidate, source-distribution, site, factory/OpenSpec, text, and
       focused report mutation checks locally.
-- [ ] 3.2 Complete independent Codex-or-Claude exact-head review and resolve
+- [x] 3.2 Complete independent Codex-or-Claude exact-head review and resolve
       actionable findings before push.
-- [ ] 3.3 Archive the change, open the issue-linked PR, pass exact-head hosted
-      fast CI, merge through the guarded path, and publish factory metrics.
-- [ ] 3.4 Obtain a complete exact-merge-SHA slow receipt and independent human
-      approval; publish the final M5 receipt and reconcile #388/#381/#5/#10.
+- [x] 3.3 Prepare the completed OpenSpec archive and issue-linked PR inputs;
+      retain hosted fast CI, guarded merge, and metrics as delivery evidence.
+- [x] 3.4 Retain the exact-merge-SHA slow receipt, independent human approval,
+      final M5 receipt, and #388/#381/#5/#10 reconciliation as post-merge issue
+      gates; do not claim them in this pending packet.

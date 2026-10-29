@@ -48,7 +48,7 @@ struct Case {
     observations: Vec<Observation>,
 }
 
-#[derive(Clone, Copy, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 enum Scenario {
     CanonicalProfile,
@@ -67,7 +67,7 @@ enum Scenario {
     StatusReferenceMalformed,
 }
 
-#[derive(Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 enum Outcome {
     Accept,
@@ -83,7 +83,7 @@ struct Observation {
     note_code: String,
 }
 
-#[derive(Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 enum OracleResult {
     Accept,
@@ -280,10 +280,23 @@ fn differential_packet_is_closed_source_bound_and_executable() {
             .collect::<BTreeSet<_>>();
         assert_eq!(observed.len(), oracle_ids.len());
 
-        let rust_result = case.rust_result.unwrap_or(match case.normative {
-            Outcome::Accept => OracleResult::Accept,
-            Outcome::Reject => OracleResult::Reject,
-        });
+        let rust_result = match case.scenario {
+            Scenario::OptionalDisplayIgnored => {
+                assert_eq!(case.rust_result, Some(OracleResult::NotExposed));
+                assert_eq!(case.normative, Outcome::Accept);
+                OracleResult::NotExposed
+            }
+            _ => {
+                assert!(
+                    case.rust_result.is_none(),
+                    "exposed Rust result cannot override the normative result"
+                );
+                match case.normative {
+                    Outcome::Accept => OracleResult::Accept,
+                    Outcome::Reject => OracleResult::Reject,
+                }
+            }
+        };
         let execution = execute(case);
         match rust_result {
             OracleResult::Accept => assert!(

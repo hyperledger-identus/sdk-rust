@@ -472,8 +472,8 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / "docs/release/did-api-origin-rebaseline.toml",
-                    'classification       = "additive-only"',
-                    'classification       = "compatible"',
+                    'classification = "additive-only"',
+                    'classification = "compatible"',
                 ),
                 "DID API-origin rebaseline evidence differs",
             ),

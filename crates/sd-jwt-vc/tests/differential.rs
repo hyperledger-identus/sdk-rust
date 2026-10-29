@@ -121,10 +121,12 @@ struct OracleReceipt {
     license_sha256: String,
     toolchain: String,
     lock_sha256: String,
-    resolved_production_dependencies: usize,
+    package_manager_dependency_entries: usize,
     dependency_graph: String,
     dependency_graph_sha256: String,
     resolved_dependency_nodes: usize,
+    resolved_production_dependency_nodes: usize,
+    resolved_development_dependency_nodes: usize,
     upstream_tests: String,
     audit: String,
     audit_sha256: String,
@@ -238,12 +240,15 @@ fn differential_packet_is_closed_source_bound_and_executable() {
         assert_eq!(receipt.license_sha256.len(), 64);
         assert!(!receipt.toolchain.is_empty());
         assert_eq!(receipt.lock_sha256.len(), 64);
-        assert!(receipt.resolved_production_dependencies > 0);
-        let graph_text = match receipt.id.as_str() {
-            "openwallet-foundation.sd-jwt-vc.0.20.1" => OPENWALLET_GRAPH,
-            "k2gl.sd-jwt-vc.2.1.0" => K2GL_GRAPH,
+        assert!(receipt.package_manager_dependency_entries > 0);
+        let (graph_text, graph_name) = match receipt.id.as_str() {
+            "openwallet-foundation.sd-jwt-vc.0.20.1" => {
+                (OPENWALLET_GRAPH, "openwallet-dependency-graph.json")
+            }
+            "k2gl.sd-jwt-vc.2.1.0" => (K2GL_GRAPH, "k2gl-dependency-graph.json"),
             _ => panic!("unknown oracle receipt"),
         };
+        assert_eq!(receipt.dependency_graph, graph_name);
         validate_dependency_graph(receipt, graph_text);
         assert!(!receipt.upstream_tests.is_empty());
         assert!(!receipt.audit.is_empty());
@@ -355,9 +360,11 @@ fn validate_dependency_graph(receipt: &OracleReceipt, graph_text: &str) {
         sha256_hex(graph_text.as_bytes()),
         receipt.dependency_graph_sha256
     );
-    assert!(receipt.dependency_graph.ends_with("-dependency-graph.json"));
 
     let mut ids = BTreeSet::new();
+    let mut production_nodes = 0;
+    let mut development_nodes = 0;
+    let mut root_nodes = 0;
     for node in &graph.nodes {
         assert!(ids.insert(node.id.as_str()), "duplicate dependency node");
         assert!(!node.name.is_empty());
@@ -370,10 +377,31 @@ fn validate_dependency_graph(receipt: &OracleReceipt, graph_text: &str) {
                 "root" | "production" | "development"
             ));
         }
+        match node.scope.as_deref() {
+            Some("root") => root_nodes += 1,
+            Some("production") => production_nodes += 1,
+            Some("development") => development_nodes += 1,
+            None if node.id == graph.root => root_nodes += 1,
+            None => production_nodes += 1,
+            Some(_) => unreachable!("scope was validated above"),
+        }
         if let Some(reference) = &node.reference {
             assert_eq!(reference.len(), 40);
         }
     }
+    assert_eq!(root_nodes, 1);
+    assert_eq!(
+        production_nodes,
+        receipt.resolved_production_dependency_nodes
+    );
+    assert_eq!(
+        development_nodes,
+        receipt.resolved_development_dependency_nodes
+    );
+    assert_eq!(
+        production_nodes + development_nodes + root_nodes,
+        receipt.resolved_dependency_nodes
+    );
     assert!(ids.contains(graph.root.as_str()));
     for node in &graph.nodes {
         for dependency in &node.dependencies {

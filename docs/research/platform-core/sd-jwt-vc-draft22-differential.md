@@ -22,8 +22,8 @@ status-acceptance, legacy-input, or donor-runtime behavior.
 
 | Engine | Immutable source | Isolated evidence | Supply-chain result |
 | --- | --- | --- | --- |
-| OpenWallet Foundation `@sd-jwt/sd-jwt-vc` 0.20.1 | commit `b983e03253481ab6d33e147cc7e30e4904d0813f`; npm tarball SHA-256 `95722f5a8396a8f1ca480b0506d615155f97fd2cbfe69fa71834658440f23620` | Node 22.23.4, pnpm 9.4.0; 20 node and 17 E2E tests passed | 25 production dependencies; one high advisory in isolated `zod` 4.4.3; browser suite did not qualify because the upstream jsdom harness mixes realms and imports `node:test` |
-| K2GL `sd-jwt-vc` 2.1.0 | commit `7d938daf0a1e14974420651e7ce84146ed1875bb`; archive SHA-256 `fe86f82ce0b1345f163086f9d0b09265643982f07b9ec15d08c1596bc46586c2` | PHP 8.3.36, Composer 2.10.3; 128 tests and 296 assertions passed | 44 resolved packages; zero advisories and zero abandoned packages |
+| OpenWallet Foundation `@sd-jwt/sd-jwt-vc` 0.20.1 | commit `b983e03253481ab6d33e147cc7e30e4904d0813f`; npm tarball SHA-256 `95722f5a8396a8f1ca480b0506d615155f97fd2cbfe69fa71834658440f23620` | Node 22.23.4, pnpm 9.4.0; 20 node and 17 E2E tests passed | 25 package-manager entries normalize to 17 unique production dependency nodes; one high advisory in isolated `zod` 4.4.3; browser suite did not qualify because the upstream jsdom harness mixes realms and imports `node:test` |
+| K2GL `sd-jwt-vc` 2.1.0 | commit `7d938daf0a1e14974420651e7ce84146ed1875bb`; archive SHA-256 `fe86f82ce0b1345f163086f9d0b09265643982f07b9ec15d08c1596bc46586c2` | PHP 8.3.36, Composer 2.10.3; 128 tests and 296 assertions passed | 44 package-manager entries resolve to 5 production and 39 development dependency nodes; zero advisories and zero abandoned packages |
 
 Exact license, lock, audit and toolchain receipts are in
 [`oracle-receipts.json`](../../../crates/sd-jwt-vc/tests/fixtures/differential-v1/oracle-receipts.json).

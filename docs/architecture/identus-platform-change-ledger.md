@@ -15,7 +15,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `credentials.sd-jwt.vc-draft03-input-adapter.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. An additive explicitly selected input-only adapter validates the source-bound draft-03 common subset after RFC 9901 verification, returns a distinct migration state requiring canonical reissuance, and leaves all canonical dc+sd-jwt paths unchanged.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. An additive explicitly selected input-only adapter validates the source-bound draft-03 common subset after RFC 9901 verification, returns a distinct migration state requiring canonical reissuance, and leaves all canonical dc+sd-jwt paths unchanged.
 
 ### `credentials.sd-jwt.vc-draft22.v1`
 

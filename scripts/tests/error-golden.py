@@ -564,7 +564,12 @@ def main() -> int:
             checker.OID4VCI,
             (b"OID4VCI limits are invalid", b"OID4VCI limits were invalid"),
         )
-        run_protected_squash_cases(checker, test_root, checker.JWE)
+        source_snapshot = os.environ.pop(checker.SOURCE_SNAPSHOT_ENV, None)
+        try:
+            run_protected_squash_cases(checker, test_root, checker.JWE)
+        finally:
+            if source_snapshot is not None:
+                os.environ[checker.SOURCE_SNAPSHOT_ENV] = source_snapshot
 
         combined = test_root / "combined-active-bindings"
         for binding in checker.BINDINGS:

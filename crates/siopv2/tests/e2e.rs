@@ -10,7 +10,7 @@ use identus_openid4vc::{
     RequestUriReference,
 };
 use identus_siopv2::{
-    EventId, REQUEST_OBJECT_JWT_TYPE, SIOPV2_AUDIENCE, SiopFlow, Siopv2Limits,
+    EventId, REQUEST_OBJECT_JWT_TYPE, SIOPV2_AUDIENCE, SiopFlow, Siopv2Error, Siopv2Limits,
     UnverifiedSiopRequest,
 };
 use serde_json::{Value, json};
@@ -77,6 +77,13 @@ fn signed_request(value: &Value) -> String {
 }
 
 fn validated_request(value: &Value) -> identus_siopv2::ValidatedSiopRequest {
+    validated_request_with_limits(value, Siopv2Limits::default())
+}
+
+fn validated_request_with_limits(
+    value: &Value,
+    limits: Siopv2Limits,
+) -> identus_siopv2::ValidatedSiopRequest {
     let compact = signed_request(value);
     let retrieved = RequestUriReference::new(
         "https://rp.example",
@@ -94,7 +101,7 @@ fn validated_request(value: &Value) -> identus_siopv2::ValidatedSiopRequest {
     .expect("bound response");
     let public = request_key().to_public_key().encode_jwk();
     let key = JwsVerificationKey::new(JwsAlgorithm::Ed25519, &public).expect("key binding");
-    UnverifiedSiopRequest::from_retrieved(&retrieved, Siopv2Limits::default())
+    UnverifiedSiopRequest::from_retrieved(&retrieved, limits)
         .expect("parse")
         .verify(&SignatureSuiteRegistry::recommended(), &key, NOW)
         .expect("verify")
@@ -265,8 +272,48 @@ fn post_retrieval_nonce_is_bound_to_the_signed_request() {
             .unwrap()
             .verify(&SignatureSuiteRegistry::recommended(), &key, NOW)
             .unwrap_err(),
-        identus_siopv2::Siopv2Error::ClientBindingMismatch
+        Siopv2Error::WalletNonceMismatch
     );
+}
+
+#[test]
+fn refined_diagnostics_are_stable_and_redacted() {
+    assert_eq!(
+        Siopv2Error::WalletNonceMismatch.code(),
+        "siopv2_wallet_nonce_mismatch"
+    );
+    assert_eq!(
+        Siopv2Error::ResponseEncodingFailed.code(),
+        "siopv2_response_encoding_failed"
+    );
+    for error in [
+        Siopv2Error::WalletNonceMismatch,
+        Siopv2Error::ResponseEncodingFailed,
+    ] {
+        let rendered = error.to_string();
+        assert_eq!(rendered, error.code());
+        assert!(!rendered.contains("wallet-789"));
+        assert!(!rendered.contains("nonce-123"));
+        assert!(!rendered.contains("did:example"));
+    }
+}
+
+#[test]
+fn response_header_bound_is_not_reported_as_an_invalid_did_key() {
+    let jws = JwsLimits::new(65_536, 4_096, 49_152, 1_024, 24).unwrap();
+    let limits = Siopv2Limits::new(jws, 16, 256, 32, 4_096, 4_096, 65_536, 128, 600, 60).unwrap();
+    let request = validated_request_with_limits(&request_claims(), limits);
+
+    assert!(matches!(
+        request.plan_response(
+            Did::parse("did:example:alice").unwrap(),
+            DidUrl::parse("did:example:alice#authentication-key").unwrap(),
+            JwsAlgorithm::Ed25519,
+            NOW,
+            NOW + 120,
+        ),
+        Err(Siopv2Error::ResponseTooLarge)
+    ));
 }
 
 #[test]
@@ -331,6 +378,54 @@ fn failed_transitions_preserve_state_and_response_timeout_is_unknown() {
         identus_siopv2::Siopv2Error::EventConflict
     );
     assert!(matches!(flow, SiopFlow::OutcomeUnknown { .. }));
+}
+
+#[test]
+fn idempotency_is_local_to_the_current_lifecycle_state() {
+    let approval = EventId::new("approval-local", 128).unwrap();
+    let mut flow = SiopFlow::new(validated_request(&request_claims()));
+    flow.approve(
+        approval.clone(),
+        Did::parse("did:example:alice").unwrap(),
+        DidUrl::parse("did:example:alice#auth-1").unwrap(),
+        JwsAlgorithm::Ed25519,
+        NOW,
+        NOW,
+        NOW + 120,
+        &Ed25519Signer::new(&subject_key()),
+    )
+    .unwrap();
+    flow.approve(
+        approval.clone(),
+        Did::parse("did:example:alice").unwrap(),
+        DidUrl::parse("did:example:alice#auth-1").unwrap(),
+        JwsAlgorithm::Ed25519,
+        NOW,
+        NOW,
+        NOW + 120,
+        &RejectingSigner,
+    )
+    .expect("same approval receipt is idempotent while response-ready is current");
+
+    let delivery = EventId::new("delivery-local", 128).unwrap();
+    flow.delivered(delivery.clone()).unwrap();
+    flow.delivered(delivery)
+        .expect("current delivery receipt is idempotent");
+    assert_eq!(
+        flow.approve(
+            approval,
+            Did::parse("did:example:alice").unwrap(),
+            DidUrl::parse("did:example:alice#auth-1").unwrap(),
+            JwsAlgorithm::Ed25519,
+            NOW,
+            NOW,
+            NOW + 120,
+            &RejectingSigner,
+        )
+        .unwrap_err(),
+        Siopv2Error::InvalidTransition
+    );
+    assert!(matches!(flow, SiopFlow::Delivered { .. }));
 }
 
 #[test]

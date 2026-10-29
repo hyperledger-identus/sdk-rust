@@ -1,7 +1,7 @@
 use std::fmt;
 
 use identus_did::{Did, DidUrl};
-use identus_jose::{JwsAlgorithm, JwsSigner, JwsSigningInput, ProtectedHeader};
+use identus_jose::{JoseError, JwsAlgorithm, JwsSigner, JwsSigningInput, ProtectedHeader};
 use serde::Serialize;
 use zeroize::Zeroizing;
 
@@ -58,7 +58,8 @@ impl ValidatedSiopRequest {
             iat: issued_at,
             exp: expires_at,
         };
-        let payload = serde_json::to_vec(&claims).map_err(|_| Siopv2Error::ResponseTooLarge)?;
+        let payload =
+            serde_json::to_vec(&claims).map_err(|_| Siopv2Error::ResponseEncodingFailed)?;
         if payload.len() > self.limits.jws().max_payload_bytes() {
             return Err(Siopv2Error::ResponseTooLarge);
         }
@@ -68,9 +69,9 @@ impl ValidatedSiopRequest {
             Some(key_id.as_str()),
             self.limits.jws(),
         )
-        .map_err(|_| Siopv2Error::InvalidKeyId)?;
+        .map_err(map_response_header_error)?;
         let signing_input = JwsSigningInput::new(header, payload, self.limits.jws())
-            .map_err(|_| Siopv2Error::ResponseTooLarge)?;
+            .map_err(map_response_jose_error)?;
         Ok(SiopResponsePlan {
             signing_input,
             redirect_uri: self.redirect_uri.clone(),
@@ -90,12 +91,7 @@ impl SiopResponsePlan {
         let compact = self
             .signing_input
             .sign_with(signer)
-            .map_err(|error| match error {
-                identus_jose::JoseError::SigningRejected => Siopv2Error::SigningRejected,
-                identus_jose::JoseError::SignerUnavailable => Siopv2Error::SignerUnavailable,
-                identus_jose::JoseError::AlgorithmMismatch => Siopv2Error::AlgorithmMismatch,
-                _ => Siopv2Error::ResponseTooLarge,
-            })?;
+            .map_err(map_response_jose_error)?;
         let mut body = Zeroizing::new(Vec::new());
         append_pair(
             &mut body,
@@ -115,6 +111,37 @@ impl SiopResponsePlan {
             redirect_uri: self.redirect_uri,
             body,
         })
+    }
+}
+
+fn map_response_header_error(error: JoseError) -> Siopv2Error {
+    match error {
+        // Algorithm and type are closed static values and `key_id` is already a
+        // parsed related DID URL, so InvalidHeaderValue at this boundary means
+        // one of those values exceeds the caller's JOSE string bound.
+        JoseError::InvalidHeaderValue
+        | JoseError::ProtectedHeaderTooLarge
+        | JoseError::SizeOverflow => Siopv2Error::ResponseTooLarge,
+        JoseError::UnsupportedAlgorithm | JoseError::AlgorithmMismatch => {
+            Siopv2Error::AlgorithmMismatch
+        }
+        _ => Siopv2Error::ResponseEncodingFailed,
+    }
+}
+
+fn map_response_jose_error(error: JoseError) -> Siopv2Error {
+    match error {
+        JoseError::CompactTooLarge
+        | JoseError::ProtectedHeaderTooLarge
+        | JoseError::PayloadTooLarge
+        | JoseError::SignatureTooLarge
+        | JoseError::SizeOverflow => Siopv2Error::ResponseTooLarge,
+        JoseError::UnsupportedAlgorithm | JoseError::AlgorithmMismatch => {
+            Siopv2Error::AlgorithmMismatch
+        }
+        JoseError::SigningRejected => Siopv2Error::SigningRejected,
+        JoseError::SignerUnavailable => Siopv2Error::SignerUnavailable,
+        _ => Siopv2Error::ResponseEncodingFailed,
     }
 }
 
@@ -189,4 +216,63 @@ fn push(output: &mut Vec<u8>, byte: u8, maximum: usize) -> Result<(), Siopv2Erro
     }
     output.push(byte);
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{map_response_header_error, map_response_jose_error};
+    use crate::Siopv2Error;
+    use identus_jose::JoseError;
+
+    #[test]
+    fn response_jose_mapping_separates_size_policy_and_encoding() {
+        for error in [
+            JoseError::CompactTooLarge,
+            JoseError::ProtectedHeaderTooLarge,
+            JoseError::PayloadTooLarge,
+            JoseError::SignatureTooLarge,
+            JoseError::SizeOverflow,
+        ] {
+            assert_eq!(
+                map_response_jose_error(error),
+                Siopv2Error::ResponseTooLarge
+            );
+        }
+        assert_eq!(
+            map_response_jose_error(JoseError::InvalidProtectedHeader),
+            Siopv2Error::ResponseEncodingFailed
+        );
+        assert_eq!(
+            map_response_jose_error(JoseError::InvalidSignatureLength),
+            Siopv2Error::ResponseEncodingFailed
+        );
+        assert_eq!(
+            map_response_header_error(JoseError::InvalidHeaderValue),
+            Siopv2Error::ResponseTooLarge
+        );
+        assert_eq!(
+            map_response_header_error(JoseError::InvalidProtectedHeader),
+            Siopv2Error::ResponseEncodingFailed
+        );
+    }
+
+    #[test]
+    fn response_jose_mapping_preserves_algorithm_and_signer_policy() {
+        assert_eq!(
+            map_response_jose_error(JoseError::UnsupportedAlgorithm),
+            Siopv2Error::AlgorithmMismatch
+        );
+        assert_eq!(
+            map_response_jose_error(JoseError::AlgorithmMismatch),
+            Siopv2Error::AlgorithmMismatch
+        );
+        assert_eq!(
+            map_response_jose_error(JoseError::SigningRejected),
+            Siopv2Error::SigningRejected
+        );
+        assert_eq!(
+            map_response_jose_error(JoseError::SignerUnavailable),
+            Siopv2Error::SignerUnavailable
+        );
+    }
 }

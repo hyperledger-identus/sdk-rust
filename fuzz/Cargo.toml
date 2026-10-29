@@ -13,6 +13,7 @@ base64                = "=0.22.1"
 hex                   = "=0.4.3"
 identus-crypto        = { path = "../crates/crypto", default-features = false, features = [ "cose", "ed25519", "jwk-thumbprint", "secp256r1" ] }
 identus-core          = { path = "../crates/core" }
+identus-credentials   = { path = "../crates/credentials" }
 identus-did           = { path = "../crates/did" }
 identus-did-key       = { path = "../crates/did-key" }
 identus-did-jwk       = { path = "../crates/did-jwk" }

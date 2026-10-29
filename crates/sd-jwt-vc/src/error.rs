@@ -24,6 +24,7 @@ pub enum SdJwtVcError {
     ResourceLimit,
     Base,
     Envelope,
+    LegacyDraftFeature,
     InternalInvariant,
 }
 
@@ -48,6 +49,7 @@ impl SdJwtVcError {
             Self::ResourceLimit => "sd_jwt_vc.resource_limit",
             Self::Base => "sd_jwt_vc.base",
             Self::Envelope => "sd_jwt_vc.envelope",
+            Self::LegacyDraftFeature => "sd_jwt_vc.legacy_draft_feature",
             Self::InternalInvariant => "sd_jwt_vc.internal_invariant",
         })
     }

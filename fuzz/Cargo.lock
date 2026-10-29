@@ -661,6 +661,7 @@ dependencies = [
  "base64",
  "hex",
  "identus-core",
+ "identus-credentials",
  "identus-crypto",
  "identus-did",
  "identus-did-jwk",

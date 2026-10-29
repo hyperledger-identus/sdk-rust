@@ -785,7 +785,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Owner: SDK-Rust credential maintainers (issue #572)
 - Risk: Automatic fallback, signed-header relabeling, draft confusion, legacy date/status behavior, unbounded input, or correlating diagnostics can misrepresent a legacy credential as canonical draft-22.
 - Targets: `package:identus-sd-jwt-vc`, `host:rust`, `target:wasm32-unknown-unknown`, `target:aarch64-apple-ios`, `target:aarch64-linux-android`, `consumer:sdk-ts`
-- Vector IDs: `1` local catalog entries
+- Vector IDs: `4` local catalog entries
 - Limitations: Input-only draft-03 common subset for SDK-TS 8.1.4 migration; no full draft-03, legacy output, automatic fallback, header rewriting, status networking/acceptance, Type Metadata, millisecond dates, trust/time/product policy, bindings, publication, certification, or downstream adoption.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
@@ -821,7 +821,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `differential`
 
-- Command: `cargo test -p identus-sd-jwt-vc --test differential legacy`
+- Command: `cargo test -p identus-sd-jwt-vc --test legacy_differential`
 - Budget: Execute every checked-in legacy packet result through public Rust APIs and compare immutable SDK-TS 8.1.4 plus @sd-jwt/sd-jwt-vc 0.7.2 observations, resolving differences against exact drafts and SDK safety policy.
 - Receipt: `pending`
 - Evidence revision: `pending`

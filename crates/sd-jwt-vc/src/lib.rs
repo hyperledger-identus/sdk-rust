@@ -8,6 +8,7 @@
 
 mod error;
 mod issuer_evidence;
+mod legacy;
 mod limits;
 mod profile;
 mod resource;
@@ -17,6 +18,12 @@ mod verifier;
 
 pub use error::SdJwtVcError;
 pub use issuer_evidence::{IssuerEvidence, IssuerEvidenceKind, IssuerMetadataEvidence};
+pub use legacy::{
+    LEGACY_CAPABILITY_ID, LEGACY_DRAFT_DATE, LEGACY_DRAFT_NAME, LEGACY_DRAFT_SHA256,
+    LEGACY_DRAFT_SOURCE, LEGACY_ENVELOPE_FORMAT, LEGACY_MEDIA_TYPE, LEGACY_PROTECTED_TYPE,
+    LegacyDraft03SdJwtVc, LegacyDraft03VerificationReceipt, LegacyValidationInputs,
+    LegacyVcSdJwtDraft03Adapter,
+};
 pub use limits::SdJwtVcLimits;
 pub use profile::{
     Draft22SdJwtVc, Draft22VerificationReceipt, IssuedDraft22SdJwtVc, ProfileValidationInputs,

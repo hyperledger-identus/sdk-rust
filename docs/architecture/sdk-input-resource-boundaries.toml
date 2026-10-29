@@ -380,12 +380,12 @@ review_triggers  = [ "new SD-JWT serialization", "new digest algorithm", "limit 
 [[boundaries]]
 id               = "sd-jwt-vc-draft22-profile"
 package          = "identus-sd-jwt-vc"
-surface          = "draft-22 profile claims, protected type, issuer discovery evidence, Type Metadata chains, status-list bindings and generic credential envelopes"
+surface          = "draft-22 profile claims plus the explicit input-only draft-03 common-subset adapter, protected types, issuer discovery evidence, Type Metadata chains, status-list bindings and generic credential envelopes"
 disposition      = "sdk-enforced"
 limits           = [ "SdJwtVcLimits=explicit", "SdJwtLimits=explicit" ]
-evidence         = [ "crates/sd-jwt-vc/src/limits.rs", "crates/sd-jwt-vc/src/profile.rs", "crates/sd-jwt-vc/src/issuer_evidence.rs", "crates/sd-jwt-vc/src/type_metadata.rs", "crates/sd-jwt-vc/src/status.rs", "crates/sd-jwt-vc/tests/protocol_e2e.rs" ]
+evidence         = [ "crates/sd-jwt-vc/src/limits.rs", "crates/sd-jwt-vc/src/profile.rs", "crates/sd-jwt-vc/src/legacy.rs", "crates/sd-jwt-vc/src/issuer_evidence.rs", "crates/sd-jwt-vc/src/type_metadata.rs", "crates/sd-jwt-vc/src/status.rs", "crates/sd-jwt-vc/tests/protocol_e2e.rs", "crates/sd-jwt-vc/tests/legacy_adapter.rs" ]
 outer_obligation = "Callers own compact/envelope and evidence allocation before typed entry plus retrieval, certificate/JWK validation, issuer authorization, trust, freshness and status acceptance."
-consumer_impact  = "The profile bounds retained identifiers, metadata, status, extension depth, claim paths and synchronous correlation work without promoting structural evidence into trust or product acceptance."
+consumer_impact  = "The profile bounds retained identifiers, metadata, status, extension depth, claim paths and synchronous correlation work; the legacy adapter reuses those limits, performs no fallback or effect, and cannot promote migration evidence into canonical draft-22, trust or product acceptance."
 review_triggers  = [ "new SD-JWT VC draft or RFC", "protected or media type change", "new issuer discovery mechanism", "Type Metadata rule change", "status mechanism", "resource limit change", "legacy adapter" ]
 
 [[boundaries]]

@@ -440,6 +440,12 @@ def main() -> int:
         run_binding_cases(
             checker,
             test_root,
+            checker.JWE,
+            (b"JWE limits are invalid", b"JWE limits were invalid"),
+        )
+        run_binding_cases(
+            checker,
+            test_root,
             checker.OID4VCI,
             (b"OID4VCI limits are invalid", b"OID4VCI limits were invalid"),
         )
@@ -455,7 +461,7 @@ def main() -> int:
             raise AssertionError(f"combined binding validation failed: {errors!r}")
 
     print(
-        "error-golden test: 101 credentials/presentations/JOSE/OID4VCI "
+        "error-golden test: credentials/presentations/JOSE/JWE/OID4VCI "
         "binding cases passed"
     )
     return 0

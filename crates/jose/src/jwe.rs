@@ -406,52 +406,95 @@ pub enum JweEncryptionError {
     EncrypterUnavailable,
 }
 
+#[derive(Clone, Copy)]
+struct JweErrorContract {
+    code: ErrorCode,
+    kind: ErrorKind,
+    message: &'static str,
+}
+
+impl JweErrorContract {
+    const fn new(code: &'static str, kind: ErrorKind, message: &'static str) -> Self {
+        Self {
+            code: ErrorCode::new(code),
+            kind,
+            message,
+        }
+    }
+
+    const fn to_identus_error(self) -> IdentusError {
+        IdentusError::public(self.code, self.kind, CAPABILITY, self.message)
+    }
+}
+
+macro_rules! jwe_error_contracts {
+    ($( $variant:ident => ($code:literal, $kind:ident, $message:literal) ),+ $(,)?) => {
+        impl JweEncryptionError {
+            #[cfg(test)]
+            const CONTRACT_VARIANTS: &'static [Self] = &[$(Self::$variant),+];
+
+            const fn contract(self) -> JweErrorContract {
+                match self {
+                    $(
+                        Self::$variant => JweErrorContract::new(
+                            $code,
+                            ErrorKind::$kind,
+                            $message,
+                        ),
+                    )+
+                }
+            }
+        }
+    };
+}
+
+jwe_error_contracts! {
+    InvalidLimits => (
+        "jose.invalid_jwe_limits",
+        InvalidInput,
+        "JWE limits are invalid"
+    ),
+    InvalidRecipientKey => (
+        "jose.invalid_jwe_recipient_key",
+        InvalidInput,
+        "JWE recipient key is invalid"
+    ),
+    InvalidKeyId => (
+        "jose.invalid_jwe_key_id",
+        InvalidInput,
+        "JWE key identifier is invalid"
+    ),
+    PlaintextTooLarge => (
+        "jose.jwe_plaintext_too_large",
+        InvalidInput,
+        "JWE plaintext is outside its resource policy"
+    ),
+    CompactTooLarge => (
+        "jose.compact_jwe_too_large",
+        InvalidInput,
+        "JWE compact output is too large"
+    ),
+    InvalidCompactStructure => (
+        "jose.invalid_compact_jwe_structure",
+        InvalidInput,
+        "JWE compact structure is invalid"
+    ),
+    EncryptionRejected => (
+        "jose.jwe_encryption_rejected",
+        Crypto,
+        "JWE encryption was rejected"
+    ),
+    EncrypterUnavailable => (
+        "jose.jwe_encrypter_unavailable",
+        Crypto,
+        "JWE encrypter is unavailable"
+    ),
+}
+
 impl JweEncryptionError {
     /// Convert to the shared SDK error contract.
     pub const fn to_identus_error(self) -> IdentusError {
-        let (code, kind, message) = match self {
-            Self::InvalidLimits => (
-                ErrorCode::new("jose.invalid_jwe_limits"),
-                ErrorKind::InvalidInput,
-                "JWE limits are invalid",
-            ),
-            Self::InvalidRecipientKey => (
-                ErrorCode::new("jose.invalid_jwe_recipient_key"),
-                ErrorKind::InvalidInput,
-                "JWE recipient key is invalid",
-            ),
-            Self::InvalidKeyId => (
-                ErrorCode::new("jose.invalid_jwe_key_id"),
-                ErrorKind::InvalidInput,
-                "JWE key identifier is invalid",
-            ),
-            Self::PlaintextTooLarge => (
-                ErrorCode::new("jose.jwe_plaintext_too_large"),
-                ErrorKind::InvalidInput,
-                "JWE plaintext is outside its resource policy",
-            ),
-            Self::CompactTooLarge => (
-                ErrorCode::new("jose.compact_jwe_too_large"),
-                ErrorKind::InvalidInput,
-                "JWE compact output is too large",
-            ),
-            Self::InvalidCompactStructure => (
-                ErrorCode::new("jose.invalid_compact_jwe_structure"),
-                ErrorKind::InvalidInput,
-                "JWE compact structure is invalid",
-            ),
-            Self::EncryptionRejected => (
-                ErrorCode::new("jose.jwe_encryption_rejected"),
-                ErrorKind::Crypto,
-                "JWE encryption was rejected",
-            ),
-            Self::EncrypterUnavailable => (
-                ErrorCode::new("jose.jwe_encrypter_unavailable"),
-                ErrorKind::Crypto,
-                "JWE encrypter is unavailable",
-            ),
-        };
-        IdentusError::public(code, kind, CAPABILITY, message)
+        self.contract().to_identus_error()
     }
 }
 
@@ -466,5 +509,37 @@ impl std::error::Error for JweEncryptionError {}
 impl From<JweEncryptionError> for IdentusError {
     fn from(value: JweEncryptionError) -> Self {
         value.to_identus_error()
+    }
+}
+
+#[cfg(test)]
+mod error_contract_tests {
+    use std::collections::BTreeSet;
+
+    use super::JweEncryptionError;
+
+    const GOLDEN: &str = include_str!("../tests/fixtures/jwe-encryption-error-contract-v1.csv");
+
+    #[test]
+    fn compile_exhaustive_inventory_preserves_the_v1_ordered_prefix() {
+        let mut lines = GOLDEN.lines().filter(|line| !line.starts_with('#'));
+        assert_eq!(lines.next().expect("golden header").split(',').count(), 11);
+        let fixture: Vec<_> = lines
+            .map(|line| {
+                let columns: Vec<_> = line.split(',').collect();
+                assert_eq!(columns.len(), 11);
+                assert_eq!(columns[0], "JweEncryptionError");
+                columns[1]
+            })
+            .collect();
+        let inventory: Vec<_> = JweEncryptionError::CONTRACT_VARIANTS
+            .iter()
+            .map(|error| format!("{error:?}"))
+            .collect();
+        let unique: BTreeSet<_> = inventory.iter().collect();
+
+        assert!(inventory.len() >= fixture.len());
+        assert_eq!(unique.len(), inventory.len());
+        assert_eq!(&inventory[..fixture.len()], fixture);
     }
 }

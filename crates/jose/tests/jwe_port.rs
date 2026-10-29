@@ -266,24 +266,6 @@ fn compact_header_and_segment_profile_rejects_each_independent_defect() {
 }
 
 #[test]
-fn failures_are_static_and_redacted() {
-    for error in [
-        JweEncryptionError::InvalidLimits,
-        JweEncryptionError::InvalidRecipientKey,
-        JweEncryptionError::InvalidKeyId,
-        JweEncryptionError::PlaintextTooLarge,
-        JweEncryptionError::CompactTooLarge,
-        JweEncryptionError::InvalidCompactStructure,
-        JweEncryptionError::EncryptionRejected,
-        JweEncryptionError::EncrypterUnavailable,
-    ] {
-        let error = error.to_identus_error();
-        assert!(error.code().as_str().starts_with("jose."));
-        assert!(!error.to_string().contains("secret"));
-    }
-}
-
-#[test]
 fn limits_cannot_admit_key_ids_rejected_by_compact_validation() {
     assert_eq!(
         JweLimits::new(1, 1, identus_jose::DEFAULT_MAX_JWE_KEY_ID_BYTES + 1).unwrap_err(),

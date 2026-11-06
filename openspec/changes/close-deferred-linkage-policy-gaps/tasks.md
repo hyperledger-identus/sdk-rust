@@ -26,7 +26,7 @@
 
 - [x] 4.1 Clarify the PR template, operator guidance, provider timing
       limitation, activation, and rollback.
-- [ ] 4.2 Run focused mutations, policy suites, factory/bootstrap gates, and
+- [x] 4.2 Run focused mutations, policy suites, factory/bootstrap gates, and
       signature/DCO checks.
 - [ ] 4.3 Complete fresh local and external reviews, resolve blockers, archive
       the change, publish the ready PR, and monitor exact-head CI.

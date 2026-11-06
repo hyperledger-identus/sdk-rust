@@ -78,7 +78,7 @@ export function parseAuthoritativeMarkdown(body) {
       if (closing !== null && closing[0] === fence.character && closing.length >= fence.length) fence = null;
       continue;
     }
-    if (!comment && /^(?: {0,3}\t| {4})/u.test(rawLine)) continue;
+    if (/^(?: {0,3}\t| {4})/u.test(rawLine)) continue;
 
     let visible = "";
     for (let index = 0; index < rawLine.length;) {

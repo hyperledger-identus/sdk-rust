@@ -331,6 +331,11 @@ test("authoritative Markdown rejects code decoys and unterminated constructs", (
     "    <!--",
     ...live,
   ].join("\n"), 243).ok, true);
+  assert.equal(validateIssueLinkage([
+    "<!-- concealed",
+    "    -->",
+    ...live,
+  ].join("\n"), 243).ok, false);
   assert.equal(validateIssueLinkage([...live, "```markdown", "decoy"].join("\n"), 243).ok, false);
   assert.equal(validateIssueLinkage([...live, "<!-- concealed"].join("\n"), 243).ok, false);
   assert.equal(validateIssueLinkage([

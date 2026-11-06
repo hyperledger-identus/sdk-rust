@@ -335,7 +335,7 @@ test("authoritative Markdown rejects code decoys and unterminated constructs", (
     "<!-- concealed",
     "    -->",
     ...live,
-  ].join("\n"), 243).ok, false);
+  ].join("\n"), 243).ok, true);
   assert.equal(validateIssueLinkage([...live, "```markdown", "decoy"].join("\n"), 243).ok, false);
   assert.equal(validateIssueLinkage([...live, "<!-- concealed"].join("\n"), 243).ok, false);
   assert.equal(validateIssueLinkage([
@@ -383,10 +383,14 @@ test("hosted closing-issue pages bind exact PR head and linkage mode", () => {
     page([matching]),
   ], { expectedPullRequest: 244, expectedHead: head });
   assert.equal(paged.ok, true);
-  assert.equal(validateHostedIssueLinkage(closes, paged.references, 243).ok, true);
+  assert.equal(validateHostedIssueLinkage(closes, paged.references, 243).ok, false);
   assert.equal(validateHostedIssueLinkage(closes, [
     ...valid.references,
     ...valid.references,
+  ], 243).ok, false);
+  assert.equal(validateHostedIssueLinkage(closes, [
+    ...valid.references,
+    { number: 242, repository: "hyperledger-identus/sdk-rust" },
   ], 243).ok, false);
   assert.equal(validateHostedIssueLinkage(closes, [{ number: 243, repository: "other/sdk-rust" }], 243).ok, false);
   assert.equal(validateHostedClosingIssuePages([page([], false, null, { headRefOid: "c".repeat(40) })], {
@@ -700,13 +704,15 @@ test("guarded merge is dry by default and retains exact verified evidence on exe
       headRefName: "codex/fix/issue-320",
       closingIssuesReferences: [{
         number: 320,
-        repository: { owner: { login: "hyperledger-identus" }, name: "sdk-rust" },
+        repository: "hyperledger-identus/sdk-rust",
       }],
     };
     let merged = false;
+    const readOptions = [];
     let retained;
     const github = {
-      readPullRequest() {
+      readPullRequest(_number, options = {}) {
+        readOptions.push(options);
         return merged
           ? {
             ...prMetadata,
@@ -762,6 +768,7 @@ test("guarded merge is dry by default and retains exact verified evidence on exe
     assert.equal(retained.mergeCommitSha, mergeCommit);
     assert.equal(retained.requiredChecksPassed, true);
     assert.equal(retained.verifiedSignature, true);
+    assert.deepEqual(readOptions, [{}, {}, { includeClosingReferences: false }]);
   } finally {
     rmSync(created, { recursive: true, force: true });
   }
@@ -798,7 +805,7 @@ test("guarded merge rejects unsafe messages, stale state, red checks, and invali
       headRefName: "codex/fix/issue-320",
       closingIssuesReferences: [{
         number: 320,
-        repository: { owner: { login: "hyperledger-identus" }, name: "sdk-rust" },
+        repository: "hyperledger-identus/sdk-rust",
       }],
       state: "OPEN", isDraft: false, baseRefName: "develop", headRefOid: expectedHead,
       mergeable: "MERGEABLE", mergeStateStatus: "CLEAN", reviewDecision: "",
@@ -839,7 +846,7 @@ test("guarded merge rejects unsafe messages, stale state, red checks, and invali
         ...deferredState,
         closingIssuesReferences: [{
           number: 320,
-          repository: { owner: { login: "hyperledger-identus" }, name: "sdk-rust" },
+          repository: "hyperledger-identus/sdk-rust",
         }],
       }),
       loadDeferredAcceptance: () => ({
@@ -849,11 +856,18 @@ test("guarded merge rejects unsafe messages, stale state, red checks, and invali
         rationale: "Wait for the natural scheduled receipt.",
         acceptance: ["natural-schedule"],
       }),
-    }), /closing references include deferred issue/u);
+    }), /must not contain deferred issue/u);
     assert.throws(() => mergePullRequest(options, dependencies({
       ...baseState,
       closingIssuesReferences: [],
-    })), /exactly one relation/u);
+    })), /must contain only issue/u);
+    assert.throws(() => mergePullRequest(options, dependencies({
+      ...baseState,
+      closingIssuesReferences: [
+        ...baseState.closingIssuesReferences,
+        { number: 12, repository: "hyperledger-identus/sdk-rust" },
+      ],
+    })), /must contain only issue/u);
     assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, headRefOid: sha })), /expected head/u);
     assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, isDraft: true })), /not ready/u);
     assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, mergeStateStatus: "BLOCKED" })), /not clean/u);
@@ -1178,6 +1192,10 @@ test("hosted workflow runs exact base policy over untrusted head objects", () =>
   assert.match(delivery, /"api", "graphql", "--paginate", "--slurp"/u);
   assert.match(delivery, /validateHostedClosingIssuePages\(pages/u);
   assert.doesNotMatch(delivery, /--json",\s*\n\s*"[^"]*closingIssuesReferences/u);
+  const metrics = readFileSync(new URL("../factory-tools/metrics.mjs", import.meta.url), "utf8");
+  assert.match(metrics, /"api", "graphql", "--paginate", "--slurp"/u);
+  assert.match(metrics, /closingIssuesReferences\(first:100,after:\$endCursor\)/u);
+  assert.match(metrics, /validateHostedClosingIssuePages\(pages/u);
 });
 
 const cloneContributionPolicy = () => JSON.parse(JSON.stringify(policy));

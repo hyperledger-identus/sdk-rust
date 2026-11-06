@@ -78,22 +78,30 @@ export function parseAuthoritativeMarkdown(body) {
       if (closing !== null && closing[0] === fence.character && closing.length >= fence.length) fence = null;
       continue;
     }
-    if (/^(?: {0,3}\t| {4})/u.test(rawLine)) continue;
+
+    let candidate = rawLine;
+    if (comment) {
+      const closing = candidate.indexOf("-->");
+      if (closing === -1) continue;
+      comment = false;
+      candidate = candidate.slice(closing + 3);
+    }
+    if (/^(?: {0,3}\t| {4})/u.test(candidate)) continue;
 
     let visible = "";
-    for (let index = 0; index < rawLine.length;) {
+    for (let index = 0; index < candidate.length;) {
       if (!comment) {
-        const opening = rawLine.indexOf("<!--", index);
+        const opening = candidate.indexOf("<!--", index);
         if (opening === -1) {
-          visible += rawLine.slice(index);
+          visible += candidate.slice(index);
           break;
         }
-        visible += rawLine.slice(index, opening);
+        visible += candidate.slice(index, opening);
         comment = true;
         index = opening + 4;
         continue;
       }
-      const closing = rawLine.indexOf("-->", index);
+      const closing = candidate.indexOf("-->", index);
       if (closing === -1) break;
       comment = false;
       index = closing + 3;
@@ -540,8 +548,8 @@ export function validateHostedIssueLinkage(linkage, references, issue, repositor
     reference?.number === issue
       && String(reference?.repository ?? "").toLowerCase() === repository.toLowerCase()
   ));
-  if (linkage.mode === "closes" && matching.length !== 1) {
-    return result([`hosted closing references must contain exactly one relation to issue #${issue}`]);
+  if (linkage.mode === "closes" && (matching.length !== 1 || references.length !== 1)) {
+    return result([`hosted closing references must contain only issue #${issue}`]);
   }
   if (linkage.mode === "deferred" && matching.length !== 0) {
     return result([`hosted closing references must not contain deferred issue #${issue}`]);

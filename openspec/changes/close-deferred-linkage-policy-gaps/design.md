@@ -32,9 +32,9 @@ head into a runner-temporary JSON array. Protected-base Node code validates:
   names.
 
 The validator exposes only normalized `{number, repository}` identities.
-Closing mode requires exactly one matching branch issue. Deferred mode requires
-zero matching branch issues. Other closing issues remain visible but do not
-satisfy or invalidate branch ownership.
+Closing mode requires the complete relation to contain exactly one entry: the
+matching branch issue. Deferred mode requires zero matching branch issues;
+other visible closing issues do not satisfy branch ownership.
 
 ### Preserve path-specific evidence boundaries
 

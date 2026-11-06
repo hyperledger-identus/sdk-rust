@@ -17,7 +17,12 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { declaredIssueLinkageMode, readDeferredAcceptanceAt, validateIssueLinkage } from "../ci/contribution-policy.mjs";
+import {
+  declaredIssueLinkageMode,
+  readDeferredAcceptanceAt,
+  validateHostedClosingIssuePages,
+  validateIssueLinkage,
+} from "../ci/contribution-policy.mjs";
 import { fetchExactPullRequestHead } from "./delivery.mjs";
 import { parseJsonWithoutDuplicates } from "./strict-json.mjs";
 
@@ -546,23 +551,25 @@ function publish(record, issue, requestedTarget, execute) {
       "unable to verify authoritative metric issue",
     ),
     readPullRequest: (number) => {
-      const response = githubJson([
-        "api", "graphql",
+      const pages = githubJson([
+        "api", "graphql", "--paginate", "--slurp",
         "-f", `owner=${owner}`,
         "-f", `name=${name}`,
         "-F", `number=${number}`,
-        "-f", "query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid title body closingIssuesReferences(first:100){nodes{number repository{nameWithOwner}}}}}}",
+        "-f", "query=query($owner:String!,$name:String!,$number:Int!,$endCursor:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid title body closingIssuesReferences(first:100,after:$endCursor){nodes{number repository{nameWithOwner}}pageInfo{hasNextPage endCursor}}}}}",
       ], "unable to verify authoritative metric pull request");
-      const pullRequest = response?.data?.repository?.pullRequest;
+      const pullRequest = pages?.[0]?.data?.repository?.pullRequest;
+      const hostedClosing = validateHostedClosingIssuePages(pages, {
+        expectedPullRequest: number,
+        expectedHead: pullRequest?.headRefOid,
+      });
+      if (!hostedClosing.ok) fail("unable to verify complete authoritative metric closing references");
       return {
         number: pullRequest?.number,
         headRefOid: pullRequest?.headRefOid,
         title: pullRequest?.title,
         body: pullRequest?.body,
-        closingIssuesReferences: pullRequest?.closingIssuesReferences?.nodes?.map((reference) => ({
-          number: reference?.number,
-          repository: reference?.repository?.nameWithOwner,
-        })),
+        closingIssuesReferences: hostedClosing.references,
       };
     },
     readLogin: () => githubText(["api", "user", "--jq", ".login"], "unable to resolve authenticated metric publisher"),

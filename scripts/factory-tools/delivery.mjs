@@ -27,6 +27,7 @@ import {
   declaredIssueLinkageMode,
   readDeferredAcceptanceAt,
   validateHostedClosingIssuePages,
+  validateHostedIssueLinkage,
   validatePullRequest,
 } from "../ci/contribution-policy.mjs";
 
@@ -310,11 +311,12 @@ function hostedGithub(repository) {
     return outcome.stdout;
   };
   return {
-    readPullRequest(number) {
+    readPullRequest(number, { includeClosingReferences = true } = {}) {
       const pullRequest = JSON.parse(run([
         "pr", "view", String(number), "--repo", repository, "--json",
         "state,isDraft,baseRefName,headRefOid,headRefName,title,body,author,mergeable,mergeStateStatus,reviewDecision,mergedAt,mergeCommit",
       ], { failure: "pull request state is unavailable" }));
+      if (!includeClosingReferences) return pullRequest;
       const [owner, name] = repository.split("/");
       const pages = JSON.parse(run([
         "api", "graphql", "--paginate", "--slurp",
@@ -498,23 +500,15 @@ export function mergePullRequest(options, dependencies = {}) {
     if (!contribution.ok) fail("hosted pull request metadata no longer satisfies contribution policy");
   }
   const linkedIssue = contribution?.linkage.issue ?? null;
-  const matchingClosingReferences = linkedIssue && Array.isArray(before?.closingIssuesReferences)
-    ? before.closingIssuesReferences.filter((reference) => {
-      const owner = reference?.repository?.owner?.login;
-      const name = reference?.repository?.name;
-      const normalizedRepository = typeof reference?.repository === "string"
-        ? reference.repository
-        : (reference?.repository?.nameWithOwner ?? `${owner}/${name}`);
-      return reference?.number === linkedIssue
-        && normalizedRepository.toLowerCase() === repository.toLowerCase();
-    })
-    : [];
   const deferredIssue = contribution?.linkage.mode === "deferred" ? linkedIssue : null;
-  if (deferredIssue && matchingClosingReferences.length !== 0) {
-    fail(`hosted pull request closing references include deferred issue #${deferredIssue}`);
-  }
-  if (contribution?.linkage.mode === "closes" && matchingClosingReferences.length !== 1) {
-    fail(`hosted pull request closing references must contain exactly one relation to issue #${linkedIssue}`);
+  if (contribution !== null) {
+    const hostedLinkage = validateHostedIssueLinkage(
+      contribution.linkage,
+      before?.closingIssuesReferences,
+      linkedIssue,
+      repository,
+    );
+    if (!hostedLinkage.ok) fail(hostedLinkage.errors[0]);
   }
   const body = validateMergeBody(readPullRequestBody(options.bodyFile), identity, { deferredIssue });
   if (!alreadyMerged) validatePreMergeState(before, options.expectedHead);
@@ -524,7 +518,9 @@ export function mergePullRequest(options, dependencies = {}) {
   }
 
   if (!alreadyMerged) github.merge(options.pullRequest, options.expectedHead, body);
-  const after = alreadyMerged ? before : github.readPullRequest(options.pullRequest);
+  const after = alreadyMerged
+    ? before
+    : github.readPullRequest(options.pullRequest, { includeClosingReferences: false });
   if (after.state !== "MERGED" || after.baseRefName !== "develop" || after.headRefOid !== options.expectedHead
       || !exactIsoDate(after.mergedAt) || !exactShaPattern.test(after.mergeCommit?.oid ?? "")) {
     fail("hosted post-merge state does not match the validated pull request");

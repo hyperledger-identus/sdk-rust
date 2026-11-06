@@ -47,8 +47,9 @@ constraints and the normal dependency gates.
    merge bodies must not contain a closing keyword for that issue. Terminal
    metrics treat the exact deferred reference as valid linkage. The required
    hosted policy check binds the provider's bounded closing-reference pages to
-   the exact pull request and head: `closes` requires exactly one relation to
-   the branch issue, while `deferred` requires none. This check is a snapshot,
+   the exact pull request and head: `closes` requires the complete relation to
+   contain only the branch issue, while `deferred` requires no relation to that
+   issue. This check is a snapshot,
    not an atomic lock. The guarded merge path therefore re-reads the same
    hosted relation immediately before merging; direct provider-side mutation
    between a successful check and a manual merge remains detectable but cannot

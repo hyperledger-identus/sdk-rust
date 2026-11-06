@@ -25,7 +25,8 @@ references and every closing-keyword form supported by GitHub.
 The required hosted protected-base policy SHALL additionally bind its verdict
 to a complete, bounded, cursor-paginated snapshot of GitHub's authoritative
 closing-issue relation for the exact pull request and head. `closes` SHALL
-require exactly the matching repository branch issue in that relation;
+require that the relation contain exactly one entry and that entry be the
+matching repository branch issue;
 `deferred` SHALL require that relation not to contain the branch issue. Missing,
 malformed, stale, cyclic, ambiguous, or over-bound hosted evidence SHALL fail
 closed without printing provider response bodies.
@@ -80,6 +81,13 @@ issue and pull-request head.
   indented code block
 - **THEN** it does not satisfy pull-request linkage policy or alter comment
   state
+
+#### Scenario: An open HTML comment ends on an indented line
+
+- **WHEN** an HTML comment is already open and a later line contains its
+  closing delimiter after four spaces or a tab
+- **THEN** the delimiter ends the comment because that line remains part of
+  the HTML block rather than starting an indented code block
 
 #### Scenario: Markdown authority is unterminated
 

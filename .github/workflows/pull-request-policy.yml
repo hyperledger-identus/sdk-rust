@@ -120,6 +120,8 @@ jobs:
               }]' > "$RUNNER_TEMP/pull-commits.json"
           owner=${GITHUB_REPOSITORY%/*}
           name=${GITHUB_REPOSITORY#*/}
+          # GraphQL variables are intentionally literal rather than shell expansions.
+          # shellcheck disable=SC2016
           gh api graphql --paginate --slurp \
             -f "owner=$owner" \
             -f "name=$name" \

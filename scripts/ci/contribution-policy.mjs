@@ -68,10 +68,45 @@ export function validateBranchName(branch, { expectedType = null, actor = "" } =
   return result(errors, { exempt: false, type, issue });
 }
 
-export function parseAuthoritativeMarkdown(body) {
+function maskInlineCode(line) {
+  let masked = "";
+  for (let index = 0; index < line.length;) {
+    if (line[index] !== "`") {
+      masked += line[index];
+      index += 1;
+      continue;
+    }
+    let end = index + 1;
+    while (line[end] === "`") end += 1;
+    const marker = line.slice(index, end);
+    let closing = -1;
+    for (let search = end; search < line.length;) {
+      const run = line.indexOf("`", search);
+      if (run === -1) break;
+      let runEnd = run + 1;
+      while (line[runEnd] === "`") runEnd += 1;
+      if (runEnd - run === marker.length) {
+        closing = run;
+        break;
+      }
+      search = runEnd;
+    }
+    if (closing === -1) {
+      masked += marker;
+      index = end;
+      continue;
+    }
+    masked += " ".repeat(closing + marker.length - index);
+    index = closing + marker.length;
+  }
+  return masked;
+}
+
+function parseMarkdown(body, { includeListContinuations = false } = {}) {
   const lines = [];
   let fence = null;
   let comment = false;
+  let listContext = false;
   for (const rawLine of String(body ?? "").split(/\r?\n/u)) {
     if (fence !== null) {
       const closing = rawLine.match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/u)?.[1] ?? null;
@@ -79,14 +114,21 @@ export function parseAuthoritativeMarkdown(body) {
       continue;
     }
 
-    let candidate = rawLine;
     if (comment) {
-      const closing = candidate.indexOf("-->");
+      const closing = rawLine.indexOf("-->");
       if (closing === -1) continue;
       comment = false;
-      candidate = candidate.slice(closing + 3);
+      continue;
     }
-    if (/^(?: {0,3}\t| {4})/u.test(candidate)) continue;
+    const indented = /^(?: {0,3}\t| {4})/u.test(rawLine);
+    if (indented && !(includeListContinuations && listContext)) continue;
+
+    const candidate = maskInlineCode(rawLine);
+    const blockComment = candidate.match(/^ {0,3}<!--/u);
+    if (blockComment !== null) {
+      if (candidate.indexOf("-->", blockComment.index + blockComment[0].length) === -1) comment = true;
+      continue;
+    }
 
     let visible = "";
     for (let index = 0; index < candidate.length;) {
@@ -112,14 +154,26 @@ export function parseAuthoritativeMarkdown(body) {
     if (marker !== null && !(marker[0] === "`" && info.includes("`"))) {
       fence = { character: marker[0], length: marker.length };
       comment = false;
+      listContext = false;
       continue;
     }
     lines.push(visible);
+    if (visible.trim().length === 0) {
+      listContext = false;
+    } else if (/^ {0,3}[-+*][ \t]+\S/u.test(visible)) {
+      listContext = true;
+    } else if (!indented) {
+      listContext = false;
+    }
   }
   const errors = [];
   if (fence !== null) errors.push("body contains an unterminated fenced code block");
   if (comment) errors.push("body contains an unterminated HTML comment");
-  return result(errors, { lines: errors.length === 0 ? lines : [] });
+  return result(errors, { lines: errors.length === 0 ? lines : [], observedLines: lines });
+}
+
+export function parseAuthoritativeMarkdown(body) {
+  return parseMarkdown(body);
 }
 
 function captures(lines, pattern) {
@@ -243,7 +297,9 @@ export function validateIssueLinkage(body, expectedIssue, {
     }
     if (sidecars.length > 0) errors.push("closing linkage must not declare post-merge acceptance evidence");
   } else if (mode === "deferred") {
-    if (containsGitHubClosingKeyword(lines.join("\n"), expectedIssue)
+    const closingText = parseMarkdown(body, { includeListContinuations: true });
+    errors.push(...closingText.errors);
+    if (containsGitHubClosingKeyword(closingText.lines.join("\n"), expectedIssue)
         || containsGitHubClosingKeyword(additionalClosingText, expectedIssue)) {
       errors.push(`deferred linkage must not close issue #${expectedIssue}`);
     }

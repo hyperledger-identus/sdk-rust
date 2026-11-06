@@ -24,7 +24,7 @@ import { TextDecoder } from "node:util";
 import { fileURLToPath } from "node:url";
 import {
   containsGitHubClosingKeyword,
-  declaredIssueLinkageMode,
+  parseAuthoritativeMarkdown,
   readDeferredAcceptanceAt,
   validateHostedClosingIssuePages,
   validateHostedIssueLinkage,
@@ -470,7 +470,10 @@ export function mergePullRequest(options, dependencies = {}) {
   }));
   const before = github.readPullRequest(options.pullRequest);
   const alreadyMerged = before?.state === "MERGED";
-  const linkageDeclared = declaredIssueLinkageMode(before?.body) !== null;
+  const parsedBody = parseAuthoritativeMarkdown(before?.body);
+  const linkageDeclared = parsedBody.observedLines.some((line) => (
+    /^\s*-\s*Issue linkage:\s*(?:closes|deferred)\s*$/iu.test(line)
+  ));
   let contribution = null;
   if (!alreadyMerged || linkageDeclared) {
     let preparedDeferredHead = false;

@@ -292,6 +292,18 @@ test("issue linkage rejects prose decoys and accepts exact deferred evidence", (
   assert.equal(validateIssueLinkage(`${deferredBody}\nFixes hyperledger-identus/sdk-rust#243`, 243, {
     loadDeferredAcceptance: () => evidence,
   }).ok, false);
+  assert.equal(validateIssueLinkage([
+    "- Issue: #243",
+    "- Issue linkage: deferred",
+    `- Post-merge acceptance: ${sidecarPath}`,
+    "    Fixes #243",
+    "References #243",
+  ].join("\n"), 243, {
+    loadDeferredAcceptance: () => evidence,
+  }).ok, false);
+  assert.equal(validateIssueLinkage(`${deferredBody}\n\n    Fixes #243`, 243, {
+    loadDeferredAcceptance: () => evidence,
+  }).ok, true);
   assert.equal(validateIssueLinkage(`${deferredBody}\nFixes other-org/other-repo#243`, 243, {
     loadDeferredAcceptance: () => evidence,
   }).ok, true);
@@ -334,6 +346,18 @@ test("authoritative Markdown rejects code decoys and unterminated constructs", (
   assert.equal(validateIssueLinkage([
     "<!-- concealed",
     "    -->",
+    ...live,
+  ].join("\n"), 243).ok, true);
+  assert.equal(validateIssueLinkage([
+    "Use `<!--` to describe an HTML comment opener.",
+    ...live,
+  ].join("\n"), 243).ok, true);
+  assert.equal(validateIssueLinkage([
+    "<!-- concealed -->- Issue: #999",
+    ...live,
+  ].join("\n"), 243).ok, true);
+  assert.equal(validateIssueLinkage([
+    "<!-- concealed -->```markdown",
     ...live,
   ].join("\n"), 243).ok, true);
   assert.equal(validateIssueLinkage([...live, "```markdown", "decoy"].join("\n"), 243).ok, false);
@@ -872,6 +896,11 @@ test("guarded merge rejects unsafe messages, stale state, red checks, and invali
     assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, isDraft: true })), /not ready/u);
     assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, mergeStateStatus: "BLOCKED" })), /not clean/u);
     assert.throws(() => mergePullRequest(options, dependencies(baseState, false)), /required pull request checks/u);
+    assert.throws(() => mergePullRequest(options, dependencies({
+      ...baseState,
+      state: "MERGED",
+      body: `${baseState.body}\n\`\`\`markdown`,
+    })), /metadata no longer satisfies/u);
 
     let reads = 0;
     assert.throws(() => mergePullRequest({ ...options, execute: true }, {
@@ -2206,10 +2235,32 @@ test("metric publication routes PR-first and validates hosted historical identit
     pullRequest: {
       number: 244,
       headRefOid: sha,
+      body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
       closingIssuesReferences: [{ number: 243, repository: "hyperledger-identus/sdk-rust" }],
     },
     currentHead: "b".repeat(40),
   }));
+  assert.doesNotThrow(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
+      closingIssuesReferences: [{ number: 243, repository: "Hyperledger-Identus/SDK-Rust" }],
+    },
+  }));
+  assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
+      closingIssuesReferences: [
+        { number: 243, repository: "hyperledger-identus/sdk-rust" },
+        { number: 999, repository: "hyperledger-identus/sdk-rust" },
+      ],
+    },
+  }), /not linked to its recorded issue/u);
   assert.doesNotThrow(() => validateHostedMetricIdentity(pullRequestMetric, {
     issue: { number: 243 },
     pullRequest: {
@@ -2294,7 +2345,7 @@ test("metric publication routes PR-first and validates hosted historical identit
       rationale: "Wait for the natural scheduled receipt.",
       acceptance: ["natural-schedule"],
     }),
-  }), /hosted closing reference/u);
+  }), /not linked to its recorded issue/u);
   assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
     issue: { number: 243 },
     pullRequest: {
@@ -2397,6 +2448,7 @@ test("metric publication updates one owned PR comment and rejects unsafe executi
     readPullRequest: (number) => ({
       number,
       headRefOid: sha,
+      body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
       closingIssuesReferences: [{ number: 243, repository: "hyperledger-identus/sdk-rust" }],
     }),
     readLogin: () => "factory",

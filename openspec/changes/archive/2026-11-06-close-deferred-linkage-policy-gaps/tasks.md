@@ -28,5 +28,5 @@
       limitation, activation, and rollback.
 - [x] 4.2 Run focused mutations, policy suites, factory/bootstrap gates, and
       signature/DCO checks.
-- [ ] 4.3 Complete fresh local and external reviews, resolve blockers, archive
+- [x] 4.3 Complete fresh local and external reviews, resolve blockers, archive
       the change, publish the ready PR, and monitor exact-head CI.

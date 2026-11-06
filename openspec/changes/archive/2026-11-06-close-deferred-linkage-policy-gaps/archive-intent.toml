@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "factory-operations"
+requirement      = "Pull-request issue linkage has explicit completion semantics"
+canonical_sha256 = "02918f0bb9db55e16896b0c370ba0396a4fa79a39923199b2ff6798e17487cc5"
+reason           = "Issue #590 intentionally replaces textual-only linkage authority with code-aware Markdown parsing, complete bounded hosted closing-relation evidence, and consistent guarded-delivery and terminal-metrics validation."

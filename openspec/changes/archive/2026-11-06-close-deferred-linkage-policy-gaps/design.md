@@ -10,14 +10,18 @@ GitHub will apply at merge.
 
 ## Decisions
 
-### Parse code before comments
+### Parse Markdown authority before policy fields
 
 Process the body line by line. While inside a fenced block, only a compatible
-closing fence changes state; HTML delimiters are inert. Outside fences, skip
-tab- and four-space-indented lines, remove HTML comments while retaining live
-text around them, and recognize a fence only from the resulting visible line.
-An unclosed fence or comment invalidates the entire authority parse so earlier
-metadata cannot create a partial-success path.
+closing fence changes state; HTML delimiters are inert. Outside fences, mask
+matched inline-code spans before inspecting HTML syntax. A line that begins an
+HTML comment block, and the later line that closes it, are wholly
+non-authoritative. Tab- and four-space-indented code remains non-authoritative
+for metadata. Deferred closing-keyword detection additionally retains an
+immediately indented list-item continuation because GitHub renders it as live
+text rather than an indented code block. An unclosed fence or comment
+invalidates the entire authority parse so earlier metadata cannot create a
+partial-success path.
 
 ### Validate one bounded hosted evidence document
 
@@ -40,9 +44,9 @@ other visible closing issues do not satisfy branch ownership.
 
 Local preflight continues to validate text and sidecar evidence before a PR
 exists. Required hosted CI adds the authoritative relation. Guarded delivery
-and terminal metrics retain their remote checks and share normalized validation
-where practical. The template states the exact standalone syntax so authors do
-not have to infer parser rules.
+and terminal metrics reuse the same normalized pagination and linkage
+validators. The template states the exact standalone syntax so authors do not
+have to infer parser rules.
 
 ### Keep provider timing honest
 

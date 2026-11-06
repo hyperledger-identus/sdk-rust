@@ -9,8 +9,8 @@ Every issue-branch pull request SHALL classify its branch-issue linkage as
 closing keyword for the exact branch issue. Deferred linkage SHALL be accepted
 only when the body contains a standalone non-closing reference to the exact
 branch issue and names one valid archived OpenSpec post-merge acceptance
-sidecar from the exact pull-request head. Metadata inside comments or fenced
-code SHALL NOT authorize linkage.
+sidecar from the exact pull-request head. Metadata inside comments, inline code,
+or fenced code SHALL NOT authorize linkage.
 
 Indented CommonMark code SHALL NOT authorize linkage. HTML comment delimiters
 inside fenced or indented code SHALL NOT change live comment state. An
@@ -20,7 +20,9 @@ than permit a partial authoritative parse.
 Deferred linkage SHALL reject closing keywords for the branch issue in the
 pull-request title, authoritative body, exact-head commit messages, guarded
 merge body, and observed merged commit message, including repository-qualified
-references and every closing-keyword form supported by GitHub.
+references and every closing-keyword form supported by GitHub. A closing
+keyword in live list-item continuation text SHALL be rejected even when the
+continuation begins with four spaces or a tab.
 
 The required hosted protected-base policy SHALL additionally bind its verdict
 to a complete, bounded, cursor-paginated snapshot of GitHub's authoritative
@@ -72,8 +74,15 @@ issue and pull-request head.
 #### Scenario: Apparent linkage is non-authoritative prose
 
 - **WHEN** an issue field, linkage mode, close, reference, or sidecar path occurs
-  only inside an HTML comment or fenced code block
+  only inside an HTML comment, inline code span, or fenced code block
 - **THEN** it does not satisfy pull-request linkage policy
+
+#### Scenario: Deferred closing text continues a list item
+
+- **WHEN** a deferred body places a closing keyword in an immediately indented
+  continuation of a live list item
+- **THEN** policy rejects the body because GitHub renders that continuation as
+  live text rather than an indented code block
 
 #### Scenario: Apparent linkage is indented code
 

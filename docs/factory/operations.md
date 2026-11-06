@@ -45,8 +45,16 @@ constraints and the normal dependency gates.
    without closing it, and bind the exact archived OpenSpec
    `post-merge-acceptance.json` sidecar. Deferred titles, commit messages, and
    merge bodies must not contain a closing keyword for that issue. Terminal
-   metrics treat the exact deferred reference as valid linkage. Merge into
-   `develop` only at the reviewed exact head with all required checks green.
+   metrics treat the exact deferred reference as valid linkage. The required
+   hosted policy check binds the provider's bounded closing-reference pages to
+   the exact pull request and head: `closes` requires exactly one relation to
+   the branch issue, while `deferred` requires none. This check is a snapshot,
+   not an atomic lock. The guarded merge path therefore re-reads the same
+   hosted relation immediately before merging; direct provider-side mutation
+   between a successful check and a manual merge remains detectable but cannot
+   be made atomic without a separately authorized repository-setting or merge-
+   queue change. Merge into `develop` only at the reviewed exact head with all
+   required checks green.
 9. Close the managed worktree only with the merged PR number and exact head.
 
 Prototype work uses the same issue and OpenSpec boundary but cannot publish or

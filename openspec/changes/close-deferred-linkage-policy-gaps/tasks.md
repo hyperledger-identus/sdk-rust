@@ -9,22 +9,22 @@
 
 ## 2. Repair Markdown authority
 
-- [ ] 2.1 Make fenced and indented code inert before HTML-comment handling and
+- [x] 2.1 Make fenced and indented code inert before HTML-comment handling and
       fail closed on unterminated constructs.
-- [ ] 2.2 Add adversarial mutations for fence markers, comments, indentation,
+- [x] 2.2 Add adversarial mutations for fence markers, comments, indentation,
       decoys, and live metadata after code.
 
 ## 3. Bind hosted closing evidence
 
-- [ ] 3.1 Capture bounded paginated exact-PR closing references in protected CI.
-- [ ] 3.2 Validate page integrity and enforce exact branch-issue semantics for
+- [x] 3.1 Capture bounded paginated exact-PR closing references in protected CI.
+- [x] 3.2 Validate page integrity and enforce exact branch-issue semantics for
       closing and deferred modes.
-- [ ] 3.3 Align guarded delivery and terminal metrics without expanding issue
+- [x] 3.3 Align guarded delivery and terminal metrics without expanding issue
       #308 beyond this slice.
 
 ## 4. Reconcile guidance and closeout
 
-- [ ] 4.1 Clarify the PR template, operator guidance, provider timing
+- [x] 4.1 Clarify the PR template, operator guidance, provider timing
       limitation, activation, and rollback.
 - [ ] 4.2 Run focused mutations, policy suites, factory/bootstrap gates, and
       signature/DCO checks.

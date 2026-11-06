@@ -421,7 +421,10 @@ export function validateHostedMetricIdentity(record, {
       ));
     const declaredMode = declaredIssueLinkageMode(pullRequest?.body);
     if (closesRecordedIssue && declaredMode !== "deferred") return;
-    const deferred = validateIssueLinkage(pullRequest?.body, record.issue, { loadDeferredAcceptance });
+    const deferred = validateIssueLinkage(pullRequest?.body, record.issue, {
+      additionalClosingText: pullRequest?.title,
+      loadDeferredAcceptance,
+    });
     const defersRecordedIssue = deferred.ok && deferred.mode === "deferred";
     if (closesRecordedIssue && defersRecordedIssue) {
       fail("metric deferred pull request has a hosted closing reference to its issue");
@@ -548,12 +551,13 @@ function publish(record, issue, requestedTarget, execute) {
         "-f", `owner=${owner}`,
         "-f", `name=${name}`,
         "-F", `number=${number}`,
-        "-f", "query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid body closingIssuesReferences(first:100){nodes{number repository{nameWithOwner}}}}}}",
+        "-f", "query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid title body closingIssuesReferences(first:100){nodes{number repository{nameWithOwner}}}}}}",
       ], "unable to verify authoritative metric pull request");
       const pullRequest = response?.data?.repository?.pullRequest;
       return {
         number: pullRequest?.number,
         headRefOid: pullRequest?.headRefOid,
+        title: pullRequest?.title,
         body: pullRequest?.body,
         closingIssuesReferences: pullRequest?.closingIssuesReferences?.nodes?.map((reference) => ({
           number: reference?.number,

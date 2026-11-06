@@ -6,6 +6,11 @@
 
 ## Issue and decision record
 
+<!-- Use exactly one live standalone `- Issue: #123` line and one live
+`- Issue linkage: closes` or `- Issue linkage: deferred` line. Closing mode
+also requires exactly one live standalone `Closes #123` line. Indented code,
+fenced code, HTML comments, prose, titles and commit messages do not satisfy
+these fields. -->
 - Issue: <!-- Required: #123 -->
 - Issue linkage: <!-- Required: closes/deferred -->
 - Post-merge acceptance: <!-- Required for deferred: openspec/changes/archive/YYYY-MM-DD-change/post-merge-acceptance.json -->

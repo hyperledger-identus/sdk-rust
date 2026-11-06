@@ -482,15 +482,21 @@ export function mergePullRequest(options, dependencies = {}) {
     });
     if (!contribution.ok) fail("hosted pull request metadata no longer satisfies contribution policy");
   }
-  const deferredIssue = contribution?.linkage.mode === "deferred" ? contribution.linkage.issue : null;
-  if (deferredIssue && Array.isArray(before?.closingIssuesReferences)
-      && before.closingIssuesReferences.some((reference) => {
-        const owner = reference?.repository?.owner?.login;
-        const name = reference?.repository?.name;
-        return reference?.number === deferredIssue
-          && `${owner}/${name}`.toLowerCase() === repository.toLowerCase();
-      })) {
+  const linkedIssue = contribution?.linkage.issue ?? null;
+  const matchingClosingReferences = linkedIssue && Array.isArray(before?.closingIssuesReferences)
+    ? before.closingIssuesReferences.filter((reference) => {
+      const owner = reference?.repository?.owner?.login;
+      const name = reference?.repository?.name;
+      return reference?.number === linkedIssue
+        && `${owner}/${name}`.toLowerCase() === repository.toLowerCase();
+    })
+    : [];
+  const deferredIssue = contribution?.linkage.mode === "deferred" ? linkedIssue : null;
+  if (deferredIssue && matchingClosingReferences.length !== 0) {
     fail(`hosted pull request closing references include deferred issue #${deferredIssue}`);
+  }
+  if (contribution?.linkage.mode === "closes" && matchingClosingReferences.length !== 1) {
+    fail(`hosted pull request closing references must contain exactly one relation to issue #${linkedIssue}`);
   }
   const body = validateMergeBody(readPullRequestBody(options.bodyFile), identity, { deferredIssue });
   if (!alreadyMerged) validatePreMergeState(before, options.expectedHead);

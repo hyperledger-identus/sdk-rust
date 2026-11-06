@@ -4,7 +4,7 @@
 
 - [x] 1.1 Record issue #590, retrospective evidence, research, constraints,
       design, and the complete modified factory requirement.
-- [ ] 1.2 Pass research, constraint, strict OpenSpec, and durable planning-only
+- [x] 1.2 Pass research, constraint, strict OpenSpec, and durable planning-only
       preflight gates.
 
 ## 2. Repair Markdown authority
